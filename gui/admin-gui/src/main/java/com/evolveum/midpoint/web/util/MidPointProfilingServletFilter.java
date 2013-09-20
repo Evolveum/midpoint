@@ -27,7 +27,6 @@ import java.text.DecimalFormat;
 
 /**
  *  //TODO - After upgrading to javax.servlet version API 3.0, add response status code logging
- *  //TODO - Consider using Java SIMON API for measuring request times
  *
  *  In this filter, all incoming requests are captured and we measure server response times (using System.nanoTime() for now),
  *  this may be later adjusted using Java SIMON API (but this API is based on System.nanoTime() as well).

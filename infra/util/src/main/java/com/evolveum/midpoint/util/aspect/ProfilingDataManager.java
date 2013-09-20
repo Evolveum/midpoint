@@ -16,8 +16,10 @@
 
 package com.evolveum.midpoint.util.aspect;
 
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import org.aspectj.lang.ProceedingJoinPoint;
 
 import java.sql.Timestamp;
 import java.util.*;
@@ -42,7 +44,40 @@ public class ProfilingDataManager {
 
     /* CONSTANTS */
     private static final int DEFAULT_DUMP_INTERVAL = 30;
+    private static final int DEFAULT_PERF_DUMP_INTERVAL = 10;
     private static final byte TOP_TEN_METHOD_NUMBER = 5;
+
+    //Subsystems
+    public static final String SUBSYSTEM_REPOSITORY = "REPOSITORY";
+    public static final String SUBSYSTEM_TASKMANAGER = "TASKMANAGER";
+    public static final String SUBSYSTEM_PROVISIONING = "PROVISIONING";
+    public static final String SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER = "RESOURCEOBJECTCHANGELISTENER";
+    public static final String SUBSYSTEM_MODEL = "MODEL";
+    public static final String SUBSYSTEM_UCF = "UCF";
+    public static final String SUBSYSTEM_WORKFLOW = "WORKFLOW";
+
+    private static final boolean GET_OBJECT_TYPE_REPOSITORY = true;
+    private static final boolean GET_OBJECT_TYPE_TASK_MANAGER = true;
+    private static final boolean GET_OBJECT_TYPE_PROVISIONING = true;
+    private static final boolean GET_OBJECT_TYPE_SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER = false;
+    private static final boolean GET_OBJECT_TYPE_MODEL = true;
+    private static final boolean GET_OBJECT_TYPE_UCF = false;
+    private static final boolean GET_OBJECT_TYPE_WORKFLOW = true;
+
+    private static boolean isRepositoryProfiled = false;
+    private static boolean isTaskManagerProfiled = false;
+    private static boolean isProvisioningProfiled = false;
+    private static boolean isResourceObjectChangeListenerProfiled = false;
+    private static boolean isModelProfiled = false;
+    private static boolean isUcfProfiled = false;
+    private static boolean isWorkflowProfiled = false;
+
+    private static final String MODEL_EXECUTE_CHANGES = "executeChanges";
+
+    //Model subsystem constants
+    public static final String DELTA_ADD = "ADD";
+    public static final String DELTA_REPLACE = "REPLACE";
+    public static final String DELTA_DELETE = "DELETE";
 
     /* COMPARATOR */
     private static final ArrayComparator arrayComparator = new ArrayComparator();
@@ -52,32 +87,21 @@ public class ProfilingDataManager {
 
     /* ProfilingDataManager attributes */
     private long lastDumpTimestamp;
-    private long nextDumpTimestamp;
+    private long lastPerformanceDumpTimestamp;
     private int minuteDumpInterval = DEFAULT_DUMP_INTERVAL;
+
+    /* boolean triggers for profiling */
+    private boolean isPerformanceProfiled = false;
 
     //Maps for profiling events
 
     /* profilingDataLogMap keys for individual midPoint interfaces */
-    private Map<String, MethodUsageStatistics> repositoryLogMap = new HashMap<String, MethodUsageStatistics>();
-    private Map<String, MethodUsageStatistics> taskManagerLogMap = new HashMap<String, MethodUsageStatistics>();
-    private Map<String, MethodUsageStatistics> provisioningLogMap = new HashMap<String, MethodUsageStatistics>();
-    private Map<String, MethodUsageStatistics> resourceObjectChangeListenerLogMap = new HashMap<String, MethodUsageStatistics>();
-    private Map<String, MethodUsageStatistics> modelLogMap = new HashMap<String, MethodUsageStatistics>();
-    private Map<String, MethodUsageStatistics> ucfLogMap = new HashMap<String, MethodUsageStatistics>();
-    private Map<String, MethodUsageStatistics> workflowLogMap = new HashMap<String, MethodUsageStatistics>();
+    private Map<String, MethodUsageStatistics> performanceMap = new HashMap<String, MethodUsageStatistics>();
 
-    /* Another HashMaps, containing top ten worst performing method invocations for each subsystem */
-    private Map<String, ArrayList<ProfilingDataLog>> repositoryTopTenMap = new HashMap<String, ArrayList<ProfilingDataLog>>();
-    private Map<String, ArrayList<ProfilingDataLog>> taskManagerTopTenMap = new HashMap<String, ArrayList<ProfilingDataLog>>();
-    private Map<String, ArrayList<ProfilingDataLog>> provisioningTopTenMap = new HashMap<String, ArrayList<ProfilingDataLog>>();
-    private Map<String, ArrayList<ProfilingDataLog>> resourceObjectChangeListenerTopTenMap = new HashMap<String, ArrayList<ProfilingDataLog>>();
-    private Map<String, ArrayList<ProfilingDataLog>> modelTopTenMap = new HashMap<String, ArrayList<ProfilingDataLog>>();
-    private Map<String, ArrayList<ProfilingDataLog>> ucfTopTenMap = new HashMap<String, ArrayList<ProfilingDataLog>>();
-    private Map<String, ArrayList<ProfilingDataLog>> workflowTopTenMap = new HashMap<String, ArrayList<ProfilingDataLog>>();
+
 
     /* Some more print constants */
     private static final String PRINT_RIGHT_ARROW = "->";
-    private static final String PRINT_TOP_TEN_HEADER = "TOP 5 slowest calls:\n";
 
     /* ===BEHAVIOR=== */
     /*
@@ -86,7 +110,7 @@ public class ProfilingDataManager {
     public static ProfilingDataManager getInstance() {
 
         if(profilingDataManager == null){
-            profilingDataManager = new ProfilingDataManager(DEFAULT_DUMP_INTERVAL);
+            profilingDataManager = new ProfilingDataManager(DEFAULT_DUMP_INTERVAL, false);
         }
 
         return profilingDataManager;
@@ -95,128 +119,104 @@ public class ProfilingDataManager {
     /*
     *   ProfilingDataManager instance private constructor - not accessible from outside of this class
     * */
-    private ProfilingDataManager(int dumpInterval) {
+    private ProfilingDataManager(int dumpInterval, boolean performance) {
         //Configure timestamps
+        this.isPerformanceProfiled = performance;
         this.minuteDumpInterval = dumpInterval;
-        long secondDumpInterval = minutesToMillis(minuteDumpInterval);
         lastDumpTimestamp = System.currentTimeMillis();
-        nextDumpTimestamp = lastDumpTimestamp + secondDumpInterval;
+        lastPerformanceDumpTimestamp = System.currentTimeMillis();
 
     }   //ProfilingDataManager
 
     /**
      *  Configures ProfilingDataManager - can be called from outside
      * */
-    public void configureProfilingDataManager(Map<String, Boolean> profiledSubsystems, Integer dumpInterval, boolean subsystemProfilingActive){
+    public void configureProfilingDataManager(Map<String, Boolean> profiledSubsystems, Integer dumpInterval, boolean subsystemProfilingActive, boolean performance){
 
-        if(subsystemProfilingActive){
+        isPerformanceProfiled = performance;
+
+        if(subsystemProfilingActive || isPerformanceProfiled){
             MidpointAspect.activateSubsystemProfiling();
         }else {
             MidpointAspect.deactivateSubsystemProfiling();
         }
 
-        AspectProfilingFilters.subsystemConfiguration(profiledSubsystems);
+        subsystemConfiguration(profiledSubsystems);
 
         //Configure the dump interval
         if(dumpInterval != null && dumpInterval > 0){
             minuteDumpInterval = dumpInterval;
         }
 
-        profilingDataManager = new ProfilingDataManager(minuteDumpInterval);
+        profilingDataManager = new ProfilingDataManager(minuteDumpInterval, performance);
 
     }   //configureProfilingDataManager
 
     /*
-    *   Add eventLog to HashMap - repository subsystem
+    *   Here, we will decide, what filter will be applied (based on subsystem) on method end
     * */
-    public void addRepositoryLog(String key, ProfilingDataLog eventLog){
-        //First - we update the map containing overall usage statistics
-        updateOverallStatistics(repositoryLogMap, eventLog, key);
+    public void applyGranularityFilterOnEnd(ProceedingJoinPoint pjp, String subsystem, long startTime){
 
-        //Then, we examine, if current method run is not too slow, if it is, we will put it into
-        //current top 10 slowest runs
-        updateTopTenMap(repositoryTopTenMap, repositoryLogMap, eventLog, key);
+        if(pjp == null)
+            return;
 
-    }   //addRepositoryLog
+        ProfilingDataLog profilingEvent;
+
+        if(isRepositoryProfiled && SUBSYSTEM_REPOSITORY.equals(subsystem)){
+            profilingEvent = prepareProfilingDataLog(pjp, GET_OBJECT_TYPE_REPOSITORY, startTime);
+            String key = prepareKey(profilingEvent);
+            updateOverallStatistics(performanceMap, profilingEvent, key, SUBSYSTEM_REPOSITORY);
+
+        } else if(isModelProfiled && SUBSYSTEM_MODEL.equals(subsystem)){
+            profilingEvent = prepareProfilingDataLog(pjp, GET_OBJECT_TYPE_MODEL, startTime);
+
+            if(MODEL_EXECUTE_CHANGES.equals(profilingEvent.getMethodName())){
+                profilingEvent.setObjectType(getDeltaType(pjp));
+            }
+
+            String key = prepareKey(profilingEvent);
+            updateOverallStatistics(performanceMap, profilingEvent, key, SUBSYSTEM_MODEL);
+
+        } else if (isProvisioningProfiled && SUBSYSTEM_PROVISIONING.equals(subsystem)){
+            profilingEvent = prepareProfilingDataLog(pjp, GET_OBJECT_TYPE_PROVISIONING, startTime);
+            String key = prepareKey(profilingEvent);
+            updateOverallStatistics(performanceMap, profilingEvent, key, SUBSYSTEM_PROVISIONING);
+
+        } else if (isTaskManagerProfiled && SUBSYSTEM_TASKMANAGER.equals(subsystem)){
+            profilingEvent = prepareProfilingDataLog(pjp, GET_OBJECT_TYPE_TASK_MANAGER, startTime);
+            String key = prepareKey(profilingEvent);
+            updateOverallStatistics(performanceMap, profilingEvent, key, SUBSYSTEM_TASKMANAGER);
+
+        } else if (isUcfProfiled && SUBSYSTEM_UCF.equals(subsystem)){
+            profilingEvent = prepareProfilingDataLog(pjp, GET_OBJECT_TYPE_UCF, startTime);
+            String key = prepareKey(profilingEvent);
+            updateOverallStatistics(performanceMap, profilingEvent, key, SUBSYSTEM_UCF);
+
+        } else if(isResourceObjectChangeListenerProfiled && SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER.equals(subsystem)){
+            profilingEvent = prepareProfilingDataLog(pjp, GET_OBJECT_TYPE_SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER, startTime);
+            String key = prepareKey(profilingEvent);
+            updateOverallStatistics(performanceMap, profilingEvent, key, SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER);
+
+        } else if(isWorkflowProfiled && SUBSYSTEM_WORKFLOW.equals(subsystem)){
+            profilingEvent = prepareProfilingDataLog(pjp, GET_OBJECT_TYPE_WORKFLOW, startTime);
+            String key = prepareKey(profilingEvent);
+            updateOverallStatistics(performanceMap, profilingEvent, key, SUBSYSTEM_WORKFLOW);
+        }
+
+        ProfilingDataManager.getInstance().dumpToLog();
+
+    }   //applyGranularityFilterOnEnd
 
     /*
-    *   Add eventLog to HashMap - task manager subsystem
+    *   Prepares key to performance HashMap
     * */
-    public void addTaskManagerLog(String key, ProfilingDataLog eventLog){
-        //First - we update the map containing overall usage statistics
-        updateOverallStatistics(taskManagerLogMap, eventLog, key);
+    private String prepareKey(ProfilingDataLog log){
+        String key = log.getClassName();
+        key = key.concat(PRINT_RIGHT_ARROW);
+        key = key.concat(log.getMethodName());
 
-        //Then, we examine, if current method run is not too slow, if it is, we will put it into
-        //current top 10 slowest runs
-        updateTopTenMap(taskManagerTopTenMap, taskManagerLogMap, eventLog, key);
-
-    }   //addTaskManagerLog
-
-    /*
-    *   Add eventLog to HashMap - provisioning subsystem
-    * */
-    public void addProvisioningLog(String key, ProfilingDataLog eventLog){
-        //First - we update the map containing overall usage statistics
-        updateOverallStatistics(provisioningLogMap, eventLog, key);
-
-        //Then, we examine, if current method run is not too slow, if it is, we will put it into
-        //current top 10 slowest runs
-        updateTopTenMap(provisioningTopTenMap, provisioningLogMap, eventLog, key);
-
-    }   //addProvisioningLog
-
-    /*
-    *   Add eventLog to HashMap - resource object change listener subsystem
-    * */
-    public void addResourceObjectChangeListenerLog(String key, ProfilingDataLog eventLog){
-        //First - we update the map containing overall usage statistics
-        updateOverallStatistics(resourceObjectChangeListenerLogMap, eventLog, key);
-
-
-        //Then, we examine, if current method run is not too slow, if it is, we will put it into
-        //current top 10 slowest runs
-        updateTopTenMap(resourceObjectChangeListenerTopTenMap, resourceObjectChangeListenerLogMap, eventLog, key);
-
-    }   //addResourceObjectChangeListenerLog
-
-    /*
-    *   Add eventLog to HashMap - model subsystem
-    * */
-    public void addModelLog(String key, ProfilingDataLog eventLog){
-        //First - we update the map containing overall usage statistics
-        updateOverallStatistics(modelLogMap, eventLog, key);
-
-        //Then, we examine, if current method run is not too slow, if it is, we will put it into
-        //current top 10 slowest runs
-        updateTopTenMap(modelTopTenMap, modelLogMap, eventLog, key);
-
-    }   //addModelLog
-
-    /*
-*   Add eventLog to HashMap - UCF subsystem
-* */
-    public void addUcfLog(String key, ProfilingDataLog eventLog){
-        //First - we update the map containing overall usage statistics
-        updateOverallStatistics(ucfLogMap, eventLog, key);
-
-        //Then, we examine, if current method run is not too slow, if it is, we will put it into
-        //current top 10 slowest runs
-        updateTopTenMap(ucfTopTenMap, ucfLogMap, eventLog, key);
-
-    }   //addUcfLog
-
-    /*
-*   Add eventLog to HashMap - workflow subsystem
-* */
-    public void addWorkflowLog(String key, ProfilingDataLog eventLog){
-        //First - we update the map containing overall usage statistics
-        updateOverallStatistics(workflowLogMap, eventLog, key);
-
-        //Then, we examine, if current method run is not too slow, if it is, we will put it into
-        //current top 10 slowest runs
-       updateTopTenMap(workflowTopTenMap, workflowLogMap, eventLog, key);
-
-    }   //addWorkflowLog
+        return key;
+    }   //prepareKey
 
     /*
     *   If the time is right, dump collected profiling information to log false
@@ -227,40 +227,48 @@ public class ProfilingDataManager {
 
         long currentTime = System.currentTimeMillis();
 
-        if(currentTime >= nextDumpTimestamp){
+        if(currentTime >= (lastDumpTimestamp + minutesToMillis(minuteDumpInterval))){
             if(LOGGER.isDebugEnabled()){
 
-
                 //Print everything
-                if(AspectProfilingFilters.isModelProfiled()){
-                    printMap(modelLogMap, modelTopTenMap);
+                if(isModelProfiled){
+                    printMap(performanceMap, SUBSYSTEM_MODEL);
                 }
-                if(AspectProfilingFilters.isProvisioningProfiled()) {
-                    printMap(provisioningLogMap, provisioningTopTenMap);
+                if(isProvisioningProfiled) {
+                    printMap(performanceMap, SUBSYSTEM_PROVISIONING);
                 }
-                if(AspectProfilingFilters.isRepositoryProfiled())  {
-                    printMap(repositoryLogMap, repositoryTopTenMap);
+                if(isRepositoryProfiled)  {
+                    printMap(performanceMap, SUBSYSTEM_REPOSITORY);
                 }
-                if(AspectProfilingFilters.isTaskManagerProfiled()) {
-                    printMap(taskManagerLogMap, taskManagerTopTenMap);
+                if(isTaskManagerProfiled) {
+                    printMap(performanceMap, SUBSYSTEM_TASKMANAGER);
                 }
-                if(AspectProfilingFilters.isUcfProfiled()) {
-                    printMap(ucfLogMap, ucfTopTenMap);
+                if(isUcfProfiled) {
+                    printMap(performanceMap, SUBSYSTEM_UCF);
                 }
-                if(AspectProfilingFilters.isWorkflowProfiled()){
-                    printMap(workflowLogMap, workflowTopTenMap);
+                if(isWorkflowProfiled){
+                    printMap(performanceMap, SUBSYSTEM_WORKFLOW);
                 }
-                if(AspectProfilingFilters.isResourceObjectChangeListenerProfiled()) {
-                    printMap(resourceObjectChangeListenerLogMap, resourceObjectChangeListenerTopTenMap);
+                if(isResourceObjectChangeListenerProfiled) {
+                    printMap(performanceMap, SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER);
                 }
 
                 //Set next dump cycle
-                lastDumpTimestamp = currentTime;
-                nextDumpTimestamp = lastDumpTimestamp + minutesToMillis(minuteDumpInterval);
+                lastDumpTimestamp = System.currentTimeMillis();
                 cleanEverything();
             }
         }
+
+        //Print performance statistics if needed
+        if(isPerformanceProfiled){
+            if(currentTime >= (lastPerformanceDumpTimestamp + minutesToMillis(DEFAULT_PERF_DUMP_INTERVAL))){
+                new PerformanceStatistics(LOGGER);
+                lastPerformanceDumpTimestamp = System.currentTimeMillis();
+            }
+        }
     }   //dumpToLog
+
+
 
     /* =====STATIC HELPER METHODS===== */
     /*
@@ -273,114 +281,88 @@ public class ProfilingDataManager {
     /*
     *   Updates overall statistics
     * */
-    private static void updateOverallStatistics(Map<String, MethodUsageStatistics> logMap, ProfilingDataLog eventLog, String key){
+    private static void updateOverallStatistics(Map<String, MethodUsageStatistics> logMap, ProfilingDataLog eventLog, String key, String subsystem){
         if(!logMap.containsKey(key)){
-            logMap.put(key, new MethodUsageStatistics(eventLog));
+            logMap.put(key, new MethodUsageStatistics(eventLog, subsystem));
         } else {
             logMap.get(key).update(eventLog);
+        }
+
+        if(logMap.get(key).getSlowestMethodList().size() < TOP_TEN_METHOD_NUMBER){
+            logMap.get(key).getSlowestMethodList().add(eventLog);
+            sort(logMap.get(key).getSlowestMethodList());
+        } else {
+            if(logMap.get(key).getSlowestMethodList().get(logMap.get(key).getSlowestMethodList().size()-1).getEstimatedTime() < eventLog.getEstimatedTime()){
+                logMap.get(key).getSlowestMethodList().add(eventLog);
+                sort(logMap.get(key).getSlowestMethodList());
+                logMap.get(key).setCurrentTopTenMin(logMap.get(key).getSlowestMethodList().get(logMap.get(key).getSlowestMethodList().size()-1).getEstimatedTime());
+            }
+        }
+
+        if(logMap.get(key).getSlowestMethodList().size() > TOP_TEN_METHOD_NUMBER){
+            logMap.get(key).getSlowestMethodList().remove(logMap.get(key).getSlowestMethodList().size()-1);
         }
     }   //updateOverallStatistics
 
     /*
-    *   Updates top 10 list of slowest method calls
-    * */
-    private static void updateTopTenMap(Map<String, ArrayList<ProfilingDataLog>> topTenMap, Map<String, MethodUsageStatistics> logMap, ProfilingDataLog eventLog, String key){
-
-        if(!topTenMap.containsKey(key)){
-            ArrayList<ProfilingDataLog> helpList = new ArrayList<ProfilingDataLog>();
-            helpList.add(eventLog);
-            topTenMap.put(key, helpList);
-        } else {
-            if(topTenMap.get(key).size() < TOP_TEN_METHOD_NUMBER){
-                topTenMap.get(key).add(eventLog);
-                sort(topTenMap.get(key));
-            } else {
-                if(topTenMap.get(key).get(topTenMap.get(key).size()-1).getEstimatedTime() < eventLog.getEstimatedTime()){
-                    topTenMap.get(key).add(eventLog);
-                    sort(topTenMap.get(key));
-                    logMap.get(key).setCurrentTopTenMin(topTenMap.get(key).get(topTenMap.get(key).size()-1).getEstimatedTime());
-                }
-            }
-
-            //If we have more than 10 top ten slow methods, we need to delete the fastest one
-            if(topTenMap.get(key).size() > TOP_TEN_METHOD_NUMBER){
-                topTenMap.get(key).remove(topTenMap.get(key).size()-1);
-            }
-        }
-
-    }   //updateTopTenMap
-
-    /*
     *   prints provided map to log
     * */
-    private static void printMap(Map<String, MethodUsageStatistics> logMap, Map<String, ArrayList<ProfilingDataLog>> topTenMap){
-
-        StringBuilder sb = new StringBuilder();
-        sb.append("\n");
+    private static void printMap(Map<String, MethodUsageStatistics> logMap, String subsystem){
 
         for(String key: logMap.keySet()){
-            if(logMap.get(key) != null){
-                if(topTenMap.get(key) != null && !topTenMap.get(key).isEmpty()){
-                    sb.append(topTenMap.get(key).get(0).getClassName());
-                    sb.append(PRINT_RIGHT_ARROW);
-                    sb.append(topTenMap.get(key).get(0).getMethodName());
-                    sb.append(logMap.get(key).appendToLogger());
-
-                    sb.append(printTopTenMap(topTenMap.get(key), key));
-                }
+            if(logMap.get(key) != null && subsystem.equals(logMap.get(key).getSubsystem())){
+                logMap.get(key).appendToLogger(LOGGER);
             }
         }
-
-        LOGGER.debug(sb.toString());
-
     }   //printMap
 
     /*
-    *   Print top ten arrayList of ProfilingData logs
+    *   Configure profiled subsystems
     * */
-    private static String printTopTenMap(ArrayList<ProfilingDataLog> topTenList, String key){
-        StringBuilder sb = new StringBuilder();
+    public void subsystemConfiguration(Map<String, Boolean> subsystems){
 
-        sb.append(PRINT_TOP_TEN_HEADER);
+        isModelProfiled = subsystems.get(SUBSYSTEM_MODEL);
+        isProvisioningProfiled = subsystems.get(SUBSYSTEM_PROVISIONING);
+        isRepositoryProfiled = subsystems.get(SUBSYSTEM_REPOSITORY);
+        isResourceObjectChangeListenerProfiled = subsystems.get(SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER);
+        isTaskManagerProfiled = subsystems.get(SUBSYSTEM_TASKMANAGER);
+        isUcfProfiled = subsystems.get(SUBSYSTEM_UCF);
+        isWorkflowProfiled = subsystems.get(SUBSYSTEM_WORKFLOW);
 
-        //First, we need to sort the list by
-        sort(topTenList);
-
-        int counter = 0;
-        for(ProfilingDataLog log: topTenList){
-            sb.append(log.appendToLogger());
-            counter++;
-            if(counter == 10)
-                break;
-        }
-
-        return sb.toString();
-    }   //printTopTenMap
+    }   //subsystemConfiguration
 
     /*
     *   Cleans everything, all subsystem maps and top ten lists
     * */
     private void cleanEverything(){
-        modelLogMap.clear();
-        modelTopTenMap.clear();
-        repositoryLogMap.clear();
-        repositoryTopTenMap.clear();
-        provisioningLogMap.clear();
-        provisioningTopTenMap.clear();
-        taskManagerLogMap.clear();
-        taskManagerTopTenMap.clear();
-        workflowTopTenMap.clear();
-        workflowLogMap.clear();
-        ucfLogMap.clear();
-        ucfTopTenMap.clear();
-        resourceObjectChangeListenerTopTenMap.clear();
-        resourceObjectChangeListenerLogMap.clear();
+        performanceMap.clear();
     }   //cleanEverything
+
+    /*
+    *   Prepares ProfilingDataLog object from provided ProceedingJoinPoint object
+    *
+    *   Based on entry boolean getObjectType - method adds working objectType to ProfilingDataLog object
+    * */
+    private ProfilingDataLog prepareProfilingDataLog(ProceedingJoinPoint pjp, boolean getObjectType, long startTime){
+        long eTime = calculateTime(startTime);
+        long timestamp = System.currentTimeMillis();
+        String className = getClassName(pjp);
+        String method = getMethodName(pjp);
+
+        ProfilingDataLog profilingEvent = new ProfilingDataLog(className, method, eTime, timestamp, pjp);
+
+        if(getObjectType){
+            String type = getOperationType(pjp);
+            profilingEvent.setObjectType(type);
+        }
+
+        return profilingEvent;
+    }   //prepareProfilingDataLog
 
     /*
      *  Sorts ArrayList provided as the parameter
      */
-    private static ArrayList<ProfilingDataLog> sort(ArrayList<ProfilingDataLog> list){
+    private static List<ProfilingDataLog> sort(List<ProfilingDataLog> list){
         Collections.sort(list, arrayComparator);
         return list;
     }
@@ -398,5 +380,71 @@ public class ProfilingDataManager {
 
     }   //ArrayComparator inner-class
 
+    /* =====STATIC HELPET METHODS=====*/
+    /*
+    *  Calculates estimated time on method exit
+    */
+    private static long calculateTime(long startTime){
+        return (System.nanoTime() - startTime);
+    }   //calculateTime
+
+    /**
+     * Get joinPoint class name if available
+     *
+     */
+    private static String getClassName(ProceedingJoinPoint pjp) {
+        String className = null;
+        if (pjp.getThis() != null) {
+            className = pjp.getThis().getClass().getName();
+            className = className.replaceFirst("com.evolveum.midpoint", "..");
+        }
+        return className;
+    }   //getClassName
+
+    /*
+    *   Retrieves method name from pjp object
+    * */
+    private static String getMethodName(ProceedingJoinPoint pjp){
+        return pjp.getSignature().getName();
+    }   //getMethodName
+
+    /*
+    *  Returns ObjectType with what operation operates
+    */
+    private static String getOperationType(ProceedingJoinPoint pjp){
+        Object[] args = pjp.getArgs();
+
+        if(args.length == 0)
+            return "NO_ARGS";
+
+        try{
+            String[] splitType = PrettyPrinter.prettyPrint(args[0]).split("\\.");
+
+            if(splitType.length < 1)
+                return "null";
+            else
+                return splitType[splitType.length -1];
+
+        } catch (Throwable t){
+            LOGGER.error("Internal error formatting a value: {}", args[0], t);
+            return "###INTERNAL#ERROR### "+t.getClass().getName()+": "+t.getMessage()+" value="+args[0];
+        }
+    }   //getOperationType
+
+    /*
+    *  Return type of delta
+    */
+    private static String getDeltaType(ProceedingJoinPoint pjp){
+        String param = getOperationType(pjp);
+
+        if(param.contains(DELTA_ADD))
+            return DELTA_ADD;
+        else if (param.contains(DELTA_DELETE))
+            return DELTA_DELETE;
+        else if (param.contains(DELTA_REPLACE))
+            return DELTA_REPLACE;
+
+        return "";
+    }   //getDeltaType
 
 }

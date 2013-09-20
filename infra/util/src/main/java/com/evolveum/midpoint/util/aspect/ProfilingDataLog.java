@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.util.aspect;
 
 import com.evolveum.midpoint.util.logging.Trace;
+import org.aspectj.lang.ProceedingJoinPoint;
 
 import java.util.Date;
 
@@ -34,36 +35,35 @@ import java.util.Date;
  * */
 public class ProfilingDataLog {
 
-    /* Some print constants */
-    private static final String PRINT_EST = " , EST: ";
-    private static final String PRINT_EXECUTED = " EXECUTED: ";
-    private static final String PRINT_TAB = "\t";
-    private static final String PRINT_NEW_LINE = "\n";
-
     /* Member Attributes */
     private String className;
     private String methodName;
     private String objectType;
     long executionTimestamp;
     long estimatedTime;
-
-    /*
-    *   Default constructor - provided if needed for some reason
-    * */
-    public ProfilingDataLog(){}
+    Object[] args;
 
     /*
     *   Constructor - with parameters
     * */
-    public ProfilingDataLog(String className, String method, long est, long exeTimestamp){
+    public ProfilingDataLog(String className, String method, long est, long exeTimestamp, ProceedingJoinPoint pjp){
         this.className = className;
         this.methodName = method;
         this.estimatedTime = est;
         this.executionTimestamp = exeTimestamp;
+        this.args = retrieveMethodArguments(pjp);
 
     }   //ProfilingDataLog
 
     /* Getters and Setters */
+    public Object[] getArgs() {
+        return args;
+    }
+
+    public void setArgs(Object[] args) {
+        this.args = args;
+    }
+
     public long getEstimatedTime() {
         return estimatedTime;
     }
@@ -106,6 +106,13 @@ public class ProfilingDataLog {
 
     /* Behavior */
     /*
+    *   Retrieves Object[] containing method arguments from ProceedingJoinPoint object
+    * */
+    public Object[] retrieveMethodArguments(ProceedingJoinPoint pjp){
+        return pjp.getArgs();
+    }   //retrieveMethodArguments
+
+    /*
     *   Prints profilingLog to provided LOGGER
     *   this method is here for test purposes only
     * */
@@ -116,23 +123,12 @@ public class ProfilingDataLog {
     /*
     *   Appends log event to logger
     * */
-    public String appendToLogger(){
-        StringBuilder sb = new StringBuilder();
-
+    public void appendToLogger(Trace LOGGER){
         Date date = new Date(executionTimestamp);
-
-        sb.append(PRINT_TAB);
-        sb.append(objectType);
-        sb.append(PRINT_EST);
-        sb.append(formatExecutionTime(estimatedTime));
-        sb.append(PRINT_EXECUTED);
-        sb.append(date);
-        sb.append(PRINT_NEW_LINE);
-
-        return sb.toString();
+        LOGGER.debug("    {} EST: {} EXECUTED: {} ARGS: {}", new Object[]{objectType, formatExecutionTime(estimatedTime), date, args});
     }   //appendToLogger
 
-    /* =====STATIC HELPET METHODS===== */
+    /* =====STATIC HELPER METHODS===== */
     /*
     *   Formats execution time
     * */

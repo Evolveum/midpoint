@@ -18,6 +18,9 @@ package com.evolveum.midpoint.util.aspect;
 
 import com.evolveum.midpoint.util.logging.Trace;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  *  This class provides functionality as a holder for method performance statistics. Currently, we are monitoring
  *  and updating following statistics:
@@ -40,18 +43,13 @@ public class MethodUsageStatistics {
     private long mean = 0;
     private long usageCount = 0;
     private long currentTopTenMin = Long.MAX_VALUE;
-
-    /* Some print constants */
-    private static final String PRINT_USAGE = ": CALLS: ";
-    private static final String PRINT_MIN = " MIN: ";
-    private static final String PRINT_MAX = " MAX: ";
-    private static final String PRINT_MEAN = " MEAN: ";
-    private static final String PRINT_NEWLINE = "\n";
+    private String subsystem;
+    private List<ProfilingDataLog> slowestMethodList = new ArrayList<ProfilingDataLog>();
 
     /*
     *   Constructor
     * */
-    public MethodUsageStatistics(ProfilingDataLog logEvent){
+    public MethodUsageStatistics(ProfilingDataLog logEvent, String subsystem){
         long estTime = logEvent.getEstimatedTime();
 
         this.min = estTime;
@@ -59,10 +57,20 @@ public class MethodUsageStatistics {
         this.mean = estTime;
         this.usageCount++;
         this.currentTopTenMin = estTime;
+        this.subsystem = subsystem;
 
     }   //MethodUsageStatistics
 
     /* GETTERS AND SETTERS */
+
+    public String getSubsystem() {
+        return subsystem;
+    }
+
+    public void setSubsystem(String subsystem) {
+        this.subsystem = subsystem;
+    }
+
     public long getMin() {
         return min;
     }
@@ -103,6 +111,14 @@ public class MethodUsageStatistics {
         this.currentTopTenMin = currentTopTenMin;
     }
 
+    public List<ProfilingDataLog> getSlowestMethodList() {
+        return slowestMethodList;
+    }
+
+    public void setSlowestMethodList(List<ProfilingDataLog> slowestMethodList) {
+        this.slowestMethodList = slowestMethodList;
+    }
+
     /* BEHAVIOR */
     public synchronized void update(ProfilingDataLog logEvent){
         long currentEst = logEvent.getEstimatedTime();
@@ -129,20 +145,15 @@ public class MethodUsageStatistics {
     /*
     *   Appends method usage statistics to log file
     * */
-    public String appendToLogger(){
-        StringBuilder sb = new StringBuilder();
+    public void appendToLogger(Trace LOGGER){
+        ProfilingDataLog log = this.slowestMethodList.get(0);
 
-        sb.append(PRINT_USAGE);
-        sb.append(usageCount);
-        sb.append(PRINT_MAX);
-        sb.append(formatExecutionTime(max));
-        sb.append(PRINT_MIN);
-        sb.append(formatExecutionTime(min));
-        sb.append(PRINT_MEAN);
-        sb.append(formatExecutionTime(mean));
-        sb.append(PRINT_NEWLINE);
+        LOGGER.debug("{}->{}: CALLS: {} MAX: {} MIN: {} MEAN: {}",
+                new Object[]{log.getClassName(), log.getMethodName(), usageCount, formatExecutionTime(max), formatExecutionTime(min), formatExecutionTime(mean)});
 
-        return sb.toString();
+        for(ProfilingDataLog l: this.slowestMethodList)
+            l.appendToLogger(LOGGER);
+
     }   //appendToLogger
 
     /* STATIC HELPER METHODS */

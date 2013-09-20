@@ -251,8 +251,7 @@ public class MidpointAspect {
             }
 
             if(isProfilingActive){
-                //LOGGER.info("Profiling is active: OnEnd.");
-                AspectProfilingFilters.applyGranularityFilterOnEnd(pjp, subsystem, startTime);
+                ProfilingDataManager.getInstance().applyGranularityFilterOnEnd(pjp, subsystem, startTime);
             }
 
 			// Restore MDC

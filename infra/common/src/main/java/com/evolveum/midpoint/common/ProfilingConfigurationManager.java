@@ -125,6 +125,7 @@ public class ProfilingConfigurationManager {
         Map<String, Boolean> profiledSubsystems = new HashMap<String, Boolean>();
         int dumpInterval = 0;
         boolean subSystemProfiling = false;
+        boolean performanceProfiling = false;
 
         profiledSubsystems.put(SUBSYSTEM_PROVISIONING, checkXsdBooleanValue(profilingConfig.isProvisioning()));
         profiledSubsystems.put(SUBSYSTEM_REPOSITORY, checkXsdBooleanValue(profilingConfig.isRepository()));
@@ -145,13 +146,14 @@ public class ProfilingConfigurationManager {
         if(profilingConfig.getDumpInterval() != null)
             dumpInterval = profilingConfig.getDumpInterval();
 
-        if (subSystemProfiling){
-            LOGGER.info("Configuring subsystem Profiling");
-            ProfilingDataManager.getInstance().configureProfilingDataManager(profiledSubsystems, dumpInterval, subSystemProfiling);
+        performanceProfiling = checkXsdBooleanValue(profilingConfig.isPerformanceStatistics());
+
+        if (subSystemProfiling || performanceProfiling){
+            ProfilingDataManager.getInstance().configureProfilingDataManager(profiledSubsystems, dumpInterval, subSystemProfiling, performanceProfiling);
             return true;
         }
         else {
-            ProfilingDataManager.getInstance().configureProfilingDataManager(profiledSubsystems, dumpInterval, subSystemProfiling);
+            ProfilingDataManager.getInstance().configureProfilingDataManager(profiledSubsystems, dumpInterval, subSystemProfiling, performanceProfiling);
             return false;
         }
     }   //applySubsystemProfiling
