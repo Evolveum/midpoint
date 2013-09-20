@@ -704,12 +704,13 @@ public class PageUser extends PageAdminUsers {
 			} catch (Exception ex) {
 				subResult.recordFatalError("Couldn't load account." + ex.getMessage(), ex);
 				LoggingUtils.logException(LOGGER, "Couldn't load account", ex);
-			}
-		}
-		result.recomputeStatus();
-		result.recordSuccessIfUnknown();
+			} finally {
+                subResult.computeStatus();
+            }
+        }
+		result.computeStatus();
 
-		if (!result.isSuccess()) {
+		if (!WebMiscUtil.showResultInPage(result)) {
 			showResult(result);
 		}
 
