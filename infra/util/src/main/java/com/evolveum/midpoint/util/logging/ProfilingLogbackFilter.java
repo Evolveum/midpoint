@@ -25,7 +25,6 @@ import ch.qos.logback.core.spi.FilterReply;
 import org.slf4j.Marker;
 
 /**
- *  //TODO - apply ClusterManagerThread switch filter
  *
  *  This filter provides functionality to profiling loggers to act as they don't inherit
  *  rootAppender, thus forwarding profiling and performance logs only into IDM-PROFILE_LOG.
@@ -43,7 +42,7 @@ public class ProfilingLogbackFilter extends Filter<ILoggingEvent> {
     private FilterReply neutralReply = FilterReply.NEUTRAL;
 
     private final String REQUEST_FILTER_LOGGER_CLASS_NAME = "com.evolveum.midpoint.web.util.MidPointProfilingServletFilter";
-    private final String PROFILING_ASPECT_LOGGER = "com.evolveum.midpoint.util.aspect.MidpointAspect";
+    private final String PROFILING_ASPECT_LOGGER = "com.evolveum.midpoint.util.aspect.ProfilingDataManager";
 
     /* BEHAVIOR */
     @Override
@@ -53,7 +52,6 @@ public class ProfilingLogbackFilter extends Filter<ILoggingEvent> {
             return onMismatch;
         }
 
-        //ClusterManagerThread filter - if this was not applied, log files would be halted in no time.
         if(PROFILING_ASPECT_LOGGER.equals(event.getLoggerName())){
             return onMismatch;
         }

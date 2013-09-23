@@ -15,8 +15,6 @@
  */
 package com.evolveum.midpoint.util.aspect;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.evolveum.midpoint.util.logging.Trace;
@@ -26,15 +24,17 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.slf4j.MDC;
-import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 
 import com.evolveum.midpoint.util.PrettyPrinter;
 
 /**
- *  TODO - add class description
+ *  In this class, we define some Pointcuts in AOP meaning that will provide join points for most common
+ *  methods used in main midPoint subsystems. We wrap these methods with profiling wrappers.
  *
+ *  This class also serves another purpose - it is used for basic Method Entry/Exit or args profiling,
+ *  results from which are dumped to idm.log (by default)
  *
  *  @author shood
  * */
@@ -47,7 +47,7 @@ public class MidpointAspect {
 
 	// This logger provide profiling informations
     private static final org.slf4j.Logger LOGGER_PROFILING = org.slf4j.LoggerFactory.getLogger("PROFILING");
-    private static Trace LOGGER = TraceManager.getTrace(MidpointAspect.class);
+    //private static Trace LOGGER = TraceManager.getTrace(MidpointAspect.class);
 
     //Defines status of Aspect based profiling
     private static boolean isProfilingActive = false;
@@ -62,6 +62,7 @@ public class MidpointAspect {
 	public static final String SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER = "RESOURCEOBJECTCHANGELISTENER";
 	public static final String SUBSYSTEM_MODEL = "MODEL";
 	public static final String SUBSYSTEM_UCF = "UCF";
+    public static final String SUBSYSTEM_WORKFLOW = "WORKFLOW";
 	
 	public static final String[] SUBSYSTEMS = { SUBSYSTEM_REPOSITORY, SUBSYSTEM_TASKMANAGER, SUBSYSTEM_PROVISIONING, 
 		SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER, SUBSYSTEM_MODEL, SUBSYSTEM_UCF };
@@ -95,6 +96,13 @@ public class MidpointAspect {
 	public Object processResourceObjectChangeListenerNdc(ProceedingJoinPoint pjp) throws Throwable {
 		return wrapSubsystem(pjp, SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER);
 	}
+
+    @Around("entriesIntoWorkflow()")
+    public Object proccessWorkflowNdc(ProceedingJoinPoint pjp) throws Throwable {
+        return wrapSubsystem(pjp, SUBSYSTEM_WORKFLOW);
+    }
+
+
 
 	// This is made public to use in testing
 	public static String swapSubsystemMark(String subsystemName) {
@@ -171,11 +179,12 @@ public class MidpointAspect {
                 }
             }
 
+            //We dont need profiling on method start in current version
 			// if profiling info is needed - start
-            if(isProfilingActive){
-                LOGGER.info("Profiling is active: onStart");
-			    AspectProfilingFilters.applyGranularityFilterOnStart(pjp, subsystem);
-            }
+            //if(isProfilingActive){
+            //    LOGGER.info("Profiling is active: onStart");
+			//    AspectProfilingFilters.applyGranularityFilterOnStart(pjp, subsystem);
+            //}
 
 			// Process original call
 			try {
@@ -242,8 +251,7 @@ public class MidpointAspect {
             }
 
             if(isProfilingActive){
-                LOGGER.info("Profiling is active: OnEnd.");
-                AspectProfilingFilters.applyGranularityFilterOnEnd(pjp, subsystem, startTime);
+                ProfilingDataManager.getInstance().applyGranularityFilterOnEnd(pjp, subsystem, startTime);
             }
 
 			// Restore MDC
@@ -276,14 +284,15 @@ public class MidpointAspect {
 	public void entriesIntoResourceObjectChangeListener() {
 	}
 
+    @Pointcut("execution(* com.evolveum.midpoint.wf.api.WorkflowService.*(..))")
+    public void entriesIntoWorkflow(){
+
+    }
+
 
 	/**
 	 * Get joinpoint class name if available
-	 *
-	 * @param pjp
-	 * @return
 	 */
-    @Deprecated
 	private String getClassName(ProceedingJoinPoint pjp) {
 		String className = null;
 		if (pjp.getThis() != null) {
@@ -296,7 +305,8 @@ public class MidpointAspect {
     /*
     *   Stores current depth value to MDC
     * */
-    protected static void storeMDC(int d){
+    @Deprecated
+     protected static void storeMDC(int d){
         MDC.put("depth", Integer.toString(d));
     }
 
