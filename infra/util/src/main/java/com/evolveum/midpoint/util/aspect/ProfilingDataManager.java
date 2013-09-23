@@ -55,6 +55,7 @@ public class ProfilingDataManager {
     public static final String SUBSYSTEM_MODEL = "MODEL";
     public static final String SUBSYSTEM_UCF = "UCF";
     public static final String SUBSYSTEM_WORKFLOW = "WORKFLOW";
+    public static final String SUBSYSTEM_WEB = "WEB";
 
     private static final boolean GET_OBJECT_TYPE_REPOSITORY = true;
     private static final boolean GET_OBJECT_TYPE_TASK_MANAGER = true;
@@ -71,6 +72,7 @@ public class ProfilingDataManager {
     private static boolean isModelProfiled = false;
     private static boolean isUcfProfiled = false;
     private static boolean isWorkflowProfiled = false;
+    private static boolean isWebProfiled = false;
 
     private static final String MODEL_EXECUTE_CHANGES = "executeChanges";
 
@@ -131,11 +133,11 @@ public class ProfilingDataManager {
     /**
      *  Configures ProfilingDataManager - can be called from outside
      * */
-    public void configureProfilingDataManager(Map<String, Boolean> profiledSubsystems, Integer dumpInterval, boolean subsystemProfilingActive, boolean performance){
+    public void configureProfilingDataManager(Map<String, Boolean> profiledSubsystems, Integer dumpInterval, boolean subsystemProfilingActive, boolean performance, boolean request){
 
         isPerformanceProfiled = performance;
 
-        if(subsystemProfilingActive || isPerformanceProfiled){
+        if(subsystemProfilingActive || isPerformanceProfiled || request){
             MidpointAspect.activateSubsystemProfiling();
         }else {
             MidpointAspect.deactivateSubsystemProfiling();
@@ -208,6 +210,14 @@ public class ProfilingDataManager {
     }   //applyGranularityFilterOnEnd
 
     /*
+    *   Creates profiling event from captured servlet request
+    * */
+    public void prepareRequestProfilingEvent(ProfilingDataLog requestEvent){
+        String key = requestEvent.getClassName();
+        updateOverallStatistics(performanceMap, requestEvent, key, SUBSYSTEM_WEB);
+    }   //prepareRequestProfilingEvent
+
+    /*
     *   Prepares key to performance HashMap
     * */
     private String prepareKey(ProfilingDataLog log){
@@ -251,6 +261,9 @@ public class ProfilingDataManager {
                 }
                 if(isResourceObjectChangeListenerProfiled) {
                     printMap(performanceMap, SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER);
+                }
+                if(isWebProfiled){
+                    printMap(performanceMap, SUBSYSTEM_WEB);
                 }
 
                 //Set next dump cycle
@@ -328,6 +341,7 @@ public class ProfilingDataManager {
         isTaskManagerProfiled = subsystems.get(SUBSYSTEM_TASKMANAGER);
         isUcfProfiled = subsystems.get(SUBSYSTEM_UCF);
         isWorkflowProfiled = subsystems.get(SUBSYSTEM_WORKFLOW);
+        isWebProfiled = subsystems.get(SUBSYSTEM_WEB);
 
     }   //subsystemConfiguration
 
