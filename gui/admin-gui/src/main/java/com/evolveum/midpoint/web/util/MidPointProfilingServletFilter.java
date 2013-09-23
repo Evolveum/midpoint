@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.web.util;
 
+import com.evolveum.midpoint.util.aspect.ProfilingDataLog;
+import com.evolveum.midpoint.util.aspect.ProfilingDataManager;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -64,21 +66,35 @@ public class MidPointProfilingServletFilter implements Filter {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException {
 
-        long startTime = System.nanoTime();
-        chain.doFilter(request, response);
-        long elapsedTime = System.nanoTime() - startTime;
+        if(LOGGER.isTraceEnabled()){
+            long startTime = System.nanoTime();
+            chain.doFilter(request, response);
+            long elapsedTime = System.nanoTime() - startTime;
 
-        if(request instanceof HttpServletRequest){
-            String uri = ((HttpServletRequest)request).getRequestURI();
-            String info = ((HttpServletRequest)request).getMethod();
-            String sessionId = ((HttpServletRequest)request).getRequestedSessionId();
-
-
-            if(uri.startsWith("/midpoint/admin")){
-                LOGGER.trace(info + " " + uri + " " + sessionId + " " + df.format(((double)elapsedTime)/1000000) + " (ms).");
+            if(request instanceof HttpServletRequest){
+                String uri = ((HttpServletRequest)request).getRequestURI();
+                //String info = ((HttpServletRequest)request).getMethod();
+                //String sessionId = ((HttpServletRequest)request).getRequestedSessionId();
+                //if(uri.startsWith("/midpoint/admin")){
+                //    LOGGER.trace(info + " " + uri + " " + sessionId + " " + df.format(((double)elapsedTime)/1000000) + " (ms).");
+                //}
+                if(uri.startsWith("/midpoint/admin")){
+                    prepareRequestProfilingEvent(request, elapsedTime, uri);
+                }
             }
         }
     }   //doFilter
+
+    /*
+    *   Prepares profiling event from captured servlet request
+    * */
+    private void prepareRequestProfilingEvent(ServletRequest request, long elapsed, String uri){
+        String info = ((HttpServletRequest)request).getMethod();
+        String sessionId = ((HttpServletRequest)request).getRequestedSessionId();
+
+        ProfilingDataLog event = new ProfilingDataLog(info, uri, sessionId, elapsed, System.currentTimeMillis());
+        ProfilingDataManager.getInstance().prepareRequestProfilingEvent(event);
+    }   //prepareRequestProfilingEvent
 
 
 }

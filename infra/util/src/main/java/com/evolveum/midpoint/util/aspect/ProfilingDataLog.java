@@ -43,6 +43,9 @@ public class ProfilingDataLog {
     long estimatedTime;
     Object[] args;
 
+    //this is here for profiling events captured from servlet requests
+    private String sessionID;
+
     /*
     *   Constructor - with parameters
     * */
@@ -55,7 +58,26 @@ public class ProfilingDataLog {
 
     }   //ProfilingDataLog
 
+    /*
+    *   Second constructor, this time for request events
+    * */
+    public ProfilingDataLog(String method, String uri, String sessionID, long est, long exec){
+        this.methodName = method;
+        this.className = uri;
+        this.sessionID = sessionID;
+        this.estimatedTime = est;
+        this.executionTimestamp = exec;
+    }   //ProfilingDataLog
+
     /* Getters and Setters */
+    public String getSessionID() {
+        return sessionID;
+    }
+
+    public void setSessionID(String sessionID) {
+        this.sessionID = sessionID;
+    }
+
     public Object[] getArgs() {
         return args;
     }
@@ -125,7 +147,13 @@ public class ProfilingDataLog {
     * */
     public void appendToLogger(Trace LOGGER){
         Date date = new Date(executionTimestamp);
-        LOGGER.debug("    {} EST: {} EXECUTED: {} ARGS: {}", new Object[]{objectType, formatExecutionTime(estimatedTime), date, args});
+
+        //If we are printing request filter event, there are no arguments, but sessionID instead
+        if(args == null){
+            LOGGER.debug("    EST: {} EXECUTED: {} SESSION: {}", new Object[]{formatExecutionTime(estimatedTime), date, sessionID});
+        } else{
+            LOGGER.debug("    {} EST: {} EXECUTED: {} ARGS: {}", new Object[]{objectType, formatExecutionTime(estimatedTime), date, args});
+        }
     }   //appendToLogger
 
     /* =====STATIC HELPER METHODS===== */
