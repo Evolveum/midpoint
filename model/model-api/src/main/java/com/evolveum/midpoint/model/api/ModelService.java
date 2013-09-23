@@ -211,7 +211,7 @@ public interface ModelService {
 	 * @param task
 	 * @param parentResult parent OperationResult (in/out)
 	 */
-	<F extends FocusType> void recompute(Class<F> type, String oid, Task task, OperationResult parentResult)
+	<F extends ObjectType> void recompute(Class<F> type, String oid, Task task, OperationResult parentResult)
 			 throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException;
 	
 	/**

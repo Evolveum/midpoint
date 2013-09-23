@@ -83,7 +83,7 @@ public class LensUtil {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(LensUtil.class);
 	
-	public static <F extends FocusType> void traceContext(Trace logger, String activity, String phase, 
+	public static <F extends ObjectType> void traceContext(Trace logger, String activity, String phase, 
 			boolean important,  LensContext<F> context, boolean showTriples) throws SchemaException {
         if (logger.isTraceEnabled()) {
         	logger.trace("Lens context:\n"+
@@ -93,7 +93,7 @@ public class LensUtil {
         }
     }
 	
-	public static <F extends FocusType> ResourceType getResource(LensContext<F> context,
+	public static <F extends ObjectType> ResourceType getResource(LensContext<F> context,
 			String resourceOid, ProvisioningService provisioningService, OperationResult result) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 		ResourceType resourceType = context.getResource(resourceOid);
@@ -141,7 +141,7 @@ public class LensUtil {
 		return getOrCreateAccountContext(context, rsd);
 	}
 		
-	public static <F extends FocusType> LensProjectionContext getOrCreateAccountContext(LensContext<F> context,
+	public static <F extends ObjectType> LensProjectionContext getOrCreateAccountContext(LensContext<F> context,
 			ResourceShadowDiscriminator rsd) {
 		LensProjectionContext accountSyncContext = context.findProjectionContext(rsd);
 		if (accountSyncContext == null) {
@@ -475,7 +475,7 @@ public class LensUtil {
 		return timestampDelta;
     }
 
-	public static <F extends FocusType> void moveTriggers(LensProjectionContext projCtx, LensFocusContext<F> focusCtx) throws SchemaException {
+	public static <F extends ObjectType> void moveTriggers(LensProjectionContext projCtx, LensFocusContext<F> focusCtx) throws SchemaException {
 		ObjectDelta<ShadowType> projSecondaryDelta = projCtx.getSecondaryDelta();
 		if (projSecondaryDelta == null) {
 			return;

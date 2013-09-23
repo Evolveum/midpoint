@@ -91,7 +91,7 @@ public class ContextLoader {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ContextLoader.class);
 	
-	public <F extends FocusType> void load(LensContext<F> context, String activityDescription, 
+	public <F extends ObjectType> void load(LensContext<F> context, String activityDescription, 
 			OperationResult result) 
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, 
 			SecurityViolationException {
@@ -162,7 +162,7 @@ public class ContextLoader {
 	 * These are usually artifacts left after the context reload. E.g. an account that used to be linked to a user before
 	 * but was removed in the meantime.
 	 */
-	private <F extends FocusType> void removeRottenContexts(LensContext<F> context) {
+	private <F extends ObjectType> void removeRottenContexts(LensContext<F> context) {
 		Iterator<LensProjectionContext> projectionIterator = context.getProjectionContextsIterator();
 		while (projectionIterator.hasNext()) {
 			LensProjectionContext projectionContext = projectionIterator.next();
@@ -190,7 +190,7 @@ public class ContextLoader {
 	/**
 	 * Make sure that the projection context is loaded as approppriate.
 	 */
-	public <F extends FocusType> void makeSureProjectionIsLoaded(LensContext<F> context, 
+	public <F extends ObjectType> void makeSureProjectionIsLoaded(LensContext<F> context, 
 			LensProjectionContext projectionContext, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 		preprocessProjectionContext(context, projectionContext, result);
 		finishLoadOfProjectionContext(context, projectionContext, result);
@@ -200,7 +200,7 @@ public class ContextLoader {
 	 * Make sure that the context is OK and consistent. It means that is has a resource, it has correctly processed
 	 * discriminator, etc.
 	 */
-	private <F extends FocusType> void preprocessProjectionContext(LensContext<F> context, 
+	private <F extends ObjectType> void preprocessProjectionContext(LensContext<F> context, 
 			LensProjectionContext projectionContext, OperationResult result) 
 			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 		if (!ShadowType.class.isAssignableFrom(projectionContext.getObjectTypeClass())) {
@@ -245,7 +245,7 @@ public class ContextLoader {
 	/** 
 	 * try to load focus context from the projections, e.g. by determining account owners
 	 */
-	public <F extends FocusType> void determineFocusContext(LensContext<F> context, 
+	public <F extends ObjectType> void determineFocusContext(LensContext<F> context, 
 			OperationResult result) throws ObjectNotFoundException, SchemaException {
 		if (context.getFocusContext() != null) {
 			// already done
@@ -277,7 +277,7 @@ public class ContextLoader {
 		}
 	}
 	
-	private <F extends FocusType> void loadObjectCurrent(LensContext<F> context, OperationResult result) throws SchemaException, ObjectNotFoundException {
+	private <F extends ObjectType> void loadObjectCurrent(LensContext<F> context, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
 		if (focusContext == null) {
 			// Nothing to load
@@ -311,15 +311,24 @@ public class ContextLoader {
         focusContext.setFresh(true);
     }
 	
-	private <F extends FocusType> void loadFromSystemConfig(LensContext<F> context, OperationResult result)
+	private <F extends ObjectType> void loadFromSystemConfig(LensContext<F> context, OperationResult result)
 			throws ObjectNotFoundException, SchemaException {
-		PrismObject<SystemConfigurationType> systemConfiguration = 
+		PrismObject<SystemConfigurationType> systemConfiguration = null;
+		try {
+			systemConfiguration = 
 			cacheRepositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
 					null, result);
+		} catch (ObjectNotFoundException e) {
+		    // This should not normally happen, but it may happen in some cases (e.g. deleted and re-created
+			// configuration object, initial import of system configuration, etc.)
+		    LOGGER.warn("System configuration object is not present");
+		    return;
+		}
+		
 		if (systemConfiguration == null) {
-		    // throw new SystemException("System configuration object is null (should not happen!)");
-		    // This should not happen, but it happens in tests. And it is a convenient short cut. Tolerate it for now.
-		    LOGGER.warn("System configuration object is null (should not happen!)");
+			// This should not normally happen in production code.
+			// But it happens in tests. And it is a convenient short cut. Tolerate it for now.
+		    LOGGER.warn("System configuration object is null (this should not normally happen!)");
 		    return;
 		}
 		
@@ -359,7 +368,7 @@ public class ContextLoader {
 		}
 	}
 	
-	private <F extends FocusType> void loadLinkRefs(LensContext<F> context, OperationResult result) throws ObjectNotFoundException,
+	private <F extends ObjectType> void loadLinkRefs(LensContext<F> context, OperationResult result) throws ObjectNotFoundException,
 			SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
 		if (focusContext == null) {
@@ -386,7 +395,7 @@ public class ContextLoader {
 	/**
 	 * Does not overwrite existing account contexts, just adds new ones.
 	 */
-	private <F extends FocusType> void loadLinkRefsFromFocus(LensContext<F> context, PrismObject<F> focus,
+	private <F extends ObjectType> void loadLinkRefsFromFocus(LensContext<F> context, PrismObject<F> focus,
 			OperationResult result) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 		PrismReference linkRef = focus.findReference(UserType.F_LINK_REF);
@@ -442,7 +451,7 @@ public class ContextLoader {
 		}
 	}
 
-	private <F extends FocusType> void loadLinkRefsFromDelta(LensContext<F> context, PrismObject<F> focus,
+	private <F extends ObjectType> void loadLinkRefsFromDelta(LensContext<F> context, PrismObject<F> focus,
 			ObjectDelta<F> focusPrimaryDelta, OperationResult result) throws SchemaException,
 			ObjectNotFoundException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
@@ -628,7 +637,7 @@ public class ContextLoader {
 
 	}
 
-	private <F extends FocusType> void loadProjectionContextsSync(LensContext<F> context, OperationResult result) throws SchemaException,
+	private <F extends ObjectType> void loadProjectionContextsSync(LensContext<F> context, OperationResult result) throws SchemaException,
 			ObjectNotFoundException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
 		for (LensProjectionContext accountCtx : context.getProjectionContexts()) {
@@ -688,7 +697,7 @@ public class ContextLoader {
 		}
 	}
 
-	private <F extends FocusType> LensProjectionContext getOrCreateAccountContext(LensContext<F> context,
+	private <F extends ObjectType> LensProjectionContext getOrCreateAccountContext(LensContext<F> context,
 			PrismObject<ShadowType> account, OperationResult result) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 		ShadowType accountType = account.asObjectable();
@@ -708,7 +717,7 @@ public class ContextLoader {
 		return accountSyncContext;
 	}
 	
-	private <F extends FocusType> LensProjectionContext createAccountContext(LensContext<F> context,
+	private <F extends ObjectType> LensProjectionContext createAccountContext(LensContext<F> context,
 			PrismObject<ShadowType> account, OperationResult result) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 		ShadowType accountType = account.asObjectable();
@@ -730,7 +739,7 @@ public class ContextLoader {
 		return accountSyncContext;
 	}
 
-	private <F extends FocusType> LensProjectionContext findAccountContext(String accountOid, LensContext<F> context) {
+	private <F extends ObjectType> LensProjectionContext findAccountContext(String accountOid, LensContext<F> context) {
 		for (LensProjectionContext accContext : context.getProjectionContexts()) {
 			if (accountOid.equals(accContext.getOid())) {
 				return accContext;
@@ -740,7 +749,7 @@ public class ContextLoader {
 		return null;
 	}
 	
-	private <F extends FocusType> LensProjectionContext getOrCreateBrokenAccountContext(LensContext<F> context,
+	private <F extends ObjectType> LensProjectionContext getOrCreateBrokenAccountContext(LensContext<F> context,
 			String brokenAccountOid) {
 		LensProjectionContext accountContext = context.findProjectionContextByOid(brokenAccountOid);
 		if (accountContext != null) {
@@ -761,7 +770,7 @@ public class ContextLoader {
 	 * Check reconcile flag in account sync context and set accountOld
      * variable if it's not set (from provisioning), load resource (if not set already), etc.
 	 */
-	private <F extends FocusType> void finishLoadOfProjectionContext(LensContext<F> context, 
+	private <F extends ObjectType> void finishLoadOfProjectionContext(LensContext<F> context, 
 			LensProjectionContext projContext, OperationResult result)
 			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
 			SecurityViolationException {
@@ -882,7 +891,7 @@ public class ContextLoader {
 		
 	}
 	
-	private <F extends FocusType> void fullCheckConsistence(LensContext<F> context) {
+	private <F extends ObjectType> void fullCheckConsistence(LensContext<F> context) {
 		context.checkConsistence();
 		for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
 			if (projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {

@@ -93,7 +93,7 @@ public class SynchronizeAction extends BaseAction {
             throw new ObjectNotFoundException(message);
         }
 
-        LensContext<?> context = null;
+        LensContext<? extends FocusType> context = null;
         try {
             context = createLensContext(userType, change.getResource().asObjectable(), userTemplate, change);
 

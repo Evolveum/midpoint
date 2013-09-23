@@ -100,7 +100,7 @@ public class ReconciliationProcessor {
 			+ ".processReconciliation";
 	private static final Trace LOGGER = TraceManager.getTrace(ReconciliationProcessor.class);
 
-	<F extends FocusType> void processReconciliation(LensContext<F> context,
+	<F extends ObjectType> void processReconciliation(LensContext<F> context,
 			LensProjectionContext projectionContext, OperationResult result) throws SchemaException,
 			ObjectNotFoundException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
@@ -115,7 +115,7 @@ public class ReconciliationProcessor {
 		processReconciliationUser(context, projectionContext, result);
 	}
 
-	<F extends FocusType> void processReconciliationUser(LensContext<F> context,
+	<F extends ObjectType> void processReconciliationUser(LensContext<F> context,
 			LensProjectionContext accContext, OperationResult result) throws SchemaException,
 			ObjectNotFoundException, CommunicationException, ConfigurationException,
 			SecurityViolationException {

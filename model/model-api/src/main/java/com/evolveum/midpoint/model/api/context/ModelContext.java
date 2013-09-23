@@ -29,7 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
  * @author semancik
  *
  */
-public interface ModelContext<F extends FocusType> extends Serializable, Dumpable, DebugDumpable {
+public interface ModelContext<F extends ObjectType> extends Serializable, Dumpable, DebugDumpable {
 
 	public ModelState getState();
 	

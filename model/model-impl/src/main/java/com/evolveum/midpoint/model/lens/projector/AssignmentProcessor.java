@@ -124,17 +124,17 @@ public class AssignmentProcessor {
      * Processing all the assignments to determine which projections should be added, deleted or kept as they are.
      * Generic method for all projection types (theoretically). 
      */
-    public <F extends FocusType> void processAssignmentsProjections(LensContext<F> context, OperationResult result) throws SchemaException,
+    public <O extends ObjectType> void processAssignmentsProjections(LensContext<O> context, OperationResult result) throws SchemaException,
             ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
-    	LensFocusContext<F> focusContext = context.getFocusContext();
+    	LensFocusContext<O> focusContext = context.getFocusContext();
     	if (focusContext == null) {
     		return;
     	}
-    	if (focusContext.getObjectTypeClass() != UserType.class) {
-    		// We can do this only for user.
+    	if (!FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
+    		// We can do this only for FocusType.
     		return;
     	}
-    	processAssignmentsAccounts(context, result);
+    	processAssignmentsAccounts((LensContext<? extends FocusType>)context, result);
     }
     
     /**
@@ -611,7 +611,7 @@ public class AssignmentProcessor {
 		return false;
 	}
 	
-	public <F extends FocusType> void processOrgAssignments(LensContext<F> context, 
+	public <F extends ObjectType> void processOrgAssignments(LensContext<F> context, 
 			OperationResult result) throws SchemaException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
 		DeltaSetTriple<Assignment> evaluatedAssignmentTriple = context.getEvaluatedAssignmentTriple();
@@ -646,7 +646,7 @@ public class AssignmentProcessor {
 		// TODO: zero set if reconciliation?
 	}
 	
-	public <F extends FocusType> void checkForAssignmentConflicts(LensContext<F> context, 
+	public <F extends ObjectType> void checkForAssignmentConflicts(LensContext<F> context, 
 			OperationResult result) throws PolicyViolationException {
 		for(LensProjectionContext projectionContext: context.getProjectionContexts()) {
 			if (AssignmentPolicyEnforcementType.NONE == projectionContext.getAssignmentPolicyEnforcementType()){
@@ -674,7 +674,7 @@ public class AssignmentProcessor {
 		
     }
 
-    private <F extends FocusType> void collectToAccountMap(LensContext<F> context,
+    private <F extends ObjectType> void collectToAccountMap(LensContext<F> context,
             Map<ResourceShadowDiscriminator, AccountConstructionPack> accountMap, Assignment evaluatedAssignment, 
             boolean forceRecon, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         for (AccountConstruction accountConstruction : evaluatedAssignment.getAccountConstructions()) {
@@ -712,7 +712,7 @@ public class AssignmentProcessor {
         return sb.toString();
     }
 
-    private <F extends FocusType> boolean accountExists(LensContext<F> context, ResourceShadowDiscriminator rat) {
+    private <F extends ObjectType> boolean accountExists(LensContext<F> context, ResourceShadowDiscriminator rat) {
     	LensProjectionContext accountSyncContext = context.findProjectionContext(rat);
     	if (accountSyncContext == null) {
     		return false;
@@ -729,21 +729,21 @@ public class AssignmentProcessor {
         }
     }
 
-	private <F extends FocusType> void checkExclusions(LensContext<F> context, Collection<Assignment> assignmentsA,
+	private <F extends ObjectType> void checkExclusions(LensContext<F> context, Collection<Assignment> assignmentsA,
 			Collection<Assignment> assignmentsB) throws PolicyViolationException {
 		for (Assignment assignmentA: assignmentsA) {
 			checkExclusion(context, assignmentA, assignmentsB);
 		}
 	}
 
-	private <F extends FocusType> void checkExclusion(LensContext<F> context, Assignment assignmentA,
+	private <F extends ObjectType> void checkExclusion(LensContext<F> context, Assignment assignmentA,
 			Collection<Assignment> assignmentsB) throws PolicyViolationException {
 		for (Assignment assignmentB: assignmentsB) {
 			checkExclusion(context, assignmentA, assignmentB);
 		}
 	}
 
-	private <F extends FocusType> void checkExclusion(LensContext<F> context, Assignment assignmentA, Assignment assignmentB) throws PolicyViolationException {
+	private <F extends ObjectType> void checkExclusion(LensContext<F> context, Assignment assignmentA, Assignment assignmentB) throws PolicyViolationException {
 		if (assignmentA == assignmentB) {
 			// Same thing, this cannot exclude itself
 			return;
@@ -786,7 +786,7 @@ public class AssignmentProcessor {
 	}
 	
 
-	public <F extends FocusType> void removeIgnoredContexts(LensContext<F> context) {
+	public <F extends ObjectType> void removeIgnoredContexts(LensContext<F> context) {
 		Collection<LensProjectionContext> projectionContexts = context.getProjectionContexts();
 		Iterator<LensProjectionContext> projectionIterator = projectionContexts.iterator();
 		while (projectionIterator.hasNext()) {

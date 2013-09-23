@@ -135,16 +135,16 @@ public class ChangeExecutor {
     	shadowDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
     }
 
-    public <F extends FocusType> void executeChanges(LensContext<F> syncContext, Task task, OperationResult parentResult) throws ObjectAlreadyExistsException,
+    public <O extends ObjectType> void executeChanges(LensContext<O> syncContext, Task task, OperationResult parentResult) throws ObjectAlreadyExistsException,
             ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
     	
     	OperationResult result = parentResult.createSubresult(OPERATION_EXECUTE);
     	
     	// FOCUS
     	
-    	LensFocusContext<F> focusContext = syncContext.getFocusContext();
+    	LensFocusContext<O> focusContext = syncContext.getFocusContext();
     	if (focusContext != null) {
-	        ObjectDelta<F> userDelta = focusContext.getWaveDelta(syncContext.getExecutionWave());
+	        ObjectDelta<O> userDelta = focusContext.getWaveDelta(syncContext.getExecutionWave());
 	        if (userDelta != null) {
 	
 	        	OperationResult subResult = result.createSubresult(OPERATION_EXECUTE_FOCUS+"."+focusContext.getObjectTypeClass().getSimpleName());
@@ -314,7 +314,7 @@ public class ChangeExecutor {
 	/**
      * Make sure that the account is linked (or unlinked) as needed.
      */
-    private <F extends FocusType> void updateAccountLinks(PrismObject<F> prismObject,
+    private <F extends ObjectType> void updateAccountLinks(PrismObject<F> prismObject,
     		LensFocusContext<F> focusContext, LensProjectionContext accCtx,
     		Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
     	if (prismObject == null) {
@@ -444,7 +444,7 @@ public class ChangeExecutor {
  
     }
 	
-    private <F extends FocusType> void updateSituationInAccount(Task task, 
+    private <F extends ObjectType> void updateSituationInAccount(Task task, 
     		SynchronizationSituationType situation, LensFocusContext<F> focusContext, String accountRef, 
     		OperationResult parentResult) throws ObjectNotFoundException, SchemaException{
 
@@ -491,10 +491,7 @@ public class ChangeExecutor {
 		
 	}
     
-    /**
-     * Used directly to execute changes to configuration objects. In this case the contexts are null. 
-     */
-	public <T extends ObjectType, F extends FocusType>
+	private <T extends ObjectType, F extends ObjectType>
     	void executeDelta(ObjectDelta<T> objectDelta, LensElementContext<T> objectContext, LensContext<F> context,
     			ModelExecuteOptions options, ResourceType resource, Task task, OperationResult parentResult) 
     			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException,
@@ -580,7 +577,7 @@ public class ChangeExecutor {
 		return provisioningOptions;
 	}
 
-	private <T extends ObjectType, F extends FocusType>
+	private <T extends ObjectType, F extends ObjectType>
 				void logDeltaExecution(ObjectDelta<T> objectDelta, LensContext<F> context, 
 						ResourceType resource, OperationResult result, Task task) {
 		StringBuilder sb = new StringBuilder();
@@ -612,7 +609,7 @@ public class ChangeExecutor {
 		LOGGER.debug("\n{}", sb);
 	}
 
-    private <T extends ObjectType, F extends FocusType> void executeAddition(ObjectDelta<T> change, 
+    private <T extends ObjectType, F extends ObjectType> void executeAddition(ObjectDelta<T> change, 
     		LensContext<F> context, ModelExecuteOptions options, ResourceType resource, Task task, OperationResult result) 
     				throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, 
     				ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
@@ -666,7 +663,7 @@ public class ChangeExecutor {
     }
 
     
-    private <T extends ObjectType, F extends FocusType> void executeDeletion(ObjectDelta<T> change, 
+    private <T extends ObjectType, F extends ObjectType> void executeDeletion(ObjectDelta<T> change, 
     		LensContext<F> context, ModelExecuteOptions options, ResourceType resource, Task task, OperationResult result) throws
             ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 
@@ -691,7 +688,7 @@ public class ChangeExecutor {
         }
     }
 
-    private <T extends ObjectType, F extends FocusType> void executeModification(ObjectDelta<T> change,
+    private <T extends ObjectType, F extends ObjectType> void executeModification(ObjectDelta<T> change,
             LensElementContext<T> objectContext,
     		LensContext<F> context, ModelExecuteOptions options, ResourceType resource, Task task, OperationResult result)
             throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
@@ -709,7 +706,7 @@ public class ChangeExecutor {
         	if (options == null && context != null) {
         		options = context.getOptions();
         	}
-        	ProvisioningOperationOptions provisioningOptions = copyFromModelOptions(context.getOptions());
+        	ProvisioningOperationOptions provisioningOptions = copyFromModelOptions(options);
         	if (context != null && context.getChannel() != null && context.getChannel().equals(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON))){
         		provisioningOptions.setCompletePostponed(false);
     		}
@@ -722,7 +719,7 @@ public class ChangeExecutor {
         }
     }
     
-	private <T extends ObjectType, F extends FocusType> void applyMetadata(LensContext<F> context, Task task, T objectTypeToAdd, OperationResult result) throws SchemaException {
+	private <T extends ObjectType, F extends ObjectType> void applyMetadata(LensContext<F> context, Task task, T objectTypeToAdd, OperationResult result) throws SchemaException {
 		MetadataType metaData = new MetadataType();
 		String channel = getChannel(context, task);
 		metaData.setCreateChannel(channel);
@@ -737,7 +734,7 @@ public class ChangeExecutor {
 		objectTypeToAdd.setMetadata(metaData);
 	}
     
-    private <F extends FocusType> String getChannel(LensContext<F> context, Task task){
+    private <F extends ObjectType> String getChannel(LensContext<F> context, Task task){
     	if (context != null && context.getChannel() != null){
     		return context.getChannel();
     	} else if (task.getChannel() != null){
@@ -746,7 +743,7 @@ public class ChangeExecutor {
     	return null;
     }
     
-    private <T extends ObjectType, F extends FocusType> void applyMetadata(ObjectDelta<T> change, LensElementContext<T> objectContext, 
+    private <T extends ObjectType, F extends ObjectType> void applyMetadata(ObjectDelta<T> change, LensElementContext<T> objectContext, 
     		Class objectTypeClass, Task task, LensContext<F> context, OperationResult result) throws SchemaException {
         String channel = getChannel(context, task);
 
@@ -817,7 +814,7 @@ public class ChangeExecutor {
         }
     }
 
-    private <F extends FocusType> String addProvisioningObject(PrismObject<? extends ObjectType> object, 
+    private <F extends ObjectType> String addProvisioningObject(PrismObject<? extends ObjectType> object, 
     		LensContext<F> context, ProvisioningOperationOptions options, ResourceType resource, Task task, 
     		OperationResult result)
             throws ObjectNotFoundException, ObjectAlreadyExistsException, SchemaException,
@@ -838,7 +835,7 @@ public class ChangeExecutor {
         return oid;
     }
 
-    private <F extends FocusType> void deleteProvisioningObject(Class<? extends ObjectType> objectTypeClass, String oid,
+    private <F extends ObjectType> void deleteProvisioningObject(Class<? extends ObjectType> objectTypeClass, String oid,
     		LensContext<F> context, ProvisioningOperationOptions options, ResourceType resource, Task task, 
             OperationResult result) throws ObjectNotFoundException, ObjectAlreadyExistsException,
             SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
@@ -859,7 +856,7 @@ public class ChangeExecutor {
         Utils.clearRequestee(task);
     }
 
-    private <F extends FocusType> String modifyProvisioningObject(Class<? extends ObjectType> objectTypeClass, String oid,
+    private <F extends ObjectType> String modifyProvisioningObject(Class<? extends ObjectType> objectTypeClass, String oid,
             Collection<? extends ItemDelta> modifications, LensContext<F> context, ProvisioningOperationOptions options, 
             ResourceType resource, Task task, OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException {
 
@@ -872,7 +869,7 @@ public class ChangeExecutor {
         return changedOid;
     }
 
-    private <F extends FocusType> OperationProvisioningScriptsType prepareScripts(
+    private <F extends ObjectType> OperationProvisioningScriptsType prepareScripts(
     		PrismObject<? extends ObjectType> changedObject, LensContext<F> context, 
     		ProvisioningOperationTypeType operation, ResourceType resource, OperationResult result) throws ObjectNotFoundException,
             SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
@@ -971,7 +968,7 @@ public class ChangeExecutor {
 		return variables;
 	}
     
-    private <T extends ObjectType, F extends FocusType>
+    private <T extends ObjectType, F extends ObjectType>
 	void executeReconciliationScript(LensProjectionContext projContext, LensContext<F> context,
 			ProvisioningScriptOrderType order, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException {
     	

@@ -79,11 +79,11 @@ public class CredentialsProcessor {
     @Autowired(required = true)
     private PasswordPolicyProcessor passwordPolicyProcessor;
 
-    public <F extends FocusType> void processCredentials(LensContext<F> context, LensProjectionContext projectionContext, OperationResult result) 
+    public <F extends ObjectType> void processCredentials(LensContext<F> context, LensProjectionContext projectionContext, OperationResult result) 
     		throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {	
     	LensFocusContext<F> focusContext = context.getFocusContext();
-    	if (focusContext != null && focusContext.getObjectTypeClass() == UserType.class) {
-    		processCredentialsUser(context, projectionContext, result);
+    	if (focusContext != null && FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
+    		processCredentialsFocal((LensContext<? extends FocusType>)context, projectionContext, result);
 //    		return;
     	}
 //    	if (focusContext.getObjectTypeClass() != UserType.class) {
@@ -95,7 +95,7 @@ public class CredentialsProcessor {
     }
     
     
-    public <F extends FocusType> void processCredentialsUser(LensContext<F> context, 
+    public <F extends FocusType> void processCredentialsFocal(LensContext<F> context, 
     		final LensProjectionContext accCtx, OperationResult result) 
 		throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
     	LensFocusContext<F> focusContext = context.getFocusContext();

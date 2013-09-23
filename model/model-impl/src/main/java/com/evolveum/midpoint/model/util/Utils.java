@@ -323,7 +323,7 @@ public final class Utils {
         setRequestee(task, oid);
     }
 
-    public static <F extends FocusType> void setRequestee(Task task, LensFocusContext<F> context) {
+    public static <F extends ObjectType> void setRequestee(Task task, LensFocusContext<F> context) {
         setRequestee(task, context.getLensContext());
     }
 

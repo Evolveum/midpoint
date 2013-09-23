@@ -327,7 +327,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         }
     }
     
-    public <F extends FocusType> boolean hasLinkedAccount(String resourceOid) {
+    public <F extends ObjectType> boolean hasLinkedAccount(String resourceOid) {
     	LensContext<F> ctx = ModelExpressionThreadLocalHolder.getLensContext();
     	if (ctx == null) {
     		throw new IllegalStateException("No lens context");

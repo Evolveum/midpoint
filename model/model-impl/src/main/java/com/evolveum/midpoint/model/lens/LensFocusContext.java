@@ -44,7 +44,7 @@ import org.apache.commons.lang.StringUtils;
  * @author semancik
  *
  */
-public class LensFocusContext<O extends FocusType> extends LensElementContext<O> {
+public class LensFocusContext<O extends ObjectType> extends LensElementContext<O> {
 
     private static final Trace LOGGER = TraceManager.getTrace(LensFocusContext.class);
 
@@ -179,14 +179,14 @@ public class LensFocusContext<O extends FocusType> extends LensElementContext<O>
      * This is relative to execution wave to avoid re-processing of already executed assignments.
      */
     public ContainerDelta<AssignmentType> getExecutionWaveAssignmentDelta() throws SchemaException {
-    	if (getObjectTypeClass() != UserType.class) {
+    	if (!FocusType.class.isAssignableFrom(getObjectTypeClass())) {
     		throw new UnsupportedOperationException("Attempt to get assignment deltas from "+getObjectTypeClass());
     	}
-        ObjectDelta<UserType> userDelta = (ObjectDelta<UserType>) getWaveDelta(getLensContext().getExecutionWave());
+        ObjectDelta<? extends FocusType> userDelta = (ObjectDelta<? extends FocusType>) getWaveDelta(getLensContext().getExecutionWave());
         if (userDelta == null) {
             return createEmptyAssignmentDelta();
         }
-        ContainerDelta<AssignmentType> assignmentDelta = userDelta.findContainerDelta(new ItemPath(UserType.F_ASSIGNMENT));
+        ContainerDelta<AssignmentType> assignmentDelta = userDelta.findContainerDelta(new ItemPath(FocusType.F_ASSIGNMENT));
         if (assignmentDelta == null) { 
             return createEmptyAssignmentDelta();
         }
@@ -194,14 +194,14 @@ public class LensFocusContext<O extends FocusType> extends LensElementContext<O>
     }
     
 	public Collection<? extends ItemDelta<?>> getExecutionWaveAssignmentItemDeltas(Long id) throws SchemaException {
-		if (getObjectTypeClass() != UserType.class) {
+		if (!FocusType.class.isAssignableFrom(getObjectTypeClass())) {
     		throw new UnsupportedOperationException("Attempt to get assignment deltas from "+getObjectTypeClass());
     	}
-        ObjectDelta<UserType> userDelta = (ObjectDelta<UserType>) getWaveDelta(getLensContext().getExecutionWave());
+        ObjectDelta<? extends FocusType> userDelta = (ObjectDelta<? extends FocusType>) getWaveDelta(getLensContext().getExecutionWave());
         if (userDelta == null) {
             return null;
         }
-        return userDelta.findItemDeltasSubPath(new ItemPath(new NameItemPathSegment(UserType.F_ASSIGNMENT),
+        return userDelta.findItemDeltasSubPath(new ItemPath(new NameItemPathSegment(FocusType.F_ASSIGNMENT),
         									  new IdItemPathSegment(id)));
 	}
 

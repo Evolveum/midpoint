@@ -27,18 +27,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
  */
 public class ModelExpressionThreadLocalHolder {
 	
-	private static ThreadLocal<LensContext<? extends FocusType>> lensContext = new ThreadLocal<LensContext<? extends FocusType>>();
+	private static ThreadLocal<LensContext<? extends ObjectType>> lensContext = new ThreadLocal<LensContext<? extends ObjectType>>();
 	private static ThreadLocal<OperationResult> currentResult = new ThreadLocal<OperationResult>();
 	
-	public static <F extends FocusType> void setLensContext(LensContext<F> ctx) {
+	public static <F extends ObjectType> void setLensContext(LensContext<F> ctx) {
 		lensContext.set(ctx);
 	}
 	
-	public static <F extends FocusType> void resetLensContext() {
+	public static <F extends ObjectType> void resetLensContext() {
 		lensContext.set(null);
 	}
 
-	public static <F extends FocusType> LensContext<F> getLensContext() {
+	public static <F extends ObjectType> LensContext<F> getLensContext() {
 		return (LensContext<F>) lensContext.get();
 	}
 	

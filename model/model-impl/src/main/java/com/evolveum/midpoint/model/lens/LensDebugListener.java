@@ -30,8 +30,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
  */
 public interface LensDebugListener {
 	
-	public <F extends FocusType> void beforeSync(LensContext<F> context);
+	public <F extends ObjectType> void beforeSync(LensContext<F> context);
 
-	public <F extends FocusType> void afterSync(LensContext<F> context);
+	public <F extends ObjectType> void afterSync(LensContext<F> context);
 	
 }

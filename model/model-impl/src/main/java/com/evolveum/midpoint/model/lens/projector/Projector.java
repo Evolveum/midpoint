@@ -105,7 +105,7 @@ public class Projector {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(Projector.class);
 	
-	public <F extends FocusType> void project(LensContext<F> context, String activityDescription, 
+	public <F extends ObjectType> void project(LensContext<F> context, String activityDescription, 
 			OperationResult parentResult)
 			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, 
 			ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -308,10 +308,10 @@ public class Projector {
 		result.cleanupResult(e);
 	}
 
-	public <F extends FocusType> void resetWaves(LensContext<F> context) throws PolicyViolationException {
+	public <F extends ObjectType> void resetWaves(LensContext<F> context) throws PolicyViolationException {
 	}
 	
-	public <F extends FocusType> void sortAccountsToWaves(LensContext<F> context) throws PolicyViolationException {
+	public <F extends ObjectType> void sortAccountsToWaves(LensContext<F> context) throws PolicyViolationException {
 		// Create a snapshot of the projection collection at the beginning of computation.
 		// The collection may be changed during computation (projections may be added). We do not want to process
 		// these added projections. They are already processed inside the computation.
@@ -343,12 +343,12 @@ public class Projector {
 		}
 	}
 	
-	public <F extends FocusType> int computeMaxWaves(LensContext<F> context) {
+	public <F extends ObjectType> int computeMaxWaves(LensContext<F> context) {
 		return context.getMaxWave() + 2;
 	}
 	
 	// TODO: check for circular dependencies
-	private <F extends FocusType> LensProjectionContext determineAccountWave(LensContext<F> context, 
+	private <F extends ObjectType> LensProjectionContext determineAccountWave(LensContext<F> context, 
 			LensProjectionContext accountContext, ResourceObjectTypeDependencyType inDependency, List<ResourceObjectTypeDependencyType> depPath) throws PolicyViolationException {
 		if (!accountContext.isWaveIncomplete()) {
 			// This was already processed
@@ -449,7 +449,7 @@ public class Projector {
 	/**
 	 * Find context that has the closest order to the dependency.
 	 */
-	private <F extends FocusType> LensProjectionContext findDependencyContext(
+	private <F extends ObjectType> LensProjectionContext findDependencyContext(
 			LensContext<F> context, ResourceObjectTypeDependencyType dependency){
 		ResourceShadowDiscriminator refRat = new ResourceShadowDiscriminator(dependency);
 		LensProjectionContext selected = null;
@@ -472,7 +472,7 @@ public class Projector {
 		return selected;
 	}
 	
-	private <F extends FocusType> LensProjectionContext createAnotherContext(LensContext<F> context, 
+	private <F extends ObjectType> LensProjectionContext createAnotherContext(LensContext<F> context, 
 			LensProjectionContext origProjectionContext, int order) throws PolicyViolationException {
 		ResourceShadowDiscriminator origDiscr = origProjectionContext.getResourceShadowDiscriminator();
 		ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(origDiscr.getResourceOid(), origDiscr.getIntent(), origDiscr.isThombstone());
@@ -488,7 +488,7 @@ public class Projector {
 	 * Check that the dependencies are still satisfied. Also check for high-ordes vs low-order operation consistency
 	 * and stuff like that. 
 	 */
-	private <F extends FocusType> boolean checkDependencies(LensContext<F> context, 
+	private <F extends ObjectType> boolean checkDependencies(LensContext<F> context, 
     		LensProjectionContext accountContext) throws PolicyViolationException {
 		if (accountContext.isDelete()) {
 			// It is OK if we depend on something that is not there if we are being removed ... for now
@@ -576,7 +576,7 @@ public class Projector {
 	 * Finally checks for all the dependencies. Some dependencies cannot be checked during wave computations as
 	 * we might not have all activation decisions yet. 
 	 */
-	private <F extends FocusType> void checkDependenciesFinal(LensContext<F> context) throws PolicyViolationException {
+	private <F extends ObjectType> void checkDependenciesFinal(LensContext<F> context) throws PolicyViolationException {
 		
 		for (LensProjectionContext accountContext: context.getProjectionContexts()) {
 			checkDependencies(context, accountContext);
@@ -610,7 +610,7 @@ public class Projector {
 		}
 	}
 	
-	private <F extends FocusType> boolean wasProvisioned(LensProjectionContext accountContext, int executionWave) {
+	private <F extends ObjectType> boolean wasProvisioned(LensProjectionContext accountContext, int executionWave) {
 		int accountWave = accountContext.getWave();
 		if (accountWave >= executionWave) {
 			// This had no chance to be provisioned yet, so we assume it will be provisioned
@@ -644,7 +644,7 @@ public class Projector {
 		return false;
 	}
 
-	private <F extends FocusType> void checkContextSanity(LensContext<F> context, String activityDescription, 
+	private <F extends ObjectType> void checkContextSanity(LensContext<F> context, String activityDescription, 
 			OperationResult result) throws SchemaException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
 		if (focusContext != null) {

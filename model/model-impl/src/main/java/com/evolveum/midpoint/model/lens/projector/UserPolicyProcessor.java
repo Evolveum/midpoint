@@ -117,30 +117,33 @@ public class UserPolicyProcessor {
 	@Qualifier("cacheRepositoryService")
 	private transient RepositoryService cacheRepositoryService;
 
-	<F extends FocusType> void processUserPolicy(LensContext<F> context, XMLGregorianCalendar now, 
+	<O extends ObjectType, F extends FocusType> void processUserPolicy(LensContext<O> context, XMLGregorianCalendar now, 
 			OperationResult result) throws ObjectNotFoundException,
             SchemaException, ExpressionEvaluationException, PolicyViolationException {
 
-		LensFocusContext<F> focusContext = context.getFocusContext();
+		LensFocusContext<O> focusContext = context.getFocusContext();
     	if (focusContext == null) {
     		return;
     	}
     	
-    	if (focusContext.getObjectTypeClass() != UserType.class) {
-    		// We can do this only for user.
+    	if (!FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
+    		// We can do this only for FocusType objects.
     		return;
     	}
     	
-    	ObjectDelta<F> focusDelta = focusContext.getDelta();
+    	LensContext<F> fContext = (LensContext<F>) context;
+    	LensFocusContext<F> fFocusContext = fContext.getFocusContext();
+    	
+    	ObjectDelta<F> focusDelta = fFocusContext.getDelta();
     	if (focusDelta != null && focusDelta.isDelete()) {
     		return;
     	}
     	
-		passwordPolicyProcessor.processPasswordPolicy(focusContext, context, result);
-			
-		processActivation(context, now, result);
+		passwordPolicyProcessor.processPasswordPolicy(fFocusContext, fContext, result);
+		
+		processActivation(fContext, now, result);
 
-		applyUserTemplate(context, result);
+		applyUserTemplate(fContext, result);
 				
 	}
 
@@ -214,7 +217,7 @@ public class UserPolicyProcessor {
 		}
 	}
 	
-	private <F extends FocusType> void recordValidityDelta(LensFocusContext<F> focusContext, TimeIntervalStatusType validityStatusNew,
+	private <F extends ObjectType> void recordValidityDelta(LensFocusContext<F> focusContext, TimeIntervalStatusType validityStatusNew,
 			XMLGregorianCalendar now) throws SchemaException {
 		PrismContainerDefinition<ActivationType> activationDefinition = getActivationDefinition();
 		
@@ -235,7 +238,7 @@ public class UserPolicyProcessor {
 		focusContext.swallowToProjectionWaveSecondaryDelta(validityChangeTimestampDelta);
 	}
 	
-	private <F extends FocusType> void recordEffectiveStatusDelta(LensFocusContext<F> focusContext, 
+	private <F extends ObjectType> void recordEffectiveStatusDelta(LensFocusContext<F> focusContext, 
 			ActivationStatusType effectiveStatusNew, XMLGregorianCalendar now)
 			throws SchemaException {
 		PrismContainerDefinition<ActivationType> activationDefinition = getActivationDefinition();
@@ -452,7 +455,7 @@ public class UserPolicyProcessor {
 	}
 
 
-	private <F extends FocusType> PrismObjectDefinition<F> getFocusDefinition(Class<F> focusClass) {
+	private <F extends ObjectType> PrismObjectDefinition<F> getFocusDefinition(Class<F> focusClass) {
 		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(focusClass);
 	}
 	

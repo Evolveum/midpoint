@@ -95,15 +95,23 @@ public class ActivationProcessor {
     @Autowired(required = true)
     private MappingEvaluationHelper mappingHelper;
 
-    public <F extends FocusType> void processActivation(LensContext<F> context, 
+    public <O extends ObjectType, F extends FocusType> void processActivation(LensContext<O> context, 
+    		LensProjectionContext projectionContext, XMLGregorianCalendar now, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
+    	
+    	LensFocusContext<O> focusContext = context.getFocusContext();
+    	if (focusContext != null && !FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
+    		// We can do this only for user.
+//    		processActivationMetadata(context, projectionContext, now, result);
+    		return;
+    	}
+    	
+    	processActivationFocal((LensContext<F>)context, projectionContext, now, result);
+    }
+    
+    private <F extends FocusType> void processActivationFocal(LensContext<F> context, 
     		LensProjectionContext projectionContext, XMLGregorianCalendar now, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
     	LensFocusContext<F> focusContext = context.getFocusContext();
     	if (focusContext == null) {
-    		processActivationMetadata(context, projectionContext, now, result);
-    		return;
-    	}
-    	if (focusContext.getObjectTypeClass() != UserType.class) {
-    		// We can do this only for user.
     		processActivationMetadata(context, projectionContext, now, result);
     		return;
     	}
@@ -618,7 +626,7 @@ public class ActivationProcessor {
 		}
 	}
 
-	private <F extends FocusType> ItemDeltaItem<PrismPropertyValue<Boolean>> getFocusExistsIdi(
+	private <F extends ObjectType> ItemDeltaItem<PrismPropertyValue<Boolean>> getFocusExistsIdi(
 			LensFocusContext<F> lensFocusContext) throws SchemaException {
 		Boolean existsOld = null;
 		Boolean existsNew = null;

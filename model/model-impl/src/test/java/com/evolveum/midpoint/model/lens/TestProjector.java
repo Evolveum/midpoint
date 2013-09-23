@@ -919,29 +919,23 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
         
-        try{
-        	PrismObject<ValuePolicyType> passPolicy = PrismTestUtil.parseObject(new File(PASSWORD_POLICY_GLOBAL_FILENAME));
-        	Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-        	ObjectDelta refDelta = ObjectDelta.createModificationAddReference(SystemConfigurationType.class, SYSTEM_CONFIGURATION_OID, SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY_REF, prismContext, passPolicy);
-        	Collection<ReferenceDelta> refDeltas = new ArrayList<ReferenceDelta>();
-        	deltas.add(refDelta);
-        	modelService.executeChanges(deltas, null, task, result);
-        	
-        	PrismObject<SystemConfigurationType> sysConfig = modelService.getObject(SystemConfigurationType.class, SYSTEM_CONFIGURATION_OID, null, task, result);
-        	assertNotNull(sysConfig.asObjectable().getGlobalPasswordPolicyRef());
-        	assertEquals(PASSWORD_POLICY_GLOBAL_OID, sysConfig.asObjectable().getGlobalPasswordPolicyRef().getOid());
-        	
-        	ObjectDelta delta = ObjectDelta.createAddDelta(passPolicy);
-        	deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-        	deltas.add(delta);
-        	modelService.executeChanges(deltas, null, task, result);
-        	
-        	PrismObject<ValuePolicyType> passPol = modelService.getObject(ValuePolicyType.class, PASSWORD_POLICY_GLOBAL_OID, null, task, result);
-        	assertNotNull(passPol);
-        	        	
-        } catch (Exception ex){
-        	throw ex;
-        }
+    	PrismObject<ValuePolicyType> passPolicy = PrismTestUtil.parseObject(new File(PASSWORD_POLICY_GLOBAL_FILENAME));
+    	ObjectDelta delta = ObjectDelta.createAddDelta(passPolicy);
+    	Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+    	deltas.add(delta);
+    	modelService.executeChanges(deltas, null, task, result);
+
+    	deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+    	ObjectDelta refDelta = ObjectDelta.createModificationAddReference(SystemConfigurationType.class, SYSTEM_CONFIGURATION_OID, SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY_REF, prismContext, passPolicy);
+    	Collection<ReferenceDelta> refDeltas = new ArrayList<ReferenceDelta>();
+    	deltas.add(refDelta);
+    	modelService.executeChanges(deltas, null, task, result);
+    	
+    	PrismObject<ValuePolicyType> passPol = modelService.getObject(ValuePolicyType.class, PASSWORD_POLICY_GLOBAL_OID, null, task, result);
+    	assertNotNull(passPol);
+    	PrismObject<SystemConfigurationType> sysConfig = modelService.getObject(SystemConfigurationType.class, SYSTEM_CONFIGURATION_OID, null, task, result);
+    	assertNotNull(sysConfig.asObjectable().getGlobalPasswordPolicyRef());
+    	assertEquals(PASSWORD_POLICY_GLOBAL_OID, sysConfig.asObjectable().getGlobalPasswordPolicyRef().getOid());
 
         // GIVEN
         LensContext<UserType> context = createUserAccountContext();

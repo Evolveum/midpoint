@@ -121,7 +121,7 @@ public class PasswordPolicyProcessor {
 
 	}
 	
-	<F extends FocusType> void processPasswordPolicy(LensProjectionContext projectionContext, 
+	<F extends ObjectType> void processPasswordPolicy(LensProjectionContext projectionContext, 
 			LensContext<F> context, OperationResult result) throws SchemaException, PolicyViolationException{
 		
 ObjectDelta accountDelta = projectionContext.getDelta();

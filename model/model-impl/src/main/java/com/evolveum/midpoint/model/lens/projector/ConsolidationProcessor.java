@@ -27,6 +27,7 @@ import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.lens.AccountConstruction;
 import com.evolveum.midpoint.model.lens.LensContext;
+import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.lens.ItemValueWithOrigin;
 import com.evolveum.midpoint.model.lens.LensUtil;
@@ -62,6 +63,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingStrengthType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PropertyAccessType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
@@ -101,8 +103,8 @@ public class ConsolidationProcessor {
 	private MatchingRuleRegistry matchingRuleRegistry;
 
     @Autowired(required=true)
-    PrismContext prismContext;    
-
+    PrismContext prismContext;
+    
     /**
      * Converts delta set triples to a secondary account deltas.
      */
@@ -145,7 +147,7 @@ public class ConsolidationProcessor {
         return false;
     }
 
-    private <F extends FocusType> ObjectDelta<ShadowType> consolidateValuesToModifyDelta(LensContext<F> context,
+    private <F extends ObjectType> ObjectDelta<ShadowType> consolidateValuesToModifyDelta(LensContext<F> context,
     		LensProjectionContext accCtx, boolean addUnchangedValues, OperationResult result) 
             		throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, CommunicationException,
             		ConfigurationException, SecurityViolationException, PolicyViolationException {
@@ -301,7 +303,7 @@ public class ConsolidationProcessor {
 		return false;
 	}
 
-    private <F extends FocusType> void consolidateValuesModifyAccount(LensContext<F> context, 
+    private <F extends ObjectType> void consolidateValuesModifyAccount(LensContext<F> context, 
     		LensProjectionContext accCtx, OperationResult result) 
     				throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, 
     				CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {

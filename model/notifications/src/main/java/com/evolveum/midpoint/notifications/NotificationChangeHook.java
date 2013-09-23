@@ -123,7 +123,7 @@ public class NotificationChangeHook implements ChangeHook {
         return HookOperationMode.FOREGROUND;
     }
 
-    private <F extends FocusType> Event createRequest(PrismObject<? extends ObjectType> object, Task task,
+    private <F extends ObjectType> Event createRequest(PrismObject<? extends ObjectType> object, Task task,
                                 ModelContext<F> modelContext) {
 
         ModelEvent event = new ModelEvent(lightweightIdentifierGenerator);

@@ -1145,7 +1145,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		
 	}
 	
-	protected <F extends FocusType> void assertResolvedResourceRefs(ModelContext<F> context) {
+	protected <F extends ObjectType> void assertResolvedResourceRefs(ModelContext<F> context) {
 		for (ModelProjectionContext projectionContext: context.getProjectionContexts()) {
 			assertResolvedResourceRefs(projectionContext.getObjectOld(), "objectOld in "+projectionContext);
 			assertResolvedResourceRefs(projectionContext.getObjectNew(), "objectNew in "+projectionContext);

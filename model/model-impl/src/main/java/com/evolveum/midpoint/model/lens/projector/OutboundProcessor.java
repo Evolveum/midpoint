@@ -25,6 +25,7 @@ import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.lens.AccountConstruction;
 import com.evolveum.midpoint.model.lens.LensContext;
+import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.lens.LensUtil;
 import com.evolveum.midpoint.prism.Item;
@@ -53,6 +54,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.StringPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -83,8 +85,8 @@ public class OutboundProcessor {
 
     @Autowired(required = true)
     private MappingFactory mappingFactory;
-
-    <F extends FocusType> void processOutbound(LensContext<F> context, LensProjectionContext accCtx, OperationResult result) throws SchemaException,
+        
+    public <F extends FocusType> void processOutbound(LensContext<F> context, LensProjectionContext accCtx, OperationResult result) throws SchemaException,
             ExpressionEvaluationException, ObjectNotFoundException {
 
         ResourceShadowDiscriminator rat = accCtx.getResourceShadowDiscriminator();

@@ -128,19 +128,19 @@ public class AccountValuesProcessor {
 	@Autowired(required = true)
 	private ProvisioningService provisioningService;
 	
-	public <F extends FocusType> void process(LensContext<F> context, 
+	public <O extends ObjectType> void process(LensContext<O> context, 
 			LensProjectionContext projectionContext, String activityDescription, OperationResult result) 
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, 
 			CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {
-		LensFocusContext<F> focusContext = context.getFocusContext();
+		LensFocusContext<O> focusContext = context.getFocusContext();
     	if (focusContext == null) {
     		return;
     	}
-    	if (focusContext.getObjectTypeClass() != UserType.class) {
-    		// We can do this only for user.
+    	if (!FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
+    		// We can do this only for focus types.
     		return;
     	}
-    	processAccounts(context, projectionContext, 
+    	processAccounts((LensContext<? extends FocusType>)context, projectionContext, 
     			activityDescription, result);
 	}
 	
@@ -449,7 +449,7 @@ public class AccountValuesProcessor {
 		return 0;
 	}
 
-	private <F extends FocusType> String formatIterationToken(LensContext<F> context, 
+	private <F extends ObjectType> String formatIterationToken(LensContext<F> context, 
 			LensProjectionContext accountContext, int iteration, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		ResourceObjectTypeDefinitionType accDef = accountContext.getResourceAccountTypeDefinitionType();
 		if (accDef == null) {
@@ -494,7 +494,7 @@ public class AccountValuesProcessor {
 		return realValue;
 	}
 		
-	private <F extends FocusType> Map<QName, Object> createExpressionVariables(LensContext<F> context, 
+	private <F extends ObjectType> Map<QName, Object> createExpressionVariables(LensContext<F> context, 
 			LensProjectionContext accountContext) {
 		Map<QName, Object> variables = new HashMap<QName, Object>();
 		variables.put(ExpressionConstants.VAR_FOCUS, context.getFocusContext().getObjectNew());
@@ -511,7 +511,7 @@ public class AccountValuesProcessor {
 		return Integer.toString(iteration);
 	}
 
-	private <F extends FocusType> boolean evaluateIterationCondition(LensContext<F> context, 
+	private <F extends ObjectType> boolean evaluateIterationCondition(LensContext<F> context, 
 			LensProjectionContext accountContext, int iteration, String iterationToken, 
 			boolean beforeIteration, OperationResult result) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException {
 		ResourceObjectTypeDefinitionType accDef = accountContext.getResourceAccountTypeDefinitionType();
@@ -563,7 +563,7 @@ public class AccountValuesProcessor {
 	 * Check that the primary deltas do not violate schema and policies
 	 * TODO: implement schema check 
 	 */
-	public <F extends FocusType> void checkSchemaAndPolicies(LensContext<F> context, 
+	public <F extends ObjectType> void checkSchemaAndPolicies(LensContext<F> context, 
 			LensProjectionContext accountContext, String activityDescription, OperationResult result) throws SchemaException, PolicyViolationException {
 		ObjectDelta<ShadowType> primaryDelta = accountContext.getPrimaryDelta();
 		if (primaryDelta == null || primaryDelta.isDelete()) {

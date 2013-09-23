@@ -93,8 +93,20 @@ public class InboundProcessor {
     private MappingFactory mappingFactory;
     @Autowired
     private ProvisioningService provisioningService;
+    
+    <O extends ObjectType> void processInbound(LensContext<O> context, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+    	LensFocusContext<O> focusContext = context.getFocusContext();
+    	if (focusContext == null) {
+    		return;
+    	}
+    	if (!FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
+    		// We can do this only for focus types.
+    		return;
+    	}
+    	processInboundFocal((LensContext<? extends FocusType>)context, result);
+    }
 
-    <F extends FocusType> void processInbound(LensContext<F> context, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+    <F extends FocusType> void processInboundFocal(LensContext<F> context, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
     	LensFocusContext<F> focusContext = context.getFocusContext();
     	if (focusContext == null) {
     		LOGGER.trace("Skipping inbound processing because focus is null");
@@ -275,7 +287,7 @@ public class InboundProcessor {
 	 * A priori delta is a delta that was executed in a previous "step". That means it is either delta from a previous
 	 * wave or a sync delta (in wave 0).
 	 */
-	private <F extends FocusType> ObjectDelta<ShadowType> getAPrioriDelta(LensContext<F> context, 
+	private <F extends ObjectType> ObjectDelta<ShadowType> getAPrioriDelta(LensContext<F> context, 
 			LensProjectionContext accountContext) throws SchemaException {
 		int wave = context.getProjectionWave();
 		if (wave == 0) {
@@ -288,7 +300,7 @@ public class InboundProcessor {
 		return null;
 	}
 
-	private <F extends FocusType> boolean checkWeakSkip(Mapping<?> inbound, PrismObject<F> newUser) throws SchemaException {
+	private <F extends ObjectType> boolean checkWeakSkip(Mapping<?> inbound, PrismObject<F> newUser) throws SchemaException {
         if (inbound.getStrength() != MappingStrengthType.WEAK) {
         	return false;
         }
@@ -434,7 +446,7 @@ public class InboundProcessor {
         return outputUserPropertydelta.isEmpty() ? null : outputUserPropertydelta;
     }
 
-	private <F extends FocusType> StringPolicyResolver createStringPolicyResolver(final LensContext<F> context) {
+	private <F extends ObjectType> StringPolicyResolver createStringPolicyResolver(final LensContext<F> context) {
 		StringPolicyResolver stringPolicyResolver = new StringPolicyResolver() {
 			private ItemPath outputPath;
 			private ItemDefinition outputDefinition;

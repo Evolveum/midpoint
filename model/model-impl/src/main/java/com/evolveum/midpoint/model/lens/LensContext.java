@@ -45,7 +45,7 @@ import java.util.Map.Entry;
  * @author semancik
  *
  */
-public class LensContext<F extends FocusType> implements ModelContext<F> {
+public class LensContext<F extends ObjectType> implements ModelContext<F> {
 
     private static final long serialVersionUID = -778283437426659540L;
     private static final String DOT_CLASS = LensContext.class.getName() + ".";
