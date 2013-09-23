@@ -106,7 +106,7 @@ public class TestProjectorAddUser extends AbstractTestNGSpringContextTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void addUserWithSimpleTemplate() throws Exception {
-		PrismObject<UserType> user = PrismTestUtil.parseObject(new File(LensTestConstants.USER_DRAKE_FILENAME));
+		PrismObject<UserType> user = PrismTestUtil.parseObject(LensTestConstants.USER_DRAKE_FILE);
 		UserType userType = user.asObjectable();
 		PrismObject<ObjectTemplateType> userTemplate = PrismTestUtil.parseObject(new File(AbstractInternalModelIntegrationTest.USER_TEMPLATE_FILENAME));
 		ObjectTemplateType userTemplateType = userTemplate.asObjectable();

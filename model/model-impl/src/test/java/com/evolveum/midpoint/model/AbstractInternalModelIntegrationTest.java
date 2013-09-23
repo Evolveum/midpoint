@@ -292,10 +292,10 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
     }
 
 	protected ObjectDelta<UserType> addModificationToContext(
-			LensContext<UserType> context, String filename)
+			LensContext<UserType> context, File file)
 			throws JAXBException, SchemaException, FileNotFoundException {
 		ObjectModificationType modElement = PrismTestUtil.unmarshalObject(
-				new File(filename), ObjectModificationType.class);
+				file, ObjectModificationType.class);
 		ObjectDelta<UserType> userDelta = DeltaConvertor.createObjectDelta(
 				modElement, UserType.class, prismContext);
 		LensFocusContext<UserType> focusContext = context

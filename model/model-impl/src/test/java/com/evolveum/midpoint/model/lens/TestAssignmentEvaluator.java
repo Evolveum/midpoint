@@ -76,7 +76,7 @@ public class TestAssignmentEvaluator extends AbstractInternalModelIntegrationTes
 		AssignmentEvaluator assignmentEvaluator = createAssignmentEvaluator();
 		PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 		
-		AssignmentType assignmentType = unmarshallJaxbFromFile(ASSIGNMENT_DIRECT_FILENAME, AssignmentType.class);
+		AssignmentType assignmentType = unmarshallJaxbFromFile(ASSIGNMENT_DIRECT_FILE, AssignmentType.class);
 		
 		// We need to make sure that the assignment has a parent
 		PrismContainerDefinition assignmentContainerDefinition = userTypeJack.asPrismObject().getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);

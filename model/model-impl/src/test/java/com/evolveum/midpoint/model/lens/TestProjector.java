@@ -98,19 +98,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestProjector extends AbstractInternalModelIntegrationTest {
 		
-	public static final String TEST_DIR_NAME = "src/test/resources/lens";
-	public static final String USER_BARBOSSA_MODIFY_ASSIGNMENT_REPLACE_AC = TEST_DIR_NAME + "/user-barbossa-modify-assignment-replace-ac.xml";
-	private static final String RESOURCE_FAKE_A_OID = "fake-a";
+	public static final File TEST_DIR = new File("src/test/resources/lens");
+	public static final File USER_BARBOSSA_MODIFY_ASSIGNMENT_REPLACE_AC_FILE = new File(TEST_DIR, "user-barbossa-modify-assignment-replace-ac.xml");
 	
 	@Autowired(required = true)
 	private Projector projector;
 	
 	@Autowired(required = true)
 	private TaskManager taskManager;
-	
-	public TestProjector() throws JAXBException {
-		super();
-	}
 	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -541,7 +536,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         LensContext<UserType> context = createUserAccountContext();
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
         fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, result);
-        addModificationToContext(context, USER_BARBOSSA_MODIFY_ASSIGNMENT_REPLACE_AC);
+        addModificationToContext(context, USER_BARBOSSA_MODIFY_ASSIGNMENT_REPLACE_AC_FILE);
         context.recompute();
 
         display("Input context", context);
