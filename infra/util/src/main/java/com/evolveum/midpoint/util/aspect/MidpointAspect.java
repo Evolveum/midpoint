@@ -15,8 +15,6 @@
  */
 package com.evolveum.midpoint.util.aspect;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.evolveum.midpoint.util.logging.Trace;
@@ -26,15 +24,17 @@ import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.slf4j.MDC;
-import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 
 import com.evolveum.midpoint.util.PrettyPrinter;
 
 /**
- *  TODO - add class description
+ *  In this class, we define some Pointcuts in AOP meaning that will provide join points for most common
+ *  methods used in main midPoint subsystems. We wrap these methods with profiling wrappers.
  *
+ *  This class also serves another purpose - it is used for basic Method Entry/Exit or args profiling,
+ *  results from which are dumped to idm.log (by default)
  *
  *  @author shood
  * */
@@ -47,7 +47,7 @@ public class MidpointAspect {
 
 	// This logger provide profiling informations
     private static final org.slf4j.Logger LOGGER_PROFILING = org.slf4j.LoggerFactory.getLogger("PROFILING");
-    private static Trace LOGGER = TraceManager.getTrace(MidpointAspect.class);
+    //private static Trace LOGGER = TraceManager.getTrace(MidpointAspect.class);
 
     //Defines status of Aspect based profiling
     private static boolean isProfilingActive = false;
@@ -251,8 +251,7 @@ public class MidpointAspect {
             }
 
             if(isProfilingActive){
-                //LOGGER.info("Profiling is active: OnEnd.");
-                AspectProfilingFilters.applyGranularityFilterOnEnd(pjp, subsystem, startTime);
+                ProfilingDataManager.getInstance().applyGranularityFilterOnEnd(pjp, subsystem, startTime);
             }
 
 			// Restore MDC
@@ -293,11 +292,7 @@ public class MidpointAspect {
 
 	/**
 	 * Get joinpoint class name if available
-	 *
-	 * @param pjp
-	 * @return
 	 */
-    @Deprecated
 	private String getClassName(ProceedingJoinPoint pjp) {
 		String className = null;
 		if (pjp.getThis() != null) {
@@ -310,7 +305,8 @@ public class MidpointAspect {
     /*
     *   Stores current depth value to MDC
     * */
-    protected static void storeMDC(int d){
+    @Deprecated
+     protected static void storeMDC(int d){
         MDC.put("depth", Integer.toString(d));
     }
 

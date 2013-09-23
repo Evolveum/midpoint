@@ -17,15 +17,29 @@
 package com.evolveum.midpoint.util.aspect;
 
 import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- *  TODO - add some cool description
+ *  This class provides functionality as a holder for method performance statistics. Currently, we are monitoring
+ *  and updating following statistics:
+ *     longest method call - MAX
+ *     quickest method call - MIN
+ *     average length of method call - MEAN
+ *     number of method calls - USAGE_COUNT
  *
- *  TODO - consider thread synchronization during statistics computations
+ *  We also update these statistics every time specific method call is captured by MidpointAspect class and then
+ *  processed by AspectProfilingFilters. This is performed in update() method that is synchronized for obvious
+ *  reasons.
  *
  *  @author shood
  * */
 public class MethodUsageStatistics {
+
+    /* LOGGER */
+    private static Trace LOGGER = TraceManager.getTrace("com.evolveum.midpoint.util.aspect.ProfilingDataManager");
 
     /* Attributes - member */
     private long min = Long.MAX_VALUE;
@@ -33,18 +47,13 @@ public class MethodUsageStatistics {
     private long mean = 0;
     private long usageCount = 0;
     private long currentTopTenMin = Long.MAX_VALUE;
-
-    /* Some print constants */
-    private static final String PRINT_USAGE = ": CALLS: ";
-    private static final String PRINT_MIN = " MIN: ";
-    private static final String PRINT_MAX = " MAX: ";
-    private static final String PRINT_MEAN = " MEAN: ";
-    private static final String PRINT_NEWLINE = "\n";
+    private String subsystem;
+    private List<ProfilingDataLog> slowestMethodList = new ArrayList<ProfilingDataLog>();
 
     /*
     *   Constructor
     * */
-    public MethodUsageStatistics(ProfilingDataLog logEvent){
+    public MethodUsageStatistics(ProfilingDataLog logEvent, String subsystem){
         long estTime = logEvent.getEstimatedTime();
 
         this.min = estTime;
@@ -52,10 +61,20 @@ public class MethodUsageStatistics {
         this.mean = estTime;
         this.usageCount++;
         this.currentTopTenMin = estTime;
+        this.subsystem = subsystem;
 
     }   //MethodUsageStatistics
 
     /* GETTERS AND SETTERS */
+
+    public String getSubsystem() {
+        return subsystem;
+    }
+
+    public void setSubsystem(String subsystem) {
+        this.subsystem = subsystem;
+    }
+
     public long getMin() {
         return min;
     }
@@ -96,6 +115,14 @@ public class MethodUsageStatistics {
         this.currentTopTenMin = currentTopTenMin;
     }
 
+    public List<ProfilingDataLog> getSlowestMethodList() {
+        return slowestMethodList;
+    }
+
+    public void setSlowestMethodList(List<ProfilingDataLog> slowestMethodList) {
+        this.slowestMethodList = slowestMethodList;
+    }
+
     /* BEHAVIOR */
     public synchronized void update(ProfilingDataLog logEvent){
         long currentEst = logEvent.getEstimatedTime();
@@ -122,20 +149,15 @@ public class MethodUsageStatistics {
     /*
     *   Appends method usage statistics to log file
     * */
-    public String appendToLogger(){
-        StringBuilder sb = new StringBuilder();
+    public void appendToLogger(){
+        ProfilingDataLog log = this.slowestMethodList.get(0);
 
-        sb.append(PRINT_USAGE);
-        sb.append(usageCount);
-        sb.append(PRINT_MAX);
-        sb.append(formatExecutionTime(max));
-        sb.append(PRINT_MIN);
-        sb.append(formatExecutionTime(min));
-        sb.append(PRINT_MEAN);
-        sb.append(formatExecutionTime(mean));
-        sb.append(PRINT_NEWLINE);
+        LOGGER.debug("{}->{}: CALLS: {} MAX: {} MIN: {} MEAN: {}",
+                new Object[]{log.getClassName(), log.getMethodName(), usageCount, formatExecutionTime(max), formatExecutionTime(min), formatExecutionTime(mean)});
 
-        return sb.toString();
+        for(ProfilingDataLog l: this.slowestMethodList)
+            l.appendToLogger();
+
     }   //appendToLogger
 
     /* STATIC HELPER METHODS */

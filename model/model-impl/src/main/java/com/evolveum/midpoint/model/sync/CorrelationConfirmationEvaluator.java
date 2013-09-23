@@ -58,6 +58,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -238,42 +239,45 @@ public class CorrelationConfirmationEvaluator {
 			return users;
 		}
 
-	private <F extends FocusType> boolean matchUserCorrelationRule(PrismObject<ShadowType> currentShadow, 
-			PrismObject<F> userType, ResourceType resourceType, QueryType query, OperationResult result){
-		if (query == null) {
-			LOGGER.warn("Correlation rule for resource '{}' doesn't contain query, "
-					+ "returning empty list of users.", resourceType);
+
+private <F extends FocusType> boolean matchUserCorrelationRule(PrismObject<ShadowType> currentShadow, 
+		PrismObject<F> userType, ResourceType resourceType, QueryType query, OperationResult result){
+	if (query == null) {
+		LOGGER.warn("Correlation rule for resource '{}' doesn't contain query, "
+				+ "returning empty list of users.", resourceType);
+		return false;
+	}
+
+	Element element = query.getFilter();
+	if (element == null) {
+		LOGGER.warn("Correlation rule for resource '{}' doesn't contain query filter, "
+				+ "returning empty list of users.", resourceType);
+		return false;
+	}
+
+	ObjectQuery q = null;
+	try {
+		q = QueryConvertor.createObjectQuery(UserType.class, query, prismContext);
+		q = updateFilterWithAccountValues(currentShadow.asObjectable(), resourceType, q, "Correlation expression", result);
+		LOGGER.debug("Start matching user {} with correlation eqpression {}", userType, q.dump());
+		if (q == null) {
+			// Null is OK here, it means that the value in the filter
+			// evaluated
+			// to null and the processing should be skipped
 			return false;
 		}
-	
-		Element element = query.getFilter();
-		if (element == null) {
-			LOGGER.warn("Correlation rule for resource '{}' doesn't contain query filter, "
-					+ "returning empty list of users.", resourceType);
-			return false;
+	} catch (Exception ex) {
+		LoggingUtils.logException(LOGGER, "Couldn't convert query (simplified)\n{}.", ex,
+				SchemaDebugUtil.prettyPrint(query));
+		throw new SystemException("Couldn't convert query.", ex);
+	}
+//	List<PrismObject<UserType>> users = null;
+//	try {
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("SYNCHRONIZATION: CORRELATION: expression for {} results in filter\n{}",
+					new Object[] { currentShadow, q});
 		}
 	
-		ObjectQuery q = null;
-		try {
-			q = QueryConvertor.createObjectQuery(userType.getCompileTimeClass(), query, prismContext);
-			q = updateFilterWithAccountValues(currentShadow.asObjectable(), resourceType, q, "Correlation expression", result);
-			if (q == null) {
-				// Null is OK here, it means that the value in the filter
-				// evaluated
-				// to null and the processing should be skipped
-				return false;
-			}
-		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "Couldn't convert query (simplified)\n{}.", ex,
-					SchemaDebugUtil.prettyPrint(query));
-			throw new SystemException("Couldn't convert query.", ex);
-		}
-	//	List<PrismObject<UserType>> users = null;
-	//	try {
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("SYNCHRONIZATION: CORRELATION: expression for {} results in filter\n{}",
-						new Object[] { currentShadow, SchemaDebugUtil.prettyPrint(query) });
-			}
 	//		PagingType paging = new PagingType();
 			return ObjectQuery.match(userType, q.getFilter());
 	
@@ -304,6 +308,7 @@ public class CorrelationConfirmationEvaluator {
 		List<QueryType> queries = synchronization.getCorrelation();
 		
 		for (QueryType query : queries){
+			
 			if (true && matchUserCorrelationRule(currentShadow, userType, resourceType, query, result)){
 				LOGGER.debug("SYNCHRONIZATION: CORRELATION: expression for {} match user: {}", new Object[] {
 						currentShadow, userType });

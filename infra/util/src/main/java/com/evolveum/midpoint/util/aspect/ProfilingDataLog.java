@@ -17,22 +17,27 @@
 package com.evolveum.midpoint.util.aspect;
 
 import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import org.aspectj.lang.ProceedingJoinPoint;
 
 import java.util.Date;
 
 /**
- *  TODO - add descriptive description
+ *  This is a blueprint for single method call, or ProfilingEvent as we call it. In here, we capture some
+ *  attributes for each method call, specifically:
+ *     className with package name
+ *     method name
+ *     objectType with which method works (or deltaType for some model methods)
+ *     executionTimestamp - when method call was performed
+ *     estimatedTime - method call duration
  *
  *
  *  @author shood
  * */
 public class ProfilingDataLog {
 
-    /* Some print constants */
-    private static final String PRINT_EST = " , EST: ";
-    private static final String PRINT_EXECUTED = " EXECUTED: ";
-    private static final String PRINT_TAB = "\t";
-    private static final String PRINT_NEW_LINE = "\n";
+    /* LOGGER */
+    private static Trace LOGGER = TraceManager.getTrace("com.evolveum.midpoint.util.aspect.ProfilingDataManager");
 
     /* Member Attributes */
     private String className;
@@ -40,24 +45,51 @@ public class ProfilingDataLog {
     private String objectType;
     long executionTimestamp;
     long estimatedTime;
+    Object[] args;
 
-    /*
-    *   Default constructor - provided if needed for some reason
-    * */
-    public ProfilingDataLog(){}
+    //this is here for profiling events captured from servlet requests
+    private String sessionID;
 
     /*
     *   Constructor - with parameters
     * */
-    public ProfilingDataLog(String className, String method, long est, long exeTimestamp){
+    public ProfilingDataLog(String className, String method, long est, long exeTimestamp, ProceedingJoinPoint pjp){
         this.className = className;
         this.methodName = method;
         this.estimatedTime = est;
         this.executionTimestamp = exeTimestamp;
+        this.args = retrieveMethodArguments(pjp);
 
     }   //ProfilingDataLog
 
+    /*
+    *   Second constructor, this time for request events
+    * */
+    public ProfilingDataLog(String method, String uri, String sessionID, long est, long exec){
+        this.methodName = method;
+        this.className = uri;
+        this.sessionID = sessionID;
+        this.estimatedTime = est;
+        this.executionTimestamp = exec;
+    }   //ProfilingDataLog
+
     /* Getters and Setters */
+    public String getSessionID() {
+        return sessionID;
+    }
+
+    public void setSessionID(String sessionID) {
+        this.sessionID = sessionID;
+    }
+
+    public Object[] getArgs() {
+        return args;
+    }
+
+    public void setArgs(Object[] args) {
+        this.args = args;
+    }
+
     public long getEstimatedTime() {
         return estimatedTime;
     }
@@ -100,6 +132,13 @@ public class ProfilingDataLog {
 
     /* Behavior */
     /*
+    *   Retrieves Object[] containing method arguments from ProceedingJoinPoint object
+    * */
+    public Object[] retrieveMethodArguments(ProceedingJoinPoint pjp){
+        return pjp.getArgs();
+    }   //retrieveMethodArguments
+
+    /*
     *   Prints profilingLog to provided LOGGER
     *   this method is here for test purposes only
     * */
@@ -110,23 +149,18 @@ public class ProfilingDataLog {
     /*
     *   Appends log event to logger
     * */
-    public String appendToLogger(){
-        StringBuilder sb = new StringBuilder();
-
+    public void appendToLogger(){
         Date date = new Date(executionTimestamp);
 
-        sb.append(PRINT_TAB);
-        sb.append(objectType);
-        sb.append(PRINT_EST);
-        sb.append(formatExecutionTime(estimatedTime));
-        sb.append(PRINT_EXECUTED);
-        sb.append(date);
-        sb.append(PRINT_NEW_LINE);
-
-        return sb.toString();
+        //If we are printing request filter event, there are no arguments, but sessionID instead
+        if(args == null){
+            LOGGER.debug("    EST: {} EXECUTED: {} SESSION: {}", new Object[]{formatExecutionTime(estimatedTime), date, sessionID});
+        } else{
+            LOGGER.debug("    {} EST: {} EXECUTED: {} ARGS: {}", new Object[]{objectType, formatExecutionTime(estimatedTime), date, args});
+        }
     }   //appendToLogger
 
-    /* =====STATIC HELPET METHODS===== */
+    /* =====STATIC HELPER METHODS===== */
     /*
     *   Formats execution time
     * */

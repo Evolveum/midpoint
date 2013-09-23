@@ -15,14 +15,27 @@
  */
 package com.evolveum.midpoint.model.lens.projector;
 
-import com.evolveum.midpoint.common.QueryUtil;
+import static com.evolveum.midpoint.common.InternalsConfig.consistencyChecks;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
+import javax.xml.namespace.QName;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.common.expression.Expression;
 import com.evolveum.midpoint.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.common.expression.Source;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.lens.LensContext;
@@ -31,16 +44,13 @@ import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.lens.LensUtil;
 import com.evolveum.midpoint.model.lens.ShadowConstraintsChecker;
 import com.evolveum.midpoint.model.sync.CorrelationConfirmationEvaluator;
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.OriginType;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
@@ -52,7 +62,6 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -71,25 +80,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.IterationSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectTypeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-import com.evolveum.prism.xml.ns._public.query_2.QueryType;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import javax.xml.namespace.QName;
-
-import static com.evolveum.midpoint.common.InternalsConfig.consistencyChecks;
 
 /**
  * Processor that determines values of account attributes. It does so by taking the pre-processed information left
@@ -140,8 +133,11 @@ public class AccountValuesProcessor {
     		// We can do this only for focus types.
     		return;
     	}
-    	processAccounts((LensContext<? extends FocusType>)context, projectionContext, 
-    			activityDescription, result);
+    	OperationResult processorResult = result.createSubresult(AccountValuesProcessor.class.getName()+".processAccountsValues");
+    	processorResult.recordSuccessIfUnknown();
+    	processAccounts((LensContext<? extends FocusType>) context, projectionContext, 
+    			activityDescription, processorResult);
+    	
 	}
 	
 	public <F extends FocusType> void processAccounts(LensContext<F> context, 
@@ -322,6 +318,31 @@ public class AccountValuesProcessor {
 												.getFocusContext().getObjectNew(), resourceType, result);
 										
 										if (match){
+											//check if it is add account (primary delta contains add shadow deltu)..
+											//if it is add account, create new context for conflicting account..
+											//it ensures, that conflicting account is linked to the user
+											
+											if (accountContext.getPrimaryDelta() != null && accountContext.getPrimaryDelta().isAdd()){
+
+												PrismObject<ShadowType> shadow = accountContext.getPrimaryDelta().getObjectToAdd();
+												LOGGER.trace("Found primary ADD delta of shadow {}.", shadow);
+												
+												LensProjectionContext conflictingAccountContext = context.createProjectionContext(accountContext.getResourceShadowDiscriminator());
+												conflictingAccountContext.setObjectOld(fullConflictingShadow.clone());
+												conflictingAccountContext.setObjectCurrent(fullConflictingShadow);
+												conflictingAccountContext.setFullShadow(true);
+												conflictingAccountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
+												conflictingAccountContext.setResource(accountContext.getResource());
+												
+												
+												accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+												result.recordFatalError("Could not add account " + accountContext.getObjectNew() + ", because the account with the same idenfitier already exists on the resource. ");
+												LOGGER.error("Could not add account {}, because the account with the same idenfitier already exists on the resource. ", accountContext.getObjectNew());
+												
+												skipUniquenessCheck = true; // to avoid endless loop
+							        			continue;
+											}
+											
 											//found shadow belongs to the current user..need to link it and replace current shadow with the found shadow..
 											cleanupContext(accountContext);
 											accountContext.setObjectOld(fullConflictingShadow.clone());
@@ -393,6 +414,7 @@ public class AccountValuesProcessor {
 		addIterationTokenDeltas(accountContext);
 		
 		if (consistencyChecks) context.checkConsistence();
+		
 					
 	}
 	
