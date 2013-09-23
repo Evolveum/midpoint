@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.util.aspect;
 
 import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.sun.management.OperatingSystemMXBean;
 
 import java.lang.management.*;
@@ -29,6 +30,9 @@ import java.lang.management.*;
  *  @author shood
  * */
 public class PerformanceStatistics {
+
+    /* LOGGER */
+    private static Trace LOGGER = TraceManager.getTrace("com.evolveum.midpoint.util.aspect.ProfilingDataManager");
 
     /* CONSTANTS */
     private int MB = 1024*1024;
@@ -51,7 +55,7 @@ public class PerformanceStatistics {
     /*
     *   Constructor
     * */
-    public PerformanceStatistics(Trace LOGGER){
+    public PerformanceStatistics(){
 
         //Fetch and ...
         this.cpuUsage = fetchCpuUsage();
@@ -59,7 +63,7 @@ public class PerformanceStatistics {
         fetchThreadUsage();
 
         // ... dump to log
-        dump(LOGGER);
+        dump();
     }   //PerformanceStatistics constructor
 
     /* BEHAVIOR */
@@ -74,7 +78,7 @@ public class PerformanceStatistics {
         long prevProcessCpuTime = operatingSystemMXBean.getProcessCpuTime();
 
         try{
-            Thread.sleep(500);
+            Thread.sleep(10);
         }catch (Exception ignored) {}
 
         operatingSystemMXBean = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
@@ -122,7 +126,7 @@ public class PerformanceStatistics {
     /*
     *   Dump all performance statistics to log
     * */
-    private void dump(Trace LOGGER){
+    private void dump(){
         LOGGER.debug("CPU usage: {} %, heap memory used: {} MB, committed: {} MB, non-heap memory used: {} MB, committed: {} MB, Threads: {}, daemon threads: {}. ",
                 new Object[]{formatCpuUsage(), usedHeapMemory/MB, committedHeapMemory/MB, usedNonHeapMemory/MB, committedNonHeapMemory/MB, threadCount, daemonThreadCount});
     }   //dump

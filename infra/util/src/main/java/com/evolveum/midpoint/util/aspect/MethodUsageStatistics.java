@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.util.aspect;
 
 import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,6 +37,9 @@ import java.util.List;
  *  @author shood
  * */
 public class MethodUsageStatistics {
+
+    /* LOGGER */
+    private static Trace LOGGER = TraceManager.getTrace("com.evolveum.midpoint.util.aspect.ProfilingDataManager");
 
     /* Attributes - member */
     private long min = Long.MAX_VALUE;
@@ -145,14 +149,14 @@ public class MethodUsageStatistics {
     /*
     *   Appends method usage statistics to log file
     * */
-    public void appendToLogger(Trace LOGGER){
+    public void appendToLogger(){
         ProfilingDataLog log = this.slowestMethodList.get(0);
 
         LOGGER.debug("{}->{}: CALLS: {} MAX: {} MIN: {} MEAN: {}",
                 new Object[]{log.getClassName(), log.getMethodName(), usageCount, formatExecutionTime(max), formatExecutionTime(min), formatExecutionTime(mean)});
 
         for(ProfilingDataLog l: this.slowestMethodList)
-            l.appendToLogger(LOGGER);
+            l.appendToLogger();
 
     }   //appendToLogger
 

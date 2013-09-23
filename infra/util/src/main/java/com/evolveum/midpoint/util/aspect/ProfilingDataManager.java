@@ -275,7 +275,7 @@ public class ProfilingDataManager {
         //Print performance statistics if needed
         if(isPerformanceProfiled){
             if(currentTime >= (lastPerformanceDumpTimestamp + minutesToMillis(DEFAULT_PERF_DUMP_INTERVAL))){
-                new PerformanceStatistics(LOGGER);
+                new PerformanceStatistics();
                 lastPerformanceDumpTimestamp = System.currentTimeMillis();
             }
         }
@@ -324,7 +324,7 @@ public class ProfilingDataManager {
 
         for(String key: logMap.keySet()){
             if(logMap.get(key) != null && subsystem.equals(logMap.get(key).getSubsystem())){
-                logMap.get(key).appendToLogger(LOGGER);
+                logMap.get(key).appendToLogger();
             }
         }
     }   //printMap

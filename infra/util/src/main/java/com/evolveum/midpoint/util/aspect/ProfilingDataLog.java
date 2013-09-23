@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.util.aspect;
 
 import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import org.aspectj.lang.ProceedingJoinPoint;
 
 import java.util.Date;
@@ -34,6 +35,9 @@ import java.util.Date;
  *  @author shood
  * */
 public class ProfilingDataLog {
+
+    /* LOGGER */
+    private static Trace LOGGER = TraceManager.getTrace("com.evolveum.midpoint.util.aspect.ProfilingDataManager");
 
     /* Member Attributes */
     private String className;
@@ -145,7 +149,7 @@ public class ProfilingDataLog {
     /*
     *   Appends log event to logger
     * */
-    public void appendToLogger(Trace LOGGER){
+    public void appendToLogger(){
         Date date = new Date(executionTimestamp);
 
         //If we are printing request filter event, there are no arguments, but sessionID instead
