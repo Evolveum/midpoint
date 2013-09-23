@@ -140,8 +140,10 @@ public class AccountValuesProcessor {
     		// We can do this only for user.
     		return;
     	}
+    	OperationResult processorResult = result.createSubresult(AccountValuesProcessor.class.getName()+".processAccountsValues");
     	processAccounts((LensContext<UserType,ShadowType>) context, (LensProjectionContext<ShadowType>)projectionContext, 
-    			activityDescription, result);
+    			activityDescription, processorResult);
+    	processorResult.recordSuccessIfUnknown();
 	}
 	
 	public void processAccounts(LensContext<UserType,ShadowType> context, 
@@ -322,6 +324,31 @@ public class AccountValuesProcessor {
 												.getFocusContext().getObjectNew(), resourceType, result);
 										
 										if (match){
+											//check if it is add account (primary delta contains add shadow deltu)..
+											//if it is add account, create new context for conflicting account..
+											//it ensures, that conflicting account is linked to the user
+											
+											if (accountContext.getPrimaryDelta() != null && accountContext.getPrimaryDelta().isAdd()){
+
+												PrismObject<ShadowType> shadow = accountContext.getPrimaryDelta().getObjectToAdd();
+												LOGGER.trace("Found primary ADD delta of shadow {}.", shadow);
+												
+												LensProjectionContext<ShadowType> conflictingAccountContext = context.createProjectionContext(accountContext.getResourceShadowDiscriminator());
+												conflictingAccountContext.setObjectOld(fullConflictingShadow.clone());
+												conflictingAccountContext.setObjectCurrent(fullConflictingShadow);
+												conflictingAccountContext.setFullShadow(true);
+												conflictingAccountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
+												conflictingAccountContext.setResource(accountContext.getResource());
+												
+												
+												accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+												result.recordFatalError("Could not add account " + accountContext.getObjectNew() + ", because the account with the same idenfitier already exists on the resource. ");
+												LOGGER.error("Could not add account {}, because the account with the same idenfitier already exists on the resource. ", accountContext.getObjectNew());
+												
+												skipUniquenessCheck = true; // to avoid endless loop
+							        			continue;
+											}
+											
 											//found shadow belongs to the current user..need to link it and replace current shadow with the found shadow..
 											cleanupContext(accountContext);
 											accountContext.setObjectOld(fullConflictingShadow.clone());
@@ -393,6 +420,7 @@ public class AccountValuesProcessor {
 		addIterationTokenDeltas(accountContext);
 		
 		if (consistencyChecks) context.checkConsistence();
+		
 					
 	}
 	

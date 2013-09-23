@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.lens.projector;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -178,8 +179,15 @@ public class Projector {
 		        
 		        assignmentProcessor.checkForAssignmentConflicts(context, result);
 		
-		        // User-related processing is over. Now we will process accounts in a loop.
-		        for (LensProjectionContext<P> projectionContext: context.getProjectionContexts()) {
+		        // Copy projection context, it will be maybe needed to create/remove some projection contexts during the loop
+		        Collection<LensProjectionContext<P>> projectionContexts = new ArrayList<LensProjectionContext<P>>();
+		        projectionContexts.addAll(context.getProjectionContexts());
+		        context.getProjectionContexts().clear();
+		        
+		     // User-related processing is over. Now we will process accounts in a loop.
+		        for (LensProjectionContext<P> projectionContext: projectionContexts) {
+		        	context.addProjectionContext(projectionContext);
+
 		        	if (projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN ||
 		        			projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.IGNORE) {
 						continue;
@@ -250,8 +258,10 @@ public class Projector {
 			        projectionContext.recompute();
 			        LensUtil.traceContext(LOGGER, activityDescription, "reconciliation of "+projectionDesc, false, context, false);
 			        if (consistencyChecks) context.checkConsistence();
+			        
+			        
 		        }
-		        
+		        		        
 		        if (consistencyChecks) context.checkConsistence();
 		        
 		        context.incrementProjectionWave();
@@ -265,7 +275,7 @@ public class Projector {
 	        
 	        if (consistencyChecks) context.checkConsistence();
 	        
-	        result.recordSuccess();
+	        result.computeStatusComposite();
 	        result.cleanupResult();
 	        
 		} catch (SchemaException e) {

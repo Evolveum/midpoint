@@ -35,6 +35,7 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
@@ -200,9 +201,11 @@ public abstract class PropertyValueFilter extends ValueFilter{
 			return true;
 		}
 		Item filterItem = getDefinition().instantiate();
-		if (getValues() != null) {
+		if (getValues() != null && !getValues().isEmpty()) {
 			try {
-				filterItem.addAll(getValues());
+				for (PrismValue v : getValues()){
+					filterItem.add(v.clone());
+				}
 			} catch (SchemaException e) {
 				throw new IllegalArgumentException(e.getMessage(), e);
 			}
