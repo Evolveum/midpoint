@@ -134,9 +134,10 @@ public class AccountValuesProcessor {
     		return;
     	}
     	OperationResult processorResult = result.createSubresult(AccountValuesProcessor.class.getName()+".processAccountsValues");
+    	processorResult.recordSuccessIfUnknown();
     	processAccounts((LensContext<UserType,ShadowType>) context, (LensProjectionContext<ShadowType>)projectionContext, 
     			activityDescription, processorResult);
-    	processorResult.recordSuccessIfUnknown();
+    	
 	}
 	
 	public void processAccounts(LensContext<UserType,ShadowType> context, 
