@@ -58,6 +58,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -255,6 +256,7 @@ private boolean matchUserCorrelationRule(PrismObject<ShadowType> currentShadow, 
 	try {
 		q = QueryConvertor.createObjectQuery(UserType.class, query, prismContext);
 		q = updateFilterWithAccountValues(currentShadow.asObjectable(), resourceType, q, "Correlation expression", result);
+		LOGGER.debug("Start matching user {} with correlation eqpression {}", userType, q.dump());
 		if (q == null) {
 			// Null is OK here, it means that the value in the filter
 			// evaluated
@@ -270,7 +272,7 @@ private boolean matchUserCorrelationRule(PrismObject<ShadowType> currentShadow, 
 //	try {
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("SYNCHRONIZATION: CORRELATION: expression for {} results in filter\n{}",
-					new Object[] { currentShadow, SchemaDebugUtil.prettyPrint(query) });
+					new Object[] { currentShadow, q});
 		}
 //		PagingType paging = new PagingType();
 		return ObjectQuery.match(userType, q.getFilter());
@@ -300,6 +302,7 @@ private boolean matchUserCorrelationRule(PrismObject<ShadowType> currentShadow, 
 		List<QueryType> queries = synchronization.getCorrelation();
 		
 		for (QueryType query : queries){
+			
 			if (true && matchUserCorrelationRule(currentShadow, userType, resourceType, query, result)){
 				LOGGER.debug("SYNCHRONIZATION: CORRELATION: expression for {} match user: {}", new Object[] {
 						currentShadow, userType });
