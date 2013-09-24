@@ -74,6 +74,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusTyp
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
@@ -612,7 +613,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		assertEquals("Unexpected number of projection contexts", 3, projectionContexts.size());
 		
 		ModelProjectionContext accContext = modelContext.findProjectionContext(
-				new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, null));
+				new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, null));
 		assertNotNull("Null model projection context", accContext);
 		
 		assertEquals("Wrong policy decision", SynchronizationPolicyDecision.KEEP, accContext.getSynchronizationPolicyDecision());
@@ -670,7 +671,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		assertEquals("Unexpected number of projection contexts", 3, projectionContexts.size());
 		
 		ModelProjectionContext accContext = modelContext.findProjectionContext(
-				new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, null));
+				new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, null));
 		assertNotNull("Null model projection context", accContext);
 		
 		assertEquals("Wrong policy decision", SynchronizationPolicyDecision.KEEP, accContext.getSynchronizationPolicyDecision());
@@ -803,7 +804,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		assertEquals("Unexpected number of projection contexts", 3, projectionContexts.size());
 		
 		ModelProjectionContext accContext = modelContext.findProjectionContext(
-				new ResourceShadowDiscriminator(RESOURCE_DUMMY_BLUE_OID, null));
+				new ResourceShadowDiscriminator(RESOURCE_DUMMY_BLUE_OID, ShadowKindType.ACCOUNT, null));
 		assertNotNull("Null model projection context", accContext);
 		
 		assertEquals("Wrong policy decision", SynchronizationPolicyDecision.KEEP, accContext.getSynchronizationPolicyDecision());
@@ -861,7 +862,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		assertEquals("Unexpected number of projection contexts", 3, projectionContexts.size());
 		
 		ModelProjectionContext accContext = modelContext.findProjectionContext(
-				new ResourceShadowDiscriminator(RESOURCE_DUMMY_BLUE_OID, null));
+				new ResourceShadowDiscriminator(RESOURCE_DUMMY_BLUE_OID, ShadowKindType.ACCOUNT, null));
 		assertNotNull("Null model projection context", accContext);
 		
 		assertEquals("Wrong policy decision", SynchronizationPolicyDecision.KEEP, accContext.getSynchronizationPolicyDecision());
@@ -924,7 +925,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		
 		// DEFAULT dummy resource: normal mappings
 		ModelProjectionContext accContext = modelContext.findProjectionContext(
-				new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, null));
+				new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, null));
 		assertNotNull("Null model projection context (default)", accContext);
 		
 		assertEquals("Wrong policy decision (default)", SynchronizationPolicyDecision.KEEP, accContext.getSynchronizationPolicyDecision());
@@ -940,7 +941,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		
 		// RED dummy resource: strong mappings
 		accContext = modelContext.findProjectionContext(
-				new ResourceShadowDiscriminator(RESOURCE_DUMMY_RED_OID, null));
+				new ResourceShadowDiscriminator(RESOURCE_DUMMY_RED_OID, ShadowKindType.ACCOUNT, null));
 		assertNotNull("Null model projection context (red)", accContext);
 		
 		assertEquals("Wrong policy decision", SynchronizationPolicyDecision.KEEP, accContext.getSynchronizationPolicyDecision());
@@ -956,7 +957,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		
 		// BLUE dummy resource: weak mappings
 		accContext = modelContext.findProjectionContext(
-				new ResourceShadowDiscriminator(RESOURCE_DUMMY_BLUE_OID, null));
+				new ResourceShadowDiscriminator(RESOURCE_DUMMY_BLUE_OID, ShadowKindType.ACCOUNT, null));
 		assertNotNull("Null model projection context (blue)", accContext);
 		
 		assertEquals("Wrong policy decision", SynchronizationPolicyDecision.KEEP, accContext.getSynchronizationPolicyDecision());
@@ -1023,7 +1024,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		
 		// DEFAULT dummy resource: normal mappings
 		ModelProjectionContext accContext = modelContext.findProjectionContext(
-				new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, null));
+				new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, null));
 		assertNotNull("Null model projection context (default)", accContext);
 		
 		assertEquals("Wrong policy decision (default)", SynchronizationPolicyDecision.KEEP, accContext.getSynchronizationPolicyDecision());
@@ -1039,7 +1040,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		
 		// RED dummy resource: strong mappings
 		accContext = modelContext.findProjectionContext(
-				new ResourceShadowDiscriminator(RESOURCE_DUMMY_RED_OID, null));
+				new ResourceShadowDiscriminator(RESOURCE_DUMMY_RED_OID, ShadowKindType.ACCOUNT, null));
 		assertNotNull("Null model projection context (red)", accContext);
 		
 		assertEquals("Wrong policy decision", SynchronizationPolicyDecision.KEEP, accContext.getSynchronizationPolicyDecision());
@@ -1054,7 +1055,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		
 		// BLUE dummy resource: weak mappings
 		accContext = modelContext.findProjectionContext(
-				new ResourceShadowDiscriminator(RESOURCE_DUMMY_BLUE_OID, null));
+				new ResourceShadowDiscriminator(RESOURCE_DUMMY_BLUE_OID, ShadowKindType.ACCOUNT, null));
 		assertNotNull("Null model projection context (blue)", accContext);
 		
 		assertEquals("Wrong policy decision", SynchronizationPolicyDecision.KEEP, accContext.getSynchronizationPolicyDecision());
@@ -1109,7 +1110,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		
 		// DEFAULT dummy resource: normal mappings
 		ModelProjectionContext accContext = modelContext.findProjectionContext(
-				new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, null));
+				new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, null));
 		assertNotNull("Null model projection context (default)", accContext);
 		
 		assertEquals("Wrong policy decision (default)", SynchronizationPolicyDecision.ADD, accContext.getSynchronizationPolicyDecision());
@@ -1125,7 +1126,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		
 		// RED dummy resource: strong mappings
 		accContext = modelContext.findProjectionContext(
-				new ResourceShadowDiscriminator(RESOURCE_DUMMY_RED_OID, null));
+				new ResourceShadowDiscriminator(RESOURCE_DUMMY_RED_OID, ShadowKindType.ACCOUNT, null));
 		assertNotNull("Null model projection context (red)", accContext);
 		
 		assertEquals("Wrong policy decision", SynchronizationPolicyDecision.ADD, accContext.getSynchronizationPolicyDecision());
@@ -1142,7 +1143,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		
 		// BLUE dummy resource: weak mappings
 		accContext = modelContext.findProjectionContext(
-				new ResourceShadowDiscriminator(RESOURCE_DUMMY_BLUE_OID, null));
+				new ResourceShadowDiscriminator(RESOURCE_DUMMY_BLUE_OID, ShadowKindType.ACCOUNT, null));
 		assertNotNull("Null model projection context (blue)", accContext);
 		
 		assertEquals("Wrong policy decision", SynchronizationPolicyDecision.ADD, accContext.getSynchronizationPolicyDecision());
@@ -1203,7 +1204,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		assertEquals("Unexpected number of projection contexts", 3, projectionContexts.size());
 		
 		ModelProjectionContext accContextDefault = modelContext.findProjectionContext(
-				new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, null));
+				new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, null));
 		assertNotNull("Null model projection context (default)", accContextDefault);
 		
 		assertEquals("Wrong policy decision (default)", SynchronizationPolicyDecision.KEEP, accContextDefault.getSynchronizationPolicyDecision());
@@ -1219,7 +1220,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         				new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP)));
 		
 		ModelProjectionContext accContextBlue = modelContext.findProjectionContext(
-				new ResourceShadowDiscriminator(RESOURCE_DUMMY_BLUE_OID, null));
+				new ResourceShadowDiscriminator(RESOURCE_DUMMY_BLUE_OID, ShadowKindType.ACCOUNT, null));
 		assertNotNull("Null model projection context (blue)", accContextBlue);
 		
 		assertEquals("Wrong policy decision (blue)", SynchronizationPolicyDecision.KEEP, accContextBlue.getSynchronizationPolicyDecision());

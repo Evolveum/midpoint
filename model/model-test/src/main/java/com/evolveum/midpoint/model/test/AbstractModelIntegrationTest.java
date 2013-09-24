@@ -1464,28 +1464,31 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         				new MidPointPrincipal(object.asObjectable()), null));
 	}
 	
-	protected void assertEffectiveActivationDeltaOnly(ObjectDelta<UserType> userDelta, String desc, ActivationStatusType expectedEfficientActivation) {
+	protected <F extends FocusType> void assertEffectiveActivationDeltaOnly(ObjectDelta<F> focusDelta, String desc, ActivationStatusType expectedEfficientActivation) {
+		if (focusDelta == null) {
+			return;
+		}
 		int expectedModifications = 0;
 		// There may be metadata modification, we tolerate that
-		Collection<? extends ItemDelta<?>> metadataDelta = userDelta.findItemDeltasSubPath(new ItemPath(UserType.F_METADATA));
+		Collection<? extends ItemDelta<?>> metadataDelta = focusDelta.findItemDeltasSubPath(new ItemPath(UserType.F_METADATA));
 		if (metadataDelta != null && !metadataDelta.isEmpty()) {
 			expectedModifications++;
 		}
-		if (userDelta.findItemDelta(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_ENABLE_TIMESTAMP)) != null) {
+		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_ENABLE_TIMESTAMP)) != null) {
 			expectedModifications++;
 		}
-		if (userDelta.findItemDelta(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP)) != null) {
+		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP)) != null) {
 			expectedModifications++;
 		}
-		if (userDelta.findItemDelta(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_ARCHIVE_TIMESTAMP)) != null) {
+		if (focusDelta.findItemDelta(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_ARCHIVE_TIMESTAMP)) != null) {
 			expectedModifications++;
 		}
-		PropertyDelta<ActivationStatusType> effectiveStatusDelta = userDelta.findPropertyDelta(new ItemPath(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS));
+		PropertyDelta<ActivationStatusType> effectiveStatusDelta = focusDelta.findPropertyDelta(new ItemPath(UserType.F_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS));
 		if (effectiveStatusDelta != null) {
 			expectedModifications++;
 			PrismAsserts.assertReplace(effectiveStatusDelta, expectedEfficientActivation);
 		}
-		assertEquals("Unexpected modifications in "+desc+": "+userDelta, expectedModifications, userDelta.getModifications().size());		
+		assertEquals("Unexpected modifications in "+desc+": "+focusDelta, expectedModifications, focusDelta.getModifications().size());		
 	}
 	
 	protected void assertValidFrom(PrismObject<? extends ObjectType> obj, Date expectedDate) {

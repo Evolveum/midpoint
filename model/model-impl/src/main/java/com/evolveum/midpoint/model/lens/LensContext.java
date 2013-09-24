@@ -67,7 +67,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	private boolean executionAudited = false;
 	private LensContextStatsType stats = new LensContextStatsType();
 
-	transient private ObjectTemplateType userTemplate;
+	transient private ObjectTemplateType focusTemplate;
 	transient private ProjectionPolicyType accountSynchronizationSettings;
 	transient private ValuePolicyType globalPasswordPolicy;
 
@@ -205,12 +205,12 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		return projectionContext;
 	}
 	
-	public ObjectTemplateType getUserTemplate() {
-		return userTemplate;
+	public ObjectTemplateType getFocusTemplate() {
+		return focusTemplate;
 	}
 
-	public void setUserTemplate(ObjectTemplateType userTemplate) {
-		this.userTemplate = userTemplate;
+	public void setFocusTemplate(ObjectTemplateType focusTemplate) {
+		this.focusTemplate = focusTemplate;
 	}
 
 	public ProjectionPolicyType getAccountSynchronizationSettings() {
@@ -617,7 +617,7 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
     	clone.prismContext = this.prismContext;
     	clone.resourceCache = cloneResourceCache();
     	// User template is de-facto immutable, OK to just pass reference here.
-    	clone.userTemplate = this.userTemplate;
+    	clone.focusTemplate = this.focusTemplate;
     	clone.projectionWave = this.projectionWave;
     	
     	if (this.focusContext != null) {

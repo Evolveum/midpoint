@@ -15,8 +15,6 @@
  */
 package com.evolveum.midpoint.model.lens;
 
-import static com.evolveum.midpoint.model.lens.LensTestConstants.REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY;
-import static com.evolveum.midpoint.model.lens.LensTestConstants.REQ_USER_JACK_MODIFY_DELETE_ASSIGNMENT_ACCOUNT_DUMMY;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
@@ -90,7 +88,7 @@ import org.w3c.dom.Element;
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestClockwork extends AbstractInternalModelIntegrationTest {
+public class TestClockwork extends AbstractLensTest {
 	
 	@Autowired(required = true)
 	private Clockwork clockwork;
@@ -163,7 +161,7 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
 	
 	        display("Input context", context);
 	
-	        assertUserModificationSanity(context);
+	        assertFocusModificationSanity(context);
 	        mockClockworkHook.reset();
 	        mockClockworkHook.setRecord(true);
 	        
@@ -234,7 +232,7 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
 
         display("Input context", context);
 
-        assertUserModificationSanity(context);
+        assertFocusModificationSanity(context);
 
         // WHEN
         clockwork.run(context, task, result);
@@ -284,7 +282,7 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
 
         display("Input context", context);
 
-        assertUserModificationSanity(context);
+        assertFocusModificationSanity(context);
         mockClockworkHook.reset();
         mockClockworkHook.setRecord(true);
         mockClockworkHook.setAsynchronous(true);

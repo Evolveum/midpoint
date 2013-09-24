@@ -375,24 +375,21 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		this.fullShadow = fullShadow;
 	}
 	
-	public boolean isShadow() {
-		return ShadowType.class.isAssignableFrom(getObjectTypeClass());
-	}
-
 	public ShadowKindType getKind() {
-		if (!isShadow()) {
-			return null;
+		ResourceShadowDiscriminator discr = getResourceShadowDiscriminator();
+		if (discr != null) {
+			return discr.getKind();
 		}
 		if (getObjectOld()!=null) {
-			return ((PrismObject<ShadowType>)getObjectOld()).asObjectable().getKind();
+			return getObjectOld().asObjectable().getKind();
 		}
 		if (getObjectCurrent()!=null) {
-			return ((PrismObject<ShadowType>)getObjectCurrent()).asObjectable().getKind();
+			return getObjectCurrent().asObjectable().getKind();
 		}
 		if (getObjectNew()!=null) {
-			return ((PrismObject<ShadowType>)getObjectNew()).asObjectable().getKind();
+			return getObjectNew().asObjectable().getKind();
 		}
-		return null;
+		return ShadowKindType.ACCOUNT;
 	}
 	
 	public PrismValueDeltaSetTriple<PrismPropertyValue<AccountConstruction>> getAccountConstructionDeltaSetTriple() {
@@ -424,13 +421,9 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		if (synchronizationPolicyDecision == SynchronizationPolicyDecision.BROKEN) {
 			return null;
 		}
-		if (isShadow()) {
-			ResourceObjectTypeDefinitionType def = ResourceTypeUtil.getResourceObjectTypeDefinitionType(
-	        		resource, ShadowKindType.ACCOUNT, resourceShadowDiscriminator.getIntent());
-	        return def;
-		} else {
-			return null;
-		}
+		ResourceObjectTypeDefinitionType def = ResourceTypeUtil.getResourceObjectTypeDefinitionType(
+        		resource, getResourceShadowDiscriminator().getKind(), resourceShadowDiscriminator.getIntent());
+        return def;
     }
 	
 	private ResourceSchema getResourceSchema() throws SchemaException {
@@ -449,7 +442,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		if (refinedSchema == null) {
 			return null;
 		}
-		return refinedSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, getResourceShadowDiscriminator().getIntent());
+		return refinedSchema.getRefinedDefinition(getResourceShadowDiscriminator().getKind(), getResourceShadowDiscriminator().getIntent());
 	}
 	
 	public Collection<ResourceObjectTypeDependencyType> getDependencies() {
@@ -683,14 +676,12 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 			return;
 		}
     	if (fresh && !force) {
-    		if (isShadow()) {
-	    		if (resource == null) {
-		    		throw new IllegalStateException("Null resource in "+this + (contextDesc == null ? "" : " in " +contextDesc));
-		    	}
-		    	if (resourceShadowDiscriminator == null) {
-		    		throw new IllegalStateException("Null resource account type in "+this + (contextDesc == null ? "" : " in " +contextDesc));
-		    	}
-    		}
+    		if (resource == null) {
+	    		throw new IllegalStateException("Null resource in "+this + (contextDesc == null ? "" : " in " +contextDesc));
+	    	}
+	    	if (resourceShadowDiscriminator == null) {
+	    		throw new IllegalStateException("Null resource account type in "+this + (contextDesc == null ? "" : " in " +contextDesc));
+	    	}
     	}
     	if (syncDelta != null) {
     		try {

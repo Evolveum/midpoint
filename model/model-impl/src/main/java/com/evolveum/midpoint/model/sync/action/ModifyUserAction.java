@@ -188,7 +188,7 @@ public class ModifyUserAction extends BaseAction {
         PrismObject<F> oldUser = user.asPrismObject();
         focusContext.setLoadedObject(oldUser);
         context.rememberResource(resource);
-        context.setUserTemplate(userTemplate);
+        context.setFocusTemplate(userTemplate);
 
         //check and update activation if necessary
         if (userActivationDecision == null) {

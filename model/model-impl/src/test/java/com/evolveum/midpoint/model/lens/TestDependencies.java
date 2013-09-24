@@ -48,6 +48,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
@@ -353,7 +354,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
 
 	private LensProjectionContext findAccountContext(LensContext<UserType> context,
 			String resourceOid, int order) {
-		ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(resourceOid, null);
+		ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(resourceOid, ShadowKindType.ACCOUNT, null);
 		discr.setOrder(order);
 		return context.findProjectionContext(discr);
 	}

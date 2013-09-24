@@ -142,7 +142,7 @@ public class SynchronizeAction extends BaseAction {
         PrismObject<F> oldUser = user.asPrismObject();
         focusContext.setLoadedObject(oldUser);
         context.rememberResource(resource);
-        context.setUserTemplate(userTemplate);
+        context.setFocusTemplate(userTemplate);
 
         return context;
     }

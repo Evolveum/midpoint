@@ -570,7 +570,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
     }
 
     public ResourceShadowDiscriminator getShadowDiscriminator() {
-        return new ResourceShadowDiscriminator(resourceType.getOid(), getIntent());
+        return new ResourceShadowDiscriminator(resourceType.getOid(), getKind(), getIntent());
     }
 
     public Collection<? extends QName> getNamesOfAttributesWithOutboundExpressions() {

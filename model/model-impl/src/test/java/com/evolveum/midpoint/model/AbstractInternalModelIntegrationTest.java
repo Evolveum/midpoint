@@ -69,6 +69,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
@@ -112,7 +115,7 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 	protected static final String ACCOUNT_HBARBOSSA_DUMMY_OID = "c0c010c0-d34d-b33f-f00d-222211111112";
 	protected static final String ACCOUNT_HBARBOSSA_DUMMY_USERNAME = "hbarbossa";
 	
-	public static final String ACCOUNT_SHADOW_JACK_DUMMY_FILENAME = COMMON_DIR_NAME + "/account-shadow-jack-dummy.xml";
+	public static final File ACCOUNT_SHADOW_JACK_DUMMY_FILE = new File(COMMON_DIR, "account-shadow-jack-dummy.xml");
 	public static final String ACCOUNT_JACK_DUMMY_USERNAME = "jack";
 	
 	public static final String ACCOUNT_HERMAN_DUMMY_FILENAME = COMMON_DIR_NAME + "/account-herman-dummy.xml";
@@ -130,6 +133,9 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 	public static final String ACCOUNT_SHADOW_ELAINE_DUMMY_FILENAME = COMMON_DIR_NAME + "/account-elaine-dummy.xml";
 	public static final String ACCOUNT_SHADOW_ELAINE_DUMMY_OID = "c0c010c0-d34d-b33f-f00d-22220004000e";
 	public static final String ACCOUNT_ELAINE_DUMMY_USERNAME = USER_ELAINE_USERNAME;
+	
+	public static final File ENTITLEMENT_SHADOW_PIRATE_DUMMY_FILE = new File(COMMON_DIR, "entitlement-shadow-pirate-dummy.xml");
+	public static final String ENTITLEMENT_PIRATE_DUMMY_NAME = "pirate";
 	
 	public static final String RESOURCE_DUMMY_FILENAME = COMMON_DIR_NAME + "/resource-dummy.xml";
 	public static final String RESOURCE_DUMMY_OID = "10000000-0000-0000-0000-000000000004";
@@ -190,12 +196,12 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 		
 		// Resources
 		
-		resourceDummy = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_FILENAME, RESOURCE_DUMMY_OID, initTask, initResult);
-		resourceDummyType = resourceDummy.asObjectable();
-		
-		dummyResourceCtl = DummyResourceContoller.create(null, resourceDummy);
+		dummyResourceCtl = DummyResourceContoller.create(null);
 		dummyResourceCtl.extendDummySchema();
 		dummyResource = dummyResourceCtl.getDummyResource();
+		resourceDummy = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_FILENAME, RESOURCE_DUMMY_OID, initTask, initResult);
+		resourceDummyType = resourceDummy.asObjectable();
+		dummyResourceCtl.setResource(resourceDummy);
 		
 		// We need to create Barbossa's account in exactly the shape that is given by his existing assignments
 		// otherwise any substantial change will trigger reconciliation and the recon changes will interfere with
@@ -226,26 +232,38 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 				
 	}
 	
+	protected <O extends ObjectType> LensContext<O> createLensContext(Class<O> focusType) {
+		return new LensContext<O>(focusType, prismContext, provisioningService);
+	}
+	
 	protected LensContext<UserType> createUserAccountContext() {
 		return new LensContext<UserType>(UserType.class, prismContext, provisioningService);
 	}
 	
-	protected LensFocusContext<UserType> fillContextWithUser(LensContext<UserType> context, PrismObject<UserType> user) throws SchemaException, ObjectNotFoundException {
-		LensFocusContext<UserType> focusContext = context.getOrCreateFocusContext();
-		focusContext.setLoadedObject(user);
+	protected <O extends ObjectType> LensFocusContext<O> fillContextWithFocus(LensContext<O> context, PrismObject<O> focus) 
+			throws SchemaException, ObjectNotFoundException {
+		LensFocusContext<O> focusContext = context.getOrCreateFocusContext();
+		focusContext.setLoadedObject(focus);
 		return focusContext;
+	}
+	
+	protected <O extends ObjectType> LensFocusContext<O> fillContextWithFocus(LensContext<O> context, Class<O> type,
+			String userOid, OperationResult result) throws SchemaException,
+			ObjectNotFoundException {
+		PrismObject<O> focus = repositoryService.getObject(type, userOid, null, result);
+		return fillContextWithFocus(context, focus);
 	}
 	
 	protected LensFocusContext<UserType> fillContextWithUser(LensContext<UserType> context, String userOid, OperationResult result) throws SchemaException,
 			ObjectNotFoundException {
-        PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
-        return fillContextWithUser(context, user);
-    }
+		return fillContextWithFocus(context, UserType.class, userOid, result);
+	}
+        
 	
-	protected void fillContextWithUserFromFile(LensContext<UserType> context, String filename) throws SchemaException,
+	protected <O extends ObjectType> void fillContextWithFocus(LensContext<O> context, File file) throws SchemaException,
 	ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
-		PrismObject<UserType> user = PrismTestUtil.parseObject(new File(filename));
-		fillContextWithUser(context, user);
+		PrismObject<O> user = PrismTestUtil.parseObject(file);
+		fillContextWithFocus(context, user);
 	}
 	
 	protected void fillContextWithEmtptyAddUserDelta(LensContext<UserType> context, OperationResult result) throws SchemaException {
@@ -281,7 +299,8 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
         String resourceOid = accountType.getResourceRef().getOid();
         ResourceType resourceType = provisioningService.getObject(ResourceType.class, resourceOid, null, null, result).asObjectable();
         applyResourceSchema(accountType, resourceType);
-        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, ShadowUtil.getIntent(accountType));
+        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, 
+        		ShadowKindType.ACCOUNT, ShadowUtil.getIntent(accountType));
         LensProjectionContext accountSyncContext = context.findOrCreateProjectionContext(rat);
         accountSyncContext.setOid(account.getOid());
 		accountSyncContext.setLoadedObject(account);
@@ -319,14 +338,26 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 		focusContext.addPrimaryDelta(userDelta);
 		return userDelta;
 	}
-
+	
 	protected ObjectDelta<UserType> addModificationToContextAddAccountFromFile(
 			LensContext<UserType> context, String filename) throws JAXBException, SchemaException,
 			FileNotFoundException {
-		PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(filename));
-		LensFocusContext<UserType> focusContext = context.getOrCreateFocusContext();
-		ObjectDelta<UserType> userDelta = ObjectDelta.createModificationAddReference(UserType.class, focusContext
-				.getObjectOld().getOid(), UserType.F_LINK_REF, prismContext, account);
+		return addModificationToContextAddProjection(context, UserType.class, new File(filename));
+	}
+	
+	protected ObjectDelta<UserType> addModificationToContextAddAccountFromFile(
+			LensContext<UserType> context, File file) throws JAXBException, SchemaException,
+			FileNotFoundException {
+		return addModificationToContextAddProjection(context, UserType.class, file);
+	}
+
+	protected <F extends FocusType> ObjectDelta<F> addModificationToContextAddProjection(
+			LensContext<F> context, Class<F> focusType, File file) throws JAXBException, SchemaException,
+			FileNotFoundException {
+		PrismObject<ShadowType> account = PrismTestUtil.parseObject(file);
+		LensFocusContext<F> focusContext = context.getOrCreateFocusContext();
+		ObjectDelta<F> userDelta = ObjectDelta.createModificationAddReference(focusType, focusContext
+				.getObjectOld().getOid(), FocusType.F_LINK_REF, prismContext, account);
 		focusContext.addPrimaryDelta(userDelta);
 		return userDelta;
 	}
@@ -377,24 +408,24 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 		return accountDelta;
 	}	
 	
-	protected void assertUserModificationSanity(LensContext<UserType> context) throws JAXBException {
-		LensFocusContext<UserType> focusContext = context.getFocusContext();
-	    PrismObject<UserType> userOld = focusContext.getObjectOld();
-	    if (userOld == null) {
+	protected <F extends FocusType> void assertFocusModificationSanity(LensContext<F> context) throws JAXBException {
+		LensFocusContext<F> focusContext = context.getFocusContext();
+	    PrismObject<F> focusOld = focusContext.getObjectOld();
+	    if (focusOld == null) {
 	    	return;
 	    }
-	    ObjectDelta<UserType> userPrimaryDelta = focusContext.getPrimaryDelta();
-	    if (userPrimaryDelta != null) {
-		    assertEquals("No OID in userOld", userOld.getOid(), userPrimaryDelta.getOid());
-		    assertEquals(ChangeType.MODIFY, userPrimaryDelta.getChangeType());
-		    assertNull(userPrimaryDelta.getObjectToAdd());
-		    for (ItemDelta itemMod : userPrimaryDelta.getModifications()) {
+	    ObjectDelta<F> focusPrimaryDelta = focusContext.getPrimaryDelta();
+	    if (focusPrimaryDelta != null) {
+		    assertEquals("No OID in old focus object", focusOld.getOid(), focusPrimaryDelta.getOid());
+		    assertEquals(ChangeType.MODIFY, focusPrimaryDelta.getChangeType());
+		    assertNull(focusPrimaryDelta.getObjectToAdd());
+		    for (ItemDelta itemMod : focusPrimaryDelta.getModifications()) {
 		        if (itemMod.getValuesToDelete() != null) {
-		            Item property = userOld.findItem(itemMod.getPath());
-		            assertNotNull("Deleted item " + itemMod.getParentPath() + "/" + itemMod.getName() + " not found in user", property);
+		            Item property = focusOld.findItem(itemMod.getPath());
+		            assertNotNull("Deleted item " + itemMod.getParentPath() + "/" + itemMod.getName() + " not found in focus", property);
 		            for (Object valueToDelete : itemMod.getValuesToDelete()) {
 		                if (!property.containsRealValue((PrismValue) valueToDelete)) {
-		                    display("Deleted value " + valueToDelete + " is not in user item " + itemMod.getParentPath() + "/" + itemMod.getName());
+		                    display("Deleted value " + valueToDelete + " is not in focus item " + itemMod.getParentPath() + "/" + itemMod.getName());
 		                    display("Deleted value", valueToDelete);
 		                    display("HASHCODE: " + valueToDelete.hashCode());
 		                    for (Object value : property.getValues()) {
@@ -402,7 +433,7 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 		                        display("EQUALS: " + valueToDelete.equals(value));
 		                        display("HASHCODE: " + value.hashCode());
 		                    }
-		                    AssertJUnit.fail("Deleted value " + valueToDelete + " is not in user item " + itemMod.getParentPath() + "/" + itemMod.getName());
+		                    AssertJUnit.fail("Deleted value " + valueToDelete + " is not in focus item " + itemMod.getParentPath() + "/" + itemMod.getName());
 		                }
 		            }
 		        }

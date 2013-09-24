@@ -54,6 +54,8 @@ import org.testng.annotations.Test;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
+
+import java.io.File;
 import java.util.List;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
@@ -75,7 +77,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
     protected static final Trace LOGGER = TraceManager.getTrace(TestGeneralChangeProcessor.class);
 
     private static final String TEST_RESOURCE_DIR_NAME = "src/test/resources";
-    private static final String REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE1 = TEST_RESOURCE_DIR_NAME + "/user-jack-modify-add-assignment-role1.xml";
+    private static final File REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE1 = new File(TEST_RESOURCE_DIR_NAME, "user-jack-modify-add-assignment-role1.xml");
     private static final String REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE2_CHANGE_GN = TEST_RESOURCE_DIR_NAME + "/user-jack-modify-add-assignment-role2-change-gn.xml";
     private static final String REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE3_CHANGE_GN2 = TEST_RESOURCE_DIR_NAME + "/user-jack-modify-add-assignment-role3-change-gn2.xml";
     private static final String REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLES2_3_4 = TEST_RESOURCE_DIR_NAME + "/user-jack-modify-add-assignment-roles2-3-4.xml";
@@ -157,7 +159,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 
         display("Input context", context);
 
-        assertUserModificationSanity(context);
+        assertFocusModificationSanity(context);
 
         // WHEN
 

@@ -82,7 +82,7 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 		//assert jack
 		assertNotNull(userType);
 			
-		ShadowType shadow = parseObjectType(new File(ACCOUNT_SHADOW_JACK_DUMMY_FILENAME), ShadowType.class);
+		ShadowType shadow = parseObjectType(ACCOUNT_SHADOW_JACK_DUMMY_FILE, ShadowType.class);
 		
 		QueryType query = PrismTestUtil.unmarshalObject(new File(CORRELATION_OR_FILTER), QueryType.class);
 		List<QueryType> queries = new ArrayList<QueryType>();
@@ -113,7 +113,7 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 		//assert jack
 		assertNotNull(userType);
 			
-		ShadowType shadow = parseObjectType(new File(ACCOUNT_SHADOW_JACK_DUMMY_FILENAME), ShadowType.class);
+		ShadowType shadow = parseObjectType(ACCOUNT_SHADOW_JACK_DUMMY_FILE, ShadowType.class);
 		
 		List<QueryType> queries = new ArrayList<QueryType>();
 		QueryType query = PrismTestUtil.unmarshalObject(new File(CORRELATION_FIRST_FILTER), QueryType.class);		
@@ -147,7 +147,7 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 		//assert jack
 		assertNotNull(userType);
 			
-		ShadowType shadow = parseObjectType(new File(ACCOUNT_SHADOW_JACK_DUMMY_FILENAME), ShadowType.class);
+		ShadowType shadow = parseObjectType(ACCOUNT_SHADOW_JACK_DUMMY_FILE, ShadowType.class);
 		
 		List<QueryType> queries = new ArrayList<QueryType>();
 		QueryType query = PrismTestUtil.unmarshalObject(new File(CORRELATION_WITH_CONDITION), QueryType.class);		

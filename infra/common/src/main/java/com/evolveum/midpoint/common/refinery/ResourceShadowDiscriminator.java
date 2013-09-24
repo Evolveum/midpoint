@@ -42,18 +42,31 @@ public class ResourceShadowDiscriminator implements Serializable {
 	private boolean thombstone;
 	private int order = 0;
 	
-	public ResourceShadowDiscriminator(String resourceOid, String intent) {
-		this(resourceOid, intent, false);
-	}
-	
-	public ResourceShadowDiscriminator(String resourceOid, String intent, boolean thombstone) {
+	public ResourceShadowDiscriminator(String resourceOid, ShadowKindType kind, String intent, boolean thombstone) {
 		this.resourceOid = resourceOid;
 		this.thombstone = thombstone;
 		setIntent(intent);
+		setKind(kind);
 	}
 	
+	public ResourceShadowDiscriminator(String resourceOid, ShadowKindType kind, String intent) {
+		this(resourceOid, kind, intent, false);
+	}
+
+	
 	public ResourceShadowDiscriminator(ShadowDiscriminatorType accRefType) {
-		this(accRefType.getResourceRef().getOid(), accRefType.getIntent());
+		this(accRefType.getResourceRef().getOid(), accRefType.getKind(), accRefType.getIntent());
+	}
+	
+	public ResourceShadowDiscriminator(ShadowDiscriminatorType accRefType, ShadowKindType defaultKind) {
+		ShadowKindType kind = accRefType.getKind();
+		if (kind == null) {
+			kind = defaultKind;
+		}
+		this.resourceOid = accRefType.getResourceRef().getOid();
+		this.thombstone = false;
+		setIntent(accRefType.getIntent());
+		setKind(kind);
 	}
 
 	public String getResourceOid() {
@@ -108,6 +121,7 @@ public class ResourceShadowDiscriminator implements Serializable {
     public ShadowDiscriminatorType toResourceShadowDiscriminatorType() {
         ShadowDiscriminatorType rsdt = new ShadowDiscriminatorType();
         rsdt.setIntent(intent);
+        rsdt.setKind(kind);
         ObjectReferenceType resourceRef = new ObjectReferenceType();
         resourceRef.setOid(resourceOid);
         resourceRef.setType(ResourceType.COMPLEX_TYPE);
@@ -119,8 +133,16 @@ public class ResourceShadowDiscriminator implements Serializable {
         if (resourceShadowDiscriminatorType == null) {
             return null;
         }
+        
+        // For compatibility. Otherwise the kind should be explicitly serialized.
+        ShadowKindType kind = resourceShadowDiscriminatorType.getKind();
+        if (kind == null) {
+        	kind = ShadowKindType.ACCOUNT;
+        }
+        
         return new ResourceShadowDiscriminator(
                 resourceShadowDiscriminatorType.getResourceRef() != null ? resourceShadowDiscriminatorType.getResourceRef().getOid() : null,
+                kind,
                 resourceShadowDiscriminatorType.getIntent());
     }
 

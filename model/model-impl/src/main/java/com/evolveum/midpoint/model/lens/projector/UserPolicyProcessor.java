@@ -257,7 +257,7 @@ public class UserPolicyProcessor {
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
 
-		ObjectTemplateType userTemplate = context.getUserTemplate();
+		ObjectTemplateType userTemplate = context.getFocusTemplate();
 
 		if (userTemplate == null) {
 			// No applicable template

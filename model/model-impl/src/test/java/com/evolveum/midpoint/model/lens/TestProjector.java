@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.model.lens;
 
-import static com.evolveum.midpoint.model.lens.LensTestConstants.REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
@@ -84,6 +83,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnf
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TriggerType;
@@ -96,16 +96,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestProjector extends AbstractInternalModelIntegrationTest {
+public class TestProjector extends AbstractLensTest {
 		
-	public static final File TEST_DIR = new File("src/test/resources/lens");
-	public static final File USER_BARBOSSA_MODIFY_ASSIGNMENT_REPLACE_AC_FILE = new File(TEST_DIR, "user-barbossa-modify-assignment-replace-ac.xml");
-	
-	@Autowired(required = true)
-	private Projector projector;
-	
-	@Autowired(required = true)
-	private TaskManager taskManager;
+	public static final File USER_BARBOSSA_MODIFY_ASSIGNMENT_REPLACE_AC_FILE = new File(TEST_DIR, 
+			"user-barbossa-modify-assignment-replace-ac.xml");
 	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -118,6 +112,8 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         TestUtil.displayTestTile(this, "test000Sanity");
 
         RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceDummyType, prismContext);
+        
+        display("Dummy refined schema", refinedSchema);
         
         dummyResourceCtl.assertRefinedSchemaSanity(refinedSchema);
         
@@ -176,7 +172,8 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         display("Orig user secondary delta", userDeltaSecondaryClone);
         assert focusSecondaryDelta.equals(userDeltaSecondaryClone) : "focus secondary delta not equal";
         
-        assert accountContext == context.findProjectionContext(new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, null))
+        assert accountContext == context.findProjectionContext(
+        		new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, null))
         		: "wrong account context";
         assert accountContext.getPrimaryDelta() == accountDeltaPrimary : "account primary delta replaced";
         assert accountDeltaPrimaryClone.equals(accountDeltaPrimary) : "account primary delta changed";
@@ -196,7 +193,8 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         display("Orig user secondary delta", userDeltaSecondaryClone);
         assert focusSecondaryDelta.equals(userDeltaSecondaryClone) : "focus secondary delta not equal";
         
-        assert accountContext == context.findProjectionContext(new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, null))
+        assert accountContext == context.findProjectionContext(
+        		new ResourceShadowDiscriminator(RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, null))
         		: "wrong account context";
         assert accountContext.getPrimaryDelta() == accountDeltaPrimary : "account primary delta replaced";
         display("Orig account primary delta", accountDeltaPrimaryClone);
@@ -221,11 +219,11 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         LensContext<UserType> context = createUserAccountContext();
         fillContextWithUser(context, USER_JACK_OID, result);
         // We want "shadow" so the fullname will be computed by outbound expression 
-        addModificationToContextAddAccountFromFile(context, ACCOUNT_SHADOW_JACK_DUMMY_FILENAME);
+        addModificationToContextAddAccountFromFile(context, ACCOUNT_SHADOW_JACK_DUMMY_FILE);
 
         display("Input context", context);
 
-        assertUserModificationSanity(context);
+        assertFocusModificationSanity(context);
         
         // WHEN
         projector.project(context, "test", result);
@@ -283,7 +281,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 
         display("Input context", context);
 
-        assertUserModificationSanity(context);
+        assertFocusModificationSanity(context);
         
         // WHEN
         projector.project(context, "test", result);
@@ -311,7 +309,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 
         display("Input context", context);
 
-        assertUserModificationSanity(context);
+        assertFocusModificationSanity(context);
         
         // Let's break it a bit...
         breakAssignmentDelta(context);
@@ -373,7 +371,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 
         display("Input context", context);
 
-        assertUserModificationSanity(context);
+        assertFocusModificationSanity(context);
 
         // WHEN
         projector.project(context, "test", result);
@@ -425,7 +423,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 
         display("Input context", context);
 
-        assertUserModificationSanity(context);
+        assertFocusModificationSanity(context);
 
         // WHEN
         projector.project(context, "test", result);
@@ -479,7 +477,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 
         display("Input context", context);
 
-        assertUserModificationSanity(context);
+        assertFocusModificationSanity(context);
 
         // WHEN
         projector.project(context, "test", result);
@@ -541,7 +539,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 
         display("Input context", context);
 
-        assertUserModificationSanity(context);
+        assertFocusModificationSanity(context);
 
         // WHEN
         projector.project(context, "test", result);
@@ -596,7 +594,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 
         display("Input context", context);
 
-        assertUserModificationSanity(context);
+        assertFocusModificationSanity(context);
 
         try {
 	        // WHEN
@@ -636,7 +634,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 
         display("Input context", context);
 
-        assertUserModificationSanity(context);
+        assertFocusModificationSanity(context);
 
         // WHEN
         projector.project(context, "test", result);
@@ -727,7 +725,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
         // Make sure there is a shadow with conflicting account
-        repoAddObjectFromFile(ACCOUNT_SHADOW_JACK_DUMMY_FILENAME, ShadowType.class, result);
+        repoAddObjectFromFile(ACCOUNT_SHADOW_JACK_DUMMY_FILE, ShadowType.class, result);
         
         LensContext<UserType> context = createUserAccountContext();
         fillContextWithUser(context, USER_JACK_OID, result);
@@ -735,7 +733,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 
         display("Input context", context);
 
-        assertUserModificationSanity(context);
+        assertFocusModificationSanity(context);
         
         // WHEN
         projector.project(context, "test", result);
@@ -784,7 +782,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 
         display("Input context", context);
 
-        assertUserModificationSanity(context);
+        assertFocusModificationSanity(context);
 
         // WHEN
         projector.project(context, "test", result);
@@ -842,7 +840,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 
         display("Input context", context);
 
-        assertUserModificationSanity(context);
+        assertFocusModificationSanity(context);
 
         // WHEN
         projector.project(context, "test", result);
@@ -887,7 +885,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 
         display("Input context", context);
 
-        assertUserModificationSanity(context);
+        assertFocusModificationSanity(context);
 
         // WHEN
         projector.project(context, "test", result);
@@ -943,7 +941,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 
         display("Input context", context);
 
-        assertUserModificationSanity(context);
+        assertFocusModificationSanity(context);
 
         // WHEN
         projector.project(context, "test", result);
@@ -986,7 +984,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 
         display("Input context", context);
 
-        assertUserModificationSanity(context);
+        assertFocusModificationSanity(context);
 
         // WHEN
         projector.project(context, "test", result);
@@ -1042,7 +1040,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 
         display("Input context", context);
 
-        assertUserModificationSanity(context);
+        assertFocusModificationSanity(context);
 
         // WHEN
         projector.project(context, "test", result);

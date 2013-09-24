@@ -336,7 +336,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     	if (focusContext == null) {
     		throw new IllegalStateException("No focus in lens context");
     	}
-    	ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, null);
+    	ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, ShadowKindType.ACCOUNT, null);
 		LensProjectionContext projectionContext = ctx.findProjectionContext(rat);
 		if (projectionContext == null) {
 			return false;

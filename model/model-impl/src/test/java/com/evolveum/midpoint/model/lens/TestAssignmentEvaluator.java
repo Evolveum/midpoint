@@ -19,8 +19,6 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.*;
 
-import static com.evolveum.midpoint.model.lens.LensTestConstants.*;
-
 import java.io.FileNotFoundException;
 
 import javax.xml.bind.JAXBException;
@@ -55,7 +53,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestAssignmentEvaluator extends AbstractInternalModelIntegrationTest {
+public class TestAssignmentEvaluator extends AbstractLensTest {
 
 	@Autowired(required=true)
 	private RepositoryService repositoryService;

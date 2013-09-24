@@ -188,7 +188,9 @@ public class AssignmentEvaluator<F extends FocusType> {
 		ConstructionType constructionType = assignmentType.getConstruction();
 		if (constructionType == null) {
 			constructionType = assignmentType.getAccountConstruction();
-			constructionType.setKind(ShadowKindType.ACCOUNT);
+			if (constructionType.getKind() == null) {
+				constructionType.setKind(ShadowKindType.ACCOUNT);
+			}
 		}
 		AccountConstruction<F> accContruction = new AccountConstruction<F>(constructionType, source);
 		// We have to clone here as the path is constantly changing during evaluation

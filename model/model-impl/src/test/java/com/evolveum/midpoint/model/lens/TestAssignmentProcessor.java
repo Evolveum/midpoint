@@ -68,14 +68,12 @@ import java.util.Set;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.*;
 
-import static com.evolveum.midpoint.model.lens.LensTestConstants.*;
-
 /**
  * @author semancik
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTest {
+public class TestAssignmentProcessor extends AbstractLensTest {
 
     private static final ItemPath ATTRIBUTES_PARENT_PATH = new ItemPath(ShadowType.F_ATTRIBUTES);
 
@@ -128,7 +126,7 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
 
         display("Input context", context);
 
-        assertUserModificationSanity(context);
+        assertFocusModificationSanity(context);
 
         // WHEN
         assignmentProcessor.processAssignmentsAccounts(context, result);
@@ -187,7 +185,7 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
 
         display("Input context", context);
 
-        assertUserModificationSanity(context);
+        assertFocusModificationSanity(context);
 
         // WHEN
         assignmentProcessor.processAssignmentsAccounts(context, result);
@@ -227,7 +225,7 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
 
         display("Input context", context);
 
-        assertUserModificationSanity(context);
+        assertFocusModificationSanity(context);
 
         // WHEN
         assignmentProcessor.processAssignmentsAccounts(context, result);
@@ -295,7 +293,7 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
 
         display("Input context", context);
 
-        assertUserModificationSanity(context);
+        assertFocusModificationSanity(context);
 
         // WHEN
         assignmentProcessor.processAssignmentsAccounts(context, result);
@@ -393,7 +391,7 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
         PrismObject<UserType> userNew = context.getFocusContext().getObjectNew();
         assertEquals("Unexpected number of assignemnts in userNew after recompute", 1, userNew.asObjectable().getAssignment().size());
 
-        assertUserModificationSanity(context);
+        assertFocusModificationSanity(context);
 
         // WHEN
         assignmentProcessor.processAssignmentsAccounts(context, result);
@@ -480,7 +478,7 @@ public class TestAssignmentProcessor extends AbstractInternalModelIntegrationTes
 
 	        display("Input context", context);
 
-	        assertUserModificationSanity(context);
+	        assertFocusModificationSanity(context);
 
 	        // WHEN
 	        assignmentProcessor.processAssignmentsAccounts(context, result);

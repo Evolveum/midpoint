@@ -67,6 +67,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
@@ -214,7 +215,8 @@ public abstract class BaseAction implements Action {
 
         String accountType = getAccountTypeFromChange(change);
         boolean thombstone = isThombstone(change);
-		ResourceShadowDiscriminator resourceAccountType = new ResourceShadowDiscriminator(resource.getOid(), accountType, thombstone);
+		ResourceShadowDiscriminator resourceAccountType = new ResourceShadowDiscriminator(resource.getOid(), ShadowKindType.ACCOUNT, 
+				accountType, thombstone);
 		LensProjectionContext accountContext = context.createProjectionContext(resourceAccountType);
         accountContext.setResource(resource);
         accountContext.setOid(getOidFromChange(change));

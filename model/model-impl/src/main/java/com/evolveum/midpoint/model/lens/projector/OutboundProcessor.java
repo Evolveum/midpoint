@@ -106,8 +106,8 @@ public class OutboundProcessor {
             throw new IllegalStateException("Definition for account type " + rat + " not found in the context, but it should be there");
         }
         
-        ObjectDeltaObject<F> userOdo = context.getFocusContext().getObjectDeltaObject();
-        ObjectDeltaObject<ShadowType> accountOdo = accCtx.getObjectDeltaObject();
+        ObjectDeltaObject<F> focusOdo = context.getFocusContext().getObjectDeltaObject();
+        ObjectDeltaObject<ShadowType> projectionOdo = accCtx.getObjectDeltaObject();
         
         AccountConstruction outboundAccountConstruction = new AccountConstruction(null, accCtx.getResource());
         
@@ -145,16 +145,18 @@ public class OutboundProcessor {
 			}
 			
 			mapping.setDefaultTargetDefinition(refinedAttributeDefinition);
-			mapping.setSourceContext(userOdo);
-			mapping.addVariableDefinition(ExpressionConstants.VAR_USER, userOdo);
-			mapping.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, accountOdo);
+			mapping.setSourceContext(focusOdo);
+			mapping.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo);
+			mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo);
+			mapping.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, projectionOdo);
+			mapping.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, projectionOdo);
 			mapping.addVariableDefinition(ExpressionConstants.VAR_ITERATION, 
 					LensUtil.getIterationVariableValue(accCtx));
 			mapping.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, 
 					LensUtil.getIterationTokenVariableValue(accCtx));
 			mapping.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, accCtx.getResource());
 			mapping.addVariableDefinition(ExpressionConstants.VAR_OPERATION, operation);
-			mapping.setRootNode(userOdo);
+			mapping.setRootNode(focusOdo);
 			mapping.setOriginType(OriginType.OUTBOUND);
 			
 			StringPolicyResolver stringPolicyResolver = new StringPolicyResolver() {
@@ -201,10 +203,10 @@ public class OutboundProcessor {
 			
 			// Set condition masks. There are used as a brakes to avoid evaluating to nonsense values in case user is not present
 			// (e.g. in old values in ADD situations and new values in DELETE situations).
-			if (userOdo.getOldObject() == null) {
+			if (focusOdo.getOldObject() == null) {
 				mapping.setConditionMaskOld(false);
 			}
-			if (userOdo.getNewObject() == null) {
+			if (focusOdo.getNewObject() == null) {
 				mapping.setConditionMaskNew(false);
 			}
 			

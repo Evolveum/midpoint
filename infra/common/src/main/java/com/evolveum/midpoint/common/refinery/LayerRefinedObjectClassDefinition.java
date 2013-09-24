@@ -59,6 +59,9 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 	}
 	
 	static LayerRefinedObjectClassDefinition wrap(RefinedObjectClassDefinition rAccountDef, LayerType layer) {
+		if (rAccountDef == null) {
+			return null;
+		}
 		return new LayerRefinedObjectClassDefinition(rAccountDef, layer);
 	}
 	

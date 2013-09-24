@@ -71,6 +71,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExclusionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
@@ -252,7 +253,8 @@ public class AssignmentProcessor {
             		// This is a role assignment or something like that. Just throw the original exception for now.
             		throw ex;
             	}
-            	ResourceShadowDiscriminator rad = new ResourceShadowDiscriminator(resourceOid, determineIntent(assignmentType));
+            	ResourceShadowDiscriminator rad = new ResourceShadowDiscriminator(resourceOid, 
+            			determineKind(assignmentType), determineIntent(assignmentType));
 				LensProjectionContext accCtx = context.findProjectionContext(rad);
 				if (accCtx != null) {
 					accCtx.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
@@ -366,7 +368,7 @@ public class AssignmentProcessor {
                 	// The projection should exist before the change but it does not
                 	// This happens during reconciliation if there is an inconsistency. 
                 	// Pretend that the assignment was just added. That should do.
-                	accountSyncContext = LensUtil.getOrCreateAccountContext(context, rat);
+                	accountSyncContext = LensUtil.getOrCreateProjectionContext(context, rat);
                 }
             	accountSyncContext.setLegal(true);
             	accountSyncContext.setLegalOld(true);
@@ -384,7 +386,7 @@ public class AssignmentProcessor {
                 	// The projection should exist before the change but it does not
                 	// This happens during reconciliation if there is an inconsistency. 
                 	// Pretend that the assignment was just added. That should do.
-            		projectionContext = LensUtil.getOrCreateAccountContext(context, rat);
+            		projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
                 }
             	projectionContext.setAssigned(true);
             	projectionContext.setLegal(true);
@@ -394,7 +396,7 @@ public class AssignmentProcessor {
             // SITUATION: The projection is ASSIGNED
             } else if (plusAccountMap.containsKey(rat)) {
             	
-            	LensProjectionContext projectionContext = LensUtil.getOrCreateAccountContext(context, rat);
+            	LensProjectionContext projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
             	projectionContext.setAssigned(true);
             	projectionContext.setLegalOld(false);
             	AssignmentPolicyEnforcementType assignmentPolicyEnforcement = projectionContext.getAssignmentPolicyEnforcementType();
@@ -406,7 +408,7 @@ public class AssignmentProcessor {
             } else if (minusAccountMap.containsKey(rat)) {
             	
             	if (accountExists(context,rat)) {
-            		LensProjectionContext projectionContext = LensUtil.getOrCreateAccountContext(context, rat);
+            		LensProjectionContext projectionContext = LensUtil.getOrCreateProjectionContext(context, rat);
             		projectionContext.setAssigned(false);
             		projectionContext.setLegalOld(true);
             		
@@ -491,6 +493,22 @@ public class AssignmentProcessor {
 			} 
 			
 			return "default";
+		}
+		
+		throw new IllegalArgumentException("Construction not defined in the assigment.");
+	}
+	
+	private ShadowKindType determineKind(AssignmentType assignmentType) {
+		ConstructionType construction = assignmentType.getConstruction();
+		if (construction == null) {
+			construction = assignmentType.getAccountConstruction();
+		}
+		if (construction != null){
+			if (construction.getKind() != null){
+				return construction.getKind();
+			} 
+			
+			return ShadowKindType.ACCOUNT;
 		}
 		
 		throw new IllegalArgumentException("Construction not defined in the assigment.");
@@ -679,10 +697,11 @@ public class AssignmentProcessor {
             boolean forceRecon, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
         for (AccountConstruction accountConstruction : evaluatedAssignment.getAccountConstructions()) {
             String resourceOid = accountConstruction.getResource(result).getOid();
-            String accountType = accountConstruction.getAccountType();
+            String intent = accountConstruction.getIntent();
+            ShadowKindType kind = accountConstruction.getKind();
             ResourceType resource = LensUtil.getResource(context, resourceOid, provisioningService, result);
-            accountType = LensUtil.refineAccountType(accountType, resource, prismContext);
-            ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, accountType);
+            intent = LensUtil.refineProjectionIntent(kind, intent, resource, prismContext);
+            ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, kind, intent);
             AccountConstructionPack constructionPack = null;
             if (accountMap.containsKey(rat)) {
                 constructionPack = accountMap.get(rat);

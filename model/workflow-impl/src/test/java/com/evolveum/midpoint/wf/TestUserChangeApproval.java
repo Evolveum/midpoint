@@ -83,15 +83,15 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
 
     protected static final Trace LOGGER = TraceManager.getTrace(TestUserChangeApproval.class);
 
-    private static final String TEST_RESOURCE_DIR_NAME = "src/test/resources";
-    private static final String REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE1 = TEST_RESOURCE_DIR_NAME + "/user-jack-modify-add-assignment-role1.xml";
-    private static final String REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE2_CHANGE_GN = TEST_RESOURCE_DIR_NAME + "/user-jack-modify-add-assignment-role2-change-gn.xml";
-    private static final String REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE3_CHANGE_GN2 = TEST_RESOURCE_DIR_NAME + "/user-jack-modify-add-assignment-role3-change-gn2.xml";
-    private static final String REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLES2_3_4 = TEST_RESOURCE_DIR_NAME + "/user-jack-modify-add-assignment-roles2-3-4.xml";
-    private static final String REQ_USER_JACK_MODIFY_ACTIVATION_DISABLE = TEST_RESOURCE_DIR_NAME + "/user-jack-modify-activation-disable.xml";
-    private static final String REQ_USER_JACK_MODIFY_ACTIVATION_ENABLE = TEST_RESOURCE_DIR_NAME + "/user-jack-modify-activation-enable.xml";
-    private static final String REQ_USER_JACK_MODIFY_CHANGE_PASSWORD = TEST_RESOURCE_DIR_NAME + "/user-jack-modify-change-password.xml";
-    private static final String REQ_USER_JACK_MODIFY_CHANGE_PASSWORD_2 = TEST_RESOURCE_DIR_NAME + "/user-jack-modify-change-password-2.xml";
+    private static final File TEST_RESOURCE_DIR = new File("src/test/resources");
+    private static final File REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE1 = new File(TEST_RESOURCE_DIR, "user-jack-modify-add-assignment-role1.xml");
+    private static final File REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE2_CHANGE_GN = new File(TEST_RESOURCE_DIR, "user-jack-modify-add-assignment-role2-change-gn.xml");
+    private static final File REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE3_CHANGE_GN2 = new File(TEST_RESOURCE_DIR, "user-jack-modify-add-assignment-role3-change-gn2.xml");
+    private static final File REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLES2_3_4 = new File(TEST_RESOURCE_DIR, "user-jack-modify-add-assignment-roles2-3-4.xml");
+    private static final File REQ_USER_JACK_MODIFY_ACTIVATION_DISABLE = new File(TEST_RESOURCE_DIR, "user-jack-modify-activation-disable.xml");
+    private static final File REQ_USER_JACK_MODIFY_ACTIVATION_ENABLE = new File(TEST_RESOURCE_DIR, "user-jack-modify-activation-enable.xml");
+    private static final File REQ_USER_JACK_MODIFY_CHANGE_PASSWORD = new File(TEST_RESOURCE_DIR, "user-jack-modify-change-password.xml");
+    private static final File REQ_USER_JACK_MODIFY_CHANGE_PASSWORD_2 = new File(TEST_RESOURCE_DIR, "user-jack-modify-change-password-2.xml");
 
     private static final String DONT_CHECK = "dont-check";
 
@@ -764,7 +764,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
 
         display("Input context", context);
 
-        assertUserModificationSanity(context);
+        assertFocusModificationSanity(context);
 
         // WHEN
 

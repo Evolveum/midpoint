@@ -45,6 +45,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
@@ -80,7 +81,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         MockLensDebugListener mockListener = new MockLensDebugListener();
         clockwork.setDebugListener(mockListener);
         
-        PrismObject<ShadowType> accountShadowJack = repoAddObjectFromFile(ACCOUNT_SHADOW_JACK_DUMMY_FILENAME, ShadowType.class, result);
+        PrismObject<ShadowType> accountShadowJack = repoAddObjectFromFile(ACCOUNT_SHADOW_JACK_DUMMY_FILE, ShadowType.class, result);
         accountShadowJackDummyOid = accountShadowJack.getOid();
         provisioningService.applyDefinition(accountShadowJack, result);
         assertNotNull("No oid in shadow", accountShadowJack.getOid());
@@ -108,7 +109,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertEffectiveActivationDeltaOnly(context.getFocusContext().getSecondaryDelta(), "user secondary delta",
         		ActivationStatusType.ENABLED);
         
-        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceDummy.getOid(), null);
+        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceDummy.getOid(), ShadowKindType.ACCOUNT, null);
 		LensProjectionContext accCtx = context.findProjectionContext(rat);
 		assertNotNull("No account sync context for "+rat, accCtx);
 		
@@ -161,7 +162,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertEquals("Unexpected number of modifications in user secondary delta", 3, userSecondaryDelta.getModifications().size());
         PrismAsserts.assertPropertyAdd(userSecondaryDelta, UserType.F_COST_CENTER, "999");
         
-        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceDummy.getOid(), null);
+        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceDummy.getOid(), ShadowKindType.ACCOUNT, null);
 		LensProjectionContext accCtx = context.findProjectionContext(rat);
 		assertNotNull("No account sync context for "+rat, accCtx);
 		
@@ -218,7 +219,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertEquals("Unexpected number of modifications in user secondary delta", 3, userSecondaryDelta.getModifications().size());
         PrismAsserts.assertPropertyReplace(userSecondaryDelta, UserType.F_COST_CENTER);
         
-        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceDummy.getOid(), null);
+        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceDummy.getOid(), ShadowKindType.ACCOUNT, null);
 		LensProjectionContext accCtx = context.findProjectionContext(rat);
 		assertNotNull("No account sync context for "+rat, accCtx);
 		

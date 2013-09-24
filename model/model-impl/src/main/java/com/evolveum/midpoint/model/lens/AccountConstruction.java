@@ -160,13 +160,20 @@ public class AccountConstruction<F extends FocusType> implements DebugDumpable, 
 		this.valueConstructionFactory = valueConstructionFactory;
 	}
 
-	public String getAccountType() {
+	public ShadowKindType getKind() {
 		if (refinedAccountDefinition == null) {
-			throw new IllegalStateException("Account type can only be fetched from evaluated AccountConstruction");
+			throw new IllegalStateException("Kind can only be fetched from evaluated Construction");
+		}
+		return refinedAccountDefinition.getKind();
+	}
+
+	public String getIntent() {
+		if (refinedAccountDefinition == null) {
+			throw new IllegalStateException("Intent can only be fetched from evaluated Construction");
 		}
 		return refinedAccountDefinition.getIntent();
 	}
-	
+
 	public Object getDescription() {
 		return accountConstructionType.getDescription();
 	}
@@ -252,7 +259,7 @@ public class AccountConstruction<F extends FocusType> implements DebugDumpable, 
 			throw new SchemaException("No (refined) schema for "+resource);
 		}
 		
-		refinedAccountDefinition = refinedSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, accountConstructionType.getIntent());
+		refinedAccountDefinition = refinedSchema.getRefinedDefinition(accountConstructionType.getKind(), accountConstructionType.getIntent());
 		
 		if (refinedAccountDefinition == null) {
 			if (accountConstructionType.getIntent() != null) {
@@ -355,7 +362,7 @@ public class AccountConstruction<F extends FocusType> implements DebugDumpable, 
 		}
 		PrismPropertyDefinition outputDefinition = findAttributeDefinition(attrName);
 		if (outputDefinition == null) {
-			throw new SchemaException("Attribute "+attrName+" not found in schema for account type "+getAccountType()+", "+ObjectTypeUtil.toShortString(getResource(result))+" as definied in "+ObjectTypeUtil.toShortString(source), attrName);
+			throw new SchemaException("Attribute "+attrName+" not found in schema for account type "+getIntent()+", "+ObjectTypeUtil.toShortString(getResource(result))+" as definied in "+ObjectTypeUtil.toShortString(source), attrName);
 		}
 		Mapping<? extends PrismPropertyValue<?>> mapping = valueConstructionFactory.createMapping(outboundMappingType,
 				"for attribute " + PrettyPrinter.prettyPrint(attrName)  + " in "+source);

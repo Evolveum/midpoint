@@ -204,9 +204,6 @@ public class Projector {
 		        		// Let's skip accounts that do not belong into this wave.
 		        		continue;
 		        	}
-		        	if (!projectionContext.isShadow()) {
-		        		continue;
-		        	}
 		        	
 		        	LOGGER.trace("WAVE {} PROJECTION {}", context.getProjectionWave(), projectionDesc);
 
@@ -377,8 +374,8 @@ public class Projector {
 			}
 			checkForCircular(depPath, outDependency);
 			depPath.add(outDependency);
-			ResourceShadowDiscriminator refRat = new ResourceShadowDiscriminator(outDependency);
-			LensProjectionContext dependencyAccountContext = findDependencyContext(context, outDependency);
+			ResourceShadowDiscriminator refRat = new ResourceShadowDiscriminator(outDependency, accountContext.getKind());
+			LensProjectionContext dependencyAccountContext = findDependencyContext(context, accountContext, outDependency);
 			if (dependencyAccountContext == null) {
 				ResourceObjectTypeDependencyStrictnessType outDependencyStrictness = ResourceTypeUtil.getDependencyStrictness(outDependency);
 				if (outDependencyStrictness == ResourceObjectTypeDependencyStrictnessType.STRICT) {
@@ -455,8 +452,8 @@ public class Projector {
 	 * Find context that has the closest order to the dependency.
 	 */
 	private <F extends ObjectType> LensProjectionContext findDependencyContext(
-			LensContext<F> context, ResourceObjectTypeDependencyType dependency){
-		ResourceShadowDiscriminator refRat = new ResourceShadowDiscriminator(dependency);
+			LensContext<F> context, LensProjectionContext projContext, ResourceObjectTypeDependencyType dependency){
+		ResourceShadowDiscriminator refRat = new ResourceShadowDiscriminator(dependency, projContext.getKind());
 		LensProjectionContext selected = null;
 		for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
 			if (!projectionContext.compareResourceShadowDiscriminator(refRat, false)) {
@@ -480,7 +477,7 @@ public class Projector {
 	private <F extends ObjectType> LensProjectionContext createAnotherContext(LensContext<F> context, 
 			LensProjectionContext origProjectionContext, int order) throws PolicyViolationException {
 		ResourceShadowDiscriminator origDiscr = origProjectionContext.getResourceShadowDiscriminator();
-		ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(origDiscr.getResourceOid(), origDiscr.getIntent(), origDiscr.isThombstone());
+		ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(origDiscr.getResourceOid(), origDiscr.getKind(), origDiscr.getIntent(), origDiscr.isThombstone());
 		discr.setOrder(order);
 		LensProjectionContext otherCtx = context.createProjectionContext(discr);
 		otherCtx.setResource(origProjectionContext.getResource());
