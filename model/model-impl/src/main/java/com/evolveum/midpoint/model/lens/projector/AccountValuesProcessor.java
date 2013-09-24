@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.namespace.QName;
@@ -120,6 +121,8 @@ public class AccountValuesProcessor {
 
 	@Autowired(required = true)
 	private ProvisioningService provisioningService;
+	
+	private List<LensProjectionContext<? extends ObjectType>> conflictingAccountContexts = new ArrayList<LensProjectionContext<? extends ObjectType>>();
 	
 	public <F extends ObjectType, P extends ObjectType> void process(LensContext<F,P> context, 
 			LensProjectionContext<P> projectionContext, String activityDescription, OperationResult result) 
@@ -275,7 +278,18 @@ public class AccountValuesProcessor {
 			        			//if object not found exception occurred, its ok..the account was deleted by the discovery, so there esits no more conflicting shadow
 			        			LOGGER.trace("Conflicting shadow was deleted by discovery. It does not exist anymore. Continue with adding current shadow.");
 			        			conflict = false;
+			        			
 			        		}
+			        		
+			        		result.computeStatus();
+							// if the result is fatal error, it may mean that the
+							// already exists expection occures before..but in this
+							// scenario it means, the exception was handled and we
+							// can mute the result to give better understanding of
+							// the situation which happend
+		        			if (result.isError()){
+		        				result.muteError();
+		        			}
 			        		
 			        		if (conflict) {
 				        		PrismObject<UserType> user = repositoryService.listAccountShadowOwner(checker.getConflictingShadow().getOid(), result);
@@ -293,15 +307,15 @@ public class AccountValuesProcessor {
 				        			if (secondaryDelta != null && accountContext.getOid() != null) {
 				        	        	secondaryDelta.setOid(accountContext.getOid());
 				        	        }
-				        			result.computeStatus();
-									// if the result is fatal error, it may mean that the
-									// already exists expection occures before..but in this
-									// scenario it means, the exception was handled and we
-									// can mute the result to give better understanding of
-									// the situation which happend
-				        			if (result.isError()){
-				        				result.muteError();
-				        			}
+//				        			result.computeStatus();
+//									// if the result is fatal error, it may mean that the
+//									// already exists expection occures before..but in this
+//									// scenario it means, the exception was handled and we
+//									// can mute the result to give better understanding of
+//									// the situation which happend
+//				        			if (result.isError()){
+//				        				result.muteError();
+//				        			}
 				        			// Re-do this same iteration again (do not increase iteration count).
 				        			// It will recompute the values and therefore enforce the user deltas and enable reconciliation
 				        			skipUniquenessCheck = true; // to avoid endless loop
@@ -327,13 +341,21 @@ public class AccountValuesProcessor {
 												PrismObject<ShadowType> shadow = accountContext.getPrimaryDelta().getObjectToAdd();
 												LOGGER.trace("Found primary ADD delta of shadow {}.", shadow);
 												
-												LensProjectionContext<ShadowType> conflictingAccountContext = context.createProjectionContext(accountContext.getResourceShadowDiscriminator());
-												conflictingAccountContext.setObjectOld(fullConflictingShadow.clone());
-												conflictingAccountContext.setObjectCurrent(fullConflictingShadow);
-												conflictingAccountContext.setFullShadow(true);
-												conflictingAccountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
-												conflictingAccountContext.setResource(accountContext.getResource());
-												
+												LensProjectionContext<ShadowType> conflictingAccountContext = context.findProjectionContext(accountContext.getResourceShadowDiscriminator(), fullConflictingShadow.getOid());
+												if (conflictingAccountContext == null){
+													conflictingAccountContext = LensUtil.createAccountContext(context, accountContext.getResourceShadowDiscriminator());
+//													conflictingAccountContext = context.createProjectionContext(accountContext.getResourceShadowDiscriminator());
+													conflictingAccountContext.setOid(fullConflictingShadow.getOid());
+													conflictingAccountContext.setObjectOld(fullConflictingShadow.clone());
+													conflictingAccountContext.setObjectCurrent(fullConflictingShadow);
+													conflictingAccountContext.setFullShadow(true);
+													conflictingAccountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
+													conflictingAccountContext.setResource(accountContext.getResource());
+													conflictingAccountContext.setDoReconciliation(true);
+													conflictingAccountContext.getDependencies().clear();
+													conflictingAccountContext.getDependencies().addAll(accountContext.getDependencies());
+													conflictingAccountContexts.add(conflictingAccountContext);
+												}
 												
 												accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
 												result.recordFatalError("Could not add account " + accountContext.getObjectNew() + ", because the account with the same idenfitier already exists on the resource. ");
@@ -354,6 +376,17 @@ public class AccountValuesProcessor {
 									        	secondaryDelta.setOid(accountContext.getOid());
 									        }
 											LOGGER.trace("User {} satisfies correlation rules.", context.getFocusContext().getObjectNew());
+											
+//											result.computeStatus();
+//											// if the result is fatal error, it may mean that the
+//											// already exists expection occures before..but in this
+//											// scenario it means, the exception was handled and we
+//											// can mute the result to give better understanding of
+//											// the situation which happend
+//						        			if (result.isError()){
+//						        				result.muteError();
+//						        			}
+//											
 						        			// Re-do this same iteration again (do not increase iteration count).
 						        			// It will recompute the values and therefore enforce the user deltas and enable reconciliation
 											skipUniquenessCheck = true; // to avoid endless loop
@@ -418,6 +451,11 @@ public class AccountValuesProcessor {
 					
 	}
 	
+	public <P extends ObjectType> List<LensProjectionContext<? extends ObjectType>> getConflictingContexts(){
+		return conflictingAccountContexts;
+	}
+	
+	
 	private boolean willResetIterationCounter(LensProjectionContext<ShadowType> accountContext) throws SchemaException {
 		ObjectDelta<ShadowType> accountDelta = accountContext.getDelta();
 		if (accountDelta == null) {
@@ -438,6 +476,8 @@ public class AccountValuesProcessor {
 		}
 		return false;
 	}
+	
+	
 
 	private boolean hasIterationExpression(LensProjectionContext<ShadowType> accountContext) {
 		ResourceObjectTypeDefinitionType accDef = accountContext.getResourceAccountTypeDefinitionType();

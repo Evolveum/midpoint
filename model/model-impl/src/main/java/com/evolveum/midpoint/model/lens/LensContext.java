@@ -210,6 +210,16 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 		return projectionContext;
 	}
 	
+	public LensProjectionContext<P> findProjectionContext(ResourceShadowDiscriminator rat, String oid) {
+		LensProjectionContext<P> projectionContext = findProjectionContext(rat);
+		
+		if (projectionContext == null || projectionContext.getOid() == null || !oid.equals(projectionContext.getOid())) {
+			return null;
+		}
+		 
+		return projectionContext;
+	}
+	
 	public ObjectTemplateType getUserTemplate() {
 		return userTemplate;
 	}

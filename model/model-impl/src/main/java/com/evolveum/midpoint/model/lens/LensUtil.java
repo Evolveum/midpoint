@@ -151,6 +151,10 @@ public class LensUtil {
 		return accountSyncContext;
 	}
 	
+	public static <F extends ObjectType, P extends ObjectType> LensProjectionContext<ShadowType> createAccountContext(LensContext<F, P> context, ResourceShadowDiscriminator rsd){
+		return new LensProjectionContext(ShadowType.class, context, rsd);
+	}
+	
 	
 	/**
 	 * Consolidate the mappings of a single property to a delta. It takes the convenient structure of ItemValueWithOrigin triple.
