@@ -174,14 +174,8 @@ public class Projector {
 		        
 		        assignmentProcessor.checkForAssignmentConflicts(context, result);
 		
-		        // Copy projection context, it will be maybe needed to create/remove some projection contexts during the loop
-		        Collection<LensProjectionContext<P>> projectionContexts = new ArrayList<LensProjectionContext<P>>();
-		        projectionContexts.addAll(context.getProjectionContexts());
-		        context.getProjectionContexts().clear();
-		        
 		     // User-related processing is over. Now we will process accounts in a loop.
-		        for (LensProjectionContext<P> projectionContext: projectionContexts) {
-		        	context.addProjectionContext(projectionContext);
+		        for (LensProjectionContext<P> projectionContext: context.getProjectionContexts()) {
 
 		        	if (projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN ||
 		        			projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.IGNORE) {
@@ -256,7 +250,10 @@ public class Projector {
 			        
 			        
 		        }
-		        		        
+		        
+		        // if there exists some conflicting projection contexts, add them to the context so they will be recomputed in the next wave..
+		        addConflictingContexts(context);
+		        
 		        if (consistencyChecks) context.checkConsistence();
 		        
 		        context.incrementProjectionWave();
@@ -270,7 +267,7 @@ public class Projector {
 	        
 	        if (consistencyChecks) context.checkConsistence();
 	        
-	        result.computeStatusComposite();
+	        result.recordSuccess();
 	        result.cleanupResult();
 	        
 		} catch (SchemaException e) {
@@ -303,6 +300,18 @@ public class Projector {
 			// Make sure that it is logged.
 			LOGGER.error("Runtime error in projector: {}", e.getMessage(), e);
 			throw e;
+		}
+		
+	}
+
+	private <F extends ObjectType, P extends ObjectType> void addConflictingContexts(LensContext<F, P> context) {
+		List<LensProjectionContext<? extends ObjectType>> conflictingContexts = accountValuesProcessor.getConflictingContexts();
+		if (conflictingContexts != null || !conflictingContexts.isEmpty()){
+			for (LensProjectionContext<? extends ObjectType> conflictingContext : conflictingContexts){
+				context.addProjectionContext((LensProjectionContext<P>) conflictingContext);
+			}
+		
+			accountValuesProcessor.getConflictingContexts().clear();
 		}
 		
 	}
