@@ -47,6 +47,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.*;
@@ -221,8 +222,16 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     private Session beginReadOnlyTransaction() {
         return beginTransaction(getConfiguration().isUseReadOnlyTransactions());
     }
+    
+    @Override
+	public <F extends FocusType> PrismObject<F> searchShadowOwner(String shadowOid, OperationResult parentResult)
+			throws ObjectNotFoundException {
+    	// TODO: implement
+		throw new UnsupportedOperationException();
+	}
 
     @Override
+    @Deprecated
     public PrismObject<UserType> listAccountShadowOwner(String accountOid, OperationResult result)
             throws ObjectNotFoundException {
         Validate.notEmpty(accountOid, "Oid must not be null or empty.");
@@ -1746,4 +1755,5 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         return sb.toString();
     }
+
 }

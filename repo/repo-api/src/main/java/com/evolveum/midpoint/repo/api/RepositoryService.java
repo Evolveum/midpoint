@@ -33,6 +33,7 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -398,7 +399,39 @@ public interface RepositoryService {
 	 * @throws IllegalArgumentException
 	 *             wrong OID format
 	 */
+	@Deprecated
 	public PrismObject<UserType> listAccountShadowOwner(String accountOid, OperationResult parentResult)
+			throws ObjectNotFoundException;
+	
+	/**
+	 * <p>Returns the object representing owner of specified shadow.</p>
+	 * <p>
+	 * Implements the backward "owns" association between account shadow and
+	 * user. Forward association is implemented by linkRef reference in subclasses
+	 * of FocusType.
+	 * </p
+	 * <p>
+	 * Returns null if there is no owner for the shadow.
+	 * </p>
+	 * <p>
+	 * This is a "search" operation even though it may return at most one owner.
+	 * However the operation implies searching the repository for an owner,
+	 * which may be less efficient that following a direct association. Hence it
+	 * is called "search" to indicate that there may be non-negligible overhead.
+	 * </p>
+	 * 
+	 * @param shadowOid
+	 *            OID of shadow
+	 * @param parentResult
+	 *            parentResult parent OperationResult (in/out)
+	 * @return Object representing owner of specified account (subclass of FocusType)
+	 * 
+	 * @throws ObjectNotFoundException
+	 *             specified shadow does not exist
+	 * @throws IllegalArgumentException
+	 *             wrong OID format
+	 */
+	public <F extends FocusType> PrismObject<F> searchShadowOwner(String shadowOid, OperationResult parentResult)
 			throws ObjectNotFoundException;
 
 	/**
