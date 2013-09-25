@@ -146,7 +146,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                public LensContext createModelContext(OperationResult result) throws Exception {
                    LensContext<UserType> context = createUserAccountContext();
                    fillContextWithUser(context, USER_JACK_OID, result);
-                   addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE1);
+                   addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE1);
                    return context;
                }
 
@@ -270,7 +270,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
             public LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<UserType> context = createUserAccountContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
-                addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE2_CHANGE_GN);
+                addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE2_CHANGE_GN);
                 return context;
             }
 
@@ -315,7 +315,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
             public LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<UserType> context = createUserAccountContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
-                addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE3_CHANGE_GN2);
+                addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE3_CHANGE_GN2);
                 context.setOptions(ModelExecuteOptions.createExecuteImmediatelyAfterApproval());
                 return context;
             }
@@ -359,8 +359,8 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
             public LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<UserType> context = createUserAccountContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
-                addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLES2_3_4);
-                addModificationToContext(context, REQ_USER_JACK_MODIFY_ACTIVATION_DISABLE);
+                addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLES2_3_4);
+                addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ACTIVATION_DISABLE);
                 return context;
             }
 
@@ -413,8 +413,8 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
             public LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<UserType> context = createUserAccountContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
-                addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLES2_3_4);
-                addModificationToContext(context, REQ_USER_JACK_MODIFY_ACTIVATION_ENABLE);
+                addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLES2_3_4);
+                addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ACTIVATION_ENABLE);
                 context.setOptions(ModelExecuteOptions.createExecuteImmediatelyAfterApproval());
                 return context;
             }
@@ -578,7 +578,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
             public LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<UserType> context = createUserAccountContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
-                addModificationToContext(context, REQ_USER_JACK_MODIFY_CHANGE_PASSWORD);
+                addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_CHANGE_PASSWORD);
                 context.setOptions(ModelExecuteOptions.createNoCrypt());
                 return context;
             }
@@ -623,7 +623,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
             public LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<UserType> context = createUserAccountContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
-                addModificationToContext(context, REQ_USER_JACK_MODIFY_CHANGE_PASSWORD);
+                addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_CHANGE_PASSWORD);
                 context.setOptions(ModelExecuteOptions.createNoCrypt());
                 return context;
             }
@@ -667,8 +667,8 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
             public LensContext createModelContext(OperationResult result) throws Exception {
                 LensContext<UserType> context = createUserAccountContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
-                addModificationToContext(context, REQ_USER_JACK_MODIFY_CHANGE_PASSWORD_2);
-                addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE1);
+                addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_CHANGE_PASSWORD_2);
+                addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE1);
                 context.setOptions(ModelExecuteOptions.createNoCrypt());
                 return context;
             }

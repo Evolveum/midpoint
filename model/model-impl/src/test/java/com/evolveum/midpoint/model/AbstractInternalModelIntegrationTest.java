@@ -310,17 +310,21 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 		return accountSyncContext;
     }
 
-	protected ObjectDelta<UserType> addModificationToContext(
-			LensContext<UserType> context, File file)
+	protected <O extends ObjectType> ObjectDelta<O> addFocusModificationToContext(
+			LensContext<O> context, File file)
 			throws JAXBException, SchemaException, FileNotFoundException {
 		ObjectModificationType modElement = PrismTestUtil.unmarshalObject(
 				file, ObjectModificationType.class);
-		ObjectDelta<UserType> userDelta = DeltaConvertor.createObjectDelta(
-				modElement, UserType.class, prismContext);
-		LensFocusContext<UserType> focusContext = context
-				.getOrCreateFocusContext();
-		focusContext.addPrimaryDelta(userDelta);
-		return userDelta;
+		ObjectDelta<O> focusDelta = DeltaConvertor.createObjectDelta(
+				modElement, context.getFocusClass(), prismContext);
+		return addFocusDeltaToContext(context, focusDelta);
+	}
+	
+	protected <O extends ObjectType> ObjectDelta<O> addFocusDeltaToContext(
+			LensContext<O> context, ObjectDelta<O> focusDelta) throws SchemaException {
+		LensFocusContext<O> focusContext = context.getOrCreateFocusContext();
+		focusContext.addPrimaryDelta(focusDelta);
+		return focusDelta;
 	}
 
 	protected ObjectDelta<UserType> addModificationToContextReplaceUserProperty(
@@ -446,9 +450,9 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 	 * Breaks user assignment delta in the context by inserting some empty value. This may interfere with comparing the values to
 	 * existing user values. 
 	 */
-	protected void breakAssignmentDelta(LensContext<UserType> context) throws SchemaException {
-        LensFocusContext<UserType> focusContext = context.getFocusContext();
-        ObjectDelta<UserType> userPrimaryDelta = focusContext.getPrimaryDelta();
+	protected <F extends FocusType> void breakAssignmentDelta(LensContext<F> context) throws SchemaException {
+        LensFocusContext<F> focusContext = context.getFocusContext();
+        ObjectDelta<F> userPrimaryDelta = focusContext.getPrimaryDelta();
         breakAssignmentDelta(userPrimaryDelta);		
 	}
 	

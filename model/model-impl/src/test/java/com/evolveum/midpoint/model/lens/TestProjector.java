@@ -277,7 +277,7 @@ public class TestProjector extends AbstractLensTest {
         
         LensContext<UserType> context = createUserAccountContext();
         fillContextWithUser(context, USER_JACK_OID, result);
-        addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY);
+        addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY);
 
         display("Input context", context);
 
@@ -305,7 +305,7 @@ public class TestProjector extends AbstractLensTest {
         
         LensContext<UserType> context = createUserAccountContext();
         fillContextWithUser(context, USER_JACK_OID, result);
-        addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY);
+        addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY);
 
         display("Input context", context);
 
@@ -534,7 +534,7 @@ public class TestProjector extends AbstractLensTest {
         LensContext<UserType> context = createUserAccountContext();
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
         fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, result);
-        addModificationToContext(context, USER_BARBOSSA_MODIFY_ASSIGNMENT_REPLACE_AC_FILE);
+        addFocusModificationToContext(context, USER_BARBOSSA_MODIFY_ASSIGNMENT_REPLACE_AC_FILE);
         context.recompute();
 
         display("Input context", context);
@@ -729,7 +729,7 @@ public class TestProjector extends AbstractLensTest {
         
         LensContext<UserType> context = createUserAccountContext();
         fillContextWithUser(context, USER_JACK_OID, result);
-        addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY);
+        addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY);
 
         display("Input context", context);
 

@@ -180,7 +180,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
         LensContext<UserType> context = createUserAccountContext();
         fillContextWithUser(context, USER_JACK_OID, result);
-        addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY);
+        addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY);
         context.recompute();
 
         display("Input context", context);
@@ -220,7 +220,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
         LensContext<UserType> context = createUserAccountContext();
         fillContextWithUser(context, USER_JACK_OID, result);
-        addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY_ATTR);
+        addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY_ATTR);
         context.recompute();
 
         display("Input context", context);
@@ -288,7 +288,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         LensContext<UserType> context = createUserAccountContext();
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
         fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, result);
-        addModificationToContext(context, REQ_USER_BARBOSSA_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY_ATTR);
+        addFocusModificationToContext(context, REQ_USER_BARBOSSA_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY_ATTR);
         context.recompute();
 
         display("Input context", context);
@@ -383,7 +383,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         LensContext<UserType> context = createUserAccountContext();
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
         fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, result);
-        addModificationToContext(context, REQ_USER_BARBOSSA_MODIFY_DELETE_ASSIGNMENT_ACCOUNT_DUMMY_ATTR);
+        addFocusModificationToContext(context, REQ_USER_BARBOSSA_MODIFY_DELETE_ASSIGNMENT_ACCOUNT_DUMMY_ATTR);
         context.recomputeFocus();
 
         display("Input context", context);

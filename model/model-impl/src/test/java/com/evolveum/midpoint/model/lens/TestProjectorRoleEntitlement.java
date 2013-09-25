@@ -84,6 +84,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TriggerType;
@@ -184,90 +185,93 @@ public class TestProjectorRoleEntitlement extends AbstractLensTest {
         		dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION),
         		"Bloody pirates");
 	}
-//	
-//	@Test
-//    public void test110AssignAccountToJack() throws Exception {
-//		final String TEST_NAME = "test110AssignAccountToJack";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestProjectorRoleEntitlement.class.getName() + "." + TEST_NAME);
-//        OperationResult result = task.getResult();
-//        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
-//        
-//        LensContext<UserType> context = createUserAccountContext();
-//        fillContextWithUser(context, USER_JACK_OID, result);
-//        addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY);
-//
-//        display("Input context", context);
-//
-//        assertFocusModificationSanity(context);
-//        
-//        // WHEN
-//        projector.project(context, "test", result);
-//        
-//        // THEN
-//        assertAssignAccountToJack(context);
-//	}
-//	
-//	/**
-//	 * Same sa previous test but the deltas are slightly broken.
-//	 */
-//	@Test
-//    public void test111AssignAccountToJackBroken() throws Exception {
-//		final String TEST_NAME = "test111AssignAccountToJackBroken";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestProjectorRoleEntitlement.class.getName() + "." + TEST_NAME);
-//        OperationResult result = task.getResult();
-//        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
-//        
-//        LensContext<UserType> context = createUserAccountContext();
-//        fillContextWithUser(context, USER_JACK_OID, result);
-//        addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY);
-//
-//        display("Input context", context);
-//
-//        assertFocusModificationSanity(context);
-//        
-//        // Let's break it a bit...
-//        breakAssignmentDelta(context);
-//        
-//        // WHEN
-//        projector.project(context, "test", result);
-//        
-//        // THEN
-//        assertAssignAccountToJack(context);
-//	}
-//
-//	private void assertAssignAccountToJack(LensContext<UserType> context) {
-//        display("Output context", context);
-//        
-//        assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
-//        assertEffectiveActivationDeltaOnly(context.getFocusContext().getSecondaryDelta(), "user secondary delta", ActivationStatusType.ENABLED);
-//        assertFalse("No account changes", context.getProjectionContexts().isEmpty());
-//
-//        Collection<LensProjectionContext> accountContexts = context.getProjectionContexts();
-//        assertEquals(1, accountContexts.size());
-//        LensProjectionContext accContext = accountContexts.iterator().next();
-//        assertNull("Account primary delta sneaked in", accContext.getPrimaryDelta());
-//
-//        ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
-//        
-//        assertEquals("Wrong decision", SynchronizationPolicyDecision.ADD,accContext.getSynchronizationPolicyDecision());
-//        
-//        assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
-//        
-//        PrismAsserts.assertPropertyReplace(accountSecondaryDelta, getIcfsNameAttributePath() , "jack");
-//        PrismAsserts.assertPropertyReplace(accountSecondaryDelta, dummyResourceCtl.getAttributeFullnamePath() , "Jack Sparrow");
-//        PrismAsserts.assertPropertyAdd(accountSecondaryDelta, 
-//        		dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME) , "mouth", "pistol");
-//        
-//        PrismAsserts.assertOrigin(accountSecondaryDelta, OriginType.OUTBOUND);
-//
-//	}
-//
+	
+	@Test
+    public void test110AssignEntitlementToPirate() throws Exception {
+		final String TEST_NAME = "test110AssignEntitlementToPirate";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestProjectorRoleEntitlement.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        
+        LensContext<RoleType> context = createLensContext(RoleType.class);
+        fillContextWithFocus(context, RoleType.class, ROLE_PIRATE_OID, result);
+        ObjectDelta<RoleType> roleAssignmentDelta = createAssignmentDelta(RoleType.class, 
+        		ROLE_PIRATE_OID, RESOURCE_DUMMY_OID, ShadowKindType.ENTITLEMENT, "group", true);
+        addFocusDeltaToContext(context, roleAssignmentDelta);
+
+        display("Input context", context);
+
+        assertFocusModificationSanity(context);
+        
+        // WHEN
+        projector.project(context, "test", result);
+        
+        // THEN
+        assertAssignEntitlementToPirate(context);
+	}
+	
+	/**
+	 * Same sa previous test but the deltas are slightly broken.
+	 */
+	@Test
+    public void test111AssignEntitlementToPirateBroken() throws Exception {
+		final String TEST_NAME = "test110AssignEntitlementToPirate";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestProjectorRoleEntitlement.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        
+        LensContext<RoleType> context = createLensContext(RoleType.class);
+        fillContextWithFocus(context, RoleType.class, ROLE_PIRATE_OID, result);
+        ObjectDelta<RoleType> roleAssignmentDelta = createAssignmentDelta(RoleType.class, 
+        		ROLE_PIRATE_OID, RESOURCE_DUMMY_OID, ShadowKindType.ENTITLEMENT, "group", true);
+        addFocusDeltaToContext(context, roleAssignmentDelta);
+
+        display("Input context", context);
+
+        assertFocusModificationSanity(context);
+        
+        // Let's break it a bit...
+        breakAssignmentDelta(context);
+        
+        // WHEN
+        projector.project(context, "test", result);
+        
+        // THEN
+        assertAssignEntitlementToPirate(context);
+	}
+	
+	private void assertAssignEntitlementToPirate(LensContext<RoleType> context) {
+        display("Output context", context);
+        
+        assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
+        assertEffectiveActivationDeltaOnly(context.getFocusContext().getSecondaryDelta(), "focus secondary delta", ActivationStatusType.ENABLED);
+        assertFalse("No projection changes", context.getProjectionContexts().isEmpty());
+
+        Collection<LensProjectionContext> projectionContexts = context.getProjectionContexts();
+        assertEquals(1, projectionContexts.size());
+        LensProjectionContext projContext = projectionContexts.iterator().next();
+        assertNull("Projection primary delta sneaked in", projContext.getPrimaryDelta());
+
+        ObjectDelta<ShadowType> projSecondaryDelta = projContext.getSecondaryDelta();
+        
+        assertEquals("Wrong decision", SynchronizationPolicyDecision.ADD,projContext.getSynchronizationPolicyDecision());
+        
+        assertEquals(ChangeType.MODIFY, projSecondaryDelta.getChangeType());
+        
+        PrismAsserts.assertPropertyReplace(projSecondaryDelta, getIcfsNameAttributePath() , "Pirate");
+        PrismAsserts.assertPropertyReplace(projSecondaryDelta, 
+        		dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION),
+        		"Bloody pirates");        
+        PrismAsserts.assertOrigin(projSecondaryDelta, OriginType.OUTBOUND);
+
+	}
+
 //
 //	/**
 //	 * User barbossa has a direct account assignment. This assignment has an expression for user/locality -> dummy/location.

@@ -126,7 +126,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
                public LensContext createModelContext(OperationResult result) throws Exception {
                    LensContext<UserType> context = createUserAccountContext();
                    fillContextWithUser(context, USER_JACK_OID, result);
-                   addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE1);
+                   addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE1);
                    return context;
                }
            });

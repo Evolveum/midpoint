@@ -639,9 +639,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	protected ContainerDelta<AssignmentType> createAccountAssignmentModification(String resourceOid, String intent, boolean add) throws SchemaException {
-		ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(getUserDefinition(), UserType.F_ASSIGNMENT);
+		return createAssignmentModification(resourceOid, ShadowKindType.ACCOUNT, intent, add);
+	}
+	
+	protected ContainerDelta<AssignmentType> createAssignmentModification(String resourceOid, ShadowKindType kind, 
+			String intent, boolean add) throws SchemaException {
+		ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(getUserDefinition(), 
+				UserType.F_ASSIGNMENT);
 		
-		AssignmentType assignmentType = createAccountAssignment(resourceOid, intent);
+		AssignmentType assignmentType = createAssignment(resourceOid, kind, intent);
 		
 		if (add) {
 			assignmentDelta.addValueToAdd(assignmentType.asPrismContainerValue());
@@ -656,14 +662,18 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	protected AssignmentType createAccountAssignment(String resourceOid, String intent) {
-		AssignmentType assignmentType = new AssignmentType();//.asContainerable();
-		ConstructionType accountConstructionType = new ConstructionType();
-		accountConstructionType.setKind(ShadowKindType.ACCOUNT);
-		assignmentType.setConstruction(accountConstructionType);
+		return createAssignment(resourceOid, ShadowKindType.ACCOUNT, intent);
+	}
+	
+	protected AssignmentType createAssignment(String resourceOid, ShadowKindType kind, String intent) {
+		AssignmentType assignmentType = new AssignmentType();
+		ConstructionType constructionType = new ConstructionType();
+		constructionType.setKind(kind);
+		assignmentType.setConstruction(constructionType);
 		ObjectReferenceType resourceRef = new ObjectReferenceType();
 		resourceRef.setOid(resourceOid);
-		accountConstructionType.setResourceRef(resourceRef);
-		accountConstructionType.setIntent(intent);
+		constructionType.setResourceRef(resourceRef);
+		constructionType.setIntent(intent);
 		return assignmentType;
 	}
 
@@ -693,9 +703,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
     }
 	
 	protected ObjectDelta<UserType> createAccountAssignmentUserDelta(String userOid, String resourceOid, String intent, boolean add) throws SchemaException {
+		return createAssignmentDelta(UserType.class, userOid, resourceOid, ShadowKindType.ACCOUNT, intent, add);
+	}
+	
+	protected <F extends FocusType> ObjectDelta<F> createAssignmentDelta(Class<F> type, String focusOid,
+			String resourceOid, ShadowKindType kind, String intent, boolean add) throws SchemaException {
 		Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
-		modifications.add((createAccountAssignmentModification(resourceOid, intent, add)));
-		ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(userOid, modifications, UserType.class, prismContext);
+		modifications.add(createAssignmentModification(resourceOid, kind, intent, add));
+		ObjectDelta<F> userDelta = ObjectDelta.createModifyDelta(focusOid, modifications, type, prismContext);
 		return userDelta;
 	}
 	
@@ -1195,14 +1210,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	 * existing user values. 
 	 */
 	protected void breakAssignmentDelta(Collection<ObjectDelta<? extends ObjectType>> deltas) throws SchemaException {
-		breakAssignmentDelta((ObjectDelta<UserType>)deltas.iterator().next());
+		breakAssignmentDelta((ObjectDelta<? extends FocusType>)deltas.iterator().next());
 	}
 	
 	/**
 	 * Breaks user assignment delta in the context by inserting some empty value. This may interfere with comparing the values to
 	 * existing user values. 
 	 */
-	protected void breakAssignmentDelta(ObjectDelta<UserType> userDelta) throws SchemaException {
+	protected <F extends FocusType> void breakAssignmentDelta(ObjectDelta<F> userDelta) throws SchemaException {
         ContainerDelta<?> assignmentDelta = userDelta.findContainerDelta(UserType.F_ASSIGNMENT);
         PrismContainerValue<?> assignmentDeltaValue = null;
         if (assignmentDelta.getValuesToAdd() != null) {

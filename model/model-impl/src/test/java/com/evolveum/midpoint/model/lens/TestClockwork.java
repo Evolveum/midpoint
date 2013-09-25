@@ -375,7 +375,7 @@ public class TestClockwork extends AbstractLensTest {
 	private LensContext<UserType> createJackAssignAccountContext(OperationResult result) throws SchemaException, ObjectNotFoundException, FileNotFoundException, JAXBException {
 		LensContext<UserType> context = createUserAccountContext();
         fillContextWithUser(context, USER_JACK_OID, result);
-        addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY);
+        addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY);
         return context;
 	}
 
@@ -384,7 +384,7 @@ public class TestClockwork extends AbstractLensTest {
 		LensContext<UserType> context = createUserAccountContext();
 		OperationResult result = task.getResult();
         fillContextWithUser(context, USER_JACK_OID, result);
-        addModificationToContext(context, REQ_USER_JACK_MODIFY_DELETE_ASSIGNMENT_ACCOUNT_DUMMY);
+        addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_DELETE_ASSIGNMENT_ACCOUNT_DUMMY);
         clockwork.run(context, task, result);
 	}
 
