@@ -164,7 +164,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack);
-        String accountOid = getSingleUserAccountRef(userJack);
+        String accountOid = getSingleLinkOid(userJack);
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
@@ -222,7 +222,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack);
-		assertAccounts(userJack, 2);
+		assertLinks(userJack, 2);
 		assertAccount(userJack, RESOURCE_DUMMY_OID);
 		assertAccount(userJack, RESOURCE_DUMMY_PINK_OID);
 		
@@ -283,7 +283,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userGuybrush = getUser(USER_GUYBRUSH_OID);
 		display("User after change execution", userGuybrush);
 		assertUser(userGuybrush, USER_GUYBRUSH_OID, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", "Guybrush", "Threepwood");
-		assertAccounts(userGuybrush, 2);
+		assertLinks(userGuybrush, 2);
 		// Guybrush had dummy account before
 		assertAccount(userGuybrush, RESOURCE_DUMMY_OID);
 		assertAccount(userGuybrush, RESOURCE_DUMMY_PINK_OID);
@@ -352,7 +352,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userDeWattAfter = getUser(userDeWattkOid);
 		display("User after change execution", userDeWattAfter);
 		assertUser(userDeWattAfter, userDeWattkOid, USER_DEWATT_NAME, "Augustus DeWatt", null, null);
-		assertAccounts(userDeWattAfter, 1);
+		assertLinks(userDeWattAfter, 1);
 		assertAccount(userDeWattAfter, RESOURCE_DUMMY_PINK_OID);
 		
 		String accountPinkOid = getAccountRef(userDeWattAfter, RESOURCE_DUMMY_PINK_OID);
@@ -416,7 +416,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack);
-		assertAccounts(userJack, 3);
+		assertLinks(userJack, 3);
 		assertAccount(userJack, RESOURCE_DUMMY_OID);
 		assertAccount(userJack, RESOURCE_DUMMY_PINK_OID);
 		assertAccount(userJack, RESOURCE_DUMMY_VIOLET_OID);
@@ -475,7 +475,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userGuybrush = getUser(USER_GUYBRUSH_OID);
 		display("User after change execution", userGuybrush);
 		assertUser(userGuybrush, USER_GUYBRUSH_OID, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", "Guybrush", "Threepwood");
-		assertAccounts(userGuybrush, 3);
+		assertLinks(userGuybrush, 3);
 		assertAccount(userGuybrush, RESOURCE_DUMMY_OID);
 		assertAccount(userGuybrush, RESOURCE_DUMMY_PINK_OID);
 		assertAccount(userGuybrush, RESOURCE_DUMMY_VIOLET_OID);
@@ -535,7 +535,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userHerman = getUser(USER_HERMAN_OID);
 		display("User after change execution", userHerman);
 		assertUser(userHerman, USER_HERMAN_OID, "herman", "Herman Toothrot", "Herman", "Toothrot");
-		assertAccounts(userHerman, 1);
+		assertLinks(userHerman, 1);
 		assertAccount(userHerman, RESOURCE_DUMMY_VIOLET_OID);
 		
 		String accountVioletOid = getAccountRef(userHerman, RESOURCE_DUMMY_VIOLET_OID);
@@ -626,7 +626,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack);
-		assertAccounts(userJack, 4);
+		assertLinks(userJack, 4);
 		assertAccount(userJack, RESOURCE_DUMMY_OID);
 		assertAccount(userJack, RESOURCE_DUMMY_PINK_OID);
 		assertAccount(userJack, RESOURCE_DUMMY_VIOLET_OID);
@@ -707,7 +707,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userDrakeAfter = getUser(USER_DRAKE_OID);
 		display("User after change execution", userDrakeAfter);
 		assertUser(userDrakeAfter, USER_DRAKE_OID, "drake", "Francis Drake", "Fancis", "Drake");
-		assertAccounts(userDrakeAfter, 1);
+		assertLinks(userDrakeAfter, 1);
 		assertAccount(userDrakeAfter, RESOURCE_DUMMY_MAGENTA_OID);
 		
 		String accountMagentaOid = getAccountRef(userDrakeAfter, RESOURCE_DUMMY_MAGENTA_OID);
@@ -771,7 +771,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userDrakeAfter = getUser(USER_DRAKE_OID);
 		display("User after change execution", userDrakeAfter);
 		assertUser(userDrakeAfter, USER_DRAKE_OID, "drake", "Francis Drake", "Fancis", "Drake");
-		assertAccounts(userDrakeAfter, 1);
+		assertLinks(userDrakeAfter, 1);
 		assertAccount(userDrakeAfter, RESOURCE_DUMMY_MAGENTA_OID);
 		
 		String accountMagentaOid = getAccountRef(userDrakeAfter, RESOURCE_DUMMY_MAGENTA_OID);
@@ -840,7 +840,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userGuybrush = getUser(USER_GUYBRUSH_OID);
 		display("User after change execution", userGuybrush);
 		assertUser(userGuybrush, USER_GUYBRUSH_OID, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", "Guybrush", "Threepwood");
-		assertAccounts(userGuybrush, 4);
+		assertLinks(userGuybrush, 4);
 		assertAccount(userGuybrush, RESOURCE_DUMMY_OID);
 		assertAccount(userGuybrush, RESOURCE_DUMMY_PINK_OID);
 		assertAccount(userGuybrush, RESOURCE_DUMMY_VIOLET_OID);
@@ -903,7 +903,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userGuybrush = getUser(USER_GUYBRUSH_OID);
 		display("User after change execution", userGuybrush);
 		assertUser(userGuybrush, USER_GUYBRUSH_OID, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", "Guybrush", "Threepwood");
-		assertAccounts(userGuybrush, 4);
+		assertLinks(userGuybrush, 4);
 		assertAccount(userGuybrush, RESOURCE_DUMMY_OID);
 		assertAccount(userGuybrush, RESOURCE_DUMMY_PINK_OID);
 		assertAccount(userGuybrush, RESOURCE_DUMMY_VIOLET_OID);
@@ -968,7 +968,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack, USER_JACK_RENAMED_NAME, "Jack Sparrow", "Jack", "Sparrow", "Caribbean");
-		assertAccounts(userJack, 4);
+		assertLinks(userJack, 4);
 		assertAccount(userJack, RESOURCE_DUMMY_OID);
 		assertAccount(userJack, RESOURCE_DUMMY_PINK_OID);
 		assertAccount(userJack, RESOURCE_DUMMY_VIOLET_OID);

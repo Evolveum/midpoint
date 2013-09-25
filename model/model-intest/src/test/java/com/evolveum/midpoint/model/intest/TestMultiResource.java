@@ -316,7 +316,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(result);
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-        assertAccounts(userJack, 1);
+        assertLinks(userJack, 1);
         
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
@@ -350,7 +350,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(result);
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-        assertAccounts(userJack, 0);
+        assertLinks(userJack, 0);
         
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
@@ -381,7 +381,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(result);
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-        assertAccounts(userJack, 1);
+        assertLinks(userJack, 1);
         
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
@@ -415,7 +415,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertSuccess(result);
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-        assertAccounts(userJack, 0);
+        assertLinks(userJack, 0);
         
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
@@ -452,7 +452,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         TestUtil.assertFailure(result);
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-        assertAccounts(userJack, 0);
+        assertLinks(userJack, 0);
         assertAssignments(userJack, 0);
         
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
@@ -480,7 +480,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         assertAssignedRole(USER_JACK_OID, ROLE_DUMMIES_OID, task, result);
-        assertAccounts(userJack, 4);
+        assertLinks(userJack, 4);
 
         assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME, true);
         assertDefaultDummyAccountAttribute(ACCOUNT_JACK_DUMMY_USERNAME, "title", "The Great Voodoo Master");
@@ -539,7 +539,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         PrismAsserts.assertPropertyValue(userJack, UserType.F_NAME, PrismTestUtil.createPolyString(toName));
         PrismAsserts.assertPropertyValue(userJack, UserType.F_FULL_NAME, PrismTestUtil.createPolyString(toFullName));
         assertAssignedRole(USER_JACK_OID, ROLE_DUMMIES_OID, task, result);
-        assertAccounts(userJack, 4);
+        assertLinks(userJack, 4);
 
         assertDummyAccount(toName, toFullName, true);
         assertDefaultDummyAccountAttribute(toName, "title", "The Great Voodoo Master");
@@ -582,7 +582,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         assertAssignedNoRole(user);
-        assertAccounts(user, 0);
+        assertLinks(user, 0);
         
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
@@ -620,7 +620,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         assertAssignedRole(USER_JACK_OID, roleOid, task, result);
         // One of the accountRefs is actually ref to an uncreated shadow
-        assertAccounts(userJack, expectAccount ? 2 : 1);
+        assertLinks(userJack, expectAccount ? 2 : 1);
 
     	assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
     	assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME);
@@ -653,7 +653,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         
         PrismObject<UserType> user = getUser(USER_JACK_OID);
         assertAssignedNoRole(user);
-        assertAccounts(user, 0);
+        assertLinks(user, 0);
         
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
@@ -675,7 +675,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         // Add default dummy account to jack without assigning it.
         // In relative mode this account should shay untouched while we play with assignments and
         // unsassignements of other accounts
-        PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
+        PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_FILE);
         ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
         PrismReferenceValue accountRefVal = new PrismReferenceValue();
 		accountRefVal.setObject(account);
@@ -705,7 +705,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		assertUserJack(userJack);
 		assertAccount(userJack, RESOURCE_DUMMY_OID);
 		assertAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
-		assertAccounts(userJack, 2);
+		assertLinks(userJack, 2);
         String accountOid = getAccountRef(userJack, RESOURCE_DUMMY_BLUE_OID);
         
         // Check shadow
@@ -743,7 +743,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		display("User after red dummy unassignment", userJack);
 		assertUserJack(userJack);
 		assertAccount(userJack, RESOURCE_DUMMY_OID);
-		assertAccounts(userJack, 1);
+		assertLinks(userJack, 1);
         String accountOid = getAccountRef(userJack, RESOURCE_DUMMY_OID);
         
         // Check shadow
@@ -783,7 +783,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after red dummy unassignment", userJack);
 		assertUserJack(userJack);
-		assertAccounts(userJack, 0);
+		assertLinks(userJack, 0);
 
 		assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, ACCOUNT_JACK_DUMMY_FULLNAME);
         assertNoDummyAccount(RESOURCE_DUMMY_BLUE_NAME, ACCOUNT_JACK_DUMMY_USERNAME);
@@ -1143,7 +1143,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		assertUser(userAfter, userBefore.getOid(), USER_WORLD_NAME, USER_WORLD_FULL_NAME, null, null);
 		assertAccount(userAfter, RESOURCE_DUMMY_GOLIATH_OID);
 		assertAccount(userAfter, RESOURCE_DUMMY_DAVID_OID);
-		assertAccounts(userAfter, 2);
+		assertLinks(userAfter, 2);
 		
 		assertDummyAccount(RESOURCE_DUMMY_DAVID_NAME, USER_WORLD_NAME, USER_WORLD_FULL_NAME, true);
         
@@ -1213,7 +1213,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		assertUser(userAfter, userBefore.getOid(), USER_WORLD_NAME, USER_WORLD_FULL_NAME, null, null);
 		assertAccount(userAfter, RESOURCE_DUMMY_GOLIATH_OID);
 		assertAccount(userAfter, RESOURCE_DUMMY_DAVID_OID);
-		assertAccounts(userAfter, 2);
+		assertLinks(userAfter, 2);
 		
 		assertDummyAccount(RESOURCE_DUMMY_DAVID_NAME, USER_WORLD_NAME, USER_WORLD_FULL_NAME, true);
         
@@ -1283,7 +1283,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		assertUser(userAfter, userBefore.getOid(), USER_FIELD_NAME, USER_WORLD_FULL_NAME, null, null);
 		assertAccount(userAfter, RESOURCE_DUMMY_GOLIATH_OID);
 		assertAccount(userAfter, RESOURCE_DUMMY_DAVID_OID);
-		assertAccounts(userAfter, 2);
+		assertLinks(userAfter, 2);
 		
 		assertDummyAccount(RESOURCE_DUMMY_DAVID_NAME, USER_FIELD_NAME, USER_WORLD_FULL_NAME, true);
         
@@ -1351,7 +1351,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userAfter = getUser(userBefore.getOid());
 		display("User after fight", userAfter);
 		assertUser(userAfter, userBefore.getOid(), USER_FIELD_NAME, USER_WORLD_FULL_NAME, null, null);
-		assertAccounts(userAfter, 0);
+		assertLinks(userAfter, 0);
 		
 		assertNoDummyAccount(RESOURCE_DUMMY_DAVID_NAME, USER_FIELD_NAME);
 		assertNoDummyAccount(RESOURCE_DUMMY_GOLIATH_NAME, USER_FIELD_NAME);
@@ -1411,7 +1411,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		assertUser(userAfter, userBefore.getOid(), USER_FIELD_NAME, USER_WORLD_FULL_NAME, null, null);
 		assertAccount(userAfter, RESOURCE_DUMMY_DAVID_OID);
 		assertAccount(userAfter, RESOURCE_DUMMY_GOLIATH_OID); // This is unfinished shadow
-		assertAccounts(userAfter, 2);
+		assertLinks(userAfter, 2);
 		
 		assertDummyAccount(RESOURCE_DUMMY_DAVID_NAME, USER_FIELD_NAME, USER_WORLD_FULL_NAME, true);
         
@@ -1466,7 +1466,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		assertUser(userAfter, userBefore.getOid(), USER_FIELD_NAME, USER_WORLD_FULL_NAME, null, null);
 		assertAccount(userAfter, RESOURCE_DUMMY_GOLIATH_OID);
 		assertAccount(userAfter, RESOURCE_DUMMY_DAVID_OID);
-		assertAccounts(userAfter, 2);
+		assertLinks(userAfter, 2);
 		
 		assertDummyAccount(RESOURCE_DUMMY_DAVID_NAME, USER_FIELD_NAME, USER_WORLD_FULL_NAME, true);
         
@@ -1531,7 +1531,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userAfter = getUser(userBefore.getOid());
 		display("User after fight", userAfter);
 		assertUser(userAfter, userBefore.getOid(), USER_FIELD_NAME, USER_WORLD_FULL_NAME, null, null);
-		assertAccounts(userAfter, 0);
+		assertLinks(userAfter, 0);
 		
 		assertNoDummyAccount(RESOURCE_DUMMY_DAVID_NAME, USER_FIELD_NAME);
 		assertNoDummyAccount(RESOURCE_DUMMY_GOLIATH_NAME, USER_FIELD_NAME);
@@ -1592,7 +1592,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		assertUser(userAfter, userBefore.getOid(), USER_FIELD_NAME, USER_WORLD_FULL_NAME, null, null);
 		assertAccount(userAfter, RESOURCE_DUMMY_DAVID_OID); // This is unfinished shadow
 		// No goliath account, not even tried, the dependency stopped it
-		assertAccounts(userAfter, 1);
+		assertLinks(userAfter, 1);
 		
 		// David is down. No account.
 		

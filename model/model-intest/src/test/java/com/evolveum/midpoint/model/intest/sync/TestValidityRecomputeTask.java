@@ -295,7 +295,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         display("Drake after", userDrakeAfter);
         assertEffectiveActivation(userDrakeAfter, ActivationStatusType.DISABLED);
         
-        assertAccounts(userDrakeAfter, 0);
+        assertLinks(userDrakeAfter, 0);
         
         assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, "drake");
 	}
@@ -456,7 +456,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         display("Drake after", userDrakeAfter);
         assertEffectiveActivation(userDrakeAfter, ActivationStatusType.DISABLED);
         
-        assertAccounts(userDrakeAfter, 0);
+        assertLinks(userDrakeAfter, 0);
         
         assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, "drake");
 	}

@@ -37,6 +37,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.notifications.NotificationManager;
 import com.evolveum.midpoint.notifications.transports.DummyTransport;
@@ -111,6 +112,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.Checker;
 import com.evolveum.midpoint.test.DummyAuditService;
+import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.MidPointAsserts;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -342,16 +344,16 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected void assertAccounts(String userOid, int numAccounts) throws ObjectNotFoundException, SchemaException {
 		OperationResult result = new OperationResult("assertAccounts");
 		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
-		assertAccounts(user, numAccounts);
+		assertLinks(user, numAccounts);
 	}
 	
-	protected void assertAccounts(PrismObject<UserType> user, int numAccounts) throws ObjectNotFoundException, SchemaException {
-		PrismReference accountRef = user.findReference(UserType.F_LINK_REF);
-		if (accountRef == null) {
-			assert numAccounts == 0 : "Expected "+numAccounts+" but "+user+" has no accountRef";
+	protected <F extends FocusType> void assertLinks(PrismObject<F> focus, int expectedNumLinks) throws ObjectNotFoundException, SchemaException {
+		PrismReference linkRef = focus.findReference(FocusType.F_LINK_REF);
+		if (linkRef == null) {
+			assert expectedNumLinks == 0 : "Expected "+expectedNumLinks+" but "+focus+" has no linkRef";
 			return;
 		}
-		assertEquals("Wrong number of accounts linked to " + user, numAccounts, accountRef.size());
+		assertEquals("Wrong number of links in " + focus, expectedNumLinks, linkRef.size());
 	}
 	
 	protected void assertAdministrativeStatusEnabled(PrismObject<? extends ObjectType> user) {
@@ -858,15 +860,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return ObjectQuery.createObjectQuery(filter);
 	}
 
-	protected String getSingleUserAccountRef(PrismObject<UserType> user) {
-        UserType userType = user.asObjectable();
-        assertEquals("Unexpected number of accountRefs", 1, userType.getLinkRef().size());
-        ObjectReferenceType accountRefType = userType.getLinkRef().get(0);
-        String accountOid = accountRefType.getOid();
-        assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
-        PrismReferenceValue accountRefValue = accountRefType.asReferenceValue();
-        assertEquals("OID mismatch in accountRefValue", accountOid, accountRefValue.getOid());
-        assertNull("Unexpected object in accountRefValue", accountRefValue.getObject());
+	protected <F extends FocusType> String getSingleLinkOid(PrismObject<F> focus) {
+        F focusType = focus.asObjectable();
+        assertEquals("Unexpected number of linkRefs", 1, focusType.getLinkRef().size());
+        ObjectReferenceType linkRefType = focusType.getLinkRef().get(0);
+        String accountOid = linkRefType.getOid();
+        assertFalse("No linkRef oid", StringUtils.isBlank(accountOid));
+        PrismReferenceValue accountRefValue = linkRefType.asReferenceValue();
+        assertEquals("OID mismatch in linkRefValue", accountOid, accountRefValue.getOid());
+        assertNull("Unexpected object in linkRefValue", accountRefValue.getObject());
         return accountOid;
 	}
 	
@@ -1033,6 +1035,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 
 	protected PrismObjectDefinition<UserType> getUserDefinition() {
 		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+	}
+	
+	protected PrismObjectDefinition<RoleType> getRoleDefinition() {
+		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(RoleType.class);
 	}
 	
 	protected PrismObjectDefinition<ShadowType> getShadowDefinition() {
@@ -1697,6 +1703,44 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 						" but not found. Values found: "+values);
 			}
 		}
+	}
+	
+	protected DummyGroup getDummyGroup(String dummyInstanceName, String name) {
+		DummyResource dummyResource = DummyResource.getInstance(dummyInstanceName);
+		try {
+			return dummyResource.getGroupByName(name);
+		} catch (ConnectException e) {
+			throw new IllegalStateException(e.getMessage(),e);
+		} catch (FileNotFoundException e) {
+			throw new IllegalStateException(e.getMessage(),e);
+		}
+	}
+	
+	protected void assertDummyGroup(String username, String description) {
+		assertDummyGroup(null, username, description, null);
+	}
+	
+	protected void assertDummyGroup(String username, String description, Boolean active) {
+		assertDummyGroup(null, username, description, active);
+	}
+	
+	protected void assertDummyGroup(String dummyInstanceName, String groupname, String description, Boolean active) {
+		DummyGroup group = getDummyGroup(dummyInstanceName, groupname);
+		assertNotNull("No dummy("+dummyInstanceName+") group for name "+groupname, group);
+		assertEquals("Wrong fullname for dummy("+dummyInstanceName+") group "+groupname, description, 
+				group.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
+		if (active != null) {
+			assertEquals("Wrong activation for dummy("+dummyInstanceName+") group "+groupname, (boolean)active, group.isEnabled());
+		}
+	}
+
+	protected void assertNoDummyGroup(String groupname) {
+		assertNoDummyGroup(null, groupname);
+	}
+	
+	protected void assertNoDummyGroup(String dummyInstanceName, String groupname) {
+		DummyGroup group = getDummyGroup(dummyInstanceName, groupname);
+		assertNull("Dummy group '"+groupname+"' exists while not expecting it ("+dummyInstanceName+")", group);
 	}
     
 	protected void assertOpenDjAccount(String uid, String cn, Boolean active) throws DirectoryException {

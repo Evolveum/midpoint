@@ -234,8 +234,6 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		// Do nothing be default. Concrete tests may override this.
 	}
 
-	
-		
 	protected void assertUserJack(PrismObject<UserType> user) {
 		assertUserJack(user, "Jack Sparrow", "Jack", "Sparrow");
 	}
@@ -271,8 +269,12 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		assertShadowRepo(accountShadow, oid, username, resourceDummyType);
 	}
 	
-	protected void assertDummyShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, String fullname) {
+	protected void assertDummyShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username) {
 		assertShadowModel(accountShadow, oid, username, resourceDummyType);
+	}
+	
+	protected void assertDummyShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, String fullname) {
+		assertDummyShadowModel(accountShadow, oid, username);
 		IntegrationTestTools.assertAttribute(accountShadow, dummyResourceCtl.getAttributeFullnameQName(), fullname);
 	}
 		

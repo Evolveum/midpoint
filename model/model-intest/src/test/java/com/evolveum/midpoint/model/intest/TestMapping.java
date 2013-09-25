@@ -102,7 +102,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack);
-        String accountOid = getSingleUserAccountRef(userJack);
+        String accountOid = getSingleLinkOid(userJack);
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
@@ -206,7 +206,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-        String accountOid = getSingleUserAccountRef(userJack);
+        String accountOid = getSingleLinkOid(userJack);
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
@@ -248,7 +248,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-        String accountOid = getSingleUserAccountRef(userJack);
+        String accountOid = getSingleLinkOid(userJack);
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
@@ -290,7 +290,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-        String accountOid = getSingleUserAccountRef(userJack);
+        String accountOid = getSingleLinkOid(userJack);
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
@@ -332,7 +332,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-        String accountOid = getSingleUserAccountRef(userJack);
+        String accountOid = getSingleLinkOid(userJack);
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationDeleteProperty(ShadowType.class,
@@ -434,7 +434,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack);
-        String accountOid = getSingleUserAccountRef(userJack);
+        String accountOid = getSingleLinkOid(userJack);
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
@@ -544,7 +544,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-        String accountOid = getSingleUserAccountRef(userJack);
+        String accountOid = getSingleLinkOid(userJack);
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
@@ -597,7 +597,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-        String accountOid = getSingleUserAccountRef(userJack);
+        String accountOid = getSingleLinkOid(userJack);
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
@@ -639,7 +639,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-        String accountOid = getSingleUserAccountRef(userJack);
+        String accountOid = getSingleLinkOid(userJack);
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationDeleteProperty(ShadowType.class,
@@ -814,7 +814,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack);
-        String accountOid = getSingleUserAccountRef(userJack);
+        String accountOid = getSingleLinkOid(userJack);
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
@@ -925,7 +925,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-        String accountOid = getSingleUserAccountRef(userJack);
+        String accountOid = getSingleLinkOid(userJack);
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
@@ -978,7 +978,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-        String accountOid = getSingleUserAccountRef(userJack);
+        String accountOid = getSingleLinkOid(userJack);
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
@@ -1020,7 +1020,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-        String accountOid = getSingleUserAccountRef(userJack);
+        String accountOid = getSingleLinkOid(userJack);
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationDeleteProperty(ShadowType.class,
@@ -1157,7 +1157,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 	private void assertAccount(PrismObject<UserType> userJack, String name, String expectedFullName, String shipAttributeName, String expectedShip,
 			boolean expectedEnabled, DummyResourceContoller resourceCtl, Task task) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
 		// ship inbound mapping is used, it is strong 
-        String accountOid = getSingleUserAccountRef(userJack);
+        String accountOid = getSingleLinkOid(userJack);
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, task.getResult());

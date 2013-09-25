@@ -223,7 +223,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack);
-        accountOid = getSingleUserAccountRef(userJack);
+        accountOid = getSingleLinkOid(userJack);
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
@@ -957,7 +957,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userLargo = getUser(USER_LARGO_OID);
 		display("User after change execution", userLargo);
 		assertUser(userLargo, USER_LARGO_OID, USER_LARGO_USERNAME, "Largo LaGrande", "Largo", "LaGrande");
-        accountOid = getSingleUserAccountRef(userLargo);
+        accountOid = getSingleLinkOid(userLargo);
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
@@ -995,7 +995,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		assertEffectiveStatus(userLargo, ActivationStatusType.DISABLED);
 		
 		assertUser(userLargo, USER_LARGO_OID, USER_LARGO_USERNAME, "Largo LaGrande", "Largo", "LaGrande");
-        accountOid = getSingleUserAccountRef(userLargo);
+        accountOid = getSingleLinkOid(userLargo);
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
@@ -1034,7 +1034,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		assertEffectiveStatus(userLargo, ActivationStatusType.ENABLED);
 		
 		assertUser(userLargo, USER_LARGO_OID, USER_LARGO_USERNAME, "Largo LaGrande", "Largo", "LaGrande");
-        accountOid = getSingleUserAccountRef(userLargo);
+        accountOid = getSingleLinkOid(userLargo);
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
@@ -1077,7 +1077,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		assertValidityTimestamp(userLargo, lastValidityChangeTimestamp);
 		
 		assertUser(userLargo, USER_LARGO_OID, USER_LARGO_USERNAME, "Largo LaGrande", "Largo", "LaGrande");
-        accountOid = getSingleUserAccountRef(userLargo);
+        accountOid = getSingleLinkOid(userLargo);
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
@@ -1120,7 +1120,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		assertEffectiveStatus(userLargo, ActivationStatusType.DISABLED);
 		
 		assertUser(userLargo, USER_LARGO_OID, USER_LARGO_USERNAME, "Largo LaGrande", "Largo", "LaGrande");
-        accountOid = getSingleUserAccountRef(userLargo);
+        accountOid = getSingleLinkOid(userLargo);
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
@@ -1157,7 +1157,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		assertEffectiveStatus(userLargo, ActivationStatusType.ENABLED);
 		
 		assertUser(userLargo, USER_LARGO_OID, USER_LARGO_USERNAME, "Largo LaGrande", "Largo", "LaGrande");
-        accountOid = getSingleUserAccountRef(userLargo);
+        accountOid = getSingleLinkOid(userLargo);
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
@@ -1194,7 +1194,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		assertEffectiveStatus(userLargo, ActivationStatusType.DISABLED);
 		
 		assertUser(userLargo, USER_LARGO_OID, USER_LARGO_USERNAME, "Largo LaGrande", "Largo", "LaGrande");
-        accountOid = getSingleUserAccountRef(userLargo);
+        accountOid = getSingleLinkOid(userLargo);
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);

@@ -203,7 +203,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         display("User mancomb", userMancomb);
         assertNotNull("User mancomb was not created", userMancomb);
-        assertAccounts(userMancomb, 1);
+        assertLinks(userMancomb, 1);
         assertAdministrativeStatusEnabled(userMancomb);
         assertValidFrom(userMancomb, ACCOUNT_MANCOMB_VALID_FROM_DATE);
         assertValidTo(userMancomb, ACCOUNT_MANCOMB_VALID_TO_DATE);
@@ -252,7 +252,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         display("User mancomb", userMancomb);
         assertNotNull("User mancomb was not created", userMancomb);
-        assertAccounts(userMancomb, 0);
+        assertLinks(userMancomb, 0);
         assertAdministrativeStatusDisabled(userMancomb);
         assertValidFrom(userMancomb, ACCOUNT_MANCOMB_VALID_FROM_DATE);
         assertValidTo(userMancomb, ACCOUNT_MANCOMB_VALID_TO_DATE);

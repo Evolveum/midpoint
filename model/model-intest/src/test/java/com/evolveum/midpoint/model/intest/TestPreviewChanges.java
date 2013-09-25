@@ -100,7 +100,6 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	@Test
     public void test100ModifyUserAddAccountBundle() throws Exception {
 		final String TEST_NAME = "test100ModifyUserAddAccountBundle";
-		final File accountFile = new File(ACCOUNT_JACK_DUMMY_FILENAME);
 		
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 		
@@ -108,7 +107,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 			@Override
 			public PrismObject<ShadowType> get() {
 				try {
-					return PrismTestUtil.parseObject(accountFile);
+					return PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_FILE);
 				} catch (SchemaException e) {
 					throw new IllegalStateException(e.getMessage(),e);
 				}
@@ -135,7 +134,6 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	@Test
     public void test101ModifyUserAddAccountNoAttributesBundle() throws Exception {
 		final String TEST_NAME = "test101ModifyUserAddAccountNoAttributesBundle";
-		final File accountFile = new File(ACCOUNT_JACK_DUMMY_FILENAME);
 		
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 		
@@ -143,7 +141,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 			@Override
 			public PrismObject<ShadowType> get() {
 				try {
-					PrismObject<ShadowType> account = PrismTestUtil.parseObject(accountFile);
+					PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_FILE);
 					account.removeContainer(ShadowType.F_ATTRIBUTES);
 					return account;
 				} catch (SchemaException e) {
@@ -479,7 +477,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
-        PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
+        PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_FILE);
         ObjectDelta<ShadowType> accountDelta = ObjectDelta.createAddDelta(account);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta);
         display("Input deltas: ", deltas);

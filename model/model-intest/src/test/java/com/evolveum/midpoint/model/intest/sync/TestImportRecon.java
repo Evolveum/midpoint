@@ -121,7 +121,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> rapp = getUser(USER_RAPP_OID);
         assertNotNull("No rapp", rapp);
         // Rapp has dummy account but it is not linked
-        assertAccounts(rapp, 0);
+        assertLinks(rapp, 0);
         
         dummyAuditService.clear();
         
@@ -544,7 +544,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	}
 		
 	private void assertImportedUser(PrismObject<UserType> user, String... resourceOids) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
-        assertAccounts(user, resourceOids.length);
+        assertLinks(user, resourceOids.length);
         for (String resourceOid: resourceOids) {
         	assertAccount(user, resourceOid);
         }
