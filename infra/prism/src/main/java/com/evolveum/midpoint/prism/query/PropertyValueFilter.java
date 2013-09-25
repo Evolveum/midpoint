@@ -211,7 +211,7 @@ public abstract class PropertyValueFilter extends ValueFilter{
 			}
 		}
 		
-		return item.equals(filterItem);
+		return item.match(filterItem);
 	}
 	
 }
