@@ -208,6 +208,16 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	public ObjectTemplateType getFocusTemplate() {
 		return focusTemplate;
 	}
+	
+	public LensProjectionContext findProjectionContext(ResourceShadowDiscriminator rat, String oid) {
+		LensProjectionContext projectionContext = findProjectionContext(rat);
+		
+		if (projectionContext == null || projectionContext.getOid() == null || !oid.equals(projectionContext.getOid())) {
+			return null;
+		}
+		 
+		return projectionContext;
+	}
 
 	public void setFocusTemplate(ObjectTemplateType focusTemplate) {
 		this.focusTemplate = focusTemplate;
