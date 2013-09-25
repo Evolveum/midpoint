@@ -100,7 +100,7 @@ public class ObjectDataProvider<T extends ObjectType> extends BaseSortableDataPr
         OperationResult result = new OperationResult(OPERATION_COUNT_OBJECTS);
         try {
             Task task = getPage().createSimpleTask(OPERATION_COUNT_OBJECTS);
-            count = getModel().countObjects(type, getQuery(), null, task, result);
+            count = getModel().countObjects(type, getQuery(), options, task, result);
 
             result.recordSuccess();
         } catch (Exception ex) {
