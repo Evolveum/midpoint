@@ -530,22 +530,26 @@ public class Projector {
 		}		
 		
 		for (ResourceObjectTypeDependencyType dependency: accountContext.getDependencies()) {
-			ResourceShadowDiscriminator refRat = new ResourceShadowDiscriminator(dependency);
+			ResourceShadowDiscriminator refRat = new ResourceShadowDiscriminator(dependency, accountContext.getKind());
+			LOGGER.trace("LOOKING FOR {}", refRat);
 			LensProjectionContext dependencyAccountContext = context.findProjectionContext(refRat);
 			ResourceObjectTypeDependencyStrictnessType strictness = ResourceTypeUtil.getDependencyStrictness(dependency);
 			if (dependencyAccountContext == null) {
 				if (strictness == ResourceObjectTypeDependencyStrictnessType.STRICT) {
 					// This should not happen, it is checked before projection
-					throw new PolicyViolationException("Unsatisfied strict dependency of account "+accountContext.getResourceShadowDiscriminator()+
-						" dependent on "+refRat+": No context in dependency check");
+					throw new PolicyViolationException("Unsatisfied strict dependency of "
+							+ accountContext.getResourceShadowDiscriminator().toHumanReadableString() +
+							" dependent on " + refRat.toHumanReadableString() + ": No context in dependency check");
 				} else if (strictness == ResourceObjectTypeDependencyStrictnessType.LAX) {
 					// independent object not in the context, just ignore it
-					LOGGER.trace("Unsatisfied lax dependency of account "+accountContext.getResourceShadowDiscriminator()+
-						" dependent on "+refRat+"; depencency skipped");
+					LOGGER.trace("Unsatisfied lax dependency of account " + 
+							accountContext.getResourceShadowDiscriminator().toHumanReadableString() +
+							" dependent on " + refRat.toHumanReadableString() + "; depencency skipped");
 				} else if (strictness == ResourceObjectTypeDependencyStrictnessType.RELAXED) {
 					// independent object not in the context, just ignore it
-					LOGGER.trace("Unsatisfied relaxed dependency of account "+accountContext.getResourceShadowDiscriminator()+
-						" dependent on "+refRat+"; depencency skipped");
+					LOGGER.trace("Unsatisfied relaxed dependency of account "
+							+ accountContext.getResourceShadowDiscriminator().toHumanReadableString() +
+							" dependent on " + refRat.toHumanReadableString() + "; depencency skipped");
 				} else {
 					throw new IllegalArgumentException("Unknown dependency strictness "+dependency.getStrictness()+" in "+refRat);
 				}

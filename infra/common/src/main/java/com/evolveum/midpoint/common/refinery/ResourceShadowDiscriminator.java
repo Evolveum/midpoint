@@ -219,7 +219,11 @@ public class ResourceShadowDiscriminator implements Serializable {
 	
     @Override
 	public String toString() {
-    	StringBuilder sb = new StringBuilder("Discr(");
+    	return "Discr("+toHumanReadableString()+")";
+	}
+    
+    public String toHumanReadableString() {
+    	StringBuilder sb = new StringBuilder();
     	sb.append(kind.value());
     	sb.append(" (").append(intent).append(") on ");
     	sb.append(resourceOid);
@@ -230,7 +234,6 @@ public class ResourceShadowDiscriminator implements Serializable {
     	if (thombstone) {
     		sb.append(" THOMBSTONE");
     	}
-    	sb.append(")");
     	return sb.toString();
-	}
+    }
 }

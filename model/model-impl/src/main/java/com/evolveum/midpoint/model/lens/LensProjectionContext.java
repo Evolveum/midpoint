@@ -213,6 +213,9 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     	if (!rsd.getResourceOid().equals(resourceShadowDiscriminator.getResourceOid())) {
     		return false;
     	}
+    	if (!rsd.getKind().equals(resourceShadowDiscriminator.getKind())) {
+    		return false;
+    	}
     	if (rsd.isThombstone() != resourceShadowDiscriminator.isThombstone()) {
     		return false;
     	}

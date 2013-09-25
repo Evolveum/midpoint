@@ -235,8 +235,8 @@ public class ContextLoader {
 		}
 		if (intent == null && projectionContext.getObjectNew() != null) {
 			ShadowType shadowNewType = projectionContext.getObjectNew().asObjectable();
-			kind = shadowNewType.getKind();
-			intent = shadowNewType.getIntent();
+			kind = ShadowUtil.getKind(shadowNewType);
+			intent = ShadowUtil.getIntent(shadowNewType);
 		}
 		ResourceType resource = projectionContext.getResource();
 		if (resource == null) {

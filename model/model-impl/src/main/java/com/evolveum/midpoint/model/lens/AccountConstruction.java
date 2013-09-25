@@ -259,7 +259,11 @@ public class AccountConstruction<F extends FocusType> implements DebugDumpable, 
 			throw new SchemaException("No (refined) schema for "+resource);
 		}
 		
-		refinedAccountDefinition = refinedSchema.getRefinedDefinition(accountConstructionType.getKind(), accountConstructionType.getIntent());
+		ShadowKindType kind = accountConstructionType.getKind();
+		if (kind == null) {
+			kind = ShadowKindType.ACCOUNT;
+		}
+		refinedAccountDefinition = refinedSchema.getRefinedDefinition(kind, accountConstructionType.getIntent());
 		
 		if (refinedAccountDefinition == null) {
 			if (accountConstructionType.getIntent() != null) {
