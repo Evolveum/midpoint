@@ -27,6 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.AbstractInternalModelIntegrationTest;
@@ -34,15 +35,18 @@ import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 @ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
@@ -50,6 +54,7 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
   
 	private static final String TEST_DIR = "src/test/resources/sync";
 	private static final String CORRELATION_OR_FILTER = TEST_DIR + "/correlation-or-filter.xml";
+	private static final String CORRELATION_CASE_INSENSITIVE = TEST_DIR + "/correlation-case-insensitive.xml";
 	private static final String CORRELATION_FIRST_FILTER = TEST_DIR + "/correlation-first-filter.xml";
 	private static final String CORRELATION_SECOND_FILTER = TEST_DIR + "/correlation-second-filter.xml";
 	private static final String CORRELATION_WITH_CONDITION = TEST_DIR + "/correlation-with-condition.xml";
@@ -134,7 +139,7 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 	}
 	
 	@Test
-	public void test002CorrelationWithCondition() throws Exception{
+	public void test003CorrelationWithCondition() throws Exception{
 		String TEST_NAME = "testCorrelationMoreThanOne";
 		TestUtil.displayTestTile(this, TEST_NAME);
 		
@@ -164,6 +169,85 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 		
 		PrismObject<UserType> jack = matchedUsers.get(0);
 		assertUser(jack, "c0c010c0-d34d-b33f-f00d-111111111111", "jack", "Jack Sparrow", "Jack", "Sparrow");
+		
+	}
+	
+	@Test
+	public void test004CorrelationMatchCaseInsensitive() throws Exception{
+		String TEST_NAME = "testCorrelationOrFilter";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		
+		Task task = taskManager.createTaskInstance(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+//		importObjectFromFile(USER_JACK_FILENAME);
+			
+		PrismObject<UserType> userType = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
+		//assert jack
+		assertNotNull(userType);
+			
+		ShadowType shadow = parseObjectType(new File(ACCOUNT_SHADOW_JACK_DUMMY_FILENAME), ShadowType.class);
+		
+		QueryType query = PrismTestUtil.unmarshalObject(new File(CORRELATION_CASE_INSENSITIVE), QueryType.class);
+//		List<QueryType> queries = new ArrayList<QueryType>();
+//		queries.add(query);
+//		
+		ResourceType resourceType = parseObjectType(new File(RESOURCE_DUMMY_FILENAME), ResourceType.class);
+		resourceType.getSynchronization().getObjectSynchronization().get(0).getCorrelation().add(query);
+		userType.asObjectable().setName(new PolyStringType("JACK"));
+		try{
+		boolean matchedUsers = evaluator.matchUserCorrelationRule(shadow.asPrismObject(), userType, resourceType, result);
+		
+		System.out.println("matched users " + matchedUsers);
+		
+		AssertJUnit.assertTrue(matchedUsers);
+		} catch (Exception ex){
+			LOGGER.error("exception occured: {}", ex.getMessage(), ex);
+			throw ex;
+		}
+//		assertNotNull("Correlation evaluator returned null collection of matched users.", matchedUsers);
+//		assertEquals("Found more than one user.", 1, matchedUsers.size());
+//		
+//		PrismObject<UserType> jack = matchedUsers.get(0);
+//		assertUser(jack, "c0c010c0-d34d-b33f-f00d-111111111111", "jack", "Jack Sparrow", "Jack", "Sparrow");
+		
+	}
+	
+	@Test
+	public void test005CorrelationFindCaseInsensitive() throws Exception{
+		String TEST_NAME = "testCorrelationOrFilter";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		
+		Task task = taskManager.createTaskInstance(TEST_NAME);
+		OperationResult result = task.getResult();
+		
+//		importObjectFromFile(USER_JACK_FILENAME);
+			
+		PrismObject<UserType> userType = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result);
+		//assert jack
+		assertNotNull(userType);
+			
+		ShadowType shadow = parseObjectType(new File(ACCOUNT_SHADOW_JACK_DUMMY_FILENAME), ShadowType.class);
+		
+		QueryType query = PrismTestUtil.unmarshalObject(new File(CORRELATION_CASE_INSENSITIVE), QueryType.class);
+		List<QueryType> queries = new ArrayList<QueryType>();
+		queries.add(query);
+//		
+		ResourceType resourceType = parseObjectType(new File(RESOURCE_DUMMY_FILENAME), ResourceType.class);
+//		resourceType.getSynchronization().getObjectSynchronization().get(0).getCorrelation().add(query);
+		userType.asObjectable().setName(new PolyStringType("JACK"));
+		Collection<? extends ItemDelta> modifications = PropertyDelta.createModificationReplacePropertyCollection(UserType.F_NAME, userType.getDefinition(), new PolyString("JACK", "jack"));
+		repositoryService.modifyObject(UserType.class, USER_JACK_OID, modifications, result);
+		
+		List<PrismObject<UserType>> matchedUsers = evaluator.findUsersByCorrelationRule(shadow, queries, resourceType, result);
+		
+		System.out.println("matched users " + matchedUsers);
+	
+		assertNotNull("Correlation evaluator returned null collection of matched users.", matchedUsers);
+		assertEquals("Found more than one user.", 1, matchedUsers.size());
+		
+		PrismObject<UserType> jack = matchedUsers.get(0);
+		assertUser(jack, "c0c010c0-d34d-b33f-f00d-111111111111", "JACK", "Jack Sparrow", "Jack", "Sparrow");
 		
 	}
 }
