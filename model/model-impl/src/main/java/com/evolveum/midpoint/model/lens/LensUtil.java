@@ -155,8 +155,8 @@ public class LensUtil {
 		return accountSyncContext;
 	}
 	
-	public static <F extends ObjectType, P extends ObjectType> LensProjectionContext<ShadowType> createAccountContext(LensContext<F, P> context, ResourceShadowDiscriminator rsd){
-		return new LensProjectionContext(ShadowType.class, context, rsd);
+	public static <F extends ObjectType> LensProjectionContext createAccountContext(LensContext<F> context, ResourceShadowDiscriminator rsd){
+		return new LensProjectionContext(context, rsd);
 	}
 	
 	
