@@ -108,7 +108,7 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 			Task task, OperationResult parentResult) throws SchemaException, GenericFrameworkException, CommunicationException,
 			ObjectNotFoundException, ObjectAlreadyExistsException, ConfigurationException, SecurityViolationException {
 
-		if (!isDoDiscovery(shadow.getResource())){
+		if (!isDoDiscovery(shadow.getResource()) || !compensate){
 			throw new ObjectNotFoundException(ex.getMessage(), ex);
 		}
 		
