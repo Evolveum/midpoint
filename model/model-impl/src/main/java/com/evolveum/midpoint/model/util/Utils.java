@@ -342,12 +342,12 @@ public final class Utils {
     	
     	Validate.notNull(task, "Task must not be null.");
     	
-    	if (task.getExtension() != null){
+    	if (task.getExtension() == null){
     		return false;
     	}
 		
     	PrismProperty<Boolean> item = task.getExtension().findProperty(SchemaConstants.MODEL_EXTENSION_DRY_RUN);
-		if (item != null && !item.isEmpty()){
+		if (item == null || item.isEmpty()){
 			return false;
 		}
 		
