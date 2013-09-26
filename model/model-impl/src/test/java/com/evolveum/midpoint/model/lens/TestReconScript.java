@@ -16,7 +16,9 @@ import com.evolveum.icf.dummy.resource.ScriptHistoryEntry;
 import com.evolveum.midpoint.model.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -29,6 +31,7 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 @ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
@@ -177,5 +180,31 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest{
 			}
 		}
 			
+	}
+	
+	@Test
+	public void test005TestDryRunDelete() throws Exception{
+		
+		final String TEST_NAME = "test005TestDryRunDelete";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+		
+		PrismObject<TaskType> task = getTask(TASK_RECON_DUMMY_OID);
+		OperationResult parentResult = new OperationResult(TEST_NAME);
+		
+		PropertyDelta dryRunDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_DRY_RUN), task.getDefinition(), true);
+		Collection<PropertyDelta> modifications = new ArrayList<PropertyDelta>();
+		modifications.add(dryRunDelta);
+		
+		repositoryService.modifyObject(TaskType.class, TASK_RECON_DUMMY_OID, modifications, parentResult);
+		
+		dummyResource.deleteAccount("beforeScript");
+		
+		
+		waitForTaskStart(TASK_RECON_DUMMY_OID, false);
+		
+		waitForTaskNextRun(TASK_RECON_DUMMY_OID, false);
+		
+		waitForTaskFinish(TASK_RECON_DUMMY_OID, false);
 	}
 }

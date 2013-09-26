@@ -36,6 +36,7 @@ import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.model.controller.ModelController;
+import com.evolveum.midpoint.model.util.Utils;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -134,31 +135,21 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			SynchronizationSituation situation = checkSituation(change, subResult);
 			LOGGER.debug("SYNCHRONIZATION: SITUATION: '{}', {}", situation.getSituation().value(), situation.getUser());
 
-			if (task.getExtension() != null){
-				PrismProperty<Boolean> item = task.getExtension().findProperty(SchemaConstants.MODEL_EXTENSION_DRY_RUN);
-				if (item != null && !item.isEmpty()){
-					if (item.getValues().size() > 1){
-						throw new SchemaException("Unexpected number of values for option 'dry run'.");
-					}
-					
-					Boolean dryRun = item.getValues().iterator().next().getValue();
-					if (dryRun != null && dryRun.booleanValue()){
-						PrismObject object = null;
-						if (change.getCurrentShadow() != null){
-							object = change.getCurrentShadow();
-						} else if (change.getOldShadow() != null){
-							object = change.getOldShadow();
-						}
-						
-						XMLGregorianCalendar timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
-						Collection modifications = SynchronizationSituationUtil
-								.createSynchronizationSituationAndDescriptionDelta(object,
-										situation.getSituation(), task.getChannel());
-						repositoryService.modifyObject(ShadowType.class, object.getOid(), modifications, subResult);
-						subResult.recordSuccess();
-						return;
-					}
+			if (Utils.isDryRun(task)){
+				PrismObject object = null;
+				if (change.getCurrentShadow() != null){
+					object = change.getCurrentShadow();
+				} else if (change.getOldShadow() != null){
+					object = change.getOldShadow();
 				}
+				
+				XMLGregorianCalendar timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
+				Collection modifications = SynchronizationSituationUtil
+						.createSynchronizationSituationAndDescriptionDelta(object,
+								situation.getSituation(), task.getChannel());
+				repositoryService.modifyObject(ShadowType.class, object.getOid(), modifications, subResult);
+				subResult.recordSuccess();
+				return;
 			}
 			
 			notifyChange(change, situation, resource, task, subResult);
