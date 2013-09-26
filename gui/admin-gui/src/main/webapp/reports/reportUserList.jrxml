@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Jaspersoft Studio version last-->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="reportUserList" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="67e465c5-46ea-40d2-bea0-469c6cf38937">
 	<property name="ireport.zoom" value="1.6105100000000019"/>
 	<property name="ireport.x" value="0"/>
@@ -8,12 +9,7 @@
 	<style name="Title" forecolor="#FFFFFF" fontName="DejaVu Sans" fontSize="50" isBold="false"/>
 	<style name="SubTitle" forecolor="#CCCCCC" fontName="DejaVu Sans" fontSize="18" isBold="false"/>
 	<style name="Column header" mode="Transparent" forecolor="#FFFFFF" backcolor="#333333" fontName="DejaVu Sans" fontSize="12" isBold="true"/>
-	<style name="Detail" mode="Transparent" forecolor="#000000" fontName="DejaVu Sans" fontSize="10" isBold="false"/>
-	<style name="Row" mode="Transparent" fontName="DejaVu Sans" fontSize="10" isBold="false">
-		<conditionalStyle>
-			<style mode="Opaque" backcolor="#F0EFEF"/>
-		</conditionalStyle>
-	</style>
+	<style name="Detail" isDefault="false" fontName="DejaVu Sans" fontSize="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="DejaVuSansMono.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 	<parameter name="LOGO_PATH" class="java.lang.String"/>
 	<parameter name="roleReport" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
 	<parameter name="orgReport" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
@@ -139,7 +135,7 @@
 	<detail>
 		<band height="20" splitType="Prevent">
 			<frame>
-				<reportElement uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a" style="Row" mode="Opaque" x="0" y="1" width="800" height="19"/>
+				<reportElement uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a" mode="Opaque" x="0" y="1" width="800" height="19"/>
 				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
 					<reportElement uuid="ebaef16d-2903-4029-9a6b-d4d244558ae9" style="Detail" x="0" y="1" width="120" height="18"/>
 					<textElement verticalAlignment="Middle"/>
@@ -163,7 +159,7 @@
 					<textFieldExpression><![CDATA[$F{activation}.getAdministrativeStatus().getSchemaValue()]]></textFieldExpression>
 				</textField>
 				<subreport>
-					<reportElement uuid="6028233e-7e6e-4c96-b46c-abfadbd936f9" positionType="Float" x="420" y="0" width="100" height="18" isPrintWhenDetailOverflows="true"/>
+					<reportElement uuid="6028233e-7e6e-4c96-b46c-abfadbd936f9" positionType="Float" style="Detail" x="420" y="0" width="100" height="18" isPrintWhenDetailOverflows="true"/>
 					<subreportParameter name="USER_OID">
 						<subreportParameterExpression><![CDATA[$F{oid}]]></subreportParameterExpression>
 					</subreportParameter>
@@ -174,7 +170,7 @@
 					<subreportExpression><![CDATA[$P{roleReport}]]></subreportExpression>
 				</subreport>
 				<subreport>
-					<reportElement uuid="6028233e-7e6e-4c96-b46c-abfadbd936f9" positionType="Float" x="520" y="0" width="100" height="18" isPrintWhenDetailOverflows="true"/>
+					<reportElement uuid="6028233e-7e6e-4c96-b46c-abfadbd936f9" positionType="Float" style="Detail" x="520" y="0" width="100" height="18" isPrintWhenDetailOverflows="true"/>
 					<subreportParameter name="USER_OID">
 						<subreportParameterExpression><![CDATA[$F{oid}]]></subreportParameterExpression>
 					</subreportParameter>
@@ -185,7 +181,7 @@
 					<subreportExpression><![CDATA[$P{orgReport}]]></subreportExpression>
 				</subreport>
 				<subreport>
-					<reportElement uuid="6028233e-7e6e-4c96-b46c-abfadbd936f9" positionType="Float" x="620" y="0" width="180" height="18" isPrintWhenDetailOverflows="true"/>
+					<reportElement uuid="6028233e-7e6e-4c96-b46c-abfadbd936f9" positionType="Float" style="Detail" x="620" y="0" width="180" height="18" isPrintWhenDetailOverflows="true"/>
 					<subreportParameter name="USER_OID">
 						<subreportParameterExpression><![CDATA[$F{oid}]]></subreportParameterExpression>
 					</subreportParameter>
