@@ -863,7 +863,7 @@ public class ChangeExecutor {
 		if (context.getFocusContext() != null){
 			if (context.getFocusContext().getObjectNew() != null){
 			user = context.getFocusContext().getObjectNew();
-			} else if (context.getFocusContext().getObjectNew() != null){
+			} else if (context.getFocusContext().getObjectOld() != null){
 				user = context.getFocusContext().getObjectOld();
 			}	
 		}
@@ -965,13 +965,18 @@ public class ChangeExecutor {
         PrismObject<ShadowType> shadow = null;
         
 		if (context.getFocusContext() != null){
-			if (order == ProvisioningScriptOrderType.BEFORE) {
-				user = context.getFocusContext().getObjectOld();
-			} else if (order == ProvisioningScriptOrderType.AFTER) {
+			if (context.getFocusContext().getObjectNew() != null){
 				user = context.getFocusContext().getObjectNew();
-			} else {
-				throw new IllegalArgumentException("Unknown order "+order);
-			}	
+				} else if (context.getFocusContext().getObjectOld() != null){
+					user = context.getFocusContext().getObjectOld();
+				}	
+//			if (order == ProvisioningScriptOrderType.BEFORE) {
+//				user = context.getFocusContext().getObjectOld();
+//			} else if (order == ProvisioningScriptOrderType.AFTER) {
+//				user = context.getFocusContext().getObjectNew();
+//			} else {
+//				throw new IllegalArgumentException("Unknown order "+order);
+//			}	
 		}
 		
 		if (order == ProvisioningScriptOrderType.BEFORE) {
