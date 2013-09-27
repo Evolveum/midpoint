@@ -28,6 +28,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
@@ -206,5 +207,50 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest{
 		waitForTaskNextRun(TASK_RECON_DUMMY_OID, false);
 		
 		waitForTaskFinish(TASK_RECON_DUMMY_OID, false);
+		
+		PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, ACCOUNT_BEFORE_SCRIPT_OID, null, parentResult);
+		AssertJUnit.assertNotNull(shadow);
+		
+		PrismObject<UserType> user = repositoryService.listAccountShadowOwner(ACCOUNT_BEFORE_SCRIPT_OID, parentResult);
+		AssertJUnit.assertNotNull("Owner for account " + shadow + " not found. Some probelm in dry run occured.", user);
+		
+		
+	}
+	
+	@Test
+	public void test005TestReconDelete() throws Exception{
+		
+		final String TEST_NAME = "test005TestDryRunDelete";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+		
+		PrismObject<TaskType> task = getTask(TASK_RECON_DUMMY_OID);
+		OperationResult parentResult = new OperationResult(TEST_NAME);
+		
+		PropertyDelta dryRunDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_DRY_RUN), task.getDefinition(), false);
+		Collection<PropertyDelta> modifications = new ArrayList<PropertyDelta>();
+		modifications.add(dryRunDelta);
+		
+		repositoryService.modifyObject(TaskType.class, TASK_RECON_DUMMY_OID, modifications, parentResult);
+		
+//		dummyResource.deleteAccount("beforeScript");
+		
+		waitForTaskStart(TASK_RECON_DUMMY_OID, false);
+		
+		waitForTaskNextRun(TASK_RECON_DUMMY_OID, false);
+		
+		waitForTaskFinish(TASK_RECON_DUMMY_OID, false);
+		
+		try{
+			PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, ACCOUNT_BEFORE_SCRIPT_OID, null, parentResult);
+			AssertJUnit.fail("Expected object not found, but haven't got one");
+		} catch (ObjectNotFoundException ex){
+			//this is ok
+		}
+		
+		PrismObject<UserType> user = repositoryService.listAccountShadowOwner(ACCOUNT_BEFORE_SCRIPT_OID, parentResult);
+		AssertJUnit.assertNull("Owner for account " + ACCOUNT_BEFORE_SCRIPT_OID + " was found, but it should be not.", user);
+		
+		
 	}
 }
