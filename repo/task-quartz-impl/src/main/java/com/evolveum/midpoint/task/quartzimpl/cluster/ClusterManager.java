@@ -262,9 +262,7 @@ public class ClusterManager {
 
             // we do not try to determine which one is "newer" - we simply use the one from repo
             if (!versionInRepo.equals(versionApplied)) {
-                //LOGGER.info("System configuration change check: detected difference between version in repo ({}) and currently applied version ({}) - configuration from repo will be applied now.", versionInRepo, versionApplied);
                 LoggingConfigurationType loggingConfig = ProfilingConfigurationManager.checkSystemProfilingConfiguration(config);
-                //LoggingConfigurationManager.configure(config.asObjectable().getLogging(), versionInRepo, result);
                 LoggingConfigurationManager.configure(loggingConfig, versionInRepo, result);
             } else {
                 if (LOGGER.isTraceEnabled()) {
