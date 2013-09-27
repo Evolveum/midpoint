@@ -32,7 +32,7 @@ import java.lang.management.*;
 public class PerformanceStatistics {
 
     /* LOGGER */
-    private static Trace LOGGER = TraceManager.getTrace("com.evolveum.midpoint.util.aspect.ProfilingDataManager");
+    private static Trace LOGGER = TraceManager.getTrace(ProfilingDataManager.class);
 
     /* CONSTANTS */
     private int MB = 1024*1024;

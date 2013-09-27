@@ -32,6 +32,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.DebugUtil;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.identityconnectors.common.pooling.ObjectPoolConfiguration;
 import org.identityconnectors.common.security.GuardedByteArray;
@@ -164,9 +165,6 @@ import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
  */
 public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
-	private static final String CUSTOM_OBJECTCLASS_PREFIX = "Custom";
-	private static final String CUSTOM_OBJECTCLASS_SUFFIX = "ObjectClass";
-
 	private static final com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ObjectFactory capabilityObjectFactory 
 		= new com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ObjectFactory();
 
@@ -178,8 +176,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	String resourceSchemaNamespace;
 	Protector protector;
 	PrismContext prismContext;
+	private IcfNameMapper icfNameMapper;
 
-	private boolean initialized = false;
 	private ResourceSchema resourceSchema = null;
 	private Collection<Object> capabilities = null;
 	private PrismSchema connectorSchema;
@@ -197,6 +195,14 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	public String getSchemaNamespace() {
 		return resourceSchemaNamespace;
+	}
+
+	public IcfNameMapper getIcfNameMapper() {
+		return icfNameMapper;
+	}
+
+	public void setIcfNameMapper(IcfNameMapper icfNameMapper) {
+		this.icfNameMapper = icfNameMapper;
 	}
 
 	/*
@@ -434,8 +440,6 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				throw ex;
 			}
 		}
-		
-		initialized = true;
 
 		result.recordSuccess();
 	}
@@ -562,7 +566,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		for (ObjectClassInfo objectClassInfo : objectClassInfoSet) {
 
 			// "Flat" ICF object class names needs to be mapped to QNames
-			QName objectClassXsdName = objectClassToQname(objectClassInfo.getType());
+			QName objectClassXsdName = icfNameMapper.objectClassToQname(objectClassInfo.getType(), getSchemaNamespace());
 
 			if (!shouldBeGenerated(generateObjectClasses, objectClassXsdName)){
 				continue;
@@ -625,7 +629,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					continue;
 				}
 
-				QName attrXsdName = convertAttributeNameToQName(attributeInfo.getName());
+				QName attrXsdName = icfNameMapper.convertAttributeNameToQName(attributeInfo.getName(), getSchemaNamespace());
 				QName attrXsdType = icfTypeToXsdType(attributeInfo.getType(), false);
 				
 				if (LOGGER.isTraceEnabled()) {
@@ -825,7 +829,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 							+ identifiers + " from " + ObjectTypeUtil.toShortString(connectorType));
 		}
 
-		ObjectClass icfObjectClass = objectClassToIcf(objectClassDefinition);
+		ObjectClass icfObjectClass = icfNameMapper.objectClassToIcf(objectClassDefinition, getSchemaNamespace(), connectorType);
 		if (icfObjectClass == null) {
 			result.recordFatalError("Unable to determine object class from QName "
 					+ objectClassDefinition.getTypeName()
@@ -968,7 +972,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// Add all the attributes that are defined as "returned by default" by the schema
 			for (ResourceAttributeDefinition attributeDef: objectClassDefinition.getAttributeDefinitions()) {
 				if (attributeDef.isReturnedByDefault()) {
-					String attrName = UcfUtil.convertAttributeNameToIcf(attributeDef.getName(), getSchemaNamespace());
+					String attrName = icfNameMapper.convertAttributeNameToIcf(attributeDef.getName(), getSchemaNamespace());
 					icfAttrsToGet.add(attrName);
 				}
 			}
@@ -983,7 +987,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 		if (attrs != null) {
 			for (ResourceAttributeDefinition attrDef: attrs) {
-				String attrName = UcfUtil.convertAttributeNameToIcf(attrDef.getName(), getSchemaNamespace());
+				String attrName = icfNameMapper.convertAttributeNameToIcf(attrDef.getName(), getSchemaNamespace());
 				if (!icfAttrsToGet.contains(attrName)) {
 					icfAttrsToGet.add(attrName);
 				}
@@ -1018,7 +1022,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		result.addParam("additionalOperations", DebugUtil.debugDump(additionalOperations));         // because of serialization issues
 
 		// getting icf object class from resource object class
-		ObjectClass objectClass = objectClassToIcf(object);
+		ObjectClass objectClass = icfNameMapper.objectClassToIcf(object, getSchemaNamespace(), connectorType);
 
 		if (objectClass == null) {
 			result.recordFatalError("Couldn't get icf object class from " + object);
@@ -1169,7 +1173,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			return new HashSet<PropertyModificationOperation>();
 		}
 
-		ObjectClass objClass = objectClassToIcf(objectClass);
+		ObjectClass objClass = icfNameMapper.objectClassToIcf(objectClass, getSchemaNamespace(), connectorType);
 		
 		Uid uid = getUid(identifiers);
 		String originalUid = uid.getUidValue();
@@ -1462,7 +1466,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	private PropertyDelta<String> createUidDelta(Uid uid, ResourceAttributeDefinition uidDefinition) {
-		QName attributeName = convertAttributeNameToQName(uid.getName());
+		QName attributeName = icfNameMapper.convertAttributeNameToQName(uid.getName(), getSchemaNamespace());
 		PropertyDelta<String> uidDelta = new PropertyDelta<String>(new ItemPath(ShadowType.F_ATTRIBUTES, attributeName),
 				uidDefinition);
 		uidDelta.setValueToReplace(new PrismPropertyValue<String>(uid.getUidValue()));
@@ -1495,7 +1499,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				+ ".deleteObject");
 		result.addCollectionOfSerializablesAsParam("identifiers", identifiers);
 
-		ObjectClass objClass = objectClassToIcf(objectClass);
+		ObjectClass objClass = icfNameMapper.objectClassToIcf(objectClass, getSchemaNamespace(), connectorType);
 		Uid uid = getUid(identifiers);
 
 		checkAndExecuteAdditionalOperation(additionalOperations, ProvisioningScriptOrderType.BEFORE, result);
@@ -1550,7 +1554,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				+ ".fetchCurrentToken");
 		result.addParam("objectClass", objectClass);
 
-		ObjectClass icfObjectClass = objectClassToIcf(objectClass);
+		ObjectClass icfObjectClass = icfNameMapper.objectClassToIcf(objectClass, getSchemaNamespace(), connectorType);
 		
 		OperationResult icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".sync");
 		icfResult.addContext("connector", icfConnectorFacade.getClass());
@@ -1609,7 +1613,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		final List<SyncDelta> syncDeltas = new ArrayList<SyncDelta>();
 		// get icf object class
-		ObjectClass icfObjectClass = objectClassToIcf(objectClass);
+		ObjectClass icfObjectClass = icfNameMapper.objectClassToIcf(objectClass, getSchemaNamespace(), connectorType);
 
 		SyncResultsHandler syncHandler = new SyncResultsHandler() {
 
@@ -1703,7 +1707,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			throw new IllegalArgumentException("objectClass not defined");
 		}
 
-		ObjectClass icfObjectClass = objectClassToIcf(objectClassDefinition);
+		ObjectClass icfObjectClass = icfNameMapper.objectClassToIcf(objectClassDefinition, getSchemaNamespace(), connectorType);
 		if (icfObjectClass == null) {
 			IllegalArgumentException ex = new IllegalArgumentException(
 					"Unable to detemine object class from QName " + objectClassDefinition
@@ -1761,7 +1765,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				// filter
 				FilterInterpreter interpreter = new FilterInterpreter(getSchemaNamespace());
 				LOGGER.trace("Start to convert filter: {}", query.getFilter().dump());
-				filter = interpreter.interpret(query.getFilter());
+				filter = interpreter.interpret(query.getFilter(), icfNameMapper);
 
 				LOGGER.trace("ICF filter: {}", filter.toString());
 			}
@@ -1770,6 +1774,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			icfResult.recordSuccess();
 		} catch (IntermediateException inex) {
 			SchemaException ex = (SchemaException) inex.getCause();
+			icfResult.recordFatalError(ex);
+			result.recordFatalError(ex);
 			throw ex;
 		} catch (Exception ex) {
 			Exception midpointEx = processIcfException(ex, icfResult);
@@ -1796,98 +1802,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	// UTILITY METHODS
 
-	private QName convertAttributeNameToQName(String icfAttrName) {
-		QName attrXsdName = new QName(getSchemaNamespace(), icfAttrName,
-				ConnectorFactoryIcfImpl.NS_ICF_RESOURCE_INSTANCE_PREFIX);
-		// Handle special cases
-		if (Name.NAME.equals(icfAttrName)) {
-			// this is ICF __NAME__ attribute. It will look ugly in XML and may
-			// even cause problems.
-			// so convert to something more friendly such as icfs:name
-			attrXsdName = ConnectorFactoryIcfImpl.ICFS_NAME;
-		}
-		
-		if (Uid.NAME.equals(icfAttrName)) {
-			// this is ICF __NAME__ attribute. It will look ugly in XML and may
-			// even cause problems.
-			// so convert to something more friendly such as icfs:name
-			attrXsdName = ConnectorFactoryIcfImpl.ICFS_UID;
-		}
-		return attrXsdName;
-	}
 	
-	/**
-	 * Maps ICF native objectclass name to a midPoint QName objctclass name.
-	 * <p/>
-	 * The mapping is "stateless" - it does not keep any mapping database or any
-	 * other state. There is a bi-directional mapping algorithm.
-	 * <p/>
-	 * TODO: mind the special characters in the ICF objectclass names.
-	 */
-	private QName objectClassToQname(String icfObjectClassString) {
-		if (ObjectClass.ACCOUNT_NAME.equals(icfObjectClassString)) {
-			return new QName(getSchemaNamespace(), ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME,
-					ConnectorFactoryIcfImpl.NS_ICF_SCHEMA_PREFIX);
-		} else if (ObjectClass.GROUP_NAME.equals(icfObjectClassString)) {
-			return new QName(getSchemaNamespace(), ConnectorFactoryIcfImpl.GROUP_OBJECT_CLASS_LOCAL_NAME,
-					ConnectorFactoryIcfImpl.NS_ICF_SCHEMA_PREFIX);
-		} else {
-			return new QName(getSchemaNamespace(), CUSTOM_OBJECTCLASS_PREFIX + icfObjectClassString
-					+ CUSTOM_OBJECTCLASS_SUFFIX, ConnectorFactoryIcfImpl.NS_ICF_RESOURCE_INSTANCE_PREFIX);
-		}
-	}
-
-	private ObjectClass objectClassToIcf(PrismObject<? extends ShadowType> object) {
-
-		ShadowType shadowType = object.asObjectable();
-		QName qnameObjectClass = shadowType.getObjectClass();
-		if (qnameObjectClass == null) {
-			ResourceAttributeContainer attrContainer = ShadowUtil
-					.getAttributesContainer(shadowType);
-			if (attrContainer == null) {
-				return null;
-			}
-			ResourceAttributeContainerDefinition objectClassDefinition = attrContainer.getDefinition();
-			qnameObjectClass = objectClassDefinition.getTypeName();
-		}
-
-		return objectClassToIcf(qnameObjectClass);
-	}
-
-	/**
-	 * Maps a midPoint QName objctclass to the ICF native objectclass name.
-	 * <p/>
-	 * The mapping is "stateless" - it does not keep any mapping database or any
-	 * other state. There is a bi-directional mapping algorithm.
-	 * <p/>
-	 * TODO: mind the special characters in the ICF objectclass names.
-	 */
-	private ObjectClass objectClassToIcf(ObjectClassComplexTypeDefinition objectClassDefinition) {
-		QName qnameObjectClass = objectClassDefinition.getTypeName();
-		return objectClassToIcf(qnameObjectClass);
-	}
-
-	private ObjectClass objectClassToIcf(QName qnameObjectClass) {
-		if (!getSchemaNamespace().equals(qnameObjectClass.getNamespaceURI())) {
-			throw new IllegalArgumentException("ObjectClass QName " + qnameObjectClass
-					+ " is not in the appropriate namespace for "
-					+ ObjectTypeUtil.toShortString(connectorType) + ", expected: " + getSchemaNamespace());
-		}
-		String lname = qnameObjectClass.getLocalPart();
-		if (ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME.equals(lname)) {
-			return ObjectClass.ACCOUNT;
-		} else if (ConnectorFactoryIcfImpl.GROUP_OBJECT_CLASS_LOCAL_NAME.equals(lname)) {
-			return ObjectClass.GROUP;
-		} else if (lname.startsWith(CUSTOM_OBJECTCLASS_PREFIX) && lname.endsWith(CUSTOM_OBJECTCLASS_SUFFIX)) {
-			String icfObjectClassName = lname.substring(CUSTOM_OBJECTCLASS_PREFIX.length(), lname.length()
-					- CUSTOM_OBJECTCLASS_SUFFIX.length());
-			return new ObjectClass(icfObjectClassName);
-		} else {
-			throw new IllegalArgumentException("Cannot recognize objectclass QName " + qnameObjectClass
-					+ " for " + ObjectTypeUtil.toShortString(connectorType) + ", expected: "
-					+ getSchemaNamespace());
-		}
-	}
 
 	/**
 	 * Looks up ICF Uid identifier in a (potentially multi-valued) set of
@@ -2019,7 +1934,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				continue;
 			}
 
-			QName qname = convertAttributeNameToQName(icfAttr.getName());
+			QName qname = icfNameMapper.convertAttributeNameToQName(icfAttr.getName(), getSchemaNamespace());
 			ResourceAttributeDefinition attributeDefinition = attributesContainerDefinition.findAttributeDefinition(qname);
 
 			if (attributeDefinition == null) {
@@ -2113,7 +2028,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				throw new SchemaException("ICF UID explicitly specified in attributes");
 			}
 
-			String icfAttrName = UcfUtil.convertAttributeNameToIcf(midPointAttrQName, getSchemaNamespace());
+			String icfAttrName = icfNameMapper.convertAttributeNameToIcf(midPointAttrQName, getSchemaNamespace());
 
 			Set<Object> convertedAttributeValues = new HashSet<Object>();
 			for (PrismPropertyValue<?> value : attribute.getValues()) {
@@ -2181,7 +2096,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			if (icfDelta.getObject() != null){
 				objClass = icfDelta.getObject().getObjectClass();
 			}
-				QName objectClass = objectClassToQname(objClass.getObjectClassValue());
+				QName objectClass = icfNameMapper.objectClassToQname(objClass.getObjectClassValue(), getSchemaNamespace());
 				ObjectClassComplexTypeDefinition objClassDefinition = (ObjectClassComplexTypeDefinition) schema
 				.findComplexTypeDefinition(objectClass);
 
