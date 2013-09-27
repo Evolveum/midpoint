@@ -54,6 +54,7 @@ public abstract class SchemaConstants {
 	public static final QName C_OBJECTS = new QName(NS_C, "objects");
 	public static final QName C_OBJECT = new QName(NS_C, "object");
 	public static final QName C_ABSTRACT_ROLE = new QName(NS_C, "abstractRole");
+    public static final QName C_FOCUS = new QName(NS_C, "focus");
 	public static final QName C_OBJECT_TYPE = new QName(NS_C, "ObjectType");
 	public static final QName C_OBJECT_REF = new QName(NS_C, "objectRef");
 	public static final QName C_VALUE = new QName(NS_C, "value");
