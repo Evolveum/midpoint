@@ -186,7 +186,8 @@ public class SystemConfigurationHandler implements ChangeHook {
 
             LOGGER.trace("invoke() SystemConfig from repo: " + config.getVersion() + ", ApplyingLoggingConfiguration");
 
-            applyLoggingConfiguration(config.asObjectable().getLogging(), config.asObjectable().getVersion(), result);
+            //ProfilingConfigurationManager.checkSystemProfilingConfiguration(config);
+            applyLoggingConfiguration(ProfilingConfigurationManager.checkSystemProfilingConfiguration(config), config.asObjectable().getVersion(), result);
             result.recordSuccessIfUnknown();
 
         } catch (ObjectNotFoundException e) {

@@ -21,6 +21,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -29,13 +30,7 @@ import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
-import org.apache.wicket.markup.html.form.CheckBox;
-import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.FormComponent;
-import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.apache.wicket.markup.html.form.ListMultipleChoice;
+import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.model.*;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -76,16 +71,6 @@ import com.evolveum.midpoint.web.page.admin.configuration.dto.LoggerValidator;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.LoggingDto;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ProfilingLevel;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AppenderConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuditingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ClassLoggerConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.FileAppenderConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.LoggingComponentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.LoggingConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.LoggingLevelType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.SubSystemLoggerConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
 
 /**
  * @author lazyman
@@ -163,6 +148,10 @@ public class PageLogging extends PageAdminConfiguration {
 		AccordionItem auditing = new AccordionItem("auditing", createStringResource("pageLogging.audit"));
 		accordion.getBodyContainer().add(auditing);
 		initAudit(auditing);
+
+        AccordionItem profiling = new AccordionItem("profiling", createStringResource("pageLogging.profiling"));
+        accordion.getBodyContainer().add(profiling);
+        initProfilingSection(profiling);
 
 		initButtons(mainForm);
 	}
@@ -705,6 +694,34 @@ public class PageLogging extends PageAdminConfiguration {
 		audit.getBodyContainer().add(auditAppender);
 	}
 
+    private void initProfilingSection(AccordionItem profiling){
+        CheckBox requestFilter = new CheckBox("requestFilter", new PropertyModel<Boolean>(model, "requestFilter"));
+        CheckBox performanceStatistics = new CheckBox("performanceStatistics", new PropertyModel<Boolean>(model, "performanceStatistics"));
+        CheckBox subsystemModel = new CheckBox("subsystemModel", new PropertyModel<Boolean>(model, "subsystemModel"));
+        CheckBox subsystemRepository = new CheckBox("subsystemRepository", new PropertyModel<Boolean>(model, "subsystemRepository"));
+        CheckBox subsystemProvisioning = new CheckBox("subsystemProvisioning", new PropertyModel<Boolean>(model, "subsystemProvisioning"));
+        CheckBox subsystemUcf = new CheckBox("subsystemUcf", new PropertyModel<Boolean>(model, "subsystemUcf"));
+        CheckBox subsystemResourceObjectChangeListener = new CheckBox("subsystemResourceObjectChangeListener", new PropertyModel<Boolean>(model, "subsystemResourceObjectChangeListener"));
+        CheckBox subsystemTaskManager = new CheckBox("subsystemTaskManager", new PropertyModel<Boolean>(model, "subsystemTaskManager"));
+        CheckBox subsystemWorkflow = new CheckBox("subsystemWorkflow", new PropertyModel<Boolean>(model, "subsystemWorkflow"));
+        profiling.getBodyContainer().add(requestFilter);
+        profiling.getBodyContainer().add(performanceStatistics);
+        profiling.getBodyContainer().add(subsystemModel);
+        profiling.getBodyContainer().add(subsystemRepository);
+        profiling.getBodyContainer().add(subsystemProvisioning);
+        profiling.getBodyContainer().add(subsystemUcf);
+        profiling.getBodyContainer().add(subsystemResourceObjectChangeListener);
+        profiling.getBodyContainer().add(subsystemTaskManager);
+        profiling.getBodyContainer().add(subsystemWorkflow);
+
+        TextField<Integer> dumpInterval = new TextField<Integer>("dumpInterval", new PropertyModel<Integer>(model,
+                "dumpInterval"));
+        //dumpInterval.setType(Integer.class);
+
+        profiling.getBodyContainer().add(dumpInterval);
+
+    }
+
 	private IModel<List<String>> createAppendersListModel() {
 		return new AbstractReadOnlyModel<List<String>>() {
 
@@ -781,6 +798,31 @@ public class PageLogging extends PageAdminConfiguration {
 
 		return configuration;
 	}
+
+    private ProfilingConfigurationType createProfConfig(LoggingDto dto){
+        ProfilingConfigurationType config = new ProfilingConfigurationType();
+
+        if(dto.isPerformanceStatistics() || dto.isRequestFilter() || dto.isSubsystemModel() || dto.isSubsystemRepository() || dto.isSubsystemProvisioning()
+                || dto.isSubsystemResourceObjectChangeListener() || dto.isSubsystemUcf() || dto.isSubsystemTaskManager() || dto.isSubsystemWorkflow())
+            config.setEnabled(true);
+        else
+            config.setEnabled(false);
+
+        LOGGER.info("Profiling enabled: " + config.isEnabled());
+
+        config.setDumpInterval(dto.getDumpInterval());
+        config.setPerformanceStatistics(dto.isPerformanceStatistics());
+        config.setRequestFilter(dto.isRequestFilter());
+        config.setModel(dto.isSubsystemModel());
+        config.setProvisioning(dto.isSubsystemProvisioning());
+        config.setRepository(dto.isSubsystemRepository());
+        config.setUcf(dto.isSubsystemUcf());
+        config.setResourceObjectChangeListener(dto.isSubsystemResourceObjectChangeListener());
+        config.setTaskManager(dto.isSubsystemTaskManager());
+        config.setWorkflow(dto.isSubsystemWorkflow());
+
+        return config;
+    }
 
     private ClassLoggerConfigurationType createCustomClassLogger(String name, LoggingLevelType level, String appender) {
         ClassLoggerConfigurationType type = new ClassLoggerConfigurationType();
@@ -920,10 +962,18 @@ public class PageLogging extends PageAdminConfiguration {
 				return;
 			}
 
+            ProfilingConfigurationType profilingConfiguration = createProfConfig(dto);
+            if(profilingConfiguration == null){
+                target.add(getFeedbackPanel());
+                target.add(get("mainForm"));
+                return;
+            }
+
 			Task task = createSimpleTask(OPERATION_UPDATE_LOGGING_CONFIGURATION);
 			PrismObject<SystemConfigurationType> newObject = dto.getOldConfiguration();
 
 				newObject.asObjectable().setLogging(config);
+                newObject.asObjectable().setProfilingConfiguration(profilingConfiguration);
 
             PrismObject<SystemConfigurationType> oldObject = getModelService().getObject(SystemConfigurationType.class,
                     oid, null, task, result);

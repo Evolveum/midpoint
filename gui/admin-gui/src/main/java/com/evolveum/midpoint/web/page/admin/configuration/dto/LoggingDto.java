@@ -53,7 +53,6 @@ public class LoggingDto implements Serializable {
     private List<LoggerConfiguration> loggers = new ArrayList<LoggerConfiguration>();
     private List<FilterConfiguration> filters = new ArrayList<FilterConfiguration>();
 
-
     private ProfilingLevel profilingLevel;
     private String profilingAppender;
 
@@ -65,6 +64,19 @@ public class LoggingDto implements Serializable {
 
     private boolean advanced;
 
+    private boolean profilingEnabled;
+    private boolean requestFilter;
+    private boolean performanceStatistics;
+    private boolean subsystemModel;
+    private boolean subsystemRepository;
+    private boolean subsystemProvisioning;
+    private boolean subsystemUcf;
+    private boolean subsystemResourceObjectChangeListener;
+    private boolean subsystemTaskManager;
+    private boolean subsystemWorkflow;
+    private Integer dumpInterval;
+
+
     public LoggingDto() {
         this(null, null);
     }
@@ -72,6 +84,36 @@ public class LoggingDto implements Serializable {
     public LoggingDto(PrismObject<SystemConfigurationType> oldConfiguration, LoggingConfigurationType config) {
         this.oldConfiguration = oldConfiguration;
         init(config);
+        initProfiling(oldConfiguration);
+    }
+
+    private void initProfiling(PrismObject<SystemConfigurationType> sysConfig){
+        SystemConfigurationType systemConfig = sysConfig.asObjectable();
+        ProfilingConfigurationType profilingConfiguration = systemConfig.getProfilingConfiguration();
+
+        if(profilingConfiguration != null && profilingConfiguration.isEnabled()){
+            profilingEnabled = true;
+
+            requestFilter = checkXsdBooleanValue(profilingConfiguration.isRequestFilter());
+            performanceStatistics = checkXsdBooleanValue(profilingConfiguration.isPerformanceStatistics());
+            subsystemModel = checkXsdBooleanValue(profilingConfiguration.isModel());
+            subsystemProvisioning = checkXsdBooleanValue(profilingConfiguration.isProvisioning());
+            subsystemRepository = checkXsdBooleanValue(profilingConfiguration.isRepository());
+            subsystemResourceObjectChangeListener = checkXsdBooleanValue(profilingConfiguration.isResourceObjectChangeListener());
+            subsystemTaskManager = checkXsdBooleanValue(profilingConfiguration.isTaskManager());
+            subsystemUcf = checkXsdBooleanValue(profilingConfiguration.isUcf());
+            subsystemWorkflow = checkXsdBooleanValue(profilingConfiguration.isWorkflow());
+
+            if(profilingConfiguration.getDumpInterval() != null)
+                dumpInterval = profilingConfiguration.getDumpInterval();
+        }
+    }
+
+    private static boolean checkXsdBooleanValue(Boolean value){
+        if(value == null || !value)
+            return false;
+        else
+            return true;
     }
 
     private void init(LoggingConfigurationType config) {
@@ -209,5 +251,93 @@ public class LoggingDto implements Serializable {
 
     public List<AppenderConfiguration> getAppenders() {
         return appenders;
+    }
+
+    public boolean isRequestFilter() {
+        return requestFilter;
+    }
+
+    public void setRequestFilter(boolean requestFilter) {
+        this.requestFilter = requestFilter;
+    }
+
+    public boolean isPerformanceStatistics() {
+        return performanceStatistics;
+    }
+
+    public void setPerformanceStatistics(boolean performanceStatistics) {
+        this.performanceStatistics = performanceStatistics;
+    }
+
+    public boolean isSubsystemModel() {
+        return subsystemModel;
+    }
+
+    public void setSubsystemModel(boolean subsystemModel) {
+        this.subsystemModel = subsystemModel;
+    }
+
+    public boolean isSubsystemRepository() {
+        return subsystemRepository;
+    }
+
+    public void setSubsystemRepository(boolean subsystemRepository) {
+        this.subsystemRepository = subsystemRepository;
+    }
+
+    public boolean isSubsystemProvisioning() {
+        return subsystemProvisioning;
+    }
+
+    public void setSubsystemProvisioning(boolean subsystemProvisioning) {
+        this.subsystemProvisioning = subsystemProvisioning;
+    }
+
+    public boolean isSubsystemUcf() {
+        return subsystemUcf;
+    }
+
+    public void setSubsystemUcf(boolean subsystemUcf) {
+        this.subsystemUcf = subsystemUcf;
+    }
+
+    public boolean isSubsystemResourceObjectChangeListener() {
+        return subsystemResourceObjectChangeListener;
+    }
+
+    public void setSubsystemResourceObjectChangeListener(boolean subsystemResourceObjectChangeListener) {
+        this.subsystemResourceObjectChangeListener = subsystemResourceObjectChangeListener;
+    }
+
+    public boolean isSubsystemTaskManager() {
+        return subsystemTaskManager;
+    }
+
+    public void setSubsystemTaskManager(boolean subsystemTaskManager) {
+        this.subsystemTaskManager = subsystemTaskManager;
+    }
+
+    public boolean isSubsystemWorkflow() {
+        return subsystemWorkflow;
+    }
+
+    public void setSubsystemWorkflow(boolean subsystemWorkflow) {
+        this.subsystemWorkflow = subsystemWorkflow;
+    }
+
+    public Integer getDumpInterval() {
+        return dumpInterval;
+    }
+
+    public void setDumpInterval(Integer dumpInterval) {
+        this.dumpInterval = dumpInterval;
+    }
+
+    public boolean isProfilingEnabled() {
+        return profilingEnabled;
+    }
+
+    public void setProfilingEnabled(boolean profilingEnabled) {
+        this.profilingEnabled = profilingEnabled;
     }
 }
