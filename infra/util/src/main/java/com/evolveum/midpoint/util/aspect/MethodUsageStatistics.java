@@ -39,7 +39,7 @@ import java.util.List;
 public class MethodUsageStatistics {
 
     /* LOGGER */
-    private static Trace LOGGER = TraceManager.getTrace("com.evolveum.midpoint.util.aspect.ProfilingDataManager");
+    private static Trace LOGGER = TraceManager.getTrace(ProfilingDataManager.class);
 
     /* Attributes - member */
     private long min = Long.MAX_VALUE;

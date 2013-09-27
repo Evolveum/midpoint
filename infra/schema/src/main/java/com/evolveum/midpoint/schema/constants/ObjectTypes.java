@@ -74,7 +74,9 @@ public enum ObjectTypes {
     ORG("schema.objectTypes.org", OrgType.COMPLEX_TYPE, SchemaConstantsGenerated.C_ORG, OrgType.class, false),
 
     ABSTRACT_ROLE("schema.objectTypes.abstractRole", AbstractRoleType.COMPLEX_TYPE, SchemaConstants.C_ABSTRACT_ROLE,
-            AbstractRoleType.class, false);
+            AbstractRoleType.class, false),
+
+    FOCUS_TYPE("schema.objectTypes.focus", FocusType.COMPLEX_TYPE, SchemaConstants.C_FOCUS, FocusType.class, false);
 
     private String localizationKey;
     private QName type;

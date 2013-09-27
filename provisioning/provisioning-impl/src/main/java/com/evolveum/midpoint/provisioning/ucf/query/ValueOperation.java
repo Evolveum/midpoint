@@ -32,6 +32,7 @@ import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
+import com.evolveum.midpoint.provisioning.ucf.impl.IcfNameMapper;
 import com.evolveum.midpoint.provisioning.ucf.util.UcfUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -45,7 +46,7 @@ public class ValueOperation extends Operation {
 	}
 
 	@Override
-	public Filter interpret(ObjectFilter objectFilter) throws SchemaException {
+	public Filter interpret(ObjectFilter objectFilter, IcfNameMapper icfNameMapper) throws SchemaException {
 
 		OperationResult parentResult = new OperationResult("interpret");
 
@@ -54,7 +55,7 @@ public class ValueOperation extends Operation {
 				&& valueFilter.getParentPath().equals(new ItemPath(ShadowType.F_ATTRIBUTES))) {
 			try {
 				QName propName = valueFilter.getDefinition().getName();
-				String icfName = UcfUtil.convertAttributeNameToIcf(propName, getInterpreter()
+				String icfName = icfNameMapper.convertAttributeNameToIcf(propName, getInterpreter()
 						.getResourceSchemaNamespace());
 				
 				if (objectFilter instanceof EqualsFilter) {
