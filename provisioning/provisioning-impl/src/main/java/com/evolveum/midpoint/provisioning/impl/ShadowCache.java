@@ -764,6 +764,9 @@ public abstract class ShadowCache {
 						PrismObject<ShadowType> repoShadow = lookupOrCreateShadowInRepository(connector, resourceShadow, objectClassDef, resourceType, parentResult); 
 						
 						applyAttributesDefinition(repoShadow, resourceType);
+						
+						forceRenameIfNeeded(resourceShadow.asObjectable(), repoShadow.asObjectable(), parentResult);
+						
 						resultShadow = completeShadow(connector, resourceShadow, repoShadow,
 								resourceType, objectClassDef, parentResult);
 
@@ -782,6 +785,11 @@ public abstract class ShadowCache {
 					LOGGER.error("Configuration error: {}", e.getMessage(), e);
 					return false;
 				} catch (ObjectNotFoundException e) {
+					// TODO: better error handling
+					parentResult.recordFatalError(e.getMessage(), e);
+					LOGGER.error("{}", e.getMessage(), e);
+					return false;
+				} catch (ObjectAlreadyExistsException e) {
 					// TODO: better error handling
 					parentResult.recordFatalError(e.getMessage(), e);
 					LOGGER.error("{}", e.getMessage(), e);
