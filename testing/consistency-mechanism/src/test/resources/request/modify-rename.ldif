@@ -1,0 +1,7 @@
+dn: uid=e,ou=people,dc=example,dc=com
+changetype: modrdn
+newrdn: uid=e123
+deleteoldrdn: true
+ 
+
+
