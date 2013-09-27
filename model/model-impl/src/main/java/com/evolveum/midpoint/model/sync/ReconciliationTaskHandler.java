@@ -378,7 +378,10 @@ public class ReconciliationTaskHandler implements TaskHandler {
 	private void reconcileShadow(PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource, Task task) {
 		OperationResult opResult = new OperationResult(OperationConstants.RECONCILIATION+".shadowReconciliation.object");
 		try {
-			Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery());
+			Collection<SelectorOptions<GetOperationOptions>> options = null;
+			if (Utils.isDryRun(task)){
+				 options = SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery());
+			}
 			provisioningService.getObject(ShadowType.class, shadow.getOid(), options, task, opResult);
 		} catch (ObjectNotFoundException e) {
 			// Account is gone
@@ -409,10 +412,6 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			change.setCurrentShadow(shadow);
             Utils.clearRequestee(task);
 			changeNotificationDispatcher.notifyChange(change, task, result);
-			
-			if (!Utils.isDryRun(task)){
-				provisioningService.deleteObject(ShadowType.class, shadow.getOid(), null, null, task, result);
-			}
 		} catch (SchemaException e) {
 			processShadowReconErrror(e, shadow, result);
 		} catch (ObjectNotFoundException e) {
@@ -420,8 +419,6 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		} catch (CommunicationException e) {
 			processShadowReconErrror(e, shadow, result);
 		} catch (ConfigurationException e) {
-			processShadowReconErrror(e, shadow, result);
-		} catch (SecurityViolationException e) {
 			processShadowReconErrror(e, shadow, result);
 		}
 	}
