@@ -9,7 +9,7 @@
 	<style name="Title" forecolor="#FFFFFF" fontName="DejaVu Sans" fontSize="50" isBold="false"/>
 	<style name="SubTitle" forecolor="#CCCCCC" fontName="DejaVu Sans" fontSize="18" isBold="false"/>
 	<style name="Column header" mode="Transparent" forecolor="#FFFFFF" backcolor="#333333" fontName="DejaVu Sans" fontSize="12" isBold="true"/>
-	<style name="Detail" isDefault="false" fontName="DejaVu Sans" fontSize="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="DejaVuSansMono.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+	<style name="Detail" isDefault="false" fontName="DejaVu Sans" fontSize="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 	<parameter name="LOGO_PATH" class="java.lang.String"/>
 	<parameter name="roleReport" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
 	<parameter name="orgReport" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
