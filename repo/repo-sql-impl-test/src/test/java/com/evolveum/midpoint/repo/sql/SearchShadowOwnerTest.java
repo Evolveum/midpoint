@@ -14,6 +14,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -49,9 +50,11 @@ public class SearchShadowOwnerTest extends BaseSQLRepoTest {
         }
     }
 
-    @Test
-    public void searchShadowOwner() throws Exception {
-        OperationResult result = new OperationResult("List owner");
+    @Override
+    public void initSystem() throws Exception {
+        super.initSystem();
+
+        OperationResult result = new OperationResult("Add sample data");
 
         //insert sample data
         final File OBJECTS_FILE = new File(FOLDER_BASIC, "objects.xml");
@@ -60,13 +63,34 @@ public class SearchShadowOwnerTest extends BaseSQLRepoTest {
             PrismObject object = elements.get(i);
             repositoryService.addObject(object, null, result);
         }
+        result.computeStatus();
+
+        AssertJUnit.assertTrue(result.isSuccess());
+    }
+
+    @Test
+    public void searchShadowOwner() throws Exception {
+        OperationResult result = new OperationResult("List owner");
 
         //look for account owner
         PrismObject<UserType> user = repositoryService.searchShadowOwner("11223344", result);
 
-        assertNotNull("No owner for account 1234", user);
+        assertNotNull("No owner for account", user);
         PrismProperty name = user.findProperty(ObjectType.F_NAME);
         AssertJUnit.assertNotNull(name);
         AssertJUnit.assertEquals("atestuserX00003", ((PolyString) name.getRealValue()).getOrig());
+    }
+
+    @Test
+    public void searchShadowOwnerIsRole() throws Exception {
+        OperationResult result = new OperationResult("List owner");
+
+        //look for account owner
+        PrismObject<RoleType> role = repositoryService.searchShadowOwner("11223355", result);
+
+        assertNotNull("No owner for account", role);
+        PrismProperty name = role.findProperty(ObjectType.F_NAME);
+        AssertJUnit.assertNotNull(name);
+        AssertJUnit.assertEquals("Judge", ((PolyString) name.getRealValue()).getOrig());
     }
 }
