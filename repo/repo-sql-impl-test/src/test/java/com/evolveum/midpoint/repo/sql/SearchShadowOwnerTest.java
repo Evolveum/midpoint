@@ -37,12 +37,6 @@ public class SearchShadowOwnerTest extends BaseSQLRepoTest {
 
     private static final Trace LOGGER = TraceManager.getTrace(SearchShadowOwnerTest.class);
 
-    @BeforeSuite
-    public void setup() throws SchemaException, SAXException, IOException {
-        PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);
-        PrismTestUtil.resetPrismContext(MidPointPrismContextFactory.FACTORY);
-    }
-
     @Test(expectedExceptions = ObjectNotFoundException.class)
     public void searchNonExistingShadowOwner() throws Exception {
         //searching owner for non existing shadow
