@@ -20,6 +20,7 @@
 package com.evolveum.midpoint.provisioning.test.impl;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.icf.dummy.resource.DummyObjectClass;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.icf.dummy.resource.DummySyncStyle;
 import com.evolveum.midpoint.common.QueryUtil;
@@ -31,6 +32,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -39,6 +41,8 @@ import com.evolveum.midpoint.provisioning.impl.ConnectorManager;
 import com.evolveum.midpoint.provisioning.test.mock.SynchornizationServiceMock;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
+import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorInstanceIcfImpl;
+import com.evolveum.midpoint.provisioning.ucf.impl.SecretIcfOperationalAttributes;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.ResultHandler;
@@ -156,7 +160,9 @@ public class TestDummyHacks extends AbstractIntegrationTest {
 		
 		dummyResource = DummyResource.getInstance();
 		dummyResource.reset();
-		dummyResource.populateWithDefaultSchema();		
+		dummyResource.populateWithDefaultSchema();
+		DummyObjectClass accountObjectClass = dummyResource.getAccountObjectClass();
+		accountObjectClass.addAttributeDefinition(SecretIcfOperationalAttributes.DESCRIPTION.getName(), String.class);
 	}
 
 
@@ -213,6 +219,16 @@ public class TestDummyHacks extends AbstractIntegrationTest {
 		Element xsdElement = ObjectTypeUtil.findXsdElement(xmlSchemaTypeAfter);
 		ResourceSchema parsedSchema = ResourceSchema.parse(xsdElement, resourceBefore.toString(), prismContext);
 		assertNotNull("No schema after parsing", parsedSchema);
+		display("Parsed schema", parsedSchema);
+		
+		ComplexTypeDefinition accountDef = parsedSchema.findComplexTypeDefinition(
+				new QName(parsedSchema.getNamespace(),ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME));
+		assertNotNull("No account definition in schema after parsing", accountDef);
+		PrismAsserts.assertPropertyDefinition(accountDef,
+				ConnectorFactoryIcfImpl.ICFS_NAME, DOMUtil.XSD_STRING, 1, 1);
+		PrismAsserts.assertPropertyDefinition(accountDef,
+				new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "description"), 
+				DOMUtil.XSD_STRING, 0, 1);
 
 		// The useless configuration variables should be reflected to the resource now
 		assertEquals("Wrong useless string", "Shiver me timbers!", dummyResource.getUselessString());

@@ -29,6 +29,7 @@ import javax.xml.namespace.QName;
 
 import org.w3c.dom.Node;
 
+import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -189,7 +190,12 @@ public class PrismAsserts {
 		
 	public static void assertPropertyDefinition(PrismContainer<?> container, QName propertyName, QName type, int minOccurs, int maxOccurs) {
 		PrismProperty<?> findProperty = container.findProperty(propertyName);
-		PrismPropertyDefinition definition = findProperty.getDefinition();
+		PrismPropertyDefinition<?> definition = findProperty.getDefinition();
+		assertDefinition(definition, propertyName, type, minOccurs, maxOccurs);
+	}
+	
+	public static void assertPropertyDefinition(ComplexTypeDefinition container, QName propertyName, QName type, int minOccurs, int maxOccurs) {
+		PrismPropertyDefinition<?> definition = container.findPropertyDefinition(propertyName);
 		assertDefinition(definition, propertyName, type, minOccurs, maxOccurs);
 	}
 
