@@ -16,20 +16,32 @@
   -->
 
 <groups xmlns="http://www.isdc.ro/wro">
-    <!--<group name="all">-->
-        <!--<css>/less/*.less</css>-->
-        <!--<css>/WEB-INF/classes/**.less</css>-->
-        <!--&lt;!&ndash;todo remove /WEB-INF css and uncomment this, but first you have to fix classpath loading in wro4j&ndash;&gt;-->
-        <!--&lt;!&ndash;this was probably fixed by version 1.6.4 (http://code.google.com/p/wro4j/issues/detail?id=680)&ndash;&gt;-->
-        <!--&lt;!&ndash;please upgrade library and test it&ndash;&gt;-->
-        <!--&lt;!&ndash;<css>classpath:com/evolveum/midpoint/web/**.less</css>&ndash;&gt;-->
-        <!--&lt;!&ndash; spring version of classpath search (not working) &ndash;&gt;-->
-        <!--&lt;!&ndash;<css>classpath*:com/evolveum/midpoint/web/**/*.less</css>&ndash;&gt;-->
-    <!--</group>-->
+    <group name="all">
+        <css>/less/*.less</css>
+        <css>/WEB-INF/classes/**.less</css>
+        <!--todo remove /WEB-INF css and uncomment this, but first you have to fix classpath loading in wro4j-->
+        <!--this was probably fixed by version 1.6.4 (http://code.google.com/p/wro4j/issues/detail?id=680)-->
+        <!--please upgrade library and test it-->
+        <!--<css>classpath:com/evolveum/midpoint/web/**.less</css>-->
+        <!-- spring version of classpath search (not working) -->
+        <!--<css>classpath*:com/evolveum/midpoint/web/**/*.less</css>-->
+    </group>
 
     <group name="bootstrap">
         <css>/less/bootstrap/bootstrap.less</css>
-        <js>/js/bootstrap/**.js</js>
+        <!-- must be enumerated for proper order -->
+        <js>/js/bootstrap/transition.js</js>
+        <js>/js/bootstrap/alert.js</js>
+        <js>/js/bootstrap/button.js</js>
+        <js>/js/bootstrap/carousel.js</js>
+        <js>/js/bootstrap/collapse.js</js>
+        <js>/js/bootstrap/dropdown.js</js>
+        <js>/js/bootstrap/modal.js</js>
+        <js>/js/bootstrap/tooltip.js</js>
+        <js>/js/bootstrap/popover.js</js>
+        <js>/js/bootstrap/scrollspy.js</js>
+        <js>/js/bootstrap/tab.js</js>
+        <js>/js/bootstrap/affix.js</js>
     </group>
 
     <group name="bootstrap-override">
@@ -38,5 +50,6 @@
 
     <group name="midpoint">
         <css>/less/midpoint/evolveum.less</css>
+        <js>/js/midpoint/**.js</js>
     </group>
 </groups>
