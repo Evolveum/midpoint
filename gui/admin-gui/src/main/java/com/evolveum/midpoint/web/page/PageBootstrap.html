@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+<head>
+    <meta http-equiv="x-ua-compatible" content="ie=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Evolveum :: MidPoint</title>
+
+    <link type="text/css" rel="stylesheet" href="css/bootstrap.css"/>
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+    <script src="js/html5shiv.js"></script>
+    <script src="js/respond.min.js"></script>
+    <![endif]-->
+
+    <link rel="stylesheet/less" type="text/css" href="less/bootstrap-override.less"/>
+
+    <link type="text/css" rel="stylesheet" href="css/jquery.easy-pie-chart.css"/>
+
+    <!--https://github.com/silviomoreto/bootstrap-select/releases-->
+    <link rel="stylesheet" type="text/css" href="css/bootstrap-select.css"/>
+
+    <link rel="stylesheet" type="text/css" href="css/silk.css"/>
+    <link rel="stylesheet" type="text/css" href="css/flag.css"/>
+    <link rel="stylesheet/less" type="text/css" href="less/evolveum.less"/>
+
+    <script type="text/javascript" src="js/jquery-1.9.1.js"></script>
+    <script type="text/javascript" src="js/jquery.easy-pie-chart.js"></script>
+    <script type="text/javascript" src="js/bootstrap.js"></script>
+
+    <!--https://github.com/silviomoreto/bootstrap-select/releases-->
+    <script type="text/javascript" src="js/bootstrap-select.js"></script>
+
+    <script type="text/javascript">
+        less = {
+            env: "development", // or "production"
+            async: false,       // load imports async
+            fileAsync: false,   // load imports async when in a page under
+            // a file protocol
+            poll: 1000,         // when in watch mode, time in ms between polls
+            functions: {},      // user functions, keyed by name
+            dumpLineNumbers: "comments", // or "mediaQuery" or "all"
+            relativeUrls: false // whether to adjust url's to be relative
+            // if false, url's are already relative to the
+            // entry less file
+            //rootpath: ":/a.com/"// a path to add on to the start of every url
+            //resource
+        };
+    </script>
+    <script type="text/javascript" src="js/less-1.3.3.min.js"></script>
+
+    <script src="js/ace/ace.js" type="text/javascript" charset="utf-8"></script>
+
+    <script type="text/javascript" src="js/evolveum.js"></script>
+    <script type="text/javascript" src="js/evolveum-ace-editor.js"></script>
+
+    <style>
+
+        .tree-theme-windows div.tree-subtree{margin:0 0 0 18px;padding:0}
+        .tree-theme-windows div.tree-branch{margin:0;padding:0}
+        .tree-theme-windows div.tree-branch-mid{background-image:url('img/tree/tree.gif');background-position:-54px center;background-repeat:repeat-y;height: 34px;}
+        .tree-theme-windows span.tree-junction{display:block;float:left;width:18px;background-image:url('img/tree/tree.gif');background-position:-36px center;background-repeat:no-repeat;height: 34px;}
+        .tree-theme-windows a.tree-junction-expanded{display:block;float:left;width:18px;background-image:url('img/tree/tree.gif');background-position:-18px center;background-repeat:no-repeat;text-decoration:none;height: 34px;}
+        .tree-theme-windows a.tree-junction-collapsed{display:block;float:left;width:18px;background-image:url('img/tree/tree.gif');background-position:0 center;background-repeat:no-repeat;text-decoration:none;height: 34px;}
+        .tree-theme-windows span.tree-content{display:block;margin-left:18px;}
+        .tree-theme-windows table{border-spacing:0;border-collapse:collapse}
+        .tree-theme-windows tr.selected{background-color:#00e;color:#fff}
+        .tree-theme-windows td{margin:0;padding:0}
+        .tree-theme-windows span.tree-content div.tree-label{display:table-cell;vertical-align: middle;padding-left:20px;}
+        .tree-theme-windows .tree-folder-closed{background-image:url('img/tree/folder-closed.gif');background-position:0 50%;background-repeat:no-repeat;height: 34px;display:table;}
+        .tree-theme-windows .tree-folder-open{background-image:url('img/tree/folder-open.gif');background-position:0 50%;background-repeat:no-repeat;height: 34px;display:table;}
+        .tree-theme-windows .tree-folder-other{background-image:url('img/tree/folder-other.gif');background-position:0 50%;background-repeat:no-repeat;height: 34px;display:table;}
+
+        table.table td.tree {
+            padding: 0 5px;
+            /*border-top: 0px;*/
+        }
+    </style></head>
+<body>
+
+<div class="navbar navbar-static-top">
+    <div style="padding: 0 5px;">
+        <div class="navbar-header">
+            <button data-target=".navbar-collapse" data-toggle="collapse" class="navbar-toggle" type="button">
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a href="#" class="navbar-brand">
+                <img src="./img/midpoint_logo_white_300.png" class="logo"/>
+            </a>
+        </div>
+        <div class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+                <li class="active"><a class="main-menu-item" href="dashboard.php">Home</a></li>
+
+                <li class="dropdown">
+                    <a data-toggle="dropdown" class="dropdown-toggle" href="#">Users&nbsp;<b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="user-list.php">List users</a></li>
+                        <li><a href="user-find.php">Find users</a></li>
+                        <li><a href="user-details.php">New user</a></li>
+                        <li class="divider"></li>
+                        <li class="dropdown-header">Org. structure</li>
+                        <li><a href="org-list.php">Organization list</a></li>
+                        <li><a href="org-details.php">New organization</a></li>
+                    </ul>
+                </li>
+
+                <li class="dropdown">
+                    <a data-toggle="dropdown" class="dropdown-toggle" href="#">Roles&nbsp;<b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="roles.php">List roles</a></li>
+                        <li><a href="role-details.php">New role</a></li>
+                    </ul>
+                </li>
+
+                <li class="dropdown">
+                    <a data-toggle="dropdown" class="dropdown-toggle" href="#">Resources&nbsp;<b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="resources.php">List resources</a></li>
+                        <li><a href="resource-wizard-1.php">New resource</a></li>
+                    </ul>
+                </li>
+
+                <li class="dropdown">
+                    <a data-toggle="dropdown" class="dropdown-toggle" href="#">Work items&nbsp;<b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="#">Action</a></li>
+                        <li><a href="#">Another action</a></li>
+                        <li><a href="#">Something else here</a></li>
+                        <li class="divider"></li>
+                        <li class="dropdown-header">Nav header</li>
+                        <li><a href="#">Separated link</a></li>
+                        <li><a href="#">One more separated link</a></li>
+                    </ul>
+                </li>
+
+                <li class="dropdown">
+                    <a data-toggle="dropdown" class="dropdown-toggle" href="#">Server tasks&nbsp;<b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="task-list.php">List tasks</a></li>
+                        <li><a href="task-details.php">New task</a></li>
+                    </ul>
+                </li>
+
+                <li class="dropdown">
+                    <a data-toggle="dropdown" class="dropdown-toggle" href="#">Reports&nbsp;<b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="reports.php">List reports</a></li>
+                        <li><a href="created-reports.php">Created reports</a></li>
+                    </ul>
+                </li>
+
+                <li class="dropdown">
+                    <a data-toggle="dropdown" class="dropdown-toggle" href="#">Configuration&nbsp;<b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="bulk.php">Bulk actions</a></li>
+                        <li><a href="import.php">Import object</a></li>
+                        <li><a href="debug-list.php">Repository objects</a></li>
+                        <li class="divider"></li>
+                        <li class="dropdown-header">Configuration</li>
+                        <li><a href="configuration-basic.php">Basic</a></li>
+                        <li><a href="security.php">Security</a></li>
+                        <li class="divider"></li>
+                        <li class="dropdown-header">Development</li>
+                        <li><a href="shadow-details.php">Shadows details</a></li>
+                        <li><a href="development-expression.php">Expression evaluator</a></li>
+                        <li class="divider"></li>
+                        <li><a href="about.php">About</a></li>
+                    </ul>
+                </li>
+            </ul>
+
+            <ul class="nav navbar-nav navbar-right">
+                <li class="dropdown">
+                    <a data-toggle="dropdown" class="dropdown-toggle" href="#">Viliam Repan&nbsp;<b class="caret"></b></a>
+                    <ul class="dropdown-menu">
+                        <li><a href="profile.php">Edit profile</a></li>
+                        <li><a href="my-passwords.php">Reset passwords</a></li>
+                        <li class="divider"></li>
+                        <li><a href="login.php">Logout</a></li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+        <!--/.nav-collapse -->
+    </div>
+</div>
+<div id="mainContainer">
+<script type="text/javascript">
+    $(document).ready(function () {
+        $('.selectpicker').selectpicker({});
+    });
+</script>
+
+<div class="page-header">
+    <h1>Users
+        <small>in midPoint</small>
+    </h1>
+</div>
+
+<form class="form-inline pull-right" style="margin-top: 10px;">
+    <div class="form-group">
+        <label class="sr-only" for="exampleInputEmail2">Text</label>
+        <input type="email" class="form-control input-sm" id="exampleInputEmail2" placeholder="Text">
+    </div>
+
+    <select class="selectpicker select-picker-sm" data-width="auto" multiple title="Search" data-selected-text-format="count>2">
+        <option>Name</option>
+        <option>Full name</option>
+        <option>Given name</option>
+        <option>Family name</option>
+    </select>
+
+    <!--        <!-- http://davidstutz.github.io/bootstrap-multiselect/ -->
+    <!--        <div class="btn-group">-->
+    <!--            <button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown">-->
+    <!--                Search <span class="caret"></span>-->
+    <!--            </button>-->
+    <!--            <ul class="dropdown-menu pull-right" role="menu">-->
+    <!--                <li><a href="#">Name</a></li>-->
+    <!--                <li><a href="#">Full name</a></li>-->
+    <!--                <li><a href="#">Given name</a></li>-->
+    <!--                <li><a href="#">Family name</a></li>-->
+    <!--            </ul>-->
+    <!--        </div>-->
+</form>
+
+<table class="table table-striped table-condensed">
+<thead>
+<th class="icon"><input type="checkbox"/></th>
+<th class="icon"></th>
+<th>Name</th>
+<th>Given name</th>
+<th>Family name</th>
+<th>Full name</th>
+<th>Email</th>
+<th>Accounts</th>
+<th class="cog">
+    <ul class="nav nav-pills cog pull-right">
+        <li class="dropdown">
+            <a class="dropdown-toggle"
+               data-toggle="dropdown"
+               href="#">
+                <i class="silk-cog"></i>
+                <b class="caret"></b>
+            </a>
+            <ul class="dropdown-menu pull-right">
+                <li><a href="#">Enable</a></li>
+                <li><a href="#">Disable</a></li>
+                <li class="divider"></li>
+                <li><a href="#">Delete</a></li>
+            </ul>
+        </li>
+    </ul>
+</th>
+</thead>
+<tbody>
+<tr>
+    <td><input type="checkbox"/></td>
+    <td><i class="silk-user"></i></td>
+    <td><a href="user-details.php">fbar</a></td>
+    <td>Foo</td>
+    <td>Bar</td>
+    <td>Foo Bar</td>
+    <td>foo.bar@example.com</td>
+    <td>3</td>
+    <td class="cog">
+        <ul class="nav nav-pills cog pull-right">
+            <li class="dropdown">
+                <a class="dropdown-toggle"
+                   data-toggle="dropdown"
+                   href="#">
+                    <i class="silk-cog"></i>
+                    <b class="caret"></b>
+                </a>
+                <ul class="dropdown-menu pull-right">
+                    <li><a href="#">Enable</a></li>
+                    <li><a href="#">Disable</a></li>
+                    <li class="divider"></li>
+                    <li><a href="#">Delete</a></li>
+                </ul>
+            </li>
+        </ul>
+    </td>
+</tr>
+<tr>
+    <td><input type="checkbox"/></td>
+    <td><i class="silk-user"></i></td>
+    <td><a href="user-details.php">ttestovic</a></td>
+    <td>Test</td>
+    <td>Testovic</td>
+    <td>Test Testovic</td>
+    <td>test.testovic@example.com</td>
+    <td>0</td>
+    <td class="cog">
+        <ul class="nav nav-pills cog pull-right">
+            <li class="dropdown">
+                <a class="dropdown-toggle"
+                   data-toggle="dropdown"
+                   href="#">
+                    <i class="silk-cog"></i>
+                    <b class="caret"></b>
+                </a>
+                <ul class="dropdown-menu pull-right">
+                    <li><a href="#">Enable</a></li>
+                    <li><a href="#">Disable</a></li>
+                    <li class="divider"></li>
+                    <li><a href="#">Delete</a></li>
+                </ul>
+            </li>
+        </ul>
+    </td>
+</tr>
+<tr>
+    <td><input type="checkbox"/></td>
+    <td><i class="silk-user"></i></td>
+    <td><a href="user-details.php">fbar</a></td>
+    <td>Foo</td>
+    <td>Bar</td>
+    <td>Foo Bar</td>
+    <td>foo.bar@example.com</td>
+    <td>3</td>
+    <td class="cog">
+        <ul class="nav nav-pills cog pull-right">
+            <li class="dropdown">
+                <a class="dropdown-toggle"
+                   data-toggle="dropdown"
+                   href="#">
+                    <i class="silk-cog"></i>
+                    <b class="caret"></b>
+                </a>
+                <ul class="dropdown-menu pull-right">
+                    <li><a href="#">Enable</a></li>
+                    <li><a href="#">Disable</a></li>
+                    <li class="divider"></li>
+                    <li><a href="#">Delete</a></li>
+                </ul>
+            </li>
+        </ul>
+    </td>
+</tr>
+<tr>
+    <td><input type="checkbox"/></td>
+    <td><i class="silk-user"></i></td>
+    <td><a href="user-details.php">fbar</a></td>
+    <td>Foo</td>
+    <td>Bar</td>
+    <td>Foo Bar</td>
+    <td>foo.bar@example.com</td>
+    <td>3</td>
+    <td class="cog">
+        <ul class="nav nav-pills cog pull-right">
+            <li class="dropdown">
+                <a class="dropdown-toggle"
+                   data-toggle="dropdown"
+                   href="#">
+                    <i class="silk-cog"></i>
+                    <b class="caret"></b>
+                </a>
+                <ul class="dropdown-menu pull-right">
+                    <li><a href="#">Enable</a></li>
+                    <li><a href="#">Disable</a></li>
+                    <li class="divider"></li>
+                    <li><a href="#">Delete</a></li>
+                </ul>
+            </li>
+        </ul>
+    </td>
+</tr>
+<tr>
+    <td><input type="checkbox"/></td>
+    <td><i class="silk-user"></i></td>
+    <td><a href="user-details.php">ttestovic</a></td>
+    <td>Test</td>
+    <td>Testovic</td>
+    <td>Test Testovic</td>
+    <td>test.testovic@example.com</td>
+    <td>0</td>
+    <td class="cog">
+        <ul class="nav nav-pills cog pull-right">
+            <li class="dropdown">
+                <a class="dropdown-toggle"
+                   data-toggle="dropdown"
+                   href="#">
+                    <i class="silk-cog"></i>
+                    <b class="caret"></b>
+                </a>
+                <ul class="dropdown-menu pull-right">
+                    <li><a href="#">Enable</a></li>
+                    <li><a href="#">Disable</a></li>
+                    <li class="divider"></li>
+                    <li><a href="#">Delete</a></li>
+                </ul>
+            </li>
+        </ul>
+    </td>
+</tr>
+<tr>
+    <td><input type="checkbox"/></td>
+    <td><i class="silk-user"></i></td>
+    <td><a href="user-details.php">fbar</a></td>
+    <td>Foo</td>
+    <td>Bar</td>
+    <td>Foo Bar</td>
+    <td>foo.bar@example.com</td>
+    <td>3</td>
+    <td class="cog">
+        <ul class="nav nav-pills cog pull-right">
+            <li class="dropdown">
+                <a class="dropdown-toggle"
+                   data-toggle="dropdown"
+                   href="#">
+                    <i class="silk-cog"></i>
+                    <b class="caret"></b>
+                </a>
+                <ul class="dropdown-menu pull-right">
+                    <li><a href="#">Enable</a></li>
+                    <li><a href="#">Disable</a></li>
+                    <li class="divider"></li>
+                    <li><a href="#">Delete</a></li>
+                </ul>
+            </li>
+        </ul>
+    </td>
+</tr>
+<tr>
+    <td><input type="checkbox"/></td>
+    <td><i class="silk-user"></i></td>
+    <td><a href="user-details.php">fbar</a></td>
+    <td>Foo</td>
+    <td>Bar</td>
+    <td>Foo Bar</td>
+    <td>foo.bar@example.com</td>
+    <td>3</td>
+    <td class="cog">
+        <ul class="nav nav-pills cog pull-right">
+            <li class="dropdown">
+                <a class="dropdown-toggle"
+                   data-toggle="dropdown"
+                   href="#">
+                    <i class="silk-cog"></i>
+                    <b class="caret"></b>
+                </a>
+                <ul class="dropdown-menu pull-right">
+                    <li><a href="#">Enable</a></li>
+                    <li><a href="#">Disable</a></li>
+                    <li class="divider"></li>
+                    <li><a href="#">Delete</a></li>
+                </ul>
+            </li>
+        </ul>
+    </td>
+</tr>
+<tr>
+    <td><input type="checkbox"/></td>
+    <td><i class="silk-user"></i></td>
+    <td><a href="user-details.php">ttestovic</a></td>
+    <td>Test</td>
+    <td>Testovic</td>
+    <td>Test Testovic</td>
+    <td>test.testovic@example.com</td>
+    <td>0</td>
+    <td class="cog">
+        <ul class="nav nav-pills cog pull-right">
+            <li class="dropdown">
+                <a class="dropdown-toggle"
+                   data-toggle="dropdown"
+                   href="#">
+                    <i class="silk-cog"></i>
+                    <b class="caret"></b>
+                </a>
+                <ul class="dropdown-menu pull-right">
+                    <li><a href="#">Enable</a></li>
+                    <li><a href="#">Disable</a></li>
+                    <li class="divider"></li>
+                    <li><a href="#">Delete</a></li>
+                </ul>
+            </li>
+        </ul>
+    </td>
+</tr>
+<tr>
+    <td><input type="checkbox"/></td>
+    <td><i class="silk-user"></i></td>
+    <td><a href="user-details.php">fbar</a></td>
+    <td>Foo</td>
+    <td>Bar</td>
+    <td>Foo Bar</td>
+    <td>foo.bar@example.com</td>
+    <td>3</td>
+    <td class="cog">
+        <ul class="nav nav-pills cog pull-right">
+            <li class="dropdown">
+                <a class="dropdown-toggle"
+                   data-toggle="dropdown"
+                   href="#">
+                    <i class="silk-cog"></i>
+                    <b class="caret"></b>
+                </a>
+                <ul class="dropdown-menu pull-right">
+                    <li><a href="#">Enable</a></li>
+                    <li><a href="#">Disable</a></li>
+                    <li class="divider"></li>
+                    <li><a href="#">Delete</a></li>
+                </ul>
+            </li>
+        </ul>
+    </td>
+</tr>
+<tr>
+    <td><input type="checkbox"/></td>
+    <td><i class="silk-user"></i></td>
+    <td><a href="user-details.php">fbar</a></td>
+    <td>Foo</td>
+    <td>Bar</td>
+    <td>Foo Bar</td>
+    <td>foo.bar@example.com</td>
+    <td>3</td>
+    <td class="cog">
+        <ul class="nav nav-pills cog pull-right">
+            <li class="dropdown">
+                <a class="dropdown-toggle"
+                   data-toggle="dropdown"
+                   href="#">
+                    <i class="silk-cog"></i>
+                    <b class="caret"></b>
+                </a>
+                <ul class="dropdown-menu pull-right">
+                    <li><a href="#">Enable</a></li>
+                    <li><a href="#">Disable</a></li>
+                    <li class="divider"></li>
+                    <li><a href="#">Delete</a></li>
+                </ul>
+            </li>
+        </ul>
+    </td>
+</tr>
+</tbody>
+<tfoot>
+<td colspan="9" style="text-align: right; background-color: #fafafa;">Displaying 1 to 10 of 12345678 matching results.</td>
+</tfoot>
+</table>
+
+<div style="text-align: center;">
+    <ul class="pagination pagination-sm">
+        <li class="disabled"><a href="#">Previous</a></li>
+        <li class="active"><a href="#">1</a></li>
+        <li><a href="#">2</a></li>
+        <li><a href="#">3</a></li>
+        <li><a href="#">4</a></li>
+        <li><a href="#">5</a></li>
+        <li><a href="#">Next</a></li>
+    </ul>
+</div>
+</div>
+
+</body>
+</html>
