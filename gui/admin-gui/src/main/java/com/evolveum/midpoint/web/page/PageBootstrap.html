@@ -1,9 +1,26 @@
 <!DOCTYPE html>
-<html lang="en" class="no-js">
+<!--
+~ Copyright (c) 2010-2013 Evolveum
+~
+~ Licensed under the Apache License, Version 2.0 (the "License");
+~ you may not use this file except in compliance with the License.
+~ You may obtain a copy of the License at
+~
+~     http://www.apache.org/licenses/LICENSE-2.0
+~
+~ Unless required by applicable law or agreed to in writing, software
+~ distributed under the License is distributed on an "AS IS" BASIS,
+~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+~ See the License for the specific language governing permissions and
+~ limitations under the License.
+-->
+<html lang="en" class="no-js" xmlns:wicket="http://wicket.apache.org">
 <head>
     <meta http-equiv="x-ua-compatible" content="ie=edge"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Evolveum :: MidPoint</title>
+    <title>
+        <span wicket:id="title"/>
+    </title>
 
     <link type="text/css" rel="stylesheet" href="wro/bootstrap.css"/>
 
@@ -56,7 +73,8 @@
             padding: 0 5px;
             /*border-top: 0px;*/
         }
-    </style></head>
+    </style>
+</head>
 <body>
 
 <div class="navbar navbar-static-top">
@@ -168,373 +186,216 @@
         <!--/.nav-collapse -->
     </div>
 </div>
-<div id="mainContainer">
-<script type="text/javascript">
-    $(document).ready(function () {
-        $('.selectpicker').selectpicker({});
-    });
-</script>
 
+<div id="mainContainer">
 <div class="page-header">
-    <h1>Users
-        <small>in midPoint</small>
+    <h1>Dashboard
+        <small>welcome to midPoint</small>
     </h1>
 </div>
 
-<form class="form-inline pull-right" style="margin-top: 10px;">
-    <div class="form-group">
-        <label class="sr-only" for="exampleInputEmail2">Text</label>
-        <input type="email" class="form-control input-sm" id="exampleInputEmail2" placeholder="Text">
+<div class="row">
+    <div class="col-md-6">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title"><i class="silk-user"></i>&nbsp;Personal info</h3>
+            </div>
+            <div class="panel-body">
+                <table>
+                    <tr>
+                        <td colspan="2"><b>Last login</b></td>
+                    </tr>
+                    <tr>
+                        <td>Date</td>
+                        <td>Tuesday, 30. Jul 2013 13:05:42</td>
+                    </tr>
+                    <tr>
+                        <td>From</td>
+                        <td>127.0.0.1</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"><b>Last unsuccessful login</b></td>
+                    </tr>
+                    <tr>
+                        <td>Date</td>
+                        <td>Tuesday, 30. Jul 2013 13:05:42</td>
+                    </tr>
+                    <tr>
+                        <td>From</td>
+                        <td>127.0.0.1</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2"><b>Other</b></td>
+                    </tr>
+                    <tr>
+                        <td>Account expiration date</td>
+                        <td>Not defined</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="panel panel-info">
+            <div class="panel-heading">
+                <h3 class="panel-title"><i class="silk-user_suit"></i>&nbsp;My accounts</h3>
+            </div>
+            <table class="table table-striped table-condensed">
+                <thead>
+                <th class="icon"></th>
+                <th>Name and description</th>
+                <th class="icon"></th>
+                </thead>
+                <tbody>
+                <tr>
+                    <td><i class="silk-user"></i></td>
+                    <td>
+                        <span class="resource">Localhost CSV File</span>
+                        <span>johny walker identificator</span>
+                    </td>
+                    <td><i class="silk-accept"></i></td>
+                </tr>
+                <tr>
+                    <td><i class="silk-user"></i></td>
+                    <td>
+                        <span class="resource">Localhost OpenDJ Advanced</span>
+                        <span>uid=johny,ou=People,dc=example,dc=com</span>
+                    </td>
+                    <td><i class="silk-accept"></i></td>
+                </tr>
+                <tr>
+                    <td><i class="silk-user_red"></i></td>
+                    <td>
+                        <span class="resource">DB table on mysql.example.com</span>
+                        <span>johny-user</span>
+                    </td>
+                    <td><i class="silk-delete"></i></td>
+                </tr>
+                <tr>
+                    <td><i class="silk-user_gray"></i></td>
+                    <td>
+                        <span class="resource">Ubuntu host.example.com</span>
+                        <span>johny</span>
+                    </td>
+                    <td><i class="silk-delete"></i></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
+    <div class="col-md-6">
+        <div class="panel panel-success">
+            <div class="panel-heading">
+                <h3 class="panel-title"><i class="silk-application_osx_terminal"></i>&nbsp;System status</h3>
+            </div>
+            <div class="panel-body">
+                <table style="width: 100%;">
+                    <tr align="center" style="vertical-align: top;">
+                        <td>
+                            <div class="chart-panel">
+                                <div class="chart" data-percent="5"><span class="value">5</span></div>
+                                <div class="chart-label">Active users</div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="chart-panel">
+                                <div class="chart" data-percent="46"><span class="value">46</span></div>
+                                <div class="chart-label">Active tasks</div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="chart-panel">
+                                <div class="chart" data-percent="92"><span class="value value-percent">92</span></div>
+                                <div class="chart-label">Server load</div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="chart-panel">
+                                <div class="chart" data-percent="84"><span class="value value-mb">752</span></div>
+                                <div class="chart-label">Used RAM</div>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+                <script type="text/javascript">
+                    $(function () {
+                        $('div.chart').easyPieChart({
+                            barColor: function (percent) {
+                                percent /= 100;
+                                return "rgb(" + Math.round(255 * percent) + ", " + Math.round(255 * (1 - percent)) + ", 0)";
+                            },
+                            trackColor: '#ccc',
+                            scaleColor: false,
+                            lineCap: 'butt',
+                            lineWidth: 15,
+                            animate: 1000,
+                            size: 90,
+                            onStep: function(from, to, percent) {
+                                $(this.el).find('span').text(~~percent);
+                            }
+                        });
+                    });
+                </script>
+            </div>
+        </div>
 
-    <select class="selectpicker select-picker-sm" data-width="auto" multiple title="Search" data-selected-text-format="count>2">
-        <option>Name</option>
-        <option>Full name</option>
-        <option>Given name</option>
-        <option>Family name</option>
-    </select>
+        <div class="panel panel-warning">
+            <div class="panel-heading">
+                <h3 class="panel-title"><i class="silk-medal_silver_1"></i>&nbsp;My assignments</h3>
+            </div>
+            <table class="table table-striped table-condensed">
+                <thead>
+                <th class="icon"></th>
+                <th>Name and description</th>
+                <th class="icon"></th>
+                </thead>
+                <tbody>
+                <tr>
+                    <td><i class="silk-building"></i></td>
+                    <td>
+                        <span class="resource">F0001</span>
+                        <span>Governor office</span>
+                        <span>(emperor)</span>
+                    </td>
+                    <td><i class="silk-accept"></i></td>
+                </tr>
+                <tr>
+                    <td><i class="silk-medal_gold_3"></i></td>
+                    <td>
+                        <span class="resource">Basic Role</span>
+                        <span>Some display name for this role</span>
+                    </td>
+                    <td><i class="silk-accept"></i></td>
+                </tr>
+                <tr>
+                    <td><i class="silk-medal_gold_2"></i></td>
+                    <td>
+                        <span class="resource">Superuser Role</span>
+                        <span>Authorization #all</span>
+                    </td>
+                    <td><i class="silk-delete"></i></td>
+                </tr>
+                <tr>
+                    <td><i class="silk-medal_gold_1"></i></td>
+                    <td>
+                        <span class="resource">Custom Role</span>
+                        <span>Some user defined role</span>
+                    </td>
+                    <td><i class="silk-accept"></i></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
 
-    <!--        <!-- http://davidstutz.github.io/bootstrap-multiselect/ -->
-    <!--        <div class="btn-group">-->
-    <!--            <button type="button" class="btn btn-default btn-sm dropdown-toggle" data-toggle="dropdown">-->
-    <!--                Search <span class="caret"></span>-->
-    <!--            </button>-->
-    <!--            <ul class="dropdown-menu pull-right" role="menu">-->
-    <!--                <li><a href="#">Name</a></li>-->
-    <!--                <li><a href="#">Full name</a></li>-->
-    <!--                <li><a href="#">Given name</a></li>-->
-    <!--                <li><a href="#">Family name</a></li>-->
-    <!--            </ul>-->
-    <!--        </div>-->
-</form>
-
-<table class="table table-striped table-condensed">
-<thead>
-<th class="icon"><input type="checkbox"/></th>
-<th class="icon"></th>
-<th>Name</th>
-<th>Given name</th>
-<th>Family name</th>
-<th>Full name</th>
-<th>Email</th>
-<th>Accounts</th>
-<th class="cog">
-    <ul class="nav nav-pills cog pull-right">
-        <li class="dropdown">
-            <a class="dropdown-toggle"
-               data-toggle="dropdown"
-               href="#">
-                <i class="silk-cog"></i>
-                <b class="caret"></b>
-            </a>
-            <ul class="dropdown-menu pull-right">
-                <li><a href="#">Enable</a></li>
-                <li><a href="#">Disable</a></li>
-                <li class="divider"></li>
-                <li><a href="#">Delete</a></li>
-            </ul>
-        </li>
-    </ul>
-</th>
-</thead>
-<tbody>
-<tr>
-    <td><input type="checkbox"/></td>
-    <td><i class="silk-user"></i></td>
-    <td><a href="user-details.php">fbar</a></td>
-    <td>Foo</td>
-    <td>Bar</td>
-    <td>Foo Bar</td>
-    <td>foo.bar@example.com</td>
-    <td>3</td>
-    <td class="cog">
-        <ul class="nav nav-pills cog pull-right">
-            <li class="dropdown">
-                <a class="dropdown-toggle"
-                   data-toggle="dropdown"
-                   href="#">
-                    <i class="silk-cog"></i>
-                    <b class="caret"></b>
-                </a>
-                <ul class="dropdown-menu pull-right">
-                    <li><a href="#">Enable</a></li>
-                    <li><a href="#">Disable</a></li>
-                    <li class="divider"></li>
-                    <li><a href="#">Delete</a></li>
-                </ul>
-            </li>
-        </ul>
-    </td>
-</tr>
-<tr>
-    <td><input type="checkbox"/></td>
-    <td><i class="silk-user"></i></td>
-    <td><a href="user-details.php">ttestovic</a></td>
-    <td>Test</td>
-    <td>Testovic</td>
-    <td>Test Testovic</td>
-    <td>test.testovic@example.com</td>
-    <td>0</td>
-    <td class="cog">
-        <ul class="nav nav-pills cog pull-right">
-            <li class="dropdown">
-                <a class="dropdown-toggle"
-                   data-toggle="dropdown"
-                   href="#">
-                    <i class="silk-cog"></i>
-                    <b class="caret"></b>
-                </a>
-                <ul class="dropdown-menu pull-right">
-                    <li><a href="#">Enable</a></li>
-                    <li><a href="#">Disable</a></li>
-                    <li class="divider"></li>
-                    <li><a href="#">Delete</a></li>
-                </ul>
-            </li>
-        </ul>
-    </td>
-</tr>
-<tr>
-    <td><input type="checkbox"/></td>
-    <td><i class="silk-user"></i></td>
-    <td><a href="user-details.php">fbar</a></td>
-    <td>Foo</td>
-    <td>Bar</td>
-    <td>Foo Bar</td>
-    <td>foo.bar@example.com</td>
-    <td>3</td>
-    <td class="cog">
-        <ul class="nav nav-pills cog pull-right">
-            <li class="dropdown">
-                <a class="dropdown-toggle"
-                   data-toggle="dropdown"
-                   href="#">
-                    <i class="silk-cog"></i>
-                    <b class="caret"></b>
-                </a>
-                <ul class="dropdown-menu pull-right">
-                    <li><a href="#">Enable</a></li>
-                    <li><a href="#">Disable</a></li>
-                    <li class="divider"></li>
-                    <li><a href="#">Delete</a></li>
-                </ul>
-            </li>
-        </ul>
-    </td>
-</tr>
-<tr>
-    <td><input type="checkbox"/></td>
-    <td><i class="silk-user"></i></td>
-    <td><a href="user-details.php">fbar</a></td>
-    <td>Foo</td>
-    <td>Bar</td>
-    <td>Foo Bar</td>
-    <td>foo.bar@example.com</td>
-    <td>3</td>
-    <td class="cog">
-        <ul class="nav nav-pills cog pull-right">
-            <li class="dropdown">
-                <a class="dropdown-toggle"
-                   data-toggle="dropdown"
-                   href="#">
-                    <i class="silk-cog"></i>
-                    <b class="caret"></b>
-                </a>
-                <ul class="dropdown-menu pull-right">
-                    <li><a href="#">Enable</a></li>
-                    <li><a href="#">Disable</a></li>
-                    <li class="divider"></li>
-                    <li><a href="#">Delete</a></li>
-                </ul>
-            </li>
-        </ul>
-    </td>
-</tr>
-<tr>
-    <td><input type="checkbox"/></td>
-    <td><i class="silk-user"></i></td>
-    <td><a href="user-details.php">ttestovic</a></td>
-    <td>Test</td>
-    <td>Testovic</td>
-    <td>Test Testovic</td>
-    <td>test.testovic@example.com</td>
-    <td>0</td>
-    <td class="cog">
-        <ul class="nav nav-pills cog pull-right">
-            <li class="dropdown">
-                <a class="dropdown-toggle"
-                   data-toggle="dropdown"
-                   href="#">
-                    <i class="silk-cog"></i>
-                    <b class="caret"></b>
-                </a>
-                <ul class="dropdown-menu pull-right">
-                    <li><a href="#">Enable</a></li>
-                    <li><a href="#">Disable</a></li>
-                    <li class="divider"></li>
-                    <li><a href="#">Delete</a></li>
-                </ul>
-            </li>
-        </ul>
-    </td>
-</tr>
-<tr>
-    <td><input type="checkbox"/></td>
-    <td><i class="silk-user"></i></td>
-    <td><a href="user-details.php">fbar</a></td>
-    <td>Foo</td>
-    <td>Bar</td>
-    <td>Foo Bar</td>
-    <td>foo.bar@example.com</td>
-    <td>3</td>
-    <td class="cog">
-        <ul class="nav nav-pills cog pull-right">
-            <li class="dropdown">
-                <a class="dropdown-toggle"
-                   data-toggle="dropdown"
-                   href="#">
-                    <i class="silk-cog"></i>
-                    <b class="caret"></b>
-                </a>
-                <ul class="dropdown-menu pull-right">
-                    <li><a href="#">Enable</a></li>
-                    <li><a href="#">Disable</a></li>
-                    <li class="divider"></li>
-                    <li><a href="#">Delete</a></li>
-                </ul>
-            </li>
-        </ul>
-    </td>
-</tr>
-<tr>
-    <td><input type="checkbox"/></td>
-    <td><i class="silk-user"></i></td>
-    <td><a href="user-details.php">fbar</a></td>
-    <td>Foo</td>
-    <td>Bar</td>
-    <td>Foo Bar</td>
-    <td>foo.bar@example.com</td>
-    <td>3</td>
-    <td class="cog">
-        <ul class="nav nav-pills cog pull-right">
-            <li class="dropdown">
-                <a class="dropdown-toggle"
-                   data-toggle="dropdown"
-                   href="#">
-                    <i class="silk-cog"></i>
-                    <b class="caret"></b>
-                </a>
-                <ul class="dropdown-menu pull-right">
-                    <li><a href="#">Enable</a></li>
-                    <li><a href="#">Disable</a></li>
-                    <li class="divider"></li>
-                    <li><a href="#">Delete</a></li>
-                </ul>
-            </li>
-        </ul>
-    </td>
-</tr>
-<tr>
-    <td><input type="checkbox"/></td>
-    <td><i class="silk-user"></i></td>
-    <td><a href="user-details.php">ttestovic</a></td>
-    <td>Test</td>
-    <td>Testovic</td>
-    <td>Test Testovic</td>
-    <td>test.testovic@example.com</td>
-    <td>0</td>
-    <td class="cog">
-        <ul class="nav nav-pills cog pull-right">
-            <li class="dropdown">
-                <a class="dropdown-toggle"
-                   data-toggle="dropdown"
-                   href="#">
-                    <i class="silk-cog"></i>
-                    <b class="caret"></b>
-                </a>
-                <ul class="dropdown-menu pull-right">
-                    <li><a href="#">Enable</a></li>
-                    <li><a href="#">Disable</a></li>
-                    <li class="divider"></li>
-                    <li><a href="#">Delete</a></li>
-                </ul>
-            </li>
-        </ul>
-    </td>
-</tr>
-<tr>
-    <td><input type="checkbox"/></td>
-    <td><i class="silk-user"></i></td>
-    <td><a href="user-details.php">fbar</a></td>
-    <td>Foo</td>
-    <td>Bar</td>
-    <td>Foo Bar</td>
-    <td>foo.bar@example.com</td>
-    <td>3</td>
-    <td class="cog">
-        <ul class="nav nav-pills cog pull-right">
-            <li class="dropdown">
-                <a class="dropdown-toggle"
-                   data-toggle="dropdown"
-                   href="#">
-                    <i class="silk-cog"></i>
-                    <b class="caret"></b>
-                </a>
-                <ul class="dropdown-menu pull-right">
-                    <li><a href="#">Enable</a></li>
-                    <li><a href="#">Disable</a></li>
-                    <li class="divider"></li>
-                    <li><a href="#">Delete</a></li>
-                </ul>
-            </li>
-        </ul>
-    </td>
-</tr>
-<tr>
-    <td><input type="checkbox"/></td>
-    <td><i class="silk-user"></i></td>
-    <td><a href="user-details.php">fbar</a></td>
-    <td>Foo</td>
-    <td>Bar</td>
-    <td>Foo Bar</td>
-    <td>foo.bar@example.com</td>
-    <td>3</td>
-    <td class="cog">
-        <ul class="nav nav-pills cog pull-right">
-            <li class="dropdown">
-                <a class="dropdown-toggle"
-                   data-toggle="dropdown"
-                   href="#">
-                    <i class="silk-cog"></i>
-                    <b class="caret"></b>
-                </a>
-                <ul class="dropdown-menu pull-right">
-                    <li><a href="#">Enable</a></li>
-                    <li><a href="#">Disable</a></li>
-                    <li class="divider"></li>
-                    <li><a href="#">Delete</a></li>
-                </ul>
-            </li>
-        </ul>
-    </td>
-</tr>
-</tbody>
-<tfoot>
-<td colspan="9" style="text-align: right; background-color: #fafafa;">Displaying 1 to 10 of 12345678 matching results.</td>
-</tfoot>
-</table>
-
-<div style="text-align: center;">
-    <ul class="pagination pagination-sm">
-        <li class="disabled"><a href="#">Previous</a></li>
-        <li class="active"><a href="#">1</a></li>
-        <li><a href="#">2</a></li>
-        <li><a href="#">3</a></li>
-        <li><a href="#">4</a></li>
-        <li><a href="#">5</a></li>
-        <li><a href="#">Next</a></li>
-    </ul>
+        <div class="panel panel-danger">
+            <div class="panel-heading">
+                <h3 class="panel-title"><i class="silk-script"></i>&nbsp;My tasks</h3>
+            </div>
+            <div class="panel-body">
+                TODO
+            </div>
+        </div>
+    </div>
 </div>
+
 </div>
 
 </body>
