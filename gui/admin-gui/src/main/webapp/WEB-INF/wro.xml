@@ -49,7 +49,7 @@
     </group>
 
     <group name="midpoint">
-        <css>/less/midpoint/evolveum.less</css>
+        <css>/less/midpoint/midpoint.less</css>
         <js>/js/midpoint/**.js</js>
     </group>
 </groups>
