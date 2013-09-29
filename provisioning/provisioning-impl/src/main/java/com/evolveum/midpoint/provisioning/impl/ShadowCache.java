@@ -241,10 +241,29 @@ public abstract class ShadowCache {
 		}
 		LOGGER.trace("Getting fresh object from ucf.");
 
-		PrismObject<ShadowType> resourceShadow = null;
-		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
+	
 		RefinedObjectClassDefinition objectClassDefinition = applyAttributesDefinition(repositoryShadow, resource);
+		
+		ConnectorInstance connector = null;
+		OperationResult connectorResult = parentResult.createMinorSubresult(ShadowCache.class.getName() + ".getConnectorInstance");
+		try {
+			connector = getConnectorInstance(resource, parentResult);
+			connectorResult.recordSuccess();
+		} catch (ObjectNotFoundException ex){
+			connectorResult.recordPartialError("Could not get connector instance. " + ex.getMessage(),  ex);
+			return repositoryShadow;
+		} catch (SchemaException ex){
+			connectorResult.recordPartialError("Could not get connector instance. " + ex.getMessage(),  ex);
+			return repositoryShadow;
+		} catch (CommunicationException ex){
+			connectorResult.recordPartialError("Could not get connector instance. " + ex.getMessage(),  ex);
+			return repositoryShadow;
+		} catch (ConfigurationException ex){
+			connectorResult.recordPartialError("Could not get connector instance. " + ex.getMessage(),  ex);
+			return repositoryShadow;
+		}
 
+		PrismObject<ShadowType> resourceShadow = null;
 		try {			
 			
 			// Let's get all the identifiers from the Shadow <attributes> part
