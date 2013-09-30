@@ -21,6 +21,7 @@ import java.util.List;
 
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
 
@@ -92,9 +93,9 @@ public class AndFilter extends NaryLogicalFilter{
 
 
 	@Override
-	public <T extends Objectable> boolean match(PrismObject<T> object) {
+	public <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry) {
 		for (ObjectFilter filter : getCondition()){
-			if (!filter.match(object)){
+			if (!filter.match(object, matchingRuleRegistry)){
 				return false;
 			}
 		}
