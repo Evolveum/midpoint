@@ -23,6 +23,7 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.prism.Itemable;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
 
@@ -49,7 +50,7 @@ public abstract class ObjectFilter implements Dumpable, DebugDumpable, Serializa
 	
 	public abstract ObjectFilter clone();
 	
-	public abstract <T extends Objectable> boolean match(PrismObject<T> object);
+	public abstract <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry);
 	
 	protected void cloneValues(ObjectFilter clone) {
 		clone.expression = this.expression;

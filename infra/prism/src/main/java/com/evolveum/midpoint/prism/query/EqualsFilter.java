@@ -20,8 +20,12 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.match.MatchingRule;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
 
@@ -30,9 +34,11 @@ import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Itemable;
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -236,8 +242,68 @@ public class EqualsFilter extends PropertyValueFilter implements Itemable{
 	}
 
 	@Override
-	public <T extends Objectable> boolean match(PrismObject<T> object) {
-		return super.match(object);
+	public <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry) {
+		if (getObjectItem(object) == null && getValues() == null) {
+			return true;
+		}
+		
+		Item filterItem = getFilterItem();
+		MatchingRule matching = getMatchingRuleFromRegistry(matchingRuleRegistry, filterItem);
+		
+//		QName matchingRule = null;
+//		if (StringUtils.isNotBlank(getMatchingRule())){
+//			matchingRule = new QName(PrismConstants.NS_MATCHING_RULE, getMatchingRule());
+//		} else {
+//			matchingRule = new QName(PrismConstants.NS_MATCHING_RULE, "default");
+//		}
+//		
+//		MatchingRule matching = null;
+//		try{
+//		matching = matchingRuleRegistry.getMatchingRule( matchingRule, filterItem.getDefinition().getTypeName());
+//		} catch (SchemaException ex){
+//			throw new IllegalArgumentException(ex.getMessage(), ex);
+//		}
+		
+		Item item = getObjectItem(object);
+		
+		if (item == null && getValues() == null) {
+			return true;
+		}
+		
+		if (item != null && !item.isEmpty() && getValues() == null){
+			return false;
+		}
+		
+		for (Object v : item.getValues()){
+			if (!(v instanceof PrismPropertyValue)){
+				throw new IllegalArgumentException("Not supported prism value for equals filter. It must be an instance of PrismPropertyValue but it is " + v.getClass());
+			}
+			
+			if (!isInFilterItem((PrismPropertyValue) v, filterItem, matching)){
+				return false;
+			}
+		}
+	
+		return true;
+//		return item.match(filterItem);
+		
+//		return super.match(object, matchingRuleRegistry);
+	}
+
+	private boolean isInFilterItem(PrismPropertyValue v, Item filterItem, MatchingRule matchingRule) {
+		for (Object filterValue : filterItem.getValues()){
+			if (!(filterValue instanceof PrismPropertyValue)){
+				throw new IllegalArgumentException("Not supported prism value for equals filter. It must be an instance of PrismPropertyValue but it is " + v.getClass());
+			}
+			
+			PrismPropertyValue filterV = (PrismPropertyValue) filterValue;
+			if (matchingRule.match(filterV.getValue(), v.getValue())){
+				return true;
+			}
+		}
+		
+		return false;
+		
 	}
 
 }
