@@ -11,10 +11,18 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.menu.top2.MenuBarItem;
 import com.evolveum.midpoint.web.component.menu.top2.MenuItem;
 import com.evolveum.midpoint.web.component.menu.top2.TopMenuBar;
+import com.evolveum.midpoint.web.page.admin.configuration.PageDebugList;
+import com.evolveum.midpoint.web.page.admin.configuration.PageImportObject;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
+import com.evolveum.midpoint.web.page.admin.resources.PageResources;
+import com.evolveum.midpoint.web.page.admin.roles.PageRole;
+import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
+import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
+import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgStruct;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
+import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItems;
 import com.evolveum.midpoint.wf.api.WorkflowService;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.devutils.debugbar.DebugBar;
@@ -90,8 +98,47 @@ public class PageBootstrap extends WebPage {
         users.addMenuItem(new MenuItem(createStringResource("PageBootstrap.menu.top.users.org"), true, null, null));
         users.addMenuItem(new MenuItem(createStringResource("PageBootstrap.menu.top.users.org.tree"), PageOrgStruct.class));
         users.addMenuItem(new MenuItem(createStringResource("PageBootstrap.menu.top.users.org.new"), PageOrgStruct.class));
-
         items.add(users);
+
+        MenuBarItem roles = new MenuBarItem(createStringResource("PageBootstrap.menu.top.roles"), null);
+        roles.addMenuItem(new MenuItem(createStringResource("PageBootstrap.menu.top.roles.list"), PageRoles.class));
+        roles.addMenuItem(new MenuItem(createStringResource("PageBootstrap.menu.top.roles.new"), PageRole.class));
+        items.add(roles);
+
+        MenuBarItem resources = new MenuBarItem(createStringResource("PageBootstrap.menu.top.resources"), null);
+        resources.addMenuItem(new MenuItem(createStringResource("PageBootstrap.menu.top.resources.list"), PageResources.class));
+        resources.addMenuItem(new MenuItem(createStringResource("PageBootstrap.menu.top.resources.new"), PageDashboard.class));
+        items.add(resources);
+
+        MenuBarItem workItems = new MenuBarItem(createStringResource("PageBootstrap.menu.top.workItems"), null);
+        workItems.addMenuItem(new MenuItem(createStringResource("PageBootstrap.menu.top.workItems.list"), PageWorkItems.class));
+        items.add(workItems);
+
+        MenuBarItem serverTasks = new MenuBarItem(createStringResource("PageBootstrap.menu.top.serverTasks"), null);
+        serverTasks.addMenuItem(new MenuItem(createStringResource("PageBootstrap.menu.top.serverTasks.list"), PageTasks.class));
+        serverTasks.addMenuItem(new MenuItem(createStringResource("PageBootstrap.menu.top.serverTasks.new"), PageTaskAdd.class));
+        items.add(serverTasks);
+
+        MenuBarItem reports = new MenuBarItem(createStringResource("PageBootstrap.menu.top.reports"), null);
+        reports.addMenuItem(new MenuItem(createStringResource("PageBootstrap.menu.top.reports.list"), PageDashboard.class));
+        reports.addMenuItem(new MenuItem(createStringResource("PageBootstrap.menu.top.reports.created"), PageDashboard.class));
+        items.add(reports);
+
+        MenuBarItem configuration = new MenuBarItem(createStringResource("PageBootstrap.menu.top.configuration"), null);
+        configuration.addMenuItem(new MenuItem(createStringResource("PageBootstrap.menu.top.configuration.bulkActions"), PageDashboard.class));
+        configuration.addMenuItem(new MenuItem(createStringResource("PageBootstrap.menu.top.configuration.importObject"), PageImportObject.class));
+        configuration.addMenuItem(new MenuItem(createStringResource("PageBootstrap.menu.top.configuration.repositoryObjects"), PageDebugList.class));
+        configuration.addMenuItem(new MenuItem(null));
+        configuration.addMenuItem(new MenuItem(createStringResource("PageBootstrap.menu.top.configuration.configuration"), true, null, null));
+        configuration.addMenuItem(new MenuItem(createStringResource("PageBootstrap.menu.top.configuration.basic"), PageDashboard.class));
+        configuration.addMenuItem(new MenuItem(createStringResource("PageBootstrap.menu.top.configuration.security"), PageDashboard.class));
+        configuration.addMenuItem(new MenuItem(null));
+        configuration.addMenuItem(new MenuItem(createStringResource("PageBootstrap.menu.top.configuration.development"), true, null, null));
+        configuration.addMenuItem(new MenuItem(createStringResource("PageBootstrap.menu.top.configuration.shadowsDetails"), PageDashboard.class));
+        configuration.addMenuItem(new MenuItem(createStringResource("PageBootstrap.menu.top.configuration.expressionEvaluator"), PageDashboard.class));
+        configuration.addMenuItem(new MenuItem(null));
+        configuration.addMenuItem(new MenuItem(createStringResource("PageBootstrap.menu.top.configuration.about"), PageDashboard.class));
+        items.add(configuration);
 
         return items;
     }

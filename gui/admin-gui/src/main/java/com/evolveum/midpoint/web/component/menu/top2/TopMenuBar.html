@@ -31,7 +31,7 @@
             </div>
             <div class="navbar-collapse collapse">
                 <ul class="nav navbar-nav">
-                    <li wicket:id="topMenuBar">
+                    <li wicket:id="topMenuBar">    <!-- todo class "active" for active item -->
                         <a wicket:id="barItemLink">
                             <span wicket:id="label"/>&nbsp;<b class="caret" wicket:id="caret"/>
                         </a>
@@ -39,87 +39,6 @@
                             <li wicket:id="menuItem">
                                 <div wicket:id="menuItemBody"/>
                             </li>
-                        </ul>
-                    </li>
-
-                    <li class="active">
-                        <a class="main-menu-item" href="dashboard.php">Home</a>
-                    </li>
-
-                    <li class="dropdown">
-                        <a data-toggle="dropdown" class="dropdown-toggle" href="#">Users&nbsp;<b class="caret"></b></a>
-                        <ul class="dropdown-menu">
-                            <li><a href="user-list.php">List users</a></li>
-                            <li><a href="user-find.php">Find users</a></li>
-                            <li><a href="user-details.php">New user</a></li>
-                            <li class="divider"></li>
-                            <li class="dropdown-header">Org. structure</li>
-                            <li><a href="org-list.php">Organization list</a></li>
-                            <li><a href="org-details.php">New organization</a></li>
-                        </ul>
-                    </li>
-
-                    <li class="dropdown">
-                        <a data-toggle="dropdown" class="dropdown-toggle" href="#">Roles&nbsp;<b class="caret"></b></a>
-                        <ul class="dropdown-menu">
-                            <li><a href="roles.php">List roles</a></li>
-                            <li><a href="role-details.php">New role</a></li>
-                        </ul>
-                    </li>
-
-                    <li class="dropdown">
-                        <a data-toggle="dropdown" class="dropdown-toggle" href="#">Resources&nbsp;<b class="caret"></b></a>
-                        <ul class="dropdown-menu">
-                            <li><a href="resources.php">List resources</a></li>
-                            <li><a href="resource-wizard-1.php">New resource</a></li>
-                        </ul>
-                    </li>
-
-                    <li class="dropdown">
-                        <a data-toggle="dropdown" class="dropdown-toggle" href="#">Work items&nbsp;<b class="caret"></b></a>
-                        <ul class="dropdown-menu">
-                            <li><a href="#">Action</a></li>
-                            <li><a href="#">Another action</a></li>
-                            <li><a href="#">Something else here</a></li>
-                            <li class="divider"></li>
-                            <li class="dropdown-header">Nav header</li>
-                            <li><a href="#">Separated link</a></li>
-                            <li><a href="#">One more separated link</a></li>
-                        </ul>
-                    </li>
-
-                    <li class="dropdown">
-                        <a data-toggle="dropdown" class="dropdown-toggle" href="#">Server tasks&nbsp;<b class="caret"></b></a>
-                        <ul class="dropdown-menu">
-                            <li><a href="task-list.php">List tasks</a></li>
-                            <li><a href="task-details.php">New task</a></li>
-                        </ul>
-                    </li>
-
-                    <li class="dropdown">
-                        <a data-toggle="dropdown" class="dropdown-toggle" href="#">Reports&nbsp;<b class="caret"></b></a>
-                        <ul class="dropdown-menu">
-                            <li><a href="reports.php">List reports</a></li>
-                            <li><a href="created-reports.php">Created reports</a></li>
-                        </ul>
-                    </li>
-
-                    <li class="dropdown">
-                        <a data-toggle="dropdown" class="dropdown-toggle" href="#">Configuration&nbsp;<b class="caret"></b></a>
-                        <ul class="dropdown-menu">
-                            <li><a href="bulk.php">Bulk actions</a></li>
-                            <li><a href="import.php">Import object</a></li>
-                            <li><a href="debug-list.php">Repository objects</a></li>
-                            <li class="divider"></li>
-                            <li class="dropdown-header">Configuration</li>
-                            <li><a href="configuration-basic.php">Basic</a></li>
-                            <li><a href="security.php">Security</a></li>
-                            <li class="divider"></li>
-                            <li class="dropdown-header">Development</li>
-                            <li><a href="shadow-details.php">Shadows details</a></li>
-                            <li><a href="development-expression.php">Expression evaluator</a></li>
-                            <li class="divider"></li>
-                            <li><a href="about.php">About</a></li>
                         </ul>
                     </li>
                 </ul>
