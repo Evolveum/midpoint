@@ -66,7 +66,7 @@ public class AceEditor<T> extends TextArea<T> {
     private String createOnLoadJavascript() {
     	String helpButton = "<a class='helpButton' href='https://github.com/ajaxorg/ace/wiki/Default-Keyboard-Shortcuts' target='_blank' title='Show keyboard shortcuts'></a>";
         StringBuilder script = new StringBuilder();
-        script.append("if(false ==Wicket.Browser.isIELessThan9()) {");
+        script.append("if(isIE9OrNewer()) {");
         script.append("if ($('#").append(editorId).append("').length == 0) {");
         script.append("$(\"<div id='").append(editorId).append("'></div>\").insertAfter($('#")
                 .append(this.getMarkupId()).append("')); ");
@@ -94,7 +94,7 @@ public class AceEditor<T> extends TextArea<T> {
         script.append("$('#" + editorId + " textarea').attr('onkeydown','disablePaste(" + isReadonly() + ");');");
         script.append(setFocus(isReadonly()));
         script.append("$('#" + editorId + "').append(\"" + helpButton + "\");");
-        script.append("if($.browser.msie){$('#" + editorId + "').find('.ace_gutter').hide();}");
+        script.append("if(isIE()){$('#" + editorId + "').find('.ace_gutter').hide();}");
         script.append("resizeEditor('").append(editorId).append("');");
         script.append("} else {");
         if(isReadonly()){

@@ -27,6 +27,18 @@ $(document).ready(function(){
 	}*/
 });
 
+function isIE9OrNewer() {
+    //todo not working with jquery > 1.9 [lazyman]
+//    return $.browser.msie && $.browser.version >= 9.0;
+    return true;
+}
+
+function isIE() {
+    //todo not working with jquery > 1.9 [lazyman]
+//    return $.browser.msie;
+    return false;
+}
+
 function init() {
 	//loadScript("js/less.js");
 	setMenuPositionWhileScroll();
@@ -44,7 +56,7 @@ function init() {
 	$(".left-menu .selected-left").parent().css("opacity", 1);
 	$(".left-menu .selected-left").parent().css("background", "#333333");
 	
-	if ($.browser.msie && $.browser.version < 9.0){
+	if (!isIE9OrNewer()){
 		$(".acc .acc-section").css("height", "1px");
 		$(".acc-content .sortedTable table").css("width", $(".acc-content").width());
 	}
@@ -163,7 +175,7 @@ function hideFormHelpContainer(){
 }
 
 function setMenuPositionWhileScroll() {
-	if (($.browser.msie && $.browser.version >= 9.0) || (!$.browser.msie)) {
+	if (isIE9OrNewer() || !isIE()) {
 		$(window).scroll(function() {
 			var scroll = $(window).scrollTop();
 			if (scroll >= 60) {
@@ -176,7 +188,7 @@ function setMenuPositionWhileScroll() {
 		}); 
 	}
 	
-	if ($.browser.msie && $.browser.version < 9.0){
+	if (!isIE9OrNewer()){
 		window.onresize = function() {
 			$(".acc-content .sortedTable table").css("width", $(".acc-content").width());
 		};
@@ -273,25 +285,25 @@ function setupFunc() {
 }
 
 function hideBusysign() {
-	document.getElementById('bysy_indicator').style.display = 'none';
-	document.getElementById('error_indicator').style.display = 'none';
-	hideDisableOperationFormButtons();
-	hideDisablePaging();
+//	document.getElementById('bysy_indicator').style.display = 'none';
+//	document.getElementById('error_indicator').style.display = 'none';
+//	hideDisableOperationFormButtons();
+//	hideDisablePaging();
 	ajaxError = 0;
 }
 
 function showError() {
-	document.getElementById('bysy_indicator').style.display = 'none';
-	document.getElementById('error_indicator').style.display = 'inline';
-	showDisableOperationFormButtons();
+//	document.getElementById('bysy_indicator').style.display = 'none';
+//	document.getElementById('error_indicator').style.display = 'inline';
+//	showDisableOperationFormButtons();
 	ajaxError = 1;
 }
 
 function showBusysign() {
-	if(ajaxError != 1) {
-		document.getElementById('bysy_indicator').style.display = 'inline';
-		document.getElementById('error_indicator').style.display = 'none';
-	}
+//	if(ajaxError != 1) {
+//		document.getElementById('bysy_indicator').style.display = 'inline';
+//		document.getElementById('error_indicator').style.display = 'none';
+//	}
 }
 
 var clickedElement = null;
