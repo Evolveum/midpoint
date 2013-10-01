@@ -86,6 +86,11 @@ public class PageDashboard extends PageAdminHome {
         initLayout();
     }
 
+    @Override
+    protected IModel<String> createPageSubTitleModel() {
+        return createStringResource("PageDashboard.subtitle");
+    }
+
     private PrismObject<UserType> loadUser() {
     	MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
 

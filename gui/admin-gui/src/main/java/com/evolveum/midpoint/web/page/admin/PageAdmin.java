@@ -18,33 +18,25 @@ package com.evolveum.midpoint.web.page.admin;
 
 import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
-import com.evolveum.midpoint.web.component.menu.top.TopMenuItem;
+import com.evolveum.midpoint.web.component.menu.top2.MenuBarItem;
+import com.evolveum.midpoint.web.component.menu.top2.MenuItem;
 import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.page.admin.configuration.PageAdminConfiguration;
 import com.evolveum.midpoint.web.page.admin.configuration.PageDebugList;
+import com.evolveum.midpoint.web.page.admin.configuration.PageImportObject;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
-import com.evolveum.midpoint.web.page.admin.reports.PageAdminReports;
-import com.evolveum.midpoint.web.page.admin.reports.PageReports;
-import com.evolveum.midpoint.web.page.admin.resources.PageAdminResources;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
-import com.evolveum.midpoint.web.page.admin.roles.PageAdminRoles;
+import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
-import com.evolveum.midpoint.web.page.admin.server.PageAdminTasks;
+import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
-import com.evolveum.midpoint.web.page.admin.users.PageAdminUsers;
+import com.evolveum.midpoint.web.page.admin.users.PageOrgStruct;
+import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
-import com.evolveum.midpoint.web.page.admin.workflow.PageAdminWorkItems;
 import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItems;
-import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
-import com.evolveum.midpoint.web.security.MidPointAuthenticationProvider;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
-import org.apache.wicket.authroles.authorization.strategies.role.Roles;
 
 /**
  * @author lazyman
@@ -52,46 +44,129 @@ import org.apache.wicket.authroles.authorization.strategies.role.Roles;
 public class PageAdmin extends PageBase {
 
     @Override
-    public List<TopMenuItem> getTopMenuItems() {
-		List<TopMenuItem> items = new ArrayList<TopMenuItem>();
+    protected List<MenuBarItem> createMenuItems() {
+        List<MenuBarItem> items = new ArrayList<MenuBarItem>();
 
-		if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL, AuthorizationConstants.AUTZ_UI_HOME_ALL_URL)) {
-			items.add(new TopMenuItem("pageAdmin.home", "pageAdmin.home.description", PageDashboard.class));
-		}
-		if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_USERS_URL, AuthorizationConstants.AUTZ_UI_USERS_ALL_URL)) {
-			items.add(new TopMenuItem("pageAdmin.users", "pageAdmin.users.description", PageUsers.class,
-					PageAdminUsers.class));
-		}
-		if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ROLES_URL, AuthorizationConstants.AUTZ_UI_ROLES_ALL_URL)) {
-			items.add(new TopMenuItem("pageAdmin.roles", "pageAdmin.roles.description", PageRoles.class,
-					PageAdminRoles.class));
-		}
-		if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_RESOURCES_URL, AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL)) {
-			items.add(new TopMenuItem("pageAdmin.resources", "pageAdmin.resources.description",
-					PageResources.class, PageAdminResources.class));
-		}
-		// todo fix with visible behaviour [lazyman]
-		if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_WORK_ITEMS_URL, AuthorizationConstants.AUTZ_UI_WORK_ITEMS_ALL_URL)) {
-			if (getWorkflowService().isEnabled()) {
-				items.add(new TopMenuItem("pageAdmin.workItems", "pageAdmin.workItems.description",
-						PageWorkItems.class, PageAdminWorkItems.class));
-			}
-		}
-		if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_TASKS_URL, AuthorizationConstants.AUTZ_UI_TASKS_ALL_URL)) {
-			items.add(new TopMenuItem("pageAdmin.serverTasks", "pageAdmin.serverTasks.description",
-					PageTasks.class, PageAdminTasks.class));
-		}
-		if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_REPORTS_URL)) {
-			items.add(new TopMenuItem("pageAdmin.reports", "pageAdmin.reports.description",
-					PageReports.class, PageAdminReports.class));
-		}
-		if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CONFIGURATION_URL, AuthorizationConstants.AUTZ_UI_CONFIGURATION_ALL_URL)) {
-			items.add(new TopMenuItem("pageAdmin.configuration", "pageAdmin.configuration.description",
-					PageDebugList.class, PageAdminConfiguration.class));
-		}
+        // todo fix with visible behaviour [lazyman]
+        if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_DASHBOARD_URL,
+                AuthorizationConstants.AUTZ_UI_HOME_ALL_URL)) {
+            items.add(createHomeItems());
+        }
 
-		return items;
+        if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_USERS_URL,
+                AuthorizationConstants.AUTZ_UI_USERS_ALL_URL)) {
+            items.add(createUsersItems());
+        }
+
+        if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_ROLES_URL,
+                AuthorizationConstants.AUTZ_UI_ROLES_ALL_URL)) {
+            items.add(createRolesItems());
+        }
+
+        if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_RESOURCES_URL,
+                AuthorizationConstants.AUTZ_UI_RESOURCES_ALL_URL)) {
+            items.add(createResourcesItems());
+        }
+
+        if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_WORK_ITEMS_URL,
+                AuthorizationConstants.AUTZ_UI_WORK_ITEMS_ALL_URL)) {
+            items.add(createWorkItemsItems());
+        }
+
+        if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_TASKS_URL,
+                AuthorizationConstants.AUTZ_UI_TASKS_ALL_URL)) {
+            items.add(createServerTasksItems());
+        }
+
+        if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_REPORTS_URL)) {
+            items.add(createReportsItems());
+        }
+
+        if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_CONFIGURATION_URL,
+                AuthorizationConstants.AUTZ_UI_CONFIGURATION_ALL_URL)) {
+            items.add(createConfigurationItems());
+        }
+
+        return items;
     }
+
+    private MenuBarItem createWorkItemsItems() {
+        MenuBarItem workItems = new MenuBarItem(createStringResource("PageAdmin.menu.top.workItems"), null);
+        workItems.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.workItems.list"), PageWorkItems.class));
+
+        return workItems;
+    }
+
+    private MenuBarItem createServerTasksItems() {
+        MenuBarItem serverTasks = new MenuBarItem(createStringResource("PageAdmin.menu.top.serverTasks"), null);
+        serverTasks.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.serverTasks.list"), PageTasks.class));
+        serverTasks.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.serverTasks.new"), PageTaskAdd.class));
+
+        return serverTasks;
+    }
+
+    private MenuBarItem createResourcesItems() {
+        MenuBarItem resources = new MenuBarItem(createStringResource("PageAdmin.menu.top.resources"), null);
+        resources.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.resources.list"), PageResources.class));
+        resources.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.resources.new"), PageDashboard.class));
+
+        return resources;
+    }
+
+    private MenuBarItem createReportsItems() {
+        MenuBarItem reports = new MenuBarItem(createStringResource("PageAdmin.menu.top.reports"), null);
+        reports.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.reports.list"), PageDashboard.class));
+        reports.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.reports.created"), PageDashboard.class));
+
+        return reports;
+    }
+
+    private MenuBarItem createConfigurationItems() {
+        MenuBarItem configuration = new MenuBarItem(createStringResource("PageAdmin.menu.top.configuration"), null);
+        configuration.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.configuration.bulkActions"), PageDashboard.class));
+        configuration.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.configuration.importObject"), PageImportObject.class));
+        configuration.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.configuration.repositoryObjects"), PageDebugList.class));
+        configuration.addMenuItem(new MenuItem(null));
+        configuration.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.configuration.configuration"), true, null, null));
+        configuration.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.configuration.basic"), PageDashboard.class));
+        configuration.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.configuration.security"), PageDashboard.class));
+        configuration.addMenuItem(new MenuItem(null));
+        configuration.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.configuration.development"), true, null, null));
+        configuration.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.configuration.shadowsDetails"), PageDashboard.class));
+        configuration.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.configuration.expressionEvaluator"), PageDashboard.class));
+        configuration.addMenuItem(new MenuItem(null));
+        configuration.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.configuration.about"), PageDashboard.class));
+
+        return configuration;
+    }
+
+    private MenuBarItem createHomeItems() {
+        MenuBarItem home = new MenuBarItem(createStringResource("PageAdmin.menu.top.home"), PageDashboard.class);
+
+        return home;
+    }
+
+    private MenuBarItem createUsersItems() {
+        MenuBarItem users = new MenuBarItem(createStringResource("PageAdmin.menu.top.users"), null);
+        users.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.users.list"), PageUsers.class));
+        users.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.users.find"), PageUsers.class));
+        users.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.users.new"), PageUser.class));
+        users.addMenuItem(new MenuItem(null));
+        users.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.users.org"), true, null, null));
+        users.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.users.org.tree"), PageOrgStruct.class));
+        users.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.users.org.new"), PageOrgStruct.class));
+
+        return users;
+    }
+
+    private MenuBarItem createRolesItems() {
+        MenuBarItem roles = new MenuBarItem(createStringResource("PageAdmin.menu.top.roles"), null);
+        roles.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.roles.list"), PageRoles.class));
+        roles.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.roles.new"), PageRole.class));
+
+        return roles;
+    }
+
 
     @Override
     public List<BottomMenuItem> getBottomMenuItems() {

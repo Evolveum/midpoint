@@ -106,10 +106,10 @@ public abstract class PageBase extends WebPage {
     private static final Trace LOGGER = TraceManager.getTrace(PageBase.class);
 
     private static final String ID_TITLE = "title";
-    private static final String ID_PAGE_TITLE_CONTAINER="pageTitleContainer";
-    private static final String ID_PAGE_TITLE_REAL="pageTitleReal";
-    private static final String ID_PAGE_TITLE="pageTitle";
-    private static final String ID_PAGE_SUBTITLE="pageSubtitle";
+    private static final String ID_PAGE_TITLE_CONTAINER = "pageTitleContainer";
+    private static final String ID_PAGE_TITLE_REAL = "pageTitleReal";
+    private static final String ID_PAGE_TITLE = "pageTitle";
+    private static final String ID_PAGE_SUBTITLE = "pageSubtitle";
     private static final String ID_DEBUG_PANEL = "debugPanel";
     private static final String ID_TOP_MENU = "topMenu";
     private static final String ID_LOGIN_PANEL = "loginPanel";
@@ -180,9 +180,6 @@ public abstract class PageBase extends WebPage {
         DebugBar debugPanel = new DebugBar(ID_DEBUG_PANEL);
         add(debugPanel);
 
-//        List<TopMenuItem> topMenuItems = getTopMenuItems();
-//        List<BottomMenuItem> bottomMenuItems = getBottomMenuItems();
-//        add(new TopMenu(ID_TOP_MENU, topMenuItems, bottomMenuItems));
         TopMenuBar topMenu = new TopMenuBar(ID_TOP_MENU, createMenuItems());
         add(topMenu);
 
@@ -217,63 +214,8 @@ public abstract class PageBase extends WebPage {
         feedbackContainer.add(tempFeedback);
     }
 
-    private List<MenuBarItem> createMenuItems() {
-        List<MenuBarItem> items = new ArrayList<MenuBarItem>();
-
-        MenuBarItem home = new MenuBarItem(createStringResource("PageBase.menu.top.home"), PageDashboard.class);
-        items.add(home);
-
-        MenuBarItem users = new MenuBarItem(createStringResource("PageBase.menu.top.users"), null);
-        users.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.users.list"), PageUsers.class));
-        users.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.users.find"), PageUsers.class));
-        users.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.users.new"), PageUser.class));
-        users.addMenuItem(new MenuItem(null));
-        users.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.users.org"), true, null, null));
-        users.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.users.org.tree"), PageOrgStruct.class));
-        users.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.users.org.new"), PageOrgStruct.class));
-        items.add(users);
-
-        MenuBarItem roles = new MenuBarItem(createStringResource("PageBase.menu.top.roles"), null);
-        roles.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.roles.list"), PageRoles.class));
-        roles.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.roles.new"), PageRole.class));
-        items.add(roles);
-
-        MenuBarItem resources = new MenuBarItem(createStringResource("PageBase.menu.top.resources"), null);
-        resources.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.resources.list"), PageResources.class));
-        resources.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.resources.new"), PageDashboard.class));
-        items.add(resources);
-
-        MenuBarItem workItems = new MenuBarItem(createStringResource("PageBase.menu.top.workItems"), null);
-        workItems.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.workItems.list"), PageWorkItems.class));
-        items.add(workItems);
-
-        MenuBarItem serverTasks = new MenuBarItem(createStringResource("PageBase.menu.top.serverTasks"), null);
-        serverTasks.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.serverTasks.list"), PageTasks.class));
-        serverTasks.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.serverTasks.new"), PageTaskAdd.class));
-        items.add(serverTasks);
-
-        MenuBarItem reports = new MenuBarItem(createStringResource("PageBase.menu.top.reports"), null);
-        reports.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.reports.list"), PageDashboard.class));
-        reports.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.reports.created"), PageDashboard.class));
-        items.add(reports);
-
-        MenuBarItem configuration = new MenuBarItem(createStringResource("PageBase.menu.top.configuration"), null);
-        configuration.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.configuration.bulkActions"), PageDashboard.class));
-        configuration.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.configuration.importObject"), PageImportObject.class));
-        configuration.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.configuration.repositoryObjects"), PageDebugList.class));
-        configuration.addMenuItem(new MenuItem(null));
-        configuration.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.configuration.configuration"), true, null, null));
-        configuration.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.configuration.basic"), PageDashboard.class));
-        configuration.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.configuration.security"), PageDashboard.class));
-        configuration.addMenuItem(new MenuItem(null));
-        configuration.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.configuration.development"), true, null, null));
-        configuration.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.configuration.shadowsDetails"), PageDashboard.class));
-        configuration.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.configuration.expressionEvaluator"), PageDashboard.class));
-        configuration.addMenuItem(new MenuItem(null));
-        configuration.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.configuration.about"), PageDashboard.class));
-        items.add(configuration);
-
-        return items;
+    protected List<MenuBarItem> createMenuItems() {
+        return new ArrayList<MenuBarItem>();
     }
 
     public WebMarkupContainer getFeedbackPanel() {
@@ -294,8 +236,6 @@ public abstract class PageBase extends WebPage {
     public MidPointApplication getMidpointApplication() {
         return (MidPointApplication) getApplication();
     }
-
-    public abstract List<TopMenuItem> getTopMenuItems();
 
     public abstract List<BottomMenuItem> getBottomMenuItems();
 
@@ -579,7 +519,7 @@ public abstract class PageBase extends WebPage {
     }
 
     protected <P extends Object> void validateObject(String xmlObject, final Holder<P> objectHolder,
-                                  boolean validateSchema, OperationResult result) {
+                                                     boolean validateSchema, OperationResult result) {
         EventHandler handler = new EventHandler() {
 
             @Override
