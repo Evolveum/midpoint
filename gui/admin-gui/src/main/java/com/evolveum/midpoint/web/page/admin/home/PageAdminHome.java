@@ -33,9 +33,6 @@ public class PageAdminHome extends PageAdmin {
     public List<BottomMenuItem> getBottomMenuItems() {
         List<BottomMenuItem> items = new ArrayList<BottomMenuItem>();
 
-        items.add(new BottomMenuItem(createStringResource("PageAdminHome.dashboard"), PageDashboard.class));
-        items.add(new BottomMenuItem(createStringResource("PageAdminHome.myPasswords"), PageMyPasswords.class));
-
         return items;
     }
 }

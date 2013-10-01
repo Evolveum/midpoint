@@ -105,13 +105,6 @@ public class PageDashboard extends PageAdminHome {
         return user;
     }
 
-    @Override
-    public void renderHead(IHeaderResponse response) {
-        super.renderHead(response);
-        response.render(CssHeaderItem.forReference(
-                new PackageResourceReference(PageDashboard.class, "PageDashboard.css")));
-    }
-
     private void initLayout() {
         initPersonalInfo();
         initMyWorkItems();

@@ -39,14 +39,15 @@ public abstract class DashboardPanel<T extends Serializable> extends SimplePanel
 
         Label label = (Label) get(createComponentPath(ID_DASHBOARD_TITLE, ID_TITLE));
         label.setDefaultModel(title);
-
     }
 
     @Override
     protected void initLayout() {
         WebMarkupContainer dashboardTitle = new WebMarkupContainer(ID_DASHBOARD_TITLE);
         add(dashboardTitle);
-        dashboardTitle.add(new Label(ID_TITLE));
+        Label title = new Label(ID_TITLE);
+        title.setRenderBodyOnly(true);
+        dashboardTitle.add(title);
 
         WebMarkupContainer dashboardContent = new WebMarkupContainer(ID_DASHBOARD_CONTENT);
         add(dashboardContent);

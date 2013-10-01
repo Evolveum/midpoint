@@ -60,7 +60,9 @@ public abstract class AsyncDashboardPanel<V, T> extends AsyncUpdatePanel<V, Call
     protected void initLayout() {
         WebMarkupContainer dashboardTitle = new WebMarkupContainer(ID_DASHBOARD_TITLE);
         add(dashboardTitle);
-        dashboardTitle.add(new Label(ID_TITLE));
+        Label title = new Label(ID_TITLE);
+        title.setRenderBodyOnly(true);
+        dashboardTitle.add(title);
 
         WebMarkupContainer dashboardContent = new WebMarkupContainer(ID_DASHBOARD_CONTENT);
         add(dashboardContent);
