@@ -125,7 +125,7 @@ public class SynchronizationSituationUtil {
 		deltas.add(syncSituationDelta);
 		
 		List<PrismPropertyValue<SynchronizationSituationDescriptionType>> oldSituationDescriptions = getSituationFromSameChannel(object, sourceChannel);
-		if (oldSituationDescriptions != null || !oldSituationDescriptions.isEmpty()) {
+		if (oldSituationDescriptions != null && !oldSituationDescriptions.isEmpty()) {
 			syncSituationDelta = PropertyDelta.createDelta(new ItemPath(
 					ShadowType.F_SYNCHRONIZATION_SITUATION_DESCRIPTION), object.getDefinition());
 			syncSituationDelta.addValuesToDelete(oldSituationDescriptions);
