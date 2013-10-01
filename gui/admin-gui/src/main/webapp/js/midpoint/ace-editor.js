@@ -7,7 +7,7 @@ function autoresizeEditor(editorId) {
 
     $(document).ready(function () {
         //38 + 1 + 21 is menu outer height
-        var newHeight = $(document).innerHeight() - $('div#mainContainer').outerHeight(true) - 60;
+        var newHeight = $(document).innerHeight() - $('div.mainContainer').outerHeight(true) - 60;
         if (newHeight < 200) {
             newHeight = 200;
         }

@@ -405,7 +405,7 @@ input:focus, .button:focus, select:focus, option:focus {
 }
 
 .operatingFormButtons .operatingFormBlock .operatingFormText {
-	color: #FFFFFF;
+	/*color: #FFFFFF;*/
     font-size: 12px;
     font-weight: bold;
     margin-right: 3px;

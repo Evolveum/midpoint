@@ -39,9 +39,24 @@ import com.evolveum.midpoint.web.component.login.LoginPanel;
 import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
 import com.evolveum.midpoint.web.component.menu.top.TopMenu;
 import com.evolveum.midpoint.web.component.menu.top.TopMenuItem;
+import com.evolveum.midpoint.web.component.menu.top2.MenuBarItem;
+import com.evolveum.midpoint.web.component.menu.top2.MenuItem;
+import com.evolveum.midpoint.web.component.menu.top2.TopMenuBar;
 import com.evolveum.midpoint.web.component.message.MainFeedback;
 import com.evolveum.midpoint.web.component.message.OpResult;
 import com.evolveum.midpoint.web.component.message.TempFeedback;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.PageDebugList;
+import com.evolveum.midpoint.web.page.admin.configuration.PageImportObject;
+import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
+import com.evolveum.midpoint.web.page.admin.resources.PageResources;
+import com.evolveum.midpoint.web.page.admin.roles.PageRole;
+import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
+import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
+import com.evolveum.midpoint.web.page.admin.server.PageTasks;
+import com.evolveum.midpoint.web.page.admin.users.PageOrgStruct;
+import com.evolveum.midpoint.web.page.admin.users.PageUser;
+import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItems;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
@@ -62,12 +77,15 @@ import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.feedback.FeedbackMessage;
 import org.apache.wicket.feedback.FeedbackMessages;
 import org.apache.wicket.injection.Injector;
+import org.apache.wicket.markup.ComponentTag;
+import org.apache.wicket.markup.MarkupStream;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
@@ -76,6 +94,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -87,10 +106,13 @@ public abstract class PageBase extends WebPage {
     private static final Trace LOGGER = TraceManager.getTrace(PageBase.class);
 
     private static final String ID_TITLE = "title";
+    private static final String ID_PAGE_TITLE_CONTAINER="pageTitleContainer";
+    private static final String ID_PAGE_TITLE_REAL="pageTitleReal";
+    private static final String ID_PAGE_TITLE="pageTitle";
+    private static final String ID_PAGE_SUBTITLE="pageSubtitle";
     private static final String ID_DEBUG_PANEL = "debugPanel";
     private static final String ID_TOP_MENU = "topMenu";
     private static final String ID_LOGIN_PANEL = "loginPanel";
-    private static final String ID_PAGE_TITLE = "pageTitle";
     private static final String ID_FEEDBACK_CONTAINER = "feedbackContainer";
     private static final String ID_FEEDBACK = "feedback";
     private static final String ID_TEMP_FEEDBACK = "tempFeedback";
@@ -126,7 +148,6 @@ public abstract class PageBase extends WebPage {
 
         //this attaches jquery.js as first header item, which is used in our scripts.
         CoreLibrariesContributor.contribute(getApplication(), response);
-//        Bootstrap.renderHeadPlain(response);
     }
 
     @Override
@@ -159,14 +180,31 @@ public abstract class PageBase extends WebPage {
         DebugBar debugPanel = new DebugBar(ID_DEBUG_PANEL);
         add(debugPanel);
 
-        List<TopMenuItem> topMenuItems = getTopMenuItems();
-        List<BottomMenuItem> bottomMenuItems = getBottomMenuItems();
-        add(new TopMenu(ID_TOP_MENU, topMenuItems, bottomMenuItems));
+//        List<TopMenuItem> topMenuItems = getTopMenuItems();
+//        List<BottomMenuItem> bottomMenuItems = getBottomMenuItems();
+//        add(new TopMenu(ID_TOP_MENU, topMenuItems, bottomMenuItems));
+        TopMenuBar topMenu = new TopMenuBar(ID_TOP_MENU, createMenuItems());
+        add(topMenu);
 
-        LoginPanel loginPanel = new LoginPanel(ID_LOGIN_PANEL);
-        add(loginPanel);
+//        LoginPanel loginPanel = new LoginPanel(ID_LOGIN_PANEL);
+//        add(loginPanel);
 
-        add(new Label(ID_PAGE_TITLE, createPageTitleModel()));
+        WebMarkupContainer pageTitleContainer = new WebMarkupContainer(ID_PAGE_TITLE_CONTAINER);
+        pageTitleContainer.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return StringUtils.isNotEmpty(createPageTitleModel().getObject());
+            }
+        });
+        add(pageTitleContainer);
+
+        WebMarkupContainer pageTitle = new WebMarkupContainer(ID_PAGE_TITLE);
+        pageTitleContainer.add(pageTitle);
+        Label pageTitleReal = new Label(ID_PAGE_TITLE_REAL, createPageTitleModel());
+        pageTitleReal.setRenderBodyOnly(true);
+        pageTitle.add(pageTitleReal);
+        pageTitle.add(new Label(ID_PAGE_SUBTITLE, createPageSubTitleModel()));
 
         WebMarkupContainer feedbackContainer = new WebMarkupContainer(ID_FEEDBACK_CONTAINER);
         feedbackContainer.setOutputMarkupId(true);
@@ -177,6 +215,65 @@ public abstract class PageBase extends WebPage {
 
         TempFeedback tempFeedback = new TempFeedback(ID_TEMP_FEEDBACK);
         feedbackContainer.add(tempFeedback);
+    }
+
+    private List<MenuBarItem> createMenuItems() {
+        List<MenuBarItem> items = new ArrayList<MenuBarItem>();
+
+        MenuBarItem home = new MenuBarItem(createStringResource("PageBase.menu.top.home"), PageDashboard.class);
+        items.add(home);
+
+        MenuBarItem users = new MenuBarItem(createStringResource("PageBase.menu.top.users"), null);
+        users.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.users.list"), PageUsers.class));
+        users.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.users.find"), PageUsers.class));
+        users.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.users.new"), PageUser.class));
+        users.addMenuItem(new MenuItem(null));
+        users.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.users.org"), true, null, null));
+        users.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.users.org.tree"), PageOrgStruct.class));
+        users.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.users.org.new"), PageOrgStruct.class));
+        items.add(users);
+
+        MenuBarItem roles = new MenuBarItem(createStringResource("PageBase.menu.top.roles"), null);
+        roles.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.roles.list"), PageRoles.class));
+        roles.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.roles.new"), PageRole.class));
+        items.add(roles);
+
+        MenuBarItem resources = new MenuBarItem(createStringResource("PageBase.menu.top.resources"), null);
+        resources.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.resources.list"), PageResources.class));
+        resources.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.resources.new"), PageDashboard.class));
+        items.add(resources);
+
+        MenuBarItem workItems = new MenuBarItem(createStringResource("PageBase.menu.top.workItems"), null);
+        workItems.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.workItems.list"), PageWorkItems.class));
+        items.add(workItems);
+
+        MenuBarItem serverTasks = new MenuBarItem(createStringResource("PageBase.menu.top.serverTasks"), null);
+        serverTasks.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.serverTasks.list"), PageTasks.class));
+        serverTasks.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.serverTasks.new"), PageTaskAdd.class));
+        items.add(serverTasks);
+
+        MenuBarItem reports = new MenuBarItem(createStringResource("PageBase.menu.top.reports"), null);
+        reports.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.reports.list"), PageDashboard.class));
+        reports.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.reports.created"), PageDashboard.class));
+        items.add(reports);
+
+        MenuBarItem configuration = new MenuBarItem(createStringResource("PageBase.menu.top.configuration"), null);
+        configuration.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.configuration.bulkActions"), PageDashboard.class));
+        configuration.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.configuration.importObject"), PageImportObject.class));
+        configuration.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.configuration.repositoryObjects"), PageDebugList.class));
+        configuration.addMenuItem(new MenuItem(null));
+        configuration.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.configuration.configuration"), true, null, null));
+        configuration.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.configuration.basic"), PageDashboard.class));
+        configuration.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.configuration.security"), PageDashboard.class));
+        configuration.addMenuItem(new MenuItem(null));
+        configuration.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.configuration.development"), true, null, null));
+        configuration.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.configuration.shadowsDetails"), PageDashboard.class));
+        configuration.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.configuration.expressionEvaluator"), PageDashboard.class));
+        configuration.addMenuItem(new MenuItem(null));
+        configuration.addMenuItem(new MenuItem(createStringResource("PageBase.menu.top.configuration.about"), PageDashboard.class));
+        items.add(configuration);
+
+        return items;
     }
 
     public WebMarkupContainer getFeedbackPanel() {
@@ -212,6 +309,16 @@ public abstract class PageBase extends WebPage {
 
     protected WorkflowService getWorkflowService() {
         return workflowService;
+    }
+
+    protected IModel<String> createPageSubTitleModel() {
+        return new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                return "";
+            }
+        };
     }
 
     protected IModel<String> createPageTitleModel() {

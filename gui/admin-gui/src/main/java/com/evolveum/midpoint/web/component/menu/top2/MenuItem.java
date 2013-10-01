@@ -4,10 +4,12 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.model.IModel;
 
+import java.io.Serializable;
+
 /**
  * @author lazyman
  */
-public class MenuItem {
+public class MenuItem implements Serializable {
 
     private IModel<String> name;
     private VisibleEnableBehaviour visibleEnable;

@@ -44,13 +44,13 @@ public class PageLogin extends PageBase {
 
     private static final String ID_LOGIN_PANEL = "loginPanel";
     private static final String ID_LOGIN_FORM = "loginForm";
-    private static final String ID_IMAGE = "image";
+
     private static final String ID_USERNAME = "username";
     private static final String ID_PASSWORD = "password";
 
     public PageLogin() {
-        LocalePanel locale = new LocalePanel(ID_LOGIN_PANEL);
-        addOrReplace(locale);
+//        LocalePanel locale = new LocalePanel(ID_LOGIN_PANEL);
+//        addOrReplace(locale);
 
         Form form = new Form(ID_LOGIN_FORM) {
 
@@ -67,8 +67,6 @@ public class PageLogin extends PageBase {
             }
         };
 
-        form.add(new Image(ID_IMAGE, new PackageResourceReference(PageLogin.class, "Key.png")));
-
         form.add(new RequiredTextField(ID_USERNAME, new Model<String>()));
         form.add(new PasswordTextField(ID_PASSWORD, new Model<String>()));
         add(form);
@@ -77,12 +75,6 @@ public class PageLogin extends PageBase {
     @Override
     protected IModel<String> createPageTitleModel() {
         return new Model<String>("");
-    }
-
-    @Override
-    public void renderHead(IHeaderResponse response) {
-        super.renderHead(response);
-        response.render(CssHeaderItem.forReference(new PackageResourceReference(PageLogin.class, "PageLogin.css")));
     }
 
     @Override
