@@ -29,6 +29,8 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.match.MatchingRule;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -139,7 +141,7 @@ public class SubstringFilter extends StringValueFilter {
 	}
 
 	@Override
-	public <T extends Objectable> boolean match(PrismObject<T> object) {
+	public <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry) {
 		ItemPath path = null;
 		if (getParentPath() != null){
 			path = new ItemPath(getParentPath(), getDefinition().getName());
@@ -149,22 +151,25 @@ public class SubstringFilter extends StringValueFilter {
 		
 		Item item = object.findItem(path);
 		
+		MatchingRule matching = getMatchingRuleFromRegistry(matchingRuleRegistry, item);
+		
 		for (Object val : item.getValues()){
 			if (val instanceof PrismPropertyValue){
 				Object value = ((PrismPropertyValue) val).getValue();
-				if (value instanceof PolyStringType){
-					if (StringUtils.contains(((PolyStringType) value).getNorm(), getValue())){
-						return true;
-					}
-				} else if (value instanceof PolyString){
-					if (StringUtils.contains(((PolyString) value).getNorm(), getValue())){
-						return true;
-					}
-				} else if (value instanceof String){
-					if (StringUtils.contains((String)value, getValue())){
-						return true;
-					}
-				}
+				return matching.matches(value, ".*"+getValue()+".*");
+//				if (value instanceof PolyStringType){
+//					if (StringUtils.contains(((PolyStringType) value).getNorm(), getValue())){
+//						return true;
+//					}
+//				} else if (value instanceof PolyString){
+//					if (StringUtils.contains(((PolyString) value).getNorm(), getValue())){
+//						return true;
+//					}
+//				} else if (value instanceof String){
+//					if (StringUtils.contains((String)value, getValue())){
+//						return true;
+//					}
+//				}
 			}
 			if (val instanceof PrismReferenceValue) {
 				throw new UnsupportedOperationException(

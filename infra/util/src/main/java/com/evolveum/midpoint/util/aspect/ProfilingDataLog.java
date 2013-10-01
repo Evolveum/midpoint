@@ -42,7 +42,6 @@ public class ProfilingDataLog {
     /* Member Attributes */
     private String className;
     private String methodName;
-    private String objectType;
     long executionTimestamp;
     long estimatedTime;
     Object[] args;
@@ -53,12 +52,12 @@ public class ProfilingDataLog {
     /*
     *   Constructor - with parameters
     * */
-    public ProfilingDataLog(String className, String method, long est, long exeTimestamp, ProceedingJoinPoint pjp){
+    public ProfilingDataLog(String className, String method, long est, long exeTimestamp, Object[] args){
         this.className = className;
         this.methodName = method;
         this.estimatedTime = est;
         this.executionTimestamp = exeTimestamp;
-        this.args = retrieveMethodArguments(pjp);
+        this.args = args;
 
     }   //ProfilingDataLog
 
@@ -122,14 +121,6 @@ public class ProfilingDataLog {
         this.methodName = methodName;
     }
 
-    public String getObjectType() {
-        return objectType;
-    }
-
-    public void setObjectType(String objectType) {
-        this.objectType = objectType;
-    }
-
     /* Behavior */
     /*
     *   Retrieves Object[] containing method arguments from ProceedingJoinPoint object
@@ -143,7 +134,7 @@ public class ProfilingDataLog {
     *   this method is here for test purposes only
     * */
     public void logProfilingEvent(Trace LOGGER){
-        LOGGER.info(className + "->" + methodName + " " + objectType.toUpperCase() + " est: " + formatExecutionTime(estimatedTime));
+        LOGGER.info(className + "->" + methodName + " est: " + formatExecutionTime(estimatedTime));
     }   //logProfilingEvent
 
     /*
@@ -156,7 +147,7 @@ public class ProfilingDataLog {
         if(args == null){
             LOGGER.debug("    EST: {} EXECUTED: {} SESSION: {}", new Object[]{formatExecutionTime(estimatedTime), date, sessionID});
         } else{
-            LOGGER.debug("    {} EST: {} EXECUTED: {} ARGS: {}", new Object[]{objectType, formatExecutionTime(estimatedTime), date, args});
+            LOGGER.debug("    EST: {} EXECUTED: {} ARGS: {}", new Object[]{formatExecutionTime(estimatedTime), date, args});
         }
     }   //appendToLogger
 

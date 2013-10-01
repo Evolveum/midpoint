@@ -57,14 +57,6 @@ public class ProfilingDataManager {
     public static final String SUBSYSTEM_WORKFLOW = "WORKFLOW";
     public static final String SUBSYSTEM_WEB = "WEB";
 
-    private static final boolean GET_OBJECT_TYPE_REPOSITORY = true;
-    private static final boolean GET_OBJECT_TYPE_TASK_MANAGER = true;
-    private static final boolean GET_OBJECT_TYPE_PROVISIONING = true;
-    private static final boolean GET_OBJECT_TYPE_SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER = false;
-    private static final boolean GET_OBJECT_TYPE_MODEL = true;
-    private static final boolean GET_OBJECT_TYPE_UCF = false;
-    private static final boolean GET_OBJECT_TYPE_WORKFLOW = true;
-
     private static boolean isRepositoryProfiled = false;
     private static boolean isTaskManagerProfiled = false;
     private static boolean isProvisioningProfiled = false;
@@ -73,13 +65,6 @@ public class ProfilingDataManager {
     private static boolean isUcfProfiled = false;
     private static boolean isWorkflowProfiled = false;
     private static boolean isWebProfiled = false;
-
-    private static final String MODEL_EXECUTE_CHANGES = "executeChanges";
-
-    //Model subsystem constants
-    public static final String DELTA_ADD = "ADD";
-    public static final String DELTA_REPLACE = "REPLACE";
-    public static final String DELTA_DELETE = "DELETE";
 
     /* COMPARATOR */
     private static final ArrayComparator arrayComparator = new ArrayComparator();
@@ -157,50 +142,43 @@ public class ProfilingDataManager {
     /*
     *   Here, we will decide, what filter will be applied (based on subsystem) on method end
     * */
-    public void applyGranularityFilterOnEnd(ProceedingJoinPoint pjp, String subsystem, long startTime){
-
-        if(pjp == null)
-            return;
+    public void applyGranularityFilterOnEnd(String className, String methodName, Object[] args, String subsystem, long startTime){
 
         ProfilingDataLog profilingEvent;
 
         if(isRepositoryProfiled && SUBSYSTEM_REPOSITORY.equals(subsystem)){
-            profilingEvent = prepareProfilingDataLog(pjp, GET_OBJECT_TYPE_REPOSITORY, startTime);
+            profilingEvent = prepareProfilingDataLog(className, methodName, startTime, args);
             String key = prepareKey(profilingEvent);
             updateOverallStatistics(performanceMap, profilingEvent, key, SUBSYSTEM_REPOSITORY);
 
         } else if(isModelProfiled && SUBSYSTEM_MODEL.equals(subsystem)){
-            profilingEvent = prepareProfilingDataLog(pjp, GET_OBJECT_TYPE_MODEL, startTime);
+            profilingEvent = prepareProfilingDataLog(className, methodName, startTime, args);
 
-            if(MODEL_EXECUTE_CHANGES.equals(profilingEvent.getMethodName())){
-                profilingEvent.setObjectType(getDeltaType(pjp));
-            }
-
-            String key = prepareKey(profilingEvent);
+                String key = prepareKey(profilingEvent);
             updateOverallStatistics(performanceMap, profilingEvent, key, SUBSYSTEM_MODEL);
 
         } else if (isProvisioningProfiled && SUBSYSTEM_PROVISIONING.equals(subsystem)){
-            profilingEvent = prepareProfilingDataLog(pjp, GET_OBJECT_TYPE_PROVISIONING, startTime);
+            profilingEvent = prepareProfilingDataLog(className, methodName, startTime, args);
             String key = prepareKey(profilingEvent);
             updateOverallStatistics(performanceMap, profilingEvent, key, SUBSYSTEM_PROVISIONING);
 
         } else if (isTaskManagerProfiled && SUBSYSTEM_TASKMANAGER.equals(subsystem)){
-            profilingEvent = prepareProfilingDataLog(pjp, GET_OBJECT_TYPE_TASK_MANAGER, startTime);
+            profilingEvent = prepareProfilingDataLog(className, methodName, startTime, args);
             String key = prepareKey(profilingEvent);
             updateOverallStatistics(performanceMap, profilingEvent, key, SUBSYSTEM_TASKMANAGER);
 
         } else if (isUcfProfiled && SUBSYSTEM_UCF.equals(subsystem)){
-            profilingEvent = prepareProfilingDataLog(pjp, GET_OBJECT_TYPE_UCF, startTime);
+            profilingEvent = prepareProfilingDataLog(className, methodName, startTime, args);
             String key = prepareKey(profilingEvent);
             updateOverallStatistics(performanceMap, profilingEvent, key, SUBSYSTEM_UCF);
 
         } else if(isResourceObjectChangeListenerProfiled && SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER.equals(subsystem)){
-            profilingEvent = prepareProfilingDataLog(pjp, GET_OBJECT_TYPE_SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER, startTime);
+            profilingEvent = prepareProfilingDataLog(className, methodName, startTime, args);
             String key = prepareKey(profilingEvent);
             updateOverallStatistics(performanceMap, profilingEvent, key, SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER);
 
         } else if(isWorkflowProfiled && SUBSYSTEM_WORKFLOW.equals(subsystem)){
-            profilingEvent = prepareProfilingDataLog(pjp, GET_OBJECT_TYPE_WORKFLOW, startTime);
+            profilingEvent = prepareProfilingDataLog(className, methodName, startTime, args);
             String key = prepareKey(profilingEvent);
             updateOverallStatistics(performanceMap, profilingEvent, key, SUBSYSTEM_WORKFLOW);
         }
@@ -357,18 +335,11 @@ public class ProfilingDataManager {
     *
     *   Based on entry boolean getObjectType - method adds working objectType to ProfilingDataLog object
     * */
-    private ProfilingDataLog prepareProfilingDataLog(ProceedingJoinPoint pjp, boolean getObjectType, long startTime){
+    private ProfilingDataLog prepareProfilingDataLog(String className, String methodName, long startTime, Object[] args){
         long eTime = calculateTime(startTime);
         long timestamp = System.currentTimeMillis();
-        String className = getClassName(pjp);
-        String method = getMethodName(pjp);
 
-        ProfilingDataLog profilingEvent = new ProfilingDataLog(className, method, eTime, timestamp, pjp);
-
-        if(getObjectType){
-            String type = getOperationType(pjp);
-            profilingEvent.setObjectType(type);
-        }
+        ProfilingDataLog profilingEvent = new ProfilingDataLog(className, methodName, eTime, timestamp, args);
 
         return profilingEvent;
     }   //prepareProfilingDataLog
@@ -402,63 +373,12 @@ public class ProfilingDataManager {
         return (System.nanoTime() - startTime);
     }   //calculateTime
 
-    /**
-     * Get joinPoint class name if available
-     *
-     */
-    private static String getClassName(ProceedingJoinPoint pjp) {
-        String className = null;
-        if (pjp.getThis() != null) {
-            className = pjp.getThis().getClass().getName();
-            className = className.replaceFirst("com.evolveum.midpoint", "..");
-        }
-        return className;
-    }   //getClassName
+    /* Getters and Setters - mainly for test purposes */
+    public Map<String, MethodUsageStatistics> getPerformanceMap() {
+        return performanceMap;
+    }
 
-    /*
-    *   Retrieves method name from pjp object
-    * */
-    private static String getMethodName(ProceedingJoinPoint pjp){
-        return pjp.getSignature().getName();
-    }   //getMethodName
-
-    /*
-    *  Returns ObjectType with what operation operates
-    */
-    private static String getOperationType(ProceedingJoinPoint pjp){
-        Object[] args = pjp.getArgs();
-
-        if(args.length == 0)
-            return "NO_ARGS";
-
-        try{
-            String[] splitType = PrettyPrinter.prettyPrint(args[0]).split("\\.");
-
-            if(splitType.length < 1)
-                return "null";
-            else
-                return splitType[splitType.length -1];
-
-        } catch (Throwable t){
-            LOGGER.error("Internal error formatting a value: {}", args[0], t);
-            return "###INTERNAL#ERROR### "+t.getClass().getName()+": "+t.getMessage()+" value="+args[0];
-        }
-    }   //getOperationType
-
-    /*
-    *  Return type of delta
-    */
-    private static String getDeltaType(ProceedingJoinPoint pjp){
-        String param = getOperationType(pjp);
-
-        if(param.contains(DELTA_ADD))
-            return DELTA_ADD;
-        else if (param.contains(DELTA_DELETE))
-            return DELTA_DELETE;
-        else if (param.contains(DELTA_REPLACE))
-            return DELTA_REPLACE;
-
-        return "";
-    }   //getDeltaType
-
+    public int getMinuteDumpInterval() {
+        return minuteDumpInterval;
+    }
 }

@@ -33,6 +33,7 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -169,7 +170,7 @@ public class RefFilter extends PropertyValueFilter{
 	}
 
 	@Override
-	public <T extends Objectable> boolean match(PrismObject<T> object) {
+	public <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry) {
 //		ItemPath path = null;
 //		if (getParentPath() != null) {
 //			path = new ItemPath(getParentPath(), getDefinition().getName());
@@ -191,8 +192,13 @@ public class RefFilter extends PropertyValueFilter{
 //			throw new IllegalArgumentException(e.getMessage(), e);
 //		}
 //
-//		return item.equals(filterItem);
-		return super.match(object);
+//		
+		Item item = getObjectItem(object);
+		Item filterItem = getFilterItem();
+		
+		return item.match(filterItem);
+		
+//		return super.match(object, matchingRuleRegistry);
 	}
 
 

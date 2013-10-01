@@ -22,18 +22,22 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.match.MatchingRule;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -188,18 +192,27 @@ public abstract class PropertyValueFilter extends ValueFilter{
 		return clonedValues;
 	}
 	
-	public <T extends Objectable> boolean match(PrismObject<T> object){
+	private ItemPath getFullPath(){
 		ItemPath path = null;
 		if (getParentPath() != null){
-			path = new ItemPath(getParentPath(), getDefinition().getName());
+			return new ItemPath(getParentPath(), getDefinition().getName());
 		} else{
-			path = new ItemPath(getDefinition().getName());
+			return new ItemPath(getDefinition().getName());
 		}
+	}
+	
+	public Item getObjectItem(PrismObject object){
 		
-		Item<?> item = object.findItem(path);
-		if (item == null && getValues() == null) {
-			return true;
-		}
+		ItemPath path = getFullPath();
+		return object.findItem(path);
+//		if (item == null && getValues() == null) {
+//			return true;
+//		}
+		
+	}
+	
+	public Item getFilterItem(){
+
 		Item filterItem = getDefinition().instantiate();
 		if (getValues() != null && !getValues().isEmpty()) {
 			try {
@@ -211,7 +224,15 @@ public abstract class PropertyValueFilter extends ValueFilter{
 			}
 		}
 		
-		return item.match(filterItem);
+		return filterItem;
+	}
+	
+	@Override
+	public <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry){
+//		if (getObjectItem(object) == null && getValues() == null) {
+//			return true;
+//		}
+		return false;
 	}
 	
 }

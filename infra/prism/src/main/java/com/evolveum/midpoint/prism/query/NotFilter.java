@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
 
@@ -84,8 +85,8 @@ public class NotFilter extends UnaryLogicalFilter {
 	}
 
 	@Override
-	public <T extends Objectable> boolean match(PrismObject<T> object) {
-		return !getFilter().match(object);
+	public <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry) {
+		return !getFilter().match(object, matchingRuleRegistry);
 		
 	}
 }

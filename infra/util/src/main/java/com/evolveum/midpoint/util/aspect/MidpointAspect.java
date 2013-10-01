@@ -122,6 +122,7 @@ public class MidpointAspect {
         int d = 1;
         boolean exc = false;
         String excName = null;
+        long elapsed;
 		// Profiling start
 		long startTime = System.nanoTime();
 
@@ -226,7 +227,7 @@ public class MidpointAspect {
                 if (LOGGER_PROFILING.isDebugEnabled()) {
                     sb.append(" etime: ");
                     // Mark end of processing
-                    long elapsed = System.nanoTime() - startTime;
+                    elapsed = System.nanoTime() - startTime;
                     sb.append((long) (elapsed / 1000000));
                     sb.append('.');
                     long mikros = (long) (elapsed / 1000) % 1000;
@@ -251,13 +252,37 @@ public class MidpointAspect {
             }
 
             if(isProfilingActive){
-                ProfilingDataManager.getInstance().applyGranularityFilterOnEnd(pjp, subsystem, startTime);
+
+                if(pjp != null){
+                    ProfilingDataManager.getInstance().applyGranularityFilterOnEnd(getClassName(pjp), getMethodName(pjp) ,pjp.getArgs(), subsystem, startTime);
+                }
             }
 
 			// Restore MDC
 			swapSubsystemMark(prev);
 		}
 	}
+
+    /**
+     * Get joinPoint class name if available
+     *
+     */
+    private String getClassName(ProceedingJoinPoint pjp) {
+        String className = null;
+        if (pjp.getThis() != null) {
+            className = pjp.getThis().getClass().getName();
+            className = className.replaceFirst("com.evolveum.midpoint", "..");
+        }
+        return className;
+    }
+
+    /*
+    *   Retrieves method name from pjp object
+    * */
+    private String getMethodName(ProceedingJoinPoint pjp){
+        return pjp.getSignature().getName();
+    }
+
 
 	@Pointcut("execution(* com.evolveum.midpoint.repo.api.RepositoryService.*(..))")
 	public void entriesIntoRepository() {
@@ -288,19 +313,6 @@ public class MidpointAspect {
     public void entriesIntoWorkflow(){
 
     }
-
-
-	/**
-	 * Get joinpoint class name if available
-	 */
-	private String getClassName(ProceedingJoinPoint pjp) {
-		String className = null;
-		if (pjp.getThis() != null) {
-			className = pjp.getThis().getClass().getName();
-			className = className.replaceFirst("com.evolveum.midpoint", "..");
-		}
-		return className;
-	}
 
     /*
     *   Stores current depth value to MDC

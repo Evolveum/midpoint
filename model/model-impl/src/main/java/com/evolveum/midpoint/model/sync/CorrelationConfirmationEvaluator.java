@@ -42,6 +42,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.LogicalFilter;
 import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
@@ -89,6 +90,9 @@ public class CorrelationConfirmationEvaluator {
 	@Autowired(required = true)
 	private ExpressionFactory expressionFactory;
 
+	@Autowired(required = true)
+	private MatchingRuleRegistry matchingRuleRegistry;
+	
 	public List<PrismObject<UserType>> findUsersByCorrelationRule(ShadowType currentShadow,
 			List<QueryType> queries, ResourceType resourceType, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 
@@ -275,7 +279,7 @@ private boolean matchUserCorrelationRule(PrismObject<ShadowType> currentShadow, 
 					new Object[] { currentShadow, q});
 		}
 //		PagingType paging = new PagingType();
-		return ObjectQuery.match(userType, q.getFilter());
+		return ObjectQuery.match(userType, q.getFilter(), matchingRuleRegistry);
 
 //		if (users == null) {
 //			users = new ArrayList<PrismObject<UserType>>();

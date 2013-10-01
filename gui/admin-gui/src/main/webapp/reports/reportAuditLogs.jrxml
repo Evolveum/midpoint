@@ -5,15 +5,11 @@
 	<property name="ireport.y" value="0"/>
 	<property name="net.sf.jasperreports.awt.ignore.missing.font" value="true"/>
     <property name="net.sf.jasperreports.export.pdf.force.linebreak.policy" value="true"/>
-	<style name="Title" forecolor="#FFFFFF" fontName="DejaVu Sans" fontSize="50" isBold="false"/>
-	<style name="SubTitle" forecolor="#CCCCCC" fontName="DejaVu Sans" fontSize="18" isBold="false"/>
-	<style name="Column header" mode="Transparent" forecolor="#FFFFFF" backcolor="#333333" fontName="DejaVu Sans" fontSize="12" isBold="true"/>
-	<style name="Detail" mode="Transparent" forecolor="#000000" fontName="DejaVu Sans" fontSize="8" isBold="false"/>
-	<style name="Row" mode="Transparent" fontName="DejaVu Sans" fontSize="8" isBold="false">
-		<conditionalStyle>
-			<style mode="Opaque" backcolor="#F0EFEF"/>
-		</conditionalStyle>
-	</style>
+	<style name="Title" forecolor="#FFFFFF" fontName="DejaVu Sans" fontSize="26" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+	<style name="Page header" forecolor="#000000" fontName="DejaVu Sans" fontSize="12" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+	<style name="Column header" mode="Opaque" forecolor="#FFFFFF" backcolor="#333333" fontName="DejaVu Sans" fontSize="12" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+	<style name="Detail" isDefault="false" fontName="DejaVu Sans" fontSize="8" pdfFontName="DejaVuSans.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+	<style name="Page footer" forecolor="#000000" fontName="DejaVu Sans" fontSize="9" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 	<parameter name="LOGO_PATH" class="java.lang.String"/>
 	<parameter name="DATE_FROM" class="java.sql.Timestamp"/>
 	<parameter name="DATE_TO" class="java.sql.Timestamp"/>
@@ -44,58 +40,50 @@
 	<title>
 		<band height="168" splitType="Stretch">
 			<frame>
-				<reportElement uuid="44bedacc-fa23-4fe1-b71f-e5afa943f553" mode="Opaque" x="0" y="0" width="800" height="67" backcolor="#267994"/>
+				<reportElement uuid="44bedacc-fa23-4fe1-b71f-e5afa943f553" style="Title" mode="Opaque" x="0" y="0" width="800" height="67" backcolor="#267994"/>
 				<staticText>
 					<reportElement uuid="f2d99cad-9d84-4f50-b455-453c87f62c4c" style="Title" x="10" y="13" width="266" height="38"/>
-					<textElement verticalAlignment="Middle">
-						<font fontName="DejaVu Sans" size="26" isBold="true"/>
-					</textElement>
+					<textElement verticalAlignment="Middle"/>
 					<text><![CDATA[Audit Log Report]]></text>
 				</staticText>
 				<image>
-					<reportElement uuid="b0a76e6a-8f61-4d60-8dcd-3e51adb4cd4c" x="589" y="13" width="203" height="45"/>
+					<reportElement uuid="b0a76e6a-8f61-4d60-8dcd-3e51adb4cd4c" style="Title" x="589" y="13" width="203" height="45"/>
 					<imageExpression><![CDATA[$P{LOGO_PATH}]]></imageExpression>
 				</image>
 			</frame>
 			<staticText>
-				<reportElement uuid="e035dbd5-dc2f-45cb-936c-a08e9c011e43" x="2" y="85" width="100" height="20"/>
-				<textElement verticalAlignment="Middle">
-					<font fontName="DejaVu Sans" size="14" isBold="true"/>
-				</textElement>
+				<reportElement uuid="e035dbd5-dc2f-45cb-936c-a08e9c011e43" style="Page header" x="2" y="85" width="100" height="20"/>
+				<textElement verticalAlignment="Middle"/>
 				<text><![CDATA[From:]]></text>
 			</staticText>
 			<textField pattern="EEEEE dd MMMMM yyyy, HH:mm:ss">
-				<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Column header" isPrintRepeatedValues="false" x="110" y="85" width="644" height="20" forecolor="#000000"/>
+				<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Page header" isPrintRepeatedValues="false" x="110" y="85" width="644" height="20"/>
 				<textElement verticalAlignment="Middle">
-					<font size="14" isBold="false"/>
+					<font isBold="false"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{DATE_FROM}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement uuid="e035dbd5-dc2f-45cb-936c-a08e9c011e43" x="2" y="115" width="100" height="20"/>
-				<textElement verticalAlignment="Middle">
-					<font fontName="DejaVu Sans" size="14" isBold="true"/>
-				</textElement>
+				<reportElement uuid="e035dbd5-dc2f-45cb-936c-a08e9c011e43" style="Page header" x="2" y="115" width="100" height="20"/>
+				<textElement verticalAlignment="Middle"/>
 				<text><![CDATA[To:]]></text>
 			</staticText>
 			<textField pattern="EEEEE dd MMMMM yyyy, HH:mm:ss">
-				<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Column header" isPrintRepeatedValues="false" x="110" y="115" width="644" height="20" forecolor="#000000"/>
+				<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Page header" isPrintRepeatedValues="false" x="110" y="115" width="644" height="20"/>
 				<textElement verticalAlignment="Middle">
-					<font size="14" isBold="false"/>
+					<font isBold="false"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{DATE_TO}]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement uuid="e035dbd5-dc2f-45cb-936c-a08e9c011e43" x="2" y="145" width="100" height="20"/>
-				<textElement verticalAlignment="Middle">
-					<font fontName="DejaVu Sans" size="14" isBold="true"/>
-				</textElement>
+				<reportElement uuid="e035dbd5-dc2f-45cb-936c-a08e9c011e43" style="Page header" x="2" y="145" width="100" height="20"/>
+				<textElement verticalAlignment="Middle"/>
 				<text><![CDATA[Event Type:]]></text>
 			</staticText>
 			<textField>
-				<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Column header" isPrintRepeatedValues="false" x="110" y="145" width="644" height="20" forecolor="#000000"/>
+				<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Page header" isPrintRepeatedValues="false" x="110" y="145" width="644" height="20"/>
 				<textElement verticalAlignment="Middle">
-					<font size="14" isBold="false"/>
+					<font isBold="false"/>
 				</textElement>
 				<textFieldExpression><![CDATA[$P{EVENT_TYPE_DESC}]]></textFieldExpression>
 			</textField>
@@ -107,39 +95,39 @@
 	<columnHeader>
 		<band height="24" splitType="Stretch">
 			<frame>
-				<reportElement uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a" style="SubTitle" mode="Transparent" x="0" y="1" width="800" height="19" isRemoveLineWhenBlank="true"/>
+				<reportElement uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a" style="Column header" mode="Transparent" x="0" y="1" width="800" height="19" isRemoveLineWhenBlank="true"/>
 				<staticText>
-					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" mode="Opaque" x="0" y="0" width="80" height="18"/>
+					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" x="0" y="0" width="80" height="18"/>
 					<textElement textAlignment="Center" verticalAlignment="Middle"/>
 					<text><![CDATA[Timestamp]]></text>
 				</staticText>
 				<staticText>
-					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" mode="Opaque" x="80" y="0" width="80" height="18"/>
+					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" x="80" y="0" width="80" height="18"/>
 					<textElement textAlignment="Center" verticalAlignment="Middle"/>
 					<text><![CDATA[Initiator]]></text>
 				</staticText>
 				<staticText>
-					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" mode="Opaque" x="160" y="0" width="90" height="18"/>
+					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" x="160" y="0" width="90" height="18"/>
 					<textElement textAlignment="Center" verticalAlignment="Middle"/>
 					<text><![CDATA[Event Type]]></text>
 				</staticText>
 				<staticText>
-					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" mode="Opaque" x="250" y="0" width="90" height="18"/>
+					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" x="250" y="0" width="90" height="18"/>
 					<textElement textAlignment="Center" verticalAlignment="Middle"/>
 					<text><![CDATA[Event Stage]]></text>
 				</staticText>
 				<staticText>
-					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" mode="Opaque" x="340" y="0" width="200" height="18"/>
+					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" x="340" y="0" width="200" height="18"/>
 					<textElement textAlignment="Center" verticalAlignment="Middle"/>
 					<text><![CDATA[Target]]></text>
 				</staticText>
 				<staticText>
-					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" mode="Opaque" x="540" y="0" width="80" height="18"/>
+					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" x="540" y="0" width="80" height="18"/>
 					<textElement textAlignment="Center" verticalAlignment="Middle"/>
 					<text><![CDATA[Outcome]]></text>
 				</staticText>
 				<staticText>
-					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" mode="Opaque" x="620" y="0" width="180" height="18"/>
+					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" x="620" y="0" width="180" height="18"/>
 					<textElement textAlignment="Center" verticalAlignment="Middle"/>
 					<text><![CDATA[Message]]></text>
 				</staticText>
@@ -149,7 +137,7 @@
 	<detail>
 		<band height="15" splitType="Stretch">
 			<frame>
-				<reportElement uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a" style="Row" mode="Opaque" x="0" y="0" width="800" height="14"/>
+				<reportElement uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a" style="Detail" mode="Opaque" x="0" y="0" width="800" height="14"/>
 				<textField isStretchWithOverflow="true" pattern="dd.MM.yy, HH:mm:ss">
 					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="0" y="0" width="80" height="13" isPrintWhenDetailOverflows="true"/>
 					<textElement verticalAlignment="Middle"/>
@@ -206,26 +194,20 @@
 	<pageFooter>
 		<band height="32" splitType="Stretch">
 			<frame>
-				<reportElement uuid="fbe8aae4-6500-468a-b1e8-700b569139a1" mode="Transparent" x="0" y="1" width="800" height="24" forecolor="#000000" backcolor="#267994"/>
+				<reportElement uuid="fbe8aae4-6500-468a-b1e8-700b569139a1" style="Page footer" mode="Transparent" x="0" y="1" width="800" height="24" forecolor="#000000" backcolor="#267994"/>
 				<textField pattern="EEEEE dd MMMMM yyyy">
-					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Column header" x="2" y="1" width="197" height="20" forecolor="#000000"/>
-					<textElement verticalAlignment="Middle">
-						<font size="9" isBold="true"/>
-					</textElement>
+					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Page footer" x="2" y="1" width="197" height="20"/>
+					<textElement verticalAlignment="Middle"/>
 					<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
 				</textField>
 				<textField>
-					<reportElement uuid="5c062c66-ba45-4288-9dcd-246e28c5af75" style="Column header" x="680" y="1" width="80" height="20" forecolor="#000000"/>
-					<textElement textAlignment="Right" verticalAlignment="Middle">
-						<font size="9" isBold="true"/>
-					</textElement>
+					<reportElement uuid="5c062c66-ba45-4288-9dcd-246e28c5af75" style="Page footer" x="680" y="1" width="80" height="20"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle"/>
 					<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
 				</textField>
 				<textField evaluationTime="Report">
-					<reportElement uuid="934b16e8-c3eb-4017-866a-0b7735bf2917" style="Column header" x="760" y="1" width="40" height="20" forecolor="#000000"/>
-					<textElement verticalAlignment="Middle">
-						<font size="9" isBold="true"/>
-					</textElement>
+					<reportElement uuid="934b16e8-c3eb-4017-866a-0b7735bf2917" style="Page footer" x="760" y="1" width="40" height="20"/>
+					<textElement verticalAlignment="Middle"/>
 					<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
 				</textField>
 			</frame>
