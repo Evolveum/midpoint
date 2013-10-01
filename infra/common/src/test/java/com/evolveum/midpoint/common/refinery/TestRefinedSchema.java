@@ -45,12 +45,14 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
@@ -223,6 +225,29 @@ public class TestRefinedSchema {
 	        
 	        assertEquals("Unexpected number of entitlement associations", 1, rAccountDef.getEntitlementAssociations().size());
         }
+        
+        ResourceAttributeContainerDefinition resAttrContainerDef = rAccountDef.toResourceAttributeContainerDefinition();
+        assertNotNull("No ResourceAttributeContainerDefinition", resAttrContainerDef);
+        System.out.println("\nResourceAttributeContainerDefinition ("+sourceLayer+")");
+        System.out.println(resAttrContainerDef.dump());
+        
+        ObjectClassComplexTypeDefinition rComplexTypeDefinition = resAttrContainerDef.getComplexTypeDefinition();
+        System.out.println("\nResourceAttributeContainerDefinition ComplexTypeDefinition ("+sourceLayer+")");
+        System.out.println(rComplexTypeDefinition.dump());
+
+        ResourceAttributeDefinition riUidAttrDef = resAttrContainerDef.findAttributeDefinition(new QName(resourceType.getNamespace(), "uid"));
+        assertNotNull("No ri:uid def in ResourceAttributeContainerDefinition", riUidAttrDef);
+        System.out.println("\nri:uid def "+riUidAttrDef.getClass()+" ("+sourceLayer+")");
+        System.out.println(riUidAttrDef.dump());
+        
+        if (validationLayer == LayerType.PRESENTATION) {
+        	assertFalse("Can update "+riUidAttrDef+" from ResourceAttributeContainerDefinition ("+sourceLayer+")", 
+        			riUidAttrDef.canUpdate());
+        } else {
+        	assertTrue("Cannot update "+riUidAttrDef+" from ResourceAttributeContainerDefinition ("+sourceLayer+")", 
+        			riUidAttrDef.canUpdate());
+        }
+        
     }
 
 
