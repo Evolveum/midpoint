@@ -154,7 +154,8 @@ public abstract class ItemDefinition extends Definition implements Serializable 
      * @return true if property is single-valued.
      */
     public boolean isSingleValue() {
-        return getMaxOccurs() >= 0 && getMaxOccurs() <= 1;
+    	int maxOccurs = getMaxOccurs();
+        return maxOccurs >= 0 && maxOccurs <= 1;
     }
 
     /**
@@ -163,7 +164,8 @@ public abstract class ItemDefinition extends Definition implements Serializable 
      * @return true if property is multi-valued.
      */
     public boolean isMultiValue() {
-        return getMaxOccurs() < 0 || getMaxOccurs() > 1;
+    	int maxOccurs = getMaxOccurs();
+        return maxOccurs < 0 || maxOccurs > 1;
     }
 
     /**
@@ -312,9 +314,9 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 	void debugDumpShortToString(StringBuilder sb) {
 		sb.append(PrettyPrinter.prettyPrint(getTypeName()));
 		sb.append("[");
-		sb.append(minOccurs);
+		sb.append(getMinOccurs());
 		sb.append(",");
-		sb.append(maxOccurs);
+		sb.append(getMaxOccurs());
 		sb.append("]");
 		if (isIgnored()) {
 			sb.append(",ignored");

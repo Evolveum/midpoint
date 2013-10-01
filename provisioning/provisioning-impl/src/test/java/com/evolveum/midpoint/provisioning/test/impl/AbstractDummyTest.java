@@ -159,6 +159,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	// Values used to check if something is unchanged or changed properly
 	private CachingMetadataType lastCachingMetadata;
 	private long lastConnectorSchemaFetchCount = 0;
+	private long lastConnectorCapabilitiesFetchCount = 0;
 	private long lastConnectorInitializationCount = 0;
 	private long lastResourceSchemaParseCount = 0;
 	private CachingStatistics lastResourceCacheStats;
@@ -354,6 +355,17 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		assertEquals("Unexpected increment in connector schema fetch count", (long)expectedIncrement, actualIncrement);
 		lastConnectorSchemaFetchCount = currentConnectorSchemaFetchCount;
 	}
+	
+	protected void rememberConnectorCapabilitiesFetchCount() {
+		lastConnectorCapabilitiesFetchCount = InternalMonitor.getConnectorCapabilitiesFetchCount();
+	}
+
+	protected void assertConnectorCapabilitiesFetchIncrement(int expectedIncrement) {
+		long currentConnectorCapabilitiesFetchCount = InternalMonitor.getConnectorCapabilitiesFetchCount();
+		long actualIncrement = currentConnectorCapabilitiesFetchCount - lastConnectorCapabilitiesFetchCount;
+		assertEquals("Unexpected increment in connector capabilities fetch count", (long)expectedIncrement, actualIncrement);
+		lastConnectorCapabilitiesFetchCount = currentConnectorCapabilitiesFetchCount;
+	}
 
 	protected void rememberConnectorInitializationCount() {
 		lastConnectorInitializationCount  = InternalMonitor.getConnectorInitializationCount();
@@ -472,6 +484,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	
 	protected void assertSteadyResource() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		assertConnectorSchemaFetchIncrement(0);
+		assertConnectorCapabilitiesFetchIncrement(0);
 		assertConnectorInitializationCountIncrement(0);
 		assertResourceSchemaParseCountIncrement(0);
 		assertResourceVersionIncrement(resource, 0);

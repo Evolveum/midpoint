@@ -400,6 +400,8 @@ public class ResourceManager {
 		Collection<Object> capabilities = null;
 		try {
 
+			InternalMonitor.recordConnectorCapabilitiesFetchCount();
+			
 			capabilities = connector.fetchCapabilities(result);
 
 		} catch (GenericFrameworkException ex) {

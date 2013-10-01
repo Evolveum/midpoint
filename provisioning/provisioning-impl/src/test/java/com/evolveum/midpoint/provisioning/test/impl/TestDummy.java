@@ -280,6 +280,7 @@ public class TestDummy extends AbstractDummyTest {
 		// Some connector initialization and other things might happen in previous tests.
 		// The monitor is static, not part of spring context, it will not be cleared
 		rememberConnectorSchemaFetchCount();
+		rememberConnectorCapabilitiesFetchCount();
 		rememberConnectorInitializationCount();
 		rememberResourceSchemaParseCount();
 		rememberResourceCacheStats();
@@ -329,6 +330,7 @@ public class TestDummy extends AbstractDummyTest {
 		// schema will be checked in next test
 		
 		assertConnectorSchemaFetchIncrement(1);
+		assertConnectorCapabilitiesFetchIncrement(1);
 		assertConnectorInitializationCountIncrement(1);
 		assertResourceSchemaParseCountIncrement(1);
 		// One increment for availablity status, the other for schema
