@@ -46,6 +46,8 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
 
     private static final Trace LOGGER = TraceManager.getTrace(BaseSQLRepoTest.class);
 
+    public static final File FOLDER_BASE = new File("./src/test/resources");
+
     public static final File FOLDER_BASIC = new File("./src/test/resources/basic");
 
     @Autowired
