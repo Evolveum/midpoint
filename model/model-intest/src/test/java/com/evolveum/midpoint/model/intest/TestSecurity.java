@@ -115,6 +115,7 @@ public class TestSecurity extends AbstractInitializedModelIntegrationTest {
         
         // THEN
         display("Principal barbossa", principal);
+        assertNotNull("No principal for username "+USER_BARBOSSA_USERNAME, principal);
         assertEquals("wrong username", USER_BARBOSSA_USERNAME, principal.getUsername());
         assertEquals("wrong oid", USER_BARBOSSA_OID, principal.getOid());
         assertTrue("Unexpected authorizations", principal.getAuthorities().isEmpty());

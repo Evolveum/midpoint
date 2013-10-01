@@ -202,7 +202,10 @@ public class ComplexTypeDefinition extends Definition {
     }
 	
 	private <T extends ItemDefinition> boolean isItemValid(ItemDefinition def, QName name, Class<T> clazz) {
-        return clazz.isAssignableFrom(def.getClass()) && name.equals(def.getName());
+		if (def == null) {
+    		return false;
+    	}
+    	return def.isValidFor(name, clazz);
 	}
 	
 	/**

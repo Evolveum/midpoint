@@ -143,6 +143,10 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         assignmentEvaluator.setObjectResolver(objectResolver);
         assignmentEvaluator.setPrismContext(prismContext);
         assignmentEvaluator.setValueConstructionFactory(valueConstructionFactory);
+        // We do need only authorizations. Therefore we not need to evaluate constructions,
+        // so switching it off is faster. It also avoids nasty problems with resources being down,
+        // resource schema not available, etc.
+        assignmentEvaluator.setEvaluateConstructions(false);
 		
         OperationResult result = new OperationResult(UserDetailsServiceImpl.class.getName() + ".addAuthorizations");
         for(AssignmentType assignmentType: userType.getAssignment()) {

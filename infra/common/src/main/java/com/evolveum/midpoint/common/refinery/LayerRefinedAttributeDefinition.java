@@ -50,6 +50,9 @@ public class LayerRefinedAttributeDefinition extends RefinedAttributeDefinition 
 	}
 
 	static LayerRefinedAttributeDefinition wrap(RefinedAttributeDefinition rAttrDef, LayerType layer) {
+		if (rAttrDef == null) {
+			return null;
+		}
 		return new LayerRefinedAttributeDefinition(rAttrDef, layer);
 	}
 	

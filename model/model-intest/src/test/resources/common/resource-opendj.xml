@@ -340,6 +340,10 @@
 	</schemaHandling>
 	
 	<capabilities xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2">
+		<cachingMetadata>
+         <retrievalTimestamp>2012-03-20T13:02:29.275+01:00</retrievalTimestamp>
+         <serialNumber>1798eed6def9f54c-3d4bce63faa79272</serialNumber>
+      </cachingMetadata>
 	<!-- Storing native capabilities here and don't letting midpoint to fetch it from the resource.
 		Some tests work without running resource, generating fetching capabilities would fail. -->
 		<native>
