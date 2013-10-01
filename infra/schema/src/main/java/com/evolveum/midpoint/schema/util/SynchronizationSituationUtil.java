@@ -124,11 +124,11 @@ public class SynchronizationSituationUtil {
 		syncSituationDelta.addValueToAdd(new PrismPropertyValue(syncSituationDescription));
 		deltas.add(syncSituationDelta);
 		
-		SynchronizationSituationDescriptionType oldSituationDescription = getSituationFromSameChannel(object, sourceChannel);
-		if (oldSituationDescription != null) {
+		List<PrismPropertyValue<SynchronizationSituationDescriptionType>> oldSituationDescriptions = getSituationFromSameChannel(object, sourceChannel);
+		if (oldSituationDescriptions != null || !oldSituationDescriptions.isEmpty()) {
 			syncSituationDelta = PropertyDelta.createDelta(new ItemPath(
 					ShadowType.F_SYNCHRONIZATION_SITUATION_DESCRIPTION), object.getDefinition());
-			syncSituationDelta.addValueToDelete(new PrismPropertyValue(oldSituationDescription));
+			syncSituationDelta.addValuesToDelete(oldSituationDescriptions);
 			deltas.add(syncSituationDelta);
 		}
 		
@@ -137,23 +137,29 @@ public class SynchronizationSituationUtil {
 
 	}
 	
-	private static SynchronizationSituationDescriptionType getSituationFromSameChannel(PrismObject prismObject, String channel){
+	private static List<PrismPropertyValue<SynchronizationSituationDescriptionType>> getSituationFromSameChannel(PrismObject prismObject, String channel){
 		ShadowType target = (ShadowType) prismObject.asObjectable();
 		List<SynchronizationSituationDescriptionType> syncSituationDescriptions = ((ShadowType) target).getSynchronizationSituationDescription();
+		List<PrismPropertyValue<SynchronizationSituationDescriptionType>> valuesToDelete = new ArrayList<PrismPropertyValue<SynchronizationSituationDescriptionType>>();
 		if (syncSituationDescriptions == null || syncSituationDescriptions.isEmpty()){
 			return null;
 		}
 		for (SynchronizationSituationDescriptionType syncSituationDescription : syncSituationDescriptions){
 			if (StringUtils.isEmpty(syncSituationDescription.getChannel()) && StringUtils.isEmpty(channel)){
-				return syncSituationDescription;
+				valuesToDelete.add(new PrismPropertyValue<SynchronizationSituationDescriptionType>(syncSituationDescription));
+				continue;
+//				return syncSituationDescription;
 			}
 			if ((StringUtils.isEmpty(syncSituationDescription.getChannel()) && channel != null) || (StringUtils.isEmpty(channel) && syncSituationDescription.getChannel() != null)){
-				return null;
+//				return null;
+				continue;
 			}
 			if (syncSituationDescription.getChannel().equals(channel)){
-				return syncSituationDescription;
+				valuesToDelete.add(new PrismPropertyValue<SynchronizationSituationDescriptionType>(syncSituationDescription));
+				continue;
+//				return syncSituationDescription;
 			}
 		}
-		return null;
+		return valuesToDelete;
 	}
 }
