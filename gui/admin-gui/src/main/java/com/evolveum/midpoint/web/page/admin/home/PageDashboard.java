@@ -160,7 +160,7 @@ public class PageDashboard extends PageAdminHome {
 
     private void initPersonalInfo() {
         DashboardPanel personalInfo = new DashboardPanel(ID_PERSONAL_INFO, null,
-                createStringResource("PageDashboard.personalInfo")) {
+                createStringResource("PageDashboard.personalInfo"), DashboardColor.GRAY) {
 
             @Override
             protected Component getMainComponent(String componentId) {
@@ -211,7 +211,7 @@ public class PageDashboard extends PageAdminHome {
     private void initMyWorkItems() {
         AsyncDashboardPanel<Object, List<WorkItemDto>> workItems =
                 new AsyncDashboardPanel<Object, List<WorkItemDto>>(ID_WORK_ITEMS,
-                        createStringResource("PageDashboard.workItems")) {
+                        createStringResource("PageDashboard.workItems"), DashboardColor.RED) {
 
                     @Override
                     protected Callable<CallableResult<List<WorkItemDto>>> createCallable(IModel callableParameterModel) {
@@ -242,7 +242,7 @@ public class PageDashboard extends PageAdminHome {
     private void initMyAccounts() {
         AsyncDashboardPanel<Object, List<SimpleAccountDto>> accounts =
                 new AsyncDashboardPanel<Object, List<SimpleAccountDto>>(ID_ACCOUNTS,
-                        createStringResource("PageDashboard.accounts")) {
+                        createStringResource("PageDashboard.accounts"), DashboardColor.BLUE) {
 
                     @Override
                     protected Callable<CallableResult<List<SimpleAccountDto>>> createCallable(
@@ -293,7 +293,7 @@ public class PageDashboard extends PageAdminHome {
     private void initAssignments() {
         AsyncDashboardPanel<Object, List<AssignmentItemDto>> assignedOrgUnits =
                 new AsyncDashboardPanel<Object, List<AssignmentItemDto>>(ID_ASSIGNMENTS,
-                        createStringResource("PageDashboard.assignments")) {
+                        createStringResource("PageDashboard.assignments"), DashboardColor.YELLOW) {
 
                     @Override
                     protected Callable<CallableResult<List<AssignmentItemDto>>> createCallable(IModel callableParameterModel) {

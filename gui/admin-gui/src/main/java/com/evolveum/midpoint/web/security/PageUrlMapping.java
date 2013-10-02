@@ -87,10 +87,7 @@ public enum PageUrlMapping {
 
     ADMIN("/admin", PageDashboard.class, MidPointPageParametersEncoder.ENCODER, new String[]{AUTZ_UI_DASHBOARD_URL, AUTZ_UI_HOME_ALL_URL}),
 
-    CONFIG_TEST("/admin/config/test", PageTest.class, MidPointPageParametersEncoder.ENCODER, new String[]{AUTZ_DENY_ALL_URL}),
-
     TEST_BOOTSTRAP("/bootstrap", PageBootstrap.class, MidPointPageParametersEncoder.ENCODER, null);
-
 
     private String url;
 

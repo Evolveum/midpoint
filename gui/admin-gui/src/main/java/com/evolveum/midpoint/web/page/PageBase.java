@@ -248,13 +248,7 @@ public abstract class PageBase extends WebPage {
     }
 
     protected IModel<String> createPageSubTitleModel() {
-        return new AbstractReadOnlyModel<String>() {
-
-            @Override
-            public String getObject() {
-                return "";
-            }
-        };
+        return new StringResourceModel("page.subTitle", this, new Model<String>(), "");
     }
 
     protected IModel<String> createPageTitleModel() {

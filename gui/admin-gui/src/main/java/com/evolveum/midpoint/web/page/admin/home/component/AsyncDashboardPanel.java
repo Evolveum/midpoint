@@ -22,7 +22,9 @@ import com.evolveum.midpoint.web.component.async.CallableResult;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
@@ -34,6 +36,7 @@ import org.apache.wicket.util.time.Duration;
  */
 public abstract class AsyncDashboardPanel<V, T> extends AsyncUpdatePanel<V, CallableResult<T>> {
 
+    private static final String ID_DASHBOARD_PARENT = "dashboardParent";
     private static final String ID_DASHBOARD_TITLE = "dashboardTitle";
     private static final String ID_TITLE = "title";
     private static final String ID_PRELOADER_CONTAINER = "preloaderContainer";
@@ -41,31 +44,42 @@ public abstract class AsyncDashboardPanel<V, T> extends AsyncUpdatePanel<V, Call
     private static final String ID_DASHBOARD_CONTENT = "dashboardContent";
     private static final String ID_CONTENT = "content";
 
-    public AsyncDashboardPanel(String id, IModel<String> title) {
-        this(id, title, new Model());
+    public AsyncDashboardPanel(String id, IModel<String> title, DashboardColor color) {
+        this(id, title, new Model(), color);
     }
 
-    public AsyncDashboardPanel(String id, IModel<String> title, IModel<V> callableParameterModel) {
-        this(id, title, callableParameterModel, Duration.seconds(DEFAULT_TIMER_DURATION));
+    public AsyncDashboardPanel(String id, IModel<String> title, IModel<V> callableParameterModel,
+                               DashboardColor color) {
+        this(id, title, callableParameterModel, Duration.seconds(DEFAULT_TIMER_DURATION), color);
     }
 
-    public AsyncDashboardPanel(String id, IModel<String> title, IModel<V> callableParameterModel, Duration durationSecs) {
+    public AsyncDashboardPanel(String id, IModel<String> title, IModel<V> callableParameterModel,
+                               Duration durationSecs, DashboardColor color) {
         super(id, callableParameterModel, durationSecs);
 
-        Label label = (Label) get(createComponentPath(ID_DASHBOARD_TITLE, ID_TITLE));
+        Label label = (Label) get(createComponentPath(ID_DASHBOARD_PARENT, ID_DASHBOARD_TITLE, ID_TITLE));
         label.setDefaultModel(title);
+
+        if (color == null) {
+            color = DashboardColor.GRAY;
+        }
+        Component dashboardParent = get(ID_DASHBOARD_PARENT);
+        dashboardParent.add(new AttributeAppender("class", " " + color.getCssClass()));
     }
 
     @Override
     protected void initLayout() {
+        WebMarkupContainer dashboardParent = new WebMarkupContainer(ID_DASHBOARD_PARENT);
+        add(dashboardParent);
+
         WebMarkupContainer dashboardTitle = new WebMarkupContainer(ID_DASHBOARD_TITLE);
-        add(dashboardTitle);
+        dashboardParent.add(dashboardTitle);
         Label title = new Label(ID_TITLE);
         title.setRenderBodyOnly(true);
         dashboardTitle.add(title);
 
         WebMarkupContainer dashboardContent = new WebMarkupContainer(ID_DASHBOARD_CONTENT);
-        add(dashboardContent);
+        dashboardParent.add(dashboardContent);
 
         dashboardContent.add(new Label(ID_CONTENT));
 
@@ -84,7 +98,7 @@ public abstract class AsyncDashboardPanel<V, T> extends AsyncUpdatePanel<V, Call
 
     @Override
     protected void onPostSuccess(AjaxRequestTarget target) {
-        WebMarkupContainer dashboardContent = (WebMarkupContainer) get(ID_DASHBOARD_CONTENT);
+        WebMarkupContainer dashboardContent = getDashboardContent();
         dashboardContent.replace(getMainComponent(ID_CONTENT));
 
         PageBase page = (PageBase) getPage();
@@ -93,11 +107,15 @@ public abstract class AsyncDashboardPanel<V, T> extends AsyncUpdatePanel<V, Call
         target.add(this, page.getFeedbackPanel());
     }
 
+    private WebMarkupContainer getDashboardContent() {
+        return (WebMarkupContainer) get(createComponentPath(ID_DASHBOARD_PARENT, ID_DASHBOARD_CONTENT));
+    }
+
     @Override
     protected void onUpdateError(AjaxRequestTarget target, Exception ex) {
         String message = "Error occurred while fetching data: " + ex.getMessage();
         Label errorLabel = new Label(ID_CONTENT, message);
-        WebMarkupContainer dashboardContent = (WebMarkupContainer) get(ID_DASHBOARD_CONTENT);
+        WebMarkupContainer dashboardContent = getDashboardContent();
         dashboardContent.replace(errorLabel);
 
         PageBase page = (PageBase) getPage();
