@@ -16,7 +16,9 @@
 
 package com.evolveum.midpoint.web.page.login;
 
+import com.evolveum.midpoint.web.component.login.LocalePanel;
 import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
+import com.evolveum.midpoint.web.component.menu.top2.TopMenuBar;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
@@ -34,15 +36,14 @@ import java.util.List;
  */
 public class PageLogin extends PageBase {
 
-    private static final String ID_LOGIN_PANEL = "loginPanel";
     private static final String ID_LOGIN_FORM = "loginForm";
 
     private static final String ID_USERNAME = "username";
     private static final String ID_PASSWORD = "password";
 
     public PageLogin() {
-//        LocalePanel locale = new LocalePanel(ID_LOGIN_PANEL);
-//        addOrReplace(locale);
+        TopMenuBar menuBar = getTopMenuBar();
+        menuBar.addOrReplace(new LocalePanel(TopMenuBar.ID_RIGHT_PANEL));
 
         Form form = new Form(ID_LOGIN_FORM) {
 

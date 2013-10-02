@@ -19,27 +19,24 @@ package com.evolveum.midpoint.web.component.login;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.markup.head.CssReferenceHeaderItem;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.extensions.markup.html.form.select.IOptionRenderer;
+import org.apache.wicket.extensions.markup.html.form.select.Select;
+import org.apache.wicket.extensions.markup.html.form.select.SelectOption;
+import org.apache.wicket.extensions.markup.html.form.select.SelectOptions;
 import org.apache.wicket.markup.head.IHeaderResponse;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.panel.Panel;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.protocol.http.WebApplication;
 import org.apache.wicket.request.resource.IResource;
-import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.request.resource.ResourceReference;
 
 import java.io.File;
@@ -59,6 +56,9 @@ public class LocalePanel extends Panel {
     private static final Trace LOGGER = TraceManager.getTrace(LocalePanel.class);
     private static final String LOCALIZATION_DESCRIPTOR = "Messages.localization";
     private static final List<LocaleDescriptor> AVAILABLE_LOCALES;
+
+    private static final String ID_SELECT = "select";
+    private static final String ID_OPTIONS = "options";
 
     static {
         List<LocaleDescriptor> locales = new ArrayList<LocaleDescriptor>();
@@ -101,48 +101,58 @@ public class LocalePanel extends Panel {
     public LocalePanel(String id) {
         super(id);
 
-        final WebMarkupContainer container = new WebMarkupContainer("locale");
-        container.setOutputMarkupId(true);
+        setRenderBodyOnly(true);
 
-        ListView<LocaleDescriptor> ulList = new ListView<LocaleDescriptor>("locales",
-                new AbstractReadOnlyModel<List<LocaleDescriptor>>() {
+        final IModel<LocaleDescriptor> model = new Model(getSelectedLocaleDescriptor());
+        Select<LocaleDescriptor> select = new Select<LocaleDescriptor>(ID_SELECT, model);
+        select.add(new AjaxFormComponentUpdatingBehavior("onchange") {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                System.out.println("asdf");
+                changeLocale(target, model.getObject());
+            }
+        });
+        select.setOutputMarkupId(true);
+        add(select);
+        SelectOptions<LocaleDescriptor> options = new SelectOptions<LocaleDescriptor>(ID_OPTIONS, AVAILABLE_LOCALES,
+                new IOptionRenderer<LocaleDescriptor>() {
 
                     @Override
-                    public List<LocaleDescriptor> getObject() {
-                        return AVAILABLE_LOCALES;
+                    public String getDisplayValue(LocaleDescriptor object) {
+                        return object.getName();
+                    }
+
+                    @Override
+                    public IModel<LocaleDescriptor> getModel(LocaleDescriptor value) {
+                        return new Model<LocaleDescriptor>(value);
                     }
                 }) {
 
             @Override
-            protected void populateItem(final ListItem<LocaleDescriptor> components) {
-                AjaxLink<LocaleDescriptor> link = new AjaxLink<LocaleDescriptor>("localeLink",
-                        components.getModel()) {
+            protected SelectOption newOption(String text, IModel<LocaleDescriptor> model) {
+                SelectOption option = super.newOption("&nbsp;" + text, model);
+                option.add(new AttributeModifier("data-icon", "flag-" + model.getObject().getFlag()));
 
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        changeLocale(target, getModelObject());
-                    }
-                };
-                components.add(link);
-                link.add(new VisibleEnableBehaviour() {
-
-                    @Override
-                    public boolean isEnabled() {
-                        Locale locale = getSession().getLocale();
-                        if (locale == null) {
-                            return true;
-                        }
-
-                        LocaleDescriptor descriptor = components.getModelObject();
-                        return !locale.equals(descriptor.getLocale());
-                    }
-                });
-                link.add(new AttributeModifier("style", createStyle(link.getModelObject())));
-                link.add(new AttributeModifier("title", new PropertyModel<String>(link.getModelObject(), "name")));
+                return option;
             }
         };
-        container.add(ulList);
-        add(container);
+        select.add(options);
+    }
+
+    private LocaleDescriptor getSelectedLocaleDescriptor() {
+        Locale locale = getSession().getLocale();
+        if (locale == null) {
+            return null;
+        }
+
+        for (LocaleDescriptor desc : AVAILABLE_LOCALES) {
+            if (locale.equals(desc.getLocale())) {
+                return desc;
+            }
+        }
+
+        return null;
     }
 
     private static void mountFlagImage(URL url, String flag) throws URISyntaxException, MalformedURLException {
@@ -162,16 +172,12 @@ public class LocalePanel extends Panel {
                 });
     }
 
-    private IModel<String> createStyle(LocaleDescriptor descriptor) {
-        return new Model<String>("background: url('img/flag/" + descriptor.getFlag() + "') no-repeat;");
-    }
-
     @Override
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
 
-        response.render(CssReferenceHeaderItem.forReference(
-                new PackageResourceReference(LocalePanel.class, "LocalePanel.css")));
+        String selectId = get(ID_SELECT).getMarkupId();
+        response.render(OnDomReadyHeaderItem.forScript("$('#" + selectId + "').selectpicker({});"));
     }
 
     private void changeLocale(AjaxRequestTarget target, LocaleDescriptor descriptor) {

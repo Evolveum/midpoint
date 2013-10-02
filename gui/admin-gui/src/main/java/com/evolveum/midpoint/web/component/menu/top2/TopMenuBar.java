@@ -2,6 +2,7 @@ package com.evolveum.midpoint.web.component.menu.top2;
 
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;
@@ -22,6 +23,7 @@ public class TopMenuBar extends Panel {
     private static String ID_LABEL = "label";
     private static String ID_MENU_ITEM = "menuItem";
     private static String ID_MENU_ITEM_BODY = "menuItemBody";
+    public static String ID_RIGHT_PANEL = "rightPanel";
 
     public TopMenuBar(String id, List<MenuBarItem> items) {
         super(id);
@@ -30,7 +32,7 @@ public class TopMenuBar extends Panel {
         initLayout(items);
     }
 
-    private void initLayout(List<MenuBarItem> items) {
+    private void initLayout(final List<MenuBarItem> items) {
         ListView<MenuBarItem> topMenuBar = new ListView<MenuBarItem>(ID_TOP_MENU_BAR, items) {
 
             @Override
@@ -38,7 +40,18 @@ public class TopMenuBar extends Panel {
                 initMenuBarItem(menuBar);
             }
         };
+        topMenuBar.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return !items.isEmpty();
+            }
+        });
         add(topMenuBar);
+
+        WebMarkupContainer rightPanel = new WebMarkupContainer(ID_RIGHT_PANEL);
+        rightPanel.setVisible(false);
+        add(rightPanel);
     }
 
     private void initMenuBarItem(ListItem<MenuBarItem> menuBar) {

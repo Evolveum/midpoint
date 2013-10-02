@@ -114,7 +114,6 @@ public abstract class PageBase extends WebPage {
     private static final String ID_DEBUG_PANEL = "debugPanel";
     private static final String ID_TOP_MENU = "topMenu";
     private static final String ID_VERSION = "version";
-    private static final String ID_LOGIN_PANEL = "loginPanel";
     private static final String ID_FEEDBACK_CONTAINER = "feedbackContainer";
     private static final String ID_FEEDBACK = "feedback";
     private static final String ID_TEMP_FEEDBACK = "tempFeedback";
@@ -224,6 +223,10 @@ public abstract class PageBase extends WebPage {
 
         TempFeedback tempFeedback = new TempFeedback(ID_TEMP_FEEDBACK);
         feedbackContainer.add(tempFeedback);
+    }
+
+    protected TopMenuBar getTopMenuBar() {
+        return (TopMenuBar) get(ID_TOP_MENU);
     }
 
     protected List<MenuBarItem> createMenuItems() {
