@@ -25,6 +25,7 @@ public class TopMenuBar extends Panel {
 
     public TopMenuBar(String id, List<MenuBarItem> items) {
         super(id);
+        setRenderBodyOnly(true);
 
         initLayout(items);
     }

@@ -70,6 +70,7 @@ import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
 import org.apache.wicket.Page;
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.RuntimeConfigurationType;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.devutils.debugbar.DebugBar;
@@ -112,6 +113,7 @@ public abstract class PageBase extends WebPage {
     private static final String ID_PAGE_SUBTITLE = "pageSubtitle";
     private static final String ID_DEBUG_PANEL = "debugPanel";
     private static final String ID_TOP_MENU = "topMenu";
+    private static final String ID_VERSION = "version";
     private static final String ID_LOGIN_PANEL = "loginPanel";
     private static final String ID_FEEDBACK_CONTAINER = "feedbackContainer";
     private static final String ID_FEEDBACK = "feedback";
@@ -182,6 +184,16 @@ public abstract class PageBase extends WebPage {
 
         TopMenuBar topMenu = new TopMenuBar(ID_TOP_MENU, createMenuItems());
         add(topMenu);
+
+        WebMarkupContainer version = new WebMarkupContainer(ID_VERSION);
+        version.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return RuntimeConfigurationType.DEVELOPMENT.equals(getApplication().getConfigurationType());
+            }
+        });
+        add(version);
 
 //        LoginPanel loginPanel = new LoginPanel(ID_LOGIN_PANEL);
 //        add(loginPanel);
