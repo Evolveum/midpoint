@@ -95,7 +95,6 @@ public class LocalePanel extends Panel {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                System.out.println("asdf");
                 changeLocale(target, model.getObject());
             }
         });

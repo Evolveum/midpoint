@@ -31,14 +31,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 /**
  * @author lazyman
  */
-public class LoginPanel extends BaseSimplePanel {
+public class UserMenuPanel extends BaseSimplePanel {
 
     private static final String ID_USERNAME = "username";
     private static final String ID_LOGOUT_LINK = "logoutLink";
     private static final String ID_EDIT_PROFILE = "editProfile";
     private static final String ID_RESET_PASSWORDS = "resetPasswords";
 
-    public LoginPanel(String id) {
+    public UserMenuPanel(String id) {
         super(id);
 
         setRenderBodyOnly(true);
@@ -58,15 +58,15 @@ public class LoginPanel extends BaseSimplePanel {
 
         ExternalLink logoutLink = new ExternalLink(ID_LOGOUT_LINK,
                 new Model<String>(RequestCycle.get().getRequest().getContextPath() + "/j_spring_security_logout"),
-                createStringResource("LoginPanel.logout"));
+                createStringResource("UserMenuPanel.logout"));
         add(logoutLink);
 
         LabeledBookmarkableLink editProfile = new LabeledBookmarkableLink(ID_EDIT_PROFILE,
-                new MenuItem(createStringResource("LoginPanel.editProfile"), PageDashboard.class));
+                new MenuItem(createStringResource("UserMenuPanel.editProfile"), PageDashboard.class));
         add(editProfile);
 
         LabeledBookmarkableLink resetPasswords = new LabeledBookmarkableLink(ID_RESET_PASSWORDS,
-                new MenuItem(createStringResource("LoginPanel.resetPasswords"), PageDashboard.class));
+                new MenuItem(createStringResource("UserMenuPanel.resetPasswords"), PageDashboard.class));
         add(resetPasswords);
     }
 
