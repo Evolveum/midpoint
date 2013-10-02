@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.web.page.login;
 
-import com.evolveum.midpoint.web.component.login.LocalePanel;
+import com.evolveum.midpoint.web.component.menu.top2.right.LocalePanel;
 import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
 import com.evolveum.midpoint.web.component.menu.top2.TopMenuBar;
 import com.evolveum.midpoint.web.page.PageBase;

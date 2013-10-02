@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.web.component.login;
+package com.evolveum.midpoint.web.component.menu.top2.right;
 
 import com.evolveum.midpoint.web.component.menu.top2.MenuItem;
 import com.evolveum.midpoint.web.component.util.BaseSimplePanel;

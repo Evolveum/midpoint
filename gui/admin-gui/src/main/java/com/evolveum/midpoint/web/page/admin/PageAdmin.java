@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.web.page.admin;
 
 import com.evolveum.midpoint.common.security.AuthorizationConstants;
-import com.evolveum.midpoint.web.component.login.LoginPanel;
+import com.evolveum.midpoint.web.component.menu.top2.right.LoginPanel;
 import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
 import com.evolveum.midpoint.web.component.menu.top2.MenuBarItem;
 import com.evolveum.midpoint.web.component.menu.top2.MenuItem;
