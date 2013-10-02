@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.schema.processor;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -324,16 +325,24 @@ public class ResourceAttributeContainerDefinition extends PrismContainerDefiniti
 		return findAttributeDefinition(elementQName);
 	}
 	
-	public Collection<? extends ResourceAttributeDefinition> getAttributeDefinitions() {
-		Set<ResourceAttributeDefinition> attrs = new HashSet<ResourceAttributeDefinition>();
+	public List<? extends ResourceAttributeDefinition> getAttributeDefinitions() {
+		List<ResourceAttributeDefinition> attrs = new ArrayList<ResourceAttributeDefinition>();
 		for (ItemDefinition def: complexTypeDefinition.getDefinitions()) {
 			if (def instanceof ResourceAttributeDefinition) {
 				attrs.add((ResourceAttributeDefinition)def);
+			} else {
+				throw new IllegalStateException("Found "+def+" in resource attribute container, only attribute definitions are expected here");
 			}
 		}
 		return attrs;
 	}
 	
+	// Only attribute definitions should be here.
+	@Override
+	public List<? extends ResourceAttributeDefinition> getDefinitions() {
+		return getAttributeDefinitions();
+	}
+
 	public <T extends ShadowType> PrismObjectDefinition<T> toShadowDefinition() {
 		PrismObjectDefinition<T> origShadowDef =  (PrismObjectDefinition<T>) prismContext.getSchemaRegistry().
 			findObjectDefinitionByCompileTimeClass(ShadowType.class);
