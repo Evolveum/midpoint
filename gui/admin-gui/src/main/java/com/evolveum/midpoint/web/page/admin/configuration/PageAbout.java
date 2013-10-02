@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.page.admin.help;
+package com.evolveum.midpoint.web.page.admin.configuration;
 
 import com.evolveum.midpoint.schema.LabeledString;
 import com.evolveum.midpoint.schema.RepositoryDiag;
@@ -23,10 +23,11 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
+import com.evolveum.midpoint.web.component.button.AjaxButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -38,13 +39,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @author mserbak
+ * @author lazyman
  */
-public class PageSystem extends PageAdminHelp {
+public class PageAbout extends PageAdminConfiguration {
 
-    private static final Trace LOGGER = TraceManager.getTrace(PageSystem.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PageAbout.class);
 
-    private static final String DOT_CLASS = PageSystem.class.getName() + ".";
+    private static final String DOT_CLASS = PageAbout.class.getName() + ".";
     private static final String OPERATION_TEST_REPOSITORY = DOT_CLASS + "testRepository";
     private static final String OPERATION_GET_REPO_DIAG = DOT_CLASS + "getRepoDiag";
 
@@ -69,7 +70,7 @@ public class PageSystem extends PageAdminHelp {
 
     private IModel<RepositoryDiag> repoDiagModel;
 
-    public PageSystem() {
+    public PageAbout() {
         repoDiagModel = new LoadableModel<RepositoryDiag>(false) {
 
             @Override
@@ -80,34 +81,54 @@ public class PageSystem extends PageAdminHelp {
         initLayout();
     }
 
+    @Override
+    protected IModel<String> createPageSubTitleModel() {
+        return createStringResource("PageAbout.subTitle");
+    }
+
     private void initLayout() {
-        Label revisionLabel = new Label(ID_REVISION, createStringResource("pageSystem.midPointRevision"));
-        add(revisionLabel);
+        Label revision = new Label(ID_REVISION, createStringResource("PageAbout.midPointRevision"));
+        revision.setRenderBodyOnly(true);
+        add(revision);
 
         ListView<SystemItem> listSystemItems = new ListView<SystemItem>(ID_LIST_SYSTEM_ITEMS, getItems()) {
 
             @Override
             protected void populateItem(ListItem<SystemItem> item) {
-                item.add(new Label(ID_PROPERTY, item.getModelObject().getProperty()));
-                item.add(new Label(ID_VALUE, item.getModelObject().getValue()));
+                SystemItem systemItem = item.getModelObject();
+
+                Label property = new Label(ID_PROPERTY, systemItem.getProperty());
+                property.setRenderBodyOnly(true);
+                item.add(property);
+
+                Label value = new Label(ID_VALUE, systemItem.getValue());
+                value.setRenderBodyOnly(true);
+                item.add(value);
             }
         };
         add(listSystemItems);
 
-        add(new Label(ID_IMPLEMENTATION_SHORT_NAME, new PropertyModel<String>(repoDiagModel, "implementationShortName")));
-        add(new Label(ID_IMPLEMENTATION_DESCRIPTION, new PropertyModel<String>(repoDiagModel, "implementationDescription")));
-        add(new Label(ID_IS_EMBEDDED, new PropertyModel<String>(repoDiagModel, "isEmbedded")));
-        add(new Label(ID_DRIVER_SHORT_NAME, new PropertyModel<String>(repoDiagModel, "driverShortName")));
-        add(new Label(ID_DRIVER_VERSION, new PropertyModel<String>(repoDiagModel, "driverVersion")));
-        add(new Label(ID_REPOSITORY_URL, new PropertyModel<String>(repoDiagModel, "repositoryUrl")));
+        addLabel(ID_IMPLEMENTATION_SHORT_NAME, "implementationShortName");
+        addLabel(ID_IMPLEMENTATION_DESCRIPTION, "implementationDescription");
+        addLabel(ID_IS_EMBEDDED, "isEmbedded");
+        addLabel(ID_DRIVER_SHORT_NAME, "driverShortName");
+        addLabel(ID_DRIVER_VERSION, "driverVersion");
+        addLabel(ID_REPOSITORY_URL, "repositoryUrl");
 
         ListView<LabeledString> additionalDetails = new ListView<LabeledString>(ID_ADDITIONAL_DETAILS,
                 new PropertyModel<List<? extends LabeledString>>(repoDiagModel, "additionalDetails")) {
 
             @Override
             protected void populateItem(ListItem<LabeledString> item) {
-                item.add(new Label(ID_DETAIL_NAME, item.getModelObject().getLabel()));
-                item.add(new Label(ID_DETAIL_VALUE, item.getModelObject().getData()));
+                LabeledString labeledString = item.getModelObject();
+
+                Label property = new Label(ID_DETAIL_NAME, labeledString.getLabel());
+                property.setRenderBodyOnly(true);
+                item.add(property);
+
+                Label value = new Label(ID_DETAIL_VALUE, labeledString.getData());
+                value.setRenderBodyOnly(true);
+                item.add(value);
             }
         };
         add(additionalDetails);
@@ -115,9 +136,15 @@ public class PageSystem extends PageAdminHelp {
         initButtons();
     }
 
+    private void addLabel(String id, String propertyName) {
+        Label label = new Label(id, new PropertyModel<String>(repoDiagModel, propertyName));
+        label.setRenderBodyOnly(true);
+        add(label);
+    }
+
     private void initButtons() {
-        AjaxLinkButton testRepository = new AjaxLinkButton(ID_TEST_REPOSITORY,
-                createStringResource("pageSystem.button.testRepository")) {
+        AjaxButton testRepository = new AjaxButton(ID_TEST_REPOSITORY,
+                createStringResource("PageAbout.button.testRepository")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -169,6 +196,17 @@ public class PageSystem extends PageAdminHelp {
         showResult(result);
 
         target.add(getFeedbackPanel());
+    }
+
+    /**
+     * It's here only because of some IDEs - it's not properly filtering resources during maven build.
+     * "describe" variable is not replaced.
+     *
+     * @return "unknown" instead of "git describe" for current build.
+     */
+    @Deprecated
+    public String getDescribe() {
+        return getString("PageAbout.unknownBuildNumber");
     }
 
     private static class SystemItem implements Serializable {

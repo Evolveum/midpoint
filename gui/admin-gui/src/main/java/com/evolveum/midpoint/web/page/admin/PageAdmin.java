@@ -23,6 +23,7 @@ import com.evolveum.midpoint.web.component.menu.top2.MenuBarItem;
 import com.evolveum.midpoint.web.component.menu.top2.MenuItem;
 import com.evolveum.midpoint.web.component.menu.top2.TopMenuBar;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.admin.configuration.PageAbout;
 import com.evolveum.midpoint.web.page.admin.configuration.PageDebugList;
 import com.evolveum.midpoint.web.page.admin.configuration.PageImportObject;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
@@ -142,7 +143,7 @@ public class PageAdmin extends PageBase {
         configuration.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.configuration.shadowsDetails"), PageDashboard.class));
         configuration.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.configuration.expressionEvaluator"), PageDashboard.class));
         configuration.addMenuItem(new MenuItem(null));
-        configuration.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.configuration.about"), PageDashboard.class));
+        configuration.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.configuration.about"), PageAbout.class));
 
         return configuration;
     }

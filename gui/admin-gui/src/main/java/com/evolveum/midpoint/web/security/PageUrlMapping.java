@@ -2,8 +2,6 @@ package com.evolveum.midpoint.web.security;
 
 import com.evolveum.midpoint.web.page.PageBootstrap;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
-import com.evolveum.midpoint.web.page.admin.help.PageAbout;
-import com.evolveum.midpoint.web.page.admin.help.PageSystem;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.home.PageMyPasswords;
 import com.evolveum.midpoint.web.page.admin.internal.PageAccounts;
@@ -38,7 +36,7 @@ public enum PageUrlMapping {
     LOGIN("/login", PageLogin.class, MidPointPageParametersEncoder.ENCODER, null),
 
     ADMIN_DASHBOARD("/admin/dashboard", PageDashboard.class, MidPointPageParametersEncoder.ENCODER, new String[]{AUTZ_UI_DASHBOARD_URL, AUTZ_UI_HOME_ALL_URL}),
-    
+
     ADMIN_MY_PASSWORDS("/admin/myPasswords", PageMyPasswords.class, MidPointPageParametersEncoder.ENCODER, new String[]{AUTZ_UI_MY_PASSWORDS_URL, AUTZ_UI_HOME_ALL_URL}),
 
     ADMIN_USERS("/admin/users", PageUsers.class, MidPointPageParametersEncoder.ENCODER, new String[]{AUTZ_UI_USERS_URL, AUTZ_UI_USERS_ALL_URL}),
@@ -81,20 +79,18 @@ public enum PageUrlMapping {
     CONFIG_LOGGING("/admin/config/logging", PageLogging.class, MidPointPageParametersEncoder.ENCODER, new String[]{AUTZ_UI_CONFIGURATION_LOGGING_URL, AUTZ_UI_CONFIGURATION_ALL_URL}),
     CONFIG_TIME_TEST("/admin/config/timeTest", PageTimeTest.class, MidPointPageParametersEncoder.ENCODER, new String[]{AUTZ_DENY_ALL_URL}),
     CONFIG_SYSTEM_CONFIGURATION("/admin/config/system", PageSystemConfiguration.class, MidPointPageParametersEncoder.ENCODER, new String[]{AUTZ_DENY_ALL_URL}),
+    CONFIG_ABOUT("/admin/config/about", PageAbout.class, MidPointPageParametersEncoder.ENCODER, new String[]{AUTZ_UI_PERMIT_ALL_URL}),
 
     REPORTS("/admin/reports", PageReports.class, MidPointPageParametersEncoder.ENCODER, new String[]{AUTZ_UI_REPORTS_URL}),
-
-    ABOUT_MIDPOINT("/admin/about/midPoint", PageAbout.class, MidPointPageParametersEncoder.ENCODER, new String[]{AUTZ_UI_PERMIT_ALL_URL}),
-    ABOUT_SYSTEM("/admin/about/system", PageSystem.class, MidPointPageParametersEncoder.ENCODER, new String[]{AUTZ_UI_PERMIT_ALL_URL}),
 
     INTERNAL_ACCOUNTS("/admin/internal/accounts", PageAccounts.class, MidPointPageParametersEncoder.ENCODER, null),
 
     ADMIN("/admin", PageDashboard.class, MidPointPageParametersEncoder.ENCODER, new String[]{AUTZ_UI_DASHBOARD_URL, AUTZ_UI_HOME_ALL_URL}),
-    
+
     CONFIG_TEST("/admin/config/test", PageTest.class, MidPointPageParametersEncoder.ENCODER, new String[]{AUTZ_DENY_ALL_URL}),
 
     TEST_BOOTSTRAP("/bootstrap", PageBootstrap.class, MidPointPageParametersEncoder.ENCODER, null);
-    
+
 
     private String url;
 
@@ -112,28 +108,28 @@ public enum PageUrlMapping {
         this.action = action;
     }
 
-    public static String[] findActions(Class page){
-    	for (PageUrlMapping urlMapping : values()){
-    		if (page.equals(urlMapping.getPage())){
-    			return urlMapping.getAction();
-    		}
-    	}
-    	return null;
+    public static String[] findActions(Class page) {
+        for (PageUrlMapping urlMapping : values()) {
+            if (page.equals(urlMapping.getPage())) {
+                return urlMapping.getAction();
+            }
+        }
+        return null;
     }
-    
-    public static Class findClassForAction(String action){
-		for (PageUrlMapping urlMapping : values()) {
-			if (urlMapping.getAction() != null) {
-				for (String act : urlMapping.getAction()) {
-					if (act.equals(action)) {
-						return urlMapping.getPage();
-					}
-				}
-			}
-		}
-    	return null;
+
+    public static Class findClassForAction(String action) {
+        for (PageUrlMapping urlMapping : values()) {
+            if (urlMapping.getAction() != null) {
+                for (String act : urlMapping.getAction()) {
+                    if (act.equals(action)) {
+                        return urlMapping.getPage();
+                    }
+                }
+            }
+        }
+        return null;
     }
-    
+
     public IPageParametersEncoder getEncoder() {
         return encoder;
     }

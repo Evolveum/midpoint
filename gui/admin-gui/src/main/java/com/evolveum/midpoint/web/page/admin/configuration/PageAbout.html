@@ -1,0 +1,94 @@
+<!--
+  ~ Copyright (c) 2010-2013 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:wicket="http://wicket.apache.org">
+<body>
+	<wicket:extend>
+
+    <div class="row">
+        <div class="col-md-3">
+            <h2>Basic</h2>
+            <table class="table">
+                <tr>
+                    <td><wicket:message key="PageAbout.midPointVersionTitle" /></td>
+                    <td><wicket:message key="PageAbout.midPointVersion" /></td>
+                </tr>
+                <tr>
+                    <td><wicket:message key="PageAbout.midPointRevisionTitle" /></td>
+                    <td><span wicket:id="revision" /></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <h2><wicket:message key="PageAbout.title.repository"/></h2>
+            <table class="table">
+                <tr>
+                    <td><wicket:message key="PageAbout.repoDiag.implementationShortName" /></td>
+                    <td><span wicket:id="implementationShortName"/></td>
+                </tr>
+                <tr>
+                    <td><wicket:message key="PageAbout.repoDiag.implementationDescription" /></td>
+                    <td><span wicket:id="implementationDescription"/></td>
+                </tr>
+                <tr>
+                    <td><wicket:message key="PageAbout.repoDiag.isEmbedded" /></td>
+                    <td><span wicket:id="isEmbedded"/></td>
+                </tr>
+                <tr>
+                    <td><wicket:message key="PageAbout.repoDiag.driverShortName" /></td>
+                    <td><span wicket:id="driverShortName"/></td>
+                </tr>
+                <tr>
+                    <td><wicket:message key="PageAbout.repoDiag.driverVersion" /></td>
+                    <td><span wicket:id="driverVersion"/></td>
+                </tr>
+                <tr>
+                    <td><wicket:message key="PageAbout.repoDiag.repositoryUrl" /></td>
+                    <td><span wicket:id="repositoryUrl"/></td>
+                </tr>
+            </table>
+            <h3><wicket:message key="PageAbout.title.repository.additional"/></h3>
+            <table class="table">
+                <tr wicket:id="additionalDetails">
+                    <td><span wicket:id="detailName" /></td>
+                    <td><span wicket:id="detailValue" /></td>
+                </tr>
+            </table>
+        </div>
+        <div class="col-md-6">
+            <h2><wicket:message key="PageAbout.title.systemProperties"/></h2>
+            <table class="table">
+                <tr wicket:id="listSystemItems">
+                    <td><span wicket:id="property" /></td>
+                    <td><span wicket:id="value" /></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="main-button-bar">
+        <a class="btn btn-primary" wicket:id="testRepository"/>
+    </div>
+
+    <div style="border-top: 1px solid #ccc; font-size: 80%; color: #aaa; text-align: center; margin-top: 10px;">&copy; 2013 Evolveum. All Rights Reserved.</div>
+
+	</wicket:extend>
+</body>
+</html>
