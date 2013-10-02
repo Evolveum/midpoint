@@ -32,6 +32,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import org.testng.Assert;
+import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
@@ -226,6 +227,8 @@ public class TestRefinedSchema {
 	        assertEquals("Unexpected number of entitlement associations", 1, rAccountDef.getEntitlementAssociations().size());
         }
         
+        assertRefinedToLayer(rAccountDef, sourceLayer);
+        
         ResourceAttributeContainerDefinition resAttrContainerDef = rAccountDef.toResourceAttributeContainerDefinition();
         assertNotNull("No ResourceAttributeContainerDefinition", resAttrContainerDef);
         System.out.println("\nResourceAttributeContainerDefinition ("+sourceLayer+")");
@@ -234,11 +237,14 @@ public class TestRefinedSchema {
         ObjectClassComplexTypeDefinition rComplexTypeDefinition = resAttrContainerDef.getComplexTypeDefinition();
         System.out.println("\nResourceAttributeContainerDefinition ComplexTypeDefinition ("+sourceLayer+")");
         System.out.println(rComplexTypeDefinition.dump());
+        assertRefinedToLayer(rComplexTypeDefinition, sourceLayer);
 
         ResourceAttributeDefinition riUidAttrDef = resAttrContainerDef.findAttributeDefinition(new QName(resourceType.getNamespace(), "uid"));
         assertNotNull("No ri:uid def in ResourceAttributeContainerDefinition", riUidAttrDef);
         System.out.println("\nri:uid def "+riUidAttrDef.getClass()+" ("+sourceLayer+")");
         System.out.println(riUidAttrDef.dump());
+        
+        assertRefinedToLayer(riUidAttrDef, sourceLayer);
         
         if (validationLayer == LayerType.PRESENTATION) {
         	assertFalse("Can update "+riUidAttrDef+" from ResourceAttributeContainerDefinition ("+sourceLayer+")", 
@@ -248,10 +254,39 @@ public class TestRefinedSchema {
         			riUidAttrDef.canUpdate());
         }
         
+        Collection<? extends ResourceAttributeDefinition> definitionsFromResAttrContainerDef = resAttrContainerDef.getDefinitions();
+        for (ResourceAttributeDefinition definitionFromResAttrContainerDef: definitionsFromResAttrContainerDef) {
+        	assertRefinedToLayer(definitionFromResAttrContainerDef, sourceLayer);
+        }
     }
 
+    private void assertRefinedToLayer(
+			ObjectClassComplexTypeDefinition ocDef,
+			LayerType expectedLayer) {
+    	if (expectedLayer == null) {
+    		// This is OK, it may not be layer-bound.
+    		return;
+    	}
+    	if (!(ocDef instanceof LayerRefinedObjectClassDefinition)) {
+			AssertJUnit.fail("Expected that definition of objectclass "+ocDef.getTypeName()+" in layer "+expectedLayer
+					+" will be LayerRefinedObjectClassDefinition, but it is "+ocDef.getClass()+": "+ocDef);
+		}
+		assertEquals("Wrong layer in "+ocDef, expectedLayer, ((LayerRefinedObjectClassDefinition)ocDef).getLayer());
+	}
 
-    @Test
+	private void assertRefinedToLayer(ResourceAttributeDefinition attrDef, LayerType expectedLayer) {
+    	if (expectedLayer == null) {
+    		// This is OK, it may not be layer-bound.
+    		return;
+    	}
+		if (!(attrDef instanceof LayerRefinedAttributeDefinition)) {
+			AssertJUnit.fail("Expected that definition of attribute "+attrDef.getName()+" in layer "+expectedLayer
+					+" will be LayerRefinedAttributeDefinition, but it is "+attrDef.getClass()+": "+attrDef);
+		}
+		assertEquals("Wrong layer in "+attrDef, expectedLayer, ((LayerRefinedAttributeDefinition)attrDef).getLayer());
+	}
+
+	@Test
     public void testParseAccount() throws JAXBException, SchemaException, SAXException, IOException {
     	System.out.println("\n===[ testParseAccount ]===\n");
 
