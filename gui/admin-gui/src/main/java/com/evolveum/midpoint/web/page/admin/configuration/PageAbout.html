@@ -21,7 +21,7 @@
 
     <div class="row">
         <div class="col-md-3">
-            <h2>Basic</h2>
+            <h2><wicket:message key="PageAbout.title.basic"/></h2>
             <table class="table">
                 <tr>
                     <td><wicket:message key="PageAbout.midPointVersionTitle" /></td>
@@ -87,7 +87,9 @@
         <a class="btn btn-primary" wicket:id="testRepository"/>
     </div>
 
-    <div style="border-top: 1px solid #ccc; font-size: 80%; color: #aaa; text-align: center; margin-top: 10px;">&copy; 2013 Evolveum. All Rights Reserved.</div>
+    <div style="border-top: 1px solid #ccc; font-size: 80%; color: #aaa; text-align: center; margin-top: 10px;">
+        <wicket:message key="PageAbout.allRightsReserved"/>
+    </div>
 
 	</wicket:extend>
 </body>
