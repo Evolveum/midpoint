@@ -17,9 +17,11 @@
 package com.evolveum.midpoint.web.page.admin;
 
 import com.evolveum.midpoint.common.security.AuthorizationConstants;
+import com.evolveum.midpoint.web.component.login.LoginPanel;
 import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
 import com.evolveum.midpoint.web.component.menu.top2.MenuBarItem;
 import com.evolveum.midpoint.web.component.menu.top2.MenuItem;
+import com.evolveum.midpoint.web.component.menu.top2.TopMenuBar;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.configuration.PageDebugList;
 import com.evolveum.midpoint.web.page.admin.configuration.PageImportObject;
@@ -42,6 +44,11 @@ import java.util.List;
  * @author lazyman
  */
 public class PageAdmin extends PageBase {
+
+    public PageAdmin() {
+        TopMenuBar menuBar = getTopMenuBar();
+        menuBar.addOrReplace(new LoginPanel(TopMenuBar.ID_RIGHT_PANEL));
+    }
 
     @Override
     protected List<MenuBarItem> createMenuItems() {

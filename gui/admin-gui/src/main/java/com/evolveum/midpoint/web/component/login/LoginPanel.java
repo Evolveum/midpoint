@@ -17,93 +17,72 @@
 package com.evolveum.midpoint.web.component.login;
 
 import com.evolveum.midpoint.common.security.MidPointPrincipal;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
-import com.evolveum.midpoint.web.page.admin.help.PageAbout;
-
+import com.evolveum.midpoint.web.component.menu.top2.MenuItem;
+import com.evolveum.midpoint.web.component.util.BaseSimplePanel;
+import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.ExternalLink;
-import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.cycle.RequestCycle;
-import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-
-import java.util.Collection;
 
 /**
  * @author lazyman
  */
-public class LoginPanel extends Panel {
+public class LoginPanel extends BaseSimplePanel {
+
+    private static final String ID_USERNAME = "username";
+    private static final String ID_LOGOUT_LINK = "logoutLink";
+    private static final String ID_EDIT_PROFILE = "editProfile";
+    private static final String ID_RESET_PASSWORDS = "resetPasswords";
 
     public LoginPanel(String id) {
         super(id);
-        
-        add(new VisibleEnableBehaviour() {
+
+        setRenderBodyOnly(true);
+    }
+
+    @Override
+    protected void initLayout() {
+        Label username = new Label(ID_USERNAME, new AbstractReadOnlyModel<String>() {
 
             @Override
-            public boolean isVisible() {
-                return true;
-            }
-        });
-        
-        add(new Label("username", new LoadableModel<String>() {
-            @Override
-            protected String load() {
+            public String getObject() {
                 return getShortUserName();
             }
-        }));
+        });
+        username.setRenderBodyOnly(true);
+        add(username);
 
-
-        ExternalLink logoutLink = new ExternalLink("logoutLink",
-                new Model<String>(RequestCycle.get().getRequest().getContextPath() + "/j_spring_security_logout"), new Model<String>("Logout"));
+        ExternalLink logoutLink = new ExternalLink(ID_LOGOUT_LINK,
+                new Model<String>(RequestCycle.get().getRequest().getContextPath() + "/j_spring_security_logout"),
+                createStringResource("LoginPanel.logout"));
         add(logoutLink);
-        
-        AjaxLink<String> helpLink = new AjaxLink<String>("help") {
 
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-            	setResponsePage(PageAbout.class);
-            }
-        };
-        add(helpLink);
+        LabeledBookmarkableLink editProfile = new LabeledBookmarkableLink(ID_EDIT_PROFILE,
+                new MenuItem(createStringResource("LoginPanel.editProfile"), PageDashboard.class));
+        add(editProfile);
+
+        LabeledBookmarkableLink resetPasswords = new LabeledBookmarkableLink(ID_RESET_PASSWORDS,
+                new MenuItem(createStringResource("LoginPanel.resetPasswords"), PageDashboard.class));
+        add(resetPasswords);
     }
 
     private String getShortUserName() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         if (principal == null) {
-            return "unknown";
+            return "Unknown";
         }
 
         if (principal instanceof MidPointPrincipal) {
-            return WebMiscUtil.getOrigStringFromPoly(((MidPointPrincipal) principal).getName());
+            MidPointPrincipal princ = (MidPointPrincipal) principal;
+
+            return WebMiscUtil.getOrigStringFromPoly(princ.getName());
         }
 
         return principal.toString();
-    }
-
-    public boolean getIsUserLoggedIn() {
-        return isUserInRole("ROLE_USER") || isUserInRole("ROLE_ADMIN");
-    }
-
-    public boolean getIsAdminLoggedIn() {
-        return isUserInRole("ROLE_ADMIN");
-    }
-
-    private boolean isUserInRole(final String role) {
-        final Collection<GrantedAuthority> grantedAuthorities = (Collection<GrantedAuthority>) SecurityContextHolder
-                .getContext().getAuthentication().getAuthorities();
-        for (GrantedAuthority grantedAuthority : grantedAuthorities) {
-            if (role.equals(grantedAuthority.getAuthority())) {
-                return true;
-            }
-        }
-        return false;
     }
 }

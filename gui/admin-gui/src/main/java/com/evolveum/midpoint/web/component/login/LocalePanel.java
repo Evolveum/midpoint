@@ -75,13 +75,9 @@ public class LocalePanel extends Panel {
                     reader = new InputStreamReader(url.openStream(), "utf-8");
                     properties.load(reader);
 
-                    final LocaleDescriptor descriptor = new LocaleDescriptor(properties);
+                    LocaleDescriptor descriptor = new LocaleDescriptor(properties);
                     if (descriptor != null) {
                         locales.add(descriptor);
-
-                        if (StringUtils.isNotEmpty(descriptor.getFlag())) {
-                            mountFlagImage(url, descriptor.getFlag());
-                        }
                     }
                 } catch (Exception ex) {
                     LoggingUtils.logException(LOGGER, "Couldn't load localization", ex);
@@ -153,23 +149,6 @@ public class LocalePanel extends Panel {
         }
 
         return null;
-    }
-
-    private static void mountFlagImage(URL url, String flag) throws URISyntaxException, MalformedURLException {
-        WebApplication application = MidPointApplication.get();
-
-        URI uri = url.toURI();
-        String newPath = uri.getScheme() + ":" + new File(url.getFile()).getParent() + "/" + flag;
-        final URL flagURL = new URL(newPath);
-
-        application.mountResource(ImgResources.BASE_PATH + "/flag/" + flag,
-                new ResourceReference(flag) {
-
-                    @Override
-                    public IResource getResource() {
-                        return new FlagImageResource(flagURL);
-                    }
-                });
     }
 
     @Override
