@@ -44,6 +44,7 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.head.CssHeaderItem;
 import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -75,6 +76,7 @@ public class PageDashboard extends PageAdminHome {
     private static final String ID_WORK_ITEMS = "workItems";
     private static final String ID_ACCOUNTS = "accounts";
     private static final String ID_ASSIGNMENTS = "assignments";
+    private static final String ID_SYSTEM_INFO = "systemInfo";
 
     private static final int MAX_WORK_ITEMS = 1000;
 
@@ -84,11 +86,6 @@ public class PageDashboard extends PageAdminHome {
         principalModel.setObject(loadUser());
 
         initLayout();
-    }
-
-    @Override
-    protected IModel<String> createPageSubTitleModel() {
-        return createStringResource("PageDashboard.subtitle");
     }
 
     private PrismObject<UserType> loadUser() {
@@ -110,6 +107,7 @@ public class PageDashboard extends PageAdminHome {
         initMyWorkItems();
         initMyAccounts();
         initAssignments();
+        initSystemInfo();
     }
 
     private AccountCallableResult<List<SimpleAccountDto>> loadAccounts() throws Exception {
@@ -206,6 +204,32 @@ public class PageDashboard extends PageAdminHome {
         LOGGER.debug("Finished work items loading.");
 
         return callableResult;
+    }
+
+    private void initSystemInfo() {
+        AsyncDashboardPanel<Object, Object> systemInfo =
+                new AsyncDashboardPanel<Object, Object>(ID_SYSTEM_INFO,
+                        createStringResource("PageDashboard.systemInfo"), DashboardColor.GREEN) {
+
+                    @Override
+                    protected Callable<CallableResult<Object>> createCallable(IModel callableParameterModel) {
+                        return new Callable<CallableResult<Object>>() {
+
+                            @Override
+                            public CallableResult<Object> call() throws Exception {
+                                CallableResult callableResult = new CallableResult();
+                                callableResult.setValue(new Object());
+                                return callableResult;
+                            }
+                        };
+                    }
+
+                    @Override
+                    protected Component getMainComponent(String markupId) {
+                        return new WebMarkupContainer(markupId);
+                    }
+                };
+        add(systemInfo);
     }
 
     private void initMyWorkItems() {

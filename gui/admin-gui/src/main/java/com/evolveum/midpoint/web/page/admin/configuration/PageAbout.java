@@ -81,11 +81,6 @@ public class PageAbout extends PageAdminConfiguration {
         initLayout();
     }
 
-    @Override
-    protected IModel<String> createPageSubTitleModel() {
-        return createStringResource("PageAbout.subTitle");
-    }
-
     private void initLayout() {
         Label revision = new Label(ID_REVISION, createStringResource("PageAbout.midPointRevision"));
         revision.setRenderBodyOnly(true);
