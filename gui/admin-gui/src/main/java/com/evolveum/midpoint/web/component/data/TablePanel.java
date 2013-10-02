@@ -40,9 +40,7 @@ import java.util.List;
 public class TablePanel<T> extends Panel {
 
     private static final String TABLE = "table";
-    private static final String NAV_TOP = "navigatorTop";
     private static final String NAV_BOTTOM = "navigatorBottom";
-    private NavigatorPanel topNavigator;
     private NavigatorPanel bottomNavigator;
 
     public TablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns) {
@@ -66,27 +64,16 @@ public class TablePanel<T> extends Panel {
         table.addTopToolbar(headers);
 
         add(table);
-        topNavigator = new NavigatorPanel(NAV_TOP, table, showPagedPaging(provider)) {
-
-            @Override
-            protected void onAjaxEvent(AjaxRequestTarget target) {
-                super.onAjaxEvent(target);
-                target.add(bottomNavigator);
-            }
-        };
 
         bottomNavigator = new NavigatorPanel(NAV_BOTTOM, table, showPagedPaging(provider)) {
 
             @Override
             protected void onAjaxEvent(AjaxRequestTarget target) {
                 super.onAjaxEvent(target);
-                target.add(topNavigator);
             }
         };
 
-        add(topNavigator);
         add(bottomNavigator);
-
     }
 
     private boolean showPagedPaging(ISortableDataProvider provider) {
@@ -122,10 +109,7 @@ public class TablePanel<T> extends Panel {
     }
 
     public void setShowPaging(boolean showPaging) {
-        Component nav = get(NAV_TOP);
-        nav.setVisible(showPaging);
-
-        nav = get(NAV_BOTTOM);
+        Component nav = get(NAV_BOTTOM);
         nav.setVisible(showPaging);
 
         if (!showPaging) {
@@ -147,15 +131,5 @@ public class TablePanel<T> extends Panel {
 
         DataTable table = getDataTable();
         table.add(new AttributeModifier("style", new Model(value)));
-    }
-
-    @Override
-    public void renderHead(IHeaderResponse response) {
-        super.renderHead(response);
-
-        //todo probably can be deleted [lazyman]
-        response.render(JavaScriptHeaderItem.forReference(
-                new PackageResourceReference(TablePanel.class, "TablePanel.js")));
-        response.render(OnDomReadyHeaderItem.forScript("initTable()"));
     }
 }

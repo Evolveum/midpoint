@@ -16,24 +16,20 @@
 
 package com.evolveum.midpoint.web.component.data;
 
-import org.apache.wicket.ajax.AjaxEventBehavior;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.navigation.paging.AjaxPagingNavigator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.AbstractLink;
-import org.apache.wicket.markup.html.link.Link;
 import org.apache.wicket.markup.html.navigation.paging.IPageable;
 import org.apache.wicket.markup.html.navigation.paging.IPagingLabelProvider;
 import org.apache.wicket.markup.html.navigation.paging.PagingNavigation;
 import org.apache.wicket.markup.repeater.data.DataViewBase;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
-
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 
 /**
  * @author lazyman
@@ -46,10 +42,6 @@ public class NavigatorPanel extends AjaxPagingNavigator {
     public NavigatorPanel(String id, IPageable pageable, boolean showPageListing) {
         super(id, pageable);
         this.showPageListing = showPageListing;
-
-        Label label = new Label("label", createModel(pageable));
-        label.add(createVisibilityForSimplePaging());
-        add(label);
     }
 
     private VisibleEnableBehaviour createVisibleBehaviour(final IPageable pageable) {
@@ -88,19 +80,18 @@ public class NavigatorPanel extends AjaxPagingNavigator {
         return link;
     }
 
-	@Override
-	protected AbstractLink newPagingNavigationLink(String id, IPageable pageable, int pageNumber) {
-        AbstractLink  link = super.newPagingNavigationLink(id, pageable, pageNumber);
-		link.setOutputMarkupId(true);
-		link.add(createVisibleBehaviour(pageable));
-    	return link;
-	}
-	
-	@Override
-	protected void onAjaxEvent(AjaxRequestTarget target) {
-		super.onAjaxEvent(target);
-		target.appendJavaScript("initTable();");
-	}
+    @Override
+    protected AbstractLink newPagingNavigationLink(String id, IPageable pageable, int pageNumber) {
+        AbstractLink link = super.newPagingNavigationLink(id, pageable, pageNumber);
+        link.setOutputMarkupId(true);
+        link.add(createVisibleBehaviour(pageable));
+        return link;
+    }
+
+    @Override
+    protected void onAjaxEvent(AjaxRequestTarget target) {
+        super.onAjaxEvent(target);
+    }
 
     private IModel<String> createModel(final IPageable pageable) {
         return new LoadableModel<String>() {

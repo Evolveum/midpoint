@@ -17,6 +17,19 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
+    <div style="text-align: center;">
+        <ul class="pagination pagination-sm">
+            <li><a wicket:id="first">First</a></li>
+            <li><a wicket:id="prev">Previous</a></li>
+            <li wicket:id="navigation">
+                <a wicket:id="pageLink"><span wicket:id="pageNumber"/></a>
+            </li>
+            <li><a wicket:id="next">Next</a></li>
+            <li><a wicket:id="last">Last</a></li>
+        </ul>
+    </div>
+
+    <!--
     <div class="pagerNavigator">
         <span class="sortingResult" wicket:id="label"/>
 		<div class="disablePaging" style="display: none; height: 16px; width: 30%; right: 55px; position: absolute; z-index: 4;"></div>
@@ -40,5 +53,6 @@
             </span>
         </div>
     </div>
+    -->
 </wicket:panel>
 </html>
