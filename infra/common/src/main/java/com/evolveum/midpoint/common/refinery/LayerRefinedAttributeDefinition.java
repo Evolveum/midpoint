@@ -56,13 +56,21 @@ public class LayerRefinedAttributeDefinition extends RefinedAttributeDefinition 
 		return new LayerRefinedAttributeDefinition(rAttrDef, layer);
 	}
 	
-	static Collection<? extends LayerRefinedAttributeDefinition> wrapCollection(
-			Collection<? extends RefinedAttributeDefinition> rAttrDefs, LayerType layer) {
-		Collection<LayerRefinedAttributeDefinition> outs = new ArrayList<LayerRefinedAttributeDefinition>(rAttrDefs.size());
-		for (RefinedAttributeDefinition rAttrDef: rAttrDefs) {
-			outs.add(wrap(rAttrDef, layer));
+	static List<? extends LayerRefinedAttributeDefinition> wrapCollection(
+			Collection<? extends ItemDefinition> defs, LayerType layer) {
+		List outs = new ArrayList<ItemDefinition>(defs.size());
+		for (ItemDefinition itemDef: defs) {
+			if (itemDef instanceof RefinedAttributeDefinition) {
+				outs.add(wrap((RefinedAttributeDefinition)itemDef, layer));
+			} else {
+				outs.add(itemDef);
+			}
 		}
 		return outs;
+	}
+
+	public LayerType getLayer() {
+		return layer;
 	}
 
 	@Override

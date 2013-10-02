@@ -70,6 +70,10 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 		return outs;
 	}
 
+	public LayerType getLayer() {
+		return layer;
+	}
+
 	public QName getTypeName() {
 		return refinedObjectClassDefinition.getTypeName();
 	}
@@ -221,7 +225,7 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 	}
 	
 	public List<? extends ItemDefinition> getDefinitions() {
-		return refinedObjectClassDefinition.getDefinitions();
+		return LayerRefinedAttributeDefinition.wrapCollection(refinedObjectClassDefinition.getDefinitions(), layer);
 	}
 
 	public String getDescription() {
