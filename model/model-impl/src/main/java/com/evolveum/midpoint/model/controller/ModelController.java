@@ -1050,6 +1050,49 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		}
 		
 	}
+	
+	@Override
+	public void importFromResource(String shadowOid, Task task, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException,
+			ConfigurationException, SecurityViolationException {
+		Validate.notNull(shadowOid, "Shadow OID must not be null.");
+		Validate.notNull(task, "Task must not be null.");
+		RepositoryCache.enter();
+		LOGGER.trace("Launching importing shadow {} from resource.", shadowOid);
+
+		OperationResult result = parentResult.createSubresult(IMPORT_ACCOUNTS_FROM_RESOURCE);
+        result.addParam(OperationResult.PARAM_OID, shadowOid);
+        result.addArbitraryObjectAsParam("task", task);
+		// TODO: add context to the result
+
+        try {
+			// TODO
+			
+			result.recordSuccess();
+			
+			
+			result.cleanupResult();
+		
+//		} catch (ObjectNotFoundException ex) {
+//			ModelUtils.recordFatalError(result, ex);
+//			throw ex;
+//		} catch (CommunicationException ex) {
+//			ModelUtils.recordFatalError(result, ex);
+//			throw ex;
+//		} catch (ConfigurationException ex) {
+//			ModelUtils.recordFatalError(result, ex);
+//			throw ex;
+//		} catch (SecurityViolationException ex) {
+//			ModelUtils.recordFatalError(result, ex);
+//			throw ex;
+		} catch (RuntimeException ex) {
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+		} finally {
+			RepositoryCache.exit();
+		}
+		
+	}
 
 	@Override
 	public void importObjectsFromFile(File input, ImportOptionsType options, Task task,

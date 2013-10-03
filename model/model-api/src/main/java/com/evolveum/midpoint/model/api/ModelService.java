@@ -408,10 +408,19 @@ public interface ModelService {
 	 * <p>
 	 * Invocation of this method may be switched to background.
 	 * </p>
-	 * TODO: OperationResult
-	 * @throws SchemaException 
+	 * TODO: Better description
 	 */
 	void importFromResource(String resourceOid, QName objectClass, Task task, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, 
+			SecurityViolationException;
+	
+	/**
+	 * <p>
+	 * Import single account from resource.
+	 * </p>
+	 * TODO: Better description 
+	 */
+	void importFromResource(String shadowOid, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, 
 			SecurityViolationException;
 
