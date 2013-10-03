@@ -29,10 +29,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wf.workItems.WorkItemsPanel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.home.component.*;
-import com.evolveum.midpoint.web.page.admin.home.dto.AccountCallableResult;
-import com.evolveum.midpoint.web.page.admin.home.dto.AssignmentItemDto;
-import com.evolveum.midpoint.web.page.admin.home.dto.MyWorkItemDto;
-import com.evolveum.midpoint.web.page.admin.home.dto.SimpleAccountDto;
+import com.evolveum.midpoint.web.page.admin.home.dto.*;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
@@ -89,7 +86,7 @@ public class PageDashboard extends PageAdminHome {
     }
 
     private PrismObject<UserType> loadUser() {
-    	MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
+        MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
 
         OperationResult result = new OperationResult(OPERATION_LOAD_USER);
         PrismObject<UserType> user = WebModelUtils.loadObject(UserType.class,
@@ -207,18 +204,19 @@ public class PageDashboard extends PageAdminHome {
     }
 
     private void initSystemInfo() {
-        AsyncDashboardPanel<Object, Object> systemInfo =
-                new AsyncDashboardPanel<Object, Object>(ID_SYSTEM_INFO,
+        AsyncDashboardPanel<Object, SystemInfoDto> systemInfo =
+                new AsyncDashboardPanel<Object, SystemInfoDto>(ID_SYSTEM_INFO,
                         createStringResource("PageDashboard.systemInfo"), DashboardColor.GREEN) {
 
                     @Override
-                    protected Callable<CallableResult<Object>> createCallable(IModel callableParameterModel) {
-                        return new Callable<CallableResult<Object>>() {
+                    protected Callable<CallableResult<SystemInfoDto>> createCallable(IModel callableParameterModel) {
+                        return new Callable<CallableResult<SystemInfoDto>>() {
 
                             @Override
-                            public CallableResult<Object> call() throws Exception {
+                            public CallableResult<SystemInfoDto> call() throws Exception {
                                 CallableResult callableResult = new CallableResult();
-                                callableResult.setValue(new Object());
+                                //todo load proper data [lazyman]
+                                callableResult.setValue(new SystemInfoDto(5, 10, 1, 10, 65.3, 87, "MB"));
                                 return callableResult;
                             }
                         };

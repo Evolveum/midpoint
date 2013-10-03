@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Copyright (c) 2010-2013 Evolveum
   ~
@@ -14,13 +15,22 @@
   ~ limitations under the License.
   -->
 
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
-        "http://www.w3.org/TR/html4/loose.dtd">
-<html xmlns:wicket="http://wicket.apache.org">
-<head>
-    <title>Error</title>
-</head>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
-<div wicket:id="message"/>
+<wicket:extend>
+    <div class="container">
+        <blockquote class="pull-right">
+            <p><wicket:message key="PageError.quote"/></p>
+            <small><wicket:message key="PageError.quoteAuthor"/></small>
+        </blockquote>
+    </div>
+
+    <p><wicket:message key="PageError.message"/></p>
+    <p wicket:id="message"/>
+
+    <div class="main-button-bar">
+        <a class="btn btn-primary" wicket:id="back"/>
+    </div>
+</wicket:extend>
 </body>
 </html>

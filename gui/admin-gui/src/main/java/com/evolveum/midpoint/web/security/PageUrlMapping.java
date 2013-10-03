@@ -20,6 +20,10 @@ import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.users.*;
 import com.evolveum.midpoint.web.page.admin.workflow.*;
+import com.evolveum.midpoint.web.page.error.PageError;
+import com.evolveum.midpoint.web.page.error.PageError401;
+import com.evolveum.midpoint.web.page.error.PageError403;
+import com.evolveum.midpoint.web.page.error.PageError404;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.util.MidPointPageParametersEncoder;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
@@ -87,7 +91,15 @@ public enum PageUrlMapping {
 
     ADMIN("/admin", PageDashboard.class, MidPointPageParametersEncoder.ENCODER, new String[]{AUTZ_UI_DASHBOARD_URL, AUTZ_UI_HOME_ALL_URL}),
 
-    TEST_BOOTSTRAP("/bootstrap", PageBootstrap.class, MidPointPageParametersEncoder.ENCODER, null);
+    TEST_BOOTSTRAP("/bootstrap", PageBootstrap.class, MidPointPageParametersEncoder.ENCODER, null),
+
+    ERROR("/error", PageError.class, MidPointPageParametersEncoder.ENCODER, null),
+
+    ERROR_401("/error/401", PageError401.class, MidPointPageParametersEncoder.ENCODER, null),
+
+    ERROR_403("/error/403", PageError403.class, MidPointPageParametersEncoder.ENCODER, null),
+
+    ERROR_404("/error/404", PageError404.class, MidPointPageParametersEncoder.ENCODER, null);
 
     private String url;
 

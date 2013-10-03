@@ -16,19 +16,91 @@
 
 package com.evolveum.midpoint.web.page.error;
 
-import org.apache.wicket.markup.html.WebPage;
+import com.evolveum.midpoint.web.component.button.AjaxButton;
+import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
+import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.request.http.WebResponse;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Base class for error web pages.
  *
  * @author lazyman
  */
-public abstract class PageError extends WebPage {
+public class PageError extends PageBase {
+
+    private static final String ID_MESSAGE = "message";
+    private static final String ID_BACK = "back";
+
+    private Integer code;
 
     public PageError() {
-        add(new Label("message", getErrorMessage()));
+        this(500);
+    }
+
+    public PageError(Integer code) {
+        this(code, null);
+    }
+
+    public PageError(Exception ex) {
+        this(500, ex);
+    }
+
+    public PageError(Integer code, final Exception ex) {
+        this.code = code;
+
+        final IModel<String> message = new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                if (ex == null) {
+                    return null;
+                }
+
+                SimpleDateFormat df = new SimpleDateFormat();
+                return df.format(new Date()) + "\t" + ex.getClass() + ": " + ex.getMessage();
+            }
+        };
+
+        Label label = new Label(ID_MESSAGE, message);
+        label.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return StringUtils.isNotEmpty(message.getObject());
+            }
+        });
+        add(label);
+
+        AjaxButton back = new AjaxButton(ID_BACK, createStringResource("PageError.button.back")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                setResponsePage(PageDashboard.class);
+            }
+        };
+        add(back);
+    }
+
+    private int getCode() {
+        return code != null ? code : 500;
+    }
+
+    @Override
+    protected void configureResponse(WebResponse response) {
+        super.configureResponse(response);
+
+        response.setStatus(getCode());
     }
 
     @Override
@@ -41,5 +113,19 @@ public abstract class PageError extends WebPage {
         return true;
     }
 
-    protected abstract IModel<String> getErrorMessage();
+    @Override
+    protected IModel<String> createPageSubTitleModel() {
+        return new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                return createStringResource("PageError.error." + getCode()).getString();
+            }
+        };
+    }
+
+    @Override
+    public List<BottomMenuItem> getBottomMenuItems() {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    }
 }
