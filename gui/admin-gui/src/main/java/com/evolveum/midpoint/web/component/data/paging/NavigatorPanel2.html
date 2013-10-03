@@ -17,7 +17,16 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <table class="table table-striped table-condensed" wicket:id="table" />
-    <div wicket:id="paging"/>
+    <div style="text-align: center;">
+        <ul class="pagination pagination-sm">
+            <li wicket:id="previous"><a wicket:id="previousLink"><wicket:message key="NavigatorPanel2.previous"/></a></li>
+            <li wicket:id="first"><a wicket:id="firstLink"><wicket:message key="NavigatorPanel2.first"/></a></li>
+            <li wicket:id="dots" class="disabled"><span><wicket:message key="NavigatorPanel2.dots"/></span></li>
+            <li wicket:id="navigation">
+                <a wicket:id="pageLink"/>
+            </li>
+            <li wicket:id="next"><a wicket:id="nextLink"><wicket:message key="NavigatorPanel2.next"/></a></li>
+        </ul>
+    </div>
 </wicket:panel>
 </html>
