@@ -100,6 +100,8 @@ public class PageUsers extends PageAdminUsers {
     private static final String DIALOG_CONFIRM_DELETE = "confirmDeletePopup";
 
     private static final String ID_EXECUTE_OPTIONS = "executeOptions";
+    private static final String ID_MAIN_FORM = "mainForm";
+    private static final String ID_TABLE = "table";
 
     private LoadableModel<UsersDto> model;
     private LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel;
@@ -130,20 +132,10 @@ public class PageUsers extends PageAdminUsers {
     }
 
     private void initLayout() {
-        Form mainForm = new Form("mainForm");
+        Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
-        OptionPanel option = new OptionPanel("option", createStringResource("pageUsers.optionsTitle"), false);
-        option.setOutputMarkupId(true);
-        mainForm.add(option);
-
-        OptionItem item = new OptionItem("search", createStringResource("pageUsers.search"));
-        option.getBodyContainer().add(item);
-        initSearch(item);
-
-        OptionContent content = new OptionContent("optionContent");
-        mainForm.add(content);
-        initTable(content);
+        initTable(mainForm);
 
         add(new ConfirmationDialog(DIALOG_CONFIRM_DELETE,
                 createStringResource("pageUsers.dialog.title.confirmDelete"), createDeleteConfirmString()) {
@@ -331,7 +323,7 @@ public class PageUsers extends PageAdminUsers {
         return columns;
     }
 
-    private void initTable(OptionContent content) {
+    private void initTable(Form mainForm) {
         List<IColumn<SelectableBean<UserType>, String>> columns = initColumns();
 
         ObjectDataProvider<UserType> provider = new ObjectDataProvider(PageUsers.this, UserType.class) {
@@ -351,13 +343,12 @@ public class PageUsers extends PageAdminUsers {
                 GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
         provider.setOptions(options);
 
-        TablePanel table = new TablePanel<SelectableBean<UserType>>("table", provider, columns);
-        table.setOutputMarkupId(true);
+        TablePanel table = new TablePanel<SelectableBean<UserType>>(ID_TABLE, provider, columns);
 
         UsersStorage storage = getSessionStorage().getUsers();
         table.setCurrentPage(storage.getUsersPaging());
 
-        content.getBodyContainer().add(table);
+        mainForm.add(table);
     }
 
     private void initSearch(OptionItem item) {
@@ -414,8 +405,7 @@ public class PageUsers extends PageAdminUsers {
     }
 
     private TablePanel getTable() {
-        OptionContent content = (OptionContent) get("mainForm:optionContent");
-        return (TablePanel) content.getBodyContainer().get("table");
+        return (TablePanel) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
     }
 
     private void searchPerformed(AjaxRequestTarget target) {
@@ -486,7 +476,7 @@ public class PageUsers extends PageAdminUsers {
         model.reset();
 
         target.appendJavaScript("init()");
-        target.add(get("mainForm:option"));
+        target.add(get(ID_MAIN_FORM));
         searchPerformed(target);
     }
 

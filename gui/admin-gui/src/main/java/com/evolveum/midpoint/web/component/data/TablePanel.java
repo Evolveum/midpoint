@@ -52,6 +52,8 @@ public class TablePanel<T> extends Panel {
         Validate.notNull(provider, "Object type must not be null.");
         Validate.notNull(columns, "Columns must not be null.");
 
+        setRenderBodyOnly(true);
+
         initLayout(columns, itemsPerPage, provider);
     }
 
@@ -86,7 +88,7 @@ public class TablePanel<T> extends Panel {
     }
 
     public DataTable getDataTable() {
-        return (DataTable) get("table");
+        return (DataTable) get(TABLE);
     }
 
     public void setItemsPerPage(int size) {

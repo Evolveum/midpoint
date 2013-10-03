@@ -19,38 +19,62 @@
 <body>
 <wicket:extend>
     <div wicket:id="confirmDeletePopup" />
-    <form wicket:id="mainForm">
-        <div wicket:id="option">
-            <div wicket:id="search">
-                <input class="searchText" type="text" wicket:id="searchText"/>
-                <table>
-                    <tr>
-                        <td>
-                            <input type="checkbox" wicket:id="nameCheck"/>
-                            <wicket:message key="pageUsers.name"/>
-                        </td>
-                        <td><input type="checkbox" wicket:id="fullNameCheck"/>
-                            <wicket:message key="pageUsers.fullName"/>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <input type="checkbox" wicket:id="givenNameCheck"/>
-                            <wicket:message key="pageUsers.givenName"/>
-                        </td>
-                        <td>
-                            <input type="checkbox" wicket:id="familyNameCheck"/>
-                            <wicket:message key="pageUsers.familyName"/>
-                        </td>
-                    </tr>
-                </table>
-                <a wicket:id="clearButton"/>
-                <a class="submitSearch" wicket:id="searchButton"/>
-            </div>
+
+
+    <form class="form-inline pull-right" style="margin-top: 10px;">
+        <div class="form-group">
+            <label class="sr-only">Text</label>
+            <input type="email" class="form-control input-sm" placeholder="Text">
         </div>
-        <div wicket:id="optionContent">
-            <div wicket:id="table"/>
-        </div>
+
+        <select class="selectpicker select-picker-sm" data-width="auto" multiple title="Search" data-selected-text-format="count>2">
+            <option>Name</option>
+            <option>Full name</option>
+            <option>Given name</option>
+            <option>Family name</option>
+        </select>
+
+        <script type="text/javascript">
+            $(document).ready(function () {
+                $('.selectpicker').selectpicker({});
+            });
+        </script>
+    </form>
+
+    <form wicket:id="mainForm" class="clearfix">
+        <div wicket:id="table"/>
+
+        <!--<div wicket:id="option">-->
+            <!--<div wicket:id="search">-->
+                <!--<input class="searchText" type="text" wicket:id="searchText"/>-->
+                <!--<table>-->
+                    <!--<tr>-->
+                        <!--<td>-->
+                            <!--<input type="checkbox" wicket:id="nameCheck"/>-->
+                            <!--<wicket:message key="pageUsers.name"/>-->
+                        <!--</td>-->
+                        <!--<td><input type="checkbox" wicket:id="fullNameCheck"/>-->
+                            <!--<wicket:message key="pageUsers.fullName"/>-->
+                        <!--</td>-->
+                    <!--</tr>-->
+                    <!--<tr>-->
+                        <!--<td>-->
+                            <!--<input type="checkbox" wicket:id="givenNameCheck"/>-->
+                            <!--<wicket:message key="pageUsers.givenName"/>-->
+                        <!--</td>-->
+                        <!--<td>-->
+                            <!--<input type="checkbox" wicket:id="familyNameCheck"/>-->
+                            <!--<wicket:message key="pageUsers.familyName"/>-->
+                        <!--</td>-->
+                    <!--</tr>-->
+                <!--</table>-->
+                <!--<a wicket:id="clearButton"/>-->
+                <!--<a class="submitSearch" wicket:id="searchButton"/>-->
+            <!--</div>-->
+        <!--</div>-->
+        <!--<div wicket:id="optionContent">-->
+            <!--<div wicket:id="table"/>-->
+        <!--</div>-->
 
         <div class="operatingFormButtons">
             <div class="operatingFormBlock">
