@@ -35,7 +35,7 @@ public class IconColumn<T> extends AbstractColumn<T, String> {
 
     @Override
     public String getCssClass() {
-        return "iconColumn";
+        return "icon";
     }
 
     @Override

@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.web.component.data;
 
 import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel2;
+import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
@@ -65,9 +65,11 @@ public class TablePanel<T> extends Panel {
         headers.setOutputMarkupId(true);
         table.addTopToolbar(headers);
 
+        table.addBottomToolbar(new CountToolbar(table));
+
         add(table);
 
-        NavigatorPanel2 nb2 = new NavigatorPanel2(ID_PAGING, table, showPagedPaging(provider));
+        NavigatorPanel nb2 = new NavigatorPanel(ID_PAGING, table, showPagedPaging(provider));
         add(nb2);
     }
 
@@ -126,46 +128,5 @@ public class TablePanel<T> extends Panel {
 
         DataTable table = getDataTable();
         table.add(new AttributeModifier("style", new Model(value)));
-    }
-
-    private IModel<String> createModel(final IPageable pageable) {
-        return new LoadableModel<String>() {
-
-            @Override
-            protected String load() {
-                long from = 0;
-                long to = 0;
-                long count = 0;
-
-                if (pageable instanceof DataViewBase) {
-                    DataViewBase view = (DataViewBase) pageable;
-
-                    from = view.getFirstItemOffset() + 1;
-                    to = from + view.getItemsPerPage() - 1;
-                    long itemCount = view.getItemCount();
-                    if (to > itemCount) {
-                        to = itemCount;
-                    }
-                    count = itemCount;
-                } else if (pageable instanceof DataTable) {
-                    DataTable table = (DataTable) pageable;
-
-                    from = table.getCurrentPage() * table.getItemsPerPage() + 1;
-                    to = from + table.getItemsPerPage() - 1;
-                    long itemCount = table.getItemCount();
-                    if (to > itemCount) {
-                        to = itemCount;
-                    }
-                    count = itemCount;
-                }
-
-                if (count > 0) {
-                    return new StringResourceModel("TablePanel.label", this, null,
-                            new Object[]{from, to, count}).getString();
-                }
-
-                return new StringResourceModel("TablePanel.noFound", this, null).getString();
-            }
-        };
     }
 }

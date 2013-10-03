@@ -66,7 +66,7 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
 
     @Override
     public String getCssClass() {
-        return "tableCheckbox";
+        return "icon";
     }
 
     /**

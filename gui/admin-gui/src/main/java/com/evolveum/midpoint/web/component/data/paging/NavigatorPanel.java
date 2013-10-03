@@ -33,7 +33,7 @@ import org.apache.wicket.model.IModel;
 /**
  * @author lazyman
  */
-public class NavigatorPanel2 extends Panel {
+public class NavigatorPanel extends Panel {
 
     private int PAGING_SIZE = 5;
 
@@ -50,12 +50,19 @@ public class NavigatorPanel2 extends Panel {
     private final IPageable pageable;
     private final boolean showPageListing;
 
-    public NavigatorPanel2(String id, IPageable pageable, boolean showPageListing) {
+    public NavigatorPanel(String id, IPageable pageable, boolean showPageListing) {
         super(id);
-        setOutputMarkupId(true);
-
         this.pageable = pageable;
         this.showPageListing = showPageListing;
+
+        setOutputMarkupId(true);
+        add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return NavigatorPanel.this.pageable.getPageCount() > 0;
+            }
+        });
 
         initLayout();
     }

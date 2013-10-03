@@ -231,7 +231,7 @@ public class PageUsers extends PageAdminUsers {
         IColumn column = new CheckBoxHeaderColumn<UserType>();
         columns.add(column);
 
-        columns.add(new IconColumn<SelectableBean<UserType>>(createStringResource("pageUsers.type")) {
+        columns.add(new IconColumn<SelectableBean<UserType>>(null) {
 
             @Override
             protected IModel<ResourceReference> createIconModel(
