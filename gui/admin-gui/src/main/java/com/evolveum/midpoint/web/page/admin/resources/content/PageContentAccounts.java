@@ -91,6 +91,7 @@ public class PageContentAccounts extends PageAdminResources {
 
     private static final String DOT_CLASS = PageContentAccounts.class.getName() + ".";
     private static final String OPERATION_CHANGE_OWNER = DOT_CLASS + "changeOwner";
+    private static final String OPERATION_CREATE_USER_FROM_ACCOUNT = DOT_CLASS + "createUserFromAccount";
     private static final String MODAL_ID_OWNER_CHANGE = "ownerChangePopup";
 
     private IModel<PrismObject<ResourceType>> resourceModel;
@@ -301,6 +302,17 @@ public class PageContentAccounts extends PageAdminResources {
         };
         columns.add(column);
 
+        column = new ButtonColumn<SelectableBean<AccountContentDto>>(new Model<String>(),
+                createStringResource("pageContentAccounts.button.importAccount")){
+
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<AccountContentDto>> rowModel){
+                importSingleAccount(target, rowModel);
+            }
+        };
+
+        columns.add(column);
+
         return columns;
     }
 
@@ -344,6 +356,22 @@ public class PageContentAccounts extends PageAdminResources {
         changeDto.setAccountType(ShadowType.COMPLEX_TYPE);
 
         changeDto.setOldOwnerOid(ownerOid);
+    }
+
+    private void importSingleAccount(AjaxRequestTarget target, IModel<SelectableBean<AccountContentDto>> rowModel){
+        AccountContentDto contentDto = rowModel.getObject().getValue();
+
+        Task task = createSimpleTask(OPERATION_CREATE_USER_FROM_ACCOUNT);
+        OperationResult result = new OperationResult(OPERATION_CREATE_USER_FROM_ACCOUNT);
+
+        try {
+            getModelService().importFromResource(contentDto.getAccountOid(), task, result);
+        } catch (Exception ex) {
+            result.computeStatus(getString("pageContentAccounts.message.cantImportAccount", contentDto.getAccountOid()));
+            LoggingUtils.logException(LOGGER, getString("pageContentAccounts.message.cantImportAccount", contentDto.getAccountName()), ex);
+        }
+
+        //TODO - continue here - get User, and call ownerChangePerformed() - see if action is reflected in GUI
     }
 
     private void clearButtonPerformed(AjaxRequestTarget target) {
