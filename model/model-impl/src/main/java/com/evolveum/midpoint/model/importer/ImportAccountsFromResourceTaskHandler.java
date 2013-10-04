@@ -29,16 +29,19 @@ import com.evolveum.midpoint.model.sync.SynchronizeAccountResultHandler;
 import com.evolveum.midpoint.model.util.AbstractSearchIterativeResultHandler;
 import com.evolveum.midpoint.model.util.AbstractSearchIterativeTaskHandler;
 import com.evolveum.midpoint.model.util.Utils;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskHandler;
@@ -46,9 +49,12 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
@@ -87,6 +93,9 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
     
     @Autowired(required = true)
     private TaskManager taskManager;
+    
+    @Autowired(required = true)
+    private ProvisioningService provisioningService;
 
     @Autowired(required = true)
     private ChangeNotificationDispatcher changeNotificationDispatcher;
@@ -169,6 +178,12 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
 			return null;
 		}
 		
+        return createHandler(resource, runResult, task, opResult);
+	}
+	
+	private SynchronizeAccountResultHandler createHandler(ResourceType resource, TaskRunResult runResult, Task task,
+			OperationResult opResult) {
+		
 		RefinedResourceSchema refinedSchema;
         try {
             refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, LayerType.MODEL, prismContext);
@@ -232,8 +247,33 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
         return null;
     }
     
-    public void importSingleShadow(String shadowOid, Task task, OperationResult parentResult) {
+    /**
+     * Imports a single shadow. Synchronously. The task is NOT switched to background by default.
+     */
+    public boolean importSingleShadow(String shadowOid, Task task, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
+    	
+    	PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, shadowOid, null, task, parentResult);
+    	PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, ShadowUtil.getResourceOid(shadow), null, task, parentResult);
+    	
+    	// Create a result handler just for one object. Invoke the handle() method manually.
     	TaskRunResult runResult = new TaskRunResult();
-		createHandler(runResult, task, parentResult);
+		SynchronizeAccountResultHandler resultHandler = createHandler(resource.asObjectable(), runResult, task, parentResult);
+		if (resultHandler == null) {
+			return false;
+		}
+		
+		boolean cont = initializeRun(resultHandler, runResult, task, parentResult);
+		if (!cont) {
+			return false;
+		}
+		
+		cont = resultHandler.handle(shadow, parentResult);
+		if (!cont) {
+			return false;
+		}
+		
+		finish(resultHandler, runResult, task, parentResult);
+		
+		return true;
     }
 }
