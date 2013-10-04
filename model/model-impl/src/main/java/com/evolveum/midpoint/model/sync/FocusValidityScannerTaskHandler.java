@@ -37,6 +37,7 @@ import com.evolveum.midpoint.model.lens.ContextFactory;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensUtil;
+import com.evolveum.midpoint.model.util.AbstractScannerResultHandler;
 import com.evolveum.midpoint.model.util.AbstractScannerTaskHandler;
 import com.evolveum.midpoint.model.util.AbstractSearchIterativeResultHandler;
 import com.evolveum.midpoint.model.util.AbstractSearchIterativeTaskHandler;
@@ -98,8 +99,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
  *
  */
 @Component
-public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<UserType> {
+public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<UserType, AbstractScannerResultHandler<UserType>> {
 
+	// WARNING! This task handler is efficiently singleton!
+	// It is a spring bean and it is supposed to handle all search task instances
+	// Therefore it must not have task-specific fields. It can only contain fields specific to
+	// all tasks of a specified type
+	
 	public static final String HANDLER_URI = ModelConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/focus-validation-scanner/handler-2";
 
 	@Autowired(required = true)
@@ -123,12 +129,14 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 	}
 	
 	@Override
-	protected ObjectQuery createQuery(TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
+	protected ObjectQuery createQuery(AbstractScannerResultHandler<UserType> handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
 		ObjectQuery query = new ObjectQuery();
 		ObjectFilter filter;
 		PrismObjectDefinition<UserType> focusObjectDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
 		PrismContainerDefinition<ActivationType> activationContainerDef = focusObjectDef.findContainerDefinition(FocusType.F_ACTIVATION);
 		
+		XMLGregorianCalendar lastScanTimestamp = handler.getLastScanTimestamp();
+		XMLGregorianCalendar thisScanTimestamp = handler.getThisScanTimestamp();
 		if (lastScanTimestamp == null) {
 			filter = OrFilter.createOr(
 						LessFilter.createLessFilter(new ItemPath(FocusType.F_ACTIVATION), activationContainerDef, 
@@ -154,10 +162,10 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 	}
 	
 	@Override
-	protected AbstractSearchIterativeResultHandler<UserType> createHandler(TaskRunResult runResult, final Task task,
+	protected AbstractScannerResultHandler<UserType> createHandler(TaskRunResult runResult, final Task task,
 			OperationResult opResult) {
 		
-		AbstractSearchIterativeResultHandler<UserType> handler = new AbstractSearchIterativeResultHandler<UserType>(
+		AbstractScannerResultHandler<UserType> handler = new AbstractScannerResultHandler<UserType>(
 				task, FocusValidityScannerTaskHandler.class.getName(), "recompute", "recompute task") {
 			@Override
 			protected boolean handleObject(PrismObject<UserType> user, OperationResult result) throws CommonException {
