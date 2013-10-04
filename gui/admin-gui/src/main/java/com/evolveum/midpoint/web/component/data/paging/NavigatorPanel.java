@@ -159,13 +159,6 @@ public class NavigatorPanel extends Panel {
                         pageLinkPerformed(target, getPageNumber());
                     }
                 };
-                pageLink.add(new VisibleEnableBehaviour() {
-
-                    @Override
-                    public boolean isEnabled() {
-                        return pageable.getCurrentPage() != pageLink.getPageNumber();
-                    }
-                });
                 updateDisabledLink(pageLink);
                 item.add(pageLink);
 
