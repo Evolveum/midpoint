@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+import java.util.Collection;
 import java.util.List;
 
 import javax.ws.rs.Consumes;
@@ -12,30 +13,40 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.ext.MessageBodyReader;
+import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Provider;
 import javax.xml.bind.JAXBException;
 
 import org.apache.cxf.jaxrs.model.ClassResourceInfo;
+import org.apache.cxf.jaxrs.provider.AbstractConfigurableProvider;
 import org.apache.cxf.jaxrs.provider.JAXBElementProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 
 @Produces({"application/xml", "application/*+xml", "text/xml" })
 @Consumes({"application/xml", "application/*+xml", "text/xml" })
 @Provider
-public class MidpointXmlProvider<T> extends JAXBElementProvider<T> {
+public class MidpointXmlProvider<T> extends AbstractConfigurableProvider implements MessageBodyReader<T>, MessageBodyWriter<T>{
 
 	private static transient Trace LOGGER = TraceManager.getTrace(MidpointXmlProvider.class);
 	
 	@Autowired(required=true)
 	private PrismContext prismContext;
 	
-	@Override
+//	@Override
     public void init(List<ClassResourceInfo> cris) {
         setEnableStreaming(true);
     }
@@ -61,8 +72,17 @@ public class MidpointXmlProvider<T> extends JAXBElementProvider<T> {
 			OutputStream entityStream) throws IOException,
 			WebApplicationException {
 		
-		String marhaledObj = prismContext.silentMarshalObject(object, LOGGER);
-		 
+		String marhaledObj = null;
+		
+		if (object instanceof PrismObject){
+			marhaledObj = prismContext.silentMarshalObject(((PrismObject) object).asObjectable(), LOGGER);
+		} else if (object instanceof OperationResult){
+			OperationResultType operationResultType = ((OperationResult) object).createOperationResultType();
+			marhaledObj = prismContext.silentMarshalObject(operationResultType, LOGGER);
+		} else{
+		 marhaledObj = prismContext.silentMarshalObject(object, LOGGER);
+		}
+		
 		entityStream.write(marhaledObj.getBytes());
 		
 		
@@ -82,15 +102,31 @@ public class MidpointXmlProvider<T> extends JAXBElementProvider<T> {
 		// TODO Auto-generated method stub
 		T object = null;
 		try {
-			object = (T) prismContext.getPrismDomProcessor().parseObject(entityStream).asObjectable();
+			
+			if (type.isAssignableFrom(PrismObject.class)){
+				object = (T) prismContext.getPrismDomProcessor().parseObject(entityStream);
+			} else {
+				object = (T) prismContext.getPrismJaxbProcessor().unmarshalObject(entityStream);
+			}
+			
+			if (object instanceof ObjectModificationType){
+				
+				Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications((ObjectModificationType)object, UserType.class, prismContext);
+				return (T) modifications;
+			}
+			
+			return object;
 		} catch (SchemaException ex){
+			
 			throw new WebApplicationException(ex);
 			
 		} catch (IOException ex){
 			throw new IOException(ex);
+		} catch (JAXBException ex){
+			throw new IOException(ex);
 		}
 		
-		return object;
+//		return object;
 	}
 
 }

@@ -415,6 +415,20 @@ public class PrismJaxbProcessor {
 		
 	}
 	
+	public <T> T unmarshalObject(InputStream input) throws JAXBException, SchemaException {
+		Object object = getUnmarshaller().unmarshal(input);
+		JAXBElement<T> jaxbElement = (JAXBElement<T>) object;
+		adopt(jaxbElement);
+		
+		if (jaxbElement == null) {
+			return null;
+		}
+		T value = jaxbElement.getValue();
+		// adopt not needed, already adopted in unmarshalElement call above
+		return value;
+		
+	}
+	
 	public <T> JAXBElement<T> unmarshalElement(Reader reader, Class<T> type) throws JAXBException, SchemaException {
 		Object object = getUnmarshaller().unmarshal(reader);
 		JAXBElement<T> jaxbElement = (JAXBElement<T>) object;
