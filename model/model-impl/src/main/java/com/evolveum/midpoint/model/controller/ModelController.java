@@ -1071,6 +1071,7 @@ public class ModelController implements ModelService, ModelInteractionService {
 
         try {
 			// TODO
+        	importAccountsFromResourceTaskHandler.importSingleShadow(shadowOid, task, result);
 			
 			result.recordSuccess();
 			

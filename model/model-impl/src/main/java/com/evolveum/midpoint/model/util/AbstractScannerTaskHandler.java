@@ -46,10 +46,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
  *
  */
 @Component
-public abstract class AbstractScannerTaskHandler<O extends ObjectType> extends AbstractSearchIterativeTaskHandler<O> {
-
-	protected XMLGregorianCalendar lastScanTimestamp;
-	protected XMLGregorianCalendar thisScanTimestamp;
+public abstract class AbstractScannerTaskHandler<O extends ObjectType, H extends AbstractScannerResultHandler<O>> 
+		extends AbstractSearchIterativeTaskHandler<O,H> {
 		
     @Autowired(required = true)
     protected Clock clock;
@@ -61,33 +59,35 @@ public abstract class AbstractScannerTaskHandler<O extends ObjectType> extends A
 	}
 
 	@Override
-	protected boolean initialize(TaskRunResult runResult, Task task, OperationResult opResult) {
-		boolean cont = super.initialize(runResult, task, opResult);
+	protected boolean initializeRun(H handler, TaskRunResult runResult,
+			Task task, OperationResult opResult) {
+		boolean cont = super.initializeRun(handler, runResult, task, opResult);
 		if (!cont) {
 			return cont;
 		}
 		
-		lastScanTimestamp = null;
+		XMLGregorianCalendar lastScanTimestamp = null;
     	PrismProperty<XMLGregorianCalendar> lastScanTimestampProperty = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME);
         if (lastScanTimestampProperty != null) {
             lastScanTimestamp = lastScanTimestampProperty.getValue().getValue();
         }
+        handler.setLastScanTimestamp(lastScanTimestamp);
         
-        thisScanTimestamp = clock.currentTimeXMLGregorianCalendar();
+        handler.setThisScanTimestamp(clock.currentTimeXMLGregorianCalendar());
 		        
         return true;
 	}
 		
     @Override
-	protected void finish(TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
-		super.finish(runResult, task, opResult);
+	protected void finish(H handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
+		super.finish(handler, runResult, task, opResult);
 		
 		PrismPropertyDefinition<XMLGregorianCalendar> lastScanTimestampDef = new PrismPropertyDefinition<XMLGregorianCalendar>(
 				SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME, SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME,
 				DOMUtil.XSD_DATETIME, prismContext);
 		PropertyDelta<XMLGregorianCalendar> lastScanTimestampDelta = new PropertyDelta<XMLGregorianCalendar>(
 				new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME), lastScanTimestampDef);
-		lastScanTimestampDelta.setValueToReplace(new PrismPropertyValue<XMLGregorianCalendar>(thisScanTimestamp));
+		lastScanTimestampDelta.setValueToReplace(new PrismPropertyValue<XMLGregorianCalendar>(handler.getThisScanTimestamp()));
 		task.modifyExtension(lastScanTimestampDelta);
 	}
 
