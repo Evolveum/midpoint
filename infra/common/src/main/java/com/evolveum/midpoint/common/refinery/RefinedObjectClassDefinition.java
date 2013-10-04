@@ -349,6 +349,9 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
     	if (kind == null) {
     		kind = impliedKind;
     	}
+    	if (kind == null) {
+    		kind = ShadowKindType.ACCOUNT;
+    	}
     	String intent = entTypeDefType.getIntent();
     	if (intent == null) {
     		// Compatibility, DEPRECATED notation
