@@ -1,6 +1,6 @@
-package com.evolveum.midpoint.web.component.button;
+package com.evolveum.midpoint.web.component;
 
-import org.apache.wicket.ajax.markup.html.form.AjaxSubmitLink;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.ComponentTag;
 import org.apache.wicket.markup.MarkupStream;
 import org.apache.wicket.markup.parser.XmlTag;
@@ -9,23 +9,19 @@ import org.apache.wicket.model.IModel;
 /**
  * @author lazyman
  */
-public abstract class AjaxSubmitButton extends AjaxSubmitLink {
+public abstract class AjaxButton extends AjaxLink<String> {
 
-    private IModel<String> label;
-
-    public AjaxSubmitButton(String id) {
-        super(id, null);
+    public AjaxButton(String id) {
+        super(id);
     }
 
-    public AjaxSubmitButton(String id, IModel<String> label) {
-        super(id);
-        this.label = label;
+    public AjaxButton(String id, IModel<String> model) {
+        super(id, model);
     }
 
     @Override
     public void onComponentTagBody(final MarkupStream markupStream, final ComponentTag openTag) {
-        String text = label != null ? label.getObject() : "";
-        replaceComponentTagBody(markupStream, openTag, text);
+        replaceComponentTagBody(markupStream, openTag, getDefaultModelObjectAsString());
     }
 
     @Override

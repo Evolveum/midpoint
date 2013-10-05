@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.web.page.error;
 
-import com.evolveum.midpoint.web.component.button.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;

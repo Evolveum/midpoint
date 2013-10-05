@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.page.admin.configuration;
+package com.evolveum.midpoint.web.page.admin.configuration.component;
 
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ImportOptionsType;
 import org.apache.commons.lang.Validate;
