@@ -24,6 +24,7 @@ import com.evolveum.midpoint.web.component.menu.top2.MenuItem;
 import com.evolveum.midpoint.web.component.menu.top2.TopMenuBar;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.configuration.PageAbout;
+import com.evolveum.midpoint.web.page.admin.configuration.PageAccounts;
 import com.evolveum.midpoint.web.page.admin.configuration.PageDebugList;
 import com.evolveum.midpoint.web.page.admin.configuration.PageImportObject;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
@@ -140,7 +141,7 @@ public class PageAdmin extends PageBase {
         configuration.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.configuration.security"), PageDashboard.class));
         configuration.addMenuItem(new MenuItem(null));
         configuration.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.configuration.development"), true, null, null));
-        configuration.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.configuration.shadowsDetails"), PageDashboard.class));
+        configuration.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.configuration.shadowsDetails"), PageAccounts.class));
         configuration.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.configuration.expressionEvaluator"), PageDashboard.class));
         configuration.addMenuItem(new MenuItem(null));
         configuration.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.configuration.about"), PageAbout.class));

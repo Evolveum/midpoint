@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.page.admin.internal.dto;
+package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
 import java.io.Serializable;
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.page.admin.internal;
+package com.evolveum.midpoint.web.page.admin.configuration;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
@@ -39,7 +39,7 @@ import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
-import com.evolveum.midpoint.web.page.admin.internal.dto.ResourceItemDto;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.ResourceItemDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
@@ -70,7 +70,7 @@ import java.util.*;
 /**
  * @author lazyman
  */
-public class PageAccounts extends PageAdmin {
+public class PageAccounts extends PageAdminConfiguration {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageAccounts.class);
 
