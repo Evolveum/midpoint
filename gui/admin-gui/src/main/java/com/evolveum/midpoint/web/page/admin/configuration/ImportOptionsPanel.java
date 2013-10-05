@@ -47,6 +47,8 @@ public class ImportOptionsPanel extends Panel {
         Validate.notNull(model);
         this.model = model;
 
+        setRenderBodyOnly(true);
+
         initLayout();
     }
 

@@ -17,57 +17,59 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div>
-        <br/>
-        <table cellspacing="0" cellpadding="0">
-            <tbody>
-            <tr>
-                <td class="label">
-                    <input wicket:id="protectedByEncryption" type="checkbox"/>
+    <div class="form-group">
+        <label class="col-lg-2 control-label"><wicket:message key="ImportOptionsPanel.options"/></label>
+
+        <div class="col-lg-8">
+            <div>
+                <label class="col-lg-2 checkbox-inline">
+                    <input wicket:id="protectedByEncryption" type="checkbox" name="optionsRadios" checked>
                     <wicket:message key="importOptionsPanel.protectedByEncryption"/>
-                </td>
-                <td class="label">
-                    <input wicket:id="fetchResourceSchema" type="checkbox"/>
+                </label>
+                <label class="col-lg-2 checkbox-inline">
+                    <input wicket:id="fetchResourceSchema" type="checkbox" name="optionsRadios">
                     <wicket:message key="importOptionsPanel.fetchResourceSchema"/>
-                </td>
-                <td class="label">
-                    <input wicket:id="keepOid" type="checkbox"/>
+                </label>
+                <label class="col-lg-2 checkbox-inline">
+                    <input wicket:id="keepOid" type="checkbox" name="optionsRadios">
                     <wicket:message key="importOptionsPanel.keepOid"/>
-                </td>
-                <td class="label">
-                    <input wicket:id="overwriteExistingObject" type="checkbox"/>
+                </label>
+                <label class="col-lg-2 checkbox-inline">
+                    <input wicket:id="overwriteExistingObject" type="checkbox" name="optionsRadios">
                     <wicket:message key="importOptionsPanel.overwriteExistingObject"/>
-                </td>
-                <td class="label">
-                    <input wicket:id="referentialIntegrity" type="checkbox"/>
+                </label>
+                <label class="col-lg-2 checkbox-inline">
+                    <input wicket:id="referentialIntegrity" type="checkbox" name="optionsRadios">
                     <wicket:message key="importOptionsPanel.referentialIntegrity"/>
-                </td>
-            </tr>
-            <tr>
-                <td class="label">
-                    <input wicket:id="summarizeErrors" type="checkbox"/>
+                </label>
+            </div>
+            <div>
+                <label class="col-lg-2 checkbox-inline">
+                    <input wicket:id="summarizeErrors" type="checkbox" name="optionsRadios" checked>
                     <wicket:message key="importOptionsPanel.summarizeErrors"/>
-                </td>
-                <td class="label">
-                    <input wicket:id="summarizeSuccesses" type="checkbox"/>
+                </label>
+                <label class="col-lg-2 checkbox-inline">
+                    <input wicket:id="summarizeSuccesses" type="checkbox" name="optionsRadios" checked>
                     <wicket:message key="importOptionsPanel.summarizeSuccesses"/>
-                </td>
-                <td class="label">
-                    <input wicket:id="validateDynamicSchema" type="checkbox"/>
+                </label>
+                <label class="col-lg-2 checkbox-inline">
+                    <input wicket:id="validateDynamicSchema" type="checkbox" name="optionsRadios" checked>
                     <wicket:message key="importOptionsPanel.validateDynamicSchema"/>
-                </td>
-                <td class="label">
-                    <input wicket:id="validateStaticSchema" type="checkbox"/>
+                </label>
+                <label class="col-lg-2 checkbox-inline">
+                    <input wicket:id="validateStaticSchema" type="checkbox" name="optionsRadios" checked>
                     <wicket:message key="importOptionsPanel.validateStaticSchema"/>
-                </td>
-                <td class="label">
-                    <wicket:message key="importOptionsPanel.stopAfter"/>
-                    <input wicket:id="errors" type="text" size="5"/>
-                    <wicket:message key="importOptionsPanel.errors"/>
-                </td>
-            </tr>
-            </tbody>
-        </table>
+                </label>
+            </div>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-lg-2 control-label"><wicket:message key="importOptionsPanel.stopAfter"/></label>
+
+        <div class="col-lg-1">
+            <input wicket:id="errors" wicket:message="placeholder:ImportOptionsPanel.errorCount" type="text"
+                   class="form-control input-sm">
+        </div>
     </div>
 </wicket:panel>
 </html>
