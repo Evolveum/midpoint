@@ -33,13 +33,12 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.io.input.ReaderInputStream;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.Radio;
-import org.apache.wicket.markup.html.form.RadioChoice;
 import org.apache.wicket.markup.html.form.RadioGroup;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.markup.html.form.upload.FileUploadField;
@@ -68,6 +67,17 @@ public class PageImportObject extends PageAdminConfiguration {
     private static final String ID_IMPORT_RADIO_GROUP = "importRadioGroup";
     private static final String ID_FILE_RADIO = "fileRadio";
     private static final String ID_XML_RADIO = "xmlRadio";
+    private static final String ID_IMPORT_FILE_BUTTON = "importFileButton";
+    private static final String ID_IMPORT_XML_BUTTON = "importXmlButton";
+    private static final String ID_INPUT = "input";
+    private static final String ID_INPUT_ACE = "inputAce";
+    private static final String ID_ACE_EDITOR = "aceEditor";
+    private static final String ID_INPUT_FILE_LABEL = "inputFileLabel";
+    private static final String ID_INPUT_FILE = "inputFile";
+    private static final String ID_FILE_INPUT = "fileInput";
+
+    private static final Integer INPUT_FILE = 1;
+    private static final Integer INPUT_XML = 2;
 
     private LoadableModel<ImportOptionsType> model;
     private IModel<String> xmlEditorModel;
@@ -92,75 +102,67 @@ public class PageImportObject extends PageAdminConfiguration {
         ImportOptionsPanel importOptions = new ImportOptionsPanel(ID_IMPORT_OPTIONS, model);
         mainForm.add(importOptions);
 
-        IModel<Integer> groupModel = new Model<Integer>(1);
-        RadioGroup importRadioGroup = new RadioGroup(ID_IMPORT_RADIO_GROUP, groupModel);
-        mainForm.add(importRadioGroup);
+        final WebMarkupContainer input = new WebMarkupContainer(ID_INPUT);
+        input.setOutputMarkupId(true);
+        mainForm.add(input);
 
-        Radio fileRadio = new Radio(ID_FILE_RADIO, new Model(1), importRadioGroup);
-        importRadioGroup.add(fileRadio);
-
-        Radio xmlRadio = new Radio(ID_XML_RADIO, new Model(2), importRadioGroup);
-        importRadioGroup.add(xmlRadio);
-
-
-//        RadioChoice<String> importTypes = new RadioChoice<String>("importTypes", selected, importTypesList);
-//        importTypes.add(new AjaxFormChoiceComponentUpdatingBehavior() {
-//
-//            @Override
-//            protected void onUpdate(AjaxRequestTarget target) {
-////                PageImportObject.this.isImportFromFile = selected.getObject().equals(importTypesList.get(0));
-////                target.add(container);
-//            }
-//        });
-//        mainForm.add(importTypes);
-
-//        Label chooseFileText = new Label("chooseFile", getString("pageImportObject.chooseFile"));
-//        chooseFileText.add(new VisibleEnableBehaviour() {
-//
-//            @Override
-//            public boolean isVisible() {
-//                return isImportFromFile;
-//            }
-//        });
-//        container.add(chooseFileText);
-//
-
-//        FileUploadField fileInput = new FileUploadField("fileInput");
-//        fileInput.setOutputMarkupId(true);
-//        fileInput.add(new VisibleEnableBehaviour() {
-//
-//            @Override
-//            public boolean isVisible() {
-//                return isImportFromFile;
-//            }
-//
-//        });
-//        container.add(fileInput);
-//
-//        WebMarkupContainer aceContainer = new WebMarkupContainer("aceContainer");
-//        aceContainer.add(new VisibleEnableBehaviour() {
-//
-//            @Override
-//            public boolean isVisible() {
-//                return !isImportFromFile;
-//            }
-//
-//        });
-//        container.add(aceContainer);
-//
-//        AceEditor<String> xmlEditor = new AceEditor<String>("aceEditor", xmlEditorModel);
-//        xmlEditor.setOutputMarkupId(true);
-//        aceContainer.add(xmlEditor);
-
-        WebMarkupContainer buttonBar = new WebMarkupContainer(ID_BUTTON_BAR);
+        final WebMarkupContainer buttonBar = new WebMarkupContainer(ID_BUTTON_BAR);
         buttonBar.setOutputMarkupId(true);
         mainForm.add(buttonBar);
 
-        initButtons(buttonBar);
+        final IModel<Integer> groupModel = new Model<Integer>(INPUT_FILE);
+        RadioGroup importRadioGroup = new RadioGroup(ID_IMPORT_RADIO_GROUP, groupModel);
+        importRadioGroup.add(new AjaxFormChoiceComponentUpdatingBehavior() {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                target.add(input);
+                target.add(buttonBar);
+            }
+        });
+        mainForm.add(importRadioGroup);
+
+        Radio fileRadio = new Radio(ID_FILE_RADIO, new Model(INPUT_FILE), importRadioGroup);
+        importRadioGroup.add(fileRadio);
+
+        Radio xmlRadio = new Radio(ID_XML_RADIO, new Model(INPUT_XML), importRadioGroup);
+        importRadioGroup.add(xmlRadio);
+
+        WebMarkupContainer inputAce = new WebMarkupContainer(ID_INPUT_ACE);
+        addVisibileForInputType(inputAce, INPUT_XML, groupModel);
+        input.add(inputAce);
+
+        AceEditor<String> aceEditor = new AceEditor<String>(ID_ACE_EDITOR, xmlEditorModel);
+        aceEditor.setOutputMarkupId(true);
+        inputAce.add(aceEditor);
+
+        WebMarkupContainer inputFileLabel = new WebMarkupContainer(ID_INPUT_FILE_LABEL);
+        addVisibileForInputType(inputFileLabel, INPUT_FILE, groupModel);
+        input.add(inputFileLabel);
+
+        WebMarkupContainer inputFile = new WebMarkupContainer(ID_INPUT_FILE);
+        addVisibileForInputType(inputFile, INPUT_FILE, groupModel);
+        input.add(inputFile);
+
+        FileUploadField fileInput = new FileUploadField(ID_FILE_INPUT);
+        inputFile.add(fileInput);
+
+        initButtons(buttonBar, groupModel);
     }
 
-    private void initButtons(final WebMarkupContainer container) {
-        AjaxSubmitButton saveFileButton = new AjaxSubmitButton("importFileButton",
+    private void addVisibileForInputType(Component comp, final Integer type, final IModel<Integer> groupModel) {
+        comp.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return type.equals(groupModel.getObject());
+            }
+
+        });
+    }
+
+    private void initButtons(WebMarkupContainer buttonBar, IModel<Integer> inputType) {
+        AjaxSubmitButton saveFileButton = new AjaxSubmitButton(ID_IMPORT_FILE_BUTTON,
                 createStringResource("PageImportObject.button.import")) {
 
             @Override
@@ -173,19 +175,10 @@ public class PageImportObject extends PageAdminConfiguration {
                 target.add(getFeedbackPanel());
             }
         };
+        addVisibileForInputType(saveFileButton, INPUT_FILE, inputType);
+        buttonBar.add(saveFileButton);
 
-        saveFileButton.add(new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                return false;
-//                return isImportFromFile;
-            }
-
-        });
-        container.add(saveFileButton);
-
-        AjaxSubmitButton saveXmlButton = new AjaxSubmitButton("importXmlButton",
+        AjaxSubmitButton saveXmlButton = new AjaxSubmitButton(ID_IMPORT_XML_BUTTON,
                 createStringResource("PageImportObject.button.import")) {
 
             @Override
@@ -198,17 +191,8 @@ public class PageImportObject extends PageAdminConfiguration {
                 target.add(getFeedbackPanel());
             }
         };
-
-        saveXmlButton.add(new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                return true;
-//                return !isImportFromFile;
-            }
-
-        });
-        container.add(saveXmlButton);
+        addVisibileForInputType(saveXmlButton, INPUT_XML, inputType);
+        buttonBar.add(saveXmlButton);
     }
 
     private void saveFilePerformed(AjaxRequestTarget target) {

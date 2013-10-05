@@ -42,9 +42,16 @@
             </div>
         </div>
 
-        <div class="form-group">
-            <div class="col-lg-12">
-                <div id="editor">&lt;xml/&gt;</div>
+        <div class="form-group" wicket:id="input">
+            <div class="col-lg-12" wicket:id="inputAce">
+                <textarea wicket:id="aceEditor"></textarea>
+            </div>
+
+            <label class="col-lg-2 control-label" wicket:id="inputFileLabel"></label>
+            <div class="col-lg-2" wicket:id="inputFile">
+                <input wicket:id="fileInput" type="file"/>
+
+                <p class="help-block"><wicket:message key="PageImportObject.message.help"/></p>
             </div>
         </div>
 
@@ -52,23 +59,7 @@
             <a class="btn btn-primary" wicket:id="importFileButton"/>
             <a class="btn btn-primary" wicket:id="importXmlButton"/>
         </div>
-
-
-<!-- toto remove-->
-            <!--<span wicket:id="chooseFile"/>-->
-            <!--<input wicket:id="fileInput" type="file"/>-->
-
-            <!--<div wicket:id="aceContainer">-->
-                <!--<div id="aceEditorContainer">-->
-                    <!--<textarea wicket:id="aceEditor"></textarea>-->
-                <!--</div>-->
-            <!--</div>-->
     </form>
-
-    <script>
-        autoresizeEditor('editor');
-    </script>
-
 </wicket:extend>
 </body>
 </html>
