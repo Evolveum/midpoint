@@ -18,52 +18,68 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <form wicket:id="mainForm">
-        <select wicket:id="resources"/>
+    <form class="form-horizontal" wicket:id="mainForm">
+        <div class="form-group">
+            <label class="col-lg-2 control-label"><wicket:message key="PageAccounts.resource"/></label>
 
-        <a style="margin: 0 5px;" wicket:id="listSyncDetails">List sync details</a>
-        <a style="margin: 0 5px;" wicket:id="export">Export accounts</a>
+            <div class="col-lg-3">
+                <select class="form-control input-sm" wicket:id="resources" />
+            </div>
+
+            <a class="btn btn-sm btn-primary" wicket:id="listSyncDetails"><wicket:message key="PageAccounts.button.load"/></a>
+            <a class="btn btn-sm btn-default" wicket:id="export"><wicket:message key="PageAccounts.button.export"/></a>
+        </div>
+
+
+        <h3><wicket:message key="PageAccounts.summary"/></h3>
+        <table class="table table-striped table-condensed" style="width: auto;" wicket:id="totals">
+            <thead>
+            <th><wicket:message key="PageAccounts.state"/></th>
+            <th><wicket:message key="PageAccounts.count"/></th>
+            <th><wicket:message key="PageAccounts.state"/></th>
+            <th><wicket:message key="PageAccounts.count"/></th>
+            <th><wicket:message key="PageAccounts.state"/></th>
+            <th><wicket:message key="PageAccounts.count"/></th>
+            </thead>
+            <tbody>
+            <tr>
+                <td><wicket:message key="PageAccounts.deleted"/></td>
+                <td><span wicket:id="deleted"/></td>
+                <td><wicket:message key="PageAccounts.linked"/></td>
+                <td><span wicket:id="linked"/></td>
+                <td><wicket:message key="PageAccounts.unmatched"/></td>
+                <td><span wicket:id="unmatched"/></td>
+            </tr>
+            <tr>
+                <td><wicket:message key="PageAccounts.disputed"/></td>
+                <td><span wicket:id="disputed"/></td>
+                <td><wicket:message key="PageAccounts.unlinked"/></td>
+                <td><span wicket:id="unlinked"/></td>
+                <td><wicket:message key="PageAccounts.nothing"/></td>
+                <td><span wicket:id="nothing"/></td>
+            </tr>
+            <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td><b><wicket:message key="PageAccounts.total"/></b></td>
+                <td><b><span wicket:id="total"/></b></td>
+            </tr>
+            </tbody>
+        </table>
+
+        <h3><wicket:message key="PageAccounts.shadows"/></h3>
+        <div wicket:id="accountsContainer">
+            <div wicket:id="accounts"/>
+        </div>
+
+        <!-- todo remove-->
         <a wicket:id="clearExport">Clear export folder</a>
-
         <div wicket:id="filesContainer" style="margin-bottom: 15px; margin-top: 10px;">
             <span wicket:id="files">
                 <a style="margin: 3px;" wicket:id="file"><span wicket:id="fileName"/></a>
             </span>
-        </div>
-
-        <table style="margin: 10px;" cellpadding="3" cellspacing="3" wicket:id="totals">
-            <tr>
-                <td>DELETED</td>
-                <td><span wicket:id="deleted"/></td>
-            </tr>
-            <tr>
-                <td>UNMATCHED</td>
-                <td><span wicket:id="unmatched"/></td>
-            </tr>
-            <tr>
-                <td>DISPUTED</td>
-                <td><span wicket:id="disputed"/></td>
-            </tr>
-            <tr>
-                <td>LINKED</td>
-                <td><span wicket:id="linked"/></td>
-            </tr>
-            <tr>
-                <td>UNLINKED</td>
-                <td><span wicket:id="unlinked"/></td>
-            </tr>
-            <tr>
-                <td>NOTHING</td>
-                <td><span wicket:id="nothing"/></td>
-            </tr>
-            <tr>
-                <td>TOTAL</td>
-                <td><span wicket:id="total"/></td>
-            </tr>
-        </table>
-
-        <div wicket:id="accountsContainer">
-            <div wicket:id="accounts"/>
         </div>
     </form>
 </wicket:extend>
