@@ -1066,25 +1066,30 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		// TODO: add context to the result
 
         try {
-			// TODO
+        	boolean wasOk = importAccountsFromResourceTaskHandler.importSingleShadow(shadowOid, task, result);
 			
-			result.recordSuccess();
+        	if (wasOk) {
+        		result.recordSuccess();
+        	} else {
+        		// the error should be in the result already, compute should reveal that to the top-level
+        		result.computeStatus();
+        	}
 			
 			
 			result.cleanupResult();
 		
-//		} catch (ObjectNotFoundException ex) {
-//			ModelUtils.recordFatalError(result, ex);
-//			throw ex;
-//		} catch (CommunicationException ex) {
-//			ModelUtils.recordFatalError(result, ex);
-//			throw ex;
-//		} catch (ConfigurationException ex) {
-//			ModelUtils.recordFatalError(result, ex);
-//			throw ex;
-//		} catch (SecurityViolationException ex) {
-//			ModelUtils.recordFatalError(result, ex);
-//			throw ex;
+		} catch (ObjectNotFoundException ex) {
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+		} catch (CommunicationException ex) {
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+		} catch (ConfigurationException ex) {
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+		} catch (SecurityViolationException ex) {
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
 		} catch (RuntimeException ex) {
 			ModelUtils.recordFatalError(result, ex);
 			throw ex;
