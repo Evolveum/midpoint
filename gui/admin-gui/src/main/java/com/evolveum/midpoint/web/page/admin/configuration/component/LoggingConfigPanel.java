@@ -19,7 +19,7 @@ package com.evolveum.midpoint.web.page.admin.configuration.component;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.EditableLinkColumn;
@@ -62,7 +62,6 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
     private static final String OPERATION_UPDATE_LOGGING_CONFIGURATION = DOT_CLASS + "updateLoggingConfiguration";
 
     private static final String ID_LOGGERS_TABLE = "loggersTable";
-    private static final String ID_FILTERS_TABLE = "filtersTable";
     private static final String ID_ROOT_LEVEL = "rootLevel";
     private static final String ID_ROOT_APPENDER = "rootAppender";
 
@@ -113,7 +112,6 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
     @Override
     protected void initLayout() {
         initLoggers();
-        initFilters();
     }
 
     private void initLoggers() {
@@ -122,13 +120,11 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
         ISortableDataProvider<LoggerConfiguration, String> provider = new ListDataProvider<LoggerConfiguration>(this,
                 new PropertyModel<List<LoggerConfiguration>>(getModel(), "loggers"));
         TablePanel table = new TablePanel<LoggerConfiguration>(ID_LOGGERS_TABLE, provider, initLoggerColumns());
-        table.setStyle("margin-top: 0px;");
         table.setOutputMarkupId(true);
         table.setShowPaging(false);
-        table.setTableCssClass("autowidth");
         add(table);
 
-        AjaxLinkButton addComponentLogger = new AjaxLinkButton("addComponentLogger",
+        AjaxButton addComponentLogger = new AjaxButton("addComponentLogger",
                 createStringResource("LoggingConfigPanel.button.addComponentLogger")) {
 
             @Override
@@ -138,7 +134,7 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
         };
         add(addComponentLogger);
 
-        AjaxLinkButton addClassLogger = new AjaxLinkButton("addClassLogger",
+        AjaxButton addClassLogger = new AjaxButton("addClassLogger",
                 createStringResource("LoggingConfigPanel.button.addClassLogger")) {
 
             @Override
@@ -148,7 +144,7 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
         };
         add(addClassLogger);
 
-        AjaxLinkButton deleteLogger = new AjaxLinkButton("deleteLogger",
+        AjaxButton deleteLogger = new AjaxButton("deleteLogger",
                 createStringResource("LoggingConfigPanel.button.deleteLogger")) {
 
             @Override
@@ -172,38 +168,6 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
                 new PropertyModel<String>(getModel(), LoggingDto.F_ROOT_APPENDER), createAppendersListModel());
         rootAppender.setNullValid(true);
         add(rootAppender);
-    }
-
-    private void initFilters() {
-        ISortableDataProvider<LoggerConfiguration, String> provider = new ListDataProvider<LoggerConfiguration>(this,
-                new PropertyModel<List<LoggerConfiguration>>(getModel(), "filters"));
-        TablePanel table = new TablePanel<FilterConfiguration>(ID_FILTERS_TABLE, provider, initFilterColumns());
-        table.setStyle("margin-top: 0px;");
-        table.setOutputMarkupId(true);
-        table.setShowPaging(false);
-        table.setTableCssClass("autowidth");
-        add(table);
-
-        AjaxLinkButton addComponentLogger = new AjaxLinkButton("addFilter",
-                createStringResource("LoggingConfigPanel.button.addFilter")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                addFilterLoggerPerformed(target);
-            }
-        };
-        add(addComponentLogger);
-
-        AjaxLinkButton deleteLogger = new AjaxLinkButton("deleteFilter",
-                createStringResource("LoggingConfigPanel.button.deleteFilter")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                deleteFilterPerformed(target);
-            }
-        };
-        add(deleteLogger);
-
     }
 
     private void initProfiling() {
@@ -239,149 +203,6 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
 
     private TablePanel getLoggersTable() {
         return (TablePanel) get(ID_LOGGERS_TABLE);
-    }
-
-    private TablePanel getFiltersTable() {
-        return (TablePanel) get(ID_FILTERS_TABLE);
-    }
-
-    private void addFilterLoggerPerformed(AjaxRequestTarget target) {
-        LoggingDto dto = getModel().getObject();
-        FilterConfiguration logger = new FilterConfiguration(new SubSystemLoggerConfigurationType());
-        logger.setEditing(true);
-        dto.getFilters().add(logger);
-        target.add(getFiltersTable());
-    }
-
-    private void deleteFilterPerformed(AjaxRequestTarget target) {
-        Iterator<FilterConfiguration> iterator = getModel().getObject().getFilters().iterator();
-        while (iterator.hasNext()) {
-            FilterConfiguration item = iterator.next();
-            if (item.isSelected()) {
-                iterator.remove();
-            }
-        }
-        target.add(getFiltersTable());
-    }
-
-    private List<IColumn<FilterConfiguration, String>> initFilterColumns() {
-        List<IColumn<FilterConfiguration, String>> columns = new ArrayList<IColumn<FilterConfiguration, String>>();
-        IColumn column = new CheckBoxHeaderColumn<FilterConfiguration>();
-        columns.add(column);
-
-        //name editing column
-        columns.add(new EditableLinkColumn<FilterConfiguration>(
-                createStringResource("LoggingConfigPanel.filter"), "name") {
-
-            @Override
-            protected Component createInputPanel(String componentId, final IModel<FilterConfiguration> model) {
-                DropDownChoicePanel dropDownChoicePanel = new DropDownChoicePanel(componentId,
-                        createFilterModel(model),
-                        WebMiscUtil.createReadonlyModelFromEnum(LoggingComponentType.class),
-                        new IChoiceRenderer<LoggingComponentType>() {
-
-                            @Override
-                            public Object getDisplayValue(LoggingComponentType item) {
-                                return LoggingConfigPanel.this.getString("LoggingConfigPanel.filter." + item);
-                            }
-
-                            @Override
-                            public String getIdValue(LoggingComponentType item, int index) {
-                                return Integer.toString(index);
-                            }
-                        });
-                FormComponent<LoggingComponentType> input = dropDownChoicePanel.getBaseFormComponent();
-                input.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-                input.add(new FilterValidator());
-                return dropDownChoicePanel;
-            }
-
-            @Override
-            protected IModel<String> createLinkModel(final IModel<FilterConfiguration> rowModel) {
-                return new AbstractReadOnlyModel<String>() {
-
-                    @Override
-                    public String getObject() {
-                        FilterConfiguration config = rowModel.getObject();
-                        return LoggingConfigPanel.this.getString("LoggingConfigPanel.filter." + config.getComponent());
-                    }
-                };
-            }
-
-            @Override
-            public void onClick(AjaxRequestTarget target, IModel<FilterConfiguration> rowModel) {
-                filterEditPerformed(target, rowModel);
-            }
-        });
-
-
-        //level editing column
-        columns.add(new EditableLinkColumn<FilterConfiguration>(createStringResource("LoggingConfigPanel.loggersLevel"),
-                "level") {
-
-            @Override
-            protected Component createInputPanel(String componentId, IModel<FilterConfiguration> model) {
-                DropDownChoicePanel dropDownChoicePanel = new DropDownChoicePanel(componentId,
-                        new PropertyModel(model, getPropertyExpression()),
-                        WebMiscUtil.createReadonlyModelFromEnum(LoggingLevelType.class));
-
-                FormComponent<LoggingLevelType> input = dropDownChoicePanel.getBaseFormComponent();
-                input.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-                input.add(new LevelValidator());
-                return dropDownChoicePanel;
-            }
-
-            @Override
-            protected IModel<String> createLinkModel(IModel<FilterConfiguration> rowModel) {
-                FilterConfiguration config = rowModel.getObject();
-                return WebMiscUtil.createLocalizedModelForEnum(config.getLevel(), getPageBase());
-            }
-
-            @Override
-            public void onClick(AjaxRequestTarget target, IModel<FilterConfiguration> rowModel) {
-                filterEditPerformed(target, rowModel);
-            }
-        });
-
-        //appender editing column
-        columns.add(new EditablePropertyColumn<FilterConfiguration>(createStringResource("LoggingConfigPanel.loggersAppender"),
-                "appenders") {
-
-            @Override
-            public IModel<Object> getDataModel(final IModel rowModel) {
-                return new LoadableModel<Object>() {
-
-                    @Override
-                    protected Object load() {
-                        FilterConfiguration config = (FilterConfiguration) rowModel.getObject();
-                        StringBuilder builder = new StringBuilder();
-                        for (String appender : config.getAppenders()) {
-                            if (config.getAppenders().indexOf(appender) != 0) {
-                                builder.append(", ");
-                            }
-                            builder.append(appender);
-                        }
-
-                        return builder.toString();
-                    }
-                };
-            }
-
-            @Override
-            protected InputPanel createInputPanel(String componentId, IModel<FilterConfiguration> model) {
-                ListMultipleChoicePanel panel = new ListMultipleChoicePanel<String>(componentId,
-                        new PropertyModel<List<String>>(model, getPropertyExpression()), createAppendersListModel());
-
-                ListMultipleChoice choice = (ListMultipleChoice) panel.getBaseFormComponent();
-                choice.setMaxRows(3);
-
-                panel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
-
-                return panel;
-            }
-        });
-
-        return columns;
     }
 
     private List<IColumn<LoggerConfiguration, String>> initLoggerColumns() {
@@ -551,12 +372,6 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
         LoggerConfiguration config = rowModel.getObject();
         config.setEditing(true);
         target.add(getLoggersTable());
-    }
-
-    private void filterEditPerformed(AjaxRequestTarget target, IModel<FilterConfiguration> rowModel) {
-        FilterConfiguration config = rowModel.getObject();
-        config.setEditing(true);
-        target.add(getFiltersTable());
     }
 
     private static class EmptyOnBlurAjaxFormUpdatingBehaviour extends AjaxFormComponentUpdatingBehavior {

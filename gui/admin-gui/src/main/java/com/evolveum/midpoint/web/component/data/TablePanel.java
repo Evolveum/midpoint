@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.component.data;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -105,9 +106,15 @@ public class TablePanel<T> extends Panel {
         getDataTable().setCurrentPage(page);
     }
 
-    public void setShowPaging(boolean showPaging) {
+    public void setShowPaging(final boolean showPaging) {
         Component nav = get(ID_PAGING);
-        nav.setVisible(showPaging);
+        nav.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return showPaging;
+            }
+        });
 
         if (!showPaging) {
             setItemsPerPage(Integer.MAX_VALUE);

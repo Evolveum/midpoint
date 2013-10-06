@@ -59,9 +59,4 @@ public class TabbedPanel extends org.apache.wicket.extensions.markup.html.tabs.T
     protected String getLastTabCssClass() {
         return "";
     }
-
-    @Override
-    protected String getTabContainerCssClass() {
-        return "";
-    }
 }
