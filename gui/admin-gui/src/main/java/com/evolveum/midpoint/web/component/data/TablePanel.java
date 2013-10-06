@@ -44,6 +44,9 @@ public class TablePanel<T> extends Panel {
     private static final String ID_TABLE = "table";
     private static final String ID_PAGING = "paging";
 
+    private IModel<Boolean> showPaging = new Model<Boolean>(true);
+    private IModel<Boolean> showCount = new Model<Boolean>(true);
+
     public TablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns) {
         this(id, provider, columns, 10);
     }
@@ -66,12 +69,25 @@ public class TablePanel<T> extends Panel {
         headers.setOutputMarkupId(true);
         table.addTopToolbar(headers);
 
-        table.addBottomToolbar(new CountToolbar(table));
+        CountToolbar count = new CountToolbar(table);
+        addVisibleBehaviour(count, showCount);
+        table.addBottomToolbar(count);
 
         add(table);
 
         NavigatorPanel nb2 = new NavigatorPanel(ID_PAGING, table, showPagedPaging(provider));
+        addVisibleBehaviour(nb2, showPaging);
         add(nb2);
+    }
+
+    private void addVisibleBehaviour(Component comp, final IModel<Boolean> model) {
+        comp.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return model.getObject();
+            }
+        });
     }
 
     private boolean showPagedPaging(ISortableDataProvider provider) {
@@ -106,21 +122,19 @@ public class TablePanel<T> extends Panel {
         getDataTable().setCurrentPage(page);
     }
 
-    public void setShowPaging(final boolean showPaging) {
-        Component nav = get(ID_PAGING);
-        nav.add(new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                return showPaging;
-            }
-        });
+    public void setShowPaging(boolean showPaging) {
+        this.showPaging.setObject(showPaging);
+        this.showCount.setObject(showPaging);
 
         if (!showPaging) {
             setItemsPerPage(Integer.MAX_VALUE);
         } else {
             setItemsPerPage(10);
         }
+    }
+
+    public void setShowCount(boolean showCount) {
+        this.showCount.setObject(showCount);
     }
 
     public void setTableCssClass(String cssClass) {
