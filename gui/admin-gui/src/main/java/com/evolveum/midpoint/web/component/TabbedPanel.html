@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8" ?>
 <!--
   ~ Copyright (c) 2010-2013 Evolveum
   ~
@@ -13,10 +14,11 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-
-<!DOCTYPE html>
-<html xmlns:wicket="http://wicket.apache.org">
-<wicket:panel>
-
+<wicket:panel xmlns:wicket="http://wicket.apache.org">
+<ul class="nav nav-tabs" wicket:id="tabs-container">
+	<li wicket:id="tabs"><a data-toggle="tab" wicket:id="link"><span wicket:id="title"/></a></li>
+</ul>
+<div class="tab-content">
+    <div wicket:id="panel" class="tab-pane active" />
+</div>
 </wicket:panel>
-</html>

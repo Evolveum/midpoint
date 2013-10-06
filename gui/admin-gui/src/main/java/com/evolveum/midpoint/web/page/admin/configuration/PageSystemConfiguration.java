@@ -16,22 +16,21 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.button.ButtonType;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.LoggingConfigPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.SystemConfigPanel;
-import com.evolveum.midpoint.web.page.admin.configuration.component.UserConfigPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.SystemConfigurationDto;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
-import org.apache.wicket.extensions.markup.html.tabs.TabbedPanel;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 
@@ -49,7 +48,7 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_TAB_PANEL = "tabPanel";
-    private static final String ID_BACK = "back";
+    private static final String ID_CANCEL = "cancel";
     private static final String ID_SAVE = "save";
 
     private LoadableModel<SystemConfigurationDto> model;
@@ -91,13 +90,6 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
                 return new LoggingConfigPanel(panelId);
             }
         });
-        tabs.add(new AbstractTab(createStringResource("pageSystemConfiguration.user.title")) {
-
-            @Override
-            public WebMarkupContainer getPanel(String panelId) {
-                return new UserConfigPanel(panelId);
-            }
-        });
 
         mainForm.add(new TabbedPanel(ID_TAB_PANEL, tabs));
 
@@ -105,8 +97,7 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
     }
 
     private void initButtons(Form mainForm) {
-        AjaxSubmitLinkButton save = new AjaxSubmitLinkButton(ID_SAVE, ButtonType.POSITIVE,
-                createStringResource("PageBase.button.save")) {
+        AjaxSubmitButton save = new AjaxSubmitButton(ID_SAVE, createStringResource("PageBase.button.save")) {
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
@@ -120,21 +111,21 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
         };
         mainForm.add(save);
 
-        AjaxLinkButton back = new AjaxLinkButton(ID_BACK, createStringResource("PageBase.button.back")) {
+        AjaxButton cancel = new AjaxButton(ID_CANCEL, createStringResource("PageBase.button.cancel")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                backPerformed(target);
+                cancelPerformed(target);
             }
         };
-        mainForm.add(back);
+        mainForm.add(cancel);
     }
 
     private void savePerformed(AjaxRequestTarget target) {
         //todo implement
     }
 
-    private void backPerformed(AjaxRequestTarget target) {
-        //todo implement
+    private void cancelPerformed(AjaxRequestTarget target) {
+        //todo implement, stay on page, refresh models, remove changes...
     }
 }

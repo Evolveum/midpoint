@@ -17,157 +17,164 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <table style="width: 100%;">
-        <tr>
-            <td style="width: 50%; vertical-align: top;">
-                <!-- BASIC -->
-                <h2><wicket:message key="PageSystemConfiguration.title.basic"/></h2>
-                <div class="form">
-                    <div class="formLine">
-                        <label class="formLabel">
-                            <wicket:message key="PageSystemConfiguration.title.passwordPolicy"/>
-                        </label>
-                        <a title="This is password policy description full text bla bla bla">Default password policy</a>
+    <div class="row">
+        <div class="col-md-6">
+            <h3 style="margin-left: 20px;">
+                <wicket:message key="SystemConfigPanel.title.basic"/>
+            </h3>
 
-                        <a href="#" class="tools">
-                            <img src="wicket/resource/com.evolveum.midpoint.web.component.prism.PrismValuePanel/DeleteSmall.png"/>
-                        </a>
-                    </div>
-                    <div class="formLine">
-                        <label class="formLabel">
-                            <wicket:message key="PageSystemConfiguration.title.userTemplate"/>
-                        </label>
-                        <a title="This is sample user template description full text bla bla bla">Sample template</a>
+            <div class="form-group">
+                <label class="col-lg-4 control-label">
+                    <wicket:message key="SystemConfigPanel.title.passwordPolicy"/>
+                </label>
 
-                        <a href="#" class="tools">
-                            <img src="wicket/resource/com.evolveum.midpoint.web.component.prism.PrismValuePanel/DeleteSmall.png"/>
-                        </a>
-                    </div>
-                    <div class="formLine">
-                        <label class="formLabel">
-                            <wicket:message key="PageSystemConfiguration.title.orgStructureRoots"/>
-                        </label>
-                        <a title="This is root 1 description full text bla bla bla">Root 1</a>
-
-                        <a href="#" class="tools">
-                            <img src="wicket/resource/com.evolveum.midpoint.web.component.prism.PrismValuePanel/DeleteSmall.png"/>
-                        </a>
-                    </div>
-                    <div class="formLine">
-                        <label class="formLabel"></label>
-                        <a title="This is root 2 description full text bla bla bla">Root 2</a>
-
-                        <a href="#" class="tools">
-                            <img src="wicket/resource/com.evolveum.midpoint.web.component.prism.PrismValuePanel/DeleteSmall.png"/>
-                        </a>
-                        <a href="#" class="tools">
-                            <img src="wicket/resource/com.evolveum.midpoint.web.component.prism.PrismValuePanel/AddSmall.png"/>
-                        </a>
-                    </div>
-                </div>
-                <!-- ACCOUNT SYNCHRONIZATION -->
-                <h2 class="form"><wicket:message key="PageSystemConfiguration.title.accountSynchronization"/></h2>
-                <div class="form">
-                    <div class="formLine">
-                        <div class="formLabel">
-                            <label>
-                                <wicket:message key="PageSystemConfiguration.assignmentPolicyEnforcement"/>
-                            </label>
-                        </div>
-                        <select>
-                            <option>None</option>
-                            <option>Positive</option>
-                            <option>Mark</option>
-                            <option>Legalize</option>
-                            <option>Full</option>
-                        </select>
-                    </div>
-                </div>
-                <!-- MODEL HOOKS -->
-                <h2 class="form"><wicket:message key="PageSystemConfiguration.title.modelHooks"/></h2>
-                <div class="form">
-                    todo
-                </div>
-            </td>
-            <td style="vertical-align: top;">
-                <!-- NOTIFICATION -->
-                <h2><wicket:message key="PageSystemConfiguration.title.notification"/></h2>
-                <div class="form">
-                    <div class="formLine">
-                        <div class="formLabel">
-                            <label>
-                                <wicket:message key="PageSystemConfiguration.mail.defaultFrom" />
-                            </label>
-                        </div>
-                        <input type="text"/>
-                    </div>
-                    <div class="formLine">
-                        <div class="formLabel">
-                            <label>
-                                <wicket:message key="PageSystemConfiguration.mail.debug" />
-                            </label>
-                        </div>
-                        <input type="checkbox"/>
-                    </div>
-                    <!-- MAIL SERVER -->
-                    <div class="formSection">
+                <div class="col-lg-4">
+                    <div class="checkbox">
                         <label>
-                            <wicket:message key="PageSystemConfiguration.mail.mailServer"/>
+                            <input type="checkbox" name="optionsRadios">
                         </label>
-                        <a class="tools"><img src="img/cog.png"/></a>
-                    </div>
-                    <div class="formLine">
-                        <div class="formLabel">
-                            <label>
-                                <wicket:message key="PageSystemConfiguration.mail.host"/>
-                            </label>
-                        </div>
-                        <input type="text"/>
-                    </div>
-                    <div class="formLine">
-                        <div class="formLabel">
-                            <label>
-                                <wicket:message key="PageSystemConfiguration.mail.port"/>
-                            </label>
-                        </div>
-                        <input type="text"/>
-                    </div>
-                    <div class="formLine">
-                        <div class="formLabel">
-                            <label>
-                                <wicket:message key="PageSystemConfiguration.mail.username"/>
-                            </label>
-                        </div>
-                        <input type="text"/>
-                    </div>
-                    <div class="formLine">
-                        <div class="formLabel">
-                            <label>
-                                <wicket:message key="PageSystemConfiguration.mail.password"/>
-                            </label>
-                        </div>
-                        <input type="text"/>
-                    </div>
-                    <div class="formLine">
-                        <div class="formLabel">
-                            <label>
-                                <wicket:message key="PageSystemConfiguration.mail.transportSecurity"/>
-                            </label>
-                        </div>
-                        <select>
-                            <option>None</option>
-                            <option>StartTLS</option>
-                            <option>SSL</option>
-                        </select>
                     </div>
                 </div>
-                <!-- CONNECTOR FRAMEWORK -->
-                <h2 class="form"><wicket:message key="PageSystemConfiguration.title.connectorFramework"/></h2>
-                <div class="form">
-                    todo
+            </div>
+            <div class="form-group">
+                <label class="col-lg-4 control-label">
+                    <wicket:message key="SystemConfigPanel.title.userTemplate"/>
+                </label>
+
+                <div class="col-lg-4">
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" name="optionsRadios">
+                        </label>
+                    </div>
                 </div>
-            </td>
-        </tr>
-    </table>
+            </div>
+
+            <h3 style="margin-left: 20px;">
+                <wicket:message key="SystemConfigPanel.title.accountSynchronization"/>
+            </h3>
+
+            <div class="form-group">
+                <label class="col-lg-4 control-label">
+                    <wicket:message key="SystemConfigPanel.assignmentPolicyEnforcement"/>
+                </label>
+
+                <div class="col-lg-4">
+                    <select class="form-control input-sm">
+                        <option>None</option>
+                        <option>Positive</option>
+                        <option>Mark</option>
+                        <option>Legalize</option>
+                        <option>Full</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="col-lg-4 control-label">
+                    <wicket:message key="SystemConfigPanel.title.modelHooks"/>
+                </label>
+
+                <div class="col-lg-4">
+
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <h3>
+                <wicket:message key="SystemConfigPanel.title.notification"/>
+            </h3>
+
+            <div class="form-group">
+                <label class="col-lg-4 control-label">
+                    <wicket:message key="SystemConfigPanel.mail.defaultFrom"/>
+                </label>
+
+                <div class="col-lg-4">
+                    <input type="text" class="form-control input-sm" placeholder="Default from">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-lg-4 control-label">
+                    <wicket:message key="SystemConfigPanel.mail.debug"/>
+                </label>
+
+                <div class="col-lg-4">
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" name="optionsRadios1">
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <hr style="margin-right: 20px;"/>
+            <div class="form-group">
+                <label class="col-lg-4 control-label">
+                    <wicket:message key="SystemConfigPanel.mail.host"/>
+                </label>
+
+                <div class="col-lg-4">
+                    <input type="text" class="form-control input-sm"
+                           wicket:message="placeholder:SystemConfigPanel.mail.host">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-lg-4 control-label">
+                    <wicket:message key="SystemConfigPanel.mail.port"/>
+                </label>
+
+                <div class="col-lg-2">
+                    <input type="text" class="form-control input-sm"
+                           wicket:message="placeholder:SystemConfigPanel.mail.port">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-lg-4 control-label">
+                    <wicket:message key="SystemConfigPanel.mail.username"/>
+                </label>
+
+                <div class="col-lg-4">
+                    <input type="text" class="form-control input-sm"
+                           wicket:message="placeholder:SystemConfigPanel.mail.username">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-lg-4 control-label">
+                    <wicket:message key="SystemConfigPanel.mail.password"/>
+                </label>
+
+                <div class="col-lg-4">
+                    <input type="password" class="form-control input-sm"
+                           wicket:message="placeholder:SystemConfigPanel.mail.password">
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-lg-4 control-label">
+                    <wicket:message key="SystemConfigPanel.mail.transportSecurity"/>
+                </label>
+
+                <div class="col-lg-4">
+                    <select class="form-control input-sm">
+                        <option>None</option>
+                        <option>StartTLS</option>
+                        <option>SSL</option>
+                    </select>
+                </div>
+            </div>
+
+            <h3>
+                <wicket:message key="SystemConfigPanel.title.connectorFramework"/>
+            </h3>
+
+            <div class="form-group">
+                <label class="col-lg-4 control-label">Whatever</label>
+
+                <div class="col-lg-4">
+                    <input type="password" class="form-control input-sm" placeholder="Whatever">
+                </div>
+            </div>
+        </div>
+    </div>
 </wicket:panel>
 </html>
