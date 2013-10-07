@@ -371,7 +371,10 @@ public class PageContentAccounts extends PageAdminResources {
             LoggingUtils.logException(LOGGER, getString("pageContentAccounts.message.cantImportAccount", contentDto.getAccountName()), ex);
         }
 
-        //TODO - continue here - get User, and call ownerChangePerformed() - see if action is reflected in GUI
+        result.computeStatus();
+        showResult(result);
+        target.add(getFeedbackPanel());
+        target.add(getTable());
     }
 
     private void clearButtonPerformed(AjaxRequestTarget target) {
