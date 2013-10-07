@@ -47,7 +47,7 @@ public class ProfilingDataLog {
     Object[] args;
 
     //this is here for profiling events captured from servlet requests
-    private String sessionID;
+    private String sessionID = null;
 
     /*
     *   Constructor - with parameters
@@ -144,7 +144,7 @@ public class ProfilingDataLog {
         Date date = new Date(executionTimestamp);
 
         //If we are printing request filter event, there are no arguments, but sessionID instead
-        if(args == null){
+        if(sessionID != null){
             LOGGER.debug("    EST: {} EXECUTED: {} SESSION: {}", new Object[]{formatExecutionTime(estimatedTime), date, sessionID});
         } else{
             LOGGER.debug("    EST: {} EXECUTED: {} ARGS: {}", new Object[]{formatExecutionTime(estimatedTime), date, args});

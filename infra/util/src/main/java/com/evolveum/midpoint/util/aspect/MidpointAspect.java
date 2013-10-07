@@ -254,7 +254,9 @@ public class MidpointAspect {
             if(isProfilingActive){
 
                 if(pjp != null){
-                    ProfilingDataManager.getInstance().applyGranularityFilterOnEnd(getClassName(pjp), getMethodName(pjp) ,pjp.getArgs(), subsystem, startTime);
+
+                    Long processingStartTime = System.nanoTime();
+                    ProfilingDataManager.getInstance().applyGranularityFilterOnEnd(getClassName(pjp), getMethodName(pjp) ,pjp.getArgs(), subsystem, startTime, processingStartTime);
                 }
             }
 

@@ -45,11 +45,11 @@ public class MethodUsageStatistics {
     private long min = Long.MAX_VALUE;
     private long max = 0;
     private long mean = 0;
-    private long usageCount = 0;
+    private long processTimeMean = 0;
+    private long usageCount = 1;
     private long currentTopTenMin = Long.MAX_VALUE;
     private String subsystem;
     private List<ProfilingDataLog> slowestMethodList = new ArrayList<ProfilingDataLog>();
-    private List<Long> estValues = new ArrayList<Long>();
 
     /*
     *   Constructor
@@ -59,14 +59,21 @@ public class MethodUsageStatistics {
 
         this.min = estTime;
         this.max = estTime;
-        this.estValues.add(estTime);
         this.usageCount++;
         this.currentTopTenMin = estTime;
         this.subsystem = subsystem;
+        this.mean = estTime;
 
     }   //MethodUsageStatistics
 
     /* GETTERS AND SETTERS */
+    public long getProcessTimeMean() {
+        return processTimeMean;
+    }
+
+    public void setProcessTimeMean(long processTimeMean) {
+        this.processTimeMean = processTimeMean;
+    }
 
     public String getSubsystem() {
         return subsystem;
@@ -128,30 +135,30 @@ public class MethodUsageStatistics {
     public synchronized void update(ProfilingDataLog logEvent){
         long currentEst = logEvent.getEstimatedTime();
 
-        usageCount++;
-
         if(this.min > currentEst)
             this.min = currentEst;
 
         if(this.max < currentEst)
             this.max = currentEst;
 
-        this.estValues.add(currentEst);
-        this.mean = calculateMean();
+        calculateMeanIterative(currentEst);
+        usageCount++;
 
     }   //update
 
     /*
-    *   Calculates current mean value
+    *   Calculate mean iterative
     * */
-    private long calculateMean(){
-        long sum = 0;
+    private void calculateMeanIterative(long currentEst){
+        this.mean += (currentEst - this.mean)/this.usageCount;
+    }
 
-        for(long l: estValues)
-            sum += l;
-
-        return sum/estValues.size();
-    }   //calculateMean
+    /*
+    *   Updates the list holding processing est time values
+    * */
+    public void updateProcessTimeList(long est){
+        this.processTimeMean += (est - this.processTimeMean)/this.usageCount;
+    }
 
     /*
     *   Appends method usage statistics to log file
@@ -159,8 +166,9 @@ public class MethodUsageStatistics {
     public void appendToLogger(){
         ProfilingDataLog log = this.slowestMethodList.get(0);
 
-        LOGGER.debug("{}->{}: CALLS: {} MAX: {} MIN: {} MEAN: {}",
-                new Object[]{log.getClassName(), log.getMethodName(), usageCount, formatExecutionTime(max), formatExecutionTime(min), formatExecutionTime(calculateMean())});
+        LOGGER.debug("{}->{}: CALLS: {} MAX: {} MIN: {} MEAN: {} PROCESS_TIME_MEAN: {}",
+                new Object[]{log.getClassName(), log.getMethodName(), usageCount, formatExecutionTime(max), formatExecutionTime(min), formatExecutionTime(this.mean),
+                formatExecutionTime(processTimeMean)});
 
         for(ProfilingDataLog l: this.slowestMethodList)
             l.appendToLogger();
