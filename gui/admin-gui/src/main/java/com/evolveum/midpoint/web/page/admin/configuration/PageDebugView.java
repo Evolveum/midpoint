@@ -76,7 +76,7 @@ public class PageDebugView extends PageAdminConfiguration {
     public static final String PARAM_OBJECT_ID = "objectId";
     public static final String PARAM_OBJECT_TYPE = "objectType";
     private IModel<ObjectViewDto> model;
-    private AceEditor<String> editor;
+    private AceEditor editor;
     private final IModel<Boolean> encrypt = new Model<Boolean>(true);
     private final IModel<Boolean> validateSchema = new Model<Boolean>(true);
 
@@ -169,7 +169,7 @@ public class PageDebugView extends PageAdminConfiguration {
                 editPerformed(target, editable.getObject());
             }
         });
-        editor = new AceEditor<String>("aceEditor", new PropertyModel<String>(model, ObjectViewDto.F_XML));
+        editor = new AceEditor("aceEditor", new PropertyModel<String>(model, ObjectViewDto.F_XML));
         editor.setReadonly(!editable.getObject());
         mainForm.add(editor);
 

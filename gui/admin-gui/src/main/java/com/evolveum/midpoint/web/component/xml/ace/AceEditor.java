@@ -26,19 +26,17 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.resource.PackageResourceReference;
 
-public class AceEditor<T> extends TextArea<T> {
-	private static final long serialVersionUID = 7245952372881965464L;
+public class AceEditor extends TextArea<String> {
 	
 	public static final String F_READONLY = "readonly";
+
     private static final String EDITOR_SUFFIX = "_edit";
-    private static final String THEME = "textmate";
-    private static final String MODE = "xml";
+
     private String editorId;
-    private String width = "100%";
     private String height = "auto";
     private IModel<Boolean> readonly = new Model<Boolean>(false);
 
-    public AceEditor(String id, IModel<T> model) {
+    public AceEditor(String id, IModel<String> model) {
         super(id, model);
         this.editorId = getMarkupId() + EDITOR_SUFFIX;
         setOutputMarkupId(true);
@@ -48,19 +46,11 @@ public class AceEditor<T> extends TextArea<T> {
     public void renderHead(IHeaderResponse response) {
         super.renderHead(response);
 
-        response.render(JavaScriptHeaderItem.forReference(
-                new PackageResourceReference(AceEditor.class, "ace-script.js")));
-        response.render(JavaScriptHeaderItem.forReference(
-                new PackageResourceReference(AceEditor.class, "mode-xml.js")));
-        response.render(JavaScriptHeaderItem.forReference(
-                new PackageResourceReference(AceEditor.class, "textmate.js")));
-        response.render(CssHeaderItem.forReference(
-                new PackageResourceReference(AceEditor.class, "style-ace.css")));
+        StringBuilder sb = new StringBuilder();
+        sb.append("initEditor('" + getMarkupId() + "', '" + editorId + "'," + readonly.getObject()+");");
 
-        response.render(JavaScriptHeaderItem.forReference(
-                new PackageResourceReference(AceEditor.class, "ace-startup.js")));
-
-        response.render(OnDomReadyHeaderItem.forScript(createOnLoadJavascript()));
+        response.render(OnDomReadyHeaderItem.forScript(sb.toString()));
+        System.out.println(createOnLoadJavascript());
     }
 
     private String createOnLoadJavascript() {
@@ -73,8 +63,8 @@ public class AceEditor<T> extends TextArea<T> {
         script.append(" $('#").append(editorId).append("').text($('#").append(this.getMarkupId())
                 .append("').val());");
         script.append("window.").append(editorId).append(" = ace.edit(\"").append(editorId).append("\"); ");
-        script.append(editorId).append(".setTheme(\"ace/theme/").append(THEME).append("\");");
-        script.append(editorId).append(".getSession().setMode('ace/mode/"+ MODE +"');");
+//        script.append(editorId).append(".setTheme(\"ace/theme/").append(THEME).append("\");");
+//        script.append(editorId).append(".getSession().setMode('ace/mode/"+ MODE +"');");
         script.append("$('#").append(this.getMarkupId()).append("').hide();");
         script.append(editorId).append(".setShowPrintMargin(false); ");
         script.append(editorId).append(".setFadeFoldWidgets(false); ");
@@ -104,28 +94,6 @@ public class AceEditor<T> extends TextArea<T> {
 		}
         script.append("}");
         return script.toString();
-    }
-
-    public String getWidth() {
-        return width;
-    }
-
-    public void setWidth(String width) {
-        if (width == null || width.isEmpty()) {
-            throw new IllegalArgumentException("Width must not be null or empty.");
-        }
-        this.width = width;
-    }
-
-    public String getHeight() {
-        return height;
-    }
-
-    public void setHeight(String height) {
-        if (height == null || height.isEmpty()) {
-            throw new IllegalArgumentException("Height must not be null or empty.");
-        }
-        this.height = height;
     }
 
     public boolean isReadonly() {
