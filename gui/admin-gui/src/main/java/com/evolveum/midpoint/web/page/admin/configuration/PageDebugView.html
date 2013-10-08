@@ -18,28 +18,39 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <form wicket:id="mainForm">
-        <table  style="width: auto;">
-            <tr>
-                <td><wicket:message key="pageDebugView.oid"/></td><td><span wicket:id="oid"/></td>
-            </tr>
-            <tr>
-                <td><wicket:message key="pageDebugView.name"/></td><td><span wicket:id="name"/></td>
-            </tr>
-        </table>
-        <p>
-            <input type="checkbox" wicket:id="edit" /><wicket:message key="pageDebugView.edit"/>
-            <input type="checkbox" wicket:id="encrypt" style="margin-left: 50px;" /><wicket:message key="pageDebugView.encrypt"/>
-            <input type="checkbox" wicket:id="validateSchema" style="margin-left: 80px;" /><wicket:message key="pageDebugView.validateSchema"/>
-        </p>
+    <form wicket:id="mainForm" class="form-horizontal">
+        <div class="form-group">
+            <label class="col-lg-2 control-label"><wicket:message key="pageDebugView.options"/></label>
 
-        <div id="aceEditorContainer">
-            <textarea wicket:id="aceEditor"></textarea>
+            <div class="col-lg-8">
+                <div>
+                    <label class="col-lg-2 checkbox-inline">
+                        <input type="checkbox" wicket:id="edit">
+                        <wicket:message key="pageDebugView.edit"/>
+                    </label>
+                    <label class="col-lg-3 checkbox-inline">
+                        <input type="checkbox" wicket:id="encrypt">
+                        <wicket:message key="pageDebugView.encrypt"/>
+                    </label>
+                    <label class="col-lg-3 checkbox-inline">
+                        <input type="checkbox" wicket:id="validateSchema">
+                        <wicket:message key="pageDebugView.validateSchema"/>
+                    </label>
+                </div>
+            </div>
         </div>
 
-        <div class="operatingFormButtons">
-            <a wicket:id="backButton" />
-            <a wicket:id="saveButton"/>
+        <div class="form-group">
+            <div class="col-lg-12">
+                <textarea wicket:id="aceEditor"></textarea>
+            </div>
+        </div>
+
+        <div class="main-button-bar">
+            <span class="button-group">
+                <a class="btn btn-default" wicket:id="backButton" />
+            </span>
+            <a class="btn btn-primary" wicket:id="saveButton"/>
         </div>
     </form>
 </wicket:extend>

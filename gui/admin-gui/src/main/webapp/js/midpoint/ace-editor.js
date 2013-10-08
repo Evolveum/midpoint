@@ -22,7 +22,7 @@ function initEditor(textAreaId, readonly) {
     editor.getSession().setMode("ace/mode/xml");
     editor.setShowPrintMargin(false);
     editor.setFadeFoldWidgets(false);
-    editor.setReadOnly(readonly);
+    setReadonly(jqEditor, editor, readonly);
     editor.on('blur', function () {
         $(jqTextArea).val(editor.getSession().getValue());
         $(jqTextArea).trigger('onBlur');
@@ -67,11 +67,15 @@ function refreshReadonly(textAreaId, readonly) {
     var jqEditor = '#' + editorId;
 
     var editor = $.aceEditors[editorId];
-    editor.setReadOnly(readonly);
+    setReadonly(jqEditor, editor, readonly);
     editor.focus();
+}
+
+function setReadonly(jqEditor, editor, readonly) {
+    editor.setReadOnly(readonly);
     if (readonly) {
-        $(jqEditor).find(".ace_scroller").addClass(DISABLED_CLASS);
+        $(jqEditor).addClass(DISABLED_CLASS);
     } else {
-        $(jqEditor).find(".ace_scroller").removeClass(DISABLED_CLASS);
+        $(jqEditor).removeClass(DISABLED_CLASS);
     }
 }
