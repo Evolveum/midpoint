@@ -17,11 +17,13 @@
 package com.evolveum.midpoint.web.page.admin.home.component;
 
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import java.io.Serializable;
 
@@ -35,11 +37,15 @@ public abstract class DashboardPanel<T extends Serializable> extends SimplePanel
     private static final String ID_TITLE = "title";
     private static final String ID_DASHBOARD_CONTENT = "dashboardContent";
     private static final String ID_CONTENT = "content";
+    private static final String ID_ICON = "icon";
 
-    public DashboardPanel(String id, IModel<T> model, IModel<String> title, DashboardColor color) {
+    public DashboardPanel(String id, IModel<T> model, IModel<String> title, String icon, DashboardColor color) {
         super(id, model);
 
-        Label label = (Label) get(createComponentPath(ID_DASHBOARD_PARENT, ID_DASHBOARD_TITLE, ID_TITLE));
+        WebMarkupContainer dashboardTitle = (WebMarkupContainer) get(
+                createComponentPath(ID_DASHBOARD_PARENT, ID_DASHBOARD_TITLE));
+
+        Label label = (Label) dashboardTitle.get(ID_TITLE);
         label.setDefaultModel(title);
 
         if (color == null) {
@@ -47,6 +53,10 @@ public abstract class DashboardPanel<T extends Serializable> extends SimplePanel
         }
         Component dashboardParent = get(ID_DASHBOARD_PARENT);
         dashboardParent.add(new AttributeAppender("class", " " + color.getCssClass()));
+
+        WebMarkupContainer iconI = new WebMarkupContainer(ID_ICON);
+        iconI.add(AttributeModifier.replace("class", icon));
+        dashboardTitle.add(iconI);
     }
 
     @Override

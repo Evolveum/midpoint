@@ -23,6 +23,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -56,7 +57,7 @@ public class TablePanel<T> extends Panel {
         Validate.notNull(provider, "Object type must not be null.");
         Validate.notNull(columns, "Columns must not be null.");
 
-        setRenderBodyOnly(true);
+        add(AttributeModifier.prepend("style", "display: table; width: 100%;"));
 
         initLayout(columns, itemsPerPage, provider);
     }

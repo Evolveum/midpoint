@@ -22,6 +22,7 @@ import com.evolveum.midpoint.web.component.async.CallableResult;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -43,21 +44,25 @@ public abstract class AsyncDashboardPanel<V, T> extends AsyncUpdatePanel<V, Call
     private static final String ID_PRELOADER = "preloader";
     private static final String ID_DASHBOARD_CONTENT = "dashboardContent";
     private static final String ID_CONTENT = "content";
+    private static final String ID_ICON = "icon";
 
-    public AsyncDashboardPanel(String id, IModel<String> title, DashboardColor color) {
-        this(id, title, new Model(), color);
+    public AsyncDashboardPanel(String id, IModel<String> title, String icon, DashboardColor color) {
+        this(id, title, icon, new Model(), color);
     }
 
-    public AsyncDashboardPanel(String id, IModel<String> title, IModel<V> callableParameterModel,
+    public AsyncDashboardPanel(String id, IModel<String> title, String icon, IModel<V> callableParameterModel,
                                DashboardColor color) {
-        this(id, title, callableParameterModel, Duration.seconds(DEFAULT_TIMER_DURATION), color);
+        this(id, title, icon, callableParameterModel, Duration.seconds(DEFAULT_TIMER_DURATION), color);
     }
 
-    public AsyncDashboardPanel(String id, IModel<String> title, IModel<V> callableParameterModel,
+    public AsyncDashboardPanel(String id, IModel<String> title, String icon, IModel<V> callableParameterModel,
                                Duration durationSecs, DashboardColor color) {
         super(id, callableParameterModel, durationSecs);
 
-        Label label = (Label) get(createComponentPath(ID_DASHBOARD_PARENT, ID_DASHBOARD_TITLE, ID_TITLE));
+        WebMarkupContainer dashboardTitle = (WebMarkupContainer) get(
+                createComponentPath(ID_DASHBOARD_PARENT, ID_DASHBOARD_TITLE));
+
+        Label label = (Label) dashboardTitle.get(ID_TITLE);
         label.setDefaultModel(title);
 
         if (color == null) {
@@ -65,6 +70,10 @@ public abstract class AsyncDashboardPanel<V, T> extends AsyncUpdatePanel<V, Call
         }
         Component dashboardParent = get(ID_DASHBOARD_PARENT);
         dashboardParent.add(new AttributeAppender("class", " " + color.getCssClass()));
+
+        WebMarkupContainer iconI = new WebMarkupContainer(ID_ICON);
+        iconI.add(AttributeModifier.replace("class", icon));
+        dashboardTitle.add(iconI);
     }
 
     @Override
