@@ -16,25 +16,18 @@
 
 package com.evolveum.midpoint.web.component.xml.ace;
 
-import org.apache.commons.lang.Validate;
-import org.apache.wicket.markup.head.CssHeaderItem;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.head.IHeaderResponse;
-import org.apache.wicket.markup.head.JavaScriptHeaderItem;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.request.resource.PackageResourceReference;
 
 public class AceEditor extends TextArea<String> {
-	
-	public static final String F_READONLY = "readonly";
 
     private static final String EDITOR_SUFFIX = "_edit";
 
     private String editorId;
-    private String height = "auto";
-    private IModel<Boolean> readonly = new Model<Boolean>(false);
+    private boolean readonly = false;
 
     public AceEditor(String id, IModel<String> model) {
         super(id, model);
@@ -47,103 +40,25 @@ public class AceEditor extends TextArea<String> {
         super.renderHead(response);
 
         StringBuilder sb = new StringBuilder();
-        sb.append("initEditor('" + getMarkupId() + "', '" + editorId + "'," + readonly.getObject()+");");
+        sb.append("initEditor('").append(getMarkupId()).append("',").append(readonly).append(");");
 
         response.render(OnDomReadyHeaderItem.forScript(sb.toString()));
-        System.out.println(createOnLoadJavascript());
-    }
-
-    private String createOnLoadJavascript() {
-    	String helpButton = "<a class='helpButton' href='https://github.com/ajaxorg/ace/wiki/Default-Keyboard-Shortcuts' target='_blank' title='Show keyboard shortcuts'></a>";
-        StringBuilder script = new StringBuilder();
-        script.append("if(isIE9OrNewer()) {");
-        script.append("if ($('#").append(editorId).append("').length == 0) {");
-        script.append("$(\"<div id='").append(editorId).append("'></div>\").insertAfter($('#")
-                .append(this.getMarkupId()).append("')); ");
-        script.append(" $('#").append(editorId).append("').text($('#").append(this.getMarkupId())
-                .append("').val());");
-        script.append("window.").append(editorId).append(" = ace.edit(\"").append(editorId).append("\"); ");
-//        script.append(editorId).append(".setTheme(\"ace/theme/").append(THEME).append("\");");
-//        script.append(editorId).append(".getSession().setMode('ace/mode/"+ MODE +"');");
-        script.append("$('#").append(this.getMarkupId()).append("').hide();");
-        script.append(editorId).append(".setShowPrintMargin(false); ");
-        script.append(editorId).append(".setFadeFoldWidgets(false); ");
-        script.append(editorId).append(".setReadOnly(").append(isReadonly()).append("); ");
-        script.append(editorId).append(".on('blur', function() { ");
-        script.append("$('#").append(getMarkupId()).append("').val(").append(editorId)
-                .append(".getSession().getValue()); ");
-        script.append("$('#").append(getMarkupId()).append("').trigger('onBlur'); });");
-
-        script.append(" }");
-        
-        script.append("if(").append(isReadonly()).append(") {");
-        script.append("$('.ace_scroller').css('background','#F4F4F4');");
-        script.append(" } else {");
-        script.append("$('.ace_scroller').css('background','#FFFFFF');");
-        script.append(" }");
-        script.append("$('#" + editorId + " textarea').attr('onkeydown','disablePaste(" + isReadonly() + ");');");
-        script.append(setFocus(isReadonly()));
-        script.append("$('#" + editorId + "').append(\"" + helpButton + "\");");
-        script.append("if(isIE()){$('#" + editorId + "').find('.ace_gutter').hide();}");
-        script.append("resizeEditor('").append(editorId).append("');");
-        script.append("} else {");
-        if(isReadonly()){
-        	script.append("$('#" + getMarkupId() + "').attr('readonly','readonly').css('background','#F4F4F4');");
-        } else {
-        	script.append("$('#" + getMarkupId() + "').attr('readonly',false).focus().css('background','#FFF');");
-		}
-        script.append("}");
-        return script.toString();
-    }
-
-    public boolean isReadonly() {
-        return readonly.getObject() != null ? readonly.getObject() : false;
     }
 
     public void setReadonly(boolean readonly) {
-        this.readonly.setObject(readonly);
+        setReadonly(null, readonly);
     }
 
-    public void setReadonly(IModel<Boolean> readonly) {
-        Validate.notNull(readonly, "Readonly model must not be null.");
+    public void setReadonly(AjaxRequestTarget target, boolean readonly) {
         this.readonly = readonly;
-    }
-    
-    public String setFocus(boolean isReadonly) {
-    	StringBuilder builder = new StringBuilder();
-    	if(!isReadonly){
-            builder.append("window.");
-            builder.append(editorId);
-            builder.append(".focus();");
-    	}
-        return builder.toString();
-    }
 
-    public String createJavascriptEditableRefresh() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("if(false ==Wicket.Browser.isIELessThan9()) {");
-        builder.append("window.");
-        builder.append(editorId);
-        builder.append(".setReadOnly(");
-        builder.append(isReadonly());
-        builder.append("); ");
-
-        builder.append("$('.ace_scroller').css('background','");
-        if (isReadonly()) {
-            builder.append("#F4F4F4");
-        } else {
-            builder.append("#FFFFFF");
+        if (target == null) {
+            return;
         }
-        builder.append("');");
-        builder.append("$('#" + editorId + " textarea').attr('onkeydown','disablePaste(" + isReadonly() + ");');");
-        builder.append(setFocus(isReadonly()));
-        builder.append("} else {");
-        if(isReadonly()){
-        	builder.append("$('#" + getMarkupId() + "').attr('readonly','readonly').css('background','#F4F4F4');");
-        } else {
-        	builder.append("$('#" + getMarkupId() + "').attr('readonly',false).focus().css('background','#FFF');");
-		}
-        builder.append("}");
-        return builder.toString();
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("refreshReadonly('").append(getMarkupId()).append("',").append(readonly).append(");");
+
+        target.appendJavaScript(sb.toString());
     }
 }
