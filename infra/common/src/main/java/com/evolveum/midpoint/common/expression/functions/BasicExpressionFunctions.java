@@ -501,5 +501,9 @@ public class BasicExpressionFunctions {
 		}
 		return XmlTypeConverter.createXMLGregorianCalendar(date);
     }
+    
+    public XMLGregorianCalendar currentDateTime() {
+    	return XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
+    }
 	
 }
