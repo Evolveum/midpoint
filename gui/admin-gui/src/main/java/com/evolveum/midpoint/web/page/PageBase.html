@@ -80,12 +80,13 @@
 
 <div wicket:id="topMenu" />
 
-<div wicket:id="version" style="font-size: 0.8em; padding-right: 10px; position: absolute; top: 40px; right: 0px;">
+<div wicket:id="version" class="pull-right" style="padding-right: 20px; font-size: 0.8em;">
     <wicket:message key="pageBase.midPointVersion"/>
 </div>
+<img id="ajax_busy" class="pull-right" style="padding-right: 20px;" src="img/ajax-loader.gif"/>
 
 <div class="mainContainer">
-    <div class="page-header" style="margin-top: 53px;" wicket:id="pageTitleContainer">
+    <div class="page-header" wicket:id="pageTitleContainer">
         <h1 wicket:id="pageTitle">
             <span wicket:id="pageTitleReal"></span>
             <small wicket:id="pageSubtitle"></small>

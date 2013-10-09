@@ -156,7 +156,7 @@ function clickFuncWicket6(eventData) {
     if ((clickedElement.tagName.toUpperCase() == 'BUTTON' || clickedElement.tagName.toUpperCase() == 'A' || clickedElement.parentNode.tagName.toUpperCase() == 'A'
         || (clickedElement.tagName.toUpperCase() == 'INPUT' && (clickedElement.type.toUpperCase() == 'BUTTON' || clickedElement.type.toUpperCase() == 'SUBMIT')))
         && clickedElement.parentNode.id.toUpperCase() != 'NOBUSY' ) {
-        showBusysign();
+        showAjaxStatusSign();
     }
 }
 
@@ -164,26 +164,19 @@ function initAjaxStatusSigns() {
     document.getElementsByTagName('body')[0].onclick = clickFuncWicket6;
     hideAjaxStatusSign();
     Wicket.Event.subscribe('/ajax/call/beforeSend', function( attributes, jqXHR, settings ) {
-        showAjaxStatusSign('busy');
+        showAjaxStatusSign();
     });
     Wicket.Event.subscribe('/ajax/call/complete', function( attributes, jqXHR, textStatus) {
         hideAjaxStatusSign();
     });
 }
 
-function showAjaxStatusSign(sign) {
-    hideAjaxStatusSign();
-
-    if (sign == 'error') {
-        document.getElementById('error_indicator').style.display = 'inline';
-    } else if (sign == 'busy') {
-        document.getElementById('bysy_indicator').style.display = 'inline';
-    }
+function showAjaxStatusSign() {
+    document.getElementById('ajax_busy').style.display = 'inline';
 }
 
 function hideAjaxStatusSign() {
-    document.getElementById('bysy_indicator').style.display = 'none';
-    document.getElementById('error_indicator').style.display = 'none';
+    document.getElementById('ajax_busy').style.display = 'none';
 }
 
 function showLeftMenu() {
