@@ -1,11 +1,39 @@
-// bootstrap overrides
-// @tableBackgroundAccent   #f6f6f6
-// @tableBackgroundHover    #f1f1f1
-// @baseLineHeight          18px
+@import "../bootstrap/variables.less";
+@import "../custom/variables.less";
+@import "../bootstrap/mixins.less";
 
 .page-header {
   margin: 20px 0 10px;
   padding-bottom: 0;
+}
+
+//dropdown-menu disabled span fix
+.dropdown-menu {
+  > li > span {
+    display: block;
+    padding: 3px 20px;
+    clear: both;
+    font-weight: normal;
+    line-height: @line-height-base;
+    color: @dropdown-link-color;
+    white-space: nowrap; // prevent links from randomly breaking onto new lines
+  }
+}
+.dropdown-menu > .disabled > span {
+  &,
+  &:hover {
+    color: @dropdown-link-disabled-color;
+  }
+}
+// Nuke hover/focus effects
+.dropdown-menu > .disabled > span {
+  &:hover {
+    text-decoration: none;
+    background-color: transparent;
+    background-image: none; // Remove CSS gradient
+    .reset-filter();
+    cursor: not-allowed;
+  }
 }
 
 //select,

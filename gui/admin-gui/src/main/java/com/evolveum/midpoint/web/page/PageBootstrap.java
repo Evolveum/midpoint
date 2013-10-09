@@ -2,9 +2,15 @@ package com.evolveum.midpoint.web.page;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.model.Model;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -22,7 +28,19 @@ public class PageBootstrap extends PageBase {
         Form form = new Form("form");
         add(form);
 
+        InlineMenu menu = new InlineMenu("menu", new Model((Serializable) createMenu()));
+        form.add(menu);
+    }
 
+    private List<InlineMenuItem> createMenu() {
+        List<InlineMenuItem> list = new ArrayList<InlineMenuItem>();
+        list.add(new InlineMenuItem(createStringResource("menu1"), new InlineMenuItemAction()));
+        list.add(new InlineMenuItem(createStringResource("menu2"), new InlineMenuItemAction()));
+        list.add(new InlineMenuItem());
+        list.add(new InlineMenuItem(createStringResource("menu3"), new Model(false), null, true, new InlineMenuItemAction()));
+        list.add(new InlineMenuItem(createStringResource("menu1"), new Model(false), null, false, new InlineMenuItemAction()));
+
+        return list;
     }
 
     @Override

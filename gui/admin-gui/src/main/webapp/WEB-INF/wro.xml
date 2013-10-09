@@ -16,15 +16,10 @@
   -->
 
 <groups xmlns="http://www.isdc.ro/wro">
+    <!-- this group is obsolete, will be removed -->
     <group name="all">
         <css>/less/*.less</css>
         <css>/WEB-INF/classes/**.less</css>
-        <!--todo remove /WEB-INF css and uncomment this, but first you have to fix classpath loading in wro4j-->
-        <!--this was probably fixed by version 1.6.4 (http://code.google.com/p/wro4j/issues/detail?id=680)-->
-        <!--please upgrade library and test it-->
-        <!--<css>classpath:com/evolveum/midpoint/web/**.less</css>-->
-        <!-- spring version of classpath search (not working) -->
-        <!--<css>classpath*:com/evolveum/midpoint/web/**/*.less</css>-->
     </group>
 
     <group name="bootstrap">
