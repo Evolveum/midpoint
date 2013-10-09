@@ -93,10 +93,10 @@ public class PageResourceWizard extends PageAdminResources {
         add(wizard);
 
         //todo remove
-        final AceEditor editor = new AceEditor("editor", new AbstractReadOnlyModel<Object>() {
+        final AceEditor editor = new AceEditor("editor", new AbstractReadOnlyModel<String>() {
 
             @Override
-            public Object getObject() {
+            public String getObject() {
                 try {
                     PrismDomProcessor domProcessor = PageResourceWizard.this.getPrismContext().getPrismDomProcessor();
                     return domProcessor.serializeObjectToString(model.getObject().asPrismObject());
@@ -114,7 +114,7 @@ public class PageResourceWizard extends PageAdminResources {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 target.add(editor);
-                target.appendJavaScript(editor.createJavascriptEditableRefresh());
+                editor.refreshReadonly(target);
             }
         };
         add(reload);

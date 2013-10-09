@@ -126,7 +126,7 @@ public class PageRole extends PageAdminRoles {
                 editPerformed(target, editable.getObject());
             }
         });
-        AceEditor<String> editor = new AceEditor<String>("aceEditor", new PropertyModel<String>(model, ObjectViewDto.F_XML));
+        AceEditor editor = new AceEditor("aceEditor", new PropertyModel<String>(model, ObjectViewDto.F_XML));
         editor.setReadonly(new LoadableModel<Boolean>(false) {
 
             @Override
@@ -179,7 +179,7 @@ public class PageRole extends PageAdminRoles {
         AceEditor editor = (AceEditor) get("mainForm:aceEditor");
 
         editor.setReadonly(!editable);
-        target.appendJavaScript(editor.createJavascriptEditableRefresh());
+        editor.refreshReadonly(target);
     }
 
     private void savePerformed(AjaxRequestTarget target) {

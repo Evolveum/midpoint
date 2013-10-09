@@ -225,7 +225,8 @@ public class PageDebugView extends PageAdminConfiguration {
     }
 
     public void editPerformed(AjaxRequestTarget target, boolean editable) {
-        editor.setReadonly(target, !editable);
+        editor.setReadonly(!editable);
+        editor.refreshReadonly(target);
     }
 
     public void savePerformed(AjaxRequestTarget target) {

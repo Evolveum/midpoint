@@ -133,7 +133,7 @@ public class PageImportObject extends PageAdminConfiguration {
         addVisibileForInputType(inputAce, INPUT_XML, groupModel);
         input.add(inputAce);
 
-        AceEditor<String> aceEditor = new AceEditor<String>(ID_ACE_EDITOR, xmlEditorModel);
+        AceEditor aceEditor = new AceEditor(ID_ACE_EDITOR, xmlEditorModel);
         aceEditor.setOutputMarkupId(true);
         inputAce.add(aceEditor);
 

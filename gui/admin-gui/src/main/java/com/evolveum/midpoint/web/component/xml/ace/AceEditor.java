@@ -21,17 +21,14 @@ import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 public class AceEditor extends TextArea<String> {
 
-    private static final String EDITOR_SUFFIX = "_edit";
-
-    private String editorId;
-    private boolean readonly = false;
+    private IModel<Boolean> readonly = new Model(false);
 
     public AceEditor(String id, IModel<String> model) {
         super(id, model);
-        this.editorId = getMarkupId() + EDITOR_SUFFIX;
         setOutputMarkupId(true);
     }
 
@@ -46,18 +43,16 @@ public class AceEditor extends TextArea<String> {
     }
 
     public void setReadonly(boolean readonly) {
-        setReadonly(null, readonly);
+        this.readonly.setObject(readonly);
     }
 
-    public void setReadonly(AjaxRequestTarget target, boolean readonly) {
+    public void setReadonly(IModel<Boolean> readonly) {
         this.readonly = readonly;
+    }
 
-        if (target == null) {
-            return;
-        }
-
+    public void refreshReadonly(AjaxRequestTarget target) {
         StringBuilder sb = new StringBuilder();
-        sb.append("refreshReadonly('").append(getMarkupId()).append("',").append(readonly).append(");");
+        sb.append("refreshReadonly('").append(getMarkupId()).append("',").append(readonly.getObject()).append(");");
 
         target.appendJavaScript(sb.toString());
     }

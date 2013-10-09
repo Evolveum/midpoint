@@ -135,7 +135,7 @@ public class PageResourceEdit extends PageAdminResources {
                 editPerformed(target, editable.getObject());
             }
         });
-        AceEditor<String> editor = new AceEditor<String>(ID_ACE_EDITOR, new PropertyModel<String>(model, ObjectViewDto.F_XML));
+        AceEditor editor = new AceEditor(ID_ACE_EDITOR, new PropertyModel<String>(model, ObjectViewDto.F_XML));
         editor.setReadonly(new LoadableModel<Boolean>(false) {
 
             @Override
@@ -187,7 +187,7 @@ public class PageResourceEdit extends PageAdminResources {
         AceEditor editor = (AceEditor) get(createComponentPath(ID_MAIN_FORM, ID_ACE_EDITOR));
 
         editor.setReadonly(!editable);
-        target.appendJavaScript(editor.createJavascriptEditableRefresh());
+        editor.refreshReadonly(target);
     }
 
     private void savePerformed(AjaxRequestTarget target) {
