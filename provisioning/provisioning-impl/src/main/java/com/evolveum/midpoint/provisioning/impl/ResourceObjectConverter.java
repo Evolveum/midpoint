@@ -154,10 +154,11 @@ public class ResourceObjectConverter {
 	
 	public PrismObject<ShadowType> getResourceObject(ConnectorInstance connector, ResourceType resource, 
 			Collection<? extends ResourceAttribute<?>> identifiers,
-			RefinedObjectClassDefinition objectClassDefinition, OperationResult parentResult) throws ObjectNotFoundException,
-			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, GenericConnectorException {
-
-		AttributesToReturn attributesToReturn = createAttributesToReturn(objectClassDefinition, identifiers, resource);
+			RefinedObjectClassDefinition objectClassDefinition, OperationResult parentResult)
+					throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException,
+					SecurityViolationException, GenericConnectorException {
+		
+		AttributesToReturn attributesToReturn = ProvisioningUtil.createAttributesToReturn(objectClassDefinition, resource);
 		
 		PrismObject<ShadowType> resourceShadow = fetchResourceObject(connector, resource, objectClassDefinition, identifiers, 
 				attributesToReturn, parentResult);
@@ -174,8 +175,10 @@ public class ResourceObjectConverter {
 			RefinedObjectClassDefinition objectClassDefinition, OperationResult parentResult) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException, GenericConnectorException {
 
+		AttributesToReturn attributesToReturn = ProvisioningUtil.createAttributesToReturn(objectClassDefinition, resource);
+		
 		if (hasAllIdentifiers(identifiers, objectClassDefinition)) {
-			return getResourceObject(connector, resource, identifiers, objectClassDefinition, parentResult);
+			return fetchResourceObject(connector, resource, objectClassDefinition, identifiers, attributesToReturn, parentResult);
 		} else {
 			// Search
 			Collection<? extends RefinedAttributeDefinition> secondaryIdentifierDefs = objectClassDefinition.getSecondaryIdentifiers();
@@ -213,7 +216,7 @@ public class ResourceObjectConverter {
 				}
 			};
 			try {
-				connector.search(objectClassDefinition, query, handler, parentResult);
+				connector.search(objectClassDefinition, query, handler, attributesToReturn, parentResult);
 				if (shadowHolder.isEmpty()) {
 					throw new ObjectNotFoundException("No object found for secondary identifier "+secondaryIdentifier);
 				}
@@ -243,54 +246,7 @@ public class ResourceObjectConverter {
 		return true;
 	}
 
-	private AttributesToReturn createAttributesToReturn(RefinedObjectClassDefinition objectClassDefinition,
-			Collection<? extends ResourceAttribute<?>> identifiers, ResourceType resource) throws SchemaException {
-		boolean apply = false;
-		AttributesToReturn attributesToReturn = new AttributesToReturn();
-		attributesToReturn.setReturnDefaultAttributes(true);
-		
-		// Attributes
-		Collection<ResourceAttributeDefinition> explicit = new ArrayList<ResourceAttributeDefinition>();
-		for (RefinedAttributeDefinition attributeDefinition: objectClassDefinition.getAttributeDefinitions()) {
-			AttributeFetchStrategyType fetchStrategy = attributeDefinition.getFetchStrategy();
-			if (fetchStrategy != null && fetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
-				explicit.add(attributeDefinition);
-			}
-		}
-		
-		if (!explicit.isEmpty()) {
-			attributesToReturn.setAttributesToReturn(explicit);
-			apply = true;
-		}
-		
-		// Password
-		CredentialsCapabilityType credentialsCapabilityType = ResourceTypeUtil.getEffectiveCapability(resource, CredentialsCapabilityType.class);
-		if (CapabilityUtil.isPasswordReturnedByDefault(credentialsCapabilityType)) {
-			// There resource is capable of returning password but it does not do it by default
-			AttributeFetchStrategyType passwordFetchStrategy = objectClassDefinition.getPasswordFetchStrategy();
-			if (passwordFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
-				attributesToReturn.setReturnPasswordExplicit(true);
-				apply = true;
-			}
-		}
-		
-		// Activation/administrativeStatus
-		ActivationCapabilityType activationCapabilityType = ResourceTypeUtil.getEffectiveCapability(resource, ActivationCapabilityType.class);
-		if (CapabilityUtil.isActivationStatusReturnedByDefault(activationCapabilityType)) {
-			// There resource is capable of returning enable flag but it does not do it by default
-			AttributeFetchStrategyType administrativeStatusFetchStrategy = objectClassDefinition.getActivationFetchStrategy(ActivationType.F_ADMINISTRATIVE_STATUS);
-			if (administrativeStatusFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
-				attributesToReturn.setReturnAdministrativeStatusExplicit(true);
-				apply = true;
-			}
-		}
-		
-		if (apply) {
-			return attributesToReturn;
-		} else {
-			return null;
-		}
-	}
+	
 
 	public PrismObject<ShadowType> addResourceObject(ConnectorInstance connector, ResourceType resource, 
 			PrismObject<ShadowType> shadow, RefinedObjectClassDefinition objectClassDefinition, OperationProvisioningScriptsType scripts, OperationResult parentResult)
@@ -642,6 +598,8 @@ public class ResourceObjectConverter {
 			final ResultHandler<ShadowType> resultHandler, ObjectQuery query, final OperationResult parentResult) throws SchemaException,
 			CommunicationException, ObjectNotFoundException, ConfigurationException {
 		
+		AttributesToReturn attributesToReturn = ProvisioningUtil.createAttributesToReturn(objectClassDef, resourceType);
+		
 		ResultHandler<ShadowType> innerResultHandler = new ResultHandler<ShadowType>() {
 			@Override
 			public boolean handle(PrismObject<ShadowType> shadow) {
@@ -659,7 +617,7 @@ public class ResourceObjectConverter {
 		};
 		
 		try {
-			connector.search(objectClassDef, query, innerResultHandler, parentResult);
+			connector.search(objectClassDef, query, innerResultHandler, attributesToReturn, parentResult);
 		} catch (GenericFrameworkException e) {
 			parentResult.recordFatalError("Generic error in the connector: " + e.getMessage(), e);
 			throw new SystemException("Generic error in the connector: " + e.getMessage(), e);
@@ -977,8 +935,10 @@ public class ResourceObjectConverter {
 
 		LOGGER.trace("Shadow converter, START fetch changes");
 
+		AttributesToReturn attrsToReturn = ProvisioningUtil.createAttributesToReturn(objectClass, resource);
+		
 		// get changes from the connector
-		List<Change<ShadowType>> changes = connector.fetchChanges(objectClass, lastToken, parentResult);
+		List<Change<ShadowType>> changes = connector.fetchChanges(objectClass, lastToken, attrsToReturn, parentResult);
 
 		Iterator<Change<ShadowType>> iterator = changes.iterator();
 		while (iterator.hasNext()) {
@@ -990,7 +950,7 @@ public class ResourceObjectConverter {
 					try {
 						
 						PrismObject<ShadowType> currentShadow = fetchResourceObject(connector, resource, objectClass, 
-								change.getIdentifiers(), null, parentResult);
+								change.getIdentifiers(), attrsToReturn, parentResult);
 						change.setCurrentShadow(currentShadow);
 						
 					} catch (ObjectNotFoundException ex) {

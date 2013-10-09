@@ -24,6 +24,9 @@ import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
+import com.evolveum.midpoint.common.monitor.CachingStatistics;
+import com.evolveum.midpoint.common.monitor.InternalMonitor;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.Objectable;
@@ -47,6 +50,7 @@ import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -101,6 +105,15 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	protected static final String OPENDJ_PEOPLE_SUFFIX = "ou=people,dc=example,dc=com";
 
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractIntegrationTest.class);
+	
+	// Values used to check if something is unchanged or changed properly
+	
+	private long lastConnectorSchemaFetchCount = 0;
+	private long lastConnectorCapabilitiesFetchCount = 0;
+	private long lastConnectorInitializationCount = 0;
+	private long lastResourceSchemaParseCount = 0;
+	private CachingStatistics lastResourceCacheStats;
+	private long lastShadowFetchOperationCount = 0;
 
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
@@ -143,6 +156,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 			LOGGER.trace("initSystemConditional: invoking initSystem");
 			Task initTask = taskManager.createTaskInstance(this.getClass().getName() + ".initSystem");
 			OperationResult result = initTask.getResult();
+			InternalMonitor.reset();
 			initSystem(initTask, result);
 			result.computeStatus();
 			IntegrationTestTools.display("initSystem result", result);
@@ -474,5 +488,84 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		PrismContainer<Containerable> attributesContainer = accountShadow.findContainer(ShadowType.F_ATTRIBUTES);
 		List<Item<?>> attributes = attributesContainer.getValue().getItems();
 		assertEquals("Unexpected number of attributes in repo shadow", 2, attributes.size());
-	}	
+	}
+	
+	protected void rememberConnectorSchemaFetchCount() {
+		lastConnectorSchemaFetchCount = InternalMonitor.getConnectorSchemaFetchCount();
+	}
+
+	protected void assertConnectorSchemaFetchIncrement(int expectedIncrement) {
+		long currentConnectorSchemaFetchCount = InternalMonitor.getConnectorSchemaFetchCount();
+		long actualIncrement = currentConnectorSchemaFetchCount - lastConnectorSchemaFetchCount;
+		assertEquals("Unexpected increment in connector schema fetch count", (long)expectedIncrement, actualIncrement);
+		lastConnectorSchemaFetchCount = currentConnectorSchemaFetchCount;
+	}
+	
+	protected void rememberConnectorCapabilitiesFetchCount() {
+		lastConnectorCapabilitiesFetchCount = InternalMonitor.getConnectorCapabilitiesFetchCount();
+	}
+
+	protected void assertConnectorCapabilitiesFetchIncrement(int expectedIncrement) {
+		long currentConnectorCapabilitiesFetchCount = InternalMonitor.getConnectorCapabilitiesFetchCount();
+		long actualIncrement = currentConnectorCapabilitiesFetchCount - lastConnectorCapabilitiesFetchCount;
+		assertEquals("Unexpected increment in connector capabilities fetch count", (long)expectedIncrement, actualIncrement);
+		lastConnectorCapabilitiesFetchCount = currentConnectorCapabilitiesFetchCount;
+	}
+
+	protected void rememberConnectorInitializationCount() {
+		lastConnectorInitializationCount  = InternalMonitor.getConnectorInitializationCount();
+	}
+
+	protected void assertConnectorInitializationCountIncrement(int expectedIncrement) {
+		long currentConnectorInitializationCount = InternalMonitor.getConnectorInitializationCount();
+		long actualIncrement = currentConnectorInitializationCount - lastConnectorInitializationCount;
+		assertEquals("Unexpected increment in connector initialization count", (long)expectedIncrement, actualIncrement);
+		lastConnectorInitializationCount = currentConnectorInitializationCount;
+	}
+	
+	protected void rememberResourceSchemaParseCount() {
+		lastResourceSchemaParseCount  = InternalMonitor.getResourceSchemaParseCount();
+	}
+
+	protected void assertResourceSchemaParseCountIncrement(int expectedIncrement) {
+		long currentResourceSchemaParseCount = InternalMonitor.getResourceSchemaParseCount();
+		long actualIncrement = currentResourceSchemaParseCount - lastResourceSchemaParseCount;
+		assertEquals("Unexpected increment in resource schema parse count", (long)expectedIncrement, actualIncrement);
+		lastResourceSchemaParseCount = currentResourceSchemaParseCount;
+	}
+	
+	protected void rememberResourceCacheStats() {
+		lastResourceCacheStats  = InternalMonitor.getResourceCacheStats().clone();
+	}
+	
+	protected void assertResourceCacheHitsIncrement(int expectedIncrement) {
+		assertCacheHits(lastResourceCacheStats, InternalMonitor.getResourceCacheStats(), "resouce cache", expectedIncrement);
+	}
+	
+	protected void assertResourceCacheMissesIncrement(int expectedIncrement) {
+		assertCacheMisses(lastResourceCacheStats, InternalMonitor.getResourceCacheStats(), "resouce cache", expectedIncrement);
+	}
+	
+	protected void assertCacheHits(CachingStatistics lastStats, CachingStatistics currentStats, String desc, int expectedIncrement) {
+		long actualIncrement = currentStats.getHits() - lastStats.getHits();
+		assertEquals("Unexpected increment in "+desc+" hit count", (long)expectedIncrement, actualIncrement);
+		lastStats.setHits(currentStats.getHits());
+	}
+
+	protected void assertCacheMisses(CachingStatistics lastStats, CachingStatistics currentStats, String desc, int expectedIncrement) {
+		long actualIncrement = currentStats.getMisses() - lastStats.getMisses();
+		assertEquals("Unexpected increment in "+desc+" miss count", (long)expectedIncrement, actualIncrement);
+		lastStats.setMisses(currentStats.getMisses());
+	}
+	
+	protected void rememberShadowFetchOperationCount() {
+		lastShadowFetchOperationCount  = InternalMonitor.getShadowFetchOperationCount();
+	}
+
+	protected void assertShadowFetchOperationCountIncrement(int expectedIncrement) {
+		long currentCount = InternalMonitor.getShadowFetchOperationCount();
+		long actualIncrement = currentCount - lastShadowFetchOperationCount;
+		assertEquals("Unexpected increment in shadow fetch count", (long)expectedIncrement, actualIncrement);
+		lastShadowFetchOperationCount = currentCount;
+	}
 }

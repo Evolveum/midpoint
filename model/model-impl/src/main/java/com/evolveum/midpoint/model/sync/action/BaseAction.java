@@ -217,7 +217,12 @@ public abstract class BaseAction implements Action {
         }
 
         //we insert account if available in change
-        accountContext.setLoadedObject(getAccountObject(change));
+        PrismObject<ShadowType> currentAccount = getAccountObject(change);
+        if (currentAccount != null) {
+        	accountContext.setLoadedObject(currentAccount);
+        	accountContext.setFullShadow(true);
+        	accountContext.setFresh(true);
+        }
 
         if (delta != null && delta.isDelete()) {
         	accountContext.setExists(false);

@@ -262,12 +262,48 @@ public class Clockwork {
 		
 		audit(context, AuditEventStage.EXECUTION, task, result);
 		
+		rotContext(context);
+		
 		context.incrementExecutionWave();
-
-		// Force recompute for next wave
-		context.rot();
 		
 		LensUtil.traceContext(LOGGER, "CLOCKWORK (" + context.getState() + ")", "change execution", false, context, false);
+	}
+	
+	/**
+	 * Force recompute for the next wave. Recompute only those contexts that were changed.
+	 * This is more inteligent than context.rot()
+	 */
+	private <F extends ObjectType, P extends ObjectType> void rotContext(LensContext<F,P> context) throws SchemaException {
+		boolean rot = false;
+    	for (LensProjectionContext<P> projectionContext: context.getProjectionContexts()) {
+    		if (projectionContext.getWave() != context.getExecutionWave()) {
+    			LOGGER.trace("Context rot: projection {} NOT rotten because of wrong wave number", projectionContext);
+        		continue;
+			}
+    		ObjectDelta<P> execDelta = projectionContext.getExecutableDelta();
+    		if (execDelta != null && !execDelta.isEmpty()) {
+    			LOGGER.trace("Context rot: projection {} rotten because of delta {}", projectionContext, execDelta);
+    			projectionContext.setFresh(false);
+    			projectionContext.setFullShadow(false);
+    			rot = true;
+	        } else {
+	        	LOGGER.trace("Context rot: projection {} NOT rotten because no delta", projectionContext);
+	        }
+		}
+    	LensFocusContext<F> focusContext = context.getFocusContext();
+    	if (focusContext != null) {
+    		ObjectDelta<F> execDelta = focusContext.getWaveDelta(context.getExecutionWave());
+    		if (execDelta != null && !execDelta.isEmpty()) {
+    			rot = true;
+    		}
+    		if (rot) {
+	    		// It is OK to refresh focus all the time there was any change. This is cheap.
+	    		focusContext.setFresh(false);
+    		}
+    	}
+    	if (rot) {
+    		context.setFresh(false);
+    	}
 	}
 	
 	private <F extends ObjectType, P extends ObjectType> void processFinal(LensContext<F,P> context, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
