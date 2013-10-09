@@ -175,7 +175,7 @@ public interface ConnectorInstance {
 	 * @throws SchemaException error converting object from the native (connector) format
 	 */
 	public <T extends ShadowType> void search(ObjectClassComplexTypeDefinition objectClassDefinition, ObjectQuery query,
-			ResultHandler<T> handler, OperationResult parentResult) 
+			ResultHandler<T> handler, AttributesToReturn attributesToReturn, OperationResult parentResult) 
 			throws CommunicationException, GenericFrameworkException, SchemaException;
 
 	/**
@@ -264,7 +264,8 @@ public interface ConnectorInstance {
 	 * @param lastToken
 	 * @return
 	 */
-	public <T extends ShadowType> List<Change<T>> fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException;
+	public <T extends ShadowType> List<Change<T>> fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken, 
+			AttributesToReturn attrsToReturn, OperationResult parentResult) throws CommunicationException, GenericFrameworkException, SchemaException, ConfigurationException;
 	
 	//public ValidationResult validateConfiguration(ResourceConfiguration newConfiguration);
 	

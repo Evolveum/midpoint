@@ -316,7 +316,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		
 		// THEN
 		result.computeStatus();
-        TestUtil.assertSuccess("executeChanges result", result);
+        TestUtil.assertSuccess("executeChanges result", result, 2);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
