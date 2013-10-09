@@ -29,6 +29,7 @@ import org.identityconnectors.framework.impl.api.ConnectorFacadeFactoryImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import com.evolveum.midpoint.common.mapping.Mapping;
+import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
@@ -208,7 +209,7 @@ public abstract class ShadowCache {
 			ConfigurationException, SecurityViolationException {
 
 		Validate.notNull(oid, "Object id must not be null.");
-
+		
 		LOGGER.trace("Start getting object with oid {}", oid);
 		
 		GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
@@ -239,9 +240,7 @@ public abstract class ShadowCache {
 			parentResult.recordFatalError("Resource defined in shadow was not found: " + ex.getMessage(), ex);
 			return repositoryShadow;
 		}
-		LOGGER.trace("Getting fresh object from ucf.");
-
-	
+		
 		RefinedObjectClassDefinition objectClassDefinition = applyAttributesDefinition(repositoryShadow, resource);
 		
 		ConnectorInstance connector = null;
@@ -282,6 +281,9 @@ public abstract class ShadowCache {
 				throw ex;
 			}
 	
+			// We need to record the fetch down here. Now it is certain that we are going to fetch from resource
+			// (we do not have raw/noFetch option)
+			InternalMonitor.recordShadowFetchOperation();
 			
 			resourceShadow = resouceObjectConverter.getResourceObject(connector, resource, identifiers, objectClassDefinition, parentResult);
 			resourceTypeManager.modifyResourceAvailabilityStatus(resource.asPrismObject(), AvailabilityStatusType.UP, parentResult);
@@ -338,6 +340,8 @@ public abstract class ShadowCache {
 			ConfigurationException, SecurityViolationException {
 		Validate.notNull(shadow, "Object to add must not be null.");
 
+		InternalMonitor.recordShadowChangeOperation();
+		
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Start adding shadow object:\n{}", shadow.dump());
 		}
@@ -404,6 +408,8 @@ public abstract class ShadowCache {
 		Validate.notNull(oid, "OID must not be null.");
 		Validate.notNull(modifications, "Object modification must not be null.");
 
+		InternalMonitor.recordShadowChangeOperation();
+		
 		if (resource == null) {
 			resource = getResource(shadow, parentResult);
 		}
@@ -520,6 +526,8 @@ public abstract class ShadowCache {
 		Validate.notNull(shadow, "Object to delete must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
 
+		InternalMonitor.recordShadowChangeOperation();
+		
 		if (resource == null) {
 			try {
 				resource = getResource(shadow, parentResult);
@@ -682,6 +690,8 @@ public abstract class ShadowCache {
 			final ShadowHandler<ShadowType> handler, final boolean readFromRepository, final OperationResult parentResult)
 			throws CommunicationException, ObjectNotFoundException, SchemaException, ConfigurationException {
 
+		InternalMonitor.recordShadowFetchOperation();
+		
 		Validate.notNull(objectClass);
 		if (resource == null) {
 			parentResult.recordFatalError("Resource must not be null");
@@ -737,6 +747,10 @@ public abstract class ShadowCache {
 			searchObjectsIterativeRepository(objectClassDef, resourceType, query, options, handler, parentResult);
 			return;
 		}
+		
+		// We need to record the fetch down here. Now it is certain that we are going to fetch from resource
+		// (we do not have raw/noFetch option)
+		InternalMonitor.recordShadowFetchOperation();
 		
 		ObjectFilter filter = null;
 		if (query != null) {
@@ -958,6 +972,8 @@ public abstract class ShadowCache {
 			throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,
 			ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException {
 
+		InternalMonitor.recordShadowOtherOperation();
+		
 		RefinedObjectClassDefinition objecClassDefinition = determineObjectClassDefinition(objectClass, resourceType);
 		ConnectorInstance connector = getConnectorInstance(resourceType, parentResult);
 		
@@ -1080,6 +1096,8 @@ public abstract class ShadowCache {
 	public PrismProperty<?> fetchCurrentToken(ResourceType resourceType, OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException {
 
+		InternalMonitor.recordShadowOtherOperation();
+		
 		Validate.notNull(resourceType, "Resource must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
 

@@ -157,18 +157,12 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	protected TaskManager taskManager;
 	
 	// Values used to check if something is unchanged or changed properly
-	private CachingMetadataType lastCachingMetadata;
-	private long lastConnectorSchemaFetchCount = 0;
-	private long lastConnectorCapabilitiesFetchCount = 0;
-	private long lastConnectorInitializationCount = 0;
-	private long lastResourceSchemaParseCount = 0;
-	private CachingStatistics lastResourceCacheStats;
-	private ResourceSchema lastResourceSchema = null;
-	private RefinedResourceSchema lastRefinedResourceSchema;
 	private Long lastResourceVersion = null;
 	private ConnectorInstance lastConfiguredConnectorInstance;
+	private CachingMetadataType lastCachingMetadata;
+	private ResourceSchema lastResourceSchema = null;
+	private RefinedResourceSchema lastRefinedResourceSchema;
 
-	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		// We need to switch off the encryption checks. Some values cannot be encrypted as we do
@@ -343,74 +337,6 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	protected void assertSchemaMetadataUnchanged(PrismObject<ResourceType> resource) {
 		CachingMetadataType current = getSchemaCachingMetadata(resource);
 		assertEquals("Schema caching metadata changed", lastCachingMetadata, current);
-	}
-	
-	protected void rememberConnectorSchemaFetchCount() {
-		lastConnectorSchemaFetchCount = InternalMonitor.getConnectorSchemaFetchCount();
-	}
-
-	protected void assertConnectorSchemaFetchIncrement(int expectedIncrement) {
-		long currentConnectorSchemaFetchCount = InternalMonitor.getConnectorSchemaFetchCount();
-		long actualIncrement = currentConnectorSchemaFetchCount - lastConnectorSchemaFetchCount;
-		assertEquals("Unexpected increment in connector schema fetch count", (long)expectedIncrement, actualIncrement);
-		lastConnectorSchemaFetchCount = currentConnectorSchemaFetchCount;
-	}
-	
-	protected void rememberConnectorCapabilitiesFetchCount() {
-		lastConnectorCapabilitiesFetchCount = InternalMonitor.getConnectorCapabilitiesFetchCount();
-	}
-
-	protected void assertConnectorCapabilitiesFetchIncrement(int expectedIncrement) {
-		long currentConnectorCapabilitiesFetchCount = InternalMonitor.getConnectorCapabilitiesFetchCount();
-		long actualIncrement = currentConnectorCapabilitiesFetchCount - lastConnectorCapabilitiesFetchCount;
-		assertEquals("Unexpected increment in connector capabilities fetch count", (long)expectedIncrement, actualIncrement);
-		lastConnectorCapabilitiesFetchCount = currentConnectorCapabilitiesFetchCount;
-	}
-
-	protected void rememberConnectorInitializationCount() {
-		lastConnectorInitializationCount  = InternalMonitor.getConnectorInitializationCount();
-	}
-
-	protected void assertConnectorInitializationCountIncrement(int expectedIncrement) {
-		long currentConnectorInitializationCount = InternalMonitor.getConnectorInitializationCount();
-		long actualIncrement = currentConnectorInitializationCount - lastConnectorInitializationCount;
-		assertEquals("Unexpected increment in connector initialization count", (long)expectedIncrement, actualIncrement);
-		lastConnectorInitializationCount = currentConnectorInitializationCount;
-	}
-	
-	protected void rememberResourceSchemaParseCount() {
-		lastResourceSchemaParseCount  = InternalMonitor.getResourceSchemaParseCount();
-	}
-
-	protected void assertResourceSchemaParseCountIncrement(int expectedIncrement) {
-		long currentResourceSchemaParseCount = InternalMonitor.getResourceSchemaParseCount();
-		long actualIncrement = currentResourceSchemaParseCount - lastResourceSchemaParseCount;
-		assertEquals("Unexpected increment in resource schema parse count", (long)expectedIncrement, actualIncrement);
-		lastResourceSchemaParseCount = currentResourceSchemaParseCount;
-	}
-	
-	protected void rememberResourceCacheStats() {
-		lastResourceCacheStats  = InternalMonitor.getResourceCacheStats().clone();
-	}
-	
-	protected void assertResourceCacheHitsIncrement(int expectedIncrement) {
-		assertCacheHits(lastResourceCacheStats, InternalMonitor.getResourceCacheStats(), "resouce cache", expectedIncrement);
-	}
-	
-	protected void assertResourceCacheMissesIncrement(int expectedIncrement) {
-		assertCacheMisses(lastResourceCacheStats, InternalMonitor.getResourceCacheStats(), "resouce cache", expectedIncrement);
-	}
-	
-	protected void assertCacheHits(CachingStatistics lastStats, CachingStatistics currentStats, String desc, int expectedIncrement) {
-		long actualIncrement = currentStats.getHits() - lastStats.getHits();
-		assertEquals("Unexpected increment in "+desc+" hit count", (long)expectedIncrement, actualIncrement);
-		lastStats.setHits(currentStats.getHits());
-	}
-
-	protected void assertCacheMisses(CachingStatistics lastStats, CachingStatistics currentStats, String desc, int expectedIncrement) {
-		long actualIncrement = currentStats.getMisses() - lastStats.getMisses();
-		assertEquals("Unexpected increment in "+desc+" miss count", (long)expectedIncrement, actualIncrement);
-		lastStats.setMisses(currentStats.getMisses());
 	}
 	
 	protected void rememberResourceSchema(ResourceSchema resourceSchema) {

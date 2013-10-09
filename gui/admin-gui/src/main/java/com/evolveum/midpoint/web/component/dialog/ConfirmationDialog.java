@@ -46,6 +46,7 @@ public class ConfirmationDialog extends ModalWindow {
         setInitialHeight(150);
         setWidthUnit("px");
 
+
         setCloseButtonCallback(new ModalWindow.CloseButtonCallback() {
 
             @Override
@@ -74,6 +75,10 @@ public class ConfirmationDialog extends ModalWindow {
     public void setMessage(IModel<String> message) {
         Label label = (Label) getContent().get("confirmText");
         label.setDefaultModel(message);
+    }
+
+    public void setEscapeModelStringsByCaller(boolean value){
+        Label label = (Label)getContent().get("confirmText").setEscapeModelStrings(value);
     }
 
     private void initLayout(WebMarkupContainer content, IModel<String> message) {

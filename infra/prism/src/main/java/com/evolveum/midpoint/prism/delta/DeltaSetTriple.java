@@ -133,6 +133,10 @@ public class DeltaSetTriple<T> implements Dumpable, DebugDumpable, Serializable,
     	return (minusSet != null && !minusSet.isEmpty());
     }
     
+	public boolean isZeroOnly() {
+		return hasZeroSet() && !hasPlusSet() && !hasMinusSet();
+	}
+
     public void addToPlusSet(T item) {
     	addToSet(plusSet, item);
     }

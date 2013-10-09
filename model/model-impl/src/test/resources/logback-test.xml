@@ -32,6 +32,7 @@
 	<logger name="com.evolveum.midpoint.model.lens.projector" level="TRACE" />
 	<!-- ... and expression trace as well -->
 	<logger name="com.evolveum.midpoint.common.expression.Expression" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.common.monitor" level="TRACE" />
 	<logger name="com.evolveum.midpoint.provisioning" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.repo" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.sync.LiveSyncTaskHandler" level="TRACE" />

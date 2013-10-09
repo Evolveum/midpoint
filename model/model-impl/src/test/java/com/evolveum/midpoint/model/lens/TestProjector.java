@@ -40,6 +40,7 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.AbstractInternalModelIntegrationTest;
@@ -116,14 +117,18 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
 		setDefaultUserTemplate(USER_TEMPLATE_OID);
+		InternalMonitor.reset();
+//		InternalMonitor.setTraceShadowFetchOperation(true);
 	}
 
 	@Test
     public void test000Sanity() throws Exception {
         TestUtil.displayTestTile(this, "test000Sanity");
 
+        // WHEN
         RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resourceDummyType, prismContext);
         
+        // THEN
         dummyResourceCtl.assertRefinedSchemaSanity(refinedSchema);
         
         assertNoJackShadow();
@@ -232,11 +237,17 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 
         assertUserModificationSanity(context);
         
+        rememberShadowFetchOperationCount();
+        
         // WHEN
+        TestUtil.displayWhen(TEST_NAME);
         projector.project(context, "test", result);
         
         // THEN
+        TestUtil.displayThen(TEST_NAME);
         display("Output context", context);
+        // Not loading anything. The account is already loaded in the context
+        assertShadowFetchOperationCountIncrement(0);
         
         assertNull("Unexpected user primary changes "+context.getFocusContext().getPrimaryDelta(), context.getFocusContext().getPrimaryDelta());
         assertEffectiveActivationDeltaOnly(context.getFocusContext().getSecondaryDelta(), "user secondary delta", ActivationStatusType.ENABLED);
@@ -289,6 +300,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         display("Input context", context);
 
         assertUserModificationSanity(context);
+        rememberShadowFetchOperationCount();
         
         // WHEN
         projector.project(context, "test", result);
@@ -320,6 +332,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         
         // Let's break it a bit...
         breakAssignmentDelta(context);
+        rememberShadowFetchOperationCount();
         
         // WHEN
         projector.project(context, "test", result);
@@ -330,6 +343,8 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 
 	private void assertAssignAccountToJack(LensContext<UserType, ShadowType> context) {
         display("Output context", context);
+        // Not loading anything. The account is already loaded in the context
+        assertShadowFetchOperationCountIncrement(0);
         
         assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
         assertEffectiveActivationDeltaOnly(context.getFocusContext().getSecondaryDelta(), "user secondary delta", ActivationStatusType.ENABLED);

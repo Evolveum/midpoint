@@ -15,6 +15,9 @@
  */
 package com.evolveum.midpoint.common.monitor;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+
 /**
  * Simple monitoring object. It records the count of expensive operations
  * in the system. It is used in the tests to make sure such operations are not
@@ -25,6 +28,8 @@ package com.evolveum.midpoint.common.monitor;
  */
 public class InternalMonitor {
 	
+	private static final Trace LOGGER = TraceManager.getTrace(InternalMonitor.class);
+	
 	private static long resourceSchemaParseCount = 0;
 	private static long connectorInitializationCount = 0;
 	private static long connectorSchemaFetchCount = 0;
@@ -33,6 +38,15 @@ public class InternalMonitor {
 	private static CachingStatistics connectorCacheStats = new CachingStatistics();
 	private static long scriptCompileCount = 0;
 	private static long scriptExecutionCount = 0;
+	
+	private static long shadowFetchOperationCount = 0;
+	private static boolean traceShadowFetchOperation = false;
+	
+	private static long shadowChangeOpeartionCount = 0;
+	/**
+	 * All provisioning operations that reach out to the resources.
+	 */
+	private static long provisioningAllExtOperationCount = 0;
 	
 	public static long getResourceSchemaParseCount() {
 		return resourceSchemaParseCount;
@@ -56,6 +70,7 @@ public class InternalMonitor {
 	
 	public synchronized static void recordConnectorSchemaFetch() {
 		connectorSchemaFetchCount++;
+		provisioningAllExtOperationCount++;
 	}
 
 	public static long getConnectorCapabilitiesFetchCount() {
@@ -64,6 +79,7 @@ public class InternalMonitor {
 	
 	public synchronized static void recordConnectorCapabilitiesFetchCount() {
 		connectorCapabilitiesFetchCount++;
+		provisioningAllExtOperationCount++;
 	}
 
 	public static CachingStatistics getResourceCacheStats() {
@@ -98,4 +114,81 @@ public class InternalMonitor {
 		scriptExecutionCount++;
 	}
 
+	public static long getShadowFetchOperationCount() {
+		return shadowFetchOperationCount;
+	}
+	
+	public static void recordShadowFetchOperation() {
+		shadowFetchOperationCount++;
+		provisioningAllExtOperationCount++;
+		if (traceShadowFetchOperation) {
+			traceOperation("shadow fetch", shadowFetchOperationCount);
+		}
+	}
+
+	public static boolean isTraceShadowFetchOperation() {
+		return traceShadowFetchOperation;
+	}
+
+	public static void setTraceShadowFetchOperation(boolean traceShadowFetchOperation) {
+		LOGGER.debug("MONITOR traceShadowFetchOperation={}", traceShadowFetchOperation);
+		InternalMonitor.traceShadowFetchOperation = traceShadowFetchOperation;
+	}
+
+	public static long getShadowChangeOpeartionCount() {
+		return shadowChangeOpeartionCount;
+	}
+	
+	public static void recordShadowChangeOperation() {
+		shadowChangeOpeartionCount++;
+		provisioningAllExtOperationCount++;
+	}
+
+	public static long getProvisioningAllExtOperationCont() {
+		return provisioningAllExtOperationCount;
+	}
+	
+	public static void recordShadowOtherOperation() {
+		provisioningAllExtOperationCount++;
+	}
+	
+	public static void reset() {
+		LOGGER.info("MONITOR reset");
+		resourceSchemaParseCount = 0;
+		connectorInitializationCount = 0;
+		connectorSchemaFetchCount = 0;
+		connectorCapabilitiesFetchCount = 0;
+		resourceCacheStats = new CachingStatistics();
+		connectorCacheStats = new CachingStatistics();
+		scriptCompileCount = 0;
+		scriptExecutionCount = 0;
+		shadowFetchOperationCount = 0;
+		traceShadowFetchOperation = false;
+		shadowChangeOpeartionCount = 0;
+	}
+
+	private static void traceOperation(String opName, long counter) {
+		LOGGER.info("MONITOR {} ({})", opName, counter);
+		if (LOGGER.isDebugEnabled()) {
+			StackTraceElement[] fullStack = Thread.currentThread().getStackTrace();
+			String immediateClass = null;
+			String immediateMethod = null;
+			StringBuilder sb = new StringBuilder();
+			for (StackTraceElement stackElement: fullStack) {
+				if (stackElement.getClassName().equals(InternalMonitor.class.getName()) ||
+						stackElement.getClassName().equals(Thread.class.getName())) {
+					// skip our own calls
+					continue;
+				}
+				if (immediateClass == null) {
+					immediateClass = stackElement.getClassName();
+					immediateMethod = stackElement.getMethodName();
+				}
+				sb.append(stackElement.toString());
+				sb.append("\n");
+			}
+			LOGGER.debug("MONITOR {} ({}): {} {}", new Object[]{opName, counter, immediateClass, immediateMethod});
+			LOGGER.trace("MONITOR {} ({}):\n{}", new Object[]{opName, counter, sb});
+		}
+	}
 }

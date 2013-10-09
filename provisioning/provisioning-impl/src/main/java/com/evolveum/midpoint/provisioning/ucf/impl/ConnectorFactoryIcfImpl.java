@@ -295,13 +295,15 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 				result.recordSuccess();
 				return connectors;
 			}
-		} catch (Exception icfException) {
-			Exception ex = processIcfException(icfException, result);
+		} catch (Throwable icfException) {
+			Throwable ex = processIcfException(icfException, result);
 			result.recordFatalError(ex.getMessage(), ex);
 			if (ex instanceof CommunicationException) {
 				throw (CommunicationException) ex;
 			} else if (ex instanceof RuntimeException) {
 				throw (RuntimeException) ex;
+			} else if (ex instanceof Error) {
+				throw (Error) ex;
 			} else {
 				throw new SystemException("Unexpected ICF exception: " + ex.getMessage(), ex);
 			}
