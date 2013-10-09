@@ -367,7 +367,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		System.out.println(SchemaDebugUtil.prettyPrint(lastToken));
 
 		System.out.println("token " + lastToken.toString());
-		List<Change<ShadowType>> changes = cc.fetchChanges(accountDefinition, lastToken, result);
+		List<Change<ShadowType>> changes = cc.fetchChanges(accountDefinition, lastToken, null, result);
 		AssertJUnit.assertEquals(0, changes.size());
 	}
 
@@ -639,7 +639,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		OperationResult result = new OperationResult(this.getClass().getName() + ".testSearch");
 
 		// WHEN
-		cc.search(accountDefinition, new ObjectQuery(), handler, result);
+		cc.search(accountDefinition, new ObjectQuery(), handler, null, result);
 
 		// THEN
 

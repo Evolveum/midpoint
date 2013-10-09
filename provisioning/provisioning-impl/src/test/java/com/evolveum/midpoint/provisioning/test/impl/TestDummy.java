@@ -109,12 +109,14 @@ import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.ObjectChecker;
 import com.evolveum.midpoint.test.ProvisioningScriptSpec;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
@@ -1016,6 +1018,7 @@ public class TestDummy extends AbstractDummyTest {
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ "." + TEST_NAME);
+		rememberShadowFetchOperationCount();
 
 		// WHEN
 		ShadowType shadow = provisioningService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, null, 
@@ -1025,6 +1028,7 @@ public class TestDummy extends AbstractDummyTest {
 		result.computeStatus();
 		display("getObject result", result);
 		TestUtil.assertSuccess(result);
+		assertShadowFetchOperationCountIncrement(1);
 
 		display("Retrieved account shadow", shadow);
 
@@ -1053,6 +1057,7 @@ public class TestDummy extends AbstractDummyTest {
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ "."+TEST_NAME);
+		rememberShadowFetchOperationCount();
 
 		GetOperationOptions rootOptions = new GetOperationOptions();
 		rootOptions.setNoFetch(true);
@@ -1066,6 +1071,7 @@ public class TestDummy extends AbstractDummyTest {
 		result.computeStatus();
 		display("getObject result", result);
 		TestUtil.assertSuccess(result);
+		assertShadowFetchOperationCountIncrement(0);
 
 		display("Retrieved account shadow", shadow);
 
@@ -1119,13 +1125,16 @@ public class TestDummy extends AbstractDummyTest {
 		newAccount.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Meathook");
 		newAccount.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Sea Monkey");
 		newAccount.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "hook");
+		newAccount.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 666L);
 		newAccount.setEnabled(true);
 		newAccount.setPassword("parrotMonster");
 		dummyResource.addAccount(newAccount);
 
-		ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(RESOURCE_DUMMY_OID, new QName(ResourceTypeUtil.getResourceNamespace(resourceType),
+		ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(RESOURCE_DUMMY_OID, 
+				new QName(ResourceTypeUtil.getResourceNamespace(resourceType),
 						ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), prismContext); 
 
+		final Holder<Boolean> seenMeathookHolder = new Holder<Boolean>(false);
 		final List<PrismObject<ShadowType>> foundObjects = new ArrayList<PrismObject<ShadowType>>();
 		ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
 
@@ -1137,9 +1146,21 @@ public class TestDummy extends AbstractDummyTest {
 				assertTrue(objectType instanceof ShadowType);
 				ShadowType shadow = (ShadowType) objectType;
 				checkAccountShadow(shadow, parentResult);
+				
+				if (object.asObjectable().getName().getOrig().equals("meathook")) {
+					seenMeathookHolder.setValue(true);
+					try {
+						Long loot = ShadowUtil.getAttributeValue(object, dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME));
+						assertEquals("Wrong meathook's loot", (Long)666L, loot);
+					} catch (SchemaException e) {
+						throw new SystemException(e.getMessage(), e);
+					}
+				}
+				
 				return true;
 			}
 		};
+		rememberShadowFetchOperationCount();
 
 		// WHEN
 		provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, result);
@@ -1148,6 +1169,7 @@ public class TestDummy extends AbstractDummyTest {
 		result.computeStatus();
 		display("searchObjectsIterative result", result);
 		TestUtil.assertSuccess(result);
+		assertShadowFetchOperationCountIncrement(1);
 
 		assertEquals(4, foundObjects.size());
 		checkConsistency(foundObjects);
@@ -1156,12 +1178,14 @@ public class TestDummy extends AbstractDummyTest {
 		// And again ...
 
 		foundObjects.clear();
+		rememberShadowFetchOperationCount();
 
 		// WHEN
 		provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, result);
 
 		// THEN
 
+		assertShadowFetchOperationCountIncrement(1);
 		assertEquals(4, foundObjects.size());
 
 		checkConsistency(foundObjects);
@@ -3036,7 +3060,8 @@ public class TestDummy extends AbstractDummyTest {
 		syncServiceMock.reset();
 		dummyResource.setSyncStyle(DummySyncStyle.DUMB);
 		DummyAccount newAccount = new DummyAccount(BLACKBEARD_USERNAME);
-		newAccount.addAttributeValues("fullname", "Edward Teach");
+		newAccount.addAttributeValues(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Edward Teach");
+		newAccount.addAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 66666L);
 		newAccount.setEnabled(true);
 		newAccount.setPassword("shiverMEtimbers");
 		dummyResource.addAccount(newAccount);
@@ -3072,12 +3097,11 @@ public class TestDummy extends AbstractDummyTest {
 		assertNotNull("No attributes container in current shadow", attributesContainer);
 		Collection<ResourceAttribute<?>> attributes = attributesContainer.getAttributes();
 		assertFalse("Attributes container is empty", attributes.isEmpty());
-		assertEquals("Unexpected number of attributes", 3, attributes.size());
-		ResourceAttribute<?> fullnameAttribute = attributesContainer.findAttribute(new QName(ResourceTypeUtil
-				.getResourceNamespace(resourceType), "fullname"));
-		assertNotNull("No fullname attribute in current shadow", fullnameAttribute);
-		assertEquals("Wrong value of fullname attribute in current shadow", "Edward Teach",
-				fullnameAttribute.getRealValue());
+		assertAttribute(currentShadowType, 
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Edward Teach");
+		assertAttribute(currentShadowType, 
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 66666L);
+		assertEquals("Unexpected number of attributes", 4, attributes.size());
 
 		checkAllShadows();
 		
@@ -3139,12 +3163,11 @@ public class TestDummy extends AbstractDummyTest {
 		assertNotNull("No attributes container in current shadow", attributesContainer);
 		attributes = attributesContainer.getAttributes();
 		assertFalse("Attributes container is empty", attributes.isEmpty());
-		assertEquals("Unexpected number of attributes", 3, attributes.size());
-		ResourceAttribute<?> fullnameAttribute = attributesContainer.findAttribute(new QName(ResourceTypeUtil
-				.getResourceNamespace(resourceType), "fullname"));
-		assertNotNull("No fullname attribute in current shadow", fullnameAttribute);
-		assertEquals("Wrong value of fullname attribute in current shadow", "Captain Blackbeard",
-				fullnameAttribute.getRealValue());
+		assertAttribute(currentShadowType, 
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Captain Blackbeard");
+		assertAttribute(currentShadowType, 
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 66666L);
+		assertEquals("Unexpected number of attributes", 4, attributes.size());
 
 		PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, currentShadowType.getOid(), null, result);
 		// TODO: check the shadow

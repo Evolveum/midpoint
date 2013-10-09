@@ -44,6 +44,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.model.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelState;
@@ -107,6 +108,8 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
 			throws Exception {
 		super.initSystem(initTask, initResult);
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+		InternalMonitor.reset();
+		InternalMonitor.setTraceShadowFetchOperation(true);
 	}
 
     // tests specific bug dealing with preservation of null values in focus secondary deltas
@@ -166,14 +169,18 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
 	        assertUserModificationSanity(context);
 	        mockClockworkHook.reset();
 	        mockClockworkHook.setRecord(true);
+	        rememberShadowFetchOperationCount();
 	        
 	        // WHEN
+	        TestUtil.displayWhen(TEST_NAME);
 	        clockwork.run(context, task, result);
 	        
 	        // THEN
+	        TestUtil.displayThen(TEST_NAME);
 	        mockClockworkHook.setRecord(false);
 	        display("Output context", context);
 	        display("Hook contexts", mockClockworkHook);
+	        assertShadowFetchOperationCountIncrement(0);
 	        
 	        assertJackAssignAccountContext(context);
 	        assertJackAccountShadow(context);
@@ -288,12 +295,18 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
         mockClockworkHook.reset();
         mockClockworkHook.setRecord(true);
         mockClockworkHook.setAsynchronous(true);
+        rememberShadowFetchOperationCount();
         
         // WHEN
         while(context.getState() != ModelState.FINAL) {
+        	
         	HookOperationMode mode = clockwork.click(context, task, result);
+        	
+        	
         	assertTrue("Unexpected INITIAL state of the context", context.getState() != ModelState.INITIAL);
         	assertEquals("Wrong mode after click in "+context.getState(), HookOperationMode.BACKGROUND, mode);
+        	assertShadowFetchOperationCountIncrement(0);
+        	
         	if (serialize) {
 
                 System.out.println("Context before serialization = " + context.debugDump());
@@ -317,6 +330,7 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
         mockClockworkHook.setRecord(false);
         display("Output context", context);
         display("Hook contexts", mockClockworkHook);
+        assertShadowFetchOperationCountIncrement(0);
         
         assertJackAssignAccountContext(context);
         assertJackAccountShadow(context);
