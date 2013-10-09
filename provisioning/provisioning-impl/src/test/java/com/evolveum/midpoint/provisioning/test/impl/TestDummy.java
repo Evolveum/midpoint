@@ -3252,7 +3252,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		syncServiceMock.reset();
 		dummyResource.setSyncStyle(DummySyncStyle.DUMB);
-		dummyResource.deleteAccount(DRAKE_USERNAME);
+		dummyResource.deleteAccountByName(DRAKE_USERNAME);
 
 		display("Resource before sync", dummyResource.dump());
 

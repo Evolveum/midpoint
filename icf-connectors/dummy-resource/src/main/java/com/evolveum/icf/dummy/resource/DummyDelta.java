@@ -24,12 +24,14 @@ public class DummyDelta {
 	private int syncToken;
 	private Class<? extends DummyObject> objectClass;
 	private String objectId;
+	private String objectName;
 	private DummyDeltaType type;
 	
-	DummyDelta(int syncToken, Class<? extends DummyObject> objectClass, String objectId, DummyDeltaType type) {
+	DummyDelta(int syncToken, Class<? extends DummyObject> objectClass, String objectId, String objectName, DummyDeltaType type) {
 		this.syncToken = syncToken;
 		this.objectClass = objectClass;
 		this.objectId = objectId;
+		this.objectName = objectName;
 		this.type = type;
 	}
 
@@ -57,6 +59,14 @@ public class DummyDelta {
 		this.objectId = accountId;
 	}
 
+	public String getObjectName() {
+		return objectName;
+	}
+
+	public void setObjectName(String objectName) {
+		this.objectName = objectName;
+	}
+
 	public DummyDeltaType getType() {
 		return type;
 	}
@@ -67,6 +77,6 @@ public class DummyDelta {
 
 	@Override
 	public String toString() {
-		return "DummyDelta(T=" + syncToken + ", c="+objectClass.getSimpleName()+", id=" + objectId + ", t=" + type + ")";
+		return "DummyDelta(T=" + syncToken + ", c="+objectClass.getSimpleName()+", id=" + objectId + ", name="+objectName+", t=" + type + ")";
 	}
 }

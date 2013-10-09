@@ -236,7 +236,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 		/// WHEN
         TestUtil.displayWhen(TEST_NAME);
         
-		dummyResourceEmerald.deleteAccount(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+		dummyResourceEmerald.deleteAccountByName(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         
         waitForSyncTaskNextRun(resourceDummyEmerald);
 		
