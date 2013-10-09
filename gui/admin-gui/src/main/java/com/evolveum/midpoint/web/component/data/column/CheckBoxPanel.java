@@ -37,7 +37,6 @@ public class CheckBoxPanel extends Panel {
 
     public CheckBoxPanel(String id, IModel<Boolean> model, final IModel<Boolean> enabled) {
         super(id);
-        setRenderBodyOnly(true);
 
         AjaxCheckBox check = new AjaxCheckBox(ID_CHECK, model) {
 
