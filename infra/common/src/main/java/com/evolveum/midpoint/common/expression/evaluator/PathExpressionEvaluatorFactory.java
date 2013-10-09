@@ -22,6 +22,7 @@ import javax.xml.namespace.QName;
 
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.common.expression.ExpressionEvaluatorFactory;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -44,11 +45,14 @@ public class PathExpressionEvaluatorFactory implements ExpressionEvaluatorFactor
 	
 	private PrismContext prismContext;
 	private ObjectResolver objectResolver;
+	private Protector protector;
 
-	public PathExpressionEvaluatorFactory(PrismContext prismContext, ObjectResolver objectResolver) {
+	public PathExpressionEvaluatorFactory(PrismContext prismContext, ObjectResolver objectResolver,
+			Protector protector) {
 		super();
 		this.prismContext = prismContext;
 		this.objectResolver = objectResolver;
+		this.protector = protector;
 	}
 
 	@Override
@@ -77,7 +81,7 @@ public class PathExpressionEvaluatorFactory implements ExpressionEvaluatorFactor
         XPathHolder xpath = new XPathHolder((Element)evaluatorElementObject);
         ItemPath path = xpath.toItemPath();
         
-        return new PathExpressionEvaluator(path, objectResolver, outputDefinition, prismContext);
+        return new PathExpressionEvaluator(path, objectResolver, outputDefinition, protector, prismContext);
         
 	}
 
