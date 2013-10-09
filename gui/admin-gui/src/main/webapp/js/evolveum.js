@@ -18,10 +18,10 @@ var objectFormHelpContainer = null;
 var interval = 0;
 var ajaxError = 0;
 
-window.onload = setupFunc;
+window.onload = initAjaxStatusSigns;
 $(document).ready(function(){
 	init();
-	
+
 /*	if (Wicket.Ajax) {
 		Wicket.Ajax.registerPostCallHandler(MyApp.Ajax.firePostHandlers);
 	}*/
@@ -148,6 +148,42 @@ function init() {
     $(".pager a").click(function() {
     	showDisablePaging();
 	});
+}
+
+
+function clickFuncWicket6(eventData) {
+    var clickedElement = (window.event) ? event.srcElement : eventData.target;
+    if ((clickedElement.tagName.toUpperCase() == 'BUTTON' || clickedElement.tagName.toUpperCase() == 'A' || clickedElement.parentNode.tagName.toUpperCase() == 'A'
+        || (clickedElement.tagName.toUpperCase() == 'INPUT' && (clickedElement.type.toUpperCase() == 'BUTTON' || clickedElement.type.toUpperCase() == 'SUBMIT')))
+        && clickedElement.parentNode.id.toUpperCase() != 'NOBUSY' ) {
+        showBusysign();
+    }
+}
+
+function initAjaxStatusSigns() {
+    document.getElementsByTagName('body')[0].onclick = clickFuncWicket6;
+    hideAjaxStatusSign();
+    Wicket.Event.subscribe('/ajax/call/beforeSend', function( attributes, jqXHR, settings ) {
+        showAjaxStatusSign('busy');
+    });
+    Wicket.Event.subscribe('/ajax/call/complete', function( attributes, jqXHR, textStatus) {
+        hideAjaxStatusSign();
+    });
+}
+
+function showAjaxStatusSign(sign) {
+    hideAjaxStatusSign();
+
+    if (sign == 'error') {
+        document.getElementById('error_indicator').style.display = 'inline';
+    } else if (sign == 'busy') {
+        document.getElementById('bysy_indicator').style.display = 'inline';
+    }
+}
+
+function hideAjaxStatusSign() {
+    document.getElementById('bysy_indicator').style.display = 'none';
+    document.getElementById('error_indicator').style.display = 'none';
 }
 
 function showLeftMenu() {

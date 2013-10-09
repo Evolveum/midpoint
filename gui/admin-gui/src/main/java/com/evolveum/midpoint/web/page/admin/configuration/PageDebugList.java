@@ -127,6 +127,7 @@ public class PageDebugList extends PageAdminConfiguration {
     private static final String PRINT_LABEL_USER_DELETE = "Users to delete: ";
     private static final String PRINT_LABEL_SHADOW_DELETE = "Shadows to delete: ";
     private static final String PRINT_LABEL_HTML_NEWLINE = "<br>";
+    private static final String PRINT_LABEL_ADMINISTRATOR_NOT_DELETED = "(User 'Administrator' will not be deleted)";
 
     private boolean deleteSelected; //todo what is this used for?
     private IModel<ObjectTypes> choice = null;
@@ -542,12 +543,18 @@ public class PageDebugList extends PageAdminConfiguration {
 
                 try {
                     userCount = getModelService().countObjects(UserType.class, null, options, task, result);
+
+                    //We need to substract 1, because we are not deleting user 'Administrator'
+                    userCount--;
+
                     shadowCount = getModelService().countObjects(ShadowType.class, null, options, task, result);
 
                     if(userCount >= 10 || shadowCount >= 10){
                         sb.append(PRINT_LABEL_USER_DELETE).append(userCount).append(PRINT_LABEL_HTML_NEWLINE).append(PRINT_LABEL_SHADOW_DELETE).append(shadowCount).append(PRINT_LABEL_HTML_NEWLINE);
+                        sb.append(PRINT_LABEL_ADMINISTRATOR_NOT_DELETED).append(PRINT_LABEL_HTML_NEWLINE);
                     }else{
                         sb.append(PRINT_LABEL_USER_DELETE).append(userCount).append(PRINT_LABEL_HTML_NEWLINE);
+                        sb.append(PRINT_LABEL_ADMINISTRATOR_NOT_DELETED);
                         getModelService().searchObjectsIterative(UserType.class, null, userHandler, options, task, result);
                         sb.append(PRINT_LABEL_HTML_NEWLINE);
                         sb.append(PRINT_LABEL_SHADOW_DELETE).append(shadowCount).append(PRINT_LABEL_HTML_NEWLINE);
