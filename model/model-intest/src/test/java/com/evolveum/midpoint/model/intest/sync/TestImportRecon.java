@@ -325,7 +325,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         // THEN
         TestUtil.displayThen(TEST_NAME);
-        assertShadowFetchOperationCountIncrement(6);
+        assertShadowFetchOperationCountIncrement(2);
         // TODO: FIXME: This should be
 //        assertShadowFetchOperationCountIncrement(1);
         // See MID-1630
