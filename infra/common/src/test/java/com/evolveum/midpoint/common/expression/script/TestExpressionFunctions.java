@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.common.expression.script;
 
+import com.evolveum.midpoint.common.crypto.AESProtector;
+import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -378,7 +380,8 @@ public class TestExpressionFunctions {
     
 	private BasicExpressionFunctions createBasicFunctions() throws SchemaException, SAXException, IOException {
 		PrismContext prismContext = PrismTestUtil.createInitializedPrismContext();
-		return new BasicExpressionFunctions(prismContext);
+		Protector protector = new AESProtector();
+		return new BasicExpressionFunctions(prismContext, protector);
 	}
 	
 	@Test

@@ -30,7 +30,9 @@ import javax.xml.namespace.QName;
 
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.expression.ExpressionSyntaxException;
+import com.evolveum.midpoint.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.common.expression.script.ScriptEvaluator;
@@ -73,14 +75,16 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 
 	private ScriptEngine scriptEngine;
 	private PrismContext prismContext;
+	private Protector protector;
 	
-	public Jsr223ScriptEvaluator(String engineName, PrismContext prismContext) {
+	public Jsr223ScriptEvaluator(String engineName, PrismContext prismContext, Protector protector) {
 		ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
 		scriptEngine = scriptEngineManager.getEngineByName(engineName);
 		if (scriptEngine == null) {
 			throw new SystemException("The JSR-223 scripting engine for '"+engineName+"' was not found");
 		}
 		this.prismContext = prismContext;
+		this.protector = protector;
 	}
 	
 	@Override
@@ -147,11 +151,7 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 	
 	private <T> T convertScalarResult(Class<T> expectedType, Object rawValue, String contextDescription) throws ExpressionEvaluationException {
 		try {
-			T convertedValue = JavaTypeConverter.convert(expectedType, rawValue);
-			if (convertedValue instanceof PolyString) {
-				// Make sure it is fully computed
-				((PolyString)convertedValue).recompute(prismContext.getDefaultPolyStringNormalizer());
-			}
+			T convertedValue = ExpressionUtil.convertValue(expectedType, rawValue, protector, prismContext);
 			return convertedValue;
 		} catch (IllegalArgumentException e) {
 			throw new ExpressionEvaluationException(e.getMessage()+" in "+contextDescription, e);

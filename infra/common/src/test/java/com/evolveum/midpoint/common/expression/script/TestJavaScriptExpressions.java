@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.common.expression.script;
 
+import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.expression.script.ScriptEvaluator;
 import com.evolveum.midpoint.common.expression.script.jsr223.Jsr223ScriptEvaluator;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -30,8 +31,8 @@ public class TestJavaScriptExpressions extends AbstractScriptTest {
 	 * @see com.evolveum.midpoint.common.expression.AbstractExpressionTest#createEvaluator()
 	 */
 	@Override
-	protected ScriptEvaluator createEvaluator(PrismContext prismContext) {
-		return new Jsr223ScriptEvaluator("JavaScript", prismContext);
+	protected ScriptEvaluator createEvaluator(PrismContext prismContext, Protector protector) {
+		return new Jsr223ScriptEvaluator("JavaScript", prismContext, protector);
 	}
 
 	/* (non-Javadoc)

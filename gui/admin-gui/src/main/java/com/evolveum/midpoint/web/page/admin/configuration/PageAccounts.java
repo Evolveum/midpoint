@@ -22,9 +22,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.query.*;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
-import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -77,6 +75,7 @@ public class PageAccounts extends PageAdminConfiguration {
     private static final String OPERATION_LOAD_RESOURCES = DOT_CLASS + "loadResources";
     private static final String OPERATION_LOAD_ACCOUNTS = DOT_CLASS + "loadAccounts";
     private static final String OPERATION_EXPORT = DOT_CLASS + "export";
+    private static final String OPERATION_EXPORT_ACCOUNT = DOT_CLASS + "exportAccount";
     private static final String OPERATION_GET_TOTALS = DOT_CLASS + "getTotals";
 
     private static final String ID_MAIN_FORM = "mainForm";
@@ -476,21 +475,40 @@ public class PageAccounts extends PageAdminConfiguration {
         Writer writer = null;
         try {
             Task task = createSimpleTask(OPERATION_EXPORT);
-            List<PrismObject<ShadowType>> shadows;
-            int offset = 0;
 
             writer = createWriter(fileName);
             writeHeader(writer);
-            do {
-                shadows = getModelService().searchObjects(ShadowType.class, createQuery(offset), null, task, result);
-                writeToFile(writer, shadows);
 
-                if (!WebMiscUtil.isSuccessOrHandledError(result)) {
-                    break;
+            final Writer handlerWriter = writer;
+            ResultHandler handler = new AbstractSummarizingResultHandler() {
+
+                @Override
+                protected boolean handleObject(PrismObject object, OperationResult parentResult) {
+                    OperationResult result = parentResult.createMinorSubresult(OPERATION_EXPORT_ACCOUNT);
+                    try {
+                        PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
+
+                        String xml = domProcessor.serializeObjectToString(object);
+                        handlerWriter.write(xml);
+
+                        result.computeStatus();
+                    } catch (Exception ex) {
+                        LoggingUtils.logException(LOGGER, "Couldn't serialize account", ex);
+                        result.recordFatalError("Couldn't serialize account.", ex);
+
+                        return false;
+                    }
+
+                    return true;
                 }
-                offset += 20;
-            } while (shadows != null && shadows.size() > 0);
-            writeFooter(writer);
+            };
+
+            try {
+                ObjectQuery query = ObjectQuery.createObjectQuery(createResourceQueryFilter());
+                getModelService().searchObjectsIterative(ShadowType.class, query, handler, null, task, result);
+            } finally {
+                writeFooter(writer);
+            }
 
             result.recomputeStatus();
         } catch (Exception ex) {
@@ -526,21 +544,6 @@ public class PageAccounts extends PageAdminConfiguration {
 
     private void writeFooter(Writer writer) throws IOException {
         writer.write("</objects>\n");
-    }
-
-    private void writeToFile(Writer writer, List<PrismObject<ShadowType>> shadows) throws IOException,
-            SchemaException {
-        PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
-
-        for (PrismObject<ShadowType> shadow : shadows) {
-            String object = domProcessor.serializeObjectToString(shadow);
-            writer.write(object);
-        }
-    }
-
-    private ObjectQuery createQuery(int offset) {
-        ObjectPaging paging = ObjectPaging.createPaging(offset, 20);
-        return ObjectQuery.createObjectQuery(createResourceQueryFilter(), paging);
     }
 
     private void clearExportPerformed(AjaxRequestTarget target) {
