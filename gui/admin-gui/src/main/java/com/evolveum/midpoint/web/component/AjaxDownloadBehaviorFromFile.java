@@ -14,32 +14,34 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.component.ajaxDownload;
+package com.evolveum.midpoint.web.component;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AbstractAjaxBehavior;
 import org.apache.wicket.request.IRequestCycle;
 import org.apache.wicket.request.handler.resource.ResourceStreamRequestHandler;
 import org.apache.wicket.request.resource.ContentDisposition;
-import org.apache.wicket.util.resource.AbstractResourceStream;
+import org.apache.wicket.util.file.File;
+import org.apache.wicket.util.file.Files;
+import org.apache.wicket.util.resource.FileResourceStream;
 import org.apache.wicket.util.resource.IResourceStream;
-import org.apache.wicket.util.resource.ResourceStreamNotFoundException;
 import org.apache.wicket.util.time.Duration;
 
-public abstract class AjaxDownloadBehaviorFromStream extends AbstractAjaxBehavior {
+public abstract class AjaxDownloadBehaviorFromFile extends AbstractAjaxBehavior {
+
+    private static final Trace LOGGER = TraceManager.getTrace(AjaxDownloadBehaviorFromFile.class);
 
 	private boolean addAntiCache;
 	private String contentType = "text";
+    private boolean removeFile = true;
 
-	public AjaxDownloadBehaviorFromStream() {
+	public AjaxDownloadBehaviorFromFile() {
 		this(true);
 	}
 
-	public AjaxDownloadBehaviorFromStream(boolean addAntiCache) {
+	public AjaxDownloadBehaviorFromFile(boolean addAntiCache) {
 		super();
 		this.addAntiCache = addAntiCache;
 	}
@@ -60,36 +62,23 @@ public abstract class AjaxDownloadBehaviorFromStream extends AbstractAjaxBehavio
 	}
 
 	public void onRequest() {
-		final byte[] byteStream = initStream();	
-		IResourceStream resourceStream = new AbstractResourceStream(){
-
-			InputStream stream;
-			
-			@Override
-			public String getContentType() {
-				return contentType;
-			}
-
-			@Override
-			public InputStream getInputStream() throws ResourceStreamNotFoundException {
-				stream = new ByteArrayInputStream(byteStream);
-				return stream;
-			}
-
-			@Override
-			public void close() throws IOException {
-				stream.close();
-				
-			}
-			
-		};
+		final File file = initFile();	
+		IResourceStream resourceStream = new FileResourceStream(new File(file));
 		getComponent().getRequestCycle().scheduleRequestHandlerAfterCurrent(
 				new ResourceStreamRequestHandler(resourceStream) {
-					@Override
+
+                    @Override
 					public void respond(IRequestCycle requestCycle) {
-						super.respond(requestCycle);
+                        try {
+						    super.respond(requestCycle);
+                        } finally {
+                            if (removeFile) {
+                                LOGGER.debug("Removing file '{}'.", new Object[]{file.getAbsolutePath()});
+                                Files.remove(file);
+                            }
+                        }
 					}
-				}.setContentDisposition(ContentDisposition.ATTACHMENT)
+				}.setFileName(file.getName()).setContentDisposition(ContentDisposition.ATTACHMENT)
 						.setCacheDuration(Duration.ONE_SECOND));
 	}
 	
@@ -97,6 +86,9 @@ public abstract class AjaxDownloadBehaviorFromStream extends AbstractAjaxBehavio
 		this.contentType = contentType;
 	}
 
+    public void setRemoveFile(boolean removeFile) {
+        this.removeFile = removeFile;
+    }
 
-	protected abstract byte[] initStream();
+    protected abstract File initFile();
 }
