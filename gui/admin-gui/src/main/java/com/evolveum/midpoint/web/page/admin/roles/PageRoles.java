@@ -126,13 +126,13 @@ public class PageRoles extends PageAdminRoles {
         return (TablePanel) get(ID_MAIN_FORM + ":table");
     }
 
-    private ObjectDataProvider<RoleType> getRoleDataProvider() {
+    private ObjectDataProvider<SelectableBean<RoleType>, RoleType> getRoleDataProvider() {
         DataTable table = getRoleTable().getDataTable();
-        return (ObjectDataProvider<RoleType>) table.getDataProvider();
+        return (ObjectDataProvider<SelectableBean<RoleType>, RoleType>) table.getDataProvider();
     }
 
     private List<RoleType> getSelectedRoles() {
-        ObjectDataProvider<RoleType> provider = getRoleDataProvider();
+        ObjectDataProvider<SelectableBean<RoleType>, RoleType> provider = getRoleDataProvider();
 
         List<SelectableBean<RoleType>> rows = provider.getAvailableData();
         List<RoleType> selected = new ArrayList<RoleType>();

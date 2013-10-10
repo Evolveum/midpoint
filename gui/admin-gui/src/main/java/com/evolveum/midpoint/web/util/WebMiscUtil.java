@@ -403,5 +403,30 @@ public final class WebMiscUtil {
         return result.isSuccess() || result.isHandledError();
     }
 
-	
+
+    public static String createUserIcon(PrismObject<UserType> object) {
+        UserType user = object.asObjectable();
+        CredentialsType credentials = user.getCredentials();
+
+        //if allowedIdmAdminGuiAccess is true, it's superuser
+        if (credentials != null) {
+            Boolean allowedAdmin = credentials.isAllowedIdmAdminGuiAccess();
+            if (allowedAdmin != null && allowedAdmin) {
+                return "silk-user_red";
+            }
+        }
+
+        //if user has superuser role assigned, it's superuser
+        for (AssignmentType assignment : user.getAssignment()) {
+            ObjectReferenceType targetRef = assignment.getTargetRef();
+            if (targetRef == null) {
+                continue;
+            }
+            if (StringUtils.equals(targetRef.getOid(), SystemObjectsType.ROLE_SUPERUSER.value())) {
+                return "silk-user_red";
+            }
+        }
+
+        return "silk-user";
+    }
 }

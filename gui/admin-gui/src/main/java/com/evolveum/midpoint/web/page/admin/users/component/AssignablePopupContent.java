@@ -93,12 +93,12 @@ public class AssignablePopupContent extends BasePanel {
         return columns;
     }
 
-    private List<ObjectType> getSelectedObjects() {
+    private <T extends ObjectType> List<ObjectType> getSelectedObjects() {
         List<ObjectType> selected = new ArrayList<ObjectType>();
 
         TablePanel table = (TablePanel) get(ID_ASSIGNABLE_FORM + ":" + ID_TABLE);
-        ObjectDataProvider<? extends ObjectType> provider = (ObjectDataProvider) table.getDataTable().getDataProvider();
-        for (SelectableBean<? extends ObjectType> bean : provider.getAvailableData()) {
+        ObjectDataProvider<SelectableBean<T>, T> provider = (ObjectDataProvider) table.getDataTable().getDataProvider();
+        for (SelectableBean<T> bean : provider.getAvailableData()) {
             if (!bean.isSelected()) {
                 continue;
             }

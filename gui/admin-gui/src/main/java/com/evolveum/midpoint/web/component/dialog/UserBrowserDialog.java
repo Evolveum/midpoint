@@ -35,8 +35,7 @@ import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.resource.img.ImgResources;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -53,8 +52,6 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.*;
-import org.apache.wicket.request.resource.ResourceReference;
-import org.apache.wicket.request.resource.SharedResourceReference;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -165,22 +162,13 @@ public class UserBrowserDialog extends ModalWindow {
         columns.add(new IconColumn<SelectableBean<UserType>>(createStringResource("userBrowserDialog.type")) {
 
             @Override
-            protected IModel<ResourceReference> createIconModel(final IModel<SelectableBean<UserType>> rowModel) {
-                return new AbstractReadOnlyModel<ResourceReference>() {
+            protected IModel<String> createIconModel(final IModel<SelectableBean<UserType>> rowModel) {
+                return new AbstractReadOnlyModel<String>() {
 
                     @Override
-                    public ResourceReference getObject() {
+                    public String getObject() {
                         UserType user = rowModel.getObject().getValue();
-                        CredentialsType credentials = user.getCredentials();
-
-                        if (credentials != null) {
-                            Boolean allowedAdmin = credentials.isAllowedIdmAdminGuiAccess();
-                            if (allowedAdmin != null && allowedAdmin) {
-                                return new SharedResourceReference(ImgResources.class, "user_red.png");
-                            }
-                        }
-
-                        return new SharedResourceReference(ImgResources.class, "user.png");
+                        return WebMiscUtil.createUserIcon(user.asPrismContainer());
                     }
                 };
             }

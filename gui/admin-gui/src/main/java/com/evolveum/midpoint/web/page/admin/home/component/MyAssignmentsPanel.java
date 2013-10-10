@@ -22,7 +22,6 @@ import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.home.dto.AssignmentItemDto;
-import com.evolveum.midpoint.web.resource.img.ImgResources;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
@@ -31,8 +30,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDat
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.request.resource.ResourceReference;
-import org.apache.wicket.request.resource.SharedResourceReference;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,25 +51,25 @@ public class MyAssignmentsPanel extends SimplePanel<List<AssignmentItemDto>> {
         columns.add(new IconColumn<AssignmentItemDto>(createStringResource("MyAssignmentsPanel.assignment.type")) {
 
             @Override
-            protected IModel<ResourceReference> createIconModel(final IModel<AssignmentItemDto> rowModel) {
-                return new AbstractReadOnlyModel<ResourceReference>() {
+            protected IModel<String> createIconModel(final IModel<AssignmentItemDto> rowModel) {
+                return new AbstractReadOnlyModel<String>() {
 
                     @Override
-                    public ResourceReference getObject() {
+                    public String getObject() {
                         AssignmentItemDto item = rowModel.getObject();
                         if (item.getType() == null) {
-                            return new SharedResourceReference(ImgResources.class, ImgResources.ERROR);
+                            return "silk-error";
                         }
 
                         switch (item.getType()) {
                             case ACCOUNT_CONSTRUCTION:
-                                return new SharedResourceReference(ImgResources.class, ImgResources.MEDAL_SILVER_2);
+                                return "silk-medal_silver_2";
                             case ORG_UNIT:
-                                return new SharedResourceReference(ImgResources.class, ImgResources.BUILDING);
+                                return "silk-building";
                             case ROLE:
-                                return new SharedResourceReference(ImgResources.class, ImgResources.MEDAL_GOLD_3);
+                                return "silk-medal_gold_3";
                             default:
-                                return new SharedResourceReference(ImgResources.class, ImgResources.ERROR);
+                                return "silk-error";
                         }
                     }
                 };

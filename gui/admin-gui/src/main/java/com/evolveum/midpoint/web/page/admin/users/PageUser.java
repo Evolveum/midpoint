@@ -1684,9 +1684,7 @@ public class PageUser extends PageAdminUsers {
 		}
 
 		if (result.isSuccess() || result.isHandledError()) {
-			PageUserPreview pageUserPreview = new PageUserPreview(changes, deltas, delta, accountsBeforeModify,
-                    executeOptionsModel.getObject());
-			setResponsePage(pageUserPreview);
+		    //todo user preview page
 		} else {
 			showResult(result);
 			target.add(getFeedbackPanel());

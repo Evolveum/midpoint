@@ -325,7 +325,7 @@ public class PageUsers extends PageAdminUsers {
 
         dto.setAccountCount(createAccountCount(obj));
         dto.setCredentials(obj.findContainer(UserType.F_CREDENTIALS));
-        dto.setIcon(createIcon(obj));
+        dto.setIcon(WebMiscUtil.createUserIcon(obj));
 
         //todo add menu items
 //        dto.getMenuItems().add()
@@ -336,32 +336,6 @@ public class PageUsers extends PageAdminUsers {
     private int createAccountCount(PrismObject<UserType> object) {
         PrismReference accountRef = object.findReference(UserType.F_LINK_REF);
         return accountRef != null ? accountRef.size() : 0;
-    }
-
-    private String createIcon(PrismObject<UserType> object) {
-        UserType user = object.asObjectable();
-        CredentialsType credentials = user.getCredentials();
-
-        //if allowedIdmAdminGuiAccess is true, it's superuser
-        if (credentials != null) {
-            Boolean allowedAdmin = credentials.isAllowedIdmAdminGuiAccess();
-            if (allowedAdmin != null && allowedAdmin) {
-                return "silk-user_red";
-            }
-        }
-
-        //if user has superuser role assigned, it's superuser
-        for (AssignmentType assignment : user.getAssignment()) {
-            ObjectReferenceType targetRef = assignment.getTargetRef();
-            if (targetRef == null) {
-                continue;
-            }
-            if (StringUtils.equals(targetRef.getOid(), SystemObjectsType.ROLE_SUPERUSER.value())) {
-                return "silk-user_red";
-            }
-        }
-
-        return "silk-user";
     }
 
     private void initSearch() {
