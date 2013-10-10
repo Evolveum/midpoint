@@ -396,6 +396,8 @@ input:focus, .button:focus, select:focus, option:focus {
 	display: block;
 	z-index: 4;
 	bottom: 5px;
+    padding: 3px;
+    background-color: #f00;
 }
 
 .operatingFormButtons .operatingFormBlock {

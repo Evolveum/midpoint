@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.component;
+package com.evolveum.midpoint.web.page.admin.users.component;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 

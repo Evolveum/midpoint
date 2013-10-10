@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.component;
+package com.evolveum.midpoint.web.page.admin.users.component;
 
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
 /**
- * @
+ * @lazyman
  */
 public class ExecuteChangeOptionsPanel extends SimplePanel<ExecuteChangeOptionsDto> {
 
@@ -32,6 +32,7 @@ public class ExecuteChangeOptionsPanel extends SimplePanel<ExecuteChangeOptionsD
     private static final String ID_RECONCILE = "reconcile";
     private static final String ID_RECONCILE_LABEL = "reconcileLabel";
     private static final String ID_EXECUTE_AFTER_ALL_APPROVALS = "executeAfterAllApprovals";
+
     private boolean reconcile;
 
     public ExecuteChangeOptionsPanel(boolean reconcile, String id, IModel<ExecuteChangeOptionsDto> model) {
@@ -45,8 +46,7 @@ public class ExecuteChangeOptionsPanel extends SimplePanel<ExecuteChangeOptionsD
                 new PropertyModel<Boolean>(getModel(), ExecuteChangeOptionsDto.F_FORCE));
         add(force);
 
-        Label reconcileLabel = new Label(ID_RECONCILE_LABEL,
-                createStringResource("ExecuteChangeOptionsPanel.label.reconcile"));
+        WebMarkupContainer reconcileLabel = new WebMarkupContainer(ID_RECONCILE_LABEL);
         reconcileLabel.add(new VisibleEnableBehaviour() {
 
             @Override
@@ -59,17 +59,7 @@ public class ExecuteChangeOptionsPanel extends SimplePanel<ExecuteChangeOptionsD
 
         CheckBox reconcile = new CheckBox(ID_RECONCILE,
                 new PropertyModel<Boolean>(getModel(), ExecuteChangeOptionsDto.F_RECONCILE));
-        reconcile.add(new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                return ExecuteChangeOptionsPanel.this.reconcile;
-            }
-
-        });
-
-        add(reconcile);
-
+        reconcileLabel.add(reconcile);
 
         CheckBox executeAfterAllApprovals = new CheckBox(ID_EXECUTE_AFTER_ALL_APPROVALS,
                 new PropertyModel<Boolean>(getModel(), ExecuteChangeOptionsDto.F_EXECUTE_AFTER_ALL_APPROVALS));

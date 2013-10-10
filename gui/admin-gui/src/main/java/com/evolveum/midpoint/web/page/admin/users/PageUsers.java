@@ -34,17 +34,16 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.ExecuteChangeOptionsDto;
-import com.evolveum.midpoint.web.component.ExecuteChangeOptionsPanel;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.DropDownMultiChoice;
+import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
+import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.button.ButtonType;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.option.OptionItem;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
@@ -61,7 +60,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.repeater.Item;
@@ -73,9 +71,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.ResourceReference;
 import org.apache.wicket.request.resource.SharedResourceReference;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author lazyman
@@ -97,8 +93,13 @@ public class PageUsers extends PageAdminUsers {
     private static final String ID_EXECUTE_OPTIONS = "executeOptions";
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_TABLE = "table";
+    private static final String ID_SEARCH_FORM= "searchForm";
+    private static final String ID_SEARCH_TEXT = "searchText";
+    private static final String ID_SEARCH_TYPE = "searchType";
+    private static final String ID_SEARCH_BUTTON = "searchButton";
 
     private LoadableModel<UsersDto> model;
+    private Model searchType = new Model();
     private LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel;
 
     public PageUsers() {
@@ -144,6 +145,8 @@ public class PageUsers extends PageAdminUsers {
 
         mainForm.add(new ExecuteChangeOptionsPanel(false, ID_EXECUTE_OPTIONS, executeOptionsModel));
         initButtons(mainForm);
+
+        initSearch();
     }
 
     private void initButtons(Form mainForm) {
@@ -352,51 +355,49 @@ public class PageUsers extends PageAdminUsers {
         mainForm.add(table);
     }
 
-    private void initSearch(OptionItem item) {
-        TextField<String> search = new TextField<String>("searchText", new PropertyModel<String>(model,
+    private void initSearch() {
+        Form searchForm = new Form(ID_SEARCH_FORM);
+        add(searchForm);
+
+        TextField searchText = new TextField(ID_SEARCH_TEXT, new PropertyModel<String>(model,
                 "searchText"));
-        item.add(search);
+        searchForm.add(searchText);
 
-        CheckBox nameCheck = new CheckBox("nameCheck", new PropertyModel<Boolean>(model, "name"));
-        item.add(nameCheck);
-        CheckBox fullNameCheck = new CheckBox("fullNameCheck", new PropertyModel<Boolean>(model, "fullName"));
-        item.add(fullNameCheck);
-        CheckBox givenNameCheck = new CheckBox("givenNameCheck", new PropertyModel<Boolean>(model,
-                "givenName"));
-        item.add(givenNameCheck);
-        CheckBox familyNameCheck = new CheckBox("familyNameCheck", new PropertyModel<Boolean>(model,
-                "familyName"));
-        item.add(familyNameCheck);
+        IModel<Map<String, String>> options = new Model(null);
+        DropDownMultiChoice searchType= new DropDownMultiChoice(ID_SEARCH_TYPE, this.searchType,
+                new AbstractReadOnlyModel<List>() {
 
-        AjaxSubmitLinkButton clearButton = new AjaxSubmitLinkButton("clearButton",
-                createStringResource("pageUsers.button.clearButton")) {
+                    @Override
+                    public List getObject() {
+                       return createOptions();
+                    }
+                }, options);
+        searchForm.add(searchType);
 
-            @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
-                target.add(getFeedbackPanel());
-            }
-
-            @Override
-            public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                clearButtonPerformed(target);
-            }
-        };
-        item.add(clearButton);
-
-        AjaxSubmitLinkButton searchButton = new AjaxSubmitLinkButton("searchButton",
+        AjaxSubmitButton searchButton = new AjaxSubmitButton(ID_SEARCH_BUTTON,
                 createStringResource("pageUsers.button.searchButton")) {
-
-            @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
-                target.add(getFeedbackPanel());
-            }
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 searchPerformed(target);
             }
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(getFeedbackPanel());
+            }
         };
-        item.add(searchButton);
+        searchForm.add(searchButton);
+    }
+
+    private List<String> createOptions() {
+        List<String> list = new ArrayList<String>();
+        list.add(getString("pageUsers.name"));
+        list.add(getString("pageUsers.givenName"));
+        list.add(getString("pageUsers.familyName"));
+        list.add(getString("pageUsers.fullName"));
+
+        return list;
     }
 
     private void userDetailsPerformed(AjaxRequestTarget target, String oid) {
@@ -410,6 +411,7 @@ public class PageUsers extends PageAdminUsers {
     }
 
     private void searchPerformed(AjaxRequestTarget target) {
+        System.out.println(searchType.getObject());
         ObjectQuery query = createQuery();
         target.add(getFeedbackPanel());
 
@@ -467,18 +469,6 @@ public class PageUsers extends PageAdminUsers {
         }
 
         return query;
-    }
-
-    private void clearButtonPerformed(AjaxRequestTarget target) {
-        UsersStorage storage = getSessionStorage().getUsers();
-        storage.setUsersSearch(null);
-        storage.setUsersPaging(null);
-
-        model.reset();
-
-        target.appendJavaScript("init()");
-        target.add(get(ID_MAIN_FORM));
-        searchPerformed(target);
     }
 
     private boolean isAnythingSelected(List<SelectableBean<UserType>> users, AjaxRequestTarget target) {
