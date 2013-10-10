@@ -59,7 +59,7 @@ public class CheckBoxColumn<T extends Serializable> extends AbstractColumn<T, St
                 onUpdateRow(target, table, rowModel);
 
                 //updating table row
-                target.add(cellItem.findParent(SelectableDataTable.SelectableRowItem.class));
+//                target.add(cellItem.findParent(SelectableDataTable.SelectableRowItem.class));
             }
         };
         check.setOutputMarkupId(true);

@@ -93,18 +93,18 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
         }
 
         //refresh rows with ajax
-        ComponentHierarchyIterator iterator = table.visitChildren(SelectableDataTable.SelectableRowItem.class);
-        while (iterator.hasNext()) {
-            SelectableDataTable.SelectableRowItem row = (SelectableDataTable.SelectableRowItem) iterator.next();
-            if (!row.getOutputMarkupId()) {
-                //we skip rows that doesn't have outputMarkupId set to true (it would fail)
-                continue;
-            }
-            target.add(row);
-        }
+//        ComponentHierarchyIterator iterator = table.visitChildren(SelectableDataTable.SelectableRowItem.class);
+//        while (iterator.hasNext()) {
+//            SelectableDataTable.SelectableRowItem row = (SelectableDataTable.SelectableRowItem) iterator.next();
+//            if (!row.getOutputMarkupId()) {
+//                //we skip rows that doesn't have outputMarkupId set to true (it would fail)
+//                continue;
+//            }
+//            target.add(row);
+//        }
     }
 
-    public static <T> boolean shoulBeHeaderSelected(DataTable table) {
+    public static <T> boolean shouldBeHeaderSelected(DataTable table) {
         boolean selectedAll = true;
 
         BaseSortableDataProvider baseProvider = (BaseSortableDataProvider) table.getDataProvider();
@@ -125,9 +125,6 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
 
     /**
      * This method is called after checkbox in row is updated
-     * @param target
-     * @param table
-     * @param rowModel
      */
     @Override
     protected void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<T> rowModel) {
@@ -137,7 +134,7 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
             return;
         }
 
-        header.getPanelComponent().setModelObject(shoulBeHeaderSelected(table));
+        header.getPanelComponent().setModelObject(shouldBeHeaderSelected(table));
         target.add(header);
     }
 
