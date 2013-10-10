@@ -21,6 +21,7 @@ import javax.ws.rs.core.Response.StatusType;
 import org.apache.cxf.configuration.security.AuthorizationPolicy;
 import org.apache.cxf.jaxrs.ext.RequestHandler;
 import org.apache.cxf.jaxrs.model.ClassResourceInfo;
+import org.apache.cxf.jaxrs.model.OperationResourceInfo;
 import org.apache.cxf.message.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -46,6 +47,9 @@ public class MidpointRestAuthenticationHandler implements RequestHandler {
 	
     public Response handleRequest(Message m, ClassResourceInfo resourceClass) {
         AuthorizationPolicy policy = (AuthorizationPolicy)m.get(AuthorizationPolicy.class);
+        
+        OperationResourceInfo ori = m.getExchange().get(OperationResourceInfo.class);
+        String methodName = ori.getMethodToInvoke().getName();
         
         if (policy == null){
         	return Response.status(401).header("WWW-Authenticate", "Basic").build();
