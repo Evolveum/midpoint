@@ -21,6 +21,7 @@ import java.util.Map;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.common.expression.Source;
@@ -55,11 +56,14 @@ public class AsIsExpressionEvaluator<V extends PrismValue> implements Expression
 	private PrismContext prismContext;
 	ItemDefinition outputDefinition;
 	private AsIsExpressionEvaluatorType asIsExpressionEvaluatorType;
+	private Protector protector;
 
-	public AsIsExpressionEvaluator(AsIsExpressionEvaluatorType asIsExpressionEvaluatorType, ItemDefinition outputDefinition, PrismContext prismContext) {
+	public AsIsExpressionEvaluator(AsIsExpressionEvaluatorType asIsExpressionEvaluatorType, 
+			ItemDefinition outputDefinition, Protector protector, PrismContext prismContext) {
 		this.asIsExpressionEvaluatorType = asIsExpressionEvaluatorType;
 		this.outputDefinition = outputDefinition;
 		this.prismContext = prismContext;
+		this.protector = protector;
 	}
 
 	@Override
@@ -86,7 +90,8 @@ public class AsIsExpressionEvaluator<V extends PrismValue> implements Expression
         if (sourceTriple == null) {
         	return null;
         }
-        return ExpressionUtil.toOutputTriple(sourceTriple, outputDefinition, source.getResidualPath(), prismContext);
+        return ExpressionUtil.toOutputTriple(sourceTriple, outputDefinition, source.getResidualPath(), 
+        		protector, prismContext);
     }
 
 	/* (non-Javadoc)

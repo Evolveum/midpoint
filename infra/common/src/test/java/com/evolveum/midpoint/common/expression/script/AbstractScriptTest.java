@@ -17,6 +17,8 @@ package com.evolveum.midpoint.common.expression.script;
 
 import static org.testng.AssertJUnit.assertNotNull;
 
+import com.evolveum.midpoint.common.crypto.AESProtector;
+import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.common.expression.script.ScriptEvaluator;
@@ -93,16 +95,17 @@ public abstract class AbstractScriptTest {
     public void setupFactory() {
     	PrismContext prismContext = PrismTestUtil.getPrismContext();
     	ObjectResolver resolver = new DirectoryFileObjectResolver(OBJECTS_DIR);
+    	Protector protector = new AESProtector();
         Collection<FunctionLibrary> functions = new ArrayList<FunctionLibrary>();
-        functions.add(ExpressionUtil.createBasicFunctionLibrary(prismContext));
-		scriptExpressionfactory = new ScriptExpressionFactory(resolver, prismContext, functions);
-        evaluator = createEvaluator(prismContext);
+        functions.add(ExpressionUtil.createBasicFunctionLibrary(prismContext, protector));
+		scriptExpressionfactory = new ScriptExpressionFactory(resolver, prismContext, functions, protector);
+        evaluator = createEvaluator(prismContext, protector);
         String languageUrl = evaluator.getLanguageUrl();
         System.out.println("Expression test for "+evaluator.getLanguageName()+": registering "+evaluator+" with URL "+languageUrl);
         scriptExpressionfactory.registerEvaluator(languageUrl, evaluator);
     }
 
-	protected abstract ScriptEvaluator createEvaluator(PrismContext prismContext);
+	protected abstract ScriptEvaluator createEvaluator(PrismContext prismContext, Protector protector);
 	
 	protected abstract File getTestDir();
 	

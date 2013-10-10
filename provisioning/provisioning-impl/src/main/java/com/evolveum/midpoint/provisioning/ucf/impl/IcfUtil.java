@@ -90,7 +90,7 @@ class IcfUtil {
 	 *            OperationResult to record failure
 	 * @return reasonable midPoint exception
 	 */
-	static Exception processIcfException(Exception icfException,
+	static Throwable processIcfException(Throwable icfException,
 			OperationResult icfResult) {
 		// Whole exception handling in this case is a black magic.
 		// ICF does not define any exceptions and there is no "best practice"

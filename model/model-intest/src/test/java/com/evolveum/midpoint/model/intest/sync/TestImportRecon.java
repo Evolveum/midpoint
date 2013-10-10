@@ -40,6 +40,7 @@ import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -113,6 +114,9 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 		// 
 		PrismObject<ShadowType> accountStan = PrismTestUtil.parseObject(ACCOUNT_STAN_FILE);
 		provisioningService.addObject(accountStan, null, null, initTask, initResult);
+		
+		InternalMonitor.reset();
+		InternalMonitor.setTraceShadowFetchOperation(true);
 	}
 	
 	@Test
@@ -128,6 +132,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // Preconditions
         assertUsers(6);
         dummyAuditService.clear();
+        rememberShadowFetchOperationCount();
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -138,6 +143,10 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         result.computeStatus();
         display(result);
         TestUtil.assertSuccess(result);
+        
+        // First fetch: import handler reading the account
+        // Second fetch: fetchback to correctly process inbound (import changes the account).
+        assertShadowFetchOperationCountIncrement(2);
                 
         assertImportedUserByOid(USER_ADMINISTRATOR_OID);
         assertImportedUserByOid(USER_JACK_OID);
@@ -177,6 +186,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertAccounts(rapp, 0);
         
         dummyAuditService.clear();
+        rememberShadowFetchOperationCount();
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -191,6 +201,10 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         // THEN
         TestUtil.displayThen(TEST_NAME);
+        
+        // First fetch: search in import handler
+        // 6 fetches: fetchback to correctly process inbound (import changes the account).
+        assertShadowFetchOperationCountIncrement(7);
         
         users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after import", users);
@@ -211,6 +225,56 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         // Check audit
         assertImportAuditModifications(4);
+	}
+	
+	@Test
+    public void test155ImportFromResourceDummyAgain() throws Exception {
+		final String TEST_NAME = "test155ImportFromResourceDummyAgain";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestImportRecon.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        dummyAuditService.clear();
+        rememberShadowFetchOperationCount();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modelService.importFromResource(RESOURCE_DUMMY_OID, new QName(RESOURCE_DUMMY_NAMESPACE, "AccountObjectClass"), task, result);
+		
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        OperationResult subresult = result.getLastSubresult();
+        TestUtil.assertInProgress("importAccountsFromResource result", subresult);
+        
+        waitForTaskFinish(task, true, 40000);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        
+        // First fetch: search in import handler
+        assertShadowFetchOperationCountIncrement(1);
+        
+        List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
+        display("Users after import", users);
+        
+        assertImportedUserByOid(USER_ADMINISTRATOR_OID);
+        assertImportedUserByOid(USER_JACK_OID);
+        assertImportedUserByOid(USER_BARBOSSA_OID);
+        assertImportedUserByOid(USER_GUYBRUSH_OID, RESOURCE_DUMMY_OID);
+        assertImportedUserByOid(USER_RAPP_OID, RESOURCE_DUMMY_OID);
+        assertImportedUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME, RESOURCE_DUMMY_OID);
+        assertImportedUserByUsername(ACCOUNT_STAN_NAME, RESOURCE_DUMMY_OID);
+        
+        // These are protected accounts, they should not be imported
+        assertNoImporterUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);
+        assertNoImporterUserByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
+        
+        assertEquals("Unexpected number of users", 8, users.size());
+        
+        // Check audit
+        assertImportAuditModifications(0);
 	}
 
 	@Test
@@ -248,6 +312,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         dummyResource.purgeScriptHistory();
         dummyAuditService.clear();
+        rememberShadowFetchOperationCount();
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -258,7 +323,12 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         waitForTaskFinish(TASK_RECONCILE_DUMMY_OID, false);
         
+        // THEN
         TestUtil.displayThen(TEST_NAME);
+        assertShadowFetchOperationCountIncrement(6);
+        // TODO: FIXME: This should be
+//        assertShadowFetchOperationCountIncrement(1);
+        // See MID-1630
         
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after import", users);

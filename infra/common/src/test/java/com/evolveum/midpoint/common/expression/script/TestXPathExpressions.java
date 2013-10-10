@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.common.expression.script;
 
+import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.expression.script.ScriptEvaluator;
 import com.evolveum.midpoint.common.expression.script.xpath.XPathScriptEvaluator;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -27,7 +28,7 @@ import java.io.File;
 public class TestXPathExpressions extends AbstractScriptTest {
 
     @Override
-	protected ScriptEvaluator createEvaluator(PrismContext prismContext) {
+	protected ScriptEvaluator createEvaluator(PrismContext prismContext, Protector protector) {
 		return new XPathScriptEvaluator(prismContext);
 	}
 

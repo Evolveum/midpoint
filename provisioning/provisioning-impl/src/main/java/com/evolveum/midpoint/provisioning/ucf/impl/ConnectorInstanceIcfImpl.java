@@ -252,8 +252,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			icfConnectorFacade = ConnectorFacadeFactory.getInstance().newInstance(apiConfig);
 
 			result.recordSuccess();
-		} catch (Exception ex) {
-			Exception midpointEx = processIcfException(ex, result);
+		} catch (Throwable ex) {
+			Throwable midpointEx = processIcfException(ex, result);
 			result.computeStatus("Removing attribute values failed");
 			// Do some kind of acrobatics to do proper throwing of checked
 			// exception
@@ -267,6 +267,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				throw (ConfigurationException) midpointEx;
 			} else if (midpointEx instanceof RuntimeException) {
 				throw (RuntimeException) midpointEx;
+			} else if (midpointEx instanceof Error) {
+				throw (Error) midpointEx;
 			} else {
 				throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
 			}
@@ -521,12 +523,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			icfResult.recordStatus(OperationResultStatus.HANDLED_ERROR, ex.getMessage());
 			resourceSchema = null;
 			return;
-		} catch (Exception ex) {
+		} catch (Throwable ex) {
 			// conditions.
 			// Therefore this kind of heavy artillery is necessary.
 			// ICF interface does not specify exceptions or other error
 			// TODO maybe we can try to catch at least some specific exceptions
-			Exception midpointEx = processIcfException(ex, icfResult);
+			Throwable midpointEx = processIcfException(ex, icfResult);
 
 			// Do some kind of acrobatics to do proper throwing of checked
 			// exception
@@ -542,6 +544,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			} else if (midpointEx instanceof RuntimeException) {
 				icfResult.recordFatalError(midpointEx.getMessage(), midpointEx);
 				throw (RuntimeException) midpointEx;
+			} else if (midpointEx instanceof Error) {
+				icfResult.recordFatalError(midpointEx.getMessage(), midpointEx);
+				throw (Error) midpointEx;
 			} else {
 				icfResult.recordFatalError(midpointEx.getMessage(), midpointEx);
 				throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
@@ -932,8 +937,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			co = icfConnectorFacade.getObject(icfObjectClass, uid, options);
 
 			icfResult.recordSuccess();
-		} catch (Exception ex) {
-			Exception midpointEx = processIcfException(ex, icfResult);
+		} catch (Throwable ex) {
+			Throwable midpointEx = processIcfException(ex, icfResult);
 			icfResult.computeStatus("Add object failed");
 
 			// Do some kind of acrobatics to do proper throwing of checked
@@ -949,6 +954,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				throw (SecurityViolationException) midpointEx;
 			} else if (midpointEx instanceof RuntimeException) {
 				throw (RuntimeException)midpointEx;
+			} else if (midpointEx instanceof Error) {
+				throw (Error)midpointEx;
 			} else {
 				throw new SystemException(midpointEx.getClass().getName()+": "+midpointEx.getMessage(), midpointEx);
 			}
@@ -1085,8 +1092,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// CALL THE ICF FRAMEWORK
 			uid = icfConnectorFacade.create(objectClass, attributes, new OperationOptionsBuilder().build());
 
-		} catch (Exception ex) {
-			Exception midpointEx = processIcfException(ex, icfResult);
+		} catch (Throwable ex) {
+			Throwable midpointEx = processIcfException(ex, icfResult);
 			result.computeStatus("Add object failed");
 
 			// Do some kind of acrobatics to do proper throwing of checked
@@ -1105,6 +1112,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				throw (ConfigurationException) midpointEx;
 			} else if (midpointEx instanceof RuntimeException) {
 				throw (RuntimeException) midpointEx;
+			} else if (midpointEx instanceof Error) {
+				throw (Error) midpointEx;
 			} else {
 				throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
 			}
@@ -1303,8 +1312,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 				icfResult.recordSuccess();
 			}
-		} catch (Exception ex) {
-			Exception midpointEx = processIcfException(ex, icfResult);
+		} catch (Throwable ex) {
+			Throwable midpointEx = processIcfException(ex, icfResult);
 			result.computeStatus("Adding attribute values failed");
 			// Do some kind of acrobatics to do proper throwing of checked
 			// exception
@@ -1325,6 +1334,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				throw (RuntimeException) midpointEx;
 			} else if (midpointEx instanceof SecurityViolationException){
 				throw (SecurityViolationException) midpointEx;
+			} else if (midpointEx instanceof Error){
+				throw (Error) midpointEx;
 			}else{
 				throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
 			}
@@ -1372,8 +1383,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				uid = icfConnectorFacade.update(objClass, uid, updateAttributes, options);
 
 				icfResult.recordSuccess();
-			} catch (Exception ex) {
-				Exception midpointEx = processIcfException(ex, icfResult);
+			} catch (Throwable ex) {
+				Throwable midpointEx = processIcfException(ex, icfResult);
 				result.computeStatus("Update failed");
 				// Do some kind of acrobatics to do proper throwing of checked
 				// exception
@@ -1392,6 +1403,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					throw (ObjectAlreadyExistsException) midpointEx;
 				} else if (midpointEx instanceof RuntimeException) {
 					throw (RuntimeException) midpointEx;
+				} else if (midpointEx instanceof Error) {
+					throw (Error) midpointEx;
 				} else {
 					throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
 				}
@@ -1426,8 +1439,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				uid = icfConnectorFacade.removeAttributeValues(objClass, uid, attributes, options);
 				icfResult.recordSuccess();
 			}
-		} catch (Exception ex) {
-			Exception midpointEx = processIcfException(ex, icfResult);
+		} catch (Throwable ex) {
+			Throwable midpointEx = processIcfException(ex, icfResult);
 			result.computeStatus("Removing attribute values failed");
 			// Do some kind of acrobatics to do proper throwing of checked
 			// exception
@@ -1446,6 +1459,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				throw (ObjectAlreadyExistsException) midpointEx;
 			} else if (midpointEx instanceof RuntimeException) {
 				throw (RuntimeException) midpointEx;
+			} else if (midpointEx instanceof Error) {
+				throw (Error) midpointEx;
 			} else {
 				throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
 			}
@@ -1515,8 +1530,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			
 			icfResult.recordSuccess();
 
-		} catch (Exception ex) {
-			Exception midpointEx = processIcfException(ex, icfResult);
+		} catch (Throwable ex) {
+			Throwable midpointEx = processIcfException(ex, icfResult);
 			result.computeStatus("Removing attribute values failed");
 			// Do some kind of acrobatics to do proper throwing of checked
 			// exception
@@ -1531,6 +1546,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				throw new IllegalArgumentException(midpointEx.getMessage(), midpointEx);
 			} else if (midpointEx instanceof RuntimeException) {
 				throw (RuntimeException) midpointEx;
+			} else if (midpointEx instanceof Error) {
+				throw (Error) midpointEx;
 			} else {
 				throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
 			}
@@ -1565,8 +1582,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			syncToken = icfConnectorFacade.getLatestSyncToken(icfObjectClass);
 			icfResult.recordSuccess();
 			icfResult.addReturn("syncToken", syncToken==null?null:String.valueOf(syncToken.getValue()));
-		} catch (Exception ex) {
-			Exception midpointEx = processIcfException(ex, icfResult);
+		} catch (Throwable ex) {
+			Throwable midpointEx = processIcfException(ex, icfResult);
 			result.computeStatus();
 			// Do some kind of acrobatics to do proper throwing of checked
 			// exception
@@ -1576,6 +1593,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				throw (GenericFrameworkException) midpointEx;
 			} else if (midpointEx instanceof RuntimeException) {
 				throw (RuntimeException) midpointEx;
+			} else if (midpointEx instanceof Error) {
+				throw (Error) midpointEx;
 			} else {
 				throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
 			}
@@ -1593,7 +1612,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	@Override
 	public <T extends ShadowType> List<Change<T>>  fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken,
-			OperationResult parentResult) throws CommunicationException, GenericFrameworkException,
+			AttributesToReturn attrsToReturn, OperationResult parentResult) throws CommunicationException, GenericFrameworkException,
 			SchemaException, ConfigurationException {
 
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
@@ -1615,6 +1634,13 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		// get icf object class
 		ObjectClass icfObjectClass = icfNameMapper.objectClassToIcf(objectClass, getSchemaNamespace(), connectorType);
 
+		OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
+		String[] attributesToGet = convertToIcfAttrsToGet(objectClass, attrsToReturn);
+		if (attributesToGet != null) {
+			optionsBuilder.setAttributesToGet(attributesToGet);
+		}
+		OperationOptions options = optionsBuilder.build();
+		
 		SyncResultsHandler syncHandler = new SyncResultsHandler() {
 
 			@Override
@@ -1633,11 +1659,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		try {
 			icfConnectorFacade.sync(icfObjectClass, syncToken, syncHandler,
-					new OperationOptionsBuilder().build());
+					options);
 			icfResult.recordSuccess();
 			icfResult.addReturn(OperationResult.RETURN_COUNT, syncDeltas.size());
-		} catch (Exception ex) {
-			Exception midpointEx = processIcfException(ex, icfResult);
+		} catch (Throwable ex) {
+			Throwable midpointEx = processIcfException(ex, icfResult);
 			result.computeStatus();
 			// Do some kind of acrobatics to do proper throwing of checked
 			// exception
@@ -1649,6 +1675,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				throw (SchemaException) midpointEx;
 			} else if (midpointEx instanceof RuntimeException) {
 				throw (RuntimeException) midpointEx;
+			} else if (midpointEx instanceof Error) {
+				throw (Error) midpointEx;
 			} else {
 				throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
 			}
@@ -1684,8 +1712,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			connectionResult.recordStatus(OperationResultStatus.NOT_APPLICABLE,
 					"Operation not supported by the connector", ex);
 			// Do not rethrow. Recording the status is just OK.
-		} catch (Exception icfEx) {
-			Exception midPointEx = processIcfException(icfEx, connectionResult);
+		} catch (Throwable icfEx) {
+			Throwable midPointEx = processIcfException(icfEx, connectionResult);
 			connectionResult.recordFatalError(midPointEx);
 		}
 	}
@@ -1693,7 +1721,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	@Override
 	public <T extends ShadowType> void search(ObjectClassComplexTypeDefinition objectClassDefinition, final ObjectQuery query,
-			final ResultHandler<T> handler, OperationResult parentResult) throws CommunicationException,
+			final ResultHandler<T> handler, AttributesToReturn attributesToReturn, OperationResult parentResult) throws CommunicationException,
 			GenericFrameworkException, SchemaException {
 
 		// Result type for this operation
@@ -1750,6 +1778,13 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				return cont;
 			}
 		};
+		
+		OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
+		String[] attributesToGet = convertToIcfAttrsToGet(objectClassDefinition, attributesToReturn);
+		if (attributesToGet != null) {
+			optionsBuilder.setAttributesToGet(attributesToGet);
+		}
+		OperationOptions options = optionsBuilder.build();
 
 		// Connector operation cannot create result for itself, so we need to
 		// create result for it
@@ -1769,7 +1804,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 				LOGGER.trace("ICF filter: {}", filter.toString());
 			}
-			icfConnectorFacade.search(icfObjectClass, filter, icfHandler, null);
+			
+			icfConnectorFacade.search(icfObjectClass, filter, icfHandler, options);
 
 			icfResult.recordSuccess();
 		} catch (IntermediateException inex) {
@@ -1777,8 +1813,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			icfResult.recordFatalError(ex);
 			result.recordFatalError(ex);
 			throw ex;
-		} catch (Exception ex) {
-			Exception midpointEx = processIcfException(ex, icfResult);
+		} catch (Throwable ex) {
+			Throwable midpointEx = processIcfException(ex, icfResult);
 			result.computeStatus();
 			// Do some kind of acrobatics to do proper throwing of checked
 			// exception
@@ -1790,6 +1826,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				throw (SchemaException) midpointEx;
 			} else if (midpointEx instanceof RuntimeException) {
 				throw (RuntimeException) midpointEx;
+			} else if (midpointEx instanceof Error) {
+				throw (Error) midpointEx;
 			} else {
 				throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
 			}
@@ -2262,13 +2300,13 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					LOGGER.debug("Finished running script ({}), script result: {}", icfOpName, PrettyPrinter.prettyPrint(output));
 				}
 				
-			} catch (Exception ex) {
+			} catch (Throwable ex) {
 				
 				if (LOGGER.isDebugEnabled()) {
 					LOGGER.debug("Finished running script ({}), ERROR: {}", icfOpName, ex.getMessage());
 				}
 				
-				Exception midpointEx = processIcfException(ex, icfResult);
+				Throwable midpointEx = processIcfException(ex, icfResult);
 				result.computeStatus();
 				// Do some kind of acrobatics to do proper throwing of checked
 				// exception
@@ -2281,6 +2319,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					throw new IllegalArgumentException(midpointEx.getMessage(), midpointEx);
 				} else if (midpointEx instanceof RuntimeException) {
 					throw (RuntimeException) midpointEx;
+				} else if (midpointEx instanceof Error) {
+					throw (Error) midpointEx;
 				} else {
 					throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
 				}

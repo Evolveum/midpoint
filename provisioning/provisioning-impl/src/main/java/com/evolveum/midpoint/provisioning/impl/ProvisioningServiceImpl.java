@@ -31,6 +31,7 @@ import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
+import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -1125,12 +1126,22 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				}
 			};
 			
-			getCacheRepositoryService().searchObjectsIterative(type, query, internalHandler, null, result);
+			try {
+				
+				getCacheRepositoryService().searchObjectsIterative(type, query, internalHandler, null, result);
+				
+				result.computeStatus();
+				result.recordSuccessIfUnknown();
+				result.cleanupResult();
+
+			} catch (SchemaException e) {
+				recordFatalError(LOGGER, result, null, e);
+			} catch (RuntimeException e) {
+				recordFatalError(LOGGER, result, null, e);
+			} catch (Error e) {
+				recordFatalError(LOGGER, result, null, e);
+			}
 			
-			
-			result.computeStatus();
-			result.recordSuccessIfUnknown();
-			result.cleanupResult();
 			return;
 		}
 		
