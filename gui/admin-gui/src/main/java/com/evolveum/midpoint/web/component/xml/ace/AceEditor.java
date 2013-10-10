@@ -37,7 +37,7 @@ public class AceEditor extends TextArea<String> {
         super.renderHead(response);
 
         StringBuilder sb = new StringBuilder();
-        sb.append("initEditor('").append(getMarkupId()).append("',").append(readonly).append(");");
+        sb.append("initEditor('").append(getMarkupId()).append("',").append(readonly.getObject()).append(");");
 
         response.render(OnDomReadyHeaderItem.forScript(sb.toString()));
     }
