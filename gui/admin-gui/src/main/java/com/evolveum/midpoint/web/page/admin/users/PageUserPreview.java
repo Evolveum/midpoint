@@ -712,28 +712,28 @@ public class PageUserPreview extends PageAdmin {
 			};
 		}
 
-		@Override
-		protected IModel<AttributeModifier> createAttribute(final IModel<T> rowModel) {
-			return new AbstractReadOnlyModel<AttributeModifier>() {
-
-				@Override
-				public AttributeModifier getObject() {
-					T dto = rowModel.getObject();
-
-					if (dto instanceof SubmitUserDto) {
-						SubmitUserDto submitDto = (SubmitUserDto) dto;
-						return getAttribute(submitDto.isSecondaryValue(), submitDto.isDeletedValue());
-
-					} else if (dto instanceof SubmitAccountDto) {
-						SubmitAccountDto submitDto = (SubmitAccountDto) dto;
-						return getAttribute(submitDto.isSecondaryValue(), submitDto.isDeletedValue());
-					} else {
-						SubmitAssignmentDto submitDto = (SubmitAssignmentDto) dto;
-						return getAttribute(submitDto.isSecondaryValue(), submitDto.isDeletedValue());
-					}
-				}
-			};
-		}
+//		@Override
+//		protected IModel<AttributeModifier> createAttribute(final IModel<T> rowModel) {
+//			return new AbstractReadOnlyModel<AttributeModifier>() {
+//
+//				@Override
+//				public AttributeModifier getObject() {
+//					T dto = rowModel.getObject();
+//
+//					if (dto instanceof SubmitUserDto) {
+//						SubmitUserDto submitDto = (SubmitUserDto) dto;
+//						return getAttribute(submitDto.isSecondaryValue(), submitDto.isDeletedValue());
+//
+//					} else if (dto instanceof SubmitAccountDto) {
+//						SubmitAccountDto submitDto = (SubmitAccountDto) dto;
+//						return getAttribute(submitDto.isSecondaryValue(), submitDto.isDeletedValue());
+//					} else {
+//						SubmitAssignmentDto submitDto = (SubmitAssignmentDto) dto;
+//						return getAttribute(submitDto.isSecondaryValue(), submitDto.isDeletedValue());
+//					}
+//				}
+//			};
+//		}
 
 		private AttributeModifier getAttribute(boolean secondaryValue, boolean deletedValue) {
 			if (deletedValue) {

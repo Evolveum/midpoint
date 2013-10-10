@@ -28,9 +28,5 @@ public interface InlineMenu extends Serializable {
 
     String F_MENU_ITEMS = "menuItems";
 
-    String F_HEADER_MENU_ITEMS = "headerMenuItems";
-
     List<InlineMenuItem> getMenuItems();
-
-    List<InlineMenuItem> getHeaderMenuItems();
 }

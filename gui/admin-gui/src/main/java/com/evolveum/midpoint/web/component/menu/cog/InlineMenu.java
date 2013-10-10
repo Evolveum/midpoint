@@ -64,7 +64,7 @@ public class InlineMenu extends SimplePanel<List<InlineMenuItem>> {
                     });
                 }
 
-
+                initLink(item);
             }
         };
         add(li);

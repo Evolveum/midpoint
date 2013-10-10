@@ -22,6 +22,7 @@ import com.evolveum.midpoint.web.component.async.CallableResult;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -88,6 +89,9 @@ public abstract class AsyncDashboardPanel<V, T> extends AsyncUpdatePanel<V, Call
         dashboardTitle.add(title);
 
         WebMarkupContainer dashboardContent = new WebMarkupContainer(ID_DASHBOARD_CONTENT);
+        if (StringUtils.isNotEmpty(getDashboardBodyCss())) {
+            dashboardContent.add(AttributeModifier.append("style", getDashboardBodyCss()));
+        }
         dashboardParent.add(dashboardContent);
 
         dashboardContent.add(new Label(ID_CONTENT));
@@ -103,6 +107,10 @@ public abstract class AsyncDashboardPanel<V, T> extends AsyncUpdatePanel<V, Call
         dashboardContent.add(preloaderContainer);
 
         preloaderContainer.add(getLoadingComponent(ID_PRELOADER));
+    }
+
+    public String getDashboardBodyCss() {
+        return "padding: 0px;";
     }
 
     @Override

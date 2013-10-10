@@ -190,6 +190,10 @@ public final class WebMiscUtil {
         return poly;
     }
 
+    public static String getOrigStringFromPoly(PolyString str) {
+        return str != null ? str.getOrig() : null;
+    }
+
     public static String getOrigStringFromPoly(PolyStringType str) {
         return str != null ? str.getOrig() : null;
     }
