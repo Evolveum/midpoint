@@ -42,6 +42,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.QueryConvertor;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -335,5 +336,31 @@ public final class Utils {
 
     public static void clearRequestee(Task task) {
         setRequestee(task, (String) null);
+    }
+    
+    public static boolean isDryRun(Task task) throws SchemaException{
+    	
+    	Validate.notNull(task, "Task must not be null.");
+    	
+    	if (task.getExtension() == null){
+    		return false;
+    	}
+		
+    	PrismProperty<Boolean> item = task.getExtension().findProperty(SchemaConstants.MODEL_EXTENSION_DRY_RUN);
+		if (item == null || item.isEmpty()){
+			return false;
+		}
+		
+		if (item.getValues().size() > 1){
+			throw new SchemaException("Unexpected number of values for option 'dry run'.");
+		}
+				
+		Boolean dryRun = item.getValues().iterator().next().getValue();
+		
+		if (dryRun == null){
+			return false;
+		}
+    	
+		return dryRun.booleanValue(); 
     }
 }

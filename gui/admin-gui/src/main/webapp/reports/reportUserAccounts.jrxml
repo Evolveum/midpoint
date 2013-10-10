@@ -5,9 +5,7 @@
 	<property name="ireport.y" value="0"/>
 	<property name="net.sf.jasperreports.awt.ignore.missing.font" value="true"/>
 	<property name="net.sf.jasperreports.export.pdf.force.linebreak.policy" value="true"/>
-	<style name="Row" mode="Transparent" fontName="DejaVu Sans" fontSize="10" isBold="false"/>
-	<style name="Detail" mode="Transparent" forecolor="#000000" fontName="DejaVu Sans" fontSize="10" isBold="false"/>
-	<style name="Column header" mode="Transparent" forecolor="#000000" backcolor="#CCFFFF" fontName="DejaVu Sans" fontSize="12" isBold="true"/>
+	<style name="Detail" isDefault="false" fontName="DejaVu Sans" fontSize="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
 	<parameter name="USER_OID" class="java.lang.String"/>
 	<queryString language="hql">
 		<![CDATA[select r.name.orig as resourceName, s.name.orig as accountName from RObjectReference as o, RShadow as s, RResource as r where s.resourceRef.targetOid = r.oid and o.owner.oid = $P{USER_OID} and o.type = 9 and o.targetOid = s.oid and s.kind = 0 order by r.name.orig, s.name.orig]]>
@@ -17,9 +15,9 @@
 	<detail>
 		<band height="18" splitType="Stretch">
 			<frame>
-				<reportElement uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a" style="Row" mode="Opaque" x="0" y="1" width="180" height="17"/>
+				<reportElement uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a" style="Detail" mode="Opaque" x="0" y="1" width="180" height="17"/>
 				<line>
-					<reportElement uuid="47f91801-cf5f-4bed-b19c-ca3931cbf98d" positionType="FixRelativeToTop" mode="Opaque" x="0" y="0" width="180" height="1" forecolor="#333333">
+					<reportElement uuid="47f91801-cf5f-4bed-b19c-ca3931cbf98d" positionType="FixRelativeToTop" x="0" y="0" width="180" height="1" forecolor="#333333">
 						<printWhenExpression><![CDATA[new java.lang.Boolean((int)$V{REPORT_COUNT}.intValue()!=1)]]></printWhenExpression>
 					</reportElement>
 					<graphicElement>

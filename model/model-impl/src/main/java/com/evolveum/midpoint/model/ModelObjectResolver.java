@@ -123,12 +123,13 @@ public class ModelObjectResolver implements ObjectResolver {
 		}
 	}
 	
-	public <T extends ObjectType> T getObject(Class<T> clazz, String oid, GetOperationOptions options, Task task,  
+	public <T extends ObjectType> T getObject(Class<T> clazz, String oid, GetOperationOptions rootOptions, Task task,  
 			OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 		T objectType = null;
 		try {
 			PrismObject<T> object = null;
 			if (ObjectTypes.isClassManagedByProvisioning(clazz)) {
+				Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(rootOptions);
 				object = provisioning.getObject(clazz, oid, options, task, result);
 				if (object == null) {
 					throw new SystemException("Got null result from provisioning.getObject while looking for "+clazz.getSimpleName()
@@ -179,7 +180,7 @@ public class ModelObjectResolver implements ObjectResolver {
 	
 	public <O extends ObjectType> void searchIterative(Class<O> type, ObjectQuery query, ResultHandler<O> handler, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (ObjectTypes.isClassManagedByProvisioning(type)) {
-			provisioning.searchObjectsIterative(type, query, handler, parentResult);
+			provisioning.searchObjectsIterative(type, query, null, handler, parentResult);
 		} else {
 			cacheRepositoryService.searchObjectsIterative(type, query, handler, null, parentResult);
 		}

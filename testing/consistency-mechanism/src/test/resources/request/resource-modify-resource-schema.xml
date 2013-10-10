@@ -1,0 +1,453 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2013 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!-- Object modification description that is changing user "jack" by adding 
+	a new account -->
+
+<a:objectModification
+	xmlns:a='http://midpoint.evolveum.com/xml/ns/public/common/api-types-2'
+	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
+	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+	<oid>c0c010c0-d34d-b33f-f00d-111111111111</oid>
+	<a:modification>
+		<t:modificationType>replace</t:modificationType>
+		<t:value>
+			<schemaHandling oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
+          xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+          xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+          xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+          xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
+          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+          xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
+          xmlns:dj="http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
+          xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
+          xmlns:my="http://whatever.com/my">
+
+
+        <!-- Definition of default account type.
+This is now the only account type that midPoint can work with. -->
+
+        <objectType>
+
+			<kind>account</kind>
+            <intent>default</intent>
+            <!-- Readable name for the account type -->
+            <displayName>Default Account</displayName>
+
+            <default>true</default>
+            <!-- Reference to the Resource Schema specifying
+      object class for this account type -->
+
+            <objectClass>ri:AccountObjectClass</objectClass>
+
+            <!-- Definition of __NAME__ attribute handling.
+     ICF will put entry DN into __NAME__ attribute.-->
+            <attribute>
+				<ref>icfs:name</ref>
+				<displayName>Distinguished Name</displayName>
+				<description>The DN will be constructed as
+follows: uid=flastname,ou=people,dc=example,dc=ck</description>
+				<limitations>
+					<minOccurs>0</minOccurs>
+					<access>
+						<create>true</create>
+						<read>true</read>
+						<update>true</update>
+					</access>
+				</limitations>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+					<outbound>
+						<source>
+							<name>tmpGivenName</name>
+							<path>$user/givenName</path>
+						</source>
+						<source>
+							<name>tmpFamilyName</name>
+							<path>$user/familyName</path>
+						</source>
+						<expression>
+						<script>
+						<code>
+tmpGivenNameInitial = basic.stringify(tmpGivenName)?.size() &gt; 0 ? (basic.stringify(tmpGivenName)).substring(0,1) : ''
+
+if (iteration == 0) {
+		'uid=' + basic.norm(basic.stringify(tmpGivenNameInitial + tmpFamilyName)) + ',OU=people,DC=example,DC=com'
+}
+else {
+		'uid=' + basic.norm(basic.stringify(tmpGivenNameInitial + tmpFamilyName)) + iterationToken + ',OU=people,DC=example,DC=com'
+}
+						</code>
+						</script>
+						</expression>
+					</outbound>
+			</attribute>
+          
+
+            <!-- Definition of __UID__ attribute handling.
+           ICF will put entry UUID into __UID__ attribute in case it
+           is connecting to OpenDJ/OpenDS. It may be different for
+           other directory servers and it also dependes on connector
+           configuration. Please see connector documentation for
+           more details.-->
+            <attribute>
+                <ref>icfs:uid</ref>
+
+                <!-- Readable name for the attribute. This will be used in GUI -->
+                <displayName>Entry UUID</displayName>
+
+                <!-- Access limitation for this attribute.
+       Entry UUID is created by the directory server itelf
+       and it is immutable. We can only read it. -->
+
+                <access>read</access>
+
+                <!-- There is no "outbound" expression, so midPoint will not
+           do anything with this attribute. -->
+
+                <!-- No inbound expression here. Does not make sense to sync UUID as it is supposed to be immutable -->
+
+            </attribute>
+
+            <!-- Definition of cn attribute handling. -->
+            <attribute>
+
+                <ref>ri:cn</ref>
+                <displayName>Common Name</displayName>
+                <access>create</access>
+                <access>read</access>
+                <access>update</access>
+
+                <!-- Outbound expression here is using "pure" XPath, without
+                    using functions. This is the simplest case, just copying
+                    the "fullName" property of user to the "cn" attribute of
+                    an account.
+
+                    Please note that this expression is not marked as "default".
+                    Therefore this value will be copied on every change,
+                    overwriting the original value of "cn" on the resource.
+                -->
+
+				<outbound>
+					<source>
+						<path>$user/fullName</path>
+					</source>
+				</outbound>
+				<inbound>
+					<target>
+						<path>$user/fullName</path>
+					</target>
+				</inbound>
+
+            </attribute>
+
+            <!-- Definition of sn attribute handling. -->
+            <attribute>
+                <ref>ri:sn</ref>
+
+                <displayName>Surname</displayName>
+                <access>create</access>
+                <access>read</access>
+                <access>update</access>
+                <outbound>
+					<source>
+						<path>$c:user/c:familyName</path>
+					</source>
+				</outbound>
+				<inbound>
+					<target>
+						<path>$c:user/c:familyName</path>
+					</target>
+				</inbound>
+            </attribute>
+
+            <!-- Definition of givenName attribute handling. -->
+            <attribute>
+                <ref>ri:givenName</ref>
+                <displayName>Given Name</displayName>
+                <access>create</access>
+                <access>read</access>
+
+                <access>update</access>
+                <outbound>
+					<source>
+						<path>givenName</path>
+					</source>
+					<expression>
+						<script>
+							<language>http://www.w3.org/TR/xpath/</language>
+							<code>
+								$c:givenName/t:orig
+							</code>
+						</script>
+					</expression>
+				</outbound>
+				<inbound>
+					<target>
+						<path>$c:user/c:givenName</path>
+					</target>
+				</inbound>
+            </attribute>
+
+            <!-- Definition of uid attribute handling.
+       Do not confuse with __UID__! -->
+            <attribute>
+				<ref>ri:uid</ref>
+				<displayName>Login Name</displayName>
+				<matchingRule>mr:stringIgnoreCase</matchingRule>
+					<outbound>
+					<strength>weak</strength>
+						<source>
+							<name>tmpGivenName</name>
+							<path>$user/givenName</path>
+						</source>
+						<source>
+							<name>tmpFamilyName</name>
+							<path>$user/familyName</path>
+						</source>
+						<expression>
+						<script>
+						<code>
+tmpGivenNameInitial = basic.stringify(tmpGivenName)?.size() &gt; 0 ? (basic.stringify(tmpGivenName)).substring(0,1) : ''
+
+if (iteration == 0) {
+	basic.norm(basic.stringify(tmpGivenNameInitial + tmpFamilyName))
+}
+else {
+		basic.norm(basic.stringify(tmpGivenNameInitial + tmpFamilyName)) + iterationToken
+	}
+						</code>
+						</script>
+						</expression>
+					</outbound>
+			</attribute>
+            <!-- Definition of description attribute handling. -->
+<!--             <attribute> -->
+<!--                 <ref>ri:description</ref> -->
+
+<!--                 This outbound expression is not really an expression.-->
+<!--               It is using a fixed literal insead of dynamically -->
+<!--               generated value. --> 
+<!--                 <outbound> -->
+<!--                     <strength>weak</strength> -->
+
+<!--                     <value>Created by IDM</value> -->
+<!--                 </outbound> -->
+
+<!--                 <inbound> -->
+<!--                     <valueFilter -->
+<!--                             type="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd#patternFilter" -->
+<!--                             xmlns:f="http://midpoint.evolveum.com/xml/ns/public/common/value-filter-1.xsd"> -->
+<!--                         <f:replace> -->
+<!--                             Replaces all unicode control characters with empty string -->
+<!--                             <f:pattern>\p{C}</f:pattern> -->
+
+<!--                             <f:replacement></f:replacement> -->
+<!--                         </f:replace> -->
+<!--                     </valueFilter> -->
+<!--                     <target> -->
+<!--                         declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"; -->
+<!--                         declare namespace my="http://whatever.com/my"; -->
+<!--                         $i:user/i:extension/my:description -->
+<!--                     </target> -->
+<!--                 </inbound> -->
+                <!-- No inbound expression for description. We don't want to synchronize that -->
+<!--             </attribute> -->
+
+
+            <attribute>
+                <ref>ri:carLicense</ref>
+
+				<description>
+					This attibute definition is used to test tolerance of empty values.
+				</description>
+				
+                <outbound>
+                    <description>
+                    	The expression will produce empty value. OpenDJ will die if empty value
+                    	is provided for an attribute. midPoint should filter out the empty value
+                    	and do not sent it to OpenDJ.
+                    </description>
+					<strength>weak</strength>
+                    <expression>
+                    	<script>
+                    		<language>http://www.w3.org/TR/xpath/</language>
+	                    	<returnType>scalar</returnType>
+	                    	<c:code>
+	                    		concat('','')
+	                    	</c:code>
+                    	</script>
+                    </expression>
+                </outbound>
+
+                <inbound>
+                    <target>
+                    	<path>
+	                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+	                        declare namespace my="http://whatever.com/my";
+	                        $i:user/i:extension/my:description
+                        </path>
+                    </target>
+                </inbound>
+                <!-- No inbound expression for description. We don't want to synchronize that -->
+            </attribute>
+
+
+            <!-- Definition of description attribute handling. -->
+            <!-- This attribute is using a lookup table to translate the values
+ valid for user to a values valid for the resource account. -->
+            <attribute>
+            <ref>ri:l</ref>
+            <c:tolerant>false</c:tolerant>
+
+                <!-- Outbound expression definition. This expression is using
+              a configuration object (set into an XPath variable) to
+              translate values. -->
+                <outbound>
+                	<source>
+                		<path>$c:user/c:locality</path>
+                	</source>
+                    <expression xmlns:my="http://whatever.com/my">
+                        <!-- Definition of extra variable for the XPath expression.
+                             The variable will appear as "$my:config" in the Xpath
+                             expression below. It will contain the content of XML
+                             object stored by OID c0c010c0-d34d-b33f-f00d-999111111111. -->
+                        <variable>
+                            <name>my:config</name>
+                            <objectRef oid="c0c010c0-d34d-b33f-f00d-999111111111" type="c:GenericObjectType"/>
+                        </variable>
+                        <!-- Example of setting a variable to a string value. -->
+                        <variable>
+                            <name>my:defaultLocation</name>
+                            <value>middle of nowhere</value>
+                        </variable>
+                    	<script>
+                    		<language>http://www.w3.org/TR/xpath/</language>
+	                        <returnType>scalar</returnType>
+	                        <!-- The expression itself. It translates the value of
+	                             user's attribute "locality" (expressed as $i:user/i:locality)
+	                             using a lookup table defined in the configuration object
+	                             in the $my:config variable specified above. -->
+	                        <c:relativityMode>absolute</c:relativityMode>
+	                        <c:code>
+	                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
+	                            declare namespace t="http://prism.evolveum.com/xml/ns/public/types-2";
+	                            declare namespace my="http://whatever.com/my";
+	
+	                            if ($my:config/i:extension/my:locations/my:location[@key=$i:locality/t:orig]) then
+	                            	$my:config/i:extension/my:locations/my:location[@key=$i:locality/t:orig]
+	                            else
+	                            	$my:defaultLocation
+	                        </c:code>
+                        </script>
+                    </expression>
+
+                </outbound>
+            
+                </attribute>
+                <attribute>
+				<ref>ri:employeeType</ref>
+				<displayName>Employee Type</displayName>
+				
+				<outbound>
+<!-- 				<strength>weak</strength> -->
+					<source>
+						<path>$user/employeeType</path>
+					</source>
+				</outbound>
+			</attribute>
+			
+			<attribute>
+				<ref>ri:employeeNumber</ref>
+				<displayName>Employee Number</displayName>
+				<outbound>
+					<source>
+						<path>$user/employeeNumber</path>
+					</source>
+				</outbound>
+			</attribute>
+
+ 			<association>
+            	<name>ri:group</name>
+            	<displayName>LDAP Group Membership</displayName>
+            	<kind>entitlement</kind>
+            	<intent>ldapGroup</intent>
+            	<direction>objectToSubject</direction>
+            	<associationAttribute>ri:uniqueMember</associationAttribute>
+            	<valueAttribute>icfs:name</valueAttribute>
+            </association>
+            
+            <iteration>
+				<maxIterations>5</maxIterations>
+			</iteration>
+            
+            <activation>
+                <administrativeStatus>
+                    <outbound/>
+                    <inbound>
+                    	<strength>weak</strength>
+                        <expression>
+                            <asIs/>
+                        </expression>
+                    </inbound>
+                </administrativeStatus>
+            </activation>
+
+<!--             <activation> -->
+<!--                 <enabled> -->
+<!--                     <outbound> -->
+<!--                         <expression> -->
+<!--                         	<asIs/> -->
+<!--                         </expression> -->
+<!--                     </outbound> -->
+<!--                     <inbound> -->
+<!--                     	<expression> -->
+<!--                     		<asIs/> -->
+<!--                     	</expression> -->
+<!--                     </inbound> -->
+<!--                 </enabled> -->
+<!--             </activation> -->
+            
+           <credentials>
+                <password>
+                    <outbound>
+                    	<expression>
+                        	<asIs/>
+                        </expression>
+                    </outbound>
+                    <inbound>
+                    	<strength>weak</strength>
+                    	<expression>
+                    		<generate/>
+                    	</expression>
+                    </inbound>
+                </password>
+            </credentials>
+            
+        </objectType>
+        
+        <objectType>
+        	<kind>entitlement</kind>
+            <intent>ldapGroup</intent>
+            <displayName>LDAP Group</displayName>
+            <objectClass>ri:GroupObjectClass</objectClass>
+        </objectType>
+    </schemaHandling>
+
+			
+		</t:value>
+	</a:modification>
+</a:objectModification>

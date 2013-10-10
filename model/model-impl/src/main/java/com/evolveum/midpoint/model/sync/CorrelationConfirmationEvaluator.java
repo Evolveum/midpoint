@@ -42,6 +42,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.LogicalFilter;
 import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
@@ -58,6 +59,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -88,6 +90,9 @@ public class CorrelationConfirmationEvaluator {
 	@Autowired(required = true)
 	private ExpressionFactory expressionFactory;
 
+	@Autowired(required = true)
+	private MatchingRuleRegistry matchingRuleRegistry;
+	
 	public List<PrismObject<UserType>> findUsersByCorrelationRule(ShadowType currentShadow,
 			List<QueryType> queries, ResourceType resourceType, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 
@@ -255,6 +260,7 @@ private boolean matchUserCorrelationRule(PrismObject<ShadowType> currentShadow, 
 	try {
 		q = QueryConvertor.createObjectQuery(UserType.class, query, prismContext);
 		q = updateFilterWithAccountValues(currentShadow.asObjectable(), resourceType, q, "Correlation expression", result);
+		LOGGER.debug("Start matching user {} with correlation eqpression {}", userType, q.dump());
 		if (q == null) {
 			// Null is OK here, it means that the value in the filter
 			// evaluated
@@ -270,10 +276,10 @@ private boolean matchUserCorrelationRule(PrismObject<ShadowType> currentShadow, 
 //	try {
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("SYNCHRONIZATION: CORRELATION: expression for {} results in filter\n{}",
-					new Object[] { currentShadow, SchemaDebugUtil.prettyPrint(query) });
+					new Object[] { currentShadow, q});
 		}
 //		PagingType paging = new PagingType();
-		return ObjectQuery.match(userType, q.getFilter());
+		return ObjectQuery.match(userType, q.getFilter(), matchingRuleRegistry);
 
 //		if (users == null) {
 //			users = new ArrayList<PrismObject<UserType>>();
@@ -300,6 +306,7 @@ private boolean matchUserCorrelationRule(PrismObject<ShadowType> currentShadow, 
 		List<QueryType> queries = synchronization.getCorrelation();
 		
 		for (QueryType query : queries){
+			
 			if (true && matchUserCorrelationRule(currentShadow, userType, resourceType, query, result)){
 				LOGGER.debug("SYNCHRONIZATION: CORRELATION: expression for {} match user: {}", new Object[] {
 						currentShadow, userType });

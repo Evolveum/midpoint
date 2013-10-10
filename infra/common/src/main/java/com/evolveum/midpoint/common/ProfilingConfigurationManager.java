@@ -52,12 +52,14 @@ public class ProfilingConfigurationManager {
     private static final String APPENDER_IDM_PROFILE = "IDM-PROFILE_LOG";
 
     //Subsystems
-    public static final String SUBSYSTEM_REPOSITORY = "REPO";
-    public static final String SUBSYSTEM_TASKMANAGER = "TASK";
-    public static final String SUBSYSTEM_PROVISIONING = "PROV";
-    public static final String SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER = "ROCL";
-    public static final String SUBSYSTEM_MODEL = "MODE";
-    public static final String SUBSYSTEM_UCF = "_UCF";
+    public static final String SUBSYSTEM_REPOSITORY = "REPOSITORY";
+    public static final String SUBSYSTEM_TASKMANAGER = "TASKMANAGER";
+    public static final String SUBSYSTEM_PROVISIONING = "PROVISIONING";
+    public static final String SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER = "RESOURCEOBJECTCHANGELISTENER";
+    public static final String SUBSYSTEM_MODEL = "MODEL";
+    public static final String SUBSYSTEM_UCF = "UCF";
+    public static final String SUBSYSTEM_WORKFLOW = "WORKFLOW";
+    public static final String SUBSYSTEM_WEB = "WEB";
 
     /* Object Attributes */
 
@@ -70,13 +72,12 @@ public class ProfilingConfigurationManager {
     public static LoggingConfigurationType checkSystemProfilingConfiguration(PrismObject<SystemConfigurationType> systemConfigurationPrism){
         SystemConfigurationType systemConfig = systemConfigurationPrism.asObjectable();
         ProfilingConfigurationType profilingConfig = systemConfig.getProfilingConfiguration();
-
+        boolean isSubsystemConfig = false;
 
         if(profilingConfig == null || !profilingConfig.isEnabled())
             return systemConfig.getLogging();
-        //TODO - fix bug, call applyProfilingConfiguration here as well.
         else{
-            boolean isSubsystemConfig = applySubsystemProfiling(systemConfig);
+            isSubsystemConfig = applySubsystemProfiling(systemConfig);
             return applyProfilingConfiguration(systemConfigurationPrism, profilingConfig, isSubsystemConfig);
         }
     }   //checkSystemProfilingConfiguration
@@ -85,14 +86,13 @@ public class ProfilingConfigurationManager {
      *  Checks systemConfig profiling configuration and performs necessary actions
      * */
     private static LoggingConfigurationType applyProfilingConfiguration(PrismObject<SystemConfigurationType> systemConfigurationPrism, ProfilingConfigurationType profilingConfig, boolean subsystemProfiling){
-        //LOGGER.info("Entering applyProfilingConfiguration()");
         SystemConfigurationType systemConfig = systemConfigurationPrism.asObjectable();
 
         LoggingConfigurationType loggingConfig = systemConfig.getLogging();
 
         if(loggingConfig != null){
             //LOGGER.info("entering profiling config applyProfilingConfiguration()");
-            if(profilingConfig.isRequestFilter()){
+            if(checkXsdBooleanValue(profilingConfig.isRequestFilter())){
                 ClassLoggerConfigurationType requestFilterLogger = new ClassLoggerConfigurationType();
                 requestFilterLogger.setPackage(REQUEST_FILTER_LOGGER_CLASS_NAME);
                 requestFilterLogger.setLevel(LoggingLevelType.TRACE);
@@ -125,30 +125,50 @@ public class ProfilingConfigurationManager {
         Map<String, Boolean> profiledSubsystems = new HashMap<String, Boolean>();
         int dumpInterval = 0;
         boolean subSystemProfiling = false;
+        boolean performanceProfiling = false;
+        boolean requestProfiling = false;
 
-        profiledSubsystems.put(SUBSYSTEM_PROVISIONING, profilingConfig.isProvisioning());
-        profiledSubsystems.put(SUBSYSTEM_REPOSITORY, profilingConfig.isRepository());
-        profiledSubsystems.put(SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER, profilingConfig.isResourceObjectChangeListener());
-        profiledSubsystems.put(SUBSYSTEM_TASKMANAGER, profilingConfig.isTaskManager());
-        profiledSubsystems.put(SUBSYSTEM_UCF, profilingConfig.isUcf());
-        profiledSubsystems.put(SUBSYSTEM_MODEL, profilingConfig.isModel());
+        profiledSubsystems.put(SUBSYSTEM_PROVISIONING, checkXsdBooleanValue(profilingConfig.isProvisioning()));
+        profiledSubsystems.put(SUBSYSTEM_REPOSITORY, checkXsdBooleanValue(profilingConfig.isRepository()));
+        profiledSubsystems.put(SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER, checkXsdBooleanValue(profilingConfig.isResourceObjectChangeListener()));
+        profiledSubsystems.put(SUBSYSTEM_TASKMANAGER, checkXsdBooleanValue(profilingConfig.isTaskManager()));
+        profiledSubsystems.put(SUBSYSTEM_UCF, checkXsdBooleanValue(profilingConfig.isUcf()));
+        profiledSubsystems.put(SUBSYSTEM_MODEL, checkXsdBooleanValue(profilingConfig.isModel()));
+        profiledSubsystems.put(SUBSYSTEM_WORKFLOW, checkXsdBooleanValue(profilingConfig.isWorkflow()));
+        profiledSubsystems.put(SUBSYSTEM_WEB, checkXsdBooleanValue(profilingConfig.isRequestFilter()));
 
         for(Boolean b: profiledSubsystems.values()){
-            if(b){
+            if(b != null && b){
                 subSystemProfiling = true;
                 break;
             }
         }
 
-        if (subSystemProfiling){
-            ProfilingDataManager.getInstance().configureProfilingDataManager(profiledSubsystems, dumpInterval, subSystemProfiling);
+        //Check the dump interval
+        if(profilingConfig.getDumpInterval() != null)
+            dumpInterval = profilingConfig.getDumpInterval();
+
+        performanceProfiling = checkXsdBooleanValue(profilingConfig.isPerformanceStatistics());
+        requestProfiling = checkXsdBooleanValue(profilingConfig.isRequestFilter());
+
+        if (subSystemProfiling || performanceProfiling || requestProfiling){
+            ProfilingDataManager.getInstance().configureProfilingDataManager(profiledSubsystems, dumpInterval, subSystemProfiling, performanceProfiling, requestProfiling);
             return true;
         }
         else {
-            ProfilingDataManager.getInstance().configureProfilingDataManager(profiledSubsystems, dumpInterval, subSystemProfiling);
+            ProfilingDataManager.getInstance().configureProfilingDataManager(profiledSubsystems, dumpInterval, subSystemProfiling, performanceProfiling, requestProfiling);
             return false;
         }
     }   //applySubsystemProfiling
 
+    /*
+    *   Check value of Boolean in xsd
+    * */
+    private static boolean checkXsdBooleanValue(Boolean value){
+        if(value == null || !value)
+            return false;
+        else
+            return true;
+    }   //checkXsdBooleanValue
 
 }   //ProfilingConfigurationManager

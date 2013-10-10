@@ -50,7 +50,6 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
@@ -84,6 +83,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ObjectOperationOption;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -202,13 +202,16 @@ public abstract class ShadowCache {
 		return prismContext;
 	}
 	
-	public PrismObject<ShadowType> getShadow(String oid, PrismObject<ShadowType> repositoryShadow, GetOperationOptions options, Task task, 
+	public PrismObject<ShadowType> getShadow(String oid, PrismObject<ShadowType> repositoryShadow, 
+			Collection<SelectorOptions<GetOperationOptions>> options, Task task, 
 			OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException,
 			ConfigurationException, SecurityViolationException {
 
 		Validate.notNull(oid, "Object id must not be null.");
 
 		LOGGER.trace("Start getting object with oid {}", oid);
+		
+		GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 
 		// We are using parent result directly, not creating subresult.
 		// We want to hide the existence of shadow cache from the user.
@@ -238,10 +241,29 @@ public abstract class ShadowCache {
 		}
 		LOGGER.trace("Getting fresh object from ucf.");
 
-		PrismObject<ShadowType> resourceShadow = null;
-		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
+	
 		RefinedObjectClassDefinition objectClassDefinition = applyAttributesDefinition(repositoryShadow, resource);
+		
+		ConnectorInstance connector = null;
+		OperationResult connectorResult = parentResult.createMinorSubresult(ShadowCache.class.getName() + ".getConnectorInstance");
+		try {
+			connector = getConnectorInstance(resource, parentResult);
+			connectorResult.recordSuccess();
+		} catch (ObjectNotFoundException ex){
+			connectorResult.recordPartialError("Could not get connector instance. " + ex.getMessage(),  ex);
+			return repositoryShadow;
+		} catch (SchemaException ex){
+			connectorResult.recordPartialError("Could not get connector instance. " + ex.getMessage(),  ex);
+			return repositoryShadow;
+		} catch (CommunicationException ex){
+			connectorResult.recordPartialError("Could not get connector instance. " + ex.getMessage(),  ex);
+			return repositoryShadow;
+		} catch (ConfigurationException ex){
+			connectorResult.recordPartialError("Could not get connector instance. " + ex.getMessage(),  ex);
+			return repositoryShadow;
+		}
 
+		PrismObject<ShadowType> resourceShadow = null;
 		try {			
 			
 			// Let's get all the identifiers from the Shadow <attributes> part
@@ -290,7 +312,7 @@ public abstract class ShadowCache {
 			
 		} catch (Exception ex) {
 			try {
-				boolean compensate = GetOperationOptions.isDoNotDiscovery(options)? false : true;
+				boolean compensate = GetOperationOptions.isDoNotDiscovery(rootOptions)? false : true;
 				resourceShadow = handleError(ex, repositoryShadow, FailedOperation.GET, resource, null, compensate,
 						task, parentResult);
 				
@@ -666,13 +688,13 @@ public abstract class ShadowCache {
 			throw new IllegalArgumentException("Resource must not be null.");
 		}
 
-		searchObjectsIterativeInternal(objectClass, resource, null, handler,
+		searchObjectsIterativeInternal(objectClass, resource, null, null, handler,
 				readFromRepository, parentResult);
 
 	}
 
 	public void searchObjectsIterative(final QName objectClassName, final ResourceType resourceType,
-			ObjectQuery query, final ShadowHandler<ShadowType> handler, final OperationResult parentResult)
+			ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, final ShadowHandler<ShadowType> handler, final OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException {
 
 		Validate.notNull(resourceType, "Resource must not be null.");
@@ -682,14 +704,14 @@ public abstract class ShadowCache {
 		LOGGER.trace("Searching objects iterative with obejct class {}, resource: {}.", objectClassName,
 				ObjectTypeUtil.toShortString(resourceType));
 
-		searchObjectsIterativeInternal(objectClassName, resourceType, query, handler,
+		searchObjectsIterativeInternal(objectClassName, resourceType, query, options, handler,
 				true, parentResult);
 
 	}
 
 	private void searchObjectsIterativeInternal(QName objectClassName,
 			final ResourceType resourceType, ObjectQuery query,
-			final ShadowHandler<ShadowType> handler,
+			Collection<SelectorOptions<GetOperationOptions>> options, final ShadowHandler<ShadowType> handler,
 			final boolean readFromRepository, final OperationResult parentResult) throws SchemaException,
 			ObjectNotFoundException, CommunicationException, ConfigurationException {
 
@@ -708,6 +730,12 @@ public abstract class ShadowCache {
 			LOGGER.error(message);
 			parentResult.recordFatalError(message);
 			throw new SchemaException(message);
+		}
+		
+		GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+		if (GetOperationOptions.isNoFetch(rootOptions)) {
+			searchObjectsIterativeRepository(objectClassDef, resourceType, query, options, handler, parentResult);
+			return;
 		}
 		
 		ObjectFilter filter = null;
@@ -755,6 +783,9 @@ public abstract class ShadowCache {
 						PrismObject<ShadowType> repoShadow = lookupOrCreateShadowInRepository(connector, resourceShadow, objectClassDef, resourceType, parentResult); 
 						
 						applyAttributesDefinition(repoShadow, resourceType);
+						
+						forceRenameIfNeeded(resourceShadow.asObjectable(), repoShadow.asObjectable(), parentResult);
+						
 						resultShadow = completeShadow(connector, resourceShadow, repoShadow,
 								resourceType, objectClassDef, parentResult);
 
@@ -773,6 +804,11 @@ public abstract class ShadowCache {
 					LOGGER.error("Configuration error: {}", e.getMessage(), e);
 					return false;
 				} catch (ObjectNotFoundException e) {
+					// TODO: better error handling
+					parentResult.recordFatalError(e.getMessage(), e);
+					LOGGER.error("{}", e.getMessage(), e);
+					return false;
+				} catch (ObjectAlreadyExistsException e) {
 					// TODO: better error handling
 					parentResult.recordFatalError(e.getMessage(), e);
 					LOGGER.error("{}", e.getMessage(), e);
@@ -803,6 +839,38 @@ public abstract class ShadowCache {
 		
 	}
 	
+	private void searchObjectsIterativeRepository(
+			RefinedObjectClassDefinition objectClassDef,
+			final ResourceType resourceType, ObjectQuery query,
+			Collection<SelectorOptions<GetOperationOptions>> options,
+			final ShadowHandler<ShadowType> shadowHandler, OperationResult parentResult) throws SchemaException {
+		
+		com.evolveum.midpoint.schema.ResultHandler<ShadowType> repoHandler = new com.evolveum.midpoint.schema.ResultHandler<ShadowType>() {
+			@Override
+			public boolean handle(PrismObject<ShadowType> object,
+					OperationResult parentResult) {
+				try {
+					applyAttributesDefinition(object, resourceType);
+					boolean cont = shadowHandler.handle(object.asObjectable());
+					parentResult.recordSuccess();
+					return cont;
+				} catch (RuntimeException e) {
+					parentResult.recordFatalError(e);
+					throw e;
+				} catch (SchemaException e) {
+					parentResult.recordFatalError(e);
+					throw new SystemException(e);
+				} catch (ConfigurationException e) {
+					parentResult.recordFatalError(e);
+					throw new SystemException(e);
+				}
+			}
+		};
+		
+		shadowManager.searchObjectsIterativeRepository(objectClassDef, resourceType, query, options, repoHandler, parentResult);
+		
+	}
+
 	private PrismObject<ShadowType> lookupOrCreateShadowInRepository(ConnectorInstance connector, PrismObject<ShadowType> resourceShadow,
 			RefinedObjectClassDefinition objectClassDef, ResourceType resourceType, OperationResult parentResult) 
 					throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException, SecurityViolationException, GenericConnectorException {

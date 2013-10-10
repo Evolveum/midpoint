@@ -145,7 +145,7 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 
 		};
 
-		provisioningService.searchObjectsIterative(ShadowType.class, query, handler, parentResult);
+		provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, parentResult);
 
 		return foundAccount;
 	}

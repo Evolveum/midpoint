@@ -21,6 +21,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
 import org.identityconnectors.framework.common.objects.filter.Filter;
 import org.identityconnectors.framework.common.objects.filter.FilterBuilder;
@@ -31,6 +32,7 @@ import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
+import com.evolveum.midpoint.provisioning.ucf.impl.IcfNameMapper;
 import com.evolveum.midpoint.provisioning.ucf.util.UcfUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -44,7 +46,7 @@ public class ValueOperation extends Operation {
 	}
 
 	@Override
-	public Filter interpret(ObjectFilter objectFilter) throws SchemaException {
+	public Filter interpret(ObjectFilter objectFilter, IcfNameMapper icfNameMapper) throws SchemaException {
 
 		OperationResult parentResult = new OperationResult("interpret");
 
@@ -53,7 +55,7 @@ public class ValueOperation extends Operation {
 				&& valueFilter.getParentPath().equals(new ItemPath(ShadowType.F_ATTRIBUTES))) {
 			try {
 				QName propName = valueFilter.getDefinition().getName();
-				String icfName = UcfUtil.convertAttributeNameToIcf(propName, getInterpreter()
+				String icfName = icfNameMapper.convertAttributeNameToIcf(propName, getInterpreter()
 						.getResourceSchemaNamespace());
 				
 				if (objectFilter instanceof EqualsFilter) {
@@ -69,7 +71,12 @@ public class ValueOperation extends Operation {
 						// See MID-1460
 						throw new UnsupportedOperationException("Equals filter with a null value is NOT supported by ICF");
 					} else {
-						return FilterBuilder.equalTo(AttributeBuilder.build(icfName, convertedValues));
+						Attribute attr = AttributeBuilder.build(icfName, convertedValues);
+						if (valueFilter.getDefinition().isSingleValue()) {
+							return FilterBuilder.equalTo(attr);
+						} else {
+							return FilterBuilder.containsAllValues(attr);
+						}
 					}
 				
 				} else if (objectFilter instanceof SubstringFilter) {

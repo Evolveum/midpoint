@@ -112,6 +112,91 @@
 		            </tr>
 		        </table>
             </li>
+            <li wicket:id="profiling">
+                <table cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td class="label">
+                            <wicket:message key="pageLogging.requestFilter"/>
+                        </td>
+                        <td class="values">
+                            <input type="checkbox" wicket:id="requestFilter">
+                        </td>
+                        <td class="label">
+                            <wicket:message key="pageLogging.performanceStatistics"/>
+                        </td>
+                        <td class="values">
+                            <input type="checkbox" wicket:id="performanceStatistics">
+                        </td>
+                    </tr>
+                </table>
+                <h4>
+                    <wicket:message key="pageLogging.subsystems"/>
+                </h4>
+                <table cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td class="label">
+                            <wicket:message key="pageLogging.subsystem.model"/>
+                        </td>
+                        <td class="values">
+                            <input type="checkbox" wicket:id="subsystemModel">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="label">
+                            <wicket:message key="pageLogging.subsystem.repository"/>
+                        </td>
+                        <td class="values">
+                            <input type="checkbox" wicket:id="subsystemRepository">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="label">
+                            <wicket:message key="pageLogging.subsystem.provisioning"/>
+                        </td>
+                        <td class="values">
+                            <input type="checkbox" wicket:id="subsystemProvisioning">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="label">
+                            <wicket:message key="pageLogging.subsystem.ucf"/>
+                        </td>
+                        <td class="values">
+                            <input type="checkbox" wicket:id="subsystemUcf">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="label">
+                            <wicket:message key="pageLogging.subsystem.resourceObjectChangeListener"/>
+                        </td>
+                        <td class="values">
+                            <input type="checkbox" wicket:id="subsystemResourceObjectChangeListener">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="label">
+                            <wicket:message key="pageLogging.subsystem..taskManager"/>
+                        </td>
+                        <td class="values">
+                            <input type="checkbox" wicket:id="subsystemTaskManager">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="label">
+                            <wicket:message key="pageLogging.subsystem.workflow"/>
+                        </td>
+                        <td class="values">
+                            <input type="checkbox" wicket:id="subsystemWorkflow">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="label">
+                            <wicket:message key="pageLogging.dumpInterval"/>
+                        </td>
+                        <td><input type="text" wicket:id="dumpInterval"></td>
+                    </tr>
+                </table>
+            </li>
         </div>
         
 

@@ -41,6 +41,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
@@ -252,8 +253,15 @@ public class RepositoryCache implements RepositoryService {
 			cache.remove(oid);
 		}
 	}
+	
+	@Override
+	public <F extends FocusType> PrismObject<F> searchShadowOwner(
+			String shadowOid, OperationResult parentResult) throws ObjectNotFoundException {
+		return repository.searchShadowOwner(shadowOid, parentResult);
+	}
 
 	@Override
+	@Deprecated
 	public PrismObject<UserType> listAccountShadowOwner(String accountOid, OperationResult parentResult)
 			throws ObjectNotFoundException {
 		return repository.listAccountShadowOwner(accountOid, parentResult);
@@ -301,4 +309,5 @@ public class RepositoryCache implements RepositoryService {
 	public void cleanupTasks(CleanupPolicyType policy, OperationResult parentResult) {
 		repository.cleanupTasks(policy, parentResult);
 	}
+
 }

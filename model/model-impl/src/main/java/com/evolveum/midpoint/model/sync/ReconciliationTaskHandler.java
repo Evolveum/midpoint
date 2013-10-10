@@ -54,6 +54,8 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -321,7 +323,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		ObjectQuery query = createAccountSearchQuery(resource, refinedAccountDefinition);
 
 		OperationResult searchResult = new OperationResult(OperationConstants.RECONCILIATION+".searchIterative"); 
-		provisioningService.searchObjectsIterative(ShadowType.class, query, handler, searchResult);
+		provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, searchResult);
 
 		opResult.computeStatus();
 
@@ -376,7 +378,11 @@ public class ReconciliationTaskHandler implements TaskHandler {
 	private void reconcileShadow(PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource, Task task) {
 		OperationResult opResult = new OperationResult(OperationConstants.RECONCILIATION+".shadowReconciliation.object");
 		try {
-			provisioningService.getObject(ShadowType.class, shadow.getOid(), null, task, opResult);
+			Collection<SelectorOptions<GetOperationOptions>> options = null;
+			if (Utils.isDryRun(task)){
+				 options = SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery());
+			}
+			provisioningService.getObject(ShadowType.class, shadow.getOid(), options, task, opResult);
 		} catch (ObjectNotFoundException e) {
 			// Account is gone
 			reactShadowGone(shadow, resource, task, opResult);

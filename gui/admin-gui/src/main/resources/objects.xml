@@ -77,6 +77,11 @@
                 <package>org.hibernate.engine.jdbc.spi.SqlExceptionHelper</package>
             </classLogger>
             <classLogger>
+                <!-- disabled because of MID-1612, jasper library needs to be fixed -->
+                <level>OFF</level>
+                <package>net.sf.jasperreports.engine.fill.JRFillDataset</package>
+            </classLogger>
+            <classLogger>
                 <!-- disabled because we don't need to see every property file
                 loading message (unnecessary log pollution) -->
                 <level>WARN</level>
@@ -94,7 +99,7 @@
             <!-- Appender for profiling purposes -->
             <appender xsi:type="c:FileAppenderConfigurationType" name="IDM-PROFILE_LOG"
                       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-                <pattern>%date [%X{subsystem}] %level: %msg%n</pattern>
+                <pattern>%date %level: %msg%n</pattern>
                 <fileName>${catalina.base}/logs/idm-profile.log</fileName>
                 <filePattern>${catalina.base}/logs/idm-profile-%d{yyyy-MM-dd}.%i.log</filePattern>
                 <maxHistory>10</maxHistory>

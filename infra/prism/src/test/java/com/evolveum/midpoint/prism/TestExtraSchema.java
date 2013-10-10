@@ -49,7 +49,12 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class TestExtraSchema {
 	
+	public static final String NS_USER_2_EXT = "http://example.com/xml/ns/user-2-extension";
+	
 	private static final QName USER_EXTENSION_TYPE_QNAME = new QName(NS_USER_EXT,"UserExtensionType");
+	private static final QName USER_2_EXTENSION_TYPE_QNAME = new QName(NS_USER_2_EXT,"User2ExtensionType");
+
+	private static final QName USER_EXT_2_ELEMENT = new QName(NS_USER_2_EXT, "ext2");
 	
 	/**
 	 * Test is extra schema can be loaded to the schema registry and whether the file compliant to that
@@ -190,8 +195,13 @@ public class TestExtraSchema {
 	
 	private void assertUserDefinition(PrismObjectDefinition<UserType> userDef) {
 		PrismContainerDefinition extDef = userDef.findContainerDefinition(USER_EXTENSION_QNAME);
+		
+		System.out.println("User extension");
+		System.out.println(extDef.dump());
+		
 		assertTrue("Extension is not dynamic", extDef.isRuntimeSchema());
-		assertEquals("Wrong extension type", USER_EXTENSION_TYPE_QNAME, extDef.getTypeName());
+		assertTrue("Wrong extension type "+extDef.getTypeName(), 
+				USER_EXTENSION_TYPE_QNAME.equals(extDef.getTypeName()) || USER_2_EXTENSION_TYPE_QNAME.equals(extDef.getTypeName()));
 		assertEquals("Wrong extension displayOrder", (Integer)1000, extDef.getDisplayOrder());
 
 		PrismPropertyDefinition barPropDef = extDef.findPropertyDefinition(USER_EXT_BAR_ELEMENT);
@@ -208,6 +218,10 @@ public class TestExtraSchema {
 		assertNotNull("No 'multi' definition in user extension", multiPropDef);
 		PrismAsserts.assertDefinition(multiPropDef, USER_EXT_MULTI_ELEMENT, DOMUtil.XSD_STRING, 0, -1);
 		assertFalse("'multi' not indexed", multiPropDef.isIndexed());
+		
+		PrismPropertyDefinition ext2Def = extDef.findPropertyDefinition(USER_EXT_2_ELEMENT);
+		assertNotNull("No 'ext2' definition in user extension", ext2Def);
+		PrismAsserts.assertDefinition(ext2Def, USER_EXT_2_ELEMENT, DOMUtil.XSD_STRING, 1, 1);
 		
 		// Make sure that the ordering is OK. If it is not then a serialization will produce XML that
 		// does not comply to schema

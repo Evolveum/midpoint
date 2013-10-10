@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.model.lens.projector;
 
+import static com.evolveum.midpoint.common.InternalsConfig.consistencyChecks;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -27,7 +29,6 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.lens.LensContext;
@@ -38,7 +39,6 @@ import com.evolveum.midpoint.model.lens.LensUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -51,11 +51,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectTypeDependencyStrictnessType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectTypeDependencyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowDiscriminatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-
-import static com.evolveum.midpoint.common.InternalsConfig.consistencyChecks;
 
 /**
  * Projector recomputes the context. It takes the context with a few basic data as input. It uses all the policies 
@@ -178,8 +174,9 @@ public class Projector {
 		        
 		        assignmentProcessor.checkForAssignmentConflicts(context, result);
 		
-		        // User-related processing is over. Now we will process accounts in a loop.
+		     // User-related processing is over. Now we will process accounts in a loop.
 		        for (LensProjectionContext<P> projectionContext: context.getProjectionContexts()) {
+
 		        	if (projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN ||
 		        			projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.IGNORE) {
 						continue;
@@ -250,7 +247,12 @@ public class Projector {
 			        projectionContext.recompute();
 			        LensUtil.traceContext(LOGGER, activityDescription, "reconciliation of "+projectionDesc, false, context, false);
 			        if (consistencyChecks) context.checkConsistence();
+			        
+			        
 		        }
+		        
+		        // if there exists some conflicting projection contexts, add them to the context so they will be recomputed in the next wave..
+		        addConflictingContexts(context);
 		        
 		        if (consistencyChecks) context.checkConsistence();
 		        
@@ -298,6 +300,18 @@ public class Projector {
 			// Make sure that it is logged.
 			LOGGER.error("Runtime error in projector: {}", e.getMessage(), e);
 			throw e;
+		}
+		
+	}
+
+	private <F extends ObjectType, P extends ObjectType> void addConflictingContexts(LensContext<F, P> context) {
+		List<LensProjectionContext<? extends ObjectType>> conflictingContexts = accountValuesProcessor.getConflictingContexts();
+		if (conflictingContexts != null || !conflictingContexts.isEmpty()){
+			for (LensProjectionContext<? extends ObjectType> conflictingContext : conflictingContexts){
+				context.addProjectionContext((LensProjectionContext<P>) conflictingContext);
+			}
+		
+			accountValuesProcessor.getConflictingContexts().clear();
 		}
 		
 	}

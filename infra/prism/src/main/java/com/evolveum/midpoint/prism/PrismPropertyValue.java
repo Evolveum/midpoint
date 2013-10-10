@@ -351,6 +351,7 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 	}
 
 	private boolean matchComplex(PrismPropertyValue<?> otherValue, boolean ignoreMetadata, boolean isLiteral) {
+		
 		if (!super.equalsComplex(otherValue, ignoreMetadata, isLiteral)) {
 			return false;
 		}
@@ -389,7 +390,7 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 			return DOMUtil.compareElement((Element)thisRealValue, (Element)otherRealValue, isLiteral);
 		}
 		
-		if (otherRealValue instanceof Matchable){
+		if (otherRealValue instanceof Matchable && thisRealValue instanceof Matchable){
 			Matchable thisMatchableValue = (Matchable) thisRealValue;
 			Matchable otherMatchableValue = (Matchable) otherRealValue;
 			return thisMatchableValue.match(otherMatchableValue);

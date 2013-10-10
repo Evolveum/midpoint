@@ -21,6 +21,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -75,6 +76,9 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 
 	private static final String USER_LECHUCK_NAME = "lechuck";
 	private static final String ACCOUNT_CHARLES_NAME = "charles";
+	
+	private static final String USER_DEWATT_NAME = "dewatt";
+	private static final String ACCOUNT_DEWATT_NAME = "DeWatt";
 	
 	private static final String DESCRIPTION_RUM = "Where's the rum?";
 
@@ -262,7 +266,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         dummyAuditService.clear();
-                
+                        
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(USER_GUYBRUSH_OID, RESOURCE_DUMMY_PINK_OID, null, true);
         deltas.add(accountAssignmentUserDelta);
@@ -296,6 +300,75 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
         
         // The new account
         assertDummyAccount(RESOURCE_DUMMY_PINK_NAME, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(3);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(ChangeType.ADD, ShadowType.class);
+        dummyAuditService.assertExecutionSuccess();
+	}
+
+	@Test
+    public void test220DeWattAssignAccountDummyPinkCaseIgnore() throws Exception {
+		final String TEST_NAME = "test220DeWattAssignAccountDummyPinkCaseIgnore";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestIteration.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userDeWatt = createUser(USER_DEWATT_NAME, "Augustus DeWatt", true);
+        addObject(userDeWatt);
+        String userDeWattkOid = userDeWatt.getOid();
+        
+        PrismObject<ShadowType> accountDeWatt = createAccount(resourceDummyPink, ACCOUNT_DEWATT_NAME, true);
+        addAttributeToShadow(accountDeWatt, resourceDummyPink, 
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME,  "Augustus DeWatt");
+        addObject(accountDeWatt);
+
+        // precondition
+        assertDummyAccount(RESOURCE_DUMMY_PINK_NAME, ACCOUNT_DEWATT_NAME, "Augustus DeWatt", true);
+                
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(userDeWattkOid,
+        		RESOURCE_DUMMY_PINK_OID, null, true);
+        deltas.add(accountAssignmentUserDelta);
+        
+        dummyAuditService.clear();
+                  
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+		modelService.executeChanges(deltas, null, task, result);
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+		PrismObject<UserType> userDeWattAfter = getUser(userDeWattkOid);
+		display("User after change execution", userDeWattAfter);
+		assertUser(userDeWattAfter, userDeWattkOid, USER_DEWATT_NAME, "Augustus DeWatt", null, null);
+		assertAccounts(userDeWattAfter, 1);
+		assertAccount(userDeWattAfter, RESOURCE_DUMMY_PINK_OID);
+		
+		String accountPinkOid = getAccountRef(userDeWattAfter, RESOURCE_DUMMY_PINK_OID);
+        
+		// Check shadow
+        PrismObject<ShadowType> accountPinkShadow = repositoryService.getObject(ShadowType.class, accountPinkOid, null, result);
+        assertShadowRepo(accountPinkShadow, accountPinkOid, USER_DEWATT_NAME+"1", resourceDummyPinkType);
+        
+        // Check account
+        PrismObject<ShadowType> accountPinkModel = modelService.getObject(ShadowType.class, accountPinkOid, null, task, result);
+        assertShadowModel(accountPinkModel, accountPinkOid, USER_DEWATT_NAME+"1", resourceDummyPinkType);
+        
+        // Old account
+        assertDummyAccount(RESOURCE_DUMMY_PINK_NAME, ACCOUNT_DEWATT_NAME, "Augustus DeWatt", true);
+        // The new account
+        assertDummyAccount(RESOURCE_DUMMY_PINK_NAME, USER_DEWATT_NAME+"1", "Augustus DeWatt", true);
         
         // Check audit
         display("Audit", dummyAuditService);

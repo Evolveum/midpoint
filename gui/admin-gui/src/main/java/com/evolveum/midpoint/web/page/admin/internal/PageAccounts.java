@@ -191,6 +191,7 @@ public class PageAccounts extends PageAdmin {
         form.add(accountsContainer);
 
         ObjectDataProvider provider = new ObjectDataProvider(this, ShadowType.class);
+        provider.setOptions(SelectorOptions.createCollection(GetOperationOptions.createRaw()));
         provider.setQuery(ObjectQuery.createObjectQuery(createResourceQueryFilter()));
         TablePanel accounts = new TablePanel(ID_ACCOUNTS, provider, createAccountsColumns());
         accounts.add(new VisibleEnableBehaviour() {

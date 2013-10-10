@@ -42,31 +42,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType
 
 public class UcfUtil {
 	
-	public static String convertAttributeNameToIcf(QName attrQName, String resourceSchemaNamespace)
-			throws SchemaException {
-		// Attribute QNames in the resource instance namespace are converted
-		// "as is"
-		if (attrQName.getNamespaceURI().equals(resourceSchemaNamespace)) {
-			return attrQName.getLocalPart();
-		}
-
-		// Other namespace are special cases
-
-		if (ConnectorFactoryIcfImpl.ICFS_NAME.equals(attrQName)) {
-			return Name.NAME;
-		}
-
-		if (ConnectorFactoryIcfImpl.ICFS_UID.equals(attrQName)) {
-			// UID is strictly speaking not an attribute. But it acts as an
-			// attribute e.g. in create operation. Therefore we need to map it.
-			return Uid.NAME;
-		}
-
-		// No mapping available
-
-		throw new SchemaException("No mapping from QName " + attrQName + " to an ICF attribute name");
-	}
-	
 	public static Object convertValueToIcf(Object value, Protector protector, QName propName) throws SchemaException {
 		if (value == null) {
 			return null;

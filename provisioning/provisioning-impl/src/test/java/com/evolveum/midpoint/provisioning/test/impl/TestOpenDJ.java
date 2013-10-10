@@ -808,7 +808,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
         };
 
         // WHEN
-        provisioningService.searchObjectsIterative(ShadowType.class, query, handler, result);
+        provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, result);
 
         // THEN
         display("Count", objects.size());
@@ -952,7 +952,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 				"src/test/resources/impl/query-filter-all-accounts.xml"), QueryType.class);
 		ObjectQuery query = QueryConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
 		
-		provisioningService.searchObjectsIterative(ShadowType.class, query, new ResultHandler<ShadowType>() {
+		provisioningService.searchObjectsIterative(ShadowType.class, query, null, new ResultHandler<ShadowType>() {
 
 			@Override
 			public boolean handle(PrismObject<ShadowType> object, OperationResult parentResult) {
@@ -993,7 +993,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		ObjectQuery query = QueryConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
 
 		List<PrismObject<ShadowType>> objListType = 
-			provisioningService.searchObjects(ShadowType.class, query, result);
+			provisioningService.searchObjects(ShadowType.class, query, null, result);
 		
 		for (PrismObject<ShadowType> objType : objListType) {
 			if (objType == null) {
@@ -1016,7 +1016,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		ObjectQuery query = QueryConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
 
 		List<PrismObject<ShadowType>> objListType = 
-			provisioningService.searchObjects(ShadowType.class, query, result);
+			provisioningService.searchObjects(ShadowType.class, query, null, result);
 		
 		for (PrismObject<ShadowType> objType : objListType) {
 			if (objType == null) {
