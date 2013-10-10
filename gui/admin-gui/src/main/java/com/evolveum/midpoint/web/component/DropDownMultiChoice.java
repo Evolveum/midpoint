@@ -39,9 +39,15 @@ public class DropDownMultiChoice<T> extends ListMultipleChoice<T> {
 
     private IModel<Map<String, String>> options;
 
-    public DropDownMultiChoice(String id, IModel<? extends Collection<T>> model,
+    public DropDownMultiChoice(String id, IModel<? extends List<T>> model,
                                IModel<? extends List<? extends T>> choices, IModel<Map<String, String>> options) {
         super(id, model, choices);
+        this.options = options;
+    }
+
+    public DropDownMultiChoice(String id, IModel<List<T>> object, IModel<List<T>> choices,
+                               IChoiceRenderer<T> renderer, IModel<Map<String, String>> options) {
+        super(id, object, choices, renderer);
         this.options = options;
     }
 
@@ -58,8 +64,10 @@ public class DropDownMultiChoice<T> extends ListMultipleChoice<T> {
     }
 
     private void appendOptions(StringBuilder sb) {
-        Map<String, String> map = options.getObject();
-        if (map == null) {
+        Map<String, String> map;
+        if (options != null && options.getObject() != null) {
+            map = options.getObject();
+        } else {
             map = createDefaultOptions();
         }
 

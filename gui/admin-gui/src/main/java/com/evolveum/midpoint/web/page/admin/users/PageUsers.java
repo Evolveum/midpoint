@@ -61,6 +61,7 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -99,7 +100,6 @@ public class PageUsers extends PageAdminUsers {
     private static final String ID_SEARCH_BUTTON = "searchButton";
 
     private LoadableModel<UsersDto> model;
-    private Model searchType = new Model();
     private LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel;
 
     public PageUsers() {
@@ -348,6 +348,7 @@ public class PageUsers extends PageAdminUsers {
         provider.setOptions(options);
 
         TablePanel table = new TablePanel<SelectableBean<UserType>>(ID_TABLE, provider, columns);
+        table.setOutputMarkupId(true);
 
         UsersStorage storage = getSessionStorage().getUsers();
         table.setCurrentPage(storage.getUsersPaging());
@@ -360,18 +361,25 @@ public class PageUsers extends PageAdminUsers {
         add(searchForm);
 
         TextField searchText = new TextField(ID_SEARCH_TEXT, new PropertyModel<String>(model,
-                "searchText"));
+                UsersDto.F_TEXT));
         searchForm.add(searchText);
 
         IModel<Map<String, String>> options = new Model(null);
-        DropDownMultiChoice searchType= new DropDownMultiChoice(ID_SEARCH_TYPE, this.searchType,
-                new AbstractReadOnlyModel<List>() {
+        DropDownMultiChoice searchType = new DropDownMultiChoice<UsersDto.SearchType>(ID_SEARCH_TYPE,
+                new PropertyModel<List<UsersDto.SearchType>>(model, UsersDto.F_TYPE),
+                WebMiscUtil.createReadonlyModelFromEnum(UsersDto.SearchType.class),
+                new IChoiceRenderer<UsersDto.SearchType>() {
 
-                    @Override
-                    public List getObject() {
-                       return createOptions();
-                    }
-                }, options);
+            @Override
+            public Object getDisplayValue(UsersDto.SearchType object) {
+                return WebMiscUtil.createLocalizedModelForEnum(object, PageUsers.this).getObject();
+            }
+
+            @Override
+            public String getIdValue(UsersDto.SearchType object, int index) {
+                return Integer.toString(index);
+            }
+        }, options);
         searchForm.add(searchType);
 
         AjaxSubmitButton searchButton = new AjaxSubmitButton(ID_SEARCH_BUTTON,
@@ -390,16 +398,6 @@ public class PageUsers extends PageAdminUsers {
         searchForm.add(searchButton);
     }
 
-    private List<String> createOptions() {
-        List<String> list = new ArrayList<String>();
-        list.add(getString("pageUsers.name"));
-        list.add(getString("pageUsers.givenName"));
-        list.add(getString("pageUsers.familyName"));
-        list.add(getString("pageUsers.fullName"));
-
-        return list;
-    }
-
     private void userDetailsPerformed(AjaxRequestTarget target, String oid) {
         PageParameters parameters = new PageParameters();
         parameters.add(PageUser.PARAM_USER_ID, oid);
@@ -411,7 +409,6 @@ public class PageUsers extends PageAdminUsers {
     }
 
     private void searchPerformed(AjaxRequestTarget target) {
-        System.out.println(searchType.getObject());
         ObjectQuery query = createQuery();
         target.add(getFeedbackPanel());
 
@@ -430,7 +427,7 @@ public class PageUsers extends PageAdminUsers {
     private ObjectQuery createQuery() {
         UsersDto dto = model.getObject();
         ObjectQuery query = null;
-        if (StringUtils.isEmpty(dto.getSearchText())) {
+        if (StringUtils.isEmpty(dto.getText())) {
             return null;
         }
 
@@ -438,22 +435,22 @@ public class PageUsers extends PageAdminUsers {
             List<ObjectFilter> filters = new ArrayList<ObjectFilter>();
 
             PolyStringNormalizer normalizer = getPrismContext().getDefaultPolyStringNormalizer();
-            String normalizedString = normalizer.normalize(dto.getSearchText());
+            String normalizedString = normalizer.normalize(dto.getText());
 
-            if (dto.isName()) {
+            if (dto.hasType(UsersDto.SearchType.NAME)) {
                 filters.add(SubstringFilter.createSubstring(UserType.class, getPrismContext(),
                         UserType.F_NAME, PolyStringNormMatchingRule.NAME.getLocalPart(), normalizedString));
             }
 
-            if (dto.isFamilyName()) {
+            if (dto.hasType(UsersDto.SearchType.FAMILY_NAME)) {
                 filters.add(SubstringFilter.createSubstring(UserType.class, getPrismContext(),
                         UserType.F_FAMILY_NAME, PolyStringNormMatchingRule.NAME.getLocalPart(), normalizedString));
             }
-            if (dto.isFullName()) {
+            if (dto.hasType(UsersDto.SearchType.FULL_NAME)) {
                 filters.add(SubstringFilter.createSubstring(UserType.class, getPrismContext(),
                         UserType.F_FULL_NAME, PolyStringNormMatchingRule.NAME.getLocalPart(), normalizedString));
             }
-            if (dto.isGivenName()) {
+            if (dto.hasType(UsersDto.SearchType.GIVEN_NAME)) {
                 filters.add(SubstringFilter.createSubstring(UserType.class, getPrismContext(),
                         UserType.F_GIVEN_NAME, PolyStringNormMatchingRule.NAME.getLocalPart(), normalizedString));
             }
