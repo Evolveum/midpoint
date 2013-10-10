@@ -109,12 +109,12 @@ public class MidpointXmlProvider<T> extends AbstractConfigurableProvider impleme
 				object = (T) prismContext.getPrismJaxbProcessor().unmarshalObject(entityStream);
 			}
 			
-			if (object instanceof ObjectModificationType){
-				
-				Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications((ObjectModificationType)object, UserType.class, prismContext);
-				return (T) modifications;
-			}
-			
+//			if (object instanceof ObjectModificationType){
+//				
+//				Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications((ObjectModificationType)object, UserType.class, prismContext);
+//				return (T) modifications;
+//			}
+//			
 			return object;
 		} catch (SchemaException ex){
 			

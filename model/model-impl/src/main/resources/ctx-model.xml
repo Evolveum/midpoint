@@ -299,12 +299,14 @@
         	<bean class="com.evolveum.midpoint.model.ModelRestService"/>
         </jaxrs:serviceBeans>
       <jaxrs:providers>
-      <ref bean="jaxbProvider" />
-     
+      	<ref bean="jaxbProvider" />
+     	<ref bean="restAuthenticationHandler" />
     </jaxrs:providers>
    
     </jaxrs:server>
      <bean id="jaxbProvider" class="com.evolveum.midpoint.model.MidpointXmlProvider"/>
+     
+     <bean id="restAuthenticationHandler" class="com.evolveum.midpoint.model.MidpointRestAuthenticationHandler"/>
 
     <bean id="authenticationInterceptor" class="org.apache.cxf.ws.security.wss4j.WSS4JInInterceptor">
         <constructor-arg>
