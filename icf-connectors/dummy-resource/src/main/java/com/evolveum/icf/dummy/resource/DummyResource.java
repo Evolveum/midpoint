@@ -289,6 +289,9 @@ public class DummyResource {
 	}
 	
 	private <T extends DummyObject> T getObjectByName(Map<String,T> map, String name) throws ConnectException, FileNotFoundException {
+		if (!enforceUniqueName) {
+			throw new IllegalStateException("Attempt to search object by name while resource is in non-unique name mode");
+		}
 		if (getBreakMode == BreakMode.NONE) {
 			return map.get(normalize(name));
 		} else if (schemaBreakMode == BreakMode.NETWORK) {

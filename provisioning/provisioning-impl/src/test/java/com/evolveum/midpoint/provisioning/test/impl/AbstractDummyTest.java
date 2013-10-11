@@ -40,6 +40,7 @@ import com.evolveum.icf.dummy.resource.DummyAttributeDefinition;
 import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.icf.dummy.resource.DummyObject;
 import com.evolveum.icf.dummy.resource.DummyObjectClass;
+import com.evolveum.icf.dummy.resource.DummyPrivilege;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.monitor.CachingStatistics;
@@ -167,6 +168,8 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	private ResourceSchema lastResourceSchema = null;
 	private RefinedResourceSchema lastRefinedResourceSchema;
 
+	protected String daemonIcfUid;
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		// We need to switch off the encryption checks. Some values cannot be encrypted as we do
@@ -185,6 +188,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		dummyAccountDaemon.setEnabled(true);
 		dummyAccountDaemon.addAttributeValues("fullname", "Evil Daemon");
 		dummyResource.addAccount(dummyAccountDaemon);
+		daemonIcfUid = dummyAccountDaemon.getId();
 
 		PrismObject<ShadowType> shadowDaemon = PrismTestUtil.parseObject(ACCOUNT_DAEMON_FILE);
 		if (!isIcfNameUidSame()) {
@@ -196,6 +200,10 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	protected void setIcfUid(PrismObject<ShadowType> shadow, String icfUid) {
 		PrismProperty<String> icfUidAttr = shadow.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_UID));
 		icfUidAttr.setRealValue(icfUid);
+	}
+	
+	protected String getIcfUid(ShadowType shadowType) {
+		return getIcfUid(shadowType.asPrismObject());
 	}
 	
 	protected String getIcfUid(PrismObject<ShadowType> shadow) {
@@ -266,9 +274,66 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		dummyResourceCtl.assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType);
 	}
 	
-	protected <T> void assertDummyAccountAttributeValues(String accountId, String attributeName, T... expectedValues) throws ConnectException, FileNotFoundException {
-		DummyAccount dummyAccount = dummyResource.getAccountByUsername(accountId);
-		assertNotNull("No account '"+accountId+"'", dummyAccount);
+	protected DummyAccount getDummyAccount(String icfName, String icfUid) throws ConnectException, FileNotFoundException {
+		if (isNameUnique()) {
+			return dummyResource.getAccountByUsername(icfName);
+		} else {
+			 return dummyResource.getAccountById(icfUid);
+		}
+	}
+	
+	protected DummyAccount getDummyAccountAssert(String icfName, String icfUid) throws ConnectException, FileNotFoundException {
+		if (isNameUnique()) {
+			return dummyResource.getAccountByUsername(icfName);
+		} else {
+			 DummyAccount account = dummyResource.getAccountById(icfUid);
+			 assertNotNull("No dummy account with ICF UID "+icfUid+" (expected name "+icfName+")", account);
+			 assertEquals("Unexpected name in "+account, icfName, account.getName());
+			 return account;
+		}
+	}
+	
+	protected DummyGroup getDummyGroup(String icfName, String icfUid) throws ConnectException, FileNotFoundException {
+		if (isNameUnique()) {
+			return dummyResource.getGroupByName(icfName);
+		} else {
+			 return dummyResource.getGroupById(icfUid);
+		}
+	}
+	
+	protected DummyGroup getDummyGroupAssert(String icfName, String icfUid) throws ConnectException, FileNotFoundException {
+		if (isNameUnique()) {
+			return dummyResource.getGroupByName(icfName);
+		} else {
+			 DummyGroup group = dummyResource.getGroupById(icfUid);
+			 assertNotNull("No dummy group with ICF UID "+icfUid+" (expected name "+icfName+")", group);
+			 assertEquals("Unexpected name in "+group, icfName, group.getName());
+			 return group;
+		}
+	}
+	
+	protected DummyPrivilege getDummyPrivilege(String icfName, String icfUid) throws ConnectException, FileNotFoundException {
+		if (isNameUnique()) {
+			return dummyResource.getPrivilegeByName(icfName);
+		} else {
+			 return dummyResource.getPrivilegeById(icfUid);
+		}
+	}
+
+	protected DummyPrivilege getDummyPrivilegeAssert(String icfName, String icfUid) throws ConnectException, FileNotFoundException {
+		if (isNameUnique()) {
+			return dummyResource.getPrivilegeByName(icfName);
+		} else {
+			 DummyPrivilege priv = dummyResource.getPrivilegeById(icfUid);
+			 assertNotNull("No dummy privilege with ICF UID "+icfUid+" (expected name "+icfName+")", priv);
+			 assertEquals("Unexpected name in "+priv, icfName, priv.getName());
+			 return priv;
+		}
+	}
+
+	protected <T> void assertDummyAccountAttributeValues(String accountName, String accountUid, String attributeName, T... expectedValues) throws ConnectException, FileNotFoundException {
+		DummyAccount dummyAccount = getDummyAccountAssert(accountName, accountUid);
+		assertNotNull("No account '"+accountName+"'", dummyAccount);
 		assertDummyAttributeValues(dummyAccount, attributeName, expectedValues);
 	}
 	
@@ -283,6 +348,10 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	}
 	
 	protected boolean isIcfNameUidSame() {
+		return true;
+	}
+	
+	protected boolean isNameUnique() {
 		return true;
 	}
 	
