@@ -46,11 +46,14 @@ import com.evolveum.midpoint.common.monitor.CachingStatistics;
 import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -59,6 +62,7 @@ import com.evolveum.midpoint.provisioning.test.mock.SynchornizationServiceMock;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -105,7 +109,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 
 	protected static final String ACCOUNT_DAEMON_USERNAME = "daemon";
 	protected static final String ACCOUNT_DAEMON_OID = "c0c010c0-dddd-dddd-dddd-dddddddae604";
-	protected static final String ACCOUNT_DAEMON_FILENAME = TEST_DIR + "account-daemon.xml";
+	protected static final File ACCOUNT_DAEMON_FILE = new File(TEST_DIR, "account-daemon.xml");
 
 	protected static final String ACCOUNT_DAVIEJONES_USERNAME = "daviejones";
 
@@ -182,9 +186,23 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		dummyAccountDaemon.addAttributeValues("fullname", "Evil Daemon");
 		dummyResource.addAccount(dummyAccountDaemon);
 
-		repoAddObjectFromFile(ACCOUNT_DAEMON_FILENAME, ShadowType.class, initResult);
+		PrismObject<ShadowType> shadowDaemon = PrismTestUtil.parseObject(ACCOUNT_DAEMON_FILE);
+		if (!isIcfNameUidSame()) {
+			setIcfUid(shadowDaemon, dummyAccountDaemon.getId());
+		}
+		repositoryService.addObject(shadowDaemon, null, initResult);
 	}
 	
+	protected void setIcfUid(PrismObject<ShadowType> shadow, String icfUid) {
+		PrismProperty<String> icfUidAttr = shadow.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_UID));
+		icfUidAttr.setRealValue(icfUid);
+	}
+	
+	protected String getIcfUid(PrismObject<ShadowType> shadow) {
+		PrismProperty<String> icfUidAttr = shadow.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_UID));
+		return icfUidAttr.getRealValue();
+	}
+
 	protected String getResourceDummyFilename() {
 		return RESOURCE_DUMMY_FILENAME;
 	}
@@ -208,23 +226,23 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		OperationResult result = new OperationResult(TestDummyNegative.class.getName()
 				+ ".checkConsistency");
 		
-		ItemDefinition itemDef = ShadowUtil.getAttributesContainer(object).getDefinition().findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_UID);
+		ItemDefinition itemDef = ShadowUtil.getAttributesContainer(object).getDefinition().findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_NAME);
 		
 		LOGGER.info("item definition: {}", itemDef.dump());
 		//TODO: matching rule
-		EqualsFilter equal = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), itemDef, null, getWillRepoIcfUid());
+		EqualsFilter equal = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), itemDef, null, getWillRepoIcfName());
 		ObjectQuery query = ObjectQuery.createObjectQuery(equal);
 		
-		System.out.println("Looking for shadows of \"" + getWillRepoIcfUid() + "\" with filter "
+		System.out.println("Looking for shadows of \"" + getWillRepoIcfName() + "\" with filter "
 				+ query.dump());
-		display("Looking for shadows of \"" + getWillRepoIcfUid() + "\" with filter "
+		display("Looking for shadows of \"" + getWillRepoIcfName() + "\" with filter "
 				+ query.dump());
 		
 		List<PrismObject<ShadowType>> objects = repositoryService.searchObjects(ShadowType.class, query,
 				null, result);
 
 		
-		assertEquals("Wrong number of shadows for ICF UID \"" + getWillRepoIcfUid() + "\"", 1, objects.size());
+		assertEquals("Wrong number of repo shadows for ICF NAME \"" + getWillRepoIcfName() + "\"", 1, objects.size());
 
 	}
 	
@@ -260,8 +278,12 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		TestUtil.assertSetEquals("Wroung values of attribute "+attributeName+" in "+object.getShortTypeName()+" "+object, attributeValues, expectedValues);
 	}
 	
-	protected String getWillRepoIcfUid() {
+	protected String getWillRepoIcfName() {
 		return ACCOUNT_WILL_USERNAME;
+	}
+	
+	protected boolean isIcfNameUidSame() {
+		return true;
 	}
 	
 	protected void assertMember(DummyGroup group, String accountId) {
