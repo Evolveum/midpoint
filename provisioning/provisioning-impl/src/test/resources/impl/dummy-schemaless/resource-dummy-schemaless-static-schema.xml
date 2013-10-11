@@ -134,6 +134,10 @@
 	        <cap:activation>
 	            <cap:status/>
 	        </cap:activation>
+	        <cap:create/>
+	        <cap:read/>
+	        <cap:update/>
+	        <cap:delete/>
     	</native>
 	</capabilities>
 </resource>

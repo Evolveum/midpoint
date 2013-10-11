@@ -35,4 +35,5 @@
 	</connectorConfiguration>
 	<!-- No schema. And it will NOT be generated. See what happens. -->
 	<!-- ... and no schemaHandling as well. -->
+	
 </resource>
