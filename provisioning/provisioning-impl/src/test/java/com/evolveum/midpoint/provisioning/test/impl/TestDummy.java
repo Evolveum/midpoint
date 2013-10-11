@@ -33,6 +33,7 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.net.ConnectException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -161,6 +162,13 @@ public class TestDummy extends AbstractDummyTest {
 	private CachingMetadataType capabilitiesCachingMetadataType;
 	private String drakeAccountOid;
 	protected String willIcfUid;
+	protected String morganIcfUid;
+	private String williamIcfUid;
+	private String piratesIcfUid;
+	private String pillageIcfUid;
+	private String leChuckIcfUid;
+	private String blackbeardIcfUid;
+	private String drakeIcfUid;
 
 	@Test
 	public void test000Integrity() throws ObjectNotFoundException, SchemaException {
@@ -939,7 +947,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// Check if the account was created in the dummy resource
 
-		DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
+		DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, willIcfUid);
 		assertNotNull("No dummy account", dummyAccount);
 		assertEquals("Fullname is wrong", "Will Turner", dummyAccount.getAttributeValue("fullname"));
 		assertTrue("The account is not enabled", dummyAccount.isEnabled());
@@ -983,6 +991,7 @@ public class TestDummy extends AbstractDummyTest {
 		ShadowType accountType = repositoryService
 				.getObject(ShadowType.class, ACCOUNT_MORGAN_OID, null, result).asObjectable();
 		PrismAsserts.assertEqualsPolyString("Account name was not generated (repository)", ACCOUNT_MORGAN_NAME, accountType.getName());
+		morganIcfUid = getIcfUid(accountType);
 		
 		syncServiceMock.assertNotifySuccessOnly();
 
@@ -996,7 +1005,7 @@ public class TestDummy extends AbstractDummyTest {
 				provisioningAccountType, new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "password")));
 
 		// Check if the account was created in the dummy resource
-		DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_MORGAN_NAME);
+		DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_MORGAN_NAME, getIcfUid(provisioningAccountType));
 		assertNotNull("No dummy account", dummyAccount);
 		assertEquals("Fullname is wrong", "Captain Morgan", dummyAccount.getAttributeValue("fullname"));
 		assertTrue("The account is not enabled", dummyAccount.isEnabled());
@@ -1048,10 +1057,10 @@ public class TestDummy extends AbstractDummyTest {
 	private void checkAccountWill(ShadowType shadow, OperationResult result) {
 		checkAccountShadow(shadow, result);
 		Collection<ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadow);
-		assertEquals("Unexpected number of attributes", 6, attributes.size());
 		assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "Flying Dutchman");
 		assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "Sword", "LOVE");
 		assertAttribute(shadow, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 42);
+		assertEquals("Unexpected number of attributes", 6, attributes.size());
 	}
 
 	@Test
@@ -1375,7 +1384,8 @@ public class TestDummy extends AbstractDummyTest {
 		TestUtil.assertSuccess(result);
 		
 		delta.checkConsistence();
-		assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Pirate Will Turner");
+		assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, willIcfUid,
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Pirate Will Turner");
 		
 		syncServiceMock.assertNotifySuccessOnly();
 		
@@ -1410,7 +1420,8 @@ public class TestDummy extends AbstractDummyTest {
 		
 		delta.checkConsistence();
 		// check if attribute was changed
-		assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate");
+		assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, willIcfUid, 
+				DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate");
 		
 		syncServiceMock.assertNotifySuccessOnly();
 		
@@ -1445,7 +1456,8 @@ public class TestDummy extends AbstractDummyTest {
 		
 		delta.checkConsistence();
 		// check if attribute was changed
-		assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate", "Captain");
+		assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, willIcfUid, 
+				DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Pirate", "Captain");
 		
 		syncServiceMock.assertNotifySuccessOnly();
 		
@@ -1478,7 +1490,8 @@ public class TestDummy extends AbstractDummyTest {
 		
 		delta.checkConsistence();
 		// check if attribute was changed
-		assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Captain");
+		assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, willIcfUid, 
+				DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Captain");
 		
 		syncServiceMock.assertNotifySuccessOnly();
 		
@@ -1515,7 +1528,8 @@ public class TestDummy extends AbstractDummyTest {
 		
 		delta.checkConsistence();
 		// check if attribute was changed
-		assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Captain");
+		assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, willIcfUid, 
+				DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "Captain");
 		
 		syncServiceMock.assertNotifySuccessOnly();
 		
@@ -1535,7 +1549,7 @@ public class TestDummy extends AbstractDummyTest {
 		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
-		DummyAccount willDummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
+		DummyAccount willDummyAccount = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, willIcfUid);
 		willDummyAccount.replaceAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, null);
 
 		// WHEN
@@ -1590,10 +1604,11 @@ public class TestDummy extends AbstractDummyTest {
 		ShadowType provisioningAccountType = provisioningService.getObject(ShadowType.class,
 				ACCOUNT_NEW_SCRIPT_OID, null, task, result).asObjectable();
 		PrismAsserts.assertEqualsPolyString("Wrong name", "william", provisioningAccountType.getName());
+		williamIcfUid = getIcfUid(accountType);
 
 		// Check if the account was created in the dummy resource
 
-		DummyAccount dummyAccount = dummyResource.getAccountByUsername("william");
+		DummyAccount dummyAccount = getDummyAccountAssert("william", williamIcfUid);
 		assertNotNull("No dummy account", dummyAccount);
 		assertEquals("Fullname is wrong", "William Turner", dummyAccount.getAttributeValue("fullname"));
 		assertTrue("The account is not enabled", dummyAccount.isEnabled());
@@ -1641,7 +1656,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// Check if the account was modified in the dummy resource
 
-		DummyAccount dummyAccount = dummyResource.getAccountByUsername("william");
+		DummyAccount dummyAccount = getDummyAccountAssert("william", williamIcfUid);
 		assertNotNull("No dummy account", dummyAccount);
 		assertEquals("Fullname is wrong", "Will Turner", dummyAccount.getAttributeValue("fullname"));
 		assertTrue("The account is not enabled", dummyAccount.isEnabled());
@@ -1690,7 +1705,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// Check if the account was modified in the dummy resource
 
-		DummyAccount dummyAccount = dummyResource.getAccountByUsername("william");
+		DummyAccount dummyAccount = getDummyAccountAssert("william", williamIcfUid);
 		assertNotNull("No dummy account", dummyAccount);
 		assertEquals("Fullname is wrong", "Will Turner", dummyAccount.getAttributeValue("fullname"));
 		assertTrue("The account is not enabled", dummyAccount.isEnabled());
@@ -1727,7 +1742,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// Check if the account was modified in the dummy resource
 
-		DummyAccount dummyAccount = dummyResource.getAccountByUsername("william");
+		DummyAccount dummyAccount = getDummyAccount("william", williamIcfUid);
 		assertNull("Dummy account not gone", dummyAccount);
 		
 		ProvisioningScriptSpec beforeScript = new ProvisioningScriptSpec("Goodbye World");
@@ -1784,7 +1799,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		display("Retrieved account shadow", accountType);
 
-		DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
+		DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, willIcfUid);
 		assertTrue(dummyAccount.isEnabled());
 		
 		syncServiceMock.reset();
@@ -1806,7 +1821,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		delta.checkConsistence();
 		// check if activation was changed
-		dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
+		dummyAccount = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, willIcfUid);
 		assertFalse("Dummy account "+ACCOUNT_WILL_USERNAME+" is enabled, expected disabled", dummyAccount.isEnabled());
 		
 		syncServiceMock.assertNotifySuccessOnly();
@@ -1828,7 +1843,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertNotNull(accountType);
 		display("Retrieved account shadow", accountType);
 
-		DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
+		DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, willIcfUid);
 		assertFalse("Account is not disabled", dummyAccount.isEnabled());
 		
 		syncServiceMock.reset();
@@ -1850,7 +1865,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		delta.checkConsistence();
 		// check if activation was changed
-		dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
+		dummyAccount = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, willIcfUid);
 		assertTrue("Dummy account "+ACCOUNT_WILL_USERNAME+" is disabled, expected enabled", dummyAccount.isEnabled());
 		
 		syncServiceMock.assertNotifySuccessOnly();
@@ -1873,7 +1888,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		display("Retrieved account shadow", accountType);
 
-		DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
+		DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, willIcfUid);
 		assertTrue(dummyAccount.isEnabled());
 		
 		syncServiceMock.reset();
@@ -1896,7 +1911,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		delta.checkConsistence();
 		// check if activation was changed
-		dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
+		dummyAccount = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, willIcfUid);
 		assertEquals("Wrong account validFrom in account "+ACCOUNT_WILL_USERNAME, new Date(VALID_FROM_MILLIS), dummyAccount.getValidFrom());
 		assertTrue("Dummy account "+ACCOUNT_WILL_USERNAME+" is disabled, expected enabled", dummyAccount.isEnabled());
 		
@@ -1920,7 +1935,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		display("Retrieved account shadow", accountType);
 
-		DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
+		DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, willIcfUid);
 		assertTrue(dummyAccount.isEnabled());
 		
 		syncServiceMock.reset();
@@ -1943,7 +1958,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		delta.checkConsistence();
 		// check if activation was changed
-		dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
+		dummyAccount = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, willIcfUid);
 		assertEquals("Wrong account validFrom in account "+ACCOUNT_WILL_USERNAME, new Date(VALID_FROM_MILLIS), dummyAccount.getValidFrom());
 		assertEquals("Wrong account validTo in account "+ACCOUNT_WILL_USERNAME, new Date(VALID_TO_MILLIS), dummyAccount.getValidTo());
 		assertTrue("Dummy account "+ACCOUNT_WILL_USERNAME+" is disabled, expected enabled", dummyAccount.isEnabled());
@@ -2190,13 +2205,14 @@ public class TestDummy extends AbstractDummyTest {
 				GROUP_PIRATES_OID, null, task, result).asObjectable();
 		display("group from provisioning", groupProvisioningType);
 		checkGroupPirates(groupProvisioningType, result);
+		piratesIcfUid = getIcfUid(groupRepoType);
 
 		// Check if the group was created in the dummy resource
 
-		DummyGroup dummyAccount = dummyResource.getGroupByName(GROUP_PIRATES_NAME);
-		assertNotNull("No dummy group "+GROUP_PIRATES_NAME, dummyAccount);
-		assertEquals("Description is wrong", "Scurvy pirates", dummyAccount.getAttributeValue("description"));
-		assertTrue("The group is not enabled", dummyAccount.isEnabled());
+		DummyGroup dummyGroup = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
+		assertNotNull("No dummy group "+GROUP_PIRATES_NAME, dummyGroup);
+		assertEquals("Description is wrong", "Scurvy pirates", dummyGroup.getAttributeValue("description"));
+		assertTrue("The group is not enabled", dummyGroup.isEnabled());
 
 		// Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
 		PrismObject<ShadowType> shadowFromRepo = repositoryService.getObject(ShadowType.class,
@@ -2311,7 +2327,7 @@ public class TestDummy extends AbstractDummyTest {
 		TestUtil.assertSuccess(result);
 		
 		delta.checkConsistence();
-		DummyGroup group = dummyResource.getGroupByName(GROUP_PIRATES_NAME);
+		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
 		assertDummyAttributeValues(group, DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION, "Bloodthirsty pirates");
 		
 		syncServiceMock.assertNotifySuccessOnly();
@@ -2354,10 +2370,11 @@ public class TestDummy extends AbstractDummyTest {
 				PRIVILEGE_PILLAGE_OID, null, task, result).asObjectable();
 		display("priv from provisioning", privProvisioningType);
 		checkPrivPillage(privProvisioningType, result);
+		pillageIcfUid = getIcfUid(privProvisioningType);
 
 		// Check if the group was created in the dummy resource
 
-		DummyPrivilege dummyPriv = dummyResource.getPrivilegeByName(PRIVILEGE_PILLAGE_NAME);
+		DummyPrivilege dummyPriv = getDummyPrivilegeAssert(PRIVILEGE_PILLAGE_NAME, pillageIcfUid);
 		assertNotNull("No dummy priv "+PRIVILEGE_PILLAGE_NAME, dummyPriv);
 
 		// Check if the shadow is still in the repo (e.g. that the consistency or sync haven't removed it)
@@ -2438,7 +2455,7 @@ public class TestDummy extends AbstractDummyTest {
 		TestUtil.assertSuccess(result);
 		
 		delta.checkConsistence();
-		DummyGroup group = dummyResource.getGroupByName(GROUP_PIRATES_NAME);
+		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
 		assertMember(group, getWillRepoIcfName());
 		
 		syncServiceMock.assertNotifySuccessOnly();
@@ -2473,7 +2490,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertEntitlement(account, GROUP_PIRATES_OID);
 		
 		// Just make sure nothing has changed
-		DummyGroup group = dummyResource.getGroupByName(GROUP_PIRATES_NAME);
+		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
 		assertMember(group, getWillRepoIcfName());
 		
 		assertSteadyResource();
@@ -2505,19 +2522,19 @@ public class TestDummy extends AbstractDummyTest {
 		display("modifyObject result", result);
 		TestUtil.assertSuccess(result);
 		
-		DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
+		DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, willIcfUid);
 		assertNotNull("Account will is gone!", dummyAccount);
 		Set<String> accountProvileges = dummyAccount.getAttributeValues(DummyAccount.ATTR_PRIVILEGES_NAME, String.class);
 		PrismAsserts.assertSets("account privileges", accountProvileges, PRIVILEGE_PILLAGE_NAME);
 		
 		// Make sure that privilege object is still there
-		DummyPrivilege priv = dummyResource.getPrivilegeByName(PRIVILEGE_PILLAGE_NAME);
+		DummyPrivilege priv = getDummyPrivilegeAssert(PRIVILEGE_PILLAGE_NAME, pillageIcfUid);
 		assertNotNull("Privilege object is gone!", priv);
 		
 		delta.checkConsistence();
 		
 		// Make sure that the groups is still there and will is a member
-		DummyGroup group = dummyResource.getGroupByName(GROUP_PIRATES_NAME);
+		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
 		assertMember(group, getWillRepoIcfName());
 		
 		syncServiceMock.assertNotifySuccessOnly();
@@ -2553,16 +2570,16 @@ public class TestDummy extends AbstractDummyTest {
 		assertEntitlement(account, PRIVILEGE_PILLAGE_OID);
 		
 		// Just make sure nothing has changed
-		DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
+		DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, willIcfUid);
 		assertNotNull("Account will is gone!", dummyAccount);
 		Set<String> accountProvileges = dummyAccount.getAttributeValues(DummyAccount.ATTR_PRIVILEGES_NAME, String.class);
 		PrismAsserts.assertSets("Wrong account privileges", accountProvileges, PRIVILEGE_PILLAGE_NAME);
 		
 		// Make sure that privilege object is still there
-		DummyPrivilege priv = dummyResource.getPrivilegeByName(PRIVILEGE_PILLAGE_NAME);
+		DummyPrivilege priv = getDummyPrivilegeAssert(PRIVILEGE_PILLAGE_NAME, pillageIcfUid);
 		assertNotNull("Privilege object is gone!", priv);
 		
-		DummyGroup group = dummyResource.getGroupByName(GROUP_PIRATES_NAME);
+		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
 		assertMember(group, getWillRepoIcfName());
 		
 		assertSteadyResource();
@@ -2595,17 +2612,17 @@ public class TestDummy extends AbstractDummyTest {
 		TestUtil.assertSuccess(result);
 		
 		delta.checkConsistence();
-		DummyGroup group = dummyResource.getGroupByName(GROUP_PIRATES_NAME);
+		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
 		assertNoMember(group, getWillRepoIcfName());
 		
 		// Make sure that account is still there and it has the privilege
-		DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
+		DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, willIcfUid);
 		assertNotNull("Account will is gone!", dummyAccount);
 		Set<String> accountProvileges = dummyAccount.getAttributeValues(DummyAccount.ATTR_PRIVILEGES_NAME, String.class);
 		PrismAsserts.assertSets("Wrong account privileges", accountProvileges, PRIVILEGE_PILLAGE_NAME);
 		
 		// Make sure that privilege object is still there
-		DummyPrivilege priv = dummyResource.getPrivilegeByName(PRIVILEGE_PILLAGE_NAME);
+		DummyPrivilege priv = getDummyPrivilegeAssert(PRIVILEGE_PILLAGE_NAME, pillageIcfUid);
 		assertNotNull("Privilege object is gone!", priv);
 		
 		syncServiceMock.assertNotifySuccessOnly();
@@ -2639,17 +2656,17 @@ public class TestDummy extends AbstractDummyTest {
 		TestUtil.assertSuccess(result);
 		
 		delta.checkConsistence();
-		DummyGroup group = dummyResource.getGroupByName(GROUP_PIRATES_NAME);
+		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
 		assertNoMember(group, getWillRepoIcfName());
 		
 		// Make sure that account is still there and it has the privilege
-		DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
+		DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, willIcfUid);
 		assertNotNull("Account will is gone!", dummyAccount);
 		Set<String> accountProvileges = dummyAccount.getAttributeValues(DummyAccount.ATTR_PRIVILEGES_NAME, String.class);
 		assertTrue("Unexpected account privileges: "+accountProvileges, accountProvileges == null || accountProvileges.isEmpty());
 		
 		// Make sure that privilege object is still there
-		DummyPrivilege priv = dummyResource.getPrivilegeByName(PRIVILEGE_PILLAGE_NAME);
+		DummyPrivilege priv = getDummyPrivilegeAssert(PRIVILEGE_PILLAGE_NAME, pillageIcfUid);
 		assertNotNull("Privilege object is gone!", priv);
 		
 		syncServiceMock.assertNotifySuccessOnly();
@@ -2684,9 +2701,12 @@ public class TestDummy extends AbstractDummyTest {
 
 		account.checkConsistence();
 		
+		PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, addedObjectOid, null, task, result);
+		leChuckIcfUid = getIcfUid(shadow);
+		
 		// Check if the account was created in the dummy resource and that it has the entitlements
 
-		DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_LECHUCK_NAME);
+		DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_LECHUCK_NAME, leChuckIcfUid);
 		assertNotNull("No dummy account", dummyAccount);
 		assertEquals("Fullname is wrong", "LeChuck", dummyAccount.getAttributeValue(DummyAccount.ATTR_FULLNAME_NAME));
 		assertTrue("The account is not enabled", dummyAccount.isEnabled());
@@ -2696,10 +2716,10 @@ public class TestDummy extends AbstractDummyTest {
 		PrismAsserts.assertSets("account privileges", accountProvileges, PRIVILEGE_PILLAGE_NAME);
 		
 		// Make sure that privilege object is still there
-		DummyPrivilege priv = dummyResource.getPrivilegeByName(PRIVILEGE_PILLAGE_NAME);
+		DummyPrivilege priv = getDummyPrivilegeAssert(PRIVILEGE_PILLAGE_NAME, pillageIcfUid);
 		assertNotNull("Privilege object is gone!", priv);
 		
-		DummyGroup group = dummyResource.getGroupByName(GROUP_PIRATES_NAME);
+		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
 		assertMember(group, ACCOUNT_LECHUCK_NAME);
 
 		ShadowType accountType = repositoryService.getObject(ShadowType.class, ACCOUNT_LECHUCK_OID, null, result)
@@ -2763,14 +2783,14 @@ public class TestDummy extends AbstractDummyTest {
 		
 		// Check if the account is gone and that group membership is gone as well
 
-		DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_LECHUCK_NAME);
+		DummyAccount dummyAccount = getDummyAccount(ACCOUNT_LECHUCK_NAME, leChuckIcfUid);
 		assertNull("Dummy account is NOT gone", dummyAccount);
 		
 		// Make sure that privilege object is still there
-		DummyPrivilege priv = dummyResource.getPrivilegeByName(PRIVILEGE_PILLAGE_NAME);
+		DummyPrivilege priv = getDummyPrivilegeAssert(PRIVILEGE_PILLAGE_NAME, pillageIcfUid);
 		assertNotNull("Privilege object is gone!", priv);
 		
-		DummyGroup group = dummyResource.getGroupByName(GROUP_PIRATES_NAME);
+		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
 		assertNoMember(group, ACCOUNT_LECHUCK_NAME);
 
 		try {
@@ -2827,7 +2847,7 @@ public class TestDummy extends AbstractDummyTest {
 			// This is expected
 		}
 
-		DummyPrivilege priv = dummyResource.getPrivilegeByName(PRIVILEGE_PILLAGE_NAME);
+		DummyPrivilege priv = getDummyPrivilege(PRIVILEGE_PILLAGE_NAME, pillageIcfUid);
 		assertNull("Privilege object NOT is gone", priv);
 		
 		assertSteadyResource();
@@ -2868,7 +2888,7 @@ public class TestDummy extends AbstractDummyTest {
 			// This is expected
 		}
 
-		DummyGroup dummyAccount = dummyResource.getGroupByName(GROUP_PIRATES_NAME);
+		DummyGroup dummyAccount = getDummyGroup(GROUP_PIRATES_NAME, piratesIcfUid);
 		assertNull("Dummy group '"+GROUP_PIRATES_NAME+"' is not gone from dummy resource", dummyAccount);
 		
 		assertSteadyResource();
@@ -2901,7 +2921,8 @@ public class TestDummy extends AbstractDummyTest {
 		TestUtil.assertSuccess(result);
 		
 		delta.checkConsistence();
-		assertDummyAccountAttributeValues("cptmorgan", DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Captain Morgan");
+		assertDummyAccountAttributeValues("cptmorgan", morganIcfUid,
+				DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Captain Morgan");
 		
 		PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, ACCOUNT_MORGAN_OID, null, result);
 		assertShadowRepo(repoShadow, ACCOUNT_MORGAN_OID, "cptmorgan", resourceType);
@@ -3098,6 +3119,7 @@ public class TestDummy extends AbstractDummyTest {
 		newAccount.setEnabled(true);
 		newAccount.setPassword("shiverMEtimbers");
 		dummyResource.addAccount(newAccount);
+		blackbeardIcfUid = newAccount.getId();
 
 		display("Resource before sync", dummyResource.dump());
 
@@ -3150,7 +3172,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		syncServiceMock.reset();
 
-		DummyAccount dummyAccount = dummyResource.getAccountByUsername(BLACKBEARD_USERNAME);
+		DummyAccount dummyAccount = getDummyAccountAssert(BLACKBEARD_USERNAME, blackbeardIcfUid);
 		dummyAccount.replaceAttributeValue("fullname", "Captain Blackbeard");
 
 		display("Resource before sync", dummyResource.dump());
@@ -3227,6 +3249,7 @@ public class TestDummy extends AbstractDummyTest {
 		newAccount.setEnabled(true);
 		newAccount.setPassword("avast!");
 		dummyResource.addAccount(newAccount);
+		drakeIcfUid = newAccount.getId();
 
 		display("Resource before sync", dummyResource.dump());
 
@@ -3285,7 +3308,11 @@ public class TestDummy extends AbstractDummyTest {
 
 		syncServiceMock.reset();
 		dummyResource.setSyncStyle(DummySyncStyle.DUMB);
-		dummyResource.deleteAccountByName(DRAKE_USERNAME);
+		if (isNameUnique()) {
+			dummyResource.deleteAccountByName(DRAKE_USERNAME);
+		} else {
+			dummyResource.deleteAccountById(drakeIcfUid);
+		}
 
 		display("Resource before sync", dummyResource.dump());
 
@@ -3352,7 +3379,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		syncServiceMock.reset();
 
-		DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_DAEMON_USERNAME);
+		DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_DAEMON_USERNAME, daemonIcfUid);
 		dummyAccount.replaceAttributeValue("fullname", "Maxwell deamon");
 
 		// WHEN
@@ -3459,5 +3486,4 @@ public class TestDummy extends AbstractDummyTest {
 
 		};
 	}
-
 }
