@@ -353,6 +353,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			} catch (SecurityViolationException ex) {
 				recordFatalError(LOGGER, result, "Couldn't add object. Security violation: " + ex.getMessage(), ex);
 				throw ex;
+			} catch (RuntimeException ex){
+				recordFatalError(LOGGER, result, "Couldn't add object. Runtime error: " + ex.getMessage(), ex);
+				throw new SystemException(ex);
+				
 			}
 		} else {
 			RepoAddOptions addOptions = null;
@@ -859,7 +863,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				throw e;
 			} catch (RuntimeException e){
 				recordFatalError(LOGGER, result, "Couldn't delete object: " + e.getMessage(), e);
-				throw e;
+				throw new SystemException(e);
 			}
 
 		} else if (object.canRepresent(ResourceType.class)) {
