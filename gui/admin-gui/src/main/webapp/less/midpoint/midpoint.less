@@ -19,6 +19,33 @@ span.button-group {
   font-size: 0.8em;
 }
 
+/* table panel sorting */
+th.sortable {
+  span.sortableArrowIcon {
+    position: relative;
+    top: 1px;
+    display: inline-block;
+    font-family: 'Glyphicons Halflings';
+    font-style: normal;
+    font-weight: normal;
+    line-height: 1;
+    -webkit-font-smoothing: antialiased;
+
+    float: right;
+    padding-top: 3px;
+    color: @text-color;
+    font-size: 0.7em;
+  }
+}
+
+th.sortable.asc span.sortableArrowIcon:before {
+  content: "\e113";
+}
+
+th.sortable.desc span.sortableArrowIcon:before {
+  content: "\e114";
+}
+
 /*
  * editor
  */
