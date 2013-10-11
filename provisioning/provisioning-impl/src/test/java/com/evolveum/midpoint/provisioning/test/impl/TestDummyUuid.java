@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2013 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,45 +24,26 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.test.util.TestUtil;
 
 /**
- * Almost the same as TestDummy but this is using a caseIgnore resource version.
+ * Almost the same as TestDummy but this is using a UUID as ICF UID.
  * 
  * @author Radovan Semancik
  *
  */
 @ContextConfiguration(locations = "classpath:ctx-provisioning-test-main.xml")
 @DirtiesContext
-public class TestDummyCaseIgnore extends TestDummy {
+public class TestDummyUuid extends TestDummy {
 	
-	public static final String TEST_DIR = "src/test/resources/impl/dummy-case-ignore/";
+	public static final String TEST_DIR = "src/test/resources/impl/dummy-uuid/";
 	public static final String RESOURCE_DUMMY_FILENAME = TEST_DIR + "resource-dummy.xml";
 
 	@Override
 	protected String getResourceDummyFilename() {
 		return RESOURCE_DUMMY_FILENAME;
 	}
-	
+
 	@Override
-	protected String getWillRepoIcfName() {
-		return "will";
+	protected boolean isIcfNameUidSame() {
+		return false;
 	}
-	
-	@Test
-	public void test175SearchUidCase() throws Exception {
-		final String TEST_NAME = "test175SearchUidCase";
-		TestUtil.displayTestTile(TEST_NAME);
-		testSeachIterativeSingleAttrFilter(TEST_NAME, 
-				ConnectorFactoryIcfImpl.ICFS_UID, "wIlL", null, true,
-				"Will");
-	}
-	
-	@Test
-	public void test176SearchUidCaseNoFetch() throws Exception {
-		final String TEST_NAME = "test176SearchUidCaseNoFetch";
-		TestUtil.displayTestTile(TEST_NAME);
-		testSeachIterativeSingleAttrFilter(TEST_NAME, 
-				ConnectorFactoryIcfImpl.ICFS_UID, "wIlL", GetOperationOptions.createNoFetch(), false,
-				"Will");
-	}
-	
-	
+		
 }
