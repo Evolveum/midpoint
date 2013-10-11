@@ -39,7 +39,9 @@ import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.lens.projector.ContextLoader;
 import com.evolveum.midpoint.model.lens.projector.Projector;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -281,7 +283,7 @@ public class Clockwork {
         		continue;
 			}
     		ObjectDelta<P> execDelta = projectionContext.getExecutableDelta();
-    		if (execDelta != null && !execDelta.isEmpty()) {
+    		if (isSignificant(execDelta)) {
     			LOGGER.trace("Context rot: projection {} rotten because of delta {}", projectionContext, execDelta);
     			projectionContext.setFresh(false);
     			projectionContext.setFullShadow(false);
@@ -304,6 +306,20 @@ public class Clockwork {
     	if (rot) {
     		context.setFresh(false);
     	}
+	}
+	
+	private <P extends ObjectType> boolean isSignificant(ObjectDelta<P> delta) {
+		if (delta == null || delta.isEmpty()) {
+			return false;
+		}
+		if (delta.isAdd() || delta.isDelete()) {
+			return true;
+		}
+		Collection<? extends ItemDelta<?>> attrDeltas = delta.findItemDeltasSubPath(new ItemPath(ShadowType.F_ATTRIBUTES));
+		if (attrDeltas != null && !attrDeltas.isEmpty()) {
+			return true;
+		}
+		return false;
 	}
 	
 	private <F extends ObjectType, P extends ObjectType> void processFinal(LensContext<F,P> context, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {

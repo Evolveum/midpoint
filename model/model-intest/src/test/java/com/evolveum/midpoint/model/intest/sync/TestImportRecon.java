@@ -81,18 +81,34 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	private static final String ACCOUNT_STAN_NAME = "stan";
 	private static final String ACCOUNT_STAN_FULLNAME = "Stan the Salesman";
 	
+	private static final String ACCOUNT_RUM_NAME = "rum";
+	
+	private static final String ACCOUNT_MURRAY_NAME = "murray";
+	
 	protected static final File RESOURCE_DUMMY_AZURE_FILE = new File(TEST_DIR, "resource-dummy-azure.xml");
 	protected static final String RESOURCE_DUMMY_AZURE_OID = "10000000-0000-0000-0000-00000000a204";
 	protected static final String RESOURCE_DUMMY_AZURE_NAME = "azure";
 	protected static final String RESOURCE_DUMMY_AZURE_NAMESPACE = MidPointConstants.NS_RI;
 	
+	protected static final File RESOURCE_DUMMY_LIME_FILE = new File(TEST_DIR, "resource-dummy-lime.xml");
+	protected static final String RESOURCE_DUMMY_LIME_OID = "10000000-0000-0000-0000-000000131404";
+	protected static final String RESOURCE_DUMMY_LIME_NAME = "lime";
+	protected static final String RESOURCE_DUMMY_LIME_NAMESPACE = MidPointConstants.NS_RI;
+	
 	protected static final File TASK_RECONCILE_DUMMY_AZURE_FILE = new File(TEST_DIR, "task-reconcile-dummy-azure.xml");
 	protected static final String TASK_RECONCILE_DUMMY_AZURE_OID = "10000000-0000-0000-5656-56560000a204";
+
+	private static final File TASK_RECONCILE_DUMMY_LONG_FRESHNESS_FILE = new File(TEST_DIR, "task-reconcile-dummy-long-freshness.xml");
 	
 	protected DummyResource dummyResourceAzure;
 	protected DummyResourceContoller dummyResourceCtlAzure;
 	protected ResourceType resourceDummyAzureType;
 	protected PrismObject<ResourceType> resourceDummyAzure;
+	
+	protected DummyResource dummyResourceLime;
+	protected DummyResourceContoller dummyResourceCtlLime;
+	protected ResourceType resourceDummyLimeType;
+	protected PrismObject<ResourceType> resourceDummyLime;
 
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -105,8 +121,19 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 		resourceDummyAzureType = resourceDummyAzure.asObjectable();
 		dummyResourceCtlAzure.setResource(resourceDummyAzure);	
 		
+		dummyResourceCtlLime = DummyResourceContoller.create(RESOURCE_DUMMY_LIME_NAME, resourceDummyLime);
+		dummyResourceCtlLime.extendDummySchema();
+		dummyResourceLime = dummyResourceCtlLime.getDummyResource();
+		resourceDummyLime = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_LIME_FILE, RESOURCE_DUMMY_LIME_OID, initTask, initResult); 
+		resourceDummyLimeType = resourceDummyLime.asObjectable();
+		dummyResourceCtlLime.setResource(resourceDummyLime);
+		
 		// Create an account that midPoint does not know about yet
 		dummyResourceCtl.addAccount(USER_RAPP_USERNAME, "Rapp Scallion", "Scabb Island");
+		
+		dummyResourceCtlLime.addAccount(USER_RAPP_USERNAME, "Rapp Scallion", "Scabb Island");
+		dummyResourceCtlLime.addAccount(ACCOUNT_RUM_NAME, "Rum Rogers");
+		dummyResourceCtlLime.addAccount(ACCOUNT_MURRAY_NAME, "Murray");
 		
 		// And a user that will be correlated to that account
 		repoAddObjectFromFile(USER_RAPP_FILENAME, UserType.class, initResult);
@@ -201,9 +228,12 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         // THEN
         TestUtil.displayThen(TEST_NAME);
+        TestUtil.assertSuccess(task.getResult());
         
         // First fetch: search in import handler
         // 6 fetches: fetchback to correctly process inbound (import changes the account).
+        // The accounts are modified during import as there are also outbound mappings in
+        // ther dummy resource. As the import is in fact just a recon the "fetchbacks" happens.
         assertShadowFetchOperationCountIncrement(7);
         
         users = modelService.searchObjects(UserType.class, null, null, task, result);
@@ -252,8 +282,12 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         // THEN
         TestUtil.displayThen(TEST_NAME);
+        TestUtil.assertSuccess(task.getResult());
         
         // First fetch: search in import handler
+        // Even though there are outbound mappings these were already processes
+        // by previous import run. There are no account modifications this time.
+        // Therefore there should be no "fetchbacks".
         assertShadowFetchOperationCountIncrement(1);
         
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
@@ -275,6 +309,61 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         // Check audit
         assertImportAuditModifications(0);
+	}
+	
+	@Test
+    public void test160ImportFromResourceDummyLime() throws Exception {
+		final String TEST_NAME = "test160ImportFromResourceDummyLime";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = createTask(TestImportRecon.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
+        
+        // Preconditions
+        assertUsers(8);
+        dummyAuditService.clear();
+        rememberShadowFetchOperationCount();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modelService.importFromResource(RESOURCE_DUMMY_LIME_OID, new QName(RESOURCE_DUMMY_LIME_NAMESPACE, "AccountObjectClass"), task, result);
+		
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        OperationResult subresult = result.getLastSubresult();
+        TestUtil.assertInProgress("importAccountsFromResource result", subresult);
+        
+        waitForTaskFinish(task, true, 40000);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        TestUtil.assertSuccess(task.getResult());
+        
+        // The only fetch: search in import handler
+        // There are no outbound mappings in lime resource, therefore there are no
+        // modifications of accounts during import, therefore there are no "fetchbacks".
+        assertShadowFetchOperationCountIncrement(1);
+                
+        assertImportedUserByOid(USER_ADMINISTRATOR_OID);
+        assertImportedUserByOid(USER_JACK_OID);
+        assertImportedUserByOid(USER_BARBOSSA_OID);
+        assertImportedUserByOid(USER_GUYBRUSH_OID, RESOURCE_DUMMY_OID);
+        assertImportedUserByOid(USER_RAPP_OID, RESOURCE_DUMMY_OID, RESOURCE_DUMMY_LIME_OID);
+        assertImportedUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME, RESOURCE_DUMMY_OID);
+        assertImportedUserByUsername(ACCOUNT_STAN_NAME, RESOURCE_DUMMY_OID);
+        assertImportedUserByUsername(ACCOUNT_RUM_NAME, RESOURCE_DUMMY_LIME_OID);
+        assertImportedUserByUsername(ACCOUNT_MURRAY_NAME, RESOURCE_DUMMY_LIME_OID);
+        
+        // These are protected accounts, they should not be imported
+        assertNoImporterUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);
+        assertNoImporterUserByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
+        
+        assertUsers(10);
+        
+        // Check audit
+        assertImportAuditModifications(3);
 	}
 
 	@Test
@@ -316,7 +405,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
-        importObjectFromFile(TASK_RECONCILE_DUMMY_FILENAME);
+        importObjectFromFile(TASK_RECONCILE_DUMMY_LONG_FRESHNESS_FILE);
 		
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -325,10 +414,9 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         // THEN
         TestUtil.displayThen(TEST_NAME);
-        assertShadowFetchOperationCountIncrement(6);
-        // TODO: FIXME: This should be
-//        assertShadowFetchOperationCountIncrement(1);
-        // See MID-1630
+        // First fetch: searchIterative
+        // Second fetch: "fetchback" of modified account (guybrush)
+        assertShadowFetchOperationCountIncrement(2);
         
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after import", users);
@@ -354,7 +442,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountAttribute(null, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, 
         		"Arr!", "I want to be a pirate!");
         
-        assertImportedUserByOid(USER_RAPP_OID, RESOURCE_DUMMY_OID);
+        assertImportedUserByOid(USER_RAPP_OID, RESOURCE_DUMMY_OID, RESOURCE_DUMMY_LIME_OID);
         assertImportedUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME, RESOURCE_DUMMY_OID);
 
         // These are protected accounts, they should not be imported
@@ -364,7 +452,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountAttribute(null, ACCOUNT_CALYPSO_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, 
         		"Calypso");
         
-        assertEquals("Unexpected number of users", 8, users.size());
+        assertEquals("Unexpected number of users", 10, users.size());
         
         display("Dummy resource", dummyResource.dump());
         
@@ -418,12 +506,12 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertImportedUserByOid(USER_JACK_OID);
         assertImportedUserByOid(USER_BARBOSSA_OID);
         assertImportedUserByOid(USER_GUYBRUSH_OID, RESOURCE_DUMMY_OID);        
-        assertImportedUserByOid(USER_RAPP_OID, RESOURCE_DUMMY_OID);
+        assertImportedUserByOid(USER_RAPP_OID, RESOURCE_DUMMY_OID, RESOURCE_DUMMY_LIME_OID);
         assertImportedUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME, RESOURCE_DUMMY_OID);
         assertNoImporterUserByUsername(ACCOUNT_DAVIEJONES_DUMMY_USERNAME);
         assertNoImporterUserByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
         
-        assertEquals("Unexpected number of users", 8, users.size());
+        assertEquals("Unexpected number of users", 10, users.size());
         
         display("Dummy resource", dummyResource.dump());
         
@@ -497,7 +585,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertImportedUserByOid(USER_ADMINISTRATOR_OID);
         assertImportedUserByOid(USER_JACK_OID);
         assertImportedUserByOid(USER_BARBOSSA_OID);        
-        assertImportedUserByOid(USER_RAPP_OID, RESOURCE_DUMMY_OID);
+        assertImportedUserByOid(USER_RAPP_OID, RESOURCE_DUMMY_OID, RESOURCE_DUMMY_LIME_OID);
         assertImportedUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME, RESOURCE_DUMMY_OID);
         
         // Otis
@@ -512,7 +600,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         		"Calypso");
         
         
-        assertEquals("Unexpected number of users", 8, users.size());
+        assertEquals("Unexpected number of users", 10, users.size());
         
         display("Dummy resource (azure)", dummyResourceAzure.dump());
         
@@ -551,7 +639,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertImportedUserByOid(USER_ADMINISTRATOR_OID);
         assertImportedUserByOid(USER_JACK_OID);
         assertImportedUserByOid(USER_BARBOSSA_OID);        
-        assertImportedUserByOid(USER_RAPP_OID, RESOURCE_DUMMY_OID);
+        assertImportedUserByOid(USER_RAPP_OID, RESOURCE_DUMMY_OID, RESOURCE_DUMMY_LIME_OID);
         assertImportedUserByUsername(ACCOUNT_HERMAN_DUMMY_USERNAME, RESOURCE_DUMMY_OID);
         
         // Otis
@@ -565,7 +653,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertDummyAccountAttribute(null, ACCOUNT_CALYPSO_DUMMY_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, 
         		"Calypso");
         
-        assertEquals("Unexpected number of users", 8, users.size());
+        assertEquals("Unexpected number of users", 10, users.size());
         
         display("Dummy resource (azure)", dummyResourceAzure.dump());
         

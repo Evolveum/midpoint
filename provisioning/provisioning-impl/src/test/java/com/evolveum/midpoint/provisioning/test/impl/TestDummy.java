@@ -160,6 +160,7 @@ public class TestDummy extends AbstractDummyTest {
 //	private Task syncTask = null;
 	private CachingMetadataType capabilitiesCachingMetadataType;
 	private String drakeAccountOid;
+	protected String willIcfUid;
 
 	@Test
 	public void test000Integrity() throws ObjectNotFoundException, SchemaException {
@@ -898,8 +899,11 @@ public class TestDummy extends AbstractDummyTest {
 		ShadowType accountTypeRepo = accountRepo.asObjectable();
 		PrismAsserts.assertEqualsPolyString("Name not equal", ACCOUNT_WILL_USERNAME, accountTypeRepo.getName());
 		assertEquals("Wrong kind (repo)", ShadowKindType.ACCOUNT, accountTypeRepo.getKind());
-		assertAttribute(accountTypeRepo, ConnectorFactoryIcfImpl.ICFS_NAME, getWillRepoIcfUid());
-		assertAttribute(accountTypeRepo, ConnectorFactoryIcfImpl.ICFS_UID, getWillRepoIcfUid());
+		assertAttribute(accountTypeRepo, ConnectorFactoryIcfImpl.ICFS_NAME, getWillRepoIcfName());
+		if (isIcfNameUidSame()) {
+			assertAttribute(accountTypeRepo, ConnectorFactoryIcfImpl.ICFS_UID, getWillRepoIcfName());
+		}
+		willIcfUid = getIcfUid(accountRepo);
 		
 		ActivationType activationRepo = accountTypeRepo.getActivation();
 		if (supportsActivation()) {
@@ -918,8 +922,8 @@ public class TestDummy extends AbstractDummyTest {
 		display("account from provisioning", accountTypeProvisioning);
 		PrismAsserts.assertEqualsPolyString("Name not equal", ACCOUNT_WILL_USERNAME, accountTypeProvisioning.getName());
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, accountTypeProvisioning.getKind());
-		assertAttribute(accountTypeProvisioning, ConnectorFactoryIcfImpl.ICFS_NAME, getWillRepoIcfUid());
-		assertAttribute(accountTypeProvisioning, ConnectorFactoryIcfImpl.ICFS_UID, getWillRepoIcfUid());
+		assertAttribute(accountTypeProvisioning, ConnectorFactoryIcfImpl.ICFS_NAME, getWillRepoIcfName());
+		assertAttribute(accountTypeProvisioning, ConnectorFactoryIcfImpl.ICFS_UID, willIcfUid);
 		
 		ActivationType activationProvisioning = accountTypeProvisioning.getActivation();
 		if (supportsActivation()) {
@@ -1186,8 +1190,10 @@ public class TestDummy extends AbstractDummyTest {
 		// THEN
 
 		assertShadowFetchOperationCountIncrement(1);
+		
+		display("Found shadows", foundObjects);
+		
 		assertEquals(4, foundObjects.size());
-
 		checkConsistency(foundObjects);
 		assertProtected(foundObjects, 1);
 		
@@ -1228,6 +1234,7 @@ public class TestDummy extends AbstractDummyTest {
 		TestUtil.assertSuccess(result);
 		
 		display("Found " + allShadows.size() + " shadows");
+		display("Found shadows", allShadows);
 
 		assertFalse("No shadows found", allShadows.isEmpty());
 		assertEquals("Wrong number of results", 4, allShadows.size());
@@ -2035,7 +2042,7 @@ public class TestDummy extends AbstractDummyTest {
 		final String TEST_NAME = "test165SearchUidExact";
 		TestUtil.displayTestTile(TEST_NAME);
 		testSeachIterativeSingleAttrFilter(TEST_NAME,
-				ConnectorFactoryIcfImpl.ICFS_UID, getWillRepoIcfUid(), null, true,
+				ConnectorFactoryIcfImpl.ICFS_UID, willIcfUid, null, true,
 				"Will");
 	}
 	
@@ -2043,11 +2050,29 @@ public class TestDummy extends AbstractDummyTest {
 	public void test166SearchUidExactNoFetch() throws Exception {
 		final String TEST_NAME = "test166SearchUidExactNoFetch";
 		TestUtil.displayTestTile(TEST_NAME);
-		testSeachIterativeSingleAttrFilter(TEST_NAME, ConnectorFactoryIcfImpl.ICFS_UID, getWillRepoIcfUid(),
+		testSeachIterativeSingleAttrFilter(TEST_NAME, ConnectorFactoryIcfImpl.ICFS_UID, willIcfUid,
 				GetOperationOptions.createNoFetch(), false,
 				"Will");
 	}
+
+	@Test
+	public void test167SearchIcfNameExact() throws Exception {
+		final String TEST_NAME = "test167SearchIcfNameExact";
+		TestUtil.displayTestTile(TEST_NAME);
+		testSeachIterativeSingleAttrFilter(TEST_NAME,
+				ConnectorFactoryIcfImpl.ICFS_NAME, getWillRepoIcfName(), null, true,
+				"Will");
+	}
 	
+	@Test
+	public void test168SearchIcfNameExactNoFetch() throws Exception {
+		final String TEST_NAME = "test168SearchIcfNameExactNoFetch";
+		TestUtil.displayTestTile(TEST_NAME);
+		testSeachIterativeSingleAttrFilter(TEST_NAME, ConnectorFactoryIcfImpl.ICFS_NAME, getWillRepoIcfName(),
+				GetOperationOptions.createNoFetch(), false,
+				"Will");
+	}
+
 	protected <T> void testSeachIterativeSingleAttrFilter(final String TEST_NAME, String attrName, T attrVal, 
 			GetOperationOptions rootOptions, boolean fullShadow, String... expectedAccountIds) throws Exception {
 		testSeachIterativeSingleAttrFilter(TEST_NAME, dummyResourceCtl.getAttributeQName(attrName), attrVal, 
@@ -2414,7 +2439,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		delta.checkConsistence();
 		DummyGroup group = dummyResource.getGroupByName(GROUP_PIRATES_NAME);
-		assertMember(group, getWillRepoIcfUid());
+		assertMember(group, getWillRepoIcfName());
 		
 		syncServiceMock.assertNotifySuccessOnly();
 		
@@ -2449,7 +2474,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		// Just make sure nothing has changed
 		DummyGroup group = dummyResource.getGroupByName(GROUP_PIRATES_NAME);
-		assertMember(group, getWillRepoIcfUid());
+		assertMember(group, getWillRepoIcfName());
 		
 		assertSteadyResource();
 	}
@@ -2493,7 +2518,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		// Make sure that the groups is still there and will is a member
 		DummyGroup group = dummyResource.getGroupByName(GROUP_PIRATES_NAME);
-		assertMember(group, getWillRepoIcfUid());
+		assertMember(group, getWillRepoIcfName());
 		
 		syncServiceMock.assertNotifySuccessOnly();
 		
@@ -2538,7 +2563,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertNotNull("Privilege object is gone!", priv);
 		
 		DummyGroup group = dummyResource.getGroupByName(GROUP_PIRATES_NAME);
-		assertMember(group, getWillRepoIcfUid());
+		assertMember(group, getWillRepoIcfName());
 		
 		assertSteadyResource();
 	}
@@ -2571,7 +2596,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		delta.checkConsistence();
 		DummyGroup group = dummyResource.getGroupByName(GROUP_PIRATES_NAME);
-		assertNoMember(group, getWillRepoIcfUid());
+		assertNoMember(group, getWillRepoIcfName());
 		
 		// Make sure that account is still there and it has the privilege
 		DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
@@ -2615,7 +2640,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		delta.checkConsistence();
 		DummyGroup group = dummyResource.getGroupByName(GROUP_PIRATES_NAME);
-		assertNoMember(group, getWillRepoIcfUid());
+		assertNoMember(group, getWillRepoIcfName());
 		
 		// Make sure that account is still there and it has the privilege
 		DummyAccount dummyAccount = dummyResource.getAccountByUsername(ACCOUNT_WILL_USERNAME);
@@ -2682,7 +2707,11 @@ public class TestDummy extends AbstractDummyTest {
 		PrismAsserts.assertEqualsPolyString("Name not equal", ACCOUNT_LECHUCK_NAME, accountType.getName());
 		assertEquals("Wrong kind (repo)", ShadowKindType.ACCOUNT, accountType.getKind());
 		assertAttribute(accountType, ConnectorFactoryIcfImpl.ICFS_NAME, ACCOUNT_LECHUCK_NAME);
-		assertAttribute(accountType, ConnectorFactoryIcfImpl.ICFS_UID, ACCOUNT_LECHUCK_NAME);
+		if (isIcfNameUidSame()) {
+			assertAttribute(accountType, ConnectorFactoryIcfImpl.ICFS_UID, ACCOUNT_LECHUCK_NAME);
+		} else {
+			assertAttribute(accountType, ConnectorFactoryIcfImpl.ICFS_UID, dummyAccount.getId());
+		}
 		
 		syncServiceMock.assertNotifySuccessOnly();
 
@@ -2693,7 +2722,11 @@ public class TestDummy extends AbstractDummyTest {
 		PrismAsserts.assertEqualsPolyString("Name not equal", ACCOUNT_LECHUCK_NAME, provisioningAccountType.getName());
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, provisioningAccountType.getKind());
 		assertAttribute(provisioningAccountType, ConnectorFactoryIcfImpl.ICFS_NAME, ACCOUNT_LECHUCK_NAME);
-		assertAttribute(provisioningAccountType, ConnectorFactoryIcfImpl.ICFS_UID, ACCOUNT_LECHUCK_NAME);
+		if (isIcfNameUidSame()) {
+			assertAttribute(provisioningAccountType, ConnectorFactoryIcfImpl.ICFS_UID, ACCOUNT_LECHUCK_NAME);
+		} else {
+			assertAttribute(provisioningAccountType, ConnectorFactoryIcfImpl.ICFS_UID, dummyAccount.getId());
+		}
 		
 		assertEntitlement(account, GROUP_PIRATES_OID);
 		assertEntitlement(account, PRIVILEGE_PILLAGE_OID);
