@@ -880,7 +880,7 @@ public class TestDummy extends AbstractDummyTest {
 		final String TEST_NAME = "test100AddAccount";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName()
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
 				+ "." + TEST_NAME);
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ "." + TEST_NAME);
@@ -892,7 +892,7 @@ public class TestDummy extends AbstractDummyTest {
 		display("Adding shadow", account);
 
 		// WHEN
-		String addedObjectOid = provisioningService.addObject(account, null, null, syncTask, result);
+		String addedObjectOid = provisioningService.addObject(account, null, null, task, result);
 
 		// THEN
 		result.computeStatus();
@@ -924,7 +924,7 @@ public class TestDummy extends AbstractDummyTest {
 		syncServiceMock.assertNotifySuccessOnly();
 
 		PrismObject<ShadowType> accountProvisioning = provisioningService.getObject(ShadowType.class,
-				ACCOUNT_WILL_OID, null, syncTask, result);
+				ACCOUNT_WILL_OID, null, task, result);
 		display("Account provisioning", accountProvisioning);
 		ShadowType accountTypeProvisioning = accountProvisioning.asObjectable();
 		display("account from provisioning", accountTypeProvisioning);
