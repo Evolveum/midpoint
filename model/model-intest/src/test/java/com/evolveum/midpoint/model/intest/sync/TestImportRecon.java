@@ -88,6 +88,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	
 	protected static final File TASK_RECONCILE_DUMMY_AZURE_FILE = new File(TEST_DIR, "task-reconcile-dummy-azure.xml");
 	protected static final String TASK_RECONCILE_DUMMY_AZURE_OID = "10000000-0000-0000-5656-56560000a204";
+
+	private static final File TASK_RECONCILE_DUMMY_LONG_FRESHNESS_FILE = new File(TEST_DIR, "task-reconcile-dummy-long-freshness.xml");
 	
 	protected DummyResource dummyResourceAzure;
 	protected DummyResourceContoller dummyResourceCtlAzure;
@@ -316,7 +318,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
-        importObjectFromFile(TASK_RECONCILE_DUMMY_FILENAME);
+        importObjectFromFile(TASK_RECONCILE_DUMMY_LONG_FRESHNESS_FILE);
 		
         // THEN
         TestUtil.displayThen(TEST_NAME);
