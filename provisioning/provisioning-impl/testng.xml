@@ -48,6 +48,7 @@
 			<class name="com.evolveum.midpoint.provisioning.test.impl.TestDummySecurity" />
 			<class name="com.evolveum.midpoint.provisioning.test.impl.TestDummyNoActivation" />
 			<class name="com.evolveum.midpoint.provisioning.test.impl.TestDummyUuid" />
+			<class name="com.evolveum.midpoint.provisioning.test.impl.TestDummyUuidNonUniqueName" />
 		</classes>
 	</test>
 	<test name="provisioning-service-csv" preserve-order="true" parallel="false" verbose="10">
