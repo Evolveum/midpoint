@@ -129,6 +129,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAttributesTyp
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CreateCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.DeleteCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ReadCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.UpdateCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
@@ -241,6 +245,10 @@ public abstract class ShadowCache {
 			return repositoryShadow;
 		}
 		
+		if (!ResourceTypeUtil.hasReadCapability(resource)){
+			throw new UnsupportedOperationException("Resource does not support 'get' operation");
+		}
+		
 		RefinedObjectClassDefinition objectClassDefinition = applyAttributesDefinition(repositoryShadow, resource);
 		
 		ConnectorInstance connector = null;
@@ -350,6 +358,10 @@ public abstract class ShadowCache {
 			resource = getResource(shadow, parentResult);
 		}
 		
+		if (!ResourceTypeUtil.hasCreateCapability(resource)){
+			throw new UnsupportedOperationException("Resource does not support 'create' operation");
+		}
+		
 		PrismContainer<?> attributesContainer = shadow.findContainer(
 				ShadowType.F_ATTRIBUTES);
 		if (attributesContainer == null || attributesContainer.isEmpty()) {
@@ -412,6 +424,10 @@ public abstract class ShadowCache {
 		
 		if (resource == null) {
 			resource = getResource(shadow, parentResult);
+		}
+		
+		if (!ResourceTypeUtil.hasUpdateCapability(resource)){
+			throw new UnsupportedOperationException("Resource does not support 'update' operation");
 		}
 
 		if (LOGGER.isTraceEnabled()) {
@@ -541,6 +557,10 @@ public abstract class ShadowCache {
 					parentResult.recordHandledError("Resource defined in shadow does not exists. Shadow was deleted from the repository.");
 					return;
 				}
+			}
+			
+			if (!ResourceTypeUtil.hasDeleteCapability(resource)){
+				throw new UnsupportedOperationException("Resource does not support 'delete' operation");
 			}
 
 			RefinedObjectClassDefinition objectClassDefinition =  applyAttributesDefinition(shadow, resource);
