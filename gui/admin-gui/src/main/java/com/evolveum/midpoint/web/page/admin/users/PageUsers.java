@@ -40,10 +40,7 @@ import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.button.ButtonType;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.IconColumn;
-import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
@@ -132,84 +129,21 @@ public class PageUsers extends PageAdminUsers {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
-        initTable(mainForm);
-
         add(new ConfirmationDialog(DIALOG_CONFIRM_DELETE,
                 createStringResource("pageUsers.dialog.title.confirmDelete"), createDeleteConfirmString()) {
 
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
                 close(target);
-                deleteConfirmedPerformed(target);
+                //todo get here selected user dto row!!!!
+                deleteConfirmedPerformed(target, null);
             }
         });
 
-        mainForm.add(new ExecuteChangeOptionsPanel(false, ID_EXECUTE_OPTIONS, executeOptionsModel));
-        initButtons(mainForm);
-
         initSearch();
-    }
+        initTable(mainForm);
 
-    private void initButtons(Form mainForm) {
-        AjaxSubmitLinkButton enable = new AjaxSubmitLinkButton("enable",
-                createStringResource("pageUsers.menu.enable")) {
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                enablePerformed(target);
-            }
-
-            @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
-                target.add(getFeedbackPanel());
-            }
-        };
-        mainForm.add(enable);
-
-        AjaxSubmitLinkButton disable = new AjaxSubmitLinkButton("disable",
-                createStringResource("pageUsers.menu.disable")) {
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                disablePerformed(target);
-            }
-
-            @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
-                target.add(getFeedbackPanel());
-            }
-        };
-        mainForm.add(disable);
-
-        AjaxSubmitLinkButton delete = new AjaxSubmitLinkButton("delete", ButtonType.NEGATIVE,
-                createStringResource("pageUsers.menu.delete")) {
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                deletePerformed(target);
-            }
-
-            @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
-                target.add(getFeedbackPanel());
-            }
-        };
-        mainForm.add(delete);
-
-        AjaxSubmitLinkButton reconcile = new AjaxSubmitLinkButton("reconcile",
-                createStringResource("pageUsers.menu.reconcile")) {
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                reconcilePerformed(target);
-            }
-
-            @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
-                target.add(getFeedbackPanel());
-            }
-        };
-        mainForm.add(reconcile);
+        mainForm.add(new ExecuteChangeOptionsPanel(false, ID_EXECUTE_OPTIONS, executeOptionsModel));
     }
 
     private IModel<String> createDeleteConfirmString() {
@@ -269,13 +203,53 @@ public class PageUsers extends PageAdminUsers {
         column = new PropertyColumn(createStringResource("pageUsers.accounts"), null, UserListItemDto.F_ACCOUNT_COUNT);
         columns.add(column);
 
-        List<InlineMenuItem> headerMenuItems = new ArrayList<InlineMenuItem>();
-        headerMenuItems.add(new InlineMenuItem(createStringResource("pageUsers.menu.enable"),
-                new InlineMenuItemAction()));
-        column = new InlineMenuHeaderColumn(headerMenuItems);
+        column = new InlineMenuHeaderColumn(initInlineMenu());
         columns.add(column);
 
         return columns;
+    }
+
+    private List<InlineMenuItem> initInlineMenu() {
+        List<InlineMenuItem> headerMenuItems = new ArrayList<InlineMenuItem>();
+        headerMenuItems.add(new InlineMenuItem(createStringResource("pageUsers.menu.enable"), true,
+                new UserAction(this) {
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                        updateActivationPerformed(target, true, null);
+                    }
+                }));
+
+        headerMenuItems.add(new InlineMenuItem(createStringResource("pageUsers.menu.disable"), true,
+                new UserAction(this) {
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                        updateActivationPerformed(target, false, null);
+                    }
+                }));
+
+        headerMenuItems.add(new InlineMenuItem(createStringResource("pageUsers.menu.reconcile"), true,
+                new UserAction(this) {
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                        reconcilePerformed(target, null);
+                    }
+                }));
+
+        headerMenuItems.add(new InlineMenuItem());
+
+        headerMenuItems.add(new InlineMenuItem(createStringResource("pageUsers.menu.delete"), true,
+                new UserAction(this) {
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                        deletePerformed(target, null);
+                    }
+                }));
+
+        return headerMenuItems;
     }
 
     private void initTable(Form mainForm) {
@@ -327,8 +301,48 @@ public class PageUsers extends PageAdminUsers {
         dto.setCredentials(obj.findContainer(UserType.F_CREDENTIALS));
         dto.setIcon(WebMiscUtil.createUserIcon(obj));
 
-        //todo add menu items
-//        dto.getMenuItems().add()
+        dto.getMenuItems().add(new InlineMenuItem(createStringResource("pageUsers.menu.enable"),
+                new ColumnMenuAction<UserListItemDto>() {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        UserListItemDto rowDto = getRowModel().getObject();
+                        updateActivationPerformed(target, true, rowDto);
+                    }
+                }));
+
+        dto.getMenuItems().add(new InlineMenuItem(createStringResource("pageUsers.menu.disable"),
+                new ColumnMenuAction<UserListItemDto>() {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        UserListItemDto rowDto = getRowModel().getObject();
+                        updateActivationPerformed(target, false, rowDto);
+                    }
+                }));
+
+        dto.getMenuItems().add(new InlineMenuItem(createStringResource("pageUsers.menu.reconcile"),
+                new ColumnMenuAction<UserListItemDto>() {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        UserListItemDto rowDto = getRowModel().getObject();
+                        reconcilePerformed(target, rowDto);
+                    }
+                }));
+
+        dto.getMenuItems().add(new InlineMenuItem());
+
+        dto.getMenuItems().add(new InlineMenuItem(createStringResource("pageUsers.menu.delete"),
+                new ColumnMenuAction<UserListItemDto>() {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        UserListItemDto rowDto = getRowModel().getObject();
+                        deletePerformed(target, rowDto);
+                    }
+                }));
+
 
         return dto;
     }
@@ -450,19 +464,9 @@ public class PageUsers extends PageAdminUsers {
         return query;
     }
 
-    private boolean isAnythingSelected(List<UserListItemDto> users, AjaxRequestTarget target) {
-        if (!users.isEmpty()) {
-            return true;
-        }
-
-        warn(getString("pageUsers.message.nothingSelected"));
-        target.add(getFeedbackPanel());
-        return false;
-    }
-
-    private void deletePerformed(AjaxRequestTarget target) {
-        List<UserListItemDto> users = WebMiscUtil.getSelectedData(getTable());
-        if (!isAnythingSelected(users, target)) {
+    private void deletePerformed(AjaxRequestTarget target, UserListItemDto selectedUser) {
+        List<UserListItemDto> users = isAnythingSelected(target, selectedUser);
+        if (users.isEmpty()) {
             return;
         }
 
@@ -470,11 +474,12 @@ public class PageUsers extends PageAdminUsers {
         dialog.show(target);
     }
 
-    private void deleteConfirmedPerformed(AjaxRequestTarget target) {
-        List<UserListItemDto> users = WebMiscUtil.getSelectedData(getTable());
-        if (!isAnythingSelected(users, target)) {
+    private void deleteConfirmedPerformed(AjaxRequestTarget target, UserListItemDto selectedUser) {
+        List<UserListItemDto> users = isAnythingSelected(target, selectedUser);
+        if (users.isEmpty()) {
             return;
         }
+
         OperationResult result = new OperationResult(OPERATION_DELETE_USERS);
         for (UserListItemDto user : users) {
             OperationResult subResult = result.createSubresult(OPERATION_DELETE_USER);
@@ -506,14 +511,6 @@ public class PageUsers extends PageAdminUsers {
         target.add(getTable());
     }
 
-    private void enablePerformed(AjaxRequestTarget target) {
-        updateActivationPerformed(target, true);
-    }
-
-    private void disablePerformed(AjaxRequestTarget target) {
-        updateActivationPerformed(target, false);
-    }
-
     public static String toShortString(UserListItemDto object) {
         if (object == null) {
             return "null";
@@ -529,11 +526,12 @@ public class PageUsers extends PageAdminUsers {
         return builder.toString();
     }
 
-    private void reconcilePerformed(AjaxRequestTarget target) {
-        List<UserListItemDto> users = WebMiscUtil.getSelectedData(getTable());
-        if (!isAnythingSelected(users, target)) {
+    private void reconcilePerformed(AjaxRequestTarget target, UserListItemDto selectedUser) {
+        List<UserListItemDto> users = isAnythingSelected(target, selectedUser);
+        if (users.isEmpty()) {
             return;
         }
+
         OperationResult result = new OperationResult(OPERATION_RECONCILE_USERS);
         for (UserListItemDto user : users) {
             String userShortString = toShortString(user);
@@ -558,15 +556,39 @@ public class PageUsers extends PageAdminUsers {
         target.add(getTable());
     }
 
-    private void updateActivationPerformed(AjaxRequestTarget target, boolean enabling) {
-        List<UserListItemDto> users = WebMiscUtil.getSelectedData(getTable());
-        if (!isAnythingSelected(users, target)) {
+    /**
+     * This method check selection in table. If selectedUser != null than it returns only this user.
+     */
+    private List<UserListItemDto> isAnythingSelected(AjaxRequestTarget target, UserListItemDto selectedUser) {
+        List<UserListItemDto> users;
+        if (selectedUser != null) {
+            users = new ArrayList<UserListItemDto>();
+            users.add(selectedUser);
+        } else {
+            users = WebMiscUtil.getSelectedData(getTable());
+            if (users.isEmpty()) {
+                warn(getString("pageUsers.message.nothingSelected"));
+                target.add(getFeedbackPanel());
+            }
+        }
+
+        return users;
+    }
+
+    /**
+     * This method updates user activation. If userOid parameter is not null, than it updates only that user,
+     * otherwise it checks table for selected users.
+     */
+    private void updateActivationPerformed(AjaxRequestTarget target, boolean enabling, UserListItemDto selectedUser) {
+        List<UserListItemDto> users = isAnythingSelected(target, selectedUser);
+        if (users.isEmpty()) {
             return;
         }
-        OperationResult result = enabling ? new OperationResult(OPERATION_ENABLE_USERS)
-                : new OperationResult(OPERATION_DISABLE_USERS);
+
+        String operation = enabling ? OPERATION_ENABLE_USERS : OPERATION_DISABLE_USERS;
+        OperationResult result = new OperationResult(operation);
         for (UserListItemDto user : users) {
-            String operation = enabling ? OPERATION_ENABLE_USER : OPERATION_DISABLE_USER;
+            operation = enabling ? OPERATION_ENABLE_USER : OPERATION_DISABLE_USER;
             OperationResult subResult = result.createSubresult(operation);
             try {
                 Task task = createSimpleTask(operation);
@@ -598,5 +620,19 @@ public class PageUsers extends PageAdminUsers {
         showResult(result);
         target.add(getFeedbackPanel());
         target.add(getTable());
+    }
+
+    private static class UserAction extends InlineMenuItemAction {
+
+        private PageUsers page;
+
+        private UserAction(PageUsers page) {
+            this.page = page;
+        }
+
+        @Override
+        public void onError(AjaxRequestTarget target, Form<?> form) {
+            target.add(page.getFeedbackPanel());
+        }
     }
 }

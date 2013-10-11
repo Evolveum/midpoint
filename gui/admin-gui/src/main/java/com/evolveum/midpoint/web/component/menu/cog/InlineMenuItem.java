@@ -38,6 +38,7 @@ public class InlineMenuItem implements Serializable {
         this.enabled = enabled;
         this.visible = visible;
         this.action = action;
+        this.submit = submit;
     }
 
     public InlineMenuItemAction getAction() {

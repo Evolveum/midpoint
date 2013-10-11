@@ -27,4 +27,12 @@ import java.io.Serializable;
 public class ColumnMenuAction<T extends Serializable> extends InlineMenuItemAction {
 
     private IModel<T> rowModel;
+
+    void setRowModel(IModel<T> rowModel) {
+        this.rowModel = rowModel;
+    }
+
+    protected IModel<T> getRowModel() {
+        return rowModel;
+    }
 }
