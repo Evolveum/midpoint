@@ -146,6 +146,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 
 		Validate.notNull(oid, "Oid of object to get must not be null.");
+//		Validate.notNull(oid, "Oid of object to get must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
 
 		// Result type for this operation

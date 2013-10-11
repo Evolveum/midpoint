@@ -201,86 +201,29 @@ public class ShadowManager {
 		return results.get(0);
 	}
 
-//	public PrismObject<ShadowType> lookupShadowByIdentifier( 
-//			PrismObject<ShadowType> resourceShadow, RefinedObjectClassDefinition rObjClassDef, 
-//			ResourceType resource, OperationResult parentResult) 
-//					throws SchemaException, ConfigurationException {
-//
-//		Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getIdentifiers(resourceShadow);
-//		ResourceAttribute<?> identifier = null;
-//		if (identifiers.size() < 1){
-//			LOGGER.trace("Shadow does not contain primary idetifier. Skipping shadow lookup.");
-//			return null;
-//		}
-//		
-//		identifier = identifiers.iterator().next();
-//		LOGGER.trace("Shadow primary identifier {}", identifier);
-//		
-//		AndFilter filter = AndFilter.createAnd(RefFilter.createReferenceEqual(ShadowType.class,
-//				ShadowType.F_RESOURCE_REF, prismContext, resource.getOid()), EqualsFilter.createEqual(
-//				new ItemPath(ShadowType.F_ATTRIBUTES), identifier.getDefinition(),
-//				getNormalizedValue(identifier, rObjClassDef)));
-//		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-//		if (LOGGER.isTraceEnabled()) {
-//			LOGGER.trace("Searching for shadow using filter on primary identifier:\n{}",
-//					query.dump());
-//		}
-//
-//		// TODO: check for errors
-//		List<PrismObject<ShadowType>> results;
-//
-//		results = repositoryService.searchObjects(ShadowType.class, query, null, parentResult);
-//
-//		LOGGER.trace("lookupShadow found {} objects", results.size());
-//
-//		if (results.size() == 0) {
-//			return null;
-//		}
-//		if (results.size() > 1) {
-//			for (PrismObject<ShadowType> result : results) {
-//				LOGGER.trace("Search result:\n{}", result.dump());
-//			}
-//			LOGGER.error("More than one shadows found for " + resourceShadow);
-//			// TODO: Better error handling later
-//			throw new IllegalStateException("More than one shadows found for " + resourceShadow);
-//		}
-//
-//		PrismObject<ShadowType> repoShadow = results.get(0);
-//		ShadowType repoShadowType = repoShadow.asObjectable();
-//		if (repoShadow != null) {
-//			if (repoShadowType.getFailedOperationType() == null){
-//				LOGGER.trace("Found shadow is ok, returning null");
-//				return null;
-//			} 
-//			if (repoShadowType.getFailedOperationType() != null && FailedOperationTypeType.ADD != repoShadowType.getFailedOperationType()){
-//				return null;
-//			}
-//		}
-//		return repoShadow;
-//	}
-	
-	public PrismObject<ShadowType> lookupShadowByName( 
+
+	public PrismObject<ShadowType> lookupShadowByIdentifier( 
 			PrismObject<ShadowType> resourceShadow, RefinedObjectClassDefinition rObjClassDef, 
 			ResourceType resource, OperationResult parentResult) 
 					throws SchemaException, ConfigurationException {
 
-		Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(resourceShadow);
-		ResourceAttribute<?> secondaryIdentifier = null;
-		if (secondaryIdentifiers.size() < 1){
-			LOGGER.trace("Shadow does not contain secondary idetifier. Skipping lookup shadows according to name.");
+		Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getIdentifiers(resourceShadow);
+		ResourceAttribute<?> identifier = null;
+		if (identifiers.size() < 1){
+			LOGGER.trace("Shadow does not contain primary idetifier. Skipping shadow lookup.");
 			return null;
 		}
 		
-		secondaryIdentifier = secondaryIdentifiers.iterator().next();
-		LOGGER.trace("Shadow secondary identifier {}", secondaryIdentifier);
+		identifier = identifiers.iterator().next();
+		LOGGER.trace("Shadow primary identifier {}", identifier);
 		
 		AndFilter filter = AndFilter.createAnd(RefFilter.createReferenceEqual(ShadowType.class,
 				ShadowType.F_RESOURCE_REF, prismContext, resource.getOid()), EqualsFilter.createEqual(
-				new ItemPath(ShadowType.F_ATTRIBUTES), secondaryIdentifier.getDefinition(),
-				getNormalizedValue(secondaryIdentifier, rObjClassDef)));
+				new ItemPath(ShadowType.F_ATTRIBUTES), identifier.getDefinition(),
+				getNormalizedValue(identifier, rObjClassDef)));
 		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Searching for shadow using filter on secondary identifier:\n{}",
+			LOGGER.trace("Searching for shadow using filter on primary identifier:\n{}",
 					query.dump());
 		}
 
