@@ -118,10 +118,9 @@
 			<cap:liveSync/>
 			<cap:testConnection/>
 			-->
-			<cap:create/>
-	        <cap:read/>
-	        <cap:update/>
-	        <cap:delete/>
+			<cap:update>
+				<cap:enabled>false</cap:enabled>
+			</cap:update>
 		</configured>
 	</capabilities>
 		

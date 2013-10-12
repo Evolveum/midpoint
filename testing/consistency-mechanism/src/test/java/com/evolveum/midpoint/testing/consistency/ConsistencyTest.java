@@ -1956,7 +1956,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	
 	@Test
 	public void test801testReconciliationRename() throws Exception{
-		final String TEST_NAME = "test800Reconciliation";
+		final String TEST_NAME = "test801testReconciliationRename";
         TestUtil.displayTestTile(this, TEST_NAME);
 
 		final OperationResult result = new OperationResult(ConsistencyTest.class.getName() + "." + TEST_NAME);

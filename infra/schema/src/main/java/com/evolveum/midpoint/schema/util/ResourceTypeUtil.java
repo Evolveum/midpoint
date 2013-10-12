@@ -53,7 +53,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CreateCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.DeleteCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ReadCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.UpdateCapabilityType;
 
 /**
  * Methods that would belong to the ResourceType class but cannot go there
@@ -255,6 +259,56 @@ public class ResourceTypeUtil {
 	
 	public static boolean hasCredentialsCapability(ResourceType resource) {
 		return (getEffectiveCapability(resource, CredentialsCapabilityType.class)!=null);
+	}
+	
+	public static boolean hasReadCapability(ResourceType resource){
+		ReadCapabilityType readCap = getEffectiveCapability(resource, ReadCapabilityType.class);
+		if (readCap == null){
+			return false;
+		}
+		
+		if (readCap.isEnabled() == null){
+			return true;
+		}
+		
+		return readCap.isEnabled();
+	}
+	
+	public static boolean hasCreateCapability(ResourceType resource){
+		CreateCapabilityType createCap = getEffectiveCapability(resource, CreateCapabilityType.class);
+		if (createCap == null){
+			return false;
+		}
+		
+		if (createCap.isEnabled() == null){
+			return true;
+		}
+		
+		return createCap.isEnabled();
+	}
+	public static boolean hasUpdateCapability(ResourceType resource){
+		UpdateCapabilityType updateCap = getEffectiveCapability(resource, UpdateCapabilityType.class);
+		if (updateCap == null){
+			return false;
+		}
+		
+		if (updateCap.isEnabled() == null){
+			return true;
+		}
+		
+		return updateCap.isEnabled();
+	}
+	public static boolean hasDeleteCapability(ResourceType resource){
+		DeleteCapabilityType deleteCap = getEffectiveCapability(resource, DeleteCapabilityType.class);
+		if (deleteCap == null){
+			return false;
+		}
+		
+		if (deleteCap.isEnabled() == null){
+			return true;
+		}
+		
+		return deleteCap.isEnabled();
 	}
 	
 	public static boolean hasResourceNativeActivationCapability(ResourceType resource) {

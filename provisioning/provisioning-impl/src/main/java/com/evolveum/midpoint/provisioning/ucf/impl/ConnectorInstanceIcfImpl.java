@@ -45,10 +45,15 @@ import org.identityconnectors.framework.api.ConnectorFacadeFactory;
 import org.identityconnectors.framework.api.ConnectorInfo;
 import org.identityconnectors.framework.api.ResultsHandlerConfiguration;
 import org.identityconnectors.framework.api.operations.APIOperation;
+import org.identityconnectors.framework.api.operations.CreateApiOp;
+import org.identityconnectors.framework.api.operations.DeleteApiOp;
+import org.identityconnectors.framework.api.operations.GetApiOp;
 import org.identityconnectors.framework.api.operations.ScriptOnConnectorApiOp;
 import org.identityconnectors.framework.api.operations.ScriptOnResourceApiOp;
+import org.identityconnectors.framework.api.operations.SearchApiOp;
 import org.identityconnectors.framework.api.operations.SyncApiOp;
 import org.identityconnectors.framework.api.operations.TestApiOp;
+import org.identityconnectors.framework.api.operations.UpdateApiOp;
 import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
@@ -145,12 +150,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationStatusCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationValidityCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CreateCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.DeleteCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.LiveSyncCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.PasswordCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ReadCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ScriptCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ScriptCapabilityType.Host;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.TestConnectionCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.UpdateCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 /**
@@ -767,6 +776,26 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		if (supportedOperations.contains(TestApiOp.class)) {
 			TestConnectionCapabilityType capTest = new TestConnectionCapabilityType();
 			capabilities.add(capabilityObjectFactory.createTestConnection(capTest));
+		}
+		
+		if (supportedOperations.contains(CreateApiOp.class)){
+			CreateCapabilityType capCreate = new CreateCapabilityType();
+			capabilities.add(capabilityObjectFactory.createCreate(capCreate));
+		}
+		
+		if (supportedOperations.contains(GetApiOp.class) || supportedOperations.contains(SearchApiOp.class)){
+			ReadCapabilityType capRead = new ReadCapabilityType();
+			capabilities.add(capabilityObjectFactory.createRead(capRead));
+		}
+		
+		if (supportedOperations.contains(UpdateApiOp.class)){
+			UpdateCapabilityType capUpdate = new UpdateCapabilityType();
+			capabilities.add(capabilityObjectFactory.createUpdate(capUpdate));
+		}
+		
+		if (supportedOperations.contains(DeleteApiOp.class)){
+			DeleteCapabilityType capDelete = new DeleteCapabilityType();
+			capabilities.add(capabilityObjectFactory.createDelete(capDelete));
 		}
 
 		if (supportedOperations.contains(ScriptOnResourceApiOp.class)
