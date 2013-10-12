@@ -28,9 +28,9 @@ public class UsersDto implements Serializable {
     public static enum SearchType {
 
         NAME("SearchType.NAME"),
-        FULL_NAME("SearchType.FULL_NAME"),
         GIVEN_NAME("SearchType.GIVEN_NAME"),
-        FAMILY_NAME("SearchType.FAMILY_NAME");
+        FAMILY_NAME("SearchType.FAMILY_NAME"),
+        FULL_NAME("SearchType.FULL_NAME");
 
         private String key;
 
