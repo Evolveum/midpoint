@@ -20,72 +20,65 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
-import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
-import com.evolveum.midpoint.schema.*;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
-import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.button.ButtonType;
 import com.evolveum.midpoint.web.component.data.RepositoryObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.ButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
-import com.evolveum.midpoint.web.component.option.OptionContent;
-import com.evolveum.midpoint.web.component.option.OptionItem;
-import com.evolveum.midpoint.web.component.option.OptionPanel;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.admin.configuration.component.DebugButtonPanel;
+import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.configuration.component.PageDebugDownloadBehaviour;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugObjectItem;
-import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugSearchDto;
 import com.evolveum.midpoint.web.session.ConfigurationStorage;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.poi.hssf.record.formula.functions.T;
+import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.apache.wicket.markup.html.form.ListChoice;
 import org.apache.wicket.markup.html.form.TextField;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.*;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.util.file.File;
-import org.apache.wicket.util.file.Files;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
 import java.util.*;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 /**
  * @author lazyman
@@ -108,8 +101,6 @@ public class PageDebugList extends PageAdminConfiguration {
     private static final String ID_CONFIRM_LAXATIVE_OPERATION = "confirmLaxativeOperation";
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_ZIP_CHECK = "zipCheck";
-    private static final String ID_OPTION_CONTENT = "optionContent";
-    private static final String ID_OPTION = "option";
     private static final String ID_SEARCH = "search";
     private static final String ID_CATEGORY = "category";
     private static final String ID_TABLE = "table";
@@ -118,8 +109,8 @@ public class PageDebugList extends PageAdminConfiguration {
     private static final String ID_LAXATIVE_BUTTON = "laxativeButton";
     private static final String ID_EXPORT = "export";
     private static final String ID_EXPORT_ALL = "exportAll";
+    private static final String ID_SEARCH_FORM = "searchForm";
     private static final String ID_SEARCH_TEXT = "searchText";
-    private static final String ID_CLEAR_BUTTON = "clearButton";
     private static final String ID_SEARCH_BUTTON = "searchButton";
 
     private static final String PRINT_LABEL_USER = "User ";
@@ -129,11 +120,25 @@ public class PageDebugList extends PageAdminConfiguration {
     private static final String PRINT_LABEL_HTML_NEWLINE = "<br>";
     private static final String PRINT_LABEL_ADMINISTRATOR_NOT_DELETED = "(User 'Administrator' will not be deleted)";
 
+    private IModel<DebugSearchDto> searchModel;
+
     private boolean deleteSelected; //todo what is this used for?
     private IModel<ObjectTypes> choice = null;
     private DebugObjectItem object = null; //todo what is this used for?
 
     public PageDebugList() {
+        searchModel = new LoadableModel<DebugSearchDto>(false) {
+
+            @Override
+            protected DebugSearchDto load() {
+                DebugSearchDto dto = new DebugSearchDto();
+                ConfigurationStorage storage = getSessionStorage().getConfiguration();
+                dto.setType(storage.getDebugListCategory());
+
+                return dto;
+            }
+        };
+
         initLayout();
     }
 
@@ -161,6 +166,9 @@ public class PageDebugList extends PageAdminConfiguration {
         laxativeConfirmationDialog.setInitialWidth(500);
         add(laxativeConfirmationDialog);
 
+        Form searchForm = new Form(ID_SEARCH_FORM);
+        add(searchForm);
+        initSearchForm(searchForm);
 
         final Form main = new Form(ID_MAIN_FORM);
         add(main);
@@ -178,21 +186,6 @@ public class PageDebugList extends PageAdminConfiguration {
                 return types;
             }
         };
-
-        OptionPanel option = new OptionPanel(ID_OPTION, createStringResource("pageDebugList.optionsTitle"), false);
-        option.setOutputMarkupId(true);
-        main.add(option);
-
-        OptionItem item = new OptionItem(ID_SEARCH, createStringResource("pageDebugList.search"));
-        option.getBodyContainer().add(item);
-        IModel<String> searchNameModel = initSearch(item);
-
-        item = new OptionItem(ID_CATEGORY, createStringResource("pageDebugList.selectType"));
-        option.getBodyContainer().add(item);
-        initCategory(item, searchNameModel);
-
-        OptionContent content = new OptionContent(ID_OPTION_CONTENT);
-        main.add(content);
 
         ConfigurationStorage storage = getSessionStorage().getConfiguration();
         Class type = storage.getDebugListCategory().getClassDefinition();
@@ -213,7 +206,7 @@ public class PageDebugList extends PageAdminConfiguration {
         main.add(delete);
 
         AjaxLinkButton laxativeButton = new AjaxLinkButton(ID_LAXATIVE_BUTTON, ButtonType.NEGATIVE,
-               createStringResource("pageDebugList.button.laxativeButton")) {
+                createStringResource("pageDebugList.button.laxativeButton")) {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 laxativeActionPerformed(target);
@@ -282,11 +275,11 @@ public class PageDebugList extends PageAdminConfiguration {
     }
 
     private void addOrReplaceTable(RepositoryObjectDataProvider provider) {
-        OptionContent content = (OptionContent) get(createComponentPath(ID_MAIN_FORM, ID_OPTION_CONTENT));
+        Form mainForm = (Form) get(ID_MAIN_FORM);
 
         TablePanel table = new TablePanel(ID_TABLE, provider, initColumns(provider.getType()));
         table.setOutputMarkupId(true);
-        content.getBodyContainer().addOrReplace(table);
+        mainForm.addOrReplace(table);
     }
 
     private List<IColumn> initColumns(final Class<? extends ObjectType> type) {
@@ -306,6 +299,9 @@ public class PageDebugList extends PageAdminConfiguration {
         };
         columns.add(column);
 
+        columns.add(new PropertyColumn(createStringResource("pageDebugList.description"),
+                DebugObjectItem.F_DESCRIPTION));
+
         if (ShadowType.class.isAssignableFrom(type)) {
             columns.add(new PropertyColumn(createStringResource("pageDebugList.resourceName"),
                     DebugObjectItem.F_RESOURCE_NAME));
@@ -313,13 +309,36 @@ public class PageDebugList extends PageAdminConfiguration {
                     DebugObjectItem.F_RESOURCE_TYPE));
         }
 
-        column = new ButtonColumn<DebugObjectItem>(createStringResource("pageDebugList.operation"),
-                createStringResource("pageDebugList.button.delete")) {
+        column = new AbstractColumn<DebugObjectItem, String>(new Model(), null) {
 
             @Override
-            public void onClick(AjaxRequestTarget target, IModel<DebugObjectItem> rowModel) {
-                DebugObjectItem object = rowModel.getObject();
-                deleteObjectPerformed(target, choice, object);
+            public void populateItem(Item<ICellPopulator<DebugObjectItem>> cellItem, String componentId,
+                                     IModel<DebugObjectItem> rowModel) {
+                cellItem.add(AttributeModifier.append("style", "200px"));
+
+                cellItem.add(new DebugButtonPanel<DebugObjectItem>(componentId, rowModel) {
+
+                    @Override
+                    public void deletePerformed(AjaxRequestTarget target, IModel<DebugObjectItem> model) {
+                        DebugObjectItem object = model.getObject();
+                        deleteObjectPerformed(target, choice, object);
+                    }
+
+                    @Override
+                    public void exportPerformed(AjaxRequestTarget target, IModel<DebugObjectItem> model) {
+                        //todo implement
+                    }
+                });
+            }
+        };
+        columns.add(column);
+
+        column = new InlineMenuHeaderColumn(initInlineMenu()) {
+
+            @Override
+            public void populateItem(Item<ICellPopulator> cellItem, String componentId, IModel rowModel) {
+                //we don't need row inline menu
+                cellItem.add(new Label(componentId));
             }
         };
         columns.add(column);
@@ -327,55 +346,67 @@ public class PageDebugList extends PageAdminConfiguration {
         return columns;
     }
 
+    private List<InlineMenuItem> initInlineMenu() {
+        List<InlineMenuItem> headerMenuItems = new ArrayList<InlineMenuItem>();
+        headerMenuItems.add(new InlineMenuItem(createStringResource("pageDebugList.menu.exportSelected"), true,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                        //todo implement
+                    }
+                }));
+
+        headerMenuItems.add(new InlineMenuItem(createStringResource("pageDebugList.menu.exportAllSelectedType"), true,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                        //todo implement
+                    }
+                }));
+
+        headerMenuItems.add(new InlineMenuItem(createStringResource("pageDebugList.menu.exportAll"), true,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                        //todo implement
+                    }
+                }));
+
+        headerMenuItems.add(new InlineMenuItem());
+
+        headerMenuItems.add(new InlineMenuItem(createStringResource("pageDebugList.menu.deleteSelected"), true,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                        //todo implement
+                    }
+                }));
+
+        headerMenuItems.add(new InlineMenuItem(createStringResource("pageDebugList.menu.deleteAllType"), true,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                        //todo implement
+                    }
+                }));
+
+        return headerMenuItems;
+    }
+
     private boolean hasToZip() {
         AjaxCheckBox zipCheck = (AjaxCheckBox) get(createComponentPath(ID_MAIN_FORM, ID_ZIP_CHECK));
         return zipCheck.getModelObject();
     }
 
-    private IModel<String> initSearch(OptionItem item) {
-        final IModel<String> model = new Model<String>();
-        TextField<String> search = new TextField<String>(ID_SEARCH_TEXT, model);
-        item.add(search);
+    private void initSearchForm(Form searchForm) {
+        TextField search = new TextField(ID_SEARCH_TEXT, new PropertyModel(searchModel, DebugSearchDto.F_TEXT));
+        searchForm.add(search);
 
-        AjaxSubmitLinkButton clearButton = new AjaxSubmitLinkButton(ID_CLEAR_BUTTON,
-                new StringResourceModel("pageDebugList.button.clear", this, null)) {
-
-            @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
-                PageBase page = (PageBase) getPage();
-                target.add(page.getFeedbackPanel());
-            }
-
-            @Override
-            public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                model.setObject(null);
-                target.appendJavaScript("init()");
-                target.add(PageDebugList.this.get(createComponentPath(ID_MAIN_FORM, ID_OPTION)));
-                listObjectsPerformed(target, model.getObject(), null);
-            }
-        };
-        item.add(clearButton);
-
-        AjaxSubmitLinkButton searchButton = new AjaxSubmitLinkButton(ID_SEARCH_BUTTON,
-                new StringResourceModel("pageDebugList.button.search", this, null)) {
-
-            @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
-                PageBase page = (PageBase) getPage();
-                target.add(page.getFeedbackPanel());
-            }
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                listObjectsPerformed(target, model.getObject(), null);
-            }
-        };
-        item.add(searchButton);
-
-        return model;
-    }
-
-    private void initCategory(OptionItem item, final IModel<String> searchNameModel) {
         IChoiceRenderer<ObjectTypes> renderer = new IChoiceRenderer<ObjectTypes>() {
 
             @Override
@@ -389,23 +420,31 @@ public class PageDebugList extends PageAdminConfiguration {
             }
         };
 
-        IModel<List<ObjectTypes>> choiceModel = createChoiceModel(renderer);
-        final ListChoice listChoice = new ListChoice(ID_CHOICE, choice, choiceModel, renderer, choiceModel.getObject().size()) {
-
-            @Override
-            protected CharSequence getDefaultChoice(String selectedValue) {
-                return "";
-            }
-        };
-        listChoice.add(new OnChangeAjaxBehavior() {
+        DropDownChoice choice = new DropDownChoice(ID_CHOICE, new PropertyModel(searchModel, DebugSearchDto.F_TYPE),
+                createChoiceModel(renderer), renderer);
+        searchForm.add(choice);
+        choice.add(new OnChangeAjaxBehavior() {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                target.add(listChoice);
-                listObjectsPerformed(target, searchNameModel.getObject(), choice.getObject());
+                listObjectsPerformed(target);
             }
         });
-        item.getBodyContainer().add(listChoice);
+
+        AjaxSubmitButton searchButton = new AjaxSubmitButton(ID_SEARCH_BUTTON,
+                new StringResourceModel("pageDebugList.button.search", this, null)) {
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(getFeedbackPanel());
+            }
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                listObjectsPerformed(target);
+            }
+        };
+        searchForm.add(searchButton);
     }
 
     private IModel<List<ObjectTypes>> createChoiceModel(final IChoiceRenderer<ObjectTypes> renderer) {
@@ -434,11 +473,14 @@ public class PageDebugList extends PageAdminConfiguration {
     }
 
     private TablePanel getListTable() {
-        OptionContent content = (OptionContent) get(createComponentPath(ID_MAIN_FORM, ID_OPTION_CONTENT));
-        return (TablePanel) content.getBodyContainer().get(ID_TABLE);
+        return (TablePanel) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
     }
 
-    private void listObjectsPerformed(AjaxRequestTarget target, String nameText, ObjectTypes selected) {
+    private void listObjectsPerformed(AjaxRequestTarget target) {
+        DebugSearchDto dto = searchModel.getObject();
+        String nameText = dto.getText();
+        ObjectTypes selected = dto.getType();
+
         RepositoryObjectDataProvider provider = getTableDataProvider();
         if (StringUtils.isNotEmpty(nameText)) {
             try {
@@ -506,14 +548,14 @@ public class PageDebugList extends PageAdminConfiguration {
         };
     }
 
-    private IModel<String> createLaxativeString(){
+    private IModel<String> createLaxativeString() {
         return new AbstractReadOnlyModel<String>() {
             @Override
             public String getObject() {
                 int userCount = 0;
                 int shadowCount = 0;
                 final StringBuilder sb = new StringBuilder();
-                sb.append(createStringResource("pageDebugList.dialog.title.confirmLaxativeMessage").getString()+"<br><br>");
+                sb.append(createStringResource("pageDebugList.dialog.title.confirmLaxativeMessage").getString() + "<br><br>");
 
 
                 Task task = createSimpleTask(OPERATION_SEARCH_ITERATIVE_TASK);
@@ -526,8 +568,8 @@ public class PageDebugList extends PageAdminConfiguration {
                 ResultHandler<UserType> userHandler = new ResultHandler<UserType>() {
                     @Override
                     public boolean handle(PrismObject object, OperationResult parentResult) {
-                        if(!SystemObjectsType.USER_ADMINISTRATOR.value().equals(object.asObjectable().getOid())){
-                            sb.append(PRINT_LABEL_USER).append(testObjectNameForNullState(object)).append(PRINT_LABEL_HTML_NEWLINE);
+                        if (!SystemObjectsType.USER_ADMINISTRATOR.value().equals(object.asObjectable().getOid())) {
+                            sb.append(PRINT_LABEL_USER).append(WebMiscUtil.getName(object)).append(PRINT_LABEL_HTML_NEWLINE);
                         }
                         return true;
                     }
@@ -536,7 +578,7 @@ public class PageDebugList extends PageAdminConfiguration {
                 ResultHandler<ShadowType> shadowHandler = new ResultHandler<ShadowType>() {
                     @Override
                     public boolean handle(PrismObject object, OperationResult parentResult) {
-                        sb.append(PRINT_LABEL_SHADOW).append(testObjectNameForNullState(object)).append(PRINT_LABEL_HTML_NEWLINE);
+                        sb.append(PRINT_LABEL_SHADOW).append(WebMiscUtil.getName(object)).append(PRINT_LABEL_HTML_NEWLINE);
                         return true;
                     }
                 };
@@ -549,10 +591,10 @@ public class PageDebugList extends PageAdminConfiguration {
 
                     shadowCount = getModelService().countObjects(ShadowType.class, null, options, task, result);
 
-                    if(userCount >= 10 || shadowCount >= 10){
+                    if (userCount >= 10 || shadowCount >= 10) {
                         sb.append(PRINT_LABEL_USER_DELETE).append(userCount).append(PRINT_LABEL_HTML_NEWLINE).append(PRINT_LABEL_SHADOW_DELETE).append(shadowCount).append(PRINT_LABEL_HTML_NEWLINE);
                         sb.append(PRINT_LABEL_ADMINISTRATOR_NOT_DELETED).append(PRINT_LABEL_HTML_NEWLINE);
-                    }else{
+                    } else {
                         sb.append(PRINT_LABEL_USER_DELETE).append(userCount).append(PRINT_LABEL_HTML_NEWLINE);
                         sb.append(PRINT_LABEL_ADMINISTRATOR_NOT_DELETED);
                         getModelService().searchObjectsIterative(UserType.class, null, userHandler, options, task, result);
@@ -560,7 +602,7 @@ public class PageDebugList extends PageAdminConfiguration {
                         sb.append(PRINT_LABEL_SHADOW_DELETE).append(shadowCount).append(PRINT_LABEL_HTML_NEWLINE);
                         getModelService().searchObjectsIterative(ShadowType.class, null, shadowHandler, options, task, result);
                     }
-                } catch (Exception ex){
+                } catch (Exception ex) {
                     result.computeStatus(getString("pageDebugList.message.countSearchProblem"));
                     LoggingUtils.logException(LOGGER, getString("pageDebugList.message.countSearchProblem"), ex);
                 }
@@ -568,13 +610,6 @@ public class PageDebugList extends PageAdminConfiguration {
                 return sb.toString();
             }
         };
-    }
-
-    public String testObjectNameForNullState(PrismObject<ObjectType> object){
-        if(object.asObjectable().getName() == null)
-            return "null";
-        else
-            return object.asObjectable().getName().getOrig();
     }
 
     private void deleteSelectedConfirmedPerformed(AjaxRequestTarget target) {
@@ -650,18 +685,18 @@ public class PageDebugList extends PageAdminConfiguration {
         dialog.show(target);
     }
 
-    private void laxativeActionPerformed(AjaxRequestTarget target){
+    private void laxativeActionPerformed(AjaxRequestTarget target) {
         ModalWindow dialog = (ModalWindow) get(ID_CONFIRM_LAXATIVE_OPERATION);
         dialog.show(target);
         //dialog.close(target);
     }
 
-    private ConfirmationDialog prepareLaxativeConfirmationDialog(){
+    private ConfirmationDialog prepareLaxativeConfirmationDialog() {
         return new ConfirmationDialog(ID_CONFIRM_LAXATIVE_OPERATION, createStringResource("pageDebugList.dialog.title.confirmLaxative"),
-                createLaxativeString()){
+                createLaxativeString()) {
 
             @Override
-            public void yesPerformed(AjaxRequestTarget target){
+            public void yesPerformed(AjaxRequestTarget target) {
                 close(target);
                 Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<SelectorOptions<GetOperationOptions>>();
                 GetOperationOptions opt = GetOperationOptions.createRaw();
@@ -673,15 +708,15 @@ public class PageDebugList extends PageAdminConfiguration {
                 ResultHandler<UserType> userHandler = new ResultHandler<UserType>() {
                     @Override
                     public boolean handle(PrismObject object, OperationResult parentResult) {
-                        if(!SystemObjectsType.USER_ADMINISTRATOR.value().equals(object.asObjectable().getOid())){
+                        if (!SystemObjectsType.USER_ADMINISTRATOR.value().equals(object.asObjectable().getOid())) {
                             ObjectDelta delta = ObjectDelta.createDeleteDelta(UserType.class, object.asObjectable().getOid(), getPrismContext());
                             Task task = createSimpleTask(OPERATION_LAXATIVE_DELETE);
                             OperationResult r = new OperationResult(OPERATION_LAXATIVE_DELETE);
 
                             try {
-                                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta),ModelExecuteOptions.createRaw(), task, r);
+                                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), ModelExecuteOptions.createRaw(), task, r);
                                 r.recordSuccess();
-                            } catch (Exception ex){
+                            } catch (Exception ex) {
                                 r.computeStatus(getString("pageDebugList.message.singleDeleteProblemUser"));
                                 LoggingUtils.logException(LOGGER, getString("pageDebugList.message.singleDeleteProblemUser"), ex);
                             }
@@ -702,7 +737,7 @@ public class PageDebugList extends PageAdminConfiguration {
                         try {
                             getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), ModelExecuteOptions.createRaw(), task, r);
                             r.recordSuccess();
-                        }catch (Exception ex){
+                        } catch (Exception ex) {
                             r.computeStatus(getString("pageDebugList.message.singleDeleteProblemShadow"));
                             LoggingUtils.logException(LOGGER, getString("pageDebugList.message.singleDeleteProblemShadow"), ex);
                         }
@@ -714,7 +749,7 @@ public class PageDebugList extends PageAdminConfiguration {
                 try {
                     getModelService().searchObjectsIterative(UserType.class, null, userHandler, options, laxativeTask, result);
                     getModelService().searchObjectsIterative(ShadowType.class, null, shadowHandler, options, laxativeTask, result);
-                }catch (Exception ex){
+                } catch (Exception ex) {
                     result.computeStatus(getString("pageDebugList.message.laxativeProblem"));
                     LoggingUtils.logException(LOGGER, getString("pageDebugList.message.laxativeProblem"), ex);
                 }

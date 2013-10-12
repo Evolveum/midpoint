@@ -17,16 +17,7 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div style="text-align: center;">
-        <ul class="pagination pagination-sm" style="margin: 0 0 20px">
-            <li wicket:id="previous"><a wicket:id="previousLink"><wicket:message key="NavigatorPanel.previous"/></a></li>
-            <li wicket:id="first"><a wicket:id="firstLink"><wicket:message key="NavigatorPanel.first"/></a></li>
-            <li wicket:id="dots" class="disabled"><span><wicket:message key="NavigatorPanel.dots"/></span></li>
-            <li wicket:id="navigation">
-                <a wicket:id="pageLink"/>
-            </li>
-            <li wicket:id="next"><a wicket:id="nextLink"><wicket:message key="NavigatorPanel.next"/></a></li>
-        </ul>
-    </div>
+    <a class="btn btn-default btn-sm" wicket:id="export"/>
+    <a class="btn btn-danger btn-sm" wicket:id="delete"/>
 </wicket:panel>
 </html>

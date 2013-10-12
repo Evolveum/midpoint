@@ -20,33 +20,43 @@
 <wicket:extend>
 	<div wicket:id="confirmDeletePopup" />
     <div wicket:id="confirmLaxativeOperation" />
-    <form wicket:id="mainForm">
-        <div wicket:id="option">
-            <div wicket:id="search">
-                <input class="searchText" type="text" wicket:id="searchText"/>
-                <a wicket:id="clearButton"/>
-                <a class="submitSearch" wicket:id="searchButton"/>
-            </div>
-            <div wicket:id="category">
-                <select wicket:id="choice"/>
-            </div>
-        </div>
-        <div wicket:id="optionContent">
-            <div wicket:id="table"/>
-        </div>
-        <div class="operatingFormButtons">
-            <div class="operatingFormBlock">
-	            <a wicket:id="deleteSelected"/>
-                <a wicket:id="laxativeButton"/>
-            </div>
 
-            <div class="operatingFormBlock">
-	            <span class="operatingFormText"><wicket:message key="pageDebugList.button.label.export"/></span>
-                <a wicket:id="export"/>
-	            <a wicket:id="exportAll"/>
-	            <input class="operatingFormCheck" type="checkbox" wicket:id="zipCheck" />
-	            <span class="operatingFormText margLeft"><wicket:message key="pageDebugList.zipCheck" /></span>
+    <form wicket:id="searchForm" class="form-inline pull-right search-form">
+        <div class="form-group">
+            <label class="sr-only"><wicket:message key="pageDebugList.objectType"/></label>
+            <select class="form-control input-sm" wicket:id="choice"/>
+        </div>
+        <div class="form-group">
+            <label class="sr-only"><wicket:message key="pageDebugList.searchTextPlaceholder"/></label>
+            <input class="form-control input-sm" wicket:id="searchText"
+                   wicket:message="placeholder:pageDebugList.searchTextPlaceholder">
+        </div>
+
+        <a class="btn btn-default btn-sm" wicket:id="searchButton"/>
+    </form>
+
+    <form wicket:id="mainForm" class="clearfix form-horizontal">
+        <div wicket:id="table"/>
+
+        <div class="form-group">
+            <label class="col-lg-2 control-label"><wicket:message key="pageDebugList.options"/></label>
+
+            <div class="col-lg-3">
+                <div>
+                    <label class="col-lg-2 checkbox-inline">
+                        <input type="checkbox" wicket:id="zipCheck">
+                        <wicket:message key="pageDebugList.zipCheck" />
+                    </label>
+                </div>
             </div>
+        </div>
+
+        <div class="operatingFormButtons">
+            <a wicket:id="deleteSelected"/>
+            <a wicket:id="laxativeButton"/>
+
+            <a wicket:id="export"/>
+            <a wicket:id="exportAll"/>
         </div>
     </form>
 </wicket:extend>

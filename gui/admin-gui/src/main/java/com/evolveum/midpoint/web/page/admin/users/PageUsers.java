@@ -45,6 +45,7 @@ import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserListItemDto;
@@ -212,7 +213,7 @@ public class PageUsers extends PageAdminUsers {
     private List<InlineMenuItem> initInlineMenu() {
         List<InlineMenuItem> headerMenuItems = new ArrayList<InlineMenuItem>();
         headerMenuItems.add(new InlineMenuItem(createStringResource("pageUsers.menu.enable"), true,
-                new UserAction(this) {
+                new HeaderMenuAction(this) {
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target, Form<?> form) {
@@ -221,7 +222,7 @@ public class PageUsers extends PageAdminUsers {
                 }));
 
         headerMenuItems.add(new InlineMenuItem(createStringResource("pageUsers.menu.disable"), true,
-                new UserAction(this) {
+                new HeaderMenuAction(this) {
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target, Form<?> form) {
@@ -230,7 +231,7 @@ public class PageUsers extends PageAdminUsers {
                 }));
 
         headerMenuItems.add(new InlineMenuItem(createStringResource("pageUsers.menu.reconcile"), true,
-                new UserAction(this) {
+                new HeaderMenuAction(this) {
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target, Form<?> form) {
@@ -241,7 +242,7 @@ public class PageUsers extends PageAdminUsers {
         headerMenuItems.add(new InlineMenuItem());
 
         headerMenuItems.add(new InlineMenuItem(createStringResource("pageUsers.menu.delete"), true,
-                new UserAction(this) {
+                new HeaderMenuAction(this) {
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target, Form<?> form) {
@@ -620,19 +621,5 @@ public class PageUsers extends PageAdminUsers {
         showResult(result);
         target.add(getFeedbackPanel());
         target.add(getTable());
-    }
-
-    private static class UserAction extends InlineMenuItemAction {
-
-        private PageUsers page;
-
-        private UserAction(PageUsers page) {
-            this.page = page;
-        }
-
-        @Override
-        public void onError(AjaxRequestTarget target, Form<?> form) {
-            target.add(page.getFeedbackPanel());
-        }
     }
 }
