@@ -39,10 +39,7 @@ import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.button.ButtonType;
 import com.evolveum.midpoint.web.component.data.RepositoryObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.data.column.ButtonColumn;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
@@ -312,10 +309,13 @@ public class PageDebugList extends PageAdminConfiguration {
         column = new AbstractColumn<DebugObjectItem, String>(new Model(), null) {
 
             @Override
+            public String getCssClass() {
+                return "debug-list-buttons";
+            }
+
+            @Override
             public void populateItem(Item<ICellPopulator<DebugObjectItem>> cellItem, String componentId,
                                      IModel<DebugObjectItem> rowModel) {
-                cellItem.add(AttributeModifier.append("style", "200px"));
-
                 cellItem.add(new DebugButtonPanel<DebugObjectItem>(componentId, rowModel) {
 
                     @Override
@@ -333,10 +333,11 @@ public class PageDebugList extends PageAdminConfiguration {
         };
         columns.add(column);
 
-        column = new InlineMenuHeaderColumn(initInlineMenu()) {
+        column = new InlineMenuHeaderColumn<InlineMenu>(initInlineMenu()) {
 
             @Override
-            public void populateItem(Item<ICellPopulator> cellItem, String componentId, IModel rowModel) {
+            public void populateItem(Item<ICellPopulator<InlineMenu>> cellItem, String componentId,
+                                     IModel<InlineMenu> rowModel) {
                 //we don't need row inline menu
                 cellItem.add(new Label(componentId));
             }
