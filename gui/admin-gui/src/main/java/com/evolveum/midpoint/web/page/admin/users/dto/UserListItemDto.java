@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.users.dto;
 
 import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.web.component.data.column.InlineMenu;
+import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.Selectable;
 
@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class UserListItemDto extends Selectable implements InlineMenu {
+public class UserListItemDto extends Selectable implements InlineMenuable {
 
     public static final String F_ICON = "icon";
     public static final String F_NAME = "name";
@@ -46,6 +46,7 @@ public class UserListItemDto extends Selectable implements InlineMenu {
     private int accountCount;
     private String icon;
     private PrismContainer credentials;
+    private List<InlineMenuItem> menuItems;
 
     public UserListItemDto(String oid, String name, String givenName,
                            String familyName, String fullName, String email) {
@@ -107,6 +108,10 @@ public class UserListItemDto extends Selectable implements InlineMenu {
 
     @Override
     public List<InlineMenuItem> getMenuItems() {
-        return new ArrayList<InlineMenuItem>();
+        if (menuItems == null) {
+            menuItems = new ArrayList<InlineMenuItem>();
+        }
+
+        return menuItems;
     }
 }

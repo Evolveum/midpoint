@@ -18,7 +18,7 @@ package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.web.component.data.column.InlineMenu;
+import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
@@ -31,7 +31,7 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class DebugObjectItem extends Selectable implements InlineMenu {
+public class DebugObjectItem extends Selectable implements InlineMenuable {
 
     public static final String F_OID = "oid";
     public static final String F_NAME = "name";

@@ -24,7 +24,7 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public interface InlineMenu extends Serializable {
+public interface InlineMenuable extends Serializable {
 
     String F_MENU_ITEMS = "menuItems";
 

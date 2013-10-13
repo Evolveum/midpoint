@@ -27,7 +27,7 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class InlineMenuHeaderColumn<T extends InlineMenu> extends InlineMenuColumn<T> {
+public class InlineMenuHeaderColumn<T extends InlineMenuable> extends InlineMenuColumn<T> {
 
     private IModel<List<InlineMenuItem>> menuItems;
 

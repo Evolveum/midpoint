@@ -55,8 +55,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
@@ -333,11 +331,11 @@ public class PageDebugList extends PageAdminConfiguration {
         };
         columns.add(column);
 
-        column = new InlineMenuHeaderColumn<InlineMenu>(initInlineMenu()) {
+        column = new InlineMenuHeaderColumn<InlineMenuable>(initInlineMenu()) {
 
             @Override
-            public void populateItem(Item<ICellPopulator<InlineMenu>> cellItem, String componentId,
-                                     IModel<InlineMenu> rowModel) {
+            public void populateItem(Item<ICellPopulator<InlineMenuable>> cellItem, String componentId,
+                                     IModel<InlineMenuable> rowModel) {
                 //we don't need row inline menu
                 cellItem.add(new Label(componentId));
             }
