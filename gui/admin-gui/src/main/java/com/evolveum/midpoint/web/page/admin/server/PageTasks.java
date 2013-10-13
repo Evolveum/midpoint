@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.web.page.admin.server;
 
-import com.evolveum.midpoint.common.Utils;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
@@ -36,16 +35,9 @@ import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
-import com.evolveum.midpoint.web.component.option.OptionContent;
-import com.evolveum.midpoint.web.component.option.OptionItem;
-import com.evolveum.midpoint.web.component.option.OptionPanel;
+import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.page.admin.server.dto.NodeDto;
-import com.evolveum.midpoint.web.page.admin.server.dto.NodeDtoProvider;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatusFilter;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProvider;
-import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProviderOptions;
+import com.evolveum.midpoint.web.page.admin.server.dto.*;
 import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstance;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.NodeType;
@@ -53,7 +45,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.time.DurationFormatUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -63,25 +54,12 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.CheckBox;
-import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.IChoiceRenderer;
+import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.model.*;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author lazyman
@@ -103,28 +81,77 @@ public class PageTasks extends PageAdminTasks {
     private static final String OPERATION_REACTIVATE_SERVICE_THREADS = DOT_CLASS + "reactivateServiceThreads";
     private static final String OPERATION_SYNCHRONIZE_TASKS = DOT_CLASS + "synchronizeTasks";
     private static final String ALL_CATEGORIES = "";
-    private static final String ID_SHOW_SUBTASKS = "showSubtasks";
 
     public static final long WAIT_FOR_TASK_STOP = 2000L;
 
+    private static final String ID_MAIN_FORM = "mainForm";
+    private static final String ID_SEARCH_FORM = "searchForm";
+    private static final String ID_STATE="state";
+    private static final String ID_CATEGORY="category";
+    private static final String ID_SHOW_SUBTASKS="showSubtasks";
+    private static final String ID_TASK_TABLE="taskTable";
+    private static final String ID_NODE_TABLE="nodeTable";
+    private static final String ID_="";
+
+    private IModel<TasksSearchDto> searchModel;
+
     public PageTasks() {
+        searchModel = new LoadableModel<TasksSearchDto>(false) {
+
+            @Override
+            protected TasksSearchDto load() {
+                return loadTasksSearchDto();
+            }
+        };
         initLayout();
     }
 
+    private TasksSearchDto loadTasksSearchDto() {
+        TasksSearchDto dto = new TasksSearchDto();
+        if (dto.getStatus() == null) {
+            dto.setStatus(TaskDtoExecutionStatusFilter.ALL);
+        }
+
+        return dto;
+    }
+
     private void initLayout() {
-        Form mainForm = new Form("mainForm");
+        Form searchForm = new Form(ID_SEARCH_FORM);
+        add(searchForm);
+        initSearchForm(searchForm);
+
+        Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
-        OptionPanel option = new OptionPanel("option", createStringResource("pageTasks.optionsTitle"), true);
-        mainForm.add(option);
+        List<IColumn<TaskDto, String>> taskColumns = initTaskColumns();
 
-        OptionItem diagnostics = new OptionItem("diagnostics", createStringResource("pageTasks.diagnostics"));
-        option.getBodyContainer().add(diagnostics);
+        TaskDtoProviderOptions options = TaskDtoProviderOptions.fullOptions();
+        options.setGetTaskParent(false);
+        options.setRetrieveModelContext(false);
+        options.setResolveOwnerRef(false);
+        TaskDtoProvider provider = new TaskDtoProvider(PageTasks.this, options);
 
-        OptionContent content = new OptionContent("optionContent");
-        mainForm.add(content);
+        provider.setQuery(createTaskQuery(null, null, false));      // show only root tasks
+        TablePanel<TaskDto> taskTable = new TablePanel<TaskDto>(ID_TASK_TABLE, provider,
+                taskColumns);
+        taskTable.setOutputMarkupId(true);
+        mainForm.add(taskTable);
 
-        DropDownChoice listSelect = new DropDownChoice("state", new Model(),
+        List<IColumn<NodeDto, String>> nodeColumns = initNodeColumns();
+        TablePanel nodeTable = new TablePanel<NodeDto>(ID_NODE_TABLE, new NodeDtoProvider(PageTasks.this),
+                nodeColumns);
+        nodeTable.setOutputMarkupId(true);
+        nodeTable.setShowPaging(false);
+        mainForm.add(nodeTable);
+
+        initTaskButtons(mainForm);
+        initNodeButtons(mainForm);
+        initDiagnosticButtons(mainForm);
+    }
+
+    private void initSearchForm(Form searchForm) {
+        DropDownChoice listSelect = new DropDownChoice(ID_STATE,
+                new PropertyModel(searchModel, TasksSearchDto.F_STATUS),
                 new AbstractReadOnlyModel<List<TaskDtoExecutionStatusFilter>>() {
 
                     @Override
@@ -133,14 +160,16 @@ public class PageTasks extends PageAdminTasks {
                     }
                 },
                 new EnumChoiceRenderer(PageTasks.this));
-        listSelect.setMarkupId("stateSelect");
+        listSelect.add(createFilterAjaxBehaviour());
+        listSelect.setOutputMarkupId(true);
         listSelect.setNullValid(false);
         if (listSelect.getModel().getObject() == null) {
             listSelect.getModel().setObject(TaskDtoExecutionStatusFilter.ALL);
         }
-        content.getBodyContainer().add(listSelect);
+        searchForm.add(listSelect);
 
-        DropDownChoice categorySelect = new DropDownChoice("category", new Model(),
+        DropDownChoice categorySelect = new DropDownChoice(ID_CATEGORY,
+                new PropertyModel(searchModel, TasksSearchDto.F_CATEGORY),
                 new AbstractReadOnlyModel<List<String>>() {
 
                     @Override
@@ -164,52 +193,26 @@ public class PageTasks extends PageAdminTasks {
                     }
                 }
         );
-        categorySelect.setMarkupId("categorySelect");
+        categorySelect.setOutputMarkupId(true);
         categorySelect.setNullValid(false);
+        categorySelect.add(createFilterAjaxBehaviour());
         if (categorySelect.getModel().getObject() == null) {
             categorySelect.getModel().setObject(ALL_CATEGORIES);
         }
-        content.getBodyContainer().add(categorySelect);
+        searchForm.add(categorySelect);
 
-        CheckBox showSubtasks = new CheckBox(ID_SHOW_SUBTASKS, new Model<Boolean>());
-        content.getBodyContainer().add(showSubtasks);
-
-        listSelect.add(createFilterAjaxBehaviour(listSelect.getModel(), categorySelect.getModel(), showSubtasks.getModel()));
-        categorySelect.add(createFilterAjaxBehaviour(listSelect.getModel(), categorySelect.getModel(), showSubtasks.getModel()));
-        showSubtasks.add(createFilterAjaxBehaviour(listSelect.getModel(), categorySelect.getModel(), showSubtasks.getModel()));
-
-        List<IColumn<TaskDto, String>> taskColumns = initTaskColumns();
-
-        TaskDtoProviderOptions options = TaskDtoProviderOptions.fullOptions();
-        options.setGetTaskParent(false);
-        options.setRetrieveModelContext(false);
-        options.setResolveOwnerRef(false);
-        TaskDtoProvider provider = new TaskDtoProvider(PageTasks.this, options);
-
-        provider.setQuery(createTaskQuery(null, null, false));      // show only root tasks
-        TablePanel<TaskDto> taskTable = new TablePanel<TaskDto>("taskTable", provider,
-                taskColumns);
-        taskTable.setOutputMarkupId(true);
-        content.getBodyContainer().add(taskTable);
-
-        List<IColumn<NodeDto, String>> nodeColumns = initNodeColumns();
-        TablePanel nodeTable = new TablePanel<NodeDto>("nodeTable", new NodeDtoProvider(PageTasks.this), nodeColumns);
-        nodeTable.setOutputMarkupId(true);
-        nodeTable.setShowPaging(false);
-        content.getBodyContainer().add(nodeTable);
-
-        initTaskButtons(mainForm);
-        initNodeButtons(mainForm);
-        initDiagnosticButtons(diagnostics);
+        CheckBox showSubtasks = new CheckBox(ID_SHOW_SUBTASKS,
+                new PropertyModel(searchModel, TasksSearchDto.F_SHOW_SUBTASKS));
+        showSubtasks.add(createFilterAjaxBehaviour());
+        searchForm.add(showSubtasks);
     }
 
-    private AjaxFormComponentUpdatingBehavior createFilterAjaxBehaviour(final IModel<TaskDtoExecutionStatusFilter> status,
-            final IModel<String> category, final IModel<Boolean> showSubtasks) {
+    private AjaxFormComponentUpdatingBehavior createFilterAjaxBehaviour() {
         return new AjaxFormComponentUpdatingBehavior("onchange") {
 
             @Override
             protected void onUpdate(AjaxRequestTarget target) {
-                searchFilterPerformed(target, status, category, showSubtasks);
+                searchFilterPerformed(target);
             }
         };
     }
@@ -575,7 +578,7 @@ public class PageTasks extends PageAdminTasks {
         mainForm.add(delete);
     }
 
-    private void initDiagnosticButtons(OptionItem item) {
+    private void initDiagnosticButtons(Form mainForm) {
         AjaxLinkButton deactivate = new AjaxLinkButton("deactivateServiceThreads",
                 createStringResource("pageTasks.button.deactivateServiceThreads")) {
 
@@ -584,7 +587,7 @@ public class PageTasks extends PageAdminTasks {
                 deactivateServiceThreadsPerformed(target);
             }
         };
-        item.add(deactivate);
+        mainForm.add(deactivate);
 
         AjaxLinkButton reactivate = new AjaxLinkButton("reactivateServiceThreads",
                 createStringResource("pageTasks.button.reactivateServiceThreads")) {
@@ -594,7 +597,7 @@ public class PageTasks extends PageAdminTasks {
                 reactivateServiceThreadsPerformed(target);
             }
         };
-        item.add(reactivate);
+        mainForm.add(reactivate);
 
         AjaxLinkButton synchronize = new AjaxLinkButton("synchronizeTasks",
                 createStringResource("pageTasks.button.synchronizeTasks")) {
@@ -604,17 +607,15 @@ public class PageTasks extends PageAdminTasks {
                 synchronizeTasksPerformed(target);
             }
         };
-        item.add(synchronize);
+        mainForm.add(synchronize);
     }
 
     private TablePanel getTaskTable() {
-        OptionContent content = (OptionContent) get("mainForm:optionContent");
-        return (TablePanel) content.getBodyContainer().get("taskTable");
+        return (TablePanel) get(createComponentPath(ID_MAIN_FORM, ID_TASK_TABLE));
     }
 
     private TablePanel getNodeTable() {
-        OptionContent content = (OptionContent) get("mainForm:optionContent");
-        return (TablePanel) content.getBodyContainer().get("nodeTable");
+        return (TablePanel) get(createComponentPath(ID_MAIN_FORM, ID_NODE_TABLE));
     }
 
     private List<String> createCategoryList() {
@@ -947,10 +948,10 @@ public class PageTasks extends PageAdminTasks {
     }
     //endregion
 
-    private void searchFilterPerformed(AjaxRequestTarget target, IModel<TaskDtoExecutionStatusFilter> status,
-            IModel<String> category, IModel<Boolean> showSubtasks) {
+    private void searchFilterPerformed(AjaxRequestTarget target) {
+        TasksSearchDto dto = searchModel.getObject();
 
-        ObjectQuery query = createTaskQuery(status.getObject(), category.getObject(), showSubtasks.getObject());
+        ObjectQuery query = createTaskQuery(dto.getStatus(), dto.getCategory(), dto.isShowSubtasks());
 
         TablePanel panel = getTaskTable();
         DataTable table = panel.getDataTable();

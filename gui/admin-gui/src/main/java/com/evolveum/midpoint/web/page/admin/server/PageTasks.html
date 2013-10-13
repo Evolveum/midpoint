@@ -18,33 +18,29 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <form wicket:id="mainForm">
-        <div wicket:id="option">
-            <div wicket:id="diagnostics">
-                <br />
-                <a wicket:id="deactivateServiceThreads"/>
-                <a wicket:id="reactivateServiceThreads"/>
-                <a wicket:id="synchronizeTasks"/>
-            </div>
+    <form wicket:id="searchForm" class="form-inline pull-right search-form">
+        <div class="form-group">
+            <label class="sr-only"><wicket:message key="pageTasks.state"/></label>
+            <select class="form-control input-sm" wicket:id="state"/>
         </div>
-
-        <div wicket:id="optionContent">
-            <div style="margin-bottom: 10px;">
-                <span><wicket:message key="pageTasks.state"/></span>
-                <select wicket:id="state"/>
-                <span style="margin-left: 10px;"><wicket:message key="pageTasks.category"/></span>
-                <select wicket:id="category"/>
+        <div class="form-group">
+            <label class="sr-only"><wicket:message key="pageTasks.category"/></label>
+            <select class="form-control input-sm" wicket:id="category"/>
+        </div>
+        <div class="checkbox">
+            <label>
+                <input type="checkbox" wicket:id="showSubtasks"/>
                 <wicket:message key="pageTasks.subtasks"/>
-                &nbsp;
-                <input wicket:id="showSubtasks" type="checkbox"/>
-            </div>
-            <div wicket:id="taskTable"/>
-
-            <h2>
-                <wicket:message key="pageTasks.nodes"/>
-            </h2>
-            <div wicket:id="nodeTable"/>
+            </label>
         </div>
+    </form>
+
+    <form wicket:id="mainForm" class="clearfix form-horizontal">
+        <h3><wicket:message key="pageTasks.tasks"/></h3>
+        <div wicket:id="taskTable"/>
+
+        <h3><wicket:message key="pageTasks.nodes"/></h3>
+        <div wicket:id="nodeTable"/>
 
         <div class="operatingFormButtons">
         	<div class="operatingFormBlock">
@@ -61,6 +57,13 @@
                 <a wicket:id="stopSchedulerAndTasks"/>
                 <a wicket:id="startScheduler"/>
                 <a wicket:id="deleteNode"/>
+            </div>
+
+            <div class="operatingFormBlock">
+                <span class="operatingFormText"><wicket:message key="pageTasks.diagnostics"/></span>
+                <a wicket:id="deactivateServiceThreads"/>
+                <a wicket:id="reactivateServiceThreads"/>
+                <a wicket:id="synchronizeTasks"/>
             </div>
         </div>
     </form>
