@@ -36,6 +36,8 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
 import com.evolveum.midpoint.web.component.accordion.Accordion;
@@ -842,7 +844,7 @@ public class PageUser extends PageAdminUsers {
 
 
 	private void initButtons(Form mainForm) {
-		AjaxSubmitLinkButton save = new AjaxSubmitLinkButton("save", ButtonType.POSITIVE,
+		AjaxSubmitButton save = new AjaxSubmitButton("save",
 				createStringResource("pageUser.button.save")) {
 
 			@Override
@@ -873,7 +875,7 @@ public class PageUser extends PageAdminUsers {
 //		};
 //		mainForm.add(submit);
 
-		AjaxLinkButton back = new AjaxLinkButton("back", createStringResource("pageUser.button.back")) {
+		AjaxButton back = new AjaxButton("back", createStringResource("pageUser.button.back")) {
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {

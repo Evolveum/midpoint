@@ -41,12 +41,12 @@ div.objectForm .tableForm .tableFormBody select,
 .assignmentBody select {
 	outline: none;
 	margin: 4px 0px 4px 10px;
-	padding: 5px;
-	font-size: 15px;
-	border: 1px solid #8D9095;
-	-webkit-box-shadow: 0px 1px 1px 0px rgba(0, 0, 0, 0.3) inset;
-	-moz-box-shadow: 0px 1px 1px 0px rgba(0, 0, 0, 0.3) inset;
-	box-shadow: 0px 1px 1px 0px rgba(0, 0, 0, 0.3) inset;
+	/*padding: 5px;*/
+	/*font-size: 15px;*/
+	/*border: 1px solid #8D9095;*/
+	/*-webkit-box-shadow: 0px 1px 1px 0px rgba(0, 0, 0, 0.3) inset;*/
+	/*-moz-box-shadow: 0px 1px 1px 0px rgba(0, 0, 0, 0.3) inset;*/
+	/*box-shadow: 0px 1px 1px 0px rgba(0, 0, 0, 0.3) inset;*/
 }
 
 div.objectForm .tableForm .tableFormBody .objectFormInput .yui-skin-sam .yui-calcontainer, div.objectForm .tableForm .tableFormBody .objectFormInput .yui-skin-sam  .yui-calcontainer table {

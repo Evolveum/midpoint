@@ -41,7 +41,7 @@ function isIE() {
 
 function init() {
 	//loadScript("js/less.js");
-	setMenuPositionWhileScroll();
+
 	$(document).unbind("mousedown");
 	$("#blackWindow").css("opacity", .8);
 	$("#blackWindow").hide();
@@ -64,32 +64,6 @@ function init() {
 	$(".optionPanel").css("height",$(".optionRightBar").height());
 	$(".optionLeftBar").css("height",$(".optionRightBar").height());
 	
-	//$(".sortedTable table thead").find(".sortable").find("a").find("div").append("<span class='sortableArrowIcon'></span>");
-	
-	$(".left-menu ul").mouseenter(function(){
-		$(".left-menu ul").stop();
-		$(".left-menu ul").animate({left: 0}, {duration: 500, easing: "easeOutQuart"});
-	}).mouseleave(function(){
-		$(".left-menu ul").stop();
-		$(".left-menu ul").animate({left: -252}, {duration: 500, easing: "easeOutQuart"});
-	});
-	
-	$(".left-menu ul li").mouseenter(function(){
-		$(this).stop();
-		$(this).find("a").stop();
-		if($(this).attr("class") != "leftMenuTopClear" && $(this).attr("class") != "leftMenuBottomClear"){
-			$(this).animate({opacity : 1}, 200);
-			$(this).find("a").animate({opacity : 1}, 250);
-		}
-	}).mouseleave(function(){
-		$(this).stop();
-		$(this).find("a").stop();
-		if($(this).find("a").attr("class") != "selected-left"){
-			$(this).animate({opacity : .8}, 200);
-			$(this).find("a").animate({opacity : .5}, 250);
-		}
-	});
-	
 	$(".objectFormAttribute").mouseenter(function(){
 		objectFormHelpContainer = $(this).find(".objectFormHelpContainer");
 
@@ -98,26 +72,6 @@ function init() {
 		hideFormHelpContainer();
 	});
 
-    /*
-    // not very good solution, css in javascript.
-    // also what if there are more checkboxes in row.
-	$(".submitTable tbody tr").mouseenter(function(){
-		if($(this).find("input[type='checkbox']").is(":checked")){
-			$(this).find("td").css("background", "#c6e9c6");
-		} else {
-			$(this).find("td").css("background", "#f2f2f2");
-		}
-	}).mouseleave(function(){
-		if($(this).find("input[type='checkbox']").is(":checked")){
-			$(this).find("td").css("background", "#d8f4d8");
-			$(this).find("td").css("border-color","#FFFFFF");
-		} else {
-			$(this).find("td").css("background", "#FFFFFF");
-			$(this).find("td").css("border-color","#F2F2F2");
-		}
-	});
-	*/
-	
 	var el = $('.searchPanel');
     el.focus(function(e) {
         if (e.target.value == e.target.defaultValue)
@@ -139,14 +93,6 @@ function init() {
 			$("#blackWindow").hide();
 			$("#xmlExport").hide();
 		}
-	});
-    
-    $(".operatingFormButtons .button, .top-menu a").click(function(){
-    	showDisableOperationFormButtons();
-    });
-    
-    $(".pager a").click(function() {
-    	showDisablePaging();
 	});
 }
 
@@ -201,27 +147,6 @@ function hideFormHelpContainer(){
     }
 	clearTimeout(interval);
 	objectFormHelpContainer.hide();
-}
-
-function setMenuPositionWhileScroll() {
-	if (isIE9OrNewer() || !isIE()) {
-		$(window).scroll(function() {
-			var scroll = $(window).scrollTop();
-			if (scroll >= 60) {
-				$(".top-menu").css("position", "fixed");
-				$(".top-menu").css("top", "0px");
-			} else {
-				$(".top-menu").css("position", "absolute");
-				$(".top-menu").css("top", "60px");
-			}
-		}); 
-	}
-	
-	if (!isIE9OrNewer()){
-		window.onresize = function() {
-			$(".acc-content .sortedTable table").css("width", $(".acc-content").width());
-		};
-	}
 }
 
 function setFooterPos(){
@@ -379,35 +304,6 @@ if(clickedElement != null) {
 				.toUpperCase() == 'IMAGE')))) {
 	showBusysign();
 	}
-}
-
-
-function showDisableOperationFormButtons() {
-	var operationFormBlock = $(".operatingFormButtons");
-	var disablePanel = '<div class="disableOperationBlock" style="height: 100%; width: 100%; position: absolute; z-index: 4;"></div>';
-	operationFormBlock.append(disablePanel);
-	if(operationFormBlock.find(".operatingFormBlock").size() == 0) {
-		$(".disableOperationBlock").insertBefore($(".operatingFormButtons").find(".button:first"));
-	}
-	//$(".operatingFormButtons").find(".button").css("opacity", .5);
-	$(".operatingFormButtons").css("opacity", .5);
-}
-
-function hideDisableOperationFormButtons() {
-	var disableOperationBlock = $(".disableOperationBlock");
-	$(".operatingFormButtons").css("opacity", 1);
-	//$(".operatingFormButtons").find(".button").css("opacity", 1);
-	disableOperationBlock.remove();
-}
-
-function showDisablePaging() {
-	$(".disablePaging").show();
-	$(".pager").css("opacity", .5);
-}
-
-function hideDisablePaging() {
-	$(".disablePaging").hide();
-	$(".pager").css("opacity", 1);
 }
 
 /**

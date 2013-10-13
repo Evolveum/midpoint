@@ -390,19 +390,20 @@ input:focus, .button:focus, select:focus, option:focus {
 }
 
 .operatingFormButtons {
-	position: fixed;
-	left: 60px;
+	/*position: fixed;*/
+	/*left: 60px;*/
 	width: auto;
-	display: block;
-	z-index: 4;
-	bottom: 5px;
-    padding: 3px;
+	/*display: block;*/
+	/*z-index: 4;*/
+	/*bottom: 5px;*/
+    padding: 5px;
+    margin: 5px;
     background-color: #f00;
 }
 
 .operatingFormButtons .operatingFormBlock {
 	display: inline-block;
-	float: left;
+	/*float: left;*/
 	margin-right: 25px;
 }
 
