@@ -1,18 +1,23 @@
 /**
- * Top menu functions
+ * InlineMenu initialization function
  */
-$(document).ready(function () {
-    init();
-});
+function initInlineMenu(menuId) {
+    var menu = $('#' + menuId).find('ul.cog');
 
-function init() {
-    $('td.cog').find('ul.cog').hide();
+    var parent = menu.parent().parent();
+    if (!parent.hasClass('cog') || parent[0].tagName.toLowerCase() != 'td') {
+        return;
+    }
 
-    $('td.cog').hover(function() {
+    // we only want to hide inline menus that are in table <td> element,
+    // inline menu in header must be visible all the time
+    menu.hide();
+
+    parent.hover(function () {
         //over
-        $(this).find('ul.cog').show();
-    }, function() {
+        menu.show();
+    }, function () {
         //out
-        $(this).find('ul.cog').hide();
+        menu.hide();
     })
 }
