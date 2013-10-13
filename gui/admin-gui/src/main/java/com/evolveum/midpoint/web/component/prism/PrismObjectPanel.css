@@ -165,7 +165,7 @@ div.objectForm .tableForm .tableFormBody .objectFormLabel .objectFormLabelName {
 }
 
 div.objectForm .tableForm .tableFormBody input[type='text'], div.objectForm .tableForm .tableFormBody input[type='password'] {
-	width: 323px;
+	/*width: 323px;*/
 	/*height: 20px;*/
 	position: relative;
 	float: left;

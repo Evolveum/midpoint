@@ -25,38 +25,36 @@
     <div wicket:id="confirmDeleteAssignmentPopup"/>
 
     <form wicket:id="mainForm" autocomplete="off" class="form-horizontal">
-        <table width="100%">
-            <tr>
-                <td style="width: 620px; vertical-align: top;">
-                    <div wicket:id="userForm"/>
-                </td>
-                <td style="vertical-align: top;">
-                    <div wicket:id="accordion">
-                        <li wicket:id="accountsDeltas">
-                        	<div wicket:id="accountsButtons" style="text-align: center;">
-								<a wicket:id="enableAccount" />
-								<a wicket:id="disableAccount" />
-								<a wicket:id="unlockAccount" />
-								<a wicket:id="unlinkAccount" />
-								<a wicket:id="deleteAccount" />
-                        	</div>
-                            <div wicket:id="accountList">
-                                <div wicket:id="account" />
-                            </div>
-                        </li>
-                        <li wicket:id="assignments">
-                            <div wicket:id="assignmentList">
-                                <div wicket:id="assignmentEditor" class="assignmentItem" />
-                            </div>
-                        </li>
-                        <li wicket:id="tasks">
-                            <div wicket:id="taskTable">
-                            </div>
-                        </li>
-                    </div>
-                </td>
-            </tr>
-        </table>
+        <div class="row">
+            <div class="col-md-6">
+                <div wicket:id="userForm"/>
+            </div>
+            <div class="col-md-6">
+                <div wicket:id="accordion">
+                    <li wicket:id="accountsDeltas">
+                        <div wicket:id="accountsButtons" style="text-align: center;">
+                            <a wicket:id="enableAccount" />
+                            <a wicket:id="disableAccount" />
+                            <a wicket:id="unlockAccount" />
+                            <a wicket:id="unlinkAccount" />
+                            <a wicket:id="deleteAccount" />
+                        </div>
+                        <div wicket:id="accountList">
+                            <div wicket:id="account" />
+                        </div>
+                    </li>
+                    <li wicket:id="assignments">
+                        <div wicket:id="assignmentList">
+                            <div wicket:id="assignmentEditor" class="assignmentItem" />
+                        </div>
+                    </li>
+                    <li wicket:id="tasks">
+                        <div wicket:id="taskTable">
+                        </div>
+                    </li>
+                </div>
+            </div>
+        </div>
 
         <div class="form-group" wicket:id="executeOptions" />
 
@@ -69,22 +67,15 @@
             <a class="btn btn-primary" wicket:id="save"/>
         </div>
 
+        <!-- todo remove this -->
         <div class="operatingFormButtons">
-            
-            <div class="operatingFormBlock">
-                <!--disabling user preview MID-1300-->
-                <!--<a wicket:id="submit"/>-->
-			</div>
-
             <div class="operatingFormBlock">
                 <span class="operatingFormText"><wicket:message key="pageUser.button.label.assign"/></span>
                 <a wicket:id="assignAccount"/>
                 <a wicket:id="assignRole"/>
                 <a wicket:id="assignOrgUnit"/>
-
                 <a wicket:id="unassign"/>
             </div>
-
             <div class="operatingFormBlock">
                 <span class="operatingFormText"><wicket:message key="pageUser.button.label.add"/></span>
                 <a wicket:id="addAccount" />
