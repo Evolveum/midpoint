@@ -57,6 +57,8 @@ import org.apache.wicket.model.StringResourceModel;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.namespace.QName;
+import java.lang.management.ManagementFactory;
+import java.lang.management.OperatingSystemMXBean;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -428,5 +430,22 @@ public final class WebMiscUtil {
         }
 
         return "silk-user";
+    }
+
+    public static int getSystemLoad(){
+        OperatingSystemMXBean osBean = ManagementFactory.getOperatingSystemMXBean();
+        return (int)osBean.getSystemLoadAverage();
+    }
+
+    public static int getMaxRam(){
+        int MB = 1024*1024;
+        return (int)Runtime.getRuntime().maxMemory()/MB;
+    }
+
+    public static int getRamUsage(){
+        int MB = 1024*1024;
+        long maxMem = Runtime.getRuntime().maxMemory();
+        long freeMem = Runtime.getRuntime().freeMemory();
+        return (int)(maxMem-freeMem)/MB;
     }
 }

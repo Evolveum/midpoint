@@ -1,5 +1,8 @@
 package com.evolveum.midpoint.web.page.admin.home.dto;
 
+import com.evolveum.midpoint.web.util.WebMiscUtil;
+import org.apache.wicket.model.StringResourceModel;
+
 import java.io.Serializable;
 
 /**
@@ -7,53 +10,33 @@ import java.io.Serializable;
  */
 public class SystemInfoDto implements Serializable {
 
-    private int activeUsers;
-    private int maxActiveUsers;
+    private SimplePieChartDto activeUsersDto;
+    private SimplePieChartDto activeTasksDto;
+    private SimplePieChartDto serverLoadDto;
+    private SimplePieChartDto usedRamDto;
 
-    private int activeTasks;
-    private int maxActiveTasks;
 
-    private double serverLoad;
-
-    private double usedMemory;
-    private String usedMemoryUnit;
-
-    public SystemInfoDto(int activeTasks, int activeUsers, int maxActiveTasks, int maxActiveUsers,
-                         double serverLoad, double usedMemory, String usedMemoryUnit) {
-        this.activeTasks = activeTasks;
-        this.activeUsers = activeUsers;
-        this.maxActiveTasks = maxActiveTasks;
-        this.maxActiveUsers = maxActiveUsers;
-        this.serverLoad = serverLoad;
-        this.usedMemory = usedMemory;
-        this.usedMemoryUnit = usedMemoryUnit;
+    public SystemInfoDto(StringResourceModel s1, StringResourceModel s2, StringResourceModel s3, StringResourceModel s4) {
+        //TODO - initialize all SimplePieChartsDto here
+        activeUsersDto = new SimplePieChartDto(s1.getString(), 100, 15);
+        activeTasksDto = new SimplePieChartDto(s2.getString(), 100, 20);
+        serverLoadDto = new SimplePieChartDto(s3.getString(), 100, WebMiscUtil.getSystemLoad());
+        usedRamDto = new SimplePieChartDto(s4.getString(), WebMiscUtil.getMaxRam(), WebMiscUtil.getRamUsage());
     }
 
-    public int getActiveTasks() {
-        return activeTasks;
+    public SimplePieChartDto getActiveUsersDto() {
+        return activeUsersDto;
     }
 
-    public int getActiveUsers() {
-        return activeUsers;
+    public SimplePieChartDto getActiveTasksDto() {
+        return activeTasksDto;
     }
 
-    public int getMaxActiveTasks() {
-        return maxActiveTasks;
+    public SimplePieChartDto getServerLoadDto() {
+        return serverLoadDto;
     }
 
-    public int getMaxActiveUsers() {
-        return maxActiveUsers;
-    }
-
-    public double getServerLoad() {
-        return serverLoad;
-    }
-
-    public double getUsedMemory() {
-        return usedMemory;
-    }
-
-    public String getUsedMemoryUnit() {
-        return usedMemoryUnit;
+    public SimplePieChartDto getUsedRamDto() {
+        return usedRamDto;
     }
 }

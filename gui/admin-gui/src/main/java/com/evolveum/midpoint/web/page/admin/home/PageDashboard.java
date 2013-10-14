@@ -216,7 +216,9 @@ public class PageDashboard extends PageAdminHome {
                             public CallableResult<SystemInfoDto> call() throws Exception {
                                 CallableResult callableResult = new CallableResult();
                                 //todo load proper data [lazyman]
-                                callableResult.setValue(new SystemInfoDto(5, 10, 1, 10, 65.3, 87, "MB"));
+                                callableResult.setValue(new SystemInfoDto(createStringResource("PageDashboard.activeUsers"),
+                                        createStringResource("PageDashboard.activeTasks"), createStringResource("PageDashboard.serverLoad"),
+                                        createStringResource("PageDashboard.usedRam")));
                                 return callableResult;
                             }
                         };
@@ -224,7 +226,7 @@ public class PageDashboard extends PageAdminHome {
 
                     @Override
                     protected Component getMainComponent(String markupId) {
-                        return new WebMarkupContainer(markupId);
+                        return new SystemInfoPanel(markupId);
                     }
                 };
         add(systemInfo);
