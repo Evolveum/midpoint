@@ -25,6 +25,9 @@ import com.evolveum.midpoint.web.component.menu.top2.TopMenuBar;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
+import com.evolveum.midpoint.web.page.admin.reports.PageReports;
+import com.evolveum.midpoint.web.page.admin.resources.PageResourceEdit;
+import com.evolveum.midpoint.web.page.admin.resources.PageResourceWizard;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
@@ -114,14 +117,15 @@ public class PageAdmin extends PageBase {
     private MenuBarItem createResourcesItems() {
         MenuBarItem resources = new MenuBarItem(createStringResource("PageAdmin.menu.top.resources"), null);
         resources.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.resources.list"), PageResources.class));
-        resources.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.resources.new"), PageDashboard.class));
+        resources.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.resources.new"), PageResourceEdit.class));
+        resources.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.resources.new"), PageResourceWizard.class));
 
         return resources;
     }
 
     private MenuBarItem createReportsItems() {
         MenuBarItem reports = new MenuBarItem(createStringResource("PageAdmin.menu.top.reports"), null);
-        reports.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.reports.list"), PageDashboard.class));
+        reports.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.reports.list"), PageReports.class));
         reports.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.reports.created"), PageDashboard.class));
 
         return reports;

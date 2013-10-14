@@ -34,6 +34,7 @@ import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.resources.PageAdminResources;
+import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
@@ -101,7 +102,7 @@ public class PageAccount extends PageAdminResources {
 
         if (account == null) {
             getSession().error(getString("pageAccount.message.cantEditAccount"));
-            throw new RestartResponseException(PageUsers.class);
+            throw new RestartResponseException(PageResources.class);
         }
 
         ObjectWrapper wrapper = new ObjectWrapper(null, null, account, ContainerStatus.MODIFYING);

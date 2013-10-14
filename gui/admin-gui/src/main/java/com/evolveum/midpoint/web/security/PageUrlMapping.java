@@ -61,9 +61,9 @@ public enum PageUrlMapping {
 
     RESOURCE("/admin/resource", PageResource.class, new OnePageParameterEncoder(PageResource.PARAM_RESOURCE_ID), new String[]{AUTZ_UI_RESOURCE_URL, AUTZ_UI_RESOURCES_ALL_URL}),
     RESOURCE_DETAILS("/admin/resource/**", null, null, new String[]{AUTZ_UI_RESOURCE_DETAILS_URL, AUTZ_UI_RESOURCES_ALL_URL}),
-    RESOURCE_EDIT("/admin/resourceEdit", PageResourceEdit.class, new OnePageParameterEncoder(PageResourceEdit.PARAM_RESOURCE_ID), new String[]{AUTZ_UI_RESOURCE_EDIT_URL, AUTZ_UI_RESOURCES_ALL_URL}),
-    RESOURCE_WIZARD("/admin/resourceWizard", PageResourceWizard.class, new OnePageParameterEncoder(PageResourceWizard.PARAM_RESOURCE_ID), new String[]{AUTZ_DENY_ALL_URL}),
-    RESOURCE_WIZARD_ALL("/admin/resourceWizard/**", PageResourceWizard.class, new OnePageParameterEncoder(PageResourceWizard.PARAM_RESOURCE_ID), new String[]{AUTZ_DENY_ALL_URL}),
+    RESOURCE_EDIT("/admin/resource/edit", PageResourceEdit.class, new OnePageParameterEncoder(PageResourceEdit.PARAM_RESOURCE_ID), new String[]{AUTZ_UI_RESOURCE_EDIT_URL, AUTZ_UI_RESOURCES_ALL_URL}),
+    //todo url security for wizard
+    RESOURCE_WIZARD("/admin/resource/wizard", PageResourceWizard.class, new OnePageParameterEncoder(PageResourceWizard.PARAM_RESOURCE_ID), null),
     RESOURCES("/admin/resources", PageResources.class, MidPointPageParametersEncoder.ENCODER, new String[]{AUTZ_UI_RESOURCES_URL, AUTZ_UI_RESOURCES_ALL_URL}),
     RESOURCES_ACCOUNT("/admin/resources/account", PageAccount.class, new OnePageParameterEncoder(PageAccount.PARAM_ACCOUNT_ID), new String[]{AUTZ_UI_RESOURCES_ACCOUNT_URL, AUTZ_UI_RESOURCES_ALL_URL}),
     RESOURCES_CONTENT_ACCOUNTS("/admin/resources/content/accounts", PageContentAccounts.class, new OnePageParameterEncoder(PageContentAccounts.PARAM_RESOURCE_ID), new String[]{AUTZ_UI_RESOURCES_CONTENT_ACCOUNTS_URL, AUTZ_UI_RESOURCES_ALL_URL}),

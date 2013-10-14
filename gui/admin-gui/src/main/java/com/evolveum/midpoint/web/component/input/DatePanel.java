@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.component.input;
 
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.web.component.DateInput;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import org.apache.commons.lang.time.DateUtils;
 import org.apache.wicket.extensions.yui.calendar.DateField;
@@ -39,7 +40,7 @@ public class DatePanel extends InputPanel {
         super(id);
 
 //        DateField date = DateTextField.forDatePattern("input", createDateModel(model), "dd/MMM/yyyy");
-        DateField date = new DateField(ID_INPUT, new DatePanelModel(model, true));
+        DateField date = new DateInput(ID_INPUT, new DatePanelModel(model, true));
 //        date.add(new DatePicker());
         add(date);
     }
