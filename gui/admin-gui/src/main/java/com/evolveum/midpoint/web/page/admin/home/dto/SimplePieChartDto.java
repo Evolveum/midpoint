@@ -52,6 +52,9 @@ public class SimplePieChartDto implements Serializable {
     }
 
     private int calculatePercentage(){
+        if(this.base == 0)
+            return 0;
+
         return (this.entryValue*100)/this.base;
     }
 }

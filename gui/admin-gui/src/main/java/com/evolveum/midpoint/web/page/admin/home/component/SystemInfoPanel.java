@@ -18,10 +18,10 @@ package com.evolveum.midpoint.web.page.admin.home.component;
 
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.page.admin.home.dto.PersonalInfoDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.SimplePieChartDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.SystemInfoDto;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
 
 /**
  *
@@ -34,40 +34,20 @@ public class SystemInfoPanel extends SimplePanel<SystemInfoDto>{
     private static final String ID_SERVER_LOAD = "serverLoad";
     private static final String ID_RAM_USAGE = "usedRam";
 
-    public SystemInfoPanel(String id){
-        super(id);
-    }
-
-    @Override
-    public IModel<SystemInfoDto> createModel() {
-        return new LoadableModel<SystemInfoDto>(false) {
-
-            @Override
-            protected SystemInfoDto load() {
-                return loadSystemInfo();
-            }
-        };
-    }
-
-    private SystemInfoDto loadSystemInfo(){
-        return new SystemInfoDto(createStringResource("SystemInfoPanel.activeUsers"), createStringResource("SystemInfoPanel.activeTasks"),
-                createStringResource("SystemInfoPanel.serverLoad"), createStringResource("SystemInfoPanel.usedRam"));
+    public SystemInfoPanel(String id, IModel<SystemInfoDto> model){
+        super(id, model);
     }
 
     @Override
     protected void initLayout(){
-        SimplePieChartDto usersDto = getModel().getObject().getActiveUsersDto();
-        SimplePieChartDto tasksDto = getModel().getObject().getActiveTasksDto();
-        SimplePieChartDto cpuDto = getModel().getObject().getServerLoadDto();
-        SimplePieChartDto ramDto = getModel().getObject().getUsedRamDto();
 
-        SimplePieChart userPanel = new SimplePieChart(ID_ACTIVE_USERS, usersDto.getLabel(), usersDto.getBase(), usersDto.getEntryValue());
+        SimplePieChart userPanel = new SimplePieChart(ID_ACTIVE_USERS, new PropertyModel<SimplePieChartDto>(getModel(), "activeUsersDto"));
         add(userPanel);
-        SimplePieChart tasksPanel = new SimplePieChart(ID_ACTIVE_TASKS, tasksDto.getLabel(), tasksDto.getBase(), tasksDto.getEntryValue());
+        SimplePieChart tasksPanel = new SimplePieChart(ID_ACTIVE_TASKS, new PropertyModel<SimplePieChartDto>(getModel(), "activeTasksDto"));
         add(tasksPanel);
-        SimplePieChart serverLoadPanel = new SimplePieChart(ID_SERVER_LOAD, cpuDto.getLabel(), cpuDto.getBase(), cpuDto.getEntryValue());
+        SimplePieChart serverLoadPanel = new SimplePieChart(ID_SERVER_LOAD, new PropertyModel<SimplePieChartDto>(getModel(), "serverLoadDto"));
         add(serverLoadPanel);
-        SimplePieChart ramPanel = new SimplePieChart(ID_RAM_USAGE, ramDto.getLabel(), ramDto.getBase(), ramDto.getEntryValue());
+        SimplePieChart ramPanel = new SimplePieChart(ID_RAM_USAGE, new PropertyModel<SimplePieChartDto>(getModel(), "usedRamDto"));
         add(ramPanel);
     }
 }

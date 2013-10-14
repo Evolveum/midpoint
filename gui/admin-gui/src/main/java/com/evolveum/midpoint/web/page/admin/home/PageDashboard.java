@@ -215,10 +215,17 @@ public class PageDashboard extends PageAdminHome {
                             @Override
                             public CallableResult<SystemInfoDto> call() throws Exception {
                                 CallableResult callableResult = new CallableResult();
-                                //todo load proper data [lazyman]
-                                callableResult.setValue(new SystemInfoDto(createStringResource("PageDashboard.activeUsers"),
-                                        createStringResource("PageDashboard.activeTasks"), createStringResource("PageDashboard.serverLoad"),
-                                        createStringResource("PageDashboard.usedRam")));
+
+                                //TODO - fill correct data in users and tasks graphs[shood]
+                                SimplePieChartDto usersDto = new SimplePieChartDto(createStringResource("PageDashboard.activeUsers").getString(), 100, 25);
+                                SimplePieChartDto tasksDto = new SimplePieChartDto(createStringResource("PageDashboard.activeTasks").getString(), 100, 35);
+                                SimplePieChartDto loadDto = new SimplePieChartDto(createStringResource("PageDashboard.serverLoad").getString(), 100, WebMiscUtil.getSystemLoad());
+                                SimplePieChartDto memDto = new SimplePieChartDto(createStringResource("PageDashboard.usedRam").getString(),
+                                        WebMiscUtil.getMaxRam(), WebMiscUtil.getRamUsage());
+
+                                SystemInfoDto sysInfoDto = new SystemInfoDto(usersDto, tasksDto, loadDto, memDto);
+
+                                callableResult.setValue(sysInfoDto);
                                 return callableResult;
                             }
                         };
@@ -226,7 +233,7 @@ public class PageDashboard extends PageAdminHome {
 
                     @Override
                     protected Component getMainComponent(String markupId) {
-                        return new SystemInfoPanel(markupId);
+                        return new SystemInfoPanel(markupId, new PropertyModel<SystemInfoDto>(getModel(), CallableResult.F_VALUE));
                     }
                 };
         add(systemInfo);

@@ -16,12 +16,11 @@
 
 package com.evolveum.midpoint.web.page.admin.home.component;
 
-import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.home.dto.SimplePieChartDto;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
 
 /**
  *
@@ -31,55 +30,16 @@ public class SimplePieChart extends SimplePanel<SimplePieChartDto>{
 
     private static final String ID_CHART_LABEL = "chartLabel";
     private static final String ID_PERCENT_VALUE = "percentValue";
-    private SimplePieChartDto model;
 
-    public SimplePieChart(String id){
-        super(id);
-        this.model = new SimplePieChartDto("", 100,1);
-    }
-
-    public SimplePieChart(String id, String label, int base, int currentValue){
-        super(id);
-        this.model = new SimplePieChartDto(label, base, currentValue);
-    }
-
-    @Override
-    public IModel<SimplePieChartDto> createModel() {
-        return new LoadableModel<SimplePieChartDto>(false) {
-
-            @Override
-            protected SimplePieChartDto load() {
-                return loadPieChartInfo();
-            }
-        };
-    }
-
-    private SimplePieChartDto loadPieChartInfo(){
-        return this.model;
+    public SimplePieChart(String id, IModel<SimplePieChartDto> model){
+        super(id, model);
     }
 
     @Override
     protected void initLayout(){
-        Label graphLabel = new Label(ID_CHART_LABEL, new AbstractReadOnlyModel<String>() {
-
-            @Override
-            public String getObject(){
-                SimplePieChartDto dto = getModel().getObject();
-                return dto.getLabel();
-            }
-        });
+        Label graphLabel = new Label(ID_CHART_LABEL, new PropertyModel<String>(getModel(), "label"));
         add(graphLabel);
-
-        Label percentLabel = new Label(ID_PERCENT_VALUE, new AbstractReadOnlyModel<String>() {
-
-            @Override
-            public String getObject(){
-                SimplePieChartDto dto = getModel().getObject();
-                return Integer.toString(dto.getPercent());
-            }
-        });
+        Label percentLabel = new Label(ID_PERCENT_VALUE, new PropertyModel<Integer>(getModel(), "percent"));
         add(percentLabel);
     }
-
-
 }
