@@ -17,25 +17,22 @@ package com.evolveum.midpoint.provisioning.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
+
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.identityconnectors.framework.impl.api.ConnectorFacadeFactoryImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import com.evolveum.midpoint.common.mapping.Mapping;
+
 import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -43,8 +40,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -54,7 +49,6 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
@@ -65,27 +59,20 @@ import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
-import com.evolveum.midpoint.provisioning.api.ResourceOperationListener;
 import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler;
 import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler.FailedOperation;
 import com.evolveum.midpoint.provisioning.consistency.impl.ErrorHandlerFactory;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
-import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOperation;
-import com.evolveum.midpoint.provisioning.ucf.api.ExecuteScriptArgument;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
-import com.evolveum.midpoint.provisioning.ucf.api.Operation;
 import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
-import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorInstanceIcfImpl;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
@@ -94,12 +81,11 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -114,25 +100,16 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AvailabilityStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionReturnMultiplicityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FailedOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningOperationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptArgumentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptHostType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationProvisioningScriptType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationProvisioningScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectAssociationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAttributesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CreateCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.DeleteCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ReadCapabilityType;
-import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.UpdateCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
@@ -245,10 +222,6 @@ public abstract class ShadowCache {
 			return repositoryShadow;
 		}
 		
-		if (!ResourceTypeUtil.hasReadCapability(resource)){
-			throw new UnsupportedOperationException("Resource does not support 'get' operation");
-		}
-		
 		RefinedObjectClassDefinition objectClassDefinition = applyAttributesDefinition(repositoryShadow, resource);
 		
 		ConnectorInstance connector = null;
@@ -358,10 +331,6 @@ public abstract class ShadowCache {
 			resource = getResource(shadow, parentResult);
 		}
 		
-		if (!ResourceTypeUtil.hasCreateCapability(resource)){
-			throw new UnsupportedOperationException("Resource does not support 'create' operation");
-		}
-		
 		PrismContainer<?> attributesContainer = shadow.findContainer(
 				ShadowType.F_ATTRIBUTES);
 		if (attributesContainer == null || attributesContainer.isEmpty()) {
@@ -426,10 +395,6 @@ public abstract class ShadowCache {
 			resource = getResource(shadow, parentResult);
 		}
 		
-		if (!ResourceTypeUtil.hasUpdateCapability(resource)){
-			throw new UnsupportedOperationException("Resource does not support 'update' operation");
-		}
-
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Modifying resource with oid {}, object:\n{}", resource.getOid(), shadow.dump());
 		}
@@ -559,10 +524,6 @@ public abstract class ShadowCache {
 				}
 			}
 			
-			if (!ResourceTypeUtil.hasDeleteCapability(resource)){
-				throw new UnsupportedOperationException("Resource does not support 'delete' operation");
-			}
-
 			RefinedObjectClassDefinition objectClassDefinition =  applyAttributesDefinition(shadow, resource);
 			
 			ConnectorInstance connector = getConnectorInstance(resource, parentResult);

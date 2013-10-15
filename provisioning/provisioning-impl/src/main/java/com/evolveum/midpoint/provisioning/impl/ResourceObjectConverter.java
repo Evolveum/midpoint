@@ -279,6 +279,10 @@ public class ResourceObjectConverter {
 			}
 			checkActivationAttribute(shadowType, resource, objectClassDefinition);
 			
+			if (!ResourceTypeUtil.hasCreateCapability(resource)){
+				throw new UnsupportedOperationException("Resource does not support 'create' operation");
+			}
+			
 			resourceAttributesAfterAdd = connector.addObject(shadowClone, additionalOperations, parentResult);
 
 			if (LOGGER.isDebugEnabled()) {
@@ -360,6 +364,10 @@ public class ResourceObjectConverter {
 						new Object[] { resource, shadow.asObjectable().getObjectClass(),
 								SchemaDebugUtil.debugDump(identifiers),
 								SchemaDebugUtil.debugDump(additionalOperations) });
+			}
+			
+			if (!ResourceTypeUtil.hasDeleteCapability(resource)){
+				throw new UnsupportedOperationException("Resource does not support 'delete' operation");
 			}
 
 			connector.deleteObject(objectClassDefinition, additionalOperations, identifiers, parentResult);
@@ -477,6 +485,10 @@ public class ResourceObjectConverter {
 						"PROVISIONING MODIFY operation on {}\n MODIFY object, object class {}, identified by:\n{}\n changes:\n{}",
 						new Object[] { resource, PrettyPrinter.prettyPrint(objectClassDefinition.getTypeName()),
 								SchemaDebugUtil.debugDump(identifiers,1), SchemaDebugUtil.debugDump(operations,1) });
+			}
+			
+			if (!ResourceTypeUtil.hasUpdateCapability(resource)){
+				throw new UnsupportedOperationException("Resource does not support 'update' operation");
 			}
 			
 			sideEffectChanges = connector.modifyObject(objectClassDefinition, identifiers, operations,
@@ -690,6 +702,11 @@ public class ResourceObjectConverter {
 			CommunicationException, SchemaException, SecurityViolationException, ConfigurationException {
 
 		try {
+			
+			if (!ResourceTypeUtil.hasReadCapability(resource)){
+				throw new UnsupportedOperationException("Resource does not support 'read' operation");
+			}
+			
 			PrismObject<ShadowType> resourceObject = connector.fetchObject(ShadowType.class, objectClassDefinition, identifiers,
 					attributesToReturn, parentResult);
 			return postProcessResourceObjectRead(connector, resource, resourceObject, objectClassDefinition, parentResult);
