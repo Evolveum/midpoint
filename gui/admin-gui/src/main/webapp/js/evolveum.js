@@ -128,11 +128,11 @@ function init() {
 			$("#xmlExport").hide();
 		}
 	});
-    
+
     $(".operatingFormButtons .button, .top-menu a").click(function(){
     	showDisableOperationFormButtons();
     });
-    
+
     $(".pager a").click(function() {
     	showDisablePaging();
 	});
@@ -377,32 +377,36 @@ if(clickedElement != null) {
 }
 
 
+// disabled this s...stuff  MID-1633
 function showDisableOperationFormButtons() {
-	var operationFormBlock = $(".operatingFormButtons");
-	var disablePanel = '<div class="disableOperationBlock" style="height: 100%; width: 100%; position: absolute; z-index: 4;"></div>';
-	operationFormBlock.append(disablePanel);
-	if(operationFormBlock.find(".operatingFormBlock").size() == 0) {
-		$(".disableOperationBlock").insertBefore($(".operatingFormButtons").find(".button:first"));
-	}
-	//$(".operatingFormButtons").find(".button").css("opacity", .5);
-	$(".operatingFormButtons").css("opacity", .5);
+//	var operationFormBlock = $(".operatingFormButtons");
+//	var disablePanel = '<div class="disableOperationBlock" style="height: 100%; width: 100%; position: absolute; z-index: 4;"></div>';
+//	operationFormBlock.append(disablePanel);
+//	if(operationFormBlock.find(".operatingFormBlock").size() == 0) {
+//		$(".disableOperationBlock").insertBefore($(".operatingFormButtons").find(".button:first"));
+//	}
+//	//$(".operatingFormButtons").find(".button").css("opacity", .5);
+//	$(".operatingFormButtons").css("opacity", .5);
 }
 
+// disabled this s...stuff  MID-1633
 function hideDisableOperationFormButtons() {
-	var disableOperationBlock = $(".disableOperationBlock");
-	$(".operatingFormButtons").css("opacity", 1);
-	//$(".operatingFormButtons").find(".button").css("opacity", 1);
-	disableOperationBlock.remove();
+//	var disableOperationBlock = $(".disableOperationBlock");
+//	$(".operatingFormButtons").css("opacity", 1);
+//	//$(".operatingFormButtons").find(".button").css("opacity", 1);
+//	disableOperationBlock.remove();
 }
 
+// disabled this s...stuff  MID-1633
 function showDisablePaging() {
-	$(".disablePaging").show();
-	$(".pager").css("opacity", .5);
+//	$(".disablePaging").show();
+//	$(".pager").css("opacity", .5);
 }
 
+// disabled this s...stuff  MID-1633
 function hideDisablePaging() {
-	$(".disablePaging").hide();
-	$(".pager").css("opacity", 1);
+//	$(".disablePaging").hide();
+//	$(".pager").css("opacity", 1);
 }
 
 /**
