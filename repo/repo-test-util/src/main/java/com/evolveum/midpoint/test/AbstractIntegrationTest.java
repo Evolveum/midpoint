@@ -44,6 +44,7 @@ import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
@@ -283,12 +284,21 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 
 	protected PrismObject<ResourceType> addResourceFromFile(String filePath, String connectorType, OperationResult result)
 			throws FileNotFoundException, JAXBException, SchemaException, ObjectAlreadyExistsException, EncryptionException {
+		return addResourceFromFile(filePath, connectorType, false, result);
+	}
+	
+	protected PrismObject<ResourceType> addResourceFromFile(String filePath, String connectorType, boolean overwrite, OperationResult result)
+			throws FileNotFoundException, JAXBException, SchemaException, ObjectAlreadyExistsException, EncryptionException {
 		LOGGER.trace("addObjectFromFile: {}, connector type {}", filePath, connectorType);
 		PrismObject<ResourceType> resource = prismContext.getPrismDomProcessor().parseObject(new File(filePath), ResourceType.class);
 		fillInConnectorRef(resource, connectorType, result);
 		CryptoUtil.encryptValues(protector, resource);
 		display("Adding resource ", resource);
-		String oid = repositoryService.addObject(resource, null, result);
+		RepoAddOptions options = null;
+		if (overwrite){
+			options = RepoAddOptions.createOverwrite();
+		}
+		String oid = repositoryService.addObject(resource, options, result);
 		resource.setOid(oid);
 		return resource;
 	}

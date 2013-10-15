@@ -247,6 +247,64 @@
 	
 	<xsd:element name="liveSync" type="tns:LiveSyncCapabilityType"/>
 	
+	
+	<xsd:complexType name="CreateCapabilityType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Describes create capability.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:CapabilityType">
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	
+	<xsd:element name="create" type="tns:CreateCapabilityType"/>
+	
+	<xsd:complexType name="ReadCapabilityType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Describes read capability.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:CapabilityType">
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	
+	<xsd:element name="read" type="tns:ReadCapabilityType"/>
+	
+	<xsd:complexType name="UpdateCapabilityType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Describes update capability.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:CapabilityType">
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	
+	<xsd:element name="update" type="tns:UpdateCapabilityType"/>
+	
+	<xsd:complexType name="DeleteCapabilityType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Describes delete capability.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:CapabilityType">
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	
+	<xsd:element name="delete" type="tns:DeleteCapabilityType"/>
+	
+	
 	<xsd:complexType name="TestConnectionCapabilityType">
 		<xsd:annotation>
 			<xsd:documentation>
