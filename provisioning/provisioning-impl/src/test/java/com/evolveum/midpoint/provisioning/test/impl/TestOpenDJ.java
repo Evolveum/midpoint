@@ -1184,7 +1184,9 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		
 		try {
-			provisioningService.modifyObject(ShadowType.class, ACCOUNT_NEW_OID, PropertyDelta.createModificationReplacePropertyCollection(ShadowType.F_DEAD, prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class), false), null, null, task, parentResult);
+			PropertyDelta delta = PropertyDelta.createModificationReplaceProperty(new ItemPath(ShadowType.F_ATTRIBUTES, new QName(resourceType.getNamespace(), "sn")), prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class), "doesnotmatter");
+			Collection modifications = MiscUtil.createCollection(delta);
+			provisioningService.modifyObject(ShadowType.class, ACCOUNT_NEW_OID, modifications, null, null, task, parentResult);
 			AssertJUnit
 					.fail("Expected unsupported operation exception, but haven't got one.");
 		} catch (SystemException ex) {
