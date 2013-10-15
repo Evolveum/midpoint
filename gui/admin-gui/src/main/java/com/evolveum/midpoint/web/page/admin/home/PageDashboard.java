@@ -217,10 +217,10 @@ public class PageDashboard extends PageAdminHome {
                                 CallableResult callableResult = new CallableResult();
 
                                 //TODO - fill correct data in users and tasks graphs[shood]
-                                SimplePieChartDto usersDto = new SimplePieChartDto(createStringResource("PageDashboard.activeUsers").getString(), 100, 25);
-                                SimplePieChartDto tasksDto = new SimplePieChartDto(createStringResource("PageDashboard.activeTasks").getString(), 100, 35);
-                                SimplePieChartDto loadDto = new SimplePieChartDto(createStringResource("PageDashboard.serverLoad").getString(), 100, WebMiscUtil.getSystemLoad());
-                                SimplePieChartDto memDto = new SimplePieChartDto(createStringResource("PageDashboard.usedRam").getString(),
+                                SimplePieChartDto usersDto = new SimplePieChartDto("PageDashboard.activeUsers", 100, 25);
+                                SimplePieChartDto tasksDto = new SimplePieChartDto("PageDashboard.activeTasks", 100, 35);
+                                SimplePieChartDto loadDto = new SimplePieChartDto("PageDashboard.serverLoad", 100, WebMiscUtil.getSystemLoad());
+                                SimplePieChartDto memDto = new SimplePieChartDto("PageDashboard.usedRam",
                                         WebMiscUtil.getMaxRam(), WebMiscUtil.getRamUsage());
 
                                 SystemInfoDto sysInfoDto = new SystemInfoDto(usersDto, tasksDto, loadDto, memDto);

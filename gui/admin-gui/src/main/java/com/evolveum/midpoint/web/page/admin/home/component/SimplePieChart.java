@@ -19,14 +19,14 @@ package com.evolveum.midpoint.web.page.admin.home.component;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.home.dto.SimplePieChartDto;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.*;
 
 /**
  *
  *  @author shood
  * */
 public class SimplePieChart extends SimplePanel<SimplePieChartDto>{
+
 
     private static final String ID_CHART_LABEL = "chartLabel";
     private static final String ID_PERCENT_VALUE = "percentValue";
@@ -37,8 +37,15 @@ public class SimplePieChart extends SimplePanel<SimplePieChartDto>{
 
     @Override
     protected void initLayout(){
-        Label graphLabel = new Label(ID_CHART_LABEL, new PropertyModel<String>(getModel(), "label"));
+        Label graphLabel = new Label(ID_CHART_LABEL, new AbstractReadOnlyModel<String>(){
+
+            @Override
+            public String getObject(){
+                return createStringResource(getModel().getObject().getLabel()).getString();
+            }
+        });
         add(graphLabel);
+
         Label percentLabel = new Label(ID_PERCENT_VALUE, new PropertyModel<Integer>(getModel(), "percent"));
         add(percentLabel);
     }
