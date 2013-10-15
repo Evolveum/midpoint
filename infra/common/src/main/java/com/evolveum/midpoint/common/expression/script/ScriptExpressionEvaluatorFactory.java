@@ -35,7 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScriptExpressionEva
  */
 public class ScriptExpressionEvaluatorFactory implements ExpressionEvaluatorFactory {
 	
-	ScriptExpressionFactory scriptExpressionFactory;
+	private ScriptExpressionFactory scriptExpressionFactory;
 
 	public ScriptExpressionEvaluatorFactory(ScriptExpressionFactory scriptExpressionFactory) {
 		this.scriptExpressionFactory = scriptExpressionFactory;
