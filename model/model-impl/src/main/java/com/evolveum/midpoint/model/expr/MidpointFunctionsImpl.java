@@ -52,6 +52,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 
+import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
+
+import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -419,6 +422,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     }
     
     public <T> boolean isUniqueAccountValue(ResourceType resourceType, ShadowType shadowType, String attributeName, T attributeValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+    	Validate.notEmpty(attributeName,"Empty attribute name");
     	OperationResult result = getCurrentResult(MidpointFunctions.class.getName()+".countAccounts");
     	QName attributeQName = new QName(ResourceTypeUtil.getResourceNamespace(resourceType), attributeName);
 		return isUniqueAccountValue(resourceType, shadowType, attributeQName, attributeValue, result);
@@ -428,6 +432,10 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     		QName attributeName, T attributeValue, OperationResult result) 
     		throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, 
     		SecurityViolationException {
+    	Validate.notNull(resourceType, "Null resource");
+    	Validate.notNull(shadowType, "Null shadow");
+    	Validate.notNull(attributeName, "Null attribute name");
+    	Validate.notNull(attributeValue, "Null attribute value");
     	RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resourceType);
         RefinedObjectClassDefinition rAccountDef = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
         RefinedAttributeDefinition attrDef = rAccountDef.findAttributeDefinition(attributeName);
