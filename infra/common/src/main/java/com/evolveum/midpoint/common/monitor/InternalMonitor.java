@@ -33,6 +33,7 @@ public class InternalMonitor {
 	private static long resourceSchemaParseCount = 0;
 	private static long connectorInitializationCount = 0;
 	private static long connectorSchemaFetchCount = 0;
+	private static long connectorSchemaParseCount = 0;
 	private static long connectorCapabilitiesFetchCount = 0;
 	private static CachingStatistics resourceCacheStats = new CachingStatistics();
 	private static CachingStatistics connectorCacheStats = new CachingStatistics();
@@ -71,6 +72,14 @@ public class InternalMonitor {
 	public synchronized static void recordConnectorSchemaFetch() {
 		connectorSchemaFetchCount++;
 		provisioningAllExtOperationCount++;
+	}
+
+	public static long getConnectorSchemaParseCount() {
+		return connectorSchemaParseCount;
+	}
+	
+	public synchronized static void recordConnectorSchemaParse() {
+		connectorSchemaParseCount++;
 	}
 
 	public static long getConnectorCapabilitiesFetchCount() {
@@ -157,6 +166,7 @@ public class InternalMonitor {
 		resourceSchemaParseCount = 0;
 		connectorInitializationCount = 0;
 		connectorSchemaFetchCount = 0;
+		connectorSchemaParseCount = 0;
 		connectorCapabilitiesFetchCount = 0;
 		resourceCacheStats = new CachingStatistics();
 		connectorCacheStats = new CachingStatistics();

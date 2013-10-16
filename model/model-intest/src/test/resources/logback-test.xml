@@ -38,18 +38,20 @@
 	
     <!-- "TRACE" is just too much info, "DEBUG" should be enough for the following talkative components ... 
          if any of the following is set to "TRACE" then it was changed by mistake and should be changed back -->
-	<logger name="com.evolveum.midpoint.model.lens.projector" level="TRACE" />
+	<logger name="com.evolveum.midpoint.model.lens.projector" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.lens" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.model.lens.Clockwork" level="TRACE" />
+	<logger name="com.evolveum.midpoint.model.lens.Clockwork" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.lens.ChangeExecutor" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.lens.ShadowConstraintsChecker" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.lens.LensUtil" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.model.sync" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.model.sync.CorrelationConfirmationEvaluator" level="DEBUG" />
     <logger name="com.evolveum.midpoint.provisioning" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.expression" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.common.expression" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.common.expression.Expression" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.common.mapping" level="TRACE" />
-	<logger name="com.evolveum.midpoint.common.monitor" level="TRACE" />
+	<logger name="com.evolveum.midpoint.common.mapping" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.common.monitor" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.notifications" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.controller.SystemConfigurationHandler" level="DEBUG" />
 	

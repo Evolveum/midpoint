@@ -21,6 +21,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,6 +73,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
  */
 @Component
 public class ConnectorManager {
+	
+	private static final String USER_DATA_KEY_PARSED_CONNECTOR_SCHEMA = ConnectorManager.class.getName()+".parsedSchema";
+	
 	@Autowired
 	@Qualifier("cacheRepositoryService")
 	private RepositoryService repositoryService;
@@ -82,7 +86,8 @@ public class ConnectorManager {
 
 	private static final Trace LOGGER = TraceManager.getTrace(ConnectorManager.class);
 
-	private Map<String, ConfiguredConnectorInstanceEntry> connectorInstanceCache = new HashMap<String, ConnectorManager.ConfiguredConnectorInstanceEntry>();
+	private Map<String, ConfiguredConnectorInstanceEntry> connectorInstanceCache = new ConcurrentHashMap<String, ConnectorManager.ConfiguredConnectorInstanceEntry>();
+	private Map<String, ConnectorType> connectorTypeCache = new ConcurrentHashMap<String, ConnectorType>();
 
 	public ConnectorInstance getConfiguredConnectorInstance(PrismObject<ResourceType> resource, boolean forceFresh, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
@@ -180,7 +185,7 @@ public class ConnectorManager {
 	public ConnectorType getConnectorType(ResourceType resourceType, OperationResult result)
 			throws ObjectNotFoundException, SchemaException {
 		ConnectorType connectorType = resourceType.getConnector();
-		if (resourceType.getConnector() == null) {
+		if (connectorType == null) {
 			if (resourceType.getConnectorRef() == null || resourceType.getConnectorRef().getOid() == null) {
 				result.recordFatalError("Connector reference missing in the resource "
 						+ resourceType);
@@ -188,8 +193,19 @@ public class ConnectorManager {
 						+ resourceType);
 			}
 			String connOid = resourceType.getConnectorRef().getOid();
-			PrismObject<ConnectorType> connectorPrism = repositoryService.getObject(ConnectorType.class, connOid, null, result);
-			connectorType = connectorPrism.asObjectable();
+			connectorType = connectorTypeCache.get(connOid);
+			if (connectorType == null) {
+				PrismObject<ConnectorType> repoConnector = repositoryService.getObject(ConnectorType.class, connOid, null, result);
+				connectorType = repoConnector.asObjectable();
+				connectorTypeCache.put(connOid, connectorType);
+			} else {
+				String currentConnectorVersion = repositoryService.getVersion(ConnectorType.class, connOid, result);
+				if (!currentConnectorVersion.equals(connectorType.getVersion())) {
+					PrismObject<ConnectorType> repoConnector = repositoryService.getObject(ConnectorType.class, connOid, null, result);
+					connectorType = repoConnector.asObjectable();
+					connectorTypeCache.put(connOid, connectorType);
+				}
+			}
 			resourceType.setConnector(connectorType);
 		}
 		if (connectorType.getConnectorHost() == null && connectorType.getConnectorHostRef() != null) {
@@ -198,7 +214,39 @@ public class ConnectorManager {
 			PrismObject<ConnectorHostType> connectorHost = repositoryService.getObject(ConnectorHostType.class, connectorHostOid, null, result);
 			connectorType.setConnectorHost(connectorHost.asObjectable());
 		}
+		PrismObject<ConnectorType> connector = connectorType.asPrismObject();
+		Object userDataEntry = connector.getUserData(USER_DATA_KEY_PARSED_CONNECTOR_SCHEMA);
+		if (userDataEntry == null) {
+			InternalMonitor.recordConnectorSchemaParse();
+			PrismSchema connectorSchema = ConnectorTypeUtil.parseConnectorSchema(connectorType, prismContext);
+			if (connectorSchema == null) {
+				throw new SchemaException("No connector schema in "+connectorType);
+			}
+			connector.setUserData(USER_DATA_KEY_PARSED_CONNECTOR_SCHEMA, connectorSchema);			
+		}
 		return connectorType;
+	}
+	
+	public PrismSchema getConnectorSchema(ConnectorType connectorType) throws SchemaException {
+		PrismObject<ConnectorType> connector = connectorType.asPrismObject();
+		PrismSchema connectorSchema;
+		Object userDataEntry = connector.getUserData(USER_DATA_KEY_PARSED_CONNECTOR_SCHEMA);
+		if (userDataEntry == null) {
+			InternalMonitor.recordConnectorSchemaParse();
+			connectorSchema = ConnectorTypeUtil.parseConnectorSchema(connectorType, prismContext);
+			if (connectorSchema == null) {
+				throw new SchemaException("No connector schema in "+connectorType);
+			}
+			connector.setUserData(USER_DATA_KEY_PARSED_CONNECTOR_SCHEMA, connectorSchema);			
+		} else {
+			if (userDataEntry instanceof PrismSchema) {
+				connectorSchema = (PrismSchema)userDataEntry;
+			} else {
+				throw new IllegalStateException("Expected PrismSchema under user data key "+
+						USER_DATA_KEY_PARSED_CONNECTOR_SCHEMA+ "in "+connectorType+", but got "+userDataEntry.getClass());
+			}
+		}
+		return connectorSchema;
 	}
 
 	public Set<ConnectorType> discoverLocalConnectors(OperationResult parentResult) {
