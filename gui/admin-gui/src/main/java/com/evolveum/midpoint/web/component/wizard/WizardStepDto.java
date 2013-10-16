@@ -16,9 +16,6 @@
 
 package com.evolveum.midpoint.web.component.wizard;
 
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-
 import java.io.Serializable;
 
 /**
@@ -26,12 +23,16 @@ import java.io.Serializable;
  */
 public class WizardStepDto implements Serializable {
 
-    private IModel<String> name;
+    private String name;
     private boolean enabled = true;
     private boolean visible = true;
     private boolean active;
 
-    public WizardStepDto(IModel<String> name, boolean enabled, boolean visible) {
+    public WizardStepDto(String name) {
+        this(name, true, true);
+    }
+
+    public WizardStepDto(String name, boolean enabled, boolean visible) {
         this.name = name;
         this.enabled = enabled;
         this.visible = visible;
@@ -53,7 +54,7 @@ public class WizardStepDto implements Serializable {
         this.enabled = enabled;
     }
 
-    public IModel<String> getName() {
+    public String getName() {
         return name;
     }
 

@@ -18,9 +18,11 @@ package com.evolveum.midpoint.web.page.admin.resources;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.wizard.resource.*;
+import com.evolveum.midpoint.web.component.wizard.Wizard;
 import com.evolveum.midpoint.web.component.xml.ace.AceEditor;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -89,7 +91,7 @@ public class PageResourceWizard extends PageAdminResources {
         wizardModel.add(new CapabilityStep());
         wizardModel.add(new SynchronizationStep());
 
-        ResourceWizard wizard = new ResourceWizard(ID_WIZARD, wizardModel);
+        Wizard wizard = new Wizard(ID_WIZARD, new Model(wizardModel));
         add(wizard);
 
         //todo remove
@@ -109,7 +111,7 @@ public class PageResourceWizard extends PageAdminResources {
         editor.setReadonly(true);
         editor.setOutputMarkupId(true);
         add(editor);
-        AjaxLinkButton reload = new AjaxLinkButton("reload", new Model<String>("reload")) {
+        AjaxButton reload = new AjaxButton("reload", new Model<String>("reload")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {

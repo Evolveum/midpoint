@@ -17,23 +17,40 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <table>
-        <tr>
-            <td><wicket:message key="NameStep.name"/></td>
-            <td><input wicket:id="name" type="text" size="40"/></td>
-        </tr>
-        <tr>
-            <td><wicket:message key="NameStep.location"/></td>
-            <td><select wicket:id="location" /></td>
-        </tr>
-        <tr>
-            <td><wicket:message key="NameStep.connectorType"/></td>
-            <td><select wicket:id="connectorType"/></td>
-        </tr>
-        <tr>
-            <td><wicket:message key="NameStep.connectorVersion"/></td>
-            <td><select wicket:id="connectorVersion"/></td>
-        </tr>
-    </table>
+    <div class="form-group">
+        <label class="col-md-3 control-label"><wicket:message key="NameStep.name"/></label>
+
+        <div class="col-md-3">
+            <input wicket:id="name" type="text" class="form-control input-sm" wicket:message="placeholder:NameStep.name">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-md-3 control-label" for="description"><wicket:message key="NameStep.description"/></label>
+
+        <div class="col-md-3">
+            <textarea rows="2" class="form-control input-sm" id="description" wicket:message="placeholder:NameStep.description"></textarea>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-md-3 control-label"><wicket:message key="NameStep.connectorHost"/></label>
+
+        <div class="col-md-3">
+            <select wicket:id="location" class="form-control input-sm"/>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-md-3 control-label"><wicket:message key="NameStep.connectorType"/></label>
+
+        <div class="col-md-3">
+            <select wicket:id="connectorType" class="form-control input-sm"/>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-md-3 control-label"><wicket:message key="NameStep.connectorVersion"/></label>
+
+        <div class="col-md-3">
+            <select wicket:id="connectorVersion" class="form-control input-sm"/>
+        </div>
+    </div>
 </wicket:panel>
 </html>

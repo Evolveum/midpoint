@@ -24,6 +24,7 @@ import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.StringResourceModel;
 
 import java.util.List;
 
@@ -46,7 +47,7 @@ public class WizardSteps extends SimplePanel<List<WizardStepDto>> {
             @Override
             protected void populateItem(ListItem<WizardStepDto> item) {
                 final WizardStepDto dto = item.getModelObject();
-                Label label = new Label(ID_LABEL, dto.getName());
+                Label label = new Label(ID_LABEL, createLabelModel(dto.getName()));
                 label.setRenderBodyOnly(true);
                 item.add(label);
 
@@ -54,7 +55,7 @@ public class WizardSteps extends SimplePanel<List<WizardStepDto>> {
 
                     @Override
                     public boolean isEnabled() {
-                      return dto.isEnabled();
+                        return dto.isEnabled();
                     }
 
                     @Override
@@ -73,5 +74,15 @@ public class WizardSteps extends SimplePanel<List<WizardStepDto>> {
             }
         };
         add(link);
+    }
+
+    private IModel<String> createLabelModel(final String key) {
+        return new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                return new StringResourceModel(key, getPage(), null, key).getString();
+            }
+        };
     }
 }
