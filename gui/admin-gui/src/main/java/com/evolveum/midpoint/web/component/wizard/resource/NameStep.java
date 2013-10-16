@@ -25,6 +25,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.component.wizard.WizardStep;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorHostType;
@@ -35,12 +36,12 @@ import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.extensions.wizard.WizardStep;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.form.RequiredTextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
 
 import java.util.*;
 
@@ -74,6 +75,8 @@ public class NameStep extends WizardStep {
     private LoadableModel<List<ConnectorType>> connectorVersions;
 
     public NameStep(final IModel<ResourceType> model) {
+        super();
+        setTitleModel(new StringResourceModel("NameStep.title", this, null, "NameStep.title"));
         this.resourceModel = model;
 
         connectorsModel = new LoadableModel<List<ConnectorType>>(false) {

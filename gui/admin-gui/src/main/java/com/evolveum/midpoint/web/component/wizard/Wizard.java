@@ -1,8 +1,6 @@
 package com.evolveum.midpoint.web.component.wizard;
 
 import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.component.wizard.WizardStepDto;
-import com.evolveum.midpoint.web.component.wizard.WizardSteps;
 import org.apache.wicket.extensions.wizard.IWizard;
 import org.apache.wicket.extensions.wizard.IWizardModel;
 import org.apache.wicket.extensions.wizard.IWizardModelListener;
@@ -21,8 +19,10 @@ import java.util.List;
 public class Wizard extends SimplePanel<IWizardModel> implements IWizardModelListener, IWizard {
 
     private static final String ID_FORM = "form";
+    private static final String ID_HEADER = "header";
     private static final String ID_STEPS = "steps";
     private static final String ID_VIEW = "view";
+    private static final String ID_BUTTONS = "buttons";
 
     public Wizard(String id, IModel<IWizardModel> model) {
         super(id, model);
@@ -39,8 +39,14 @@ public class Wizard extends SimplePanel<IWizardModel> implements IWizardModelLis
         WizardSteps steps = new WizardSteps(ID_STEPS, stepsModel);
         form.add(steps);
 
+        WebMarkupContainer header = new WebMarkupContainer(ID_HEADER);
+        form.add(header);
+
         WebMarkupContainer view = new WebMarkupContainer(ID_VIEW);
         form.add(view);
+
+        WizardButtonBar buttons = new WizardButtonBar(ID_BUTTONS, this);
+        form.add(buttons);
 
         IWizardModel wizard = getWizardModel();
         wizard.addListener(this);
@@ -62,15 +68,14 @@ public class Wizard extends SimplePanel<IWizardModel> implements IWizardModelLis
     public void onActiveStepChanged(IWizardStep newStep) {
         Form form = (Form) get(ID_FORM);
         form.replace(newStep.getView(ID_VIEW, this, this));
+        form.replace(newStep.getHeader(ID_HEADER, this, this));
     }
 
     @Override
     public void onCancel() {
-        //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @Override
     public void onFinish() {
-        //To change body of implemented methods use File | Settings | File Templates.
     }
 }
