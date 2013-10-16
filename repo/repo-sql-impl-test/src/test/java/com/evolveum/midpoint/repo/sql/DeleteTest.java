@@ -104,8 +104,8 @@ public class DeleteTest extends BaseSQLRepoTest {
             SQLQuery query = session.createSQLQuery("select count(*) from m_trigger where oid = ?");
             query.setString(0, oid);
 
-            BigInteger count = (BigInteger) query.uniqueResult();
-            AssertJUnit.assertEquals(new BigInteger("0"), count);
+            Number count = (Number) query.uniqueResult();
+            AssertJUnit.assertEquals(count.longValue(), 0L);
         } finally {
             session.close();
         }
