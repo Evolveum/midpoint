@@ -291,6 +291,7 @@ public class TestDummy extends AbstractDummyTest {
 		// Some connector initialization and other things might happen in previous tests.
 		// The monitor is static, not part of spring context, it will not be cleared
 		rememberConnectorSchemaFetchCount();
+		rememberConnectorSchemaParseCount();
 		rememberConnectorCapabilitiesFetchCount();
 		rememberConnectorInitializationCount();
 		rememberResourceSchemaParseCount();
@@ -341,6 +342,7 @@ public class TestDummy extends AbstractDummyTest {
 		// schema will be checked in next test
 		
 		assertConnectorSchemaFetchIncrement(1);
+		assertConnectorSchemaParseIncrement(1);
 		assertConnectorCapabilitiesFetchIncrement(1);
 		assertConnectorInitializationCountIncrement(1);
 		assertResourceSchemaParseCountIncrement(1);
@@ -1125,11 +1127,12 @@ public class TestDummy extends AbstractDummyTest {
 	}
 
 	@Test
-	public void test112SeachIterative() throws Exception {
-		TestUtil.displayTestTile("test112SeachIterative");
+	public void test110SeachIterative() throws Exception {
+		final String TEST_NAME = "test110SeachIterative";
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
-				+ ".test112SeachIterative");
+				+ "." + TEST_NAME);
 
 		// Make sure there is an account on resource that the provisioning has
 		// never seen before, so there is no shadow
@@ -1205,6 +1208,57 @@ public class TestDummy extends AbstractDummyTest {
 		assertEquals(4, foundObjects.size());
 		checkConsistency(foundObjects);
 		assertProtected(foundObjects, 1);
+		
+		assertSteadyResource();
+	}
+	
+	@Test
+	public void test111SeachIterativeNoFetch() throws Exception {
+		final String TEST_NAME = "test111SeachIterativeNoFetch";
+		TestUtil.displayTestTile(TEST_NAME);
+		// GIVEN
+		OperationResult result = new OperationResult(TestDummy.class.getName()
+				+ "." + TEST_NAME);
+
+		ObjectQuery query = ObjectQueryUtil.createResourceAndAccountQuery(RESOURCE_DUMMY_OID, 
+				new QName(ResourceTypeUtil.getResourceNamespace(resourceType),
+						ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME), prismContext); 
+
+		final List<PrismObject<ShadowType>> foundObjects = new ArrayList<PrismObject<ShadowType>>();
+		ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
+
+			@Override
+			public boolean handle(PrismObject<ShadowType> object, OperationResult parentResult) {
+				foundObjects.add(object);
+
+//				ObjectType objectType = object.asObjectable();
+//				assertTrue(objectType instanceof ShadowType);
+//				ShadowType shadow = (ShadowType) objectType;
+//				checkAccountShadow(shadow, parentResult, false);
+				
+				return true;
+			}
+		};
+		Collection<SelectorOptions<GetOperationOptions>> options = 
+				SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
+		
+		rememberShadowFetchOperationCount();
+		
+		// WHEN
+		provisioningService.searchObjectsIterative(ShadowType.class, query, options, handler, result);
+
+		// THEN
+		result.computeStatus();
+		display("searchObjectsIterative result", result);
+		TestUtil.assertSuccess(result);
+		assertShadowFetchOperationCountIncrement(0);
+
+		display("Found shadows", foundObjects);
+		
+		assertEquals(4, foundObjects.size());
+		checkConsistency(foundObjects);
+		// MID-1640
+//		assertProtected(foundObjects, 1);
 		
 		assertSteadyResource();
 	}

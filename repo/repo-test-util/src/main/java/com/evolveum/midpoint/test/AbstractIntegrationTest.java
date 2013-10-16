@@ -110,6 +110,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	// Values used to check if something is unchanged or changed properly
 	
 	private long lastConnectorSchemaFetchCount = 0;
+	private long lastConnectorSchemaParseCount = 0;
 	private long lastConnectorCapabilitiesFetchCount = 0;
 	private long lastConnectorInitializationCount = 0;
 	private long lastResourceSchemaParseCount = 0;
@@ -509,6 +510,17 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		long actualIncrement = currentConnectorSchemaFetchCount - lastConnectorSchemaFetchCount;
 		assertEquals("Unexpected increment in connector schema fetch count", (long)expectedIncrement, actualIncrement);
 		lastConnectorSchemaFetchCount = currentConnectorSchemaFetchCount;
+	}
+	
+	protected void rememberConnectorSchemaParseCount() {
+		lastConnectorSchemaParseCount = InternalMonitor.getConnectorSchemaParseCount();
+	}
+
+	protected void assertConnectorSchemaParseIncrement(int expectedIncrement) {
+		long currentCount = InternalMonitor.getConnectorSchemaParseCount();
+		long actualIncrement = currentCount - lastConnectorSchemaParseCount;
+		assertEquals("Unexpected increment in connector schema parse count", (long)expectedIncrement, actualIncrement);
+		lastConnectorSchemaParseCount = currentCount;
 	}
 	
 	protected void rememberConnectorCapabilitiesFetchCount() {

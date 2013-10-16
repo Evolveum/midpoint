@@ -57,4 +57,42 @@ public class LoggingUtils {
 		args.add(ex);
 		LOGGER.trace(message + ".", args.toArray());
 	}
+
+	public static void logStackTrace(final Trace LOGGER, String message) {
+		if (LOGGER.isTraceEnabled()) {
+			if (message != null) {
+				LOGGER.trace(message+":\n{}", dumpStackTrace(LoggingUtils.class));
+			} else {
+				LOGGER.trace("{}", dumpStackTrace(LoggingUtils.class));
+			}
+		}
+	}
+		
+	public static String dumpStackTrace(Class... classesToSkip) {
+		StackTraceElement[] fullStack = Thread.currentThread().getStackTrace();
+		String immediateClass = null;
+		String immediateMethod = null;
+		boolean firstFrameLogged = false;
+		StringBuilder sb = new StringBuilder();
+		OUTER: for (StackTraceElement stackElement: fullStack) {
+			if (!firstFrameLogged) {
+				if (stackElement.getClassName().equals(Thread.class.getName())) {
+					// skip call to thread.getStackTrace();
+					continue;
+				}
+				if (classesToSkip != null) {
+					for (Class classToSkip: classesToSkip) {
+						if (stackElement.getClassName().equals(classToSkip.getName())) {
+							continue OUTER;
+						}
+					}
+				}
+			}
+			firstFrameLogged = true;
+
+			sb.append(stackElement.toString());
+			sb.append("\n");
+		}
+		return sb.toString();
+	}
 }

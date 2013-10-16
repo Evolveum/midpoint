@@ -502,6 +502,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	protected void assertSteadyResource() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		assertConnectorSchemaFetchIncrement(0);
 		assertConnectorCapabilitiesFetchIncrement(0);
+		assertConnectorSchemaParseIncrement(0);
 		assertConnectorInitializationCountIncrement(0);
 		assertResourceSchemaParseCountIncrement(0);
 		assertResourceVersionIncrement(resource, 0);
