@@ -147,8 +147,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	@Test
-    public void test100ImportFromResourceDummy() throws Exception {
-		final String TEST_NAME = "test100ImportFromResourceDummy";
+    public void test100ImportStanFromResourceDummy() throws Exception {
+		final String TEST_NAME = "test100ImportStanFromResourceDummy";
         TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN

@@ -85,7 +85,7 @@ public class ConnectorTypeUtil {
 	/**
 	 * Returns parsed connector schema
 	 */
-	public static PrismSchema getConnectorSchema(ConnectorType connectorType, PrismContext prismContext) throws SchemaException {
+	public static PrismSchema parseConnectorSchema(ConnectorType connectorType, PrismContext prismContext) throws SchemaException {
 		Element connectorSchemaElement = ConnectorTypeUtil.getConnectorXsdSchema(connectorType);
 		if (connectorSchemaElement == null) {
 			return null;
@@ -101,14 +101,6 @@ public class ConnectorTypeUtil {
 	public static PrismContainerDefinition<ConnectorConfigurationType> findConfigurationContainerDefintion(ConnectorType connectorType, PrismSchema connectorSchema) {
 		QName configContainerQName = new QName(connectorType.getNamespace(), ResourceType.F_CONNECTOR_CONFIGURATION.getLocalPart());
 		return connectorSchema.findContainerDefinitionByElementName(configContainerQName);
-	}
-	
-	public static PrismContainerDefinition<ConnectorConfigurationType> findConfigurationContainerDefintion(ConnectorType connectorType, PrismContext prismContext) throws SchemaException {
-		PrismSchema connectorSchema = getConnectorSchema(connectorType, prismContext);
-		if (connectorSchema == null) {
-			throw new SchemaException("No connector schema in "+connectorType);
-		}
-		return findConfigurationContainerDefintion(connectorType, connectorSchema);
 	}
 	
 }

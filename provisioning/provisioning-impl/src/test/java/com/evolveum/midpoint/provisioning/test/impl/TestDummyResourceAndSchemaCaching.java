@@ -127,6 +127,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		// Some connector initialization and other things might happen in previous tests.
 		// The monitor is static, not part of spring context, it will not be cleared
 		rememberConnectorSchemaFetchCount();
+		rememberConnectorSchemaParseCount();
 		rememberConnectorCapabilitiesFetchCount();
 		rememberConnectorInitializationCount();
 		rememberResourceSchemaParseCount();
@@ -152,6 +153,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		rememberSchemaMetadata(resourceProvisioning);
 		
 		assertConnectorSchemaFetchIncrement(1);
+		assertConnectorSchemaParseIncrement(1);
 		assertConnectorCapabilitiesFetchIncrement(1);
 		assertConnectorInitializationCountIncrement(1);
 		assertResourceSchemaParseCountIncrement(1);
@@ -197,6 +199,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		assertSchemaMetadataUnchanged(resourceProvisioning);
 		
 		assertConnectorSchemaFetchIncrement(0);
+		assertConnectorSchemaParseIncrement(0);
 		assertConnectorCapabilitiesFetchIncrement(0);
 		assertConnectorInitializationCountIncrement(0);
 		assertResourceSchemaParseCountIncrement(0);
@@ -225,6 +228,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		assertSchemaMetadataUnchanged(resourceProvisioning);
 		
 		assertConnectorSchemaFetchIncrement(0);
+		assertConnectorSchemaParseIncrement(0);
 		assertConnectorCapabilitiesFetchIncrement(0);
 		assertConnectorInitializationCountIncrement(0);
 		
@@ -270,6 +274,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		assertSchemaMetadataUnchanged(resourceProvisioning);
 		
 		assertConnectorSchemaFetchIncrement(0);
+		assertConnectorSchemaParseIncrement(0);
 		assertConnectorCapabilitiesFetchIncrement(0);
 		assertConnectorInitializationCountIncrement(0);
 		assertResourceSchemaParseCountIncrement(0);
@@ -330,6 +335,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		assertSchemaMetadataUnchanged(resourceProvisioning);
 		
 		assertConnectorSchemaFetchIncrement(0);
+		assertConnectorSchemaParseIncrement(0);
 		assertConnectorCapabilitiesFetchIncrement(0);
 		assertConnectorInitializationCountIncrement(0);
 		assertResourceSchemaParseCountIncrement(1);
@@ -377,6 +383,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		assertSchemaMetadataUnchanged(resourceProvisioning);
 		
 		assertConnectorSchemaFetchIncrement(0);
+		assertConnectorSchemaParseIncrement(0);
 		assertConnectorCapabilitiesFetchIncrement(0);
 		assertConnectorInitializationCountIncrement(0);
 		assertResourceSchemaParseCountIncrement(0);
@@ -439,6 +446,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		assertSchemaMetadataUnchanged(resourceProvisioning);
 		
 		assertConnectorSchemaFetchIncrement(0);
+		assertConnectorSchemaParseIncrement(0);
 		assertConnectorCapabilitiesFetchIncrement(0);
 		assertConnectorInitializationCountIncrement(0);
 		assertResourceSchemaParseCountIncrement(1);
@@ -580,6 +588,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		assertSchemaMetadataUnchanged(resourceProvisioning);
 		
 		assertConnectorSchemaFetchIncrement(0);
+		assertConnectorSchemaParseIncrement(0);
 		assertConnectorCapabilitiesFetchIncrement(0);
 		assertConnectorInitializationCountIncrement(0);
 		assertResourceSchemaParseCountIncrement(1);
@@ -604,6 +613,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		assertResourceCacheMissesIncrement(0);
 		
 		assertConnectorSchemaFetchIncrement(0);
+		assertConnectorSchemaParseIncrement(0);
 		assertConnectorCapabilitiesFetchIncrement(0);
 		assertConnectorInitializationCountIncrement(1);
 		assertResourceSchemaParseCountIncrement(0);
