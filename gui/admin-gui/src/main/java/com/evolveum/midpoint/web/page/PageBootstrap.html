@@ -12,6 +12,33 @@
             </tr>
         </table>
     </form>
+
+    <a id="test" class="btn btn-primary">Test</a>
+    <script type="text/javascript">
+        $("#test").click(function() {
+            $.pnotify({
+                title: 'See Through Success',
+                text: 'He may be successful, but I see right through him.',
+                type: 'success',
+                opacity: .8,
+                icon: 'silk-user'
+            });
+//            $.pnotify({
+//                title: 'See Through Success',
+//                text: 'He may be successful, but I see right through him.',
+//                type: 'info',
+//                opacity: .8,
+//                icon: 'silk-user'
+//            });
+//            $.pnotify({
+//                title: 'See Through Success',
+//                text: 'He may be successful, but I see right through him.',
+//                type: 'error',
+//                opacity: .8,
+//                icon: 'silk-user'
+//            });
+        });
+    </script>
 </wicket:extend>
 </body>
 </html>

@@ -557,7 +557,7 @@ public class PageDebugList extends PageAdminConfiguration {
                 int userCount = 0;
                 int shadowCount = 0;
                 final StringBuilder sb = new StringBuilder();
-                sb.append(createStringResource("pageDebugList.dialog.title.confirmLaxativeMessage").getString()+"<br><br>");
+                sb.append(createStringResource("pageDebugList.dialog.title.confirmLaxativeMessage").getString() + "<br><br>");
 
                 Task task = createSimpleTask(OPERATION_SEARCH_ITERATIVE_TASK);
                 OperationResult result = new OperationResult(OPERATION_SEARCH_ITERATIVE_TASK);
@@ -569,7 +569,7 @@ public class PageDebugList extends PageAdminConfiguration {
                 ResultHandler<UserType> userHandler = new ResultHandler<UserType>() {
                     @Override
                     public boolean handle(PrismObject object, OperationResult parentResult) {
-                        if(!SystemObjectsType.USER_ADMINISTRATOR.value().equals(object.asObjectable().getOid())){
+                        if (!SystemObjectsType.USER_ADMINISTRATOR.value().equals(object.asObjectable().getOid())) {
                             sb.append(PRINT_LABEL_USER).append(WebMiscUtil.getName(object)).append(PRINT_LABEL_HTML_NEWLINE);
                         }
                         return true;
@@ -594,10 +594,10 @@ public class PageDebugList extends PageAdminConfiguration {
 
                     objectsToDelete = userCount + shadowCount;
 
-                    if(userCount >= 10 || shadowCount >= 10){
+                    if (userCount >= 10 || shadowCount >= 10) {
                         sb.append(PRINT_LABEL_USER_DELETE).append(userCount).append(PRINT_LABEL_HTML_NEWLINE).append(PRINT_LABEL_SHADOW_DELETE).append(shadowCount).append(PRINT_LABEL_HTML_NEWLINE);
                         sb.append(PRINT_LABEL_ADMINISTRATOR_NOT_DELETED).append(PRINT_LABEL_HTML_NEWLINE);
-                    }else{
+                    } else {
                         sb.append(PRINT_LABEL_USER_DELETE).append(userCount).append(PRINT_LABEL_HTML_NEWLINE);
                         sb.append(PRINT_LABEL_ADMINISTRATOR_NOT_DELETED).append(PRINT_LABEL_HTML_NEWLINE);
                         getModelService().searchObjectsIterative(UserType.class, null, userHandler, options, task, result);
@@ -605,7 +605,7 @@ public class PageDebugList extends PageAdminConfiguration {
                         sb.append(PRINT_LABEL_SHADOW_DELETE).append(shadowCount).append(PRINT_LABEL_HTML_NEWLINE);
                         getModelService().searchObjectsIterative(ShadowType.class, null, shadowHandler, options, task, result);
                     }
-                } catch (Exception ex){
+                } catch (Exception ex) {
                     result.computeStatus(getString("pageDebugList.message.countSearchProblem"));
                     LoggingUtils.logException(LOGGER, getString("pageDebugList.message.countSearchProblem"), ex);
                 }
@@ -698,8 +698,8 @@ public class PageDebugList extends PageAdminConfiguration {
         return new ConfirmationDialog(ID_CONFIRM_LAXATIVE_OPERATION, createStringResource("pageDebugList.dialog.title.confirmLaxative"),
                 createLaxativeString()) {
 
-            @Override            
-            public void yesPerformed(AjaxRequestTarget target){
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
                 deleteAllIdentities();
                 LOGGER.info("Deleted {} out of {} objects.", objectsDeleted, objectsToDelete);
                 target.add(getListTable());
@@ -709,7 +709,7 @@ public class PageDebugList extends PageAdminConfiguration {
         };
     }
 
-    private void deleteAllIdentities(){
+    private void deleteAllIdentities() {
         Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<SelectorOptions<GetOperationOptions>>();
         GetOperationOptions opt = GetOperationOptions.createRaw();
         options.add(SelectorOptions.create(ItemPath.EMPTY_PATH, opt));
@@ -720,20 +720,20 @@ public class PageDebugList extends PageAdminConfiguration {
         ResultHandler<UserType> userHandler = new ResultHandler<UserType>() {
             @Override
             public boolean handle(PrismObject object, OperationResult parentResult) {
-                if(!SystemObjectsType.USER_ADMINISTRATOR.value().equals(object.asObjectable().getOid())){
+                if (!SystemObjectsType.USER_ADMINISTRATOR.value().equals(object.asObjectable().getOid())) {
                     ObjectDelta delta = ObjectDelta.createDeleteDelta(UserType.class, object.asObjectable().getOid(), getPrismContext());
                     Task task = createSimpleTask(OPERATION_LAXATIVE_DELETE);
                     OperationResult r = new OperationResult(OPERATION_LAXATIVE_DELETE);
 
                     try {
-                        getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta),ModelExecuteOptions.createRaw(), task, r);
+                        getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), ModelExecuteOptions.createRaw(), task, r);
                         objectsDeleted++;
 
-                        if(objectsDeleted % 100 == 0)
+                        if (objectsDeleted % 100 == 0)
                             LOGGER.info("Deleted {} out of {} objects.", objectsDeleted, objectsToDelete);
 
                         r.recordSuccess();
-                    } catch (Exception ex){
+                    } catch (Exception ex) {
                         r.computeStatus(getString("pageDebugList.message.singleDeleteProblemUser"));
                         LoggingUtils.logException(LOGGER, getString("pageDebugList.message.singleDeleteProblemUser"), ex);
                     }
@@ -755,11 +755,11 @@ public class PageDebugList extends PageAdminConfiguration {
                     getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), ModelExecuteOptions.createRaw(), task, r);
                     objectsDeleted++;
 
-                    if(objectsDeleted % 100 == 0)
+                    if (objectsDeleted % 100 == 0)
                         LOGGER.info("Deleted {} out of {} objects.", objectsDeleted, objectsToDelete);
 
                     r.recordSuccess();
-                }catch (Exception ex){
+                } catch (Exception ex) {
                     r.computeStatus(getString("pageDebugList.message.singleDeleteProblemShadow"));
                     LoggingUtils.logException(LOGGER, getString("pageDebugList.message.singleDeleteProblemShadow"), ex);
                 }
@@ -771,7 +771,7 @@ public class PageDebugList extends PageAdminConfiguration {
         try {
             getModelService().searchObjectsIterative(UserType.class, null, userHandler, options, laxativeTask, result);
             getModelService().searchObjectsIterative(ShadowType.class, null, shadowHandler, options, laxativeTask, result);
-        }catch (Exception ex){
+        } catch (Exception ex) {
             result.computeStatus(getString("pageDebugList.message.laxativeProblem"));
             LoggingUtils.logException(LOGGER, getString("pageDebugList.message.laxativeProblem"), ex);
         }
