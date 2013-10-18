@@ -126,7 +126,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		
 		// Some connector initialization and other things might happen in previous tests.
 		// The monitor is static, not part of spring context, it will not be cleared
-		rememberConnectorSchemaFetchCount();
+		rememberResourceSchemaFetchCount();
 		rememberConnectorSchemaParseCount();
 		rememberConnectorCapabilitiesFetchCount();
 		rememberConnectorInitializationCount();
@@ -152,7 +152,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		assertHasSchema(resourceProvisioning, "provisioning resource");
 		rememberSchemaMetadata(resourceProvisioning);
 		
-		assertConnectorSchemaFetchIncrement(1);
+		assertResourceSchemaFetchIncrement(1);
 		assertConnectorSchemaParseIncrement(1);
 		assertConnectorCapabilitiesFetchIncrement(1);
 		assertConnectorInitializationCountIncrement(1);
@@ -198,7 +198,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		assertHasSchema(resourceProvisioning, "provisioning resource(1)");
 		assertSchemaMetadataUnchanged(resourceProvisioning);
 		
-		assertConnectorSchemaFetchIncrement(0);
+		assertResourceSchemaFetchIncrement(0);
 		assertConnectorSchemaParseIncrement(0);
 		assertConnectorCapabilitiesFetchIncrement(0);
 		assertConnectorInitializationCountIncrement(0);
@@ -227,7 +227,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		assertHasSchema(resourceProvisioning, "provisioning resource(2)");
 		assertSchemaMetadataUnchanged(resourceProvisioning);
 		
-		assertConnectorSchemaFetchIncrement(0);
+		assertResourceSchemaFetchIncrement(0);
 		assertConnectorSchemaParseIncrement(0);
 		assertConnectorCapabilitiesFetchIncrement(0);
 		assertConnectorInitializationCountIncrement(0);
@@ -273,7 +273,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		assertHasSchema(resourceProvisioning, "provisioning resource(2)");
 		assertSchemaMetadataUnchanged(resourceProvisioning);
 		
-		assertConnectorSchemaFetchIncrement(0);
+		assertResourceSchemaFetchIncrement(0);
 		assertConnectorSchemaParseIncrement(0);
 		assertConnectorCapabilitiesFetchIncrement(0);
 		assertConnectorInitializationCountIncrement(0);
@@ -334,7 +334,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		assertHasSchema(resourceProvisioning, "provisioning resource");
 		assertSchemaMetadataUnchanged(resourceProvisioning);
 		
-		assertConnectorSchemaFetchIncrement(0);
+		assertResourceSchemaFetchIncrement(0);
 		assertConnectorSchemaParseIncrement(0);
 		assertConnectorCapabilitiesFetchIncrement(0);
 		assertConnectorInitializationCountIncrement(0);
@@ -382,7 +382,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		assertHasSchema(resourceProvisioning, "provisioning resource(2)");
 		assertSchemaMetadataUnchanged(resourceProvisioning);
 		
-		assertConnectorSchemaFetchIncrement(0);
+		assertResourceSchemaFetchIncrement(0);
 		assertConnectorSchemaParseIncrement(0);
 		assertConnectorCapabilitiesFetchIncrement(0);
 		assertConnectorInitializationCountIncrement(0);
@@ -445,7 +445,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		assertHasSchema(resourceProvisioning, "provisioning resource");
 		assertSchemaMetadataUnchanged(resourceProvisioning);
 		
-		assertConnectorSchemaFetchIncrement(0);
+		assertResourceSchemaFetchIncrement(0);
 		assertConnectorSchemaParseIncrement(0);
 		assertConnectorCapabilitiesFetchIncrement(0);
 		assertConnectorInitializationCountIncrement(0);
@@ -587,7 +587,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		assertHasSchema(resourceProvisioning, "provisioning resource");
 		assertSchemaMetadataUnchanged(resourceProvisioning);
 		
-		assertConnectorSchemaFetchIncrement(0);
+		assertResourceSchemaFetchIncrement(0);
 		assertConnectorSchemaParseIncrement(0);
 		assertConnectorCapabilitiesFetchIncrement(0);
 		assertConnectorInitializationCountIncrement(0);
@@ -612,7 +612,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 		assertResourceCacheHitsIncrement(1);
 		assertResourceCacheMissesIncrement(0);
 		
-		assertConnectorSchemaFetchIncrement(0);
+		assertResourceSchemaFetchIncrement(0);
 		assertConnectorSchemaParseIncrement(0);
 		assertConnectorCapabilitiesFetchIncrement(0);
 		assertConnectorInitializationCountIncrement(1);

@@ -116,6 +116,7 @@ public class MappingTestEvaluator {
         mappingFactory.setExpressionFactory(expressionFactory);
         mappingFactory.setObjectResolver(resolver);
         mappingFactory.setPrismContext(prismContext);
+        mappingFactory.setProfiling(true);
         
         mappingFactory.setProtector(protector);
     }

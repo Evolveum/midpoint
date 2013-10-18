@@ -41,6 +41,7 @@ import com.evolveum.midpoint.common.expression.functions.BasicExpressionFunction
 import com.evolveum.midpoint.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.common.expression.script.ScriptEvaluator;
 import com.evolveum.midpoint.common.expression.script.ScriptVariables;
+import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -118,6 +119,7 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 		
 		Object evalRawResult;
 		try {
+			InternalMonitor.recordScriptExecution();
 			evalRawResult = compiledScript.eval(bindings);
 		} catch (ScriptException e) {
 			throw new ExpressionEvaluationException(e.getMessage() + " " + contextDescription, e);
@@ -164,6 +166,7 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 			return compiledScript;
 		}
 		try {
+			InternalMonitor.recordScriptCompile();
 			compiledScript = ((Compilable)scriptEngine).compile(codeString);
 		} catch (ScriptException e) {
 			throw new ExpressionEvaluationException(e.getMessage() + " " + contextDescription, e);

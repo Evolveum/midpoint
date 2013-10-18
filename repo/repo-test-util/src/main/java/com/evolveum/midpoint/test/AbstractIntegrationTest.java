@@ -109,13 +109,15 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	
 	// Values used to check if something is unchanged or changed properly
 	
-	private long lastConnectorSchemaFetchCount = 0;
+	private long lastResourceSchemaFetchCount = 0;
 	private long lastConnectorSchemaParseCount = 0;
 	private long lastConnectorCapabilitiesFetchCount = 0;
 	private long lastConnectorInitializationCount = 0;
 	private long lastResourceSchemaParseCount = 0;
 	private CachingStatistics lastResourceCacheStats;
 	private long lastShadowFetchOperationCount = 0;
+	private long lastScriptCompileCount = 0;
+	private long lastScriptExecutionCount = 0;
 
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
@@ -501,15 +503,15 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertEquals("Unexpected number of attributes in repo shadow", 2, attributes.size());
 	}
 	
-	protected void rememberConnectorSchemaFetchCount() {
-		lastConnectorSchemaFetchCount = InternalMonitor.getConnectorSchemaFetchCount();
+	protected void rememberResourceSchemaFetchCount() {
+		lastResourceSchemaFetchCount = InternalMonitor.getResourceSchemaFetchCount();
 	}
 
-	protected void assertConnectorSchemaFetchIncrement(int expectedIncrement) {
-		long currentConnectorSchemaFetchCount = InternalMonitor.getConnectorSchemaFetchCount();
-		long actualIncrement = currentConnectorSchemaFetchCount - lastConnectorSchemaFetchCount;
-		assertEquals("Unexpected increment in connector schema fetch count", (long)expectedIncrement, actualIncrement);
-		lastConnectorSchemaFetchCount = currentConnectorSchemaFetchCount;
+	protected void assertResourceSchemaFetchIncrement(int expectedIncrement) {
+		long currentConnectorSchemaFetchCount = InternalMonitor.getResourceSchemaFetchCount();
+		long actualIncrement = currentConnectorSchemaFetchCount - lastResourceSchemaFetchCount;
+		assertEquals("Unexpected increment in resource schema fetch count", (long)expectedIncrement, actualIncrement);
+		lastResourceSchemaFetchCount = currentConnectorSchemaFetchCount;
 	}
 	
 	protected void rememberConnectorSchemaParseCount() {
@@ -535,11 +537,11 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 
 	protected void rememberConnectorInitializationCount() {
-		lastConnectorInitializationCount  = InternalMonitor.getConnectorInitializationCount();
+		lastConnectorInitializationCount  = InternalMonitor.getConnectorInstanceInitializationCount();
 	}
 
 	protected void assertConnectorInitializationCountIncrement(int expectedIncrement) {
-		long currentConnectorInitializationCount = InternalMonitor.getConnectorInitializationCount();
+		long currentConnectorInitializationCount = InternalMonitor.getConnectorInstanceInitializationCount();
 		long actualIncrement = currentConnectorInitializationCount - lastConnectorInitializationCount;
 		assertEquals("Unexpected increment in connector initialization count", (long)expectedIncrement, actualIncrement);
 		lastConnectorInitializationCount = currentConnectorInitializationCount;
@@ -554,6 +556,28 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		long actualIncrement = currentResourceSchemaParseCount - lastResourceSchemaParseCount;
 		assertEquals("Unexpected increment in resource schema parse count", (long)expectedIncrement, actualIncrement);
 		lastResourceSchemaParseCount = currentResourceSchemaParseCount;
+	}
+	
+	protected void rememberScriptCompileCount() {
+		lastScriptCompileCount = InternalMonitor.getScriptCompileCount();
+	}
+
+	protected void assertScriptCompileIncrement(int expectedIncrement) {
+		long currentCount = InternalMonitor.getScriptCompileCount();
+		long actualIncrement = currentCount - lastScriptCompileCount;
+		assertEquals("Unexpected increment in script compile count", (long)expectedIncrement, actualIncrement);
+		lastScriptCompileCount = currentCount;
+	}
+	
+	protected void rememberScriptExecutionCount() {
+		lastScriptExecutionCount = InternalMonitor.getScriptExecutionCount();
+	}
+
+	protected void assertScriptExecutionIncrement(int expectedIncrement) {
+		long currentCount = InternalMonitor.getScriptExecutionCount();
+		long actualIncrement = currentCount - lastScriptExecutionCount;
+		assertEquals("Unexpected increment in script execution count", (long)expectedIncrement, actualIncrement);
+		lastScriptExecutionCount = currentCount;
 	}
 	
 	protected void rememberResourceCacheStats() {
@@ -578,6 +602,14 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		long actualIncrement = currentStats.getMisses() - lastStats.getMisses();
 		assertEquals("Unexpected increment in "+desc+" miss count", (long)expectedIncrement, actualIncrement);
 		lastStats.setMisses(currentStats.getMisses());
+	}
+	
+	protected void assertSteadyResources() {
+		assertResourceSchemaFetchIncrement(0);
+		assertResourceSchemaParseCountIncrement(0);
+		assertConnectorCapabilitiesFetchIncrement(0);
+		assertConnectorInitializationCountIncrement(0);
+		assertConnectorSchemaParseIncrement(0);
 	}
 	
 	protected void rememberShadowFetchOperationCount() {
