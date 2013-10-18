@@ -73,6 +73,9 @@ public class ModelObjectResolver implements ObjectResolver {
 	
 	@Autowired(required = true)
 	private transient PrismContext prismContext;
+
+    @Autowired
+    private transient TaskManager taskManager;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ModelObjectResolver.class);
 	
@@ -135,7 +138,7 @@ public class ModelObjectResolver implements ObjectResolver {
             ObjectTypes.ObjectManager manager = ObjectTypes.getObjectManagerForClass(clazz);
             switch (manager) {
                 case PROVISIONING:
-                    object = provisioning.getObject(clazz, oid, SelectorOptions.findRootOptions(options), task, result);
+                    object = provisioning.getObject(clazz, oid, options, task, result);
                     if (object == null) {
                         throw new SystemException("Got null result from provisioning.getObject while looking for "+clazz.getSimpleName()
                                 +" with OID "+oid+"; using provisioning implementation "+provisioning.getClass().getName());
