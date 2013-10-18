@@ -19,7 +19,6 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.task.api.TaskManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -63,11 +62,8 @@ public class ModelObjectResolver implements ObjectResolver {
 
 	@Autowired(required = true)
 	private transient ProvisioningService provisioning;
-
-    @Autowired
-    private transient TaskManager taskManager;
-
-    @Autowired(required = true)
+	
+	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
 	private transient RepositoryService cacheRepositoryService;
 	
@@ -110,10 +106,10 @@ public class ModelObjectResolver implements ObjectResolver {
 		return ((ObjectType) getObjectSimple((Class)typeClass, oid, options, task, result)).asPrismObject();
 	}
 	
-	public <T extends ObjectType> T getObjectSimple(Class<T> clazz, String oid, GetOperationOptions options, Task task,
+	public <T extends ObjectType> T getObjectSimple(Class<T> clazz, String oid, GetOperationOptions options, Task task, 
 			OperationResult result) throws ObjectNotFoundException {
 		try {
-			return getObject(clazz, oid, SelectorOptions.createCollection(options), task, result);
+			return getObject(clazz, oid, options, task, result);
 		} catch (SystemException ex) {
 			throw ex;
 		} catch (ObjectNotFoundException ex) {
@@ -193,7 +189,7 @@ public class ModelObjectResolver implements ObjectResolver {
 	
 	public <O extends ObjectType> void searchIterative(Class<O> type, ObjectQuery query, ResultHandler<O> handler, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (ObjectTypes.isClassManagedByProvisioning(type)) {
-			provisioning.searchObjectsIterative(type, query, handler, parentResult);
+			provisioning.searchObjectsIterative(type, query, null, handler, parentResult);
 		} else {
 			cacheRepositoryService.searchObjectsIterative(type, query, handler, null, parentResult);
 		}

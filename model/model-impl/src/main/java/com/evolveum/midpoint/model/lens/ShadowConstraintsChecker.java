@@ -18,6 +18,8 @@ package com.evolveum.midpoint.model.lens;
 import java.util.Collection;
 import java.util.List;
 
+import javax.xml.namespace.QName;
+
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.common.QueryUtil;
@@ -36,13 +38,20 @@ import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
@@ -61,7 +70,7 @@ public class ShadowConstraintsChecker {
 	private LensProjectionContext<ShadowType> accountContext;
 	private LensContext<UserType, ShadowType> context;
 	private PrismContext prismContext;
-	private RepositoryService repositoryService;
+	private ProvisioningService provisioningService;
 	private boolean satisfiesConstraints;
 	private StringBuilder messageBuilder = new StringBuilder();
 	private PrismObject conflictingShadow;
@@ -86,12 +95,12 @@ public class ShadowConstraintsChecker {
 		this.prismContext = prismContext;
 	}
 
-	public RepositoryService getRepositoryService() {
-		return repositoryService;
+	public ProvisioningService getProvisioningService() {
+		return provisioningService;
 	}
-	
-	public void setRepositoryService(RepositoryService repositoryService) {
-		this.repositoryService = repositoryService;
+
+	public void setProvisioningService(ProvisioningService provisioningService) {
+		this.provisioningService = provisioningService;
 	}
 
 	public LensContext<UserType, ShadowType> getContext() {
@@ -113,7 +122,7 @@ public class ShadowConstraintsChecker {
 	public PrismObject getConflictingShadow() {
 		return conflictingShadow;
 	}
-	public void check(OperationResult result) throws SchemaException, ObjectAlreadyExistsException {
+	public void check(OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		
 		RefinedObjectClassDefinition accountDefinition = accountContext.getRefinedAccountDefinition();
 		PrismObject<ShadowType> accountNew = accountContext.getObjectNew();
@@ -161,7 +170,7 @@ public class ShadowConstraintsChecker {
 	}
 	
 	private boolean checkAttributeUniqueness(PrismProperty<?> identifier, RefinedObjectClassDefinition accountDefinition,
-			ResourceType resourceType, String oid, LensContext<UserType, ShadowType> context, OperationResult result) throws SchemaException {
+			ResourceType resourceType, String oid, LensContext<UserType, ShadowType> context, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 //		QueryType query = QueryUtil.createAttributeQuery(identifier, accountDefinition.getObjectClassDefinition().getTypeName(),
 //				resourceType, prismContext);
 		
@@ -169,17 +178,20 @@ public class ShadowConstraintsChecker {
 		if (identifierValues.isEmpty()) {
 			throw new SchemaException("Empty identifier "+identifier+" while checking uniqueness of "+oid+" ("+resourceType+")");
 		}
-		
-		OrFilter isNotDead = OrFilter.createOr(EqualsFilter.createEqual(ShadowType.class, prismContext, ShadowType.F_DEAD, false),
+
+		OrFilter isNotDead = OrFilter.createOr(
+				EqualsFilter.createEqual(ShadowType.class, prismContext, ShadowType.F_DEAD, false),
 				EqualsFilter.createEqual(ShadowType.class, prismContext, ShadowType.F_DEAD, null));
 		//TODO: set matching rule instead of null
 		ObjectQuery query = ObjectQuery.createObjectQuery(
 				AndFilter.createAnd(
 						RefFilter.createReferenceEqual(ShadowType.class, ShadowType.F_RESOURCE_REF, prismContext, resourceType.getOid()),
+						EqualsFilter.createEqual(ShadowType.class, prismContext, ShadowType.F_OBJECT_CLASS, accountDefinition.getTypeName()),
 						EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), identifier.getDefinition(), null, identifierValues),
 						isNotDead));
 		
-		List<PrismObject<ShadowType>> foundObjects = repositoryService.searchObjects(ShadowType.class, query, null, result);
+		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
+		List<PrismObject<ShadowType>> foundObjects = provisioningService.searchObjects(ShadowType.class, query, options, result);
 		LOGGER.trace("Uniqueness check of {} resulted in {} results, using query:\n{}",
 				new Object[]{identifier, foundObjects.size(), query.dump()});
 		if (foundObjects.isEmpty()) {

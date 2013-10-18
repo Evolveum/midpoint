@@ -7691,10 +7691,21 @@
         <xsd:sequence>
             <xsd:element name="enabled" type="xsd:boolean" minOccurs="1" maxOccurs="1"/>
             <xsd:element name="requestFilter" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="performanceStatistics" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="dumpInterval" type="xsd:int" minOccurs="0" maxOccurs="1"/>
+			<!-- Subsystems start -->
+			<xsd:element name="model" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false"/>
+			<xsd:element name="repository" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false"/>
+			<xsd:element name="provisioning" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false"/>
+			<xsd:element name="ucf" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false"/>
+			<xsd:element name="resourceObjectChangeListener" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false"/>
+			<xsd:element name="taskManager" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false"/>
+            <xsd:element name="workflow" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false"/>
+			<!-- Subsystems end -->
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="profilingConfiguration" type="tns:ProfilingConfigurationType"/>
-
+	
     <!-- notifications -->
 
     <xsd:complexType name="NotificationConfigurationType">

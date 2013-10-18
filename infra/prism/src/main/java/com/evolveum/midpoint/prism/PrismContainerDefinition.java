@@ -138,20 +138,13 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
         if (name == null) {
             throw new IllegalArgumentException("name not specified while searching in " + this);
         }
-
-        for (ItemDefinition def : getDefinitions()) {
-            if (isItemValid(def, name, clazz)) {
-                return (D) def;
-            }
+        
+        if (complexTypeDefinition == null) {
+        	// xsd:any and similar dynamic definitions
+        	return null;
         }
-        return null;
-    }
 
-    private <T extends ItemDefinition> boolean isItemValid(ItemDefinition def, QName name, Class<T> clazz) {
-    	if (def == null) {
-    		return false;
-    	}
-    	return def.isValidFor(name, clazz);
+        return complexTypeDefinition.findItemDefinition(name, clazz);
     }
 
     public <T extends ItemDefinition> T findItemDefinition(ItemPath path, Class<T> clazz) {

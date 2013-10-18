@@ -666,7 +666,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			try {
                 switch (searchProvider) {
                     case REPOSITORY: list = cacheRepositoryService.searchObjects(type, query, options, result); break;
-                    case PROVISIONING: list = provisioning.searchObjects(type, query, result); break;
+                    case PROVISIONING: list = provisioning.searchObjects(type, query, null, result); break;
                     case TASK_MANAGER: list = taskManager.searchObjects(type, query, options, result); break;
                     case WORKFLOW: throw new UnsupportedOperationException();
                     default: throw new AssertionError("Unexpected search provider: " + searchProvider);
@@ -754,7 +754,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			try {
                 switch (searchProvider) {
                     case REPOSITORY: cacheRepositoryService.searchObjectsIterative(type, query, internalHandler, options, result); break;
-                    case PROVISIONING: provisioning.searchObjectsIterative(type, query, internalHandler, result); break;
+                    case PROVISIONING: provisioning.searchObjectsIterative(type, query, null, internalHandler, result); break;
                     case TASK_MANAGER: throw new UnsupportedOperationException("searchIterative in task manager is currently not supported");
                     case WORKFLOW: throw new UnsupportedOperationException("searchIterative in task manager is currently not supported");
                     default: throw new AssertionError("Unexpected search provider: " + searchProvider);
@@ -1043,6 +1043,54 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			if (!task.isAsynchronous()) {
 				result.recordSuccess();
 			}
+			
+			result.cleanupResult();
+		
+		} catch (ObjectNotFoundException ex) {
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+		} catch (CommunicationException ex) {
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+		} catch (ConfigurationException ex) {
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+		} catch (SecurityViolationException ex) {
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+		} catch (RuntimeException ex) {
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+		} finally {
+			RepositoryCache.exit();
+		}
+		
+	}
+	
+	@Override
+	public void importFromResource(String shadowOid, Task task, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException,
+			ConfigurationException, SecurityViolationException {
+		Validate.notNull(shadowOid, "Shadow OID must not be null.");
+		Validate.notNull(task, "Task must not be null.");
+		RepositoryCache.enter();
+		LOGGER.trace("Launching importing shadow {} from resource.", shadowOid);
+
+		OperationResult result = parentResult.createSubresult(IMPORT_ACCOUNTS_FROM_RESOURCE);
+        result.addParam(OperationResult.PARAM_OID, shadowOid);
+        result.addArbitraryObjectAsParam("task", task);
+		// TODO: add context to the result
+
+        try {
+        	boolean wasOk = importAccountsFromResourceTaskHandler.importSingleShadow(shadowOid, task, result);
+			
+        	if (wasOk) {
+        		result.recordSuccess();
+        	} else {
+        		// the error should be in the result already, compute should reveal that to the top-level
+        		result.computeStatus();
+        	}
+			
 			
 			result.cleanupResult();
 		

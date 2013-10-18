@@ -30,6 +30,8 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
@@ -37,6 +39,7 @@ import javax.xml.transform.Source;
 import javax.xml.validation.SchemaFactory;
 
 import com.evolveum.midpoint.prism.*;
+
 import org.apache.xml.resolver.Catalog;
 import org.apache.xml.resolver.CatalogManager;
 import org.apache.xml.resolver.tools.CatalogResolver;
@@ -58,6 +61,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -312,6 +316,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 				parsePrismSchema(schemaDescription);
 			}
 		}
+		applySchemaExtensions();
 	}
 	
 	private void parsePrismSchema(SchemaDescription schemaDescription) throws SchemaException {
@@ -333,10 +338,28 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 			QName extType = def.getExtensionForType();
 			if (extType != null) {
 				if (extensionSchemas.containsKey(extType)) {
-					throw new SchemaException("Duplicate definition of extension for type "+extType+": "+def+" and "+extensionSchemas.get(extType));
+					ComplexTypeDefinition existingExtension = extensionSchemas.get(extType);
+					existingExtension.merge(def);
+//					throw new SchemaException("Duplicate definition of extension for type "+extType+": "+def+" and "+extensionSchemas.get(extType));
+				} else {
+					extensionSchemas.put(extType, def.clone());
 				}
-				extensionSchemas.put(extType, def);
 			}
+		}
+	}
+	
+	private void applySchemaExtensions() throws SchemaException {
+		for (Entry<QName,ComplexTypeDefinition> entry: extensionSchemas.entrySet()) {
+			QName typeQName = entry.getKey();
+			ComplexTypeDefinition extensionCtd = entry.getValue();
+			ComplexTypeDefinition primaryCtd = findComplexTypeDefinition(typeQName);
+			PrismContainerDefinition extensionContainer = primaryCtd.findContainerDefinition(
+					new QName(primaryCtd.getTypeName().getNamespaceURI(), PrismConstants.EXTENSION_LOCAL_NAME));
+			if (extensionContainer == null) {
+				throw new SchemaException("Attempt to extend type "+typeQName+" with "+extensionCtd.getTypeClass()+" but the original type does not have extension container");
+			}
+			extensionContainer.setComplexTypeDefinition(extensionCtd.clone());
+			extensionContainer.setTypeName(extensionCtd.getTypeName());
 		}
 	}
 	
@@ -385,6 +408,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 	 * The returned schema is considered to be immutable. Any attempt to change it
 	 * may lead to unexpected results. 
 	 */
+	@Deprecated
 	public PrismSchema getObjectSchema() {
 		if (!initialized) {
 			throw new IllegalStateException("Attempt to get common schema from uninitialized Schema Registry");
@@ -399,23 +423,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		if (objectSchemaNamespace == null) {
 			throw new IllegalArgumentException("Object schema namespace is not set");
 		}
-		PrismSchema commonSchema = parsedSchemas.get(objectSchemaNamespace).getSchema();
-		// FIXME
-		objectSchema = new PrismSchema(objectSchemaNamespace, prismContext);
-		for (Definition def: commonSchema.getDefinitions()) {
-			if (def instanceof PrismObjectDefinition<?>) {
-				QName typeName = def.getTypeName();
-				if (extensionSchemas.containsKey(typeName)) {
-					LOGGER.trace("Applying extension type for {}: {}", typeName, extensionSchemas.get(typeName));
-					PrismObjectDefinition<?> objDef = (PrismObjectDefinition<?>)def;
-					PrismObjectDefinition<?> enhDef = objDef.clone();
-					enhDef.setExtensionDefinition(extensionSchemas.get(typeName));
-					def = enhDef;
-					LOGGER.trace("Resuting object type def:\n{}", enhDef.dump());
-				}
-			}
-			objectSchema.getDefinitions().add(def);
-		}
+		objectSchema = parsedSchemas.get(objectSchemaNamespace).getSchema();
 	}
 	
 	public Collection<Package> getCompileTimePackages() {
@@ -798,10 +806,6 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 
 
 	public PrismSchema findSchemaByNamespace(String namespaceURI) {
-		// Prefer object schema
-		if (namespaceURI.equals(objectSchemaNamespace)) {
-			return getObjectSchema();
-		}
 		SchemaDescription desc = findSchemaDescriptionByNamespace(namespaceURI);
 		if (desc == null) {
 			return null;

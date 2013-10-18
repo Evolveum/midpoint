@@ -704,12 +704,13 @@ public class PageUser extends PageAdminUsers {
 			} catch (Exception ex) {
 				subResult.recordFatalError("Couldn't load account." + ex.getMessage(), ex);
 				LoggingUtils.logException(LOGGER, "Couldn't load account", ex);
-			}
-		}
-		result.recomputeStatus();
-		result.recordSuccessIfUnknown();
+			} finally {
+                subResult.computeStatus();
+            }
+        }
+		result.computeStatus();
 
-		if (!result.isSuccess()) {
+		if (WebMiscUtil.showResultInPage(result)) {
 			showResult(result);
 		}
 
@@ -1744,6 +1745,9 @@ public class PageUser extends PageAdminUsers {
 				if (refinedSchema == null) {
 					error(getString("pageUser.message.couldntCreateAccountNoSchema", resource.getName()));
 					continue;
+				}
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Refined schema for {}\n{}", resource, refinedSchema.dump());
 				}
 
 				QName objectClass = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT).getObjectClassDefinition()

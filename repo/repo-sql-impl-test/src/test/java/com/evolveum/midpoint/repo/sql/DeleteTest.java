@@ -21,13 +21,17 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
+import org.hibernate.SQLQuery;
+import org.hibernate.Session;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import java.io.File;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -77,5 +81,33 @@ public class DeleteTest extends BaseSQLRepoTest {
         result.recomputeStatus();
 
         AssertJUnit.assertTrue(result.isSuccess());
+    }
+
+    @Test
+    public void delete0003() throws Exception {
+        PrismObject<ShadowType> shadow = prismContext.parseObject(new File(FOLDER_BASE, "delete/shadow.xml"));
+
+        OperationResult result = new OperationResult("add shadow");
+        final String oid = repositoryService.addObject(shadow, null, result);
+
+        PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, oid, null, result);
+        shadow = prismContext.parseObject(new File(FOLDER_BASE, "delete/shadow.xml"));
+        AssertJUnit.assertEquals(shadow, repoShadow);
+
+        repositoryService.deleteObject(ShadowType.class, oid, result);
+        result.recomputeStatus();
+
+        AssertJUnit.assertTrue(result.isSuccess());
+
+        Session session = getFactory().openSession();
+        try {
+            SQLQuery query = session.createSQLQuery("select count(*) from m_trigger where oid = ?");
+            query.setString(0, oid);
+
+            Number count = (Number) query.uniqueResult();
+            AssertJUnit.assertEquals(count.longValue(), 0L);
+        } finally {
+            session.close();
+        }
     }
 }

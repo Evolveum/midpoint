@@ -1135,7 +1135,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		
         accountSecondaryDelta = accContext.getSecondaryDelta();
         assertNotNull("No account secondary delta (red)", accountSecondaryDelta);
-		PrismAsserts.assertModifications(accountSecondaryDelta, 7);
+		PrismAsserts.assertModifications(accountSecondaryDelta, 8);
 		PrismAsserts.assertPropertyReplace(accountSecondaryDelta, 
 				getAttributePath(resourceDummyRed, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME),
 				"Kate Capsize");

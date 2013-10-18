@@ -27,6 +27,7 @@ import javax.xml.namespace.QName;
 
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.common.expression.ItemDeltaItem;
@@ -69,12 +70,15 @@ public class PathExpressionEvaluator<V extends PrismValue> implements Expression
 	private ObjectResolver objectResolver;
 	private PrismContext prismContext;
 	private ItemDefinition outputDefinition;
+	private Protector protector;
 	
-    public PathExpressionEvaluator(ItemPath path, ObjectResolver objectResolver, ItemDefinition outputDefinition, PrismContext prismContext) {
+    public PathExpressionEvaluator(ItemPath path, ObjectResolver objectResolver, 
+    		ItemDefinition outputDefinition, Protector protector, PrismContext prismContext) {
     	this.path = path;
 		this.objectResolver = objectResolver;
 		this.outputDefinition = outputDefinition;
 		this.prismContext = prismContext;
+		this.protector = protector;
 	}
 
     /* (non-Javadoc)
@@ -149,7 +153,7 @@ public class PathExpressionEvaluator<V extends PrismValue> implements Expression
         	return null;
         }
         
-        return ExpressionUtil.toOutputTriple(outputTriple, outputDefinition, null, prismContext);
+        return ExpressionUtil.toOutputTriple(outputTriple, outputDefinition, null, protector, prismContext);
     }
 
 	/* (non-Javadoc)

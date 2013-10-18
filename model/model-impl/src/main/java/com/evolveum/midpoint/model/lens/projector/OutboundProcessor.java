@@ -149,6 +149,7 @@ public class OutboundProcessor {
 					LensUtil.getIterationVariableValue(accCtx));
 			mapping.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, 
 					LensUtil.getIterationTokenVariableValue(accCtx));
+			mapping.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, accCtx.getResource());
 			mapping.addVariableDefinition(ExpressionConstants.VAR_OPERATION, operation);
 			mapping.setRootNode(userOdo);
 			mapping.setOriginType(OriginType.OUTBOUND);

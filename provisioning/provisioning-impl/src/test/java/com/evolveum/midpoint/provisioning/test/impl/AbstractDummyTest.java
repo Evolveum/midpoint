@@ -40,17 +40,21 @@ import com.evolveum.icf.dummy.resource.DummyAttributeDefinition;
 import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.icf.dummy.resource.DummyObject;
 import com.evolveum.icf.dummy.resource.DummyObjectClass;
+import com.evolveum.icf.dummy.resource.DummyPrivilege;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.monitor.CachingStatistics;
 import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
@@ -59,6 +63,7 @@ import com.evolveum.midpoint.provisioning.test.mock.SynchornizationServiceMock;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -105,7 +110,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 
 	protected static final String ACCOUNT_DAEMON_USERNAME = "daemon";
 	protected static final String ACCOUNT_DAEMON_OID = "c0c010c0-dddd-dddd-dddd-dddddddae604";
-	protected static final String ACCOUNT_DAEMON_FILENAME = TEST_DIR + "account-daemon.xml";
+	protected static final File ACCOUNT_DAEMON_FILE = new File(TEST_DIR, "account-daemon.xml");
 
 	protected static final String ACCOUNT_DAVIEJONES_USERNAME = "daviejones";
 
@@ -157,17 +162,14 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	protected TaskManager taskManager;
 	
 	// Values used to check if something is unchanged or changed properly
-	private CachingMetadataType lastCachingMetadata;
-	private long lastConnectorSchemaFetchCount = 0;
-	private long lastConnectorInitializationCount = 0;
-	private long lastResourceSchemaParseCount = 0;
-	private CachingStatistics lastResourceCacheStats;
-	private ResourceSchema lastResourceSchema = null;
-	private RefinedResourceSchema lastRefinedResourceSchema;
 	private Long lastResourceVersion = null;
 	private ConnectorInstance lastConfiguredConnectorInstance;
+	private CachingMetadataType lastCachingMetadata;
+	private ResourceSchema lastResourceSchema = null;
+	private RefinedResourceSchema lastRefinedResourceSchema;
 
-	
+	protected String daemonIcfUid;
+
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		// We need to switch off the encryption checks. Some values cannot be encrypted as we do
@@ -186,10 +188,29 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		dummyAccountDaemon.setEnabled(true);
 		dummyAccountDaemon.addAttributeValues("fullname", "Evil Daemon");
 		dummyResource.addAccount(dummyAccountDaemon);
+		daemonIcfUid = dummyAccountDaemon.getId();
 
-		repoAddObjectFromFile(ACCOUNT_DAEMON_FILENAME, ShadowType.class, initResult);
+		PrismObject<ShadowType> shadowDaemon = PrismTestUtil.parseObject(ACCOUNT_DAEMON_FILE);
+		if (!isIcfNameUidSame()) {
+			setIcfUid(shadowDaemon, dummyAccountDaemon.getId());
+		}
+		repositoryService.addObject(shadowDaemon, null, initResult);
 	}
 	
+	protected void setIcfUid(PrismObject<ShadowType> shadow, String icfUid) {
+		PrismProperty<String> icfUidAttr = shadow.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_UID));
+		icfUidAttr.setRealValue(icfUid);
+	}
+	
+	protected String getIcfUid(ShadowType shadowType) {
+		return getIcfUid(shadowType.asPrismObject());
+	}
+	
+	protected String getIcfUid(PrismObject<ShadowType> shadow) {
+		PrismProperty<String> icfUidAttr = shadow.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_UID));
+		return icfUidAttr.getRealValue();
+	}
+
 	protected String getResourceDummyFilename() {
 		return RESOURCE_DUMMY_FILENAME;
 	}
@@ -213,23 +234,23 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		OperationResult result = new OperationResult(TestDummyNegative.class.getName()
 				+ ".checkConsistency");
 		
-		ItemDefinition itemDef = ShadowUtil.getAttributesContainer(object).getDefinition().findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_UID);
+		ItemDefinition itemDef = ShadowUtil.getAttributesContainer(object).getDefinition().findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_NAME);
 		
 		LOGGER.info("item definition: {}", itemDef.dump());
 		//TODO: matching rule
-		EqualsFilter equal = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), itemDef, null, getWillRepoIcfUid());
+		EqualsFilter equal = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), itemDef, null, getWillRepoIcfName());
 		ObjectQuery query = ObjectQuery.createObjectQuery(equal);
 		
-		System.out.println("Looking for shadows of \"" + getWillRepoIcfUid() + "\" with filter "
+		System.out.println("Looking for shadows of \"" + getWillRepoIcfName() + "\" with filter "
 				+ query.dump());
-		display("Looking for shadows of \"" + getWillRepoIcfUid() + "\" with filter "
+		display("Looking for shadows of \"" + getWillRepoIcfName() + "\" with filter "
 				+ query.dump());
 		
 		List<PrismObject<ShadowType>> objects = repositoryService.searchObjects(ShadowType.class, query,
 				null, result);
 
 		
-		assertEquals("Wrong number of shadows for ICF UID \"" + getWillRepoIcfUid() + "\"", 1, objects.size());
+		assertEquals("Wrong number of repo shadows for ICF NAME \"" + getWillRepoIcfName() + "\"", 1, objects.size());
 
 	}
 	
@@ -253,9 +274,66 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		dummyResourceCtl.assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType);
 	}
 	
-	protected <T> void assertDummyAccountAttributeValues(String accountId, String attributeName, T... expectedValues) throws ConnectException, FileNotFoundException {
-		DummyAccount dummyAccount = dummyResource.getAccountByUsername(accountId);
-		assertNotNull("No account '"+accountId+"'", dummyAccount);
+	protected DummyAccount getDummyAccount(String icfName, String icfUid) throws ConnectException, FileNotFoundException {
+		if (isNameUnique()) {
+			return dummyResource.getAccountByUsername(icfName);
+		} else {
+			 return dummyResource.getAccountById(icfUid);
+		}
+	}
+	
+	protected DummyAccount getDummyAccountAssert(String icfName, String icfUid) throws ConnectException, FileNotFoundException {
+		if (isNameUnique()) {
+			return dummyResource.getAccountByUsername(icfName);
+		} else {
+			 DummyAccount account = dummyResource.getAccountById(icfUid);
+			 assertNotNull("No dummy account with ICF UID "+icfUid+" (expected name "+icfName+")", account);
+			 assertEquals("Unexpected name in "+account, icfName, account.getName());
+			 return account;
+		}
+	}
+	
+	protected DummyGroup getDummyGroup(String icfName, String icfUid) throws ConnectException, FileNotFoundException {
+		if (isNameUnique()) {
+			return dummyResource.getGroupByName(icfName);
+		} else {
+			 return dummyResource.getGroupById(icfUid);
+		}
+	}
+	
+	protected DummyGroup getDummyGroupAssert(String icfName, String icfUid) throws ConnectException, FileNotFoundException {
+		if (isNameUnique()) {
+			return dummyResource.getGroupByName(icfName);
+		} else {
+			 DummyGroup group = dummyResource.getGroupById(icfUid);
+			 assertNotNull("No dummy group with ICF UID "+icfUid+" (expected name "+icfName+")", group);
+			 assertEquals("Unexpected name in "+group, icfName, group.getName());
+			 return group;
+		}
+	}
+	
+	protected DummyPrivilege getDummyPrivilege(String icfName, String icfUid) throws ConnectException, FileNotFoundException {
+		if (isNameUnique()) {
+			return dummyResource.getPrivilegeByName(icfName);
+		} else {
+			 return dummyResource.getPrivilegeById(icfUid);
+		}
+	}
+
+	protected DummyPrivilege getDummyPrivilegeAssert(String icfName, String icfUid) throws ConnectException, FileNotFoundException {
+		if (isNameUnique()) {
+			return dummyResource.getPrivilegeByName(icfName);
+		} else {
+			 DummyPrivilege priv = dummyResource.getPrivilegeById(icfUid);
+			 assertNotNull("No dummy privilege with ICF UID "+icfUid+" (expected name "+icfName+")", priv);
+			 assertEquals("Unexpected name in "+priv, icfName, priv.getName());
+			 return priv;
+		}
+	}
+
+	protected <T> void assertDummyAccountAttributeValues(String accountName, String accountUid, String attributeName, T... expectedValues) throws ConnectException, FileNotFoundException {
+		DummyAccount dummyAccount = getDummyAccountAssert(accountName, accountUid);
+		assertNotNull("No account '"+accountName+"'", dummyAccount);
 		assertDummyAttributeValues(dummyAccount, attributeName, expectedValues);
 	}
 	
@@ -265,8 +343,16 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		TestUtil.assertSetEquals("Wroung values of attribute "+attributeName+" in "+object.getShortTypeName()+" "+object, attributeValues, expectedValues);
 	}
 	
-	protected String getWillRepoIcfUid() {
+	protected String getWillRepoIcfName() {
 		return ACCOUNT_WILL_USERNAME;
+	}
+	
+	protected boolean isIcfNameUidSame() {
+		return true;
+	}
+	
+	protected boolean isNameUnique() {
+		return true;
 	}
 	
 	protected void assertMember(DummyGroup group, String accountId) {
@@ -344,63 +430,6 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		assertEquals("Schema caching metadata changed", lastCachingMetadata, current);
 	}
 	
-	protected void rememberConnectorSchemaFetchCount() {
-		lastConnectorSchemaFetchCount = InternalMonitor.getConnectorSchemaFetchCount();
-	}
-
-	protected void assertConnectorSchemaFetchIncrement(int expectedIncrement) {
-		long currentConnectorSchemaFetchCount = InternalMonitor.getConnectorSchemaFetchCount();
-		long actualIncrement = currentConnectorSchemaFetchCount - lastConnectorSchemaFetchCount;
-		assertEquals("Unexpected increment in connector schema fetch count", (long)expectedIncrement, actualIncrement);
-		lastConnectorSchemaFetchCount = currentConnectorSchemaFetchCount;
-	}
-
-	protected void rememberConnectorInitializationCount() {
-		lastConnectorInitializationCount  = InternalMonitor.getConnectorInitializationCount();
-	}
-
-	protected void assertConnectorInitializationCountIncrement(int expectedIncrement) {
-		long currentConnectorInitializationCount = InternalMonitor.getConnectorInitializationCount();
-		long actualIncrement = currentConnectorInitializationCount - lastConnectorInitializationCount;
-		assertEquals("Unexpected increment in connector initialization count", (long)expectedIncrement, actualIncrement);
-		lastConnectorInitializationCount = currentConnectorInitializationCount;
-	}
-	
-	protected void rememberResourceSchemaParseCount() {
-		lastResourceSchemaParseCount  = InternalMonitor.getResourceSchemaParseCount();
-	}
-
-	protected void assertResourceSchemaParseCountIncrement(int expectedIncrement) {
-		long currentResourceSchemaParseCount = InternalMonitor.getResourceSchemaParseCount();
-		long actualIncrement = currentResourceSchemaParseCount - lastResourceSchemaParseCount;
-		assertEquals("Unexpected increment in resource schema parse count", (long)expectedIncrement, actualIncrement);
-		lastResourceSchemaParseCount = currentResourceSchemaParseCount;
-	}
-	
-	protected void rememberResourceCacheStats() {
-		lastResourceCacheStats  = InternalMonitor.getResourceCacheStats().clone();
-	}
-	
-	protected void assertResourceCacheHitsIncrement(int expectedIncrement) {
-		assertCacheHits(lastResourceCacheStats, InternalMonitor.getResourceCacheStats(), "resouce cache", expectedIncrement);
-	}
-	
-	protected void assertResourceCacheMissesIncrement(int expectedIncrement) {
-		assertCacheMisses(lastResourceCacheStats, InternalMonitor.getResourceCacheStats(), "resouce cache", expectedIncrement);
-	}
-	
-	protected void assertCacheHits(CachingStatistics lastStats, CachingStatistics currentStats, String desc, int expectedIncrement) {
-		long actualIncrement = currentStats.getHits() - lastStats.getHits();
-		assertEquals("Unexpected increment in "+desc+" hit count", (long)expectedIncrement, actualIncrement);
-		lastStats.setHits(currentStats.getHits());
-	}
-
-	protected void assertCacheMisses(CachingStatistics lastStats, CachingStatistics currentStats, String desc, int expectedIncrement) {
-		long actualIncrement = currentStats.getMisses() - lastStats.getMisses();
-		assertEquals("Unexpected increment in "+desc+" miss count", (long)expectedIncrement, actualIncrement);
-		lastStats.setMisses(currentStats.getMisses());
-	}
-	
 	protected void rememberResourceSchema(ResourceSchema resourceSchema) {
 		lastResourceSchema = resourceSchema;
 	}
@@ -472,6 +501,8 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	
 	protected void assertSteadyResource() throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		assertConnectorSchemaFetchIncrement(0);
+		assertConnectorCapabilitiesFetchIncrement(0);
+		assertConnectorSchemaParseIncrement(0);
 		assertConnectorInitializationCountIncrement(0);
 		assertResourceSchemaParseCountIncrement(0);
 		assertResourceVersionIncrement(resource, 0);

@@ -121,7 +121,8 @@ public class RTask extends RObject<TaskType> {
     public REmbeddedReference getOwnerRef() {
         return ownerRef;
     }
-
+    @Index(name = "iParent")
+    @Column(name = "parent")
     public String getParent() {
         return parent;
     }

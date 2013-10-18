@@ -29,12 +29,17 @@ import org.identityconnectors.framework.spi.ConfigurationProperty;
  */
 public class DummyConfiguration extends AbstractConfiguration {
 
+	public static String UID_MODE_NAME = "name";
+	public static String UID_MODE_UUID = "uuid";
+	
     private static final Log log = Log.getLog(DummyConfiguration.class);
 
     private String instanceId;
     private boolean supportSchema = true;
     private boolean supportActivation = true;
     private boolean supportValidity = false;
+    private String uidMode =  UID_MODE_NAME;
+    private boolean enforceUniqueName = true;
     private boolean readablePassword = false;
     private boolean requireExplicitEnable = false;
     private boolean caseIgnoreId = false;
@@ -95,6 +100,26 @@ public class DummyConfiguration extends AbstractConfiguration {
 		this.supportValidity = supportValidity;
 	}
 	
+	@ConfigurationProperty(displayMessageKey = "UI_UID_MODE",
+    		helpMessageKey = "UI_UID_MODE_HELP")
+	public String getUidMode() {
+		return uidMode;
+	}
+
+	public void setUidMode(String uidMode) {
+		this.uidMode = uidMode;
+	}
+
+	@ConfigurationProperty(displayMessageKey = "UI_ENFORCE_UNIQUE_NAME",
+    		helpMessageKey = "UI_ENFORCE_UNIQUE_NAME")
+	public boolean isEnforceUniqueName() {
+		return enforceUniqueName;
+	}
+
+	public void setEnforceUniqueName(boolean enforceUniqueName) {
+		this.enforceUniqueName = enforceUniqueName;
+	}
+
 	/**
      * If set to true then the password can be read from the resource.
      */
@@ -169,7 +194,9 @@ public class DummyConfiguration extends AbstractConfiguration {
     public void validate() {
         log.info("begin");
 
-        //TODO: validate configuration
+        if (uidMode.equals(UID_MODE_NAME) && !enforceUniqueName) {
+        	throw new IllegalArgumentException("Cannot use name UID mode without enforceUniqueName");
+        }
 
         log.info("end");
     }

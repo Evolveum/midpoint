@@ -33,6 +33,7 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -115,13 +116,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
  *  <li>TODO: note about distributed storage systems and weak/eventual consistency</li>
  *  <li>TODO: task coordination</li>
  * </ul>
- * </p> 
+ * </p>
  */
 public interface RepositoryService {
 
     String CLASS_NAME_WITH_DOT = RepositoryService.class.getName() + ".";
     String GET_OBJECT = CLASS_NAME_WITH_DOT + "getObject";
     String LIST_OBJECTS = CLASS_NAME_WITH_DOT + "listObjects";
+    @Deprecated
     String LIST_ACCOUNT_SHADOW = CLASS_NAME_WITH_DOT + "listAccountShadowOwner";
     String ADD_OBJECT = CLASS_NAME_WITH_DOT + "addObject";
     String DELETE_OBJECT = CLASS_NAME_WITH_DOT + "deleteObject";
@@ -136,18 +138,19 @@ public interface RepositoryService {
     String GET_VERSION = CLASS_NAME_WITH_DOT + "getVersion";
     String SEARCH_OBJECTS_ITERATIVE = CLASS_NAME_WITH_DOT + "searchObjectsIterative";
     String CLEANUP_TASKS = CLASS_NAME_WITH_DOT + "cleanupTasks";
+    String SEARCH_SHADOW_OWNER = CLASS_NAME_WITH_DOT + "searchShadowOwner";
 
 	/**
 	 * Returns object for provided OID.
-	 * 
+	 *
 	 * Must fail if object with the OID does not exists.
-	 * 
+	 *
 	 * @param oid
 	 *            OID of the object to get
 	 * @param parentResult
 	 *            parent OperationResult (in/out)
 	 * @return Object fetched from repository
-	 * 
+	 *
 	 * @throws ObjectNotFoundException
 	 *             requested object does not exist
 	 * @throws SchemaException
@@ -158,21 +161,21 @@ public interface RepositoryService {
 	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type,String oid, Collection<SelectorOptions<GetOperationOptions>> options,
 			OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException;
-	
+
 	/**
 	 * Returns object version for provided OID.
-	 * 
+	 *
 	 * Must fail if object with the OID does not exists.
-	 * 
+	 *
 	 * This is a supposed to be a very lightweight and cheap operation. It is used to support
 	 * efficient caching of expensive objects.
-	 * 
+	 *
 	 * @param oid
 	 *            OID of the object to get
 	 * @param parentResult
 	 *            parent OperationResult (in/out)
 	 * @return Object version
-	 * 
+	 *
 	 * @throws ObjectNotFoundException
 	 *             requested object does not exist
 	 * @throws SchemaException
@@ -206,13 +209,13 @@ public interface RepositoryService {
 	 * </p><p>
 	 * Note: no need for explicit type parameter here. The object parameter contains the information.
 	 * </p>
-	 * 
+	 *
 	 * @param object
 	 *            object to create
 	 * @param parentResult
 	 *            parent OperationResult (in/out)
 	 * @return OID assigned to the created object
-	 * 
+	 *
 	 * @throws ObjectAlreadyExistsException
 	 *             object with specified identifiers already exists, cannot add
 	 * @throws SchemaException
@@ -223,7 +226,7 @@ public interface RepositoryService {
 	public <T extends ObjectType> String addObject(PrismObject<T> object, RepoAddOptions options, OperationResult parentResult)
 			throws ObjectAlreadyExistsException, SchemaException;
 
-	
+
 	/**
 	 * <p>Search for objects in the repository.</p>
 	 * <p>If no search criteria specified, list of all objects of specified type is returned.</p>
@@ -238,7 +241,7 @@ public interface RepositoryService {
 	 * Should fail if object type is wrong. Should fail if unknown property is
 	 * specified in the query.
 	 * </p>
-	 * 
+	 *
 	 * @param query
 	 *            search query
 	 * @param paging
@@ -247,17 +250,17 @@ public interface RepositoryService {
 	 *            parent OperationResult (in/out)
 	 * @return all objects of specified type that match search criteria (subject
 	 *         to paging)
-	 * 
+	 *
 	 * @throws IllegalArgumentException
 	 *             wrong object type
 	 * @throws SchemaException
 	 *             unknown property used in search query
 	 */
-	
-	public <T extends ObjectType> List<PrismObject<T>>  searchObjects(Class<T> type, ObjectQuery query, 
+
+	public <T extends ObjectType> List<PrismObject<T>>  searchObjects(Class<T> type, ObjectQuery query,
 			Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
 			throws SchemaException;
-	
+
 	/**
 	 * <p>Search for objects in the repository in an iterative fashion.</p>
 	 * <p>Searches through all object types. Calls a specified handler for each object found.
@@ -273,7 +276,7 @@ public interface RepositoryService {
 	 * Should fail if object type is wrong. Should fail if unknown property is
 	 * specified in the query.
 	 * </p>
-	 * 
+	 *
 	 * @param query
 	 *            search query
 	 * @param handler
@@ -282,14 +285,14 @@ public interface RepositoryService {
 	 *            parent OperationResult (in/out)
 	 * @return all objects of specified type that match search criteria (subject
 	 *         to paging)
-	 * 
+	 *
 	 * @throws IllegalArgumentException
 	 *             wrong object type
 	 * @throws SchemaException
 	 *             unknown property used in search query
 	 */
-	
-	public <T extends ObjectType> void searchObjectsIterative(Class<T> type, ObjectQuery query, 
+
+	public <T extends ObjectType> void searchObjectsIterative(Class<T> type, ObjectQuery query,
 			ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult)
 			throws SchemaException;
 
@@ -300,7 +303,7 @@ public interface RepositoryService {
 	 * Should fail if object type is wrong. Should fail if unknown property is
 	 * specified in the query.
 	 * </p>
-	 * 
+	 *
 	 * @param query
 	 *            search query
 	 * @param paging
@@ -309,7 +312,7 @@ public interface RepositoryService {
 	 *            parent OperationResult (in/out)
 	 * @return count of objects of specified type that match search criteria (subject
 	 *         to paging)
-	 * 
+	 *
 	 * @throws IllegalArgumentException
 	 *             wrong object type
 	 * @throws SchemaException
@@ -317,7 +320,7 @@ public interface RepositoryService {
 	 */
 	public <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, OperationResult parentResult)
 			throws SchemaException;
-		
+
 	/**
 	 * <p>Modifies object using relative change description.</p>
 	 * Must fail if user with
@@ -333,12 +336,12 @@ public interface RepositoryService {
 	 * underlying schema of the storage system or the schema enforced by the
 	 * implementation.
 	 * </p>
-	 * 
+	 *
 	 * TODO: optimistic locking
-	 * 
+	 *
 	 * @param parentResult
 	 *            parent OperationResult (in/out)
-	 * 
+	 *
 	 * @throws ObjectNotFoundException
 	 *             specified object does not exist
 	 * @throws SchemaException
@@ -356,12 +359,12 @@ public interface RepositoryService {
 	 * <p>
 	 * Must fail if object with specified OID does not exists. Should be atomic.
 	 * </p>
-	 * 
+	 *
 	 * @param oid
 	 *            OID of object to delete
 	 * @param parentResult
 	 *            parent OperationResult (in/out)
-	 * 
+	 *
 	 * @throws ObjectNotFoundException
 	 *             specified object does not exist
 	 * @throws IllegalArgumentException
@@ -386,19 +389,51 @@ public interface RepositoryService {
 	 * which may be less efficient that following a direct association. Hence it
 	 * is called "list" to indicate that there may be non-negligible overhead.
 	 * </p>
-	 * 
+	 *
 	 * @param accountOid
 	 *            OID of account shadow
 	 * @param parentResult
 	 *            parentResult parent OperationResult (in/out)
 	 * @return User object representing owner of specified account
-	 * 
+	 *
 	 * @throws ObjectNotFoundException
 	 *             specified object does not exist
 	 * @throws IllegalArgumentException
 	 *             wrong OID format
 	 */
+	@Deprecated
 	public PrismObject<UserType> listAccountShadowOwner(String accountOid, OperationResult parentResult)
+			throws ObjectNotFoundException;
+
+	/**
+	 * <p>Returns the object representing owner of specified shadow.</p>
+	 * <p>
+	 * Implements the backward "owns" association between account shadow and
+	 * user. Forward association is implemented by linkRef reference in subclasses
+	 * of FocusType.
+	 * </p
+	 * <p>
+	 * Returns null if there is no owner for the shadow.
+	 * </p>
+	 * <p>
+	 * This is a "search" operation even though it may return at most one owner.
+	 * However the operation implies searching the repository for an owner,
+	 * which may be less efficient that following a direct association. Hence it
+	 * is called "search" to indicate that there may be non-negligible overhead.
+	 * </p>
+	 *
+	 * @param shadowOid
+	 *            OID of shadow
+	 * @param parentResult
+	 *            parentResult parent OperationResult (in/out)
+	 * @return Object representing owner of specified account (subclass of FocusType)
+	 *
+	 * @throws ObjectNotFoundException
+	 *             specified shadow does not exist
+	 * @throws IllegalArgumentException
+	 *             wrong OID format
+	 */
+	public <F extends FocusType> PrismObject<F> searchShadowOwner(String shadowOid, OperationResult parentResult)
 			throws ObjectNotFoundException;
 
 	/**
@@ -414,14 +449,14 @@ public interface RepositoryService {
 	 * </p><p>
 	 * May only be called with OID of Resource object.
 	 * </p>
-	 * 
+	 *
 	 * @param resourceOid
 	 *            OID of resource definition (ResourceType)
 	 * @param parentResult
 	 *            parentResult parent OperationResult (in/out)
 	 * @return resource object shadows of a specified type from specified
 	 *         resource
-	 * 
+	 *
 	 * @throws ObjectNotFoundException
 	 *             specified object does not exist
      * @throws SchemaException
@@ -432,31 +467,31 @@ public interface RepositoryService {
 	public <T extends ShadowType> List<PrismObject<T>> listResourceObjectShadows(String resourceOid,
 			Class<T> resourceObjectShadowType, OperationResult parentResult) throws ObjectNotFoundException,
             SchemaException;
-	
+
     /**
 	 * Provide repository run-time configuration and diagnostic information.
 	 */
     public RepositoryDiag getRepositoryDiag();
-    
+
     /**
 	 * Runs a short, non-descructive repository self test.
 	 * This methods should never throw a (checked) exception. All the results
 	 * should be recorded under the provided result structure (including fatal errors).
-	 * 
+	 *
 	 * This should implement ONLY self-tests that are IMPLEMENTATION-SPECIFIC. It must not
 	 * implement self-tests that are generic and applies to all repository implementations.
 	 * Such self-tests must be implemented in higher layers.
-	 * 
+	 *
 	 * If the repository has no self-tests then the method should return immediately
 	 * without changing the result structure. It must not throw an exception in this case.
 	 */
     public void repositorySelfTest(OperationResult parentResult);
-    
+
     /**
      * Clean up closed tasks that are older than specified.
      *
      * Deprecated: use TaskManager.cleanupTasks instead.
-     * 
+     *
      * @param policy Tasks will be deleted based on this policy.
      */
     @Deprecated

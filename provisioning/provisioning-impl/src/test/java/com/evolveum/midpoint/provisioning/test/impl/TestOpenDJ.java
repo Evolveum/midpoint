@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -65,6 +66,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.provisioning.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.impl.ConnectorManager;
@@ -76,6 +78,7 @@ import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -90,12 +93,14 @@ import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
@@ -113,9 +118,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CreateCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.DeleteCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.LiveSyncCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ReadCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ScriptCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ScriptCapabilityType.Host;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.UpdateCapabilityType;
 import com.evolveum.prism.xml.ns._public.query_2.PagingType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 
@@ -296,6 +307,19 @@ public class TestOpenDJ extends AbstractOpenDJTest {
         Host scriptHost = scriptHosts.get(0);
         assertEquals("Wrong script host type", ProvisioningScriptHostType.CONNECTOR, scriptHost.getType());
 //        assertEquals("Wrong script host language", ....., scriptHost.getLanguage());
+        
+        CreateCapabilityType capCreate = CapabilityUtil.getCapability(nativeCapabilitiesList, CreateCapabilityType.class);
+        assertNotNull("No create capability", capCreate);
+        
+        ReadCapabilityType capRead = CapabilityUtil.getCapability(nativeCapabilitiesList, ReadCapabilityType.class);
+        assertNotNull("No read capability", capRead);
+        
+        UpdateCapabilityType capUpdate = CapabilityUtil.getCapability(nativeCapabilitiesList, UpdateCapabilityType.class);
+        assertNotNull("No update capability", capUpdate);
+        
+        DeleteCapabilityType capDelete = CapabilityUtil.getCapability(nativeCapabilitiesList, DeleteCapabilityType.class);
+        assertNotNull("No delete capability", capDelete);
+        
         
         List<Object> effectiveCapabilities = ResourceTypeUtil.getEffectiveCapabilities(resource);
         for (Object capability : effectiveCapabilities) {
@@ -808,7 +832,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
         };
 
         // WHEN
-        provisioningService.searchObjectsIterative(ShadowType.class, query, handler, result);
+        provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, result);
 
         // THEN
         display("Count", objects.size());
@@ -952,7 +976,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 				"src/test/resources/impl/query-filter-all-accounts.xml"), QueryType.class);
 		ObjectQuery query = QueryConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
 		
-		provisioningService.searchObjectsIterative(ShadowType.class, query, new ResultHandler<ShadowType>() {
+		provisioningService.searchObjectsIterative(ShadowType.class, query, null, new ResultHandler<ShadowType>() {
 
 			@Override
 			public boolean handle(PrismObject<ShadowType> object, OperationResult parentResult) {
@@ -993,7 +1017,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		ObjectQuery query = QueryConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
 
 		List<PrismObject<ShadowType>> objListType = 
-			provisioningService.searchObjects(ShadowType.class, query, result);
+			provisioningService.searchObjects(ShadowType.class, query, null, result);
 		
 		for (PrismObject<ShadowType> objType : objListType) {
 			if (objType == null) {
@@ -1016,7 +1040,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		ObjectQuery query = QueryConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
 
 		List<PrismObject<ShadowType>> objListType = 
-			provisioningService.searchObjects(ShadowType.class, query, result);
+			provisioningService.searchObjects(ShadowType.class, query, null, result);
 		
 		for (PrismObject<ShadowType> objType : objListType) {
 			if (objType == null) {
@@ -1087,6 +1111,87 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		
 		// TODO: search to check that the shadow with the same NAME exists (search for OID will not do)
 
+	}
+	
+	@Test
+	public void test401ConfiguredCapabilityNoRead() throws Exception{
+		
+		OperationResult parentResult = new OperationResult("test401noReadNativeCapability");
+		
+		addResourceFromFile(ProvisioningTestUtil.COMMON_TEST_DIR_FILENAME + "/resource-opendj-no-read.xml", LDAP_CONNECTOR_TYPE, true, parentResult);
+		
+		Task task = taskManager.createTaskInstance();
+		
+		
+		try {
+			provisioningService.getObject(ShadowType.class, ACCOUNT_NEW_OID,
+					null, task, parentResult);
+			AssertJUnit
+					.fail("Expected unsupported operation exception, but haven't got one.");
+		} catch (SystemException ex) {
+				// this is expected..				
+		}
+	}
+
+	@Test
+	public void test402ConfiguredCapabilityNoCreate() throws Exception{
+		
+		OperationResult parentResult = new OperationResult("test401noReadNativeCapability");
+		
+		addResourceFromFile(ProvisioningTestUtil.COMMON_TEST_DIR_FILENAME + "/resource-opendj-no-create.xml", LDAP_CONNECTOR_TYPE, true, parentResult);
+		
+		Task task = taskManager.createTaskInstance();
+		
+		
+		try {
+			PrismObject<ShadowType> shadow = parseObjectType(new File(ACCOUNT_NEW_FILENAME), ShadowType.class).asPrismObject();
+			provisioningService.addObject(shadow, null, null, task, parentResult);
+			AssertJUnit
+					.fail("Expected unsupported operation exception, but haven't got one.");
+		} catch (SystemException ex) {
+			LOGGER.info("exception: {}", ex.getMessage(), ex);
+				// this is expected..				
+		}
+	}
+	
+	@Test
+	public void test403ConfiguredCapabilityNoDelete() throws Exception{
+		
+		OperationResult parentResult = new OperationResult("test401noReadNativeCapability");
+		
+		addResourceFromFile(ProvisioningTestUtil.COMMON_TEST_DIR_FILENAME + "/resource-opendj-no-delete.xml", LDAP_CONNECTOR_TYPE, true, parentResult);
+		
+		Task task = taskManager.createTaskInstance();
+		
+		
+		try {
+			provisioningService.deleteObject(ShadowType.class, ACCOUNT_NEW_OID, null, null, task, parentResult);
+			AssertJUnit
+					.fail("Expected unsupported operation exception, but haven't got one.");
+		} catch (SystemException ex) {
+				// this is expected..				
+		}
+	}
+	
+	@Test
+	public void test404ConfiguredCapabilityNoUpdate() throws Exception{
+		
+		OperationResult parentResult = new OperationResult("test401noReadNativeCapability");
+		
+		addResourceFromFile(ProvisioningTestUtil.COMMON_TEST_DIR_FILENAME + "/resource-opendj-no-update.xml", LDAP_CONNECTOR_TYPE, true, parentResult);
+		
+		Task task = taskManager.createTaskInstance();
+		
+		
+		try {
+			PropertyDelta delta = PropertyDelta.createModificationReplaceProperty(new ItemPath(ShadowType.F_ATTRIBUTES, new QName(resourceType.getNamespace(), "sn")), prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class), "doesnotmatter");
+			Collection modifications = MiscUtil.createCollection(delta);
+			provisioningService.modifyObject(ShadowType.class, ACCOUNT_NEW_OID, modifications, null, null, task, parentResult);
+			AssertJUnit
+					.fail("Expected unsupported operation exception, but haven't got one.");
+		} catch (SystemException ex) {
+				// this is expected..				
+		}
 	}
 	
 }

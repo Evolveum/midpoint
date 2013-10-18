@@ -19,6 +19,8 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.crypto.EncryptionException;
+import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.common.expression.functions.BasicExpressionFunctionsXPath;
 import com.evolveum.midpoint.common.expression.functions.FunctionLibrary;
@@ -54,8 +56,10 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
 
 /**
  * @author semancik
@@ -64,7 +68,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 public class ExpressionUtil {
 	
     public static <V extends PrismValue> PrismValueDeltaSetTriple<V> toOutputTriple(PrismValueDeltaSetTriple<V> resultTriple, 
-    		ItemDefinition outputDefinition, final ItemPath residualPath, final PrismContext prismContext) {
+    		ItemDefinition outputDefinition, final ItemPath residualPath, final Protector protector, final PrismContext prismContext) {
     	final Class<?> resultTripleValueClass = resultTriple.getRealValueClass();
     	if (resultTripleValueClass == null) {
     		// triple is empty. type does not matter.
@@ -92,21 +96,64 @@ public class ExpressionUtil {
 								realVal = ((Structured)realVal).resolve(residualPath);
 							}
 						}
-						Object convertedVal = realVal;
 						if (finalExpectedJavaType != null) {
-							convertedVal = JavaTypeConverter.convert(finalExpectedJavaType, realVal);
-							
-							// HACK, TODO: convert to Recomputable interface
-							if (convertedVal != null && convertedVal instanceof PolyString) {
-								((PolyString)convertedVal).recompute(prismContext.getDefaultPolyStringNormalizer());
-							}
+							Object convertedVal = convertValue(finalExpectedJavaType, realVal, protector, prismContext);
+							pval.setValue(convertedVal);
 						}
-						pval.setValue(convertedVal);
 					}
 				}
 			}
 		});
     	return clonedTriple;
+    }
+    
+    /**
+     * Slightly more powerful version of "convert" as compared to  JavaTypeConverter.
+     * This version can also encrypt/decrypt and also handles polystrings. 
+     */
+    public static <I,O> O convertValue(Class<O> finalExpectedJavaType, I inputVal, 
+    		Protector protector, PrismContext prismContext) {
+    	if (inputVal == null) {
+    		return null;
+    	}
+    	if (finalExpectedJavaType.isInstance(inputVal)) {
+    		return (O) inputVal;
+    	}
+    	
+    	Object intermediateVal = inputVal;
+		if (finalExpectedJavaType == ProtectedStringType.class) {
+			String valueToEncrypt;
+			if (inputVal instanceof String) {
+				valueToEncrypt = (String)inputVal;
+			} else {
+				valueToEncrypt = JavaTypeConverter.convert(String.class, inputVal);
+			}
+			try {
+				intermediateVal = protector.encryptString(valueToEncrypt);
+			} catch (EncryptionException e) {
+				throw new SystemException(e.getMessage(),e);
+			}
+		} else {
+		
+			if (inputVal instanceof ProtectedStringType) {
+				String decryptedString;
+				try {
+					intermediateVal = protector.decryptString((ProtectedStringType)inputVal);
+				} catch (EncryptionException e) {
+					throw new SystemException(e.getMessage(),e);
+				}
+				
+			}
+		}
+		
+		O convertedVal = JavaTypeConverter.convert(finalExpectedJavaType, intermediateVal);
+		
+		// HACK, TODO: convert to Recomputable interface
+		if (convertedVal != null && convertedVal instanceof PolyString) {
+			((PolyString)convertedVal).recompute(prismContext.getDefaultPolyStringNormalizer());
+		}
+
+		return convertedVal;
     }
 
 	public static Object resolvePath(ItemPath path, Map<QName, Object> variables, Object defaultContext, 
@@ -245,11 +292,11 @@ public class ExpressionUtil {
         
 	}
 
-	public static FunctionLibrary createBasicFunctionLibrary(PrismContext prismContext) {
+	public static FunctionLibrary createBasicFunctionLibrary(PrismContext prismContext, Protector protector) {
 		FunctionLibrary lib = new FunctionLibrary();
 		lib.setVariableName(MidPointConstants.FUNCTION_LIBRARY_BASIC_VARIABLE_NAME);
 		lib.setNamespace(MidPointConstants.NS_FUNC_BASIC);
-		BasicExpressionFunctions func = new BasicExpressionFunctions(prismContext);
+		BasicExpressionFunctions func = new BasicExpressionFunctions(prismContext, protector);
 		lib.setGenericFunctions(func);
 		BasicExpressionFunctionsXPath funcXPath = new BasicExpressionFunctionsXPath(func);
 		lib.setXmlFunctions(funcXPath);

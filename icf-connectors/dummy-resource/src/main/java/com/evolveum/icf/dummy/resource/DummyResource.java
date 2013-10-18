@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang.StringUtils;
@@ -61,6 +62,7 @@ import org.apache.commons.lang.StringUtils;
  */
 public class DummyResource {
 
+	private Map<String,DummyObject> allObjects;
 	private Map<String,DummyAccount> accounts;
 	private Map<String,DummyGroup> groups;
 	private Map<String,DummyPrivilege> privileges;
@@ -72,6 +74,7 @@ public class DummyResource {
 	private List<DummyDelta> deltas;
 	private int latestSyncToken;
 	private boolean tolerateDuplicateValues = false;
+	private boolean enforceUniqueName = true;
 	private boolean enforceSchema = true;
 	private boolean caseIgnoreId = false;
 	
@@ -90,6 +93,7 @@ public class DummyResource {
 	private static Map<String, DummyResource> instances = new HashMap<String, DummyResource>();
 	
 	DummyResource() {
+		allObjects = new ConcurrentHashMap<String,DummyObject>();
 		accounts = new ConcurrentHashMap<String, DummyAccount>();
 		groups = new ConcurrentHashMap<String, DummyGroup>();
 		privileges = new ConcurrentHashMap<String, DummyPrivilege>();
@@ -106,6 +110,7 @@ public class DummyResource {
 	 * Clears everything, just like the resouce was just created.
 	 */
 	public void reset() {
+		allObjects.clear();
 		accounts.clear();
 		groups.clear();
 		privileges.clear();
@@ -138,6 +143,14 @@ public class DummyResource {
 
 	public void setTolerateDuplicateValues(boolean tolerateDuplicateValues) {
 		this.tolerateDuplicateValues = tolerateDuplicateValues;
+	}
+
+	public boolean isEnforceUniqueName() {
+		return enforceUniqueName;
+	}
+
+	public void setEnforceUniqueName(boolean enforceUniqueName) {
+		this.enforceUniqueName = enforceUniqueName;
 	}
 
 	public boolean isEnforceSchema() {
@@ -275,9 +288,12 @@ public class DummyResource {
 		}
 	}
 	
-	private <T extends DummyObject> T getObject(Map<String,T> map, String id) throws ConnectException, FileNotFoundException {
+	private <T extends DummyObject> T getObjectByName(Map<String,T> map, String name) throws ConnectException, FileNotFoundException {
+		if (!enforceUniqueName) {
+			throw new IllegalStateException("Attempt to search object by name while resource is in non-unique name mode");
+		}
 		if (getBreakMode == BreakMode.NONE) {
-			return map.get(normalize(id));
+			return map.get(normalize(name));
 		} else if (schemaBreakMode == BreakMode.NETWORK) {
 			throw new ConnectException("Network error (simulated error)");
 		} else if (schemaBreakMode == BreakMode.IO) {
@@ -297,15 +313,55 @@ public class DummyResource {
 	}
 	
 	public DummyAccount getAccountByUsername(String username) throws ConnectException, FileNotFoundException {
-		return getObject(accounts, username);
+		return getObjectByName(accounts, username);
 	}
 	
 	public DummyGroup getGroupByName(String name) throws ConnectException, FileNotFoundException {
-		return getObject(groups, name);
+		return getObjectByName(groups, name);
 	}
 	
 	public DummyPrivilege getPrivilegeByName(String name) throws ConnectException, FileNotFoundException {
-		return getObject(privileges, name);
+		return getObjectByName(privileges, name);
+	}
+	
+	private <T extends DummyObject> T getObjectById(Class<T> expectedClass, String id) throws ConnectException, FileNotFoundException {
+		if (getBreakMode == BreakMode.NONE) {
+			DummyObject dummyObject = allObjects.get(id);
+			if (dummyObject == null) {
+				return null;
+			}
+			if (!expectedClass.isInstance(dummyObject)) {
+				throw new IllegalStateException("Arrrr! Wanted "+expectedClass+" with ID "+id+" but got "+dummyObject+" instead");
+			}
+			return (T)dummyObject;
+		} else if (schemaBreakMode == BreakMode.NETWORK) {
+			throw new ConnectException("Network error (simulated error)");
+		} else if (schemaBreakMode == BreakMode.IO) {
+			throw new FileNotFoundException("IO error (simulated error)");
+		} else if (schemaBreakMode == BreakMode.GENERIC) {
+			// The connector will react with generic exception
+			throw new IllegalArgumentException("Generic error (simulated error)");
+		} else if (schemaBreakMode == BreakMode.RUNTIME) {
+			// The connector will just pass this up
+			throw new IllegalStateException("Generic error (simulated error)");
+		} else if (schemaBreakMode == BreakMode.UNSUPPORTED) {
+			throw new UnsupportedOperationException("Not supported (simulated error)");
+		} else {
+			// This is a real error. Use this strange thing to make sure it passes up
+			throw new RuntimeException("Unknown schema break mode "+schemaBreakMode);
+		}
+	}
+	
+	public DummyAccount getAccountById(String id) throws ConnectException, FileNotFoundException {
+		return getObjectById(DummyAccount.class, id);
+	}
+	
+	public DummyGroup getGroupById(String id) throws ConnectException, FileNotFoundException {
+		return getObjectById(DummyGroup.class, id);
+	}
+	
+	public DummyPrivilege getPrivilegeById(String id) throws ConnectException, FileNotFoundException {
+		return getObjectById(DummyPrivilege.class, id);
 	}
 
 	public Collection<DummyGroup> listGroups() throws ConnectException, FileNotFoundException {
@@ -350,7 +406,7 @@ public class DummyResource {
 		}
 	}
 	
-	private <T extends DummyObject> String addObject(Map<String,T> map, T newObject) throws ObjectAlreadyExistsException, ConnectException, FileNotFoundException {
+	private synchronized <T extends DummyObject> String addObject(Map<String,T> map, T newObject) throws ObjectAlreadyExistsException, ConnectException, FileNotFoundException {
 		if (addBreakMode == BreakMode.NONE) {
 			// just go on
 		} else if (addBreakMode == BreakMode.NETWORK) {
@@ -370,25 +426,39 @@ public class DummyResource {
 			throw new RuntimeException("Unknown break mode "+addBreakMode);
 		}
 		
-		String normalId = normalize(newObject.getName());
 		Class<? extends DummyObject> type = newObject.getClass();
-		if (map.containsKey(normalId)) {
-			throw new ObjectAlreadyExistsException(type.getSimpleName()+" with identifier "+normalId+" already exists");
+		String normalName = normalize(newObject.getName());
+		String newId = UUID.randomUUID().toString();
+		newObject.setId(newId);
+		if (allObjects.containsKey(newId)) {
+			throw new IllegalStateException("The hell is frozen over. The impossible has happened. ID "+newId+" already exists ("+ type.getSimpleName()+" with identifier "+normalName+")");
+		}
+		
+		String mapKey;
+		if (enforceUniqueName) {
+			mapKey = normalName;
+		} else {
+			mapKey = newId;
+		}
+		
+		if (map.containsKey(mapKey)) {
+			throw new ObjectAlreadyExistsException(type.getSimpleName()+" with name '"+normalName+"' already exists");
 		}
 		
 		newObject.setResource(this);
-		map.put(normalId, newObject);
+		map.put(mapKey, newObject);
+		allObjects.put(newId, newObject);
 		
 		if (syncStyle != DummySyncStyle.NONE) {
 			int syncToken = nextSyncToken();
-			DummyDelta delta = new DummyDelta(syncToken, type, normalId, DummyDeltaType.ADD);
+			DummyDelta delta = new DummyDelta(syncToken, type, newId, normalName, DummyDeltaType.ADD);
 			deltas.add(delta);
 		}
 		
 		return newObject.getName();
 	}
 	
-	private <T extends DummyObject> void deleteObject(Class<T> type, Map<String,T> map, String id) throws ObjectDoesNotExistException, ConnectException, FileNotFoundException {
+	private synchronized <T extends DummyObject> void deleteObjectByName(Class<T> type, Map<String,T> map, String name) throws ObjectDoesNotExistException, ConnectException, FileNotFoundException {
 		if (deleteBreakMode == BreakMode.NONE) {
 			// go on
 		} else if (deleteBreakMode == BreakMode.NETWORK) {
@@ -408,21 +478,93 @@ public class DummyResource {
 			throw new RuntimeException("Unknown schema break mode "+schemaBreakMode);
 		}
 		
-		String normalId = normalize(id);
-		if (map.containsKey(normalId)) {
-			map.remove(normalId);
+		String normalName = normalize(name);
+		T existingObject;
+		
+		if (!enforceUniqueName) {
+			throw new IllegalStateException("Whoops! got into deleteObjectByName without enforceUniqueName");
+		}
+		
+		if (map.containsKey(normalName)) {
+			existingObject = map.get(normalName);
+			map.remove(normalName);
+			allObjects.remove(existingObject.getId());
 		} else {
-			throw new ObjectDoesNotExistException(type.getSimpleName()+" with identifier "+normalId+" does not exist");
+			throw new ObjectDoesNotExistException(type.getSimpleName()+" with name '"+normalName+"' does not exist");
 		}
 		
 		if (syncStyle != DummySyncStyle.NONE) {
 			int syncToken = nextSyncToken();
-			DummyDelta delta = new DummyDelta(syncToken, type, normalId, DummyDeltaType.DELETE);
+			DummyDelta delta = new DummyDelta(syncToken, type, existingObject.getId(), normalName, DummyDeltaType.DELETE);
+			deltas.add(delta);
+		}
+	}
+	
+	public void deleteAccountById(String id) throws ConnectException, FileNotFoundException, ObjectDoesNotExistException {
+		deleteObjectById(DummyAccount.class, accounts, id);
+	}
+
+	public void deleteGroupById(String id) throws ConnectException, FileNotFoundException, ObjectDoesNotExistException {
+		deleteObjectById(DummyGroup.class, groups, id);
+	}
+
+	public void deletePrivilegeById(String id) throws ConnectException, FileNotFoundException, ObjectDoesNotExistException {
+		deleteObjectById(DummyPrivilege.class, privileges, id);
+	}
+
+	private synchronized <T extends DummyObject> void deleteObjectById(Class<T> type, Map<String,T> map, String id) throws ObjectDoesNotExistException, ConnectException, FileNotFoundException {
+		if (deleteBreakMode == BreakMode.NONE) {
+			// go on
+		} else if (deleteBreakMode == BreakMode.NETWORK) {
+			throw new ConnectException("Network error (simulated error)");
+		} else if (deleteBreakMode == BreakMode.IO) {
+			throw new FileNotFoundException("IO error (simulated error)");
+		} else if (deleteBreakMode == BreakMode.GENERIC) {
+			// The connector will react with generic exception
+			throw new IllegalArgumentException("Generic error (simulated error)");
+		} else if (deleteBreakMode == BreakMode.RUNTIME) {
+			// The connector will just pass this up
+			throw new IllegalStateException("Generic error (simulated error)");
+		} else if (deleteBreakMode == BreakMode.UNSUPPORTED) {
+			throw new UnsupportedOperationException("Not supported (simulated error)");
+		} else {
+			// This is a real error. Use this strange thing to make sure it passes up
+			throw new RuntimeException("Unknown schema break mode "+schemaBreakMode);
+		}
+		
+		DummyObject object = allObjects.get(id);
+		if (object == null) {
+			throw new ObjectDoesNotExistException(type.getSimpleName()+" with id '"+id+"' does not exist");
+		}
+		if (!type.isInstance(object)) {
+			throw new IllegalStateException("Arrrr! Wanted "+type+" with ID "+id+" but got "+object+" instead");
+		}
+		T existingObject = (T)object;
+		String normalName = normalize(object.getName());
+		
+		allObjects.remove(id);
+		
+		String mapKey;
+		if (enforceUniqueName) {
+			mapKey = normalName;
+		} else {
+			mapKey = id;
+		}
+		
+		if (map.containsKey(mapKey)) {
+			map.remove(mapKey);
+		} else {
+			throw new ObjectDoesNotExistException(type.getSimpleName()+" with name '"+normalName+"' does not exist");
+		}
+		
+		if (syncStyle != DummySyncStyle.NONE) {
+			int syncToken = nextSyncToken();
+			DummyDelta delta = new DummyDelta(syncToken, type, id, normalName, DummyDeltaType.DELETE);
 			deltas.add(delta);
 		}
 	}
 
-	private <T extends DummyObject> void renameObject(Class<T> type, Map<String,T> map, String oldName, String newName) throws ObjectDoesNotExistException, ObjectAlreadyExistsException, ConnectException, FileNotFoundException {
+	private <T extends DummyObject> void renameObject(Class<T> type, Map<String,T> map, String id, String oldName, String newName) throws ObjectDoesNotExistException, ObjectAlreadyExistsException, ConnectException, FileNotFoundException {
 		if (modifyBreakMode == BreakMode.NONE) {
 			// go on
 		} else if (modifyBreakMode == BreakMode.NETWORK) {
@@ -442,17 +584,22 @@ public class DummyResource {
 			throw new RuntimeException("Unknown schema break mode "+schemaBreakMode);
 		}
 		
-		String normalOldName = normalize(oldName);
-		String normalNewName = normalize(newName);
-		T existingObject = map.get(normalOldName);
-		if (existingObject == null) {
-			throw new ObjectDoesNotExistException("Cannot rename, "+type.getSimpleName()+" with username '"+normalOldName+"' does not exist");
+		T existingObject;
+		if (enforceUniqueName) {
+			String normalOldName = normalize(oldName);
+			String normalNewName = normalize(newName);
+			existingObject = map.get(normalOldName);
+			if (existingObject == null) {
+				throw new ObjectDoesNotExistException("Cannot rename, "+type.getSimpleName()+" with username '"+normalOldName+"' does not exist");
+			}
+			if (map.containsKey(normalNewName)) {
+				throw new ObjectAlreadyExistsException("Cannot rename, "+type.getSimpleName()+" with username '"+normalNewName+"' already exists");
+			}
+			map.put(normalNewName, existingObject);
+			map.remove(normalOldName);
+		} else {
+			existingObject = (T) allObjects.get(id);
 		}
-		if (map.containsKey(normalNewName)) {
-			throw new ObjectAlreadyExistsException("Cannot rename, "+type.getSimpleName()+" with username '"+normalNewName+"' already exists");
-		}
-		map.put(normalNewName, existingObject);
-		map.remove(normalOldName);
 		existingObject.setName(newName);
 	}
 	
@@ -460,42 +607,42 @@ public class DummyResource {
 		return addObject(accounts, newAccount);
 	}
 	
-	public void deleteAccount(String id) throws ObjectDoesNotExistException, ConnectException, FileNotFoundException {
-		deleteObject(DummyAccount.class, accounts, id);
+	public void deleteAccountByName(String id) throws ObjectDoesNotExistException, ConnectException, FileNotFoundException {
+		deleteObjectByName(DummyAccount.class, accounts, id);
 	}
 
-	public void renameAccount(String oldUsername, String newUsername) throws ObjectDoesNotExistException, ObjectAlreadyExistsException, ConnectException, FileNotFoundException {
-		renameObject(DummyAccount.class, accounts, oldUsername, newUsername);
+	public void renameAccount(String id, String oldUsername, String newUsername) throws ObjectDoesNotExistException, ObjectAlreadyExistsException, ConnectException, FileNotFoundException {
+		renameObject(DummyAccount.class, accounts, id, oldUsername, newUsername);
 	}
 	
 	public String addGroup(DummyGroup newGroup) throws ObjectAlreadyExistsException, ConnectException, FileNotFoundException {
 		return addObject(groups, newGroup);
 	}
 	
-	public void deleteGroup(String id) throws ObjectDoesNotExistException, ConnectException, FileNotFoundException {
-		deleteObject(DummyGroup.class, groups, id);
+	public void deleteGroupByName(String id) throws ObjectDoesNotExistException, ConnectException, FileNotFoundException {
+		deleteObjectByName(DummyGroup.class, groups, id);
 	}
 
-	public void renameGroup(String oldName, String newName) throws ObjectDoesNotExistException, ObjectAlreadyExistsException, ConnectException, FileNotFoundException {
-		renameObject(DummyGroup.class, groups, oldName, newName);
+	public void renameGroup(String id, String oldName, String newName) throws ObjectDoesNotExistException, ObjectAlreadyExistsException, ConnectException, FileNotFoundException {
+		renameObject(DummyGroup.class, groups, id, oldName, newName);
 	}
 	
 	public String addPrivilege(DummyPrivilege newGroup) throws ObjectAlreadyExistsException, ConnectException, FileNotFoundException {
 		return addObject(privileges, newGroup);
 	}
 	
-	public void deletePrivilege(String id) throws ObjectDoesNotExistException, ConnectException, FileNotFoundException {
-		deleteObject(DummyPrivilege.class, privileges, id);
+	public void deletePrivilegeByName(String id) throws ObjectDoesNotExistException, ConnectException, FileNotFoundException {
+		deleteObjectByName(DummyPrivilege.class, privileges, id);
 	}
 
-	public void renamePrivilege(String oldName, String newName) throws ObjectDoesNotExistException, ObjectAlreadyExistsException, ConnectException, FileNotFoundException {
-		renameObject(DummyPrivilege.class, privileges, oldName, newName);
+	public void renamePrivilege(String id, String oldName, String newName) throws ObjectDoesNotExistException, ObjectAlreadyExistsException, ConnectException, FileNotFoundException {
+		renameObject(DummyPrivilege.class, privileges, id, oldName, newName);
 	}
 	
 	void recordModify(DummyObject dObject) {
 		if (syncStyle != DummySyncStyle.NONE) {
 			int syncToken = nextSyncToken();
-			DummyDelta delta = new DummyDelta(syncToken, dObject.getClass(), dObject.getName(), DummyDeltaType.MODIFY);
+			DummyDelta delta = new DummyDelta(syncToken, dObject.getClass(), dObject.getId(), dObject.getName(), DummyDeltaType.MODIFY);
 			deltas.add(delta);
 		}
 	}
@@ -605,5 +752,5 @@ public class DummyResource {
 	public String toString() {
 		return "DummyResource("+accounts.size()+" accounts, "+groups.size()+" groups)";
 	}
-	
+
 }

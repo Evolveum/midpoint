@@ -164,6 +164,8 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 	private ConnectorInfoManager localConnectorInfoManager;
 	private Set<URL> bundleURLs;
 	private Set<ConnectorType> localConnectorTypes = null;
+	
+	private IcfNameMapper icfNameMapper;
 
 	@Autowired(required = true)
 	MidpointConfiguration midpointConfiguration;
@@ -208,6 +210,9 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 		}
 
 		connectorInfoManagerFactory = ConnectorInfoManagerFactory.getInstance();
+		
+		icfNameMapper = new IcfNameMapper();
+		icfNameMapper.initialize();
 
 	}
 
@@ -244,7 +249,8 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 		// facade
 		ConnectorInstanceIcfImpl connectorImpl = new ConnectorInstanceIcfImpl(cinfo, connectorType, namespace,
 				connectorSchema, protector, prismContext);
-
+		connectorImpl.setIcfNameMapper(icfNameMapper);
+		
 		return connectorImpl;
 	}
 
@@ -289,13 +295,15 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 				result.recordSuccess();
 				return connectors;
 			}
-		} catch (Exception icfException) {
-			Exception ex = processIcfException(icfException, result);
+		} catch (Throwable icfException) {
+			Throwable ex = processIcfException(icfException, result);
 			result.recordFatalError(ex.getMessage(), ex);
 			if (ex instanceof CommunicationException) {
 				throw (CommunicationException) ex;
 			} else if (ex instanceof RuntimeException) {
 				throw (RuntimeException) ex;
+			} else if (ex instanceof Error) {
+				throw (Error) ex;
 			} else {
 				throw new SystemException("Unexpected ICF exception: " + ex.getMessage(), ex);
 			}

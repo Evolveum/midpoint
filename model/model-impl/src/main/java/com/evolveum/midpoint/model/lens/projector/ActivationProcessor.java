@@ -400,6 +400,9 @@ public class ActivationProcessor {
 				// Variable: shadow
 				existenceMapping.addVariableDefinition(ExpressionConstants.VAR_SHADOW, accCtx.getObjectDeltaObject());
 				
+				// Variable: resource
+				existenceMapping.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, accCtx.getResource());
+				
 		        existenceMapping.setOriginType(OriginType.OUTBOUND);
 		        existenceMapping.setOriginObject(accCtx.getResource());				
             }
@@ -506,6 +509,8 @@ public class ActivationProcessor {
 
 		        // Variable: user (for convenience, same as "focus")
 		        mapping.addVariableDefinition(ExpressionConstants.VAR_USER, context.getFocusContext().getObjectDeltaObject());
+		        
+		        mapping.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, accCtx.getResource());
 
 				// Target
 		        PrismObjectDefinition<ShadowType> shadowDefinition = 

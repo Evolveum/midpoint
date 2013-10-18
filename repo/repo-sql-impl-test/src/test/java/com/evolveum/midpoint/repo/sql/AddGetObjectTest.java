@@ -21,6 +21,8 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.query.LessFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -41,6 +43,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.util.ArrayList;
@@ -476,4 +479,32 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         repositoryService.searchObjectsIterative(ObjectType.class, null, handler, null, result);
         AssertJUnit.assertTrue(!objects.isEmpty());
     }
+    
+    @Test
+    private void addGetFullAccountShadow() throws Exception {
+        LOGGER.info("===[ simpleAddAccountShadowTest ]===");
+        OperationResult result = new OperationResult("testAddAccountShadow");
+        File file = new File(FOLDER_BASIC, "account-accountTypeShadow.xml"); 
+        try 
+        {
+        	PrismObject<AccountShadowType> account = prismContext.getPrismDomProcessor().parseObject(file);
+        	
+        	 // apply appropriate schema
+            PrismObject<ResourceType> resource = prismContext.parseObject(new File(FOLDER_BASIC, "resource-opendj.xml"));
+            ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
+            ShadowUtil.applyResourceSchema(account, resourceSchema);
+            
+        	repositoryService.addObject(account, null, result);
+        
+        	PrismObject<ShadowType> afterAdd = repositoryService.getObject(ShadowType.class, account.getOid(), null, result);
+        	AssertJUnit.assertNotNull(afterAdd);
+        	        
+        }
+        catch (Exception ex) 
+        {
+        	LOGGER.error("Exception occurred", ex);
+            throw ex;
+        }
+    }
 }
+

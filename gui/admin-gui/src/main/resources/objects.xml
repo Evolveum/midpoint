@@ -77,6 +77,11 @@
                 <package>org.hibernate.engine.jdbc.spi.SqlExceptionHelper</package>
             </classLogger>
             <classLogger>
+                <!-- disabled because of MID-1612, jasper library needs to be fixed -->
+                <level>OFF</level>
+                <package>net.sf.jasperreports.engine.fill.JRFillDataset</package>
+            </classLogger>
+            <classLogger>
                 <!-- disabled because we don't need to see every property file
                 loading message (unnecessary log pollution) -->
                 <level>WARN</level>

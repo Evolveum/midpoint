@@ -55,6 +55,7 @@ public final class ClassMapper {
         types.put(ObjectTypes.NODE, RContainerType.NODE);
         types.put(ObjectTypes.ORG, RContainerType.ORG);
         types.put(ObjectTypes.ABSTRACT_ROLE, RContainerType.ABSTRACT_ROLE);
+        types.put(ObjectTypes.FOCUS_TYPE, RContainerType.FOCUS);
 
         for (ObjectTypes type : ObjectTypes.values()) {
             if (!types.containsKey(type)) {

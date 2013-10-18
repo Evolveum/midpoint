@@ -60,7 +60,9 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.StringPolicyType;
@@ -70,6 +72,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXBElement;
@@ -226,8 +229,65 @@ public class TestMappingDynamicSimple {
     	// THEN
     	PrismAsserts.assertTripleZero(outputTriple, PrismTestUtil.createPolyString("PIRATE"));
     	PrismAsserts.assertTripleNoPlus(outputTriple);
-    	PrismAsserts.assertTripleNoMinus(outputTriple);    	
+    	PrismAsserts.assertTripleNoMinus(outputTriple);
     }
+    
+    @Test
+    public void testAsIsStringToProtectedString() throws Exception {
+    	// WHEN
+    	PrismValueDeltaSetTriple<PrismPropertyValue<ProtectedStringType>> outputTriple = evaluator.evaluateMapping(
+    			"mapping-asis.xml",
+    			"testAsIsStringToProtectedString",
+    			new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE)); // target
+    	
+    	// THEN
+    	evaluator.assertProtectedString("output zero set", outputTriple.getZeroSet(), "PIRATE");    	
+    	PrismAsserts.assertTripleNoPlus(outputTriple);
+    	PrismAsserts.assertTripleNoMinus(outputTriple);
+    }
+        
+    @Test
+    public void testAsIsProtectedStringToProtectedString() throws Exception {
+    	// WHEN
+    	PrismValueDeltaSetTriple<PrismPropertyValue<ProtectedStringType>> outputTriple = evaluator.evaluateMapping(
+    			"mapping-asis-password.xml",
+    			"testAsIsProtectedStringToProtectedString",
+    			new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE)); // target
+    	
+    	// THEN
+    	evaluator.assertProtectedString("output zero set", outputTriple.getZeroSet(), "d3adM3nT3llN0Tal3s");    	
+    	PrismAsserts.assertTripleNoPlus(outputTriple);
+    	PrismAsserts.assertTripleNoMinus(outputTriple);
+    }
+    
+    @Test
+    public void testAsIsProtectedStringToString() throws Exception {
+    	// WHEN
+    	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMapping(
+    			"mapping-asis-password.xml",
+    			"testAsIsProtectedStringToString",
+    			UserType.F_EMPLOYEE_NUMBER); // target
+    	
+    	// THEN
+    	PrismAsserts.assertTripleZero(outputTriple, "d3adM3nT3llN0Tal3s");
+    	PrismAsserts.assertTripleNoPlus(outputTriple);
+    	PrismAsserts.assertTripleNoMinus(outputTriple);
+    }
+    
+    @Test
+    public void testAsIsProtectedStringToPolyString() throws Exception {
+    	// WHEN
+    	PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = evaluator.evaluateMapping(
+    			"mapping-asis-password.xml",
+    			"testAsIsProtectedStringToPolyString",
+    			UserType.F_FULL_NAME); // target
+    	
+    	// THEN
+    	PrismAsserts.assertTripleZero(outputTriple, PrismTestUtil.createPolyString("d3adM3nT3llN0Tal3s"));
+    	PrismAsserts.assertTripleNoPlus(outputTriple);
+    	PrismAsserts.assertTripleNoMinus(outputTriple);
+    }
+
     
     @Test
     public void testPathVariables() throws Exception {
@@ -1087,7 +1147,7 @@ public class TestMappingDynamicSimple {
     }
     	
     private void generatePolicy(final String TEST_NAME, String mappingFileName, String policyFileName, String pattern)
-    		throws SchemaException, FileNotFoundException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException {
+    		throws Exception {
     	TestUtil.displayTestTile(TEST_NAME);
     	
     	// This is just for validation. The expression has to resolve reference of its own
@@ -1165,8 +1225,7 @@ public class TestMappingDynamicSimple {
     }
     	
     private <T> void generatePolicyNumeric(final String TEST_NAME, String mappingFileName,
-    		String policyFileName, String extensionPropName, Class<T> clazz)
-    		throws SchemaException, FileNotFoundException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException {
+    		String policyFileName, String extensionPropName, Class<T> clazz) throws Exception {
     	TestUtil.displayTestTile(TEST_NAME);
     	
     	// This is just for validation. The expression has to resolve reference of its own

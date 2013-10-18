@@ -57,13 +57,14 @@ using an Identity Connector Framework Solaris connector.
 				<icfcsolaris:port>22</icfcsolaris:port>
 				<icfcsolaris:host>deimos.lab.evolveum.com</icfcsolaris:host>
 				<icfcsolaris:loginUser>idm</icfcsolaris:loginUser>
-				<icfcsolaris:password><clearValue>XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX</clearValue></icfcsolaris:password>
+				<icfcsolaris:password><clearValue>XXXXXXXXXXXXXXXXXXXX</clearValue></icfcsolaris:password>
 				<icfcsolaris:connectionType>SSH</icfcsolaris:connectionType>
-				<icfcsolaris:loginShellPrompt>\$</icfcsolaris:loginShellPrompt>
-				<icfcsolaris:rootShellPrompt>\$</icfcsolaris:rootShellPrompt>
+				<icfcsolaris:loginShellPrompt>$</icfcsolaris:loginShellPrompt>
+				<icfcsolaris:rootShellPrompt>$</icfcsolaris:rootShellPrompt>
 				<icfcsolaris:sudoAuthorization>true</icfcsolaris:sudoAuthorization>
-				<icfcsolaris:credentials><clearValue>XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX</clearValue></icfcsolaris:credentials>
+				<icfcsolaris:credentials><clearValue>XXXXXXXXXXXXXXXXXXXXXX</clearValue></icfcsolaris:credentials>
 				<icfcsolaris:unixMode>linux</icfcsolaris:unixMode>
+				<icfcsolaris:activationMode>expiration</icfcsolaris:activationMode>
 
 				<!--
 				<icfcsolaris:rootUser>root</icfcsolaris:rootUser>
@@ -126,6 +127,10 @@ using an Identity Connector Framework Solaris connector.
 			<attribute>
 				<ref>icfs:name</ref>
 				<displayName>Username</displayName>
+				<limitations>
+					<layer>presentation</layer>
+					<minOccurs>0</minOccurs>
+				</limitations>
 				<outbound>
 					<strength>weak</strength>
 					<source>
@@ -134,8 +139,8 @@ using an Identity Connector Framework Solaris connector.
 				</outbound>
 			</attribute>
 			<attribute>
-				<ref>ri:comment</ref>
-				<displayName>Comment</displayName>
+				<ref>icfs:description</ref>
+				<displayName>GCOS</displayName>
 				<outbound>
 					<source>
 						<path>$user/fullName</path>

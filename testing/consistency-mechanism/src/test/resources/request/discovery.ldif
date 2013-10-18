@@ -1,0 +1,16 @@
+dn: uid=discovery,ou=people,dc=example,dc=com
+uid: discovery
+cn: discovery
+sn: discovery
+givenname: discovery
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+l: Caribbean
+employeeType: governor
+title: Governor
+businessCategory: state
+mail: discovery@deep.in.the.caribbean.com
+userpassword: piranhaDogs
+

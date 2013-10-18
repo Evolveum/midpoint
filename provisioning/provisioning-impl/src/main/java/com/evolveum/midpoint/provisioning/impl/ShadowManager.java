@@ -47,6 +47,7 @@ import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.prism.query.Visitor;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
@@ -56,6 +57,8 @@ import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
@@ -198,6 +201,64 @@ public class ShadowManager {
 		return results.get(0);
 	}
 
+//	public PrismObject<ShadowType> lookupShadowByIdentifier( 
+//			PrismObject<ShadowType> resourceShadow, RefinedObjectClassDefinition rObjClassDef, 
+//			ResourceType resource, OperationResult parentResult) 
+//					throws SchemaException, ConfigurationException {
+//
+//		Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getIdentifiers(resourceShadow);
+//		ResourceAttribute<?> identifier = null;
+//		if (identifiers.size() < 1){
+//			LOGGER.trace("Shadow does not contain primary idetifier. Skipping shadow lookup.");
+//			return null;
+//		}
+//		
+//		identifier = identifiers.iterator().next();
+//		LOGGER.trace("Shadow primary identifier {}", identifier);
+//		
+//		AndFilter filter = AndFilter.createAnd(RefFilter.createReferenceEqual(ShadowType.class,
+//				ShadowType.F_RESOURCE_REF, prismContext, resource.getOid()), EqualsFilter.createEqual(
+//				new ItemPath(ShadowType.F_ATTRIBUTES), identifier.getDefinition(),
+//				getNormalizedValue(identifier, rObjClassDef)));
+//		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+//		if (LOGGER.isTraceEnabled()) {
+//			LOGGER.trace("Searching for shadow using filter on primary identifier:\n{}",
+//					query.dump());
+//		}
+//
+//		// TODO: check for errors
+//		List<PrismObject<ShadowType>> results;
+//
+//		results = repositoryService.searchObjects(ShadowType.class, query, null, parentResult);
+//
+//		LOGGER.trace("lookupShadow found {} objects", results.size());
+//
+//		if (results.size() == 0) {
+//			return null;
+//		}
+//		if (results.size() > 1) {
+//			for (PrismObject<ShadowType> result : results) {
+//				LOGGER.trace("Search result:\n{}", result.dump());
+//			}
+//			LOGGER.error("More than one shadows found for " + resourceShadow);
+//			// TODO: Better error handling later
+//			throw new IllegalStateException("More than one shadows found for " + resourceShadow);
+//		}
+//
+//		PrismObject<ShadowType> repoShadow = results.get(0);
+//		ShadowType repoShadowType = repoShadow.asObjectable();
+//		if (repoShadow != null) {
+//			if (repoShadowType.getFailedOperationType() == null){
+//				LOGGER.trace("Found shadow is ok, returning null");
+//				return null;
+//			} 
+//			if (repoShadowType.getFailedOperationType() != null && FailedOperationTypeType.ADD != repoShadowType.getFailedOperationType()){
+//				return null;
+//			}
+//		}
+//		return repoShadow;
+//	}
+	
 	public PrismObject<ShadowType> lookupShadowByName( 
 			PrismObject<ShadowType> resourceShadow, RefinedObjectClassDefinition rObjClassDef, 
 			ResourceType resource, OperationResult parentResult) 
@@ -233,8 +294,35 @@ public class ShadowManager {
 		if (results.size() == 0) {
 			return null;
 		}
-		if (results.size() > 1) {
-			for (PrismObject<ShadowType> result : results) {
+//		if (results.size() > 1) {
+//			for (PrismObject<ShadowType> result : results) {
+//				LOGGER.trace("Search result:\n{}", result.dump());
+//			}
+//			LOGGER.error("More than one shadows found for " + resourceShadow);
+//			// TODO: Better error handling later
+//			throw new IllegalStateException("More than one shadows found for " + resourceShadow);
+//		}
+		List<PrismObject<ShadowType>> conflictingShadows = new ArrayList<PrismObject<ShadowType>>();
+		for (PrismObject<ShadowType> shadow: results){
+			ShadowType repoShadowType = shadow.asObjectable();
+			if (shadow != null) {
+				if (repoShadowType.getFailedOperationType() == null){
+					LOGGER.trace("Found shadow is ok, returning null");
+					continue;
+				} 
+				if (repoShadowType.getFailedOperationType() != null && FailedOperationTypeType.ADD != repoShadowType.getFailedOperationType()){
+					continue;
+				}
+				conflictingShadows.add(shadow);
+			}
+		}
+		
+		if (conflictingShadows.isEmpty()){
+			return null;
+		}
+		
+		if (conflictingShadows.size() > 1) {
+			for (PrismObject<ShadowType> result : conflictingShadows) {
 				LOGGER.trace("Search result:\n{}", result.dump());
 			}
 			LOGGER.error("More than one shadows found for " + resourceShadow);
@@ -242,18 +330,18 @@ public class ShadowManager {
 			throw new IllegalStateException("More than one shadows found for " + resourceShadow);
 		}
 
-		PrismObject<ShadowType> repoShadow = results.get(0);
-		ShadowType repoShadowType = repoShadow.asObjectable();
-		if (repoShadow != null) {
-			if (repoShadowType.getFailedOperationType() == null){
-				LOGGER.trace("Found shadow is ok, returning null");
-				return null;
-			} 
-			if (repoShadowType.getFailedOperationType() != null && FailedOperationTypeType.ADD != repoShadowType.getFailedOperationType()){
-				return null;
-			}
-		}
-		return repoShadow;
+//		PrismObject<ShadowType> repoShadow = results.get(0);
+//		ShadowType repoShadowType = repoShadow.asObjectable();
+//		if (repoShadow != null) {
+//			if (repoShadowType.getFailedOperationType() == null){
+//				LOGGER.trace("Found shadow is ok, returning null");
+//				return null;
+//			} 
+//			if (repoShadowType.getFailedOperationType() != null && FailedOperationTypeType.ADD != repoShadowType.getFailedOperationType()){
+//				return null;
+//			}
+//		}
+		return conflictingShadows.get(0);
 	}
 
 	private <T> PrismPropertyValue<T> getNormalizedValue(PrismProperty<T> attr, RefinedObjectClassDefinition rObjClassDef) throws SchemaException {
@@ -449,6 +537,71 @@ public class ShadowManager {
 		// LOGGER.trace("created query " + DOMUtil.printDom(filter));
 
 		return query;
+	}
+	
+	public void searchObjectsIterativeRepository(
+			RefinedObjectClassDefinition objectClassDef,
+			final ResourceType resourceType, ObjectQuery query,
+			Collection<SelectorOptions<GetOperationOptions>> options,
+			com.evolveum.midpoint.schema.ResultHandler<ShadowType> repoHandler, OperationResult parentResult) throws SchemaException {
+		
+		ObjectQuery repoQuery = query.clone();
+		processQueryMatchingRules(repoQuery, objectClassDef);
+		
+		repositoryService.searchObjectsIterative(ShadowType.class, repoQuery, repoHandler, options, parentResult);
+		
+	}
+
+	/**
+	 * Visit the query and normalize values (or set matching rules) as needed
+	 */
+	private void processQueryMatchingRules(ObjectQuery repoQuery, final RefinedObjectClassDefinition objectClassDef) {
+		ObjectFilter filter = repoQuery.getFilter();
+		Visitor visitor = new Visitor() {
+			@Override
+			public void visit(ObjectFilter filter) {
+				try {
+					processQueryMatchingRuleFilter(filter, objectClassDef);
+				} catch (SchemaException e) {
+					throw new SystemException(e);
+				}
+			}
+		};
+		filter.accept(visitor);
+	}
+	
+	private <T> void processQueryMatchingRuleFilter(ObjectFilter filter, RefinedObjectClassDefinition objectClassDef) throws SchemaException {
+		if (!(filter instanceof EqualsFilter)) {
+			return;
+		}
+		EqualsFilter eqFilter = (EqualsFilter)filter;
+		ItemPath parentPath = eqFilter.getParentPath();
+		if (parentPath == null || !parentPath.equals(SchemaConstants.PATH_ATTRIBUTES)) {
+			return;
+		}
+		QName attrName = eqFilter.getName();
+		RefinedAttributeDefinition rAttrDef = objectClassDef.findAttributeDefinition(attrName);
+		QName matchingRuleQName = rAttrDef.getMatchingRuleQName();
+		if (matchingRuleQName == null) {
+			return;
+		}
+		MatchingRule<T> matchingRule = matchingRuleRegistry.getMatchingRule(matchingRuleQName, rAttrDef.getTypeName());
+		if (matchingRule == null) {
+			// TODO: warning?
+			return;
+		}
+		List<PrismValue> newValues = new ArrayList<PrismValue>();
+		for (PrismValue pval: eqFilter.getValues()) {
+			PrismPropertyValue<T> ppval = (PrismPropertyValue<T>)pval;
+			T normalizedRealValue = matchingRule.normalize(ppval.getValue());
+			PrismPropertyValue<T> newPPval = ppval.clone();
+			newPPval.setValue(normalizedRealValue);
+			newValues.add(newPPval);
+		}
+		eqFilter.getValues().clear();
+		eqFilter.getValues().addAll((Collection) newValues);
+		LOGGER.trace("Replacing values for attribute {} in search filter with normalized values because there is a matching rule, normalized values: {}",
+				attrName, newValues);
 	}
 
 	/**

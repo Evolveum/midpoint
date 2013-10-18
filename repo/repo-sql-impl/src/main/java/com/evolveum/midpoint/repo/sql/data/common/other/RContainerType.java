@@ -25,7 +25,7 @@ public enum RContainerType {
 
     ASSIGNMENT(RAssignment.class),
     EXCLUSION(RExclusion.class),
-    ACCOUNT(RAccountShadow.class),
+    ACCOUNT(RShadow.class),
     CONNECTOR(RConnector.class),
     CONNECTOR_HOST(RConnectorHost.class),
     GENERIC_OBJECT(RGenericObject.class),

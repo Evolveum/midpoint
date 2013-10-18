@@ -255,7 +255,8 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
     }
     
     public boolean isMultiValue(LayerType layer) {
-    	return limitationsMap.get(layer).getMaxOccurs() > 1;
+    	int maxOccurs = limitationsMap.get(layer).getMaxOccurs();
+    	return maxOccurs < 0 || maxOccurs > 1;
     }
     
     public boolean isSingleValue(LayerType layer) {

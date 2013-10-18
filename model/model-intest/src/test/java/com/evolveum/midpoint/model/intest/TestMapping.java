@@ -237,6 +237,10 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertExecutionSuccess();
 	}
 
+	/**
+	 * There is a weak mapping for ship attribute. 
+	 * Therefore try to remove the value. The weak mapping should be applied.
+	 */
 	@Test
     public void test104ModifyAccountShipReplaceEmpty() throws Exception {
 		final String TEST_NAME = "test104ModifyAccountShipReplaceEmpty";
@@ -320,7 +324,11 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionSuccess();
 	}
-		
+	
+	/**
+	 * There is a weak mapping for ship attribute. 
+	 * Therefore try to remove the value. The weak mapping should be applied.
+	 */
 	@Test
     public void test106ModifyAccountShipDelete() throws Exception {
 		final String TEST_NAME = "test106ModifyAccountShipDelete";
@@ -449,6 +457,8 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         
  		assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, 
  				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "mouth", "pistol");
+ 		assertDummyAccountAttribute(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, 
+ 				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "Where's the rum? -- red resource");
         
         // Check audit
         display("Audit", dummyAuditService);

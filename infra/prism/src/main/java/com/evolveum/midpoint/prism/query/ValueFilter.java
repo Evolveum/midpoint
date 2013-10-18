@@ -16,10 +16,19 @@
 
 package com.evolveum.midpoint.prism.query;
 
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.match.MatchingRule;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 public abstract class ValueFilter extends ObjectFilter {
 	
@@ -77,6 +86,23 @@ public abstract class ValueFilter extends ObjectFilter {
 	
 	public void setMatchingRule(String matchingRule) {
 		this.matchingRule = matchingRule;
+	}
+	
+	public MatchingRule getMatchingRuleFromRegistry(MatchingRuleRegistry matchingRuleRegistry, Item filterItem){
+		QName matchingRule = null;
+		if (StringUtils.isNotBlank(getMatchingRule())){
+			matchingRule = new QName(PrismConstants.NS_MATCHING_RULE, getMatchingRule());
+		} 
+//		Item filterItem = getFilterItem();
+		MatchingRule matching = null;
+		try{
+		matching = matchingRuleRegistry.getMatchingRule( matchingRule, filterItem.getDefinition().getTypeName());
+		} catch (SchemaException ex){
+			throw new IllegalArgumentException(ex.getMessage(), ex);
+		}
+		
+		return matching;
+
 	}
 	
 	protected void cloneValues(ValueFilter clone) {

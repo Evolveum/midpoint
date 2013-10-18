@@ -15,14 +15,28 @@
  */
 package com.evolveum.midpoint.model.lens.projector;
 
-import com.evolveum.midpoint.common.QueryUtil;
+import static com.evolveum.midpoint.common.InternalsConfig.consistencyChecks;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import javax.xml.namespace.QName;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.common.expression.Expression;
 import com.evolveum.midpoint.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.common.expression.Source;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.lens.LensContext;
@@ -31,16 +45,13 @@ import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.lens.LensUtil;
 import com.evolveum.midpoint.model.lens.ShadowConstraintsChecker;
 import com.evolveum.midpoint.model.sync.CorrelationConfirmationEvaluator;
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.OriginType;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
@@ -52,7 +63,6 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -71,25 +81,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.IterationSpecificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectTypeDefinitionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-import com.evolveum.prism.xml.ns._public.query_2.QueryType;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import javax.xml.namespace.QName;
-
-import static com.evolveum.midpoint.common.InternalsConfig.consistencyChecks;
 
 /**
  * Processor that determines values of account attributes. It does so by taking the pre-processed information left
@@ -128,6 +122,8 @@ public class AccountValuesProcessor {
 	@Autowired(required = true)
 	private ProvisioningService provisioningService;
 	
+	private List<LensProjectionContext<? extends ObjectType>> conflictingAccountContexts = new ArrayList<LensProjectionContext<? extends ObjectType>>();
+	
 	public <F extends ObjectType, P extends ObjectType> void process(LensContext<F,P> context, 
 			LensProjectionContext<P> projectionContext, String activityDescription, OperationResult result) 
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, 
@@ -140,8 +136,11 @@ public class AccountValuesProcessor {
     		// We can do this only for user.
     		return;
     	}
+    	OperationResult processorResult = result.createSubresult(AccountValuesProcessor.class.getName()+".processAccountsValues");
+    	processorResult.recordSuccessIfUnknown();
     	processAccounts((LensContext<UserType,ShadowType>) context, (LensProjectionContext<ShadowType>)projectionContext, 
-    			activityDescription, result);
+    			activityDescription, processorResult);
+    	
 	}
 	
 	public void processAccounts(LensContext<UserType,ShadowType> context, 
@@ -265,7 +264,7 @@ public class AccountValuesProcessor {
 		        	
 			        checker.setPrismContext(prismContext);
 			        checker.setContext(context);
-			        checker.setRepositoryService(repositoryService);
+			        checker.setProvisioningService(provisioningService);
 			        checker.check(result);
 			        if (checker.isSatisfiesConstraints()) {
 			        	LOGGER.trace("Current shadow satisfies uniqueness constraints. Iteration {}, token '{}'", iteration, iterationToken);
@@ -279,7 +278,18 @@ public class AccountValuesProcessor {
 			        			//if object not found exception occurred, its ok..the account was deleted by the discovery, so there esits no more conflicting shadow
 			        			LOGGER.trace("Conflicting shadow was deleted by discovery. It does not exist anymore. Continue with adding current shadow.");
 			        			conflict = false;
+			        			
 			        		}
+			        		
+			        		result.computeStatus();
+							// if the result is fatal error, it may mean that the
+							// already exists expection occures before..but in this
+							// scenario it means, the exception was handled and we
+							// can mute the result to give better understanding of
+							// the situation which happend
+		        			if (result.isError()){
+		        				result.muteError();
+		        			}
 			        		
 			        		if (conflict) {
 				        		PrismObject<UserType> user = repositoryService.listAccountShadowOwner(checker.getConflictingShadow().getOid(), result);
@@ -297,15 +307,15 @@ public class AccountValuesProcessor {
 				        			if (secondaryDelta != null && accountContext.getOid() != null) {
 				        	        	secondaryDelta.setOid(accountContext.getOid());
 				        	        }
-				        			result.computeStatus();
-									// if the result is fatal error, it may mean that the
-									// already exists expection occures before..but in this
-									// scenario it means, the exception was handled and we
-									// can mute the result to give better understanding of
-									// the situation which happend
-				        			if (result.isError()){
-				        				result.muteError();
-				        			}
+//				        			result.computeStatus();
+//									// if the result is fatal error, it may mean that the
+//									// already exists expection occures before..but in this
+//									// scenario it means, the exception was handled and we
+//									// can mute the result to give better understanding of
+//									// the situation which happend
+//				        			if (result.isError()){
+//				        				result.muteError();
+//				        			}
 				        			// Re-do this same iteration again (do not increase iteration count).
 				        			// It will recompute the values and therefore enforce the user deltas and enable reconciliation
 				        			skipUniquenessCheck = true; // to avoid endless loop
@@ -322,6 +332,39 @@ public class AccountValuesProcessor {
 												.getFocusContext().getObjectNew(), resourceType, result);
 										
 										if (match){
+											//check if it is add account (primary delta contains add shadow deltu)..
+											//if it is add account, create new context for conflicting account..
+											//it ensures, that conflicting account is linked to the user
+											
+											if (accountContext.getPrimaryDelta() != null && accountContext.getPrimaryDelta().isAdd()){
+
+												PrismObject<ShadowType> shadow = accountContext.getPrimaryDelta().getObjectToAdd();
+												LOGGER.trace("Found primary ADD delta of shadow {}.", shadow);
+												
+												LensProjectionContext<ShadowType> conflictingAccountContext = context.findProjectionContext(accountContext.getResourceShadowDiscriminator(), fullConflictingShadow.getOid());
+												if (conflictingAccountContext == null){
+													conflictingAccountContext = LensUtil.createAccountContext(context, accountContext.getResourceShadowDiscriminator());
+//													conflictingAccountContext = context.createProjectionContext(accountContext.getResourceShadowDiscriminator());
+													conflictingAccountContext.setOid(fullConflictingShadow.getOid());
+													conflictingAccountContext.setObjectOld(fullConflictingShadow.clone());
+													conflictingAccountContext.setObjectCurrent(fullConflictingShadow);
+													conflictingAccountContext.setFullShadow(true);
+													conflictingAccountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
+													conflictingAccountContext.setResource(accountContext.getResource());
+													conflictingAccountContext.setDoReconciliation(true);
+													conflictingAccountContext.getDependencies().clear();
+													conflictingAccountContext.getDependencies().addAll(accountContext.getDependencies());
+													conflictingAccountContexts.add(conflictingAccountContext);
+												}
+												
+												accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+												result.recordFatalError("Could not add account " + accountContext.getObjectNew() + ", because the account with the same idenfitier already exists on the resource. ");
+												LOGGER.error("Could not add account {}, because the account with the same idenfitier already exists on the resource. ", accountContext.getObjectNew());
+												
+												skipUniquenessCheck = true; // to avoid endless loop
+							        			continue;
+											}
+											
 											//found shadow belongs to the current user..need to link it and replace current shadow with the found shadow..
 											cleanupContext(accountContext);
 											accountContext.setObjectOld(fullConflictingShadow.clone());
@@ -333,6 +376,17 @@ public class AccountValuesProcessor {
 									        	secondaryDelta.setOid(accountContext.getOid());
 									        }
 											LOGGER.trace("User {} satisfies correlation rules.", context.getFocusContext().getObjectNew());
+											
+//											result.computeStatus();
+//											// if the result is fatal error, it may mean that the
+//											// already exists expection occures before..but in this
+//											// scenario it means, the exception was handled and we
+//											// can mute the result to give better understanding of
+//											// the situation which happend
+//						        			if (result.isError()){
+//						        				result.muteError();
+//						        			}
+//											
 						        			// Re-do this same iteration again (do not increase iteration count).
 						        			// It will recompute the values and therefore enforce the user deltas and enable reconciliation
 											skipUniquenessCheck = true; // to avoid endless loop
@@ -393,8 +447,14 @@ public class AccountValuesProcessor {
 		addIterationTokenDeltas(accountContext);
 		
 		if (consistencyChecks) context.checkConsistence();
+		
 					
 	}
+	
+	public <P extends ObjectType> List<LensProjectionContext<? extends ObjectType>> getConflictingContexts(){
+		return conflictingAccountContexts;
+	}
+	
 	
 	private boolean willResetIterationCounter(LensProjectionContext<ShadowType> accountContext) throws SchemaException {
 		ObjectDelta<ShadowType> accountDelta = accountContext.getDelta();
@@ -416,6 +476,8 @@ public class AccountValuesProcessor {
 		}
 		return false;
 	}
+	
+	
 
 	private boolean hasIterationExpression(LensProjectionContext<ShadowType> accountContext) {
 		ResourceObjectTypeDefinitionType accDef = accountContext.getResourceAccountTypeDefinitionType();

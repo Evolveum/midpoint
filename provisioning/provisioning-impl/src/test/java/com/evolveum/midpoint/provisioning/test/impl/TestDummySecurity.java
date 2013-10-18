@@ -144,6 +144,7 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.TestConnecti
 public class TestDummySecurity extends AbstractDummyTest {
 
 	private static final Trace LOGGER = TraceManager.getTrace(TestDummySecurity.class);
+	private String willIcfUid;
 
 	@Test
 	public void test100AddAccountDrink() throws Exception {
@@ -210,6 +211,7 @@ public class TestDummySecurity extends AbstractDummyTest {
 		PrismObject<ShadowType> accountProvisioning = provisioningService.getObject(ShadowType.class,
 				ACCOUNT_WILL_OID, null, syncTask, result);
 		display("Account provisioning", accountProvisioning);
+		willIcfUid = getIcfUid(accountProvisioning);
 
 	}
 	
@@ -241,7 +243,8 @@ public class TestDummySecurity extends AbstractDummyTest {
 		TestUtil.assertSuccess(result);
 		
 		delta.checkConsistence();
-		assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "RUM");
+		assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, willIcfUid,
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_DRINK_NAME, "RUM");
 		
 		syncServiceMock.assertNotifySuccessOnly();
 	}
@@ -274,7 +277,8 @@ public class TestDummySecurity extends AbstractDummyTest {
 		TestUtil.assertSuccess(result);
 		
 		delta.checkConsistence();
-		assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, "pirate");
+		assertDummyAccountAttributeValues(ACCOUNT_WILL_USERNAME, willIcfUid, 
+				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME, "pirate");
 		
 		syncServiceMock.assertNotifySuccessOnly();
 	}
@@ -349,7 +353,7 @@ public class TestDummySecurity extends AbstractDummyTest {
 
 		// WHEN
 		List<PrismObject<ShadowType>> allShadows = provisioningService.searchObjects(ShadowType.class,
-				query, result);
+				query, null, result);
 		
 		// THEN
 		result.computeStatus();

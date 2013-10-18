@@ -77,6 +77,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AvailabilityStatusType;
@@ -400,6 +401,8 @@ public class ResourceManager {
 		Collection<Object> capabilities = null;
 		try {
 
+			InternalMonitor.recordConnectorCapabilitiesFetchCount();
+			
 			capabilities = connector.fetchCapabilities(result);
 
 		} catch (GenericFrameworkException ex) {
@@ -496,8 +499,12 @@ public class ResourceManager {
 			throws SchemaException, ObjectNotFoundException {
 		
 		ConnectorType connectorType = connectorTypeManager.getConnectorType(resource.asObjectable(), result);
+		PrismSchema connectorSchema = connectorTypeManager.getConnectorSchema(connectorType);
+		if (connectorSchema == null) {
+			throw new SchemaException("No connector schema in "+connectorType);
+		}
 		PrismContainerDefinition<ConnectorConfigurationType> configurationContainerDefintion = ConnectorTypeUtil
-				.findConfigurationContainerDefintion(connectorType, prismContext);
+				.findConfigurationContainerDefintion(connectorType, connectorSchema);
 		if (configurationContainerDefintion == null) {
 			throw new SchemaException("No configuration container definition in " + connectorType);
 		}
@@ -747,11 +754,13 @@ public class ResourceManager {
 		ResourceSchema schema = null;
 		try {
 
-			// Make sure that the schema is retrieved from the resource
-			// this will also retrieve the schema from cache and/or parse it if
-			// needed
-			ResourceType completeResource = completeResource(resource.asPrismObject(), null, false, parentResult).asObjectable();
-			schema = RefinedResourceSchema.getResourceSchema(completeResource, prismContext);
+			if (!isComplete(resource.asPrismObject())) {
+				// Make sure that the schema is retrieved from the resource
+				// this will also retrieve the schema from cache and/or parse it if
+				// needed
+				resource = completeResource(resource.asPrismObject(), null, false, parentResult).asObjectable();
+			}
+			schema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
 
 		} catch (SchemaException e) {
 			parentResult.recordFatalError("Unable to parse resource schema: " + e.getMessage(), e);

@@ -53,6 +53,7 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -144,7 +145,8 @@ public class ReconciliationProcessor {
 			if (!accContext.isFullShadow()) {
 				// We need to load the object
 				PrismObject<ShadowType> objectOld = provisioningService.getObject(ShadowType.class,
-						accContext.getOid(), GetOperationOptions.createDoNotDiscovery(), null, result);
+						accContext.getOid(), SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery())
+						, null, result);
 				ShadowType oldShadow = objectOld.asObjectable();
 				accContext.determineFullShadowFlag(oldShadow.getFetchResult());
 				accContext.setLoadedObject(objectOld);

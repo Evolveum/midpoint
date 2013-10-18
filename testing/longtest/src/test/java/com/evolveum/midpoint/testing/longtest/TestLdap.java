@@ -198,18 +198,9 @@ public class TestLdap extends AbstractModelIntegrationTest {
         String userLechuckOid = userLechuck.getOid();
         
         PrismObject<ShadowType> accountCharles = createAccount(resourceOpenDj, toDn(ACCOUNT_CHARLES_NAME), true);
-        ResourceAttributeContainer charlesAttrs = ShadowUtil.getAttributesContainer(accountCharles);
-        ResourceAttributeDefinition attrSnDef = charlesAttrs.getDefinition().findAttributeDefinition(
-        		 new QName(ResourceTypeUtil.getResourceNamespace(resourceOpenDj), "sn"));
-        ResourceAttribute<String> attrSn = attrSnDef.instantiate();
-        attrSn.setRealValue("Charles");
-        charlesAttrs.add(attrSn);
-        ResourceAttributeDefinition attrCnDef = charlesAttrs.getDefinition().findAttributeDefinition(
-       		 new QName(ResourceTypeUtil.getResourceNamespace(resourceOpenDj), "cn"));
-       ResourceAttribute<String> attrCn = attrCnDef.instantiate();
-       attrCn.setRealValue("Charles L. Charles");
-       charlesAttrs.add(attrCn);
-       addObject(accountCharles);
+        addAttributeToShadow(accountCharles, resourceOpenDj, "sn", "Charles");
+        addAttributeToShadow(accountCharles, resourceOpenDj, "cn", "Charles L. Charles");
+        addObject(accountCharles);
         
         // preconditions
         assertOpenDjAccount(ACCOUNT_LECHUCK_NAME, "LeChuck", true);

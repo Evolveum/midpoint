@@ -18,6 +18,8 @@ package com.evolveum.midpoint.provisioning.util;
 
 import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.mapping.Mapping;
+import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
@@ -26,15 +28,18 @@ import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteScriptArgument;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
+import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.holder.XPathSegment;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -46,6 +51,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AttributeFetchStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionReturnMultiplicityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationProvisioningScriptType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptArgumentType;
@@ -55,6 +61,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAttributesTyp
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsCapabilityType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
@@ -254,5 +261,54 @@ public class ProvisioningUtil {
 		}
 		
 		return scriptOperation;
+	}
+	
+	public static AttributesToReturn createAttributesToReturn(RefinedObjectClassDefinition objectClassDefinition,
+			ResourceType resource) throws SchemaException {
+		boolean apply = false;
+		AttributesToReturn attributesToReturn = new AttributesToReturn();
+		attributesToReturn.setReturnDefaultAttributes(true);
+		
+		// Attributes
+		Collection<ResourceAttributeDefinition> explicit = new ArrayList<ResourceAttributeDefinition>();
+		for (RefinedAttributeDefinition attributeDefinition: objectClassDefinition.getAttributeDefinitions()) {
+			AttributeFetchStrategyType fetchStrategy = attributeDefinition.getFetchStrategy();
+			if (fetchStrategy != null && fetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
+				explicit.add(attributeDefinition);
+			}
+		}
+		
+		if (!explicit.isEmpty()) {
+			attributesToReturn.setAttributesToReturn(explicit);
+			apply = true;
+		}
+		
+		// Password
+		CredentialsCapabilityType credentialsCapabilityType = ResourceTypeUtil.getEffectiveCapability(resource, CredentialsCapabilityType.class);
+		if (CapabilityUtil.isPasswordReturnedByDefault(credentialsCapabilityType)) {
+			// There resource is capable of returning password but it does not do it by default
+			AttributeFetchStrategyType passwordFetchStrategy = objectClassDefinition.getPasswordFetchStrategy();
+			if (passwordFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
+				attributesToReturn.setReturnPasswordExplicit(true);
+				apply = true;
+			}
+		}
+		
+		// Activation/administrativeStatus
+		ActivationCapabilityType activationCapabilityType = ResourceTypeUtil.getEffectiveCapability(resource, ActivationCapabilityType.class);
+		if (CapabilityUtil.isActivationStatusReturnedByDefault(activationCapabilityType)) {
+			// There resource is capable of returning enable flag but it does not do it by default
+			AttributeFetchStrategyType administrativeStatusFetchStrategy = objectClassDefinition.getActivationFetchStrategy(ActivationType.F_ADMINISTRATIVE_STATUS);
+			if (administrativeStatusFetchStrategy == AttributeFetchStrategyType.EXPLICIT) {
+				attributesToReturn.setReturnAdministrativeStatusExplicit(true);
+				apply = true;
+			}
+		}
+		
+		if (apply) {
+			return attributesToReturn;
+		} else {
+			return null;
+		}
 	}
 }

@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Set;
 
 import javax.naming.InvalidNameException;
 import javax.naming.NamingEnumeration;
@@ -40,23 +41,31 @@ import org.apache.commons.lang.time.DateUtils;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import com.evolveum.midpoint.common.crypto.EncryptionException;
+import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.common.expression.script.ScriptExpressionEvaluator;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
@@ -77,10 +86,12 @@ public class BasicExpressionFunctions {
 	public static final Trace LOGGER = TraceManager.getTrace(BasicExpressionFunctions.class);
 	
 	private PrismContext prismContext;
+	private Protector protector;
 
-	public BasicExpressionFunctions(PrismContext prismContext) {
+	public BasicExpressionFunctions(PrismContext prismContext, Protector protector) {
 		super();
 		this.prismContext = prismContext;
+		this.protector = protector;
 	}
 	
 	/**
@@ -339,6 +350,48 @@ public class BasicExpressionFunctions {
 		return determineLdapSingleAttributeValue(dns, attributeName, attribute.getRealValues());
 	}
 	
+	public <T> T getResourceIcfConfigurationPropertyValue(ResourceType resource, javax.xml.namespace.QName propertyQname) throws SchemaException {
+		if (propertyQname == null) {
+			return null;
+		}
+		PrismContainer<?> configurationProperties = getIcfConfigurationProperties(resource);
+		if (configurationProperties == null) {
+			return null;
+		}
+		PrismProperty<T> property = configurationProperties.findProperty(propertyQname);
+		if (property == null) {
+			return null;
+		}
+		return property.getRealValue();
+	}
+	
+	public <T> T getResourceIcfConfigurationPropertyValue(ResourceType resource, String propertyLocalPart) throws SchemaException {
+		if (propertyLocalPart == null) {
+			return null;
+		}
+		PrismContainer<?> configurationProperties = getIcfConfigurationProperties(resource);
+		if (configurationProperties == null) {
+			return null;
+		}
+		for (PrismProperty<?> property: configurationProperties.getValue().getProperties()) {
+			if (propertyLocalPart.equals(property.getName().getLocalPart())) {
+				return (T) property.getRealValue();
+			}
+		}
+		return null;
+	}
+	
+	private PrismContainer<?> getIcfConfigurationProperties(ResourceType resource) {
+		if (resource == null) {
+			return null;
+		}
+		PrismContainer<?> connectorConfiguration = resource.asPrismObject().findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
+		if (connectorConfiguration == null) {
+			return null;
+		}
+		return connectorConfiguration.findContainer(SchemaConstants.ICF_CONFIGURATION_PROPERTIES);
+	}
+	
 	public String determineLdapSingleAttributeValue(Collection<String> dns, String attributeName, Collection<String> values) throws NamingException {
 		if (values == null || values.isEmpty()) {
 			// Shortcut. This is maybe the most common case. We want to return quickly and we also need to avoid more checks later.
@@ -453,6 +506,26 @@ public class BasicExpressionFunctions {
 			return null;
 		}
 		return XmlTypeConverter.createXMLGregorianCalendar(date);
+    }
+    
+    public XMLGregorianCalendar currentDateTime() {
+    	return XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
+    }
+    
+    public String decrypt(ProtectedStringType protectedString) {
+    	try {
+			return protector.decryptString(protectedString);
+		} catch (EncryptionException e) {
+			throw new SystemException(e.getMessage(), e);
+		}
+    }
+    
+    public ProtectedStringType encrypt(String string) {
+    	try {
+			return protector.encryptString(string);
+		} catch (EncryptionException e) {
+			throw new SystemException(e.getMessage(), e);
+		}
     }
 	
 }

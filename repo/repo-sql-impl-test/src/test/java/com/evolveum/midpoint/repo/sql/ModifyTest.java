@@ -27,8 +27,8 @@ import com.evolveum.midpoint.prism.query.LessFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.sql.data.common.RAccountShadow;
 import com.evolveum.midpoint.repo.sql.data.common.RAnyContainer;
+import com.evolveum.midpoint.repo.sql.data.common.RShadow;
 import com.evolveum.midpoint.repo.sql.data.common.RSynchronizationSituationDescription;
 import com.evolveum.midpoint.repo.sql.data.common.RUser;
 import com.evolveum.midpoint.repo.sql.data.common.any.*;
@@ -651,7 +651,7 @@ public class ModifyTest extends BaseSQLRepoTest {
     @Test
     public void testModifyAccountSynchronizationSituationSimplyfied() {
         //add
-        RAccountShadow s1 = new RAccountShadow();
+        RShadow s1 = new RShadow();
         s1.setName(new RPolyString("acc", "acc"));
 
         LOGGER.info("add:\n{}", new Object[]{ReflectionToStringBuilder.reflectionToString(s1, ToStringStyle.MULTI_LINE_STYLE)});
@@ -666,7 +666,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         }
 
         //modify1
-        s1 = new RAccountShadow();
+        s1 = new RShadow();
         s1.setId(0L);
         s1.setOid(ID.getOid());
         s1.setName(new RPolyString("acc", "acc"));
@@ -692,7 +692,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         session = getFactory().openSession();
         try {
             session.beginTransaction();
-            RAccountShadow shadow = (RAccountShadow) session.get(RAccountShadow.class, ID);
+            RShadow shadow = (RShadow) session.get(RShadow.class, ID);
             LOGGER.info("get1:\n{}", new Object[]{ReflectionToStringBuilder.reflectionToString(shadow, ToStringStyle.MULTI_LINE_STYLE)});
             AssertJUnit.assertEquals(1, shadow.getSynchronizationSituationDescription().size());
 
@@ -708,7 +708,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         }
 
         //modify2
-        s1 = new RAccountShadow();
+        s1 = new RShadow();
         s1.setId(0L);
         s1.setOid(ID.getOid());
         s1.setName(new RPolyString("acc", "acc"));
@@ -735,7 +735,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         session = getFactory().openSession();
         try {
             session.beginTransaction();
-            RAccountShadow shadow = (RAccountShadow) session.get(RAccountShadow.class, ID);
+            RShadow shadow = (RShadow) session.get(RShadow.class, ID);
             LOGGER.info("get2:\n{}", new Object[]{ReflectionToStringBuilder.reflectionToString(shadow, ToStringStyle.MULTI_LINE_STYLE)});
 
             Date t;
