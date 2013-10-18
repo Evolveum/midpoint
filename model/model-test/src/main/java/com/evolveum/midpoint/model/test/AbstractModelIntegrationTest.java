@@ -187,7 +187,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	@Autowired(required = true)
 	protected ProvisioningService provisioningService;
-	
+		
 	@Autowired(required = true)
 	protected HookRegistry hookRegistry;
 	

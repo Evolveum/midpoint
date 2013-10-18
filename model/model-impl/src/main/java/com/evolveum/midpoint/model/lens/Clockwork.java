@@ -94,8 +94,6 @@ public class Clockwork {
 
     private LensDebugListener debugListener;
 	
-	private boolean consistenceChecks = true;
-	
 	public LensDebugListener getDebugListener() {
 		return debugListener;
 	}
@@ -126,6 +124,10 @@ public class Clockwork {
 		
 		// DO NOT CHECK CONSISTENCY of the context here. The context may not be fresh and consistent yet. Project will fix
 		// that. Check consistency afterwards (and it is also checked inside projector several times).
+		
+		if (context.getDebugListener() == null) {
+			context.setDebugListener(debugListener);
+		}
 		
 		try {
 			

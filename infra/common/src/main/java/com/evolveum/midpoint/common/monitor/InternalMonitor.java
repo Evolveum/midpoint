@@ -31,8 +31,10 @@ public class InternalMonitor {
 	private static final Trace LOGGER = TraceManager.getTrace(InternalMonitor.class);
 	
 	private static long resourceSchemaParseCount = 0;
-	private static long connectorInitializationCount = 0;
-	private static long connectorSchemaFetchCount = 0;
+	private static long resourceSchemaFetchCount = 0;
+	private static boolean traceResourceSchemaOperations = false;
+	
+	private static long connectorInstanceInitializationCount = 0;
 	private static long connectorSchemaParseCount = 0;
 	private static long connectorCapabilitiesFetchCount = 0;
 	private static CachingStatistics resourceCacheStats = new CachingStatistics();
@@ -55,23 +57,29 @@ public class InternalMonitor {
 	
 	public synchronized static void recordResourceSchemaParse() {
 		resourceSchemaParseCount++;
+		if (traceShadowFetchOperation) {
+			traceOperation("resource schema parse", resourceSchemaParseCount);
+		}
 	}
 	
-	public static long getConnectorInitializationCount() {
-		return connectorInitializationCount;
+	public static long getConnectorInstanceInitializationCount() {
+		return connectorInstanceInitializationCount;
 	}
 	
-	public synchronized static void recordConnectorInitialization() {
-		connectorInitializationCount++;
+	public synchronized static void recordConnectorInstanceInitialization() {
+		connectorInstanceInitializationCount++;
 	}
 	
-	public static long getConnectorSchemaFetchCount() {
-		return connectorSchemaFetchCount;
+	public static long getResourceSchemaFetchCount() {
+		return resourceSchemaFetchCount;
 	}
 	
-	public synchronized static void recordConnectorSchemaFetch() {
-		connectorSchemaFetchCount++;
+	public synchronized static void recordResourceSchemaFetch() {
+		resourceSchemaFetchCount++;
 		provisioningAllExtOperationCount++;
+		if (traceShadowFetchOperation) {
+			traceOperation("resource schema fetch", resourceSchemaFetchCount);
+		}
 	}
 
 	public static long getConnectorSchemaParseCount() {
@@ -144,6 +152,16 @@ public class InternalMonitor {
 		InternalMonitor.traceShadowFetchOperation = traceShadowFetchOperation;
 	}
 
+	public static boolean isTraceResourceSchemaOperations() {
+		return traceResourceSchemaOperations;
+	}
+
+	public static void setTraceResourceSchemaOperations(
+			boolean traceResourceSchemaOperations) {
+		LOGGER.debug("MONITOR traceResourceSchemaOperations={}", traceResourceSchemaOperations);
+		InternalMonitor.traceResourceSchemaOperations = traceResourceSchemaOperations;
+	}
+
 	public static long getShadowChangeOpeartionCount() {
 		return shadowChangeOpeartionCount;
 	}
@@ -164,8 +182,8 @@ public class InternalMonitor {
 	public static void reset() {
 		LOGGER.info("MONITOR reset");
 		resourceSchemaParseCount = 0;
-		connectorInitializationCount = 0;
-		connectorSchemaFetchCount = 0;
+		connectorInstanceInitializationCount = 0;
+		resourceSchemaFetchCount = 0;
 		connectorSchemaParseCount = 0;
 		connectorCapabilitiesFetchCount = 0;
 		resourceCacheStats = new CachingStatistics();
