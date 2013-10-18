@@ -570,7 +570,7 @@ public class PageDebugList extends PageAdminConfiguration {
                     @Override
                     public boolean handle(PrismObject object, OperationResult parentResult) {
                         if(!SystemObjectsType.USER_ADMINISTRATOR.value().equals(object.asObjectable().getOid())){
-                            sb.append(PRINT_LABEL_USER).append(testObjectNameForNullState(object)).append(PRINT_LABEL_HTML_NEWLINE);
+                            sb.append(PRINT_LABEL_USER).append(WebMiscUtil.getName(object)).append(PRINT_LABEL_HTML_NEWLINE);
                         }
                         return true;
                     }
@@ -579,7 +579,7 @@ public class PageDebugList extends PageAdminConfiguration {
                 ResultHandler<ShadowType> shadowHandler = new ResultHandler<ShadowType>() {
                     @Override
                     public boolean handle(PrismObject object, OperationResult parentResult) {
-                        sb.append(PRINT_LABEL_SHADOW).append(testObjectNameForNullState(object)).append(PRINT_LABEL_HTML_NEWLINE);
+                        sb.append(PRINT_LABEL_SHADOW).append(WebMiscUtil.getName(object)).append(PRINT_LABEL_HTML_NEWLINE);
                         return true;
                     }
                 };
@@ -714,27 +714,9 @@ public class PageDebugList extends PageAdminConfiguration {
         GetOperationOptions opt = GetOperationOptions.createRaw();
         options.add(SelectorOptions.create(ItemPath.EMPTY_PATH, opt));
 
-                ResultHandler<UserType> userHandler = new ResultHandler<UserType>() {
-                    @Override
-                    public boolean handle(PrismObject object, OperationResult parentResult) {
-                        if (!SystemObjectsType.USER_ADMINISTRATOR.value().equals(object.asObjectable().getOid())) {
-                            ObjectDelta delta = ObjectDelta.createDeleteDelta(UserType.class, object.asObjectable().getOid(), getPrismContext());
-                            Task task = createSimpleTask(OPERATION_LAXATIVE_DELETE);
-                            OperationResult r = new OperationResult(OPERATION_LAXATIVE_DELETE);
         Task laxativeTask = createSimpleTask(OPERATION_LAXATIVE_DELETE);
         OperationResult result = new OperationResult(OPERATION_LAXATIVE_DELETE);
 
-                            try {
-                                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), ModelExecuteOptions.createRaw(), task, r);
-                                r.recordSuccess();
-                            } catch (Exception ex) {
-                                r.computeStatus(getString("pageDebugList.message.singleDeleteProblemUser"));
-                                LoggingUtils.logException(LOGGER, getString("pageDebugList.message.singleDeleteProblemUser"), ex);
-                            }
-                            parentResult.addSubresult(r);
-                        }
-                        return true;
-                    }
         ResultHandler<UserType> userHandler = new ResultHandler<UserType>() {
             @Override
             public boolean handle(PrismObject object, OperationResult parentResult) {
@@ -750,15 +732,6 @@ public class PageDebugList extends PageAdminConfiguration {
                         if(objectsDeleted % 100 == 0)
                             LOGGER.info("Deleted {} out of {} objects.", objectsDeleted, objectsToDelete);
 
-                        try {
-                            getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), ModelExecuteOptions.createRaw(), task, r);
-                            r.recordSuccess();
-                        } catch (Exception ex) {
-                            r.computeStatus(getString("pageDebugList.message.singleDeleteProblemShadow"));
-                            LoggingUtils.logException(LOGGER, getString("pageDebugList.message.singleDeleteProblemShadow"), ex);
-                        }
-                        parentResult.addSubresult(r);
-                        return true;
                         r.recordSuccess();
                     } catch (Exception ex){
                         r.computeStatus(getString("pageDebugList.message.singleDeleteProblemUser"));
@@ -779,11 +752,6 @@ public class PageDebugList extends PageAdminConfiguration {
                 OperationResult r = new OperationResult(OPERATION_LAXATIVE_DELETE);
 
                 try {
-                    getModelService().searchObjectsIterative(UserType.class, null, userHandler, options, laxativeTask, result);
-                    getModelService().searchObjectsIterative(ShadowType.class, null, shadowHandler, options, laxativeTask, result);
-                } catch (Exception ex) {
-                    result.computeStatus(getString("pageDebugList.message.laxativeProblem"));
-                    LoggingUtils.logException(LOGGER, getString("pageDebugList.message.laxativeProblem"), ex);
                     getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), ModelExecuteOptions.createRaw(), task, r);
                     objectsDeleted++;
 
