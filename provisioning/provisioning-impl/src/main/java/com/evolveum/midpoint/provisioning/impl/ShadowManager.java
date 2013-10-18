@@ -202,28 +202,28 @@ public class ShadowManager {
 	}
 
 
-	public PrismObject<ShadowType> lookupShadowByIdentifier( 
+	public PrismObject<ShadowType> lookupShadowByName( 
 			PrismObject<ShadowType> resourceShadow, RefinedObjectClassDefinition rObjClassDef, 
 			ResourceType resource, OperationResult parentResult) 
 					throws SchemaException, ConfigurationException {
 
-		Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getIdentifiers(resourceShadow);
-		ResourceAttribute<?> identifier = null;
-		if (identifiers.size() < 1){
-			LOGGER.trace("Shadow does not contain primary idetifier. Skipping shadow lookup.");
+		Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(resourceShadow);
+		ResourceAttribute<?> secondaryIdentifier = null;
+		if (secondaryIdentifiers.size() < 1){
+			LOGGER.trace("Shadow does not contain secondary idetifier. Skipping lookup shadows according to name.");
 			return null;
 		}
 		
-		identifier = identifiers.iterator().next();
-		LOGGER.trace("Shadow primary identifier {}", identifier);
+		secondaryIdentifier = secondaryIdentifiers.iterator().next();
+		LOGGER.trace("Shadow secondary identifier {}", secondaryIdentifier);
 		
 		AndFilter filter = AndFilter.createAnd(RefFilter.createReferenceEqual(ShadowType.class,
 				ShadowType.F_RESOURCE_REF, prismContext, resource.getOid()), EqualsFilter.createEqual(
-				new ItemPath(ShadowType.F_ATTRIBUTES), identifier.getDefinition(),
-				getNormalizedValue(identifier, rObjClassDef)));
+				new ItemPath(ShadowType.F_ATTRIBUTES), secondaryIdentifier.getDefinition(),
+				getNormalizedValue(secondaryIdentifier, rObjClassDef)));
 		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Searching for shadow using filter on primary identifier:\n{}",
+			LOGGER.trace("Searching for shadow using filter on secondary identifier:\n{}",
 					query.dump());
 		}
 

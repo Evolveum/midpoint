@@ -878,7 +878,7 @@ public abstract class ShadowCache {
 					SchemaDebugUtil.prettyPrint(resourceShadow));
 
 			
-			PrismObject<ShadowType> conflictingShadow = shadowManager.lookupShadowByIdentifier(resourceShadow, objectClassDef, resourceType, parentResult);
+			PrismObject<ShadowType> conflictingShadow = shadowManager.lookupShadowByName(resourceShadow, objectClassDef, resourceType, parentResult);
 			if (conflictingShadow != null){
 				applyAttributesDefinition(conflictingShadow, resourceType);
 				conflictingShadow = completeShadow(connector, resourceShadow, conflictingShadow, resourceType, objectClassDef, parentResult);
