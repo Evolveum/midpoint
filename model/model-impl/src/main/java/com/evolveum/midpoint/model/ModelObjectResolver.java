@@ -19,6 +19,7 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.task.api.TaskManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -69,6 +70,9 @@ public class ModelObjectResolver implements ObjectResolver {
 	
 	@Autowired(required = true)
 	private transient PrismContext prismContext;
+
+    @Autowired
+    private transient TaskManager taskManager;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ModelObjectResolver.class);
 	
@@ -109,7 +113,7 @@ public class ModelObjectResolver implements ObjectResolver {
 	public <T extends ObjectType> T getObjectSimple(Class<T> clazz, String oid, GetOperationOptions options, Task task, 
 			OperationResult result) throws ObjectNotFoundException {
 		try {
-			return getObject(clazz, oid, options, task, result);
+			return getObject(clazz, oid, SelectorOptions.createCollection(options), task, result);
 		} catch (SystemException ex) {
 			throw ex;
 		} catch (ObjectNotFoundException ex) {
@@ -131,7 +135,7 @@ public class ModelObjectResolver implements ObjectResolver {
             ObjectTypes.ObjectManager manager = ObjectTypes.getObjectManagerForClass(clazz);
             switch (manager) {
                 case PROVISIONING:
-                    object = provisioning.getObject(clazz, oid, SelectorOptions.findRootOptions(options), task, result);
+                    object = provisioning.getObject(clazz, oid, options, task, result);
                     if (object == null) {
                         throw new SystemException("Got null result from provisioning.getObject while looking for "+clazz.getSimpleName()
                                 +" with OID "+oid+"; using provisioning implementation "+provisioning.getClass().getName());
