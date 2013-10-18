@@ -61,6 +61,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.poi.hssf.record.formula.functions.T;
+import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
@@ -68,6 +69,7 @@ import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.form.ListChoice;
@@ -106,6 +108,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
     private static final String ID_CONFIRM_DELETE_POPUP = "confirmDeletePopup";
     private static final String ID_CONFIRM_LAXATIVE_OPERATION = "confirmLaxativeOperation";
+    private static final String ID_LAXATIVE_PARENT_CONTAINER = "laxativeParent";
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_ZIP_CHECK = "zipCheck";
     private static final String ID_OPTION_CONTENT = "optionContent";
@@ -132,6 +135,9 @@ public class PageDebugList extends PageAdminConfiguration {
     private boolean deleteSelected; //todo what is this used for?
     private IModel<ObjectTypes> choice = null;
     private DebugObjectItem object = null; //todo what is this used for?
+
+    private int objectsToDelete = 0;
+    private int objectsDeleted = 0;
 
     public PageDebugList() {
         initLayout();
@@ -160,7 +166,6 @@ public class PageDebugList extends PageAdminConfiguration {
         laxativeConfirmationDialog.setEscapeModelStringsByCaller(false);
         laxativeConfirmationDialog.setInitialWidth(500);
         add(laxativeConfirmationDialog);
-
 
         final Form main = new Form(ID_MAIN_FORM);
         add(main);
@@ -515,7 +520,6 @@ public class PageDebugList extends PageAdminConfiguration {
                 final StringBuilder sb = new StringBuilder();
                 sb.append(createStringResource("pageDebugList.dialog.title.confirmLaxativeMessage").getString()+"<br><br>");
 
-
                 Task task = createSimpleTask(OPERATION_SEARCH_ITERATIVE_TASK);
                 OperationResult result = new OperationResult(OPERATION_SEARCH_ITERATIVE_TASK);
 
@@ -549,12 +553,14 @@ public class PageDebugList extends PageAdminConfiguration {
 
                     shadowCount = getModelService().countObjects(ShadowType.class, null, options, task, result);
 
+                    objectsToDelete = userCount + shadowCount;
+
                     if(userCount >= 10 || shadowCount >= 10){
                         sb.append(PRINT_LABEL_USER_DELETE).append(userCount).append(PRINT_LABEL_HTML_NEWLINE).append(PRINT_LABEL_SHADOW_DELETE).append(shadowCount).append(PRINT_LABEL_HTML_NEWLINE);
                         sb.append(PRINT_LABEL_ADMINISTRATOR_NOT_DELETED).append(PRINT_LABEL_HTML_NEWLINE);
                     }else{
                         sb.append(PRINT_LABEL_USER_DELETE).append(userCount).append(PRINT_LABEL_HTML_NEWLINE);
-                        sb.append(PRINT_LABEL_ADMINISTRATOR_NOT_DELETED);
+                        sb.append(PRINT_LABEL_ADMINISTRATOR_NOT_DELETED).append(PRINT_LABEL_HTML_NEWLINE);
                         getModelService().searchObjectsIterative(UserType.class, null, userHandler, options, task, result);
                         sb.append(PRINT_LABEL_HTML_NEWLINE);
                         sb.append(PRINT_LABEL_SHADOW_DELETE).append(shadowCount).append(PRINT_LABEL_HTML_NEWLINE);
@@ -653,7 +659,6 @@ public class PageDebugList extends PageAdminConfiguration {
     private void laxativeActionPerformed(AjaxRequestTarget target){
         ModalWindow dialog = (ModalWindow) get(ID_CONFIRM_LAXATIVE_OPERATION);
         dialog.show(target);
-        //dialog.close(target);
     }
 
     private ConfirmationDialog prepareLaxativeConfirmationDialog(){
@@ -662,68 +667,83 @@ public class PageDebugList extends PageAdminConfiguration {
 
             @Override
             public void yesPerformed(AjaxRequestTarget target){
-                close(target);
-                Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<SelectorOptions<GetOperationOptions>>();
-                GetOperationOptions opt = GetOperationOptions.createRaw();
-                options.add(SelectorOptions.create(ItemPath.EMPTY_PATH, opt));
-
-                Task laxativeTask = createSimpleTask(OPERATION_LAXATIVE_DELETE);
-                OperationResult result = new OperationResult(OPERATION_LAXATIVE_DELETE);
-
-                ResultHandler<UserType> userHandler = new ResultHandler<UserType>() {
-                    @Override
-                    public boolean handle(PrismObject object, OperationResult parentResult) {
-                        if(!SystemObjectsType.USER_ADMINISTRATOR.value().equals(object.asObjectable().getOid())){
-                            ObjectDelta delta = ObjectDelta.createDeleteDelta(UserType.class, object.asObjectable().getOid(), getPrismContext());
-                            Task task = createSimpleTask(OPERATION_LAXATIVE_DELETE);
-                            OperationResult r = new OperationResult(OPERATION_LAXATIVE_DELETE);
-
-                            try {
-                                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta),ModelExecuteOptions.createRaw(), task, r);
-                                r.recordSuccess();
-                            } catch (Exception ex){
-                                r.computeStatus(getString("pageDebugList.message.singleDeleteProblemUser"));
-                                LoggingUtils.logException(LOGGER, getString("pageDebugList.message.singleDeleteProblemUser"), ex);
-                            }
-                            parentResult.addSubresult(r);
-                        }
-                        return true;
-                    }
-
-                };
-
-                ResultHandler<ShadowType> shadowHandler = new ResultHandler<ShadowType>() {
-                    @Override
-                    public boolean handle(PrismObject object, OperationResult parentResult) {
-                        ObjectDelta delta = ObjectDelta.createDeleteDelta(ShadowType.class, object.asObjectable().getOid(), getPrismContext());
-                        Task task = createSimpleTask(OPERATION_LAXATIVE_DELETE);
-                        OperationResult r = new OperationResult(OPERATION_LAXATIVE_DELETE);
-
-                        try {
-                            getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), ModelExecuteOptions.createRaw(), task, r);
-                            r.recordSuccess();
-                        }catch (Exception ex){
-                            r.computeStatus(getString("pageDebugList.message.singleDeleteProblemShadow"));
-                            LoggingUtils.logException(LOGGER, getString("pageDebugList.message.singleDeleteProblemShadow"), ex);
-                        }
-                        parentResult.addSubresult(r);
-                        return true;
-                    }
-                };
-
-                try {
-                    getModelService().searchObjectsIterative(UserType.class, null, userHandler, options, laxativeTask, result);
-                    getModelService().searchObjectsIterative(ShadowType.class, null, shadowHandler, options, laxativeTask, result);
-                }catch (Exception ex){
-                    result.computeStatus(getString("pageDebugList.message.laxativeProblem"));
-                    LoggingUtils.logException(LOGGER, getString("pageDebugList.message.laxativeProblem"), ex);
-                }
-
-                result.recomputeStatus();
-                showResult(result);
+                deleteAllIdentities();
+                LOGGER.info("Deleted {} out of {} objects.", objectsDeleted, objectsToDelete);
                 target.add(getListTable());
                 target.add(getFeedbackPanel());
+                close(target);
             }
         };
+    }
+
+    private void deleteAllIdentities(){
+        Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<SelectorOptions<GetOperationOptions>>();
+        GetOperationOptions opt = GetOperationOptions.createRaw();
+        options.add(SelectorOptions.create(ItemPath.EMPTY_PATH, opt));
+
+        Task laxativeTask = createSimpleTask(OPERATION_LAXATIVE_DELETE);
+        OperationResult result = new OperationResult(OPERATION_LAXATIVE_DELETE);
+
+        ResultHandler<UserType> userHandler = new ResultHandler<UserType>() {
+            @Override
+            public boolean handle(PrismObject object, OperationResult parentResult) {
+                if(!SystemObjectsType.USER_ADMINISTRATOR.value().equals(object.asObjectable().getOid())){
+                    ObjectDelta delta = ObjectDelta.createDeleteDelta(UserType.class, object.asObjectable().getOid(), getPrismContext());
+                    Task task = createSimpleTask(OPERATION_LAXATIVE_DELETE);
+                    OperationResult r = new OperationResult(OPERATION_LAXATIVE_DELETE);
+
+                    try {
+                        getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta),ModelExecuteOptions.createRaw(), task, r);
+                        objectsDeleted++;
+
+                        if(objectsDeleted % 100 == 0)
+                            LOGGER.info("Deleted {} out of {} objects.", objectsDeleted, objectsToDelete);
+
+                        r.recordSuccess();
+                    } catch (Exception ex){
+                        r.computeStatus(getString("pageDebugList.message.singleDeleteProblemUser"));
+                        LoggingUtils.logException(LOGGER, getString("pageDebugList.message.singleDeleteProblemUser"), ex);
+                    }
+                    parentResult.addSubresult(r);
+                }
+                return true;
+            }
+
+        };
+
+        ResultHandler<ShadowType> shadowHandler = new ResultHandler<ShadowType>() {
+            @Override
+            public boolean handle(PrismObject object, OperationResult parentResult) {
+                ObjectDelta delta = ObjectDelta.createDeleteDelta(ShadowType.class, object.asObjectable().getOid(), getPrismContext());
+                Task task = createSimpleTask(OPERATION_LAXATIVE_DELETE);
+                OperationResult r = new OperationResult(OPERATION_LAXATIVE_DELETE);
+
+                try {
+                    getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), ModelExecuteOptions.createRaw(), task, r);
+                    objectsDeleted++;
+
+                    if(objectsDeleted % 100 == 0)
+                        LOGGER.info("Deleted {} out of {} objects.", objectsDeleted, objectsToDelete);
+
+                    r.recordSuccess();
+                }catch (Exception ex){
+                    r.computeStatus(getString("pageDebugList.message.singleDeleteProblemShadow"));
+                    LoggingUtils.logException(LOGGER, getString("pageDebugList.message.singleDeleteProblemShadow"), ex);
+                }
+                parentResult.addSubresult(r);
+                return true;
+            }
+        };
+
+        try {
+            getModelService().searchObjectsIterative(UserType.class, null, userHandler, options, laxativeTask, result);
+            getModelService().searchObjectsIterative(ShadowType.class, null, shadowHandler, options, laxativeTask, result);
+        }catch (Exception ex){
+            result.computeStatus(getString("pageDebugList.message.laxativeProblem"));
+            LoggingUtils.logException(LOGGER, getString("pageDebugList.message.laxativeProblem"), ex);
+        }
+
+        result.recomputeStatus();
+        showResult(result);
     }
 }
