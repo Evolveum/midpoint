@@ -795,7 +795,7 @@
         <xsd:annotation>
             <xsd:documentation>
                 This is a general-purpose type to store sensitive values that should be encrypted in
-                the repository. It is using starndard XML Encryption schema.
+                the repository. It is using standard XML Encryption schema.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:choice>

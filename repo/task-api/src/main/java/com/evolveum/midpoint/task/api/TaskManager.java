@@ -110,7 +110,7 @@ public interface TaskManager {
      * @param <T>
      * @return
      */
-    <T extends ObjectType> PrismObject<T> getObject(Class<T> clazz, String oid, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult result);
+    <T extends ObjectType> PrismObject<T> getObject(Class<T> clazz, String oid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws ObjectNotFoundException, SchemaException;
 
     /**
      * Add new task.

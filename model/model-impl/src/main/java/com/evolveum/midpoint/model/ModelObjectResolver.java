@@ -142,7 +142,7 @@ public class ModelObjectResolver implements ObjectResolver {
                     }
                     break;
                 case TASK_MANAGER:
-                    object = taskManager.getObject(clazz, oid, options, task, result);
+                    object = taskManager.getObject(clazz, oid, options, result);
                     if (object == null) {
                         throw new SystemException("Got null result from taskManager.getObject while looking for "+clazz.getSimpleName()
                                 +" with OID "+oid+"; using task manager implementation "+taskManager.getClass().getName());

@@ -60,6 +60,210 @@
             			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2"/>
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
             			schemaLocation="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"/>
+
+            <xsd:element name="addObject">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="object" type="c:ObjectType">
+                            <xsd:annotation>
+                                <xsd:documentation>
+                                    Object to be created.
+                                    OID attribute of the object may be empty.
+                                </xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="addObjectResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="oid" type="xsd:string">
+                            <xsd:annotation>
+                                <xsd:documentation>
+                                    OID assigned to the created object.
+                                </xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="result" type="c:OperationResultType" />
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+            <xsd:element name="getObject">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="objectType" type="xsd:anyURI"/>
+                        <xsd:element name="oid" type="xsd:string"/>
+                        <xsd:element name="options" type="apit:OperationOptionsType"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="getObjectResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="object" type="c:ObjectType"/>
+                        <xsd:element name="result" type="c:OperationResultType" />
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+            <xsd:element name="listObjects">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="objectType" type="xsd:anyURI">
+                            <xsd:annotation>
+                                <xsd:documentation>
+                                    Object type to list.
+                                </xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="paging" type="q:PagingType">
+                            <xsd:annotation>
+                                <xsd:documentation>
+                                    Parameters limiting the number of returned entries, offset, etc.
+                                </xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="options" type="apit:OperationOptionsType"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="listObjectsResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="objectList" type="apit:ObjectListType"/>
+                        <xsd:element name="result" type="c:OperationResultType" />
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+            <xsd:element name="searchObjects">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="objectType" type="xsd:anyURI"/>
+                        <xsd:element name="query" type="q:QueryType">
+                            <xsd:annotation>
+                                <xsd:documentation>
+                                    Search criteria
+                                </xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                        <xsd:element name="options" type="apit:OperationOptionsType"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="searchObjectsResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="objectList" type="apit:ObjectListType"/>
+                        <xsd:element name="result" type="c:OperationResultType" />
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+            <xsd:element name="modifyObject">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="objectType" type="xsd:anyURI"/>
+                        <xsd:element name="objectChange" type="apit:ObjectModificationType"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="modifyObjectResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="result" type="c:OperationResultType" />
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+            <xsd:element name="deleteObject">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="objectType" type="xsd:anyURI"/>
+                        <xsd:element name="oid" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="deleteObjectResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="result" type="c:OperationResultType" />
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+            <xsd:element name="listAccountShadowOwner">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="accountOid" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="listAccountShadowOwnerResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="user" type="c:UserType"/>
+                        <xsd:element name="result" type="c:OperationResultType" />
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+            <xsd:element name="listResourceObjectShadows">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="resourceOid" type="xsd:string"/>
+                        <xsd:element name="resourceObjectShadowType" type="xsd:anyURI"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="listResourceObjectShadowsResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="resourceObjectShadowList" type="apit:ResourceObjectShadowListType"/>
+                        <xsd:element name="result" type="c:OperationResultType" />
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+            <xsd:element name="testResource">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="resourceOid" type="xsd:string"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="testResourceResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="result" type="c:OperationResultType" />
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+
+            <xsd:element name="importFromResource">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="resourceOid" type="xsd:string"/>
+                        <xsd:element name="objectClass" type="xsd:QName">
+                            <xsd:annotation>
+                                <xsd:documentation>
+                                    Object class to import.
+                                    Local name, assumed to be in the resource namespace.
+                                </xsd:documentation>
+                            </xsd:annotation>
+                        </xsd:element>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="importFromResourceResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="task" type="c:TaskType" />
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
         </xsd:schema>
     </types>
 
@@ -70,147 +274,76 @@
          But that does not work on OpenESB. Therefore good old copy&paste
          instead of import -->
 
-	<message name="addObjectRequest">
-        <part name="object" type="c:ObjectType">
-            <documentation>
-                Object to be created.
-                OID attribute of the object may be empty.
-            </documentation>
-        </part>
+	<message name="addObject">
+        <part name="addObject" element="tns:addObject" />
     </message>
     <message name="addObjectResponse">
-        <part name="oid" type="xsd:string">
-            <documentation>
-                OID assigned to the created object.
-            </documentation>
-        </part>
-        <part name="result" type="c:OperationResultType" />
+        <part name="addObjectResponse" element="tns:addObjectResponse" />
     </message>
 
-    <message name="getObjectRequest">
-    	<part name="objectType" type="xsd:anyURI"/>
-        <part name="oid" type="xsd:string"/>
-        <part name="options" type="apit:OperationOptionsType"/>
+    <message name="getObject">
+        <part name="parameters" element="tns:getObject" />
     </message>
     <message name="getObjectResponse">
-        <part name="object" type="c:ObjectType"/>
-        <part name="result" type="c:OperationResultType" />
+        <part name="parameters" element="tns:getObjectResponse" />
     </message>
 
-    <message name="listObjectsRequest">
-        <part name="objectType" type="xsd:anyURI">
-            <documentation>
-                Object type to list.
-            </documentation>
-        </part>
-        <part name="paging" type="q:PagingType">
-            <documentation>
-                Parameters limiting the number of returned entries, offset, etc.
-            </documentation>
-        </part>
-        <part name="options" type="apit:OperationOptionsType"/>
+    <message name="listObjects">
+        <part name="parameters" element="tns:listObjects" />
     </message>
     <message name="listObjectsResponse">
-        <part name="objectList" type="apit:ObjectListType"/>
-        <part name="result" type="c:OperationResultType" />
+        <part name="parameters" element="tns:listObjectsResponse" />
     </message>
 
-    <message name="searchObjectsRequest">
-    	<part name="objectType" type="xsd:anyURI"/>
-        <part name="query" type="q:QueryType">
-            <documentation>
-                Search criteria
-            </documentation>
-        </part>
-        <part name="options" type="apit:OperationOptionsType"/>
-<!--         <part name="paging" type="q:PagingType"> -->
-<!--             <documentation> -->
-<!--                 Parameters limiting the number of returned entries, offset, etc. -->
-<!--             </documentation> -->
-<!--         </part> -->
+    <message name="searchObjects">
+        <part name="parameters" element="tns:searchObjects" />
     </message>
     <message name="searchObjectsResponse">
-        <part name="objectList" type="apit:ObjectListType"/>
-        <part name="result" type="c:OperationResultType" />
+        <part name="parameters" element="tns:searchObjectsResponse" />
     </message>
 
-    <message name="modifyObjectRequest">
-    	<part name="objectType" type="xsd:anyURI"/>
-        <part name="objectChange" type="apit:ObjectModificationType"/>
+    <message name="modifyObject">
+        <part name="parameters" element="tns:modifyObject" />
     </message>
     <message name="modifyObjectResponse">
-    	<part name="result" type="c:OperationResultType" />
+        <part name="parameters" element="tns:modifyObjectResponse" />
     </message>
 
-    <message name="deleteObjectRequest">
-    	<part name="objectType" type="xsd:anyURI"/>
-        <part name="oid" type="xsd:string"/>
+    <message name="deleteObject">
+        <part name="parameters" element="tns:deleteObject" />
     </message>
     <message name="deleteObjectResponse">
-    	<part name="result" type="c:OperationResultType" />
+        <part name="parameters" element="tns:deleteObjectResponse" />
     </message>
 
     <!-- End of common messages -->
 
-    <message name="listAccountShadowOwnerRequest">
-        <part name="accountOid" type="xsd:string"/>
+    <message name="listAccountShadowOwner">
+        <part name="parameters" element="tns:listAccountShadowOwner" />
     </message>
     <message name="listAccountShadowOwnerResponse">
-        <part name="user" type="c:UserType"/>
-        <part name="result" type="c:OperationResultType" />
+        <part name="parameters" element="tns:listAccountShadowOwnerResponse" />
     </message>
 
-    <message name="listResourceObjectShadowsRequest">
-        <part name="resourceOid" type="xsd:string"/>
-        <part name="resourceObjectShadowType" type="xsd:anyURI"/>
+    <message name="listResourceObjectShadows">
+        <part name="parameters" element="tns:listResourceObjectShadows" />
     </message>
     <message name="listResourceObjectShadowsResponse">
-        <part name="resourceObjectShadowList" type="apit:ResourceObjectShadowListType"/>
-        <part name="result" type="c:OperationResultType" />
+        <part name="parameters" element="tns:listResourceObjectShadowsResponse" />
     </message>
 
-    <!-- Following two pairs of messages should not be here. They are in fact
-         just diagnostics methods from the provisioning interface that need
-         to be accessed from GUI. Do not use them for anything serious.
-         The will disappear eventually. -->
-
-    <message name="listResourceObjectsRequest">
-        <part name="resourceOid" type="xsd:string"/>
-        <part name="objectType" type="xsd:QName">
-            <documentation>
-                Object type to list. Should be valid object class from the
-                resource schema encoded in the URL form.
-            </documentation>
-        </part>
-        <part name="paging" type="q:PagingType">
-            <documentation>
-                Parameters limiting the number of returned entries, offset, etc.
-            </documentation>
-        </part>
-    </message>
-    <message name="listResourceObjectsResponse">
-        <part name="objectList" type="apit:ObjectListType"/>
-        <part name="result" type="c:OperationResultType" />
-    </message>
-
-    <message name="testResourceRequest">
-        <part name="resourceOid" type="xsd:string"/>
+    <message name="testResource">
+        <part name="parameters" element="tns:testResource" />
     </message>
     <message name="testResourceResponse">
-        <part name="result" type="c:OperationResultType" />
+        <part name="parameters" element="tns:testResourceResponse" />
     </message>
 
-    <message name="importFromResourceRequest">
-        <part name="resourceOid" type="xsd:string"/>
-        <part name="objectClass" type="xsd:QName">
-            <documentation>
-                Object class to import.
-                Local name, assumed to be in the resource namespace.
-            </documentation>
-        </part>
+    <message name="importFromResource">
+        <part name="parameters" element="tns:importFromResource" />
     </message>
     <message name="importFromResourceResponse">
-        <part name="task" type="c:TaskType" />
+        <part name="parameters" element="tns:importFromResourceResponse" />
     </message>
 
     <portType name="modelPortType">
@@ -245,7 +378,7 @@
                   IllegalArgumentFaultType: wrong OID format
                   SchemaViolationFaultType: provided object violates datastore schema
             </documentation>
-            <input name="addObjectInput" message="tns:addObjectRequest"/>
+            <input name="addObjectInput" message="tns:addObject"/>
             <output name="addObjectOutput" message="tns:addObjectResponse"/>
             <fault name="fault" message="f:FaultMessage"/>
         </operation>
@@ -262,7 +395,7 @@
                       IllegalArgumentFaultType: wrong OID format
                       ObjectNotFoundFaultType: object with specified OID does not exists
             </documentation>
-            <input name="getObjectInput" message="tns:getObjectRequest"/>
+            <input name="getObjectInput" message="tns:getObject"/>
             <output name="getObjectOutput" message="tns:getObjectResponse"/>
             <fault name="fault" message="f:FaultMessage"/>
         </operation>
@@ -277,7 +410,7 @@
                       any SystemFaultType
                       IllegalArgumentFaultType: wrong object type
             </documentation>
-            <input name="listObjectsInput" message="tns:listObjectsRequest"/>
+            <input name="listObjectsInput" message="tns:listObjects"/>
             <output name="listObjectsOutput" message="tns:listObjectsResponse"/>
             <fault name="fault" message="f:FaultMessage"/>
         </operation>
@@ -293,7 +426,7 @@
                       IllegalArgumentFaultType: wrong object type
                       SchemaViolationFaultType: unknown property used in search query
             </documentation>
-            <input name="searchObjectsInput" message="tns:searchObjectsRequest"/>
+            <input name="searchObjectsInput" message="tns:searchObjects"/>
             <output name="searchObjectsOutput" message="tns:searchObjectsResponse"/>
             <fault name="fault" message="f:FaultMessage"/>
         </operation>
@@ -323,7 +456,7 @@
                       InapplicableOperationFaultType: decribed change is not applicable
                       SchemaViolationFaultType: resulting object would violate datastore schema
             </documentation>
-            <input name="modifyObjectInput" message="tns:modifyObjectRequest"/>
+            <input name="modifyObjectInput" message="tns:modifyObject"/>
             <output name="modifyObjectOutput" message="tns:modifyObjectResponse"/>
             <fault name="fault" message="f:FaultMessage"/>
         </operation>
@@ -339,7 +472,7 @@
                       ObjectNotFoundFaultType: object with specified OID does not exists
                       IllegalArgumentFaultType: wrong OID format
             </documentation>
-            <input name="deleteObjectInput" message="tns:deleteObjectRequest"/>
+            <input name="deleteObjectInput" message="tns:deleteObject"/>
             <output name="deleteObjectOutput" message="tns:deleteObjectResponse"/>
             <fault name="fault" message="f:FaultMessage"/>
         </operation>
@@ -362,7 +495,7 @@
                       IllegalArgumentFaultType: wrong OID format
                       ObjectNotFoundFaultType: object with specified OID does not exists
             </documentation>
-            <input name="listAccountShadowOwnerInput" message="tns:listAccountShadowOwnerRequest"/>
+            <input name="listAccountShadowOwnerInput" message="tns:listAccountShadowOwner"/>
             <output name="listAccountShadowOwnerOutput" message="tns:listAccountShadowOwnerResponse"/>
             <fault name="fault" message="f:FaultMessage"/>
         </operation>
@@ -382,75 +515,18 @@
                       IllegalArgumentFaultType: wrong OID format
                       ObjectNotFoundFaultType: object with specified OID does not exists
             </documentation>
-            <input name="listResourceObjectShadowsInput" message="tns:listResourceObjectShadowsRequest"/>
+            <input name="listResourceObjectShadowsInput" message="tns:listResourceObjectShadows"/>
             <output name="listResourceObjectShadowsOutput" message="tns:listResourceObjectShadowsResponse"/>
             <fault name="fault" message="f:FaultMessage"/>
         </operation>
 
-    <!-- Following two operations should not be here. They are in fact
-         just diagnostics methods from the provisioning interface that need
-         to be accessed from GUI. Do not use them for anything serious.
-         The will disappear eventually. -->
-
-
-        <operation name="listResourceObjects">
-            <documentation>
-                WARNING:
-                    This operation should not be here. It is in fact
-                    just a diagnostics methods from the provisioning interface
-                    that need to be accessed from GUI. Do not use it for
-                    anything serious. It will disappear eventually.
-         
-                Returns all objects of specified type that are available to the
-                implementation.
-
-                Returns empty list if object type is correct but there are no
-                objects of that type.
-
-                Should fail if object type is wrong (e.g. specified type is
-                not part of resource schema).
-
-                This method does NOT use any shadow objects for reference or any
-                other business objects in the local repository. It goes directly
-                to the resource.
-
-                The returned objects (indirectly) complies with the resource
-                schema, but it is returned re-formated in a form of detached
-                shadow object. Although the form is the same as shadow object,
-                this is NOT really a shadow object because it is not stored in
-                the repository (it is detached). It does NOT have oid.
-
-                The object is identified by whatever identification
-                properties/attributes are defined by the resource schema.
-
-                This method is not required to implement any form of caching,
-                queueing, reference resolution or any other "smart" algorithm.
-
-                any SystemFaultType
-                      IllegalArgumentFaultType: wrong object type
-                      ProvisioningFaultType: ???
-
-
-                Use of this method is not recommended if there is a way how to
-                do the same using the standard "object access" methods. E.g.
-                if accounts can be namipulated using account shadows, the
-                shadows should be used. This method is provided only to support
-                the rare case that an unknown resource object type should be
-                used in business logic and for diagnostics reasons.
-            </documentation>
-            <input name="listResourceObjectsInput" message="tns:listResourceObjectsRequest"/>
-            <output name="listResourceObjectsOutput" message="tns:listResourceObjectsResponse"/>
-            <fault name="fault" message="f:FaultMessage"/>
-        </operation>
-
-
         <operation name="testResource">
             <documentation>
                 WARNING:
-                    This operation should not be here. It is in fact
-                    just a diagnostics methods from the provisioning interface
-                    that need to be accessed from GUI. Do not use it for
-                    anything serious. It will disappear eventually.
+                This operation should not be here. It is in fact
+                just a diagnostics methods from the provisioning interface
+                that need to be accessed from GUI. Do not use it for
+                anything serious. It will disappear eventually.
 
                 Test the resouce connection and basic resource connector
                 functionality.
@@ -462,10 +538,10 @@
                 in case of system error, system misconfiguration, etc.
 
                 Faults:
-                      any SystemFaultType
-                      ObjectNotFoundFaultType: specified Resource definition does not exist
+                any SystemFaultType
+                ObjectNotFoundFaultType: specified Resource definition does not exist
             </documentation>
-            <input name="testResourceInput" message="tns:testResourceRequest"/>
+            <input name="testResourceInput" message="tns:testResource"/>
             <output name="testResourceOutput" message="tns:testResourceResponse"/>
             <fault name="fault" message="f:FaultMessage"/>
         </operation>
@@ -488,7 +564,7 @@
                       any SystemFaultType
                       ObjectNotFoundFaultType: specified Resource definition does not exist
             </documentation>
-            <input name="importFromResourceInput" message="tns:importFromResourceRequest"/>
+            <input name="importFromResourceInput" message="tns:importFromResource"/>
             <output name="importFromResourceOutput" message="tns:importFromResourceResponse"/>
             <fault name="fault" message="f:FaultMessage"/>
         </operation>
@@ -496,7 +572,7 @@
     </portType>
 
     <binding name="modelBinding" type="tns:modelPortType">
-        <soap:binding style="rpc" transport="http://schemas.xmlsoap.org/soap/http"/>
+        <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http"/>
         <operation name="addObject">
             <soap:operation/>
             <input name="addObjectInput">
@@ -587,18 +663,6 @@
                 <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
             </input>
             <output name="listResourceObjectShadowsOutput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
-            </output>
-            <fault name="fault">
-                <soap:fault name="fault" use="literal"/>
-            </fault>
-        </operation>
-        <operation name="listResourceObjects">
-            <soap:operation/>
-            <input name="listResourceObjectsInput">
-                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
-            </input>
-            <output name="listResourceObjectsOutput">
                 <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
             </output>
             <fault name="fault">

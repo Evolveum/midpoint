@@ -713,10 +713,31 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     }
     //endregion
 
-    //region Searching tasks and nodes
+    //region Getting and searching for tasks and nodes
     /*
-     *  ********************* SEARCHING TASKS AND NODES *********************
+     *  ********************* GETTING AND SEARCHING FOR TASKS AND NODES *********************
      */
+
+    @Override
+    public <T extends ObjectType> PrismObject<T> getObject(Class<T> type,
+                                                           String oid,
+                                                           Collection<SelectorOptions<GetOperationOptions>> options,
+                                                           OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+
+        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + ".getObject");
+        result.addParam("objectType", type);
+        result.addParam("oid", oid);
+        result.addCollectionOfSerializablesAsParam("options", options);
+        result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskManagerQuartzImpl.class);
+
+        if (TaskType.class.isAssignableFrom(type)) {
+            return (PrismObject<T>) getTask(oid, parentResult).getTaskPrismObject();     // TODO fixme
+        } else if (NodeType.class.isAssignableFrom(type)) {
+            return (PrismObject<T>) repositoryService.getObject(NodeType.class, oid, options, parentResult);
+        } else {
+            throw new IllegalArgumentException("Unsupported object type: " + type);
+        }
+    }
 
     @Override
     public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type,
