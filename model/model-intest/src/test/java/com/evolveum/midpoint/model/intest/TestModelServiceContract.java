@@ -124,6 +124,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		super.initSystem(initTask, initResult);
 		InternalMonitor.reset();
 		InternalMonitor.setTraceShadowFetchOperation(true);
+		InternalMonitor.setTraceResourceSchemaOperations(true);
 	}
 
 	@Test
@@ -138,10 +139,13 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		// WHEN
 		PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null , task, result);
 		
+		// THEN
 		assertResource(resource);
 		
         result.computeStatus();
         TestUtil.assertSuccess("getObject result", result);
+        
+        assertSteadyResources();
 	}
 	
 	@Test
@@ -173,6 +177,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         for (PrismObject<ResourceType> resource: resources) {
         	assertResource(resource);
         }
+        
+        assertSteadyResources();
 	}
 	
 	@Test
@@ -215,6 +221,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         assertFalse("Empty search return", resources.isEmpty());
         assertEquals("Unexpected number of resources found", 8, resources.size());
+        
+        assertSteadyResources();
 	}
 	
 	private void assertResource(PrismObject<ResourceType> resource) throws JAXBException {
@@ -255,6 +263,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         
         result.computeStatus();
         TestUtil.assertSuccess("getObject result", result);
+        
+        assertSteadyResources();
 	}
 	
 	@Test
@@ -282,6 +292,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         PrismContainer<Containerable> assignmentContainer = userBarbossa.findContainer(UserType.F_ASSIGNMENT);
         assertEquals("Unexpected number of assignment values", 2, assignmentContainer.size());
         PrismAsserts.assertValueId(1001L,assignmentContainer);
+        
+        assertSteadyResources();
 	}
 	
 	@Test
@@ -382,6 +394,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 //        assertEquals("Invalid message subject", "Changed account for jack", message.getSubject());
 //        assertEquals("Invalid message body", "Body: Changed account for jack", message.getBody());
 
+        assertSteadyResources();
 	}
 
     private void checkTest100NotificationRecords(String notifierName) {
@@ -432,6 +445,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // This one should still be here, even if ignored
         IntegrationTestTools.assertAttribute(account, getAttributeQName(resourceDummy, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WATER_NAME), 
         		"cold");
+        
+        assertSteadyResources();
 	}
 
 	@Test
@@ -458,6 +473,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         
         result.computeStatus();
         TestUtil.assertSuccess("getObject result", result);
+        
+        assertSteadyResources();
 	}
 	
 	@Test
@@ -484,6 +501,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         
         result.computeStatus();
         TestUtil.assertSuccess("getObject result", result);
+        
+        assertSteadyResources();
 	}
 
 	@Test
@@ -529,6 +548,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertTarget(USER_JACK_OID);
         dummyAuditService.assertExecutionOutcome(OperationResultStatus.FATAL_ERROR);
+        
+        assertSteadyResources();
     }
 	
 	@Test
@@ -576,7 +597,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertTarget(USER_JACK_OID);
         dummyAuditService.assertExecutionOutcome(OperationResultStatus.FATAL_ERROR);
-		
+        
+        assertSteadyResources();
 	}
 
 	@Test
@@ -613,6 +635,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         
         result.computeStatus();
         TestUtil.assertSuccess("getObject result", result);
+        
+        assertSteadyResources();
 	}
 
 
@@ -657,6 +681,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         TestUtil.assertSuccess("getObject result", result);
         
         userJack.checkConsistence(true, true);
+        
+        assertSteadyResources();
 	}
 
 	@Test
@@ -698,6 +724,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         TestUtil.assertSuccess("getObject result", result);
         
         userJack.checkConsistence(true, true);
+        
+        assertSteadyResources();
 	}
 	
 	@Test
@@ -768,6 +796,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleAccountNotifier-DELETE-SUCCESS", 1);
         checkDummyTransportMessages("simpleUserNotifier", 0);
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
+        
+        assertSteadyResources();
     }
 
     @Test
@@ -837,7 +867,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 1);
         checkDummyTransportMessages("simpleUserNotifier", 0);               // account has no owner
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
-
+        
+        assertSteadyResources();
     }
 	
     /**
@@ -903,6 +934,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleUserNotifier", 0);
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
 
+        assertSteadyResources();
     }
 
 
@@ -970,6 +1002,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleUserNotifier", 0);
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
 
+        assertSteadyResources();
     }
 	
 	@Test
@@ -1025,6 +1058,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleAccountNotifier-DELETE-SUCCESS", 1);
         checkDummyTransportMessages("simpleUserNotifier", 0);           // there's no link user->account (removed in test128)
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
+        
+        assertSteadyResources();
     }
 
 	
@@ -1069,6 +1104,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         }catch(Exception ex){
     		LOGGER.info("Exception {}", ex.getMessage(), ex);
     	}
+        
+        assertSteadyResources();
 	}
 	
 	@Test
@@ -1139,6 +1176,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleAccountNotifier-DELETE-SUCCESS", 0);
         checkDummyTransportMessages("simpleUserNotifier", 1);
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
+        
+        assertSteadyResources();
     }
 	
 	/**
@@ -1222,6 +1261,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleUserNotifier", 1);
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
 
+        assertSteadyResources();
     }
 	
 	@Test
@@ -1280,6 +1320,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleUserNotifier", 1);
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
 
+        assertSteadyResources();
     }
 	
 	/**
@@ -1301,6 +1342,10 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         
         // Let's break the delta a bit. Projector should handle this anyway
         breakAssignmentDelta(deltas);
+        
+        // This is a second time we assigned this account. Therefore all the scripts in mapping should already
+        // be compiled ... check this.
+        rememberScriptCompileCount();
         
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
                 
@@ -1354,7 +1399,12 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleAccountNotifier-DELETE-SUCCESS", 0);
         checkDummyTransportMessages("simpleUserNotifier", 1);
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
-
+        
+        // This is a second time we assigned this account. Therefore all the scripts in mapping should already
+        // be compiled ... check this.
+        assertScriptCompileIncrement(0);
+        
+        assertSteadyResources();
     }
 	
 	/**
@@ -1380,6 +1430,10 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
                 
         //change resource assigment policy to be positive..if they are not applied by projector, the test will fail
         assumeResourceAssigmentPolicy(RESOURCE_DUMMY_OID, AssignmentPolicyEnforcementType.POSITIVE, false);
+        // the previous command changes resource, therefore let's explicitly re-read it before test
+        // to refresh the cache and not affect the performance results (monitor).
+        modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
+        assertResourceSchemaParseCountIncrement(1);
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -1418,9 +1472,6 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.assertTarget(USER_JACK_OID);
         dummyAuditService.assertExecutionSuccess();
-        
-        // return resource to the previous state..delete assignment enforcement to prevent next test to fail..
-        deleteResourceAssigmentPolicy(RESOURCE_DUMMY_OID, AssignmentPolicyEnforcementType.POSITIVE, false);
 
         // Check notifications
         notificationManager.setDisabled(true);
@@ -1432,7 +1483,16 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleAccountNotifier-DELETE-SUCCESS", 0);
         checkDummyTransportMessages("simpleUserNotifier", 1);
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
-
+        
+        assertScriptCompileIncrement(0);
+        assertSteadyResources();
+        
+        // return resource to the previous state..delete assignment enforcement to prevent next test to fail..
+        deleteResourceAssigmentPolicy(RESOURCE_DUMMY_OID, AssignmentPolicyEnforcementType.POSITIVE, false);
+        // the previous command changes resource, therefore let's explicitly re-read it before test
+        // to refresh the cache and not affect the performance results (monitor).
+        modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
+        assertResourceSchemaParseCountIncrement(1);
     }
 
 	/**
@@ -1501,7 +1561,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleAccountNotifier-DELETE-SUCCESS", 1);
         checkDummyTransportMessages("simpleUserNotifier", 0);
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
-
+        
+        assertScriptCompileIncrement(0);
+        assertSteadyResources();
     }
 	
 	/**
@@ -1576,7 +1638,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleAccountNotifier-DELETE-SUCCESS", 0);
         checkDummyTransportMessages("simpleUserNotifier", 1);
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
-
+        
+        assertScriptCompileIncrement(0);
+        assertSteadyResources();
     }
 	
 	/**
@@ -1640,6 +1704,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleUserNotifier", 1);
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
 
+        assertScriptCompileIncrement(0);
+        assertSteadyResources();
     }
 	
 	/**
@@ -1703,6 +1769,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleAccountNotifier-DELETE-SUCCESS", 0);
         checkDummyTransportMessages("simpleUserNotifier", 1);
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
+        
+        assertScriptCompileIncrement(0);
+        assertSteadyResources();
     }
 	
 	@Test
@@ -1785,6 +1854,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 1);
         checkDummyTransportMessages("simpleUserNotifier", 0);
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
+        
+        assertScriptCompileIncrement(0);
+        assertSteadyResources();
 	}
 	
 	@Test
@@ -1849,6 +1921,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);
         checkDummyTransportMessages("simpleUserNotifier", 1);
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
+        
+        assertScriptCompileIncrement(0);
+        assertSteadyResources();
     }
 	
 	@Test
@@ -1914,6 +1989,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleUserNotifier", 0);
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
 
+        assertScriptCompileIncrement(0);
+        assertSteadyResources();
     }
 
 	@Test
@@ -1972,6 +2049,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertExecutionDeltas(0, 0);
         dummyAuditService.assertExecutionOutcome(OperationResultStatus.FATAL_ERROR);
         dummyAuditService.assertTarget(USER_JACK_OID);
+        
+        assertScriptCompileIncrement(0);
+        assertSteadyResources();
 	}
 	
 	@Test
@@ -2041,6 +2121,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.asserHasDelta(ChangeType.ADD, ShadowType.class);
         dummyAuditService.assertTarget(USER_JACK_OID);
         dummyAuditService.assertExecutionSuccess();
+        
+        assertScriptCompileIncrement(0);
+        assertSteadyResources();
 	}
 	
 	/**
@@ -2094,6 +2177,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.asserHasDelta(ChangeType.DELETE, ShadowType.class);
         dummyAuditService.assertTarget(USER_JACK_OID);
         dummyAuditService.assertExecutionSuccess();
+        
+        assertScriptCompileIncrement(0);
+        assertSteadyResources();
 	}
 	
 	/**
@@ -2176,6 +2262,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleUserNotifier", 1);
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
 
+        assertScriptCompileIncrement(0);
+        assertSteadyResources();
     }
 
     /**
@@ -2196,7 +2284,11 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         //PrismPropertyDefinition definition = getAssignmentDefinition().findPropertyDefinition(new QName(SchemaConstantsGenerated.NS_COMMON, "accountConstruction"));
 
         PrismObject<ResourceType> dummyResource = repositoryService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, result);
+        
         RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(dummyResource, prismContext);
+        // This explicitly parses the schema, therefore ...
+        assertResourceSchemaParseCountIncrement(1);
+        
         RefinedObjectClassDefinition accountDefinition = refinedSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, (String) null);
         PrismPropertyDefinition gossipDefinition = accountDefinition.findPropertyDefinition(new QName(
                 "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004",
@@ -2283,6 +2375,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertTarget(USER_JACK_OID);
         dummyAuditService.assertExecutionSuccess();
+        
+        assertScriptCompileIncrement(0);
+        assertSteadyResources();
     }
 
     @Test
@@ -2342,7 +2437,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleAccountNotifier-DELETE-SUCCESS", 0);
         checkDummyTransportMessages("simpleUserNotifier", 1);
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
-
+        
+        assertScriptCompileIncrement(0);
+        assertSteadyResources();
     }
     
     @Test
@@ -2404,6 +2501,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleUserNotifier", 1);
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
 
+        assertScriptCompileIncrement(0);
+        assertSteadyResources();
     }
 
     @Test
@@ -2435,6 +2534,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         display("Audit", dummyAuditService);
         // This should fail even before the request record is created
         dummyAuditService.assertRecords(0);
+        
+        assertScriptCompileIncrement(0);
+        assertSteadyResources();
 	}
     
 	@Test
@@ -2486,6 +2588,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // raw operation, no target
         //dummyAuditService.assertTarget(USER_JACK_OID);
         dummyAuditService.assertExecutionSuccess();
+        
+        assertScriptCompileIncrement(0);
+        assertSteadyResources();
     }
 		
 	@Test
@@ -2545,7 +2650,9 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleUserNotifier", 1);
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
         checkDummyTransportMessages("simpleUserNotifier-DELETE", 1);
-
+        
+        assertScriptCompileIncrement(0);
+        assertSteadyResources();
     }
 	
 	@Test
@@ -2624,7 +2731,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleUserNotifier", 1);
         checkDummyTransportMessages("simpleUserNotifier-ADD", 1);
         checkDummyTransportMessages("simpleUserNotifier-DELETE", 0);
-
+        
+        assertSteadyResources();
     }
 
 	
@@ -2698,6 +2806,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleUserNotifier-ADD", 1);
         checkDummyTransportMessages("simpleUserNotifier-DELETE", 0);
 
+        assertSteadyResources();
     }
 	
 	@Test
@@ -2761,6 +2870,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
         checkDummyTransportMessages("simpleUserNotifier-DELETE", 0);
 
+        assertSteadyResources();
     }
 	
 	/**
@@ -2804,6 +2914,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
      // raw operation, no target
 //        dummyAuditService.assertTarget(userAfter.getOid());
         dummyAuditService.assertExecutionSuccess();
+        
+        assertSteadyResources();
 	}
 	
 	/**
@@ -2845,6 +2957,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
      // raw operation, no target
 //        dummyAuditService.assertTarget(userCharlesOid);
         dummyAuditService.assertExecutionSuccess();
+        
+        assertSteadyResources();
 	}
 	
 	private void assertMessageContains(String message, String string) {

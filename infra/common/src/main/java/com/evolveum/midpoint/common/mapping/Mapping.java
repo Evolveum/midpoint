@@ -128,6 +128,9 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 	private XMLGregorianCalendar defaultReferenceTime = null;
 	private Boolean timeConstraintValid = null;
 	private XMLGregorianCalendar nextRecomputeTime = null;
+	private boolean profiling = false;
+	private Long evaluationStartTime = null;
+	private Long evaluationEndTime = null;
 	
 	// This is single-use only. Once evaluated it is not used any more
 	// it is remembered only for tracing purposes.
@@ -408,9 +411,35 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		this.nextRecomputeTime = nextRecomputeTime;
 	}
 
+	public boolean isProfiling() {
+		return profiling;
+	}
+
+	public void setProfiling(boolean profiling) {
+		this.profiling = profiling;
+	}
+
+	public Long getEvaluationStartTime() {
+		return evaluationStartTime;
+	}
+
+	public Long getEvaluationEndTime() {
+		return evaluationEndTime;
+	}
+	
+	public Long getEtime() {
+		if (evaluationStartTime == null || evaluationEndTime == null) {
+			return null;
+		}
+		return evaluationEndTime - evaluationStartTime;
+	}
+	
+
 	public void evaluate(OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		
 		OperationResult result = parentResult.createMinorSubresult(Mapping.class.getName()+".evaluate");
+		
+		traceEvaluationStart();
 		
 		try {
 			evaluateTimeConstraintValid(result);
@@ -471,7 +500,20 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		}
 	}
 	
+	private void traceEvaluationStart() {
+		if (profiling) {
+			evaluationStartTime = System.currentTimeMillis();
+		}
+	}
+	
+	private void traceEvaluationEnd() {
+		if (profiling) {
+			evaluationEndTime = System.currentTimeMillis();
+		}
+	}
+
 	private void traceSuccess(boolean conditionResultOld, boolean conditionResultNew) {
+		traceEvaluationEnd();
 		if (!LOGGER.isTraceEnabled()) {
 			return;
 		}
@@ -489,11 +531,17 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		} else {
 			sb.append(outputTriple.toHumanReadableString());
 		}
+		if (profiling) {
+			sb.append("\nEtime: ");
+			sb.append(getEtime());
+			sb.append(" ms");
+		}
 		appendTraceFooter(sb);
 		LOGGER.trace(sb.toString());
 	}
 	
 	private void traceDeferred() {
+		traceEvaluationEnd();
 		if (!LOGGER.isTraceEnabled()) {
 			return;
 		}
@@ -506,12 +554,18 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		} else {
 			sb.append(nextRecomputeTime);
 		}
+		if (profiling) {
+			sb.append("\nEtime: ");
+			sb.append(getEtime());
+			sb.append(" ms");
+		}
 		appendTraceFooter(sb);
 		LOGGER.trace(sb.toString());
 	}
 	
 	private void traceFailure(Exception e) {
 		LOGGER.error("Error evaluating {}: {}", new Object[]{getMappingContextDescription(), e.getMessage(), e});
+		traceEvaluationEnd();
 		if (!LOGGER.isTraceEnabled()) {
 			return;
 		}
@@ -519,6 +573,11 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		sb.append("Mapping failure:\n");
 		appendTraceHeader(sb);
 		sb.append("\nERROR: ").append(e.getClass().getSimpleName()).append(": ").append(e.getMessage());
+		if (profiling) {
+			sb.append("\nEtime: ");
+			sb.append(getEtime());
+			sb.append(" ms");
+		}
 		appendTraceFooter(sb);
 		LOGGER.trace(sb.toString());
 	}

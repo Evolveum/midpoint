@@ -121,6 +121,9 @@ public class ResourceManager {
 			return cachedResource;
 		}
 		
+		LOGGER.debug("Storing fetched resource {}, version {} to cache (previously cached version {})",
+				new Object[]{ repositoryObject.getOid(), repositoryObject.getVersion(), resourceCache.getVersion(repositoryObject.getOid())});
+		
 		return putToCache(repositoryObject, parentResult);
 	}
 	
@@ -132,6 +135,11 @@ public class ResourceManager {
 		if (cachedResource != null) {
 			InternalMonitor.getResourceCacheStats().recordHit();
 			return cachedResource;
+		}
+		
+		if (LOGGER.isDebugEnabled()) {
+			LOGGER.debug("Fetching resource {}, version {}, storing to cache (previously cached version {})", 
+					new Object[]{oid, version, resourceCache.getVersion(oid)});
 		}
 		
 		PrismObject<ResourceType> repositoryObject = repositoryService.getObject(ResourceType.class, oid, null, parentResult);
@@ -365,7 +373,7 @@ public class ResourceManager {
 			
 			// Fetch schema from connector, UCF will convert it to
 			// Schema Processor format and add all necessary annotations
-			InternalMonitor.recordConnectorSchemaFetch();
+			InternalMonitor.recordResourceSchemaFetch();
 			List<QName> generateObjectClasses = ResourceTypeUtil.getSchemaGenerationConstraints(resource);
 //			if (resourceType.getSchema() != null && resourceType.getSchema().getGenerationConstraints() != null){
 //				generateObjectClasses = resourceType.getSchema().getGenerationConstraints().getGenerateObjectClass();
@@ -600,7 +608,7 @@ public class ResourceManager {
 			// Try to fetch schema from the connector. The UCF will convert it
 			// to Schema Processor
 			// format, so it is already structured
-			InternalMonitor.recordConnectorSchemaFetch();
+			InternalMonitor.recordResourceSchemaFetch();
 			List<QName> generateObjectClasses = ResourceTypeUtil.getSchemaGenerationConstraints(resource);
 //			ResourceType resourceType = resource.asObjectable();
 //			if (resourceType.getSchema() != null && resourceType.getSchema().getGenerationConstraints() != null){

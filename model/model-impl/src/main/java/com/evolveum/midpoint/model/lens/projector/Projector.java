@@ -106,6 +106,10 @@ public class Projector {
 			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, 
 			ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 		
+		if (context.getDebugListener() != null) {
+			context.getDebugListener().beforeProjection(context);
+		}
+		
 		// Read the time at the beginning so all processors have the same notion of "now"
 		// this provides nicer unified timestamp that can be used in equality checks in tests and also for
 		// troubleshooting
@@ -300,6 +304,10 @@ public class Projector {
 			// Make sure that it is logged.
 			LOGGER.error("Runtime error in projector: {}", e.getMessage(), e);
 			throw e;
+		} finally {
+			if (context.getDebugListener() != null) {
+				context.getDebugListener().afterProjection(context);
+			}
 		}
 		
 	}
@@ -332,7 +340,7 @@ public class Projector {
         if (LOGGER.isDebugEnabled()) {
         	long projectoStartTimestamp = XmlTypeConverter.toMillis(projectoStartTimestampCal);
         	long projectorEndTimestamp = clock.currentTimeMillis();
-        	LOGGER.debug("Projector successful, etime: {} ms", (projectorEndTimestamp - projectoStartTimestamp));
+        	LOGGER.trace("Projector successful, etime: {} ms", (projectorEndTimestamp - projectoStartTimestamp));
         }
 	}
 
