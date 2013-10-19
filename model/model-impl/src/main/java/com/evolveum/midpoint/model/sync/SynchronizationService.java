@@ -395,8 +395,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		
 		if (actions.isEmpty()) {
 
-			LOGGER.warn("Skipping synchronization on resource: {}. Actions was not found.",
-					new Object[] { resource.getName() });
+			LOGGER.warn("Skipping synchronization on resource: {}. No action(s) defined for situation {}.",
+					new Object[] { resource.getName(), situation.getSituation() });
 			return;
 		}
 
