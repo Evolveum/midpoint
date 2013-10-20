@@ -37,6 +37,9 @@ import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.wf.api.WorkflowService;
 import org.apache.commons.configuration.Configuration;
 import org.apache.wicket.RuntimeConfigurationType;
+import org.apache.wicket.atmosphere.EventBus;
+import org.apache.wicket.atmosphere.config.AtmosphereLogLevel;
+import org.apache.wicket.atmosphere.config.AtmosphereTransport;
 import org.apache.wicket.authroles.authentication.AbstractAuthenticatedWebSession;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
 import org.apache.wicket.core.request.handler.PageProvider;
@@ -58,6 +61,10 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.FilenameFilter;
+import java.util.Date;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author lazyman
@@ -66,7 +73,11 @@ import java.io.FilenameFilter;
 public class MidPointApplication extends AuthenticatedWebApplication {
 
     private static final String WEB_APP_CONFIGURATION = "midpoint.webApplication";
+
     private static final Trace LOGGER = TraceManager.getTrace(MidPointApplication.class);
+
+    private EventBus eventBus;
+
     @Autowired
     transient ModelService model;
     @Autowired
@@ -137,6 +148,23 @@ public class MidPointApplication extends AuthenticatedWebApplication {
                 return new RenderPageRequestHandler(new PageProvider(new PageError(ex)));
             }
         });
+
+        eventBus = new EventBus(this);
+        eventBus.getParameters().setLogLevel(AtmosphereLogLevel.DEBUG);
+
+//        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+//        final Runnable beeper = new Runnable() {
+//
+//            @Override
+//            public void run() {
+//                try {
+//                    eventBus.post(new Date());
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        };
+//        scheduler.scheduleWithFixedDelay(beeper, 2, 2, TimeUnit.SECONDS);
     }
 
     private void mountFiles(String path, Class<?> clazz) {
@@ -206,6 +234,10 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
     public ModelInteractionService getModelInteractionService() {
         return modelInteractionService;
+    }
+
+    public EventBus getEventBus() {
+        return eventBus;
     }
 
     private static class ResourceFileFilter implements FilenameFilter {

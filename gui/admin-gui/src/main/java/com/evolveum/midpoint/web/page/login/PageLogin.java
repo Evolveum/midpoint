@@ -16,12 +16,14 @@
 
 package com.evolveum.midpoint.web.page.login;
 
+import com.evolveum.midpoint.web.component.atmosphere.NotifyMessage;
 import com.evolveum.midpoint.web.component.menu.top2.right.LocalePanel;
 import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
 import com.evolveum.midpoint.web.component.menu.top2.TopMenuBar;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import org.apache.wicket.atmosphere.EventBus;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.PasswordTextField;
 import org.apache.wicket.markup.html.form.RequiredTextField;
@@ -56,6 +58,10 @@ public class PageLogin extends PageBase {
                 if (session.authenticate(username.getModelObject(), password.getModelObject())) {
                     //continueToOriginalDestination();
                     setResponsePage(WebMiscUtil.getHomePage());
+
+                    //TODO disable! just a sample for ajax push (wicket-atmosphere) [lazyman]
+//                    EventBus bus = getMidpointApplication().getEventBus();
+//                    bus.post(new NotifyMessage("Information", "User logged in."));
                 }
             }
         };

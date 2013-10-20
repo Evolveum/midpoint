@@ -2,10 +2,14 @@ package com.evolveum.midpoint.web.page;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.atmosphere.NotifyMessage;
+import com.evolveum.midpoint.web.component.atmosphere.NotifyMessageFilter;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.atmosphere.Subscribe;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.Model;
 
@@ -46,5 +50,20 @@ public class PageBootstrap extends PageBase {
     @Override
     public List<BottomMenuItem> getBottomMenuItems() {
         return null;
+    }
+
+    @Subscribe(filter = NotifyMessageFilter.class)
+    public void receiveNotifyMessage(AjaxRequestTarget target, NotifyMessage message) {
+        LOGGER.info("receiveNotifyMessage");
+        StringBuilder sb = new StringBuilder();
+        sb.append("$.pnotify({\n");
+        sb.append("\ttitle: '").append(createStringResource(message.getTitle()).getString()).append("',\n");
+        sb.append("\ttext: '").append(createStringResource(message.getMessage()).getString()).append("',\n");
+        sb.append("\ttype: '").append(message.getType().name().toLowerCase()).append("',\n");
+        sb.append("\topacity: .8,\n");
+        sb.append("\ticon: '").append(message.getIcon()).append("'\n");
+        sb.append("});");
+
+        target.appendJavaScript(sb.toString());
     }
 }
