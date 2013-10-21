@@ -46,6 +46,7 @@ import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
@@ -111,6 +112,8 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceDummy.getOid(), null);
 		LensProjectionContext<ShadowType> accCtx = context.findProjectionContext(rat);
 		assertNotNull("No account sync context for "+rat, accCtx);
+		assertEquals("Wrong detected situation in context", SynchronizationSituationType.UNLINKED, accCtx.getSynchronizationSituationDetected());
+		assertEquals("Wrong resolved situation in context", SynchronizationSituationType.LINKED, accCtx.getSynchronizationSituationResolved());
 		
 		PrismAsserts.assertNoDelta("Unexpected account primary delta", accCtx.getPrimaryDelta());
 		//it this really expected?? delta was already executed, should we expect it in the secondary delta?
@@ -121,6 +124,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 		
 		PrismObject<ShadowType> shadow = getAccountNoFetch(accountShadowJackDummyOid);
         assertIteration(shadow, 0, "");
+        assertSituation(shadow, SynchronizationSituationType.LINKED);
         
         result.computeStatus();
         TestUtil.assertSuccess(result);
@@ -168,6 +172,8 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 		PrismAsserts.assertNoDelta("account primary delta", accCtx.getPrimaryDelta());
 		PrismAsserts.assertNoDelta("account secondary delta", accCtx.getSecondaryDelta());
 		
+		assertEquals("Wrong detected situation in context", SynchronizationSituationType.LINKED, accCtx.getSynchronizationSituationDetected());
+		
 		assertLinked(context.getFocusContext().getObjectOld().getOid(), accountShadowJack.getOid());
 		
 		PrismObject<UserType> user = getUser(USER_JACK_OID);
@@ -175,6 +181,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 		
 		PrismObject<ShadowType> shadow = getAccountNoFetch(accountShadowJackDummyOid);
         assertIteration(shadow, 0, "");
+        assertSituation(shadow, SynchronizationSituationType.LINKED);
         
         result.computeStatus();
         TestUtil.assertSuccess(result);
@@ -225,6 +232,8 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 		PrismAsserts.assertNoDelta("Unexpected account primary delta", accCtx.getPrimaryDelta());
 		PrismAsserts.assertNoDelta("Unexpected account secondary delta", accCtx.getSecondaryDelta());
 		
+		assertEquals("Wrong detected situation in context", SynchronizationSituationType.LINKED, accCtx.getSynchronizationSituationDetected());
+		
 		assertLinked(context.getFocusContext().getObjectOld().getOid(), accountShadowJack.getOid());
 		
 		PrismObject<UserType> user = getUser(USER_JACK_OID);
@@ -232,6 +241,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 		
 		PrismObject<ShadowType> shadow = getAccountNoFetch(accountShadowJackDummyOid);
         assertIteration(shadow, 0, "");
+        assertSituation(shadow, SynchronizationSituationType.LINKED);
         
         result.computeStatus();
         TestUtil.assertSuccess(result);
