@@ -105,6 +105,11 @@ public class ConfirmationDialog extends ModalWindow {
         content.add(noButton);
     }
 
+    public void setButtonVisibility(boolean visibility){
+        getContent().get("yes").setVisible(visibility);
+        getContent().get("no").setVisible(visibility);
+    }
+
     public void yesPerformed(AjaxRequestTarget target) {
 
     }

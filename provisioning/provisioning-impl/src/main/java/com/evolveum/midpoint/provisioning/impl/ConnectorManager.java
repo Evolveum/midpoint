@@ -159,7 +159,7 @@ public class ConnectorManager {
 			
 			connector.initialize(resourceSchema, capabilities, result);
 			
-			InternalMonitor.recordConnectorInitialization();
+			InternalMonitor.recordConnectorInstanceInitialization();
 			
 		} catch (GenericFrameworkException e) {
 			// Not expected. Transform to system exception

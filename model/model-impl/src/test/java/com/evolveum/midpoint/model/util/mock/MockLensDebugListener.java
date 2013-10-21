@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.util.mock;
 
+import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensDebugListener;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -57,5 +58,28 @@ public class MockLensDebugListener implements LensDebugListener {
 		LOGGER.trace(SEPARATOR+"\nSYNC CONTEXT AFTER SYNC\n{}\n"+SEPARATOR, context.dump());
 		lastSyncContext = context;
 	}
+
+	@Override
+	public <F extends ObjectType, P extends ObjectType> void beforeProjection(
+			LensContext<F, P> context) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public <F extends ObjectType, P extends ObjectType> void afterProjection(
+			LensContext<F, P> context) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public <F extends ObjectType, P extends ObjectType> void afterMappingEvaluation(
+			LensContext<F, P> context,
+			Mapping<?> evaluatedMapping) {
+		// TODO Auto-generated method stub
+		
+	}
+
 
 }

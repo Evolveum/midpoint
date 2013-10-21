@@ -105,6 +105,20 @@ public class ResourceCache {
 		
 		return cachedResource.clone();
 	}
+	
+	/**
+	 * Returns currently cached version. FOR DIAGNOSTICS ONLY. 
+	 */
+	public String getVersion(String oid) {
+		if (oid == null) {
+			return null;
+		}
+		PrismObject<ResourceType> cachedResource = cache.get(oid);
+		if (cachedResource == null) {
+			return null;
+		}
+		return cachedResource.getVersion();
+	}
 
 	public void remove(String oid) {
 		cache.remove(oid);
