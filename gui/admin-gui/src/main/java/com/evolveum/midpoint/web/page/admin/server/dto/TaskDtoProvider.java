@@ -68,8 +68,14 @@ public class TaskDtoProvider extends BaseSortableDataProvider<TaskDto> {
         	
             List<PrismObject<TaskType>> tasks = getModel().searchObjects(TaskType.class, query, null, operationTask, result);
             for (PrismObject<TaskType> task : tasks) {
-                TaskDto taskDto = new TaskDto(task.asObjectable(), getModel(), getTaskService(), getModelInteractionService(), getTaskManager(), options, result);
-                getAvailableData().add(taskDto);
+                try {
+                    TaskDto taskDto = new TaskDto(task.asObjectable(), getModel(), getTaskService(), getModelInteractionService(), getTaskManager(), options, result);
+                    getAvailableData().add(taskDto);
+                } catch (Exception ex) {
+                    LoggingUtils.logException(LOGGER, "Unhandled exception when getting task {} details", ex, task.getOid());
+                    result.recordPartialError("Couldn't get details of task " + task.getOid(), ex);
+                    // todo display the result somehow
+                }
             }
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Unhandled exception when listing tasks", ex);

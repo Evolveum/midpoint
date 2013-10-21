@@ -30,8 +30,10 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -55,6 +57,7 @@ import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.lang.Validate;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 /**
@@ -130,6 +133,7 @@ public class TaskDto extends Selectable {
         this.taskType = taskType;
 
         OperationResult thisOpResult = parentResult.createMinorSubresult(OPERATION_NEW);
+        fillInTimestamps(taskType);
         fillInHandlerUriList(taskType);
         fillInScheduleAttributes(taskType);
         fillInObjectRefAttributes(taskType, modelService, taskManager, options, thisOpResult);
@@ -141,6 +145,18 @@ public class TaskDto extends Selectable {
         fillInWorkflowAttributes(taskType);
         thisOpResult.computeStatusIfUnknown();
     }
+
+    private void fillInTimestamps(TaskType taskType) {
+        lastRunFinishTimestampLong = xgc2long(taskType.getLastRunFinishTimestamp());
+        lastRunStartTimestampLong = xgc2long(taskType.getLastRunStartTimestamp());
+        completionTimestampLong = xgc2long(taskType.getCompletionTimestamp());
+        nextRunStartTimeLong = xgc2long(taskType.getNextRunStartTimestamp());
+    }
+
+    private Long xgc2long(XMLGregorianCalendar gc) {
+        return gc != null ? new Long(XmlTypeConverter.toMillis(gc)) : null;
+    }
+
 
     private void fillInHandlerUriList(TaskType taskType) {
         handlerUriList = new ArrayList<String>();
@@ -193,7 +209,13 @@ public class TaskDto extends Selectable {
         } else {
             Throwable failReason = null;
             try {
-                object = modelService.getObject(ObjectType.class, objectRef.getOid(), GetOperationOptions.createRetrieveNameOnlyOptions(), taskManager.createTaskInstance(), thisOpResult);
+//                Class compileTimeClass = objectRef.getValue().getTargetTypeCompileTimeClass();
+//                if (compileTimeClass == null) {
+//                    return "(" + objectRef.getOid() + ")";
+//                }
+                // todo optimize to retrieve name only (something like GetOperationOptions.createRetrieveNameOnlyOptions() if it would work)
+                // raw is here because otherwise, if we would try to get a Resource in non-raw mode as ObjectType, we would get illegal state exception in model
+                object = modelService.getObject(ObjectType.class, objectRef.getOid(), SelectorOptions.createCollection(GetOperationOptions.createRaw()), taskManager.createTaskInstance(), thisOpResult);
             } catch (ObjectNotFoundException e) {
                 failReason = e;
             } catch (SchemaException e) {
@@ -219,7 +241,8 @@ public class TaskDto extends Selectable {
         if (options.isGetTaskParent() && taskType.getParent() != null) {
             Throwable failReason = null;
             try {
-                TaskType parentTaskType = taskService.getTaskByIdentifier(taskType.getParent(), GetOperationOptions.createRetrieveNameOnlyOptions(), thisOpResult).asObjectable();
+                //TaskType parentTaskType = taskService.getTaskByIdentifier(taskType.getParent(), GetOperationOptions.createRetrieveNameOnlyOptions(), thisOpResult).asObjectable();
+                TaskType parentTaskType = taskService.getTaskByIdentifier(taskType.getParent(), null, thisOpResult).asObjectable();
                 if (parentTaskType != null) {
                     parentTaskName = parentTaskType.getName() != null ? parentTaskType.getName().getOrig() : "(unnamed)";       // todo i18n
                     parentTaskOid = parentTaskType.getOid();
@@ -236,10 +259,10 @@ public class TaskDto extends Selectable {
     }
 
     private void fillInOperationResultAttributes(TaskType taskType) {
-        taskOperationResult = OperationResult.createOperationResult(taskType.getResult());
         opResult = new ArrayList<OperationResult>();
-        if (taskOperationResult != null) {
-            opResult.add(taskOperationResult );
+        if (taskType.getResult() != null) {
+            taskOperationResult = OperationResult.createOperationResult(taskType.getResult());
+            opResult.add(taskOperationResult);
             opResult.addAll(taskOperationResult.getSubresults());
         }
     }

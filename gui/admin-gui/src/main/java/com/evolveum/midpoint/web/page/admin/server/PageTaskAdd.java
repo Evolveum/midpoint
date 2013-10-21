@@ -466,8 +466,10 @@ public class PageTaskAdd extends PageAdminTasks {
 		target.add(getFeedbackPanel());
 	}
 
-    private Collection<ObjectDelta<? extends ObjectType>> prepareChangesToExecute(TaskType taskToBeAdded) {
-        return Arrays.asList((ObjectDelta<? extends ObjectType>) ObjectDelta.createAddDelta(taskToBeAdded.asPrismObject()));
+    private List<ObjectDelta<? extends ObjectType>> prepareChangesToExecute(TaskType taskToBeAdded) {
+        List<ObjectDelta<? extends ObjectType>> retval = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        retval.add(ObjectDelta.createAddDelta(taskToBeAdded.asPrismObject()));
+        return retval;
     }
 
     private TaskType createTask(TaskAddDto dto) {
