@@ -44,6 +44,7 @@ public enum PageUrlMapping {
     ADMIN_MY_PASSWORDS("/admin/myPasswords", PageMyPasswords.class, MidPointPageParametersEncoder.ENCODER, new String[]{AUTZ_UI_MY_PASSWORDS_URL, AUTZ_UI_HOME_ALL_URL}),
 
     ADMIN_USERS("/admin/users", PageUsers.class, MidPointPageParametersEncoder.ENCODER, new String[]{AUTZ_UI_USERS_URL, AUTZ_UI_USERS_ALL_URL}),
+    ADMIN_FIND_USERS("/admin/users/find", PageFindUsers.class, MidPointPageParametersEncoder.ENCODER, new String[]{AUTZ_UI_FIND_USERS_URL, AUTZ_UI_USERS_ALL_URL}),
     ADMIN_USER("/admin/user", PageUser.class, MidPointPageParametersEncoder.ENCODER, new String[]{AUTZ_UI_USER_URL, AUTZ_UI_USERS_ALL_URL}),
     ADMIN_USER_DETAILS("/admin/user/**", null, null, new String[]{AUTZ_UI_USER_DETAILS_URL, AUTZ_UI_USERS_ALL_URL}),
 //    ADMIN_USER_PREVIEW("/admin/userPreview", PageUserPreview.class, MidPointPageParametersEncoder.ENCODER, new String[]{AUTZ_DENY_ALL_URL}),

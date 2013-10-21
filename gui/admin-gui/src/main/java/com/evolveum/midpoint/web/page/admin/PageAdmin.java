@@ -33,6 +33,7 @@ import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
+import com.evolveum.midpoint.web.page.admin.users.PageFindUsers;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgStruct;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
@@ -159,7 +160,7 @@ public class PageAdmin extends PageBase {
     private MenuBarItem createUsersItems() {
         MenuBarItem users = new MenuBarItem(createStringResource("PageAdmin.menu.top.users"), null);
         users.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.users.list"), PageUsers.class));
-        users.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.users.find"), PageUsers.class));
+        users.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.users.find"), PageFindUsers.class));
         users.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.users.new"), PageUser.class));
         users.addMenuItem(new MenuItem(null));
         users.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.users.org"), true, null, null));
