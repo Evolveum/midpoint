@@ -197,7 +197,7 @@ public abstract class BaseAction implements Action {
     }
 
     protected LensProjectionContext<ShadowType> createAccountLensContext(LensContext<UserType, ShadowType> context,
-            ResourceObjectShadowChangeDescription change, SynchronizationIntent syncIntent,
+            ResourceObjectShadowChangeDescription change, SynchronizationSituationType situation, SynchronizationIntent syncIntent,
             ActivationDecision activationDecision) throws SchemaException {
         LOGGER.trace("Creating account context for sync change.");
 
@@ -209,6 +209,7 @@ public abstract class BaseAction implements Action {
 		LensProjectionContext<ShadowType> accountContext = context.createProjectionContext(resourceAccountType);
         accountContext.setResource(resource);
         accountContext.setOid(getOidFromChange(change));
+        accountContext.setSynchronizationSituationDetected(situation);
 
         //insert object delta if available in change
         ObjectDelta<? extends ShadowType> delta = change.getObjectDelta();
