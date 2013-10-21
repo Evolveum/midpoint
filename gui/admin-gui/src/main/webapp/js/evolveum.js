@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+/**
+ * DEPRECATED [lazyman]
+ */
+
 var objectFormHelpContainer = null;
 var interval = 0;
 var ajaxError = 0;
