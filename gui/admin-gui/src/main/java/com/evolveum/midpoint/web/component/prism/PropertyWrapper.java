@@ -62,6 +62,14 @@ public class PropertyWrapper implements ItemWrapper, Serializable {
         }
     }
 
+    public boolean isVisible() {
+        if (property.getDefinition().isOperational()) {
+            return false;
+        }
+
+        return container.isPropertyVisible(this);
+    }
+
     ContainerWrapper getContainer() {
         return container;
     }
