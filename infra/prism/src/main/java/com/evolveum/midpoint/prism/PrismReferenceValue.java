@@ -110,6 +110,15 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
 		return null;
 	}
 
+    public Class<Objectable> getTargetTypeCompileTimeClass() {
+        QName type = getTargetType();
+        if (type == null) {
+            return null;
+        } else {
+            return getPrismContext().getSchemaRegistry().findObjectDefinitionByType(type).getCompileTimeClass();
+        }
+    }
+
 	public void setTargetType(QName targetType) {
 		// Null value is OK
 		if (targetType != null) {

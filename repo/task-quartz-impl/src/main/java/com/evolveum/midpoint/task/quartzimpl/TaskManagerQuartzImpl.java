@@ -730,12 +730,16 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         result.addCollectionOfSerializablesAsParam("options", options);
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskManagerQuartzImpl.class);
 
-        if (TaskType.class.isAssignableFrom(type)) {
-            return (PrismObject<T>) getTask(oid, parentResult).getTaskPrismObject();     // TODO fixme
-        } else if (NodeType.class.isAssignableFrom(type)) {
-            return (PrismObject<T>) repositoryService.getObject(NodeType.class, oid, options, parentResult);
-        } else {
-            throw new IllegalArgumentException("Unsupported object type: " + type);
+        try {
+            if (TaskType.class.isAssignableFrom(type)) {
+                return (PrismObject<T>) getTask(oid, result).getTaskPrismObject();     // TODO fixme
+            } else if (NodeType.class.isAssignableFrom(type)) {
+                return (PrismObject<T>) repositoryService.getObject(NodeType.class, oid, options, result);
+            } else {
+                throw new IllegalArgumentException("Unsupported object type: " + type);
+            }
+        } finally {
+            result.computeStatusIfUnknown();
         }
     }
 
