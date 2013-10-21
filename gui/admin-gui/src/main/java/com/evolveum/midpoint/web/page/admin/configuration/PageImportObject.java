@@ -199,7 +199,7 @@ public class PageImportObject extends PageAdminConfiguration {
     private void saveFilePerformed(AjaxRequestTarget target) {
         OperationResult result = new OperationResult(OPERATION_IMPORT_FILE);
 
-        FileUploadField file = (FileUploadField) get("mainForm:container:fileInput");
+        FileUploadField file = (FileUploadField) get(createComponentPath(ID_MAIN_FORM, ID_INPUT, ID_INPUT_FILE, ID_FILE_INPUT));
         final FileUpload uploadedFile = file.getFileUpload();
         if (uploadedFile == null) {
             error(getString("pageImportObject.message.nullFile"));
