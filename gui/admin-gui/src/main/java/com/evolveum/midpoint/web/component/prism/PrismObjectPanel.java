@@ -55,6 +55,8 @@ import java.util.List;
  */
 public class PrismObjectPanel extends Panel {
 
+    private static final String ID_HEADER = "header";
+
     private boolean showHeader = true;
 
     public PrismObjectPanel(String id, IModel<ObjectWrapper> model, ResourceReference image, Form form) {
@@ -154,24 +156,28 @@ public class PrismObjectPanel extends Panel {
 //        return (ActivationStatusType) prismProperty.getRealValue();
 //    }
 
-    protected Component createHeader(String id, final IModel<ObjectWrapper> model) {
+    protected Component createHeader(String id, IModel<ObjectWrapper> model) {
         H3Header header = new H3Header(id, model) {
 
             @Override
             protected List<InlineMenuItem> createMenuItems() {
-                List<InlineMenuItem> items = new ArrayList<InlineMenuItem>();
-
-                InlineMenuItem item = new InlineMenuItem(createMinMaxLabel(model), createMinMaxAction(model));
-                items.add(item);
-
-                item = new InlineMenuItem(createEmptyLabel(model), createEmptyAction(model));
-                items.add(item);
-
-                return items;
+                return createDefaultMenuItems(getModel());
             }
         };
 
         return header;
+    }
+
+    protected List<InlineMenuItem> createDefaultMenuItems(IModel<ObjectWrapper> model) {
+        List<InlineMenuItem> items = new ArrayList<InlineMenuItem>();
+
+        InlineMenuItem item = new InlineMenuItem(createMinMaxLabel(model), createMinMaxAction(model));
+        items.add(item);
+
+        item = new InlineMenuItem(createEmptyLabel(model), createEmptyAction(model));
+        items.add(item);
+
+        return items;
     }
 
     private InlineMenuItemAction createEmptyAction(final IModel<ObjectWrapper> model) {
@@ -223,7 +229,7 @@ public class PrismObjectPanel extends Panel {
     }
 
     private void initLayout(final IModel<ObjectWrapper> model, ResourceReference image, final Form form) {
-        add(createHeader("header", model));
+        add(createHeader(ID_HEADER, model));
 
         WebMarkupContainer headerPanel = new WebMarkupContainer("headerPanel");
         headerPanel.add(new AttributeAppender("class", createHeaderClassModel(model), " "));
@@ -283,25 +289,6 @@ public class PrismObjectPanel extends Panel {
             }
         };
         body.add(containers);
-
-        WebMarkupContainer footer = createFooterPanel("footer", model);
-        if (!(footer instanceof EmptyPanel)) {
-            footer.add(new VisibleEnableBehaviour() {
-
-                @Override
-                public boolean isVisible() {
-                    ObjectWrapper wrapper = model.getObject();
-                    return wrapper.isMinimalized();
-                }
-            });
-        } else {
-            footer.setVisible(false);
-        }
-        add(footer);
-    }
-
-    public WebMarkupContainer createFooterPanel(String footerId, IModel<ObjectWrapper> model) {
-        return new EmptyPanel(footerId);
     }
 
     protected IModel<String> createDisplayName(IModel<ObjectWrapper> model) {

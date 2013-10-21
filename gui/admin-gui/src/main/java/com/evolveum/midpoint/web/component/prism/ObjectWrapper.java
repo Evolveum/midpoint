@@ -51,6 +51,7 @@ import java.util.*;
 public class ObjectWrapper implements Serializable {
 
     public static final String F_DISPLAY_NAME = "displayName";
+    public static final String F_SELECTED = "selected";
 
 	private static final Trace LOGGER = TraceManager.getTrace(ObjectWrapper.class);
 

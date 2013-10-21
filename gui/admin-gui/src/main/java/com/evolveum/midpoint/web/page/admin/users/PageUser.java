@@ -38,6 +38,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
@@ -65,6 +66,7 @@ import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
@@ -586,7 +588,18 @@ public class PageUser extends PageAdminUsers {
 							}
 						};
 					}
-				};
+
+                    @Override
+                    protected Component createHeader(String id, IModel<ObjectWrapper> model) {
+                        return new CheckTableHeader(id, model) {
+
+                            @Override
+                            protected List<InlineMenuItem> createMenuItems() {
+                                return createDefaultMenuItems(getModel());
+                            }
+                        };
+                    }
+                };
 				item.add(account);
 			}
 		};

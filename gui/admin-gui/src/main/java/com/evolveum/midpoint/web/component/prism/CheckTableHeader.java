@@ -21,10 +21,8 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.markup.html.form.CheckBox;
+import org.apache.wicket.model.*;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -33,25 +31,43 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class H3Header extends SimplePanel<ObjectWrapper> {
+public class CheckTableHeader extends SimplePanel<ObjectWrapper> {
 
-    private static final String ID_TITLE = "title";
+    private static final String ID_CHECK = "check";
+    private static final String ID_ICON = "icon";
+    private static final String ID_NAME = "name";
+    private static final String ID_DESCRIPTION = "description";
     private static final String ID_MENU = "menu";
 
-    public H3Header(String id, IModel<ObjectWrapper> model) {
+    public CheckTableHeader(String id, IModel<ObjectWrapper> model) {
         super(id, model);
     }
 
     @Override
     protected void initLayout() {
-        Label title = new Label(ID_TITLE, new AbstractReadOnlyModel<String>() {
+        CheckBox check = new CheckBox(ID_CHECK, new PropertyModel<Boolean>(getModel(), ObjectWrapper.F_SELECTED));
+        add(check);
+
+        Label icon = new Label(ID_ICON);
+        add(icon);
+
+        Label name = new Label(ID_NAME, new AbstractReadOnlyModel<String>() {
 
             @Override
             public String getObject() {
                 return getDisplayName();
             }
         });
-        add(title);
+        add(name);
+
+        Label description = new Label(ID_DESCRIPTION, new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                return getDescription();
+            }
+        });
+        add(description);
 
         final IModel<List<InlineMenuItem>> items = new Model((Serializable) createMenuItems());
         InlineMenu menu = new InlineMenu(ID_MENU, items);
@@ -69,6 +85,16 @@ public class H3Header extends SimplePanel<ObjectWrapper> {
     private String getDisplayName() {
         ObjectWrapper wrapper = getModel().getObject();
         String key = wrapper.getDisplayName();
+        return translate(key);
+    }
+
+    private String getDescription() {
+        ObjectWrapper wrapper = getModel().getObject();
+        String key = wrapper.getDescription();
+        return translate(key);
+    }
+
+    private String translate(String key) {
         if (key == null) {
             key = "";
         }
