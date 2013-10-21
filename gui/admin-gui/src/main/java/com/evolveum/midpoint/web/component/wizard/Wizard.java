@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.web.component.wizard;
 
+import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import org.apache.wicket.extensions.wizard.IWizard;
 import org.apache.wicket.extensions.wizard.IWizardModel;
@@ -11,6 +12,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -33,9 +35,13 @@ public class Wizard extends SimplePanel<IWizardModel> implements IWizardModelLis
         Form form = new Form(ID_FORM);
         add(form);
 
-        IModel<List<WizardStepDto>> stepsModel = new Model(new ArrayList());
-        stepsModel.getObject().add(new WizardStepDto("asdf"));
-        stepsModel.getObject().add(new WizardStepDto("krok 2"));
+        IModel<List<WizardStepDto>> stepsModel = new LoadableModel<List<WizardStepDto>>() {
+
+            @Override
+            protected List<WizardStepDto> load() {
+                return loadSteps();
+            }
+        };
         WizardSteps steps = new WizardSteps(ID_STEPS, stepsModel);
         form.add(steps);
 
@@ -51,6 +57,24 @@ public class Wizard extends SimplePanel<IWizardModel> implements IWizardModelLis
         IWizardModel wizard = getWizardModel();
         wizard.addListener(this);
         wizard.reset();
+    }
+
+    private List<WizardStepDto> loadSteps() {
+        List<WizardStepDto> steps = new ArrayList<WizardStepDto>();
+
+        IWizardModel model = getWizardModel();
+        Iterator<IWizardStep> iterator = model.stepIterator();
+        while (iterator.hasNext()) {
+            IWizardStep step = iterator.next();
+            if (step instanceof WizardStep) {
+                WizardStep wizStep = (WizardStep) step;
+                steps.add(new WizardStepDto(wizStep.getTitle(), false, true));
+            } else {
+                steps.add(new WizardStepDto("Wizard.unknownStep", false, true));
+            }
+        }
+
+        return steps;
     }
 
     @Override

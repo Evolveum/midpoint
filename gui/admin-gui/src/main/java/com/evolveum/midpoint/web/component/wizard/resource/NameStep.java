@@ -75,8 +75,6 @@ public class NameStep extends WizardStep {
     private LoadableModel<List<ConnectorType>> connectorVersions;
 
     public NameStep(final IModel<ResourceType> model) {
-        super();
-        setTitleModel(new StringResourceModel("NameStep.title", this, null, "NameStep.title"));
         this.resourceModel = model;
 
         connectorsModel = new LoadableModel<List<ConnectorType>>(false) {

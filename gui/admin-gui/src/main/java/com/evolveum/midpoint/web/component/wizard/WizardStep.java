@@ -20,11 +20,16 @@ import org.apache.wicket.Component;
 import org.apache.wicket.extensions.wizard.IWizard;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.StringResourceModel;
 
 /**
  * @author lazyman
  */
 public class WizardStep extends org.apache.wicket.extensions.wizard.WizardStep {
+
+    public WizardStep() {
+        setTitleModel(new StringResourceModel("WizardStep.title", this, null, "WizardStep.title"));
+    }
 
     @Override
     public Component getHeader(String id, Component parent, IWizard wizard) {
