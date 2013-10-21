@@ -287,6 +287,9 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 		} else if (synchronizationPolicyDecision != null){
 			return false;
 		}
+		if (syncDelta != null && syncDelta.isDelete()) {
+			return true;
+		}
 		return super.isDelete();
 	}
 	

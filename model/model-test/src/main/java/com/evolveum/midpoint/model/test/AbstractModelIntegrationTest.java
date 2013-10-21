@@ -326,6 +326,30 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertTrue("User " + user + " is not linked to account " + accountOid, found);
 	}
 	
+	protected void assertNotLinked(String userOid, String accountOid) throws ObjectNotFoundException, SchemaException {
+		OperationResult result = new OperationResult("assertLinked");
+		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
+		assertNotLinked(user, accountOid);
+	}
+	
+	protected void assertNotLinked(PrismObject<UserType> user, PrismObject<ShadowType> account) throws ObjectNotFoundException, SchemaException {
+		assertNotLinked(user, account.getOid());
+	}
+	
+	protected void assertNotLinked(PrismObject<UserType> user, String accountOid) throws ObjectNotFoundException, SchemaException {
+		PrismReference linkRef = user.findReference(UserType.F_LINK_REF);
+		if (linkRef == null) {
+			return;
+		}
+		boolean found = false; 
+		for (PrismReferenceValue val: linkRef.getValues()) {
+			if (val.getOid().equals(accountOid)) {
+				found = true;
+			}
+		}
+		assertFalse("User " + user + " IS linked to account " + accountOid + " but not expecting it", found);
+	}
+	
 	protected void assertNoLinkedAccount(PrismObject<UserType> user) {
 		PrismReference accountRef = user.findReference(UserType.F_LINK_REF);
 		if (accountRef == null) {

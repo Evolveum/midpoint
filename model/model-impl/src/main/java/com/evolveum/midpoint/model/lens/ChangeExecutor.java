@@ -344,7 +344,8 @@ public class ChangeExecutor {
 
         if (accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.UNLINK 
         		|| accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.DELETE
-        		|| accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
+        		|| accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN
+        		|| accCtx.isDelete()) {
             // Link should NOT exist
         	
         	PrismReference accountRef = userTypeNew.asPrismObject().findReference(UserType.F_LINK_REF);
@@ -358,12 +359,14 @@ public class ChangeExecutor {
         		
         	}
             
-            //update account situation only if the account was not deleted
-        	if (accCtx != null && !accCtx.isDelete()) {
+    		if (accCtx.isDelete() || accCtx.isThombstone()) {
+    			LOGGER.trace("Account {} deleted, updating also situation in account.", accountOid);	
+				updateSituationInAccount(task, SynchronizationSituationType.DELETED, focusContext, accCtx, result);
+    		} else {
+    			// This should NOT be UNLINKED. We just do not know the situation here. Reflect that in the shadow.
 				LOGGER.trace("Account {} unlinked from the user, updating also situation in account.", accountOid);	
 				updateSituationInAccount(task, null, focusContext, accCtx, result);
-				LOGGER.trace("Situation in the account was updated to {}.", "null");
-			}
+    		}
             // Not linked, that's OK
 
         } else {
@@ -374,7 +377,6 @@ public class ChangeExecutor {
                     // Already linked, nothing to do, only be sure, the situation is set with the good value
                 	LOGGER.trace("Updating situation in already linked account.");
                 	updateSituationInAccount(task, SynchronizationSituationType.LINKED, focusContext, accCtx, result);
-                	LOGGER.trace("Situation in account was updated to {}.", SynchronizationSituationType.LINKED);
                 	return;
                 }
             }
@@ -383,7 +385,6 @@ public class ChangeExecutor {
             //be sure, that the situation is set correctly
             LOGGER.trace("Updating situation after account was linked.");
             updateSituationInAccount(task, SynchronizationSituationType.LINKED, focusContext, accCtx, result);
-            LOGGER.trace("Situation in account was updated to {}.", SynchronizationSituationType.LINKED);
         }
     }
 
@@ -475,6 +476,7 @@ public class ChangeExecutor {
 					task, result);
 //			modifyProvisioningObject(AccountShadowType.class, accountRef, syncSituationDeltas, ProvisioningOperationOptions.createCompletePostponed(false), task, result);
 			projectionCtx.setSynchronizationSituationResolved(situation);
+			LOGGER.trace("Situation in projection {} was updated to {}.", projectionCtx, situation);
 		} catch (ObjectNotFoundException ex) {
 			// if the object not found exception is thrown, it's ok..probably
 			// the account was deleted by previous execution of changes..just

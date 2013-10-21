@@ -247,5 +247,54 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         TestUtil.assertSuccess(result);
 	}
 
+	@Test
+    public void test039DeletedAccountJack() throws Exception {
+		final String TEST_NAME = "test039DeletedAccountJack";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestSynchronizationService.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        MockLensDebugListener mockListener = new MockLensDebugListener();
+        clockwork.setDebugListener(mockListener);
+
+        dummyResource.deleteAccountByName(ACCOUNT_JACK_DUMMY_USERNAME);
+        PrismObject<ShadowType> shadow = getAccountNoFetch(accountShadowJackDummyOid);
+        
+        ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
+        change.setCurrentShadow(shadow);
+        change.setResource(resourceDummy);
+        ObjectDelta<ShadowType> syncDelta = ObjectDelta.createDeleteDelta(ShadowType.class, accountShadowJackDummyOid, prismContext);
+		change.setObjectDelta(syncDelta);
+        
+		// WHEN
+        synchronizationService.notifyChange(change, task, result);
+        
+        // THEN
+        LensContext<UserType, ShadowType> context = mockListener.getLastSyncContext();
+
+        display("Resulting context (as seen by debug listener)", context);
+        assertNotNull("No resulting context (as seen by debug listener)", context);
+        
+        assertNull("Unexpected user primary delta", context.getFocusContext().getPrimaryDelta());
+        assertNull("Unexpected user secondary delta", context.getFocusContext().getSecondaryDelta());
+        
+        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceDummy.getOid(), null, true);
+		LensProjectionContext<ShadowType> accCtx = context.findProjectionContext(rat);
+		assertNotNull("No account sync context for "+rat, accCtx);
+		assertEquals("Wrong detected situation in context", SynchronizationSituationType.DELETED, accCtx.getSynchronizationSituationDetected());
+		
+		PrismAsserts.assertNoDelta("Unexpected account primary delta", accCtx.getPrimaryDelta());
+		
+		assertNotLinked(context.getFocusContext().getObjectOld().getOid(), accountShadowJackDummyOid);
+		
+		shadow = getAccountNoFetch(accountShadowJackDummyOid);
+        assertIteration(shadow, 0, "");
+        assertSituation(shadow, SynchronizationSituationType.DELETED);
+        
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+	}
 
 }
