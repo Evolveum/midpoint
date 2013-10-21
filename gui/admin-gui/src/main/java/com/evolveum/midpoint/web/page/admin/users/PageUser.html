@@ -30,28 +30,30 @@
                 <div wicket:id="userForm"/>
             </div>
             <div class="col-md-6">
-                <div wicket:id="accordion">
-                    <li wicket:id="accountsDeltas">
-                        <div wicket:id="accountsButtons" style="text-align: center;">
-                            <a wicket:id="enableAccount" />
-                            <a wicket:id="disableAccount" />
-                            <a wicket:id="unlockAccount" />
-                            <a wicket:id="unlinkAccount" />
-                            <a wicket:id="deleteAccount" />
-                        </div>
-                        <div wicket:id="accountList">
-                            <div wicket:id="account" />
-                        </div>
-                    </li>
-                    <li wicket:id="assignments">
-                        <div wicket:id="assignmentList">
-                            <div wicket:id="assignmentEditor" class="assignmentItem" />
-                        </div>
-                    </li>
-                    <li wicket:id="tasks">
-                        <div wicket:id="taskTable">
-                        </div>
-                    </li>
+                <h3><wicket:message key="pageUser.accounts"/></h3>
+                <div wicket:id="accountsButtons" style="text-align: center;">
+                    <a wicket:id="enableAccount" />
+                    <a wicket:id="disableAccount" />
+                    <a wicket:id="unlockAccount" />
+                    <a wicket:id="unlinkAccount" />
+                    <a wicket:id="deleteAccount" />
+                </div>
+                <div wicket:id="accounts">
+                    <div wicket:id="accountList">
+                        <div wicket:id="account" />
+                    </div>
+                </div>
+
+                <h3><wicket:message key="pageUser.assignments"/></h3>
+                <div wicket:id="assignments">
+                    <div wicket:id="assignmentList">
+                        <div wicket:id="assignmentEditor" class="assignmentItem" />
+                    </div>
+                </div>
+
+                <div wicket:id="tasks">
+                    <h3><wicket:message key="pageUser.tasks"/></h3>
+                    <div wicket:id="taskTable"/>
                 </div>
             </div>
         </div>

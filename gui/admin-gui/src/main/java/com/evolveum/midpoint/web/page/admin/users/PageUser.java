@@ -40,13 +40,10 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
-import com.evolveum.midpoint.web.component.accordion.Accordion;
-import com.evolveum.midpoint.web.component.accordion.AccordionItem;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorPanel;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
-import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.button.ButtonType;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
@@ -112,21 +109,18 @@ public class PageUser extends PageAdminUsers {
 	private static final String MODAL_ID_CONFIRM_DELETE_ACCOUNT = "confirmDeleteAccountPopup";
 	private static final String MODAL_ID_CONFIRM_DELETE_ASSIGNMENT = "confirmDeleteAssignmentPopup";
 
-	// TODO: uncoment later -> confirm to leave the page when changes were made
-	// private static final String MODAL_ID_CONFIRM_CANCEL =
-	// "confirmCancelPopup";
-
 	private static final String ID_MAIN_FORM = "mainForm";
 	private static final String ID_ACCOUNT_BUTTONS = "accountsButtons";
-	private static final String ID_ACCORDION = "accordion";
 	private static final String ID_ASSIGNMENT_EDITOR = "assignmentEditor";
 	private static final String ID_ASSIGNMENT_LIST = "assignmentList";
-	private static final String ID_ASSIGNMENTS = "assignments";
     private static final String ID_TASK_TABLE = "taskTable";
-    private static final String ID_TASKS = "tasks";
-	private static final String ID_USER_FORM = "userForm";
+    private static final String ID_USER_FORM = "userForm";
 	private static final String ID_ACCOUNTS_DELTAS = "accountsDeltas";
     private static final String ID_EXECUTE_OPTIONS = "executeOptions";
+    private static final String ID_ACCOUNT_LIST = "accountList";
+    private static final String ID_ACCOUNTS = "accounts";
+    private static final String ID_ASSIGNMENTS = "assignments";
+    private static final String ID_TASKS = "tasks";
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageUser.class);
 	private LoadableModel<ObjectWrapper> userModel;
@@ -141,9 +135,6 @@ public class PageUser extends PageAdminUsers {
                     return new ExecuteChangeOptionsDto();
                 }
             };
-
-    private TaskDtoProvider taskDtoProvider;
-    private TablePanel<TaskDto> taskTable;
 
     // it should be sent from submit. If the user is on the preview page and
 	// than he wants to get back to the edit page, the object delta is set, so
@@ -326,7 +317,7 @@ public class PageUser extends PageAdminUsers {
 				String resourceName = null;
 				if (shadow.getResource() != null) {
 					resourceName = shadow.getResource().getName().getOrig();
-				} 
+				}
 //				else if (shadow.getResourceRef() != null) {
 //				try{
 //					Task task = getTaskManager().createTaskInstance("Get resource");
@@ -337,7 +328,7 @@ public class PageUser extends PageAdminUsers {
 //					LoggingUtils.logException(LOGGER, "Couldn't load account after preview", ex);
 //				}
 //				} 
-			
+
                 ObjectWrapper ow = new ObjectWrapper(resourceName, null, delta.getObjectToAdd(), ContainerStatus.ADDING);
                 if (ow.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(ow.getResult())) {
                     showResultInSession(ow.getResult());
@@ -345,7 +336,7 @@ public class PageUser extends PageAdminUsers {
 
                 ow.setShowEmpty(true);
 					wrappers.add(new UserAccountDto(ow, UserDtoStatus.ADD));
-			
+
 			}
 
 		}
@@ -443,62 +434,31 @@ public class PageUser extends PageAdminUsers {
 		};
 		mainForm.add(userForm);
 
-		Accordion accordion = new Accordion(ID_ACCORDION);
-		accordion.setOutputMarkupId(true);
-		accordion.setMultipleSelect(true);
-		accordion.setExpanded(true);
-		mainForm.add(accordion);
-
-		AccordionItem accounts = new AccordionItem(ID_ACCOUNTS_DELTAS, new AbstractReadOnlyModel<String>() {
-
-			@Override
-			public String getObject() {
-				return getString("pageUser.accounts", getAccountsSize().getObject());
-			}
-		});
-		accounts.setOutputMarkupId(true);
-		accordion.getBodyContainer().add(accounts);
 
 		WebMarkupContainer accountsButtonsPanel = new WebMarkupContainer(ID_ACCOUNT_BUTTONS);
-		accountsButtonsPanel.add(new VisibleEnableBehaviour() {
+        initAccountButtons(accountsButtonsPanel);
+        accountsButtonsPanel.add(new VisibleEnableBehaviour() {
 
 			@Override
 			public boolean isVisible() {
 				return getAccountsSize().getObject() > 0;
 			}
 		});
-		accounts.getBodyContainer().add(accountsButtonsPanel);
+		mainForm.add(accountsButtonsPanel);
 
+        WebMarkupContainer accounts = new WebMarkupContainer(ID_ACCOUNTS);
+        accounts.setOutputMarkupId(true);
+        mainForm.add(accounts);
 		initAccounts(accounts);
 
-		AccordionItem assignments = new AccordionItem(ID_ASSIGNMENTS, new AbstractReadOnlyModel<String>() {
+        WebMarkupContainer assignments = new WebMarkupContainer(ID_ASSIGNMENTS);
+        assignments.setOutputMarkupId(true);
+        mainForm.add(assignments);
+        initAssignments(assignments);
 
-			@Override
-			public String getObject() {
-				return getString("pageUser.assignments", getAssignmentsSize().getObject());
-			}
-		});
-		assignments.setOutputMarkupId(true);
-		accordion.getBodyContainer().add(assignments);
-
-		initAssignments(assignments);
-
-        AccordionItem tasks = new AccordionItem(ID_TASKS, new AbstractReadOnlyModel<String>() {
-
-            @Override
-            public String getObject() {
-                return getString("pageUser.tasks", taskDtoProvider.size());
-            }
-        });
+        WebMarkupContainer tasks = new WebMarkupContainer(ID_TASKS);
         tasks.setOutputMarkupId(true);
-        tasks.add(new VisibleEnableBehaviour() {
-            @Override
-            public boolean isVisible() {
-                return taskDtoProvider.size() > 0;
-            }
-        });
-        accordion.getBodyContainer().add(tasks);
-
+        mainForm.add(tasks);
         initTasks(tasks, userOid);
 
         initButtons(mainForm);
@@ -600,8 +560,8 @@ public class PageUser extends PageAdminUsers {
 		// add(dialog);
 	}
 
-	private void initAccounts(AccordionItem accounts) {
-		ListView<UserAccountDto> accountList = new ListView<UserAccountDto>("accountList", accountsModel) {
+	private void initAccounts(WebMarkupContainer accounts) {
+		ListView<UserAccountDto> accountList = new ListView<UserAccountDto>(ID_ACCOUNT_LIST, accountsModel) {
 
 			@Override
 			protected void populateItem(final ListItem<UserAccountDto> item) {
@@ -631,21 +591,7 @@ public class PageUser extends PageAdminUsers {
 			}
 		};
 
-		accounts.getBodyContainer().add(accountList);
-	}
-
-	private AccordionItem getAssignmentAccordionItem() {
-		Accordion accordion = (Accordion) get(ID_MAIN_FORM + ":" + ID_ACCORDION);
-		return (AccordionItem) accordion.getBodyContainer().get(ID_ASSIGNMENTS);
-	}
-
-	private AccordionItem getAccountsAccordionItem() {
-		Accordion accordion = (Accordion) get(ID_MAIN_FORM + ":" + ID_ACCORDION);
-		return (AccordionItem) accordion.getBodyContainer().get(ID_ACCOUNTS_DELTAS);
-	}
-
-	private Accordion getAccordionsItem() {
-		return (Accordion) get(ID_MAIN_FORM + ":" + ID_ACCORDION);
+        accounts.add(accountList);
 	}
 
 	private List<UserAccountDto> loadAccountWrappers() {
@@ -661,7 +607,7 @@ public class PageUser extends PageAdminUsers {
 			try {
 				Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
 						ShadowType.F_RESOURCE, GetOperationOptions.createResolve());
-				
+
 				if (reference.getOid() == null) {
 					continue;
 				}
@@ -768,7 +714,7 @@ public class PageUser extends PageAdminUsers {
 			Class type = ObjectType.class;
 			if (ref.getType() != null){
 			 type = getPrismContext().getSchemaRegistry().determineCompileTimeClass(ref.getType());
-			} 
+			}
 			target = getModelService().getObject(type, ref.getOid(), null, task, subResult);
 			subResult.recordSuccess();
 		} catch (Exception ex) {
@@ -779,7 +725,7 @@ public class PageUser extends PageAdminUsers {
 		return target;
 	}
 
-	private void initAssignments(AccordionItem assignments) {
+	private void initAssignments(WebMarkupContainer assignments) {
 		ListView<AssignmentEditorDto> assignmentList = new ListView<AssignmentEditorDto>(ID_ASSIGNMENT_LIST,
 				assignmentsModel) {
 
@@ -790,32 +736,35 @@ public class PageUser extends PageAdminUsers {
 				item.add(assignmentEditor);
 			}
 		};
-
-		assignments.getBodyContainer().add(assignmentList);
+        assignments.add(assignmentList);
 	}
 
-    private void initTasks(AccordionItem tasks, String userOid) {
-
+    private void initTasks(WebMarkupContainer tasks, String userOid) {
         List<IColumn<TaskDto, String>> taskColumns = initTaskColumns();
-        taskDtoProvider = new TaskDtoProvider(PageUser.this, TaskDtoProviderOptions.minimalOptions());
+        final TaskDtoProvider taskDtoProvider = new TaskDtoProvider(PageUser.this,
+                TaskDtoProviderOptions.minimalOptions());
         taskDtoProvider.setQuery(createTaskQuery(userOid));
-        taskTable = new TablePanel<TaskDto>(ID_TASK_TABLE, taskDtoProvider, taskColumns) {
+        TablePanel taskTable = new TablePanel<TaskDto>(ID_TASK_TABLE, taskDtoProvider, taskColumns) {
+
             @Override
             protected void onInitialize() {
                 super.onInitialize();
                 StringValue oidValue = getPageParameters().get(PARAM_USER_ID);
-//                System.out.println("PARAM_USER_ID = " + oidValue);
+
                 taskDtoProvider.setQuery(createTaskQuery(oidValue != null ? oidValue.toString() : null));
             }
         };
-        taskTable.setOutputMarkupId(true);
+        tasks.add(taskTable);
 
-        tasks.getBodyContainer().add(taskTable);
+        tasks.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isVisible() {
+                return taskDtoProvider.size() > 0;
+            }
+        });
     }
 
     private ObjectQuery createTaskQuery(String oid) {
-
-//        System.out.println("createTaskQuery called with oid = " + oid);
         List<ObjectFilter> filters = new ArrayList<ObjectFilter>();
 
         if (oid == null) {
@@ -885,10 +834,6 @@ public class PageUser extends PageAdminUsers {
 		mainForm.add(back);
 
 		initAssignButtons(mainForm);
-
-		WebMarkupContainer buttons = (WebMarkupContainer) getAccountsAccordionItem().getBodyContainer().get(
-				ID_ACCOUNT_BUTTONS);
-		initAccountButtons(buttons);
 
 		initAccountButton(mainForm);
 
@@ -1766,14 +1711,14 @@ public class PageUser extends PageAdminUsers {
 			}
 		}
 
-		target.add(getFeedbackPanel(), getAccordionsItem());
+		target.add(getFeedbackPanel(), get(createComponentPath(ID_MAIN_FORM, ID_ACCOUNTS)));
 	}
 
 	private void addSelectedResourceAssignPerformed(ResourceType resource) {
 		AssignmentType assignment = new AssignmentType();
 		ConstructionType construction = new ConstructionType();
 		assignment.setConstruction(construction);
-		
+
 		try {
 			getPrismContext().adopt(assignment, UserType.class, new ItemPath(UserType.F_ASSIGNMENT));
 		} catch (SchemaException e) {
@@ -1781,7 +1726,7 @@ public class PageUser extends PageAdminUsers {
 			LoggingUtils.logException(LOGGER, "Couldn't create assignment", e);
 			return;
 		}
-		
+
 		construction.setResource(resource);
 
 		List<AssignmentEditorDto> assignments = assignmentsModel.getObject();
@@ -1831,7 +1776,7 @@ public class PageUser extends PageAdminUsers {
 			}
 		}
 
-		target.add(getFeedbackPanel(), getAccordionsItem());
+		target.add(getFeedbackPanel(), get(createComponentPath(ID_MAIN_FORM, ID_ASSIGNMENTS)));
 	}
 
 	private void updateAccountActivation(AjaxRequestTarget target, List<UserAccountDto> accounts, boolean enabled) {
@@ -1860,7 +1805,7 @@ public class PageUser extends PageAdminUsers {
 			wrapper.setSelected(false);
 		}
 
-		target.add(getFeedbackPanel(), getAccordionsItem());
+		target.add(getFeedbackPanel(), get(createComponentPath(ID_MAIN_FORM, ID_ACCOUNTS)));
 	}
 
 	private boolean isAnyAccountSelected(AjaxRequestTarget target) {
@@ -1896,7 +1841,7 @@ public class PageUser extends PageAdminUsers {
 				account.setStatus(UserDtoStatus.DELETE);
 			}
 		}
-		target.add(getAccordionsItem());
+		target.add(get(createComponentPath(ID_MAIN_FORM, ID_ACCOUNTS)));
 	}
 
 	private void deleteAssignmentConfirmedPerformed(AjaxRequestTarget target, List<AssignmentEditorDto> selected) {
@@ -1910,7 +1855,7 @@ public class PageUser extends PageAdminUsers {
 			}
 		}
 
-		target.add(getFeedbackPanel(), getAccordionsItem());
+		target.add(getFeedbackPanel(), get(createComponentPath(ID_MAIN_FORM, ID_ASSIGNMENTS)));
 	}
 
 	private void unlinkAccountPerformed(AjaxRequestTarget target, List<UserAccountDto> selected) {
@@ -1924,7 +1869,7 @@ public class PageUser extends PageAdminUsers {
 			}
 			account.setStatus(UserDtoStatus.UNLINK);
 		}
-		target.add(getAccordionsItem());
+		target.add(get(createComponentPath(ID_MAIN_FORM, ID_ACCOUNTS)));
 	}
 
 	private void unlinkAccountPerformed(AjaxRequestTarget target, IModel<UserAccountDto> model) {
@@ -1937,7 +1882,7 @@ public class PageUser extends PageAdminUsers {
 		} else {
 			dto.setStatus(UserDtoStatus.UNLINK);
 		}
-		target.add(getAccordionsItem());
+		target.add(get(createComponentPath(ID_MAIN_FORM, ID_ACCOUNTS)));
 	}
 
 	// private void linkAccountPerformed(AjaxRequestTarget target,
@@ -1964,7 +1909,7 @@ public class PageUser extends PageAdminUsers {
 			}
 		}
 		// target.appendJavaScript("window.location.reload()");
-		target.add(getAccordionsItem());
+		target.add(get(createComponentPath(ID_MAIN_FORM, ID_ACCOUNTS)));
 	}
 
 	// private void undeleteAccountPerformed(AjaxRequestTarget target,
@@ -2005,7 +1950,10 @@ public class PageUser extends PageAdminUsers {
     // many things could change (e.g. assignments, tasks) - here we deal only with tasks
     @Override
     public PageBase reinitialize() {
-        taskDtoProvider.clearCache();
+        TablePanel taskTable = (TablePanel) get(createComponentPath(ID_MAIN_FORM, ID_TASKS, ID_TASK_TABLE));
+        TaskDtoProvider provider = (TaskDtoProvider) taskTable.getDataTable().getDataProvider();
+
+        provider.clearCache();
         taskTable.modelChanged();
         return this;
     }
