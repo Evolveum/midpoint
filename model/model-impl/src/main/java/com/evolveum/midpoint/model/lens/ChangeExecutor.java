@@ -344,7 +344,8 @@ public class ChangeExecutor {
 
         if (accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.UNLINK 
         		|| accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.DELETE
-        		|| accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
+        		|| accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN
+        		|| accCtx.isDelete()) {
             // Link should NOT exist
         	
         	PrismReference accountRef = userTypeNew.asPrismObject().findReference(UserType.F_LINK_REF);
@@ -358,12 +359,14 @@ public class ChangeExecutor {
         		
         	}
             
-            //update account situation only if the account was not deleted
-        	if (accCtx != null && !accCtx.isDelete()) {
+    		if (accCtx.isDelete() || accCtx.isThombstone()) {
+    			LOGGER.trace("Account {} deleted, updating also situation in account.", accountOid);	
+				updateSituationInAccount(task, SynchronizationSituationType.DELETED, focusContext, accCtx, result);
+    		} else {
+    			// This should NOT be UNLINKED. We just do not know the situation here. Reflect that in the shadow.
 				LOGGER.trace("Account {} unlinked from the user, updating also situation in account.", accountOid);	
-				updateSituationInAccount(task, null, focusContext, accountOid, result);
-				LOGGER.trace("Situation in the account was updated to {}.", "null");
-			}
+				updateSituationInAccount(task, null, focusContext, accCtx, result);
+    		}
             // Not linked, that's OK
 
         } else {
@@ -373,8 +376,7 @@ public class ChangeExecutor {
                 if (accountOid.equals(accountRef.getOid())) {
                     // Already linked, nothing to do, only be sure, the situation is set with the good value
                 	LOGGER.trace("Updating situation in already linked account.");
-                	updateSituationInAccount(task, SynchronizationSituationType.LINKED, focusContext, accountOid, result);
-                	LOGGER.trace("Situation in account was updated to {}.", SynchronizationSituationType.LINKED);
+                	updateSituationInAccount(task, SynchronizationSituationType.LINKED, focusContext, accCtx, result);
                 	return;
                 }
             }
@@ -382,8 +384,7 @@ public class ChangeExecutor {
             linkAccount(userTypeNew.getOid(), accountOid, (LensFocusContext<UserType>) focusContext, task, result);
             //be sure, that the situation is set correctly
             LOGGER.trace("Updating situation after account was linked.");
-            updateSituationInAccount(task, SynchronizationSituationType.LINKED, focusContext, accountOid, result);
-            LOGGER.trace("Situation in account was updated to {}.", SynchronizationSituationType.LINKED);
+            updateSituationInAccount(task, SynchronizationSituationType.LINKED, focusContext, accCtx, result);
         }
     }
 
@@ -444,15 +445,18 @@ public class ChangeExecutor {
  
     }
 	
-    private <F extends ObjectType> void updateSituationInAccount(Task task, SynchronizationSituationType situation, LensFocusContext<F> focusContext, String accountRef, OperationResult parentResult) throws ObjectNotFoundException, SchemaException{
+    private <F extends ObjectType, P extends ObjectType> void updateSituationInAccount(Task task, SynchronizationSituationType situation, 
+    		LensFocusContext<F> focusContext, LensProjectionContext<P> projectionCtx, OperationResult parentResult) throws ObjectNotFoundException, SchemaException{
 
+    	String projectionOid = projectionCtx.getOid();
+    	
     	OperationResult result = new OperationResult(OPERATION_UPDATE_SITUATION_ACCOUNT);
     	result.addParam("situation", situation);
-    	result.addParam("accountRef", accountRef);
+    	result.addParam("accountRef", projectionOid);
 		
     	PrismObject<ShadowType> account = null;
     	try {
-    		account = provisioning.getObject(ShadowType.class, accountRef, 
+    		account = provisioning.getObject(ShadowType.class, projectionOid, 
     				SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), task, result);
     	} catch (Exception ex){
     		LOGGER.trace("Problem with getting account, skipping modifying situation in account.");
@@ -467,10 +471,12 @@ public class ChangeExecutor {
 
 		try {
             Utils.setRequestee(task, focusContext);
-			String changedOid = provisioning.modifyObject(ShadowType.class, accountRef,
+			String changedOid = provisioning.modifyObject(ShadowType.class, projectionOid,
 					syncSituationDeltas, null, ProvisioningOperationOptions.createCompletePostponed(false),
 					task, result);
 //			modifyProvisioningObject(AccountShadowType.class, accountRef, syncSituationDeltas, ProvisioningOperationOptions.createCompletePostponed(false), task, result);
+			projectionCtx.setSynchronizationSituationResolved(situation);
+			LOGGER.trace("Situation in projection {} was updated to {}.", projectionCtx, situation);
 		} catch (ObjectNotFoundException ex) {
 			// if the object not found exception is thrown, it's ok..probably
 			// the account was deleted by previous execution of changes..just
