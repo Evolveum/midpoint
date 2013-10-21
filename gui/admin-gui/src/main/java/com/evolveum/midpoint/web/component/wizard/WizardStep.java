@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.web.component.wizard;
 
+import com.evolveum.midpoint.web.page.PageBase;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.wizard.IWizard;
 import org.apache.wicket.markup.html.basic.Label;
@@ -42,5 +44,49 @@ public class WizardStep extends org.apache.wicket.extensions.wizard.WizardStep {
         });
 
         return header;
+    }
+
+    public PageBase getPageBase() {
+        return (PageBase) getPage();
+    }
+
+    public String getString(String resourceKey, Object... objects) {
+        return createStringResource(resourceKey, objects).getString();
+    }
+
+    public StringResourceModel createStringResource(String resourceKey, Object... objects) {
+        return new StringResourceModel(resourceKey, this, null, resourceKey, objects);
+    }
+
+    public StringResourceModel createStringResource(Enum e) {
+        return createStringResource(e, null);
+    }
+
+    public StringResourceModel createStringResource(Enum e, String prefix) {
+        return createStringResource(e, prefix, null);
+    }
+
+    public StringResourceModel createStringResource(Enum e, String prefix, String nullKey) {
+        StringBuilder sb = new StringBuilder();
+        if (StringUtils.isNotEmpty(prefix)) {
+            sb.append(prefix).append('.');
+        }
+
+        if (e == null) {
+            if (StringUtils.isNotEmpty(nullKey)) {
+                sb.append(nullKey);
+            } else {
+                sb = new StringBuilder();
+            }
+        } else {
+            sb.append(e.getDeclaringClass().getSimpleName()).append('.');
+            sb.append(e.name());
+        }
+
+        return createStringResource(sb.toString());
+    }
+
+    protected String createComponentPath(String... components) {
+        return StringUtils.join(components, ":");
     }
 }

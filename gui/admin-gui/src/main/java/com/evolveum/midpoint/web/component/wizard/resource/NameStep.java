@@ -39,8 +39,10 @@ import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.form.RequiredTextField;
+import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 
 import java.util.*;
@@ -60,6 +62,7 @@ public class NameStep extends WizardStep {
     private static final String OPERATION_LOAD_RESOURCE = DOT_CLASS + "loadResource";
 
     private static final String ID_NAME = "name";
+    private static final String ID_DESCRIPTION = "description";
     private static final String ID_LOCATION = "location";
     private static final String ID_CONNECTOR_TYPE = "connectorType";
     private static final String ID_CONNECTOR_VERSION = "connectorVersion";
@@ -98,6 +101,9 @@ public class NameStep extends WizardStep {
     private void initLayout(IModel<ResourceType> model) {
         RequiredTextField name = new RequiredTextField(ID_NAME, createNameModel(model));
         add(name);
+
+        TextArea description = new TextArea(ID_DESCRIPTION, new PropertyModel(model, "description"));
+        add(description);
 
         DropDownChoice<ConnectorHostType> location = createLocationDropDown(model);
         add(location);
@@ -552,8 +558,6 @@ public class NameStep extends WizardStep {
 
     @Override
     public void applyState() {
-        super.applyState();
-
         PageBase page = (PageBase) getPage();
         OperationResult result = new OperationResult(OPERATION_SAVE_RESOURCE);
         try {

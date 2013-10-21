@@ -16,9 +16,13 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource;
 
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
@@ -27,10 +31,8 @@ import com.evolveum.midpoint.web.component.wizard.WizardStep;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.StringResourceModel;
 
 /**
  * @author lazyman
@@ -38,6 +40,10 @@ import org.apache.wicket.model.StringResourceModel;
 public class ConfigurationStep extends WizardStep {
 
     private static final Trace LOGGER = TraceManager.getTrace(ConfigurationStep.class);
+
+    private static final String DOT_CLASS = ConfigurationStep.class.getName() + ".";
+    private static final String TEST_CONNECTION = DOT_CLASS + "testConnection";
+
     private static final String ID_CONFIGURATION = "configuration";
     private static final String ID_TEST_CONNECTION = "testConnection";
 
@@ -70,8 +76,8 @@ public class ConfigurationStep extends WizardStep {
         PrismObjectPanel configuration = new PrismObjectPanel(ID_CONFIGURATION, wrapperModel, null, null);
         add(configuration);
 
-        AjaxLinkButton testConnection = new AjaxLinkButton(ID_TEST_CONNECTION,
-                new StringResourceModel("ConfigurationStep.button.testConnection", this, null, "Test connection")) {
+        AjaxButton testConnection = new AjaxButton(ID_TEST_CONNECTION,
+                createStringResource("ConfigurationStep.button.testConnection")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -82,7 +88,23 @@ public class ConfigurationStep extends WizardStep {
     }
 
     private void testConnectionPerformed(AjaxRequestTarget target) {
-        //todo implement
+        PageBase page = getPageBase();
+        ModelService model = page.getModelService();
+
+        OperationResult result;
+        try {
+            Task task = page.createSimpleTask(TEST_CONNECTION);
+            String oid = resourceModel.getObject().getOid();
+            result = model.testResource(oid, task);
+
+            page.showResult(result);
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "Error occurred during resource test connection", ex);
+        }
+
+        target.add(page.getFeedbackPanel());
+
+        //todo show more precise information about test connection operation [lazyman]
     }
 
     @Override
