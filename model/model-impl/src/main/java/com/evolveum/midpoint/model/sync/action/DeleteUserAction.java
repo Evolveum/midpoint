@@ -89,7 +89,7 @@ public class DeleteUserAction extends BaseAction {
             focusContext.setPrimaryDelta(userDelta);
 
             //create account context for this change
-            LensProjectionContext<ShadowType> accContext = createAccountLensContext(context, change, null, null);
+            LensProjectionContext<ShadowType> accContext = createAccountLensContext(context, change, situation, null, null);
             if (accContext == null) {
                 LOGGER.warn("Couldn't create account sync context, skipping action for this change.");
                 return userOid;

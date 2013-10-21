@@ -96,7 +96,7 @@ public class SynchronizeAction extends BaseAction {
         try {
             context = createLensContext(userType, change.getResource().asObjectable(), userTemplate, change);
 
-            LensProjectionContext<ShadowType> accountContext = createAccountLensContext(context, change,
+            LensProjectionContext<ShadowType> accountContext = createAccountLensContext(context, change, situation,
                     SynchronizationIntent.SYNCHRONIZE, null);
             if (accountContext == null) {
                 LOGGER.warn("Couldn't create account sync context, skipping action for this change.");
