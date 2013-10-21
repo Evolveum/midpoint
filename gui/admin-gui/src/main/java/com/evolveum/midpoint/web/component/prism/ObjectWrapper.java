@@ -50,6 +50,8 @@ import java.util.*;
  */
 public class ObjectWrapper implements Serializable {
 
+    public static final String F_DISPLAY_NAME = "displayName";
+
 	private static final Trace LOGGER = TraceManager.getTrace(ObjectWrapper.class);
 
     private static final String DOT_CLASS = ObjectWrapper.class.getName() + ".";

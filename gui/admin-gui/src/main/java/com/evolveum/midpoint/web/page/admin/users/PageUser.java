@@ -410,7 +410,7 @@ public class PageUser extends PageAdminUsers {
 		}
 
 		ContainerStatus status = isEditingUser() ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
-		ObjectWrapper wrapper = new ObjectWrapper(null, null, user, status);
+		ObjectWrapper wrapper = new ObjectWrapper("pageUser.userDetails", null, user, status);
         if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
             showResultInSession(wrapper.getResult());
         }

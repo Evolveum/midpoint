@@ -19,10 +19,13 @@ package com.evolveum.midpoint.web.component.prism;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxEventBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
@@ -39,10 +42,12 @@ import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.request.resource.ResourceReference;
 
 import javax.xml.namespace.QName;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -149,7 +154,77 @@ public class PrismObjectPanel extends Panel {
 //        return (ActivationStatusType) prismProperty.getRealValue();
 //    }
 
+    protected Component createHeader(String id, final IModel<ObjectWrapper> model) {
+        H3Header header = new H3Header(id, model) {
+
+            @Override
+            protected List<InlineMenuItem> createMenuItems() {
+                List<InlineMenuItem> items = new ArrayList<InlineMenuItem>();
+
+                InlineMenuItem item = new InlineMenuItem(createMinMaxLabel(model), createMinMaxAction(model));
+                items.add(item);
+
+                item = new InlineMenuItem(createEmptyLabel(model), createEmptyAction(model));
+                items.add(item);
+
+                return items;
+            }
+        };
+
+        return header;
+    }
+
+    private InlineMenuItemAction createEmptyAction(final IModel<ObjectWrapper> model) {
+        return new InlineMenuItemAction() {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                ObjectWrapper wrapper = model.getObject();
+                wrapper.setShowEmpty(!wrapper.isShowEmpty());
+                target.add(PrismObjectPanel.this);
+            }
+        };
+    }
+
+    private IModel<String> createEmptyLabel(final IModel<ObjectWrapper> model) {
+        return new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                ObjectWrapper wrapper = model.getObject();
+                String key = wrapper.isShowEmpty() ? "PrismObjectPanel.hideEmpty" : "PrismObjectPanel.showEmpty";
+                return new StringResourceModel(key, PrismObjectPanel.this, null, key).getString();
+            }
+        };
+    }
+
+    private InlineMenuItemAction createMinMaxAction(final IModel<ObjectWrapper> model) {
+        return new InlineMenuItemAction() {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                ObjectWrapper wrapper = model.getObject();
+                wrapper.setMinimalized(!wrapper.isMinimalized());
+                target.add(PrismObjectPanel.this);
+            }
+        };
+    }
+
+    private IModel<String> createMinMaxLabel(final IModel<ObjectWrapper> model) {
+        return new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                ObjectWrapper wrapper = model.getObject();
+                String key = wrapper.isMinimalized() ? "PrismObjectPanel.maximize" : "PrismObjectPanel.minimize";
+                return new StringResourceModel(key, PrismObjectPanel.this, null, key).getString();
+            }
+        };
+    }
+
     private void initLayout(final IModel<ObjectWrapper> model, ResourceReference image, final Form form) {
+        add(createHeader("header", model));
+
         WebMarkupContainer headerPanel = new WebMarkupContainer("headerPanel");
         headerPanel.add(new AttributeAppender("class", createHeaderClassModel(model), " "));
         add(headerPanel);
