@@ -248,6 +248,11 @@ public class TaskQuartzImpl implements Task {
         }
 	}
 
+    @Override
+    public Collection<ItemDelta<?>> getPendingModifications() {
+        return pendingModifications;
+    }
+
     public void synchronizeWithQuartz(OperationResult parentResult) {
         taskManager.synchronizeTaskWithQuartz(this, parentResult);
         setRecreateQuartzTrigger(false);
@@ -1172,6 +1177,10 @@ public class TaskQuartzImpl implements Task {
 
 	@Override
 	public void setOwner(PrismObject<UserType> owner) {
+        if (isPersistent()) {
+            throw new IllegalStateException("setOwner method can be called only on transient tasks!");
+        }
+
 		PrismReference ownerRef;
 		try {
 			ownerRef = taskPrism.findOrCreateReference(TaskType.F_OWNER_REF);

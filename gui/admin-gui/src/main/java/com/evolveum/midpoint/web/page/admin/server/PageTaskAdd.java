@@ -17,13 +17,17 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.page.admin.server.dto.*;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 import org.apache.wicket.Component;
@@ -443,13 +447,14 @@ public class PageTaskAdd extends PageAdminTasks {
 		OperationResult result = new OperationResult(OPERATION_SAVE_TASK);
 		TaskAddDto dto = model.getObject();
 		TaskType task = createTask(dto);
+        Task operationTask = createSimpleTask(OPERATION_SAVE_TASK);
 
 		try {
 			getPrismContext().adopt(task);
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Add new task.");
+				LOGGER.trace("Adding new task.");
 			}
-			getTaskManager().addTask(task.asPrismObject(), result);
+            getModelService().executeChanges(prepareChangesToExecute(task), null, operationTask, result);
 			result.recomputeStatus();
 			setResponsePage(PageTasks.class);
 		} catch (Exception ex) {
@@ -461,7 +466,11 @@ public class PageTaskAdd extends PageAdminTasks {
 		target.add(getFeedbackPanel());
 	}
 
-	private TaskType createTask(TaskAddDto dto) {
+    private Collection<ObjectDelta<? extends ObjectType>> prepareChangesToExecute(TaskType taskToBeAdded) {
+        return Arrays.asList((ObjectDelta<? extends ObjectType>) ObjectDelta.createAddDelta(taskToBeAdded.asPrismObject()));
+    }
+
+    private TaskType createTask(TaskAddDto dto) {
 		TaskType task = new TaskType();
 		MidPointPrincipal owner = SecurityUtils.getPrincipalUser();
 

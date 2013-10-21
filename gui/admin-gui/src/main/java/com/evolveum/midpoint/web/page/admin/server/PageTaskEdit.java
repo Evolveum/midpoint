@@ -16,6 +16,9 @@
 
 package com.evolveum.midpoint.web.page.admin.server;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -50,6 +53,7 @@ import com.evolveum.midpoint.web.page.admin.server.workflowInformation.WorkflowI
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MisfireActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ThreadStopActionType;
@@ -89,6 +93,7 @@ import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.util.string.StringValue;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -717,16 +722,19 @@ public class PageTaskEdit extends PageAdminTasks {
 		LOGGER.debug("Saving new task.");
 		OperationResult result = new OperationResult(OPERATION_SAVE_TASK);
 		TaskDto dto = model.getObject();
+        Task operationTask = createSimpleTask(OPERATION_SAVE_TASK);
+        TaskManager manager = getTaskManager();
+
 		try {
-			OperationResult loadTask = new OperationResult(OPERATION_LOAD_TASK);
-			TaskManager manager = getTaskManager();
-			Task loadedTask = manager.getTask(dto.getOid(), loadTask);
-			Task task = updateTask(dto, loadedTask);
-			
+            PrismObject<TaskType> originalTaskType = getModelService().getObject(TaskType.class, dto.getOid(), null, operationTask, result);
+			Task originalTask = manager.createTaskInstance(originalTaskType, result);
+			Task updatedTask = updateTask(dto, originalTask);
+
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Saving task modifications.");
 			}
-			task.savePendingModifications(result);
+            getModelService().executeChanges(prepareChanges(updatedTask), null, operationTask, result);
+
 			edit = false;
 			setResponsePage(PageTasks.class);
 			result.recomputeStatus();
@@ -739,7 +747,12 @@ public class PageTaskEdit extends PageAdminTasks {
 		target.add(getFeedbackPanel());
 	}
 
-	private Task updateTask(TaskDto dto, Task existingTask) {
+    private List<ObjectDelta<? extends ObjectType>> prepareChanges(Task updatedTask) {
+        Collection<ItemDelta<?>> modifications = updatedTask.getPendingModifications();
+        return Arrays.asList((ObjectDelta<? extends ObjectType>) ObjectDelta.createModifyDelta(updatedTask.getOid(), modifications, TaskType.class, getPrismContext()));
+    }
+
+    private Task updateTask(TaskDto dto, Task existingTask) {
 
         if (!existingTask.getName().equals(dto.getName())) {
 		    existingTask.setName(WebMiscUtil.createPolyFromOrigString(dto.getName()));

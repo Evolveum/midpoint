@@ -782,10 +782,10 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     /*
      * Gets nodes from repository and adds runtime information to them (taken from ClusterStatusInformation).
      */
-    @Override
-    public int countNodes(ObjectQuery query, OperationResult result) throws SchemaException {
-        return repositoryService.countObjects(NodeType.class, query, result);
-    }
+//    @Override
+//    public int countNodes(ObjectQuery query, OperationResult result) throws SchemaException {
+//        return repositoryService.countObjects(NodeType.class, query, result);
+//    }
 
     private List<PrismObject<NodeType>> searchNodes(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
 
@@ -875,10 +875,10 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     }
 
     
-    @Override
-    public int countTasks(ObjectQuery query, OperationResult result) throws SchemaException {
-        return repositoryService.countObjects(TaskType.class, query, result);
-    }
+//    @Override
+//    public int countTasks(ObjectQuery query, OperationResult result) throws SchemaException {
+//        return repositoryService.countObjects(TaskType.class, query, result);
+//    }
     //endregion
 
     //region Managing handlers and task categories
