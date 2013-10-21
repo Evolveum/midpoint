@@ -626,4 +626,9 @@ public class SimpleTaskAdapter implements Task {
     public List<Task> listSubtasksDeeply(OperationResult result) throws SchemaException {
         throw new UnsupportedOperationException("not implemented yet.");
     }
+
+    @Override
+    public Collection<ItemDelta<?>> getPendingModifications() {
+        throw new UnsupportedOperationException("not implemented yet.");
+    }
 }

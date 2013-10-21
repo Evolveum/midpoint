@@ -915,5 +915,10 @@ public interface Task extends Dumpable {
 	void savePendingModifications(OperationResult parentResult) throws ObjectNotFoundException,
 			SchemaException, ObjectAlreadyExistsException;
 
+    /**
+     * Returns a list of pending modifications for this task.
+     * @return
+     */
+    Collection<ItemDelta<?>> getPendingModifications();
 
 }

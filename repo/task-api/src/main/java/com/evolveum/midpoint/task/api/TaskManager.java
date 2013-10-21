@@ -362,7 +362,7 @@ public interface TaskManager {
      * @return
      * @throws SchemaException
      */
-    int countTasks(ObjectQuery query, OperationResult result) throws SchemaException;
+//    int countTasks(ObjectQuery query, OperationResult result) throws SchemaException;
 
     /**
      * Returns tasks that currently run on this node.
@@ -487,7 +487,7 @@ public interface TaskManager {
      * @return
      * @throws SchemaException
      */
-    int countNodes(ObjectQuery query, OperationResult result) throws SchemaException;
+//    int countNodes(ObjectQuery query, OperationResult result) throws SchemaException;
 
     /**
      * Returns identifier for current node.
