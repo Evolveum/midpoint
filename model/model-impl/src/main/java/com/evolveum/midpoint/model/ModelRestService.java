@@ -55,6 +55,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 
 @Service
+@Produces("application/xml")
 public class ModelRestService {
 	
 	@Autowired(required= true)
@@ -77,7 +78,7 @@ public class ModelRestService {
 	
 	@GET
 	@Path("/{type}/{id}")
-	@Produces({"application/xml"})
+//	@Produces({"application/xml"})
 	public <T extends ObjectType> Response getObject(@PathParam("type") String type, @PathParam("id") String id){
 		LOGGER.info("model rest service for get operation start");
 		
@@ -111,7 +112,7 @@ public class ModelRestService {
 	
 	@POST
 	@Path("/{type}")
-	@Produces({"text/html", "application/xml"})
+//	@Produces({"text/html", "application/xml"})
 	public <T extends ObjectType> Response addObject(@PathParam("type") String type, PrismObject<T> object, @Context UriInfo uriInfo){
 		LOGGER.info("model rest service for add operation start");
 		
@@ -153,7 +154,7 @@ public class ModelRestService {
 
 	@PUT
 	@Path("/{type}/{id}")
-	@Produces({"text/html", "application/xml"})
+//	@Produces({"text/html", "application/xml"})
 	public <T extends ObjectType> Response addObject(@PathParam("type") String type, @PathParam("id") String id, PrismObject<T> object, @Context UriInfo uriInfo, @Context Request request){
 	
 LOGGER.info("model rest service for add operation start");
@@ -192,7 +193,7 @@ LOGGER.info("model rest service for add operation start");
 	
 	@DELETE
 	@Path("/{type}/{id}")
-	@Produces({"text/html", "application/xml"})
+//	@Produces({"text/html", "application/xml"})
 	public Response deleteObject(@PathParam("type") String type, @PathParam("id") String id){
 
 		LOGGER.info("model rest service for delete operation start");
@@ -228,7 +229,7 @@ LOGGER.info("model rest service for add operation start");
 	
 	@PATCH
 	@Path("/{type}/{oid}")
-	@Produces({"text/html", "application/xml"})
+//	@Produces({"text/html", "application/xml"})
 	public <T extends ObjectType> Response modifyObject(@PathParam("type") String type, @PathParam("oid") String oid, 
 			ObjectModificationType modificationType){
 		
@@ -269,9 +270,9 @@ LOGGER.info("model rest service for add operation start");
 
 	
 	@GET
-	@Path("/ownerOf/{oid}")
-	@Produces({"text/html", "application/xml"})
-	public Response findShadowOwner(@PathParam("shadowOid") String shadowOid){
+	@Path("/shadows/{oid}/owner")
+//	@Produces({"text/html", "application/xml"})
+	public Response findShadowOwner(@PathParam("oid") String shadowOid){
 		
 		LOGGER.info("model rest service for find shadow owner operation start");
 
@@ -291,7 +292,7 @@ LOGGER.info("model rest service for add operation start");
 
 	@POST
 	@Path("/{type}/search")
-	@Produces({"text/html", "application/xml"})
+//	@Produces({"text/html", "application/xml"})
 	public Response searchObjects(@PathParam("type") String type, QueryType queryType){
 	
 		LOGGER.info("model rest service for find shadow owner operation start");
@@ -331,7 +332,7 @@ LOGGER.info("model rest service for add operation start");
 
 	@POST
 	@Path("/resources/{resourceOid}/import/{objectClass}")
-	@Produces({"text/html", "application/xml"})
+//	@Produces({"text/html", "application/xml"})
 	public Response importFromResource(@PathParam("resourceOid") String resourceOid, @PathParam("objectClass") String objectClass, @Context MessageContext mc, @Context UriInfo uriInfo)
 			{
 	
@@ -367,7 +368,7 @@ LOGGER.info("model rest service for add operation start");
 
 	@POST
 	@Path("/resources/{resourceOid}/test")
-	@Produces({"text/html", "application/xml"})
+//	@Produces({"text/html", "application/xml"})
 	public Response testResource(@PathParam("resourceOid") String resourceOid){
 
 		LOGGER.info("model rest service for test resource operation start");
