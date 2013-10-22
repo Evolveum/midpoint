@@ -156,7 +156,7 @@ public class ModelCrudService {
 	 *             unknown error from underlying layers or other unexpected
 	 *             state
 	 */
-	public <T extends ObjectType> String addObject(PrismObject<T> object, Task task,
+	public <T extends ObjectType> String addObject(PrismObject<T> object, Task task, ModelExecuteOptions options, 
 			OperationResult parentResult) throws ObjectAlreadyExistsException, ObjectNotFoundException,
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
 			PolicyViolationException, SecurityViolationException {
@@ -190,9 +190,10 @@ public class ModelCrudService {
 				LOGGER.trace(object.dump());
 			}
 			
-			ModelExecuteOptions options = null;
-			if (StringUtils.isNotEmpty(objectType.getVersion())){
-				options = ModelExecuteOptions.createOverwrite();
+			if (options == null) {
+				if (StringUtils.isNotEmpty(objectType.getVersion())) {
+					options = ModelExecuteOptions.createOverwrite();
+				}
 			}
 			
 			ObjectDelta<T> objectDelta = ObjectDelta.createAddDelta(object);

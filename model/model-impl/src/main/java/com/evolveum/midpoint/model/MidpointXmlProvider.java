@@ -54,8 +54,10 @@ public class MidpointXmlProvider<T> extends AbstractConfigurableProvider impleme
 	@Override
 	public boolean isWriteable(Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
-		
-		return true;
+		if (type.getPackage().getName().startsWith("com.evolveum.midpoint")){
+			return true;
+		}
+		return false;
 	}
 
 	@Override
@@ -80,7 +82,7 @@ public class MidpointXmlProvider<T> extends AbstractConfigurableProvider impleme
 			OperationResultType operationResultType = ((OperationResult) object).createOperationResultType();
 			marhaledObj = prismContext.silentMarshalObject(operationResultType, LOGGER);
 		} else{
-		 marhaledObj = prismContext.silentMarshalObject(object, LOGGER);
+			marhaledObj = prismContext.silentMarshalObject(object, LOGGER);
 		}
 		
 		entityStream.write(marhaledObj.getBytes());

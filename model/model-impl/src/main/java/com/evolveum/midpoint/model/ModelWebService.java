@@ -106,7 +106,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		try {
 			PrismObject object = objectType.asPrismObject();
 			prismContext.adopt(objectType);
-			String oid = model.addObject(object, task, operationResult);
+			String oid = model.addObject(object, task, null, operationResult);
 			handleOperationResult(operationResult, result);
 			oidHolder.value = oid;
 			return;
