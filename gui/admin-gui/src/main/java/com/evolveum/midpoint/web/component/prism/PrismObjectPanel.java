@@ -31,6 +31,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.head.CssHeaderItem;
 import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
@@ -55,6 +56,7 @@ import java.util.List;
  */
 public class PrismObjectPanel extends Panel {
 
+    private static final String STRIPED_CLASS = "striped";
     private static final String ID_HEADER = "header";
 
     private boolean showHeader = true;
@@ -72,6 +74,10 @@ public class PrismObjectPanel extends Panel {
 
         response.render(CssHeaderItem.forReference(
                 new PackageResourceReference(PrismObjectPanel.class, "PrismObjectPanel.css")));
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("fixStripingOnPrismForm('").append(getMarkupId()).append("', '").append(STRIPED_CLASS).append("');");
+        response.render(OnDomReadyHeaderItem.forScript(sb.toString()));
     }
 
     private AjaxEventBehavior createHeaderOnClickBehaviour(final IModel<ObjectWrapper> model) {

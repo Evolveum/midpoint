@@ -42,22 +42,15 @@ div.tableForm div.header {
   }
 }
 
-//jquery script like this fixes nth-child(2n+1) problem
-//var objects = $('#<prism-form-id>').find('div.attributeComponent > div.visible');
-//for (var i=0; i < objects.length; i++){
-//if (i%2 == 0) {
-//objects[i].style.backgroundColor='#f9f9f9';
-//}
-//  }
-div.tableForm > div > div > div > div.visible:nth-child(2n+1) {
-  background-color: @table-bg-accent;
-}
-
 /* body */
 div.attributeComponent > div {
 
   &.visible {
     border-top: 1px solid @table-border-color;
+  }
+
+  &.striped {
+    background-color: @table-bg-accent;
   }
 
   & > div {
