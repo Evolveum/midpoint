@@ -982,20 +982,15 @@ public abstract class ShadowCache {
 						continue;
 					}
 	
+					resouceObjectConverter.setProtectedFlag(resourceType, oldShadow);
 					change.setOldShadow(oldShadow);
 
-					// FIXME: hack. make sure that the current shadow has OID
-					// and resource ref, also the account type should be set
 					if (change.getCurrentShadow() != null) {
-						ShadowType currentShadowType = change.getCurrentShadow().asObjectable();
-						if (currentShadowType != null) {
-							currentShadowType.setOid(oldShadow.getOid());
-							currentShadowType.setResourceRef(oldShadowType.getResourceRef());
-							currentShadowType.setKind(objecClassDefinition.getKind());
-							currentShadowType.setIntent(oldShadowType.getIntent());
-							forceRenameIfNeeded(currentShadowType, oldShadowType, parentResult);
-							
-						}
+						PrismObject<ShadowType> currentShadow = completeShadow(connector, change.getCurrentShadow(), 
+								oldShadow, resourceType, objecClassDefinition, parentResult);
+						change.setCurrentShadow(currentShadow);
+						ShadowType currentShadowType = currentShadow.asObjectable();
+						forceRenameIfNeeded(currentShadowType, oldShadowType, parentResult);
 					}
 
 					// FIXME: hack. the object delta must have oid specified.

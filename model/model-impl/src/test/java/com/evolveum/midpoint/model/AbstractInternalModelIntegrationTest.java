@@ -131,6 +131,9 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 	public static final String ACCOUNT_SHADOW_ELAINE_DUMMY_OID = "c0c010c0-d34d-b33f-f00d-22220004000e";
 	public static final String ACCOUNT_ELAINE_DUMMY_USERNAME = USER_ELAINE_USERNAME;
 	
+	public static final String ACCOUNT_SHADOW_CALYPSO_DUMMY_FILENAME = COMMON_DIR_NAME + "/account-shadow-calypso-dummy.xml";
+	public static final String ACCOUNT_CALYPSO_DUMMY_USERNAME = "calypso";
+	
 	public static final String RESOURCE_DUMMY_FILENAME = COMMON_DIR_NAME + "/resource-dummy.xml";
 	public static final String RESOURCE_DUMMY_OID = "10000000-0000-0000-0000-000000000004";
 	public static final String RESOURCE_DUMMY_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004";
