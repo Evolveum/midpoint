@@ -39,11 +39,20 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 @Component
 public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispatcher {
 	
+	private boolean filterProtectedObjects = true;
 	private List<ResourceObjectChangeListener> changeListeners = new ArrayList<ResourceObjectChangeListener>();
 	private List<ResourceOperationListener> operationListeners = new ArrayList<ResourceOperationListener>();
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ChangeNotificationDispatcherImpl.class);
 	
+	public boolean isFilterProtectedObjects() {
+		return filterProtectedObjects;
+	}
+
+	public void setFilterProtectedObjects(boolean filterProtectedObjects) {
+		this.filterProtectedObjects = filterProtectedObjects;
+	}
+
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeNotificationManager#registerNotificationListener(com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener)
 	 */
@@ -102,7 +111,7 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 			LOGGER.trace("SYNCHRONIZATION change notification\n{} ", change.dump());
 		}
 		
-		if (change.isProtected()) {
+		if (filterProtectedObjects && change.isProtected()) {
 			LOGGER.trace("Skipping dispatching of {} because it is protected", change);
 			return;
 		}

@@ -272,7 +272,11 @@ public class DeltaConvertor {
             throw new SchemaException("Expected presence of a single item (path " + propMod.getPath() + ") in a object modification, but found " + items.size() + " instead");
         }
         if (items.size() < 1) {
-            throw new SchemaException("Expected presence of a value (path " + propMod.getPath() + ") in a object modification, but found nothing");
+        	if (propMod.getModificationType() == ModificationTypeType.REPLACE) {
+        		// Empty replace delta is OK
+        	} else {
+        		throw new SchemaException("Expected presence of a value (path " + propMod.getPath() + ") in a object modification, but found nothing");
+        	}
         }
         Item<V> item = items.iterator().next();
         ItemDelta<V> itemDelta = item.createDelta(parentPath.subPath(item.getName()));
@@ -337,9 +341,17 @@ public class DeltaConvertor {
     	QName elementName = delta.getName();
     	ItemDeltaType.Value modValue = new ItemDeltaType.Value();
         mod.setValue(modValue);
-        for (PrismValue value : values) {
-        	Object xmlValue = toAny(delta, value, document);
-            modValue.getAny().add(xmlValue);
+        if (values == null || values.isEmpty()) {
+        	// We need to create "nil" element otherwise the element name will be lost
+        	// (and this is different from empty element)
+        	Element nilValueElement = DOMUtil.createElement(elementName);
+        	DOMUtil.setNill(nilValueElement);
+			modValue.getAny().add(nilValueElement);
+        } else {
+	        for (PrismValue value : values) {
+	        	Object xmlValue = toAny(delta, value, document);
+	            modValue.getAny().add(xmlValue);
+	        }
         }
     }
 

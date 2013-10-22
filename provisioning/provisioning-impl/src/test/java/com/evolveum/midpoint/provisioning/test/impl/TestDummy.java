@@ -134,6 +134,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptT
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsCapabilityType;
@@ -3053,14 +3054,17 @@ public class TestDummy extends AbstractDummyTest {
 		assertSteadyResource();
 	}
 
+	/**
+	 * Attribute modification should fail.
+	 */
 	@Test
-	public void test502ModifyProtectedAccountShadow() throws Exception {
-		TestUtil.displayTestTile("test502ModifyProtectedAccountShadow");
+	public void test502ModifyProtectedAccountShadowAttributes() throws Exception {
+		final String TEST_NAME = "test502ModifyProtectedAccountShadowAttributes";
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName()
-				+ ".test502ModifyProtectedAccountShadow");
-		OperationResult result = new OperationResult(TestDummy.class.getName()
-				+ ".test502ModifyProtectedAccountShadow");
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
+				+ "." + TEST_NAME);
+		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
 		Collection<? extends ItemDelta> modifications = new ArrayList<ItemDelta>(1);
@@ -3075,7 +3079,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		// WHEN
 		try {
-			provisioningService.modifyObject(ShadowType.class, ACCOUNT_DAEMON_OID, modifications, null, null, syncTask, result);
+			provisioningService.modifyObject(ShadowType.class, ACCOUNT_DAEMON_OID, modifications, null, null, task, result);
 			AssertJUnit.fail("Expected security exception while modifying 'daemon' account");
 		} catch (SecurityViolationException e) {
 			// This is expected
@@ -3093,20 +3097,51 @@ public class TestDummy extends AbstractDummyTest {
 		assertSteadyResource();
 	}
 
+	/**
+	 * Modification of non-attribute property should go OK.
+	 */
 	@Test
-	public void test503DeleteProtectedAccountShadow() throws ObjectNotFoundException, CommunicationException,
-			SchemaException, ConfigurationException, SecurityViolationException {
-		TestUtil.displayTestTile("test503DeleteProtectedAccountShadow");
+	public void test503ModifyProtectedAccountShadowProperty() throws Exception {
+		final String TEST_NAME = "test503ModifyProtectedAccountShadowProperty";
+		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
-		Task syncTask = taskManager.createTaskInstance(TestDummy.class.getName()
-				+ ".test503DeleteProtectedAccountShadow");
-		OperationResult result = new OperationResult(TestDummy.class.getName()
-				+ ".test503DeleteProtectedAccountShadow");
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
+				+ "." + TEST_NAME);
+		OperationResult result = task.getResult();
+		syncServiceMock.reset();
+
+		ObjectDelta<ShadowType> shadowDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class, ACCOUNT_DAEMON_OID,
+				ShadowType.F_SYNCHRONIZATION_SITUATION, prismContext, SynchronizationSituationType.DISPUTED);
+
+		// WHEN
+		provisioningService.modifyObject(ShadowType.class, ACCOUNT_DAEMON_OID, shadowDelta.getModifications(), null, null, task, result);
+
+		// THEN
+		result.computeStatus();
+		display("modifyObject result", result);
+		TestUtil.assertSuccess(result);
+		
+		syncServiceMock.assertNotifySuccessOnly();
+
+		PrismObject<ShadowType> shadowAfter = provisioningService.getObject(ShadowType.class, ACCOUNT_DAEMON_OID, null, task, result);
+		assertEquals("Wrong situation", SynchronizationSituationType.DISPUTED, shadowAfter.asObjectable().getSynchronizationSituation());
+		
+		assertSteadyResource();
+	}
+
+	@Test
+	public void test509DeleteProtectedAccountShadow() throws Exception {
+		final String TEST_NAME = "test509DeleteProtectedAccountShadow";
+		TestUtil.displayTestTile(TEST_NAME);
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
+				+ "." + TEST_NAME);
+		OperationResult result = task.getResult();
 		syncServiceMock.reset();
 
 		// WHEN
 		try {
-			provisioningService.deleteObject(ShadowType.class, ACCOUNT_DAEMON_OID, null, null, syncTask, result);
+			provisioningService.deleteObject(ShadowType.class, ACCOUNT_DAEMON_OID, null, null, task, result);
 			AssertJUnit.fail("Expected security exception while deleting 'daemon' account");
 		} catch (SecurityViolationException e) {
 			// This is expected

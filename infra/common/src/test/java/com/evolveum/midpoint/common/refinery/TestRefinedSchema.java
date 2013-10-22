@@ -518,7 +518,7 @@ public class TestRefinedSchema {
         Assert.fail("Attribute " + name + " not found");
     }
     
-	private void assertProtectedAccount(String message, ResourceObjectPattern protectedAccount, String value) {
+	private void assertProtectedAccount(String message, ResourceObjectPattern protectedAccount, String value) throws SchemaException {
 		Collection<ResourceAttribute<?>> identifiers = protectedAccount.getIdentifiers();
 		assertNotNull("Null identifiers in "+message, identifiers);
 		assertEquals("Wrong number identifiers in "+message, 1, identifiers.size());
@@ -535,9 +535,9 @@ public class TestRefinedSchema {
 		ResourceAttribute<String> confusingAttr2 = createStringAttribute(new QName("http://whatever.com","confuseMeAgain"), "WoodchuckWouldChuckNoWoodAsWoodchuckCannotChuckWood");
 		testAttrs.add(confusingAttr2);
 		
-		assertTrue("Test attr not matched in "+message, protectedAccount.matches(testAttrs));
+		assertTrue("Test attr not matched in "+message, protectedAccount.matches(testAttrs, null));
 		nameAttr.setRealValue("huhulumululul");
-		assertFalse("Test attr nonsense was matched in "+message, protectedAccount.matches(testAttrs));
+		assertFalse("Test attr nonsense was matched in "+message, protectedAccount.matches(testAttrs, null));
 	}
 
 	private ResourceAttribute<String> createStringAttribute(QName attrName, String value) {
