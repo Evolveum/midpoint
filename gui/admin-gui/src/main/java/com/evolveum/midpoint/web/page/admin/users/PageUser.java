@@ -38,6 +38,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
@@ -78,6 +79,7 @@ import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.util.string.StringValue;
@@ -123,6 +125,7 @@ public class PageUser extends PageAdminUsers {
     private static final String ID_ACCOUNTS = "accounts";
     private static final String ID_ASSIGNMENTS = "assignments";
     private static final String ID_TASKS = "tasks";
+    private static final String ID_ACCOUNT_MENU = "accountMenu";
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageUser.class);
 	private LoadableModel<ObjectWrapper> userModel;
@@ -563,6 +566,9 @@ public class PageUser extends PageAdminUsers {
 	}
 
 	private void initAccounts(WebMarkupContainer accounts) {
+        InlineMenu accountMenu = new InlineMenu(ID_ACCOUNT_MENU, new Model(new ArrayList()));
+        accounts.add(accountMenu);
+
 		ListView<UserAccountDto> accountList = new ListView<UserAccountDto>(ID_ACCOUNT_LIST, accountsModel) {
 
 			@Override
