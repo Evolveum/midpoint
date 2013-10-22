@@ -20,6 +20,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.model.*;
@@ -41,6 +42,8 @@ public class CheckTableHeader extends SimplePanel<ObjectWrapper> {
 
     public CheckTableHeader(String id, IModel<ObjectWrapper> model) {
         super(id, model);
+
+        add(AttributeModifier.append("class", "check-table-header"));
     }
 
     @Override

@@ -20,6 +20,7 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
@@ -40,6 +41,8 @@ public class H3Header extends SimplePanel<ObjectWrapper> {
 
     public H3Header(String id, IModel<ObjectWrapper> model) {
         super(id, model);
+
+        add(AttributeModifier.append("class", "h3-header"));
     }
 
     @Override

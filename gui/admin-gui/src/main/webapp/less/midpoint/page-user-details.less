@@ -4,8 +4,18 @@ div.row.assignable-header {
   border-bottom: 1px solid @table-border-color;
   margin: 0px;
 
-  h3 {
-    margin-bottom: 5px;
+  div.col-xs-10 {
+    padding: 0 5px;
+
+    & > input {
+      display: inline-block;
+    }
+
+    > h3 {
+      display: inline-block;
+      margin-bottom: 5px;
+      margin-left: 5px;
+    }
   }
 
   & > div.cog {
@@ -15,80 +25,15 @@ div.row.assignable-header {
 }
 
 
+
+//===================================================
+/**
+ * THIS SHOULD BE DELETED LATER todo [lazyman]
+ */
 ul.nav.nav-pills.cog {
   margin: 0px;
 }
 
-@color2-dark: @color2;
-//darken(@color2, 20%);
-
-span.resource {
-  font-weight: bold;
-  font-size: 1.2em;
-  color: @color2-dark;
-  margin-right: 5px;
-}
-
-//table.user {
-//
-//  th {
-//    padding: 0 3px;
-//    text-align: left;
-//  }
-//
-//  tr, td {
-//    padding: 3px;
-//    height: 28px;
-//
-//    textarea {
-//      height: 53px;
-//    }
-//
-//    &.buttons {
-//      width: 89px;
-//    }
-//  }
-//}
-//
-//table.accounts {
-//
-//  tr, td, th {
-//    padding: 0 3px;
-//    vertical-align: middle;
-//    height: 34px;
-//  }
-//
-//  tr.expanded {
-//    background-color: #EEEEEE;
-//  }
-//
-//  tr.expanded-body {
-//    @expanded-background: #F7F7F7;
-//    background-color: @expanded-background;
-//
-//    td {
-//      padding-bottom: 16px;
-//    }
-//
-//    table.table {
-//      background-color: @expanded-background;
-//
-//      tr, td, th {
-//        padding: 3px;
-//        vertical-align: top;
-//        height: 28px;
-//      }
-//    }
-//  }
-//
-//  td.cog ul.cog {
-//    display: none;
-//  }
-//
-//  input[type="checkbox"] {
-//    margin: 0;
-//  }
-//}
 
 tr.expanded {
       background-color: #EEEEEE;
@@ -123,7 +68,7 @@ table.table {
 
     div.container-name {
       font-weight: bold;
-      color: @color2-dark;
+      color: @color2;
       font-size: 1.3em;
       margin-top: 4px;
     }
