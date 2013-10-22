@@ -76,6 +76,12 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 	private ObjectDelta<O> syncDelta;
 	
 	/**
+	 * If set to true: absolute state of this projection was detected by the synchronization.
+	 * This is mostly for debugging and visibility. It is not used by projection logic.
+	 */
+	private boolean syncAbsoluteTrigger = false;
+	
+	/**
 	 * The wave in which this resource should be processed. Initial value of -1 means "undetermined".
 	 */
 	private int wave = -1;
@@ -185,7 +191,15 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
 		this.syncDelta = syncDelta;
 	}
 
-    public int getWave() {
+    public boolean isSyncAbsoluteTrigger() {
+		return syncAbsoluteTrigger;
+	}
+
+	public void setSyncAbsoluteTrigger(boolean syncAbsoluteTrigger) {
+		this.syncAbsoluteTrigger = syncAbsoluteTrigger;
+	}
+
+	public int getWave() {
 		return wave;
 	}
 
@@ -976,6 +990,9 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
         if (resourceShadowDiscriminator != null && resourceShadowDiscriminator.isThombstone()) {
         	sb.append(", THOMBSTONE");
         }
+        if (syncAbsoluteTrigger) {
+        	sb.append(", SYNC TRIGGER");
+        }
         if (iteration != 0) {
         	sb.append(", iteration=").append(iteration);
         }
@@ -1033,7 +1050,8 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
     
 	@Override
 	public String toString() {
-		return "LensProjectionContext(" + (getObjectTypeClass() == null ? "null" : getObjectTypeClass().getSimpleName()) + ":" + getOid() + ")";
+		return "LensProjectionContext(" + (getObjectTypeClass() == null ? "null" : getObjectTypeClass().getSimpleName()) + ":" + getOid() +
+				( resource == null ? "" : " on " + resource ) + ")";
 	}
 
 	/**
@@ -1080,6 +1098,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
         lensProjectionContextType.setSynchronizationSituationDetected(synchronizationSituationDetected);
         lensProjectionContextType.setSynchronizationSituationResolved(synchronizationSituationResolved);
         lensProjectionContextType.setAccountPasswordPolicy(accountPasswordPolicy);
+        lensProjectionContextType.setSyncAbsoluteTrigger(syncAbsoluteTrigger);
     }
 
     public static LensProjectionContext fromLensProjectionContextType(LensProjectionContextType projectionContextType, LensContext lensContext, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
@@ -1113,6 +1132,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
         projectionContext.synchronizationSituationDetected = projectionContextType.getSynchronizationSituationDetected();
         projectionContext.synchronizationSituationResolved = projectionContextType.getSynchronizationSituationResolved();
         projectionContext.accountPasswordPolicy = projectionContextType.getAccountPasswordPolicy();
+        projectionContext.syncAbsoluteTrigger = projectionContextType.isSyncAbsoluteTrigger();
 
         return projectionContext;
     }
