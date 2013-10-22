@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.rest.PATCH;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -225,7 +226,7 @@ LOGGER.info("model rest service for add operation start");
 	}
 	
 	
-	@POST
+	@PATCH
 	@Path("/{type}/{oid}")
 	@Produces({"text/html", "application/xml"})
 	public <T extends ObjectType> Response modifyObject(@PathParam("type") String type, @PathParam("oid") String oid, 

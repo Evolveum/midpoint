@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.model;
+package com.evolveum.midpoint.model.security;
 
 import java.lang.annotation.Annotation;
 import java.net.URI;

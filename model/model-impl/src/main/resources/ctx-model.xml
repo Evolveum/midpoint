@@ -304,9 +304,9 @@
     </jaxrs:providers>
    
     </jaxrs:server>
-     <bean id="jaxbProvider" class="com.evolveum.midpoint.model.MidpointXmlProvider"/>
+     <bean id="jaxbProvider" class="com.evolveum.midpoint.model.rest.MidpointXmlProvider"/>
      
-     <bean id="restAuthenticationHandler" class="com.evolveum.midpoint.model.MidpointRestAuthenticationHandler"/>
+     <bean id="restAuthenticationHandler" class="com.evolveum.midpoint.model.security.MidpointRestAuthenticationHandler"/>
 
     <bean id="authenticationInterceptor" class="org.apache.cxf.ws.security.wss4j.WSS4JInInterceptor">
         <constructor-arg>

@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.model;
+package com.evolveum.midpoint.model.rest;
 
 import java.io.IOException;
 import java.io.InputStream;
