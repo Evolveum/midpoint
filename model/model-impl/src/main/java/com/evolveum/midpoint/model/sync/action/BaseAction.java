@@ -215,6 +215,8 @@ public abstract class BaseAction implements Action {
         ObjectDelta<? extends ShadowType> delta = change.getObjectDelta();
         if (delta != null) {
             accountContext.setSyncDelta((ObjectDelta<ShadowType>) delta);
+        } else {
+        	accountContext.setSyncAbsoluteTrigger(true);
         }
 
         //we insert account if available in change
