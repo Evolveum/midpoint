@@ -1282,7 +1282,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		}
 	}
 	
-	private synchronized void notifyResourceObjectChangeListeners(ResourceObjectShadowChangeDescription change,
+	private void notifyResourceObjectChangeListeners(ResourceObjectShadowChangeDescription change,
 			Task task, OperationResult parentResult) {
 		changeNotificationDispatcher.notifyChange(change, task, parentResult);
 	}
@@ -1297,7 +1297,6 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		shadowChangeDescription.setCurrentShadow(change.getCurrentShadow());
 		shadowChangeDescription.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC));
 		return shadowChangeDescription;
-
 	}
 
 

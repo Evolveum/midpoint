@@ -55,6 +55,7 @@ import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
@@ -141,7 +142,10 @@ public class ResourceObjectConverter {
 	
 	@Autowired(required=true)
 	private EntitlementConverter entitlementConverter;
-	
+
+	@Autowired(required=true)
+	private MatchingRuleRegistry matchingRuleRegistry;
+
 	@Autowired(required=true)
 	private PrismContext prismContext;
 
@@ -394,7 +398,7 @@ public class ResourceObjectConverter {
 	public Collection<PropertyModificationOperation> modifyResourceObject(
 			ConnectorInstance connector, ResourceType resource,
 			RefinedObjectClassDefinition objectClassDefinition, PrismObject<ShadowType> shadow, OperationProvisioningScriptsType scripts,
-			Collection<? extends ItemDelta> objectDeltas, OperationResult parentResult)
+			Collection<? extends ItemDelta> itemDeltas, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException, ObjectAlreadyExistsException {
 
@@ -404,13 +408,21 @@ public class ResourceObjectConverter {
 		Collection<? extends ResourceAttribute<?>> attributes = ShadowUtil.getAttributes(shadow);
 
 		if (isProtectedShadow(resource, objectClassDefinition, attributes)) {
-			LOGGER.error("Attempt to modify protected resource object " + objectClassDefinition + ": "
-					+ identifiers + "; ignoring the request");
-			throw new SecurityViolationException("Cannot modify protected resource object "
-					+ objectClassDefinition + ": " + identifiers);
+			if (hasChangesOnResource(itemDeltas)) {
+				LOGGER.error("Attempt to modify protected resource object " + objectClassDefinition + ": "
+						+ identifiers);
+				throw new SecurityViolationException("Cannot modify protected resource object "
+						+ objectClassDefinition + ": " + identifiers);
+			} else {
+				// Return immediately. This structure of the code makes sure that we do not execute any
+				// resource operation for protected account even if there is a bug in the code below.
+				LOGGER.trace("No resource modfications for protected resource object {}: {}; skipping",
+						objectClassDefinition, identifiers);
+				return null;
+			}
 		}
 		
-		collectAttributeAndEntitlementChanges(objectDeltas, operations, resource, shadow, objectClassDefinition);
+		collectAttributeAndEntitlementChanges(itemDeltas, operations, resource, shadow, objectClassDefinition);
 		
 		Collection<PropertyModificationOperation> sideEffectChanges = null;
 				
@@ -433,12 +445,12 @@ public class ResourceObjectConverter {
 		}
 		
 		// Execute entitlement modification on other objects (if needed)
-		executeEntitlementChangesModify(connector, resource, objectClassDefinition, shadow, scripts, objectDeltas, parentResult);
+		executeEntitlementChangesModify(connector, resource, objectClassDefinition, shadow, scripts, itemDeltas, parentResult);
 		
 		parentResult.recordSuccess();
 		return sideEffectChanges;
 	}
-	
+
 	private Collection<PropertyModificationOperation> executeModify(ConnectorInstance connector, ResourceType resource,
 			RefinedObjectClassDefinition objectClassDefinition, Collection<? extends ResourceAttribute<?>> identifiers, 
 					Collection<Operation> operations, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException, SecurityViolationException, ConfigurationException, ObjectAlreadyExistsException {
@@ -905,6 +917,21 @@ public class ResourceObjectConverter {
 			}
 		}		
 	}
+	
+	private boolean hasChangesOnResource(
+			Collection<? extends ItemDelta> itemDeltas) {
+		for (ItemDelta itemDelta : itemDeltas) {
+			if (new ItemPath(ShadowType.F_ATTRIBUTES).equals(itemDelta.getParentPath()) || SchemaConstants.PATH_PASSWORD.equals(itemDelta.getParentPath())) {
+				return true;
+			} else if (SchemaConstants.PATH_ACTIVATION.equals(itemDelta.getParentPath())){
+				return true;
+			} else if (new ItemPath(ShadowType.F_ASSOCIATION).equals(itemDelta.getPath())) { 
+				return true;				
+			}
+		}
+		return false;
+	}
+
 
 	private void collectAttributeAndEntitlementChanges(Collection<? extends ItemDelta> objectChange, 
 			Collection<Operation> operations, ResourceType resource, PrismObject<ShadowType> shadow, 
@@ -950,7 +977,7 @@ public class ResourceObjectConverter {
 		Validate.notNull(resource, "Resource must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
 
-		LOGGER.trace("Shadow converter, START fetch changes");
+		LOGGER.trace("START fetch changes");
 
 		AttributesToReturn attrsToReturn = ProvisioningUtil.createAttributesToReturn(objectClass, resource);
 		
@@ -988,7 +1015,7 @@ public class ResourceObjectConverter {
 		}
 
 		parentResult.recordSuccess();
-		LOGGER.trace("Shadow converter, END fetch changes");
+		LOGGER.trace("END fetch changes ({} changes)", changes == null ? "null" : changes.size());
 		return changes;
 	}
 	
@@ -999,17 +1026,13 @@ public class ResourceObjectConverter {
 			PrismObject<ShadowType> resourceObject, RefinedObjectClassDefinition objectClassDefinition, OperationResult parentResult) throws SchemaException, CommunicationException, GenericFrameworkException {
 		
 		ShadowType resourceObjectType = resourceObject.asObjectable();
-		
-		// Protected object
-		if (isProtectedShadow(resourceType, resourceObject)) {
-			resourceObjectType.setProtectedObject(true);
-		}
+		setProtectedFlag(resourceType, resourceObject);
 		
 		// Simulated Activation
 		// FIXME??? when there are not native capabilities for activation, the
 		// resourceShadow.getActivation is null and the activation for the repo
 		// shadow are not completed..therefore there need to be one more check,
-		// we must chceck not only if the activation is null, but if it is, also
+		// we must check not only if the activation is null, but if it is, also
 		// if the shadow doesn't have defined simulated activation capability
 		if (resourceObjectType.getActivation() != null || ResourceTypeUtil.hasActivationCapability(resourceType)) {
 			ActivationType activationType = completeActivation(resourceObject, resourceType, parentResult);
@@ -1026,7 +1049,11 @@ public class ResourceObjectConverter {
 		return resourceObject;
 	}
 	
-	
+	public void setProtectedFlag(ResourceType resourceType, PrismObject<ShadowType> resourceObject) throws SchemaException {
+		if (isProtectedShadow(resourceType, resourceObject)) {
+			resourceObject.asObjectable().setProtectedObject(true);
+		}
+	}
 
 	/**
 	 * Completes activation state by determinig simulated activation if
@@ -1410,16 +1437,20 @@ public class ResourceObjectConverter {
 		// HACK FIXME
 		RefinedObjectClassDefinition refinedAccountDef = refinedSchema
 				.findRefinedDefinitionByObjectClassQName(ShadowKindType.ACCOUNT, objectClass);
-		LOGGER.trace("isProtectedShadow: {} -> {}, {}", new Object[] { objectClass, refinedAccountDef,
-				attributes });
+		boolean isProtected = false;
 		if (refinedAccountDef == null) {
-			return false;
+			isProtected = false;
+		} else {
+			Collection<ResourceObjectPattern> protectedAccountPatterns = refinedAccountDef.getProtectedObjectPatterns();
+			if (protectedAccountPatterns == null) {
+				isProtected = false;
+			} else {
+				isProtected = ResourceObjectPattern.matches(attributes, protectedAccountPatterns, matchingRuleRegistry);
+			}
 		}
-		Collection<ResourceObjectPattern> protectedAccountPatterns = refinedAccountDef.getProtectedObjectPatterns();
-		if (protectedAccountPatterns == null) {
-			return false;
-		}
-		return ResourceObjectPattern.matches(attributes, protectedAccountPatterns);
+		LOGGER.trace("isProtectedShadow: {} -> {}, {} = {}", new Object[] { objectClass, refinedAccountDef,
+				attributes, isProtected });
+		return isProtected;
 	}
 
 	private PrismObjectDefinition<ShadowType> getShadowTypeDef() {

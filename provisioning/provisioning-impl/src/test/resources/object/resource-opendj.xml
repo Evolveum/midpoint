@@ -91,6 +91,10 @@
             	<associationAttribute>ri:uniqueMember</associationAttribute>
             	<valueAttribute>icfs:name</valueAttribute>
             </association>
+       		<protected>
+       			<!-- WilDCapiTaLIzaTioN makes sure that this is matched case-insensitive -->
+				<icfs:name>uid=cAlyPSo,ou=PeoPle,DC=example,dc=COM</icfs:name>
+			</protected>	
         </objectType>
         
         <objectType>

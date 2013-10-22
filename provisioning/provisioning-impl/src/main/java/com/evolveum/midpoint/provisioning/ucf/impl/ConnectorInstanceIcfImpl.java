@@ -1713,8 +1713,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		// convert changes from icf to midpoint Change
 		List<Change<T>> changeList = null;
 		try {
-			PrismSchema schema = fetchResourceSchema(null, result);
-			changeList = getChangesFromSyncDeltas(icfObjectClass, syncDeltas, schema, result);
+			changeList = getChangesFromSyncDeltas(icfObjectClass, syncDeltas, resourceSchema, result);
 		} catch (SchemaException ex) {
 			result.recordFatalError(ex.getMessage(), ex);
 			throw new SchemaException(ex.getMessage(), ex);
