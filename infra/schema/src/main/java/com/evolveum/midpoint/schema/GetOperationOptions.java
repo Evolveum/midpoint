@@ -15,7 +15,12 @@
  */
 package com.evolveum.midpoint.schema;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+
+import javax.xml.namespace.QName;
 import java.io.Serializable;
+import java.util.Collection;
 
 /**
  * @author semancik
@@ -143,7 +148,16 @@ public class GetOperationOptions implements Serializable {
 		return opts;
 	}
 
-	public Boolean getRaw() {
+    // todo maybe at wrong place, but this might be quite useful
+    public static Collection<SelectorOptions<GetOperationOptions>> createRetrieveNameOnlyOptions() {
+        return SelectorOptions.createCollection(new ItemPath(ObjectType.F_NAME), createRetrieve(RetrieveOption.INCLUDE));
+    }
+
+    public static Collection<SelectorOptions<GetOperationOptions>> createRetrieveAttributesOptions(QName property) {
+        return SelectorOptions.createCollection(new ItemPath(property), createRetrieve(RetrieveOption.INCLUDE));
+    }
+
+    public Boolean getRaw() {
 		return raw;
 	}
 

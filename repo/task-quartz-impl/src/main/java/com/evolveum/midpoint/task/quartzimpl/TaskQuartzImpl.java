@@ -91,11 +91,6 @@ public class TaskQuartzImpl implements Task {
 
 	private volatile boolean canRun;
 
-    // current information about the node on which this task executes at
-    // filled-in by searchTasks (see its description in TaskManager API)
-
-    private Node currentlyExecutesAt;
-
     private TaskManagerQuartzImpl taskManager;
     private RepositoryService repositoryService;
 
@@ -252,6 +247,11 @@ public class TaskQuartzImpl implements Task {
             synchronizeWithQuartz(parentResult);
         }
 	}
+
+    @Override
+    public Collection<ItemDelta<?>> getPendingModifications() {
+        return pendingModifications;
+    }
 
     public void synchronizeWithQuartz(OperationResult parentResult) {
         taskManager.synchronizeTaskWithQuartz(this, parentResult);
@@ -1177,6 +1177,10 @@ public class TaskQuartzImpl implements Task {
 
 	@Override
 	public void setOwner(PrismObject<UserType> owner) {
+        if (isPersistent()) {
+            throw new IllegalStateException("setOwner method can be called only on transient tasks!");
+        }
+
 		PrismReference ownerRef;
 		try {
 			ownerRef = taskPrism.findOrCreateReference(TaskType.F_OWNER_REF);
@@ -2148,16 +2152,6 @@ public class TaskQuartzImpl implements Task {
 	private PrismContext getPrismContext() {
 		return taskManager.getPrismContext();
 	}
-
-
-    @Override
-    public Node currentlyExecutesAt() {
-        return currentlyExecutesAt;
-    }
-
-    void setCurrentlyExecutesAt(Node node) {
-        currentlyExecutesAt = node;
-    }
 
     @Override
     public Task createSubtask() {

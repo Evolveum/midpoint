@@ -20,6 +20,7 @@ import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -82,6 +83,8 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     transient ModelService model;
     @Autowired
     transient ModelInteractionService modelInteractionService;
+    @Autowired
+    transient TaskService taskService;
     @Autowired
     transient PrismContext prismContext;
     @Autowired
@@ -208,6 +211,10 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
     public TaskManager getTaskManager() {
         return taskManager;
+    }
+
+    public TaskService getTaskService() {
+        return taskService;
     }
 
     public PrismContext getPrismContext() {

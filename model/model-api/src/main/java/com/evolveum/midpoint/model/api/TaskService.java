@@ -1,9 +1,13 @@
 package com.evolveum.midpoint.model.api;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 
 import java.text.ParseException;
 import java.util.Collection;
@@ -67,6 +71,14 @@ public interface TaskService {
      */
     void scheduleTasksNow(Collection<String> taskOids, OperationResult parentResult);
 
+    /**
+     * Returns information about task, given its identifier.
+     * @param identifier
+     * @param options
+     * @param parentResult
+     * @return
+     */
+    PrismObject<TaskType> getTaskByIdentifier(String identifier, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
     //endregion
 
     //region Node-level operations

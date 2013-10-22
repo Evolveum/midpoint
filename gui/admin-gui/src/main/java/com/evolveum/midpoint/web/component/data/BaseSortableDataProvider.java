@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.data;
 
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
@@ -76,6 +77,11 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
     protected TaskManager getTaskManager() {
         MidPointApplication application = (MidPointApplication) MidPointApplication.get();
         return application.getTaskManager();
+    }
+
+    protected TaskService getTaskService() {
+        MidPointApplication application = (MidPointApplication) MidPointApplication.get();
+        return application.getTaskService();
     }
 
     protected ModelInteractionService getModelInteractionService() {

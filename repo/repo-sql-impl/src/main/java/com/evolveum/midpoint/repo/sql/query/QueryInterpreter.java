@@ -215,7 +215,7 @@ public class QueryInterpreter {
         LOGGER.debug("Updating fetch mode for created criteria.");
         LOGGER.trace("Options for fetch mode {}.", new Object[]{options});
 
-        List<SelectorOptions<GetOperationOptions>> retrieveOptions = RUtil.filterRetrieveOptions(options);
+        List<SelectorOptions<GetOperationOptions>> retrieveOptions = SelectorOptions.filterRetrieveOptions(options);
         if (retrieveOptions.isEmpty()) {
             // we don't need to touch fetch strategies if there are not custom retrieve options
             return;

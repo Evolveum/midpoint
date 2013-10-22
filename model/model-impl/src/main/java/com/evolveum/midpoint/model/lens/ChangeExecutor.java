@@ -622,9 +622,11 @@ public class ChangeExecutor {
 
     	applyMetadata(context.getChannel(), task, objectTypeToAdd, result);
     	
-        String oid = null;
+        String oid;
         if (objectTypeToAdd instanceof TaskType) {
             oid = addTask((TaskType) objectTypeToAdd, result);
+        } else if (objectTypeToAdd instanceof NodeType) {
+            throw new UnsupportedOperationException("NodeType cannot be added using model interface");
         } else if (ObjectTypes.isManagedByProvisioning(objectTypeToAdd)) {
         	ProvisioningOperationOptions options = copyFromModelOptions(context.getOptions());
         	if (context.getChannel() != null && context.getChannel().equals(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON))){
@@ -688,20 +690,22 @@ public class ChangeExecutor {
         
         if (TaskType.class.isAssignableFrom(objectTypeClass)) {
             taskManager.modifyTask(change.getOid(), change.getModifications(), result);
+        } else if (NodeType.class.isAssignableFrom(objectTypeClass)) {
+            throw new UnsupportedOperationException("NodeType is not modifiable using model interface");
         } else if (ObjectTypes.isClassManagedByProvisioning(objectTypeClass)) {
-        	ProvisioningOperationOptions options = copyFromModelOptions(context.getOptions());
-        	if (context.getChannel() != null && context.getChannel().equals(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON))){
-        		options.setCompletePostponed(false);
-    		}
+            ProvisioningOperationOptions options = copyFromModelOptions(context.getOptions());
+            if (context.getChannel() != null && context.getChannel().equals(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON))){
+                options.setCompletePostponed(false);
+            }
             String oid = modifyProvisioningObject(objectTypeClass, change.getOid(), change.getModifications(), context, options, resource, task, result);
             if (!oid.equals(change.getOid())){
-            	change.setOid(oid);
+                change.setOid(oid);
             }
         } else {
             cacheRepositoryService.modifyObject(objectTypeClass, change.getOid(), change.getModifications(), result);
         }
     }
-    
+
 	private <T extends ObjectType> void applyMetadata(String contextChannel, Task task, T objectTypeToAdd, OperationResult result) throws SchemaException {
 		MetadataType metaData = new MetadataType();
 		String channel = getChannel(contextChannel, task);

@@ -30,14 +30,11 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExtensionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TriggerType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.annotations.*;
-import org.hibernate.bytecode.internal.javassist.FieldHandled;
-import org.hibernate.bytecode.internal.javassist.FieldHandler;
 
 import javax.persistence.*;
 import javax.persistence.Entity;
@@ -230,7 +227,7 @@ public abstract class RObject<T extends ObjectType> extends RContainer {//implem
         jaxb.setOid(repo.getOid());
         jaxb.setVersion(Long.toString(repo.getVersion()));
 
-        if (RUtil.hasToLoadPath(ObjectType.F_EXTENSION, options)) {
+        if (SelectorOptions.hasToLoadPath(ObjectType.F_EXTENSION, options)) {
             if (repo.getExtension() != null) {
                 ExtensionType extension = new ExtensionType();
                 jaxb.setExtension(extension);
@@ -238,14 +235,14 @@ public abstract class RObject<T extends ObjectType> extends RContainer {//implem
             }
         }
 
-        if (RUtil.hasToLoadPath(ObjectType.F_PARENT_ORG_REF, options)) {
+        if (SelectorOptions.hasToLoadPath(ObjectType.F_PARENT_ORG_REF, options)) {
             List orgRefs = RUtil.safeSetReferencesToList(repo.getParentOrgRef(), prismContext);
             if (!orgRefs.isEmpty()) {
                 jaxb.getParentOrgRef().addAll(orgRefs);
             }
         }
 
-        if (RUtil.hasToLoadPath(ObjectType.F_TRIGGER, options)) {
+        if (SelectorOptions.hasToLoadPath(ObjectType.F_TRIGGER, options)) {
             if (repo.getTrigger() != null) {
                 for (RTrigger trigger : repo.getTrigger()) {
                     jaxb.getTrigger().add(trigger.toJAXB(prismContext));
@@ -253,7 +250,7 @@ public abstract class RObject<T extends ObjectType> extends RContainer {//implem
             }
         }
 
-        if (RUtil.hasToLoadPath(ObjectType.F_METADATA, options)) {
+        if (SelectorOptions.hasToLoadPath(ObjectType.F_METADATA, options)) {
             if (repo.getMetadata() != null) {
                 jaxb.setMetadata(repo.getMetadata().toJAXB(prismContext));
             }

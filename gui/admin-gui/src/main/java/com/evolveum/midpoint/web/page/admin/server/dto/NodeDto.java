@@ -16,20 +16,16 @@
 
 package com.evolveum.midpoint.web.page.admin.server.dto;
 
-import javax.xml.datatype.XMLGregorianCalendar;
-
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.NodeErrorStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.NodeExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.NodeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultStatusType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.task.api.Node;
-import com.evolveum.midpoint.task.api.NodeErrorStatus;
-import com.evolveum.midpoint.task.api.NodeExecutionStatus;
-import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.web.component.util.Selectable;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.NodeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,18 +41,16 @@ public class NodeDto extends Selectable {
     private Long lastCheckInTime;
     private boolean clustered;
 
-    private NodeExecutionStatus executionStatus;
-    private NodeErrorStatus errorStatus;
+    private NodeExecutionStatusType executionStatus;
+    private NodeErrorStatusType errorStatus;
 
     private String statusMessage;
 
-    public NodeDto(Node node) {
+    public NodeDto(NodeType node) {
         Validate.notNull(node, "Node must not be null.");
 
-        PrismObject<NodeType> prismNode = node.getNodeType();
-        oid = prismNode.getOid();
-        //name = prismNode.getPropertyRealValue(ObjectType.F_NAME, String.class);
-        name = prismNode.asObjectable().getName().getOrig();
+        oid = node.getOid();
+        name = node.getName().getOrig();
 
         XMLGregorianCalendar calendar = node.getLastCheckInTime();
         if (calendar != null) {
@@ -67,14 +61,15 @@ public class NodeDto extends Selectable {
         clustered = node.isClustered();
         managementPort = node.getHostname() + ":" + node.getJmxPort();
 
-        executionStatus = node.getNodeExecutionStatus();
-        errorStatus = node.getNodeErrorStatus();
+        executionStatus = node.getExecutionStatus();
+        errorStatus = node.getErrorStatus();
 
-        if (StringUtils.isNotEmpty(node.getConnectionError())) {
-            statusMessage = node.getConnectionError();
-        } else if (errorStatus != null && errorStatus != NodeErrorStatus.OK) {
+        if (node.getConnectionResult() != null && node.getConnectionResult().getStatus() != OperationResultStatusType.SUCCESS &&
+                StringUtils.isNotEmpty(node.getConnectionResult().getMessage())) {
+            statusMessage = node.getConnectionResult().getMessage();
+        } else if (errorStatus != null && errorStatus != NodeErrorStatusType.OK) {
             statusMessage = errorStatus.toString();         // TODO: explain and localize this
-        } else if (executionStatus == NodeExecutionStatus.ERROR) {      // error status not specified
+        } else if (executionStatus == NodeExecutionStatusType.ERROR) {      // error status not specified
             statusMessage = "Unspecified error (or the node is just starting or shutting down)";
         } else {
             statusMessage = "";
@@ -105,11 +100,11 @@ public class NodeDto extends Selectable {
         return statusMessage;
     }
 
-    public NodeErrorStatus getErrorStatus() {
+    public NodeErrorStatusType getErrorStatus() {
         return errorStatus;
     }
 
-    public NodeExecutionStatus getExecutionStatus() {
+    public NodeExecutionStatusType getExecutionStatus() {
         return executionStatus;
     }
 
