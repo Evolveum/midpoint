@@ -726,8 +726,9 @@ public class TestMappingDynamicSysVar {
     	PrismAsserts.assertTripleNoMinus(outputTriple);
     	
     	// Make sure it is recomputed
-    	PolyString plusPva = outputTriple.getPlusSet().iterator().next().getValue();
-    	System.out.println("Plus polystring\n"+ plusPva.dump());
+    	PolyString plusval = outputTriple.getPlusSet().iterator().next().getValue();
+    	System.out.println("Plus polystring\n"+ plusval.dump());
+    	assertEquals("Wrong norm value", "666", plusval.getNorm());
     }
 
     @Test
