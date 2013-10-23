@@ -39,7 +39,6 @@ public enum ObjectTypes {
             SchemaConstants.C_CONNECTOR_HOST, ConnectorHostType.class, ObjectManager.PROVISIONING, "connectorHosts"),
 
     GENERIC_OBJECT("schema.objectTypes.genericObject", SchemaConstants.C_GENERIC_OBJECT_TYPE,
-            SchemaConstants.C_GENERIC_OBJECT, GenericObjectType.class, false),
             SchemaConstants.C_GENERIC_OBJECT, GenericObjectType.class, ObjectManager.MODEL, "genericObjects"),
 
     RESOURCE("schema.objectTypes.resource", SchemaConstants.C_RESOURCE_TYPE, SchemaConstants.C_RESOURCE,
