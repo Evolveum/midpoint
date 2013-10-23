@@ -1,7 +1,7 @@
 @import "variables.less";
 
 div.row.assignable-header {
-  border-bottom: 1px solid @table-border-color;
+  border-bottom: 2px solid @table-border-color;
   margin: 0px;
 
   div.col-xs-10 {
@@ -21,6 +21,45 @@ div.row.assignable-header {
   & > div.cog {
     margin-top: 18px;
     padding-right: 5px;
+  }
+}
+
+div.assignment-item {
+  margin: 0 15px;
+
+  div.header {
+    border-bottom: 1px solid @table-border-color;
+
+    div.col-xs-10 {
+      padding: 5px;
+
+      i {
+        margin: 0 5px;
+      }
+
+      a {
+        color: @brand-primary;
+        font-size: 1.2em;
+        font-weight: bold;
+        margin-right: 5px;
+      }
+    }
+
+    &.delete {
+      background-color: @brand-danger;
+
+      a {
+        color: #FFFFFF !important;
+      }
+    }
+
+    &.add {
+      background-color: @brand-success;
+
+      a {
+        color: #FFFFFF !important;;
+      }
+    }
   }
 }
 
