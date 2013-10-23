@@ -710,10 +710,12 @@ public class TestMappingDynamicSysVar {
 
     @Test
     public void testEmployeeNumberPolyString() throws Exception {
+    	final String TEST_NAME = "testEmployeeNumberPolyString";
+    	System.out.println("===[ "+TEST_NAME+"]===");
     	// WHEN
     	PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = evaluator.evaluateMappingDynamicReplace(
     			"mapping-script-system-variables-employee-number.xml",
-    			"testEmployeeNumberString",
+    			TEST_NAME,
     			"additionalName",					// target
     			"employeeNumber",				// changed property
     			"666");	// changed values
@@ -722,6 +724,10 @@ public class TestMappingDynamicSysVar {
     	PrismAsserts.assertTripleNoZero(outputTriple);
     	PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("666"));
     	PrismAsserts.assertTripleNoMinus(outputTriple);
+    	
+    	// Make sure it is recomputed
+    	PolyString plusPva = outputTriple.getPlusSet().iterator().next().getValue();
+    	System.out.println("Plus polystring\n"+ plusPva.dump());
     }
 
     @Test
