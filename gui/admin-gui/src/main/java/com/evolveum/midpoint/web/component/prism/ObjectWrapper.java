@@ -294,7 +294,7 @@ public class ObjectWrapper implements Serializable {
         ContainerStatus status = container != null ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
         if (container == null) {
             ConnectorType connectorType = connector.asObjectable();
-            PrismSchema schema = ConnectorTypeUtil.getConnectorSchema(connectorType, connector.getPrismContext());
+            PrismSchema schema = ConnectorTypeUtil.parseConnectorSchema(connectorType, connector.getPrismContext());
             PrismContainerDefinition definition = ConnectorTypeUtil.findConfigurationContainerDefintion(connectorType, schema);
 
             definition = definition.findContainerDefinition(new ItemPath(name));

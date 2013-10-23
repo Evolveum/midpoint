@@ -16,18 +16,6 @@
 
 package com.evolveum.midpoint.task.quartzimpl.cluster;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.GregorianCalendar;
-import java.util.List;
-
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
-
-import org.apache.commons.lang.Validate;
-
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -36,7 +24,6 @@ import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.NodeErrorStatus;
 import com.evolveum.midpoint.task.api.TaskManagerInitializationException;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerConfiguration;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
@@ -47,8 +34,19 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.NodeErrorStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.NodeType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+import org.apache.commons.lang.Validate;
+
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.GregorianCalendar;
+import java.util.List;
 
 /**
  * Takes care about node registration in repository.
@@ -106,10 +104,10 @@ public class NodeRegistrar {
             String oid = getRepositoryService().addObject(nodePrism, null, result);
             nodePrism.setOid(oid);
         } catch (ObjectAlreadyExistsException e) {
-            taskManager.setNodeErrorStatus(NodeErrorStatus.NODE_REGISTRATION_FAILED);
+            taskManager.setNodeErrorStatus(NodeErrorStatusType.NODE_REGISTRATION_FAILED);
             throw new TaskManagerInitializationException("Cannot register this node, because it already exists (this should not happen, as nodes with such a name were just removed)", e);
         } catch (SchemaException e) {
-            taskManager.setNodeErrorStatus(NodeErrorStatus.NODE_REGISTRATION_FAILED);
+            taskManager.setNodeErrorStatus(NodeErrorStatusType.NODE_REGISTRATION_FAILED);
             throw new TaskManagerInitializationException("Cannot register this node because of schema exception", e);
         }
 
@@ -237,20 +235,20 @@ public class NodeRegistrar {
         } catch (ObjectNotFoundException e) {
             LoggingUtils.logException(LOGGER, "Cannot update registration of this node (name {}, oid {}), because it does not exist in repository. It is probably caused by cluster misconfiguration (other node rewriting the Node object?) Stopping the scheduler.", e,
                     nodePrism.asObjectable().getName(), nodePrism.getOid());
-            if (taskManager.getLocalNodeErrorStatus() == NodeErrorStatus.OK) {
-                registerNodeError(NodeErrorStatus.NODE_REGISTRATION_FAILED);
+            if (taskManager.getLocalNodeErrorStatus() == NodeErrorStatusType.OK) {
+                registerNodeError(NodeErrorStatusType.NODE_REGISTRATION_FAILED);
             }
         } catch (ObjectAlreadyExistsException e) {
             LoggingUtils.logException(LOGGER, "Cannot update registration of this node (name {}, oid {}).", e,
                     nodePrism.asObjectable().getName(), nodePrism.getOid());
-            if (taskManager.getLocalNodeErrorStatus() == NodeErrorStatus.OK) {
-                registerNodeError(NodeErrorStatus.NODE_REGISTRATION_FAILED);
+            if (taskManager.getLocalNodeErrorStatus() == NodeErrorStatusType.OK) {
+                registerNodeError(NodeErrorStatusType.NODE_REGISTRATION_FAILED);
             }
         } catch (SchemaException e) {
             LoggingUtils.logException(LOGGER, "Cannot update registration of this node (name {}, oid {}) due to schema exception. Stopping the scheduler.", e,
                     nodePrism.asObjectable().getName(), nodePrism.getOid());
-            if (taskManager.getLocalNodeErrorStatus() == NodeErrorStatus.OK) {
-                registerNodeError(NodeErrorStatus.NODE_REGISTRATION_FAILED);
+            if (taskManager.getLocalNodeErrorStatus() == NodeErrorStatusType.OK) {
+                registerNodeError(NodeErrorStatusType.NODE_REGISTRATION_FAILED);
             }
         }
     }
@@ -277,19 +275,19 @@ public class NodeRegistrar {
                         "another node record with the name '{}' exists. It seems that in this cluster " +
                         "there are two or more nodes with the same name '{}'. Stopping the scheduler " +
                         "to minimize the damage.", e, oid, myName, myName);
-                registerNodeError(NodeErrorStatus.DUPLICATE_NODE_ID_OR_NAME);
+                registerNodeError(NodeErrorStatusType.DUPLICATE_NODE_ID_OR_NAME);
                 return;
             } else {
                 LoggingUtils.logException(LOGGER, "The record of this node cannot be read (OID {} not found). It  " +
                         "seems it was deleted in the meantime. Please check the reason. Stopping the scheduler " +
                         "to minimize the damage.", e, oid, myName, myName);
                 // actually we could re-register the node, but it is safer (and easier for now :) to stop the node instead
-                registerNodeError(NodeErrorStatus.NODE_REGISTRATION_FAILED);
+                registerNodeError(NodeErrorStatusType.NODE_REGISTRATION_FAILED);
                 return;
             }
         } catch (SchemaException e) {
             LoggingUtils.logException(LOGGER, "Cannot check the record of this node (OID = {}) because of schema exception. Stopping the scheduler.", e, oid);
-            registerNodeError(NodeErrorStatus.NODE_REGISTRATION_FAILED);
+            registerNodeError(NodeErrorStatusType.NODE_REGISTRATION_FAILED);
             return;
         }
 
@@ -300,7 +298,7 @@ public class NodeRegistrar {
             LOGGER.error("Internal node identifier has been overwritten in the repository. " +
                     "Probably somebody has overwritten it in the meantime, i.e. another node with the name of '" +
                     nodePrism.asObjectable().getName() + "' is running. Stopping the scheduler.");
-            registerNodeError(NodeErrorStatus.DUPLICATE_NODE_ID_OR_NAME);
+            registerNodeError(NodeErrorStatusType.DUPLICATE_NODE_ID_OR_NAME);
             return;
         }
     }
@@ -337,7 +335,7 @@ public class NodeRegistrar {
             LOGGER.error("This node is a non-clustered one, mixed with other nodes. In this system, there are " +
                     nonClustered.size() + " non-clustered nodes (" + nonClustered + ") and " +
                     clustered.size() + " clustered ones (" + clustered + "). Stopping this node.");
-            registerNodeError(NodeErrorStatus.NON_CLUSTERED_NODE_WITH_OTHERS);
+            registerNodeError(NodeErrorStatusType.NON_CLUSTERED_NODE_WITH_OTHERS);
         }
 
     }
@@ -372,7 +370,7 @@ public class NodeRegistrar {
      *
      * @param status Error status to be set.
      */
-    private void registerNodeError(NodeErrorStatus status) {
+    private void registerNodeError(NodeErrorStatusType status) {
         taskManager.setNodeErrorStatus(status);
         if (taskManager.getServiceThreadsActivationState()) {
             taskManager.getExecutionManager().stopSchedulerAndTasksLocally(0L, new OperationResult("nodeError"));

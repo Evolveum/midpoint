@@ -16,16 +16,16 @@
 
 package com.evolveum.midpoint.web.page.admin.server.dto;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.ClusterStatusInformation;
-import com.evolveum.midpoint.task.api.Node;
-import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.NodeType;
 import org.apache.wicket.Component;
 
 import java.util.Iterator;
@@ -41,8 +41,6 @@ public class NodeDtoProvider extends BaseSortableDataProvider<NodeDto> {
     private static final String OPERATION_LIST_NODES = DOT_CLASS + "listNodes";
     private static final String OPERATION_COUNT_NODES = DOT_CLASS + "countNodes";
 
-    private static final long ALLOWED_CLUSTER_INFO_AGE = 1200L;
-
     public NodeDtoProvider(Component component) {
         super(component);
     }
@@ -52,29 +50,19 @@ public class NodeDtoProvider extends BaseSortableDataProvider<NodeDto> {
         getAvailableData().clear();
 
         OperationResult result = new OperationResult(OPERATION_LIST_NODES);
+        Task task = getTaskManager().createTaskInstance(OPERATION_LIST_NODES);
         try {
-//            SortParam sortParam = getSort();
-//            OrderDirectionType order;
-//            if (sortParam.isAscending()) {
-//                order = OrderDirectionType.ASCENDING;
-//            } else {
-//                order = OrderDirectionType.DESCENDING;
-//            }
-//
-//            PagingType paging = PagingTypeFactory.createPaging(first, count, order, sortParam.getProperty());
         	ObjectPaging paging = createPaging(first, count);
         	ObjectQuery query = getQuery();
-        	if (query == null){
+        	if (query == null) {
         		query = new ObjectQuery();
         	}
         	query.setPaging(paging);
 
-            TaskManager manager = getTaskManager();
-            ClusterStatusInformation info = manager.getRunningTasksClusterwide(ALLOWED_CLUSTER_INFO_AGE, result);
-            List<Node> nodes = manager.searchNodes(query, info, result);
+            List<PrismObject<NodeType>> nodes = getModel().searchObjects(NodeType.class, query, null, task, result);
 
-            for (Node node : nodes) {
-                getAvailableData().add(new NodeDto(node));
+            for (PrismObject<NodeType> node : nodes) {
+                getAvailableData().add(new NodeDto(node.asObjectable()));
             }
             result.recordSuccess();
         } catch (Exception ex) {
@@ -89,11 +77,12 @@ public class NodeDtoProvider extends BaseSortableDataProvider<NodeDto> {
     protected int internalSize() {
         int count = 0;
         OperationResult result = new OperationResult(OPERATION_COUNT_NODES);
+        Task task = getTaskManager().createTaskInstance(OPERATION_COUNT_NODES);
         try {
-            count = getTaskManager().countNodes(getQuery(), result);
-
+            count = getModel().countObjects(NodeType.class, getQuery(), null, task, result);
             result.recomputeStatus();
         } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "Unhandled exception when counting nodes", ex);
             result.recordFatalError("Couldn't count nodes.", ex);
         }
 

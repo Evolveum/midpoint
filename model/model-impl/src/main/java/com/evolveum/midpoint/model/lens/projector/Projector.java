@@ -37,6 +37,7 @@ import com.evolveum.midpoint.model.lens.LensObjectDeltaOperation;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.lens.LensUtil;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -105,6 +106,15 @@ public class Projector {
 			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, 
 			ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 		
+		if (context.getDebugListener() != null) {
+			context.getDebugListener().beforeProjection(context);
+		}
+		
+		// Read the time at the beginning so all processors have the same notion of "now"
+		// this provides nicer unified timestamp that can be used in equality checks in tests and also for
+		// troubleshooting
+		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
+		
 		LOGGER.debug("Projecting context {}", context);
 		
 		LensUtil.traceContext(LOGGER, activityDescription, "projector start", false, context, false);
@@ -116,11 +126,6 @@ public class Projector {
 		
 		OperationResult result = parentResult.createSubresult(Projector.class.getName() + ".project");
 		result.addContext("executionWave", context.getExecutionWave());
-		
-		// Read the time at the beginning so all processors have the same notion of "now"
-		// this provides nicer unified timestamp that can be used in equality checks in tests and also for
-		// troubleshooting
-		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
 		
 		// Projector is using a set of "processors" to do parts of its work. The processors will be called in sequence
 		// in the following code.
@@ -267,39 +272,42 @@ public class Projector {
 	        
 	        if (consistencyChecks) context.checkConsistence();
 	        
-	        result.recordSuccess();
-	        result.cleanupResult();
+	        recordSuccess(now, result);
 	        
 		} catch (SchemaException e) {
-			recordFatalError(e, result);
+			recordFatalError(e, now, result);
 			throw e;
 		} catch (PolicyViolationException e) {
-			recordFatalError(e, result);
+			recordFatalError(e, now, result);
 			throw e;
 		} catch (ExpressionEvaluationException e) {
-			recordFatalError(e, result);
+			recordFatalError(e, now, result);
 			throw e;
 		} catch (ObjectNotFoundException e) {
-			recordFatalError(e, result);
+			recordFatalError(e, now, result);
 			throw e;
 		} catch (ObjectAlreadyExistsException e) {
-			recordFatalError(e, result);
+			recordFatalError(e, now, result);
 			throw e;
 		} catch (CommunicationException e) {
-			recordFatalError(e, result);
+			recordFatalError(e, now, result);
 			throw e;
 		} catch (ConfigurationException e) {
-			recordFatalError(e, result);
+			recordFatalError(e, now, result);
 			throw e;
 		} catch (SecurityViolationException e) {
-			recordFatalError(e, result);
+			recordFatalError(e, now, result);
 			throw e;
 		} catch (RuntimeException e) {
-			recordFatalError(e, result);
+			recordFatalError(e, now, result);
 			// This should not normally happen unless there is something really bad or there is a bug.
 			// Make sure that it is logged.
 			LOGGER.error("Runtime error in projector: {}", e.getMessage(), e);
 			throw e;
+		} finally {
+			if (context.getDebugListener() != null) {
+				context.getDebugListener().afterProjection(context);
+			}
 		}
 		
 	}
@@ -316,10 +324,26 @@ public class Projector {
 		
 	}
 
-	private void recordFatalError(Exception e, OperationResult result) {
+	private void recordFatalError(Exception e, XMLGregorianCalendar projectoStartTimestampCal, OperationResult result) {
 		result.recordFatalError(e);
 		result.cleanupResult(e);
+		if (LOGGER.isDebugEnabled()) {
+			long projectoStartTimestamp = XmlTypeConverter.toMillis(projectoStartTimestampCal);
+	    	long projectorEndTimestamp = clock.currentTimeMillis();
+			LOGGER.debug("Projector failed: {}, etime: {} ms", e.getMessage(), (projectorEndTimestamp - projectoStartTimestamp));
+		}
 	}
+	
+	private void recordSuccess(XMLGregorianCalendar projectoStartTimestampCal, OperationResult result) {
+        result.recordSuccess();
+        result.cleanupResult();
+        if (LOGGER.isDebugEnabled()) {
+        	long projectoStartTimestamp = XmlTypeConverter.toMillis(projectoStartTimestampCal);
+        	long projectorEndTimestamp = clock.currentTimeMillis();
+        	LOGGER.trace("Projector successful, etime: {} ms", (projectorEndTimestamp - projectoStartTimestamp));
+        }
+	}
+
 
 	public <F extends ObjectType, P extends ObjectType> void resetWaves(LensContext<F,P> context) throws PolicyViolationException {
 	}

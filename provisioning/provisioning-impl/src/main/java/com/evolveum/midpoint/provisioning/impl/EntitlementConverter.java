@@ -45,11 +45,13 @@ import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
+import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.api.Operation;
 import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
+import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -193,6 +195,8 @@ class EntitlementConverter {
 		ObjectQuery query = new ObjectQuery();
 		query.setFilter(filter);
 		
+		AttributesToReturn attributesToReturn = ProvisioningUtil.createAttributesToReturn(entitlementDef, resourceType);
+		
 		ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
 			@Override
 			public boolean handle(PrismObject<ShadowType> entitlementShadow) {
@@ -213,8 +217,9 @@ class EntitlementConverter {
 				return true;
 			}
 		};
+		
 		try {
-			connector.search(entitlementDef, query, handler, parentResult);
+			connector.search(entitlementDef, query, handler, attributesToReturn, parentResult);
 		} catch (TunnelException e) {
 			throw (SchemaException)e.getCause();
 		}
@@ -345,6 +350,8 @@ class EntitlementConverter {
 			ObjectQuery query = new ObjectQuery();
 			query.setFilter(filter);
 			
+			AttributesToReturn attributesToReturn = ProvisioningUtil.createAttributesToReturn(entitlementOcDef, resourceType);
+			
 			ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
 				@Override
 				public boolean handle(PrismObject<ShadowType> entitlementShadow) {
@@ -377,7 +384,7 @@ class EntitlementConverter {
 				}
 			};
 			try {
-				connector.search(entitlementOcDef, query, handler, parentResult);
+				connector.search(entitlementOcDef, query, handler, attributesToReturn, parentResult);
 			} catch (TunnelException e) {
 				throw (SchemaException)e.getCause();
 			} catch (GenericFrameworkException e) {

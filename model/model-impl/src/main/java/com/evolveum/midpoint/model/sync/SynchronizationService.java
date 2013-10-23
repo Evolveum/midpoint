@@ -47,6 +47,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -101,6 +102,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 	private PrismContext prismContext;
 	@Autowired(required = true)
 	private RepositoryService repositoryService;
+	@Autowired(required = true)
+	private ProvisioningService provisioningService;
 
 	@PostConstruct
 	public void registerForResourceObjectChangeNotifications() {
@@ -127,11 +130,28 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 				String message = "SYNCHRONIZATION is not enabled for " + ObjectTypeUtil.toShortString(resource)
 						+ " ignoring change from channel " + change.getSourceChannel();
 				LOGGER.debug(message);
-				subResult.recordStatus(OperationResultStatus.SUCCESS, message);
+				subResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, message);
 				return;
 			}
 			LOGGER.trace("Synchronization is enabled.");
 
+			PrismObject<? extends ShadowType> currentShadow = change.getCurrentShadow();
+			if (currentShadow != null) {
+				ShadowType currentShadowType = currentShadow.asObjectable();
+				if (currentShadowType.isProtectedObject() != null && currentShadowType.isProtectedObject()) {
+					LOGGER.trace("SYNCHRONIZATION skipping {} because it is protected", currentShadowType);
+					// Just make sure there is no misleading synchronization situation in the shadow
+					if (currentShadowType.getSynchronizationSituation() != null) {
+						ObjectDelta<ShadowType> shadowDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class, currentShadowType.getOid(),
+								ShadowType.F_SYNCHRONIZATION_SITUATION, prismContext);
+						provisioningService.modifyObject(ShadowType.class, currentShadowType.getOid(), 
+								shadowDelta.getModifications(), null, null, task, subResult);
+					}
+					subResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, "Skipped because it is protected");
+					return;
+				}
+			}
+			
 			SynchronizationSituation situation = checkSituation(change, subResult);
 			LOGGER.debug("SYNCHRONIZATION: SITUATION: '{}', {}", situation.getSituation().value(), situation.getUser());
 
@@ -395,8 +415,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		
 		if (actions.isEmpty()) {
 
-			LOGGER.warn("Skipping synchronization on resource: {}. Actions was not found.",
-					new Object[] { resource.getName() });
+			LOGGER.warn("Skipping synchronization on resource: {}. No action(s) defined for situation {}.",
+					new Object[] { resource.getName(), situation.getSituation() });
 			return;
 		}
 

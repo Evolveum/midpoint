@@ -38,6 +38,7 @@ import com.evolveum.midpoint.util.PrettyPrinter;
  */
 public abstract class DummyObject implements Dumpable, DebugDumpable {
 	
+	private String id;
 	private String name;
 	private Map<String,Set<Object>> attributes = new HashMap<String, Set<Object>>();
 	private boolean enabled = true;
@@ -46,6 +47,14 @@ public abstract class DummyObject implements Dumpable, DebugDumpable {
 	protected DummyResource resource;
 
 	public DummyObject() {
+	}
+	
+		public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
 	}
 
 	public DummyObject(String name) {

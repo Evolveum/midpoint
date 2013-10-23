@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.common.expression.functions.FunctionLibrary;
@@ -44,19 +45,22 @@ public class ScriptExpressionFactory {
 	private ObjectResolver objectResolver;
 	private PrismContext prismContext;
 	private Collection<FunctionLibrary> functions;
+	private Protector protector;
 	
-	public ScriptExpressionFactory(ObjectResolver objectResolver, PrismContext prismContext, Collection<FunctionLibrary> functions) {
+	public ScriptExpressionFactory(ObjectResolver objectResolver, PrismContext prismContext, 
+			Collection<FunctionLibrary> functions, Protector protector) {
 		this.prismContext = prismContext;
 		this.objectResolver = objectResolver;
 		this.functions = functions;
+		this.protector = protector;
 	}
 	
 	/**
 	 * Constructor created especially to be used from the Spring context.
 	 */
 	public ScriptExpressionFactory(ObjectResolver objectResolver, PrismContext prismContext, 
-			Collection<FunctionLibrary> functions, Collection<ScriptEvaluator> evaluators) {
-		this(objectResolver, prismContext, functions);
+			Collection<FunctionLibrary> functions, Protector protector, Collection<ScriptEvaluator> evaluators) {
+		this(objectResolver, prismContext, functions, protector);
 		for (ScriptEvaluator evaluator: evaluators) {
 			registerEvaluator(evaluator.getLanguageUrl(), evaluator);
 		}

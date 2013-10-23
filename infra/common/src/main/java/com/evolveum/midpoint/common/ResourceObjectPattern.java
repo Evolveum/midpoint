@@ -19,7 +19,14 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.prism.match.MatchingRule;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * @author semancik
@@ -28,6 +35,11 @@ import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 public class ResourceObjectPattern implements Serializable {
 	
 	private Collection<ResourceAttribute<?>> identifiers;
+	private RefinedObjectClassDefinition rOcDef;
+	
+	public ResourceObjectPattern(RefinedObjectClassDefinition rOcDef) {
+		this.rOcDef = rOcDef;
+	}
 	
 	public Collection<ResourceAttribute<?>> getIdentifiers() {
 		if (identifiers == null) {
@@ -41,35 +53,44 @@ public class ResourceObjectPattern implements Serializable {
 	}
 
 	public static boolean matches(Collection<? extends ResourceAttribute<?>> attributesToMatch,
-			Collection<ResourceObjectPattern> protectedAccountPatterns) {
+			Collection<ResourceObjectPattern> protectedAccountPatterns, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
 		for (ResourceObjectPattern pattern: protectedAccountPatterns) {
-			if (pattern.matches(attributesToMatch)) {
+			if (pattern.matches(attributesToMatch, matchingRuleRegistry)) {
 				return true;
 			}
 		}
 		return false;
 	}
 
-	public boolean matches(Collection<? extends ResourceAttribute<?>> attributesToMatch) {
+	public boolean matches(Collection<? extends ResourceAttribute<?>> attributesToMatch, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
 		for (ResourceAttribute<?> identifier: identifiers) {
-			if (!matches(identifier, attributesToMatch)) {
+			if (!matches(identifier, attributesToMatch, matchingRuleRegistry)) {
 				return false;
 			}
 		}
 		return true;
 	}
 
-	private static boolean matches(ResourceAttribute<?> identifier, Collection<? extends ResourceAttribute<?>> attributesToMatch) {
+	private boolean matches(ResourceAttribute<?> identifier, Collection<? extends ResourceAttribute<?>> attributesToMatch, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
 		for (ResourceAttribute<?> attributeToMatch: attributesToMatch) {
-			if (matches(identifier, attributeToMatch)) {
+			if (matches(identifier, attributeToMatch, matchingRuleRegistry)) {
 				return true;
 			}
 		}
 		return false;
 	}
 
-	private static boolean matches(ResourceAttribute<?> identifier, ResourceAttribute<?> attributeToMatch) {
-		return identifier.equalsRealValue(attributeToMatch);
+	private boolean matches(ResourceAttribute<?> identifier, ResourceAttribute<?> attributeToMatch, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
+		if (!identifier.getName().equals(attributeToMatch.getName())) {
+			return false;
+		}
+		RefinedAttributeDefinition rAttrDef = rOcDef.findAttributeDefinition(identifier.getName());
+		QName matchingRuleQName = rAttrDef.getMatchingRuleQName();
+		if (matchingRuleQName == null || matchingRuleRegistry == null) {
+			return identifier.equalsRealValue(attributeToMatch);
+		}
+		MatchingRule<Object> matchingRule = matchingRuleRegistry.getMatchingRule(matchingRuleQName, rAttrDef.getTypeName());
+		return matchingRule.match(identifier.getRealValue(), attributeToMatch.getRealValue());
 	}
 
 }

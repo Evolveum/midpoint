@@ -34,6 +34,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
@@ -355,4 +356,89 @@ public class TestDeltaConverter {
                 Object.class, xmlDelta), properties);
         assertNotNull(result);
     }
+    
+    @Test
+    public void testItemDeltaReplace() throws Exception {
+    	System.out.println("===[ testItemDeltaReplace ]====");
+
+    	// GIVEN
+    	PrismObjectDefinition<UserType> userDef = getUserDefinition();
+    	PropertyDelta<String> deltaBefore = PropertyDelta.createReplaceEmptyDelta(userDef, UserType.F_COST_CENTER);
+    	deltaBefore.setValueToReplace(new PrismPropertyValue<String>("foo"));
+    	
+		// WHEN
+    	Collection<ItemDeltaType> itemDeltaTypes = DeltaConvertor.toPropertyModificationTypes(deltaBefore);
+    	
+    	// THEN
+    	System.out.println("Serialized");
+    	System.out.println(itemDeltaTypes);
+    	
+    	// WHEN
+    	ItemDelta<PrismValue> deltaAfter = DeltaConvertor.createItemDelta(itemDeltaTypes.iterator().next(), userDef);
+    	
+    	// THEN
+    	System.out.println("Parsed");
+    	System.out.println(deltaAfter.dump());
+
+    	assertEquals("Deltas do not match", deltaBefore, deltaAfter);
+    }
+
+    @Test
+    public void testItemDeltaReplaceEmptyString() throws Exception {
+    	System.out.println("===[ testItemDeltaReplaceEmptyString ]====");
+
+    	// GIVEN
+    	PrismObjectDefinition<UserType> userDef = getUserDefinition();
+    	PropertyDelta<String> deltaBefore = PropertyDelta.createReplaceEmptyDelta(userDef, UserType.F_COST_CENTER);
+    	deltaBefore.setValueToReplace(new PrismPropertyValue<String>(""));
+    	
+		// WHEN
+    	Collection<ItemDeltaType> itemDeltaTypes = DeltaConvertor.toPropertyModificationTypes(deltaBefore);
+    	
+    	// THEN
+    	System.out.println("Serialized");
+    	System.out.println(itemDeltaTypes);
+    	
+    	// WHEN
+    	ItemDelta<PrismValue> deltaAfter = DeltaConvertor.createItemDelta(itemDeltaTypes.iterator().next(), userDef);
+
+    	// THEN
+    	System.out.println("Parsed");
+    	System.out.println(deltaAfter.dump());
+    	
+    	assertEquals("Deltas do not match", deltaBefore, deltaAfter);
+    }
+
+    @Test
+    public void testItemDeltaReplaceNil() throws Exception {
+    	System.out.println("===[ testItemDeltaReplaceNil ]====");
+
+    	// GIVEN
+    	PrismObjectDefinition<UserType> userDef = getUserDefinition();
+    	PropertyDelta<String> deltaBefore = PropertyDelta.createReplaceEmptyDelta(userDef, UserType.F_COST_CENTER);
+    	// The delta remains empty
+    	
+		// WHEN
+    	Collection<ItemDeltaType> itemDeltaTypes = DeltaConvertor.toPropertyModificationTypes(deltaBefore);
+    	
+    	// THEN
+    	System.out.println("Serialized");
+    	System.out.println(itemDeltaTypes);
+    	ItemDeltaType itemDeltaType = itemDeltaTypes.iterator().next();
+    	String xml = PrismTestUtil.getPrismContext().getPrismJaxbProcessor().marshalObjectToString(itemDeltaType, new QName("wherever","whatever"));
+    	System.out.println(xml);
+    	
+    	// WHEN
+    	ItemDelta<PrismValue> deltaAfter = DeltaConvertor.createItemDelta(itemDeltaType, userDef);
+    	
+    	// THEN
+    	System.out.println("Parsed");
+    	System.out.println(deltaAfter.dump());
+    	
+    	assertEquals("Deltas do not match", deltaBefore, deltaAfter);
+    }
+
+	private PrismObjectDefinition<UserType> getUserDefinition() {
+		return PrismTestUtil.getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+	}
 }

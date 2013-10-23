@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.lens;
 
+import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 
 /**
@@ -32,5 +33,14 @@ public interface LensDebugListener {
 	public <F extends ObjectType, P extends ObjectType> void beforeSync(LensContext<F,P> context);
 
 	public <F extends ObjectType, P extends ObjectType> void afterSync(LensContext<F,P> context);
+	
+	public <F extends ObjectType, P extends ObjectType> void beforeProjection(LensContext<F,P> context);
+	
+	public <F extends ObjectType, P extends ObjectType> void afterProjection(LensContext<F,P> context);
+	
+	/**
+	 * May be used to gather profiling data, etc.
+	 */
+	public <F extends ObjectType, P extends ObjectType> void afterMappingEvaluation(LensContext<F,P> context, Mapping<?> evaluatedMapping);
 	
 }

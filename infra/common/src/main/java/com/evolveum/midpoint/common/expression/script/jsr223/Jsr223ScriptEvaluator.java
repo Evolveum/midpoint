@@ -17,12 +17,16 @@ package com.evolveum.midpoint.common.expression.script.jsr223;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.script.Bindings;
+import javax.script.Compilable;
+import javax.script.CompiledScript;
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
@@ -30,11 +34,14 @@ import javax.xml.namespace.QName;
 
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.expression.ExpressionSyntaxException;
+import com.evolveum.midpoint.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.common.expression.script.ScriptEvaluator;
 import com.evolveum.midpoint.common.expression.script.ScriptVariables;
+import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -73,14 +80,19 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 
 	private ScriptEngine scriptEngine;
 	private PrismContext prismContext;
+	private Protector protector;
 	
-	public Jsr223ScriptEvaluator(String engineName, PrismContext prismContext) {
+	private Map<String, CompiledScript> scriptCache;
+	
+	public Jsr223ScriptEvaluator(String engineName, PrismContext prismContext, Protector protector) {
 		ScriptEngineManager scriptEngineManager = new ScriptEngineManager();
 		scriptEngine = scriptEngineManager.getEngineByName(engineName);
 		if (scriptEngine == null) {
 			throw new SystemException("The JSR-223 scripting engine for '"+engineName+"' was not found");
 		}
 		this.prismContext = prismContext;
+		this.protector = protector;
+		this.scriptCache = new ConcurrentHashMap<String, CompiledScript>();
 	}
 	
 	@Override
@@ -103,9 +115,12 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 			allowEmptyValues = expressionType.isAllowEmptyValues();
 		}
 		
+		CompiledScript compiledScript = createCompiledScript(codeString, contextDescription);
+		
 		Object evalRawResult;
 		try {
-			evalRawResult = scriptEngine.eval(codeString, bindings);
+			InternalMonitor.recordScriptExecution();
+			evalRawResult = compiledScript.eval(bindings);
 		} catch (ScriptException e) {
 			throw new ExpressionEvaluationException(e.getMessage() + " " + contextDescription, e);
 		}
@@ -145,13 +160,24 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 		return pvals;
 	}
 	
+	private CompiledScript createCompiledScript(String codeString, String contextDescription) throws ExpressionEvaluationException {
+		CompiledScript compiledScript = scriptCache.get(codeString);
+		if (compiledScript != null) {
+			return compiledScript;
+		}
+		try {
+			InternalMonitor.recordScriptCompile();
+			compiledScript = ((Compilable)scriptEngine).compile(codeString);
+		} catch (ScriptException e) {
+			throw new ExpressionEvaluationException(e.getMessage() + " " + contextDescription, e);
+		}
+		scriptCache.put(codeString, compiledScript);
+		return compiledScript;
+	}
+
 	private <T> T convertScalarResult(Class<T> expectedType, Object rawValue, String contextDescription) throws ExpressionEvaluationException {
 		try {
-			T convertedValue = JavaTypeConverter.convert(expectedType, rawValue);
-			if (convertedValue instanceof PolyString) {
-				// Make sure it is fully computed
-				((PolyString)convertedValue).recompute(prismContext.getDefaultPolyStringNormalizer());
-			}
+			T convertedValue = ExpressionUtil.convertValue(expectedType, rawValue, protector, prismContext);
 			return convertedValue;
 		} catch (IllegalArgumentException e) {
 			throw new ExpressionEvaluationException(e.getMessage()+" in "+contextDescription, e);

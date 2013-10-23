@@ -31,7 +31,6 @@ import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Index;
@@ -174,14 +173,14 @@ public abstract class RFocus<T extends FocusType> extends RObject<T> {
             DtoTranslationException {
         RObject.copyToJAXB(repo, jaxb, prismContext, options);
 
-        if (RUtil.hasToLoadPath(FocusType.F_LINK_REF, options)) {
+        if (SelectorOptions.hasToLoadPath(FocusType.F_LINK_REF, options)) {
             List linkRefs = RUtil.safeSetReferencesToList(repo.getLinkRef(), prismContext);
             if (!linkRefs.isEmpty()) {
                 jaxb.getLinkRef().addAll(linkRefs);
             }
         }
 
-        if (RUtil.hasToLoadPath(FocusType.F_ASSIGNMENT, options)) {
+        if (SelectorOptions.hasToLoadPath(FocusType.F_ASSIGNMENT, options)) {
             for (RAssignment rAssignment : repo.getAssignment()) {
                 jaxb.getAssignment().add(rAssignment.toJAXB(prismContext));
             }

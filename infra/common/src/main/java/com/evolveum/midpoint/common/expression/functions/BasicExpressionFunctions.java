@@ -41,6 +41,8 @@ import org.apache.commons.lang.time.DateUtils;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import com.evolveum.midpoint.common.crypto.EncryptionException;
+import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.common.expression.script.ScriptExpressionEvaluationContext;
@@ -58,9 +60,11 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
@@ -82,10 +86,12 @@ public class BasicExpressionFunctions {
 	public static final Trace LOGGER = TraceManager.getTrace(BasicExpressionFunctions.class);
 	
 	private PrismContext prismContext;
+	private Protector protector;
 
-	public BasicExpressionFunctions(PrismContext prismContext) {
+	public BasicExpressionFunctions(PrismContext prismContext, Protector protector) {
 		super();
 		this.prismContext = prismContext;
+		this.protector = protector;
 	}
 	
 	/**
@@ -500,6 +506,26 @@ public class BasicExpressionFunctions {
 			return null;
 		}
 		return XmlTypeConverter.createXMLGregorianCalendar(date);
+    }
+    
+    public XMLGregorianCalendar currentDateTime() {
+    	return XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
+    }
+    
+    public String decrypt(ProtectedStringType protectedString) {
+    	try {
+			return protector.decryptString(protectedString);
+		} catch (EncryptionException e) {
+			throw new SystemException(e.getMessage(), e);
+		}
+    }
+    
+    public ProtectedStringType encrypt(String string) {
+    	try {
+			return protector.encryptString(string);
+		} catch (EncryptionException e) {
+			throw new SystemException(e.getMessage(), e);
+		}
     }
 	
 }

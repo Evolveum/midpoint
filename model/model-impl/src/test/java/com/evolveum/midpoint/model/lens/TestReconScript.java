@@ -199,7 +199,7 @@ public class TestReconScript extends AbstractInternalModelIntegrationTest{
 		
 		repositoryService.modifyObject(TaskType.class, TASK_RECON_DUMMY_OID, modifications, parentResult);
 		
-		dummyResource.deleteAccount("beforeScript");
+		dummyResource.deleteAccountByName("beforeScript");
 		
 		
 		waitForTaskStart(TASK_RECON_DUMMY_OID, false);

@@ -182,13 +182,15 @@ public class ProfilingTest {
 
         ProfilingDataManager manager = ProfilingDataManager.getInstance();
 
+
         //6 prof. events are created, there should be 2 keys in HashMap
-        manager.applyGranularityFilterOnEnd("class", "method", new String[]{"1", "2", "3"}, SUBSYSTEM_MODEL, System.currentTimeMillis());
-        manager.applyGranularityFilterOnEnd("class", "method", new String[]{"1", "2", "3"}, SUBSYSTEM_MODEL, System.currentTimeMillis());
-        manager.applyGranularityFilterOnEnd("class", "method", new String[]{"1", "2", "3"}, SUBSYSTEM_MODEL, System.currentTimeMillis());
-        manager.applyGranularityFilterOnEnd("class2", "method", new String[]{"1", "2", "3"}, SUBSYSTEM_REPOSITORY, System.currentTimeMillis());
-        manager.applyGranularityFilterOnEnd("class2", "method", new String[]{"1", "2", "3"}, SUBSYSTEM_REPOSITORY, System.currentTimeMillis());
-        manager.applyGranularityFilterOnEnd("class2", "method", new String[]{"1", "2", "3"}, SUBSYSTEM_REPOSITORY, System.currentTimeMillis());
+        Long startTime = System.nanoTime();
+        manager.applyGranularityFilterOnEnd("class", "method", new String[]{"1","2","3"}, SUBSYSTEM_MODEL, System.currentTimeMillis(),startTime);
+        manager.applyGranularityFilterOnEnd("class", "method", new String[]{"1","2","3"}, SUBSYSTEM_MODEL, System.currentTimeMillis(),startTime);
+        manager.applyGranularityFilterOnEnd("class", "method", new String[]{"1","2","3"}, SUBSYSTEM_MODEL, System.currentTimeMillis(),startTime);
+        manager.applyGranularityFilterOnEnd("class2", "method", new String[]{"1","2","3"}, SUBSYSTEM_REPOSITORY, System.currentTimeMillis(),startTime);
+        manager.applyGranularityFilterOnEnd("class2", "method", new String[]{"1","2","3"}, SUBSYSTEM_REPOSITORY, System.currentTimeMillis(),startTime);
+        manager.applyGranularityFilterOnEnd("class2", "method", new String[]{"1","2","3"}, SUBSYSTEM_REPOSITORY, System.currentTimeMillis(),startTime);
 
         Map<String, MethodUsageStatistics> perfMap = manager.getPerformanceMap();
 

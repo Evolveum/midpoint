@@ -51,7 +51,7 @@ public class ExpressionTestUtil {
     	ExpressionFactory expressionFactory = new ExpressionFactory(resolver, prismContext);
     	
     	// asIs
-    	AsIsExpressionEvaluatorFactory asIsFactory = new AsIsExpressionEvaluatorFactory(prismContext);
+    	AsIsExpressionEvaluatorFactory asIsFactory = new AsIsExpressionEvaluatorFactory(prismContext, protector);
     	expressionFactory.addEvaluatorFactory(asIsFactory);
     	expressionFactory.setDefaultEvaluatorFactory(asIsFactory);
 
@@ -60,7 +60,7 @@ public class ExpressionTestUtil {
     	expressionFactory.addEvaluatorFactory(valueFactory);
     	
     	// path
-    	PathExpressionEvaluatorFactory pathFactory = new PathExpressionEvaluatorFactory(prismContext, resolver);
+    	PathExpressionEvaluatorFactory pathFactory = new PathExpressionEvaluatorFactory(prismContext, resolver, protector);
     	expressionFactory.addEvaluatorFactory(pathFactory);
     	
     	// generate
@@ -69,12 +69,12 @@ public class ExpressionTestUtil {
 
     	// script
     	Collection<FunctionLibrary> functions = new ArrayList<FunctionLibrary>();
-        functions.add(ExpressionUtil.createBasicFunctionLibrary(prismContext));
+        functions.add(ExpressionUtil.createBasicFunctionLibrary(prismContext, protector));
         functions.add(ExpressionUtil.createLogFunctionLibrary(prismContext));
-        ScriptExpressionFactory scriptExpressionFactory = new ScriptExpressionFactory(resolver, prismContext, functions);
+        ScriptExpressionFactory scriptExpressionFactory = new ScriptExpressionFactory(resolver, prismContext, functions, protector);
         XPathScriptEvaluator xpathEvaluator = new XPathScriptEvaluator(prismContext);
         scriptExpressionFactory.registerEvaluator(XPathScriptEvaluator.XPATH_LANGUAGE_URL, xpathEvaluator);
-        Jsr223ScriptEvaluator groovyEvaluator = new Jsr223ScriptEvaluator("Groovy", prismContext);
+        Jsr223ScriptEvaluator groovyEvaluator = new Jsr223ScriptEvaluator("Groovy", prismContext, protector);
         scriptExpressionFactory.registerEvaluator(groovyEvaluator.getLanguageUrl(), groovyEvaluator);
         ScriptExpressionEvaluatorFactory scriptExpressionEvaluatorFactory = new ScriptExpressionEvaluatorFactory(scriptExpressionFactory);
         expressionFactory.addEvaluatorFactory(scriptExpressionEvaluatorFactory);

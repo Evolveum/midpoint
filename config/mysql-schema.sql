@@ -914,6 +914,8 @@
 
     create index iTaskNameNameNorm on m_task (name_norm);
 
+    create index iParent on m_task (parent);
+
     create index iTaskNameOrig on m_task (name_orig);
 
     alter table m_task 

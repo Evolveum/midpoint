@@ -57,6 +57,10 @@ public class ProfilingDataManager {
     public static final String SUBSYSTEM_WORKFLOW = "WORKFLOW";
     public static final String SUBSYSTEM_WEB = "WEB";
 
+    public static final String INDENT_STRING = " ";
+    private static final String ARGS_NULL = "NULL";
+    private static final String ARGS_EMPTY = "NO ARGS";
+
     private static boolean isRepositoryProfiled = false;
     private static boolean isTaskManagerProfiled = false;
     private static boolean isProvisioningProfiled = false;
@@ -142,50 +146,47 @@ public class ProfilingDataManager {
     /*
     *   Here, we will decide, what filter will be applied (based on subsystem) on method end
     * */
-    public void applyGranularityFilterOnEnd(String className, String methodName, Object[] args, String subsystem, long startTime){
+    public void applyGranularityFilterOnEnd(String className, String methodName, Object[] args, String subsystem, long startTime, long processingStartTime){
 
         ProfilingDataLog profilingEvent;
+        profilingEvent = prepareProfilingDataLog(className, methodName, startTime, args);
+        String key = prepareKey(profilingEvent);
 
         if(isRepositoryProfiled && SUBSYSTEM_REPOSITORY.equals(subsystem)){
-            profilingEvent = prepareProfilingDataLog(className, methodName, startTime, args);
-            String key = prepareKey(profilingEvent);
             updateOverallStatistics(performanceMap, profilingEvent, key, SUBSYSTEM_REPOSITORY);
 
         } else if(isModelProfiled && SUBSYSTEM_MODEL.equals(subsystem)){
-            profilingEvent = prepareProfilingDataLog(className, methodName, startTime, args);
-
-                String key = prepareKey(profilingEvent);
             updateOverallStatistics(performanceMap, profilingEvent, key, SUBSYSTEM_MODEL);
 
         } else if (isProvisioningProfiled && SUBSYSTEM_PROVISIONING.equals(subsystem)){
-            profilingEvent = prepareProfilingDataLog(className, methodName, startTime, args);
-            String key = prepareKey(profilingEvent);
             updateOverallStatistics(performanceMap, profilingEvent, key, SUBSYSTEM_PROVISIONING);
 
         } else if (isTaskManagerProfiled && SUBSYSTEM_TASKMANAGER.equals(subsystem)){
-            profilingEvent = prepareProfilingDataLog(className, methodName, startTime, args);
-            String key = prepareKey(profilingEvent);
             updateOverallStatistics(performanceMap, profilingEvent, key, SUBSYSTEM_TASKMANAGER);
 
         } else if (isUcfProfiled && SUBSYSTEM_UCF.equals(subsystem)){
-            profilingEvent = prepareProfilingDataLog(className, methodName, startTime, args);
-            String key = prepareKey(profilingEvent);
             updateOverallStatistics(performanceMap, profilingEvent, key, SUBSYSTEM_UCF);
 
         } else if(isResourceObjectChangeListenerProfiled && SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER.equals(subsystem)){
-            profilingEvent = prepareProfilingDataLog(className, methodName, startTime, args);
-            String key = prepareKey(profilingEvent);
             updateOverallStatistics(performanceMap, profilingEvent, key, SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER);
 
         } else if(isWorkflowProfiled && SUBSYSTEM_WORKFLOW.equals(subsystem)){
-            profilingEvent = prepareProfilingDataLog(className, methodName, startTime, args);
-            String key = prepareKey(profilingEvent);
             updateOverallStatistics(performanceMap, profilingEvent, key, SUBSYSTEM_WORKFLOW);
         }
 
-        ProfilingDataManager.getInstance().dumpToLog();
+        Long processingEstTime = System.nanoTime() - processingStartTime;
+        logEventProcessingDuration(key, processingEstTime);
 
+        ProfilingDataManager.getInstance().dumpToLog();
     }   //applyGranularityFilterOnEnd
+
+    /*
+    *   Logs, how long the processing of profiling event took.
+    * */
+    private void logEventProcessingDuration(String key, long est){
+        if(performanceMap.get(key) != null)
+            performanceMap.get(key).updateProcessTimeList(est);
+    }
 
     /*
     *   Creates profiling event from captured servlet request
@@ -272,18 +273,21 @@ public class ProfilingDataManager {
     /*
     *   Updates overall statistics
     * */
-    private static void updateOverallStatistics(Map<String, MethodUsageStatistics> logMap, ProfilingDataLog eventLog, String key, String subsystem){
+    private void updateOverallStatistics(Map<String, MethodUsageStatistics> logMap, ProfilingDataLog eventLog, String key, String subsystem){
         if(!logMap.containsKey(key)){
+            eventLog.setArgs(prepareArguments(eventLog.args));
             logMap.put(key, new MethodUsageStatistics(eventLog, subsystem));
         } else {
             logMap.get(key).update(eventLog);
         }
 
         if(logMap.get(key).getSlowestMethodList().size() < TOP_TEN_METHOD_NUMBER){
+            eventLog.setArgs(prepareArguments(eventLog.args));
             logMap.get(key).getSlowestMethodList().add(eventLog);
             sort(logMap.get(key).getSlowestMethodList());
         } else {
             if(logMap.get(key).getSlowestMethodList().get(logMap.get(key).getSlowestMethodList().size()-1).getEstimatedTime() < eventLog.getEstimatedTime()){
+                eventLog.setArgs(prepareArguments(eventLog.args));
                 logMap.get(key).getSlowestMethodList().add(eventLog);
                 sort(logMap.get(key).getSlowestMethodList());
                 logMap.get(key).setCurrentTopTenMin(logMap.get(key).getSlowestMethodList().get(logMap.get(key).getSlowestMethodList().size()-1).getEstimatedTime());
@@ -369,7 +373,7 @@ public class ProfilingDataManager {
     /*
     *  Calculates estimated time on method exit
     */
-    private static long calculateTime(long startTime){
+    private long calculateTime(long startTime){
         return (System.nanoTime() - startTime);
     }   //calculateTime
 
@@ -380,5 +384,32 @@ public class ProfilingDataManager {
 
     public int getMinuteDumpInterval() {
         return minuteDumpInterval;
+    }
+
+    /*
+*   Stripping of operationResult from method arguments. Working with big dataset, that operationResult can potentially have is not very comforting,
+*   so we take only most important information before we proceed, specifically:
+*       - operation
+*       - status
+*       - message
+*    Everything else is thrown away
+* */
+    private String[] prepareArguments(Object[] args){
+
+        if(args == null || args.length == 0)
+            return new String[]{ARGS_EMPTY};
+
+        StringBuffer sb = new StringBuffer();
+
+        for(Object o: args){
+            if(o == null)
+                sb.append(ARGS_NULL);
+            else
+                sb.append(o.toString());
+
+            sb.append(INDENT_STRING);
+        }
+
+        return new String[]{sb.toString()};
     }
 }

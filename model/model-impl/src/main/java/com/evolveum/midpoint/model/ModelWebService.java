@@ -128,7 +128,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		OperationResult operationResult = task.getResult();
 		try {			
 			PrismObject<? extends ObjectType> object = model.getObject(
-					ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), oid, 
+					ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), oid,
 					MiscSchemaUtil.optionsTypeToOptions(options), task, operationResult);
 			handleOperationResult(operationResult, resultHolder);
 			objectHolder.value = object.asObjectable();
@@ -261,34 +261,6 @@ public class ModelWebService implements ModelPortType, ModelPort {
 			Holder<ResourceObjectShadowListType> resourceObjectShadowListHolder,
 			Holder<OperationResultType> result) throws FaultMessage {
 		throw new UnsupportedOperationException("Not supported. DEPRECATED. Use searchObjects instead.");
-	}
-
-	@Override
-	public void listResourceObjects(String resourceOid, QName objectType, PagingType paging,
-			Holder<ObjectListType> objectListTypeHolder,
-			Holder<OperationResultType> result) throws FaultMessage {
-		notEmptyArgument(resourceOid, "Resource oid must not be null or empty.");
-		notNullArgument(objectType, "Object type must not be null.");
-		notNullArgument(paging, "Paging  must not be null.");
-
-		Task task = createTaskInstance(LIST_RESOURCE_OBJECTS);
-		auditLogin(task);
-		OperationResult operationResult = task.getResult();
-		try {
-			List<PrismObject<? extends ShadowType>> list = model.listResourceObjects(
-					resourceOid, objectType, PagingConvertor.createObjectPaging(paging), task, operationResult);
-			handleOperationResult(operationResult, result);
-			ObjectListType listType = new ObjectListType();
-			for (PrismObject<? extends ShadowType> o : list) {
-				listType.getObject().add(o.asObjectable());
-			}
-			objectListTypeHolder.value = listType;
-			return;
-		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "# MODEL listResourceObjects() failed", ex);
-			auditLogout(task);
-			throw createSystemFault(ex, operationResult);
-		}
 	}
 
 	@Override

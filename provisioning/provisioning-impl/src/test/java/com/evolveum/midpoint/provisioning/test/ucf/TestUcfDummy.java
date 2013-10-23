@@ -404,7 +404,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		OperationResult result = new OperationResult(this.getClass().getName() + ".testSearch");
 
 		// WHEN
-		cc.search(accountDefinition, new ObjectQuery(), handler, result);
+		cc.search(accountDefinition, new ObjectQuery(), handler, null, result);
 
 		// THEN
 		assertEquals("Unexpected number of search results", 1, searchResults.size());
@@ -439,7 +439,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		assertTrue("Last sync token definition is NOT dynamic", lastTokenDef.isDynamic());
 		
 		// WHEN
-		List<Change<ShadowType>> changes = cc.fetchChanges(accountDefinition, lastToken, result);
+		List<Change<ShadowType>> changes = cc.fetchChanges(accountDefinition, lastToken, null, result);
 		
 		AssertJUnit.assertEquals(0, changes.size());
 	}
@@ -463,7 +463,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		dummyResource.addAccount(newAccount);
 		
 		// WHEN
-		List<Change<ShadowType>> changes = cc.fetchChanges(accountDefinition, lastToken, result);
+		List<Change<ShadowType>> changes = cc.fetchChanges(accountDefinition, lastToken, null, result);
 		
 		AssertJUnit.assertEquals(1, changes.size());
 		Change change = changes.get(0);

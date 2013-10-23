@@ -27,7 +27,10 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterStatusInformation;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
@@ -98,7 +101,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 	private PrismObjectDefinition<TaskType> taskPrismDefinition;
 
     // error status for this node (local Quartz scheduler is not allowed to be started if this status is not "OK")
-    private NodeErrorStatus nodeErrorStatus = NodeErrorStatus.OK;
+    private NodeErrorStatusType nodeErrorStatus = NodeErrorStatusType.OK;
 
 	private BeanFactory beanFactory;
 
@@ -230,7 +233,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
      */
 
     public boolean isInErrorState() {
-        return nodeErrorStatus != NodeErrorStatus.OK;
+        return nodeErrorStatus != NodeErrorStatusType.OK;
     }
     //endregion
 
@@ -710,114 +713,176 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     }
     //endregion
 
-    //region Searching tasks and nodes
+    //region Getting and searching for tasks and nodes
     /*
-     *  ********************* SEARCHING TASKS AND NODES *********************
+     *  ********************* GETTING AND SEARCHING FOR TASKS AND NODES *********************
      */
+
+    @Override
+    public <T extends ObjectType> PrismObject<T> getObject(Class<T> type,
+                                                           String oid,
+                                                           Collection<SelectorOptions<GetOperationOptions>> options,
+                                                           OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+
+        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + ".getObject");
+        result.addParam("objectType", type);
+        result.addParam("oid", oid);
+        result.addCollectionOfSerializablesAsParam("options", options);
+        result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskManagerQuartzImpl.class);
+
+        try {
+            if (TaskType.class.isAssignableFrom(type)) {
+                return (PrismObject<T>) getTask(oid, result).getTaskPrismObject();     // TODO fixme
+            } else if (NodeType.class.isAssignableFrom(type)) {
+                return (PrismObject<T>) repositoryService.getObject(NodeType.class, oid, options, result);
+            } else {
+                throw new IllegalArgumentException("Unsupported object type: " + type);
+            }
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+    }
+
+    @Override
+    public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type,
+                                                                     ObjectQuery query,
+                                                                     Collection<SelectorOptions<GetOperationOptions>> options,
+                                                                     OperationResult parentResult) throws SchemaException {
+
+        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + ".searchObjects");
+        result.addParam("objectType", type);
+        result.addParam("query", query);
+        result.addCollectionOfSerializablesAsParam("options", options);
+        result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskManagerQuartzImpl.class);
+
+        if (TaskType.class.isAssignableFrom(type)) {
+            return (List<PrismObject<T>>) (List) searchTasks(query, options, result);       // todo replace cast to <List> after change to java7
+        } else if (NodeType.class.isAssignableFrom(type)) {
+            return (List<PrismObject<T>>) (List) searchNodes(query, options, result);
+        } else {
+            throw new IllegalArgumentException("Unsupported object type: " + type);
+        }
+    }
+
+    @Override
+    public <T extends ObjectType> int countObjects(Class<T> type,
+                                                   ObjectQuery query,
+                                                   OperationResult parentResult) throws SchemaException {
+
+        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + ".countObjects");
+        result.addParam("objectType", type);
+        result.addParam("query", query);
+        result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskManagerQuartzImpl.class);
+
+        try {
+            return repositoryService.countObjects(type, query, parentResult);
+        } finally {
+            result.computeStatus();
+        }
+    }
+
+
 
     /*
      * Gets nodes from repository and adds runtime information to them (taken from ClusterStatusInformation).
      */
-    @Override
-    public int countNodes(ObjectQuery query, OperationResult result) throws SchemaException {
-        return repositoryService.countObjects(NodeType.class, query, result);
-    }
+//    @Override
+//    public int countNodes(ObjectQuery query, OperationResult result) throws SchemaException {
+//        return repositoryService.countObjects(NodeType.class, query, result);
+//    }
 
-    @Override
-    public List<Node> searchNodes(ObjectQuery query, ClusterStatusInformation clusterStatusInformation, OperationResult parentResult) throws SchemaException {
+    private List<PrismObject<NodeType>> searchNodes(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
 
-        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "searchNodes");
-        result.addParam("query", query);
-//        result.addParam("paging", paging);
-        result.addParam("clusterStatusInformation", clusterStatusInformation);
-
-        if (clusterStatusInformation == null) {
-            clusterStatusInformation = executionManager.getClusterStatusInformation(true, result);
-        }
+        ClusterStatusInformation clusterStatusInformation = getClusterStatusInformation(options, result);
 
         List<PrismObject<NodeType>> nodesInRepository;
         try {
-            nodesInRepository = repositoryService.searchObjects(NodeType.class, query, null, result);
+            nodesInRepository = repositoryService.searchObjects(NodeType.class, query, options, result);
         } catch (SchemaException e) {
             result.recordFatalError("Couldn't get nodes from repository: " + e.getMessage());
             throw e;
         }
 
-        List<Node> retval = new ArrayList<Node>();
-        for (PrismObject<NodeType> nodeInRepository : nodesInRepository) {
-            Node node = new Node(nodeInRepository);
-            Node nodeRuntimeInfo = clusterStatusInformation.findNodeById(node.getNodeIdentifier());
-            if (nodeRuntimeInfo != null) {
-                node.setNodeExecutionStatus(nodeRuntimeInfo.getNodeExecutionStatus());
-                node.setNodeErrorStatus(nodeRuntimeInfo.getNodeErrorStatus());
-                node.setConnectionError(nodeRuntimeInfo.getConnectionError());
-            } else {
-                // node is in repo, but no information on it is present in CSI
-                // (should not occur except for some temporary conditions, because CSI contains info on all nodes from repo)
-                node.setNodeExecutionStatus(NodeExecutionStatus.COMMUNICATION_ERROR);
-                node.setConnectionError("Node not known at this moment");       // TODO localize this message
+        List<PrismObject<NodeType>> list = new ArrayList<PrismObject<NodeType>>();
+
+        if (clusterStatusInformation != null) {
+            for (PrismObject<NodeType> nodeInRepositoryPrism : nodesInRepository) {
+                NodeType returnedNode = nodeInRepositoryPrism.asObjectable();
+
+                NodeType nodeRuntimeInfo = clusterStatusInformation.findNodeById(returnedNode.getNodeIdentifier());
+                if (nodeRuntimeInfo != null) {
+                    returnedNode.setExecutionStatus(nodeRuntimeInfo.getExecutionStatus());
+                    returnedNode.setErrorStatus(nodeRuntimeInfo.getErrorStatus());
+                    returnedNode.setConnectionResult(nodeRuntimeInfo.getConnectionResult());
+                } else {
+                    // node is in repo, but no information on it is present in CSI
+                    // (should not occur except for some temporary conditions, because CSI contains info on all nodes from repo)
+                    returnedNode.setExecutionStatus(NodeExecutionStatusType.COMMUNICATION_ERROR);
+                    OperationResult r = new OperationResult("connect");
+                    r.recordFatalError("Node not known at this moment");
+                    returnedNode.setConnectionResult(r.createOperationResultType());
+                }
+                list.add(returnedNode.asPrismObject());
             }
-            retval.add(node);
+        } else {
+            list = nodesInRepository;
         }
-        LOGGER.trace("searchNodes returning " + retval);
+        LOGGER.trace("searchNodes returning {}", list);
         result.computeStatus();
-        return retval;
+        return list;
     }
 
-    @Override
-    public List<Task> listTasksRelatedToObject(String oid, ClusterStatusInformation clusterStatusInformation, OperationResult result) throws SchemaException {
-        ObjectQuery query = new ObjectQuery();
-        List<ObjectFilter> filters = new ArrayList<ObjectFilter>();
-
-        PrismPropertyDefinition oidDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(ObjectReferenceType.F_OID);
-        PrismPropertyValue<String> oidValue = oidDefinition.instantiate().getValue();
-        oidValue.setValue(oid);
-        filters.add(EqualsFilter.createEqual(new ItemPath(TaskType.F_OBJECT_REF, ObjectReferenceType.F_OID), oidDefinition, oidValue));
-
-        return searchTasks(query, clusterStatusInformation, result);
-    }
-
-   
-    @Override
-    public List<Task> searchTasks(ObjectQuery query, ClusterStatusInformation clusterStatusInformation, OperationResult parentResult) throws SchemaException {
-
-        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "searchTasks");
-        result.addParam("query", query);
-//        result.addParam("paging", paging);
-        result.addParam("clusterStatusInformation", clusterStatusInformation);
-
-        if (clusterStatusInformation == null) {
-            clusterStatusInformation = getExecutionManager().getClusterStatusInformation(true, result);
+    private ClusterStatusInformation getClusterStatusInformation(Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) {
+        boolean noFetch = GetOperationOptions.isNoFetch(SelectorOptions.findRootOptions(options));
+        ClusterStatusInformation clusterStatusInformation;
+        if (!noFetch) {
+            clusterStatusInformation = executionManager.getClusterStatusInformation(true, result);
+        } else {
+            clusterStatusInformation = null;
         }
+        return clusterStatusInformation;
+    }
+
+    public List<PrismObject<TaskType>> searchTasks(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
+
+        ClusterStatusInformation clusterStatusInformation = getClusterStatusInformation(options, result);
 
         List<PrismObject<TaskType>> tasksInRepository;
         try {
-            tasksInRepository = repositoryService.searchObjects(TaskType.class, query, null, result);
+            tasksInRepository = repositoryService.searchObjects(TaskType.class, query, options, result);
         } catch (SchemaException e) {
-            result.recordFatalError("Couldn't get tasks from repository: " + e.getMessage());
+            result.recordFatalError("Couldn't get tasks from repository: " + e.getMessage(), e);
             throw e;
         }
 
-        List<Task> retval = new ArrayList<Task>();
+        boolean retrieveNextRunStartTime = SelectorOptions.hasToLoadPath(new ItemPath(TaskType.F_NEXT_RUN_START_TIMESTAMP), options);
+
+        List<PrismObject<TaskType>> retval = new ArrayList<PrismObject<TaskType>>();
         for (PrismObject<TaskType> taskInRepository : tasksInRepository) {
-            Task task = createTaskInstance(taskInRepository, result);
-            Node runsAt = clusterStatusInformation.findNodeInfoForTask(task.getOid());
-            if (runsAt != null) {
-                ((TaskQuartzImpl) task).setCurrentlyExecutesAt(runsAt);
-            } else {
-                ((TaskQuartzImpl) task).setCurrentlyExecutesAt(null);
+            TaskType taskInResult = taskInRepository.asObjectable();
+            if (clusterStatusInformation != null) {
+                NodeType runsAt = clusterStatusInformation.findNodeInfoForTask(taskInResult.getOid());
+                if (runsAt != null) {
+                    taskInResult.setNodeAsObserved(runsAt.getNodeIdentifier());
+                }
             }
-            retval.add(task);
+            if (retrieveNextRunStartTime) {
+                Long nextRunStartTime = getNextRunStartTime(taskInResult.getOid(), result);
+                if (nextRunStartTime != null) {
+                    taskInResult.setNextRunStartTimestamp(XmlTypeConverter.createXMLGregorianCalendar(nextRunStartTime));
+                }
+            }
+            retval.add(taskInResult.asPrismObject());
         }
         result.computeStatus();
         return retval;
     }
 
     
-    @Override
-    public int countTasks(ObjectQuery query, OperationResult result) throws SchemaException {
-        return repositoryService.countObjects(TaskType.class, query, result);
-    }
+//    @Override
+//    public int countTasks(ObjectQuery query, OperationResult result) throws SchemaException {
+//        return repositoryService.countObjects(TaskType.class, query, result);
+//    }
     //endregion
 
     //region Managing handlers and task categories
@@ -952,11 +1017,11 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         return prismContext;
     }
 
-    public NodeErrorStatus getLocalNodeErrorStatus() {
+    public NodeErrorStatusType getLocalNodeErrorStatus() {
         return nodeErrorStatus;
     }
 
-    public void setNodeErrorStatus(NodeErrorStatus nodeErrorStatus) {
+    public void setNodeErrorStatus(NodeErrorStatusType nodeErrorStatus) {
         this.nodeErrorStatus = nodeErrorStatus;
     }
 
@@ -1060,14 +1125,12 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     private long lastRunningTasksClusterwideQuery = 0;
     private ClusterStatusInformation lastClusterStatusInformation = null;
 
-    @Override
     public ClusterStatusInformation getRunningTasksClusterwide(OperationResult parentResult) {
         lastClusterStatusInformation = executionManager.getClusterStatusInformation(true, parentResult);
         lastRunningTasksClusterwideQuery = System.currentTimeMillis();
         return lastClusterStatusInformation;
     }
 
-    @Override
     public ClusterStatusInformation getRunningTasksClusterwide(long allowedAge, OperationResult parentResult) {
         long age = System.currentTimeMillis() - lastRunningTasksClusterwideQuery;
         if (lastClusterStatusInformation != null && age < allowedAge) {
@@ -1143,7 +1206,18 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     @Override
     public Task getTaskByIdentifier(String identifier, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
 
-        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "getTaskByIdentifier");
+        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "getTaskTypeByIdentifier");
+        result.addParam("identifier", identifier);
+        result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskManagerQuartzImpl.class);
+
+        Task task = createTaskInstance(getTaskTypeByIdentifier(identifier, null, result), result);
+        result.computeStatus();
+        return task;
+    }
+
+    @Override
+    public PrismObject<TaskType> getTaskTypeByIdentifier(String identifier, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "getTaskTypeByIdentifier");
         result.addParam("identifier", identifier);
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskManagerQuartzImpl.class);
 
@@ -1155,17 +1229,13 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         }
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 
-        List<PrismObject<TaskType>> list = repositoryService.searchObjects(TaskType.class, query, null, result);
+        List<PrismObject<TaskType>> list = repositoryService.searchObjects(TaskType.class, query, options, result);
         if (list.isEmpty()) {
             throw new ObjectNotFoundException("Task with identifier " + identifier + " could not be found");
         } else if (list.size() > 1) {
             throw new IllegalStateException("Found more than one task with identifier " + identifier + " (" + list.size() + " of them)");
         }
-
-        Task task = createTaskInstance(list.get(0), result);
-        result.recordSuccessIfUnknown();
-        return task;
-
+        return list.get(0);
     }
 
     public void checkWaitingTasks(OperationResult result) throws SchemaException {

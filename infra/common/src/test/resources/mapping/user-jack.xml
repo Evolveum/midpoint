@@ -56,15 +56,7 @@
     <credentials>
         <password>
             <value>
-                <enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element">
-                    <enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes256-cbc"/>
-                    <ds:KeyInfo>
-                        <ds:KeyName>HF6JRsNMeJt6alihT44CXKgpe0c=</ds:KeyName>
-         			</ds:KeyInfo>
-                    <enc:CipherData>
-                        <enc:CipherValue>blc5OXO2Z4vJW7o/XXhqZzg/rkwsIOwRBK7KLgMqwcrVcYpeZZOjxzgRgFiNw4IB</enc:CipherValue>
-                    </enc:CipherData>
-                </enc:EncryptedData>
+                <clearValue>d3adM3nT3llN0Tal3s</clearValue>
             </value>
         </password>
         <allowedIdmAdminGuiAccess>false</allowedIdmAdminGuiAccess>

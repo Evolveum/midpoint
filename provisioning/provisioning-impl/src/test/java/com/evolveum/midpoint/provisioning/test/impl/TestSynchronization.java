@@ -21,6 +21,7 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertTrue;
 
 import org.testng.AssertJUnit;
 import org.testng.annotations.*;
@@ -38,8 +39,10 @@ import org.springframework.test.context.ContextConfiguration;
 
 import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
@@ -48,11 +51,14 @@ import com.evolveum.midpoint.provisioning.test.mock.SynchornizationServiceMock;
 
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
@@ -69,7 +75,10 @@ public class TestSynchronization extends AbstractIntegrationTest {
 	private static final String SYNC_TASK_OID = "91919191-76e0-59e2-86d6-3d4f02d3ffff";
 	private static final String FILENAME_SYNC_TASK = "src/test/resources/impl/sync-task-example.xml";
 	private static final String LDIF_WILL_FILENAME = "src/test/resources/ucf/will.ldif";
+	private static final String LDIF_CALYPSO_FILENAME = "src/test/resources/impl/opendj/calypso.ldif";
 	private static final String FILENAME_USER_ADMIN = "src/test/resources/impl/admin.xml";
+	private static final String ACCOUNT_WILL_NAME = "uid=wturner,ou=people,dc=example,dc=com";
+	private static final String ACCOUNT_CALYPSO_NAME = "uid=calypso,ou=people,dc=example,dc=com";
 
 	private ResourceType resourceType;
 	
@@ -82,6 +91,8 @@ public class TestSynchronization extends AbstractIntegrationTest {
 	@Autowired
 	private ResourceObjectChangeListener syncServiceMock;
 
+	private Task syncTask = null;
+	
 	@BeforeClass
 	public static void startLdap() throws Exception {
 		openDJController.startCleanServer();
@@ -111,6 +122,8 @@ public class TestSynchronization extends AbstractIntegrationTest {
 		
 		//it is needed to declare the task owner, so we add the user admin to the reposiotry
 		repoAddObjectFromFile(FILENAME_USER_ADMIN, UserType.class, initResult);
+		
+		repoAddObjectFromFile(FILENAME_SYNC_TASK, TaskType.class, initResult);
 	}
 	
 	@Test
@@ -135,53 +148,113 @@ public class TestSynchronization extends AbstractIntegrationTest {
 		assertNotNull("No resource schema", resource.asObjectable().getSchema());
 		assertNotNull("No native capabilities", resource.asObjectable().getCapabilities().getNative());
 
+		Task syncTask = taskManager.getTask(SYNC_TASK_OID, result);
+		AssertJUnit.assertNotNull(syncTask);
+		assertSyncToken(syncTask, 0, result);
+	}
+
+	private void assertSyncToken(String syncTaskOid, Object expectedValue, OperationResult result) throws ObjectNotFoundException, SchemaException {
+		Task task = taskManager.getTask(syncTaskOid, result);
+		assertSyncToken(task, expectedValue, result);
+	}
+		
+	private void assertSyncToken(Task task, Object expectedValue, OperationResult result) throws ObjectNotFoundException, SchemaException {
+		PrismProperty<Object> syncTokenProperty = task.getExtensionProperty(SchemaConstants.SYNC_TOKEN);
+		if (expectedValue == null && syncTokenProperty == null) {
+			return;
+		}
+		assertEquals("Wrong sync token", expectedValue, syncTokenProperty.getRealValue());
 	}
 
 	@Test
-	public void test100Synchronization() throws Exception {
-		final String TEST_NAME = "test100Synchronization";
+	public void test100SyncAddWill() throws Exception {
+		final String TEST_NAME = "test100SyncAddWill";
 		TestUtil.displayTestTile(TEST_NAME);
 		final OperationResult result = new OperationResult(TestSynchronization.class.getName()
 				+ "." + TEST_NAME);
 
-		try {
+		Task syncTask = taskManager.getTask(SYNC_TASK_OID, result);
+		AssertJUnit.assertNotNull(syncTask);
+		assertSyncToken(syncTask, 0, result);
+		((SynchornizationServiceMock)syncServiceMock).reset();
 
-			repoAddObjectFromFile(FILENAME_SYNC_TASK, TaskType.class, result);
+		// create add change in embeded LDAP
+		LDIFImportConfig importConfig = new LDIFImportConfig(LDIF_WILL_FILENAME);
+		LDIFReader ldifReader = new LDIFReader(importConfig);
+		Entry entry = ldifReader.readEntry();
+		display("Entry from LDIF", entry);
 
-			// create add change in embeded LDAP
-			LDIFImportConfig importConfig = new LDIFImportConfig(LDIF_WILL_FILENAME);
-			LDIFReader ldifReader = new LDIFReader(importConfig);
-			Entry entry = ldifReader.readEntry();
-			display("Entry from LDIF", entry);
+		AddOperation addOperation = openDJController.getInternalConnection().processAdd(entry);
 
-			final Task syncCycle = taskManager.getTask(SYNC_TASK_OID, result);
-			AssertJUnit.assertNotNull(syncCycle);
+		AssertJUnit.assertEquals("LDAP add operation failed", ResultCode.SUCCESS,
+				addOperation.getResultCode());
 
-			AddOperation addOperation = openDJController.getInternalConnection().processAdd(entry);
-
-			AssertJUnit.assertEquals("LDAP add operation failed", ResultCode.SUCCESS,
-					addOperation.getResultCode());
-
-			// WHEN
-			provisioningService.synchronize(resourceType.getOid(), ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType),
-					syncCycle, result);
-			
-			// THEN
-			SynchornizationServiceMock mock = (SynchornizationServiceMock) syncServiceMock;
-			
-			assertEquals("Synchronization service was not called.", true, mock.wasCalledNotifyChange());
-			
-			ResourceObjectShadowChangeDescription lastChange = mock.getLastChange();
+		// WHEN
+		provisioningService.synchronize(resourceType.getOid(), ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType),
+				syncTask, result);
+		
+		// THEN
+		SynchornizationServiceMock mock = (SynchornizationServiceMock) syncServiceMock;
+		
+		assertEquals("Unexpected number of synchronization service calls", 1, mock.getCallCount());
+		
+		ResourceObjectShadowChangeDescription lastChange = mock.getLastChange();
 //			ObjectDelta<? extends ShadowType> objectDelta = lastChange.getObjectDelta();
 //			assertNotNull("Null object delta in change notification", objectDelta);
 //			assertEquals("Wrong change type in delta in change notification", ChangeType.ADD, objectDelta.getChangeType());
-			assertNotNull("No current shadow in change notification", lastChange.getCurrentShadow());
-			assertNotNull("No old shadow in change notification", lastChange.getOldShadow());
+		PrismObject<? extends ShadowType> currentShadow = lastChange.getCurrentShadow();
+		assertNotNull("No current shadow in change notification", currentShadow);
+		assertNotNull("No old shadow in change notification", lastChange.getOldShadow());
+		
+		assertEquals("Wrong shadow name", PrismTestUtil.createPolyStringType(ACCOUNT_WILL_NAME), currentShadow.asObjectable().getName());
+		
+		assertSyncToken(SYNC_TASK_OID, 1, result);
 
-		} finally {
-			repositoryService.deleteObject(TaskType.class, SYNC_TASK_OID, result);
-		}
 	}
 
+	@Test
+	public void test500SyncAddProtected() throws Exception {
+		final String TEST_NAME = "test500SyncAddProtected";
+		TestUtil.displayTestTile(TEST_NAME);
+		final OperationResult result = new OperationResult(TestSynchronization.class.getName()
+				+ "." + TEST_NAME);
+
+		Task syncTask = taskManager.getTask(SYNC_TASK_OID, result);
+		AssertJUnit.assertNotNull(syncTask);
+		assertSyncToken(syncTask, 1, result);
+		((SynchornizationServiceMock)syncServiceMock).reset();
+
+		// create add change in embedded LDAP
+		LDIFImportConfig importConfig = new LDIFImportConfig(LDIF_CALYPSO_FILENAME);
+		LDIFReader ldifReader = new LDIFReader(importConfig);
+		Entry entry = ldifReader.readEntry();
+		display("Entry from LDIF", entry);
+		AddOperation addOperation = openDJController.getInternalConnection().processAdd(entry);
+
+		AssertJUnit.assertEquals("LDAP add operation failed", ResultCode.SUCCESS,
+				addOperation.getResultCode());
+
+		// WHEN
+		provisioningService.synchronize(resourceType.getOid(), ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType),
+				syncTask, result);
+		
+		// THEN
+		SynchornizationServiceMock mock = (SynchornizationServiceMock) syncServiceMock;
+		
+		assertEquals("Unexpected number of synchronization service calls", 0, mock.getCallCount());
+		
+//		ResourceObjectShadowChangeDescription lastChange = mock.getLastChange();
+//		PrismObject<? extends ShadowType> currentShadow = lastChange.getCurrentShadow();
+//		assertNotNull("No current shadow in change notification", currentShadow);
+//		assertNotNull("No old shadow in change notification", lastChange.getOldShadow());
+//		
+//		assertEquals("Wrong shadow name", PrismTestUtil.createPolyStringType(ACCOUNT_CALYPSO_NAME), currentShadow.asObjectable().getName());
+//		
+//		assertNotNull("Calypso is not protected", currentShadow.asObjectable().isProtectedObject());
+//		assertTrue("Calypso is not protected", currentShadow.asObjectable().isProtectedObject());
+		
+		assertSyncToken(SYNC_TASK_OID, 2, result);
+
+	}
 
 }

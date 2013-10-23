@@ -24,6 +24,9 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 
 /**
  * @author semancik
@@ -33,7 +36,8 @@ public class SelectorOptions<T> implements Serializable {
 	
 	private ObjectSelector selector;
 	private T options;
-	
+
+    //region Construction
 	public SelectorOptions(ObjectSelector selector, T options) {
 		super();
 		this.selector = selector;
@@ -46,14 +50,6 @@ public class SelectorOptions<T> implements Serializable {
 		this.options = options;
 	}
 
-	public ObjectSelector getSelector() {
-		return selector;
-	}
-
-	public T getOptions() {
-		return options;
-	}
-			
 	public static <T> SelectorOptions<T> create(ItemPath path, T options) {
 		return new SelectorOptions<T>(new ObjectSelector(path), options);
 	}
@@ -95,8 +91,20 @@ public class SelectorOptions<T> implements Serializable {
 		}
 		return optionsCollection;
 	}
+    //endregion
 
-	/**
+    //region Simple getters
+    public ObjectSelector getSelector() {
+        return selector;
+    }
+
+    public T getOptions() {
+        return options;
+    }
+    //endregion
+
+    //region Methods for accessing content (findRoot, hasToLoadPath, ...)
+    /**
 	 * Returns options that apply to the "root" object. I.e. options that have null selector, null path, empty path, ...
 	 */
 	public static <T> T findRootOptions(Collection<SelectorOptions<T>> options) {
@@ -121,40 +129,123 @@ public class SelectorOptions<T> implements Serializable {
 		return false;
 	}
 
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((options == null) ? 0 : options.hashCode());
-		result = prime * result + ((selector == null) ? 0 : selector.hashCode());
-		return result;
-	}
+    public static boolean hasToLoadPath(QName container, Collection<SelectorOptions<GetOperationOptions>> options) {
+        return hasToLoadPath(new ItemPath(container), options);
+    }
 
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		SelectorOptions other = (SelectorOptions) obj;
-		if (options == null) {
-			if (other.options != null)
-				return false;
-		} else if (!options.equals(other.options))
-			return false;
-		if (selector == null) {
-			if (other.selector != null)
-				return false;
-		} else if (!selector.equals(other.selector))
-			return false;
-		return true;
-	}
+    public static boolean hasToLoadPath(ItemPath path, Collection<SelectorOptions<GetOperationOptions>> options) {
+        List<SelectorOptions<GetOperationOptions>> retrieveOptions = filterRetrieveOptions(options);
+        if (retrieveOptions.isEmpty()) {
+            return true;
+        }
 
-	@Override
+        for (SelectorOptions<GetOperationOptions> option : retrieveOptions) {
+            ObjectSelector selector = option.getSelector();
+            ItemPath selected = selector.getPath();
+            if (!isPathInSelected(path, selected)) {
+                continue;
+            }
+
+            RetrieveOption retrieveOption = option.getOptions().getRetrieve();
+            switch (retrieveOption) {
+                case EXCLUDE:
+                case DEFAULT:
+                    return false;
+                case INCLUDE:
+                default:
+                    return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static boolean isPathInSelected(ItemPath path, ItemPath selected) {
+        if (selected == null || path == null) {
+            return false;
+        }
+
+        if (path.isEmpty()) {
+            if (selected.isEmpty()) {
+                return true;
+            }
+        } else {
+            List<ItemPathSegment> pSegments = path.getSegments();
+            List<ItemPathSegment> sSegments = selected.getSegments();
+
+            for (int i = 0; i < pSegments.size(); i++) {
+                if (sSegments.size() <= i) {
+                    return true;
+                }
+                NameItemPathSegment pSegment = (NameItemPathSegment) pSegments.get(i);
+                NameItemPathSegment sSegment = (NameItemPathSegment) sSegments.get(i);
+
+                if (!pSegment.equals(sSegment)) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    public static List<SelectorOptions<GetOperationOptions>> filterRetrieveOptions(
+            Collection<SelectorOptions<GetOperationOptions>> options) {
+        List<SelectorOptions<GetOperationOptions>> retrieveOptions =
+                new ArrayList<SelectorOptions<GetOperationOptions>>();
+        if (options == null) {
+            return retrieveOptions;
+        }
+
+        for (SelectorOptions<GetOperationOptions> option : options) {
+            if (option.getOptions() == null || option.getOptions().getRetrieve() == null) {
+                continue;
+            }
+
+            retrieveOptions.add(option);
+        }
+
+        return retrieveOptions;
+    }
+    //endregion
+
+    //region hashCode, equals, toString
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((options == null) ? 0 : options.hashCode());
+        result = prime * result + ((selector == null) ? 0 : selector.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        SelectorOptions other = (SelectorOptions) obj;
+        if (options == null) {
+            if (other.options != null)
+                return false;
+        } else if (!options.equals(other.options))
+            return false;
+        if (selector == null) {
+            if (other.selector != null)
+                return false;
+        } else if (!selector.equals(other.selector))
+            return false;
+        return true;
+    }
+
+    @Override
 	public String toString() {
 		return "ObjectOperationOptions(" + selector + ": " + options + ")";
 	}
-
+    //endregion
 }

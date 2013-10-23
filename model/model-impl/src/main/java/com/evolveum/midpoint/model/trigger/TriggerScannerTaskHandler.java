@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.util.AbstractScannerResultHandler;
 import com.evolveum.midpoint.model.util.AbstractScannerTaskHandler;
 import com.evolveum.midpoint.model.util.AbstractSearchIterativeResultHandler;
 import com.evolveum.midpoint.prism.Containerable;
@@ -69,8 +70,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
  *
  */
 @Component
-public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<ObjectType> {
+public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<ObjectType, AbstractScannerResultHandler<ObjectType>> {
 
+	// WARNING! This task handler is efficiently singleton!
+	// It is a spring bean and it is supposed to handle all search task instances
+	// Therefore it must not have task-specific fields. It can only contain fields specific to
+	// all tasks of a specified type
+	
 	public static final String HANDLER_URI = SchemaConstants.NS_MODEL + "/trigger/scanner/handler-2";
         	
 	private static final transient Trace LOGGER = TraceManager.getTrace(TriggerScannerTaskHandler.class);
@@ -91,21 +97,21 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 	}
 		
 	@Override
-	protected ObjectQuery createQuery(TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
+	protected ObjectQuery createQuery(AbstractScannerResultHandler<ObjectType> handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
 		ObjectQuery query = new ObjectQuery();
 		ObjectFilter filter;
 		PrismObjectDefinition<UserType> focusObjectDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
 		PrismContainerDefinition<TriggerType> triggerContainerDef = focusObjectDef.findContainerDefinition(ObjectType.F_TRIGGER);
 		
-		if (lastScanTimestamp == null) {
+		if (handler.getLastScanTimestamp() == null) {
 			filter = LessFilter.createLessFilter(new ItemPath(ObjectType.F_TRIGGER), triggerContainerDef, 
-								TriggerType.F_TIMESTAMP, thisScanTimestamp, true);
+								TriggerType.F_TIMESTAMP, handler.getThisScanTimestamp(), true);
 		} else {
 			filter = AndFilter.createAnd(
 							GreaterFilter.createGreaterFilter(new ItemPath(ObjectType.F_TRIGGER), triggerContainerDef, 
-									TriggerType.F_TIMESTAMP, lastScanTimestamp, false),
+									TriggerType.F_TIMESTAMP, handler.getLastScanTimestamp(), false),
 							LessFilter.createLessFilter(new ItemPath(ObjectType.F_TRIGGER), triggerContainerDef, 
-									TriggerType.F_TIMESTAMP, thisScanTimestamp, true));
+									TriggerType.F_TIMESTAMP, handler.getThisScanTimestamp(), true));
 		}
 		
 		query.setFilter(filter);
@@ -113,14 +119,14 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 	}
 	
 	@Override
-	protected AbstractSearchIterativeResultHandler<ObjectType> createHandler(TaskRunResult runResult, final Task task,
+	protected AbstractScannerResultHandler<ObjectType> createHandler(TaskRunResult runResult, final Task task,
 			OperationResult opResult) {
 		
-		AbstractSearchIterativeResultHandler<ObjectType> handler = new AbstractSearchIterativeResultHandler<ObjectType>(
+		AbstractScannerResultHandler<ObjectType> handler = new AbstractScannerResultHandler<ObjectType>(
 				task, TriggerScannerTaskHandler.class.getName(), "trigger", "trigger task") {
 			@Override
 			protected boolean handleObject(PrismObject<ObjectType> object, OperationResult result) throws CommonException {
-				fireTriggers(object, task, result);
+				fireTriggers(this, object, task, result);
 				return true;
 			}
 		};
@@ -128,7 +134,7 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 		return handler;
 	}
 
-	private void fireTriggers(PrismObject<ObjectType> object, Task task, OperationResult result) throws SchemaException, 
+	private void fireTriggers(AbstractScannerResultHandler<ObjectType> handler, PrismObject<ObjectType> object, Task task, OperationResult result) throws SchemaException, 
 			ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ObjectAlreadyExistsException, 
 			ConfigurationException, PolicyViolationException, SecurityViolationException {
 		PrismContainer<TriggerType> triggerContainer = object.findContainer(ObjectType.F_TRIGGER);
@@ -146,7 +152,7 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 					if (timestamp == null) {
 						LOGGER.warn("Trigger without a timestamp in {}", object);
 					} else {
-						if (isHot(timestamp)) {
+						if (isHot(handler, timestamp)) {
 							String handlerUri = triggerType.getHandlerUri();
 							if (handlerUri == null) {
 								LOGGER.warn("Trigger without handler URI in {}", object);
@@ -156,7 +162,8 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 							}
 						} else {
 							LOGGER.trace("Trigger {} is not hot (timestamp={}, thisScanTimestamp={}, lastScanTimestamp={})", 
-									new Object[]{triggerType, timestamp, thisScanTimestamp, lastScanTimestamp});
+									new Object[]{triggerType, timestamp, 
+									handler.getThisScanTimestamp(), handler.getLastScanTimestamp()});
 						}
 					}
 				}
@@ -167,11 +174,11 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 	/**
 	 * Returns true if the timestamp is in the "range of interest" for this scan run. 
 	 */
-	private boolean isHot(XMLGregorianCalendar timestamp) {
-		if (thisScanTimestamp.compare(timestamp) == DatatypeConstants.LESSER) {
+	private boolean isHot(AbstractScannerResultHandler<ObjectType> handler, XMLGregorianCalendar timestamp) {
+		if (handler.getThisScanTimestamp().compare(timestamp) == DatatypeConstants.LESSER) {
 			return false;
 		}
-		return lastScanTimestamp == null || lastScanTimestamp.compare(timestamp) == DatatypeConstants.LESSER;
+		return handler.getLastScanTimestamp() == null || handler.getLastScanTimestamp().compare(timestamp) == DatatypeConstants.LESSER;
 	}
 
 	private void fireTrigger(String handlerUri, PrismObject<ObjectType> object, Task task, OperationResult result) {

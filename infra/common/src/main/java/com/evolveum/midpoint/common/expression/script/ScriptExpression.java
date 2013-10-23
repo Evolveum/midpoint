@@ -99,8 +99,6 @@ public class ScriptExpression {
 		ScriptExpressionEvaluationContext context = new ScriptExpressionEvaluationContext(variables, contextDescription, result, this);
 		context.setEvaluateNew(useNew);
 		
-		InternalMonitor.recordScriptExecution();
-		
 		try {
 			context.setupThreadLocal();
 			

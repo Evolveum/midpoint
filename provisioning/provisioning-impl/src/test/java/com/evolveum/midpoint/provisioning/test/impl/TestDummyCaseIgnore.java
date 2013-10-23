@@ -42,7 +42,7 @@ public class TestDummyCaseIgnore extends TestDummy {
 	}
 	
 	@Override
-	protected String getWillRepoIcfUid() {
+	protected String getWillRepoIcfName() {
 		return "will";
 	}
 	

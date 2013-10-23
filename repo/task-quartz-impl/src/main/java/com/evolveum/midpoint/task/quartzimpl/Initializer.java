@@ -21,7 +21,6 @@ import com.evolveum.midpoint.repo.api.RepositoryServiceFactoryException;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryConfiguration;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryFactory;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.NodeErrorStatus;
 import com.evolveum.midpoint.task.api.TaskManagerInitializationException;
 import com.evolveum.midpoint.task.quartzimpl.execution.JobExecutor;
 import com.evolveum.midpoint.task.quartzimpl.handlers.NoOpTaskHandler;
@@ -30,6 +29,7 @@ import com.evolveum.midpoint.task.quartzimpl.handlers.WaitForTasksTaskHandler;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.NodeErrorStatusType;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 
 /**
@@ -97,7 +97,7 @@ public class Initializer {
         JobExecutor.setTaskManagerQuartzImpl(taskManager);       // unfortunately, there seems to be no clean way of letting jobs know the taskManager
 
         taskManager.getExecutionManager().initializeLocalScheduler();
-        if (taskManager.getLocalNodeErrorStatus() != NodeErrorStatus.OK) {
+        if (taskManager.getLocalNodeErrorStatus() != NodeErrorStatusType.OK) {
             taskManager.getExecutionManager().shutdownLocalSchedulerChecked();
         }
 

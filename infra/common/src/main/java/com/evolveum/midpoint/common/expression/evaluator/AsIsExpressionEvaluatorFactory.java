@@ -20,6 +20,7 @@ import java.util.Collection;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.expression.ExpressionEvaluatorFactory;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -36,10 +37,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectFactory;
 public class AsIsExpressionEvaluatorFactory implements ExpressionEvaluatorFactory {
 	
 	private PrismContext prismContext;
+	private Protector protector;
 
-	public AsIsExpressionEvaluatorFactory(PrismContext prismContext) {
+	public AsIsExpressionEvaluatorFactory(PrismContext prismContext, Protector protector) {
 		super();
 		this.prismContext = prismContext;
+		this.protector = protector;
 	}
 
 	/* (non-Javadoc)
@@ -72,7 +75,8 @@ public class AsIsExpressionEvaluatorFactory implements ExpressionEvaluatorFactor
         if (evaluatorTypeObject != null && !(evaluatorTypeObject instanceof AsIsExpressionEvaluatorType)) {
             throw new SchemaException("AsIs value constructor cannot handle elements of type " + evaluatorTypeObject.getClass().getName()+" in "+contextDescription);
         }
-        return new AsIsExpressionEvaluator<V>((AsIsExpressionEvaluatorType)evaluatorTypeObject, outputDefinition, prismContext);
+        return new AsIsExpressionEvaluator<V>((AsIsExpressionEvaluatorType)evaluatorTypeObject, 
+        		outputDefinition, protector, prismContext);
 	}
 
 }

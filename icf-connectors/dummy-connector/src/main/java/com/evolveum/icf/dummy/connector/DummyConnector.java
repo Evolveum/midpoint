@@ -141,6 +141,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         resource = DummyResource.getInstance(instanceName);
         
         resource.setCaseIgnoreId(this.configuration.getCaseIgnoreId());
+        resource.setEnforceUniqueName(this.configuration.isEnforceUniqueName());
         
         resource.setUselessString(this.configuration.getUselessString());
         GuardedString uselessGuardedString = this.configuration.getUselessGuardedString();
@@ -184,24 +185,27 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         log.info("create::begin");
         validate(objectClass);
         
-        String id = null;
+        DummyObject newObject;
         try {
         	
 	        if (ObjectClass.ACCOUNT.is(objectClass.getObjectClassValue())) {
 	            // Convert attributes to account
 	            DummyAccount newAccount = convertToAccount(createAttributes);
 	    			
-    			id = resource.addAccount(newAccount);
+    			resource.addAccount(newAccount);
+    			newObject = newAccount;
 	
 	        } else if (ObjectClass.GROUP.is(objectClass.getObjectClassValue())) {
 	            DummyGroup newGroup = convertToGroup(createAttributes);
 	    			
-    			id = resource.addGroup(newGroup);
+    			resource.addGroup(newGroup);
+    			newObject = newGroup;
 	            
 	        } else if (objectClass.is(OBJECTCLASS_PRIVILEGE_NAME)) {
 	            DummyPrivilege newPriv = convertToPriv(createAttributes);
 	
-    			id = resource.addPrivilege(newPriv);
+    			resource.addPrivilege(newPriv);
+    			newObject = newPriv;
 
 	        } else {
 	        	throw new ConnectorException("Unknown object class "+objectClass);
@@ -217,6 +221,14 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 			throw new ConnectorIOException(e.getMessage(), e);
 		}
         
+        String id;
+        if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
+        	id = newObject.getName();
+        } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
+        	id = newObject.getId();
+        } else {
+        	throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+        }
         Uid uid = new Uid(id);
         
         log.info("create::end");
@@ -234,7 +246,14 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         	
 	        if (ObjectClass.ACCOUNT.is(objectClass.getObjectClassValue())) {
 	
-		        final DummyAccount account = resource.getAccountByUsername(uid.getUidValue());
+		        final DummyAccount account;
+		        if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
+		        	account = resource.getAccountByUsername(uid.getUidValue());
+		        } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
+		        	account = resource.getAccountById(uid.getUidValue());
+		        } else {
+		        	throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+		        }
 		        if (account == null) {
 		        	throw new UnknownUidException("Account with UID "+uid+" does not exist on resource");
 		        }
@@ -243,7 +262,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 		        	if (attr.is(Name.NAME)) {
 		        		String newName = (String)attr.getValue().get(0);
 		        		try {
-							resource.renameAccount(account.getName(), newName);
+							resource.renameAccount(account.getId(), account.getName(), newName);
 						} catch (ObjectDoesNotExistException e) {
 							throw new org.identityconnectors.framework.common.exceptions.UnknownUidException(e.getMessage(), e);
 						} catch (ObjectAlreadyExistsException e) {
@@ -278,7 +297,14 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 		        
 	        } else if (ObjectClass.GROUP.is(objectClass.getObjectClassValue())) {
 	        	
-	        	final DummyGroup group = resource.getGroupByName(uid.getUidValue());
+	        	final DummyGroup group;
+	        	if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
+	        		group = resource.getGroupByName(uid.getUidValue());
+		        } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
+		        	group = resource.getGroupById(uid.getUidValue());
+		        } else {
+		        	throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+		        }
 		        if (group == null) {
 		        	throw new UnknownUidException("Group with UID "+uid+" does not exist on resource");
 		        }
@@ -287,7 +313,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 		        	if (attr.is(Name.NAME)) {
 		        		String newName = (String)attr.getValue().get(0);
 		        		try {
-							resource.renameGroup(group.getName(), newName);
+							resource.renameGroup(group.getId(), group.getName(), newName);
 						} catch (ObjectDoesNotExistException e) {
 							throw new org.identityconnectors.framework.common.exceptions.UnknownUidException(e.getMessage(), e);
 						} catch (ObjectAlreadyExistsException e) {
@@ -313,7 +339,14 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 		        
 	        } else if (objectClass.is(OBJECTCLASS_PRIVILEGE_NAME)) {
 	        	
-	        	final DummyPrivilege priv = resource.getPrivilegeByName(uid.getUidValue());
+	        	final DummyPrivilege priv;
+	        	if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
+	        		priv = resource.getPrivilegeByName(uid.getUidValue());
+		        } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
+		        	priv = resource.getPrivilegeById(uid.getUidValue());
+		        } else {
+		        	throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+		        }
 		        if (priv == null) {
 		        	throw new UnknownUidException("Privilege with UID "+uid+" does not exist on resource");
 		        }
@@ -322,7 +355,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 		        	if (attr.is(Name.NAME)) {
 		        		String newName = (String)attr.getValue().get(0);
 		        		try {
-							resource.renamePrivilege(priv.getName(), newName);
+							resource.renamePrivilege(priv.getId(), priv.getName(), newName);
 						} catch (ObjectDoesNotExistException e) {
 							throw new org.identityconnectors.framework.common.exceptions.UnknownUidException(e.getMessage(), e);
 						} catch (ObjectAlreadyExistsException e) {
@@ -373,7 +406,14 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         
 	        if (ObjectClass.ACCOUNT.is(objectClass.getObjectClassValue())) {
 	        
-		        DummyAccount account = resource.getAccountByUsername(uid.getUidValue());
+	        	DummyAccount account;
+		        if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
+		        	account = resource.getAccountByUsername(uid.getUidValue());
+		        } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
+		        	account = resource.getAccountById(uid.getUidValue());
+		        } else {
+		        	throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+		        }
 		        if (account == null) {
 		        	throw new UnknownUidException("Account with UID "+uid+" does not exist on resource");
 		        }
@@ -404,7 +444,14 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 		        
 	        } else if (ObjectClass.GROUP.is(objectClass.getObjectClassValue())) {
 	        	
-	        	DummyGroup group = resource.getGroupByName(uid.getUidValue());
+	        	DummyGroup group;
+	        	if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
+	        		group = resource.getGroupByName(uid.getUidValue());
+		        } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
+		        	group = resource.getGroupById(uid.getUidValue());
+		        } else {
+		        	throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+		        }
 		        if (group == null) {
 		        	throw new UnknownUidException("Group with UID "+uid+" does not exist on resource");
 		        }
@@ -432,7 +479,14 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 		        
 	        } else if (objectClass.is(OBJECTCLASS_PRIVILEGE_NAME)) {
 	        	
-	        	DummyPrivilege priv = resource.getPrivilegeByName(uid.getUidValue());
+	        	DummyPrivilege priv;
+	        	if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
+	        		priv = resource.getPrivilegeByName(uid.getUidValue());
+		        } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
+		        	priv = resource.getPrivilegeById(uid.getUidValue());
+		        } else {
+		        	throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+		        }
 		        if (priv == null) {
 		        	throw new UnknownUidException("Privilege with UID "+uid+" does not exist on resource");
 		        }
@@ -485,7 +539,14 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         
 	        if (ObjectClass.ACCOUNT.is(objectClass.getObjectClassValue())) {
 	        	
-		        DummyAccount account = resource.getAccountByUsername(uid.getUidValue());
+	        	DummyAccount account;
+		        if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
+		        	account = resource.getAccountByUsername(uid.getUidValue());
+		        } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
+		        	account = resource.getAccountById(uid.getUidValue());
+		        } else {
+		        	throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+		        }
 		        if (account == null) {
 		        	throw new UnknownUidException("Account with UID "+uid+" does not exist on resource");
 		        }
@@ -510,7 +571,14 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 	        
 	        } else if (ObjectClass.GROUP.is(objectClass.getObjectClassValue())) {
 	        	
-	        	DummyGroup group = resource.getGroupByName(uid.getUidValue());
+	        	DummyGroup group;
+	        	if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
+	        		group = resource.getGroupByName(uid.getUidValue());
+		        } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
+		        	group = resource.getGroupById(uid.getUidValue());
+		        } else {
+		        	throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+		        }
 		        if (group == null) {
 		        	throw new UnknownUidException("Group with UID "+uid+" does not exist on resource");
 		        }
@@ -535,7 +603,14 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 		        
 	        } else if (objectClass.is(OBJECTCLASS_PRIVILEGE_NAME)) {
 	        	
-	        	DummyPrivilege priv = resource.getPrivilegeByName(uid.getUidValue());
+	        	DummyPrivilege priv;
+	        	if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
+	        		priv = resource.getPrivilegeByName(uid.getUidValue());
+		        } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
+		        	priv = resource.getPrivilegeById(uid.getUidValue());
+		        } else {
+		        	throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+		        }
 		        if (priv == null) {
 		        	throw new UnknownUidException("Privilege with UID "+uid+" does not exist on resource");
 		        }
@@ -585,11 +660,30 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
         
         try {
         	if (ObjectClass.ACCOUNT.is(objectClass.getObjectClassValue())) {
-        		resource.deleteAccount(id);
+        		if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
+        			resource.deleteAccountByName(id);
+		        } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
+		        	resource.deleteAccountById(id);
+		        } else {
+		        	throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+		        }
         	} else if (ObjectClass.GROUP.is(objectClass.getObjectClassValue())) {
-        		resource.deleteGroup(id);
+        		if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
+        			resource.deleteGroupByName(id);
+		        } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
+		        	resource.deleteGroupById(id);
+		        } else {
+		        	throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+		        }
         	} else if (objectClass.is(OBJECTCLASS_PRIVILEGE_NAME)) {
-        		resource.deletePrivilege(id);
+        		if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
+        			resource.deletePrivilegeByName(id);
+		        } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
+		        	resource.deletePrivilegeById(id);
+		        } else {
+		        	throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+		        }
+
         	} else {
         		throw new ConnectorException("Unknown object class "+objectClass);
         	}
@@ -819,7 +913,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 	        	SyncDeltaType deltaType;
 	        	if (delta.getType() == DummyDeltaType.ADD || delta.getType() == DummyDeltaType.MODIFY) {
 	        		deltaType = SyncDeltaType.CREATE_OR_UPDATE;
-	        		DummyAccount account = resource.getAccountByUsername(delta.getObjectId());
+	        		DummyAccount account = resource.getAccountById(delta.getObjectId());
 	        		if (account == null) {
 	        			throw new IllegalStateException("We have delta for account '"+delta.getObjectId()+"' but such account does not exist");
 	        		}
@@ -833,7 +927,16 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 	        	builder.setDeltaType(deltaType);
 	        	
 	        	builder.setToken(new SyncToken(delta.getSyncToken()));
-	        	builder.setUid(new Uid(delta.getObjectId()));
+	        	
+	        	Uid uid;
+	        	if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
+		        	uid = new Uid(delta.getObjectName());
+		        } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
+		        	uid = new Uid(delta.getObjectId());
+		        } else {
+		        	throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+		        }
+	        	builder.setUid(uid);
 	        	
 	        	SyncDelta syncDelta = builder.build();
 	        	log.info("sync::handle {0}",syncDelta);
@@ -904,7 +1007,15 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
    private ConnectorObjectBuilder createConnectorObjectBuilderCommon(DummyObject dummyObject,
 		   DummyObjectClass objectClass, Collection<String> attributesToGet, boolean supportActivation) {
 	   ConnectorObjectBuilder builder = new ConnectorObjectBuilder();
-		builder.setUid(dummyObject.getName());
+	   
+	   if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_NAME)) {
+		   builder.setUid(dummyObject.getName());
+       } else if (configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID)) {
+    	   builder.setUid(dummyObject.getId());
+       } else {
+       		throw new IllegalStateException("Unknown UID mode "+configuration.getUidMode());
+       }
+	   
 		builder.addAttribute(Name.NAME, dummyObject.getName());
 		
 		for (String name : dummyObject.getAttributeNames()) {
