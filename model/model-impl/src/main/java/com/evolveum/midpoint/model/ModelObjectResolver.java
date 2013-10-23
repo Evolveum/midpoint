@@ -64,9 +64,6 @@ public class ModelObjectResolver implements ObjectResolver {
 	@Autowired(required = true)
 	private transient ProvisioningService provisioning;
 
-    @Autowired
-    private transient TaskManager taskManager;
-
     @Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
 	private transient RepositoryService cacheRepositoryService;
