@@ -881,6 +881,18 @@
                 </partialResults>
             </partialResults>
         </result>
+        <fullSynchronizationTimestamp>2002-05-30T09:10:11.000+02:00</fullSynchronizationTimestamp>
+        <synchronizationSituation>linked</synchronizationSituation>
+        <synchronizationSituationDescription>
+            <situation>linked</situation>
+            <channel>syncChannel</channel>
+            <full>true</full>
+        </synchronizationSituationDescription>
+        <synchronizationSituationDescription>
+            <situation>unlinked</situation>
+            <channel>someChannel</channel>
+            <full>false</full>
+        </synchronizationSituationDescription>
     </object>
 
     <object xsi:type="ShadowType" oid="11223355" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" xmlns:gen300="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd"  xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">

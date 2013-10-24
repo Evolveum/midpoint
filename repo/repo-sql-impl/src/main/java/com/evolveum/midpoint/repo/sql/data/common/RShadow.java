@@ -85,6 +85,7 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
     private Boolean exists;
     private Integer iteration;
     private String iterationToken;
+    private XMLGregorianCalendar fullSynchronizationTimestamp;
 
     public Integer getIteration() {
         return iteration;
@@ -197,6 +198,14 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
         return synchronizationTimestamp;
     }
 
+    public XMLGregorianCalendar getFullSynchronizationTimestamp() {
+        return fullSynchronizationTimestamp;
+    }
+
+    public void setFullSynchronizationTimestamp(XMLGregorianCalendar fullSynchronizationTimestamp) {
+        this.fullSynchronizationTimestamp = fullSynchronizationTimestamp;
+    }
+
     public void setSynchronizationTimestamp(XMLGregorianCalendar synchronizationTimestamp) {
         this.synchronizationTimestamp = synchronizationTimestamp;
     }
@@ -306,6 +315,8 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
         if (iteration != null ? !iteration.equals(that.iteration) : that.iteration != null) return false;
         if (iterationToken != null ? !iterationToken.equals(that.iterationToken) : that.iterationToken != null)
             return false;
+        if (fullSynchronizationTimestamp != null ? !fullSynchronizationTimestamp.equals(that.iterationToken) : that.fullSynchronizationTimestamp != null)
+            return false;
 
         return true;
     }
@@ -327,6 +338,7 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
         result1 = 31 * result1 + (exists != null ? exists.hashCode() : 0);
         result1 = 31 * result1 + (iteration != null ? iteration.hashCode() : 0);
         result1 = 31 * result1 + (iterationToken != null ? iterationToken.hashCode() : 0);
+        result1 = 31 * result1 + (fullSynchronizationTimestamp != null ? fullSynchronizationTimestamp.hashCode() : 0);
 
         return result1;
     }
@@ -339,6 +351,7 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
         jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
         jaxb.setObjectClass(repo.getObjectClass());
         jaxb.setIntent(repo.getIntent());
+        jaxb.setFullSynchronizationTimestamp(repo.getFullSynchronizationTimestamp());
         if (repo.getActivation() != null) {
             jaxb.setActivation(repo.getActivation().toJAXB(prismContext));
         }
@@ -397,6 +410,7 @@ public class RShadow<T extends ShadowType> extends RObject<T> {
         repo.setObjectClass(jaxb.getObjectClass());
         repo.setIntent(jaxb.getIntent());
         repo.setKind(RUtil.getRepoEnumValue(jaxb.getKind(), RShadowKind.class));
+        repo.setFullSynchronizationTimestamp(jaxb.getFullSynchronizationTimestamp());
         if (jaxb.getActivation() != null) {
             RActivation activation = new RActivation();
             RActivation.copyFromJAXB(jaxb.getActivation(), activation, prismContext);
