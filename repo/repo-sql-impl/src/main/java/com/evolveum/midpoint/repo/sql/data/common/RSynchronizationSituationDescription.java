@@ -39,9 +39,10 @@ public class RSynchronizationSituationDescription implements Serializable {
     private Long shadowId;
     private String checksum;
     //fields
-    private RSynchronizationSituation situation;
+    private RSynchronizationSituation    situation;
     private XMLGregorianCalendar timestampValue;
     private String chanel;
+    private Boolean full;
 
     @ForeignKey(name = "none")
     @MapsId("shadow")
@@ -101,6 +102,17 @@ public class RSynchronizationSituationDescription implements Serializable {
         return chanel;
     }
 
+    @Column(name = "fullFlag")
+    public Boolean isFull() {
+        return full;
+    }
+
+    public void setFull(Boolean full) {
+        this.full = full;
+
+        recomputeChecksum();
+    }
+
     public void setTimestampValue(XMLGregorianCalendar timestampValue) {
         this.timestampValue = timestampValue;
 
@@ -137,7 +149,7 @@ public class RSynchronizationSituationDescription implements Serializable {
 
     @Transient
     private void recomputeChecksum() {
-        checksum = RUtil.computeChecksum(situation, timestampValue, chanel);
+        checksum = RUtil.computeChecksum(situation, timestampValue, chanel, full);
     }
 
     @Override
@@ -157,6 +169,8 @@ public class RSynchronizationSituationDescription implements Serializable {
             return false;
         if (checksum != null ? !checksum.equals(that.checksum) : that.checksum != null)
             return false;
+        if (full != null ? !full.equals(that.full) : that.full != null)
+            return false;
 
         return true;
     }
@@ -167,6 +181,8 @@ public class RSynchronizationSituationDescription implements Serializable {
         result = 31 * result + (timestampValue != null ? timestampValue.hashCode() : 0);
         result = 31 * result + (chanel != null ? chanel.hashCode() : 0);
         result = 31 * result + (checksum != null ? checksum.hashCode() : 0);
+        result = 31 * result + (full != null ? full.hashCode() : 0);
+
         return result;
     }
 
@@ -185,6 +201,7 @@ public class RSynchronizationSituationDescription implements Serializable {
         repo.setChanel(jaxb.getChannel());
         repo.setTimestampValue(jaxb.getTimestamp());
         repo.setSituation(RUtil.getRepoEnumValue(jaxb.getSituation(), RSynchronizationSituation.class));
+        repo.setFull(jaxb.isFull());
 
         return repo;
     }
@@ -198,6 +215,7 @@ public class RSynchronizationSituationDescription implements Serializable {
         if (repo.getSituation() != null) {
             jaxb.setSituation(repo.getSituation().getSchemaValue());
         }
+        jaxb.setFull(repo.isFull());
         return jaxb;
     }
 }
