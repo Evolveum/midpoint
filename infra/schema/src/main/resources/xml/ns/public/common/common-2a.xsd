@@ -5241,6 +5241,15 @@
 							</xsd:documentation>
 						</xsd:annotation>
      				</xsd:element>
+     				<xsd:element name="fullSynchronizationTimestamp" type="xsd:dateTime" minOccurs="0">
+	     				<xsd:annotation>
+							<xsd:documentation>
+								The timestamp of the most recent full synchronization. Regardless of the channel or result.
+								It does not provide any further details. More details can be found in the "synchronizationSituationDescription"
+								property.
+							</xsd:documentation>
+						</xsd:annotation>
+     				</xsd:element>
      				<xsd:element name="synchronizationSituationDescription" type="tns:SynchronizationSituationDescriptionType" minOccurs="0" maxOccurs="unbounded">
      					<xsd:annotation>
 							<xsd:documentation>
@@ -5493,6 +5502,7 @@
     		<xsd:element name="situation" type="tns:SynchronizationSituationType"/>
     		<xsd:element name="timestamp" type="xsd:dateTime"/>
     		<xsd:element name="channel" type="xsd:anyURI" minOccurs="0"/>
+    		<xsd:element name="full" type="xsd:boolean" minOccurs="0"/>
     	</xsd:sequence>
     </xsd:complexType>
 
