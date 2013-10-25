@@ -425,8 +425,8 @@ public class TestDeltaConverter {
     	System.out.println("Serialized");
     	System.out.println(itemDeltaTypes);
     	ItemDeltaType itemDeltaType = itemDeltaTypes.iterator().next();
-    	String xml = PrismTestUtil.getPrismContext().getPrismJaxbProcessor().marshalObjectToString(itemDeltaType, new QName("wherever","whatever"));
-    	System.out.println(xml);
+//    	String xml = PrismTestUtil.getPrismContext().getPrismJaxbProcessor().marshalObjectToString(itemDeltaType, new QName("wherever","whatever"));
+//    	System.out.println(xml);
     	
     	// WHEN
     	ItemDelta<PrismValue> deltaAfter = DeltaConvertor.createItemDelta(itemDeltaType, userDef);
