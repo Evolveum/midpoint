@@ -27,12 +27,12 @@
 	<logger name="com.evolveum.midpoint.schema" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.common.LoggingConfigurationManager" level="TRACE" />
 	<logger name="com.evolveum.midpoint.model.intest" level="TRACE" />
-	<logger name="com.evolveum.midpoint.model" level="TRACE" />
-    <logger name="com.evolveum.midpoint.notifications" level="TRACE" />	
-	<logger name="com.evolveum.midpoint.model.sync.LiveSyncTaskHandler" level="TRACE" />
-	<logger name="com.evolveum.midpoint.model.sync.ReconciliationTaskHandler" level="TRACE" />
-	<logger name="com.evolveum.midpoint.model.sync.SynchronizeAccountResultHandler" level="TRACE" />
-	<logger name="com.evolveum.midpoint.provisioning.impl.ChangeNotificationDispatcherImpl" level="TRACE" />
+	<logger name="com.evolveum.midpoint.model" level="DEBUG" />
+    <logger name="com.evolveum.midpoint.notifications" level="DEBUG" />	
+	<logger name="com.evolveum.midpoint.model.sync.LiveSyncTaskHandler" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.model.sync.ReconciliationTaskHandler" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.model.sync.SynchronizeAccountResultHandler" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.provisioning.impl.ChangeNotificationDispatcherImpl" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.test" level="TRACE" />
 	<logger name="PROFILING" level="OFF" />
 	
@@ -44,6 +44,8 @@
 	<logger name="com.evolveum.midpoint.model.lens.ChangeExecutor" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.lens.ShadowConstraintsChecker" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.lens.LensUtil" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.model.expr" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.model.util" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.sync" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.sync.CorrelationConfirmationEvaluator" level="DEBUG" />
     <logger name="com.evolveum.midpoint.provisioning" level="DEBUG" />
@@ -51,7 +53,7 @@
 	<logger name="com.evolveum.midpoint.common.expression" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.common.expression.Expression" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.common.mapping" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.common.monitor" level="TRACE" />
+	<logger name="com.evolveum.midpoint.common.monitor" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.notifications" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.controller.SystemConfigurationHandler" level="DEBUG" />
 	

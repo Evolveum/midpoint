@@ -120,7 +120,12 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		validate(change);
 		Validate.notNull(parentResult, "Parent operation result must not be null.");
 		
-		LOGGER.debug("SYNCHRONIZATION: received change notifiation {}", change);
+		boolean logDebug = isLogDebug(change);
+		if (logDebug) {
+			LOGGER.debug("SYNCHRONIZATION: received change notifiation {}", change);
+		} else {
+			LOGGER.trace("SYNCHRONIZATION: received change notifiation {}", change);
+		}
 
 		OperationResult subResult = parentResult.createSubresult(NOTIFY_CHANGE);
 		try {
@@ -153,7 +158,11 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			}
 			
 			SynchronizationSituation situation = checkSituation(change, subResult);
-			LOGGER.debug("SYNCHRONIZATION: SITUATION: '{}', {}", situation.getSituation().value(), situation.getUser());
+			if (logDebug) {
+				LOGGER.debug("SYNCHRONIZATION: SITUATION: '{}', {}", situation.getSituation().value(), situation.getUser());
+			} else {
+				LOGGER.trace("SYNCHRONIZATION: SITUATION: '{}', {}", situation.getSituation().value(), situation.getUser());
+			}
 
 			if (Utils.isDryRun(task)){
 				PrismObject object = null;
@@ -166,25 +175,30 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 				XMLGregorianCalendar timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
 				Collection modifications = SynchronizationSituationUtil
 						.createSynchronizationSituationAndDescriptionDelta(object,
-								situation.getSituation(), task.getChannel());
+								situation.getSituation(), task.getChannel(), false);
 				repositoryService.modifyObject(ShadowType.class, object.getOid(), modifications, subResult);
 				subResult.recordSuccess();
 				return;
 			}
 			
-			notifyChange(change, situation, resource, task, subResult);
+			notifyChange(change, situation, resource, logDebug, task, subResult);
 
 			subResult.computeStatus();
 		} catch (Exception ex) {
 			subResult.recordFatalError(ex);
 			throw new SystemException(ex);
 		} finally {
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace(subResult.dump());
-			}
+//			if (LOGGER.isTraceEnabled()) {
+//				LOGGER.trace(subResult.dump());
+//			}
 		}
 	}
 	
+	private boolean isLogDebug(ResourceObjectShadowChangeDescription change) {
+		// Reconciliation changes are routine. Do not let it polute the logfiles.
+		return !SchemaConstants.CHANGE_CHANNEL_RECON_URI.equals(change.getSourceChannel());
+	}
+
 	private void validate(ResourceObjectShadowChangeDescription change) {
 		Validate.notNull(change, "Resource object shadow change description must not be null.");
 		Validate.isTrue(change.getCurrentShadow() != null || change.getObjectDelta() != null,
@@ -398,7 +412,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 	}
 
 	private void notifyChange(ResourceObjectShadowChangeDescription change, SynchronizationSituation situation,
-			ResourceType resource, Task task, OperationResult parentResult) {
+			ResourceType resource, boolean logDebug, Task task, OperationResult parentResult) {
 
 		PrismObject<? extends ObjectType> target = null;
 		if (change.getCurrentShadow() != null) {
@@ -439,7 +453,11 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			} 
 			
 			for (Action action : actions) {
-				LOGGER.debug("SYNCHRONIZATION: ACTION: Executing: {}.", new Object[] { action.getClass() });
+				if (logDebug) {
+					LOGGER.debug("SYNCHRONIZATION: ACTION: Executing: {}.", new Object[] { action.getClass() });
+				} else {
+					LOGGER.trace("SYNCHRONIZATION: ACTION: Executing: {}.", new Object[] { action.getClass() });
+				}
 
 				userOid = action.executeChanges(userOid, change, userTemplate, situation.getSituation(), task,
 						parentResult);
@@ -466,7 +484,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		// new situation description
 		XMLGregorianCalendar timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
 		List<PropertyDelta<?>> syncSituationDeltas = SynchronizationSituationUtil
-				.createSynchronizationSituationAndDescriptionDelta(object, situation.getSituation(), change.getSourceChannel());
+				.createSynchronizationSituationAndDescriptionDelta(object, situation.getSituation(), change.getSourceChannel(), true);
 		// refresh situation
 //		PropertyDelta<SynchronizationSituationType> syncSituationDelta = SynchronizationSituationUtil.createSynchronizationSituationDelta(object,
 //				situation.getSituation());

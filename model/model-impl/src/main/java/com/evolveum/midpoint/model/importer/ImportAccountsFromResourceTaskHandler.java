@@ -214,6 +214,7 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
         handler.setForceAdd(true);
         handler.setStopOnError(false);
         handler.setContextDesc("from "+resource);
+        handler.setLogObjectProgress(true);
         
         return handler;
 	}
