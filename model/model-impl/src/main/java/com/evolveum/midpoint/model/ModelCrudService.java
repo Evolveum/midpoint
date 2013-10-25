@@ -157,7 +157,7 @@ public class ModelCrudService {
 	 *             unknown error from underlying layers or other unexpected
 	 *             state
 	 */
-	public <T extends ObjectType> String addObject(PrismObject<T> object, Task task, ModelExecuteOptions options, 
+	public <T extends ObjectType> String addObject(PrismObject<T> object, ModelExecuteOptions options, Task task,  
 			OperationResult parentResult) throws ObjectAlreadyExistsException, ObjectNotFoundException,
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
 			PolicyViolationException, SecurityViolationException {
@@ -261,7 +261,7 @@ public class ModelCrudService {
 	 *             unknown error from underlying layers or other unexpected
 	 *             state
 	 */
-	public <T extends ObjectType> void deleteObject(Class<T> clazz, String oid, Task task,
+	public <T extends ObjectType> void deleteObject(Class<T> clazz, String oid, ModelExecuteOptions options, Task task,
 			OperationResult parentResult) throws ObjectNotFoundException, ConsistencyViolationException,
 			CommunicationException, SchemaException, ConfigurationException, PolicyViolationException,
 			SecurityViolationException {
@@ -348,7 +348,7 @@ public class ModelCrudService {
 	 *             state
 	 */
 	public <T extends ObjectType> void modifyObject(Class<T> type, String oid,
-			Collection<? extends ItemDelta> modifications, Task task, OperationResult parentResult)
+			Collection<? extends ItemDelta> modifications, ModelExecuteOptions options, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
 			CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 			PolicyViolationException, SecurityViolationException {

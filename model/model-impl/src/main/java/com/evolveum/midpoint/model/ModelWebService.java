@@ -106,7 +106,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		try {
 			PrismObject object = objectType.asPrismObject();
 			prismContext.adopt(objectType);
-			String oid = model.addObject(object, task, null, operationResult);
+			String oid = model.addObject(object, null, task, operationResult);
 			handleOperationResult(operationResult, result);
 			oidHolder.value = oid;
 			return;
@@ -204,7 +204,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 			Class<? extends ObjectType> type = ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition();
 			Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(change, type, prismContext);
 			model.modifyObject(type, change.getOid(),
-					modifications , task, operationResult);
+					modifications, null, task, operationResult);
 			return handleOperationResult(operationResult);
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL modifyObject() failed", ex);
@@ -224,7 +224,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		OperationResult operationResult = task.getResult();
 		try {
 			model.deleteObject(ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), oid,
-					task, operationResult);
+					null, task, operationResult);
 			return handleOperationResult(operationResult);
 		} catch (Exception ex) {
 			LoggingUtils.logException(LOGGER, "# MODEL deleteObject() failed", ex);

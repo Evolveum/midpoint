@@ -102,6 +102,15 @@ public class MidpointXmlProvider<T> extends AbstractConfigurableProvider impleme
 			MultivaluedMap<String, String> httpHeaders, InputStream entityStream)
 			throws IOException, WebApplicationException {
 		// TODO Auto-generated method stub
+		
+		if (entityStream == null){
+			return null;
+		}
+		
+		if (entityStream.available() == 0){
+			return null;
+		}
+		
 		T object = null;
 		try {
 			

@@ -19,6 +19,7 @@ package com.evolveum.midpoint.model.api;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ModelExecuteOptionsType;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * @author semancik
@@ -227,6 +228,36 @@ public class ModelExecuteOptions implements Serializable {
         retval.setExecuteImmediatelyAfterApproval(type.isExecuteImmediatelyAfterApproval());
         retval.setOverwrite(type.isOverwrite());
         return retval;
+    }
+    
+    public static ModelExecuteOptions fromRestOptions(List<String> options){
+    	if (options == null || options.isEmpty()){
+    		return null;
+    	}
+    	
+    	ModelExecuteOptions retVal = new ModelExecuteOptions();
+    	for (String option : options){
+    		if (ModelExecuteOptionsType.F_RAW.getLocalPart().equals(option)){
+    			retVal.setRaw(true);
+    		}
+    		if (ModelExecuteOptionsType.F_EXECUTE_IMMEDIATELY_AFTER_APPROVAL.getLocalPart().equals(option)){
+    			retVal.setExecuteImmediatelyAfterApproval(true);
+    		}
+    		if (ModelExecuteOptionsType.F_FORCE.getLocalPart().equals(option)){
+    			retVal.setForce(true);
+    		}
+    		if (ModelExecuteOptionsType.F_NO_CRYPT.getLocalPart().equals(option)){
+    			retVal.setNoCrypt(true);
+    		}
+    		if (ModelExecuteOptionsType.F_OVERWRITE.getLocalPart().equals(option)){
+    			retVal.setOverwrite(true);
+    		}
+    		if (ModelExecuteOptionsType.F_RECONCILE.getLocalPart().equals(option)){
+    			retVal.setReconcile(true);
+    		}
+    	}
+    	
+    	return retVal;
     }
     
     @Override

@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.model;
 
+import java.net.URI;
 import java.util.Collection;
 import java.util.List;
 
@@ -11,6 +12,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Request;
@@ -23,6 +25,8 @@ import javax.xml.namespace.QName;
 import org.apache.cxf.jaxrs.ext.MessageContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import antlr.Utils;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
@@ -38,6 +42,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -53,7 +58,9 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ModelExecuteOptionsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationalStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -76,6 +83,7 @@ public class ModelRestService {
 	private static final Trace LOGGER = TraceManager.getTrace(ModelRestService.class);
 	
 	public static final long WAIT_FOR_TASK_STOP = 2000L;
+	private static final String OPTIONS = "options";
 	
 	public ModelRestService(){
 		
@@ -120,7 +128,7 @@ public class ModelRestService {
 	@POST
 	@Path("/{type}")
 //	@Produces({"text/html", "application/xml"})
-	public <T extends ObjectType> Response addObject(@PathParam("type") String type, PrismObject<T> object, @Context UriInfo uriInfo){
+	public <T extends ObjectType> Response addObject(@PathParam("type") String type, PrismObject<T> object, @QueryParam("options") List<String> options, @Context UriInfo uriInfo){
 		LOGGER.info("model rest service for add operation start");
 		
 		Task task = taskManager.createTaskInstance();
@@ -133,11 +141,17 @@ public class ModelRestService {
 							+ " to the collection of " + type).type(MediaType.TEXT_HTML).build();
 		}
 		
+		
+		ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options);
+		
 		String oid;
 		try {
-			oid = model.addObject(object, task, null, parentResult);
+			oid = model.addObject(object, modelExecuteOptions, task, parentResult);
 			LOGGER.info("returned oid :  {}", oid );
-			ResponseBuilder builder = Response.created(uriInfo.getAbsolutePathBuilder().path(oid).build(oid));
+			
+			URI resourceURI = uriInfo.getAbsolutePathBuilder().path(oid).build(oid);
+			ResponseBuilder builder = clazz.isAssignableFrom(TaskType.class) ? Response.accepted().location(resourceURI) : Response.created(resourceURI);
+			
 			return builder.build();
 		} catch (ObjectAlreadyExistsException e) {
 			return Response.status(Status.CONFLICT).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
@@ -162,19 +176,33 @@ public class ModelRestService {
 	@PUT
 	@Path("/{type}/{id}")
 //	@Produces({"text/html", "application/xml"})
-	public <T extends ObjectType> Response addObject(@PathParam("type") String type, @PathParam("id") String id, PrismObject<T> object, @Context UriInfo uriInfo, @Context Request request){
+	public <T extends ObjectType> Response addObject(@PathParam("type") String type, @PathParam("id") String id, PrismObject<T> object, @QueryParam("options") List<String> options, @Context UriInfo uriInfo, @Context Request request){
 	
 LOGGER.info("model rest service for add operation start");
 		
 		Task task = taskManager.createTaskInstance();
 		OperationResult parentResult = new OperationResult("add");
 		
+		Class clazz = ObjectTypes.getClassFromRestType(type);
+		if (!object.getCompileTimeClass().equals(clazz)){
+			return Response.status(Status.BAD_REQUEST).entity(
+					"Request to add object of type "
+							+ object.getCompileTimeClass().getSimpleName()
+							+ " to the collection of " + type).type(MediaType.TEXT_HTML).build();
+		}
+		
+		ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options);
+		if (modelExecuteOptions == null || !ModelExecuteOptions.isOverwrite(modelExecuteOptions)){
+			modelExecuteOptions = ModelExecuteOptions.createOverwrite();
+		}
+		
 		String oid;
 		try {
-			oid = model.addObject(object, task, ModelExecuteOptions.createOverwrite(), parentResult);
+			oid = model.addObject(object, modelExecuteOptions, task, parentResult);
 			LOGGER.info("returned oid :  {}", oid );
 			
-			ResponseBuilder builder = Response.created(uriInfo.getAbsolutePathBuilder().build(oid));
+			URI resourceURI = uriInfo.getAbsolutePathBuilder().path(oid).build(oid);
+			ResponseBuilder builder = clazz.isAssignableFrom(TaskType.class) ? Response.accepted().location(resourceURI) : Response.created(resourceURI);
 			
 			return builder.build();
 		} catch (ObjectAlreadyExistsException e) {
@@ -201,7 +229,7 @@ LOGGER.info("model rest service for add operation start");
 	@DELETE
 	@Path("/{type}/{id}")
 //	@Produces({"text/html", "application/xml"})
-	public Response deleteObject(@PathParam("type") String type, @PathParam("id") String id){
+	public Response deleteObject(@PathParam("type") String type, @PathParam("id") String id, @QueryParam("options") List<String> options){
 
 		LOGGER.info("model rest service for delete operation start");
 		
@@ -212,8 +240,23 @@ LOGGER.info("model rest service for add operation start");
 		Class clazz = ObjectTypes.getClassFromRestType(type);
 		
 		try {
-			model.deleteObject(clazz, id, task, parentResult);
+			if (clazz.isAssignableFrom(TaskType.class)){
+				model.suspendAndDeleteTasks(MiscUtil.createCollection(id), WAIT_FOR_TASK_STOP, true, parentResult);
+				parentResult.computeStatus();
+				
+				if (parentResult.isSuccess()){
+					return Response.noContent().build();
+				}
+				
+				return Response.serverError().entity(parentResult.getMessage()).build();
+				
+			} 
+			
+			ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options);
+			
+			model.deleteObject(clazz, id, modelExecuteOptions, task, parentResult);
 			return Response.noContent().build();
+			
 		} catch (ObjectNotFoundException e) {
 			return Response.status(Status.NOT_FOUND).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
 		} catch (ConsistencyViolationException e) {
@@ -238,7 +281,7 @@ LOGGER.info("model rest service for add operation start");
 	@Path("/{type}/{oid}")
 //	@Produces({"text/html", "application/xml"})
 	public <T extends ObjectType> Response modifyObject(@PathParam("type") String type, @PathParam("oid") String oid, 
-			ObjectModificationType modificationType){
+			ObjectModificationType modificationType, @QueryParam("options") List<String> options){
 		
 		LOGGER.info("model rest service for modify operation start");
 		
@@ -252,8 +295,9 @@ LOGGER.info("model rest service for add operation start");
 		
 		
 		try {
+			ModelExecuteOptions modelExecuteOptions = ModelExecuteOptions.fromRestOptions(options);
 			Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(modificationType, clazz, prismContext);
-			model.modifyObject(clazz, oid, modifications, task, parentResult);
+			model.modifyObject(clazz, oid, modifications, modelExecuteOptions, task, parentResult);
 			return Response.noContent().build();
 		} catch (ObjectNotFoundException e) {
 			return Response.status(Status.NOT_FOUND).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
@@ -398,16 +442,18 @@ LOGGER.info("model rest service for add operation start");
 		Collection<String> taskOids = MiscUtil.createCollection(taskOid);
         boolean suspended = model.suspendTasks(taskOids, WAIT_FOR_TASK_STOP, parentResult);
         
+        parentResult.computeStatus();
+        
         if (parentResult.isSuccess()){
-        	return Response.accepted().build();
+        	return Response.noContent().build();
         } 
         
         return Response.status(Status.INTERNAL_SERVER_ERROR).entity(parentResult.getMessage()).build();
         
     }
 
-	@DELETE
-	@Path("tasks/{oid}/suspend")
+//	@DELETE
+//	@Path("tasks/{oid}/suspend")
     public Response suspendAndDeleteTasks(@PathParam("oid") String taskOid) {
     	OperationResult parentResult = new OperationResult("suspend task.");
 		Collection<String> taskOids = MiscUtil.createCollection(taskOid);
@@ -427,6 +473,8 @@ LOGGER.info("model rest service for add operation start");
 		OperationResult parentResult = new OperationResult("suspend task.");
 		Collection<String> taskOids = MiscUtil.createCollection(taskOid);
         model.resumeTasks(taskOids, parentResult);
+        
+        parentResult.computeStatus();
         
         if (parentResult.isSuccess()){
         	return Response.accepted().build();
@@ -457,8 +505,8 @@ LOGGER.info("model rest service for add operation start");
         
     }
 
-    @GET
-    @Path("tasks/{oid}")
+//    @GET
+//    @Path("tasks/{oid}")
     public Response getTaskByIdentifier(@PathParam("oid") String identifier) throws SchemaException, ObjectNotFoundException {
     	OperationResult parentResult = new OperationResult("suspend task.");
         PrismObject<TaskType> task = model.getTaskByIdentifier(identifier, null, parentResult);
@@ -503,4 +551,9 @@ LOGGER.info("model rest service for add operation start");
         return model.getHandlerUriForCategory(category);
     }
 	
+    
+    private ModelExecuteOptions getOptions(UriInfo uriInfo){
+    	List<String> options = uriInfo.getQueryParameters().get(OPTIONS);
+		return ModelExecuteOptions.fromRestOptions(options);
+    }
 }
