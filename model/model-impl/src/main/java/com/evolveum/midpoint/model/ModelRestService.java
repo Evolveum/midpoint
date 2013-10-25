@@ -3,6 +3,7 @@ package com.evolveum.midpoint.model;
 import java.util.Collection;
 import java.util.List;
 
+import javax.jws.WebMethod;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -31,12 +32,15 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.QueryConvertor;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ConsistencyViolationException;
@@ -51,6 +55,7 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectListType;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 
@@ -69,6 +74,8 @@ public class ModelRestService {
 	
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ModelRestService.class);
+	
+	public static final long WAIT_FOR_TASK_STOP = 2000L;
 	
 	public ModelRestService(){
 		
@@ -167,7 +174,7 @@ LOGGER.info("model rest service for add operation start");
 			oid = model.addObject(object, task, ModelExecuteOptions.createOverwrite(), parentResult);
 			LOGGER.info("returned oid :  {}", oid );
 			
-			ResponseBuilder builder = Response.created(uriInfo.getAbsolutePathBuilder().path(oid).build(oid));
+			ResponseBuilder builder = Response.created(uriInfo.getAbsolutePathBuilder().build(oid));
 			
 			return builder.build();
 		} catch (ObjectAlreadyExistsException e) {
@@ -375,18 +382,125 @@ LOGGER.info("model rest service for add operation start");
 
 		Task task = taskManager.createTaskInstance();
 
-		
-		
 		try {
 			OperationResult result = model.testResource(resourceOid, task);
 			return Response.ok(result).build();
 		} catch (ObjectNotFoundException e) {
 			return Response.status(Status.NOT_FOUND).entity(e.getMessage()).type(MediaType.TEXT_HTML).build();
 		}
-		
-		
-		
 	
 	}
+	
+	@POST
+	@Path("/tasks/{oid}/suspend")
+    public Response suspendTasks(@PathParam("oid") String taskOid) {
+		OperationResult parentResult = new OperationResult("suspend task.");
+		Collection<String> taskOids = MiscUtil.createCollection(taskOid);
+        boolean suspended = model.suspendTasks(taskOids, WAIT_FOR_TASK_STOP, parentResult);
+        
+        if (parentResult.isSuccess()){
+        	return Response.accepted().build();
+        } 
+        
+        return Response.status(Status.INTERNAL_SERVER_ERROR).entity(parentResult.getMessage()).build();
+        
+    }
+
+	@DELETE
+	@Path("tasks/{oid}/suspend")
+    public Response suspendAndDeleteTasks(@PathParam("oid") String taskOid) {
+    	OperationResult parentResult = new OperationResult("suspend task.");
+		Collection<String> taskOids = MiscUtil.createCollection(taskOid);
+        model.suspendAndDeleteTasks(taskOids, WAIT_FOR_TASK_STOP, true, parentResult);
+        
+        if (parentResult.isSuccess()){
+        	return Response.accepted().build();
+        } 
+        
+        return Response.status(Status.INTERNAL_SERVER_ERROR).entity(parentResult.getMessage()).build();
+    }
+	
+	
+	@POST
+	@Path("/tasks/{oid}/resume")
+    public Response resumeTasks(@PathParam("oid") String taskOid) {
+		OperationResult parentResult = new OperationResult("suspend task.");
+		Collection<String> taskOids = MiscUtil.createCollection(taskOid);
+        model.resumeTasks(taskOids, parentResult);
+        
+        if (parentResult.isSuccess()){
+        	return Response.accepted().build();
+        } 
+        
+        return Response.status(Status.INTERNAL_SERVER_ERROR).entity(parentResult.getMessage()).build();
+        
+        
+    }
+
+
+	@POST
+	@Path("tasks/{oid}/run")
+    public Response scheduleTasksNow(@PathParam("oid") String taskOid) {
+		OperationResult parentResult = new OperationResult("suspend task.");
+		Collection<String> taskOids = MiscUtil.createCollection(taskOid);
+    
+        model.scheduleTasksNow(taskOids, parentResult);
+        
+        parentResult.computeStatus();
+        
+        if (parentResult.isSuccess()){
+        	return Response.accepted().build();
+        } 
+        
+        return Response.status(Status.INTERNAL_SERVER_ERROR).entity(parentResult.getMessage()).build();
+        
+        
+    }
+
+    @GET
+    @Path("tasks/{oid}")
+    public Response getTaskByIdentifier(@PathParam("oid") String identifier) throws SchemaException, ObjectNotFoundException {
+    	OperationResult parentResult = new OperationResult("suspend task.");
+        PrismObject<TaskType> task = model.getTaskByIdentifier(identifier, null, parentResult);
+        
+        return Response.ok(task).build();
+    }
+
+    
+    public boolean deactivateServiceThreads(long timeToWait, OperationResult parentResult) {
+        return model.deactivateServiceThreads(timeToWait, parentResult);
+    }
+
+    public void reactivateServiceThreads(OperationResult parentResult) {
+        model.reactivateServiceThreads(parentResult);
+    }
+
+    public boolean getServiceThreadsActivationState() {
+        return model.getServiceThreadsActivationState();
+    }
+
+    public void stopSchedulers(Collection<String> nodeIdentifiers, OperationResult parentResult) {
+        model.stopSchedulers(nodeIdentifiers, parentResult);
+    }
+
+    public boolean stopSchedulersAndTasks(Collection<String> nodeIdentifiers, long waitTime, OperationResult parentResult) {
+        return model.stopSchedulersAndTasks(nodeIdentifiers, waitTime, parentResult);
+    }
+
+    public void startSchedulers(Collection<String> nodeIdentifiers, OperationResult parentResult) {
+        model.startSchedulers(nodeIdentifiers, parentResult);
+    }
+
+    public void synchronizeTasks(OperationResult parentResult) {
+    	model.synchronizeTasks(parentResult);
+    }
+
+    public List<String> getAllTaskCategories() {
+        return model.getAllTaskCategories();
+    }
+
+    public String getHandlerUriForCategory(String category) {
+        return model.getHandlerUriForCategory(category);
+    }
 	
 }

@@ -60,6 +60,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
@@ -427,4 +428,62 @@ public class ModelCrudService {
 		return modelController.testResource(resourceOid, task);
 	}
 	
+	
+	//TASK AREA
+    public boolean suspendTasks(Collection<String> taskOids, long waitForStop, OperationResult parentResult) {
+        return modelController.suspendTasks(taskOids, waitForStop, parentResult);
+    }
+
+    public void suspendAndDeleteTasks(Collection<String> taskOids, long waitForStop, boolean alsoSubtasks, OperationResult parentResult) {
+        modelController.suspendAndDeleteTasks(taskOids, waitForStop, alsoSubtasks, parentResult);
+    }
+
+    public void resumeTasks(Collection<String> taskOids, OperationResult parentResult) {
+        modelController.resumeTasks(taskOids, parentResult);
+    }
+
+    public void scheduleTasksNow(Collection<String> taskOids, OperationResult parentResult) {
+        modelController.scheduleTasksNow(taskOids, parentResult);
+    }
+
+    public PrismObject<TaskType> getTaskByIdentifier(String identifier, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+        return modelController.getTaskByIdentifier(identifier, options, parentResult);
+    }
+
+    public boolean deactivateServiceThreads(long timeToWait, OperationResult parentResult) {
+        return modelController.deactivateServiceThreads(timeToWait, parentResult);
+    }
+
+    public void reactivateServiceThreads(OperationResult parentResult) {
+        modelController.reactivateServiceThreads(parentResult);
+    }
+
+    public boolean getServiceThreadsActivationState() {
+        return modelController.getServiceThreadsActivationState();
+    }
+
+    public void stopSchedulers(Collection<String> nodeIdentifiers, OperationResult parentResult) {
+        modelController.stopSchedulers(nodeIdentifiers, parentResult);
+    }
+
+    public boolean stopSchedulersAndTasks(Collection<String> nodeIdentifiers, long waitTime, OperationResult parentResult) {
+        return modelController.stopSchedulersAndTasks(nodeIdentifiers, waitTime, parentResult);
+    }
+
+    public void startSchedulers(Collection<String> nodeIdentifiers, OperationResult parentResult) {
+        modelController.startSchedulers(nodeIdentifiers, parentResult);
+    }
+
+    public void synchronizeTasks(OperationResult parentResult) {
+    	modelController.synchronizeTasks(parentResult);
+    }
+
+    public List<String> getAllTaskCategories() {
+        return modelController.getAllTaskCategories();
+    }
+
+    public String getHandlerUriForCategory(String category) {
+        return modelController.getHandlerUriForCategory(category);
+    }
+
 }

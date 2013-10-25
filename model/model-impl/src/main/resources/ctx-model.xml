@@ -300,7 +300,7 @@
         </jaxws:outInterceptors>
     </jaxws:endpoint>
     
-    <jaxrs:server id="restService" address="/restApi/">
+    <jaxrs:server id="restService" address="/rest/">
         <jaxrs:serviceBeans>
         	<bean class="com.evolveum.midpoint.model.ModelRestService"/>
         </jaxrs:serviceBeans>
