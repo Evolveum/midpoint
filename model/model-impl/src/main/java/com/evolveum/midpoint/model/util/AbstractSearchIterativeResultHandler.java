@@ -39,6 +39,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 	private long progress;
 	private long errors;
 	private boolean stopOnError;
+	private boolean logObjectProgress;
 	
 	private static final transient Trace LOGGER = TraceManager.getTrace(AbstractSearchIterativeResultHandler.class);
 	
@@ -85,6 +86,14 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 		return taskOperationPrefix;
 	}
 
+	public boolean isLogObjectProgress() {
+		return logObjectProgress;
+	}
+
+	public void setLogObjectProgress(boolean logObjectProgress) {
+		this.logObjectProgress = logObjectProgress;
+	}
+
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.schema.ResultHandler#handle(com.evolveum.midpoint.prism.PrismObject, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
@@ -113,11 +122,13 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 			// The meat
 			cont = handleObject(object, result);
 			
-			if (LOGGER.isInfoEnabled()) {
-				long endTime = System.currentTimeMillis();
-				LOGGER.info("{} object {} {} done ({} ms)",new Object[]{
-						getProcessShortNameCapitalized(), object,
-						getContextDesc(), endTime - startTime});
+			if (logObjectProgress) {
+				if (LOGGER.isInfoEnabled()) {
+					long endTime = System.currentTimeMillis();
+					LOGGER.info("{} object {} {} done ({} ms)",new Object[]{
+							getProcessShortNameCapitalized(), object,
+							getContextDesc(), endTime - startTime});
+				}
 			}
 			
 			// We do not want to override the result set by handler. This is just a fallback case

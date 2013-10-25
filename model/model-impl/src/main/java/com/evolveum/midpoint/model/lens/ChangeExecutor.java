@@ -462,12 +462,8 @@ public class ChangeExecutor {
     		LOGGER.trace("Problem with getting account, skipping modifying situation in account.");
 			return;
     	}
-//    	XMLGregorianCalendar timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
-    	List<PropertyDelta<?>> syncSituationDeltas = SynchronizationSituationUtil.createSynchronizationSituationAndDescriptionDelta(account, situation, task.getChannel());
-//		PropertyDelta<SynchronizationSituationType> syncSituationDelta = SynchronizationSituationUtil.createSynchronizationSituationDelta(account, situation);
-//		if (syncSituationDelta != null){
-//		syncSituationDeltas.add(syncSituationDelta);
-//		}
+    	List<PropertyDelta<?>> syncSituationDeltas = SynchronizationSituationUtil.createSynchronizationSituationAndDescriptionDelta(account,
+    			situation, task.getChannel(), projectionCtx.hasFullShadow());
 
 		try {
             Utils.setRequestee(task, focusContext);
