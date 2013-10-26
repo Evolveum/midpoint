@@ -214,6 +214,7 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
         handler.setForceAdd(true);
         handler.setStopOnError(false);
         handler.setContextDesc("from "+resource);
+        handler.setLogObjectProgress(true);
         
         return handler;
 	}
@@ -261,6 +262,8 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
 		if (resultHandler == null) {
 			return false;
 		}
+		// This is required for proper error reporting
+		resultHandler.setStopOnError(true);
 		
 		boolean cont = initializeRun(resultHandler, runResult, task, parentResult);
 		if (!cont) {

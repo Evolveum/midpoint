@@ -2314,7 +2314,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			
 			try {
 				
-				LOGGER.debug("Running script ({})", icfOpName);
+				LOGGER.trace("Running script ({})", icfOpName);
 				
 				if (scriptOperation.isConnectorHost()) {
 					output = icfConnectorFacade.runScriptOnConnector(scriptContext, new OperationOptionsBuilder().build());

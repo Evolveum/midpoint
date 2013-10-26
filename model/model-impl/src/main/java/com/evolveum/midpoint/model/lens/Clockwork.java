@@ -506,8 +506,18 @@ public class Clockwork {
 			return;
 		}
 		
+		
+		// a priori: sync delta
+		boolean hasSyncDelta = false;
+		for (LensProjectionContext<P> projectionContext: context.getProjectionContexts()) {
+			ObjectDelta<P> syncDelta = projectionContext.getSyncDelta();
+			if (syncDelta != null) {
+				hasSyncDelta = true;
+			}
+		}
+		
 		Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = context.getExecutedDeltas();
-		if (executedDeltas == null || executedDeltas.isEmpty()) {
+		if (!hasSyncDelta && executedDeltas == null || executedDeltas.isEmpty()) {
 			// Not worth mentioning
 			return;
 		}
@@ -518,14 +528,7 @@ public class Clockwork {
 			sb.append("Channel: ").append(channel).append("\n");
 		}
 		
-		// a priori: sync delta
-		boolean hasSyncDelta = false;
-		for (LensProjectionContext<P> projectionContext: context.getProjectionContexts()) {
-			ObjectDelta<P> syncDelta = projectionContext.getSyncDelta();
-			if (syncDelta != null) {
-				hasSyncDelta = true;
-			}
-		}
+		
 		if (hasSyncDelta) {
 			sb.append("Triggered by synchronization delta\n");
 			for (LensProjectionContext<P> projectionContext: context.getProjectionContexts()) {
@@ -590,15 +593,19 @@ public class Clockwork {
 			}
 		}
 		
-		sb.append("Executed:\n");
-		for (ObjectDeltaOperation<? extends ObjectType> executedDelta: executedDeltas) {
-			ObjectDelta<? extends ObjectType> delta = executedDelta.getObjectDelta();
-			OperationResult deltaResult = executedDelta.getExecutionResult();
-			DebugUtil.indentDebugDump(sb, 1);
-			sb.append(delta.toString());
-			sb.append(": ");
-			sb.append(deltaResult.getStatus());
-			sb.append("\n");
+		if (executedDeltas == null || executedDeltas.isEmpty()) {
+			sb.append("Executed: nothing\n");
+		} else {
+			sb.append("Executed:\n");
+			for (ObjectDeltaOperation<? extends ObjectType> executedDelta: executedDeltas) {
+				ObjectDelta<? extends ObjectType> delta = executedDelta.getObjectDelta();
+				OperationResult deltaResult = executedDelta.getExecutionResult();
+				DebugUtil.indentDebugDump(sb, 1);
+				sb.append(delta.toString());
+				sb.append(": ");
+				sb.append(deltaResult.getStatus());
+				sb.append("\n");
+			}
 		}
 		
 		LOGGER.debug("\n###[ CLOCKWORK SUMMARY ]######################################\n{}" +

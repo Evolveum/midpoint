@@ -402,7 +402,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         XMLGregorianCalendar timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
         List<PropertyDelta<?>> syncSituationDeltas = SynchronizationSituationUtil.
-                createSynchronizationSituationDescriptionDelta(repoShadow, SynchronizationSituationType.LINKED, timestamp, null);
+                createSynchronizationSituationDescriptionDelta(repoShadow, SynchronizationSituationType.LINKED, timestamp, null, false);
         PropertyDelta<SynchronizationSituationType> syncSituationDelta = SynchronizationSituationUtil.
                 createSynchronizationSituationDelta(repoShadow, SynchronizationSituationType.LINKED);
         syncSituationDeltas.add(syncSituationDelta);
@@ -599,7 +599,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
 //        XMLGregorianCalendar timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
         List<PropertyDelta<?>> syncSituationDeltas = SynchronizationSituationUtil.
-                createSynchronizationSituationAndDescriptionDelta(account, SynchronizationSituationType.LINKED, null);
+                createSynchronizationSituationAndDescriptionDelta(account, SynchronizationSituationType.LINKED, null, false);
 //        PropertyDelta<SynchronizationSituationType> syncSituationDelta = SynchronizationSituationUtil.
 //                createSynchronizationSituationDelta(account, SynchronizationSituationType.LINKED);
 //        syncSituationDeltas.add(syncSituationDelta);
@@ -615,7 +615,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
 
 //        timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
-        syncSituationDeltas = SynchronizationSituationUtil.createSynchronizationSituationAndDescriptionDelta(afterFirstModify, null, null);
+        syncSituationDeltas = SynchronizationSituationUtil.createSynchronizationSituationAndDescriptionDelta(afterFirstModify, null, null, false);
 //        syncSituationDelta = SynchronizationSituationUtil.createSynchronizationSituationDelta(afterFirstModify, null);
 //        syncSituationDeltas.add(syncSituationDelta);
 
