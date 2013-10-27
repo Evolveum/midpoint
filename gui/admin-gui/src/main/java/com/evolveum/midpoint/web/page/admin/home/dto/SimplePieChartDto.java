@@ -17,44 +17,59 @@
 package com.evolveum.midpoint.web.page.admin.home.dto;
 
 import java.io.Serializable;
+import java.text.DecimalFormat;
 
 /**
- *  @author shood
- * */
+ * @author shood
+ */
 public class SimplePieChartDto implements Serializable {
 
-    private String label;
-    private int base;
-    private int entryValue;
-    private int percent;
+    public static final String F_UNIT = "unit";
 
-    public SimplePieChartDto(String label, int base, int entryValue){
+    private String label;
+    private double base;
+    private double value;
+    private String unit;
+
+    public SimplePieChartDto(String label, double base, double value) {
+        this(label, base, value, null);
+    }
+
+    public SimplePieChartDto(String label, double base, double value, String unit) {
         this.label = label;
-        this.entryValue = entryValue;
+        this.value = value;
         this.base = base;
-        this.percent = calculatePercentage();
+        this.unit = unit;
+    }
+
+    public String getUnit() {
+        return unit;
     }
 
     public String getLabel() {
         return label;
     }
 
-    public int getBase() {
+    public double getBase() {
         return base;
     }
 
-    public int getEntryValue() {
-        return entryValue;
+    public double getValue() {
+        return value;
     }
 
-    public int getPercent() {
-        return percent;
+    public String getPercent() {
+        double percent = calculatePercentage();
+
+        DecimalFormat df = new DecimalFormat("#.#");
+        return df.format(percent);
     }
 
-    private int calculatePercentage(){
-        if(this.base == 0)
+    private double calculatePercentage() {
+        if (base == 0) {
             return 0;
+        }
 
-        return (this.entryValue*100)/this.base;
+        return (value * 100) / base;
     }
 }

@@ -18,11 +18,10 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <div class="chart-panel">
-        <div class="chart easyPieChart" data-percent="5" style="width: 90px; height: 90px; line-height: 90px;">
-            <span wicket:id="percentValue"></span>
-            <canvas height="90" width="90"></canvas>
+        <div wicket:id="chart" class="chart easyPieChart" style="line-height: 90px;">
+            <span wicket:id="value"/><small wicket:id="unit"/>
         </div>
-        <div class="chart-label" wicket:id="chartLabel"></div>
+        <div class="chart-label" wicket:id="label"/>
     </div>
 </wicket:panel>
 </html>

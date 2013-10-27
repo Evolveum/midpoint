@@ -34,3 +34,23 @@ function fixStripingOnPrismForm(formId, stripClass) {
         }
     }
 }
+
+/**
+ * Used in SimplePieChart class.
+ *
+ * @param chartId
+ */
+function initPieChart(chartId) {
+    $('#' + chartId).easyPieChart({
+        barColor: function (percent) {
+            percent /= 100;
+            return "rgb(" + Math.round(255 * percent) + ", " + Math.round(255 * (1 - percent)) + ", 0)";
+        },
+        trackColor: '#ccc',
+        scaleColor: false,
+        lineCap: 'butt',
+        lineWidth: 15,
+        animate: 1000,
+        size: 90
+    });
+}
