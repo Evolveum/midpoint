@@ -300,6 +300,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         if (InternalsConfig.encryptionChecks && !RepoAddOptions.isAllowUnencryptedValues(options)) {
             CryptoUtil.checkEncrypted(object);
         }
+        
+        if (InternalsConfig.consistencyChecks) {
+        	object.checkConsistence();
+        }
 
         if (options == null) {
             options = new RepoAddOptions();
@@ -904,6 +908,12 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         if (InternalsConfig.encryptionChecks) {
             CryptoUtil.checkEncrypted(modifications);
+        }
+        
+        if (InternalsConfig.consistencyChecks) {
+        	for (ItemDelta modification: modifications) {
+        		modification.checkConsistence();
+        	}
         }
 
         OperationResult subResult = result.createSubresult(MODIFY_OBJECT);
