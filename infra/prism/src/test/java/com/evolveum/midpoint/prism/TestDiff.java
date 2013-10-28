@@ -60,11 +60,11 @@ public class TestDiff {
 		
 		PrismObject<UserType> user1 = userDef.instantiate();
 		user1.setOid(USER_JACK_OID);
-		user1.setPropertyRealValue(UserType.F_NAME, PrismTestUtil.createPolyStringType("test name"));
+		user1.setPropertyRealValue(UserType.F_NAME, PrismTestUtil.createPolyString("test name"));
 		
 		PrismObject<UserType> user2 = userDef.instantiate();
 		user2.setOid(USER_JACK_OID);
-		user2.setPropertyRealValue(UserType.F_NAME, PrismTestUtil.createPolyStringType("test name"));
+		user2.setPropertyRealValue(UserType.F_NAME, PrismTestUtil.createPolyString("test name"));
 		
 		// WHEN
         ObjectDelta<UserType> delta = user1.diff(user2);
@@ -84,11 +84,11 @@ public class TestDiff {
 		
 		PrismObject<UserType> user1 = userDef.instantiate();
 		user1.setOid(USER_JACK_OID);
-		user1.setPropertyRealValue(UserType.F_NAME, PrismTestUtil.createPolyStringType("test name"));
+		user1.setPropertyRealValue(UserType.F_NAME, PrismTestUtil.createPolyString("test name"));
 		
 		PrismObject<UserType> user2 = userDef.instantiate();
 		user2.setOid(USER_JACK_OID);
-		user2.setPropertyRealValue(UserType.F_NAME, PrismTestUtil.createPolyStringType("other name"));
+		user2.setPropertyRealValue(UserType.F_NAME, PrismTestUtil.createPolyString("other name"));
 		
 		// WHEN
         ObjectDelta<UserType> delta = user1.diff(user2);
@@ -97,7 +97,7 @@ public class TestDiff {
         assertNotNull(delta);
         System.out.println(delta.dump());
         assertEquals("Unexpected number of midifications", 1, delta.getModifications().size());
-        PrismAsserts.assertPropertyReplace(delta, UserType.F_NAME, PrismTestUtil.createPolyStringType("other name"));
+        PrismAsserts.assertPropertyReplace(delta, UserType.F_NAME, PrismTestUtil.createPolyString("other name"));
         assertEquals("Wrong OID", USER_JACK_OID, delta.getOid());
         delta.checkConsistence();
     }

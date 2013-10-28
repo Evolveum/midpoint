@@ -22,6 +22,7 @@ import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
@@ -143,12 +144,12 @@ public class ProvisioningUtil {
 
 	}
 	
-	public static <T extends ShadowType> PolyStringType determineShadowName(PrismObject<T> shadow) throws SchemaException {
+	public static <T extends ShadowType> PolyString determineShadowName(PrismObject<T> shadow) throws SchemaException {
 		String stringName = determineShadowStringName(shadow);
 		if (stringName == null) {
 			return null;
 		}
-		return new PolyStringType(stringName);
+		return new PolyString(stringName);
 	}
 
 	public static <T extends ShadowType> String determineShadowStringName(PrismObject<T> shadow) throws SchemaException {

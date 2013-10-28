@@ -653,7 +653,7 @@ public class ShadowManager {
 		}
 
 		if (repoShadowType.getName() == null) {
-			repoShadowType.setName(ProvisioningUtil.determineShadowName(shadow));
+			repoShadowType.setName(new PolyStringType(ProvisioningUtil.determineShadowName(shadow)));
 		}
 
 		if (repoShadowType.getObjectClass() == null) {
