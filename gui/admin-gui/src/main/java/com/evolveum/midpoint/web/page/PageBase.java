@@ -33,8 +33,10 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.Holder;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
 import com.evolveum.midpoint.web.component.menu.top2.MenuBarItem;
 import com.evolveum.midpoint.web.component.menu.top2.TopMenuBar;
@@ -56,6 +58,7 @@ import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.RuntimeConfigurationType;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.devutils.debugbar.DebugBar;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.feedback.FeedbackMessage;
@@ -72,9 +75,15 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.resource.CoreLibrariesContributor;
 import org.apache.wicket.spring.injection.annot.SpringBean;
+import org.springframework.jmx.support.MBeanServerFactoryBean;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import javax.management.MBeanServer;
+import javax.management.MBeanServerFactory;
+import javax.management.ObjectName;
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -97,6 +106,8 @@ public abstract class PageBase extends WebPage {
     private static final String ID_FEEDBACK_CONTAINER = "feedbackContainer";
     private static final String ID_FEEDBACK = "feedback";
     private static final String ID_TEMP_FEEDBACK = "tempFeedback";
+    private static final String ID_DEBUG_BAR = "debugBar";
+    private static final String ID_CLEAR_CACHE = "clearCssCache";
 
     @SpringBean(name = "modelController")
     private ModelService modelService;
@@ -112,6 +123,8 @@ public abstract class PageBase extends WebPage {
     private WorkflowService workflowService;
     @SpringBean(name = "midpointConfiguration")
     private MidpointConfiguration midpointConfiguration;
+    @SpringBean(name = "mbeanServer")
+    private MBeanServerFactoryBean factory;
 
     private PageBase previousPage;                  // experimental -- where to return e.g. when 'Back' button is clicked [NOT a class, in order to eliminate reinitialization when it is not needed]
     private boolean reinitializePreviousPages;      // experimental -- should we reinitialize all the chain of previous pages?
@@ -203,6 +216,55 @@ public abstract class PageBase extends WebPage {
 
         TempFeedback tempFeedback = new TempFeedback(ID_TEMP_FEEDBACK);
         feedbackContainer.add(tempFeedback);
+
+        initDebugBar();
+    }
+
+    private void initDebugBar() {
+        WebMarkupContainer debugBar = new WebMarkupContainer(ID_DEBUG_BAR);
+        debugBar.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                RuntimeConfigurationType runtime = getApplication().getConfigurationType();
+                return RuntimeConfigurationType.DEVELOPMENT.equals(runtime);
+            }
+        });
+        add(debugBar);
+
+        AjaxButton clearCache = new AjaxButton(ID_CLEAR_CACHE, createStringResource("PageBase.clearCssCache")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                clearLessJsCache(target);
+            }
+        };
+        debugBar.add(clearCache);
+    }
+
+    protected void clearLessJsCache(AjaxRequestTarget target) {
+        try {
+            ArrayList<MBeanServer> servers  = MBeanServerFactory.findMBeanServer(null);
+            if (servers.size() > 1) {
+                LOGGER.info("Too many mbean servers, cache won't be cleared.");
+                for (MBeanServer server : servers) {
+                    LOGGER.info(server.getDefaultDomain());
+                }
+                return;
+            }
+            MBeanServer server = servers.get(0);
+            ObjectName objectName = ObjectName.getInstance("wro4j-idm:type=WroConfiguration");
+            server.invoke(objectName, "reloadCache", new Object[]{}, new String[]{});
+            if (target != null) {
+                target.add(PageBase.this);
+            }
+        } catch (Exception ex){
+            LoggingUtils.logException(LOGGER, "Couldn't clear less/js cache", ex);
+            error("Error occurred, reason: " + ex.getMessage());
+            if (target != null) {
+                target.add(getFeedbackPanel());
+            }
+        }
     }
 
     protected TopMenuBar getTopMenuBar() {
