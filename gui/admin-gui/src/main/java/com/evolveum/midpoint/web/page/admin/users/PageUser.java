@@ -40,6 +40,7 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
@@ -85,6 +86,7 @@ import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.util.string.StringValue;
 
 import javax.xml.namespace.QName;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -114,7 +116,6 @@ public class PageUser extends PageAdminUsers {
     private static final String MODAL_ID_CONFIRM_DELETE_ASSIGNMENT = "confirmDeleteAssignmentPopup";
 
     private static final String ID_MAIN_FORM = "mainForm";
-    private static final String ID_ACCOUNT_BUTTONS = "accountsButtons";
     private static final String ID_ASSIGNMENT_EDITOR = "assignmentEditor";
     private static final String ID_ASSIGNMENT_LIST = "assignmentList";
     private static final String ID_TASK_TABLE = "taskTable";
@@ -439,18 +440,6 @@ public class PageUser extends PageAdminUsers {
         };
         mainForm.add(userForm);
 
-
-        WebMarkupContainer accountsButtonsPanel = new WebMarkupContainer(ID_ACCOUNT_BUTTONS);
-        initAccountButtons(accountsButtonsPanel);
-        accountsButtonsPanel.add(new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                return getAccountsSize().getObject() > 0;
-            }
-        });
-        mainForm.add(accountsButtonsPanel);
-
         WebMarkupContainer accounts = new WebMarkupContainer(ID_ACCOUNTS);
         accounts.setOutputMarkupId(true);
         mainForm.add(accounts);
@@ -565,8 +554,64 @@ public class PageUser extends PageAdminUsers {
         // add(dialog);
     }
 
+    private List<InlineMenuItem> createAccountsMenu() {
+        List<InlineMenuItem> items = new ArrayList<InlineMenuItem>();
+        InlineMenuItem item = new InlineMenuItem(createStringResource("pageUser.button.addAccount"), new InlineMenuItemAction() {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                showModalWindow(MODAL_ID_RESOURCE, target);
+            }
+        });
+        items.add(item);
+        items.add(new InlineMenuItem());
+        item = new InlineMenuItem(createStringResource("pageUser.button.enable"), new InlineMenuItemAction() {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                updateAccountActivation(target, getSelectedAccounts(), true);
+            }
+        });
+        items.add(item);
+        item = new InlineMenuItem(createStringResource("pageUser.button.disable"), new InlineMenuItemAction() {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                updateAccountActivation(target, getSelectedAccounts(), false);
+            }
+        });
+        items.add(item);
+        item = new InlineMenuItem(createStringResource("pageUser.button.unlink"), new InlineMenuItemAction() {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                unlinkAccountPerformed(target, getSelectedAccounts());
+            }
+        });
+        items.add(item);
+        item = new InlineMenuItem(createStringResource("pageUser.button.unlock"), new InlineMenuItemAction() {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                unlockAccountPerformed(target, getSelectedAccounts());
+            }
+        });
+        items.add(item);
+        items.add(new InlineMenuItem());
+        item = new InlineMenuItem(createStringResource("pageUser.button.delete"), new InlineMenuItemAction() {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                deleteAccountPerformed(target);
+            }
+        });
+        items.add(item);
+
+        return items;
+    }
+
     private void initAccounts(WebMarkupContainer accounts) {
-        InlineMenu accountMenu = new InlineMenu(ID_ACCOUNT_MENU, new Model(new ArrayList()));
+        InlineMenu accountMenu = new InlineMenu(ID_ACCOUNT_MENU, new Model((Serializable) createAccountsMenu()));
         accounts.add(accountMenu);
 
         ListView<UserAccountDto> accountList = new ListView<UserAccountDto>(ID_ACCOUNT_LIST, accountsModel) {
@@ -827,22 +872,6 @@ public class PageUser extends PageAdminUsers {
         };
         mainForm.add(save);
 
-        // disabling user preview MID-1300
-//		AjaxSubmitLinkButton submit = new AjaxSubmitLinkButton("submit", ButtonType.POSITIVE,
-//				createStringResource("pageUser.button.submit")) {
-//
-//			@Override
-//			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-//				previewSavePerformed(target);
-//			}
-//
-//			@Override
-//			protected void onError(AjaxRequestTarget target, Form<?> form) {
-//				target.add(getFeedbackPanel());
-//			}
-//		};
-//		mainForm.add(submit);
-
         AjaxButton back = new AjaxButton("back", createStringResource("pageUser.button.back")) {
 
             @Override
@@ -854,20 +883,7 @@ public class PageUser extends PageAdminUsers {
 
         initAssignButtons(mainForm);
 
-        initAccountButton(mainForm);
-
         mainForm.add(new ExecuteChangeOptionsPanel(true, ID_EXECUTE_OPTIONS, executeOptionsModel));
-    }
-
-    private void initAccountButton(Form mainForm) {
-        AjaxLinkButton addAccount = new AjaxLinkButton("addAccount", createStringResource("pageUser.button.addAccount")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                showModalWindow(MODAL_ID_RESOURCE, target);
-            }
-        };
-        mainForm.add(addAccount);
     }
 
     private void initAssignButtons(Form mainForm) {
@@ -917,58 +933,6 @@ public class PageUser extends PageAdminUsers {
         AssignablePopupContent content = (AssignablePopupContent) modal.get(modal.getContentId());
         content.setType(type);
         showModalWindow(MODAL_ID_ASSIGNABLE, target);
-    }
-
-    private void initAccountButtons(WebMarkupContainer accountsPanel) {
-        AjaxLinkButton enableAccount = new AjaxLinkButton("enableAccount",
-                createStringResource("pageUser.button.enable")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                updateAccountActivation(target, getSelectedAccounts(), true);
-            }
-        };
-        accountsPanel.add(enableAccount);
-
-        AjaxLinkButton disableAccount = new AjaxLinkButton("disableAccount",
-                createStringResource("pageUser.button.disable")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                updateAccountActivation(target, getSelectedAccounts(), false);
-            }
-        };
-        accountsPanel.add(disableAccount);
-
-        AjaxLinkButton unlinkAccount = new AjaxLinkButton("unlinkAccount",
-                createStringResource("pageUser.button.unlink")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                unlinkAccountPerformed(target, getSelectedAccounts());
-            }
-        };
-        accountsPanel.add(unlinkAccount);
-
-        AjaxLinkButton deleteAccount = new AjaxLinkButton("deleteAccount", ButtonType.NEGATIVE,
-                createStringResource("pageUser.button.delete")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                deleteAccountPerformed(target);
-            }
-        };
-        accountsPanel.add(deleteAccount);
-
-        AjaxLinkButton unlockAccount = new AjaxLinkButton("unlockAccount",
-                createStringResource("pageUser.button.unlock")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                unlockAccountPerformed(target, getSelectedAccounts());
-            }
-        };
-        accountsPanel.add(unlockAccount);
     }
 
     private void initResourceModal() {

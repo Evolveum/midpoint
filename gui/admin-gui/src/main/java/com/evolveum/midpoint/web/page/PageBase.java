@@ -58,7 +58,6 @@ import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.RuntimeConfigurationType;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.devutils.debugbar.DebugBar;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.feedback.FeedbackMessage;
@@ -75,15 +74,12 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.resource.CoreLibrariesContributor;
 import org.apache.wicket.spring.injection.annot.SpringBean;
-import org.springframework.jmx.support.MBeanServerFactoryBean;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import javax.management.MBeanServer;
 import javax.management.MBeanServerFactory;
 import javax.management.ObjectName;
-import java.lang.management.ManagementFactory;
-import java.lang.management.RuntimeMXBean;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -123,8 +119,6 @@ public abstract class PageBase extends WebPage {
     private WorkflowService workflowService;
     @SpringBean(name = "midpointConfiguration")
     private MidpointConfiguration midpointConfiguration;
-    @SpringBean(name = "mbeanServer")
-    private MBeanServerFactoryBean factory;
 
     private PageBase previousPage;                  // experimental -- where to return e.g. when 'Back' button is clicked [NOT a class, in order to eliminate reinitialization when it is not needed]
     private boolean reinitializePreviousPages;      // experimental -- should we reinitialize all the chain of previous pages?
@@ -187,9 +181,6 @@ public abstract class PageBase extends WebPage {
         });
         add(version);
 
-//        LoginPanel loginPanel = new LoginPanel(ID_LOGIN_PANEL);
-//        add(loginPanel);
-
         WebMarkupContainer pageTitleContainer = new WebMarkupContainer(ID_PAGE_TITLE_CONTAINER);
         pageTitleContainer.add(new VisibleEnableBehaviour() {
 
@@ -244,7 +235,7 @@ public abstract class PageBase extends WebPage {
 
     protected void clearLessJsCache(AjaxRequestTarget target) {
         try {
-            ArrayList<MBeanServer> servers  = MBeanServerFactory.findMBeanServer(null);
+            ArrayList<MBeanServer> servers = MBeanServerFactory.findMBeanServer(null);
             if (servers.size() > 1) {
                 LOGGER.info("Too many mbean servers, cache won't be cleared.");
                 for (MBeanServer server : servers) {
@@ -258,7 +249,7 @@ public abstract class PageBase extends WebPage {
             if (target != null) {
                 target.add(PageBase.this);
             }
-        } catch (Exception ex){
+        } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't clear less/js cache", ex);
             error("Error occurred, reason: " + ex.getMessage());
             if (target != null) {

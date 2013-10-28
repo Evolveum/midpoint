@@ -21,6 +21,8 @@ import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.wicket.AttributeModifier;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.model.*;
@@ -48,7 +50,13 @@ public class CheckTableHeader extends SimplePanel<ObjectWrapper> {
 
     @Override
     protected void initLayout() {
-        CheckBox check = new CheckBox(ID_CHECK, new PropertyModel<Boolean>(getModel(), ObjectWrapper.F_SELECTED));
+        AjaxCheckBox check = new AjaxCheckBox(ID_CHECK,
+                new PropertyModel<Boolean>(getModel(), ObjectWrapper.F_SELECTED)) {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+            }
+        };
         add(check);
 
         Label icon = new Label(ID_ICON);
