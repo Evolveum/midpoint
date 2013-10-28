@@ -21,6 +21,7 @@ import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -47,6 +48,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -373,6 +375,16 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         if (InternalsConfig.encryptionChecks && !RepoAddOptions.isAllowUnencryptedValues(options)) {
             CryptoUtil.checkEncrypted(object);
+        }
+        
+        if (InternalsConfig.consistencyChecks) {
+        	object.checkConsistence();
+        }
+        
+        if (LOGGER.isTraceEnabled()) {
+        	// Explicitly log name
+        	PolyStringType namePolyType = object.asObjectable().getName();
+        	LOGGER.trace("NAME: {} - {}", namePolyType.getOrig(), namePolyType.getNorm());
         }
 
         if (options == null) {
@@ -977,6 +989,28 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         if (InternalsConfig.encryptionChecks) {
             CryptoUtil.checkEncrypted(modifications);
         }
+        
+        if (InternalsConfig.consistencyChecks) {
+        	for (ItemDelta modification: modifications) {
+        		modification.checkConsistence();
+        	}
+        }
+        
+        if (LOGGER.isTraceEnabled()) {
+        	for (ItemDelta modification: modifications) {
+        		if (modification instanceof PropertyDelta<?>) {
+        			PropertyDelta<?> propDelta = (PropertyDelta<?>)modification;
+        			if (propDelta.getPath().equals(new ItemPath(ObjectType.F_NAME))) {
+        				Collection<PrismPropertyValue<PolyString>> values = propDelta.getValues(PolyString.class);
+        				for (PrismPropertyValue<PolyString> pval: values) {
+        					PolyString value = pval.getValue();
+        					LOGGER.trace("NAME delta: {} - {}", value.getOrig(), value.getNorm());
+        				}
+        			}
+        		}
+        	}        	
+        }
+
 
         OperationResult subResult = result.createSubresult(MODIFY_OBJECT);
         subResult.addParam("type", type.getName());

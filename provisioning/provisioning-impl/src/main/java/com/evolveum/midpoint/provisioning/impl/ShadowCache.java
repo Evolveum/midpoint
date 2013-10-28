@@ -1270,6 +1270,8 @@ public abstract class ShadowCache {
 			resultIsResourceShadowClone = true;
 		}
 		
+		assert resultShadow.getPrismContext() != null : "No prism context in resultShadow";
+		
 		ResourceAttributeContainer resourceAttributesContainer = ShadowUtil
 				.getAttributesContainer(resourceShadow);
 
@@ -1354,6 +1356,11 @@ public abstract class ShadowCache {
 			}
 		}
 		
+		// Sanity asserts to catch some exptic bugs
+		PolyStringType resultName = resultShadow.asObjectable().getName();
+		assert resultName != null : "No name generated in "+resultShadow;
+		assert !StringUtils.isEmpty(resultName.getOrig()) : "No name (orig) in "+resultShadow;
+		assert !StringUtils.isEmpty(resultName.getNorm()) : "No name (norm) in "+resultShadow;
 
 		return resultShadow;
 	}
