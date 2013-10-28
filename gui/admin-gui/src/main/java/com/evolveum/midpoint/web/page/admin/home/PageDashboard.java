@@ -221,7 +221,7 @@ public class PageDashboard extends PageAdminHome {
                                 SimplePieChartDto tasksDto = new SimplePieChartDto("PageDashboard.activeTasks", 100, 35);
                                 SimplePieChartDto loadDto = new SimplePieChartDto("PageDashboard.serverLoad", 100, WebMiscUtil.getSystemLoad(), "%");
                                 SimplePieChartDto memDto = new SimplePieChartDto("PageDashboard.usedRam",
-                                        WebMiscUtil.getMaxRam(), WebMiscUtil.getRamUsage(), "MB");
+                                        WebMiscUtil.getMaxRam(), WebMiscUtil.getRamUsage(), "%");
 
                                 SystemInfoDto sysInfoDto = new SystemInfoDto(usersDto, tasksDto, loadDto, memDto);
 
