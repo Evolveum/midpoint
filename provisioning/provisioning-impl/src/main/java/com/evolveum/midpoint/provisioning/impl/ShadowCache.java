@@ -49,6 +49,7 @@ import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
@@ -480,7 +481,8 @@ public abstract class ShadowCache {
 		
 		// $shadow/name
 		if (!newName.equals(shadow.asObjectable().getName().getOrig())){
-			PropertyDelta<?> shadowNameDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_NAME, shadow.getDefinition(), new PolyStringType(newName));
+			PropertyDelta<?> shadowNameDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_NAME, shadow.getDefinition(), 
+					new PolyString(newName));
 			deltas.add(shadowNameDelta);
 		}
 		
@@ -1058,7 +1060,9 @@ public abstract class ShadowCache {
 			Collection<PropertyDelta> renameDeltas = new ArrayList<PropertyDelta>();
 			
 			
-			PropertyDelta<?> shadowNameDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_NAME, oldShadowType.asPrismObject().getDefinition(), ProvisioningUtil.determineShadowName(currentShadowType.asPrismObject()));
+			PropertyDelta<?> shadowNameDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_NAME, 
+					oldShadowType.asPrismObject().getDefinition(), 
+					ProvisioningUtil.determineShadowName(currentShadowType.asPrismObject()));
 			renameDeltas.add(shadowNameDelta);
 			
 			shadowNameDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME), oldShadowType.asPrismObject().getDefinition(), newValue);
@@ -1283,7 +1287,7 @@ public abstract class ShadowCache {
 			resultShadowType.setObjectClass(resourceAttributesContainer.getDefinition().getTypeName());
 		}
 		if (resultShadowType.getName() == null) {
-			resultShadowType.setName(ProvisioningUtil.determineShadowName(resourceShadow));
+			resultShadowType.setName(new PolyStringType(ProvisioningUtil.determineShadowName(resourceShadow)));
 		}
 		if (resultShadowType.getResource() == null) {
 			resultShadowType.setResourceRef(ObjectTypeUtil.createObjectRef(resource));
@@ -1356,7 +1360,7 @@ public abstract class ShadowCache {
 			}
 		}
 		
-		// Sanity asserts to catch some exptic bugs
+		// Sanity asserts to catch some exotic bugs
 		PolyStringType resultName = resultShadow.asObjectable().getName();
 		assert resultName != null : "No name generated in "+resultShadow;
 		assert !StringUtils.isEmpty(resultName.getOrig()) : "No name (orig) in "+resultShadow;
