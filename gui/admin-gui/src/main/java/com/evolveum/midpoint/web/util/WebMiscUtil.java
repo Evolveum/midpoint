@@ -57,7 +57,9 @@ import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.namespace.QName;
 import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryMXBean;
 import java.lang.management.OperatingSystemMXBean;
+import java.lang.management.RuntimeMXBean;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -437,20 +439,45 @@ public final class WebMiscUtil {
         return "silk-user";
     }
 
-    public static int getSystemLoad(){
-        OperatingSystemMXBean osBean = ManagementFactory.getOperatingSystemMXBean();
-        return (int)osBean.getSystemLoadAverage();
+    public static double getSystemLoad(){
+        com.sun.management.OperatingSystemMXBean operatingSystemMXBean = (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
+        RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
+        int availableProcessors = operatingSystemMXBean.getAvailableProcessors();
+        long prevUpTime = runtimeMXBean.getUptime();
+        long prevProcessCpuTime = operatingSystemMXBean.getProcessCpuTime();
+
+        try{
+            Thread.sleep(30);
+        }catch (Exception ignored) {}
+
+        operatingSystemMXBean = (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
+        long upTime = runtimeMXBean.getUptime();
+        long processCpuTime = operatingSystemMXBean.getProcessCpuTime();
+        long elapsedCpu = processCpuTime - prevProcessCpuTime;
+        long elapsedTime = upTime - prevUpTime;
+
+        double cpuUsage = Math.min(99F, elapsedCpu / (elapsedTime * 10000F * availableProcessors));
+
+        return cpuUsage;
     }
 
-    public static int getMaxRam(){
+    public static double getMaxRam(){
         int MB = 1024*1024;
-        return (int)Runtime.getRuntime().maxMemory()/MB;
+
+        MemoryMXBean mBean = ManagementFactory.getMemoryMXBean();
+        long maxHeap = mBean.getHeapMemoryUsage().getMax();
+        long maxNonHeap = mBean.getNonHeapMemoryUsage().getMax();
+
+        return (maxHeap+maxNonHeap)/MB;
     }
 
-    public static int getRamUsage(){
+    public static double getRamUsage(){
         int MB = 1024*1024;
-        long maxMem = Runtime.getRuntime().maxMemory();
-        long freeMem = Runtime.getRuntime().freeMemory();
-        return (int)(maxMem-freeMem)/MB;
+
+        MemoryMXBean mBean = ManagementFactory.getMemoryMXBean();
+        long usedHead = mBean.getHeapMemoryUsage().getUsed();
+        long usedNonHeap = mBean.getNonHeapMemoryUsage().getUsed();
+
+        return (usedHead+usedNonHeap)/MB;
     }
 }
