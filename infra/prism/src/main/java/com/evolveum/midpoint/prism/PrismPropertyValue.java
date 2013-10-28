@@ -215,6 +215,15 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
     	if (value != null && rawElement != null) {
 			throw new IllegalStateException("Both value and raw element specified in property value "+this+" ("+myPath+" in "+rootItem+")");
 		}
+    	if (value != null) {
+    		if (value instanceof Recomputable) {
+    			try {
+    				((Recomputable)value).checkConsistence();
+    			} catch (IllegalStateException e) {
+    				throw new IllegalStateException(e.getMessage()+" in property value "+this+" ("+myPath+" in "+rootItem+")", e);
+    			}
+    		}
+    	}
 	}
 
 	@Override
