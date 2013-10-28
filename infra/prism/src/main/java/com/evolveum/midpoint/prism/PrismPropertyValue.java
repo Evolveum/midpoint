@@ -28,6 +28,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -58,10 +59,29 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
                     "value object to another property value.");
         }
         this.value = value;
+        checkValue();
     }
+
+    /**
+     * Private constructor just for clonning. 
+     */
+    private PrismPropertyValue(OriginType type, Objectable source) {
+    	super(type,source);
+    }
+    
+    private PrismPropertyValue() {
+    }
+
+	public static <T> PrismPropertyValue<T> createRaw(Object rawElement) {
+		PrismPropertyValue<T> pval = new PrismPropertyValue<T>();
+		pval.setRawElement(rawElement);
+		return pval;
+	}
+
 
     public void setValue(T value) {
         this.value = value;
+        checkValue();
         // To make sure there is no stale value
         clearDomElement();
     }
@@ -191,6 +211,10 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 		if (value == null) {
 			throw new IllegalArgumentException("Null value in "+this);
 		}
+		if (value instanceof PolyStringType) {
+			// This is illegal. PolyString should be there instead.
+			throw new IllegalArgumentException("PolyStringType found where PolyString should be in "+this);
+		}
 		Class<? extends Object> valueClass = value.getClass();
 		if (value instanceof Serializable) {
 			// This is OK
@@ -233,7 +257,7 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 
 	@Override
     public PrismPropertyValue<T> clone() {
-        PrismPropertyValue clone = new PrismPropertyValue(null, getOriginType(), getOriginObject());
+        PrismPropertyValue clone = new PrismPropertyValue(getOriginType(), getOriginObject());
         copyValues(clone);
         return clone;
     }
@@ -290,7 +314,8 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 	private T parseRawElementToNewRealValue(PrismPropertyValue<T> prismPropertyValue, PrismPropertyDefinition definition) 
 				throws SchemaException {
 		PrismDomProcessor domProcessor = definition.getPrismContext().getPrismDomProcessor();
-		return (T) domProcessor.parsePrismPropertyRealValue(prismPropertyValue.rawElement, (PrismPropertyDefinition) definition);
+		T value = (T) domProcessor.parsePrismPropertyRealValue(prismPropertyValue.rawElement, (PrismPropertyDefinition) definition);
+		return value;
 	}
 
 

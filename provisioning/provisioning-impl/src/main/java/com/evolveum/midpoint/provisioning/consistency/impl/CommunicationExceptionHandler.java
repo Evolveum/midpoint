@@ -50,6 +50,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.FailedOperationType
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationalStateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 @Component
 public class CommunicationExceptionHandler extends ErrorHandler {
@@ -117,7 +118,7 @@ public class CommunicationExceptionHandler extends ErrorHandler {
 			if (shadow.getFailedOperationType() == null) {
 //				ResourceType resource = shadow.getResource();
 				if (shadow.getName() == null) {
-					shadow.setName(ProvisioningUtil.determineShadowName(shadow.asPrismObject()));
+					shadow.setName(new PolyStringType(ProvisioningUtil.determineShadowName(shadow.asPrismObject())));
 				}
 				if (shadow.getResourceRef() == null || shadow.getResourceRef().getOid() == null){
 					if (resource != null){
