@@ -45,6 +45,7 @@ public class ResourceDtoProvider extends BaseSortableDataProvider<ResourceDto> {
 
     private static final String DOT_CLASS = ResourceDtoProvider.class.getName() + ".";
     private static final String OPERATION_LIST_RESOURCES = DOT_CLASS + "listResources";
+    private static final String OPERATION_LIST_RESOURCE = DOT_CLASS + "listResource";
     private static final String OPERATION_COUNT_RESOURCES = DOT_CLASS + "countResources";
 
     public ResourceDtoProvider(Component component) {
@@ -67,14 +68,22 @@ public class ResourceDtoProvider extends BaseSortableDataProvider<ResourceDto> {
             List<PrismObject<ResourceType>> resources = getModel().searchObjects(ResourceType.class, query, null, task, result);
 
             for (PrismObject<ResourceType> resource : resources) {
+
+                OperationResult result1 = result.createMinorSubresult(OPERATION_LIST_RESOURCE);
                 ResourceType resourceType = resource.asObjectable();
 
-                PrismObject<ConnectorType> connector = resolveConnector(resourceType, task, result);
+                PrismObject<ConnectorType> connector = null;
+                try {
+                    connector = resolveConnector(resourceType, task, result1);
+                } catch (ObjectNotFoundException e) {
+                    result1.recordWarning("Connector for resource " + resource.getOid() + " couldn't be resolved", e);
+                }
                 ConnectorType connectorType = connector != null ? connector.asObjectable() : null;
-                
                 getAvailableData().add(new ResourceDto(resource, connectorType));
+
+                result1.recordSuccessIfUnknown();
             }
-            result.recordSuccess();
+            result.computeStatus();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't list resources.", ex);
         }
