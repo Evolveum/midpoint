@@ -16,7 +16,10 @@
 
 package com.evolveum.midpoint.web.page.admin.resources;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
@@ -29,16 +32,17 @@ import com.evolveum.midpoint.web.component.button.ButtonType;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.LinkColumn;
-import com.evolveum.midpoint.web.component.data.column.LinkIconColumn;
+import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.resources.component.ContentPanel;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageContentAccounts;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageContentEntitlements;
 import com.evolveum.midpoint.web.page.admin.resources.dto.*;
+import com.evolveum.midpoint.web.page.admin.users.dto.UserListItemDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
@@ -58,7 +62,9 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.request.resource.ResourceReference;
 
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -77,21 +83,23 @@ public class PageResources extends PageAdminResources {
     private static final String ID_DELETE_HOST = "deleteHost";
     private static final String ID_DELETE_RESOURCES_POPUP = "deleteResourcesPopup";
     private static final String ID_DELETE_HOSTS_POPUP = "deleteHostsPopup";
+    private static final String ID_MAIN_FORM = "mainForm";
+    private static final String ID_TABLE = "table";
+    private static final String ID_CONNECTOR_TABLE = "connectorTable";
 
     public PageResources() {
         initLayout();
     }
 
     private void initLayout() {
-        Form mainForm = new Form("mainForm");
+        Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
-        TablePanel resources = new TablePanel<ResourceDto>("table",
-                new ResourceDtoProvider(this), initResourceColumns());
+        TablePanel resources = new TablePanel<ResourceDto>(ID_TABLE, initResourceDataProvider(), initResourceColumns());
         resources.setOutputMarkupId(true);
         mainForm.add(resources);
 
-        TablePanel connectorHosts = new TablePanel<ConnectorHostType>("connectorTable",
+        TablePanel connectorHosts = new TablePanel<ConnectorHostType>(ID_CONNECTOR_TABLE,
                 new ObjectDataProvider(PageResources.this, ConnectorHostType.class), initConnectorHostsColumns());
         connectorHosts.setShowPaging(false);
         connectorHosts.setOutputMarkupId(true);
@@ -124,17 +132,38 @@ public class PageResources extends PageAdminResources {
         });
     }
 
-    private void initButtons(Form mainForm) {
-        AjaxLinkButton deleteResource = new AjaxLinkButton("deleteResource", ButtonType.NEGATIVE,
-                createStringResource("PageBase.button.delete")) {
+    private BaseSortableDataProvider initResourceDataProvider() {
+        ObjectDataProvider provider = new ObjectDataProvider<ResourceDto, ResourceType>(this, ResourceType.class) {
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
-                deleteResourcePerformed(target);
+            public ResourceDto createDataObjectWrapper(PrismObject<ResourceType> obj) {
+                return createRowDto(obj);
             }
         };
-        mainForm.add(deleteResource);
 
+        Collection<SelectorOptions<GetOperationOptions>> options =
+                SelectorOptions.createCollection(ResourceType.F_CONNECTOR, GetOperationOptions.createResolve());
+        provider.setOptions(options);
+
+        return provider;
+    }
+
+    private ResourceDto createRowDto(PrismObject<ResourceType> object) {
+        ResourceDto dto =  new ResourceDto(object);
+        dto.getMenuItems().add(new InlineMenuItem(createStringResource("PageBase.button.delete"),
+                new ColumnMenuAction<ResourceDto>() {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        ResourceDto rowDto = getRowModel().getObject();
+                        deleteResourcePerformed(target, rowDto);
+                    }
+                }));
+
+        return dto;
+    }
+
+    private void initButtons(Form mainForm) {
         AjaxLinkButton deleteHost = new AjaxLinkButton(ID_DELETE_HOST, ButtonType.NEGATIVE,
                 createStringResource("PageBase.button.delete")) {
 
@@ -176,34 +205,6 @@ public class PageResources extends PageAdminResources {
         columns.add(new PropertyColumn(createStringResource("pageResources.bundle"), "bundle"));
         columns.add(new PropertyColumn(createStringResource("pageResources.version"), "version"));
 
-        columns.add(new AbstractColumn<ResourceDto, String>(createStringResource("pageResources.content")) {
-
-            @Override
-            public void populateItem(Item<ICellPopulator<ResourceDto>> cellItem,
-                                     String componentId, final IModel<ResourceDto> model) {
-                cellItem.add(new ContentPanel(componentId) {
-
-                    @Override
-                    public void accountsPerformed(AjaxRequestTarget target) {
-                        ResourceDto dto = model.getObject();
-
-                        PageParameters parameters = new PageParameters();
-                        parameters.add(PageContentAccounts.PARAM_RESOURCE_ID, dto.getOid());
-                        setResponsePage(PageContentAccounts.class, parameters);
-                    }
-
-                    @Override
-                    public void entitlementsPerformed(AjaxRequestTarget target) {
-                        ResourceDto dto = model.getObject();
-
-                        PageParameters parameters = new PageParameters();
-                        parameters.add(PageContentEntitlements.PARAM_RESOURCE_ID, dto.getOid());
-                        setResponsePage(PageContentEntitlements.class, parameters);
-                    }
-                });
-            }
-        });
-
         column = new LinkIconColumn<ResourceDto>(createStringResource("pageResources.status")) {
 
             @Override
@@ -244,7 +245,52 @@ public class PageResources extends PageAdminResources {
         };
         columns.add(column);
 
+        columns.add(new AbstractColumn<ResourceDto, String>(createStringResource("pageResources.content")) {
+
+            @Override
+            public void populateItem(Item<ICellPopulator<ResourceDto>> cellItem,
+                                     String componentId, final IModel<ResourceDto> model) {
+                cellItem.add(new ContentPanel(componentId) {
+
+                    @Override
+                    public void accountsPerformed(AjaxRequestTarget target) {
+                        ResourceDto dto = model.getObject();
+
+                        PageParameters parameters = new PageParameters();
+                        parameters.add(PageContentAccounts.PARAM_RESOURCE_ID, dto.getOid());
+                        setResponsePage(PageContentAccounts.class, parameters);
+                    }
+
+                    @Override
+                    public void entitlementsPerformed(AjaxRequestTarget target) {
+                        ResourceDto dto = model.getObject();
+
+                        PageParameters parameters = new PageParameters();
+                        parameters.add(PageContentEntitlements.PARAM_RESOURCE_ID, dto.getOid());
+                        setResponsePage(PageContentEntitlements.class, parameters);
+                    }
+                });
+            }
+        });
+
+        InlineMenuHeaderColumn menu = new InlineMenuHeaderColumn(initInlineMenu());
+        columns.add(menu);
+
         return columns;
+    }
+
+    private List<InlineMenuItem> initInlineMenu() {
+        List<InlineMenuItem> headerMenuItems = new ArrayList<InlineMenuItem>();
+        headerMenuItems.add(new InlineMenuItem(createStringResource("PageBase.button.delete"),
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        deleteResourcePerformed(target, null);
+                    }
+                }));
+
+        return headerMenuItems;
     }
 
     private List<IColumn<ConnectorHostType, String>> initConnectorHostsColumns() {
@@ -300,11 +346,14 @@ public class PageResources extends PageAdminResources {
         dialog.show(target);
     }
 
-    private void deleteResourcePerformed(AjaxRequestTarget target) {
-        List<ResourceDto> selected = WebMiscUtil.getSelectedData(getResourceTable());
+    private List<ResourceDto> isAnyResourceSelected(AjaxRequestTarget target, ResourceDto single) {
+        return WebMiscUtil.isAnythingSelected(target, single, getResourceTable(), this,
+                "pageResources.message.noResourceSelected");
+    }
+
+    private void deleteResourcePerformed(AjaxRequestTarget target, ResourceDto single) {
+        List<ResourceDto> selected = isAnyResourceSelected(target, single);
         if (selected.isEmpty()) {
-            warn(getString("pageResources.message.noResourceSelected"));
-            target.add(getFeedbackPanel());
             return;
         }
 
@@ -313,11 +362,11 @@ public class PageResources extends PageAdminResources {
     }
 
     private TablePanel getResourceTable() {
-        return (TablePanel) get("mainForm:table");
+        return (TablePanel) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
     }
 
     private TablePanel getConnectorHostTable() {
-        return (TablePanel) get("mainForm:connectorTable");
+        return (TablePanel) get(createComponentPath(ID_MAIN_FORM, ID_CONNECTOR_TABLE));
     }
 
     /**
@@ -377,8 +426,7 @@ public class PageResources extends PageAdminResources {
     }
 
     private void deleteResourceConfirmedPerformed(AjaxRequestTarget target) {
-        TablePanel resourceTable = getResourceTable();
-        List<ResourceDto> selected = WebMiscUtil.getSelectedData(resourceTable);
+        List<ResourceDto> selected = isAnyResourceSelected(target, null);
 
         OperationResult result = new OperationResult(OPERATION_DELETE_RESOURCES);
         for (ResourceDto resource : selected) {
@@ -399,20 +447,12 @@ public class PageResources extends PageAdminResources {
             result.recordStatus(OperationResultStatus.SUCCESS, "The resource(s) have been successfully deleted.");
         }
 
+        TablePanel resourceTable = getResourceTable();
         ResourceDtoProvider provider = (ResourceDtoProvider) resourceTable.getDataTable().getDataProvider();
         provider.clearCache();
 
         showResult(result);
         target.add(getFeedbackPanel(), resourceTable);
-    }
-
-    private void showSyncStatus(AjaxRequestTarget target, IModel<ResourceDto> rowModel) {
-        OperationResult result = new OperationResult(OPERATION_SYNC_STATUS);
-        ResourceDto dto = rowModel.getObject();
-        if (dto == null) {
-            result.recordFatalError("Fail to synchronize resource");
-        }
-        //resourceSync.setResource(resourceItem);
     }
 
     private void discoveryRemotePerformed(AjaxRequestTarget target) {

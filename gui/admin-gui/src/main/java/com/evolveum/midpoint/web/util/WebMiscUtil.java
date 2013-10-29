@@ -35,6 +35,7 @@ import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.PageUrlMapping;
@@ -45,6 +46,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
 import org.apache.wicket.Session;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
 import org.apache.wicket.authroles.authorization.strategies.role.Roles;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -479,5 +481,35 @@ public final class WebMiscUtil {
         long usedNonHeap = mBean.getNonHeapMemoryUsage().getUsed();
 
         return (usedHead+usedNonHeap)/MB;
+    }
+
+    /**
+     * Checks table if has any selected rows ({@link Selectable} interface dtos), adds "single"
+     * parameter to selected items if it's not null. If table has no selected rows warn message
+     * is added to feedback panel, and feedback is refreshed through {@link AjaxRequestTarget}
+     *
+     * @param target
+     * @param single this parameter is used for row actions when action must be done only on chosen row.
+     * @param table
+     * @param page
+     * @param nothingWarnMessage
+     * @param <T>
+     * @return
+     */
+    public static <T extends Selectable> List<T> isAnythingSelected(AjaxRequestTarget target, T single, TablePanel table,
+                                                              PageBase page, String nothingWarnMessage) {
+        List<T> selected;
+        if (single != null) {
+            selected = new ArrayList<T>();
+            selected.add(single);
+        } else {
+            selected = WebMiscUtil.getSelectedData(table);
+            if (selected.isEmpty()) {
+                page.warn(page.getString(nothingWarnMessage));
+                target.add(page.getFeedbackPanel());
+            }
+        }
+
+        return selected;
     }
 }

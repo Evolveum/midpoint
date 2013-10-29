@@ -35,6 +35,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
@@ -43,7 +44,6 @@ import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.model.StringResourceModel;
 
 import java.util.*;
 
@@ -144,8 +144,13 @@ public class NameStep extends WizardStep {
             public String getIdValue(ConnectorType object, int index) {
                 return Integer.toString(index);
             }
-        }
-        );
+        });
+        connectorVersion.add(new AjaxFormComponentUpdatingBehavior("onchange") {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+            }
+        });
         connectorVersion.add(new VisibleEnableBehaviour() {
 
             @Override
@@ -585,9 +590,12 @@ public class NameStep extends WizardStep {
         }
     }
 
+
+
     @Override
     public boolean isComplete() {
-        DropDownChoice<ConnectorType> version = (DropDownChoice) get(ID_CONNECTOR_VERSION);
-        return version.getModelObject() != null;
+//        DropDownChoice<ConnectorType> version = (DropDownChoice) get(ID_CONNECTOR_VERSION);
+//        return version.getModelObject() != null;
+        return true;
     }
 }

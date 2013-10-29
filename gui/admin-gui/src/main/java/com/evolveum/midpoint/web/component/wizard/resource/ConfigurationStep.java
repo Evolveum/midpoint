@@ -45,6 +45,7 @@ public class ConfigurationStep extends WizardStep {
     private static final String TEST_CONNECTION = DOT_CLASS + "testConnection";
 
     private static final String ID_CONFIGURATION = "configuration";
+    private static final String ID_TIMEOUTS = "timeouts";
     private static final String ID_TEST_CONNECTION = "testConnection";
 
     private IModel<ResourceType> resourceModel;
