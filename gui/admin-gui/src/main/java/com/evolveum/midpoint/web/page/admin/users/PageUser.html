@@ -33,7 +33,7 @@
                 <div wicket:id="accounts">
                     <div class="row assignable-header">
                         <div class="col-xs-10">
-                            <input type="checkbox"/>
+                            <input type="checkbox" wicket:id="accountCheckAll"/>
                             <h3><wicket:message key="pageUser.accounts"/></h3>
                         </div>
                         <div class="col-xs-2 cog" wicket:id="accountMenu" />
@@ -43,13 +43,13 @@
                     </div>
                 </div>
 
-                <div wicket:id="assignments">
+                <div wicket:id="assignments" style="margin-top: 30px;">
                     <div class="row assignable-header">
                         <div class="col-xs-10">
-                            <input type="checkbox"/>
+                            <input type="checkbox" wicket:id="assignmentCheckAll"/>
                             <h3><wicket:message key="pageUser.assignments"/></h3>
                         </div>
-                        <div class="col-xs-2 cog" />
+                        <div class="col-xs-2 cog" wicket:id="assignmentMenu"/>
                     </div>
                     <div wicket:id="assignmentList">
                         <div wicket:id="assignmentEditor" class="assignment-item" />
@@ -70,19 +70,8 @@
                 <a class="btn btn-default" wicket:id="back"/>
             </span>
             <!-- todo implement previes -->
-            <a class="btn btn-success">Preview</a>
+            <!--<a class="btn btn-success">Preview</a>-->
             <a class="btn btn-primary" wicket:id="save"/>
-        </div>
-
-        <!-- todo remove this -->
-        <div class="operatingFormButtons">
-            <div class="operatingFormBlock">
-                <span class="operatingFormText"><wicket:message key="pageUser.button.label.assign"/></span>
-                <a wicket:id="assignAccount"/>
-                <a wicket:id="assignRole"/>
-                <a wicket:id="assignOrgUnit"/>
-                <a wicket:id="unassign"/>
-            </div>
         </div>
     </form>
 </wicket:extend>

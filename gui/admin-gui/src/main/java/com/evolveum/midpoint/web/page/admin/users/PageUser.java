@@ -46,8 +46,6 @@ import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptions
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorPanel;
-import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
-import com.evolveum.midpoint.web.component.button.ButtonType;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.prism.*;
@@ -58,7 +56,6 @@ import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProvider;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProviderOptions;
-import com.evolveum.midpoint.web.page.admin.users.component.AccountOperationButtons;
 import com.evolveum.midpoint.web.page.admin.users.component.AssignablePopupContent;
 import com.evolveum.midpoint.web.page.admin.users.component.ResourcesPopup;
 import com.evolveum.midpoint.web.page.admin.users.dto.SimpleUserResourceProvider;
@@ -71,13 +68,13 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
-import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -127,6 +124,9 @@ public class PageUser extends PageAdminUsers {
     private static final String ID_ASSIGNMENTS = "assignments";
     private static final String ID_TASKS = "tasks";
     private static final String ID_ACCOUNT_MENU = "accountMenu";
+    private static final String ID_ASSIGNMENT_MENU = "assignmentMenu";
+    private static final String ID_ACCOUNT_CHECK_ALL = "accountCheckAll";
+    private static final String ID_ASSIGNMENT_CHECK_ALL = "assignmentCheckAll";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageUser.class);
     private LoadableModel<ObjectWrapper> userModel;
@@ -333,7 +333,7 @@ public class PageUser extends PageAdminUsers {
 //					result.recordFatalError("Couldn't load account after preview." + ex.getMessage(), ex);
 //					LoggingUtils.logException(LOGGER, "Couldn't load account after preview", ex);
 //				}
-//				} 
+//				}
 
                 ObjectWrapper ow = new ObjectWrapper(resourceName, null, delta.getObjectToAdd(), ContainerStatus.ADDING);
                 if (ow.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(ow.getResult())) {
@@ -554,6 +554,45 @@ public class PageUser extends PageAdminUsers {
         // add(dialog);
     }
 
+    private List<InlineMenuItem> createAssignmentsMenu() {
+        List<InlineMenuItem> items = new ArrayList<InlineMenuItem>();
+        InlineMenuItem item = new InlineMenuItem(createStringResource("pageUser.menu.assignAccount"), new InlineMenuItemAction() {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                showAssignablePopup(target, ResourceType.class);
+            }
+        });
+        items.add(item);
+        item = new InlineMenuItem(createStringResource("pageUser.menu.assignRole"), new InlineMenuItemAction() {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                showAssignablePopup(target, RoleType.class);
+            }
+        });
+        items.add(item);
+        item = new InlineMenuItem(createStringResource("pageUser.menu.assignOrg"), new InlineMenuItemAction() {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                showAssignablePopup(target, OrgType.class);
+            }
+        });
+        items.add(item);
+        items.add(new InlineMenuItem());
+        item = new InlineMenuItem(createStringResource("pageUser.menu.unassign"), new InlineMenuItemAction() {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                deleteAssignmentPerformed(target);
+            }
+        });
+        items.add(item);
+
+        return items;
+    }
+
     private List<InlineMenuItem> createAccountsMenu() {
         List<InlineMenuItem> items = new ArrayList<InlineMenuItem>();
         InlineMenuItem item = new InlineMenuItem(createStringResource("pageUser.button.addAccount"), new InlineMenuItemAction() {
@@ -611,6 +650,15 @@ public class PageUser extends PageAdminUsers {
     }
 
     private void initAccounts(WebMarkupContainer accounts) {
+        //todo implement check all functionality [lazyman]
+        AjaxCheckBox accountCheckAll = new AjaxCheckBox(ID_ACCOUNT_CHECK_ALL, new Model()) {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+            }
+        };
+        accounts.add(accountCheckAll);
+
         InlineMenu accountMenu = new InlineMenu(ID_ACCOUNT_MENU, new Model((Serializable) createAccountsMenu()));
         accounts.add(accountMenu);
 
@@ -618,27 +666,9 @@ public class PageUser extends PageAdminUsers {
 
             @Override
             protected void populateItem(final ListItem<UserAccountDto> item) {
-
                 PrismObjectPanel account = new PrismObjectPanel("account", new PropertyModel<ObjectWrapper>(
                         item.getModel(), "object"), new PackageResourceReference(ImgResources.class,
                         ImgResources.HDD_PRISM), (Form) PageUser.this.get(ID_MAIN_FORM)) {
-
-                    @Override
-                    protected Panel createOperationPanel(String id) {
-                        return new AccountOperationButtons(id, new PropertyModel<ObjectWrapper>(item.getModel(),
-                                "object")) {
-
-                            @Override
-                            public void deletePerformed(AjaxRequestTarget target) {
-                                deleteAccountPerformed(target, item.getModel());
-                            }
-
-                            @Override
-                            public void unlinkPerformed(AjaxRequestTarget target) {
-                                unlinkAccountPerformed(target, item.getModel());
-                            }
-                        };
-                    }
 
                     @Override
                     protected Component createHeader(String id, IModel<ObjectWrapper> model) {
@@ -790,6 +820,18 @@ public class PageUser extends PageAdminUsers {
     }
 
     private void initAssignments(WebMarkupContainer assignments) {
+        //todo implement check all functionality [lazyman]
+        AjaxCheckBox assignmentCheckAll = new AjaxCheckBox(ID_ASSIGNMENT_CHECK_ALL, new Model()) {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+            }
+        };
+        assignments.add(assignmentCheckAll);
+
+        InlineMenu accountMenu = new InlineMenu(ID_ASSIGNMENT_MENU, new Model((Serializable) createAssignmentsMenu()));
+        assignments.add(accountMenu);
+
         ListView<AssignmentEditorDto> assignmentList = new ListView<AssignmentEditorDto>(ID_ASSIGNMENT_LIST,
                 assignmentsModel) {
 
@@ -881,51 +923,7 @@ public class PageUser extends PageAdminUsers {
         };
         mainForm.add(back);
 
-        initAssignButtons(mainForm);
-
         mainForm.add(new ExecuteChangeOptionsPanel(true, ID_EXECUTE_OPTIONS, executeOptionsModel));
-    }
-
-    private void initAssignButtons(Form mainForm) {
-        AjaxLinkButton addAccountAssign = new AjaxLinkButton("assignAccount",
-                createStringResource("pageUser.button.assignAccount")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                showAssignablePopup(target, ResourceType.class);
-            }
-        };
-        mainForm.add(addAccountAssign);
-
-        AjaxLinkButton addRoleAssign = new AjaxLinkButton("assignRole",
-                createStringResource("pageUser.button.assignRole")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                showAssignablePopup(target, RoleType.class);
-            }
-        };
-        mainForm.add(addRoleAssign);
-
-        AjaxLinkButton addOrgUnitAssign = new AjaxLinkButton("assignOrgUnit",
-                createStringResource("pageUser.button.assignOrgUnit")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                showAssignablePopup(target, OrgType.class);
-            }
-        };
-        mainForm.add(addOrgUnitAssign);
-
-        AjaxLinkButton unassign = new AjaxLinkButton("unassign", ButtonType.NEGATIVE,
-                createStringResource("pageUser.button.unassign")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                deleteAssignmentPerformed(target);
-            }
-        };
-        mainForm.add(unassign);
     }
 
     private void showAssignablePopup(AjaxRequestTarget target, Class<? extends ObjectType> type) {
@@ -1868,16 +1866,6 @@ public class PageUser extends PageAdminUsers {
         target.add(get(createComponentPath(ID_MAIN_FORM, ID_ACCOUNTS)));
     }
 
-    // private void linkAccountPerformed(AjaxRequestTarget target,
-    // IModel<UserAccountDto> model) {
-    // UserAccountDto dto = model.getObject();
-    // if (UserDtoStatus.ADD.equals(dto.getStatus())) {
-    // return;
-    // }
-    // dto.setStatus(UserDtoStatus.MODIFY);
-    // target.add(getAccordionsItem());
-    // }
-
     private void deleteAccountPerformed(AjaxRequestTarget target, IModel<UserAccountDto> model) {
         List<UserAccountDto> accounts = accountsModel.getObject();
         UserAccountDto account = model.getObject();
@@ -1891,23 +1879,8 @@ public class PageUser extends PageAdminUsers {
                 account.setStatus(UserDtoStatus.DELETE);
             }
         }
-        // target.appendJavaScript("window.location.reload()");
         target.add(get(createComponentPath(ID_MAIN_FORM, ID_ACCOUNTS)));
     }
-
-    // private void undeleteAccountPerformed(AjaxRequestTarget target,
-    // IModel<UserAccountDto> model) {
-    // // List<UserAccountDto> accounts = accountsModel.getObject();
-    // UserAccountDto account = model.getObject();
-    // account.setStatus(UserDtoStatus.MODIFY);
-    // // if (UserDtoStatus.ADD.equals(account.getStatus())) {
-    // // accounts.remove(account);
-    // // } else {
-    // // account.setStatus(UserDtoStatus.DELETE);
-    // // }
-    // // target.appendJavaScript("window.location.reload()");
-    // target.add(getAccordionsItem());
-    // }
 
     private void unlockAccountPerformed(AjaxRequestTarget target, List<UserAccountDto> selected) {
         if (!isAnyAccountSelected(target)) {
