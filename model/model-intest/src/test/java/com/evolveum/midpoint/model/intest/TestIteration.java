@@ -761,7 +761,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
                                   
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
-        modifyUserReplace(USER_DRAKE_OID, UserType.F_LOCALITY, task, result, PrismTestUtil.createPolyStringType("London"));
+        modifyUserReplace(USER_DRAKE_OID, UserType.F_LOCALITY, task, result, PrismTestUtil.createPolyString("London"));
 		
 		// THEN
 		TestUtil.displayThen(TEST_NAME);

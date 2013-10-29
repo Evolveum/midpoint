@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.xml.bind.JAXBElement;
+import javax.xml.datatype.DatatypeConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -41,10 +42,12 @@ import com.evolveum.midpoint.model.lens.ItemValueWithOrigin;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensUtil;
+import com.evolveum.midpoint.model.trigger.RecomputeTriggerHandler;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -52,6 +55,7 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -80,6 +84,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.StringPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TimeIntervalStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.TriggerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
 
@@ -116,6 +121,9 @@ public class UserPolicyProcessor {
 	@Autowired(required = true)
 	@Qualifier("cacheRepositoryService")
 	private transient RepositoryService cacheRepositoryService;
+	
+	@Autowired(required = true)
+    private MappingEvaluationHelper mappingHelper;
 
 	<F extends ObjectType, P extends ObjectType> void processUserPolicy(LensContext<F,P> context, XMLGregorianCalendar now, 
 			OperationResult result) throws ObjectNotFoundException,
@@ -147,7 +155,7 @@ public class UserPolicyProcessor {
 			
 		processActivation(usContext, now, result);
 
-		applyUserTemplate(usContext, result);
+		applyUserTemplate(usContext, now, result);
 				
 	}
 
@@ -257,7 +265,7 @@ public class UserPolicyProcessor {
 		focusContext.swallowToProjectionWaveSecondaryDelta(timestampDelta);
 	}
 	
-	private void applyUserTemplate(LensContext<UserType, ShadowType> context, OperationResult result) 
+	private void applyUserTemplate(LensContext<UserType, ShadowType> context, XMLGregorianCalendar now, OperationResult result) 
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
 		LensFocusContext<UserType> focusContext = context.getFocusContext();
 
@@ -279,7 +287,7 @@ public class UserPolicyProcessor {
 		Map<ItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> outputTripleMap 
 			= new HashMap<ItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>>();
 		
-		collectTripleFromTemplate(context, userTemplate, userOdo, outputTripleMap, userTemplate.toString(), result);		
+		XMLGregorianCalendar nextRecomputeTime = collectTripleFromTemplate(context, userTemplate, userOdo, outputTripleMap, now, userTemplate.toString(), result);
 		
 		for (Entry<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> entry: outputTripleMap.entrySet()) {
 			ItemPath itemPath = entry.getKey();
@@ -307,13 +315,43 @@ public class UserPolicyProcessor {
 				}
 			}
 		}
+		
+		if (nextRecomputeTime != null) {
+			
+			boolean alreadyHasTrigger = false;
+			PrismObject<UserType> objectCurrent = focusContext.getObjectCurrent();
+			if (objectCurrent != null) {
+				for (TriggerType trigger: objectCurrent.asObjectable().getTrigger()) {
+					if (RecomputeTriggerHandler.HANDLER_URI.equals(trigger.getHandlerUri()) &&
+							nextRecomputeTime.equals(trigger.getTimestamp())) {
+								alreadyHasTrigger = true;
+								break;
+					}
+				}
+			}
+			
+			if (!alreadyHasTrigger) {
+				PrismObjectDefinition<UserType> objectDefinition = focusContext.getObjectDefinition();
+				PrismContainerDefinition<TriggerType> triggerContDef = objectDefinition.findContainerDefinition(ObjectType.F_TRIGGER);
+				ContainerDelta<TriggerType> triggerDelta = triggerContDef.createEmptyDelta(new ItemPath(ObjectType.F_TRIGGER));
+				PrismContainerValue<TriggerType> triggerCVal = triggerContDef.createValue();
+				triggerDelta.addValueToAdd(triggerCVal);
+				TriggerType triggerType = triggerCVal.asContainerable();
+				triggerType.setTimestamp(nextRecomputeTime);
+				triggerType.setHandlerUri(RecomputeTriggerHandler.HANDLER_URI);
+				
+				focusContext.swallowToProjectionWaveSecondaryDelta(triggerDelta);
+			}
+		}
 
 	}
 
-	private void collectTripleFromTemplate(LensContext<UserType, ShadowType> context,
+	private XMLGregorianCalendar collectTripleFromTemplate(LensContext<UserType, ShadowType> context,
 			ObjectTemplateType objectTemplateType, ObjectDeltaObject<UserType> userOdo,
 			Map<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> outputTripleMap,
-			String contextDesc, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			XMLGregorianCalendar now, String contextDesc, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+		
+		XMLGregorianCalendar nextRecomputeTime = null;
 		
 		// Process includes
 		for (ObjectReferenceType includeRef: objectTemplateType.getIncludeRef()) {
@@ -326,51 +364,74 @@ public class UserPolicyProcessor {
 			}
 			LOGGER.trace("Including template {}", includeObject);
 			ObjectTemplateType includeObjectType = includeObject.asObjectable();
-			collectTripleFromTemplate(context, includeObjectType, userOdo, outputTripleMap, "include "+includeObject+" in "+objectTemplateType + " in " + contextDesc, result);
+			XMLGregorianCalendar includeNextRecomputeTime = collectTripleFromTemplate(context, includeObjectType, userOdo, outputTripleMap, now, "include "+includeObject+" in "+objectTemplateType + " in " + contextDesc, result);
+			if (includeNextRecomputeTime != null) {
+				if (nextRecomputeTime == null || nextRecomputeTime.compare(includeNextRecomputeTime) == DatatypeConstants.GREATER) {
+					nextRecomputeTime = includeNextRecomputeTime;
+				}
+			}
 		}
 		
 		// Process own mappings
 		Collection<MappingType> mappings = objectTemplateType.getMapping();
-		collectTripleFromMappings(mappings, context, objectTemplateType, userOdo, outputTripleMap, contextDesc, result);
+		XMLGregorianCalendar templateNextRecomputeTime = collectTripleFromMappings(mappings, context, objectTemplateType, userOdo, outputTripleMap, now, contextDesc, result);
+		if (templateNextRecomputeTime != null) {
+			if (nextRecomputeTime == null || nextRecomputeTime.compare(templateNextRecomputeTime) == DatatypeConstants.GREATER) {
+				nextRecomputeTime = templateNextRecomputeTime;
+			}
+		}
+		
+		return nextRecomputeTime;
 	}
 	
 	
-	private void collectTripleFromMappings(Collection<MappingType> mappings, LensContext<UserType, ShadowType> context,
+	private <V extends PrismValue> XMLGregorianCalendar collectTripleFromMappings(Collection<MappingType> mappings, LensContext<UserType, ShadowType> context,
 			ObjectTemplateType objectTemplateType, ObjectDeltaObject<UserType> userOdo,
 			Map<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> outputTripleMap,
-			String contextDesc, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			XMLGregorianCalendar now, String contextDesc, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+		
+		XMLGregorianCalendar nextRecomputeTime = null;
 		
 		for (MappingType mappingType : mappings) {
-			collectTripleFromMapping(context, mappingType, objectTemplateType, userOdo, outputTripleMap, contextDesc, result);
+			Mapping<V> mapping = createMapping(context, mappingType, objectTemplateType, userOdo, now, contextDesc, result);
+			if (mapping == null) {
+				continue;
+			}
+			
+			Boolean timeConstraintValid = mapping.evaluateTimeConstraintValid(result);
+			
+			if (timeConstraintValid != null && !timeConstraintValid) {
+				// Delayed mapping. Just schedule recompute time
+				XMLGregorianCalendar mappingNextRecomputeTime = mapping.getNextRecomputeTime();
+				LOGGER.trace("Evaluation of mapping {} delayed to {}", mapping, mappingNextRecomputeTime);
+				if (mappingNextRecomputeTime != null) {
+					if (nextRecomputeTime == null || nextRecomputeTime.compare(mappingNextRecomputeTime) == DatatypeConstants.GREATER) {
+						nextRecomputeTime = mappingNextRecomputeTime;
+					}
+				}
+				continue;
+			}
+			
+			LensUtil.evaluateMapping(mapping, context, result);
+			
+			ItemPath itemPath = mapping.getOutputPath();
+			DeltaSetTriple<ItemValueWithOrigin<V>> outputTriple = ItemValueWithOrigin.createOutputTriple(mapping);
+			if (outputTriple == null) {
+				continue;
+			}
+			DeltaSetTriple<ItemValueWithOrigin<V>> mapTriple = (DeltaSetTriple<ItemValueWithOrigin<V>>) outputTripleMap.get(itemPath);
+			if (mapTriple == null) {
+				outputTripleMap.put(itemPath, outputTriple);
+			} else {
+				mapTriple.merge(outputTriple);
+			}
 		}
-	}
-
-	private <V extends PrismValue> void collectTripleFromMapping(final LensContext<UserType, ShadowType> context, 
-			MappingType mappingType, ObjectTemplateType userTemplate, ObjectDeltaObject<UserType> userOdo, 
-			Map<ItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> outputTripleMap, 
-			String contextDesc, OperationResult result) 
-					throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		
-		Mapping<V> mapping = evaluateMapping(context, mappingType, userTemplate, userOdo, contextDesc, result);
-		if (mapping == null) {
-			return;
-		}
-		ItemPath itemPath = mapping.getOutputPath();
-		DeltaSetTriple<ItemValueWithOrigin<V>> outputTriple = ItemValueWithOrigin.createOutputTriple(mapping);
-		if (outputTriple == null) {
-			return;
-		}
-		DeltaSetTriple<ItemValueWithOrigin<V>> mapTriple = (DeltaSetTriple<ItemValueWithOrigin<V>>) outputTripleMap.get(itemPath);
-		if (mapTriple == null) {
-			outputTripleMap.put(itemPath, outputTriple);
-		} else {
-			mapTriple.merge(outputTriple);
-		}
-		
+		return nextRecomputeTime;
 	}
 	
-	private <V extends PrismValue> Mapping<V> evaluateMapping(final LensContext<UserType, ShadowType> context, final MappingType mappingType, ObjectTemplateType userTemplate, 
-			ObjectDeltaObject<UserType> userOdo, String contextDesc, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+	private <V extends PrismValue> Mapping<V> createMapping(final LensContext<UserType, ShadowType> context, final MappingType mappingType, ObjectTemplateType userTemplate, 
+			ObjectDeltaObject<UserType> userOdo, XMLGregorianCalendar now, String contextDesc, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		Mapping<V> mapping = mappingFactory.createMapping(mappingType,
 				"object template mapping in " + contextDesc
 				+ " while processing user " + userOdo.getAnyObject());
@@ -383,8 +444,10 @@ public class UserPolicyProcessor {
 		mapping.setTargetContext(getUserDefinition());
 		mapping.setRootNode(userOdo);
 		mapping.addVariableDefinition(ExpressionConstants.VAR_USER, userOdo);
+		mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS, userOdo);
 		mapping.setOriginType(OriginType.USER_POLICY);
 		mapping.setOriginObject(userTemplate);
+		mapping.setNow(now);
 
 		ItemDefinition outputDefinition = mapping.getOutputDefinition();
 		ItemPath itemPath = mapping.getOutputPath();
@@ -445,11 +508,8 @@ public class UserPolicyProcessor {
 		};
 		mapping.setStringPolicyResolver(stringPolicyResolver);
 
-		LensUtil.evaluateMapping(mapping, context, result);
-		
 		return mapping;
 	}
-
 
 	private <V extends PrismValue> boolean hasValue(Item<V> existingUserItem, V newValue) {
 		if (existingUserItem == null) {
