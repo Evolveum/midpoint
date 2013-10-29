@@ -457,7 +457,8 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
                     @Override
                     public boolean handle(PrismObject<UserType> object, OperationResult parentResult) {
                         LOGGER.info("Handling " + object + "...");
-                        ObjectDelta delta = ObjectDelta.createModificationReplaceProperty(UserType.class, object.getOid(), UserType.F_FULL_NAME, prismContext, new PolyStringType(newFullName));
+                        ObjectDelta delta = ObjectDelta.createModificationReplaceProperty(UserType.class, object.getOid(), 
+                        		UserType.F_FULL_NAME, prismContext, new PolyString(newFullName));
                         try {
                             repositoryService.modifyObject(UserType.class,
                                 object.getOid(),
