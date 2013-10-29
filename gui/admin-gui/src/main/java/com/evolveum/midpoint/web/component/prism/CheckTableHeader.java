@@ -81,7 +81,7 @@ public class CheckTableHeader extends SimplePanel<ObjectWrapper> {
         add(description);
 
         final IModel<List<InlineMenuItem>> items = new Model((Serializable) createMenuItems());
-        InlineMenu menu = new InlineMenu(ID_MENU, items);
+        InlineMenu menu = new InlineMenu(ID_MENU, items, true);
         menu.add(new VisibleEnableBehaviour() {
 
             @Override

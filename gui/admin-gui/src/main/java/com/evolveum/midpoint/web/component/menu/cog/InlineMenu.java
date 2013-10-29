@@ -27,8 +27,15 @@ public class InlineMenu extends SimplePanel<List<InlineMenuItem>> {
     private static final String ID_A = "a";
     private static final String ID_SPAN = "span";
 
+    private boolean hideByDefault;
+
     public InlineMenu(String id, IModel model) {
+        this(id, model, false);
+    }
+
+    public InlineMenu(String id, IModel model, boolean hideByDefault) {
         super(id, model);
+        this.hideByDefault = hideByDefault;
 
         setOutputMarkupId(true);
     }
@@ -38,7 +45,7 @@ public class InlineMenu extends SimplePanel<List<InlineMenuItem>> {
         super.renderHead(response);
 
         StringBuilder sb = new StringBuilder();
-        sb.append("initInlineMenu('").append(getMarkupId()).append("');");
+        sb.append("initInlineMenu('").append(getMarkupId()).append("', ").append(hideByDefault).append(");");
 
         response.render(OnDomReadyHeaderItem.forScript(sb.toString()));
     }
