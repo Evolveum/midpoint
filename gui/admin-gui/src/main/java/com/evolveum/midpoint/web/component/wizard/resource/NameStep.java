@@ -573,13 +573,11 @@ public class NameStep extends WizardStep {
             resource = model.getObject(ResourceType.class, addDelta.getOid(), null,
                     page.createSimpleTask(OPERATION_LOAD_RESOURCE), loadResult);
             resourceModel.setObject(resource.asObjectable());
-
-            result.recordSuccess();
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't save resource", ex);
             result.recordFatalError("Couldn't save resource, reason: " + ex.getMessage(), ex);
         } finally {
-            result.recomputeStatus();
+            result.computeStatus();
         }
 
         if (WebMiscUtil.showResultInPage(result)) {
@@ -589,8 +587,7 @@ public class NameStep extends WizardStep {
 
     @Override
     public boolean isComplete() {
-//        DropDownChoice<ConnectorType> version = (DropDownChoice) get(ID_CONNECTOR_VERSION);
-//        return version.getModelObject() != null;
-        return true;
+        DropDownChoice<ConnectorType> version = (DropDownChoice) get(ID_CONNECTOR_VERSION);
+        return version.getModelObject() != null;
     }
 }

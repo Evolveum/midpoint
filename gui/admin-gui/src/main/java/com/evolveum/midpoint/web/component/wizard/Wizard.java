@@ -93,6 +93,23 @@ public class Wizard extends SimplePanel<IWizardModel> implements IWizardModelLis
         Form form = (Form) get(ID_FORM);
         form.replace(newStep.getView(ID_VIEW, this, this));
         form.replace(newStep.getHeader(ID_HEADER, this, this));
+
+        //mark proper wizard step as current.
+        int index = 0;
+        IWizardModel model = getWizardModel();
+        Iterator<IWizardStep> iterator = model.stepIterator();
+        while (iterator.hasNext()) {
+            IWizardStep step = iterator.next();
+
+            if (step.equals(newStep)) {
+                break;
+            }
+            index++;
+        }
+
+        WizardSteps steps = (WizardSteps) get(createComponentPath(ID_FORM, ID_STEPS));
+        IModel<List<WizardStepDto>> stepsModel = steps.getModel();
+        stepsModel.getObject().get(index).setActive(true);
     }
 
     @Override
