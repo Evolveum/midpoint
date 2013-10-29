@@ -209,7 +209,9 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 			return;
 		}
 		if (value == null) {
-			throw new IllegalArgumentException("Null value in "+this);
+            // can be used not because of prism forms in gui (will be fixed later [lazyman]
+            // throw new IllegalArgumentException("Null value in "+this);
+            return;
 		}
 		if (value instanceof PolyStringType) {
 			// This is illegal. PolyString should be there instead.
