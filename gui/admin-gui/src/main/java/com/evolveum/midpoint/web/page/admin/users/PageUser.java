@@ -142,15 +142,6 @@ public class PageUser extends PageAdminUsers {
         }
     };
 
-    // it should be sent from submit. If the user is on the preview page and
-    // than he wants to get back to the edit page, the object delta is set, so
-    // we don't loose any changes
-    // private ObjectDelta objectDelta;
-    //
-    // public ObjectDelta getObjectDelta() {
-    // return objectDelta;
-    // }
-
     public PageUser() {
         userModel = new LoadableModel<ObjectWrapper>(false) {
 
@@ -174,210 +165,7 @@ public class PageUser extends PageAdminUsers {
             }
         };
 
-        initLayout(null);
-    }
-
-    public PageUser(final Collection<ObjectDelta<? extends ObjectType>> deltas, final String oid) {
-        userModel = new LoadableModel<ObjectWrapper>(false) {
-            @Override
-            protected ObjectWrapper load() {
-                return loadUserAfterPreview(deltas, oid);
-            }
-        };
-
-        accountsModel = new LoadableModel<List<UserAccountDto>>(false) {
-            @Override
-            protected List<UserAccountDto> load() {
-                return loadAccountsAfterPreview(deltas);
-            }
-
-        };
-
-        assignmentsModel = new LoadableModel<List<AssignmentEditorDto>>(false) {
-
-            @Override
-            protected List<AssignmentEditorDto> load() {
-                return loadAssignmentsAfterPreview(deltas);
-            }
-
-        };
-
-        initLayout(oid);
-    }
-
-    private ObjectWrapper loadUserAfterPreview(Collection<ObjectDelta<? extends ObjectType>> deltas, String oid) {
-
-        Task task = getTaskManager().createTaskInstance();
-        OperationResult result = new OperationResult("load after preview");
-        PrismObject<UserType> user = null;
-
-        ObjectWrapper wrapper = null;
-        try {
-
-            for (ObjectDelta delta : deltas) {
-                if (delta.getObjectTypeClass().equals(UserType.class)) {
-                    if (delta.isAdd()) {
-                        // UserType userType = new UserType();
-                        // getMidpointApplication().getPrismContext().adopt(userType);
-                        if (delta.getObjectToAdd() == null) {
-                            result.recordFatalError("Could not load user after preview.");
-                            showResult(result);
-                            return null;
-                        }
-                        user = delta.getObjectToAdd();
-                        // user = userType.asPrismObject();
-                        wrapper = new ObjectWrapper(null, null, user, ContainerStatus.ADDING);
-                        if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
-                            showResultInSession(wrapper.getResult());
-                        }
-
-                        wrapper.setShowEmpty(true);
-                        return wrapper;
-                    }
-                    user = getModelService().getObject(UserType.class, delta.getOid(), null, task, result);
-                    ReferenceDelta refDelta = delta.findReferenceModification(UserType.F_LINK_REF);
-                    ObjectDelta clonedDelta = delta.clone();
-                    if (refDelta != null && refDelta.isDelete()) {
-                        clonedDelta.removeReferenceModification(UserType.F_LINK_REF);
-                    }
-                    ContainerDelta assigmentDelta = delta.findContainerDelta(UserType.F_ASSIGNMENT);
-                    if (assigmentDelta != null && assigmentDelta.isDelete()) {
-                        ItemDelta.removeItemDelta(clonedDelta.getModifications(), new ItemPath(UserType.F_ASSIGNMENT),
-                                ContainerDelta.class);
-                    }
-
-                    PropertyDelta.applyTo(clonedDelta.getModifications(), user);
-                    wrapper = new ObjectWrapper(null, null, user, ContainerStatus.MODIFYING);
-                    wrapper.setOldDelta(delta);
-                    wrapper.setShowEmpty(false);
-                }
-            }
-            if (wrapper == null && oid != null) {
-                user = getModelService().getObject(UserType.class, oid, null, task, result);
-                wrapper = new ObjectWrapper(null, null, user, ContainerStatus.MODIFYING);
-                wrapper.setShowEmpty(false);
-            }
-        } catch (Exception ex) {
-            result.recordFatalError("Couldn't get user.", ex);
-            LoggingUtils.logException(LOGGER, "Couldn't load user", ex);
-        }
-
-        result.recomputeStatus();
-
-        if (!result.isSuccess()) {
-            showResultInSession(result);
-        }
-        if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
-            showResultInSession(wrapper.getResult());
-        }
-
-
-        return wrapper;
-    }
-
-    private List<UserAccountDto> loadAccountsAfterPreview(Collection<ObjectDelta<? extends ObjectType>> deltas) {
-        OperationResult result = new OperationResult("Load accounts after preview");
-        List<UserAccountDto> wrappers = loadAccountWrappers();
-        for (UserAccountDto acc : wrappers) {
-            for (ObjectDelta delta : deltas) {
-                ObjectWrapper accountWrapper = acc.getObject();
-                if (delta.isModify() && delta.getObjectTypeClass().equals(UserType.class)) {
-                    ReferenceDelta refDelta = delta.findReferenceModification(UserType.F_LINK_REF);
-                    if (refDelta == null) {
-                        continue;
-                    }
-                    if (refDelta.getValuesToDelete() != null) {
-                        for (PrismReferenceValue refValue : refDelta.getValuesToDelete()) {
-                            if (refValue.getObject() != null && refValue.getObject().getOid() != null
-                                    && refValue.getObject().getOid().equals(accountWrapper.getObject().getOid())) {
-                                acc.getObject().setHeaderStatus(HeaderStatus.DELETED);
-                                acc.setStatus(UserDtoStatus.DELETE);
-
-                            } else if (refValue.getOid() != null
-                                    && refValue.getOid().equals(accountWrapper.getObject().getOid())) {
-                                acc.getObject().setHeaderStatus(HeaderStatus.UNLINKED);
-                                acc.setStatus(UserDtoStatus.UNLINK);
-                            }
-                        }
-                    }
-
-                } else if (delta.isModify()
-                        && ShadowType.class.isAssignableFrom(delta.getObjectTypeClass())) {
-                    try {
-                        accountWrapper.setOldDelta(delta);
-                        accountWrapper.setMinimalized(false);
-                        PropertyDelta.applyTo(delta.getModifications(), accountWrapper.getObject());
-                    } catch (Exception ex) {
-                        result.recordFatalError("Couldn't load account after preview." + ex.getMessage(), ex);
-                        LoggingUtils.logException(LOGGER, "Couldn't load account after preview", ex);
-                    }
-                }
-
-            }
-        }
-
-        for (ObjectDelta delta : deltas) {
-            if (delta.getObjectToAdd() != null
-                    && ShadowType.class.isAssignableFrom(delta.getObjectToAdd().getCompileTimeClass())) {
-                ShadowType shadow = (ShadowType) delta.getObjectToAdd().asObjectable();
-                String resourceName = null;
-                if (shadow.getResource() != null) {
-                    resourceName = shadow.getResource().getName().getOrig();
-                }
-//				else if (shadow.getResourceRef() != null) {
-//				try{
-//					Task task = getTaskManager().createTaskInstance("Get resource");
-//					getModelService().getObject(ResourceType.class, shadow.getResourceRef().getOid(),
-//							SelectorOptions.createCollection(GetOperationOptions.createRaw()), task, result);
-//				} catch (Exception ex) {
-//					result.recordFatalError("Couldn't load account after preview." + ex.getMessage(), ex);
-//					LoggingUtils.logException(LOGGER, "Couldn't load account after preview", ex);
-//				}
-//				}
-
-                ObjectWrapper ow = new ObjectWrapper(resourceName, null, delta.getObjectToAdd(), ContainerStatus.ADDING);
-                if (ow.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(ow.getResult())) {
-                    showResultInSession(ow.getResult());
-                }
-
-                ow.setShowEmpty(true);
-                wrappers.add(new UserAccountDto(ow, UserDtoStatus.ADD));
-
-            }
-
-        }
-
-        return wrappers;
-    }
-
-    private List<AssignmentEditorDto> loadAssignmentsAfterPreview(Collection<ObjectDelta<? extends ObjectType>> deltas) {
-        List<AssignmentEditorDto> wrappers = loadAssignments();
-        for (AssignmentEditorDto acc : wrappers) {
-            for (ObjectDelta delta : deltas) {
-                // ObjectWrapper accountWrapper = acc.getObject();
-                if (delta.isModify() && delta.getObjectTypeClass().equals(UserType.class)) {
-                    ContainerDelta containerDelta = delta.findContainerDelta(UserType.F_ASSIGNMENT);
-                    if (containerDelta == null) {
-                        continue;
-                    }
-                    if (containerDelta.getValuesToDelete() != null) {
-                        for (Object value : containerDelta.getValuesToDelete()) {
-                            if (value instanceof PrismContainerValue) {
-                                PrismContainerValue valueToDelete = (PrismContainerValue) value;
-                                if (valueToDelete.equals(acc.getOldValue())) {
-                                    acc.setStatus(UserDtoStatus.DELETE);
-
-                                }
-                            }
-
-                        }
-                    }
-
-                }
-            }
-        }
-        return wrappers;
-
+        initLayout();
     }
 
     private ObjectWrapper loadUserWrapper() {
@@ -425,8 +213,7 @@ public class PageUser extends PageAdminUsers {
         return wrapper;
     }
 
-    // userOid may or may not be known at this time (depending on what constructor is used)
-    private void initLayout(String userOid) {
+    private void initLayout() {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
@@ -453,45 +240,13 @@ public class PageUser extends PageAdminUsers {
         WebMarkupContainer tasks = new WebMarkupContainer(ID_TASKS);
         tasks.setOutputMarkupId(true);
         mainForm.add(tasks);
-        initTasks(tasks, userOid);
+        initTasks(tasks);
 
         initButtons(mainForm);
 
         initResourceModal();
         initAssignableModal();
         initConfirmationDialogs();
-    }
-
-    private IModel<Integer> getAccountsSize() {
-        return new LoadableModel<Integer>() {
-
-            @Override
-            protected Integer load() {
-                int accountsSize = 0;
-                for (UserAccountDto account : accountsModel.getObject()) {
-                    if (!UserDtoStatus.DELETE.equals(account.getStatus())) {
-                        accountsSize++;
-                    }
-                }
-                return accountsSize;
-            }
-        };
-    }
-
-    private IModel<Integer> getAssignmentsSize() {
-        return new LoadableModel<Integer>() {
-
-            @Override
-            protected Integer load() {
-                int assignmentsSize = 0;
-                for (AssignmentEditorDto assign : assignmentsModel.getObject()) {
-                    if (!UserDtoStatus.DELETE.equals(assign.getStatus())) {
-                        assignmentsSize++;
-                    }
-                }
-                return assignmentsSize;
-            }
-        };
     }
 
     private void initConfirmationDialogs() {
@@ -845,11 +600,11 @@ public class PageUser extends PageAdminUsers {
         assignments.add(assignmentList);
     }
 
-    private void initTasks(WebMarkupContainer tasks, String userOid) {
+    private void initTasks(WebMarkupContainer tasks) {
         List<IColumn<TaskDto, String>> taskColumns = initTaskColumns();
         final TaskDtoProvider taskDtoProvider = new TaskDtoProvider(PageUser.this,
                 TaskDtoProviderOptions.minimalOptions());
-        taskDtoProvider.setQuery(createTaskQuery(userOid));
+        taskDtoProvider.setQuery(createTaskQuery(null));
         TablePanel taskTable = new TablePanel<TaskDto>(ID_TASK_TABLE, taskDtoProvider, taskColumns) {
 
             @Override
@@ -1420,24 +1175,6 @@ public class PageUser extends PageAdminUsers {
 
     }
 
-    // private ModelContext previewForceDelete(ObjectDelta delta,
-    // ModelExecuteOptions options, Task task, OperationResult parentResult){
-    // OperationResult result =
-    // parentResult.createSubresult("Force preview operation");
-    // try {
-    //
-    //
-    // result.recomputeStatus();
-    // return context;
-    // } catch (Exception ex) {
-    // result.recordFatalError("Failed to preview changes: " + ex.getMessage(),
-    // ex);
-    // LoggingUtils.logException(LOGGER, "Failed to preview changes", ex);
-    //
-    // }
-    // return null;
-    // }
-
     private boolean executeForceDelete(ObjectWrapper userWrapper, Task task, ModelExecuteOptions options,
                                        OperationResult parentResult) {
         if (executeOptionsModel.getObject().isForce()) {
@@ -1537,86 +1274,6 @@ public class PageUser extends PageAdminUsers {
             }
         }
         return object;
-    }
-
-    private void previewSavePerformed(AjaxRequestTarget target) {
-        LOGGER.debug("Submit user.");
-
-        Task task = createSimpleTask(OPERATION_SEND_TO_SUBMIT);
-        OperationResult result = task.getResult();
-        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-        ArrayList<PrismObject> accountsBeforeModify = getAccountsForSubmit(result, deltas);
-
-        ObjectWrapper userWrapper = userModel.getObject();
-        ObjectDelta delta = null;
-        ModelContext changes = null;
-
-        boolean forceAction = executeOptionsModel.getObject().isForce();
-        ModelExecuteOptions options = forceAction ? ModelExecuteOptions.createForce() : null;
-
-        try {
-            delta = userWrapper.getObjectDelta();
-            if (userWrapper.getOldDelta() != null) {
-                delta = ObjectDelta.summarize(userWrapper.getOldDelta(), delta);
-            }
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("User delta computed from form:\n{}", new Object[]{delta.debugDump(3)});
-            }
-
-            switch (userWrapper.getStatus()) {
-                case ADDING:
-                    PrismContainer password = delta.getObjectToAdd().findContainer(SchemaConstants.PATH_PASSWORD);
-                    if (password == null) {
-                        result.recordFatalError(getString("pageUser.message.noPassword"));
-                        break;
-                    }
-                    PrismObject<UserType> user = delta.getObjectToAdd();
-                    WebMiscUtil.encryptCredentials(user, true, getMidpointApplication());
-                    prepareUserForAdd(user);
-                    getPrismContext().adopt(user, UserType.class);
-                    deltas.add(delta);
-                    changes = getModelInteractionService().previewChanges(deltas, null, task, result);
-                    result.recordSuccess();
-                    break;
-                case MODIFYING:
-                    WebMiscUtil.encryptCredentials(delta, true, getMidpointApplication());
-                    prepareUserDeltaForModify(delta);
-                    deltas.add(delta);
-                    changes = getModelInteractionService().previewChanges(deltas, null, task, result);
-                    result.recordSuccess();
-                    break;
-                // support for add/delete containers (e.g. delete credentials)
-
-                default:
-                    error(getString("pageUser.message.unsupportedState", userWrapper.getStatus()));
-            }
-
-            result.recomputeStatus();
-        } catch (Exception ex) {
-            if (forceAction) {
-                try {
-                    ObjectDelta<UserType> forceDelta = getChange(userWrapper);
-                    deltas = WebMiscUtil.createDeltaCollection(delta);
-                    changes = getModelInteractionService().previewChanges(deltas, options, task, result);
-                    // changes = previewForceDelete(forceDelta, options, task,
-                    // result);
-                    result.recordSuccess();
-                } catch (Exception e) {
-                    result.recordFatalError(getString("pageUser.message.cantSubmitUser"), e);
-                    LoggingUtils.logException(LOGGER, getString("pageUser.message.cantSubmitUser"), e);
-                }
-            } else {
-                result.recordFatalError(getString("pageUser.message.cantSubmitUser"), ex);
-                LoggingUtils.logException(LOGGER, getString("pageUser.message.cantSubmitUser"), ex);
-            }
-        }
-
-        if (result.isSuccess() || result.isHandledError()) {
-            //todo user preview page
-        } else {
-            showResult(result);
-            target.add(getFeedbackPanel());
-        }
     }
 
     private List<UserAccountDto> getSelectedAccounts() {
@@ -1849,35 +1506,6 @@ public class PageUser extends PageAdminUsers {
                 continue;
             }
             account.setStatus(UserDtoStatus.UNLINK);
-        }
-        target.add(get(createComponentPath(ID_MAIN_FORM, ID_ACCOUNTS)));
-    }
-
-    private void unlinkAccountPerformed(AjaxRequestTarget target, IModel<UserAccountDto> model) {
-        UserAccountDto dto = model.getObject();
-        if (UserDtoStatus.ADD.equals(dto.getStatus())) {
-            return;
-        }
-        if (UserDtoStatus.UNLINK == dto.getStatus()) {
-            dto.setStatus(UserDtoStatus.MODIFY);
-        } else {
-            dto.setStatus(UserDtoStatus.UNLINK);
-        }
-        target.add(get(createComponentPath(ID_MAIN_FORM, ID_ACCOUNTS)));
-    }
-
-    private void deleteAccountPerformed(AjaxRequestTarget target, IModel<UserAccountDto> model) {
-        List<UserAccountDto> accounts = accountsModel.getObject();
-        UserAccountDto account = model.getObject();
-
-        if (UserDtoStatus.ADD.equals(account.getStatus())) {
-            accounts.remove(account);
-        } else {
-            if (UserDtoStatus.DELETE == account.getStatus()) {
-                account.setStatus(UserDtoStatus.MODIFY);
-            } else {
-                account.setStatus(UserDtoStatus.DELETE);
-            }
         }
         target.add(get(createComponentPath(ID_MAIN_FORM, ID_ACCOUNTS)));
     }
