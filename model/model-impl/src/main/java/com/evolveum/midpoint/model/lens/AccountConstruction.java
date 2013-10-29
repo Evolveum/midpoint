@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.lens;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -69,8 +70,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
  * 
  * @author semancik
  *
+ * This class is Serializable but it is not in fact serializable. It implements Serializable interface only
+ * to be storable in the PrismPropertyValue.
  */
-public class AccountConstruction implements DebugDumpable, Dumpable {
+public class AccountConstruction implements DebugDumpable, Dumpable, Serializable {
 
 	private AssignmentPath assignmentPath;
 	private ConstructionType accountConstructionType;
