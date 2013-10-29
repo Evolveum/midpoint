@@ -44,6 +44,7 @@ import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
@@ -186,11 +187,25 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	
 	protected <T extends ObjectType> PrismObject<T> repoAddObjectFromFile(File file, Class<T> type,
 			OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, EncryptionException {
+		return repoAddObjectFromFile(file, type, false, parentResult);
+	}
+	
+	protected <T extends ObjectType> PrismObject<T> repoAddObjectFromFile(File file, Class<T> type,
+			boolean metadata, OperationResult parentResult) throws SchemaException, ObjectAlreadyExistsException, EncryptionException {
+			
 		OperationResult result = parentResult.createSubresult(AbstractIntegrationTest.class.getName()
 				+ ".addObjectFromFile");
 		result.addParam("file", file);
 		LOGGER.debug("addObjectFromFile: {}", file);
 		PrismObject<T> object = prismContext.getPrismDomProcessor().parseObject(file, type);
+		
+		if (metadata) {
+			// Add at least the very basic meta-data
+			MetadataType metaData = new MetadataType();
+			metaData.setCreateTimestamp(clock.currentTimeXMLGregorianCalendar());
+			object.asObjectable().setMetadata(metaData);
+		}
+		
 		LOGGER.trace("Adding object:\n{}", object.dump());
 		repoAddObject(type, object, "from file "+file, result);
 		result.recordSuccess();

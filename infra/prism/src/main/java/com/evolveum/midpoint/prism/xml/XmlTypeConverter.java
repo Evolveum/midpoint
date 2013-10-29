@@ -558,4 +558,14 @@ public class XmlTypeConverter {
 		return annotation.value();
 	}
 
+	public static XMLGregorianCalendar addDuration(XMLGregorianCalendar now, Duration duration) {
+		XMLGregorianCalendar later = createXMLGregorianCalendar(toMillis(now));
+		later.add(duration);
+		return later;
+	}
+
+	public static XMLGregorianCalendar addMillis(XMLGregorianCalendar now, long duration) {
+		return createXMLGregorianCalendar(toMillis(now) + duration);
+	}
+
 }

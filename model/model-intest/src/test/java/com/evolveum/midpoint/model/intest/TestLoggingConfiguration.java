@@ -432,7 +432,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 		display("TEST: Applied audit config, going to execute test change");
 		
 		// try do execute some change (add user object), it should be audited
-		PrismObject<UserType> user = PrismTestUtil.parseObject(new File(AbstractInitializedModelIntegrationTest.USER_JACK_FILENAME));
+		PrismObject<UserType> user = PrismTestUtil.parseObject(AbstractInitializedModelIntegrationTest.USER_JACK_FILE);
 		deltas = MiscSchemaUtil.createCollection(ObjectDelta.createAddDelta(user));
 		
 		modelService.executeChanges(deltas, null, task, result);
