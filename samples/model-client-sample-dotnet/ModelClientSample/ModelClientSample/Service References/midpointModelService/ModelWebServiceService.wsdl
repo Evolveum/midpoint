@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:tns="http://model.midpoint.evolveum.com/" xmlns:ns1="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl" xmlns:ns3="http://schemas.xmlsoap.org/soap/http" name="ModelWebServiceService" targetNamespace="http://model.midpoint.evolveum.com/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:import namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl" location="http://localhost:8080/midpoint/model/model-1?wsdl=modelPortType.wsdl" />
+  <wsdl:types />
+  <wsdl:binding name="ModelWebServiceServiceSoapBinding" type="ns1:modelPortType">
+    <soap:binding transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="deleteObject">
+      <soap:operation soapAction="" style="document" />
+      <wsdl:input name="deleteObject">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="deleteObjectResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="FaultMessage">
+        <soap:fault use="literal" name="FaultMessage" namespace="" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="listObjects">
+      <soap:operation soapAction="" style="document" />
+      <wsdl:input name="listObjects">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="listObjectsResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="FaultMessage">
+        <soap:fault use="literal" name="FaultMessage" namespace="" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="addObject">
+      <soap:operation soapAction="" style="document" />
+      <wsdl:input name="addObject">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="addObjectResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="FaultMessage">
+        <soap:fault use="literal" name="FaultMessage" namespace="" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="listAccountShadowOwner">
+      <soap:operation soapAction="" style="document" />
+      <wsdl:input name="listAccountShadowOwner">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="listAccountShadowOwnerResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="FaultMessage">
+        <soap:fault use="literal" name="FaultMessage" namespace="" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="searchObjects">
+      <soap:operation soapAction="" style="document" />
+      <wsdl:input name="searchObjects">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="searchObjectsResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="FaultMessage">
+        <soap:fault use="literal" name="FaultMessage" namespace="" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="listResourceObjectShadows">
+      <soap:operation soapAction="" style="document" />
+      <wsdl:input name="listResourceObjectShadows">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="listResourceObjectShadowsResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="FaultMessage">
+        <soap:fault use="literal" name="FaultMessage" namespace="" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="importFromResource">
+      <soap:operation soapAction="" style="document" />
+      <wsdl:input name="importFromResource">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="importFromResourceResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="FaultMessage">
+        <soap:fault use="literal" name="FaultMessage" namespace="" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="getObject">
+      <soap:operation soapAction="" style="document" />
+      <wsdl:input name="getObject">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="getObjectResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="FaultMessage">
+        <soap:fault use="literal" name="FaultMessage" namespace="" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="modifyObject">
+      <soap:operation soapAction="" style="document" />
+      <wsdl:input name="modifyObject">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="modifyObjectResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="FaultMessage">
+        <soap:fault use="literal" name="FaultMessage" namespace="" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="testResource">
+      <soap:operation soapAction="" style="document" />
+      <wsdl:input name="testResource">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="testResourceResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="FaultMessage">
+        <soap:fault use="literal" name="FaultMessage" namespace="" />
+      </wsdl:fault>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="ModelWebServiceService">
+    <wsdl:port name="ModelWebServicePort" binding="tns:ModelWebServiceServiceSoapBinding">
+      <soap:address location="http://localhost:8080/midpoint/model/model-1" />
+    </wsdl:port>
+  </wsdl:service>
+</wsdl:definitions>

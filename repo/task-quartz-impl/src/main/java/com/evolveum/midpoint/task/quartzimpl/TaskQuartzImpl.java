@@ -1413,7 +1413,7 @@ public class TaskQuartzImpl implements Task {
 	private PropertyDelta<?> setNameAndPrepareDelta(PolyStringType value) {
 		setNameTransient(value);
 		return isPersistent() ? PropertyDelta.createReplaceDelta(
-					taskManager.getTaskObjectDefinition(), TaskType.F_NAME, value) : null;
+					taskManager.getTaskObjectDefinition(), TaskType.F_NAME, value.toPolyString()) : null;
 	}
 
     /*
