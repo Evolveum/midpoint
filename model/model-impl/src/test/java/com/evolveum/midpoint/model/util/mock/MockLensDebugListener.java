@@ -61,22 +61,22 @@ public class MockLensDebugListener implements LensDebugListener {
 	}
 
 	@Override
-	public <F extends ObjectType, P extends ObjectType> void beforeProjection(
-			LensContext<F, P> context) {
+	public <F extends ObjectType> void beforeProjection(
+			LensContext<F> context) {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public <F extends ObjectType, P extends ObjectType> void afterProjection(
-			LensContext<F, P> context) {
+	public <F extends ObjectType> void afterProjection(
+			LensContext<F> context) {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public <F extends ObjectType, P extends ObjectType> void afterMappingEvaluation(
-			LensContext<F, P> context,
+	public <F extends ObjectType> void afterMappingEvaluation(
+			LensContext<F> context,
 			Mapping<?> evaluatedMapping) {
 		// TODO Auto-generated method stub
 		

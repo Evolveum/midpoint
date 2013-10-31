@@ -293,7 +293,7 @@ public class ConsolidationProcessor {
 	}
 
 	private boolean hasActiveWeakMapping(
-			Map<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> squeezedAttributes, LensProjectionContext<ShadowType> accCtx) throws SchemaException {
+			Map<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> squeezedAttributes, LensProjectionContext accCtx) throws SchemaException {
 		for (Map.Entry<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> entry : squeezedAttributes.entrySet()) {
 			DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>> ivwoTriple = entry.getValue();
 			boolean hasWeak = false;

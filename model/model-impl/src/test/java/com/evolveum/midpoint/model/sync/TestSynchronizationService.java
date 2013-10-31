@@ -275,7 +275,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         synchronizationService.notifyChange(change, task, result);
         
         // THEN
-        LensContext<UserType, ShadowType> context = mockListener.getLastSyncContext();
+        LensContext<UserType> context = mockListener.getLastSyncContext();
 
         display("Resulting context (as seen by debug listener)", context);
         assertNotNull("No resulting context (as seen by debug listener)", context);
@@ -283,8 +283,9 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertNull("Unexpected user primary delta", context.getFocusContext().getPrimaryDelta());
         assertNull("Unexpected user secondary delta", context.getFocusContext().getSecondaryDelta());
         
-        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceDummy.getOid(), null);
-		LensProjectionContext<ShadowType> accCtx = context.findProjectionContext(rat);
+        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceDummy.getOid(), 
+        		ShadowKindType.ACCOUNT, null);
+		LensProjectionContext accCtx = context.findProjectionContext(rat);
 		assertNotNull("No account sync context for "+rat, accCtx);
 		
 		PrismAsserts.assertNoDelta("account primary delta", accCtx.getPrimaryDelta());
@@ -328,7 +329,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         synchronizationService.notifyChange(change, task, result);
         
         // THEN
-        LensContext<UserType, ShadowType> context = mockListener.getLastSyncContext();
+        LensContext<UserType> context = mockListener.getLastSyncContext();
 
         display("Resulting context (as seen by debug listener)", context);
         assertNotNull("No resulting context (as seen by debug listener)", context);
@@ -336,8 +337,9 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         assertNull("Unexpected user primary delta", context.getFocusContext().getPrimaryDelta());
         assertNull("Unexpected user secondary delta", context.getFocusContext().getSecondaryDelta());
         
-        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceDummy.getOid(), null, true);
-		LensProjectionContext<ShadowType> accCtx = context.findProjectionContext(rat);
+        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceDummy.getOid(), 
+        		ShadowKindType.ACCOUNT, null, true);
+		LensProjectionContext accCtx = context.findProjectionContext(rat);
 		assertNotNull("No account sync context for "+rat, accCtx);
 		assertEquals("Wrong detected situation in context", SynchronizationSituationType.DELETED, accCtx.getSynchronizationSituationDetected());
 		
@@ -390,7 +392,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         synchronizationService.notifyChange(change, task, result);
         
         // THEN
-        LensContext<UserType, ShadowType> context = mockListener.getLastSyncContext();
+        LensContext<UserType> context = mockListener.getLastSyncContext();
 
         display("Resulting context (as seen by debug listener)", context);
         assertNull("Unexpected lens context", context);
@@ -441,7 +443,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         
         // THEN
         TestUtil.displayThen(TEST_NAME);
-        LensContext<UserType, ShadowType> context = mockListener.getLastSyncContext();
+        LensContext<UserType> context = mockListener.getLastSyncContext();
 
         display("Resulting context (as seen by debug listener)", context);
         assertNull("Unexpected lens context", context);
