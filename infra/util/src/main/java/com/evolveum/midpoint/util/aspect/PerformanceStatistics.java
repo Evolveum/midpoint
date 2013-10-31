@@ -32,7 +32,7 @@ import java.lang.management.*;
 public class PerformanceStatistics {
 
     /* LOGGER */
-    private static Trace LOGGER = TraceManager.getTrace("com.evolveum.midpoint.util.aspect.ProfilingDataManager");
+    private static Trace LOGGER = TraceManager.getTrace(ProfilingDataManager.class);
 
     /* CONSTANTS */
     private int MB = 1024*1024;
@@ -138,4 +138,25 @@ public class PerformanceStatistics {
         return String.format("%.2f", this.cpuUsage);
     }
 
+    @Override
+    public String toString(){
+        String s = formatCpuUsage() + ", heap[used]: " + usedHeapMemory/MB + ", heap[committed]: " + committedHeapMemory/MB +
+                ", non-heap[used]: " + usedNonHeapMemory/MB + ", non-heap[committed]: " + committedNonHeapMemory/MB + ", threads: " + threadCount +
+                ", daemon threads: " + daemonThreadCount;
+
+        return s;
+    }
+
+    /* GETTERS AND SETTERS */
+    public long getUsedHeapMemory() {
+        return usedHeapMemory;
+    }
+
+    public long getCommittedNonHeapMemory() {
+        return committedNonHeapMemory;
+    }
+
+    public int getThreadCount() {
+        return threadCount;
+    }
 }

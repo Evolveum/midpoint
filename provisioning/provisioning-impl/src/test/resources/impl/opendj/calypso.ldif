@@ -1,0 +1,11 @@
+dn: uid=calypso,ou=People,dc=example,dc=com
+uid: calypso
+cn: Calypso
+sn: Calypso
+objectclass: top
+objectclass: person
+objectclass: organizationalPerson
+objectclass: inetOrgPerson
+l: The High Seas
+userpassword: youCANNOTstopTHEtides
+

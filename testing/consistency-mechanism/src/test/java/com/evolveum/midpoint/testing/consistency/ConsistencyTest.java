@@ -82,6 +82,8 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -280,6 +282,8 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	private static final String LDIF_ELAINE_FILENAME = "src/test/resources/request/elaine.ldif";
 	private static final String LDIF_MORGAN_FILENAME = "src/test/resources/request/morgan.ldif";
 	private static final String LDIF_DISCOVERY_FILENAME = "src/test/resources/request/discovery.ldif";
+	
+	private static final String LDIF_MODIFY_RENAME_FILENAME = "src/test/resources/request/modify-rename.ldif";
 
 //	private static final QName IMPORT_OBJECTCLASS = new QName(
 //			"http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff",
@@ -1556,19 +1560,19 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 	}
 	
 	private void checkNormalizedShadowWithAttributes(String accountOid, String uid, String givenName, String sn, String cn, String employeeType, boolean modify, Task task, OperationResult parentResult) throws Exception{
-		ShadowType resourceAccount = checkNormalizedShadowBasic(accountOid, uid, modify, task, parentResult);
+		ShadowType resourceAccount = checkNormalizedShadowBasic(accountOid, uid, modify, null, task, parentResult);
 		assertAttributes(resourceAccount, uid, givenName, sn, cn);
 		assertAttribute(resourceAccount, resourceTypeOpenDjrepo, "employeeType", employeeType);
 	}
 	
 	private ShadowType checkNormalizedShadowWithAttributes(String accountOid, String uid, String givenName, String sn, String cn, boolean modify, Task task, OperationResult parentResult) throws Exception{
-		ShadowType resourceAccount = checkNormalizedShadowBasic(accountOid, uid, modify, task, parentResult);
+		ShadowType resourceAccount = checkNormalizedShadowBasic(accountOid, uid, modify, null, task, parentResult);
 		assertAttributes(resourceAccount, uid, givenName, sn, cn);
 		return resourceAccount;
 	}
 	
-	private ShadowType checkNormalizedShadowBasic(String accountOid, String name, boolean modify, Task task, OperationResult parentResult) throws Exception{
-		PrismObject<ShadowType> resourceAcc = modelService.getObject(ShadowType.class, accountOid, null, task, parentResult);
+	private ShadowType checkNormalizedShadowBasic(String accountOid, String name, boolean modify, Collection<SelectorOptions<GetOperationOptions>> options,Task task, OperationResult parentResult) throws Exception{
+		PrismObject<ShadowType> resourceAcc = modelService.getObject(ShadowType.class, accountOid, options, task, parentResult);
 		assertNotNull(resourceAcc);
 		ShadowType resourceAccount = resourceAcc.asObjectable();
 		displayJaxb("Shadow after discovery: ", resourceAccount, ShadowType.COMPLEX_TYPE);
@@ -1616,7 +1620,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		
 		requestToExecuteChanges(REQUEST_USER_MODIFY_WEAK_MAPPING_COMMUNICATION_PROBLEM, USER_JOHN_WEAK_OID, UserType.class, task, null, parentResult);
 
-		checkNormalizedShadowBasic(accountOid, "john", true, task, parentResult);
+		checkNormalizedShadowBasic(accountOid, "john", true, SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()), task, parentResult);
 		
 	}
 
@@ -1890,11 +1894,15 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		// TODO: remove this if the previous test is enabled
 //		openDJController.start();
 		
+		// rename eobject dirrectly on resource before the recon start ..it tests the rename + recon situation (MID-1594)
+		
 		// precondition
 		assertTrue(EmbeddedUtils.isRunning());
 		UserType userJack = repositoryService.getObject(UserType.class, USER_JACK_OID, null, result).asObjectable();
 		display("Jack before", userJack);
 		
+		
+		LOGGER.info("start running task");
 		// WHEN
 		repoAddObjectFromFile(TASK_OPENDJ_RECONCILIATION_FILENAME, TaskType.class, result);
 		waitForTaskNextRun(TASK_OPENDJ_RECONCILIATION_OID, false, 60000);
@@ -1917,10 +1925,11 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		assertNotNull(identifiers);
 		assertFalse(identifiers.isEmpty());
 		assertEquals(1, identifiers.size());
-
+		
+		
 		// check if the account was modified during reconciliation process
 		String jackAccountOid = assertUserOneAccountRef(USER_JACK_OID);
-		ShadowType modifiedAccount = checkNormalizedShadowBasic(jackAccountOid, "jack", true, null, result);
+		ShadowType modifiedAccount = checkNormalizedShadowBasic(jackAccountOid, "jack", true, SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()), null, result);
 		assertAttribute(modifiedAccount, resourceTypeOpenDjrepo, "givenName", "Jackkk");
 		assertAttribute(modifiedAccount, resourceTypeOpenDjrepo, "employeeNumber", "emp4321");
 
@@ -1937,15 +1946,73 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		}
 		
 		String elaineAccountOid = assertUserOneAccountRef(USER_ELAINE_OID);
-		modifiedAccount = checkNormalizedShadowBasic(elaineAccountOid, "elaine", true, null, result);
+		modifiedAccount = checkNormalizedShadowBasic(elaineAccountOid, "elaine", true, SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()), null, result);
 		assertIcfsNameAttribute(modifiedAccount, "uid=elaine,ou=people,dc=example,dc=com");
 
 		accountOid = assertUserOneAccountRef(USER_JACK2_OID);
-		ShadowType jack2Shadow = checkNormalizedShadowBasic(accountOid, "jack2", true, null, result);
+		ShadowType jack2Shadow = checkNormalizedShadowBasic(accountOid, "jack2", true, SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()), null, result);
 		assertAttribute(jack2Shadow, resourceTypeOpenDjrepo, "givenName", "jackNew2a");
 		assertAttribute(jack2Shadow, resourceTypeOpenDjrepo, "cn", "jackNew2a");
 
 	}
+	
+	@Test
+	public void test801testReconciliationRename() throws Exception{
+		final String TEST_NAME = "test801testReconciliationRename";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+		final OperationResult result = new OperationResult(ConsistencyTest.class.getName() + "." + TEST_NAME);
+
+LOGGER.info("starting rename");
+		
+		openDJController.executeRenameChange(LDIF_MODIFY_RENAME_FILENAME);
+		LOGGER.info("rename ended");
+//		SearchResultEntry res = openDJController.searchByUid("e");
+//		LOGGER.info("E OBJECT AFTER RENAME " + res.toString());
+		
+		LOGGER.info("start running task");
+		// WHEN
+		repoAddObjectFromFile(TASK_OPENDJ_RECONCILIATION_FILENAME, TaskType.class, result);
+		waitForTaskNextRun(TASK_OPENDJ_RECONCILIATION_OID, false, 60000);
+
+		// THEN
+		
+		// STOP the task. We don't need it any more and we don't want to give it
+		// a chance to run more than once
+		taskManager.deleteTask(TASK_OPENDJ_RECONCILIATION_OID, result);
+
+		// check if the account was added after reconciliation
+		UserType userE = repositoryService.getObject(UserType.class, USER_E_OID, null, result).asObjectable();
+		String accountOid = assertUserOneAccountRef(USER_E_OID);
+		
+		ShadowType eAccount = checkNormalizedShadowWithAttributes(accountOid, "e123", "Jackkk", "e", "e", true, null, result);
+		assertAttribute(eAccount, resourceTypeOpenDjrepo, "employeeNumber", "emp4321");
+		ResourceAttributeContainer attributeContainer = ShadowUtil
+				.getAttributesContainer(eAccount);
+		Collection<ResourceAttribute<?>> identifiers = attributeContainer.getIdentifiers();
+		assertNotNull(identifiers);
+		assertFalse(identifiers.isEmpty());
+		assertEquals(1, identifiers.size());
+
+		
+		ResourceAttribute icfNameAttr = attributeContainer.findAttribute(new QName(SchemaConstants.NS_ICF_SCHEMA, "name"));
+		assertEquals("Wrong secondary indetifier.", "uid=e123,ou=people,dc=example,dc=com", icfNameAttr.getRealValue());
+		
+		assertEquals("Wrong shadow name. ", "uid=e123,ou=people,dc=example,dc=com", eAccount.getName().getOrig());
+		
+		PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+		
+		provisioningService.applyDefinition(repoShadow, result);
+		
+		ResourceAttributeContainer repoAttributeContainer = ShadowUtil.getAttributesContainer(repoShadow);
+		ResourceAttribute repoIcfNameAttr = repoAttributeContainer.findAttribute(new QName(SchemaConstants.NS_ICF_SCHEMA, "name"));
+		assertEquals("Wrong secondary indetifier.", "uid=e123,ou=people,dc=example,dc=com", repoIcfNameAttr.getRealValue());
+		
+		assertEquals("Wrong shadow name. ", "uid=e123,ou=people,dc=example,dc=com", repoShadow.asObjectable().getName().getOrig());
+		
+	}
+	
+	
 	
 	@Test
 	public void test999Shutdown() throws Exception {

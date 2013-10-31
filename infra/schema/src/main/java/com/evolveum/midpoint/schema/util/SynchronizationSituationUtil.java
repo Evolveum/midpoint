@@ -21,6 +21,7 @@ import java.util.GregorianCalendar;
 import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
 
@@ -85,22 +86,28 @@ public class SynchronizationSituationUtil {
 		return null;
 	}
 	
-	public static PropertyDelta<XMLGregorianCalendar> createSynchronizationTimestampDelta(PrismObject object, XMLGregorianCalendar timestamp){
+	public static PropertyDelta<XMLGregorianCalendar> createSynchronizationTimestampDelta(PrismObject object, 
+			QName propName, XMLGregorianCalendar timestamp){
 //		XMLGregorianCalendar gcal = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
 		PropertyDelta<XMLGregorianCalendar> syncSituationDelta = PropertyDelta.createReplaceDelta(object.getDefinition(),
-				ShadowType.F_SYNCHRONIZATION_TIMESTAMP, timestamp);
+				propName, timestamp);
 		return syncSituationDelta;
 	}
 	
-	public static List<PropertyDelta<?>> createSynchronizationSituationAndDescriptionDelta(PrismObject object, SynchronizationSituationType situation, String sourceChannel){
+	public static List<PropertyDelta<?>> createSynchronizationSituationAndDescriptionDelta(PrismObject object, SynchronizationSituationType situation, 
+			String sourceChannel, boolean full){
 		XMLGregorianCalendar timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
 		
 		
-		List<PropertyDelta<?>> delta = createSynchronizationSituationDescriptionDelta(object, situation, timestamp, sourceChannel);
+		List<PropertyDelta<?>> delta = createSynchronizationSituationDescriptionDelta(object, situation, timestamp, sourceChannel, full);
+			
+		PropertyDelta timestampDelta = createSynchronizationTimestampDelta(object, ShadowType.F_SYNCHRONIZATION_TIMESTAMP, timestamp);
+		delta.add(timestampDelta);
 		
-	
-			PropertyDelta timestampDelta = createSynchronizationTimestampDelta(object, timestamp);
+		if (full) {
+			timestampDelta = createSynchronizationTimestampDelta(object, ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP, timestamp);
 			delta.add(timestampDelta);
+		}
 		
 		PropertyDelta syncSituationDelta = createSynchronizationSituationDelta(object, situation);
 		
@@ -111,11 +118,13 @@ public class SynchronizationSituationUtil {
 		return delta;
 	}
 	
-	public static List<PropertyDelta<?>> createSynchronizationSituationDescriptionDelta(PrismObject object, SynchronizationSituationType situation, XMLGregorianCalendar timestamp, String sourceChannel){
+	public static List<PropertyDelta<?>> createSynchronizationSituationDescriptionDelta(PrismObject object, 
+			SynchronizationSituationType situation, XMLGregorianCalendar timestamp, String sourceChannel, boolean full){
 		SynchronizationSituationDescriptionType syncSituationDescription = new SynchronizationSituationDescriptionType();
 		syncSituationDescription.setSituation(situation);
 		syncSituationDescription.setChannel(sourceChannel);
 		syncSituationDescription.setTimestamp(timestamp);
+		syncSituationDescription.setFull(full);
 		
 		List<PropertyDelta<?>> deltas = new ArrayList<PropertyDelta<?>>();
 
@@ -124,11 +133,11 @@ public class SynchronizationSituationUtil {
 		syncSituationDelta.addValueToAdd(new PrismPropertyValue(syncSituationDescription));
 		deltas.add(syncSituationDelta);
 		
-		SynchronizationSituationDescriptionType oldSituationDescription = getSituationFromSameChannel(object, sourceChannel);
-		if (oldSituationDescription != null) {
+		List<PrismPropertyValue<SynchronizationSituationDescriptionType>> oldSituationDescriptions = getSituationFromSameChannel(object, sourceChannel);
+		if (oldSituationDescriptions != null && !oldSituationDescriptions.isEmpty()) {
 			syncSituationDelta = PropertyDelta.createDelta(new ItemPath(
 					ShadowType.F_SYNCHRONIZATION_SITUATION_DESCRIPTION), object.getDefinition());
-			syncSituationDelta.addValueToDelete(new PrismPropertyValue(oldSituationDescription));
+			syncSituationDelta.addValuesToDelete(oldSituationDescriptions);
 			deltas.add(syncSituationDelta);
 		}
 		
@@ -137,23 +146,29 @@ public class SynchronizationSituationUtil {
 
 	}
 	
-	private static SynchronizationSituationDescriptionType getSituationFromSameChannel(PrismObject prismObject, String channel){
+	private static List<PrismPropertyValue<SynchronizationSituationDescriptionType>> getSituationFromSameChannel(PrismObject prismObject, String channel){
 		ShadowType target = (ShadowType) prismObject.asObjectable();
 		List<SynchronizationSituationDescriptionType> syncSituationDescriptions = ((ShadowType) target).getSynchronizationSituationDescription();
+		List<PrismPropertyValue<SynchronizationSituationDescriptionType>> valuesToDelete = new ArrayList<PrismPropertyValue<SynchronizationSituationDescriptionType>>();
 		if (syncSituationDescriptions == null || syncSituationDescriptions.isEmpty()){
 			return null;
 		}
 		for (SynchronizationSituationDescriptionType syncSituationDescription : syncSituationDescriptions){
 			if (StringUtils.isEmpty(syncSituationDescription.getChannel()) && StringUtils.isEmpty(channel)){
-				return syncSituationDescription;
+				valuesToDelete.add(new PrismPropertyValue<SynchronizationSituationDescriptionType>(syncSituationDescription));
+				continue;
+//				return syncSituationDescription;
 			}
 			if ((StringUtils.isEmpty(syncSituationDescription.getChannel()) && channel != null) || (StringUtils.isEmpty(channel) && syncSituationDescription.getChannel() != null)){
-				return null;
+//				return null;
+				continue;
 			}
 			if (syncSituationDescription.getChannel().equals(channel)){
-				return syncSituationDescription;
+				valuesToDelete.add(new PrismPropertyValue<SynchronizationSituationDescriptionType>(syncSituationDescription));
+				continue;
+//				return syncSituationDescription;
 			}
 		}
-		return null;
+		return valuesToDelete;
 	}
 }

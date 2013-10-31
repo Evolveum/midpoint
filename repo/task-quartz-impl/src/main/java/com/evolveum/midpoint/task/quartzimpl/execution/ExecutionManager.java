@@ -22,6 +22,7 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.*;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
+import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterStatusInformation;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -49,12 +50,16 @@ public class ExecutionManager {
     private static final long WAIT_FOR_COMPLETION_MAX = 1600;				// max waiting time (in one step) for task(s) to be finished
     private static final long INTERRUPT_TASK_THREAD_AFTER = 5000;           // how long to wait before interrupting task thread (if UseThreadInterrupt = 'whenNecessary')
 
+    private static final long ALLOWED_CLUSTER_STATE_INFORMATION_AGE = 1500L;
+
     private TaskManagerQuartzImpl taskManager;
     private LocalNodeManager localNodeManager;
     private RemoteNodesManager remoteNodesManager;
     private TaskSynchronizer taskSynchronizer;
 
     private Scheduler quartzScheduler;
+
+    private ClusterStatusInformation lastClusterStatusInformation = null;
 
     public ExecutionManager(TaskManagerQuartzImpl taskManager) {
         this.taskManager = taskManager;
@@ -133,30 +138,32 @@ public class ExecutionManager {
         OperationResult result = parentResult.createSubresult(ExecutionManager.class.getName() + ".getClusterStatusInformation");
         result.addParam("clusterwide", clusterwide);
 
+        if (clusterwide && lastClusterStatusInformation != null && lastClusterStatusInformation.isFresh(ALLOWED_CLUSTER_STATE_INFORMATION_AGE)) {
+            result.recordSuccess();
+            return lastClusterStatusInformation;
+        }
+
         ClusterStatusInformation retval = new ClusterStatusInformation();
 
         if (clusterwide) {
             for (PrismObject<NodeType> node : taskManager.getClusterManager().getAllNodes(result)) {
-                try {
-                    addNodeAndTaskInformation(retval, node, result);
-                } catch (TaskManagerException e) {
-                    LoggingUtils.logException(LOGGER, "Cannot get node/task information from node {}", e, node.getName());
-                }
+                addNodeAndTaskInformation(retval, node, result);
             }
         } else {
-            try {
-                addNodeAndTaskInformation(retval, taskManager.getClusterManager().getNodePrism(), result);
-            } catch (TaskManagerException e) {
-                LoggingUtils.logException(LOGGER, "Cannot get node/task information from local node", e);
-            }
+            addNodeAndTaskInformation(retval, taskManager.getClusterManager().getNodePrism(), result);
         }
-        LOGGER.debug("cluster state information = " + retval.dump());
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("cluster state information = {}", retval.dump());
+        }
+        if (clusterwide) {
+            lastClusterStatusInformation = retval;
+        }
 
         result.recomputeStatus();
         return retval;
     }
 
-    private void addNodeAndTaskInformation(ClusterStatusInformation info, PrismObject<NodeType> node, OperationResult parentResult) throws TaskManagerException {
+    private void addNodeAndTaskInformation(ClusterStatusInformation info, PrismObject<NodeType> node, OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(ExecutionManager.class.getName() + ".addNodeAndTaskInformation");
         result.addParam("node", node);
@@ -170,11 +177,10 @@ public class ExecutionManager {
             for (Task task : tasks) {
                 taskInfoList.add(new ClusterStatusInformation.TaskInfo(task.getOid()));
             }
-            Node nodeInfo = new Node(node);
-            nodeInfo.setNodeExecutionStatus(localNodeManager.getLocalNodeExecutionStatus());
-            nodeInfo.setNodeErrorStatus(taskManager.getLocalNodeErrorStatus());
+            node.asObjectable().setExecutionStatus(localNodeManager.getLocalNodeExecutionStatus());
+            node.asObjectable().setErrorStatus(taskManager.getLocalNodeErrorStatus());
 
-            info.addNodeAndTaskInfo(nodeInfo, taskInfoList);
+            info.addNodeAndTaskInfo(node.asObjectable(), taskInfoList);
 
         } else {    // if remote
 
@@ -340,7 +346,7 @@ public class ExecutionManager {
         if (!clusterwide) {
             stopLocalTaskIfRunning(oid, parentResult);
         } else {
-            Node node = csi.findNodeInfoForTask(task.getOid());
+            NodeType node = csi.findNodeInfoForTask(task.getOid());
             if (node != null) {
                 if (taskManager.getClusterManager().isCurrentNode(node.getNodeIdentifier())) {
                     stopLocalTaskIfRunning(oid, parentResult);

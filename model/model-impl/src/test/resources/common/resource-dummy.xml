@@ -325,6 +325,31 @@
 			<host>resource</host>	
 			<language>Shell</language>	
 			<argument>
+                            <script>
+                               <code>
+tmpSuffix = 'OU=vix,DC=win,DC=evolveum,DC=com'
+switch (basic.stringify(user.getEmployeeType())) {
+	case 'T':
+		tmpSuffix = 'OU=Prefix1,' + tmpSuffix
+		break
+	case 'R':
+		tmpSuffix = 'OU=Prefix1,' + tmpSuffix
+		break
+	case 'D':
+		tmpSuffix = 'OU=Prefix1,' + tmpSuffix
+		break
+	case 'S':
+		tmpSuffix = 'OU=Prefix1,' + tmpSuffix
+		break
+	default:
+		tmpSuffix = 'OU=Prefix2,' + tmpSuffix
+}
+return tmpSuffix
+                               </code>
+                            </script>
+			    <name>midpoint_suffix</name>
+			</argument>		
+			<argument>
 				<path>$user/name</path>
 				<name>midpoint_usercn</name><!-- this is sAMAccountName -->
 			</argument>
@@ -380,7 +405,7 @@
 	        </reaction>
 	        <reaction>
 	            <situation>unmatched</situation>
-	            <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-2#import</channel>
+<!-- 	            <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-2#import</channel> -->
 	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addUser"/>
 	        </reaction>
         </objectSynchronization>

@@ -29,16 +29,19 @@ import com.evolveum.midpoint.model.sync.SynchronizeAccountResultHandler;
 import com.evolveum.midpoint.model.util.AbstractSearchIterativeResultHandler;
 import com.evolveum.midpoint.model.util.AbstractSearchIterativeTaskHandler;
 import com.evolveum.midpoint.model.util.Utils;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskHandler;
@@ -46,9 +49,12 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
@@ -76,18 +82,24 @@ import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
  * @see ResourceObjectChangeListener
  */
 @Component
-public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterativeTaskHandler<ShadowType> {
+public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterativeTaskHandler<ShadowType, SynchronizeAccountResultHandler> {
 
     public static final String HANDLER_URI = ImportConstants.IMPORT_URI_TASK_PREFIX + "/accounts-resource/handler-2";
 
+    // WARNING! This task handler is efficiently singleton!
+ 	// It is a spring bean and it is supposed to handle all search task instances
+ 	// Therefore it must not have task-specific fields. It can only contain fields specific to
+ 	// all tasks of a specified type
+    
     @Autowired(required = true)
     private TaskManager taskManager;
+    
+    @Autowired(required = true)
+    private ProvisioningService provisioningService;
 
     @Autowired(required = true)
     private ChangeNotificationDispatcher changeNotificationDispatcher;
     
-    private ResourceType resource;
-    private RefinedObjectClassDefinition rObjectClass;
     private PrismPropertyDefinition<QName> objectclassPropertyDefinition;
 
     private static final Trace LOGGER = TraceManager.getTrace(ImportAccountsFromResourceTaskHandler.class);
@@ -157,19 +169,20 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
         LOGGER.trace("Import from resource {} switched to background, control thread returning with task {}", ObjectTypeUtil.toShortString(resource), task);
     }
 
-    
-    
-    @Override
-	protected boolean initialize(TaskRunResult runResult, Task task, OperationResult opResult) {
-		boolean cont = super.initialize(runResult, task, opResult);
-		if (!cont) {
-			return cont;
+	@Override
+	protected SynchronizeAccountResultHandler createHandler(TaskRunResult runResult, Task task,
+			OperationResult opResult) {
+		
+		ResourceType resource = resolveObjectRef(ResourceType.class, runResult, task, opResult);
+		if (resource == null) {
+			return null;
 		}
 		
-		resource = resolveObjectRef(ResourceType.class, runResult, task, opResult);
-		if (resource == null) {
-			return false;
-		}
+        return createHandler(resource, runResult, task, opResult);
+	}
+	
+	private SynchronizeAccountResultHandler createHandler(ResourceType resource, TaskRunResult runResult, Task task,
+			OperationResult opResult) {
 		
 		RefinedResourceSchema refinedSchema;
         try {
@@ -178,41 +191,22 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
             LOGGER.error("Import: Schema error during processing account definition: {}",e.getMessage());
             opResult.recordFatalError("Schema error during processing account definition: "+e.getMessage(),e);
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-            return false;
+            return null;
         }
 
         if (LOGGER.isTraceEnabled()) {
         	LOGGER.trace("Refined schema:\n{}", refinedSchema.dump());
         }
         
-        rObjectClass = Utils.determineObjectClass(refinedSchema, task);        
+        RefinedObjectClassDefinition rObjectClass = Utils.determineObjectClass(refinedSchema, task);        
         if (rObjectClass == null) {
             LOGGER.error("Import: No objectclass specified and no default can be determined.");
             opResult.recordFatalError("No objectclass specified and no default can be determined");
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-            return false;
+            return null;
         }
         
         LOGGER.info("Start executing import from resource {}, importing object class {}", resource, rObjectClass.getTypeName());
-        
-        return true;
-	}
-
-	@Override
-	protected ObjectQuery createQuery(TaskRunResult runResult, Task task, OperationResult opResult) {
-        try {
-			return ObjectQueryUtil.createResourceAndAccountQuery(resource.getOid(), rObjectClass.getTypeName(), prismContext);
-		} catch (SchemaException e) {
-			LOGGER.error("Import: Schema error during creating search query: {}",e.getMessage());
-            opResult.recordFatalError("Schema error during creating search query: "+e.getMessage(),e);
-            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-            return null;
-		}
-	}
-
-	@Override
-	protected AbstractSearchIterativeResultHandler<ShadowType> createHandler(TaskRunResult runResult, Task task,
-			OperationResult opResult) {
 		
 		SynchronizeAccountResultHandler handler = new SynchronizeAccountResultHandler(resource, rObjectClass, "import", 
         		task, changeNotificationDispatcher);
@@ -220,8 +214,28 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
         handler.setForceAdd(true);
         handler.setStopOnError(false);
         handler.setContextDesc("from "+resource);
+        handler.setLogObjectProgress(true);
         
         return handler;
+	}
+	
+	@Override
+	protected boolean initializeRun(SynchronizeAccountResultHandler handler,
+			TaskRunResult runResult, Task task, OperationResult opResult) {
+		return super.initializeRun(handler, runResult, task, opResult);
+	}
+
+	@Override
+	protected ObjectQuery createQuery(SynchronizeAccountResultHandler handler, TaskRunResult runResult, Task task, OperationResult opResult) {
+        try {
+			return ObjectQueryUtil.createResourceAndAccountQuery(handler.getResource().getOid(), 
+					handler.getRefinedObjectClass().getTypeName(), prismContext);
+		} catch (SchemaException e) {
+			LOGGER.error("Import: Schema error during creating search query: {}",e.getMessage());
+            opResult.recordFatalError("Schema error during creating search query: "+e.getMessage(),e);
+            runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+            return null;
+		}
 	}
 
     @Override
@@ -232,5 +246,37 @@ public class ImportAccountsFromResourceTaskHandler extends AbstractSearchIterati
     @Override
     public List<String> getCategoryNames() {
         return null;
+    }
+    
+    /**
+     * Imports a single shadow. Synchronously. The task is NOT switched to background by default.
+     */
+    public boolean importSingleShadow(String shadowOid, Task task, OperationResult parentResult) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
+    	
+    	PrismObject<ShadowType> shadow = provisioningService.getObject(ShadowType.class, shadowOid, null, task, parentResult);
+    	PrismObject<ResourceType> resource = provisioningService.getObject(ResourceType.class, ShadowUtil.getResourceOid(shadow), null, task, parentResult);
+    	
+    	// Create a result handler just for one object. Invoke the handle() method manually.
+    	TaskRunResult runResult = new TaskRunResult();
+		SynchronizeAccountResultHandler resultHandler = createHandler(resource.asObjectable(), runResult, task, parentResult);
+		if (resultHandler == null) {
+			return false;
+		}
+		// This is required for proper error reporting
+		resultHandler.setStopOnError(true);
+		
+		boolean cont = initializeRun(resultHandler, runResult, task, parentResult);
+		if (!cont) {
+			return false;
+		}
+		
+		cont = resultHandler.handle(shadow, parentResult);
+		if (!cont) {
+			return false;
+		}
+		
+		finish(resultHandler, runResult, task, parentResult);
+		
+		return true;
     }
 }

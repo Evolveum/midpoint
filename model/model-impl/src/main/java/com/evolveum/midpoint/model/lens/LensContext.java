@@ -101,6 +101,11 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	
 	private ModelExecuteOptions options;
 	
+	/**
+	 * Used mostly in unit tests.
+	 */
+	transient private LensDebugListener debugListener;
+	
 	public LensContext(Class<F> focusClass, PrismContext prismContext, ProvisioningService provisioningService) {
 		Validate.notNull(prismContext, "No prismContext");
 		
@@ -355,6 +360,14 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	
 	public void setOptions(ModelExecuteOptions options) {
 		this.options = options;
+	}
+
+	public LensDebugListener getDebugListener() {
+		return debugListener;
+	}
+
+	public void setDebugListener(LensDebugListener debugListener) {
+		this.debugListener = debugListener;
 	}
 
 	/**

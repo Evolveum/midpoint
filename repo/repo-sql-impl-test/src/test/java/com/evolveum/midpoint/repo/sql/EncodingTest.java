@@ -484,7 +484,7 @@ public class EncodingTest extends BaseSQLRepoTest {
 
     private static final String USER_FULL_NAME = "Grăfula Fèlix Teleke z Tölökö";
     private static final String USER_GIVEN_NAME = "P\u00f3lic\u00edja, p\u00f3lic\u00edja, S\u00e1la\u0161\u00e1ry, pr\u00e1va Jova. Z c\u00e9sty pr\u00edva, z c\u00e9sty pr\u00e1va, s\u00fdmpatika, korpora. Popul\u00e1ry, Karpatula. Juv\u00e1 svorno polic\u00e1na. Kerl\u00e9\u0161 na strach, polic\u00edja. Bumtar\u00e1ra, bumtar\u00e1ra, bum. ";//"Fëľïx";
-    private static final String USER_FAMILY_NAME = "ŢæĺêkéčišćeľščťžýáíéäöåøřĺąćęłńóśźżrůāēīūŗļķņģšžčāäǟḑēīļņōȯȱõȭŗšțūžÇĞIİÖŞÜáàâéèêíìîóòôúùûáâãçéêíóôõúÁáĄąÄäÉéĘęĚěÍíÓóÔôÚúŮůÝýČčďťĹĺŇňŔŕŘřŠšŽž";
+    private static final String USER_FAMILY_NAME = "ŢæĺêkéčišćeľščťžýáíéäöåøřĺąćęłńóśźżrůāēīūŗļķņģšžčāäǟḑēīļņōȯȱõȭŗšțūžÇĞIİÖŞÜáàâéèêíìîóòôúùûáâãçéêíóôõúÁáĄąÄäÉéĘęĚěÍíÓóÔôÚúŮůÝýČčĎďŤťĽľĹĺŇňŔŕŘřŠšŽž";
     private static final String[] USER_ORGANIZATION = {"COMITATVS NOBILITVS HVNGARIÆ", "Salsa Verde ğomorula prïvatûła"};
     private static final String[] USER_EMPLOYEE_TYPE = {"Ģŗąfųŀą", "CANTATOR"};
     private static final String INSANE_NATIONAL_STRING = "Pørúga ném nå väšȍm apârátula";

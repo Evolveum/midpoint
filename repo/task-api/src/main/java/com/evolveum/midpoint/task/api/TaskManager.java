@@ -23,12 +23,15 @@ import java.util.Set;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.NodeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 
 /**
@@ -64,6 +67,142 @@ public interface TaskManager {
     long WAIT_INDEFINITELY = 0L;
     long DO_NOT_WAIT = -1L;
     long DO_NOT_STOP = -2L;
+
+    //region Generic operations delegated from the model
+    /**
+     *
+     * @param type
+     * @param query
+     * @param options
+     * @param parentResult
+     * @param <T>
+     * @return
+     * @throws SchemaException
+     *
+     * Notes: Implemented options are:
+     *
+     * - noFetch: it causes task manager NOT to ask remote nodes about node/task status.
+     * - (for tasks) TaskType.F_NEXT_RUN_START_TIMESTAMP: it can be used to disable asking Quartz for next run start time
+     * - other options that are passed down to repository
+     */
+    <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException;
+
+    /**
+     * Counts the number of objects.
+     *
+     * @param type
+     * @param query
+     * @param parentResult
+     * @param <T>
+     * @return
+     * @throws SchemaException
+     */
+    <T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, OperationResult parentResult) throws SchemaException;
+
+    /**
+     * TODO
+     *
+     * @param clazz
+     * @param oid
+     * @param options
+     * @param task
+     * @param result
+     * @param <T>
+     * @return
+     */
+    <T extends ObjectType> PrismObject<T> getObject(Class<T> clazz, String oid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws ObjectNotFoundException, SchemaException;
+
+    /**
+     * Add new task.
+     *
+     * The OID provided in the task may be empty. In that case the OID
+     * will be assigned by the implementation of this method and it will be
+     * provided as return value.
+     *
+     * This operation should fail if such object already exists (if object with
+     * the provided OID already exists).
+     *
+     * The operation may fail if provided OID is in an unusable format for the
+     * storage. Generating own OIDs and providing them to this method is not
+     * recommended for normal operation.
+     *
+     * Should be atomic. Should not allow creation of two objects with the same
+     * OID (even if created in parallel).
+     *
+     * The operation may fail if the object to be created does not conform to
+     * the underlying schema of the storage system or the schema enforced by the
+     * implementation.
+     *
+     * @param taskPrism
+     *            object to create
+     * @param parentResult
+     *            parent OperationResult (in/out)
+     * @return OID assigned to the created object
+     *
+     * @throws ObjectAlreadyExistsException
+     *             object with specified identifiers already exists, cannot add
+     * @throws SchemaException
+     *             error dealing with storage schema, e.g. schema violation
+     * @throws IllegalArgumentException
+     *             wrong OID format, etc.
+     */
+    public String addTask(PrismObject<TaskType> taskPrism, OperationResult parentResult)
+            throws ObjectAlreadyExistsException, SchemaException;
+
+    /**
+     * Modifies task using relative change description. Must fail if object with
+     * provided OID does not exists. Must fail if any of the described changes
+     * cannot be applied. Should be atomic.
+     *
+     * If two or more modify operations are executed in parallel, the operations
+     * should be merged. In case that the operations are in conflict (e.g. one
+     * operation adding a value and the other removing the same value), the
+     * result is not deterministic.
+     *
+     * The operation may fail if the modified object does not conform to the
+     * underlying schema of the storage system or the schema enforced by the
+     * implementation.
+     *
+     * HOWEVER, the preferred way of modifying tasks is to use methods in Task interface.
+     *
+     * @param oid
+     *            OID of the task to be changed
+     * @param modifications
+     *            specification of object changes
+     * @param parentResult
+     *            parent OperationResult (in/out)
+     *
+     * @throws ObjectNotFoundException
+     *             specified object does not exist
+     * @throws SchemaException
+     *             resulting object would violate the schema
+     * @throws IllegalArgumentException
+     *             wrong OID format, described change is not applicable
+     */
+    public void modifyTask(String oid, Collection<? extends ItemDelta> modifications, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException;
+
+    /**
+     * Deletes task with provided OID. Must fail if object with specified OID
+     * does not exists. Should be atomic.
+     *
+     * BEWARE: call this method only if you are pretty sure the task is not running.
+     * Otherwise the running thread will complain when it will try to store task result into repo.
+     * (I.e. it is a good practice to suspend the task before deleting.)
+     *
+     * @param oid
+     *            OID of object to delete
+     * @param parentResult
+     *            parent OperationResult (in/out)
+     *
+     * @throws ObjectNotFoundException
+     *             specified object does not exist
+     * @throws IllegalArgumentException
+     *             wrong OID format, described change is not applicable
+     */
+    public void deleteTask(String oid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+
+    //endregion
 
     //region Basic working with tasks (create, get, modify, delete)
     // ==================================================== Basic working with tasks (create, get, modify, delete)
@@ -148,94 +287,14 @@ public interface TaskManager {
     Task getTaskByIdentifier(String identifier, OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
 
     /**
-	 * Add new task.
-	 * 
-	 * The OID provided in the task may be empty. In that case the OID
-	 * will be assigned by the implementation of this method and it will be
-	 * provided as return value.
-	 * 
-	 * This operation should fail if such object already exists (if object with
-	 * the provided OID already exists).
-	 * 
-	 * The operation may fail if provided OID is in an unusable format for the
-	 * storage. Generating own OIDs and providing them to this method is not
-	 * recommended for normal operation.
-	 * 
-	 * Should be atomic. Should not allow creation of two objects with the same
-	 * OID (even if created in parallel).
-	 * 
-	 * The operation may fail if the object to be created does not conform to
-	 * the underlying schema of the storage system or the schema enforced by the
-	 * implementation.
-	 * 
-	 * @param taskPrism
-	 *            object to create
-	 * @param parentResult
-	 *            parent OperationResult (in/out)
-	 * @return OID assigned to the created object
-	 * 
-	 * @throws ObjectAlreadyExistsException
-	 *             object with specified identifiers already exists, cannot add
-	 * @throws SchemaException
-	 *             error dealing with storage schema, e.g. schema violation
-	 * @throws IllegalArgumentException
-	 *             wrong OID format, etc.
-	 */
-	public String addTask(PrismObject<TaskType> taskPrism, OperationResult parentResult)
-			throws ObjectAlreadyExistsException, SchemaException;
-
-	/**
-	 * Modifies task using relative change description. Must fail if object with
-	 * provided OID does not exists. Must fail if any of the described changes
-	 * cannot be applied. Should be atomic.
-	 * 
-	 * If two or more modify operations are executed in parallel, the operations
-	 * should be merged. In case that the operations are in conflict (e.g. one
-	 * operation adding a value and the other removing the same value), the
-	 * result is not deterministic.
-	 * 
-	 * The operation may fail if the modified object does not conform to the
-	 * underlying schema of the storage system or the schema enforced by the
-	 * implementation.
+     * TODO
      *
-     * HOWEVER, the preferred way of modifying tasks is to use methods in Task interface.
-	 *
-     * @param oid
-     *            OID of the task to be changed
-	 * @param modifications
-	 *            specification of object changes
-	 * @param parentResult
-	 *            parent OperationResult (in/out)
-	 * 
-	 * @throws ObjectNotFoundException
-	 *             specified object does not exist
-	 * @throws SchemaException
-	 *             resulting object would violate the schema
-	 * @throws IllegalArgumentException
-	 *             wrong OID format, described change is not applicable
-	 */
-	public void modifyTask(String oid, Collection<? extends ItemDelta> modifications, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException;
-
-	/**
-	 * Deletes task with provided OID. Must fail if object with specified OID
-	 * does not exists. Should be atomic.
-     *
-     * BEWARE: call this method only if you are pretty sure the task is not running.
-     * Otherwise the running thread will complain when it will try to store task result into repo.
-     * (I.e. it is a good practice to suspend the task before deleting.)
-	 * 
-	 * @param oid
-	 *            OID of object to delete
-	 * @param parentResult
-	 *            parent OperationResult (in/out)
-	 * 
-	 * @throws ObjectNotFoundException
-	 *             specified object does not exist
-	 * @throws IllegalArgumentException
-	 *             wrong OID format, described change is not applicable
-	 */
-	public void deleteTask(String oid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
+     * @param identifier
+     * @param options
+     * @param parentResult
+     * @return
+     */
+    PrismObject<TaskType> getTaskTypeByIdentifier(String identifier, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
 
     /**
      * Deletes obsolete tasks, as specified in the policy.
@@ -293,7 +352,7 @@ public interface TaskManager {
      * @return
      * @throws SchemaException
      */
-    List<Task> searchTasks(ObjectQuery query, ClusterStatusInformation clusterStatusInformation, OperationResult result) throws SchemaException;
+    //List<Task> searchTasks(ObjectQuery query, ClusterStatusInformation clusterStatusInformation, OperationResult result) throws SchemaException;
 
     /**
      * Returns the number of tasks satisfying given query.
@@ -303,19 +362,7 @@ public interface TaskManager {
      * @return
      * @throws SchemaException
      */
-    int countTasks(ObjectQuery query, OperationResult result) throws SchemaException;
-
-    /**
-     * Returns tasks that are related to an object with a given OID.
-     * As searchTasks, this method also merges repository and runtime information.
-     *
-     * @param oid object OID to be searched for
-     * @param clusterStatusInformation runtime information to be used (if not null)
-     * @param result
-     * @return
-     * @throws SchemaException
-     */
-    List<Task> listTasksRelatedToObject(String oid, ClusterStatusInformation clusterStatusInformation, OperationResult result) throws SchemaException;
+//    int countTasks(ObjectQuery query, OperationResult result) throws SchemaException;
 
     /**
      * Returns tasks that currently run on this node.
@@ -326,25 +373,6 @@ public interface TaskManager {
      * @return tasks that currently run on this node.
      */
     public Set<Task> getLocallyRunningTasks(OperationResult parentResult) throws TaskManagerException;
-
-    /**
-     * Returns the cluster state, including tasks that execute on particular nodes.
-     *
-     * Does not look primarily into repository, but looks at runtime structures describing the task execution.
-     *
-     * @param result
-     * @return
-     */
-    ClusterStatusInformation getRunningTasksClusterwide(OperationResult result);
-
-    /**
-     * As above; with the difference that this method fetches new information only if after last query
-     * elapsed at least 'allowedAge' milliseconds.
-     *
-     * @param allowedAge
-     * @return
-     */
-    ClusterStatusInformation getRunningTasksClusterwide(long allowedAge, OperationResult parentResult);
     //endregion
 
     //region Suspending, resuming and scheduling the tasks
@@ -450,17 +478,6 @@ public interface TaskManager {
     //region Working with nodes (searching, mananging)
     // ==================================================== Working with nodes (searching, mananging)
 
-    /**
-     * Returns relevant nodes satisfying given query.
-     * Similar to searchTasks, this method adds some information to the one returned from repository. (Mainly concerned with Node status and error status.)
-     *
-     * @param query search query
-     * @param clusterStatusInformation The same as in searchTasks.
-     * @param result
-     * @return
-     * @throws SchemaException
-     */
-    List<Node> searchNodes(ObjectQuery query, ClusterStatusInformation clusterStatusInformation, OperationResult result) throws SchemaException;
 
     /**
      * Returns the number of nodes satisfying given query.
@@ -470,7 +487,7 @@ public interface TaskManager {
      * @return
      * @throws SchemaException
      */
-    int countNodes(ObjectQuery query, OperationResult result) throws SchemaException;
+//    int countNodes(ObjectQuery query, OperationResult result) throws SchemaException;
 
     /**
      * Returns identifier for current node.
@@ -622,5 +639,7 @@ public interface TaskManager {
      * @param handler instance of the handler
      */
     void registerHandler(String uri, TaskHandler handler);
+
+
     //endregion
 }

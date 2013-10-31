@@ -31,6 +31,7 @@ import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
+import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -145,6 +146,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 
 		Validate.notNull(oid, "Oid of object to get must not be null.");
+//		Validate.notNull(oid, "Oid of object to get must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
 
 		// Result type for this operation
@@ -352,6 +354,10 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			} catch (SecurityViolationException ex) {
 				recordFatalError(LOGGER, result, "Couldn't add object. Security violation: " + ex.getMessage(), ex);
 				throw ex;
+			} catch (RuntimeException ex){
+				recordFatalError(LOGGER, result, "Couldn't add object. Runtime error: " + ex.getMessage(), ex);
+				throw new SystemException(ex);
+				
 			}
 		} else {
 			RepoAddOptions addOptions = null;
@@ -858,7 +864,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				throw e;
 			} catch (RuntimeException e){
 				recordFatalError(LOGGER, result, "Couldn't delete object: " + e.getMessage(), e);
-				throw e;
+				throw new SystemException(e);
 			}
 
 		} else if (object.canRepresent(ResourceType.class)) {
@@ -1125,12 +1131,22 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				}
 			};
 			
-			getCacheRepositoryService().searchObjectsIterative(type, query, internalHandler, null, result);
+			try {
+				
+				getCacheRepositoryService().searchObjectsIterative(type, query, internalHandler, null, result);
+				
+				result.computeStatus();
+				result.recordSuccessIfUnknown();
+				result.cleanupResult();
+
+			} catch (SchemaException e) {
+				recordFatalError(LOGGER, result, null, e);
+			} catch (RuntimeException e) {
+				recordFatalError(LOGGER, result, null, e);
+			} catch (Error e) {
+				recordFatalError(LOGGER, result, null, e);
+			}
 			
-			
-			result.computeStatus();
-			result.recordSuccessIfUnknown();
-			result.cleanupResult();
 			return;
 		}
 		
@@ -1266,7 +1282,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		}
 	}
 	
-	private synchronized void notifyResourceObjectChangeListeners(ResourceObjectShadowChangeDescription change,
+	private void notifyResourceObjectChangeListeners(ResourceObjectShadowChangeDescription change,
 			Task task, OperationResult parentResult) {
 		changeNotificationDispatcher.notifyChange(change, task, parentResult);
 	}
@@ -1281,7 +1297,6 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		shadowChangeDescription.setCurrentShadow(change.getCurrentShadow());
 		shadowChangeDescription.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC));
 		return shadowChangeDescription;
-
 	}
 
 

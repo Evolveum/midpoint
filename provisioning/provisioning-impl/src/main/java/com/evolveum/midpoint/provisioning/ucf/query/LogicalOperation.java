@@ -27,6 +27,7 @@ import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.OrFilter;
+import com.evolveum.midpoint.provisioning.ucf.impl.IcfNameMapper;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -40,7 +41,7 @@ public class LogicalOperation extends Operation{
 	}
 
 	@Override
-	public Filter interpret(ObjectFilter objectFilter) throws SchemaException{
+	public Filter interpret(ObjectFilter objectFilter, IcfNameMapper icfNameMapper) throws SchemaException{
 		
 		if (objectFilter instanceof NotFilter){
 			NotFilter not = (NotFilter) objectFilter;
@@ -49,7 +50,7 @@ public class LogicalOperation extends Operation{
 				return null;
 			}
 			
-			Filter f = getInterpreter().interpret(objectFilter);
+			Filter f = getInterpreter().interpret(objectFilter, icfNameMapper);
 			return FilterBuilder.not(f);
 		} else {
 		
@@ -61,12 +62,12 @@ public class LogicalOperation extends Operation{
 			}
 			if (conditions.size() < 2){
 				LOGGER.debug("Logical filter contains only one condition. Skipping processing logical filter and process simple operation of type {}.", conditions.get(0).getClass().getSimpleName());
-				return getInterpreter().interpret(conditions.get(0));
+				return getInterpreter().interpret(conditions.get(0), icfNameMapper);
 			}
 			
 			List<Filter> filters = new ArrayList<Filter>();
 			for (ObjectFilter objFilter : nAry.getCondition()){
-				Filter f = getInterpreter().interpret(objFilter);
+				Filter f = getInterpreter().interpret(objFilter, icfNameMapper);
 				filters.add(f);
 			}
 			

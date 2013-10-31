@@ -21,6 +21,7 @@ import org.identityconnectors.framework.common.objects.filter.Filter;
 import com.evolveum.midpoint.prism.query.LogicalFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
+import com.evolveum.midpoint.provisioning.ucf.impl.IcfNameMapper;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class FilterInterpreter {
@@ -31,7 +32,7 @@ public class FilterInterpreter {
 		this.resourceSchemaNamespace = resourceSchemaNamespace;
 	}
 	
-	public Filter interpret(ObjectFilter filter) throws SchemaException{
+	public Filter interpret(ObjectFilter filter, IcfNameMapper icfNameMapper) throws SchemaException{
 		
 		Operation operation = null;
 		
@@ -47,7 +48,7 @@ public class FilterInterpreter {
 			throw new UnsupportedOperationException("Unssupported filter type: " + filter.getClass().getSimpleName());
 		}
 		
-		return operation.interpret(filter);
+		return operation.interpret(filter, icfNameMapper);
 		
 	}
 	

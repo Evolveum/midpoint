@@ -54,6 +54,7 @@ public abstract class SchemaConstants {
 	public static final QName C_OBJECTS = new QName(NS_C, "objects");
 	public static final QName C_OBJECT = new QName(NS_C, "object");
 	public static final QName C_ABSTRACT_ROLE = new QName(NS_C, "abstractRole");
+    public static final QName C_FOCUS = new QName(NS_C, "focus");
 	public static final QName C_OBJECT_TYPE = new QName(NS_C, "ObjectType");
 	public static final QName C_OBJECT_REF = new QName(NS_C, "objectRef");
 	public static final QName C_VALUE = new QName(NS_C, "value");
@@ -123,6 +124,7 @@ public abstract class SchemaConstants {
 	public static final QName CHANGE_CHANNEL_LIVE_SYNC = new QName(NS_PROVISIONING_CHANNEL, "liveSync");
 	public static final String CHANGE_CHANNEL_LIVE_SYNC_URI = QNameUtil.qNameToUri(CHANGE_CHANNEL_LIVE_SYNC);
 	public static final QName CHANGE_CHANNEL_RECON = new QName(NS_PROVISIONING_CHANNEL, "reconciliation");
+	public static final String CHANGE_CHANNEL_RECON_URI = QNameUtil.qNameToUri(CHANGE_CHANNEL_RECON);
 	public static final QName CHANGE_CHANNEL_RECOMPUTE = new QName(NS_PROVISIONING_CHANNEL, "recompute");
 	public static final QName CHANGE_CHANNEL_DISCOVERY = new QName(NS_PROVISIONING_CHANNEL, "discovery");
 	public static final QName CHANGE_CHANNEL_IMPORT = new QName(NS_PROVISIONING_CHANNEL, "import");

@@ -796,7 +796,7 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
 		if (values == null) {
 			if (other.values != null)
 				return false;
-		} else if (!equalsRealValues(this.values, other.values))
+		} else if (!match(this.values, other.values))
 			return false;
 		return true;
 	}

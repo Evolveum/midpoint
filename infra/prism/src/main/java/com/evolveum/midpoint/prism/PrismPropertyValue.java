@@ -28,6 +28,7 @@ import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -58,10 +59,29 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
                     "value object to another property value.");
         }
         this.value = value;
+        checkValue();
     }
+
+    /**
+     * Private constructor just for clonning. 
+     */
+    private PrismPropertyValue(OriginType type, Objectable source) {
+    	super(type,source);
+    }
+    
+    private PrismPropertyValue() {
+    }
+
+	public static <T> PrismPropertyValue<T> createRaw(Object rawElement) {
+		PrismPropertyValue<T> pval = new PrismPropertyValue<T>();
+		pval.setRawElement(rawElement);
+		return pval;
+	}
+
 
     public void setValue(T value) {
         this.value = value;
+        checkValue();
         // To make sure there is no stale value
         clearDomElement();
     }
@@ -189,7 +209,13 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 			return;
 		}
 		if (value == null) {
-			throw new IllegalArgumentException("Null value in "+this);
+            // can be used not because of prism forms in gui (will be fixed later [lazyman]
+            // throw new IllegalArgumentException("Null value in "+this);
+            return;
+		}
+		if (value instanceof PolyStringType) {
+			// This is illegal. PolyString should be there instead.
+			throw new IllegalArgumentException("PolyStringType found where PolyString should be in "+this);
 		}
 		Class<? extends Object> valueClass = value.getClass();
 		if (value instanceof Serializable) {
@@ -215,6 +241,15 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
     	if (value != null && rawElement != null) {
 			throw new IllegalStateException("Both value and raw element specified in property value "+this+" ("+myPath+" in "+rootItem+")");
 		}
+    	if (value != null) {
+    		if (value instanceof Recomputable) {
+    			try {
+    				((Recomputable)value).checkConsistence();
+    			} catch (IllegalStateException e) {
+    				throw new IllegalStateException(e.getMessage()+" in property value "+this+" ("+myPath+" in "+rootItem+")", e);
+    			}
+    		}
+    	}
 	}
 
 	@Override
@@ -224,7 +259,7 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 
 	@Override
     public PrismPropertyValue<T> clone() {
-        PrismPropertyValue clone = new PrismPropertyValue(null, getOriginType(), getOriginObject());
+        PrismPropertyValue clone = new PrismPropertyValue(getOriginType(), getOriginObject());
         copyValues(clone);
         return clone;
     }
@@ -281,7 +316,8 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 	private T parseRawElementToNewRealValue(PrismPropertyValue<T> prismPropertyValue, PrismPropertyDefinition definition) 
 				throws SchemaException {
 		PrismDomProcessor domProcessor = definition.getPrismContext().getPrismDomProcessor();
-		return (T) domProcessor.parsePrismPropertyRealValue(prismPropertyValue.rawElement, (PrismPropertyDefinition) definition);
+		T value = (T) domProcessor.parsePrismPropertyRealValue(prismPropertyValue.rawElement, (PrismPropertyDefinition) definition);
+		return value;
 	}
 
 
@@ -351,6 +387,7 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 	}
 
 	private boolean matchComplex(PrismPropertyValue<?> otherValue, boolean ignoreMetadata, boolean isLiteral) {
+		
 		if (!super.equalsComplex(otherValue, ignoreMetadata, isLiteral)) {
 			return false;
 		}
@@ -389,7 +426,7 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 			return DOMUtil.compareElement((Element)thisRealValue, (Element)otherRealValue, isLiteral);
 		}
 		
-		if (otherRealValue instanceof Matchable){
+		if (otherRealValue instanceof Matchable && thisRealValue instanceof Matchable){
 			Matchable thisMatchableValue = (Matchable) thisRealValue;
 			Matchable otherMatchableValue = (Matchable) otherRealValue;
 			return thisMatchableValue.match(otherMatchableValue);

@@ -39,8 +39,10 @@ import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 
 import org.opends.messages.Message;
+import org.opends.messages.MessageBuilder;
 import org.opends.server.config.ConfigException;
 import org.opends.server.core.AddOperation;
+import org.opends.server.core.ModifyDNOperation;
 import org.opends.server.core.ModifyOperation;
 import org.opends.server.protocols.internal.InternalClientConnection;
 import org.opends.server.protocols.internal.InternalSearchOperation;
@@ -61,6 +63,7 @@ import org.opends.server.util.EmbeddedUtils;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 import org.opends.server.util.ModifyChangeRecordEntry;
+import org.opends.server.util.ModifyDNChangeRecordEntry;
 import org.testng.AssertJUnit;
 
 import com.evolveum.midpoint.util.MiscUtil;
@@ -597,12 +600,32 @@ public class OpenDJController extends AbstractResourceController {
         }
 	}
 	
+	public ChangeRecordEntry executeRenameChange(String filename) throws LDIFException, IOException{
+		LDIFImportConfig importConfig = new LDIFImportConfig(filename);
+        LDIFReader ldifReader = new LDIFReader(importConfig);
+        ChangeRecordEntry entry = ldifReader.readChangeRecord(false);
+      
+        if (!(entry instanceof ModifyDNChangeRecordEntry)){
+        	throw new LDIFException(new MessageBuilder("Could not execute rename..Bad change").toMessage());
+        }
+        
+        ModifyDNOperation modifyOperation = getInternalConnection().processModifyDN((ModifyDNChangeRecordEntry)entry);
+        
+        if (ResultCode.SUCCESS != modifyOperation.getResultCode()) {
+        	throw new RuntimeException("LDAP operation error: "+modifyOperation.getResultCode()+": "+modifyOperation.getErrorMessage());
+        }
+        return entry;
+        
+	}
+	
 	public ChangeRecordEntry executeLdifChange(String filename) throws IOException, LDIFException {
 		LDIFImportConfig importConfig = new LDIFImportConfig(filename);
         LDIFReader ldifReader = new LDIFReader(importConfig);
         ChangeRecordEntry entry = ldifReader.readChangeRecord(false);
+      
         ModifyOperation modifyOperation = getInternalConnection()
         		.processModify((ModifyChangeRecordEntry) entry);
+        
         if (ResultCode.SUCCESS != modifyOperation.getResultCode()) {
         	throw new RuntimeException("LDAP operation error: "+modifyOperation.getResultCode()+": "+modifyOperation.getErrorMessage());
         }

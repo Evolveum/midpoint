@@ -133,7 +133,7 @@ public class ModifyUserAction extends BaseAction {
         LensProjectionContext accountContext = null;
         try {
             context = createSyncContext(userType, change.getResource().asObjectable(), userTemplate, change);
-            accountContext = createAccountLensContext(context, change,
+            accountContext = createAccountLensContext(context, change, situation,
                     getAccountSynchronizationIntent(), getAccountActivationDecision());
             if (accountContext == null) {
                 LOGGER.warn("Couldn't create account sync context, skipping action for this change.");

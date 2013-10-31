@@ -65,6 +65,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowDiscriminatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
 
 /**
@@ -74,6 +75,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
 public class LensProjectionContext extends LensElementContext<ShadowType> implements ModelProjectionContext {
 	
 	private ObjectDelta<ShadowType> syncDelta;
+	
+	/**
+	 * If set to true: absolute state of this projection was detected by the synchronization.
+	 * This is mostly for debugging and visibility. It is not used by projection logic.
+	 */
+	private boolean syncAbsoluteTrigger = false;
 	
 	/**
 	 * The wave in which this resource should be processed. Initial value of -1 means "undetermined".
@@ -133,6 +140,19 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     
     private int iteration;
     private String iterationToken;
+
+    /**
+     * Synchronization situation as it was originally detected by the synchronization code (SynchronizationService).
+     * This is mostly for debug purposes. Projector and clockwork do not need to care about this.
+     * The synchronization intent is used instead.
+     */
+    private SynchronizationSituationType synchronizationSituationDetected = null;
+    /**
+     * Synchronization situation which was the result of synchronization reaction (projector and clockwork run).
+     * This is mostly for debug purposes. Projector and clockwork do not care about this (except for setting it).
+     * The synchronization decision is used instead.
+     */
+    private SynchronizationSituationType synchronizationSituationResolved = null;
     
     /**
      * Delta set triple for accounts. Specifies which accounts should be added, removed or stay as they are.
@@ -172,7 +192,15 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		this.syncDelta = syncDelta;
 	}
 
-    public int getWave() {
+    public boolean isSyncAbsoluteTrigger() {
+		return syncAbsoluteTrigger;
+	}
+
+	public void setSyncAbsoluteTrigger(boolean syncAbsoluteTrigger) {
+		this.syncAbsoluteTrigger = syncAbsoluteTrigger;
+	}
+
+	public int getWave() {
 		return wave;
 	}
 
@@ -277,6 +305,9 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		} else if (synchronizationPolicyDecision != null){
 			return false;
 		}
+		if (syncDelta != null && syncDelta.isDelete()) {
+			return true;
+		}
 		return super.isDelete();
 	}
 	
@@ -358,6 +389,24 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 
 	public void setIterationToken(String iterationToken) {
 		this.iterationToken = iterationToken;
+	}
+
+	public SynchronizationSituationType getSynchronizationSituationDetected() {
+		return synchronizationSituationDetected;
+	}
+
+	public void setSynchronizationSituationDetected(
+			SynchronizationSituationType synchronizationSituationDetected) {
+		this.synchronizationSituationDetected = synchronizationSituationDetected;
+	}
+
+	public SynchronizationSituationType getSynchronizationSituationResolved() {
+		return synchronizationSituationResolved;
+	}
+
+	public void setSynchronizationSituationResolved(
+			SynchronizationSituationType synchronizationSituationResolved) {
+		this.synchronizationSituationResolved = synchronizationSituationResolved;
 	}
 
 	public boolean isFullShadow() {
@@ -936,6 +985,9 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         if (resourceShadowDiscriminator != null && resourceShadowDiscriminator.isThombstone()) {
         	sb.append(", THOMBSTONE");
         }
+        if (syncAbsoluteTrigger) {
+        	sb.append(", SYNC TRIGGER");
+        }
         if (iteration != 0) {
         	sb.append(", iteration=").append(iteration);
         }
@@ -993,7 +1045,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     
 	@Override
 	public String toString() {
-		return "LensProjectionContext(" + (getObjectTypeClass() == null ? "null" : getObjectTypeClass().getSimpleName()) + ":" + getOid() + ")";
+		return "LensProjectionContext(" + (getObjectTypeClass() == null ? "null" : getObjectTypeClass().getSimpleName()) + ":" + getOid() +
+				( resource == null ? "" : " on " + resource ) + ")";
 	}
 
 	/**
@@ -1037,7 +1090,10 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         lensProjectionContextType.setDoReconciliation(doReconciliation);
         lensProjectionContextType.setIteration(iteration);
         lensProjectionContextType.setIterationToken(iterationToken);
+        lensProjectionContextType.setSynchronizationSituationDetected(synchronizationSituationDetected);
+        lensProjectionContextType.setSynchronizationSituationResolved(synchronizationSituationResolved);
         lensProjectionContextType.setAccountPasswordPolicy(accountPasswordPolicy);
+        lensProjectionContextType.setSyncAbsoluteTrigger(syncAbsoluteTrigger);
     }
 
     public static LensProjectionContext fromLensProjectionContextType(LensProjectionContextType projectionContextType, LensContext lensContext, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
@@ -1067,7 +1123,10 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         projectionContext.doReconciliation = projectionContextType.isDoReconciliation() != null ? projectionContextType.isDoReconciliation() : false;
         projectionContext.iteration = projectionContextType.getIteration() != null ? projectionContextType.getIteration() : 0;
         projectionContext.iterationToken = projectionContextType.getIterationToken();
+        projectionContext.synchronizationSituationDetected = projectionContextType.getSynchronizationSituationDetected();
+        projectionContext.synchronizationSituationResolved = projectionContextType.getSynchronizationSituationResolved();
         projectionContext.accountPasswordPolicy = projectionContextType.getAccountPasswordPolicy();
+        projectionContext.syncAbsoluteTrigger = projectionContextType.isSyncAbsoluteTrigger();
 
         return projectionContext;
     }

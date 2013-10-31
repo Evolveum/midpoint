@@ -344,7 +344,8 @@ public class ChangeExecutor {
 
         if (accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.UNLINK 
         		|| accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.DELETE
-        		|| accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
+        		|| accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN
+        		|| accCtx.isDelete()) {
             // Link should NOT exist
         	
         	PrismReference accountRef = userTypeNew.asPrismObject().findReference(UserType.F_LINK_REF);
@@ -358,12 +359,14 @@ public class ChangeExecutor {
         		
         	}
             
-            //update account situation only if the account was not deleted
-        	if (accCtx != null && !accCtx.isDelete()) {
+    		if (accCtx.isDelete() || accCtx.isThombstone()) {
+    			LOGGER.trace("Account {} deleted, updating also situation in account.", accountOid);	
+				updateSituationInAccount(task, SynchronizationSituationType.DELETED, focusContext, accCtx, result);
+    		} else {
+    			// This should NOT be UNLINKED. We just do not know the situation here. Reflect that in the shadow.
 				LOGGER.trace("Account {} unlinked from the user, updating also situation in account.", accountOid);	
-				updateSituationInAccount(task, null, focusContext, accountOid, result);
-				LOGGER.trace("Situation in the account was updated to {}.", "null");
-			}
+				updateSituationInAccount(task, null, focusContext, accCtx, result);
+    		}
             // Not linked, that's OK
 
         } else {
@@ -373,8 +376,7 @@ public class ChangeExecutor {
                 if (accountOid.equals(accountRef.getOid())) {
                     // Already linked, nothing to do, only be sure, the situation is set with the good value
                 	LOGGER.trace("Updating situation in already linked account.");
-                	updateSituationInAccount(task, SynchronizationSituationType.LINKED, focusContext, accountOid, result);
-                	LOGGER.trace("Situation in account was updated to {}.", SynchronizationSituationType.LINKED);
+                	updateSituationInAccount(task, SynchronizationSituationType.LINKED, focusContext, accCtx, result);
                 	return;
                 }
             }
@@ -382,8 +384,7 @@ public class ChangeExecutor {
             linkAccount(userTypeNew.getOid(), accountOid, (LensFocusContext<UserType>) focusContext, task, result);
             //be sure, that the situation is set correctly
             LOGGER.trace("Updating situation after account was linked.");
-            updateSituationInAccount(task, SynchronizationSituationType.LINKED, focusContext, accountOid, result);
-            LOGGER.trace("Situation in account was updated to {}.", SynchronizationSituationType.LINKED);
+            updateSituationInAccount(task, SynchronizationSituationType.LINKED, focusContext, accCtx, result);
         }
     }
 
@@ -445,34 +446,34 @@ public class ChangeExecutor {
     }
 	
     private <F extends ObjectType> void updateSituationInAccount(Task task, 
-    		SynchronizationSituationType situation, LensFocusContext<F> focusContext, String accountRef, 
+    		SynchronizationSituationType situation, LensFocusContext<F> focusContext, LensProjectionContext projectionCtx, 
     		OperationResult parentResult) throws ObjectNotFoundException, SchemaException{
 
+    	String projectionOid = projectionCtx.getOid();
+    	
     	OperationResult result = new OperationResult(OPERATION_UPDATE_SITUATION_ACCOUNT);
     	result.addParam("situation", situation);
-    	result.addParam("accountRef", accountRef);
+    	result.addParam("accountRef", projectionOid);
 		
     	PrismObject<ShadowType> account = null;
     	try {
-    		account = provisioning.getObject(ShadowType.class, accountRef, 
+    		account = provisioning.getObject(ShadowType.class, projectionOid, 
     				SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), task, result);
     	} catch (Exception ex){
     		LOGGER.trace("Problem with getting account, skipping modifying situation in account.");
 			return;
     	}
-//    	XMLGregorianCalendar timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
-    	List<PropertyDelta<?>> syncSituationDeltas = SynchronizationSituationUtil.createSynchronizationSituationAndDescriptionDelta(account, situation, task.getChannel());
-//		PropertyDelta<SynchronizationSituationType> syncSituationDelta = SynchronizationSituationUtil.createSynchronizationSituationDelta(account, situation);
-//		if (syncSituationDelta != null){
-//		syncSituationDeltas.add(syncSituationDelta);
-//		}
+    	List<PropertyDelta<?>> syncSituationDeltas = SynchronizationSituationUtil.createSynchronizationSituationAndDescriptionDelta(account,
+    			situation, task.getChannel(), projectionCtx.hasFullShadow());
 
 		try {
             Utils.setRequestee(task, focusContext);
-			String changedOid = provisioning.modifyObject(ShadowType.class, accountRef,
+			String changedOid = provisioning.modifyObject(ShadowType.class, projectionOid,
 					syncSituationDeltas, null, ProvisioningOperationOptions.createCompletePostponed(false),
 					task, result);
 //			modifyProvisioningObject(AccountShadowType.class, accountRef, syncSituationDeltas, ProvisioningOperationOptions.createCompletePostponed(false), task, result);
+			projectionCtx.setSynchronizationSituationResolved(situation);
+			LOGGER.trace("Situation in projection {} was updated to {}.", projectionCtx, situation);
 		} catch (ObjectNotFoundException ex) {
 			// if the object not found exception is thrown, it's ok..probably
 			// the account was deleted by previous execution of changes..just
@@ -627,9 +628,11 @@ public class ChangeExecutor {
 
     	applyMetadata(context, task, objectTypeToAdd, result);
     	
-        String oid = null;
+        String oid;
         if (objectTypeToAdd instanceof TaskType) {
             oid = addTask((TaskType) objectTypeToAdd, result);
+        } else if (objectTypeToAdd instanceof NodeType) {
+            throw new UnsupportedOperationException("NodeType cannot be added using model interface");
         } else if (ObjectTypes.isManagedByProvisioning(objectTypeToAdd)) {
         	if (options == null && context != null) {
         		options = context.getOptions();
@@ -702,6 +705,8 @@ public class ChangeExecutor {
         
         if (TaskType.class.isAssignableFrom(objectTypeClass)) {
             taskManager.modifyTask(change.getOid(), change.getModifications(), result);
+        } else if (NodeType.class.isAssignableFrom(objectTypeClass)) {
+            throw new UnsupportedOperationException("NodeType is not modifiable using model interface");
         } else if (ObjectTypes.isClassManagedByProvisioning(objectTypeClass)) {
         	if (options == null && context != null) {
         		options = context.getOptions();
@@ -712,7 +717,7 @@ public class ChangeExecutor {
     		}
             String oid = modifyProvisioningObject(objectTypeClass, change.getOid(), change.getModifications(), context, provisioningOptions, resource, task, result);
             if (!oid.equals(change.getOid())){
-            	change.setOid(oid);
+                change.setOid(oid);
             }
         } else {
             cacheRepositoryService.modifyObject(objectTypeClass, change.getOid(), change.getModifications(), result);
@@ -889,7 +894,7 @@ public class ChangeExecutor {
 		if (context.getFocusContext() != null){
 			if (context.getFocusContext().getObjectNew() != null){
 			user = context.getFocusContext().getObjectNew();
-			} else if (context.getFocusContext().getObjectNew() != null){
+			} else if (context.getFocusContext().getObjectOld() != null){
 				user = context.getFocusContext().getObjectOld();
 			}	
 		}
@@ -991,13 +996,18 @@ public class ChangeExecutor {
         PrismObject<ShadowType> shadow = null;
         
 		if (context.getFocusContext() != null){
-			if (order == ProvisioningScriptOrderType.BEFORE) {
-				user = context.getFocusContext().getObjectOld();
-			} else if (order == ProvisioningScriptOrderType.AFTER) {
+			if (context.getFocusContext().getObjectNew() != null){
 				user = context.getFocusContext().getObjectNew();
-			} else {
-				throw new IllegalArgumentException("Unknown order "+order);
-			}	
+				} else if (context.getFocusContext().getObjectOld() != null){
+					user = context.getFocusContext().getObjectOld();
+				}	
+//			if (order == ProvisioningScriptOrderType.BEFORE) {
+//				user = context.getFocusContext().getObjectOld();
+//			} else if (order == ProvisioningScriptOrderType.AFTER) {
+//				user = context.getFocusContext().getObjectNew();
+//			} else {
+//				throw new IllegalArgumentException("Unknown order "+order);
+//			}	
 		}
 		
 		if (order == ProvisioningScriptOrderType.BEFORE) {

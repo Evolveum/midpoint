@@ -509,6 +509,9 @@ public class LensUtil {
 		} finally {
 			ModelExpressionThreadLocalHolder.resetLensContext();
 			ModelExpressionThreadLocalHolder.resetCurrentResult();
+			if (lensContext.getDebugListener() != null) {
+				lensContext.getDebugListener().afterMappingEvaluation(lensContext, mapping);
+			}
 		}
 	}
 	

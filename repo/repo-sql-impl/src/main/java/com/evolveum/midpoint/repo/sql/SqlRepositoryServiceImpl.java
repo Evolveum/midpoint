@@ -21,6 +21,7 @@ import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -47,6 +48,8 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.hibernate.*;
@@ -148,8 +151,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     @Override
-    public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, 
-    		Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
+    public <T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid,
+                                                           Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result)
             throws ObjectNotFoundException, SchemaException {
         Validate.notNull(type, "Object type must not be null.");
         Validate.notEmpty(oid, "Oid must not be null or empty.");
@@ -223,6 +226,79 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
     }
 
     @Override
+    public <F extends FocusType> PrismObject<F> searchShadowOwner(String shadowOid, OperationResult result)
+            throws ObjectNotFoundException {
+        Validate.notEmpty(shadowOid, "Oid must not be null or empty.");
+        Validate.notNull(result, "Operation result must not be null.");
+
+        final String operation = "searching shadow owner";
+        int attempt = 1;
+
+        OperationResult subResult = result.createSubresult(SEARCH_SHADOW_OWNER);
+        subResult.addParam("shadowOid", shadowOid);
+
+        while (true) {
+            try {
+                return searchShadowOwnerAttempt(shadowOid, subResult);
+            } catch (RuntimeException ex) {
+                attempt = logOperationAttempt(shadowOid, operation, attempt, ex, subResult);
+            }
+        }
+    }
+
+    private <F extends FocusType> PrismObject<F> searchShadowOwnerAttempt(String shadowOid, OperationResult result)
+            throws ObjectNotFoundException {
+        ObjectType owner = null;
+        Session session = null;
+        try {
+            session = beginReadOnlyTransaction();
+            Query query = session.createQuery("select s.oid from " + ClassMapper.getHQLType(ShadowType.class)
+                    + " as s where s.id = :id and s.oid = :oid");
+            query.setLong("id", 0L);
+            query.setString("oid", shadowOid);
+            if (query.uniqueResult() == null) {
+                throw new ObjectNotFoundException("Shadow with oid '" + shadowOid + "' doesn't exist.");
+            }
+
+            LOGGER.trace("Selecting account shadow owner for account {}.", new Object[]{shadowOid});
+            query = session.createQuery("select owner from " + ClassMapper.getHQLType(FocusType.class)
+                    + " as owner left join owner.linkRef as ref where ref.targetOid = :oid");
+            query.setString("oid", shadowOid);
+
+            List<RUser> users = query.list();
+            LOGGER.trace("Found {} users, transforming data to JAXB types.",
+                    new Object[]{(users != null ? users.size() : 0)});
+
+            if (users == null || users.isEmpty()) {
+                // account shadow owner was not found
+                return null;
+            }
+
+            if (users.size() > 1) {
+                LOGGER.warn("Found {} owners for shadow oid {}, returning first owner.",
+                        new Object[]{users.size(), shadowOid});
+            }
+
+            RFocus focus = users.get(0);
+            owner = focus.toJAXB(getPrismContext(), null);
+
+            session.getTransaction().commit();
+        } catch (ObjectNotFoundException ex) {
+            rollbackTransaction(session, ex, result, true);
+            throw ex;
+        } catch (DtoTranslationException ex) {
+            handleGeneralCheckedException(ex, session, result);
+        } catch (RuntimeException ex) {
+            handleGeneralRuntimeException(ex, session, result);
+        } finally {
+            cleanupSessionAndResult(session, result);
+        }
+
+        return owner.asPrismObject();
+    }
+
+    @Override
+    @Deprecated
     public PrismObject<UserType> listAccountShadowOwner(String accountOid, OperationResult result)
             throws ObjectNotFoundException {
         Validate.notEmpty(accountOid, "Oid must not be null or empty.");
@@ -299,6 +375,16 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         if (InternalsConfig.encryptionChecks && !RepoAddOptions.isAllowUnencryptedValues(options)) {
             CryptoUtil.checkEncrypted(object);
+        }
+        
+        if (InternalsConfig.consistencyChecks) {
+        	object.checkConsistence();
+        }
+        
+        if (LOGGER.isTraceEnabled()) {
+        	// Explicitly log name
+        	PolyStringType namePolyType = object.asObjectable().getName();
+        	LOGGER.trace("NAME: {} - {}", namePolyType.getOrig(), namePolyType.getNorm());
         }
 
         if (options == null) {
@@ -498,7 +584,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         return (Long) qExistClosure.uniqueResult() != 0;
 
     }
-    
+
     private boolean existIncorrect(Session session, String ancestorOid, String descendantOid) {
         // if not exist pair with same depth, then create else nothing
         // do
@@ -538,10 +624,10 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                         .createQuery("from RObject where id = 0 and oid = :oid");
                 qObject.setString("oid", orgInc.getDescendantOid());
                 RObject rObjectI = (RObject) qObject.uniqueResult();
-				if (rObjectI != null) {
-					fillTransitiveHierarchy(rObjectI, rOrg.getOid(), session, !withIncorrect);
-					session.delete(orgInc);
-				}
+                if (rObjectI != null) {
+                    fillTransitiveHierarchy(rObjectI, rOrg.getOid(), session, !withIncorrect);
+                    session.delete(orgInc);
+                }
             }
         }
     }
@@ -560,29 +646,27 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         if (orgClosure.size() > 0) {
             for (ROrgClosure o : orgClosure) {
-            	String anc = "null";
-            	if (o != null && o.getAncestor()!= null){
-            		anc = o.getAncestor().getOid();
-            	}
+                String anc = "null";
+                if (o != null && o.getAncestor() != null) {
+                    anc = o.getAncestor().getOid();
+                }
                 LOGGER.trace(
                         "adding {}\t{}\t{}",
-                        new Object[]{anc , descendant == null ? null: descendant.getOid(), o.getDepth() + 1});
+                        new Object[]{anc, descendant == null ? null : descendant.getOid(), o.getDepth() + 1});
 
                 boolean existClosure = existOrgCLosure(session, o.getAncestor().getOid(),
                         descendant.getOid(), o.getDepth() + 1);
                 if (!existClosure)
                     session.save(new ROrgClosure(o.getAncestor(), descendant, o.getDepth() + 1));
             }
-        } else if (withIncorrect)
-        	{
-        	boolean existIncorrect = existIncorrect(session, ancestorOid, descendant.getOid());
-        	if (!existIncorrect) 
-        	{        	
-        		LOGGER.trace("adding incorrect {}\t{}", new Object[]{ancestorOid,
-        				descendant.getOid()});
-        		session.save(new ROrgIncorrect(ancestorOid, descendant.getOid(),
-        				descendant.getId()));
-        	}
+        } else if (withIncorrect) {
+            boolean existIncorrect = existIncorrect(session, ancestorOid, descendant.getOid());
+            if (!existIncorrect) {
+                LOGGER.trace("adding incorrect {}\t{}", new Object[]{ancestorOid,
+                        descendant.getOid()});
+                session.save(new ROrgIncorrect(ancestorOid, descendant.getOid(),
+                        descendant.getId()));
+            }
         }
     }
 
@@ -778,7 +862,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     @Override
     public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
-    		Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
+                                                                     Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
         Validate.notNull(type, "Object type must not be null.");
         Validate.notNull(result, "Operation result must not be null.");
 
@@ -905,6 +989,28 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         if (InternalsConfig.encryptionChecks) {
             CryptoUtil.checkEncrypted(modifications);
         }
+        
+        if (InternalsConfig.consistencyChecks) {
+        	for (ItemDelta modification: modifications) {
+        		modification.checkConsistence();
+        	}
+        }
+        
+        if (LOGGER.isTraceEnabled()) {
+        	for (ItemDelta modification: modifications) {
+        		if (modification instanceof PropertyDelta<?>) {
+        			PropertyDelta<?> propDelta = (PropertyDelta<?>)modification;
+        			if (propDelta.getPath().equals(new ItemPath(ObjectType.F_NAME))) {
+        				Collection<PrismPropertyValue<PolyString>> values = propDelta.getValues(PolyString.class);
+        				for (PrismPropertyValue<PolyString> pval: values) {
+        					PolyString value = pval.getValue();
+        					LOGGER.trace("NAME delta: {} - {}", value.getOrig(), value.getNorm());
+        				}
+        			}
+        		}
+        	}        	
+        }
+
 
         OperationResult subResult = result.createSubresult(MODIFY_OBJECT);
         subResult.addParam("type", type.getName());
@@ -1094,11 +1200,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         List<ROrgClosure> orgClosure = cOrgClosure.list();
 
         for (ROrgClosure o : orgClosure) {
-                LOGGER.trace(
-                        "1deleting from hierarchy: A: {} D:{} depth:{}",
-                        new Object[]{o.getAncestor().toJAXB(getPrismContext(), null),
-                                o.getDescendant().toJAXB(getPrismContext(), null),
-                                o.getDepth()});
+            LOGGER.trace(
+                    "1deleting from hierarchy: A: {} D:{} depth:{}",
+                    new Object[]{o.getAncestor().toJAXB(getPrismContext(), null),
+                            o.getDescendant().toJAXB(getPrismContext(), null),
+                            o.getDepth()});
             session.delete(o);
         }
         deleteHierarchy(rObjectToModify, session);
@@ -1482,7 +1588,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
      */
     @Override
     public <T extends ObjectType> void searchObjectsIterative(Class<T> type, ObjectQuery query,
-                                                              ResultHandler<T> handler, 
+                                                              ResultHandler<T> handler,
                                                               Collection<SelectorOptions<GetOperationOptions>> options,
                                                               OperationResult result)
             throws SchemaException {
@@ -1570,7 +1676,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
     private <T extends ObjectType> void searchObjectsIterativeByPaging(Class<T> type, ObjectQuery query,
                                                                        ResultHandler<T> handler,
-                                                                       Collection<SelectorOptions<GetOperationOptions>> options, 
+                                                                       Collection<SelectorOptions<GetOperationOptions>> options,
                                                                        OperationResult result)
             throws SchemaException {
 
@@ -1635,7 +1741,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
      * Maybe big schema cleanup would help or something like that.
      * <p/>
      * Somebody improve this when there's time for it.
-     *
+     * <p/>
      * DEPRECATED: task cleanup is currently done in task manager because of the need of
      * deleting whole task trees at once (MID-1439).
      *
@@ -1746,4 +1852,5 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         return sb.toString();
     }
+
 }

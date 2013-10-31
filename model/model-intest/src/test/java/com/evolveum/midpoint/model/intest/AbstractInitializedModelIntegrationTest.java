@@ -25,11 +25,16 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.AssertJUnit;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.common.InternalsConfig;
+import com.evolveum.midpoint.common.mapping.MappingFactory;
+import com.evolveum.midpoint.model.intest.util.ProfilingLensDebugListener;
+import com.evolveum.midpoint.model.lens.Clockwork;
+import com.evolveum.midpoint.model.lens.LensDebugListener;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
@@ -72,6 +77,14 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	private static final Object NUM_PROJECT_ORGS = 3;
 	
 	protected static final Trace LOGGER = TraceManager.getTrace(AbstractInitializedModelIntegrationTest.class);
+	
+	@Autowired(required = true)
+	protected MappingFactory mappingFactory;
+	
+	@Autowired(required = true)
+	protected Clockwork clockwork;
+	
+	protected LensDebugListener lensDebugListener;
 	
 	protected UserType userTypeJack;
 	protected UserType userTypeBarbossa;
@@ -127,6 +140,10 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		LOGGER.trace("initSystem");
 		super.initSystem(initTask, initResult);
+		
+		mappingFactory.setProfiling(true);
+		lensDebugListener = new ProfilingLensDebugListener();
+		clockwork.setDebugListener(lensDebugListener);
 		
 		// Resources
 		resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILENAME, RESOURCE_OPENDJ_OID, initTask, initResult);
@@ -214,7 +231,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		repoAddObjectFromFile(ACCOUNT_SHADOW_ELAINE_DUMMY_BLUE_FILENAME, ShadowType.class, initResult);
 		
 		// Users
-		userTypeJack = repoAddObjectFromFile(USER_JACK_FILENAME, UserType.class, initResult).asObjectable();
+		userTypeJack = repoAddObjectFromFile(USER_JACK_FILE, UserType.class, true, initResult).asObjectable();
 		userTypeBarbossa = repoAddObjectFromFile(USER_BARBOSSA_FILENAME, UserType.class, initResult).asObjectable();
 		userTypeGuybrush = repoAddObjectFromFile(USER_GUYBRUSH_FILENAME, UserType.class, initResult).asObjectable();
 		userTypeElaine = repoAddObjectFromFile(USER_ELAINE_FILENAME, UserType.class, initResult).asObjectable();

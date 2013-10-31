@@ -167,22 +167,24 @@ public class ConsolidationProcessor {
             throw new IllegalStateException("Definition for account type " + rat + " not found in the context, but it should be there");
         }
         
-		// By getting accounts from provisioning, there might be a problem with
-		// resource availability. We need to know, if the account was read full
-		// or we have only the shadow from the repository. If we have only
-		// shadow, the weak mappings may applied even if they should not be. 
-              
-		if (!accCtx.hasFullShadow() && hasWeakMapping(squeezedAttributes)) {
-			// Full account was not yet loaded. This will cause problems as
-			// the weak mapping may be applied even though it should not be
-			// applied
-			// and also same changes may be discarded because of unavailability
-			// of all
-			// account's attributes.Therefore load the account now, but with
-			// doNotDiscovery options..
-				
-			LensUtil.loadFullAccount(accCtx, provisioningService, result);
-    	}
+		// Do not automatically load the full projection now. Even if we have weak mapping.
+        // That may be a waste of resources if the weak mapping results in no change anyway.
+        // Let's be very very lazy about fetching the account from the resource.
+ 		if (!accCtx.hasFullShadow() && hasActiveWeakMapping(squeezedAttributes, accCtx)) {
+ 			// Full account was not yet loaded. This will cause problems as
+ 			// the weak mapping may be applied even though it should not be
+ 			// applied
+ 			// and also same changes may be discarded because of unavailability
+ 			// of all
+ 			// account's attributes.Therefore load the account now, but with
+ 			// doNotDiscovery options..
+
+ 			// By getting accounts from provisioning, there might be a problem with
+ 	 		// resource availability. We need to know, if the account was read full
+ 	 		// or we have only the shadow from the repository. If we have only
+ 	 		// shadow, the weak mappings may applied even if they should not be. 
+ 			LensUtil.loadFullAccount(accCtx, provisioningService, result);
+     	}
 		
 		boolean completeAccount = accCtx.hasFullShadow();
         
@@ -290,13 +292,57 @@ public class ConsolidationProcessor {
         return null;
 	}
 
-	private boolean hasWeakMapping(
-			Map<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> squeezedAttributes) {
+	private boolean hasActiveWeakMapping(
+			Map<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> squeezedAttributes, LensProjectionContext<ShadowType> accCtx) throws SchemaException {
 		for (Map.Entry<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> entry : squeezedAttributes.entrySet()) {
 			DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>> ivwoTriple = entry.getValue();
+			boolean hasWeak = false;
 			for (ItemValueWithOrigin<? extends PrismPropertyValue<?>> ivwo: ivwoTriple.getAllValues()) {
-				if (ivwo.getMapping().getStrength() == MappingStrengthType.WEAK) {
-					return true;
+				Mapping<?> mapping = ivwo.getMapping();
+				if (mapping.getStrength() == MappingStrengthType.WEAK) {
+					// We only care about mappings that change something. If the weak mapping is not
+					// changing anything then it will not be applied in this step anyway. Therefore
+					// there is no point in loading the real values just because there is such mapping.
+					// Note: we can be sure that we are NOT doing reconciliation. If we do reconciliation
+					// then we cannot get here in the first place (the projection is already loaded).
+					PrismValueDeltaSetTriple<?> outputTriple = mapping.getOutputTriple();
+					if (outputTriple != null && !outputTriple.isEmpty() && !outputTriple.isZeroOnly()) {
+						return true;
+					}
+					hasWeak = true;
+				}
+			}
+			if (hasWeak) {
+				// If we have a weak mapping for this attribute and there is also any
+				// other mapping with a minus set then we need to get the real current value.
+				// The minus value may cause that the result of consolidation is empty value.
+				// In that case we should apply the weak mapping. But we will not know this
+				// unless we fetch the real values.
+				if (ivwoTriple.hasMinusSet()) {
+					for (ItemValueWithOrigin<? extends PrismPropertyValue<?>> ivwo: ivwoTriple.getMinusSet()) {
+						Mapping<?> mapping = ivwo.getMapping();
+						PrismValueDeltaSetTriple<?> outputTriple = mapping.getOutputTriple();
+						if (outputTriple != null && !outputTriple.isEmpty()) {
+							return true;
+						}
+					}
+				}
+				for (ItemValueWithOrigin<? extends PrismPropertyValue<?>> ivwo: ivwoTriple.getNonNegativeValues()) {
+					Mapping<?> mapping = ivwo.getMapping();
+					PrismValueDeltaSetTriple<?> outputTriple = mapping.getOutputTriple();
+					if (outputTriple != null && outputTriple.hasMinusSet()) {
+						return true;
+					}
+				}
+				ObjectDelta<ShadowType> projectionDelta = accCtx.getDelta();
+				if (projectionDelta != null) {
+					PropertyDelta<?> aPrioriAttributeDelta = projectionDelta.findPropertyDelta(new ItemPath(ShadowType.F_ATTRIBUTES, entry.getKey()));
+					if (aPrioriAttributeDelta != null && aPrioriAttributeDelta.isDelete()) {
+						return true;
+					}
+					if (aPrioriAttributeDelta != null && aPrioriAttributeDelta.isReplace() && aPrioriAttributeDelta.getValuesToReplace().isEmpty()) {
+						return true;
+					}
 				}
 			}
 		}

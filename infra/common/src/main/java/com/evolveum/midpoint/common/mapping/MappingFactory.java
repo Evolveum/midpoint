@@ -54,6 +54,7 @@ public class MappingFactory {
 	private Protector protector;
 	private PrismContext prismContext;
 	private FilterManager<Filter> filterManager;
+	private boolean profiling = false;
 		
 	public ExpressionFactory getExpressionFactory() {
 		return expressionFactory;
@@ -95,9 +96,18 @@ public class MappingFactory {
 		this.filterManager = filterManager;
 	}
 
+	public boolean isProfiling() {
+		return profiling;
+	}
+
+	public void setProfiling(boolean profiling) {
+		this.profiling = profiling;
+	}
+
 	public <V extends PrismValue> Mapping<V> createMapping(MappingType mappingType, String shortDesc) {
 		Mapping<V> mapping = new Mapping<V>(mappingType, shortDesc, expressionFactory);
 		mapping.setFilterManager(filterManager);
+		mapping.setProfiling(profiling);
 		return mapping;
 	}
 	

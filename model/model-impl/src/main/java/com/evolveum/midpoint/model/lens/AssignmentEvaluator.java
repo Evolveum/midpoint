@@ -69,6 +69,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 	private ObjectResolver objectResolver;
 	private PrismContext prismContext;
 	private MappingFactory valueConstructionFactory;
+	private boolean evaluateConstructions = true;
 	
 	public RepositoryService getRepository() {
 		return repository;
@@ -126,6 +127,14 @@ public class AssignmentEvaluator<F extends FocusType> {
 		this.valueConstructionFactory = valueConstructionFactory;
 	}
 
+	public boolean isEvaluateConstructions() {
+		return evaluateConstructions;
+	}
+
+	public void setEvaluateConstructions(boolean evaluateConstructions) {
+		this.evaluateConstructions = evaluateConstructions;
+	}
+
 	public SimpleDelta<Assignment> evaluate(SimpleDelta<AssignmentType> assignmentTypeDelta, ObjectType source, String sourceDescription,
 			OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		SimpleDelta<Assignment> delta = new SimpleDelta<Assignment>();
@@ -163,7 +172,9 @@ public class AssignmentEvaluator<F extends FocusType> {
 		
 		if (assignmentType.getAccountConstruction() != null || assignmentType.getConstruction() != null) {
 			
-			evaluateConstruction(assignment, assignmentPathSegment, source, sourceDescription, assignmentPath, result);
+			if (evaluateConstructions) {
+				evaluateConstruction(assignment, assignmentPathSegment, source, sourceDescription, assignmentPath, result);
+			}
 			
 		} else if (assignmentType.getTarget() != null) {
 			

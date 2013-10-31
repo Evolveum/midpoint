@@ -40,6 +40,7 @@
     <bean id="basicFunctionObject" class="com.evolveum.midpoint.common.expression.functions.BasicExpressionFunctions"
           scope="singleton">
           <constructor-arg name="prismContext" ref="prismContext"/>
+          <constructor-arg name="protector" ref="protector"/>
     </bean>
     
     <bean id="basicFunctionObjectXml" class="com.evolveum.midpoint.common.expression.functions.BasicExpressionFunctionsXPath"
@@ -91,12 +92,14 @@
           scope="singleton">
           <constructor-arg name="engineName" value="JavaScript"/>
           <constructor-arg name="prismContext" ref="prismContext"/>
+          <constructor-arg name="protector" ref="protector"/>
     </bean>
 
     <bean id="groovyScriptEvaluator" class="com.evolveum.midpoint.common.expression.script.jsr223.Jsr223ScriptEvaluator"
           scope="singleton">
           <constructor-arg name="engineName" value="groovy"/>
           <constructor-arg name="prismContext" ref="prismContext"/>
+          <constructor-arg name="protector" ref="protector"/>
     </bean>
     
     <bean id="scriptExpressionFactory" class="com.evolveum.midpoint.common.expression.script.ScriptExpressionFactory"
@@ -110,6 +113,7 @@
         		<ref bean="midpointFunctionLibrary"/>
         	</list>
         </constructor-arg>
+        <constructor-arg name="protector" ref="protector"/>
           <constructor-arg>
         	<list>
         		<ref bean="xpathScriptEvaluator"/>
@@ -135,6 +139,7 @@
           scope="singleton">
           <constructor-arg name="prismContext" ref="prismContext"/>
           <constructor-arg ref="modelObjectResolver"/>
+          <constructor-arg name="protector" ref="protector"/>
     </bean>
     
     <bean id="literalExpressionEvaluatorFactory" class="com.evolveum.midpoint.common.expression.evaluator.LiteralExpressionEvaluatorFactory"
@@ -145,6 +150,7 @@
     <bean id="asisExpressionEvaluatorFactory" class="com.evolveum.midpoint.common.expression.evaluator.AsIsExpressionEvaluatorFactory"
           scope="singleton">
           <constructor-arg name="prismContext" ref="prismContext"/>
+          <constructor-arg name="protector" ref="protector"/>
     </bean>
 
     <bean id="expressionFactory" class="com.evolveum.midpoint.common.expression.ExpressionFactory" 

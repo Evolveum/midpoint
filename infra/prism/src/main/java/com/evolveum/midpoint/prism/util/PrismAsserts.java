@@ -190,15 +190,15 @@ public class PrismAsserts {
 		
 	public static void assertPropertyDefinition(PrismContainer<?> container, QName propertyName, QName type, int minOccurs, int maxOccurs) {
 		PrismProperty<?> findProperty = container.findProperty(propertyName);
-		PrismPropertyDefinition definition = findProperty.getDefinition();
+		PrismPropertyDefinition<?> definition = findProperty.getDefinition();
 		assertDefinition(definition, propertyName, type, minOccurs, maxOccurs);
 	}
 	
 	public static void assertPropertyDefinition(ComplexTypeDefinition container, QName propertyName, QName type, int minOccurs, int maxOccurs) {
-		PrismPropertyDefinition definition = container.findPropertyDefinition(propertyName);
+		PrismPropertyDefinition<?> definition = container.findPropertyDefinition(propertyName);
 		assertDefinition(definition, propertyName, type, minOccurs, maxOccurs);
 	}
-
+	
     public static void assertPropertyDefinition(PrismProperty property, QName type, int minOccurs, int maxOccurs, Boolean indexed) {
         assertDefinition(property, type, minOccurs, maxOccurs);
 

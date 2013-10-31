@@ -20,7 +20,11 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -441,28 +445,42 @@ public class PageResources extends PageAdminResources {
 
     private void testResourcePerformed(AjaxRequestTarget target, IModel<ResourceDto> rowModel) {
 
-        OperationResult result = null;
+        OperationResult result = new OperationResult(OPERATION_TEST_RESOURCE);
 
         ResourceDto dto = rowModel.getObject();
         if (StringUtils.isEmpty(dto.getOid())) {
             result.recordFatalError("Resource oid not defined in request");
         }
 
+        Task task = createSimpleTask(OPERATION_TEST_RESOURCE);
         try {
-            result = getModelService().testResource(dto.getOid(), createSimpleTask(OPERATION_TEST_RESOURCE));
+            result = getModelService().testResource(dto.getOid(), task);
             ResourceController.updateResourceState(dto.getState(), result);
+
+            // todo de-duplicate code (see the same operation in PageResource)
+            // this provides some additional tests, namely a test for schema handling section
+            getModelService().getObject(ResourceType.class, dto.getOid(), null, task, result);
         } catch (ObjectNotFoundException ex) {
-            result.recordFatalError("Fail to test resource connection", ex);
+            result.recordFatalError("Failed to test resource connection", ex);
+        } catch (ConfigurationException e) {
+            result.recordFatalError("Failed to test resource connection", e);
+        } catch (SchemaException e) {
+            result.recordFatalError("Failed to test resource connection", e);
+        } catch (CommunicationException e) {
+            result.recordFatalError("Failed to test resource connection", e);
+        } catch (SecurityViolationException e) {
+            result.recordFatalError("Failed to test resource connection", e);
         }
 
-        if (result == null) {
-            result = new OperationResult(OPERATION_TEST_RESOURCE);
+        // a bit of hack: result of TestConnection contains a result of getObject as a subresult
+        // so in case of TestConnection succeeding we recompute the result to show any (potential) getObject problems
+        if (result.isSuccess()) {
+            result.recomputeStatus();
         }
 
         if (!result.isSuccess()) {
             showResult(result);
             target.add(getFeedbackPanel());
         }
-
     }
 }

@@ -42,6 +42,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.LogicalFilter;
 import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
@@ -90,6 +91,9 @@ public class CorrelationConfirmationEvaluator {
 	@Autowired(required = true)
 	private ExpressionFactory expressionFactory;
 
+	@Autowired(required = true)
+	private MatchingRuleRegistry matchingRuleRegistry;
+	
 	public List<PrismObject<UserType>> findUsersByCorrelationRule(ShadowType currentShadow,
 			List<QueryType> queries, ResourceType resourceType, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 
@@ -277,22 +281,21 @@ private <F extends FocusType> boolean matchUserCorrelationRule(PrismObject<Shado
 			LOGGER.trace("SYNCHRONIZATION: CORRELATION: expression for {} results in filter\n{}",
 					new Object[] { currentShadow, q});
 		}
-	
-	//		PagingType paging = new PagingType();
-			return ObjectQuery.match(userType, q.getFilter());
-	
-	//		if (users == null) {
-	//			users = new ArrayList<PrismObject<UserType>>();
-	//		}
-	//	} catch (Exception ex) {
-	//		LoggingUtils.logException(LOGGER,
-	//				"Couldn't search users in repository, based on filter (simplified)\n{}.", ex, q.dump());
-	//		throw new SynchronizationException(
-	//				"Couldn't search users in repository, based on filter (See logs).", ex);
-	//	}
-	
-	}
-	
+
+//		PagingType paging = new PagingType();
+		return ObjectQuery.match(userType, q.getFilter(), matchingRuleRegistry);
+
+//		if (users == null) {
+//			users = new ArrayList<PrismObject<UserType>>();
+//		}
+//	} catch (Exception ex) {
+//		LoggingUtils.logException(LOGGER,
+//				"Couldn't search users in repository, based on filter (simplified)\n{}.", ex, q.dump());
+//		throw new SynchronizationException(
+//				"Couldn't search users in repository, based on filter (See logs).", ex);
+//	}
+
+}
 	public <F extends FocusType> boolean matchUserCorrelationRule(PrismObject<ShadowType> currentShadow, 
 			PrismObject<F> userType, ResourceType resourceType, OperationResult result){
 

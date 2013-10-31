@@ -156,7 +156,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String ROLE_JUDGE_FILENAME = COMMON_DIR_NAME + "/role-judge.xml";
 	protected static final String ROLE_JUDGE_OID = "12345111-1111-2222-1111-121212111111";
 
-	protected static final String USER_JACK_FILENAME = COMMON_DIR_NAME + "/user-jack.xml";
+	protected static final File USER_JACK_FILE = new File(COMMON_DIR_NAME, "user-jack.xml");
 	protected static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
 	protected static final String USER_JACK_USERNAME = "jack";
 

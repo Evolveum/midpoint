@@ -33,6 +33,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -122,7 +123,7 @@ public class LessFilter extends ComparativeFilter{
 	}
 
 	@Override
-	public <T extends Objectable> boolean match(PrismObject<T> object) {
+	public <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry) {
 		throw new UnsupportedOperationException("Matching object and greater filter not supported yet");
 	}
 

@@ -32,6 +32,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.DebugUtil;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.identityconnectors.common.pooling.ObjectPoolConfiguration;
 import org.identityconnectors.common.security.GuardedByteArray;
@@ -44,10 +45,15 @@ import org.identityconnectors.framework.api.ConnectorFacadeFactory;
 import org.identityconnectors.framework.api.ConnectorInfo;
 import org.identityconnectors.framework.api.ResultsHandlerConfiguration;
 import org.identityconnectors.framework.api.operations.APIOperation;
+import org.identityconnectors.framework.api.operations.CreateApiOp;
+import org.identityconnectors.framework.api.operations.DeleteApiOp;
+import org.identityconnectors.framework.api.operations.GetApiOp;
 import org.identityconnectors.framework.api.operations.ScriptOnConnectorApiOp;
 import org.identityconnectors.framework.api.operations.ScriptOnResourceApiOp;
+import org.identityconnectors.framework.api.operations.SearchApiOp;
 import org.identityconnectors.framework.api.operations.SyncApiOp;
 import org.identityconnectors.framework.api.operations.TestApiOp;
+import org.identityconnectors.framework.api.operations.UpdateApiOp;
 import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
 import org.identityconnectors.framework.common.objects.Attribute;
 import org.identityconnectors.framework.common.objects.AttributeBuilder;
@@ -144,12 +150,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationStatusCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ActivationValidityCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CreateCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.DeleteCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.LiveSyncCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.PasswordCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ReadCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ScriptCapabilityType;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ScriptCapabilityType.Host;
 import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.TestConnectionCapabilityType;
+import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.UpdateCapabilityType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 /**
@@ -164,9 +174,6 @@ import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
  */
 public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
-	private static final String CUSTOM_OBJECTCLASS_PREFIX = "Custom";
-	private static final String CUSTOM_OBJECTCLASS_SUFFIX = "ObjectClass";
-
 	private static final com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ObjectFactory capabilityObjectFactory 
 		= new com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.ObjectFactory();
 
@@ -178,8 +185,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	String resourceSchemaNamespace;
 	Protector protector;
 	PrismContext prismContext;
+	private IcfNameMapper icfNameMapper;
 
-	private boolean initialized = false;
 	private ResourceSchema resourceSchema = null;
 	private Collection<Object> capabilities = null;
 	private PrismSchema connectorSchema;
@@ -197,6 +204,14 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	public String getSchemaNamespace() {
 		return resourceSchemaNamespace;
+	}
+
+	public IcfNameMapper getIcfNameMapper() {
+		return icfNameMapper;
+	}
+
+	public void setIcfNameMapper(IcfNameMapper icfNameMapper) {
+		this.icfNameMapper = icfNameMapper;
 	}
 
 	/*
@@ -246,8 +261,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			icfConnectorFacade = ConnectorFacadeFactory.getInstance().newInstance(apiConfig);
 
 			result.recordSuccess();
-		} catch (Exception ex) {
-			Exception midpointEx = processIcfException(ex, result);
+		} catch (Throwable ex) {
+			Throwable midpointEx = processIcfException(ex, result);
 			result.computeStatus("Removing attribute values failed");
 			// Do some kind of acrobatics to do proper throwing of checked
 			// exception
@@ -261,6 +276,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				throw (ConfigurationException) midpointEx;
 			} else if (midpointEx instanceof RuntimeException) {
 				throw (RuntimeException) midpointEx;
+			} else if (midpointEx instanceof Error) {
+				throw (Error) midpointEx;
 			} else {
 				throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
 			}
@@ -434,8 +451,6 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				throw ex;
 			}
 		}
-		
-		initialized = true;
 
 		result.recordSuccess();
 	}
@@ -517,12 +532,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			icfResult.recordStatus(OperationResultStatus.HANDLED_ERROR, ex.getMessage());
 			resourceSchema = null;
 			return;
-		} catch (Exception ex) {
+		} catch (Throwable ex) {
 			// conditions.
 			// Therefore this kind of heavy artillery is necessary.
 			// ICF interface does not specify exceptions or other error
 			// TODO maybe we can try to catch at least some specific exceptions
-			Exception midpointEx = processIcfException(ex, icfResult);
+			Throwable midpointEx = processIcfException(ex, icfResult);
 
 			// Do some kind of acrobatics to do proper throwing of checked
 			// exception
@@ -538,6 +553,9 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			} else if (midpointEx instanceof RuntimeException) {
 				icfResult.recordFatalError(midpointEx.getMessage(), midpointEx);
 				throw (RuntimeException) midpointEx;
+			} else if (midpointEx instanceof Error) {
+				icfResult.recordFatalError(midpointEx.getMessage(), midpointEx);
+				throw (Error) midpointEx;
 			} else {
 				icfResult.recordFatalError(midpointEx.getMessage(), midpointEx);
 				throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
@@ -562,7 +580,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		for (ObjectClassInfo objectClassInfo : objectClassInfoSet) {
 
 			// "Flat" ICF object class names needs to be mapped to QNames
-			QName objectClassXsdName = objectClassToQname(objectClassInfo.getType());
+			QName objectClassXsdName = icfNameMapper.objectClassToQname(objectClassInfo.getType(), getSchemaNamespace());
 
 			if (!shouldBeGenerated(generateObjectClasses, objectClassXsdName)){
 				continue;
@@ -625,7 +643,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					continue;
 				}
 
-				QName attrXsdName = convertAttributeNameToQName(attributeInfo.getName());
+				QName attrXsdName = icfNameMapper.convertAttributeNameToQName(attributeInfo.getName(), getSchemaNamespace());
 				QName attrXsdType = icfTypeToXsdType(attributeInfo.getType(), false);
 				
 				if (LOGGER.isTraceEnabled()) {
@@ -759,6 +777,26 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			TestConnectionCapabilityType capTest = new TestConnectionCapabilityType();
 			capabilities.add(capabilityObjectFactory.createTestConnection(capTest));
 		}
+		
+		if (supportedOperations.contains(CreateApiOp.class)){
+			CreateCapabilityType capCreate = new CreateCapabilityType();
+			capabilities.add(capabilityObjectFactory.createCreate(capCreate));
+		}
+		
+		if (supportedOperations.contains(GetApiOp.class) || supportedOperations.contains(SearchApiOp.class)){
+			ReadCapabilityType capRead = new ReadCapabilityType();
+			capabilities.add(capabilityObjectFactory.createRead(capRead));
+		}
+		
+		if (supportedOperations.contains(UpdateApiOp.class)){
+			UpdateCapabilityType capUpdate = new UpdateCapabilityType();
+			capabilities.add(capabilityObjectFactory.createUpdate(capUpdate));
+		}
+		
+		if (supportedOperations.contains(DeleteApiOp.class)){
+			DeleteCapabilityType capDelete = new DeleteCapabilityType();
+			capabilities.add(capabilityObjectFactory.createDelete(capDelete));
+		}
 
 		if (supportedOperations.contains(ScriptOnResourceApiOp.class)
 				|| supportedOperations.contains(ScriptOnConnectorApiOp.class)) {
@@ -825,7 +863,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 							+ identifiers + " from " + ObjectTypeUtil.toShortString(connectorType));
 		}
 
-		ObjectClass icfObjectClass = objectClassToIcf(objectClassDefinition);
+		ObjectClass icfObjectClass = icfNameMapper.objectClassToIcf(objectClassDefinition, getSchemaNamespace(), connectorType);
 		if (icfObjectClass == null) {
 			result.recordFatalError("Unable to determine object class from QName "
 					+ objectClassDefinition.getTypeName()
@@ -928,8 +966,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			co = icfConnectorFacade.getObject(icfObjectClass, uid, options);
 
 			icfResult.recordSuccess();
-		} catch (Exception ex) {
-			Exception midpointEx = processIcfException(ex, icfResult);
+		} catch (Throwable ex) {
+			Throwable midpointEx = processIcfException(ex, icfResult);
 			icfResult.computeStatus("Add object failed");
 
 			// Do some kind of acrobatics to do proper throwing of checked
@@ -945,6 +983,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				throw (SecurityViolationException) midpointEx;
 			} else if (midpointEx instanceof RuntimeException) {
 				throw (RuntimeException)midpointEx;
+			} else if (midpointEx instanceof Error) {
+				throw (Error)midpointEx;
 			} else {
 				throw new SystemException(midpointEx.getClass().getName()+": "+midpointEx.getMessage(), midpointEx);
 			}
@@ -968,7 +1008,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// Add all the attributes that are defined as "returned by default" by the schema
 			for (ResourceAttributeDefinition attributeDef: objectClassDefinition.getAttributeDefinitions()) {
 				if (attributeDef.isReturnedByDefault()) {
-					String attrName = UcfUtil.convertAttributeNameToIcf(attributeDef.getName(), getSchemaNamespace());
+					String attrName = icfNameMapper.convertAttributeNameToIcf(attributeDef.getName(), getSchemaNamespace());
 					icfAttrsToGet.add(attrName);
 				}
 			}
@@ -983,7 +1023,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 		if (attrs != null) {
 			for (ResourceAttributeDefinition attrDef: attrs) {
-				String attrName = UcfUtil.convertAttributeNameToIcf(attrDef.getName(), getSchemaNamespace());
+				String attrName = icfNameMapper.convertAttributeNameToIcf(attrDef.getName(), getSchemaNamespace());
 				if (!icfAttrsToGet.contains(attrName)) {
 					icfAttrsToGet.add(attrName);
 				}
@@ -1018,7 +1058,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		result.addParam("additionalOperations", DebugUtil.debugDump(additionalOperations));         // because of serialization issues
 
 		// getting icf object class from resource object class
-		ObjectClass objectClass = objectClassToIcf(object);
+		ObjectClass objectClass = icfNameMapper.objectClassToIcf(object, getSchemaNamespace(), connectorType);
 
 		if (objectClass == null) {
 			result.recordFatalError("Couldn't get icf object class from " + object);
@@ -1081,8 +1121,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// CALL THE ICF FRAMEWORK
 			uid = icfConnectorFacade.create(objectClass, attributes, new OperationOptionsBuilder().build());
 
-		} catch (Exception ex) {
-			Exception midpointEx = processIcfException(ex, icfResult);
+		} catch (Throwable ex) {
+			Throwable midpointEx = processIcfException(ex, icfResult);
 			result.computeStatus("Add object failed");
 
 			// Do some kind of acrobatics to do proper throwing of checked
@@ -1101,6 +1141,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				throw (ConfigurationException) midpointEx;
 			} else if (midpointEx instanceof RuntimeException) {
 				throw (RuntimeException) midpointEx;
+			} else if (midpointEx instanceof Error) {
+				throw (Error) midpointEx;
 			} else {
 				throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
 			}
@@ -1169,7 +1211,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			return new HashSet<PropertyModificationOperation>();
 		}
 
-		ObjectClass objClass = objectClassToIcf(objectClass);
+		ObjectClass objClass = icfNameMapper.objectClassToIcf(objectClass, getSchemaNamespace(), connectorType);
 		
 		Uid uid = getUid(identifiers);
 		String originalUid = uid.getUidValue();
@@ -1299,8 +1341,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 				icfResult.recordSuccess();
 			}
-		} catch (Exception ex) {
-			Exception midpointEx = processIcfException(ex, icfResult);
+		} catch (Throwable ex) {
+			Throwable midpointEx = processIcfException(ex, icfResult);
 			result.computeStatus("Adding attribute values failed");
 			// Do some kind of acrobatics to do proper throwing of checked
 			// exception
@@ -1321,6 +1363,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				throw (RuntimeException) midpointEx;
 			} else if (midpointEx instanceof SecurityViolationException){
 				throw (SecurityViolationException) midpointEx;
+			} else if (midpointEx instanceof Error){
+				throw (Error) midpointEx;
 			}else{
 				throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
 			}
@@ -1368,8 +1412,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				uid = icfConnectorFacade.update(objClass, uid, updateAttributes, options);
 
 				icfResult.recordSuccess();
-			} catch (Exception ex) {
-				Exception midpointEx = processIcfException(ex, icfResult);
+			} catch (Throwable ex) {
+				Throwable midpointEx = processIcfException(ex, icfResult);
 				result.computeStatus("Update failed");
 				// Do some kind of acrobatics to do proper throwing of checked
 				// exception
@@ -1388,6 +1432,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					throw (ObjectAlreadyExistsException) midpointEx;
 				} else if (midpointEx instanceof RuntimeException) {
 					throw (RuntimeException) midpointEx;
+				} else if (midpointEx instanceof Error) {
+					throw (Error) midpointEx;
 				} else {
 					throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
 				}
@@ -1422,8 +1468,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				uid = icfConnectorFacade.removeAttributeValues(objClass, uid, attributes, options);
 				icfResult.recordSuccess();
 			}
-		} catch (Exception ex) {
-			Exception midpointEx = processIcfException(ex, icfResult);
+		} catch (Throwable ex) {
+			Throwable midpointEx = processIcfException(ex, icfResult);
 			result.computeStatus("Removing attribute values failed");
 			// Do some kind of acrobatics to do proper throwing of checked
 			// exception
@@ -1442,6 +1488,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				throw (ObjectAlreadyExistsException) midpointEx;
 			} else if (midpointEx instanceof RuntimeException) {
 				throw (RuntimeException) midpointEx;
+			} else if (midpointEx instanceof Error) {
+				throw (Error) midpointEx;
 			} else {
 				throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
 			}
@@ -1462,7 +1510,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	}
 
 	private PropertyDelta<String> createUidDelta(Uid uid, ResourceAttributeDefinition uidDefinition) {
-		QName attributeName = convertAttributeNameToQName(uid.getName());
+		QName attributeName = icfNameMapper.convertAttributeNameToQName(uid.getName(), getSchemaNamespace());
 		PropertyDelta<String> uidDelta = new PropertyDelta<String>(new ItemPath(ShadowType.F_ATTRIBUTES, attributeName),
 				uidDefinition);
 		uidDelta.setValueToReplace(new PrismPropertyValue<String>(uid.getUidValue()));
@@ -1495,7 +1543,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				+ ".deleteObject");
 		result.addCollectionOfSerializablesAsParam("identifiers", identifiers);
 
-		ObjectClass objClass = objectClassToIcf(objectClass);
+		ObjectClass objClass = icfNameMapper.objectClassToIcf(objectClass, getSchemaNamespace(), connectorType);
 		Uid uid = getUid(identifiers);
 
 		checkAndExecuteAdditionalOperation(additionalOperations, ProvisioningScriptOrderType.BEFORE, result);
@@ -1511,8 +1559,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			
 			icfResult.recordSuccess();
 
-		} catch (Exception ex) {
-			Exception midpointEx = processIcfException(ex, icfResult);
+		} catch (Throwable ex) {
+			Throwable midpointEx = processIcfException(ex, icfResult);
 			result.computeStatus("Removing attribute values failed");
 			// Do some kind of acrobatics to do proper throwing of checked
 			// exception
@@ -1527,6 +1575,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				throw new IllegalArgumentException(midpointEx.getMessage(), midpointEx);
 			} else if (midpointEx instanceof RuntimeException) {
 				throw (RuntimeException) midpointEx;
+			} else if (midpointEx instanceof Error) {
+				throw (Error) midpointEx;
 			} else {
 				throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
 			}
@@ -1550,7 +1600,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				+ ".fetchCurrentToken");
 		result.addParam("objectClass", objectClass);
 
-		ObjectClass icfObjectClass = objectClassToIcf(objectClass);
+		ObjectClass icfObjectClass = icfNameMapper.objectClassToIcf(objectClass, getSchemaNamespace(), connectorType);
 		
 		OperationResult icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".sync");
 		icfResult.addContext("connector", icfConnectorFacade.getClass());
@@ -1561,8 +1611,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			syncToken = icfConnectorFacade.getLatestSyncToken(icfObjectClass);
 			icfResult.recordSuccess();
 			icfResult.addReturn("syncToken", syncToken==null?null:String.valueOf(syncToken.getValue()));
-		} catch (Exception ex) {
-			Exception midpointEx = processIcfException(ex, icfResult);
+		} catch (Throwable ex) {
+			Throwable midpointEx = processIcfException(ex, icfResult);
 			result.computeStatus();
 			// Do some kind of acrobatics to do proper throwing of checked
 			// exception
@@ -1572,6 +1622,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				throw (GenericFrameworkException) midpointEx;
 			} else if (midpointEx instanceof RuntimeException) {
 				throw (RuntimeException) midpointEx;
+			} else if (midpointEx instanceof Error) {
+				throw (Error) midpointEx;
 			} else {
 				throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
 			}
@@ -1589,7 +1641,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	@Override
 	public <T extends ShadowType> List<Change<T>>  fetchChanges(ObjectClassComplexTypeDefinition objectClass, PrismProperty<?> lastToken,
-			OperationResult parentResult) throws CommunicationException, GenericFrameworkException,
+			AttributesToReturn attrsToReturn, OperationResult parentResult) throws CommunicationException, GenericFrameworkException,
 			SchemaException, ConfigurationException {
 
 		OperationResult result = parentResult.createSubresult(ConnectorInstance.class.getName()
@@ -1609,8 +1661,15 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		final List<SyncDelta> syncDeltas = new ArrayList<SyncDelta>();
 		// get icf object class
-		ObjectClass icfObjectClass = objectClassToIcf(objectClass);
+		ObjectClass icfObjectClass = icfNameMapper.objectClassToIcf(objectClass, getSchemaNamespace(), connectorType);
 
+		OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
+		String[] attributesToGet = convertToIcfAttrsToGet(objectClass, attrsToReturn);
+		if (attributesToGet != null) {
+			optionsBuilder.setAttributesToGet(attributesToGet);
+		}
+		OperationOptions options = optionsBuilder.build();
+		
 		SyncResultsHandler syncHandler = new SyncResultsHandler() {
 
 			@Override
@@ -1629,11 +1688,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 		try {
 			icfConnectorFacade.sync(icfObjectClass, syncToken, syncHandler,
-					new OperationOptionsBuilder().build());
+					options);
 			icfResult.recordSuccess();
 			icfResult.addReturn(OperationResult.RETURN_COUNT, syncDeltas.size());
-		} catch (Exception ex) {
-			Exception midpointEx = processIcfException(ex, icfResult);
+		} catch (Throwable ex) {
+			Throwable midpointEx = processIcfException(ex, icfResult);
 			result.computeStatus();
 			// Do some kind of acrobatics to do proper throwing of checked
 			// exception
@@ -1645,6 +1704,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				throw (SchemaException) midpointEx;
 			} else if (midpointEx instanceof RuntimeException) {
 				throw (RuntimeException) midpointEx;
+			} else if (midpointEx instanceof Error) {
+				throw (Error) midpointEx;
 			} else {
 				throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
 			}
@@ -1652,8 +1713,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		// convert changes from icf to midpoint Change
 		List<Change<T>> changeList = null;
 		try {
-			PrismSchema schema = fetchResourceSchema(null, result);
-			changeList = getChangesFromSyncDeltas(icfObjectClass, syncDeltas, schema, result);
+			changeList = getChangesFromSyncDeltas(icfObjectClass, syncDeltas, resourceSchema, result);
 		} catch (SchemaException ex) {
 			result.recordFatalError(ex.getMessage(), ex);
 			throw new SchemaException(ex.getMessage(), ex);
@@ -1680,8 +1740,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			connectionResult.recordStatus(OperationResultStatus.NOT_APPLICABLE,
 					"Operation not supported by the connector", ex);
 			// Do not rethrow. Recording the status is just OK.
-		} catch (Exception icfEx) {
-			Exception midPointEx = processIcfException(icfEx, connectionResult);
+		} catch (Throwable icfEx) {
+			Throwable midPointEx = processIcfException(icfEx, connectionResult);
 			connectionResult.recordFatalError(midPointEx);
 		}
 	}
@@ -1689,7 +1749,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	@Override
 	public <T extends ShadowType> void search(ObjectClassComplexTypeDefinition objectClassDefinition, final ObjectQuery query,
-			final ResultHandler<T> handler, OperationResult parentResult) throws CommunicationException,
+			final ResultHandler<T> handler, AttributesToReturn attributesToReturn, OperationResult parentResult) throws CommunicationException,
 			GenericFrameworkException, SchemaException {
 
 		// Result type for this operation
@@ -1703,7 +1763,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			throw new IllegalArgumentException("objectClass not defined");
 		}
 
-		ObjectClass icfObjectClass = objectClassToIcf(objectClassDefinition);
+		ObjectClass icfObjectClass = icfNameMapper.objectClassToIcf(objectClassDefinition, getSchemaNamespace(), connectorType);
 		if (icfObjectClass == null) {
 			IllegalArgumentException ex = new IllegalArgumentException(
 					"Unable to detemine object class from QName " + objectClassDefinition
@@ -1746,6 +1806,13 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				return cont;
 			}
 		};
+		
+		OperationOptionsBuilder optionsBuilder = new OperationOptionsBuilder();
+		String[] attributesToGet = convertToIcfAttrsToGet(objectClassDefinition, attributesToReturn);
+		if (attributesToGet != null) {
+			optionsBuilder.setAttributesToGet(attributesToGet);
+		}
+		OperationOptions options = optionsBuilder.build();
 
 		// Connector operation cannot create result for itself, so we need to
 		// create result for it
@@ -1761,18 +1828,21 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				// filter
 				FilterInterpreter interpreter = new FilterInterpreter(getSchemaNamespace());
 				LOGGER.trace("Start to convert filter: {}", query.getFilter().dump());
-				filter = interpreter.interpret(query.getFilter());
+				filter = interpreter.interpret(query.getFilter(), icfNameMapper);
 
 				LOGGER.trace("ICF filter: {}", filter.toString());
 			}
-			icfConnectorFacade.search(icfObjectClass, filter, icfHandler, null);
+			
+			icfConnectorFacade.search(icfObjectClass, filter, icfHandler, options);
 
 			icfResult.recordSuccess();
 		} catch (IntermediateException inex) {
 			SchemaException ex = (SchemaException) inex.getCause();
+			icfResult.recordFatalError(ex);
+			result.recordFatalError(ex);
 			throw ex;
-		} catch (Exception ex) {
-			Exception midpointEx = processIcfException(ex, icfResult);
+		} catch (Throwable ex) {
+			Throwable midpointEx = processIcfException(ex, icfResult);
 			result.computeStatus();
 			// Do some kind of acrobatics to do proper throwing of checked
 			// exception
@@ -1784,6 +1854,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				throw (SchemaException) midpointEx;
 			} else if (midpointEx instanceof RuntimeException) {
 				throw (RuntimeException) midpointEx;
+			} else if (midpointEx instanceof Error) {
+				throw (Error) midpointEx;
 			} else {
 				throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
 			}
@@ -1796,98 +1868,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 	// UTILITY METHODS
 
-	private QName convertAttributeNameToQName(String icfAttrName) {
-		QName attrXsdName = new QName(getSchemaNamespace(), icfAttrName,
-				ConnectorFactoryIcfImpl.NS_ICF_RESOURCE_INSTANCE_PREFIX);
-		// Handle special cases
-		if (Name.NAME.equals(icfAttrName)) {
-			// this is ICF __NAME__ attribute. It will look ugly in XML and may
-			// even cause problems.
-			// so convert to something more friendly such as icfs:name
-			attrXsdName = ConnectorFactoryIcfImpl.ICFS_NAME;
-		}
-		
-		if (Uid.NAME.equals(icfAttrName)) {
-			// this is ICF __NAME__ attribute. It will look ugly in XML and may
-			// even cause problems.
-			// so convert to something more friendly such as icfs:name
-			attrXsdName = ConnectorFactoryIcfImpl.ICFS_UID;
-		}
-		return attrXsdName;
-	}
 	
-	/**
-	 * Maps ICF native objectclass name to a midPoint QName objctclass name.
-	 * <p/>
-	 * The mapping is "stateless" - it does not keep any mapping database or any
-	 * other state. There is a bi-directional mapping algorithm.
-	 * <p/>
-	 * TODO: mind the special characters in the ICF objectclass names.
-	 */
-	private QName objectClassToQname(String icfObjectClassString) {
-		if (ObjectClass.ACCOUNT_NAME.equals(icfObjectClassString)) {
-			return new QName(getSchemaNamespace(), ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME,
-					ConnectorFactoryIcfImpl.NS_ICF_SCHEMA_PREFIX);
-		} else if (ObjectClass.GROUP_NAME.equals(icfObjectClassString)) {
-			return new QName(getSchemaNamespace(), ConnectorFactoryIcfImpl.GROUP_OBJECT_CLASS_LOCAL_NAME,
-					ConnectorFactoryIcfImpl.NS_ICF_SCHEMA_PREFIX);
-		} else {
-			return new QName(getSchemaNamespace(), CUSTOM_OBJECTCLASS_PREFIX + icfObjectClassString
-					+ CUSTOM_OBJECTCLASS_SUFFIX, ConnectorFactoryIcfImpl.NS_ICF_RESOURCE_INSTANCE_PREFIX);
-		}
-	}
-
-	private ObjectClass objectClassToIcf(PrismObject<? extends ShadowType> object) {
-
-		ShadowType shadowType = object.asObjectable();
-		QName qnameObjectClass = shadowType.getObjectClass();
-		if (qnameObjectClass == null) {
-			ResourceAttributeContainer attrContainer = ShadowUtil
-					.getAttributesContainer(shadowType);
-			if (attrContainer == null) {
-				return null;
-			}
-			ResourceAttributeContainerDefinition objectClassDefinition = attrContainer.getDefinition();
-			qnameObjectClass = objectClassDefinition.getTypeName();
-		}
-
-		return objectClassToIcf(qnameObjectClass);
-	}
-
-	/**
-	 * Maps a midPoint QName objctclass to the ICF native objectclass name.
-	 * <p/>
-	 * The mapping is "stateless" - it does not keep any mapping database or any
-	 * other state. There is a bi-directional mapping algorithm.
-	 * <p/>
-	 * TODO: mind the special characters in the ICF objectclass names.
-	 */
-	private ObjectClass objectClassToIcf(ObjectClassComplexTypeDefinition objectClassDefinition) {
-		QName qnameObjectClass = objectClassDefinition.getTypeName();
-		return objectClassToIcf(qnameObjectClass);
-	}
-
-	private ObjectClass objectClassToIcf(QName qnameObjectClass) {
-		if (!getSchemaNamespace().equals(qnameObjectClass.getNamespaceURI())) {
-			throw new IllegalArgumentException("ObjectClass QName " + qnameObjectClass
-					+ " is not in the appropriate namespace for "
-					+ ObjectTypeUtil.toShortString(connectorType) + ", expected: " + getSchemaNamespace());
-		}
-		String lname = qnameObjectClass.getLocalPart();
-		if (ConnectorFactoryIcfImpl.ACCOUNT_OBJECT_CLASS_LOCAL_NAME.equals(lname)) {
-			return ObjectClass.ACCOUNT;
-		} else if (ConnectorFactoryIcfImpl.GROUP_OBJECT_CLASS_LOCAL_NAME.equals(lname)) {
-			return ObjectClass.GROUP;
-		} else if (lname.startsWith(CUSTOM_OBJECTCLASS_PREFIX) && lname.endsWith(CUSTOM_OBJECTCLASS_SUFFIX)) {
-			String icfObjectClassName = lname.substring(CUSTOM_OBJECTCLASS_PREFIX.length(), lname.length()
-					- CUSTOM_OBJECTCLASS_SUFFIX.length());
-			return new ObjectClass(icfObjectClassName);
-		} else {
-			throw new IllegalArgumentException("Cannot recognize objectclass QName " + qnameObjectClass
-					+ " for " + ObjectTypeUtil.toShortString(connectorType) + ", expected: "
-					+ getSchemaNamespace());
-		}
-	}
 
 	/**
 	 * Looks up ICF Uid identifier in a (potentially multi-valued) set of
@@ -2019,7 +2000,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				continue;
 			}
 
-			QName qname = convertAttributeNameToQName(icfAttr.getName());
+			QName qname = icfNameMapper.convertAttributeNameToQName(icfAttr.getName(), getSchemaNamespace());
 			ResourceAttributeDefinition attributeDefinition = attributesContainerDefinition.findAttributeDefinition(qname);
 
 			if (attributeDefinition == null) {
@@ -2113,7 +2094,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				throw new SchemaException("ICF UID explicitly specified in attributes");
 			}
 
-			String icfAttrName = UcfUtil.convertAttributeNameToIcf(midPointAttrQName, getSchemaNamespace());
+			String icfAttrName = icfNameMapper.convertAttributeNameToIcf(midPointAttrQName, getSchemaNamespace());
 
 			Set<Object> convertedAttributeValues = new HashSet<Object>();
 			for (PrismPropertyValue<?> value : attribute.getValues()) {
@@ -2181,7 +2162,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			if (icfDelta.getObject() != null){
 				objClass = icfDelta.getObject().getObjectClass();
 			}
-				QName objectClass = objectClassToQname(objClass.getObjectClassValue());
+				QName objectClass = icfNameMapper.objectClassToQname(objClass.getObjectClassValue(), getSchemaNamespace());
 				ObjectClassComplexTypeDefinition objClassDefinition = (ObjectClassComplexTypeDefinition) schema
 				.findComplexTypeDefinition(objectClass);
 
@@ -2333,7 +2314,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			
 			try {
 				
-				LOGGER.debug("Running script ({})", icfOpName);
+				LOGGER.trace("Running script ({})", icfOpName);
 				
 				if (scriptOperation.isConnectorHost()) {
 					output = icfConnectorFacade.runScriptOnConnector(scriptContext, new OperationOptionsBuilder().build());
@@ -2347,13 +2328,13 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					LOGGER.debug("Finished running script ({}), script result: {}", icfOpName, PrettyPrinter.prettyPrint(output));
 				}
 				
-			} catch (Exception ex) {
+			} catch (Throwable ex) {
 				
 				if (LOGGER.isDebugEnabled()) {
 					LOGGER.debug("Finished running script ({}), ERROR: {}", icfOpName, ex.getMessage());
 				}
 				
-				Exception midpointEx = processIcfException(ex, icfResult);
+				Throwable midpointEx = processIcfException(ex, icfResult);
 				result.computeStatus();
 				// Do some kind of acrobatics to do proper throwing of checked
 				// exception
@@ -2366,6 +2347,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					throw new IllegalArgumentException(midpointEx.getMessage(), midpointEx);
 				} else if (midpointEx instanceof RuntimeException) {
 					throw (RuntimeException) midpointEx;
+				} else if (midpointEx instanceof Error) {
+					throw (Error) midpointEx;
 				} else {
 					throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
 				}

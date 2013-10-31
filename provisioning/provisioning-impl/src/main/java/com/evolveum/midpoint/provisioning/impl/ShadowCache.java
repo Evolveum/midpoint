@@ -17,24 +17,22 @@ package com.evolveum.midpoint.provisioning.impl;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
+
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
-import org.identityconnectors.framework.impl.api.ConnectorFacadeFactoryImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import com.evolveum.midpoint.common.mapping.Mapping;
+
+import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
 import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -42,8 +40,6 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -64,27 +60,20 @@ import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
-import com.evolveum.midpoint.provisioning.api.ResourceOperationListener;
 import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler;
 import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler.FailedOperation;
 import com.evolveum.midpoint.provisioning.consistency.impl.ErrorHandlerFactory;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
-import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOperation;
-import com.evolveum.midpoint.provisioning.ucf.api.ExecuteScriptArgument;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
-import com.evolveum.midpoint.provisioning.ucf.api.Operation;
 import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
-import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorInstanceIcfImpl;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
@@ -93,12 +82,11 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -113,21 +101,16 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AvailabilityStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionReturnMultiplicityType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FailedOperationTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningOperationTypeType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptArgumentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptHostType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationProvisioningScriptType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationProvisioningScriptsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectAssociationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAttributesType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
@@ -208,7 +191,7 @@ public abstract class ShadowCache {
 			ConfigurationException, SecurityViolationException {
 
 		Validate.notNull(oid, "Object id must not be null.");
-
+		
 		LOGGER.trace("Start getting object with oid {}", oid);
 		
 		GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
@@ -239,12 +222,29 @@ public abstract class ShadowCache {
 			parentResult.recordFatalError("Resource defined in shadow was not found: " + ex.getMessage(), ex);
 			return repositoryShadow;
 		}
-		LOGGER.trace("Getting fresh object from ucf.");
+		
+		RefinedObjectClassDefinition objectClassDefinition = applyAttributesDefinition(repositoryShadow, resource);
+		
+		ConnectorInstance connector = null;
+		OperationResult connectorResult = parentResult.createMinorSubresult(ShadowCache.class.getName() + ".getConnectorInstance");
+		try {
+			connector = getConnectorInstance(resource, parentResult);
+			connectorResult.recordSuccess();
+		} catch (ObjectNotFoundException ex){
+			connectorResult.recordPartialError("Could not get connector instance. " + ex.getMessage(),  ex);
+			return repositoryShadow;
+		} catch (SchemaException ex){
+			connectorResult.recordPartialError("Could not get connector instance. " + ex.getMessage(),  ex);
+			return repositoryShadow;
+		} catch (CommunicationException ex){
+			connectorResult.recordPartialError("Could not get connector instance. " + ex.getMessage(),  ex);
+			return repositoryShadow;
+		} catch (ConfigurationException ex){
+			connectorResult.recordPartialError("Could not get connector instance. " + ex.getMessage(),  ex);
+			return repositoryShadow;
+		}
 
 		PrismObject<ShadowType> resourceShadow = null;
-		ConnectorInstance connector = getConnectorInstance(resource, parentResult);
-		RefinedObjectClassDefinition objectClassDefinition = applyAttributesDefinition(repositoryShadow, resource);
-
 		try {			
 			
 			// Let's get all the identifiers from the Shadow <attributes> part
@@ -263,6 +263,9 @@ public abstract class ShadowCache {
 				throw ex;
 			}
 	
+			// We need to record the fetch down here. Now it is certain that we are going to fetch from resource
+			// (we do not have raw/noFetch option)
+			InternalMonitor.recordShadowFetchOperation();
 			
 			resourceShadow = resouceObjectConverter.getResourceObject(connector, resource, identifiers, objectClassDefinition, parentResult);
 			resourceTypeManager.modifyResourceAvailabilityStatus(resource.asPrismObject(), AvailabilityStatusType.UP, parentResult);
@@ -319,6 +322,8 @@ public abstract class ShadowCache {
 			ConfigurationException, SecurityViolationException {
 		Validate.notNull(shadow, "Object to add must not be null.");
 
+		InternalMonitor.recordShadowChangeOperation();
+		
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Start adding shadow object:\n{}", shadow.dump());
 		}
@@ -385,10 +390,12 @@ public abstract class ShadowCache {
 		Validate.notNull(oid, "OID must not be null.");
 		Validate.notNull(modifications, "Object modification must not be null.");
 
+		InternalMonitor.recordShadowChangeOperation();
+		
 		if (resource == null) {
 			resource = getResource(shadow, parentResult);
 		}
-
+		
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Modifying resource with oid {}, object:\n{}", resource.getOid(), shadow.dump());
 		}
@@ -474,7 +481,8 @@ public abstract class ShadowCache {
 		
 		// $shadow/name
 		if (!newName.equals(shadow.asObjectable().getName().getOrig())){
-			PropertyDelta<?> shadowNameDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_NAME, shadow.getDefinition(), new PolyStringType(newName));
+			PropertyDelta<?> shadowNameDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_NAME, shadow.getDefinition(), 
+					new PolyString(newName));
 			deltas.add(shadowNameDelta);
 		}
 		
@@ -501,6 +509,8 @@ public abstract class ShadowCache {
 		Validate.notNull(shadow, "Object to delete must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
 
+		InternalMonitor.recordShadowChangeOperation();
+		
 		if (resource == null) {
 			try {
 				resource = getResource(shadow, parentResult);
@@ -515,7 +525,7 @@ public abstract class ShadowCache {
 					return;
 				}
 			}
-
+			
 			RefinedObjectClassDefinition objectClassDefinition =  applyAttributesDefinition(shadow, resource);
 			
 			ConnectorInstance connector = getConnectorInstance(resource, parentResult);
@@ -663,6 +673,8 @@ public abstract class ShadowCache {
 			final ShadowHandler<ShadowType> handler, final boolean readFromRepository, final OperationResult parentResult)
 			throws CommunicationException, ObjectNotFoundException, SchemaException, ConfigurationException {
 
+		InternalMonitor.recordShadowFetchOperation();
+		
 		Validate.notNull(objectClass);
 		if (resource == null) {
 			parentResult.recordFatalError("Resource must not be null");
@@ -719,6 +731,10 @@ public abstract class ShadowCache {
 			return;
 		}
 		
+		// We need to record the fetch down here. Now it is certain that we are going to fetch from resource
+		// (we do not have raw/noFetch option)
+		InternalMonitor.recordShadowFetchOperation();
+		
 		ObjectFilter filter = null;
 		if (query != null) {
 			filter = query.getFilter();
@@ -764,6 +780,9 @@ public abstract class ShadowCache {
 						PrismObject<ShadowType> repoShadow = lookupOrCreateShadowInRepository(connector, resourceShadow, objectClassDef, resourceType, parentResult); 
 						
 						applyAttributesDefinition(repoShadow, resourceType);
+						
+						forceRenameIfNeeded(resourceShadow.asObjectable(), repoShadow.asObjectable(), parentResult);
+						
 						resultShadow = completeShadow(connector, resourceShadow, repoShadow,
 								resourceType, objectClassDef, parentResult);
 
@@ -782,6 +801,11 @@ public abstract class ShadowCache {
 					LOGGER.error("Configuration error: {}", e.getMessage(), e);
 					return false;
 				} catch (ObjectNotFoundException e) {
+					// TODO: better error handling
+					parentResult.recordFatalError(e.getMessage(), e);
+					LOGGER.error("{}", e.getMessage(), e);
+					return false;
+				} catch (ObjectAlreadyExistsException e) {
 					// TODO: better error handling
 					parentResult.recordFatalError(e.getMessage(), e);
 					LOGGER.error("{}", e.getMessage(), e);
@@ -931,6 +955,8 @@ public abstract class ShadowCache {
 			throws ObjectNotFoundException, CommunicationException, GenericFrameworkException, SchemaException,
 			ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException {
 
+		InternalMonitor.recordShadowOtherOperation();
+		
 		RefinedObjectClassDefinition objecClassDefinition = determineObjectClassDefinition(objectClass, resourceType);
 		ConnectorInstance connector = getConnectorInstance(resourceType, parentResult);
 		
@@ -958,20 +984,15 @@ public abstract class ShadowCache {
 						continue;
 					}
 	
+					resouceObjectConverter.setProtectedFlag(resourceType, oldShadow);
 					change.setOldShadow(oldShadow);
 
-					// FIXME: hack. make sure that the current shadow has OID
-					// and resource ref, also the account type should be set
 					if (change.getCurrentShadow() != null) {
-						ShadowType currentShadowType = change.getCurrentShadow().asObjectable();
-						if (currentShadowType != null) {
-							currentShadowType.setOid(oldShadow.getOid());
-							currentShadowType.setResourceRef(oldShadowType.getResourceRef());
-							currentShadowType.setKind(objecClassDefinition.getKind());
-							currentShadowType.setIntent(oldShadowType.getIntent());
-							forceRenameIfNeeded(currentShadowType, oldShadowType, parentResult);
-							
-						}
+						PrismObject<ShadowType> currentShadow = completeShadow(connector, change.getCurrentShadow(), 
+								oldShadow, resourceType, objecClassDefinition, parentResult);
+						change.setCurrentShadow(currentShadow);
+						ShadowType currentShadowType = currentShadow.asObjectable();
+						forceRenameIfNeeded(currentShadowType, oldShadowType, parentResult);
 					}
 
 					// FIXME: hack. the object delta must have oid specified.
@@ -1039,7 +1060,9 @@ public abstract class ShadowCache {
 			Collection<PropertyDelta> renameDeltas = new ArrayList<PropertyDelta>();
 			
 			
-			PropertyDelta<?> shadowNameDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_NAME, oldShadowType.asPrismObject().getDefinition(), ProvisioningUtil.determineShadowName(currentShadowType.asPrismObject()));
+			PropertyDelta<?> shadowNameDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_NAME, 
+					oldShadowType.asPrismObject().getDefinition(), 
+					ProvisioningUtil.determineShadowName(currentShadowType.asPrismObject()));
 			renameDeltas.add(shadowNameDelta);
 			
 			shadowNameDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME), oldShadowType.asPrismObject().getDefinition(), newValue);
@@ -1053,6 +1076,8 @@ public abstract class ShadowCache {
 	public PrismProperty<?> fetchCurrentToken(ResourceType resourceType, OperationResult parentResult)
 			throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException {
 
+		InternalMonitor.recordShadowOtherOperation();
+		
 		Validate.notNull(resourceType, "Resource must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null.");
 
@@ -1249,6 +1274,8 @@ public abstract class ShadowCache {
 			resultIsResourceShadowClone = true;
 		}
 		
+		assert resultShadow.getPrismContext() != null : "No prism context in resultShadow";
+		
 		ResourceAttributeContainer resourceAttributesContainer = ShadowUtil
 				.getAttributesContainer(resourceShadow);
 
@@ -1260,7 +1287,7 @@ public abstract class ShadowCache {
 			resultShadowType.setObjectClass(resourceAttributesContainer.getDefinition().getTypeName());
 		}
 		if (resultShadowType.getName() == null) {
-			resultShadowType.setName(ProvisioningUtil.determineShadowName(resourceShadow));
+			resultShadowType.setName(new PolyStringType(ProvisioningUtil.determineShadowName(resourceShadow)));
 		}
 		if (resultShadowType.getResource() == null) {
 			resultShadowType.setResourceRef(ObjectTypeUtil.createObjectRef(resource));
@@ -1333,6 +1360,11 @@ public abstract class ShadowCache {
 			}
 		}
 		
+		// Sanity asserts to catch some exotic bugs
+		PolyStringType resultName = resultShadow.asObjectable().getName();
+		assert resultName != null : "No name generated in "+resultShadow;
+		assert !StringUtils.isEmpty(resultName.getOrig()) : "No name (orig) in "+resultShadow;
+		assert !StringUtils.isEmpty(resultName.getNorm()) : "No name (norm) in "+resultShadow;
 
 		return resultShadow;
 	}

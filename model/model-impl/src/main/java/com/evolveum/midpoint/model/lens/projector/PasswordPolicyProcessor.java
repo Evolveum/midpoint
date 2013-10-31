@@ -54,29 +54,22 @@ public class PasswordPolicyProcessor {
 	@Autowired(required = true)
 	Protector protector;
 
-	
 	void processPasswordPolicy(ValuePolicyType passwordPolicy, PrismProperty password, OperationResult result)
 			throws PolicyViolationException, SchemaException {
 
-		String passwordValue = determinePasswordValue(password);
 		if (passwordPolicy == null) {
-			LOGGER.trace("Skipping processing password policies. Password value or password policies not specified.");
+			LOGGER.trace("Skipping processing password policies. Password policy not specified.");
 			return;
 		}
-		
-		if (password == null || password.isEmpty()){
-//			throw new PolicyViolationException("Provided password is empty.");
-            return;
-		}
 
-		boolean isValid = PasswordPolicyUtils.validatePassword(passwordValue, passwordPolicy, result);
+        String passwordValue = determinePasswordValue(password);
+
+        boolean isValid = PasswordPolicyUtils.validatePassword(passwordValue, passwordPolicy, result);
 
 		if (!isValid) {
 			result.computeStatus();
 			throw new PolicyViolationException("Provided password does not satisfy password policies. " + result.getMessage());
-
 		}
-
 	}
 	
 	<F extends FocusType> void processPasswordPolicy(LensFocusContext<F> focusContext, 
@@ -246,17 +239,17 @@ ObjectDelta accountDelta = projectionContext.getDelta();
 //		return password;
 //	}
 
-	
+
+    // On missing password this returns empty string (""). It is then up to password policy whether it allows empty passwords or not.
 	private String determinePasswordValue(PrismProperty<PasswordType> password) {
-		// TODO: what to do if the provided password is null???
 		if (password == null || password.getValue(ProtectedStringType.class) == null) {
-			return null;
+			return "";
 		}
 
 		ProtectedStringType passValue = password.getValue(ProtectedStringType.class).getValue();
 
 		if (passValue == null) {
-			return null;
+			return "";
 		}
 
 		String passwordStr = passValue.getClearValue();
@@ -270,7 +263,7 @@ ObjectDelta accountDelta = projectionContext.getDelta();
 			}
 		}
 
-		return passwordStr;
+		return passwordStr != null ? passwordStr : "";
 	}
 
 

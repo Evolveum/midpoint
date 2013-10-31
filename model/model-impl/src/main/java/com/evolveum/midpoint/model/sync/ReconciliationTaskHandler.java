@@ -30,6 +30,7 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.ModelConstants;
@@ -43,6 +44,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.GreaterFilter;
 import com.evolveum.midpoint.prism.query.LessFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -54,6 +56,8 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -117,6 +121,9 @@ public class ReconciliationTaskHandler implements TaskHandler {
 	
 	@Autowired(required = true)
 	private AuditService auditService;
+	
+	@Autowired(required = true)
+	private Clock clock;
 
 	private static final transient Trace LOGGER = TraceManager.getTrace(ReconciliationTaskHandler.class);
 
@@ -148,8 +155,13 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		}
 		
 		PrismObject<ResourceType> resource;
+		RefinedObjectClassDefinition rObjectclassDef;
 		try {
 			resource = provisioningService.getObject(ResourceType.class, resourceOid, null, task, opResult);
+			
+			RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, LayerType.MODEL, prismContext);
+			rObjectclassDef = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
+			
 		} catch (ObjectNotFoundException ex) {
 			// This is bad. The resource does not exist. Permanent problem.
 			processErrorPartial(runResult, "Resource does not exist, OID: " + resourceOid, ex, TaskRunResultStatus.PERMANENT_ERROR, progress, null, task, opResult);
@@ -178,17 +190,10 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			processErrorPartial(runResult, "Security violation", ex, TaskRunResultStatus.PERMANENT_ERROR, progress, null, task, opResult);
 			return runResult;
 		}
-		
-		Long freshnessInterval = DEFAULT_SHADOW_RECONCILIATION_FRESHNESS_INTERNAL;
-		PrismProperty<Long> freshnessIntervalProperty = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_FRESHENESS_INTERVAL_PROPERTY_NAME);
-		if (freshnessIntervalProperty != null) {
-			PrismPropertyValue<Long> freshnessIntervalPropertyValue = freshnessIntervalProperty.getValue();
-			if (freshnessIntervalPropertyValue == null || freshnessIntervalPropertyValue.getValue() == null || 
-					freshnessIntervalPropertyValue.getValue() < 0) {
-				freshnessInterval = null;
-			}
-			freshnessInterval = freshnessIntervalPropertyValue.getValue();
-		}
+
+		LOGGER.info("Start executing reconciliation of resource {}, reconciling object class {}",
+				resource, rObjectclassDef);
+		long reconStartTimestamp = clock.currentTimeMillis();
 		
 		AuditEventRecord requestRecord = new AuditEventRecord(AuditEventType.RECONCILIATION, AuditEventStage.REQUEST);
 		requestRecord.setTarget(resource);
@@ -225,9 +230,14 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		}
 
 
+		long beforeResourceReconTimestamp = clock.currentTimeMillis();
+		long afterResourceReconTimestamp;
+		long afterShadowReconTimestamp;
 		try {			
-			performResourceReconciliation(resource, task, opResult);
-			performShadowReconciliation(resource, freshnessInterval, task, opResult);
+			performResourceReconciliation(resource, rObjectclassDef, task, opResult);
+			afterResourceReconTimestamp = clock.currentTimeMillis();
+			performShadowReconciliation(resource, reconStartTimestamp, afterResourceReconTimestamp, task, opResult);
+			afterShadowReconTimestamp = clock.currentTimeMillis();
 		} catch (ObjectNotFoundException ex) {
 			// This is bad. The resource does not exist. Permanent problem.
 			processErrorFinal(runResult, "Resource does not exist, OID: " + resourceOid, ex, TaskRunResultStatus.PERMANENT_ERROR, progress, resource, task, opResult);
@@ -263,13 +273,22 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		runResult.setProgress(progress);
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Reconciliation.run stopping, result: {}", opResult.getStatus());
-			LOGGER.trace("Reconciliation.run stopping, result: {}", opResult.dump());
+//			LOGGER.trace("Reconciliation.run stopping, result: {}", opResult.dump());
 		}
 		
 		AuditEventRecord executionRecord = new AuditEventRecord(AuditEventType.RECONCILIATION, AuditEventStage.EXECUTION);
 		executionRecord.setTarget(resource);
 		executionRecord.setOutcome(OperationResultStatus.SUCCESS);
 		auditService.audit(executionRecord , task);
+		
+		long reconEndTimestamp = clock.currentTimeMillis();
+		
+		LOGGER.info("Done executing reconciliation of resource {}, object class {}, Etime: {} ms (un-ops: {}, resource: {}, shadow: {})",
+				new Object[]{resource, rObjectclassDef, 
+					(reconEndTimestamp - reconStartTimestamp),
+					(beforeResourceReconTimestamp - reconStartTimestamp),
+					(afterResourceReconTimestamp - beforeResourceReconTimestamp),
+					(afterShadowReconTimestamp - afterResourceReconTimestamp)});
 		
 		return runResult;
 	}
@@ -298,27 +317,20 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		runResult.setProgress(progress);
 	}
 
-	private void performResourceReconciliation(PrismObject<ResourceType> resource, Task task, OperationResult result)
+	private void performResourceReconciliation(PrismObject<ResourceType> resource, RefinedObjectClassDefinition rObjectclassDef, Task task, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
 
 		OperationResult opResult = result.createSubresult(OperationConstants.RECONCILIATION+".ResourceReconciliation");
-		
-
-		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, LayerType.MODEL, prismContext);
-		RefinedObjectClassDefinition refinedAccountDefinition = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
-
-		LOGGER.info("Start executing reconciliation of resource {}, reconciling object class {}",
-				resource, refinedAccountDefinition);
 
 		// Instantiate result handler. This will be called with every search
 		// result in the following iterative search
 		SynchronizeAccountResultHandler handler = new SynchronizeAccountResultHandler(resource.asObjectable(),
-				refinedAccountDefinition, "reconciliation", task, changeNotificationDispatcher);
+				rObjectclassDef, "reconciliation", task, changeNotificationDispatcher);
 		handler.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_RECON);
 		handler.setStopOnError(false);
 
-		ObjectQuery query = createAccountSearchQuery(resource, refinedAccountDefinition);
+		ObjectQuery query = createAccountSearchQuery(resource, rObjectclassDef);
 
 		OperationResult searchResult = new OperationResult(OperationConstants.RECONCILIATION+".searchIterative"); 
 		provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, searchResult);
@@ -328,24 +340,17 @@ public class ReconciliationTaskHandler implements TaskHandler {
         result.createSubresult(OperationConstants.RECONCILIATION+".ResourceReconciliation.statistics").recordStatus(OperationResultStatus.SUCCESS, "Processed " + handler.getProgress() + " account(s), got " + handler.getErrors() + " error(s)");
 	}
 	
-	private void performShadowReconciliation(final PrismObject<ResourceType> resource, Long freshnessInterval, final Task task, OperationResult result) throws SchemaException {
+	private void performShadowReconciliation(final PrismObject<ResourceType> resource, 
+			long startTimestamp, long endTimestamp, final Task task, OperationResult result) throws SchemaException {
 		// find accounts
 		
-		LOGGER.debug("Shadow reconciliation starting for {}, freshness interval {}", resource, freshnessInterval);
+		LOGGER.trace("Shadow reconciliation starting for {}, {} -> {}", new Object[]{resource, startTimestamp, endTimestamp});
 		OperationResult opResult = result.createSubresult(OperationConstants.RECONCILIATION+".shadowReconciliation");
 		
-		ObjectFilter filter;
-		
-		if (freshnessInterval == null) {
-			filter = RefFilter.createReferenceEqual(ShadowType.class, ShadowType.F_RESOURCE_REF, prismContext, resource.getOid());
-		} else {
-			long timestamp = System.currentTimeMillis() - freshnessInterval;
-			XMLGregorianCalendar timestampCal = XmlTypeConverter.createXMLGregorianCalendar(timestamp);
-			LessFilter timestampFilter = LessFilter.createLessFilter(ShadowType.class, prismContext, 
-					ShadowType.F_SYNCHRONIZATION_TIMESTAMP, timestampCal , true);
-			filter = AndFilter.createAnd(timestampFilter, RefFilter.createReferenceEqual(ShadowType.class,
-					ShadowType.F_RESOURCE_REF, prismContext, resource.getOid()));
-		}
+		LessFilter timestampFilter = LessFilter.createLessFilter(ShadowType.class, prismContext, 
+				ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP, XmlTypeConverter.createXMLGregorianCalendar(startTimestamp) , true);
+		ObjectFilter filter = AndFilter.createAnd(timestampFilter, RefFilter.createReferenceEqual(ShadowType.class,
+				ShadowType.F_RESOURCE_REF, prismContext, resource.getOid()));
 		
 		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 		if (LOGGER.isTraceEnabled()) {
@@ -367,7 +372,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		
 		opResult.computeStatus();
 		
-		LOGGER.debug("Shadow reconciliation finished, processed {} shadows for {}, result: {}", 
+		LOGGER.trace("Shadow reconciliation finished, processed {} shadows for {}, result: {}", 
 				new Object[]{countHolder.getValue(), resource, opResult.getStatus()});
 
         result.createSubresult(OperationConstants.RECONCILIATION+".shadowReconciliation.statistics").recordStatus(OperationResultStatus.SUCCESS, "Processed " + countHolder.getValue() + " shadow(s)");
@@ -376,7 +381,11 @@ public class ReconciliationTaskHandler implements TaskHandler {
 	private void reconcileShadow(PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource, Task task) {
 		OperationResult opResult = new OperationResult(OperationConstants.RECONCILIATION+".shadowReconciliation.object");
 		try {
-			provisioningService.getObject(ShadowType.class, shadow.getOid(), null, task, opResult);
+			Collection<SelectorOptions<GetOperationOptions>> options = null;
+			if (Utils.isDryRun(task)){
+				 options = SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery());
+			}
+			provisioningService.getObject(ShadowType.class, shadow.getOid(), options, task, opResult);
 		} catch (ObjectNotFoundException e) {
 			// Account is gone
 			reactShadowGone(shadow, resource, task, opResult);
@@ -433,7 +442,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		
 //		ResourceType resource = repositoryService.getObject(ResourceType.class, resourceOid, opResult)
 //				.asObjectable();
-		LOGGER.debug("Scan for unfinished operations starting");
+		LOGGER.trace("Scan for unfinished operations starting");
 		OperationResult opResult = result.createSubresult(OperationConstants.RECONCILIATION+".RepoReconciliation");
 		opResult.addParam("reconciled", true);
 
@@ -474,7 +483,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		
 		opResult.computeStatus();
 		
-		LOGGER.debug("Scan for unfinished operations finished, processed {} accounts, result: {}", shadows.size(), opResult.getStatus());
+		LOGGER.trace("Scan for unfinished operations finished, processed {} accounts, result: {}", shadows.size(), opResult.getStatus());
 	}
 
 	// private void normalizeShadow(PrismObject<AccountShadowType> shadow,

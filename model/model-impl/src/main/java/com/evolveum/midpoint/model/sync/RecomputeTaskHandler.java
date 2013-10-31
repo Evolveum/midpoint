@@ -82,7 +82,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
  *
  */
 @Component
-public class RecomputeTaskHandler extends AbstractSearchIterativeTaskHandler<UserType> {
+public class RecomputeTaskHandler extends AbstractSearchIterativeTaskHandler<UserType, AbstractSearchIterativeResultHandler<UserType>> {
 
 	public static final String HANDLER_URI = ModelConstants.NS_SYNCHRONIZATION_TASK_PREFIX + "/recompute/handler-2";
 
@@ -119,7 +119,7 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeTaskHandler<Use
 	}
 	
 	@Override
-	protected ObjectQuery createQuery(TaskRunResult runResult, Task task, OperationResult opResult) {
+	protected ObjectQuery createQuery(AbstractSearchIterativeResultHandler<UserType> handler, TaskRunResult runResult, Task task, OperationResult opResult) {
 		// Search all objects
 		return new ObjectQuery();
 	}

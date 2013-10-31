@@ -207,6 +207,10 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 				}
 			return shadow;
 		case GET:
+			if (!compensate){
+				result.recordFatalError(ex.getMessage(), ex);
+				throw new ObjectNotFoundException(ex.getMessage(), ex);
+			}
 			OperationResult handleGetErrorResult = result.createSubresult("Discovery for situation: Object not found on the " + ObjectTypeUtil.toShortString(shadow.getResource()));
 			
 			Collection<? extends ItemDelta> deadModification = PropertyDelta.createModificationReplacePropertyCollection(ShadowType.F_DEAD, shadow.asPrismObject().getDefinition(), true);

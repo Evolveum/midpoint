@@ -186,6 +186,8 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 		/// WHEN
         TestUtil.displayWhen(TEST_NAME);
         
+        display("Adding dummy account", account.dump());
+        
 		dummyResourceEmerald.addAccount(account);
         
         waitForSyncTaskNextRun(resourceDummyEmerald);
@@ -217,10 +219,6 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 	}
 
 
-	/**
-	 * Not really an inbound test but anyway ... the emerald resource is set up to disable user when
-	 * the account is disabled. So test that it works.
-	 */
 	@Test
     public void test199DeleteDummyEmeraldAccountMancomb() throws Exception {
 		final String TEST_NAME = "test199DeleteDummyEmeraldAccountMancomb";
@@ -238,7 +236,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 		/// WHEN
         TestUtil.displayWhen(TEST_NAME);
         
-		dummyResourceEmerald.deleteAccount(ACCOUNT_MANCOMB_DUMMY_USERNAME);
+		dummyResourceEmerald.deleteAccountByName(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         
         waitForSyncTaskNextRun(resourceDummyEmerald);
 		
@@ -252,8 +250,8 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         display("User mancomb", userMancomb);
         assertNotNull("User mancomb was not created", userMancomb);
-        assertLinks(userMancomb, 0);
-        assertAdministrativeStatusDisabled(userMancomb);
+		assertLinks(userMancomb, 0);
+        assertAdministrativeStatusEnabled(userMancomb);
         assertValidFrom(userMancomb, ACCOUNT_MANCOMB_VALID_FROM_DATE);
         assertValidTo(userMancomb, ACCOUNT_MANCOMB_VALID_TO_DATE);
         

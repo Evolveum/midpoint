@@ -140,6 +140,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskExecutionStatusType;
@@ -189,7 +190,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	@Autowired(required = true)
 	protected ProvisioningService provisioningService;
-	
+		
 	@Autowired(required = true)
 	protected HookRegistry hookRegistry;
 	
@@ -325,6 +326,30 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			}
 		}
 		assertTrue("User " + user + " is not linked to account " + accountOid, found);
+	}
+	
+	protected void assertNotLinked(String userOid, String accountOid) throws ObjectNotFoundException, SchemaException {
+		OperationResult result = new OperationResult("assertLinked");
+		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
+		assertNotLinked(user, accountOid);
+	}
+	
+	protected void assertNotLinked(PrismObject<UserType> user, PrismObject<ShadowType> account) throws ObjectNotFoundException, SchemaException {
+		assertNotLinked(user, account.getOid());
+	}
+	
+	protected void assertNotLinked(PrismObject<UserType> user, String accountOid) throws ObjectNotFoundException, SchemaException {
+		PrismReference linkRef = user.findReference(UserType.F_LINK_REF);
+		if (linkRef == null) {
+			return;
+		}
+		boolean found = false; 
+		for (PrismReferenceValue val: linkRef.getValues()) {
+			if (val.getOid().equals(accountOid)) {
+				found = true;
+			}
+		}
+		assertFalse("User " + user + " IS linked to account " + accountOid + " but not expecting it", found);
 	}
 	
 	protected void assertNoLinkedAccount(PrismObject<UserType> user) {
@@ -1588,11 +1613,27 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		AssertJUnit.fail("Expected that "+object+" will have a trigger but it has not");
 	}
 	
+	protected <O extends ObjectType> void assertTrigger(PrismObject<O> object, String handlerUri, XMLGregorianCalendar mid, long tolerance) throws ObjectNotFoundException, SchemaException {
+		XMLGregorianCalendar start = XmlTypeConverter.addMillis(mid, -tolerance);
+		XMLGregorianCalendar end = XmlTypeConverter.addMillis(mid, tolerance);
+		for (TriggerType trigger: object.asObjectable().getTrigger()) {
+			if (handlerUri.equals(trigger.getHandlerUri()) 
+					&& MiscUtil.isBetween(trigger.getTimestamp(), start, end)) {
+				return;
+			}
+		}
+		AssertJUnit.fail("Expected that "+object+" will have a trigger but it has not");
+	}
+	
 	protected <O extends ObjectType> void assertNoTrigger(Class<O> type, String oid) throws ObjectNotFoundException, SchemaException {
 		OperationResult result = new OperationResult(AbstractModelIntegrationTest.class.getName() + ".assertNoTrigger");
 		PrismObject<O> object = repositoryService.getObject(type, oid, null, result);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
+		assertNoTrigger(object);
+	}
+	
+	protected <O extends ObjectType> void assertNoTrigger(PrismObject<O> object) throws ObjectNotFoundException, SchemaException {
 		List<TriggerType> triggers = object.asObjectable().getTrigger();
 		if (triggers != null && !triggers.isEmpty()) {
 			AssertJUnit.fail("Expected that "+object+" will have no triggers but it has "+triggers.size()+ " trigger: "+ triggers);
@@ -1636,15 +1677,27 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         List<Message> messages = dummyTransport.getMessages("dummy:" + name);
         if (expectedCount == 0) {
             if (messages != null && !messages.isEmpty()) {
+            	LOGGER.error(messages.size() + " unexpected message(s) recorded in dummy transport '" + name + "'");
+            	logNotifyMessages(messages);
                 assertFalse(messages.size() + " unexpected message(s) recorded in dummy transport '" + name + "'", true);
             }
         } else {
             assertNotNull("No messages recorded in dummy transport '" + name + "'", messages);
-            assertEquals("Invalid number of messages recorded in dummy transport '" + name + "'", expectedCount, messages.size());
+            if (expectedCount != messages.size()) {
+            	LOGGER.error("Invalid number of messages recorded in dummy transport '" + name + "', expected: "+expectedCount+", actual: "+messages.size());
+            	logNotifyMessages(messages);
+            	assertEquals("Invalid number of messages recorded in dummy transport '" + name + "'", expectedCount, messages.size());
+            }
         }
     }
 
-    protected void checkDummyTransportMessagesAtLeast(String name, int expectedCount) {
+    private void logNotifyMessages(List<Message> messages) {
+		for (Message message: messages) {
+			LOGGER.debug("Notification message:\n{}", message.getBody());
+		}
+	}
+
+	protected void checkDummyTransportMessagesAtLeast(String name, int expectedCount) {
         if (expectedCount == 0) {
             return;
         }
@@ -1765,6 +1818,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected void assertIterationDelta(ObjectDelta<ShadowType> shadowDelta, Integer expectedIteration, String expectedIterationToken) {
 		PrismAsserts.assertPropertyReplace(shadowDelta, ShadowType.F_ITERATION, expectedIteration);
 		PrismAsserts.assertPropertyReplace(shadowDelta, ShadowType.F_ITERATION_TOKEN, expectedIterationToken);
+	}
+	
+	protected void assertSituation(PrismObject<ShadowType> shadow, SynchronizationSituationType expectedSituation) {
+		if (expectedSituation == null) {
+			PrismAsserts.assertNoItem(shadow, ShadowType.F_SYNCHRONIZATION_SITUATION);
+		} else {
+			PrismAsserts.assertPropertyValue(shadow, ShadowType.F_SYNCHRONIZATION_SITUATION, expectedSituation);
+		}
 	}
 	
 	protected void assertEnableTimestampFocus(PrismObject<? extends FocusType> focus, 

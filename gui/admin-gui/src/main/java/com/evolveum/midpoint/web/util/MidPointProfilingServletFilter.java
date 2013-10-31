@@ -82,6 +82,8 @@ public class MidPointProfilingServletFilter implements Filter {
                     prepareRequestProfilingEvent(request, elapsedTime, uri);
                 }
             }
+        } else {
+            chain.doFilter(request, response);
         }
     }   //doFilter
 

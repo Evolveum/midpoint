@@ -1,0 +1,2867 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wsdl:definitions xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:ns1="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl" xmlns:ns2="http://midpoint.evolveum.com/xml/ns/public/common/fault-1.wsdl" name="modelPortType" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/">
+  <wsdl:types>
+    <xs:schema xmlns:tns="http://www.w3.org/2001/04/xmlenc#" xmlns:ns1="http://www.w3.org/2000/09/xmldsig#" elementFormDefault="qualified" targetNamespace="http://www.w3.org/2001/04/xmlenc#" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+      <xs:import namespace="http://www.w3.org/2000/09/xmldsig#" />
+      <xs:element name="AgreementMethod" type="tns:AgreementMethodType" />
+      <xs:element name="CipherData" type="tns:CipherDataType" />
+      <xs:element name="CipherReference" type="tns:CipherReferenceType" />
+      <xs:element name="EncryptedData" type="tns:EncryptedDataType" />
+      <xs:element name="EncryptedKey" type="tns:EncryptedKeyType" />
+      <xs:element name="EncryptionProperties" type="tns:EncryptionPropertiesType" />
+      <xs:element name="EncryptionProperty" type="tns:EncryptionPropertyType" />
+      <xs:element name="ReferenceList">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+              <xs:element name="KeyReference" type="tns:ReferenceType" />
+              <xs:element name="DataReference" type="tns:ReferenceType" />
+            </xs:choice>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:complexType name="EncryptedDataType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:EncryptedType">
+            <xs:sequence />
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="EncryptedType" abstract="true">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="EncryptionMethod" type="tns:EncryptionMethodType" />
+          <xs:element minOccurs="0" ref="ns1:KeyInfo" />
+          <xs:element name="CipherData" type="tns:CipherDataType" />
+          <xs:element minOccurs="0" name="EncryptionProperties" type="tns:EncryptionPropertiesType" />
+        </xs:sequence>
+        <xs:attribute name="Id" type="xs:ID" />
+        <xs:attribute name="Type" type="xs:anyURI" />
+        <xs:attribute name="MimeType" type="xs:string" />
+        <xs:attribute name="Encoding" type="xs:anyURI" />
+      </xs:complexType>
+      <xs:complexType name="EncryptionMethodType" mixed="true">
+        <xs:sequence>
+          <xs:choice minOccurs="0" maxOccurs="unbounded">
+            <xs:element name="OAEPparams" type="xs:base64Binary" />
+            <xs:element name="KeySize" type="xs:integer" />
+            <xs:any namespace="##other" processContents="lax" />
+          </xs:choice>
+        </xs:sequence>
+        <xs:attribute name="Algorithm" type="xs:anyURI" use="required" />
+      </xs:complexType>
+      <xs:complexType name="EncryptionPropertiesType">
+        <xs:sequence>
+          <xs:element maxOccurs="unbounded" name="EncryptionProperty" type="tns:EncryptionPropertyType" />
+        </xs:sequence>
+        <xs:attribute name="Id" type="xs:ID" />
+      </xs:complexType>
+      <xs:complexType name="EncryptionPropertyType" mixed="true">
+        <xs:sequence>
+          <xs:any minOccurs="0" maxOccurs="unbounded" namespace="##other" processContents="lax" />
+        </xs:sequence>
+        <xs:attribute name="Target" type="xs:anyURI" />
+        <xs:attribute name="Id" type="xs:ID" />
+        <xs:anyAttribute namespace="##other" processContents="skip" />
+      </xs:complexType>
+      <xs:complexType name="AgreementMethodType" mixed="true">
+        <xs:sequence>
+          <xs:choice minOccurs="0" maxOccurs="unbounded">
+            <xs:element name="OriginatorKeyInfo" type="ns1:KeyInfoType" />
+            <xs:element name="KA-Nonce" type="xs:base64Binary" />
+            <xs:element name="RecipientKeyInfo" type="ns1:KeyInfoType" />
+            <xs:any namespace="##other" processContents="lax" />
+          </xs:choice>
+        </xs:sequence>
+        <xs:attribute name="Algorithm" type="xs:anyURI" use="required" />
+      </xs:complexType>
+      <xs:complexType name="ReferenceType">
+        <xs:sequence>
+          <xs:any minOccurs="0" maxOccurs="unbounded" namespace="##other" processContents="lax" />
+        </xs:sequence>
+        <xs:attribute name="URI" type="xs:anyURI" use="required" />
+      </xs:complexType>
+      <xs:complexType name="CipherReferenceType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="Transforms" type="tns:TransformsType" />
+        </xs:sequence>
+        <xs:attribute name="URI" type="xs:anyURI" use="required" />
+      </xs:complexType>
+      <xs:complexType name="TransformsType">
+        <xs:sequence>
+          <xs:element maxOccurs="unbounded" ref="ns1:Transform" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="EncryptedKeyType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:EncryptedType">
+            <xs:sequence>
+              <xs:element minOccurs="0" ref="tns:ReferenceList" />
+              <xs:element minOccurs="0" name="CarriedKeyName" type="xs:string" />
+            </xs:sequence>
+            <xs:attribute name="Recipient" type="xs:string" />
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="CipherDataType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="CipherValue" type="xs:base64Binary" />
+          <xs:element minOccurs="0" name="CipherReference" type="tns:CipherReferenceType" />
+        </xs:sequence>
+      </xs:complexType>
+    </xs:schema>
+    <xs:schema xmlns:tns="http://www.w3.org/2000/09/xmldsig#" elementFormDefault="qualified" targetNamespace="http://www.w3.org/2000/09/xmldsig#" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+      <xs:element name="CanonicalizationMethod" type="tns:CanonicalizationMethodType" />
+      <xs:element name="DSAKeyValue" type="tns:DSAKeyValueType" />
+      <xs:element name="DigestMethod" type="tns:DigestMethodType" />
+      <xs:element name="DigestValue" type="xs:base64Binary" />
+      <xs:element name="KeyInfo" type="tns:KeyInfoType" />
+      <xs:element name="KeyName" type="xs:string" />
+      <xs:element name="KeyValue" type="tns:KeyValueType" />
+      <xs:element name="Manifest" type="tns:ManifestType" />
+      <xs:element name="MgmtData" type="xs:string" />
+      <xs:element name="Object" type="tns:ObjectType" />
+      <xs:element name="PGPData" type="tns:PGPDataType" />
+      <xs:element name="RSAKeyValue" type="tns:RSAKeyValueType" />
+      <xs:element name="Reference" type="tns:ReferenceType" />
+      <xs:element name="RetrievalMethod" type="tns:RetrievalMethodType" />
+      <xs:element name="SPKIData" type="tns:SPKIDataType" />
+      <xs:element name="Signature" type="tns:SignatureType" />
+      <xs:element name="SignatureMethod" type="tns:SignatureMethodType" />
+      <xs:element name="SignatureProperties" type="tns:SignaturePropertiesType" />
+      <xs:element name="SignatureProperty" type="tns:SignaturePropertyType" />
+      <xs:element name="SignatureValue" type="tns:SignatureValueType" />
+      <xs:element name="SignedInfo" type="tns:SignedInfoType" />
+      <xs:element name="Transform" type="tns:TransformType" />
+      <xs:element name="Transforms" type="tns:TransformsType" />
+      <xs:element name="X509Data" type="tns:X509DataType" />
+      <xs:complexType name="KeyInfoType" mixed="true">
+        <xs:sequence>
+          <xs:choice minOccurs="0" maxOccurs="unbounded">
+            <xs:element ref="tns:KeyName" />
+            <xs:element ref="tns:SPKIData" />
+            <xs:element ref="tns:X509Data" />
+            <xs:element ref="tns:RetrievalMethod" />
+            <xs:element ref="tns:KeyValue" />
+            <xs:element ref="tns:PGPData" />
+            <xs:element ref="tns:MgmtData" />
+            <xs:any namespace="##other" processContents="lax" />
+          </xs:choice>
+        </xs:sequence>
+        <xs:attribute name="Id" type="xs:ID" />
+      </xs:complexType>
+      <xs:complexType name="ObjectType" mixed="true">
+        <xs:sequence>
+          <xs:any minOccurs="0" maxOccurs="unbounded" namespace="##other" processContents="lax" />
+        </xs:sequence>
+        <xs:attribute name="Id" type="xs:ID" />
+        <xs:attribute name="MimeType" type="xs:string" />
+        <xs:attribute name="Encoding" type="xs:anyURI" />
+      </xs:complexType>
+      <xs:complexType name="CanonicalizationMethodType" mixed="true">
+        <xs:sequence>
+          <xs:any minOccurs="0" maxOccurs="unbounded" namespace="##other" processContents="lax" />
+        </xs:sequence>
+        <xs:attribute name="Algorithm" type="xs:anyURI" use="required" />
+      </xs:complexType>
+      <xs:complexType name="X509IssuerSerialType">
+        <xs:sequence>
+          <xs:element name="X509IssuerName" type="xs:string" />
+          <xs:element name="X509SerialNumber" type="xs:integer" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="X509DataType">
+        <xs:sequence>
+          <xs:choice minOccurs="0" maxOccurs="unbounded">
+            <xs:element name="X509SKI" type="xs:base64Binary" />
+            <xs:element name="X509CRL" type="xs:base64Binary" />
+            <xs:element name="X509Certificate" type="xs:base64Binary" />
+            <xs:element name="X509IssuerSerial" type="tns:X509IssuerSerialType" />
+            <xs:element name="X509SubjectName" type="xs:string" />
+            <xs:any namespace="##other" processContents="lax" />
+          </xs:choice>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="SignatureMethodType" mixed="true">
+        <xs:sequence>
+          <xs:choice minOccurs="0" maxOccurs="unbounded">
+            <xs:element name="HMACOutputLength" type="xs:integer" />
+            <xs:any namespace="##other" processContents="lax" />
+          </xs:choice>
+        </xs:sequence>
+        <xs:attribute name="Algorithm" type="xs:anyURI" use="required" />
+      </xs:complexType>
+      <xs:complexType name="PGPDataType">
+        <xs:sequence>
+          <xs:choice minOccurs="0" maxOccurs="unbounded">
+            <xs:element name="PGPKeyID" type="xs:base64Binary" />
+            <xs:element name="PGPKeyPacket" type="xs:base64Binary" />
+            <xs:any namespace="##other" processContents="lax" />
+          </xs:choice>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ReferenceType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="Transforms" type="tns:TransformsType" />
+          <xs:element name="DigestMethod" type="tns:DigestMethodType" />
+          <xs:element name="DigestValue" type="xs:base64Binary" />
+        </xs:sequence>
+        <xs:attribute name="Id" type="xs:ID" />
+        <xs:attribute name="URI" type="xs:anyURI" />
+        <xs:attribute name="Type" type="xs:anyURI" />
+      </xs:complexType>
+      <xs:complexType name="TransformsType">
+        <xs:sequence>
+          <xs:element maxOccurs="unbounded" name="Transform" type="tns:TransformType" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="TransformType" mixed="true">
+        <xs:sequence>
+          <xs:choice minOccurs="0" maxOccurs="unbounded">
+            <xs:element name="XPath" type="xs:string" />
+            <xs:any namespace="##other" processContents="lax" />
+          </xs:choice>
+        </xs:sequence>
+        <xs:attribute name="Algorithm" type="xs:anyURI" use="required" />
+      </xs:complexType>
+      <xs:complexType name="DigestMethodType" mixed="true">
+        <xs:sequence>
+          <xs:any minOccurs="0" maxOccurs="unbounded" namespace="##other" processContents="lax" />
+        </xs:sequence>
+        <xs:attribute name="Algorithm" type="xs:anyURI" use="required" />
+      </xs:complexType>
+      <xs:complexType name="SignedInfoType">
+        <xs:sequence>
+          <xs:element name="CanonicalizationMethod" type="tns:CanonicalizationMethodType" />
+          <xs:element name="SignatureMethod" type="tns:SignatureMethodType" />
+          <xs:element maxOccurs="unbounded" name="Reference" type="tns:ReferenceType" />
+        </xs:sequence>
+        <xs:attribute name="Id" type="xs:ID" />
+      </xs:complexType>
+      <xs:complexType name="RetrievalMethodType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="Transforms" type="tns:TransformsType" />
+        </xs:sequence>
+        <xs:attribute name="URI" type="xs:anyURI" />
+        <xs:attribute name="Type" type="xs:anyURI" />
+      </xs:complexType>
+      <xs:complexType name="SPKIDataType">
+        <xs:sequence>
+          <xs:choice minOccurs="0" maxOccurs="unbounded">
+            <xs:element name="SPKISexp" type="xs:base64Binary" />
+            <xs:any namespace="##other" processContents="lax" />
+          </xs:choice>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="SignatureType">
+        <xs:sequence>
+          <xs:element name="SignedInfo" type="tns:SignedInfoType" />
+          <xs:element name="SignatureValue" type="tns:SignatureValueType" />
+          <xs:element minOccurs="0" name="KeyInfo" type="tns:KeyInfoType" />
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="Object" type="tns:ObjectType" />
+        </xs:sequence>
+        <xs:attribute name="Id" type="xs:ID" />
+      </xs:complexType>
+      <xs:complexType name="SignatureValueType">
+        <xs:simpleContent>
+          <xs:extension base="xs:base64Binary">
+            <xs:attribute name="Id" type="xs:ID" />
+          </xs:extension>
+        </xs:simpleContent>
+      </xs:complexType>
+      <xs:complexType name="DSAKeyValueType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="P" type="xs:base64Binary" />
+          <xs:element minOccurs="0" name="Q" type="xs:base64Binary" />
+          <xs:element minOccurs="0" name="J" type="xs:base64Binary" />
+          <xs:element minOccurs="0" name="G" type="xs:base64Binary" />
+          <xs:element name="Y" type="xs:base64Binary" />
+          <xs:element minOccurs="0" name="Seed" type="xs:base64Binary" />
+          <xs:element minOccurs="0" name="PgenCounter" type="xs:base64Binary" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ManifestType">
+        <xs:sequence>
+          <xs:element maxOccurs="unbounded" name="Reference" type="tns:ReferenceType" />
+        </xs:sequence>
+        <xs:attribute name="Id" type="xs:ID" />
+      </xs:complexType>
+      <xs:complexType name="RSAKeyValueType">
+        <xs:sequence>
+          <xs:element name="Modulus" type="xs:base64Binary" />
+          <xs:element name="Exponent" type="xs:base64Binary" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="SignaturePropertyType" mixed="true">
+        <xs:sequence>
+          <xs:any minOccurs="0" maxOccurs="unbounded" namespace="##other" processContents="lax" />
+        </xs:sequence>
+        <xs:attribute name="Target" type="xs:anyURI" use="required" />
+        <xs:attribute name="Id" type="xs:ID" />
+      </xs:complexType>
+      <xs:complexType name="KeyValueType" mixed="true">
+        <xs:sequence>
+          <xs:choice minOccurs="0" maxOccurs="unbounded">
+            <xs:element ref="tns:DSAKeyValue" />
+            <xs:element ref="tns:RSAKeyValue" />
+            <xs:any namespace="##other" processContents="lax" />
+          </xs:choice>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="SignaturePropertiesType">
+        <xs:sequence>
+          <xs:element maxOccurs="unbounded" name="SignatureProperty" type="tns:SignaturePropertyType" />
+        </xs:sequence>
+        <xs:attribute name="Id" type="xs:ID" />
+      </xs:complexType>
+    </xs:schema>
+    <xs:schema xmlns:tns="http://prism.evolveum.com/xml/ns/public/types-2" elementFormDefault="qualified" targetNamespace="http://prism.evolveum.com/xml/ns/public/types-2" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+      <xs:element name="objectDelta" type="tns:ObjectDeltaType" />
+      <xs:complexType name="PolyStringType">
+        <xs:sequence>
+          <xs:element name="orig" type="xs:string" />
+          <xs:element minOccurs="0" name="norm" type="xs:string" />
+          <xs:any minOccurs="0" maxOccurs="unbounded" namespace="##other" processContents="lax" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ObjectReferenceType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="description" type="xs:string" />
+          <xs:element minOccurs="0" name="filter">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:any minOccurs="0" maxOccurs="unbounded" namespace="##other" processContents="lax" />
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+        </xs:sequence>
+        <xs:attribute name="oid" type="xs:string" />
+        <xs:attribute name="type" type="xs:QName" />
+      </xs:complexType>
+      <xs:complexType name="ItemDeltaType">
+        <xs:sequence>
+          <xs:element name="modificationType" type="tns:ModificationTypeType" />
+          <xs:any namespace="##other" processContents="skip" />
+          <xs:element name="value">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:any minOccurs="0" maxOccurs="unbounded" namespace="##other" processContents="lax" />
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ObjectDeltaType">
+        <xs:sequence>
+          <xs:element name="changeType" type="tns:ChangeTypeType" />
+          <xs:element name="objectType" type="xs:QName" />
+          <xs:element minOccurs="0" name="objectToAdd">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:any namespace="##other" processContents="lax" />
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+          <xs:element name="oid" type="xs:string" />
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="modification" nillable="true" type="tns:ItemDeltaType" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="extension">
+        <xs:sequence>
+          <xs:any minOccurs="0" maxOccurs="unbounded" namespace="##other" processContents="lax" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:simpleType name="XPathType">
+        <xs:restriction base="xs:string" />
+      </xs:simpleType>
+      <xs:simpleType name="ModificationTypeType">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="add" />
+          <xs:enumeration value="replace" />
+          <xs:enumeration value="delete" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="ChangeTypeType">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="add" />
+          <xs:enumeration value="modify" />
+          <xs:enumeration value="delete" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:schema>
+    <xs:schema xmlns:tns="http://prism.evolveum.com/xml/ns/public/query-2" xmlns:ns1="http://prism.evolveum.com/xml/ns/public/types-2" elementFormDefault="qualified" targetNamespace="http://prism.evolveum.com/xml/ns/public/query-2" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+      <xs:import namespace="http://prism.evolveum.com/xml/ns/public/types-2" />
+      <xs:element name="and" type="tns:NAryLogicalOperatorFilterType" />
+      <xs:element name="equal" type="tns:PropertyComplexValueFilterType" />
+      <xs:element name="filter" type="tns:FilterType" />
+      <xs:element name="greaterOrEqual" type="tns:PropertySimpleValueFilterType" />
+      <xs:element name="lessOrEqual" type="tns:PropertySimpleValueFilterType" />
+      <xs:element name="matching" type="xs:string" />
+      <xs:element name="maxDepth" type="tns:PropertySimpleValueFilterType" />
+      <xs:element name="minDepth" type="tns:PropertySimpleValueFilterType" />
+      <xs:element name="not" type="tns:UnaryLogicalOperatorFilterType" />
+      <xs:element name="or" type="tns:NAryLogicalOperatorFilterType" />
+      <xs:element name="org" type="tns:PropertyComplexValueFilterType" />
+      <xs:element name="orgRef" type="tns:PropertySimpleValueFilterType" />
+      <xs:element name="path" type="ns1:XPathType" />
+      <xs:element name="present" type="tns:PropertyNoValueFilterType" />
+      <xs:element name="query" type="tns:QueryType" />
+      <xs:element name="ref" type="tns:PropertySimpleValueFilterType" />
+      <xs:element name="substring" type="tns:PropertySimpleValueFilterType" />
+      <xs:element name="true" type="tns:PropertyNoValueFilterType" />
+      <xs:element name="type" type="tns:UriFilterType" />
+      <xs:element name="value" type="tns:ValueType" />
+      <xs:complexType name="QueryType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="description" type="xs:string" />
+          <xs:element minOccurs="0" name="condition" type="xs:anyType" />
+          <xs:any namespace="##other" processContents="skip" />
+          <xs:element minOccurs="0" name="paging" type="tns:PagingType" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="PropertyNoValueFilterType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:FilterType">
+            <xs:sequence>
+              <xs:any namespace="##other" processContents="skip" />
+            </xs:sequence>
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="FilterType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="matching" type="xs:string" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="PropertyComplexValueFilterType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:FilterType">
+            <xs:sequence>
+              <xs:any namespace="##other" processContents="skip" />
+              <xs:element minOccurs="0" name="value" type="tns:ValueType" />
+              <xs:any namespace="##other" processContents="lax" />
+            </xs:sequence>
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="ValueType" mixed="true">
+        <xs:sequence>
+          <xs:any minOccurs="0" maxOccurs="unbounded" namespace="##other" processContents="skip" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="PropertySimpleValueFilterType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:FilterType">
+            <xs:sequence>
+              <xs:any namespace="##other" processContents="skip" />
+              <xs:element minOccurs="0" name="value" type="xs:anyType" />
+              <xs:any namespace="##other" processContents="lax" />
+            </xs:sequence>
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="UriFilterType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:FilterType">
+            <xs:sequence />
+            <xs:attribute name="uri" type="xs:anyURI" />
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="LogicalOperatorFilterType" abstract="true">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:FilterType">
+            <xs:sequence />
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="NAryLogicalOperatorFilterType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:LogicalOperatorFilterType">
+            <xs:sequence>
+              <xs:any minOccurs="0" maxOccurs="unbounded" namespace="##other" processContents="skip" />
+            </xs:sequence>
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="UnaryLogicalOperatorFilterType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:LogicalOperatorFilterType">
+            <xs:sequence>
+              <xs:any namespace="##other" processContents="skip" />
+            </xs:sequence>
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="PagingType">
+        <xs:sequence>
+          <xs:any namespace="##other" processContents="skip" />
+          <xs:element minOccurs="0" default="ascending" name="orderDirection" type="tns:OrderDirectionType" />
+          <xs:element minOccurs="0" default="0" name="offset" type="xs:int" />
+          <xs:element minOccurs="0" default="2147483647" name="maxSize" type="xs:int" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:simpleType name="OrderDirectionType">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="ascending" />
+          <xs:enumeration value="descending" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:schema>
+    <xs:schema xmlns:tns="http://prism.evolveum.com/xml/ns/public/annotation-2" targetNamespace="http://prism.evolveum.com/xml/ns/public/annotation-2" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+      <xs:element name="access" type="tns:AccessAnnotationType" />
+      <xs:element name="composite" type="xs:boolean" />
+      <xs:element name="container" type="xs:anyType" />
+      <xs:element name="deprecated" type="xs:boolean" />
+      <xs:element name="displayName" type="xs:string" />
+      <xs:element name="displayOrder" type="xs:int" />
+      <xs:element name="extension" type="xs:QName" />
+      <xs:element name="help" type="xs:string" />
+      <xs:element name="ignore" type="xs:boolean" />
+      <xs:element name="indexed" type="xs:boolean" />
+      <xs:element name="maxOccurs" type="xs:string" />
+      <xs:element name="object" type="xs:anyType" />
+      <xs:element name="objectReference" type="xs:anyType" />
+      <xs:element name="objectReferenceTargetType" type="xs:QName" />
+      <xs:element name="operational" type="xs:boolean" />
+      <xs:element name="type" type="xs:QName" />
+      <xs:simpleType name="AccessAnnotationType">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="read" />
+          <xs:enumeration value="update" />
+          <xs:enumeration value="create" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:schema>
+    <xs:schema xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2" elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+      <xs:element name="activation" type="tns:ActivationCapabilityType" />
+      <xs:element name="create" type="tns:CreateCapabilityType" />
+      <xs:element name="credentials" type="tns:CredentialsCapabilityType" />
+      <xs:element name="delete" type="tns:DeleteCapabilityType" />
+      <xs:element name="enabled" type="xs:boolean" />
+      <xs:element name="liveSync" type="tns:LiveSyncCapabilityType" />
+      <xs:element name="read" type="tns:ReadCapabilityType" />
+      <xs:element name="script" type="tns:ScriptCapabilityType" />
+      <xs:element name="testConnection" type="tns:TestConnectionCapabilityType" />
+      <xs:element name="update" type="tns:UpdateCapabilityType" />
+      <xs:complexType name="DeleteCapabilityType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:CapabilityType">
+            <xs:sequence />
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="CapabilityType" abstract="true">
+        <xs:sequence>
+          <xs:element minOccurs="0" default="true" name="enabled" type="xs:boolean" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="UpdateCapabilityType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:CapabilityType">
+            <xs:sequence />
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="TestConnectionCapabilityType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:CapabilityType">
+            <xs:sequence />
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="ReadCapabilityType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:CapabilityType">
+            <xs:sequence />
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="LiveSyncCapabilityType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:CapabilityType">
+            <xs:sequence />
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="CredentialsCapabilityType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:CapabilityType">
+            <xs:sequence>
+              <xs:element minOccurs="0" name="password" type="tns:PasswordCapabilityType" />
+            </xs:sequence>
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="PasswordCapabilityType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:CapabilityType">
+            <xs:sequence>
+              <xs:element minOccurs="0" default="true" name="returnedByDefault" type="xs:boolean" />
+            </xs:sequence>
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="ScriptCapabilityType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:CapabilityType">
+            <xs:sequence>
+              <xs:element maxOccurs="unbounded" name="host">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element xmlns:ns1="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" name="type" type="ns1:ProvisioningScriptHostType" />
+                    <xs:element minOccurs="0" maxOccurs="unbounded" name="language" nillable="true" type="xs:anyURI" />
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="CreateCapabilityType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:CapabilityType">
+            <xs:sequence />
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="ActivationCapabilityType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:CapabilityType">
+            <xs:sequence>
+              <xs:element minOccurs="0" name="enableDisable" type="tns:ActivationStatusCapabilityType" />
+              <xs:element minOccurs="0" name="status" type="tns:ActivationStatusCapabilityType" />
+              <xs:element minOccurs="0" name="validFrom" type="tns:ActivationValidityCapabilityType" />
+              <xs:element minOccurs="0" name="validTo" type="tns:ActivationValidityCapabilityType" />
+            </xs:sequence>
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="ActivationStatusCapabilityType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:CapabilityType">
+            <xs:sequence>
+              <xs:element minOccurs="0" default="true" name="returnedByDefault" type="xs:boolean" />
+              <xs:element minOccurs="0" name="attribute" type="xs:QName" />
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="enableValue" nillable="true" type="xs:string" />
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="disableValue" nillable="true" type="xs:string" />
+              <xs:element minOccurs="0" default="true" name="ignoreAttribute" type="xs:boolean" />
+            </xs:sequence>
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="ActivationValidityCapabilityType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:CapabilityType">
+            <xs:sequence>
+              <xs:element minOccurs="0" default="true" name="returnedByDefault" type="xs:boolean" />
+            </xs:sequence>
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+    </xs:schema>
+    <xs:schema xmlns:ns3="http://midpoint.evolveum.com/xml/ns/public/common/api-types-2" xmlns:ns1="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" xmlns:ns2="http://prism.evolveum.com/xml/ns/public/query-2" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+      <xs:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" />
+      <xs:import namespace="http://prism.evolveum.com/xml/ns/public/query-2" />
+      <xs:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/api-types-2" />
+      <xs:element name="addObject">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="object" type="ns1:ObjectType" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="addObjectResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="oid" type="xs:string" />
+            <xs:element name="result" type="ns1:OperationResultType" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="deleteObject">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="objectType" type="xs:anyURI" />
+            <xs:element name="oid" type="xs:string" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="deleteObjectResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="result" type="ns1:OperationResultType" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="getObject">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="objectType" type="xs:anyURI" />
+            <xs:element name="oid" type="xs:string" />
+            <xs:element name="options" type="ns3:OperationOptionsType" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="getObjectResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="object" type="ns1:ObjectType" />
+            <xs:element name="result" type="ns1:OperationResultType" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="importFromResource">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="resourceOid" type="xs:string" />
+            <xs:element name="objectClass" type="xs:QName" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="importFromResourceResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="task" type="ns1:TaskType" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="listAccountShadowOwner">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="accountOid" type="xs:string" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="listAccountShadowOwnerResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="user" type="ns1:UserType" />
+            <xs:element name="result" type="ns1:OperationResultType" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="listObjects">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="objectType" type="xs:anyURI" />
+            <xs:element name="paging" type="ns2:PagingType" />
+            <xs:element name="options" type="ns3:OperationOptionsType" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="listObjectsResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="objectList" type="ns3:ObjectListType" />
+            <xs:element name="result" type="ns1:OperationResultType" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="listResourceObjectShadows">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="resourceOid" type="xs:string" />
+            <xs:element name="resourceObjectShadowType" type="xs:anyURI" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="listResourceObjectShadowsResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="resourceObjectShadowList" type="ns3:ResourceObjectShadowListType" />
+            <xs:element name="result" type="ns1:OperationResultType" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="modifyObject">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="objectType" type="xs:anyURI" />
+            <xs:element name="objectChange" type="ns3:ObjectModificationType" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="modifyObjectResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="result" type="ns1:OperationResultType" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="searchObjects">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="objectType" type="xs:anyURI" />
+            <xs:element name="query" type="ns2:QueryType" />
+            <xs:element name="options" type="ns3:OperationOptionsType" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="searchObjectsResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="objectList" type="ns3:ObjectListType" />
+            <xs:element name="result" type="ns1:OperationResultType" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="testResource">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="resourceOid" type="xs:string" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="testResourceResponse">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element name="result" type="ns1:OperationResultType" />
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:schema>
+    <xs:schema xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2" elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+      <xs:element name="configurationProperties" type="tns:ConfigurationPropertiesType" />
+      <xs:element name="connectorPoolConfiguration" type="tns:ConnectorPoolConfigurationType" />
+      <xs:element name="producerBufferSize" type="xs:int" />
+      <xs:element name="resultsHandlerConfiguration" type="tns:ResultsHandlerConfigurationType" />
+      <xs:element name="timeouts" type="tns:TimeoutsType" />
+      <xs:complexType name="ResultsHandlerConfigurationType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="enableNormalizingResultsHandler" type="xs:boolean" />
+          <xs:element minOccurs="0" name="enableFilteredResultsHandler" type="xs:boolean" />
+          <xs:element minOccurs="0" name="enableCaseInsensitiveFilter" type="xs:boolean" />
+          <xs:element minOccurs="0" name="enableAttributesToGetSearchResultsHandler" type="xs:boolean" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ConfigurationPropertiesType">
+        <xs:sequence>
+          <xs:any minOccurs="0" maxOccurs="unbounded" namespace="##other" processContents="lax" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ConnectorPoolConfigurationType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="minEvictableIdleTimeMillis" type="xs:int" />
+          <xs:element minOccurs="0" name="minIdle" type="xs:int" />
+          <xs:element minOccurs="0" name="maxIdle" type="xs:int" />
+          <xs:element minOccurs="0" name="maxObjects" type="xs:int" />
+          <xs:element minOccurs="0" name="maxWait" type="xs:int" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="TimeoutsType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="create" type="xs:int" />
+          <xs:element minOccurs="0" name="get" type="xs:int" />
+          <xs:element minOccurs="0" name="update" type="xs:int" />
+          <xs:element minOccurs="0" name="delete" type="xs:int" />
+          <xs:element minOccurs="0" name="test" type="xs:int" />
+          <xs:element minOccurs="0" name="scriptOnConnector" type="xs:int" />
+          <xs:element minOccurs="0" name="scriptOnResource" type="xs:int" />
+          <xs:element minOccurs="0" name="authentication" type="xs:int" />
+          <xs:element minOccurs="0" name="search" type="xs:int" />
+          <xs:element minOccurs="0" name="validate" type="xs:int" />
+          <xs:element minOccurs="0" name="sync" type="xs:int" />
+          <xs:element minOccurs="0" name="schema" type="xs:int" />
+        </xs:sequence>
+      </xs:complexType>
+    </xs:schema>
+    <xs:schema xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/fault-1.wsdl" xmlns:ns1="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/fault-1.wsdl" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+      <xs:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" />
+      <xs:element name="fault" type="tns:FaultType" />
+      <xs:element name="illegalArgumentFault" type="tns:IllegalArgumentFaultType" />
+      <xs:element name="inapplicableOperationFault" type="tns:InapplicableOperationFaultType" />
+      <xs:element name="objectAlreadyExistsFault" type="tns:ObjectAlreadyExistsFaultType" />
+      <xs:element name="objectNotFoundFault" type="tns:ObjectNotFoundFaultType" />
+      <xs:element name="referentialIntegrityFault" type="tns:ReferentialIntegrityFaultType" />
+      <xs:element name="schemaViolationFaul" type="tns:SchemaViolationFaultType" />
+      <xs:element name="systemFault" type="tns:SystemFaultType" />
+      <xs:element name="unsupportedObjectTypeFault" type="tns:UnsupportedObjectTypeFaultType" />
+      <xs:element name="unsupportedOperationFault" type="tns:UnsupportedOperationFaultType" />
+      <xs:complexType name="FaultType" abstract="true">
+        <xs:sequence>
+          <xs:element name="message" type="xs:string" />
+          <xs:element name="operationResult" type="ns1:OperationResultType" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="UnsupportedOperationFaultType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:FaultType">
+            <xs:sequence />
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="SystemFaultType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:FaultType">
+            <xs:sequence />
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="IllegalArgumentFaultType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:FaultType">
+            <xs:sequence />
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="ObjectAccessFaultType" abstract="true">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:FaultType">
+            <xs:sequence />
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="ObjectNotFoundFaultType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:ObjectAccessFaultType">
+            <xs:sequence />
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="UnsupportedObjectTypeFaultType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:ObjectAccessFaultType">
+            <xs:sequence />
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="ObjectAlreadyExistsFaultType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:ObjectAccessFaultType">
+            <xs:sequence />
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="SchemaViolationFaultType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:ObjectAccessFaultType">
+            <xs:sequence>
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="violatingPropertyName" nillable="true" type="xs:QName" />
+            </xs:sequence>
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="InapplicableOperationFaultType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:ObjectAccessFaultType">
+            <xs:sequence />
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="ReferentialIntegrityFaultType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:ObjectAccessFaultType">
+            <xs:sequence>
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="referringObjectOid" nillable="true" type="xs:string" />
+            </xs:sequence>
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+    </xs:schema>
+    <xs:schema xmlns:ns3="http://prism.evolveum.com/xml/ns/public/query-2" xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" xmlns:ns1="http://prism.evolveum.com/xml/ns/public/types-2" xmlns:ns2="http://www.w3.org/2001/04/xmlenc#" elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+      <xs:import namespace="http://prism.evolveum.com/xml/ns/public/types-2" />
+      <xs:import namespace="http://www.w3.org/2001/04/xmlenc#" />
+      <xs:import namespace="http://prism.evolveum.com/xml/ns/public/query-2" />
+      <xs:element name="account" type="tns:ShadowType" />
+      <xs:element name="accountPasswordNotifier" type="tns:AccountPasswordNotifierType" />
+      <xs:element name="approverRef" type="tns:ObjectReferenceType" />
+      <xs:element name="asIs" type="tns:AsIsExpressionEvaluatorType" />
+      <xs:element name="assignment" type="tns:AssignmentType" />
+      <xs:element name="cachingMetadata" type="tns:CachingMetadataType" />
+      <xs:element name="categoryFilter" type="tns:EventCategoryFilterType" />
+      <xs:element name="connector" type="tns:ConnectorType" />
+      <xs:element name="connectorHost" type="tns:ConnectorHostType" />
+      <xs:element name="construction" type="tns:ConstructionType" />
+      <xs:element name="credentials" type="tns:CredentialsType" />
+      <xs:element name="description" type="xs:string" />
+      <xs:element name="displayName" type="xs:string" />
+      <xs:element name="dummyNotifier" type="tns:DummyNotifierType" />
+      <xs:element name="expression" type="tns:ExpressionType" />
+      <xs:element name="expressionEvaluator" type="xs:anyType" />
+      <xs:element name="expressionFilter" type="tns:EventExpressionFilterType" />
+      <xs:element name="extension" type="tns:ExtensionType" />
+      <xs:element name="fork" type="tns:EventHandlerForkType" />
+      <xs:element name="generalChangeProcessorConfiguration" type="tns:GeneralChangeProcessorConfigurationType" />
+      <xs:element name="generate" type="tns:GenerateExpressionEvaluatorType" />
+      <xs:element name="genericObject" type="tns:GenericObjectType" />
+      <xs:element name="handler" type="tns:EventHandlerType" />
+      <xs:element name="handlerChain" type="tns:EventHandlerChainType" />
+      <xs:element name="ignore" type="xs:boolean" />
+      <xs:element name="mapping" type="tns:MappingType" />
+      <xs:element name="node" type="tns:NodeType" />
+      <xs:element name="notificationConfiguration" type="tns:NotificationConfigurationType" />
+      <xs:element name="object" type="tns:ObjectType" />
+      <xs:element name="objectRef" type="tns:ObjectReferenceType" />
+      <xs:element name="objectTemplate" type="tns:ObjectTemplateType" />
+      <xs:element name="objects">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+              <xs:element ref="tns:object" />
+              <xs:element ref="tns:connector" />
+              <xs:element ref="tns:shadow" />
+              <xs:element ref="tns:user" />
+              <xs:element ref="tns:role" />
+              <xs:element ref="tns:account" />
+              <xs:element ref="tns:org" />
+              <xs:element ref="tns:node" />
+              <xs:element ref="tns:resourceObjectShadow" />
+              <xs:element ref="tns:genericObject" />
+              <xs:element ref="tns:objectTemplate" />
+              <xs:element ref="tns:userTemplate" />
+              <xs:element ref="tns:connectorHost" />
+              <xs:element ref="tns:task" />
+            </xs:choice>
+          </xs:sequence>
+          <xs:attribute name="id" type="xs:long" />
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="operationFilter" type="tns:EventOperationFilterType" />
+      <xs:element name="operationResult" type="tns:OperationResultType" />
+      <xs:element name="org" type="tns:OrgType" />
+      <xs:element name="path" type="xs:anyType" />
+      <xs:element name="profilingConfiguration" type="tns:ProfilingConfigurationType" />
+      <xs:element name="provisioningScripts" type="tns:OperationProvisioningScriptsType" />
+      <xs:element name="resource" type="tns:ResourceType" />
+      <xs:element name="resourceAttributeDefinition" type="tns:ResourceAttributeDefinitionType" />
+      <xs:element name="resourceObjectShadow" type="tns:ShadowType" />
+      <xs:element name="role" type="tns:RoleType" />
+      <xs:element name="schema" type="tns:XmlSchemaType" />
+      <xs:element name="schemaHandling" type="tns:SchemaHandlingType" />
+      <xs:element name="script" type="tns:ScriptExpressionEvaluatorType" />
+      <xs:element name="shadow" type="tns:ShadowType" />
+      <xs:element name="simpleAccountNotifier" type="tns:SimpleAccountNotifierType" />
+      <xs:element name="simpleUserNotifier" type="tns:SimpleUserNotifierType" />
+      <xs:element name="simpleWorkflowNotifier" type="tns:SimpleWorkflowNotifierType" />
+      <xs:element name="statusFilter" type="tns:EventStatusFilterType" />
+      <xs:element name="synchronization" type="tns:SynchronizationType" />
+      <xs:element name="systemConfiguration" type="tns:SystemConfigurationType" />
+      <xs:element name="task" type="tns:TaskType" />
+      <xs:element name="unknownJavaObject" type="tns:UnknownJavaObjectType" />
+      <xs:element name="user" type="tns:UserType" />
+      <xs:element name="userPasswordNotifier" type="tns:UserPasswordNotifierType" />
+      <xs:element name="userTemplate" type="tns:ObjectTemplateType" />
+      <xs:element name="value" type="xs:anyType" />
+      <xs:element name="valueExpression" type="tns:ExpressionType" />
+      <xs:element name="valuePolicy" type="tns:ValuePolicyType" />
+      <xs:complexType name="OperationResultType">
+        <xs:sequence>
+          <xs:element name="operation" type="xs:string" />
+          <xs:element name="status" type="tns:OperationResultStatusType" />
+          <xs:element minOccurs="0" name="params" type="tns:ParamsType" />
+          <xs:element minOccurs="0" name="token" type="xs:long" />
+          <xs:element minOccurs="0" name="messageCode" type="xs:string" />
+          <xs:element minOccurs="0" name="message" type="xs:string" />
+          <xs:element minOccurs="0" name="localizedMessage" type="tns:LocalizedMessageType" />
+          <xs:element minOccurs="0" name="details" type="xs:string" />
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="partialResults" nillable="true" type="tns:OperationResultType" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ParamsType">
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="entry" nillable="true" type="tns:EntryType" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="EntryType">
+        <xs:sequence>
+          <xs:any namespace="##other" processContents="lax" />
+        </xs:sequence>
+        <xs:attribute name="key" type="xs:string" use="required" />
+      </xs:complexType>
+      <xs:complexType name="ObjectType" abstract="true">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="name" type="ns1:PolyStringType" />
+          <xs:element minOccurs="0" name="description" type="xs:string" />
+          <xs:element minOccurs="0" name="fetchResult" type="tns:OperationResultType" />
+          <xs:element minOccurs="0" name="extension" type="tns:ExtensionType" />
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="parentOrg" type="tns:OrgType" />
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="parentOrgRef" type="tns:ObjectReferenceType" />
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="trigger" type="tns:TriggerType" />
+          <xs:element minOccurs="0" name="metadata" type="tns:MetadataType" />
+        </xs:sequence>
+        <xs:attribute name="oid" type="xs:string" />
+        <xs:attribute name="version" type="xs:string" />
+      </xs:complexType>
+      <xs:complexType name="ExtensionType">
+        <xs:sequence>
+          <xs:any minOccurs="0" maxOccurs="unbounded" namespace="##other" processContents="lax" />
+        </xs:sequence>
+        <xs:attribute name="id" type="xs:long" />
+      </xs:complexType>
+      <xs:complexType name="OrgType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:AbstractRoleType">
+            <xs:sequence>
+              <xs:element name="displayName" type="ns1:PolyStringType" />
+              <xs:element minOccurs="0" name="identifier" type="xs:string" />
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="orgType" type="xs:string" />
+              <xs:element minOccurs="0" name="costCenter" type="xs:string" />
+              <xs:element minOccurs="0" name="locality" type="ns1:PolyStringType" />
+            </xs:sequence>
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="AbstractRoleType" abstract="true">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:FocusType">
+            <xs:sequence>
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="inducement" type="tns:AssignmentType" />
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="authorization" type="tns:AuthorizationType" />
+              <xs:element minOccurs="0" default="false" name="requestable" type="xs:boolean" />
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="exclusion" type="tns:ExclusionType" />
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="approverRef" type="tns:ObjectReferenceType" />
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="approverExpression" type="tns:ExpressionType" />
+              <xs:element minOccurs="0" name="approvalSchema" type="tns:ApprovalSchemaType" />
+              <xs:element minOccurs="0" name="approvalProcess" type="xs:string" />
+              <xs:element minOccurs="0" name="automaticallyApproved" type="tns:ExpressionType" />
+            </xs:sequence>
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="FocusType" abstract="true">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:ObjectType">
+            <xs:sequence>
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="link" type="tns:ShadowType" />
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="linkRef" type="tns:ObjectReferenceType" />
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="assignment" type="tns:AssignmentType" />
+              <xs:element minOccurs="0" name="activation" type="tns:ActivationType" />
+            </xs:sequence>
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="AssignmentType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="description" type="xs:string" />
+          <xs:element minOccurs="0" name="extension" type="tns:ExtensionType" />
+          <xs:element minOccurs="0" name="metadata" type="tns:MetadataType" />
+          <xs:element minOccurs="0" name="target" type="tns:ObjectType" />
+          <xs:element minOccurs="0" name="targetRef" type="tns:ObjectReferenceType" />
+          <xs:element minOccurs="0" name="accountConstruction" type="tns:ConstructionType" />
+          <xs:element minOccurs="0" name="construction" type="tns:ConstructionType" />
+          <xs:element minOccurs="0" name="activation" type="tns:ActivationType" />
+        </xs:sequence>
+        <xs:attribute name="id" type="xs:long" />
+      </xs:complexType>
+      <xs:complexType name="MetadataType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="createTimestamp" type="xs:dateTime" />
+          <xs:element minOccurs="0" name="creatorRef" type="tns:ObjectReferenceType" />
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="createApproverRef" type="tns:ObjectReferenceType" />
+          <xs:element minOccurs="0" name="createChannel" type="xs:anyURI" />
+          <xs:element minOccurs="0" name="modifyTimestamp" type="xs:dateTime" />
+          <xs:element minOccurs="0" name="modifierRef" type="tns:ObjectReferenceType" />
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="modifyApproverRef" type="tns:ObjectReferenceType" />
+          <xs:element minOccurs="0" name="modifyChannel" type="xs:anyURI" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ObjectReferenceType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="description" type="xs:string" />
+          <xs:element minOccurs="0" name="filter">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:any namespace="##other" processContents="skip" />
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+        </xs:sequence>
+        <xs:attribute name="oid" type="xs:string" />
+        <xs:attribute name="relation" type="xs:QName" />
+        <xs:attribute name="type" type="xs:QName" />
+      </xs:complexType>
+      <xs:complexType name="ConstructionType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="description" type="xs:string" />
+          <xs:element minOccurs="0" name="extension" type="tns:ExtensionType" />
+          <xs:element minOccurs="0" name="resourceRef" type="tns:ObjectReferenceType" />
+          <xs:element minOccurs="0" name="resource" type="tns:ResourceType" />
+          <xs:element minOccurs="0" default="account" name="kind" type="tns:ShadowKindType" />
+          <xs:element minOccurs="0" name="intent" type="xs:string" />
+          <xs:element minOccurs="0" name="condition" type="tns:ExpressionType" />
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="attribute" type="tns:ResourceAttributeDefinitionType" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ResourceType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:ObjectType">
+            <xs:sequence>
+              <xs:element minOccurs="0" name="operationalState" type="tns:OperationalStateType" />
+              <xs:element minOccurs="0" name="connector" type="tns:ConnectorType" />
+              <xs:element minOccurs="0" name="connectorRef" type="tns:ObjectReferenceType" />
+              <xs:element name="connectorConfiguration" type="tns:ConnectorConfigurationType" />
+              <xs:element minOccurs="0" name="namespace" type="xs:anyURI" />
+              <xs:element minOccurs="0" name="schema" type="tns:XmlSchemaType" />
+              <xs:element minOccurs="0" name="schemaHandling" type="tns:SchemaHandlingType" />
+              <xs:element minOccurs="0" name="capabilities" type="tns:CapabilitiesType" />
+              <xs:element minOccurs="0" name="scripts" type="tns:OperationProvisioningScriptsType" />
+              <xs:element minOccurs="0" name="projection" type="tns:ProjectionPolicyType" />
+              <xs:element minOccurs="0" name="consistency" type="tns:ResourceConsistencyType" />
+              <xs:element minOccurs="0" name="synchronization" type="tns:SynchronizationType" />
+              <xs:element minOccurs="0" name="business" type="tns:ResourceBusinessConfigurationType" />
+            </xs:sequence>
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="OperationalStateType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="lastAvailabilityStatus" type="tns:AvailabilityStatusType" />
+        </xs:sequence>
+        <xs:attribute name="id" type="xs:long" />
+      </xs:complexType>
+      <xs:complexType name="ConnectorType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:ObjectType">
+            <xs:sequence>
+              <xs:element name="framework" type="xs:anyURI" />
+              <xs:element name="connectorType" type="xs:string" />
+              <xs:element minOccurs="0" name="connectorVersion" type="xs:string" />
+              <xs:element minOccurs="0" name="connectorBundle" type="xs:string" />
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="targetSystemType" type="xs:anyURI" />
+              <xs:element minOccurs="0" name="namespace" type="xs:anyURI" />
+              <xs:element minOccurs="0" name="connectorHost" type="tns:ConnectorHostType" />
+              <xs:element minOccurs="0" name="connectorHostRef" type="tns:ObjectReferenceType" />
+              <xs:element minOccurs="0" name="schema" type="tns:XmlSchemaType" />
+            </xs:sequence>
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="ConnectorHostType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:ObjectType">
+            <xs:sequence>
+              <xs:element name="hostname" type="xs:string" />
+              <xs:element minOccurs="0" name="port" type="xs:string" />
+              <xs:element minOccurs="0" name="sharedSecret" type="tns:ProtectedStringType" />
+              <xs:element minOccurs="0" default="false" name="protectConnection" type="xs:boolean" />
+              <xs:element minOccurs="0" name="timeout" type="xs:int" />
+            </xs:sequence>
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="ProtectedStringType">
+        <xs:sequence>
+          <xs:element minOccurs="0" ref="ns2:EncryptedData" />
+          <xs:element minOccurs="0" name="clearValue" type="xs:string" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="XmlSchemaType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="cachingMetadata" type="tns:CachingMetadataType" />
+          <xs:element minOccurs="0" name="generationConstraints" type="tns:SchemaGenerationConstraintsType" />
+          <xs:element minOccurs="0" name="definition">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:any minOccurs="0" maxOccurs="unbounded" namespace="##other" processContents="skip" />
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="CachingMetadataType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="retrievalTimestamp" type="xs:dateTime" />
+          <xs:element name="serialNumber" type="xs:string" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="SchemaGenerationConstraintsType">
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="generateObjectClass" nillable="true" type="xs:QName" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ConnectorConfigurationType">
+        <xs:sequence>
+          <xs:any minOccurs="0" maxOccurs="unbounded" namespace="##other" processContents="lax" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="SchemaHandlingType">
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="objectType" nillable="true" type="tns:ResourceObjectTypeDefinitionType" />
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="accountType" nillable="true" type="tns:ResourceObjectTypeDefinitionType" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ResourceObjectTypeDefinitionType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="kind" type="tns:ShadowKindType" />
+          <xs:element minOccurs="0" name="intent" type="xs:string" />
+          <xs:element minOccurs="0" name="name" type="xs:string" />
+          <xs:element minOccurs="0" name="displayName" type="xs:string" />
+          <xs:element minOccurs="0" name="description" type="xs:string" />
+          <xs:element minOccurs="0" default="false" name="default" type="xs:boolean" />
+          <xs:element name="objectClass" type="xs:QName" />
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="attribute" nillable="true" type="tns:ResourceAttributeDefinitionType" />
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="dependency" nillable="true" type="tns:ResourceObjectTypeDependencyType" />
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="association" nillable="true" type="tns:ResourceObjectAssociationType" />
+          <xs:element minOccurs="0" name="assignmentPolicyEnforcement" type="tns:AssignmentPolicyEnforcementType" />
+          <xs:element minOccurs="0" name="iteration" type="tns:IterationSpecificationType" />
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="protected" type="tns:ResourceObjectPatternType" />
+          <xs:element minOccurs="0" name="activation" type="tns:ResourceActivationDefinitionType" />
+          <xs:element minOccurs="0" name="credentials" type="tns:ResourceCredentialsDefinitionType" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ResourceAttributeDefinitionType">
+        <xs:sequence>
+          <xs:element name="ref" type="xs:QName" />
+          <xs:element minOccurs="0" name="displayName" type="xs:string" />
+          <xs:element minOccurs="0" name="description" type="xs:string" />
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="limitations" nillable="true" type="tns:PropertyLimitationsType" />
+          <xs:element minOccurs="0" default="true" name="ignore" type="xs:boolean" />
+          <xs:element minOccurs="0" name="minOccurs" type="xs:string" />
+          <xs:element minOccurs="0" name="maxOccurs" type="xs:string" />
+          <xs:element minOccurs="0" default="true" name="tolerant" type="xs:boolean" />
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="tolerantValuePattern" nillable="true" type="xs:string" />
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="intolerantValuePattern" nillable="true" type="xs:string" />
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="access" nillable="true" type="tns:DepreactedAccessType" />
+          <xs:element minOccurs="0" name="fetchStrategy" type="tns:AttributeFetchStrategyType" />
+          <xs:element minOccurs="0" name="matchingRule" type="xs:QName" />
+          <xs:element minOccurs="0" name="outbound" type="tns:MappingType" />
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="inbound" nillable="true" type="tns:MappingType" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="PropertyLimitationsType">
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="layer" nillable="true" type="tns:LayerType" />
+          <xs:element minOccurs="0" name="minOccurs" type="xs:string" />
+          <xs:element minOccurs="0" name="maxOccurs" type="xs:string" />
+          <xs:element minOccurs="0" default="true" name="ignore" type="xs:boolean" />
+          <xs:element minOccurs="0" name="access" type="tns:PropertyAccessType" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="PropertyAccessType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="create" type="xs:boolean" />
+          <xs:element minOccurs="0" name="read" type="xs:boolean" />
+          <xs:element minOccurs="0" name="update" type="xs:boolean" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="MappingType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="name" type="xs:string" />
+          <xs:element minOccurs="0" name="description" type="xs:string" />
+          <xs:element minOccurs="0" name="extension" type="tns:ExtensionType" />
+          <xs:element minOccurs="0" default="true" name="authoritative" type="xs:boolean" />
+          <xs:element minOccurs="0" default="false" name="exclusive" type="xs:boolean" />
+          <xs:element minOccurs="0" default="strong" name="strength" type="tns:MappingStrengthType" />
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="channel" nillable="true" type="xs:anyURI" />
+          <xs:element minOccurs="0" name="timeFrom" type="tns:MappingTimeDeclarationType" />
+          <xs:element minOccurs="0" name="timeTo" type="tns:MappingTimeDeclarationType" />
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="source" nillable="true" type="tns:MappingSourceDeclarationType" />
+          <xs:element minOccurs="0" name="expression" type="tns:ExpressionType" />
+          <xs:element minOccurs="0" name="target" type="tns:MappingTargetDeclarationType" />
+          <xs:element minOccurs="0" name="condition" type="tns:ExpressionType" />
+          <xs:element minOccurs="0" name="inputFilter" type="tns:ValueFilterType" />
+          <xs:element minOccurs="0" name="outputFilter" type="tns:ValueFilterType" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="MappingTimeDeclarationType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="description" type="xs:string" />
+          <xs:element minOccurs="0" name="referenceTime" type="tns:MappingSourceDeclarationType" />
+          <xs:element minOccurs="0" name="offset" type="xs:duration" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="MappingSourceDeclarationType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="name" type="xs:QName" />
+          <xs:element minOccurs="0" name="description" type="xs:string" />
+          <xs:any namespace="##other" processContents="skip" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ExpressionType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="description" type="xs:string" />
+          <xs:element minOccurs="0" name="extension" type="tns:ExtensionType" />
+          <xs:element minOccurs="0" name="ref" type="xs:QName" />
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="stringFilter" nillable="true" type="tns:StringFilterType" />
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="variable" nillable="true" type="tns:ExpressionVariableDefinitionType" />
+          <xs:element minOccurs="0" name="returnMultiplicity" type="tns:ExpressionReturnMultiplicityType" />
+          <xs:choice minOccurs="0" maxOccurs="unbounded">
+            <xs:element ref="tns:expressionEvaluator" />
+            <xs:element ref="tns:path" />
+            <xs:element ref="tns:value" />
+            <xs:element ref="tns:asIs" />
+            <xs:element ref="tns:script" />
+            <xs:element ref="tns:generate" />
+          </xs:choice>
+          <xs:element minOccurs="0" name="sequence">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:choice minOccurs="0" maxOccurs="unbounded">
+                  <xs:element ref="tns:expressionEvaluator" />
+                  <xs:element ref="tns:path" />
+                  <xs:element ref="tns:value" />
+                  <xs:element ref="tns:asIs" />
+                  <xs:element ref="tns:script" />
+                  <xs:element ref="tns:generate" />
+                </xs:choice>
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="StringFilterType">
+        <xs:sequence />
+      </xs:complexType>
+      <xs:complexType name="ExpressionVariableDefinitionType">
+        <xs:sequence>
+          <xs:element name="name" type="xs:QName" />
+          <xs:element minOccurs="0" name="description" type="xs:string" />
+          <xs:any namespace="##other" processContents="skip" />
+          <xs:element minOccurs="0" name="objectRef" type="tns:ObjectReferenceType" />
+          <xs:element minOccurs="0" name="value" nillable="true" type="xs:anyType" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ProvisioningScriptArgumentType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:ExpressionType">
+            <xs:sequence>
+              <xs:element name="name" type="xs:string" />
+            </xs:sequence>
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="MappingTargetDeclarationType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="description" type="xs:string" />
+          <xs:any namespace="##other" processContents="skip" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ValueFilterType">
+        <xs:sequence>
+          <xs:any minOccurs="0" maxOccurs="unbounded" namespace="##other" processContents="lax" />
+        </xs:sequence>
+        <xs:attribute name="type" type="xs:anyURI" />
+      </xs:complexType>
+      <xs:complexType name="ResourceObjectTypeDependencyType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:ShadowDiscriminatorType">
+            <xs:sequence>
+              <xs:element minOccurs="0" name="strictness" type="tns:ResourceObjectTypeDependencyStrictnessType" />
+              <xs:element minOccurs="0" default="0" name="order" type="xs:int" />
+            </xs:sequence>
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="ShadowDiscriminatorType">
+        <xs:sequence>
+          <xs:element name="resourceRef" type="tns:ObjectReferenceType" />
+          <xs:element minOccurs="0" default="account" name="kind" type="tns:ShadowKindType" />
+          <xs:element minOccurs="0" default="default" name="intent" type="xs:string" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ResourceObjectAssociationType">
+        <xs:sequence>
+          <xs:element name="name" type="xs:QName" />
+          <xs:element minOccurs="0" name="displayName" type="xs:string" />
+          <xs:element name="kind" type="tns:ShadowKindType" />
+          <xs:element minOccurs="0" name="intent" type="xs:string" />
+          <xs:element name="direction" type="tns:ResourceObjectAssociationDirectionType" />
+          <xs:element name="associationAttribute" type="xs:QName" />
+          <xs:element name="valueAttribute" type="xs:QName" />
+          <xs:element minOccurs="0" name="fetchStrategy" type="tns:AttributeFetchStrategyType" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="IterationSpecificationType">
+        <xs:sequence>
+          <xs:element name="maxIterations" type="xs:int" />
+          <xs:element minOccurs="0" name="tokenExpression" type="tns:ExpressionType" />
+          <xs:element minOccurs="0" name="preIterationCondition" type="tns:ExpressionType" />
+          <xs:element minOccurs="0" name="postIterationCondition" type="tns:ExpressionType" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ResourceObjectPatternType">
+        <xs:sequence>
+          <xs:any minOccurs="0" maxOccurs="unbounded" namespace="##other" processContents="lax" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ResourceActivationDefinitionType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="existence" type="tns:ResourceBidirectionalMappingType" />
+          <xs:element minOccurs="0" name="administrativeStatus" type="tns:ResourceBidirectionalMappingType" />
+          <xs:element minOccurs="0" name="validFrom" type="tns:ResourceBidirectionalMappingType" />
+          <xs:element minOccurs="0" name="validTo" type="tns:ResourceBidirectionalMappingType" />
+          <xs:element minOccurs="0" name="enabled" type="tns:ResourceBidirectionalMappingType" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ResourceBidirectionalMappingType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="fetchStrategy" type="tns:AttributeFetchStrategyType" />
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="outbound" nillable="true" type="tns:MappingType" />
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="inbound" nillable="true" type="tns:MappingType" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ResourceCredentialsDefinitionType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="password" type="tns:ResourcePasswordDefinitionType" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ResourcePasswordDefinitionType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="fetchStrategy" type="tns:AttributeFetchStrategyType" />
+          <xs:element minOccurs="0" name="outbound" type="tns:MappingType" />
+          <xs:element minOccurs="0" name="inbound" type="tns:MappingType" />
+          <xs:element minOccurs="0" name="passwordPolicyRef" type="tns:ObjectReferenceType" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="CapabilitiesType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="cachingMetadata" type="tns:CachingMetadataType" />
+          <xs:element minOccurs="0" name="native" type="tns:CapabilityCollectionType" />
+          <xs:element minOccurs="0" name="configured" type="tns:CapabilityCollectionType" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="CapabilityCollectionType">
+        <xs:sequence>
+          <xs:any minOccurs="0" maxOccurs="unbounded" namespace="##other" processContents="lax" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="OperationProvisioningScriptsType">
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="script" nillable="true" type="tns:OperationProvisioningScriptType" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="OperationProvisioningScriptType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:ProvisioningScriptType">
+            <xs:sequence>
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="operation" nillable="true" type="tns:ProvisioningOperationTypeType" />
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="kind" nillable="true" type="tns:ShadowKindType" />
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="intent" nillable="true" type="xs:string" />
+              <xs:element name="order" type="tns:ProvisioningScriptOrderType" />
+            </xs:sequence>
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="ProvisioningScriptType">
+        <xs:sequence>
+          <xs:element minOccurs="0" default="resource" name="host" type="tns:ProvisioningScriptHostType" />
+          <xs:element name="language" type="xs:anyURI" />
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="argument" nillable="true" type="tns:ProvisioningScriptArgumentType" />
+          <xs:element name="code" type="xs:string" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ProjectionPolicyType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="assignmentPolicyEnforcement" type="tns:AssignmentPolicyEnforcementType" />
+          <xs:element minOccurs="0" default="false" name="legalize" type="xs:boolean" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ResourceConsistencyType">
+        <xs:sequence>
+          <xs:element minOccurs="0" default="false" name="avoidDuplicateValues" type="xs:boolean" />
+          <xs:element minOccurs="0" default="true" name="postpone" type="xs:boolean" />
+          <xs:element minOccurs="0" default="true" name="discovery" type="xs:boolean" />
+        </xs:sequence>
+        <xs:attribute name="id" type="xs:long" />
+      </xs:complexType>
+      <xs:complexType name="SynchronizationType">
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="objectSynchronization" nillable="true" type="tns:ObjectSynchronizationType" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ObjectSynchronizationType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="type" type="xs:QName" />
+          <xs:element minOccurs="0" default="true" name="enabled" type="xs:boolean" />
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="correlation" nillable="true" type="ns3:QueryType" />
+          <xs:element minOccurs="0" name="confirmation" type="tns:ExpressionType" />
+          <xs:element minOccurs="0" name="objectTemplateRef" type="tns:ObjectReferenceType" />
+          <xs:element minOccurs="0" name="reconcileAttributes" type="xs:boolean" />
+          <xs:element minOccurs="0" default="true" name="opportunistic" type="xs:boolean" />
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="reaction" nillable="true">
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element minOccurs="0" name="description" type="xs:string" />
+                <xs:element name="situation" type="tns:SynchronizationSituationType" />
+                <xs:element minOccurs="0" maxOccurs="unbounded" name="channel" nillable="true" type="xs:anyURI" />
+                <xs:element minOccurs="0" maxOccurs="unbounded" name="action" nillable="true">
+                  <xs:complexType>
+                    <xs:sequence>
+                      <xs:any minOccurs="0" maxOccurs="unbounded" namespace="##other" processContents="lax" />
+                    </xs:sequence>
+                    <xs:attribute name="ref" type="xs:anyURI" />
+                  </xs:complexType>
+                </xs:element>
+              </xs:sequence>
+            </xs:complexType>
+          </xs:element>
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ResourceBusinessConfigurationType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="administrativeState" type="tns:ResourceAdministrativeStateType" />
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="approverRef" type="tns:ObjectReferenceType" />
+        </xs:sequence>
+        <xs:attribute name="id" type="xs:long" />
+      </xs:complexType>
+      <xs:complexType name="ActivationType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="enabled" type="xs:boolean" />
+          <xs:element minOccurs="0" name="administrativeStatus" type="tns:ActivationStatusType" />
+          <xs:element minOccurs="0" name="effectiveStatus" type="tns:ActivationStatusType" />
+          <xs:element minOccurs="0" name="validFrom" type="xs:dateTime" />
+          <xs:element minOccurs="0" name="validTo" type="xs:dateTime" />
+          <xs:element minOccurs="0" name="validityStatus" type="tns:TimeIntervalStatusType" />
+          <xs:element minOccurs="0" name="disableTimestamp" type="xs:dateTime" />
+          <xs:element minOccurs="0" name="enableTimestamp" type="xs:dateTime" />
+          <xs:element minOccurs="0" name="archiveTimestamp" type="xs:dateTime" />
+          <xs:element minOccurs="0" name="validityChangeTimestamp" type="xs:dateTime" />
+        </xs:sequence>
+        <xs:attribute name="id" type="xs:long" />
+      </xs:complexType>
+      <xs:complexType name="AuthorizationType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="description" type="xs:string" />
+          <xs:element minOccurs="0" default="allow" name="decision" type="tns:AuthorizationDecisionType" />
+          <xs:element maxOccurs="unbounded" name="action" type="xs:anyURI" />
+        </xs:sequence>
+        <xs:attribute name="id" type="xs:long" />
+      </xs:complexType>
+      <xs:complexType name="ExclusionType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="description" type="xs:string" />
+          <xs:element name="targetRef" type="tns:ObjectReferenceType" />
+          <xs:element minOccurs="0" name="policy" type="tns:ExclusionPolicyType" />
+        </xs:sequence>
+        <xs:attribute name="id" type="xs:long" />
+      </xs:complexType>
+      <xs:complexType name="ApprovalSchemaType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="name" type="xs:string" />
+          <xs:element minOccurs="0" name="description" type="xs:string" />
+          <xs:element maxOccurs="unbounded" name="level" type="tns:ApprovalLevelType" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ApprovalLevelType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="name" type="xs:string" />
+          <xs:element minOccurs="0" name="description" type="xs:string" />
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="approverRef" type="tns:ObjectReferenceType" />
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="approverExpression" type="tns:ExpressionType" />
+          <xs:element minOccurs="0" name="evaluationStrategy" type="tns:LevelEvaluationStrategyType" />
+          <xs:element minOccurs="0" name="automaticallyApproved" type="tns:ExpressionType" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ShadowType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:ObjectType">
+            <xs:sequence>
+              <xs:element minOccurs="0" name="resourceRef" type="tns:ObjectReferenceType" />
+              <xs:element minOccurs="0" name="resource" type="tns:ResourceType" />
+              <xs:element minOccurs="0" name="result" type="tns:OperationResultType" />
+              <xs:element minOccurs="0" name="objectChange" type="ns1:ObjectDeltaType" />
+              <xs:element minOccurs="0" name="attemptNumber" type="xs:int" />
+              <xs:element minOccurs="0" name="failedOperationType" type="tns:FailedOperationTypeType" />
+              <xs:element minOccurs="0" name="dead" type="xs:boolean" />
+              <xs:element minOccurs="0" name="synchronizationSituation" type="tns:SynchronizationSituationType" />
+              <xs:element minOccurs="0" name="synchronizationTimestamp" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="fullSynchronizationTimestamp" type="xs:dateTime" />
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="synchronizationSituationDescription" type="tns:SynchronizationSituationDescriptionType" />
+              <xs:element name="objectClass" type="xs:QName" />
+              <xs:element minOccurs="0" name="kind" type="tns:ShadowKindType" />
+              <xs:element minOccurs="0" name="intent" type="xs:string" />
+              <xs:element minOccurs="0" default="false" name="protectedObject" type="xs:boolean" />
+              <xs:element minOccurs="0" default="false" name="ignored" type="xs:boolean" />
+              <xs:element minOccurs="0" default="false" name="assigned" type="xs:boolean" />
+              <xs:element minOccurs="0" default="false" name="exists" type="xs:boolean" />
+              <xs:element minOccurs="0" name="iteration" type="xs:int" />
+              <xs:element minOccurs="0" name="iterationToken" type="xs:string" />
+              <xs:element minOccurs="0" name="attributes" type="tns:ShadowAttributesType" />
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="association" type="tns:ShadowAssociationType" />
+              <xs:element minOccurs="0" name="activation" type="tns:ActivationType" />
+              <xs:element minOccurs="0" name="credentials" type="tns:CredentialsType" />
+            </xs:sequence>
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="SynchronizationSituationDescriptionType">
+        <xs:sequence>
+          <xs:element name="situation" type="tns:SynchronizationSituationType" />
+          <xs:element name="timestamp" type="xs:dateTime" />
+          <xs:element minOccurs="0" name="channel" type="xs:anyURI" />
+          <xs:element minOccurs="0" name="full" type="xs:boolean" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ShadowAttributesType">
+        <xs:sequence>
+          <xs:any minOccurs="0" maxOccurs="unbounded" namespace="##other" processContents="lax" />
+        </xs:sequence>
+        <xs:attribute name="id" type="xs:long" />
+      </xs:complexType>
+      <xs:complexType name="ShadowAssociationType">
+        <xs:sequence>
+          <xs:element name="name" type="xs:QName" />
+          <xs:element minOccurs="0" name="shadowRef" type="tns:ObjectReferenceType" />
+          <xs:element minOccurs="0" name="identifiers" type="tns:ShadowIdentifiersType" />
+        </xs:sequence>
+        <xs:attribute name="id" type="xs:long" />
+      </xs:complexType>
+      <xs:complexType name="ShadowIdentifiersType">
+        <xs:sequence>
+          <xs:any minOccurs="0" maxOccurs="unbounded" namespace="##other" processContents="lax" />
+        </xs:sequence>
+        <xs:attribute name="id" type="xs:long" />
+      </xs:complexType>
+      <xs:complexType name="CredentialsType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="password" type="tns:PasswordType" />
+          <xs:element minOccurs="0" default="false" name="allowedIdmAdminGuiAccess" type="xs:boolean" />
+        </xs:sequence>
+        <xs:attribute name="id" type="xs:long" />
+      </xs:complexType>
+      <xs:complexType name="PasswordType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="value" type="tns:ProtectedStringType" />
+          <xs:element minOccurs="0" name="failedLogins" type="xs:int" />
+          <xs:element minOccurs="0" name="lastSuccessfulLogin" type="tns:LoginEventType" />
+          <xs:element minOccurs="0" name="previousSuccessfulLogin" type="tns:LoginEventType" />
+          <xs:element minOccurs="0" name="lastFailedLogin" type="tns:LoginEventType" />
+        </xs:sequence>
+        <xs:attribute name="id" type="xs:long" />
+      </xs:complexType>
+      <xs:complexType name="LoginEventType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="timestamp" type="xs:dateTime" />
+          <xs:element minOccurs="0" name="from" type="xs:string" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="AccountShadowType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:ShadowType">
+            <xs:sequence>
+              <xs:element minOccurs="0" name="accountType" type="xs:string" />
+            </xs:sequence>
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="UserType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:FocusType">
+            <xs:sequence>
+              <xs:element minOccurs="0" name="fullName" type="ns1:PolyStringType" />
+              <xs:element minOccurs="0" name="givenName" type="ns1:PolyStringType" />
+              <xs:element minOccurs="0" name="familyName" type="ns1:PolyStringType" />
+              <xs:element minOccurs="0" name="additionalName" type="ns1:PolyStringType" />
+              <xs:element minOccurs="0" name="nickName" type="ns1:PolyStringType" />
+              <xs:element minOccurs="0" name="honorificPrefix" type="ns1:PolyStringType" />
+              <xs:element minOccurs="0" name="honorificSuffix" type="ns1:PolyStringType" />
+              <xs:element minOccurs="0" name="title" type="ns1:PolyStringType" />
+              <xs:element minOccurs="0" name="preferredLanguage" type="xs:string" />
+              <xs:element minOccurs="0" name="locale" type="xs:string" />
+              <xs:element minOccurs="0" name="timezone" type="xs:string" />
+              <xs:element minOccurs="0" name="emailAddress" type="xs:string" />
+              <xs:element minOccurs="0" name="telephoneNumber" type="xs:string" />
+              <xs:element minOccurs="0" name="employeeNumber" type="xs:string" />
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="employeeType" type="xs:string" />
+              <xs:element minOccurs="0" name="costCenter" type="xs:string" />
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="organization" type="ns1:PolyStringType" />
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="organizationalUnit" type="ns1:PolyStringType" />
+              <xs:element minOccurs="0" name="locality" type="ns1:PolyStringType" />
+              <xs:element minOccurs="0" name="credentials" type="tns:CredentialsType" />
+              <xs:element minOccurs="0" name="result" type="tns:OperationResultType" />
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="account" type="tns:ShadowType" />
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="accountRef" type="tns:ObjectReferenceType" />
+            </xs:sequence>
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="RoleType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:AbstractRoleType">
+            <xs:sequence>
+              <xs:element minOccurs="0" name="roleType" type="xs:string" />
+            </xs:sequence>
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="TriggerType">
+        <xs:sequence>
+          <xs:element name="timestamp" type="xs:dateTime" />
+          <xs:element name="handlerUri" type="xs:anyURI" />
+        </xs:sequence>
+        <xs:attribute name="id" type="xs:long" />
+      </xs:complexType>
+      <xs:complexType name="GenericObjectType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:ObjectType">
+            <xs:sequence>
+              <xs:element name="objectType" type="xs:anyURI" />
+            </xs:sequence>
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="ValuePolicyType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:ObjectType">
+            <xs:sequence>
+              <xs:element name="lifetime" type="tns:PasswordLifeTimeType" />
+              <xs:element name="stringPolicy" type="tns:StringPolicyType" />
+            </xs:sequence>
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="PasswordLifeTimeType">
+        <xs:sequence>
+          <xs:element minOccurs="0" default="-1" name="expiration" type="xs:int" />
+          <xs:element minOccurs="0" default="0" name="warnBeforeExpiration" type="xs:int" />
+          <xs:element minOccurs="0" default="0" name="lockAfterExpiration" type="xs:int" />
+          <xs:element minOccurs="0" default="0" name="minPasswordAge" type="xs:int" />
+          <xs:element minOccurs="0" default="0" name="passwordHistoryLength" type="xs:int" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="StringPolicyType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="description" type="xs:string" />
+          <xs:element minOccurs="0" name="limitations" type="tns:LimitationsType" />
+          <xs:element minOccurs="0" name="characterClass" type="tns:CharacterClassType" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="LimitationsType">
+        <xs:sequence>
+          <xs:element minOccurs="0" default="0" name="minLength" type="xs:int" />
+          <xs:element minOccurs="0" default="-1" name="maxLength" type="xs:int" />
+          <xs:element minOccurs="0" default="0" name="minUniqueChars" type="xs:int" />
+          <xs:element minOccurs="0" default="false" name="checkAgainstDictionary" type="xs:boolean" />
+          <xs:element minOccurs="0" name="checkPattern" type="xs:string" />
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="limit" nillable="true" type="tns:StringLimitType" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="StringLimitType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="description" type="xs:string" />
+          <xs:element minOccurs="0" default="0" name="minOccurs" type="xs:int" />
+          <xs:element minOccurs="0" default="-1" name="maxOccurs" type="xs:int" />
+          <xs:element minOccurs="0" default="false" name="mustBeFirst" type="xs:boolean" />
+          <xs:element minOccurs="0" name="characterClass" type="tns:CharacterClassType" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="CharacterClassType">
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="characterClass" nillable="true" type="tns:CharacterClassType" />
+          <xs:element minOccurs="0" name="value" type="xs:string" />
+        </xs:sequence>
+        <xs:attribute name="ref" type="xs:QName" />
+        <xs:attribute name="name" type="xs:QName" />
+      </xs:complexType>
+      <xs:complexType name="NodeType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:ObjectType">
+            <xs:sequence>
+              <xs:element name="nodeIdentifier" type="xs:string" />
+              <xs:element minOccurs="0" name="hostname" type="xs:string" />
+              <xs:element minOccurs="0" name="jmxPort" type="xs:int" />
+              <xs:element minOccurs="0" name="lastCheckInTime" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="running" type="xs:boolean" />
+              <xs:element minOccurs="0" name="clustered" type="xs:boolean" />
+              <xs:element name="internalNodeIdentifier" type="xs:string" />
+              <xs:element name="executionStatus" type="tns:NodeExecutionStatusType" />
+              <xs:element name="errorStatus" type="tns:NodeErrorStatusType" />
+              <xs:element minOccurs="0" name="connectionResult" type="tns:OperationResultType" />
+            </xs:sequence>
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="SystemConfigurationType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:ObjectType">
+            <xs:sequence>
+              <xs:element minOccurs="0" name="globalAccountSynchronizationSettings" type="tns:ProjectionPolicyType" />
+              <xs:element minOccurs="0" name="globalPasswordPolicy" type="tns:ValuePolicyType" />
+              <xs:element minOccurs="0" name="globalPasswordPolicyRef" type="tns:ObjectReferenceType" />
+              <xs:element minOccurs="0" name="modelHooks" type="tns:ModelHooksType" />
+              <xs:element minOccurs="0" name="logging" type="tns:LoggingConfigurationType" />
+              <xs:element minOccurs="0" name="defaultUserTemplate" type="tns:ObjectTemplateType" />
+              <xs:element minOccurs="0" name="defaultUserTemplateRef" type="tns:ObjectReferenceType" />
+              <xs:element minOccurs="0" name="connectorFramework" type="tns:ConnectorFrameworkType" />
+              <xs:element minOccurs="0" name="notificationConfiguration" type="tns:NotificationConfigurationType" />
+              <xs:element minOccurs="0" name="profilingConfiguration" type="tns:ProfilingConfigurationType" />
+              <xs:element minOccurs="0" name="cleanupPolicy" type="tns:CleanupPoliciesType" />
+            </xs:sequence>
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="ModelHooksType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="change" type="tns:HookListType" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="HookListType">
+        <xs:sequence>
+          <xs:element name="hook" type="tns:HookType" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="HookType">
+        <xs:sequence>
+          <xs:element name="ref" type="xs:anyURI" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="LoggingConfigurationType">
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="subSystemLogger" nillable="true" type="tns:SubSystemLoggerConfigurationType" />
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="classLogger" nillable="true" type="tns:ClassLoggerConfigurationType" />
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="appender" nillable="true" type="tns:AppenderConfigurationType" />
+          <xs:element name="rootLoggerAppender" type="xs:string" />
+          <xs:element name="rootLoggerLevel" type="tns:LoggingLevelType" />
+          <xs:element minOccurs="0" name="auditing" type="tns:AuditingConfigurationType" />
+          <xs:element minOccurs="0" name="advanced" type="tns:AdvancedLoggingConfigurationType" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="SubSystemLoggerConfigurationType">
+        <xs:sequence>
+          <xs:element name="level" type="tns:LoggingLevelType" />
+          <xs:element name="component" type="tns:LoggingComponentType" />
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="appender" nillable="true" type="xs:string" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ClassLoggerConfigurationType">
+        <xs:sequence>
+          <xs:element name="level" type="tns:LoggingLevelType" />
+          <xs:element name="package" type="xs:string" />
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="appender" nillable="true" type="xs:string" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="AppenderConfigurationType">
+        <xs:sequence>
+          <xs:element name="pattern" type="xs:string" />
+        </xs:sequence>
+        <xs:attribute name="name" type="xs:string" />
+      </xs:complexType>
+      <xs:complexType name="FileAppenderConfigurationType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:AppenderConfigurationType">
+            <xs:sequence>
+              <xs:element name="fileName" type="xs:string" />
+              <xs:element name="filePattern" type="xs:string" />
+              <xs:element name="maxHistory" type="xs:int" />
+              <xs:element name="maxFileSize" type="xs:string" />
+              <xs:element name="append" type="xs:boolean" />
+            </xs:sequence>
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="AuditingConfigurationType">
+        <xs:sequence>
+          <xs:element minOccurs="0" default="true" name="enabled" type="xs:boolean" />
+          <xs:element minOccurs="0" default="false" name="details" type="xs:boolean" />
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="appender" nillable="true" type="xs:string" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="AdvancedLoggingConfigurationType" mixed="true">
+        <xs:sequence>
+          <xs:any minOccurs="0" maxOccurs="unbounded" namespace="##other" processContents="lax" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ObjectTemplateType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:ObjectType">
+            <xs:sequence>
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="includeRef" type="tns:ObjectReferenceType" />
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="mapping" type="tns:MappingType" />
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="accountConstruction" type="tns:ConstructionType" />
+            </xs:sequence>
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="ConnectorFrameworkType">
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="configuration" type="tns:ConnectorFrameworkConfigurationType" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ConnectorFrameworkConfigurationType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="extension" type="tns:ExtensionType" />
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="connectorPath" type="xs:string" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="NotificationConfigurationType">
+        <xs:sequence>
+          <xs:choice minOccurs="0" maxOccurs="unbounded">
+            <xs:element ref="tns:handler" />
+            <xs:element ref="tns:fork" />
+            <xs:element ref="tns:simpleAccountNotifier" />
+            <xs:element ref="tns:simpleWorkflowNotifier" />
+            <xs:element ref="tns:dummyNotifier" />
+            <xs:element ref="tns:statusFilter" />
+            <xs:element ref="tns:operationFilter" />
+            <xs:element ref="tns:expressionFilter" />
+            <xs:element ref="tns:userPasswordNotifier" />
+            <xs:element ref="tns:categoryFilter" />
+            <xs:element ref="tns:handlerChain" />
+            <xs:element ref="tns:simpleUserNotifier" />
+            <xs:element ref="tns:accountPasswordNotifier" />
+          </xs:choice>
+          <xs:element minOccurs="0" name="mail" type="tns:MailConfigurationType" />
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="sms" nillable="true" type="tns:SmsConfigurationType" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="MailConfigurationType">
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="server" nillable="true" type="tns:MailServerConfigurationType" />
+          <xs:element minOccurs="0" name="defaultFrom" type="xs:string" />
+          <xs:element minOccurs="0" name="debug" type="xs:boolean" />
+          <xs:element minOccurs="0" name="redirectToFile" type="xs:string" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="MailServerConfigurationType">
+        <xs:sequence>
+          <xs:element name="host" type="xs:string" />
+          <xs:element minOccurs="0" name="port" type="xs:int" />
+          <xs:element minOccurs="0" name="username" type="xs:string" />
+          <xs:element minOccurs="0" name="password" type="xs:string" />
+          <xs:element minOccurs="0" name="transportSecurity" type="tns:MailTransportSecurityType" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="SmsConfigurationType">
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="gateway" nillable="true" type="tns:SmsGatewayConfigurationType" />
+          <xs:element minOccurs="0" name="defaultFrom" type="xs:string" />
+          <xs:element minOccurs="0" name="redirectToFile" type="xs:string" />
+        </xs:sequence>
+        <xs:attribute name="name" type="xs:string" />
+      </xs:complexType>
+      <xs:complexType name="SmsGatewayConfigurationType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="url" type="tns:ExpressionType" />
+          <xs:element minOccurs="0" name="username" type="xs:string" />
+          <xs:element minOccurs="0" name="password" type="xs:string" />
+          <xs:element minOccurs="0" name="redirectToFile" type="xs:string" />
+        </xs:sequence>
+        <xs:attribute name="name" type="xs:string" />
+      </xs:complexType>
+      <xs:complexType name="ProfilingConfigurationType">
+        <xs:sequence>
+          <xs:element name="enabled" type="xs:boolean" />
+          <xs:element minOccurs="0" name="requestFilter" type="xs:boolean" />
+          <xs:element minOccurs="0" name="performanceStatistics" type="xs:boolean" />
+          <xs:element minOccurs="0" name="dumpInterval" type="xs:int" />
+          <xs:element minOccurs="0" default="false" name="model" type="xs:boolean" />
+          <xs:element minOccurs="0" default="false" name="repository" type="xs:boolean" />
+          <xs:element minOccurs="0" default="false" name="provisioning" type="xs:boolean" />
+          <xs:element minOccurs="0" default="false" name="ucf" type="xs:boolean" />
+          <xs:element minOccurs="0" default="false" name="resourceObjectChangeListener" type="xs:boolean" />
+          <xs:element minOccurs="0" default="false" name="taskManager" type="xs:boolean" />
+          <xs:element minOccurs="0" default="false" name="workflow" type="xs:boolean" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="CleanupPoliciesType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="auditRecords" type="tns:CleanupPolicyType" />
+          <xs:element minOccurs="0" name="closedTasks" type="tns:CleanupPolicyType" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="CleanupPolicyType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="maxAge" type="xs:duration" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="TaskType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:ObjectType">
+            <xs:sequence>
+              <xs:element minOccurs="0" name="taskIdentifier" type="xs:string" />
+              <xs:element name="ownerRef" type="tns:ObjectReferenceType" />
+              <xs:element minOccurs="0" name="channel" type="xs:anyURI" />
+              <xs:element minOccurs="0" name="parent" type="xs:string" />
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="subtask" type="tns:TaskType" />
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="subtaskRef" type="tns:ObjectReferenceType" />
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="dependent" type="xs:string" />
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="dependentTask" type="tns:TaskType" />
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="dependentTaskRef" type="tns:ObjectReferenceType" />
+              <xs:element name="executionStatus" type="tns:TaskExecutionStatusType" />
+              <xs:element minOccurs="0" name="waitingReason" type="tns:TaskWaitingReasonType" />
+              <xs:element minOccurs="0" name="node" type="xs:string" />
+              <xs:element minOccurs="0" name="nodeAsObserved" type="xs:string" />
+              <xs:element minOccurs="0" name="category" type="xs:string" />
+              <xs:element minOccurs="0" name="handlerUri" type="xs:anyURI" />
+              <xs:element minOccurs="0" name="otherHandlersUriStack" type="tns:UriStack" />
+              <xs:element minOccurs="0" name="result" type="tns:OperationResultType" />
+              <xs:element minOccurs="0" name="resultStatus" type="tns:OperationResultStatusType" />
+              <xs:element minOccurs="0" name="objectRef" type="tns:ObjectReferenceType" />
+              <xs:element minOccurs="0" name="lastRunStartTimestamp" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="lastRunFinishTimestamp" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="completionTimestamp" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="nextRunStartTimestamp" type="xs:dateTime" />
+              <xs:element minOccurs="0" name="progress" type="xs:long" />
+              <xs:element name="recurrence" type="tns:TaskRecurrenceType" />
+              <xs:element minOccurs="0" name="binding" type="tns:TaskBindingType" />
+              <xs:element minOccurs="0" name="canRunOnNode" type="xs:string" />
+              <xs:element minOccurs="0" name="schedule" type="tns:ScheduleType" />
+              <xs:element minOccurs="0" name="threadStopAction" type="tns:ThreadStopActionType" />
+            </xs:sequence>
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="UriStack">
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="uriStackEntry" nillable="true" type="tns:UriStackEntry" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="UriStackEntry">
+        <xs:sequence>
+          <xs:element name="handlerUri" type="xs:anyURI" />
+          <xs:element minOccurs="0" name="schedule" type="tns:ScheduleType" />
+          <xs:element minOccurs="0" name="binding" type="tns:TaskBindingType" />
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="extensionDelta" nillable="true" type="ns1:ItemDeltaType" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ScheduleType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="earliestStartTime" type="xs:dateTime" />
+          <xs:element minOccurs="0" name="latestStartTime" type="xs:dateTime" />
+          <xs:element minOccurs="0" name="latestFinishTime" type="xs:dateTime" />
+          <xs:element minOccurs="0" name="interval" type="xs:int" />
+          <xs:element minOccurs="0" name="cronLikePattern" type="xs:string" />
+          <xs:element minOccurs="0" name="misfireAction" type="tns:MisfireActionType" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="EventHandlerForkType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:EventHandlerType">
+            <xs:sequence>
+              <xs:choice minOccurs="0" maxOccurs="unbounded">
+                <xs:element ref="tns:handler" />
+                <xs:element ref="tns:fork" />
+                <xs:element ref="tns:simpleAccountNotifier" />
+                <xs:element ref="tns:simpleWorkflowNotifier" />
+                <xs:element ref="tns:dummyNotifier" />
+                <xs:element ref="tns:statusFilter" />
+                <xs:element ref="tns:operationFilter" />
+                <xs:element ref="tns:expressionFilter" />
+                <xs:element ref="tns:userPasswordNotifier" />
+                <xs:element ref="tns:categoryFilter" />
+                <xs:element ref="tns:handlerChain" />
+                <xs:element ref="tns:simpleUserNotifier" />
+                <xs:element ref="tns:accountPasswordNotifier" />
+              </xs:choice>
+            </xs:sequence>
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="EventHandlerType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="description" type="xs:string" />
+        </xs:sequence>
+        <xs:attribute name="name" type="xs:string" />
+      </xs:complexType>
+      <xs:complexType name="EventHandlerChainType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:EventHandlerType">
+            <xs:sequence>
+              <xs:choice minOccurs="0" maxOccurs="unbounded">
+                <xs:element ref="tns:handler" />
+                <xs:element ref="tns:fork" />
+                <xs:element ref="tns:simpleAccountNotifier" />
+                <xs:element ref="tns:simpleWorkflowNotifier" />
+                <xs:element ref="tns:dummyNotifier" />
+                <xs:element ref="tns:statusFilter" />
+                <xs:element ref="tns:operationFilter" />
+                <xs:element ref="tns:expressionFilter" />
+                <xs:element ref="tns:userPasswordNotifier" />
+                <xs:element ref="tns:categoryFilter" />
+                <xs:element ref="tns:handlerChain" />
+                <xs:element ref="tns:simpleUserNotifier" />
+                <xs:element ref="tns:accountPasswordNotifier" />
+              </xs:choice>
+            </xs:sequence>
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="EventCategoryFilterType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:EventHandlerType">
+            <xs:sequence>
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="category" nillable="true" type="tns:EventCategoryType" />
+            </xs:sequence>
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="EventExpressionFilterType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:EventHandlerType">
+            <xs:sequence>
+              <xs:element name="expression" type="tns:ExpressionType" />
+            </xs:sequence>
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="EventStatusFilterType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:EventHandlerType">
+            <xs:sequence>
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="status" nillable="true" type="tns:EventStatusType" />
+            </xs:sequence>
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="EventOperationFilterType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:EventHandlerType">
+            <xs:sequence>
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="operation" nillable="true" type="tns:EventOperationType" />
+            </xs:sequence>
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="GeneralNotifierType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:EventHandlerType">
+            <xs:sequence>
+              <xs:choice minOccurs="0" maxOccurs="unbounded">
+                <xs:element ref="tns:handler" />
+                <xs:element ref="tns:fork" />
+                <xs:element ref="tns:simpleAccountNotifier" />
+                <xs:element ref="tns:simpleWorkflowNotifier" />
+                <xs:element ref="tns:dummyNotifier" />
+                <xs:element ref="tns:statusFilter" />
+                <xs:element ref="tns:operationFilter" />
+                <xs:element ref="tns:expressionFilter" />
+                <xs:element ref="tns:userPasswordNotifier" />
+                <xs:element ref="tns:categoryFilter" />
+                <xs:element ref="tns:handlerChain" />
+                <xs:element ref="tns:simpleUserNotifier" />
+                <xs:element ref="tns:accountPasswordNotifier" />
+              </xs:choice>
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="recipientExpression" nillable="true" type="tns:ExpressionType" />
+              <xs:element minOccurs="0" name="subjectExpression" type="tns:ExpressionType" />
+              <xs:element minOccurs="0" name="subjectPrefix" type="xs:string" />
+              <xs:element minOccurs="0" name="bodyExpression" type="tns:ExpressionType" />
+              <xs:element minOccurs="0" name="watchAuxiliaryAttributes" type="xs:boolean" />
+              <xs:element minOccurs="0" name="showModifiedValues" type="xs:boolean" />
+              <xs:element minOccurs="0" name="showTechnicalInformation" type="xs:boolean" />
+              <xs:element minOccurs="0" maxOccurs="unbounded" name="transport" nillable="true" type="xs:string" />
+            </xs:sequence>
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="SimpleUserNotifierType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:GeneralNotifierType">
+            <xs:sequence />
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="SimpleWorkflowNotifierType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:GeneralNotifierType">
+            <xs:sequence />
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="SimpleAccountNotifierType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:GeneralNotifierType">
+            <xs:sequence>
+              <xs:element minOccurs="0" name="watchSynchronizationAttributes" type="xs:boolean" />
+            </xs:sequence>
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="UserPasswordNotifierType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:GeneralNotifierType">
+            <xs:sequence />
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="AccountPasswordNotifierType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:GeneralNotifierType">
+            <xs:sequence />
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="DummyNotifierType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="tns:GeneralNotifierType">
+            <xs:sequence />
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="GeneralChangeProcessorConfigurationType">
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="scenario" nillable="true" type="tns:GeneralChangeProcessorScenarioType" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="GeneralChangeProcessorScenarioType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="name" type="xs:string" />
+          <xs:element minOccurs="0" name="activationCondition" type="tns:ExpressionType" />
+          <xs:element name="processName" type="xs:string" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="AsIsExpressionEvaluatorType">
+        <xs:sequence />
+      </xs:complexType>
+      <xs:complexType name="ScriptExpressionEvaluatorType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="description" type="xs:string" />
+          <xs:element minOccurs="0" default="http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy" name="language" type="xs:anyURI" />
+          <xs:element minOccurs="0" name="returnType" type="tns:ScriptExpressionReturnTypeType" />
+          <xs:element minOccurs="0" name="relativityMode" type="tns:ScriptExpressionRelativityModeType" />
+          <xs:element minOccurs="0" default="true" name="includeNullInputs" type="xs:boolean" />
+          <xs:element minOccurs="0" default="false" name="allowEmptyValues" type="xs:boolean" />
+          <xs:any namespace="##other" processContents="skip" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="GenerateExpressionEvaluatorType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="valuePolicyRef" type="tns:ObjectReferenceType" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ObjectDeltaOperationType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="objectDelta" type="ns1:ObjectDeltaType" />
+          <xs:element minOccurs="0" name="executionResult" type="tns:OperationResultType" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:simpleType name="ScriptExpressionCodeType">
+        <xs:restriction base="xs:string" />
+      </xs:simpleType>
+      <xs:complexType name="UnknownJavaObjectType">
+        <xs:sequence>
+          <xs:element name="class" type="xs:string" />
+          <xs:element name="toString" type="xs:string" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ModelExecuteOptionsType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="force" type="xs:boolean" />
+          <xs:element minOccurs="0" name="raw" type="xs:boolean" />
+          <xs:element minOccurs="0" name="noCrypt" type="xs:boolean" />
+          <xs:element minOccurs="0" name="reconcile" type="xs:boolean" />
+          <xs:element minOccurs="0" name="executeImmediatelyAfterApproval" type="xs:boolean" />
+          <xs:element minOccurs="0" name="overwrite" type="xs:boolean" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="EmptyType">
+        <xs:sequence />
+      </xs:complexType>
+      <xs:complexType name="ProtectedByteArrayType">
+        <xs:sequence>
+          <xs:element minOccurs="0" ref="ns2:EncryptedData" />
+          <xs:element minOccurs="0" name="clearValue" type="xs:string" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="LocalizedMessageType">
+        <xs:sequence>
+          <xs:element name="key" type="xs:string" />
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="argument" nillable="true" type="xs:anySimpleType" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:simpleType name="OperationResultStatusType">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="success" />
+          <xs:enumeration value="warning" />
+          <xs:enumeration value="partial_error" />
+          <xs:enumeration value="fatal_error" />
+          <xs:enumeration value="handled_error" />
+          <xs:enumeration value="not_applicable" />
+          <xs:enumeration value="in_progress" />
+          <xs:enumeration value="unknown" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="AvailabilityStatusType">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="down" />
+          <xs:enumeration value="up" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="ShadowKindType">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="account" />
+          <xs:enumeration value="entitlement" />
+          <xs:enumeration value="generic" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="LayerType">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="schema" />
+          <xs:enumeration value="model" />
+          <xs:enumeration value="presentation" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="DepreactedAccessType">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="read" />
+          <xs:enumeration value="update" />
+          <xs:enumeration value="create" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="AttributeFetchStrategyType">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="implicit" />
+          <xs:enumeration value="explicit" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="MappingStrengthType">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="strong" />
+          <xs:enumeration value="normal" />
+          <xs:enumeration value="weak" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="ExpressionReturnMultiplicityType">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="single" />
+          <xs:enumeration value="multi" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="ResourceObjectTypeDependencyStrictnessType">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="strict" />
+          <xs:enumeration value="relaxed" />
+          <xs:enumeration value="lax" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="ResourceObjectAssociationDirectionType">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="objectToSubject" />
+          <xs:enumeration value="subjectToObject" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="AssignmentPolicyEnforcementType">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="none" />
+          <xs:enumeration value="positive" />
+          <xs:enumeration value="full" />
+          <xs:enumeration value="relative" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="ProvisioningOperationTypeType">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="get" />
+          <xs:enumeration value="add" />
+          <xs:enumeration value="modify" />
+          <xs:enumeration value="delete" />
+          <xs:enumeration value="reconcile" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="ProvisioningScriptOrderType">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="before" />
+          <xs:enumeration value="after" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="ProvisioningScriptHostType">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="connector" />
+          <xs:enumeration value="resource" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="SynchronizationSituationType">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="deleted" />
+          <xs:enumeration value="unmatched" />
+          <xs:enumeration value="disputed" />
+          <xs:enumeration value="linked" />
+          <xs:enumeration value="unlinked" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="ResourceAdministrativeStateType">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="enabled" />
+          <xs:enumeration value="disabled" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="ActivationStatusType">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="enabled" />
+          <xs:enumeration value="disabled" />
+          <xs:enumeration value="archived" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="TimeIntervalStatusType">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="before" />
+          <xs:enumeration value="in" />
+          <xs:enumeration value="after" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="AuthorizationDecisionType">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="allow" />
+          <xs:enumeration value="deny" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="ExclusionPolicyType">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="enforce" />
+          <xs:enumeration value="approve" />
+          <xs:enumeration value="report" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="LevelEvaluationStrategyType">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="allMustApprove" />
+          <xs:enumeration value="firstDecides" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="FailedOperationTypeType">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="delete" />
+          <xs:enumeration value="add" />
+          <xs:enumeration value="get" />
+          <xs:enumeration value="modify" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="NodeExecutionStatusType">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="running" />
+          <xs:enumeration value="paused" />
+          <xs:enumeration value="down" />
+          <xs:enumeration value="error" />
+          <xs:enumeration value="communicationError" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="NodeErrorStatusType">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="ok" />
+          <xs:enumeration value="duplicateNodeIdOrName" />
+          <xs:enumeration value="nonClusteredNodeWithOthers" />
+          <xs:enumeration value="localConfigurationError" />
+          <xs:enumeration value="localInitializationError" />
+          <xs:enumeration value="nodeRegistrationFailed" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="LoggingLevelType">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="ALL" />
+          <xs:enumeration value="OFF" />
+          <xs:enumeration value="ERROR" />
+          <xs:enumeration value="WARN" />
+          <xs:enumeration value="INFO" />
+          <xs:enumeration value="DEBUG" />
+          <xs:enumeration value="TRACE" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="LoggingComponentType">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="ALL" />
+          <xs:enumeration value="MODEL" />
+          <xs:enumeration value="PROVISIONING" />
+          <xs:enumeration value="REPOSITORY" />
+          <xs:enumeration value="WEB" />
+          <xs:enumeration value="TASKMANAGER" />
+          <xs:enumeration value="RESOURCEOBJECTCHANGELISTENER" />
+          <xs:enumeration value="WORKFLOWS" />
+          <xs:enumeration value="NOTIFICATIONS" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="MailTransportSecurityType">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="none" />
+          <xs:enumeration value="starttlsEnabled" />
+          <xs:enumeration value="starttlsRequired" />
+          <xs:enumeration value="ssl" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="TaskExecutionStatusType">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="runnable" />
+          <xs:enumeration value="waiting" />
+          <xs:enumeration value="suspended" />
+          <xs:enumeration value="closed" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="TaskWaitingReasonType">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="otherTasks" />
+          <xs:enumeration value="workflow" />
+          <xs:enumeration value="other" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="MisfireActionType">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="executeImmediately" />
+          <xs:enumeration value="reschedule" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="TaskBindingType">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="loose" />
+          <xs:enumeration value="tight" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="TaskRecurrenceType">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="single" />
+          <xs:enumeration value="recurring" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="ThreadStopActionType">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="restart" />
+          <xs:enumeration value="reschedule" />
+          <xs:enumeration value="suspend" />
+          <xs:enumeration value="close" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="EventCategoryType">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="accountEvent" />
+          <xs:enumeration value="userEvent" />
+          <xs:enumeration value="workItemEvent" />
+          <xs:enumeration value="workflowProcessEvent" />
+          <xs:enumeration value="workflowEvent" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="EventStatusType">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="success" />
+          <xs:enumeration value="alsoSuccess" />
+          <xs:enumeration value="failure" />
+          <xs:enumeration value="onlyFailure" />
+          <xs:enumeration value="inProgress" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="EventOperationType">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="add" />
+          <xs:enumeration value="modify" />
+          <xs:enumeration value="delete" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="ScriptExpressionReturnTypeType">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="scalar" />
+          <xs:enumeration value="list" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:simpleType name="ScriptExpressionRelativityModeType">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="relative" />
+          <xs:enumeration value="absolute" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:schema>
+    <xs:schema xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/common/api-types-2" xmlns:ns1="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" xmlns:ns2="http://prism.evolveum.com/xml/ns/public/types-2" elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/public/common/api-types-2" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+      <xs:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" />
+      <xs:import namespace="http://prism.evolveum.com/xml/ns/public/types-2" />
+      <xs:element name="objectModification" type="tns:ObjectModificationType" />
+      <xs:complexType name="OperationOptionsType">
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="objectOption" nillable="true" type="tns:ObjectOperationOptionsType" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ObjectOperationOptionsType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="selector" type="tns:ObjectSelectorType" />
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="option" nillable="true" type="tns:ObjectOperationOptionType" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ObjectSelectorType">
+        <xs:sequence>
+          <xs:any namespace="##other" processContents="skip" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ResourceObjectShadowListType">
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="object" nillable="true" type="ns1:ShadowType" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="PropertyReferenceListType">
+        <xs:sequence>
+          <xs:any minOccurs="0" maxOccurs="unbounded" namespace="##other" processContents="skip" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ResourceObjectIdentificationType">
+        <xs:sequence>
+          <xs:any minOccurs="0" maxOccurs="unbounded" namespace="##other" processContents="skip" />
+        </xs:sequence>
+        <xs:attribute name="id" type="xs:long" />
+      </xs:complexType>
+      <xs:complexType name="ObjectListType">
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="object" nillable="true" type="ns1:ObjectType" />
+        </xs:sequence>
+        <xs:attribute name="count" type="xs:int" />
+      </xs:complexType>
+      <xs:complexType name="ObjectModificationType">
+        <xs:sequence>
+          <xs:element name="oid" type="xs:string" />
+          <xs:element maxOccurs="unbounded" name="modification" type="ns2:ItemDeltaType" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="UserListType">
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="user" nillable="true" type="ns1:UserType" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ResourceObjectType">
+        <xs:sequence>
+          <xs:any minOccurs="0" maxOccurs="unbounded" namespace="##other" processContents="skip" />
+        </xs:sequence>
+        <xs:attribute name="id" type="xs:long" />
+      </xs:complexType>
+      <xs:complexType name="ImportOptionsType">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="overwrite" type="xs:boolean" />
+          <xs:element minOccurs="0" name="keepOid" type="xs:boolean" />
+          <xs:element minOccurs="0" name="stopAfterErrors" type="xs:int" />
+          <xs:element minOccurs="0" default="true" name="summarizeSucceses" type="xs:boolean" />
+          <xs:element minOccurs="0" default="false" name="summarizeErrors" type="xs:boolean" />
+          <xs:element minOccurs="0" default="false" name="referentialIntegrity" type="xs:boolean" />
+          <xs:element minOccurs="0" default="true" name="validateStaticSchema" type="xs:boolean" />
+          <xs:element minOccurs="0" default="true" name="validateDynamicSchema" type="xs:boolean" />
+          <xs:element minOccurs="0" default="true" name="encryptProtectedValues" type="xs:boolean" />
+          <xs:element minOccurs="0" default="false" name="fetchResourceSchema" type="xs:boolean" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:simpleType name="ObjectOperationOptionType">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="resolve" />
+          <xs:enumeration value="no-fetch" />
+          <xs:enumeration value="force" />
+        </xs:restriction>
+      </xs:simpleType>
+    </xs:schema>
+    <xs:schema xmlns:ns1="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" elementFormDefault="qualified" targetNamespace="http://midpoint.evolveum.com/xml/ns/model/workflow/common-forms-2" version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+      <xs:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" />
+      <xs:complexType name="TrackingDataFormType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="ns1:ObjectType">
+            <xs:sequence>
+              <xs:element name="taskId" type="xs:string" />
+              <xs:element name="processInstanceId" type="xs:string" />
+              <xs:element name="executionId" type="xs:string" />
+              <xs:element name="taskOwner" type="xs:string" />
+              <xs:element name="taskAssignee" type="xs:string" />
+              <xs:element name="taskCandidates" type="xs:string" />
+              <xs:element name="processDefinitionKey" type="xs:string" />
+              <xs:element name="processDefinitionId" type="xs:string" />
+              <xs:element name="shadowTaskOid" type="xs:string" />
+            </xs:sequence>
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+      <xs:complexType name="RoleApprovalFormType">
+        <xs:complexContent mixed="false">
+          <xs:extension base="ns1:ObjectType">
+            <xs:sequence>
+              <xs:element name="user" type="xs:string" />
+              <xs:element name="role" type="xs:string" />
+              <xs:element minOccurs="0" name="timeInterval" type="xs:string" />
+              <xs:element minOccurs="0" name="requesterComment" type="xs:string" />
+              <xs:element minOccurs="0" name="comment" type="xs:string" />
+            </xs:sequence>
+          </xs:extension>
+        </xs:complexContent>
+      </xs:complexType>
+    </xs:schema>
+  </wsdl:types>
+  <wsdl:message name="testResourceResponse">
+    <wsdl:part name="parameters" element="ns1:testResourceResponse" />
+  </wsdl:message>
+  <wsdl:message name="listResourceObjectShadows">
+    <wsdl:part name="parameters" element="ns1:listResourceObjectShadows" />
+  </wsdl:message>
+  <wsdl:message name="importFromResource">
+    <wsdl:part name="parameters" element="ns1:importFromResource" />
+  </wsdl:message>
+  <wsdl:message name="addObjectResponse">
+    <wsdl:part name="parameters" element="ns1:addObjectResponse" />
+  </wsdl:message>
+  <wsdl:message name="FaultMessage">
+    <wsdl:part name="FaultMessage" element="ns2:fault" />
+  </wsdl:message>
+  <wsdl:message name="listObjects">
+    <wsdl:part name="parameters" element="ns1:listObjects" />
+  </wsdl:message>
+  <wsdl:message name="testResource">
+    <wsdl:part name="parameters" element="ns1:testResource" />
+  </wsdl:message>
+  <wsdl:message name="searchObjectsResponse">
+    <wsdl:part name="parameters" element="ns1:searchObjectsResponse" />
+  </wsdl:message>
+  <wsdl:message name="listAccountShadowOwnerResponse">
+    <wsdl:part name="parameters" element="ns1:listAccountShadowOwnerResponse" />
+  </wsdl:message>
+  <wsdl:message name="getObjectResponse">
+    <wsdl:part name="parameters" element="ns1:getObjectResponse" />
+  </wsdl:message>
+  <wsdl:message name="importFromResourceResponse">
+    <wsdl:part name="parameters" element="ns1:importFromResourceResponse" />
+  </wsdl:message>
+  <wsdl:message name="searchObjects">
+    <wsdl:part name="parameters" element="ns1:searchObjects" />
+  </wsdl:message>
+  <wsdl:message name="deleteObject">
+    <wsdl:part name="parameters" element="ns1:deleteObject" />
+  </wsdl:message>
+  <wsdl:message name="getObject">
+    <wsdl:part name="parameters" element="ns1:getObject" />
+  </wsdl:message>
+  <wsdl:message name="listResourceObjectShadowsResponse">
+    <wsdl:part name="parameters" element="ns1:listResourceObjectShadowsResponse" />
+  </wsdl:message>
+  <wsdl:message name="deleteObjectResponse">
+    <wsdl:part name="parameters" element="ns1:deleteObjectResponse" />
+  </wsdl:message>
+  <wsdl:message name="modifyObject">
+    <wsdl:part name="parameters" element="ns1:modifyObject" />
+  </wsdl:message>
+  <wsdl:message name="addObject">
+    <wsdl:part name="parameters" element="ns1:addObject" />
+  </wsdl:message>
+  <wsdl:message name="listAccountShadowOwner">
+    <wsdl:part name="parameters" element="ns1:listAccountShadowOwner" />
+  </wsdl:message>
+  <wsdl:message name="listObjectsResponse">
+    <wsdl:part name="parameters" element="ns1:listObjectsResponse" />
+  </wsdl:message>
+  <wsdl:message name="modifyObjectResponse">
+    <wsdl:part name="parameters" element="ns1:modifyObjectResponse" />
+  </wsdl:message>
+  <wsdl:portType name="modelPortType">
+    <wsdl:operation name="deleteObject">
+      <wsdl:input name="deleteObject" message="ns1:deleteObject" />
+      <wsdl:output name="deleteObjectResponse" message="ns1:deleteObjectResponse" />
+      <wsdl:fault name="FaultMessage" message="ns1:FaultMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="listObjects">
+      <wsdl:input name="listObjects" message="ns1:listObjects" />
+      <wsdl:output name="listObjectsResponse" message="ns1:listObjectsResponse" />
+      <wsdl:fault name="FaultMessage" message="ns1:FaultMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="addObject">
+      <wsdl:input name="addObject" message="ns1:addObject" />
+      <wsdl:output name="addObjectResponse" message="ns1:addObjectResponse" />
+      <wsdl:fault name="FaultMessage" message="ns1:FaultMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="listAccountShadowOwner">
+      <wsdl:input name="listAccountShadowOwner" message="ns1:listAccountShadowOwner" />
+      <wsdl:output name="listAccountShadowOwnerResponse" message="ns1:listAccountShadowOwnerResponse" />
+      <wsdl:fault name="FaultMessage" message="ns1:FaultMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="searchObjects">
+      <wsdl:input name="searchObjects" message="ns1:searchObjects" />
+      <wsdl:output name="searchObjectsResponse" message="ns1:searchObjectsResponse" />
+      <wsdl:fault name="FaultMessage" message="ns1:FaultMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="listResourceObjectShadows">
+      <wsdl:input name="listResourceObjectShadows" message="ns1:listResourceObjectShadows" />
+      <wsdl:output name="listResourceObjectShadowsResponse" message="ns1:listResourceObjectShadowsResponse" />
+      <wsdl:fault name="FaultMessage" message="ns1:FaultMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="importFromResource">
+      <wsdl:input name="importFromResource" message="ns1:importFromResource" />
+      <wsdl:output name="importFromResourceResponse" message="ns1:importFromResourceResponse" />
+      <wsdl:fault name="FaultMessage" message="ns1:FaultMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="getObject">
+      <wsdl:input name="getObject" message="ns1:getObject" />
+      <wsdl:output name="getObjectResponse" message="ns1:getObjectResponse" />
+      <wsdl:fault name="FaultMessage" message="ns1:FaultMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="modifyObject">
+      <wsdl:input name="modifyObject" message="ns1:modifyObject" />
+      <wsdl:output name="modifyObjectResponse" message="ns1:modifyObjectResponse" />
+      <wsdl:fault name="FaultMessage" message="ns1:FaultMessage" />
+    </wsdl:operation>
+    <wsdl:operation name="testResource">
+      <wsdl:input name="testResource" message="ns1:testResource" />
+      <wsdl:output name="testResourceResponse" message="ns1:testResourceResponse" />
+      <wsdl:fault name="FaultMessage" message="ns1:FaultMessage" />
+    </wsdl:operation>
+  </wsdl:portType>
+</wsdl:definitions>

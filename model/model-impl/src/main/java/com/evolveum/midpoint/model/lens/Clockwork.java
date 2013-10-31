@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.lens;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import javax.xml.datatype.XMLGregorianCalendar;
@@ -40,13 +41,16 @@ import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.lens.projector.ContextLoader;
 import com.evolveum.midpoint.model.lens.projector.Projector;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -95,8 +99,6 @@ public class Clockwork {
 
     private LensDebugListener debugListener;
 	
-	private boolean consistenceChecks = true;
-	
 	public LensDebugListener getDebugListener() {
 		return debugListener;
 	}
@@ -109,6 +111,7 @@ public class Clockwork {
 		if (InternalsConfig.consistencyChecks) {
 			context.checkConsistence();
 		}
+		
 		while (context.getState() != ModelState.FINAL) {
             HookOperationMode mode = click(context, task, result);
 
@@ -127,6 +130,10 @@ public class Clockwork {
 		
 		// DO NOT CHECK CONSISTENCY of the context here. The context may not be fresh and consistent yet. Project will fix
 		// that. Check consistency afterwards (and it is also checked inside projector several times).
+		
+		if (context.getDebugListener() == null) {
+			context.setDebugListener(debugListener);
+		}
 		
 		try {
 			
@@ -265,16 +272,67 @@ public class Clockwork {
 		
 		audit(context, AuditEventStage.EXECUTION, task, result);
 		
+		rotContext(context);
+		
 		context.incrementExecutionWave();
-
-		// Force recompute for next wave
-		context.rot();
 		
 		LensUtil.traceContext(LOGGER, "CLOCKWORK (" + context.getState() + ")", "change execution", false, context, false);
 	}
 	
+	/**
+	 * Force recompute for the next wave. Recompute only those contexts that were changed.
+	 * This is more inteligent than context.rot()
+	 */
+	private <F extends ObjectType> void rotContext(LensContext<F> context) throws SchemaException {
+		boolean rot = false;
+    	for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
+    		if (projectionContext.getWave() != context.getExecutionWave()) {
+    			LOGGER.trace("Context rot: projection {} NOT rotten because of wrong wave number", projectionContext);
+        		continue;
+			}
+    		ObjectDelta<ShadowType> execDelta = projectionContext.getExecutableDelta();
+    		if (isSignificant(execDelta)) {
+    			LOGGER.trace("Context rot: projection {} rotten because of delta {}", projectionContext, execDelta);
+    			projectionContext.setFresh(false);
+    			projectionContext.setFullShadow(false);
+    			rot = true;
+	        } else {
+	        	LOGGER.trace("Context rot: projection {} NOT rotten because no delta", projectionContext);
+	        }
+		}
+    	LensFocusContext<F> focusContext = context.getFocusContext();
+    	if (focusContext != null) {
+    		ObjectDelta<F> execDelta = focusContext.getWaveDelta(context.getExecutionWave());
+    		if (execDelta != null && !execDelta.isEmpty()) {
+    			rot = true;
+    		}
+    		if (rot) {
+	    		// It is OK to refresh focus all the time there was any change. This is cheap.
+	    		focusContext.setFresh(false);
+    		}
+    	}
+    	if (rot) {
+    		context.setFresh(false);
+    	}
+	}
+	
+	private <P extends ObjectType> boolean isSignificant(ObjectDelta<P> delta) {
+		if (delta == null || delta.isEmpty()) {
+			return false;
+		}
+		if (delta.isAdd() || delta.isDelete()) {
+			return true;
+		}
+		Collection<? extends ItemDelta<?>> attrDeltas = delta.findItemDeltasSubPath(new ItemPath(ShadowType.F_ATTRIBUTES));
+		if (attrDeltas != null && !attrDeltas.isEmpty()) {
+			return true;
+		}
+		return false;
+	}
+	
 	private <F extends ObjectType> void processFinal(LensContext<F> context, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		auditFinalExecution(context, task, result);
+		logFinalReadable(context, task, result);
 	}
 		
 	private <F extends ObjectType> void audit(LensContext<F> context, AuditEventStage stage, Task task, OperationResult result) throws SchemaException {
@@ -441,6 +499,121 @@ public class Clockwork {
 		} else {
 			throw new SystemException("Unexpected exception "+e.getClass()+" "+e.getMessage(), e);
 		}
+	}
+	
+	/**
+	 * Logs the entire operation in a human-readable fashion.
+	 */
+	private <F extends ObjectType> void logFinalReadable(LensContext<F> context, Task task, OperationResult result) throws SchemaException {
+		if (!LOGGER.isDebugEnabled()) {
+			return;
+		}
+		
+		
+		// a priori: sync delta
+		boolean hasSyncDelta = false;
+		for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
+			ObjectDelta<ShadowType> syncDelta = projectionContext.getSyncDelta();
+			if (syncDelta != null) {
+				hasSyncDelta = true;
+			}
+		}
+		
+		Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = context.getExecutedDeltas();
+		if (!hasSyncDelta && executedDeltas == null || executedDeltas.isEmpty()) {
+			// Not worth mentioning
+			return;
+		}
+		
+		StringBuilder sb = new StringBuilder();
+		String channel = context.getChannel();
+		if (channel != null) {
+			sb.append("Channel: ").append(channel).append("\n");
+		}
+		
+		
+		if (hasSyncDelta) {
+			sb.append("Triggered by synchronization delta\n");
+			for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
+				ObjectDelta<ShadowType> syncDelta = projectionContext.getSyncDelta();
+				if (syncDelta != null) {
+					sb.append(syncDelta.debugDump(1));
+					sb.append(": ");
+					sb.append(projectionContext.getSynchronizationSituationDetected());
+					sb.append("\n");
+				}
+			}
+		}
+		for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
+			if (projectionContext.isSyncAbsoluteTrigger()) {
+				sb.append("Triggered by absolute state of ").append(projectionContext.getHumanReadableName());
+				sb.append(": ");
+				sb.append(projectionContext.getSynchronizationSituationDetected());
+				sb.append("\n");
+			}
+		}
+		
+		// focus primary
+		LensFocusContext<F> focusContext = context.getFocusContext();
+		if (focusContext != null) {
+			ObjectDelta<F> focusPrimaryDelta = focusContext.getPrimaryDelta();
+			if (focusPrimaryDelta != null) {
+				sb.append("Triggered by focus primary delta\n");
+				DebugUtil.indentDebugDump(sb, 1);
+				sb.append(focusPrimaryDelta.toString());
+				sb.append("\n");
+			}
+		}
+		
+		// projection primary
+		Collection<ObjectDelta<ShadowType>> projPrimaryDeltas = new ArrayList<ObjectDelta<ShadowType>>();
+		for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
+			ObjectDelta<ShadowType> projPrimaryDelta = projectionContext.getPrimaryDelta();
+			if (projPrimaryDelta != null) {
+				projPrimaryDeltas.add(projPrimaryDelta);
+			}
+		}
+		if (!projPrimaryDeltas.isEmpty()) {
+			sb.append("Triggered by projection primary delta\n");
+			for (ObjectDelta<ShadowType> projDelta: projPrimaryDeltas) {
+				DebugUtil.indentDebugDump(sb, 1);
+				sb.append(projDelta.toString());
+				sb.append("\n");
+			}
+		}
+				
+		if (focusContext != null) {
+			sb.append("Focus: ").append(focusContext.toString()).append("\n");
+		}
+		if (!context.getProjectionContexts().isEmpty()) {
+			sb.append("Projections (").append(context.getProjectionContexts().size()).append("):\n");
+			for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
+				DebugUtil.indentDebugDump(sb, 1);
+				sb.append(projectionContext.toString());
+				sb.append(": ");
+				sb.append(projectionContext.getSynchronizationPolicyDecision());
+				sb.append("\n");
+			}
+		}
+		
+		if (executedDeltas == null || executedDeltas.isEmpty()) {
+			sb.append("Executed: nothing\n");
+		} else {
+			sb.append("Executed:\n");
+			for (ObjectDeltaOperation<? extends ObjectType> executedDelta: executedDeltas) {
+				ObjectDelta<? extends ObjectType> delta = executedDelta.getObjectDelta();
+				OperationResult deltaResult = executedDelta.getExecutionResult();
+				DebugUtil.indentDebugDump(sb, 1);
+				sb.append(delta.toString());
+				sb.append(": ");
+				sb.append(deltaResult.getStatus());
+				sb.append("\n");
+			}
+		}
+		
+		LOGGER.debug("\n###[ CLOCKWORK SUMMARY ]######################################\n{}" +
+				       "##############################################################",
+				sb.toString());
 	}
 	
 }

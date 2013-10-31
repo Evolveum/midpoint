@@ -1746,6 +1746,9 @@ public class PageUser extends PageAdminUsers {
 					error(getString("pageUser.message.couldntCreateAccountNoSchema", resource.getName()));
 					continue;
 				}
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("Refined schema for {}\n{}", resource, refinedSchema.dump());
+				}
 
 				QName objectClass = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT).getObjectClassDefinition()
 						.getTypeName();

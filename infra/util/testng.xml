@@ -40,4 +40,9 @@
 			<class name="com.evolveum.midpoint.util.TestReflectionUtil" />
 		</classes>
 	</test>
+    <test name="Profiling">
+        <classes>
+            <class name="com.evolveum.midpoint.util.ProfilingTest" />
+        </classes>
+    </test>
 </suite>

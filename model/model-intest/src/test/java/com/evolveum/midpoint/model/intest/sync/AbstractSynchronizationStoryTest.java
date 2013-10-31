@@ -666,7 +666,9 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
 
         /// WHEN
         TestUtil.displayWhen(TEST_NAME);
-     	dummyResource.deleteAccount(ACCOUNT_WALLY_DUMMY_USERNAME);
+     	dummyResource.deleteAccountByName(ACCOUNT_WALLY_DUMMY_USERNAME);
+     	
+     	display("Dummy (default) resource", dummyResource.dump());
         
         // Make sure we have steady state
      	waitForSyncTaskNextRun(resourceDummy);
@@ -724,7 +726,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
 
         /// WHEN
         TestUtil.displayWhen(TEST_NAME);
-     	dummyResourceGreen.deleteAccount(ACCOUNT_WALLY_DUMMY_USERNAME);
+     	dummyResourceGreen.deleteAccountByName(ACCOUNT_WALLY_DUMMY_USERNAME);
 		
      	// Make sure we have steady state
      	waitForSyncTaskNextRun(resourceDummy);

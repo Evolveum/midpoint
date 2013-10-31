@@ -195,19 +195,6 @@ public interface Task extends Dumpable {
     TaskWaitingReason getWaitingReason();
 
     /**
-     * Returns the node the task is currently executing at, based on real run-time information.
-     *
-     * BEWARE, this information is valid only when returned from searchTasks (not e.g. when got via getTask).
-     *
-     * If the static information (set by task execution routine) is sufficient, use #getNode() method.
-     * It may be out-of-date for example when the node with executing tasks crashes and tasks are not
-     * failed-over to other node.
-     *
-     * @return
-     */
-    public Node currentlyExecutesAt();
-
-    /**
      * Returns the node the task is currently executing at, based on repository information.
      * This is present in all cases, however, it might be out-of-date, e.g. when node crashes.
      *
@@ -928,5 +915,10 @@ public interface Task extends Dumpable {
 	void savePendingModifications(OperationResult parentResult) throws ObjectNotFoundException,
 			SchemaException, ObjectAlreadyExistsException;
 
+    /**
+     * Returns a list of pending modifications for this task.
+     * @return
+     */
+    Collection<ItemDelta<?>> getPendingModifications();
 
 }

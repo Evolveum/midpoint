@@ -59,16 +59,16 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 	
 	private ResourceObjectChangeListener objectChangeListener;
 	private ResourceType resource;
-	private RefinedObjectClassDefinition refinedAccountDefinition;
+	private RefinedObjectClassDefinition refinedObjectClass;
 	private QName sourceChannel;
 	private boolean forceAdd;
 
-	public SynchronizeAccountResultHandler(ResourceType resource, RefinedObjectClassDefinition refinedAccountDefinition,
+	public SynchronizeAccountResultHandler(ResourceType resource, RefinedObjectClassDefinition refinedObjectClass,
 			String processShortName, Task task, ResourceObjectChangeListener objectChangeListener) {
 		super(task, SynchronizeAccountResultHandler.class.getName(), processShortName, "from "+resource);
 		this.objectChangeListener = objectChangeListener;
 		this.resource = resource;
-		this.refinedAccountDefinition = refinedAccountDefinition;
+		this.refinedObjectClass = refinedObjectClass;
 		forceAdd = false;
 	}
 
@@ -88,7 +88,14 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 		this.sourceChannel = sourceChannel;
 	}
 	
-	
+	public ResourceType getResource() {
+		return resource;
+	}
+
+	public RefinedObjectClassDefinition getRefinedObjectClass() {
+		return refinedObjectClass;
+	}
+
 	/*
 	 * This methods will be called for each search result. It means it will be
 	 * called for each account on a resource. We will pretend that the account

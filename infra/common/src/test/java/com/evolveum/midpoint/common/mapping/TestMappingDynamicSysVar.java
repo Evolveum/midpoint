@@ -25,6 +25,7 @@ import static com.evolveum.midpoint.common.mapping.MappingTestEvaluator.*;
 
 import com.evolveum.midpoint.common.CommonTestConstants;
 import com.evolveum.midpoint.common.crypto.EncryptionException;
+import com.evolveum.midpoint.common.expression.ExpressionTestUtil;
 import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.common.expression.StringPolicyResolver;
 import com.evolveum.midpoint.common.expression.evaluator.GenerateExpressionEvaluator;
@@ -58,7 +59,9 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.StringPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -707,10 +710,12 @@ public class TestMappingDynamicSysVar {
 
     @Test
     public void testEmployeeNumberPolyString() throws Exception {
+    	final String TEST_NAME = "testEmployeeNumberPolyString";
+    	System.out.println("===[ "+TEST_NAME+"]===");
     	// WHEN
     	PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = evaluator.evaluateMappingDynamicReplace(
     			"mapping-script-system-variables-employee-number.xml",
-    			"testEmployeeNumberString",
+    			TEST_NAME,
     			"additionalName",					// target
     			"employeeNumber",				// changed property
     			"666");	// changed values
@@ -719,6 +724,11 @@ public class TestMappingDynamicSysVar {
     	PrismAsserts.assertTripleNoZero(outputTriple);
     	PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("666"));
     	PrismAsserts.assertTripleNoMinus(outputTriple);
+    	
+    	// Make sure it is recomputed
+    	PolyString plusval = outputTriple.getPlusSet().iterator().next().getValue();
+    	System.out.println("Plus polystring\n"+ plusval.dump());
+    	assertEquals("Wrong norm value", "666", plusval.getNorm());
     }
 
     @Test
@@ -782,6 +792,23 @@ public class TestMappingDynamicSysVar {
     	// THEN
     	PrismAsserts.assertTripleNoZero(outputTriple);
     	PrismAsserts.assertTriplePlus(outputTriple, new BigDecimal("666.33"));
+    	PrismAsserts.assertTripleNoMinus(outputTriple);
+    }
+    
+    @Test
+    public void testEmployeeNumberProtectedString() throws Exception {
+    	// WHEN
+    	PrismValueDeltaSetTriple<PrismPropertyValue<ProtectedStringType>> outputTriple = evaluator.evaluateMappingDynamicReplace(
+    			"mapping-script-system-variables-employee-number.xml",
+    			"testEmployeeNumberProtectedString",
+    			new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE),					// target
+    			"employeeNumber",				// changed property
+    			"666");	// changed values
+    	
+    	// THEN
+    	
+    	evaluator.assertProtectedString("plus set", outputTriple.getPlusSet(), "666");
+    	PrismAsserts.assertTripleNoZero(outputTriple);
     	PrismAsserts.assertTripleNoMinus(outputTriple);
     }
     
@@ -1051,5 +1078,69 @@ public class TestMappingDynamicSysVar {
     	// THEN
 		evaluator.assertResult(opResult);
 		return mapping.getOutputTriple();
+    }
+    
+    @Test
+    public void testPasswordString() throws Exception {
+    	// WHEN
+    	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMappingDynamicReplace(
+    			"mapping-script-system-variables-password.xml",
+    			"testPasswordString",
+    			"employeeType",					// target
+    			new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE),				// changed property
+    			evaluator.createProtectedString("weighAnch0r"));	// changed values
+    	
+    	// THEN
+    	PrismAsserts.assertTripleNoZero(outputTriple);
+    	PrismAsserts.assertTriplePlus(outputTriple, "weighAnch0r");
+    	PrismAsserts.assertTripleMinus(outputTriple, "d3adM3nT3llN0Tal3s");
+    }
+    
+    @Test
+    public void testPasswordPolyString() throws Exception {
+    	// WHEN
+    	PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = evaluator.evaluateMappingDynamicReplace(
+    			"mapping-script-system-variables-password.xml",
+    			"testPasswordPolyString",
+    			UserType.F_ADDITIONAL_NAME.getLocalPart(),					// target
+    			new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE),	// changed property
+    			evaluator.createProtectedString("weighAnch0r"));	// changed values
+    	
+    	// THEN
+    	PrismAsserts.assertTripleNoZero(outputTriple);
+    	PrismAsserts.assertTriplePlus(outputTriple, PrismTestUtil.createPolyString("weighAnch0r"));
+    	PrismAsserts.assertTripleMinus(outputTriple, PrismTestUtil.createPolyString("d3adM3nT3llN0Tal3s"));
+    }
+    
+    @Test
+    public void testPasswordProtectedString() throws Exception {
+    	// WHEN
+    	PrismValueDeltaSetTriple<PrismPropertyValue<ProtectedStringType>> outputTriple = evaluator.evaluateMappingDynamicReplace(
+    			"mapping-script-system-variables-password.xml",
+    			"testPasswordPolyString",
+    			new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE),					// target
+    			new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE),	// changed property
+    			evaluator.createProtectedString("weighAnch0r"));	// changed values
+    	
+    	// THEN
+    	PrismAsserts.assertTripleNoZero(outputTriple);
+    	evaluator.assertProtectedString("plus set", outputTriple.getPlusSet(), "weighAnch0r");
+    	evaluator.assertProtectedString("minus set", outputTriple.getMinusSet(), "d3adM3nT3llN0Tal3s");
+    }
+    
+    @Test
+    public void testPasswordDecryptString() throws Exception {
+    	// WHEN
+    	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMappingDynamicReplace(
+    			"mapping-script-system-variables-password-decrypt.xml",
+    			"testPasswordDecryptString",
+    			"employeeType",					// target
+    			new ItemPath(UserType.F_CREDENTIALS, CredentialsType.F_PASSWORD, PasswordType.F_VALUE),				// changed property
+    			evaluator.createProtectedString("weighAnch0r"));	// changed values
+    	
+    	// THEN
+    	PrismAsserts.assertTripleNoZero(outputTriple);
+    	PrismAsserts.assertTriplePlus(outputTriple, "weighAnch0r123");
+    	PrismAsserts.assertTripleMinus(outputTriple, "d3adM3nT3llN0Tal3s123");
     }
 }

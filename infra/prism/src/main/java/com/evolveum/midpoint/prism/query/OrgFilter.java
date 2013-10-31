@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.util.DebugUtil;
 
 public class OrgFilter extends ObjectFilter {
@@ -150,7 +151,7 @@ public class OrgFilter extends ObjectFilter {
 	}
 
 	@Override
-	public <T extends Objectable> boolean match(PrismObject<T> object) {
+	public <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry) {
 		// TODO Auto-generated method stub
 		return false;
 	}

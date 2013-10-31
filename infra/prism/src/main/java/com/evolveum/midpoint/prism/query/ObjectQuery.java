@@ -22,6 +22,7 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
@@ -91,8 +92,8 @@ public class ObjectQuery implements Dumpable, DebugDumpable, Serializable {
 		return query;
 	}
 	
-	public static <T extends Objectable> boolean match(PrismObject<T> object, ObjectFilter filter){
-		return filter.match(object);
+	public static <T extends Objectable> boolean match(PrismObject<T> object, ObjectFilter filter, MatchingRuleRegistry matchingRuleRegistry){
+		return filter.match(object, matchingRuleRegistry);
 //		return false;
 	}
 	

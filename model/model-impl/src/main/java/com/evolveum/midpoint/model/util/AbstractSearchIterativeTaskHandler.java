@@ -43,15 +43,21 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
  * @author semancik
  *
  */
-public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType> implements TaskHandler {
+public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H extends AbstractSearchIterativeResultHandler<O>> implements TaskHandler {
 	
+	// WARNING! This task handler is efficiently singleton!
+	// It is a spring bean and it is supposed to handle all search task instances
+	// Therefore it must not have task-specific fields. It can only contain fields specific to
+	// all tasks of a specified type
 	private String taskName;
 	private String taskOperationPrefix;
 	private Class<O> type;
 	private boolean logFinishInfo = false; 
 	
+	// If you need to store fields specific to task instance or task run the ResultHandler is a good place to do that.
+	
 	// This is not ideal, TODO: refactor
-	private Map<Task, AbstractSearchIterativeResultHandler> handlers = new HashMap<Task,AbstractSearchIterativeResultHandler>();
+	private Map<Task, H> handlers = new HashMap<Task,H>();
 	
 	@Autowired(required=true)
 	protected TaskManager taskManager;
@@ -89,29 +95,28 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType> i
 		runResult.setOperationResult(opResult);
 		runResult.setProgress(0);
 		
-		boolean cont = initialize(runResult, task, opResult);
-		if (!cont) {
-			// Initialization error. It should already be in runResult
-			return runResult;
-		}
-		
-		AbstractSearchIterativeResultHandler<O> handler = createHandler(runResult, task, opResult);
-		if (handler == null) {
+		H resultHandler = createHandler(runResult, task, opResult);
+		if (resultHandler == null) {
 			// the error should already be in the runResult
 			return runResult;
 		}
 		
+		boolean cont = initializeRun(resultHandler, runResult, task, opResult);
+		if (!cont) {
+			return runResult;
+		}
+		
 		// TODO: error checking - already running
-        handlers.put(task, handler);
+        handlers.put(task, resultHandler);
         
         ObjectQuery query;
         try {
-        	query = createQuery(runResult, task, opResult);
+        	query = createQuery(resultHandler, runResult, task, opResult);
         } catch (SchemaException ex) {
         	LOGGER.error("{}: Schema error while creating a search filter: {}", new Object[]{taskName, ex.getMessage(), ex});
             opResult.recordFatalError("Schema error while creating a search filter: " + ex.getMessage(), ex);
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-            runResult.setProgress(handler.getProgress());
+            runResult.setProgress(resultHandler.getProgress());
             return runResult;
         }
         
@@ -126,21 +131,21 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType> i
 		
 		try {
 		
-			modelObjectResolver.searchIterative(type, query, handler, opResult);
+			modelObjectResolver.searchIterative(type, query, resultHandler, opResult);
 			
 		} catch (ObjectNotFoundException ex) {
             LOGGER.error("{}: Object not found: {}", new Object[]{taskName, ex.getMessage(), ex});
             // This is bad. The resource does not exist. Permanent problem.
             opResult.recordFatalError("Object not found " + ex.getMessage(), ex);
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-            runResult.setProgress(handler.getProgress());
+            runResult.setProgress(resultHandler.getProgress());
             return runResult;
         } catch (CommunicationException ex) {
             LOGGER.error("{}: Communication error: {}", new Object[]{taskName, ex.getMessage(), ex});
             // Error, but not critical. Just try later.
             opResult.recordPartialError("Communication error: " + ex.getMessage(), ex);
             runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
-            runResult.setProgress(handler.getProgress());
+            runResult.setProgress(resultHandler.getProgress());
             return runResult;
         } catch (SchemaException ex) {
             LOGGER.error("{}: Error dealing with schema: {}", new Object[]{taskName, ex.getMessage(), ex});
@@ -148,7 +153,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType> i
             // It may be worth to retry. Error is fatal, but may not be permanent.
             opResult.recordFatalError("Error dealing with schema: " + ex.getMessage(), ex);
             runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
-            runResult.setProgress(handler.getProgress());
+            runResult.setProgress(resultHandler.getProgress());
             return runResult;
         } catch (RuntimeException ex) {
             LOGGER.error("{}: Internal Error: {}", new Object[]{taskName, ex.getMessage(), ex});
@@ -156,7 +161,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType> i
             // It is most likely a programming error. Does not make much sense to retry.
             opResult.recordFatalError("Internal Error: " + ex.getMessage(), ex);
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-            runResult.setProgress(handler.getProgress());
+            runResult.setProgress(resultHandler.getProgress());
             return runResult;
         } catch (ConfigurationException ex) {
         	LOGGER.error("{}: Configuration error: {}", new Object[]{taskName, ex.getMessage(), ex});
@@ -164,13 +169,13 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType> i
             // It may be worth to retry. Error is fatal, but may not be permanent.
             opResult.recordFatalError("Configuration error: " + ex.getMessage(), ex);
             runResult.setRunResultStatus(TaskRunResultStatus.TEMPORARY_ERROR);
-            runResult.setProgress(handler.getProgress());
+            runResult.setProgress(resultHandler.getProgress());
             return runResult;
 		} catch (SecurityViolationException ex) {
 			LOGGER.error("{}: Security violation: {}", new Object[]{taskName, ex.getMessage(), ex});
             opResult.recordFatalError("Security violation: " + ex.getMessage(), ex);
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-            runResult.setProgress(handler.getProgress());
+            runResult.setProgress(resultHandler.getProgress());
             return runResult;
 		}
 		
@@ -178,12 +183,12 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType> i
 
         handlers.remove(task);
         opResult.computeStatus("Errors during import");
-        runResult.setProgress(handler.getProgress());
+        runResult.setProgress(resultHandler.getProgress());
         runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
 
         if (logFinishInfo) {
 	        String finishMessage = "Finished " + taskName + " (" + task + "). ";
-	        String statistics = "Processed " + handler.getProgress() + " objects, got " + handler.getErrors() + " errors.";
+	        String statistics = "Processed " + resultHandler.getProgress() + " objects, got " + resultHandler.getErrors() + " errors.";
 	
 	        opResult.createSubresult(taskOperationPrefix + ".statistics").recordStatus(OperationResultStatus.SUCCESS, statistics);
 	
@@ -191,12 +196,12 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType> i
         }
         
         try {
-        	finish(runResult, task, opResult);
+        	finish(resultHandler, runResult, task, opResult);
         } catch (SchemaException ex) {
         	LOGGER.error("{}: Schema error while finishing the run: {}", new Object[]{taskName, ex.getMessage(), ex});
             opResult.recordFatalError("Schema error while finishing the run: " + ex.getMessage(), ex);
             runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
-            runResult.setProgress(handler.getProgress());
+            runResult.setProgress(resultHandler.getProgress());
             return runResult;
         }
         
@@ -206,19 +211,10 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType> i
 		
 	}
 	
-	/**
-	 * First method called. Can be used to initialize the task.
-	 * 
-	 * @return true if all OK, false if an error (error in runResult)
-	 */
-	protected boolean initialize(TaskRunResult runResult, Task task, OperationResult opResult) {
-		return true;
-	}
-	
-	protected void finish(TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
+	protected void finish(H handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
 	}
 
-	private AbstractSearchIterativeResultHandler getHandler(Task task) {
+	private H getHandler(Task task) {
         return handlers.get(task);
     }
 
@@ -300,9 +296,21 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType> i
         // Local task. No refresh needed. The Task instance has always fresh data.
     }
     
-	protected abstract ObjectQuery createQuery(TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException;
+    /**
+     * Handler parameter may be used to pass task instance state between the calls. 
+     */
+	protected abstract ObjectQuery createQuery(H handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException;
 
-	protected abstract  AbstractSearchIterativeResultHandler<O> createHandler(TaskRunResult runResult, Task task,
+	protected abstract  H createHandler(TaskRunResult runResult, Task task,
 			OperationResult opResult);
+	
+	/**
+	 * Used to properly initialize the "run", which is kind of task instance. The result handler is already created at this stage.
+	 * Therefore this method may be used to "enrich" the result handler with some instance-specific data. 
+	 */
+	protected boolean initializeRun(H handler, TaskRunResult runResult, Task task, OperationResult opResult) {
+		// Nothing to do by default
+		return true;
+	}
 
 }

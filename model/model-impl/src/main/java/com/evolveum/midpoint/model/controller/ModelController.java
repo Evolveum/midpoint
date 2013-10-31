@@ -27,6 +27,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.model.util.Utils;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.Validate;
@@ -220,7 +221,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			ref.setOid(oid);
 			ref.setType(ObjectTypes.getObjectType(clazz).getTypeQName());
             Utils.clearRequestee(task);
-            object = objectResolver.getObject(clazz, oid, rootOptions, task, result).asPrismObject();
+            object = objectResolver.getObject(clazz, oid, options, task, result).asPrismObject();
 
 			resolve(object, options, task, result);
 		} catch (SchemaException e) {
@@ -639,13 +640,17 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		}
 		RepositoryCache.enter();
 
-		boolean searchInProvisioning = ObjectTypes.isClassManagedByProvisioning(type);
-		OperationResult result = parentResult.createSubresult(SEARCH_OBJECTS);
-		result.addParams(new String[] { "query", "paging", "searchInProvisioning" },
-                query, (query != null ? query.getPaging() : "undefined"), searchInProvisioning);
-		
         GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
 
+        ObjectTypes.ObjectManager searchProvider = ObjectTypes.getObjectManagerForClass(type);
+        if (searchProvider == null || searchProvider == ObjectTypes.ObjectManager.MODEL || GetOperationOptions.isRaw(rootOptions)) {
+            searchProvider = ObjectTypes.ObjectManager.REPOSITORY;
+        }
+
+		OperationResult result = parentResult.createSubresult(SEARCH_OBJECTS);
+		result.addParams(new String[] { "query", "paging", "searchProvider" },
+                query, (query != null ? query.getPaging() : "undefined"), searchProvider);
+		
 		List<PrismObject<T>> list = null;
 		try {
 			if (query != null){
@@ -659,30 +664,32 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			}
 			
 			try {
-				if (!GetOperationOptions.isRaw(rootOptions) && searchInProvisioning) {
-					list = provisioning.searchObjects(type, query, null, result);
-				} else {
-					list = cacheRepositoryService.searchObjects(type, query, options, result);
-				}
+                switch (searchProvider) {
+                    case REPOSITORY: list = cacheRepositoryService.searchObjects(type, query, options, result); break;
+                    case PROVISIONING: list = provisioning.searchObjects(type, query, null, result); break;
+                    case TASK_MANAGER: list = taskManager.searchObjects(type, query, options, result); break;
+                    case WORKFLOW: throw new UnsupportedOperationException();
+                    default: throw new AssertionError("Unexpected search provider: " + searchProvider);
+                }
 				result.recordSuccess();
 				result.cleanupResult();
 			} catch (CommunicationException e) {
-				processSearchException(e, rootOptions, searchInProvisioning, result);
+				processSearchException(e, rootOptions, searchProvider, result);
 				throw e;
 			} catch (ConfigurationException e) {
-				processSearchException(e, rootOptions, searchInProvisioning, result);
+				processSearchException(e, rootOptions, searchProvider, result);
 				throw e;
 			} catch (ObjectNotFoundException e) {
-				processSearchException(e, rootOptions, searchInProvisioning, result);
+				processSearchException(e, rootOptions, searchProvider, result);
 				throw e;
 			} catch (SchemaException e) {
-				processSearchException(e, rootOptions, searchInProvisioning, result);
+				processSearchException(e, rootOptions, searchProvider, result);
 				throw e;
 			} catch (SecurityViolationException e) {
-				processSearchException(e, rootOptions, searchInProvisioning, result);
+				processSearchException(e, rootOptions, searchProvider, result);
 				throw e;
 			} catch (RuntimeException e) {
-				processSearchException(e, rootOptions, searchInProvisioning, result);
+				processSearchException(e, rootOptions, searchProvider, result);
 				throw e;
 			} finally {
 				if (LOGGER.isTraceEnabled()) {
@@ -714,13 +721,16 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		}
 		RepositoryCache.enter();
 
-		boolean searchInProvisioning = ObjectTypes.isClassManagedByProvisioning(type);
-		OperationResult result = parentResult.createSubresult(SEARCH_OBJECTS);
-		result.addParams(new String[] { "query", "paging", "searchInProvisioning" },
-                query, (query != null ? query.getPaging() : "undefined"), searchInProvisioning);
-		
         final GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
+        ObjectTypes.ObjectManager searchProvider = ObjectTypes.getObjectManagerForClass(type);
+        if (searchProvider == null || searchProvider == ObjectTypes.ObjectManager.MODEL || GetOperationOptions.isRaw(rootOptions)) {
+            searchProvider = ObjectTypes.ObjectManager.REPOSITORY;
+        }
 
+		OperationResult result = parentResult.createSubresult(SEARCH_OBJECTS);
+		result.addParams(new String[] { "query", "paging", "searchProvider" },
+                query, (query != null ? query.getPaging() : "undefined"), searchProvider);
+		
         ResultHandler<T> internalHandler = new ResultHandler<T>() {
 			@Override
 			public boolean handle(PrismObject<T> object,
@@ -742,51 +752,53 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			}
 			
 			try {
-				if (!GetOperationOptions.isRaw(rootOptions) && searchInProvisioning) {
-					provisioning.searchObjectsIterative(type, query, null, internalHandler, result);
-				} else {
-					cacheRepositoryService.searchObjectsIterative(type, query, internalHandler, options, result);
-				}
+                switch (searchProvider) {
+                    case REPOSITORY: cacheRepositoryService.searchObjectsIterative(type, query, internalHandler, options, result); break;
+                    case PROVISIONING: provisioning.searchObjectsIterative(type, query, null, internalHandler, result); break;
+                    case TASK_MANAGER: throw new UnsupportedOperationException("searchIterative in task manager is currently not supported");
+                    case WORKFLOW: throw new UnsupportedOperationException("searchIterative in task manager is currently not supported");
+                    default: throw new AssertionError("Unexpected search provider: " + searchProvider);
+                }
 				result.recordSuccess();
 				result.cleanupResult();
 			} catch (CommunicationException e) {
-				processSearchException(e, rootOptions, searchInProvisioning, result);
+				processSearchException(e, rootOptions, searchProvider, result);
 				throw e;
 			} catch (ConfigurationException e) {
-				processSearchException(e, rootOptions, searchInProvisioning, result);
+				processSearchException(e, rootOptions, searchProvider, result);
 				throw e;
 			} catch (ObjectNotFoundException e) {
-				processSearchException(e, rootOptions, searchInProvisioning, result);
+				processSearchException(e, rootOptions, searchProvider, result);
 				throw e;
 			} catch (SchemaException e) {
-				processSearchException(e, rootOptions, searchInProvisioning, result);
+				processSearchException(e, rootOptions, searchProvider, result);
 				throw e;
 			} catch (SecurityViolationException e) {
-				processSearchException(e, rootOptions, searchInProvisioning, result);
+				processSearchException(e, rootOptions, searchProvider, result);
 				throw e;
 			} catch (RuntimeException e) {
-				processSearchException(e, rootOptions, searchInProvisioning, result);
+				processSearchException(e, rootOptions, searchProvider, result);
 				throw e;
 			} finally {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace(result.dump(false));
 				}
 			}
-
 		} finally {
 			RepositoryCache.exit();
 		}
-		
 	}
 
 	private void processSearchException(Exception e, GetOperationOptions rootOptions,
-			boolean searchInProvisioning, OperationResult result) {
+			ObjectTypes.ObjectManager searchProvider, OperationResult result) {
 		String message;
-		if (GetOperationOptions.isRaw(rootOptions) || !searchInProvisioning) {
-			message = "Couldn't search objects in repository";
-		} else {
-			message = "Couldn't search objects in provisioning";
-		}
+        switch (searchProvider) {
+            case REPOSITORY: message = "Couldn't search objects in repository"; break;
+            case PROVISIONING: message = "Couldn't search objects in provisioning"; break;
+            case TASK_MANAGER: message = "Couldn't search objects in task manager"; break;
+            case WORKFLOW: message = "Couldn't search objects in workflow module"; break;
+            default: message = "Couldn't search objects"; break;    // should not occur
+        }
 		LoggingUtils.logException(LOGGER, message, e);
 		result.recordFatalError(message, e);
 		result.cleanupResult(e);
@@ -806,13 +818,17 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		int count;
 		try {
 			GetOperationOptions rootOptions = SelectorOptions.findRootOptions(options);
-			
-			if (!GetOperationOptions.isRaw(rootOptions)
-                    && ObjectTypes.isObjectTypeManagedByProvisioning(type)) {
-				count = provisioning.countObjects(type, query, parentResult);
-			} else {
-				count = cacheRepositoryService.countObjects(type, query, parentResult);
-			}
+
+            ObjectTypes.ObjectManager objectManager = ObjectTypes.getObjectManagerForClass(type);
+            if (GetOperationOptions.isRaw(rootOptions) || objectManager == null || objectManager == ObjectTypes.ObjectManager.MODEL) {
+                objectManager = ObjectTypes.ObjectManager.REPOSITORY;
+            }
+            switch (objectManager) {
+                case PROVISIONING: count = provisioning.countObjects(type, query, parentResult); break;
+                case REPOSITORY: count = cacheRepositoryService.countObjects(type, query, parentResult); break;
+                case TASK_MANAGER: count = taskManager.countObjects(type, query, parentResult); break;
+                default: throw new AssertionError("Unexpected objectManager: " + objectManager);
+            }
 		} catch (ConfigurationException e) {
 			ModelUtils.recordFatalError(result, e);
 			throw e;
@@ -1050,6 +1066,54 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		}
 		
 	}
+	
+	@Override
+	public void importFromResource(String shadowOid, Task task, OperationResult parentResult)
+			throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException,
+			ConfigurationException, SecurityViolationException {
+		Validate.notNull(shadowOid, "Shadow OID must not be null.");
+		Validate.notNull(task, "Task must not be null.");
+		RepositoryCache.enter();
+		LOGGER.trace("Launching importing shadow {} from resource.", shadowOid);
+
+		OperationResult result = parentResult.createSubresult(IMPORT_ACCOUNTS_FROM_RESOURCE);
+        result.addParam(OperationResult.PARAM_OID, shadowOid);
+        result.addArbitraryObjectAsParam("task", task);
+		// TODO: add context to the result
+
+        try {
+        	boolean wasOk = importAccountsFromResourceTaskHandler.importSingleShadow(shadowOid, task, result);
+			
+        	if (wasOk) {
+        		result.recordSuccess();
+        	} else {
+        		// the error should be in the result already, compute should reveal that to the top-level
+        		result.computeStatus();
+        	}
+			
+			
+			result.cleanupResult();
+		
+		} catch (ObjectNotFoundException ex) {
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+		} catch (CommunicationException ex) {
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+		} catch (ConfigurationException ex) {
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+		} catch (SecurityViolationException ex) {
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+		} catch (RuntimeException ex) {
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+		} finally {
+			RepositoryCache.exit();
+		}
+		
+	}
 
 	@Override
 	public void importObjectsFromFile(File input, ImportOptionsType options, Task task,
@@ -1225,6 +1289,11 @@ public class ModelController implements ModelService, ModelInteractionService, T
     @Override
     public void scheduleTasksNow(Collection<String> taskOids, OperationResult parentResult) {
         taskManager.scheduleTasksNow(taskOids, parentResult);
+    }
+
+    @Override
+    public PrismObject<TaskType> getTaskByIdentifier(String identifier, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+        return taskManager.getTaskTypeByIdentifier(identifier, options, parentResult);
     }
 
     @Override

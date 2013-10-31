@@ -207,7 +207,7 @@ public abstract class BaseAction implements Action {
     }
 
     protected <F extends FocusType> LensProjectionContext createAccountLensContext(LensContext<F> context,
-            ResourceObjectShadowChangeDescription change, SynchronizationIntent syncIntent,
+            ResourceObjectShadowChangeDescription change, SynchronizationSituationType situation, SynchronizationIntent syncIntent,
             ActivationDecision activationDecision) throws SchemaException {
         LOGGER.trace("Creating account context for sync change.");
 
@@ -220,15 +220,23 @@ public abstract class BaseAction implements Action {
 		LensProjectionContext accountContext = context.createProjectionContext(resourceAccountType);
         accountContext.setResource(resource);
         accountContext.setOid(getOidFromChange(change));
+        accountContext.setSynchronizationSituationDetected(situation);
 
         //insert object delta if available in change
         ObjectDelta<? extends ShadowType> delta = change.getObjectDelta();
         if (delta != null) {
             accountContext.setSyncDelta((ObjectDelta<ShadowType>) delta);
+        } else {
+        	accountContext.setSyncAbsoluteTrigger(true);
         }
 
         //we insert account if available in change
-        accountContext.setLoadedObject(getAccountObject(change));
+        PrismObject<ShadowType> currentAccount = getAccountObject(change);
+        if (currentAccount != null) {
+        	accountContext.setLoadedObject(currentAccount);
+        	accountContext.setFullShadow(true);
+        	accountContext.setFresh(true);
+        }
 
         if (delta != null && delta.isDelete()) {
         	accountContext.setExists(false);

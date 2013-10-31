@@ -16,8 +16,8 @@
 
 package com.evolveum.midpoint.web.page.admin.server.dto;
 
-import com.evolveum.midpoint.task.api.Node;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskExecutionStatusType;
 
 /**
  * Adds "RUNNING" state to the TaskExecutionStatus (meaning the task is currently executing at a node).
@@ -34,7 +34,7 @@ public enum TaskDtoExecutionStatus {
     SUSPENDED,
     CLOSED;
 
-    public static TaskDtoExecutionStatus fromTaskExecutionStatus(TaskExecutionStatus executionStatus, boolean running) {
+    public static TaskDtoExecutionStatus fromTaskExecutionStatus(TaskExecutionStatusType executionStatus, boolean running) {
         if (running) {
             return TaskDtoExecutionStatus.RUNNING;
         } else {

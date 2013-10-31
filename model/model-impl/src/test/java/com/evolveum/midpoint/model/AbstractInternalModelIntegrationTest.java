@@ -136,6 +136,9 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 	
 	public static final File ENTITLEMENT_SHADOW_PIRATE_DUMMY_FILE = new File(COMMON_DIR, "entitlement-shadow-pirate-dummy.xml");
 	public static final String ENTITLEMENT_PIRATE_DUMMY_NAME = "pirate";
+
+	public static final String ACCOUNT_SHADOW_CALYPSO_DUMMY_FILENAME = COMMON_DIR_NAME + "/account-shadow-calypso-dummy.xml";
+	public static final String ACCOUNT_CALYPSO_DUMMY_USERNAME = "calypso";
 	
 	public static final String RESOURCE_DUMMY_FILENAME = COMMON_DIR_NAME + "/resource-dummy.xml";
 	public static final String RESOURCE_DUMMY_OID = "10000000-0000-0000-0000-000000000004";
