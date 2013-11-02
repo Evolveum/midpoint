@@ -678,7 +678,7 @@ public class PageUser extends PageAdminUsers {
         };
         mainForm.add(back);
 
-        mainForm.add(new ExecuteChangeOptionsPanel(true, ID_EXECUTE_OPTIONS, executeOptionsModel));
+        mainForm.add(new ExecuteChangeOptionsPanel(ID_EXECUTE_OPTIONS, executeOptionsModel, true));
     }
 
     private void showAssignablePopup(AjaxRequestTarget target, Class<? extends ObjectType> type) {

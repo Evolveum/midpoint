@@ -33,11 +33,11 @@ public class ExecuteChangeOptionsPanel extends SimplePanel<ExecuteChangeOptionsD
     private static final String ID_RECONCILE_LABEL = "reconcileLabel";
     private static final String ID_EXECUTE_AFTER_ALL_APPROVALS = "executeAfterAllApprovals";
 
-    private boolean reconcile;
+    private boolean showReconcile;
 
-    public ExecuteChangeOptionsPanel(boolean reconcile, String id, IModel<ExecuteChangeOptionsDto> model) {
+    public ExecuteChangeOptionsPanel(String id, IModel<ExecuteChangeOptionsDto> model, boolean showReconcile) {
         super(id, model);
-        this.reconcile = reconcile;
+        this.showReconcile = showReconcile;
     }
 
     @Override
@@ -51,7 +51,7 @@ public class ExecuteChangeOptionsPanel extends SimplePanel<ExecuteChangeOptionsD
 
             @Override
             public boolean isVisible() {
-                return reconcile;
+                return showReconcile;
             }
 
         });
