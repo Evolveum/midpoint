@@ -84,40 +84,40 @@ public final class WebMiscUtil {
     private WebMiscUtil() {
     }
 
-    public static boolean isAuthorized(String... action){
-    	if (action ==  null){
-    		return true;
-    	}
-    	List<String> actions = Arrays.asList(action);
-    	Roles roles = new Roles(AuthorizationConstants.AUTZ_ALL_URL);
+    public static boolean isAuthorized(String... action) {
+        if (action == null) {
+            return true;
+        }
+        List<String> actions = Arrays.asList(action);
+        Roles roles = new Roles(AuthorizationConstants.AUTZ_ALL_URL);
         roles.addAll(actions);
-        if (((AuthenticatedWebApplication)AuthenticatedWebApplication.get()).hasAnyRole(roles)){
-        	return true;
+        if (((AuthenticatedWebApplication) AuthenticatedWebApplication.get()).hasAnyRole(roles)) {
+            return true;
         }
         return false;
     }
-    
-    public static Class getHomePage(){
-    	if (isAuthorized(PageUrlMapping.findActions(PageDashboard.class))){
-    		return PageDashboard.class;
-    	}
-    	
-    	MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
-    	if (principal != null){
-    		Collection<Authorization> authorizations = principal.getAuthorities();
-    		for (Authorization auth : authorizations){
-    			for (String action : auth.getAction()){
-    				Class homePage = PageUrlMapping.findClassForAction(action);
-    				if (homePage != null){
-    					return homePage;
-    				}
-    			}
-    		}
-    	}
-    	
+
+    public static Class getHomePage() {
+        if (isAuthorized(PageUrlMapping.findActions(PageDashboard.class))) {
+            return PageDashboard.class;
+        }
+
+        MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
+        if (principal != null) {
+            Collection<Authorization> authorizations = principal.getAuthorities();
+            for (Authorization auth : authorizations) {
+                for (String action : auth.getAction()) {
+                    Class homePage = PageUrlMapping.findClassForAction(action);
+                    if (homePage != null) {
+                        return homePage;
+                    }
+                }
+            }
+        }
+
         return PageDashboard.class;
     }
-    
+
     public static Integer safeLongToInteger(Long l) {
         if (l == null) {
             return null;
@@ -222,10 +222,10 @@ public final class WebMiscUtil {
 
         return (T) property.getRealValue(type);
     }
-    
+
     public static <T> T getContainerValue(PrismContainerValue object, QName containerName,
-			Class<T> type) {
-    	if (object == null) {
+                                          Class<T> type) {
+        if (object == null) {
             return null;
         }
 
@@ -233,16 +233,16 @@ public final class WebMiscUtil {
         if (container == null || container.isEmpty()) {
             return null;
         }
-        
+
         PrismContainerValue containerValue = container.getValue();
 
-        if (containerValue == null || containerValue.isEmpty()){
-        	return null;
+        if (containerValue == null || containerValue.isEmpty()) {
+            return null;
         }
-        
+
         return (T) containerValue.getValue();
-	}
-    
+    }
+
     public static <T> T getValue(PrismContainer object, QName propertyName, Class<T> type) {
         if (object == null) {
             return null;
@@ -441,16 +441,17 @@ public final class WebMiscUtil {
         return "silk-user";
     }
 
-    public static double getSystemLoad(){
+    public static double getSystemLoad() {
         com.sun.management.OperatingSystemMXBean operatingSystemMXBean = (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
         RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
         int availableProcessors = operatingSystemMXBean.getAvailableProcessors();
         long prevUpTime = runtimeMXBean.getUptime();
         long prevProcessCpuTime = operatingSystemMXBean.getProcessCpuTime();
 
-        try{
+        try {
             Thread.sleep(30);
-        }catch (Exception ignored) {}
+        } catch (Exception ignored) {
+        }
 
         operatingSystemMXBean = (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
         long upTime = runtimeMXBean.getUptime();
@@ -463,24 +464,24 @@ public final class WebMiscUtil {
         return cpuUsage;
     }
 
-    public static double getMaxRam(){
-        int MB = 1024*1024;
+    public static double getMaxRam() {
+        int MB = 1024 * 1024;
 
         MemoryMXBean mBean = ManagementFactory.getMemoryMXBean();
         long maxHeap = mBean.getHeapMemoryUsage().getMax();
         long maxNonHeap = mBean.getNonHeapMemoryUsage().getMax();
 
-        return (maxHeap+maxNonHeap)/MB;
+        return (maxHeap + maxNonHeap) / MB;
     }
 
-    public static double getRamUsage(){
-        int MB = 1024*1024;
+    public static double getRamUsage() {
+        int MB = 1024 * 1024;
 
         MemoryMXBean mBean = ManagementFactory.getMemoryMXBean();
         long usedHead = mBean.getHeapMemoryUsage().getUsed();
         long usedNonHeap = mBean.getNonHeapMemoryUsage().getUsed();
 
-        return (usedHead+usedNonHeap)/MB;
+        return (usedHead + usedNonHeap) / MB;
     }
 
     /**
@@ -489,7 +490,7 @@ public final class WebMiscUtil {
      * is added to feedback panel, and feedback is refreshed through {@link AjaxRequestTarget}
      *
      * @param target
-     * @param single this parameter is used for row actions when action must be done only on chosen row.
+     * @param single             this parameter is used for row actions when action must be done only on chosen row.
      * @param table
      * @param page
      * @param nothingWarnMessage
@@ -497,7 +498,7 @@ public final class WebMiscUtil {
      * @return
      */
     public static <T extends Selectable> List<T> isAnythingSelected(AjaxRequestTarget target, T single, TablePanel table,
-                                                              PageBase page, String nothingWarnMessage) {
+                                                                    PageBase page, String nothingWarnMessage) {
         List<T> selected;
         if (single != null) {
             selected = new ArrayList<T>();
