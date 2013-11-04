@@ -65,6 +65,17 @@ public class ResourceDto extends Selectable implements InlineMenuable {
 
     public ResourceDto() {
     }
+
+    @Deprecated
+    public ResourceDto(PrismObject<ResourceType> resource, ConnectorType connector) {
+        oid = resource.getOid();
+        name = WebMiscUtil.getName(resource);
+
+        bundle = connector != null ? connector.getConnectorBundle() : null;
+        version = connector != null ? connector.getConnectorVersion() : null;
+        type = connector != null ? connector.getConnectorType() : null;
+        lastAvailabilityStatus = resource.asObjectable().getOperationalState() != null ? resource.asObjectable().getOperationalState().getLastAvailabilityStatus() : null;
+    }
     
     public ResourceDto(PrismObject<ResourceType> resource) {
     	oid = resource.getOid();
