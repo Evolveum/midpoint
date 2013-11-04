@@ -189,5 +189,21 @@
             </script>
 		</condition>
     </mapping>
+    
+    <mapping>
+    	<name>time bomb</name>
+    	<timeFrom>
+			<referenceTime>
+				<path>$focus/metadata/createTimestamp</path>
+			</referenceTime>
+			<offset>P1M</offset>
+		</timeFrom>
+    	<expression>
+            <value>Kaboom!</value>    	
+    	</expression>
+    	<target>
+    		<path>additionalName</path>
+    	</target>
+    </mapping>
 
 </objectTemplate>

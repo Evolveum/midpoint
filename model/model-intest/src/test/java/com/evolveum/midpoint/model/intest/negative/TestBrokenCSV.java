@@ -135,7 +135,7 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
 		repoAddObjectFromFile(ACCOUNT_SHADOW_MURRAY_CSVFILE_FILENAME, ShadowType.class, initResult);
 		
 		// Users
-		userTypeJack = repoAddObjectFromFile(USER_JACK_FILENAME, UserType.class, initResult).asObjectable();
+		userTypeJack = repoAddObjectFromFile(USER_JACK_FILE, UserType.class, initResult).asObjectable();
 		
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 		
