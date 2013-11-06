@@ -1,0 +1,107 @@
+/*
+ * Copyright (c) 2010-2013 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.evolveum.midpoint.web.page.admin.configuration.component;
+
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
+import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
+import com.evolveum.midpoint.web.page.admin.home.dto.SimplePieChartDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
+
+/**
+ *  @author shood
+ * */
+public class ChooseTypePanel extends SimplePanel<ObjectViewDto>{
+
+    private static final Trace LOGGER = TraceManager.getTrace(ChooseTypePanel.class);
+
+    private static final String ID_OBJECT_NAME = "name";
+    private static final String ID_LINK_CHOOSE = "choose";
+    private static final String ID_LINK_REMOVE = "remove";
+
+    private static final String MODAL_ID_SHOW_CHOOSE_OPTIONS = "showOptionsPopup";
+
+    private static final String DEFAULT_CHOOSE_VALUE_NAME = "None";
+    private static final String DEFAULT_CHOOSE_VALUE_OID = "";
+
+    private Class clazz;
+
+    public ChooseTypePanel(String id, IModel<ObjectViewDto> model, Class type){
+        super(id, model);
+        this.clazz = type;
+    }
+
+    @Override
+    protected void initLayout(){
+        final Label name = new Label(ID_OBJECT_NAME, new AbstractReadOnlyModel<String>(){
+
+            @Override
+            public String getObject(){
+                return getModel().getObject().getName();
+            }
+        });
+        name.setOutputMarkupId(true);
+
+        AjaxLink choose = new AjaxLink(ID_LINK_CHOOSE) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                 changeOptionPerformed(target);
+            }
+        };
+
+        AjaxLink remove = new AjaxLink(ID_LINK_REMOVE) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                setToDefault();
+                target.add(name);
+            }
+        };
+
+        add(choose);
+        add(remove);
+        add(name);
+
+        initDialog();
+    }
+
+    private void initDialog(){
+        ChooseTypeDialog dialog = new ChooseTypeDialog(MODAL_ID_SHOW_CHOOSE_OPTIONS, this.clazz);
+        add(dialog);
+    }
+
+    private void changeOptionPerformed(AjaxRequestTarget target){
+        showModalWindow(MODAL_ID_SHOW_CHOOSE_OPTIONS, target);
+    }
+
+    private void showModalWindow(String id, AjaxRequestTarget target){
+        ModalWindow window = (ModalWindow)get(id);
+        window.show(target);
+        //TODO - there is some error here, further investigation is needed
+    }
+
+    private void setToDefault(){
+        getModel().setObject(new ObjectViewDto(DEFAULT_CHOOSE_VALUE_OID, DEFAULT_CHOOSE_VALUE_NAME));
+    }
+}

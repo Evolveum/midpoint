@@ -31,4 +31,8 @@ public class SystemConfigurationDto implements Serializable {
     public SystemConfigurationDto(PrismObject<SystemConfigurationType> config) {
         this.config = config;
     }
+
+    public PrismObject<SystemConfigurationType> getConfig() {
+        return config;
+    }
 }
