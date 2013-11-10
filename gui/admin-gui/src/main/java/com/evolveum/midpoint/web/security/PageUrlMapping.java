@@ -25,6 +25,7 @@ import com.evolveum.midpoint.web.page.error.PageError401;
 import com.evolveum.midpoint.web.page.error.PageError403;
 import com.evolveum.midpoint.web.page.error.PageError404;
 import com.evolveum.midpoint.web.page.login.PageLogin;
+import com.evolveum.midpoint.web.page.test.PageTest;
 import com.evolveum.midpoint.web.util.MidPointPageParametersEncoder;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import org.apache.wicket.markup.html.WebPage;
@@ -91,6 +92,8 @@ public enum PageUrlMapping {
 
     ADMIN("/admin", PageDashboard.class, MidPointPageParametersEncoder.ENCODER, new String[]{AUTZ_UI_DASHBOARD_URL, AUTZ_UI_HOME_ALL_URL}),
 
+    //todo remove this, they has to be disabled before release [lazyman]
+    TEST("/test", PageTest.class, MidPointPageParametersEncoder.ENCODER, null),
     TEST_BOOTSTRAP("/bootstrap", PageBootstrap.class, MidPointPageParametersEncoder.ENCODER, null),
 
     ERROR("/error", PageError.class, MidPointPageParametersEncoder.ENCODER, null),
