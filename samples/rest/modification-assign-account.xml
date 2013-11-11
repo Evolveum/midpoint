@@ -22,13 +22,13 @@
 	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-2'
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+	<oid>there will be oid</oid>
 	<modification>
 		<t:modificationType>add</t:modificationType>
 		<t:value>
 			<c:assignment>
 				<c:construction xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2">
 					<c:resourceRef oid="ef2bc95b-76e0-48e2-86d6-3d4f02d3e1a2" />
-					<c:objectClass>ri:AccountObjectClass</c:objectClass>
 					
 				</c:construction>
 			</c:assignment>

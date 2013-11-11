@@ -303,8 +303,7 @@ public class PrismJasonProcessor {
 	    		expectedJavaType = schemaRegistry.determineCompileTimeClass(propertyDefinition.getTypeName());
 	    	}
 	    	
-	    	System.out.println("expected type: " + expectedJavaType.getSimpleName() + " value :  " + valueElement);
-	    	System.out.println("type name: " + typeName);
+	    
 					realValue = JavaTypeConverter.convert(expectedJavaType, valueElement);
 				 
 			postProcessPropertyRealValue((T) realValue);
@@ -361,7 +360,13 @@ public class PrismJasonProcessor {
 //			}
 			PrismReferenceValue refVal = new PrismReferenceValue(oid);
 			refVal.setTargetType(type);
+			
+			String description = null;
+			if (value.get("description") != null){
+				description = value.get("description").getTextValue();
+			}
 
+			refVal.setDescription(description);
 //			QName relationAttribute = DOMUtil.getQNameAttribute(element, PrismConstants.ATTRIBUTE_RELATION_LOCAL_NAME);
 //			if (relationAttribute != null) {
 //				DOMUtil.validateNonEmptyQName(relationAttribute, " in reference type in " + DOMUtil.getQName(element));

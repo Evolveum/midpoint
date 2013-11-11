@@ -254,6 +254,7 @@ public class TestRestService {
 			      + org.apache.cxf.common.util.Base64Utility.encode("administrator:5ecr3t".getBytes());
 		  client.header("Authorization", authorizationHeader);
 		  
+		  client.query("options", "override");
 		 
 		  LOGGER.info("post starting");
 		  Response response = client.post(new File(SYSTEM_CONFIGURATION_FILENAME));
@@ -262,13 +263,13 @@ public class TestRestService {
 		  LOGGER.info("response : {} ", response.getStatus());
 		  LOGGER.info("response : {} ", response.getStatusInfo().getReasonPhrase());
 		  
-		  AssertJUnit.assertEquals("Ex[ected 200 but got " + response.getStatus(), 201, response.getStatus());
+		  AssertJUnit.assertEquals("Expected 200 but got " + response.getStatus(), 201, response.getStatus());
 		
 	  }
 
 
 	
-  @Test
+//  @Test
   public void test002addUserAdministrator() throws Exception{
 	  WebClient client = WebClient.create(ENDPOINT_ADDRESS);
 	  
@@ -297,7 +298,7 @@ public class TestRestService {
 	  LOGGER.info("response : {} ", response.getStatus());
 	  LOGGER.info("response : {} ", response.getStatusInfo().getReasonPhrase());
 	  
-	  AssertJUnit.assertEquals("Ex[ected 200 but got " + response.getStatus(), 201, response.getStatus());
+	  AssertJUnit.assertEquals("Expected 200 but got " + response.getStatus(), 201, response.getStatus());
 	
 	
   }
