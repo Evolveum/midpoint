@@ -285,6 +285,10 @@ public abstract class PageBase extends WebPage {
         return (MidPointApplication) getApplication();
     }
 
+    /**
+     * Was used for older menu, will be removed before release [lazyman]
+     */
+    @Deprecated
     public abstract List<BottomMenuItem> getBottomMenuItems();
 
     public PrismContext getPrismContext() {
