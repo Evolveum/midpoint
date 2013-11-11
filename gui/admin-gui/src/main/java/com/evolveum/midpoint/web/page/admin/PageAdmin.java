@@ -33,10 +33,7 @@ import com.evolveum.midpoint.web.page.admin.roles.PageRole;
 import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
-import com.evolveum.midpoint.web.page.admin.users.PageFindUsers;
-import com.evolveum.midpoint.web.page.admin.users.PageOrgStruct;
-import com.evolveum.midpoint.web.page.admin.users.PageUser;
-import com.evolveum.midpoint.web.page.admin.users.PageUsers;
+import com.evolveum.midpoint.web.page.admin.users.*;
 import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItems;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 
@@ -165,7 +162,7 @@ public class PageAdmin extends PageBase {
         users.addMenuItem(new MenuItem(null));
         users.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.users.org"), true, null, null));
         users.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.users.org.tree"), PageOrgStruct.class));
-        users.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.users.org.new"), PageOrgStruct.class));
+        users.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.users.org.new"), PageOrgUnit.class));
 
         return users;
     }

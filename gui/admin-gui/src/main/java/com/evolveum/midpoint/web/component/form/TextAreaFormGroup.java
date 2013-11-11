@@ -55,6 +55,7 @@ public class TextAreaFormGroup extends SimplePanel<String> {
         add(textWrapper);
 
         TextArea text = new TextArea(ID_TEXT, getModel());
+        text.setLabel(label);
         text.add(AttributeAppender.replace("placeholder", label));
         textWrapper.add(text);
     }

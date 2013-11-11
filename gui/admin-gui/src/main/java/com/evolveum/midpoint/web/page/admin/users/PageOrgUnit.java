@@ -16,6 +16,9 @@
 
 package com.evolveum.midpoint.web.page.admin.users;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
@@ -24,12 +27,17 @@ import com.evolveum.midpoint.web.component.form.CheckFormGroup;
 import com.evolveum.midpoint.web.component.form.TextAreaFormGroup;
 import com.evolveum.midpoint.web.component.form.TextFormGroup;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.PrismPropertyModel;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
+import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.TextArea;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.util.string.StringValue;
 
 /**
  * @author lazyman
@@ -40,6 +48,10 @@ public class PageOrgUnit extends PageAdminUsers {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageOrgUnit.class);
     private static final String DOT_CLASS = PageOrgUnit.class.getName() + ".";
+    private static final String LOAD_UNIT =DOT_CLASS + "loadOrgUnit";
+
+    private static final String ID_LABEL_SIZE = "col-md-4";
+    private static final String ID_INPUT_SIZE = "col-md-6";
 
     private static final String ID_FORM = "form";
     private static final String ID_NAME = "name";
@@ -57,10 +69,10 @@ public class PageOrgUnit extends PageAdminUsers {
     private static final String ID_BACK = "back";
     private static final String ID_SAVE = "save";
 
-    private IModel<OrgType> orgModel = new LoadableModel<OrgType>(false) {
+    private IModel<PrismObject<OrgType>> orgModel = new LoadableModel<PrismObject<OrgType>>(false) {
 
         @Override
-        protected OrgType load() {
+        protected PrismObject<OrgType> load() {
             return loadOrgUnit();
         }
     };
@@ -69,33 +81,49 @@ public class PageOrgUnit extends PageAdminUsers {
         initLayout();
     }
 
+    @Override
+    protected IModel<String> createPageTitleModel() {
+        return new LoadableModel<String>(false) {
+
+            @Override
+            protected String load() {
+                if (!isEditing()) {
+                    return PageOrgUnit.super.createPageTitleModel().getObject();
+                }
+
+                String name = WebMiscUtil.getName(orgModel.getObject());
+                return new StringResourceModel("page.title.edit", PageOrgUnit.this, null, null, name).getString();
+            }
+        };
+    }
+
     private void initLayout() {
         Form form = new Form(ID_FORM);
         add(form);
 
-        TextFormGroup name = new TextFormGroup(ID_NAME, new Model<String>(), createStringResource("ObjectType.name"),
-                "col-md-4", "col-md-6", true);
+        TextFormGroup name = new TextFormGroup(ID_NAME, new PrismPropertyModel(orgModel, OrgType.F_NAME),
+                createStringResource("ObjectType.name"),                ID_LABEL_SIZE, ID_INPUT_SIZE, true);
         form.add(name);
-        TextFormGroup displayName = new TextFormGroup(ID_DISPLAY_NAME, new Model<String>(),
-                createStringResource("OrgType.displayName"), "col-md-4", "col-md-6", true);
+        TextFormGroup displayName = new TextFormGroup(ID_DISPLAY_NAME, new PrismPropertyModel(orgModel,
+                OrgType.F_DISPLAY_NAME), createStringResource("OrgType.displayName"), ID_LABEL_SIZE, ID_INPUT_SIZE, true);
         form.add(displayName);
 
-        TextAreaFormGroup description = new TextAreaFormGroup(ID_DESCRIPTION, new Model<String>(),
-                createStringResource("ObjectType.description"), "col-md-4", "col-md-6");
+        TextAreaFormGroup description = new TextAreaFormGroup(ID_DESCRIPTION, new PrismPropertyModel(orgModel,
+                OrgType.F_DESCRIPTION), createStringResource("ObjectType.description"), ID_LABEL_SIZE, ID_INPUT_SIZE);
         form.add(description);
 
-        CheckFormGroup requestable = new CheckFormGroup(ID_REQUESTABLE, new Model<Boolean>(),
-                createStringResource("OrgType.requestable"), "col-md-4", "col-md-6");
+        CheckFormGroup requestable = new CheckFormGroup(ID_REQUESTABLE, new PrismPropertyModel(orgModel,
+                OrgType.F_REQUESTABLE), createStringResource("OrgType.requestable"), ID_LABEL_SIZE, ID_INPUT_SIZE);
         form.add(requestable);
 
-        TextFormGroup identifier = new TextFormGroup(ID_IDENTIFIER, new Model<String>(),
-                createStringResource("OrgType.identifier"), "col-md-4", "col-md-6", false);
+        TextFormGroup identifier = new TextFormGroup(ID_IDENTIFIER, new PrismPropertyModel(orgModel, OrgType.F_IDENTIFIER),
+                createStringResource("OrgType.identifier"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         form.add(identifier);
-        TextFormGroup costCenter = new TextFormGroup(ID_COST_CENTER, new Model<String>(),
-                createStringResource("OrgType.costCenter"), "col-md-4", "col-md-6", false);
+        TextFormGroup costCenter = new TextFormGroup(ID_COST_CENTER, new PrismPropertyModel(orgModel, OrgType.F_COST_CENTER),
+                createStringResource("OrgType.costCenter"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         form.add(costCenter);
-        TextFormGroup locality = new TextFormGroup(ID_LOCALITY, new Model<String>(),
-                createStringResource("OrgType.locality"), "col-md-4", "col-md-6", false);
+        TextFormGroup locality = new TextFormGroup(ID_LOCALITY, new PrismPropertyModel(orgModel, OrgType.F_LOCALITY),
+                createStringResource("OrgType.locality"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         form.add(locality);
 
         initButtons(form);
@@ -106,11 +134,12 @@ public class PageOrgUnit extends PageAdminUsers {
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-
+                savePerformed(target);
             }
 
             @Override
             protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(form);
                 target.add(getFeedbackPanel());
             }
         };
@@ -120,14 +149,54 @@ public class PageOrgUnit extends PageAdminUsers {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-
+                backPerformed(target);
             }
         };
         form.add(back);
     }
 
-    private OrgType loadOrgUnit() {
-        //todo implement
-        return null;
+    private boolean isEditing() {
+        StringValue oid = getPageParameters().get(PageOrgUnit.PARAM_ORG_ID);
+        return oid != null && StringUtils.isNotEmpty(oid.toString());
+    }
+
+    private void backPerformed(AjaxRequestTarget target) {
+
+    }
+
+    private void savePerformed(AjaxRequestTarget target) {
+
+    }
+
+    private PrismObject<OrgType> loadOrgUnit() {
+        OperationResult result = new OperationResult(LOAD_UNIT);
+
+        PrismObject<OrgType> org = null;
+        try {
+            if (!isEditing()) {
+                OrgType o = new OrgType();
+                getMidpointApplication().getPrismContext().adopt(org);
+                org = o.asPrismObject();
+            } else {
+                StringValue oid = getPageParameters().get(PageOrgUnit.PARAM_ORG_ID);
+                org = getModelService().getObject(OrgType.class, oid.toString(), null,
+                        createSimpleTask(LOAD_UNIT), result);
+            }
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "Couldn't load org. unit", ex);
+            result.recordFatalError("Couldn't load org. unit.", ex);
+        } finally {
+            result.computeStatus();
+        }
+
+        if (WebMiscUtil.showResultInPage(result)) {
+            showResult(result);
+        }
+
+        if (org == null) {
+            throw new RestartResponseException(PageOrgUnit.class);
+        }
+
+        return org;
     }
 }

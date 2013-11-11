@@ -112,3 +112,15 @@ div.main-button-bar {
     top: -1px;
   }
 }
+
+/*
+ * feedback messages for form groups
+ * - removing bullet and paddings
+ */
+div.form-group > div > span.text-danger {
+  ul.feedbackPanel {
+    margin: 0;
+    list-style: none;
+    padding: 0 0 0 @padding-base-horizontal;
+  }
+}

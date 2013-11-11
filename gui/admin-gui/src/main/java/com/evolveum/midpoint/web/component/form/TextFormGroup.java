@@ -19,10 +19,12 @@ package com.evolveum.midpoint.web.component.form;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.RequiredTextField;
 import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
 
 /**
@@ -33,6 +35,7 @@ public class TextFormGroup extends SimplePanel<String> {
     private static final String ID_TEXT = "text";
     private static final String ID_TEXT_WRAPPER = "textWrapper";
     private static final String ID_LABEL = "label";
+    private static final String ID_FEEDBACK = "feedback";
 
     public TextFormGroup(String id, IModel<String> value, IModel<String> label, String labelSize, String textSize,
                          boolean required) {
@@ -55,7 +58,11 @@ public class TextFormGroup extends SimplePanel<String> {
         add(textWrapper);
 
         TextField text = required ? new RequiredTextField(ID_TEXT, getModel()) : new TextField(ID_TEXT, getModel());
+        text.setLabel(label);
         text.add(AttributeAppender.replace("placeholder", label));
         textWrapper.add(text);
+
+        FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK, new ComponentFeedbackMessageFilter(text));
+        textWrapper.add(feedback);
     }
 }
