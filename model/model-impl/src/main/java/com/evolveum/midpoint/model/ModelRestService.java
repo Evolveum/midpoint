@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.List;
 
 import javax.jws.WebMethod;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -67,7 +68,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 
 @Service
-@Produces("application/xml")
+@Produces({"application/xml", "application/json"})
 public class ModelRestService {
 	
 	@Autowired(required= true)
@@ -128,6 +129,7 @@ public class ModelRestService {
 	@POST
 	@Path("/{type}")
 //	@Produces({"text/html", "application/xml"})
+	@Consumes({"application/xml", "application/json"})
 	public <T extends ObjectType> Response addObject(@PathParam("type") String type, PrismObject<T> object, @QueryParam("options") List<String> options, @Context UriInfo uriInfo){
 		LOGGER.info("model rest service for add operation start");
 		

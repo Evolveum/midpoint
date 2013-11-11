@@ -302,16 +302,19 @@
     
     <jaxrs:server id="restService" address="/rest/">
         <jaxrs:serviceBeans>
-        	<bean class="com.evolveum.midpoint.model.ModelRestService"/>
+        	<ref bean="modelRestService"/>
         </jaxrs:serviceBeans>
       <jaxrs:providers>
       	<ref bean="jaxbProvider" />
+      	<ref bean="jsonProvider" />
      	<ref bean="restAuthenticationHandler" />
     </jaxrs:providers>
    
     </jaxrs:server>
-     <bean id="jaxbProvider" class="com.evolveum.midpoint.model.rest.MidpointXmlProvider"/>
      
+      <bean id="modelRestService" class="com.evolveum.midpoint.model.ModelRestService"/>
+     <bean id="jaxbProvider" class="com.evolveum.midpoint.model.rest.MidpointXmlProvider"/>
+     <bean id="jsonProvider" class="com.evolveum.midpoint.model.rest.MidpointJsonProvider"/>
      <bean id="restAuthenticationHandler" class="com.evolveum.midpoint.model.security.MidpointRestAuthenticationHandler"/>
 
     <bean id="authenticationInterceptor" class="org.apache.cxf.ws.security.wss4j.WSS4JInInterceptor">
