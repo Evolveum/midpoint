@@ -666,7 +666,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			try {
                 switch (searchProvider) {
                     case REPOSITORY: list = cacheRepositoryService.searchObjects(type, query, options, result); break;
-                    case PROVISIONING: list = provisioning.searchObjects(type, query, null, result); break;
+                    case PROVISIONING: list = provisioning.searchObjects(type, query, options, result); break;
                     case TASK_MANAGER: list = taskManager.searchObjects(type, query, options, result); break;
                     case WORKFLOW: throw new UnsupportedOperationException();
                     default: throw new AssertionError("Unexpected search provider: " + searchProvider);

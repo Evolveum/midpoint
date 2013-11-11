@@ -60,6 +60,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
@@ -156,7 +157,7 @@ public class ModelCrudService {
 	 *             unknown error from underlying layers or other unexpected
 	 *             state
 	 */
-	public <T extends ObjectType> String addObject(PrismObject<T> object, Task task,
+	public <T extends ObjectType> String addObject(PrismObject<T> object, ModelExecuteOptions options, Task task,  
 			OperationResult parentResult) throws ObjectAlreadyExistsException, ObjectNotFoundException,
 			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
 			PolicyViolationException, SecurityViolationException {
@@ -190,9 +191,10 @@ public class ModelCrudService {
 				LOGGER.trace(object.dump());
 			}
 			
-			ModelExecuteOptions options = null;
-			if (StringUtils.isNotEmpty(objectType.getVersion())){
-				options = ModelExecuteOptions.createOverwrite();
+			if (options == null) {
+				if (StringUtils.isNotEmpty(objectType.getVersion())) {
+					options = ModelExecuteOptions.createOverwrite();
+				}
 			}
 			
 			ObjectDelta<T> objectDelta = ObjectDelta.createAddDelta(object);
@@ -259,7 +261,7 @@ public class ModelCrudService {
 	 *             unknown error from underlying layers or other unexpected
 	 *             state
 	 */
-	public <T extends ObjectType> void deleteObject(Class<T> clazz, String oid, Task task,
+	public <T extends ObjectType> void deleteObject(Class<T> clazz, String oid, ModelExecuteOptions options, Task task,
 			OperationResult parentResult) throws ObjectNotFoundException, ConsistencyViolationException,
 			CommunicationException, SchemaException, ConfigurationException, PolicyViolationException,
 			SecurityViolationException {
@@ -346,7 +348,7 @@ public class ModelCrudService {
 	 *             state
 	 */
 	public <T extends ObjectType> void modifyObject(Class<T> type, String oid,
-			Collection<? extends ItemDelta> modifications, Task task, OperationResult parentResult)
+			Collection<? extends ItemDelta> modifications, ModelExecuteOptions options, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException,
 			CommunicationException, ConfigurationException, ObjectAlreadyExistsException,
 			PolicyViolationException, SecurityViolationException {
@@ -426,4 +428,62 @@ public class ModelCrudService {
 		return modelController.testResource(resourceOid, task);
 	}
 	
+	
+	//TASK AREA
+    public boolean suspendTasks(Collection<String> taskOids, long waitForStop, OperationResult parentResult) {
+        return modelController.suspendTasks(taskOids, waitForStop, parentResult);
+    }
+
+    public void suspendAndDeleteTasks(Collection<String> taskOids, long waitForStop, boolean alsoSubtasks, OperationResult parentResult) {
+        modelController.suspendAndDeleteTasks(taskOids, waitForStop, alsoSubtasks, parentResult);
+    }
+
+    public void resumeTasks(Collection<String> taskOids, OperationResult parentResult) {
+        modelController.resumeTasks(taskOids, parentResult);
+    }
+
+    public void scheduleTasksNow(Collection<String> taskOids, OperationResult parentResult) {
+        modelController.scheduleTasksNow(taskOids, parentResult);
+    }
+
+    public PrismObject<TaskType> getTaskByIdentifier(String identifier, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+        return modelController.getTaskByIdentifier(identifier, options, parentResult);
+    }
+
+    public boolean deactivateServiceThreads(long timeToWait, OperationResult parentResult) {
+        return modelController.deactivateServiceThreads(timeToWait, parentResult);
+    }
+
+    public void reactivateServiceThreads(OperationResult parentResult) {
+        modelController.reactivateServiceThreads(parentResult);
+    }
+
+    public boolean getServiceThreadsActivationState() {
+        return modelController.getServiceThreadsActivationState();
+    }
+
+    public void stopSchedulers(Collection<String> nodeIdentifiers, OperationResult parentResult) {
+        modelController.stopSchedulers(nodeIdentifiers, parentResult);
+    }
+
+    public boolean stopSchedulersAndTasks(Collection<String> nodeIdentifiers, long waitTime, OperationResult parentResult) {
+        return modelController.stopSchedulersAndTasks(nodeIdentifiers, waitTime, parentResult);
+    }
+
+    public void startSchedulers(Collection<String> nodeIdentifiers, OperationResult parentResult) {
+        modelController.startSchedulers(nodeIdentifiers, parentResult);
+    }
+
+    public void synchronizeTasks(OperationResult parentResult) {
+    	modelController.synchronizeTasks(parentResult);
+    }
+
+    public List<String> getAllTaskCategories() {
+        return modelController.getAllTaskCategories();
+    }
+
+    public String getHandlerUriForCategory(String category) {
+        return modelController.getHandlerUriForCategory(category);
+    }
+
 }

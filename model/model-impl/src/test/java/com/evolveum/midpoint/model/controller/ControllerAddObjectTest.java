@@ -113,13 +113,13 @@ public class ControllerAddObjectTest extends AbstractTestNGSpringContextTests {
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullObject() throws Exception {
 		TestUtil.displayTestTile("nullObject");
-		controller.addObject(null, taskManager.createTaskInstance(), new OperationResult("Test Operation"));
+		controller.addObject(null, null, taskManager.createTaskInstance(), new OperationResult("Test Operation"));
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullResult() throws Exception {
 		TestUtil.displayTestTile("nullResult");
-		controller.addObject(new UserType().asPrismObject(), taskManager.createTaskInstance(), null);
+		controller.addObject(new UserType().asPrismObject(), null, taskManager.createTaskInstance(), null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
@@ -131,7 +131,7 @@ public class ControllerAddObjectTest extends AbstractTestNGSpringContextTests {
 
 		OperationResult result = new OperationResult("Test Operation");
 		try {
-			controller.addObject(expectedUser.asPrismObject(), taskManager.createTaskInstance(), result);
+			controller.addObject(expectedUser.asPrismObject(), null, taskManager.createTaskInstance(), result);
 		} finally {
 			LOGGER.debug(result.dump());
 		}
@@ -172,7 +172,7 @@ public class ControllerAddObjectTest extends AbstractTestNGSpringContextTests {
 		OperationResult result = new OperationResult("Test Operation");
 		
 		// WHEN
-		String userOid = controller.addObject(expectedUser, task, result);
+		String userOid = controller.addObject(expectedUser, null, task, result);
 		
 		// THEN
 		display("addObject result",result.dump());
@@ -212,7 +212,7 @@ public class ControllerAddObjectTest extends AbstractTestNGSpringContextTests {
 
 		OperationResult result = new OperationResult("Test Operation");
 		try {
-			String resourceOid = controller.addObject(expectedResource, task, result);
+			String resourceOid = controller.addObject(expectedResource, null, task, result);
 			assertEquals(oid, resourceOid);
 		} finally {
 			LOGGER.debug(result.dump());

@@ -70,6 +70,14 @@ public class PrismContext {
 
 		return prismContext;
 	}
+	
+	public static PrismContext createEmptyContext(SchemaRegistry schemaRegistry){
+		PrismContext prismContext = new PrismContext();
+		prismContext.schemaRegistry = schemaRegistry;
+		schemaRegistry.setPrismContext(prismContext);
+
+		return prismContext;
+	}
 
 	public void initialize() throws SchemaException, SAXException, IOException {
 		schemaRegistry.initialize();
