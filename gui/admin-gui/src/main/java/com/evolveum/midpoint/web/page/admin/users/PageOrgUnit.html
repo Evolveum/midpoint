@@ -62,22 +62,11 @@
                 <div class="form-group" wicket:id="identifier"/>
                 <div class="form-group" wicket:id="costCenter"/>
                 <div class="form-group" wicket:id="locality"/>
+
                 <h3><wicket:message key="FocusType.activation"/></h3>
                 <div class="form-group" wicket:id="administrativeStatus"/>
-                <div class="form-group">
-                    <label class="col-md-4 control-label"><wicket:message key="ActivationType.validFrom"/></label>
-
-                    <div class="col-md-6">
-                        <input type="text" class="form-control input-sm" wicket:message="placeholder:ActivationType.validFrom">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label class="col-md-4 control-label"><wicket:message key="ActivationType.validTo"/></label>
-
-                    <div class="col-md-6">
-                        <input type="text" class="form-control input-sm" wicket:message="placeholder:ActivationType.validTo">
-                    </div>
-                </div>
+                <div class="form-group" wicket:id="validFrom"/>
+                <div class="form-group" wicket:id="validTo"/>
             </div>
             <div class="col-md-6">
                 <h3><wicket:message key="PageOrgUnit.title.assignments"/></h3>

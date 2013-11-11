@@ -27,10 +27,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.form.CheckFormGroup;
-import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
-import com.evolveum.midpoint.web.component.form.TextAreaFormGroup;
-import com.evolveum.midpoint.web.component.form.TextFormGroup;
+import com.evolveum.midpoint.web.component.form.*;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.PrismPropertyModel;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
@@ -145,6 +142,16 @@ public class PageOrgUnit extends PageAdminUsers {
                 renderer, createStringResource("ActivationType.administrativeStatus"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         form.add(administrativeStatus);
 
+        DateFormGroup validFrom = new DateFormGroup(ID_VALID_FROM, new PrismPropertyModel(orgModel, new ItemPath(
+                OrgType.F_ACTIVATION, ActivationType.F_VALID_FROM)), createStringResource("ActivationType.validFrom"),
+                ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+        form.add(validFrom);
+
+        DateFormGroup validTo = new DateFormGroup(ID_VALID_TO, new PrismPropertyModel(orgModel, new ItemPath(
+                OrgType.F_ACTIVATION, ActivationType.F_VALID_TO)), createStringResource("ActivationType.validTo"),
+                ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+        form.add(validTo);
+
         initButtons(form);
     }
 
@@ -197,7 +204,7 @@ public class PageOrgUnit extends PageAdminUsers {
                 OperationResult subResult = result.createSubresult(LOAD_UNIT);
                 try {
                     oldOrgUnit = getModelService().getObject(OrgType.class, newOrgUnit.getOid(), null,
-                        createSimpleTask(LOAD_UNIT), subResult);
+                            createSimpleTask(LOAD_UNIT), subResult);
                 } finally {
                     subResult.computeStatus();
                 }
@@ -230,7 +237,7 @@ public class PageOrgUnit extends PageAdminUsers {
         try {
             if (!isEditing()) {
                 OrgType o = new OrgType();
-                getMidpointApplication().getPrismContext().adopt(org);
+                getMidpointApplication().getPrismContext().adopt(o);
                 org = o.asPrismObject();
             } else {
                 StringValue oid = getPageParameters().get(PageOrgUnit.PARAM_ORG_ID);
