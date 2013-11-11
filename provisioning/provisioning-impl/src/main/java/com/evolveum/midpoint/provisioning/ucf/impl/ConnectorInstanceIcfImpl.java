@@ -190,6 +190,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	private ResourceSchema resourceSchema = null;
 	private Collection<Object> capabilities = null;
 	private PrismSchema connectorSchema;
+	private String description;
 
 	public ConnectorInstanceIcfImpl(ConnectorInfo connectorInfo, ConnectorType connectorType,
 			String schemaNamespace, PrismSchema connectorSchema, Protector protector,
@@ -200,6 +201,14 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		this.connectorSchema = connectorSchema;
 		this.protector = protector;
 		this.prismContext = prismContext;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
 	}
 
 	public String getSchemaNamespace() {
@@ -262,7 +271,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 			result.recordSuccess();
 		} catch (Throwable ex) {
-			Throwable midpointEx = processIcfException(ex, result);
+			Throwable midpointEx = processIcfException(ex, this, result);
 			result.computeStatus("Removing attribute values failed");
 			// Do some kind of acrobatics to do proper throwing of checked
 			// exception
@@ -537,7 +546,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			// Therefore this kind of heavy artillery is necessary.
 			// ICF interface does not specify exceptions or other error
 			// TODO maybe we can try to catch at least some specific exceptions
-			Throwable midpointEx = processIcfException(ex, icfResult);
+			Throwable midpointEx = processIcfException(ex, this, icfResult);
 
 			// Do some kind of acrobatics to do proper throwing of checked
 			// exception
@@ -967,7 +976,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 			icfResult.recordSuccess();
 		} catch (Throwable ex) {
-			Throwable midpointEx = processIcfException(ex, icfResult);
+			Throwable midpointEx = processIcfException(ex, this, icfResult);
 			icfResult.computeStatus("Add object failed");
 
 			// Do some kind of acrobatics to do proper throwing of checked
@@ -1122,7 +1131,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			uid = icfConnectorFacade.create(objectClass, attributes, new OperationOptionsBuilder().build());
 
 		} catch (Throwable ex) {
-			Throwable midpointEx = processIcfException(ex, icfResult);
+			Throwable midpointEx = processIcfException(ex, this, icfResult);
 			result.computeStatus("Add object failed");
 
 			// Do some kind of acrobatics to do proper throwing of checked
@@ -1342,7 +1351,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				icfResult.recordSuccess();
 			}
 		} catch (Throwable ex) {
-			Throwable midpointEx = processIcfException(ex, icfResult);
+			Throwable midpointEx = processIcfException(ex, this, icfResult);
 			result.computeStatus("Adding attribute values failed");
 			// Do some kind of acrobatics to do proper throwing of checked
 			// exception
@@ -1413,7 +1422,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 				icfResult.recordSuccess();
 			} catch (Throwable ex) {
-				Throwable midpointEx = processIcfException(ex, icfResult);
+				Throwable midpointEx = processIcfException(ex, this, icfResult);
 				result.computeStatus("Update failed");
 				// Do some kind of acrobatics to do proper throwing of checked
 				// exception
@@ -1469,7 +1478,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				icfResult.recordSuccess();
 			}
 		} catch (Throwable ex) {
-			Throwable midpointEx = processIcfException(ex, icfResult);
+			Throwable midpointEx = processIcfException(ex, this, icfResult);
 			result.computeStatus("Removing attribute values failed");
 			// Do some kind of acrobatics to do proper throwing of checked
 			// exception
@@ -1560,7 +1569,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			icfResult.recordSuccess();
 
 		} catch (Throwable ex) {
-			Throwable midpointEx = processIcfException(ex, icfResult);
+			Throwable midpointEx = processIcfException(ex, this, icfResult);
 			result.computeStatus("Removing attribute values failed");
 			// Do some kind of acrobatics to do proper throwing of checked
 			// exception
@@ -1612,7 +1621,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			icfResult.recordSuccess();
 			icfResult.addReturn("syncToken", syncToken==null?null:String.valueOf(syncToken.getValue()));
 		} catch (Throwable ex) {
-			Throwable midpointEx = processIcfException(ex, icfResult);
+			Throwable midpointEx = processIcfException(ex, this, icfResult);
 			result.computeStatus();
 			// Do some kind of acrobatics to do proper throwing of checked
 			// exception
@@ -1692,7 +1701,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			icfResult.recordSuccess();
 			icfResult.addReturn(OperationResult.RETURN_COUNT, syncDeltas.size());
 		} catch (Throwable ex) {
-			Throwable midpointEx = processIcfException(ex, icfResult);
+			Throwable midpointEx = processIcfException(ex, this, icfResult);
 			result.computeStatus();
 			// Do some kind of acrobatics to do proper throwing of checked
 			// exception
@@ -1741,7 +1750,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					"Operation not supported by the connector", ex);
 			// Do not rethrow. Recording the status is just OK.
 		} catch (Throwable icfEx) {
-			Throwable midPointEx = processIcfException(icfEx, connectionResult);
+			Throwable midPointEx = processIcfException(icfEx, this, connectionResult);
 			connectionResult.recordFatalError(midPointEx);
 		}
 	}
@@ -1842,7 +1851,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			result.recordFatalError(ex);
 			throw ex;
 		} catch (Throwable ex) {
-			Throwable midpointEx = processIcfException(ex, icfResult);
+			Throwable midpointEx = processIcfException(ex, this, icfResult);
 			result.computeStatus();
 			// Do some kind of acrobatics to do proper throwing of checked
 			// exception
@@ -2334,7 +2343,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					LOGGER.debug("Finished running script ({}), ERROR: {}", icfOpName, ex.getMessage());
 				}
 				
-				Throwable midpointEx = processIcfException(ex, icfResult);
+				Throwable midpointEx = processIcfException(ex, this, icfResult);
 				result.computeStatus();
 				// Do some kind of acrobatics to do proper throwing of checked
 				// exception
@@ -2711,7 +2720,11 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	 */
 	@Override
 	public String toString() {
-		return "ConnectorInstanceIcfImpl(" + ObjectTypeUtil.toShortString(connectorType) + ")";
+		return "ConnectorInstanceIcfImpl(" + connectorType + ")";
+	}
+
+	public String getHumanReadableName() {
+		return connectorType.toString() + ": " + description;
 	}
 
 }
