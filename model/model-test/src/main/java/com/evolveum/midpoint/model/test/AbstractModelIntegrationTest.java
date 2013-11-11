@@ -1589,11 +1589,27 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		AssertJUnit.fail("Expected that "+object+" will have a trigger but it has not");
 	}
 	
+	protected <O extends ObjectType> void assertTrigger(PrismObject<O> object, String handlerUri, XMLGregorianCalendar mid, long tolerance) throws ObjectNotFoundException, SchemaException {
+		XMLGregorianCalendar start = XmlTypeConverter.addMillis(mid, -tolerance);
+		XMLGregorianCalendar end = XmlTypeConverter.addMillis(mid, tolerance);
+		for (TriggerType trigger: object.asObjectable().getTrigger()) {
+			if (handlerUri.equals(trigger.getHandlerUri()) 
+					&& MiscUtil.isBetween(trigger.getTimestamp(), start, end)) {
+				return;
+			}
+		}
+		AssertJUnit.fail("Expected that "+object+" will have a trigger but it has not");
+	}
+	
 	protected <O extends ObjectType> void assertNoTrigger(Class<O> type, String oid) throws ObjectNotFoundException, SchemaException {
 		OperationResult result = new OperationResult(AbstractModelIntegrationTest.class.getName() + ".assertNoTrigger");
 		PrismObject<O> object = repositoryService.getObject(type, oid, null, result);
 		result.computeStatus();
 		TestUtil.assertSuccess(result);
+		assertNoTrigger(object);
+	}
+	
+	protected <O extends ObjectType> void assertNoTrigger(PrismObject<O> object) throws ObjectNotFoundException, SchemaException {
 		List<TriggerType> triggers = object.asObjectable().getTrigger();
 		if (triggers != null && !triggers.isEmpty()) {
 			AssertJUnit.fail("Expected that "+object+" will have no triggers but it has "+triggers.size()+ " trigger: "+ triggers);
@@ -1637,15 +1653,27 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         List<Message> messages = dummyTransport.getMessages("dummy:" + name);
         if (expectedCount == 0) {
             if (messages != null && !messages.isEmpty()) {
+            	LOGGER.error(messages.size() + " unexpected message(s) recorded in dummy transport '" + name + "'");
+            	logNotifyMessages(messages);
                 assertFalse(messages.size() + " unexpected message(s) recorded in dummy transport '" + name + "'", true);
             }
         } else {
             assertNotNull("No messages recorded in dummy transport '" + name + "'", messages);
-            assertEquals("Invalid number of messages recorded in dummy transport '" + name + "'", expectedCount, messages.size());
+            if (expectedCount != messages.size()) {
+            	LOGGER.error("Invalid number of messages recorded in dummy transport '" + name + "', expected: "+expectedCount+", actual: "+messages.size());
+            	logNotifyMessages(messages);
+            	assertEquals("Invalid number of messages recorded in dummy transport '" + name + "'", expectedCount, messages.size());
+            }
         }
     }
 
-    protected void checkDummyTransportMessagesAtLeast(String name, int expectedCount) {
+    private void logNotifyMessages(List<Message> messages) {
+		for (Message message: messages) {
+			LOGGER.debug("Notification message:\n{}", message.getBody());
+		}
+	}
+
+	protected void checkDummyTransportMessagesAtLeast(String name, int expectedCount) {
         if (expectedCount == 0) {
             return;
         }

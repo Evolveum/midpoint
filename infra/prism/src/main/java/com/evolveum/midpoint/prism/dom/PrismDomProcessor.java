@@ -67,6 +67,7 @@ import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.ReflectionUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 /**
  * @author semancik
@@ -505,8 +506,7 @@ public class PrismDomProcessor {
 		QName propertyName = JAXBUtil.getElementQName(firstElement);
 		PrismProperty<T> property = new PrismProperty<T>(itemName);
 		for (Object valueElement : valueElements) {
-			PrismPropertyValue<T> pval = new PrismPropertyValue<T>(null);
-			pval.setRawElement(valueElement);
+			PrismPropertyValue<T> pval = PrismPropertyValue.createRaw(valueElement);
 			property.add(pval);
 		}
 		return property;
@@ -584,6 +584,10 @@ public class PrismDomProcessor {
 		} else {
 			// The values is already in java form, just store it directly
 			realValue = valueElement;
+		}
+		if (realValue != null && realValue instanceof PolyStringType) {
+			PolyStringType polyStringType = (PolyStringType)realValue;
+			realValue = new PolyString(polyStringType.getOrig(), polyStringType.getNorm());
 		}
 		postProcessPropertyRealValue((T) realValue);
 		return (T) realValue;

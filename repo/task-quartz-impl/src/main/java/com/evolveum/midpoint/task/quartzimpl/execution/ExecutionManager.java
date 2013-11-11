@@ -96,7 +96,7 @@ public class ExecutionManager {
         for (String nodeIdentifier : nodeIdentifiers) {
             stopScheduler(nodeIdentifier, result);
         }
-        ClusterStatusInformation csi = getClusterStatusInformation(true, result);
+        ClusterStatusInformation csi = getClusterStatusInformation(true, false, result);
         Set<ClusterStatusInformation.TaskInfo> taskInfoList = csi.getTasksOnNodes(nodeIdentifiers);
 
         LOGGER.debug("{} task(s) found on nodes that are going down, stopping them.", taskInfoList.size());
@@ -133,12 +133,12 @@ public class ExecutionManager {
      * ==================== NODE-LEVEL METHODS (QUERIES) ====================
      */
 
-    public ClusterStatusInformation getClusterStatusInformation(boolean clusterwide, OperationResult parentResult) {
+    public ClusterStatusInformation getClusterStatusInformation(boolean clusterwide, boolean allowCached, OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(ExecutionManager.class.getName() + ".getClusterStatusInformation");
         result.addParam("clusterwide", clusterwide);
 
-        if (clusterwide && lastClusterStatusInformation != null && lastClusterStatusInformation.isFresh(ALLOWED_CLUSTER_STATE_INFORMATION_AGE)) {
+        if (allowCached && clusterwide && lastClusterStatusInformation != null && lastClusterStatusInformation.isFresh(ALLOWED_CLUSTER_STATE_INFORMATION_AGE)) {
             result.recordSuccess();
             return lastClusterStatusInformation;
         }
@@ -247,7 +247,7 @@ public class ExecutionManager {
         LOGGER.trace("Stopping tasks " + tasks + " (waiting " + waitTime + " msec); clusterwide = " + clusterwide);
 
         if (clusterwide && csi == null) {
-            csi = getClusterStatusInformation(true, result);
+            csi = getClusterStatusInformation(true, false, result);
         }
 
         for (Task task : tasks)
@@ -290,7 +290,7 @@ public class ExecutionManager {
         for(;;) {
 
             boolean isAnythingExecuting = false;
-            ClusterStatusInformation rtinfo = getClusterStatusInformation(clusterwide, result);
+            ClusterStatusInformation rtinfo = getClusterStatusInformation(clusterwide, false, result);
             for (String oid : oids) {
                 if (rtinfo.findNodeInfoForTask(oid) != null) {
                     isAnythingExecuting = true;

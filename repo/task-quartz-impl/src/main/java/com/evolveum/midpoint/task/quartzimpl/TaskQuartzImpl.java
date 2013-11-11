@@ -1413,7 +1413,7 @@ public class TaskQuartzImpl implements Task {
 	private PropertyDelta<?> setNameAndPrepareDelta(PolyStringType value) {
 		setNameTransient(value);
 		return isPersistent() ? PropertyDelta.createReplaceDelta(
-					taskManager.getTaskObjectDefinition(), TaskType.F_NAME, value) : null;
+					taskManager.getTaskObjectDefinition(), TaskType.F_NAME, value.toPolyString()) : null;
 	}
 
     /*
@@ -1848,8 +1848,13 @@ public class TaskQuartzImpl implements Task {
 
     private PropertyDelta<?> setNodeAndPrepareDelta(String value) {
         setNodeTransient(value);
-        return isPersistent() ? PropertyDelta.createReplaceDelta(
-                taskManager.getTaskObjectDefinition(), TaskType.F_NODE, value) : null;
+        if (value != null) {
+	        return isPersistent() ? PropertyDelta.createReplaceDelta(
+	                taskManager.getTaskObjectDefinition(), TaskType.F_NODE, value) : null;
+        } else {
+        	return isPersistent() ? PropertyDelta.createReplaceDelta(
+	                taskManager.getTaskObjectDefinition(), TaskType.F_NODE) : null;
+        }
     }
 
 

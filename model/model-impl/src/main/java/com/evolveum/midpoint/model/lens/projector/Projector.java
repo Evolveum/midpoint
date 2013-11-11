@@ -115,8 +115,6 @@ public class Projector {
 		// troubleshooting
 		XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
 		
-		LOGGER.debug("Projecting context {}", context);
-		
 		LensUtil.traceContext(LOGGER, activityDescription, "projector start", false, context, false);
 		
 		if (consistencyChecks) context.checkConsistence();
