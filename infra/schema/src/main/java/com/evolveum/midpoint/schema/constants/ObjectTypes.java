@@ -30,53 +30,53 @@ public enum ObjectTypes {
 
     @Deprecated
     ACCOUNT("schema.objectTypes.account", SchemaConstants.C_ACCOUNT_SHADOW_TYPE, SchemaConstants.C_ACCOUNT,
-            AccountShadowType.class, ObjectManager.PROVISIONING),
+            AccountShadowType.class, ObjectManager.PROVISIONING, "accounts"),
 
     CONNECTOR("schema.objectTypes.connector", SchemaConstants.C_CONNECTOR_TYPE, SchemaConstants.C_CONNECTOR,
-            ConnectorType.class, ObjectManager.PROVISIONING),
+            ConnectorType.class, ObjectManager.PROVISIONING, "connectors"),
 
     CONNECTOR_HOST("schema.objectTypes.connectorHost", SchemaConstants.C_CONNECTOR_HOST_TYPE,
-            SchemaConstants.C_CONNECTOR_HOST, ConnectorHostType.class, ObjectManager.PROVISIONING),
+            SchemaConstants.C_CONNECTOR_HOST, ConnectorHostType.class, ObjectManager.PROVISIONING, "connectorHosts"),
 
     GENERIC_OBJECT("schema.objectTypes.genericObject", SchemaConstants.C_GENERIC_OBJECT_TYPE,
-            SchemaConstants.C_GENERIC_OBJECT, GenericObjectType.class, ObjectManager.MODEL),
+            SchemaConstants.C_GENERIC_OBJECT, GenericObjectType.class, ObjectManager.MODEL, "genericObjects"),
 
     RESOURCE("schema.objectTypes.resource", SchemaConstants.C_RESOURCE_TYPE, SchemaConstants.C_RESOURCE,
-            ResourceType.class, ObjectManager.PROVISIONING),
+            ResourceType.class, ObjectManager.PROVISIONING, "resources"),
 
     USER("schema.objectTypes.user", SchemaConstants.C_USER_TYPE, SchemaConstants.C_USER, UserType.class,
-            ObjectManager.MODEL),
+            ObjectManager.MODEL, "users"),
 
     OBJECT_TEMPLATE("schema.objectTypes.objectTemplate", SchemaConstants.C_OBJECT_TEMPLATE_TYPE,
-            SchemaConstants.C_OBJECT_TEMPLATE, ObjectTemplateType.class, ObjectManager.MODEL),
+            SchemaConstants.C_OBJECT_TEMPLATE, ObjectTemplateType.class, ObjectManager.MODEL, "objectTemplates"),
 
     SYSTEM_CONFIGURATION("schema.objectTypes.systemConfiguration",
             SchemaConstants.C_SYSTEM_CONFIGURATION_TYPE, SchemaConstants.C_SYSTEM_CONFIGURATION,
-            SystemConfigurationType.class, ObjectManager.MODEL),
+            SystemConfigurationType.class, ObjectManager.MODEL, "systemConfigurations"),
 
     TASK("schema.objectTypes.task", SchemaConstants.C_TASK_TYPE, SchemaConstants.C_TASK, TaskType.class,
-            ObjectManager.TASK_MANAGER),
+            ObjectManager.TASK_MANAGER, "tasks"),
 
     SHADOW("schema.objectTypes.shadow",
             SchemaConstants.C_SHADOW_TYPE, SchemaConstants.C_SHADOW,
-            ShadowType.class, ObjectManager.PROVISIONING),
+            ShadowType.class, ObjectManager.PROVISIONING, "shadows"),
 
     OBJECT("schema.objectTypes.object", SchemaConstants.C_OBJECT_TYPE, SchemaConstants.C_OBJECT,
-            ObjectType.class, ObjectManager.MODEL),
+            ObjectType.class, ObjectManager.MODEL, "objects"),
 
-    ROLE("schema.objectTypes.role", RoleType.COMPLEX_TYPE, SchemaConstantsGenerated.C_ROLE, RoleType.class, ObjectManager.MODEL),
+    ROLE("schema.objectTypes.role", RoleType.COMPLEX_TYPE, SchemaConstantsGenerated.C_ROLE, RoleType.class, ObjectManager.MODEL, "roles"),
 
     PASSWORD_POLICY("schema.objectTypes.valuePolicy", ValuePolicyType.COMPLEX_TYPE,
-            SchemaConstantsGenerated.C_VALUE_POLICY, ValuePolicyType.class, ObjectManager.MODEL),
+            SchemaConstantsGenerated.C_VALUE_POLICY, ValuePolicyType.class, ObjectManager.MODEL, "valuePolicies"),
 
-    NODE("schema.objectTypes.node", NodeType.COMPLEX_TYPE, SchemaConstantsGenerated.C_NODE, NodeType.class, ObjectManager.TASK_MANAGER),
+    NODE("schema.objectTypes.node", NodeType.COMPLEX_TYPE, SchemaConstantsGenerated.C_NODE, NodeType.class, ObjectManager.TASK_MANAGER, "nodes"),
 
-    ORG("schema.objectTypes.org", OrgType.COMPLEX_TYPE, SchemaConstantsGenerated.C_ORG, OrgType.class, ObjectManager.MODEL),
+    ORG("schema.objectTypes.org", OrgType.COMPLEX_TYPE, SchemaConstantsGenerated.C_ORG, OrgType.class, ObjectManager.MODEL, "orgs"),
 
     ABSTRACT_ROLE("schema.objectTypes.abstractRole", AbstractRoleType.COMPLEX_TYPE, SchemaConstants.C_ABSTRACT_ROLE,
-            AbstractRoleType.class, ObjectManager.MODEL),
+            AbstractRoleType.class, ObjectManager.MODEL, "abstractRoles"),
 
-    FOCUS_TYPE("schema.objectTypes.focus", FocusType.COMPLEX_TYPE, SchemaConstants.C_FOCUS, FocusType.class, ObjectManager.MODEL);
+    FOCUS_TYPE("schema.objectTypes.focus", FocusType.COMPLEX_TYPE, SchemaConstants.C_FOCUS, FocusType.class, ObjectManager.MODEL, "focus");
     
     public static enum ObjectManager {
         PROVISIONING, TASK_MANAGER, WORKFLOW, MODEL, REPOSITORY;
@@ -87,14 +87,16 @@ public enum ObjectTypes {
     private QName name;
     private Class<? extends ObjectType> classDefinition;
     private ObjectManager objectManager;
+    private String restType;
 
     private ObjectTypes(String key, QName type, QName name, Class<? extends ObjectType> classDefinition,
-                        ObjectManager objectManager) {
+                        ObjectManager objectManager, String restType) {
         this.localizationKey = key;
         this.type = type;
         this.name = name;
         this.classDefinition = classDefinition;
         this.objectManager = objectManager;
+        this.restType = restType;
     }
 
     public boolean isManagedByProvisioning() {
@@ -128,6 +130,14 @@ public enum ObjectTypes {
     public Class<? extends ObjectType> getClassDefinition() {
         return classDefinition;
     }
+    
+    public String getRestType() {
+		return restType;
+	}
+    
+    public void setRestType(String restType) {
+		this.restType = restType;
+	}
 
     public String getObjectTypeUri() {
         return QNameUtil.qNameToUri(getTypeQName());
@@ -257,6 +267,18 @@ public enum ObjectTypes {
         }
 
         return null;
+    }
+
+    public static Class getClassFromRestType(String restType){
+    	Validate.notNull(restType, "Rest type must not be null.");
+    	
+    	for (ObjectTypes type : ObjectTypes.values()){
+    		if (type.getRestType().equals(restType)){
+    			return type.getClassDefinition();
+    		}
+    	}
+    	
+    	throw new IllegalArgumentException("Not suitable class found for rest type: " + restType);
     }
 
 }

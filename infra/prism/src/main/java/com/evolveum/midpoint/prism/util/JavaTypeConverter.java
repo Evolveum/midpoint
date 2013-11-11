@@ -22,12 +22,14 @@ import java.util.Date;
 
 import javax.xml.bind.annotation.XmlEnum;
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.time.DateUtils;
 
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
@@ -225,6 +227,14 @@ public class JavaTypeConverter {
 		}
 		if (expectedType == String.class && rawValue.getClass().isEnum()) {
 			return (T) rawValue.toString();
+		}
+		
+		//QName
+		if (expectedType == QName.class && rawValue instanceof QName){
+			return (T) rawValue;
+		}
+		if (expectedType == QName.class && rawValue instanceof String){
+			return (T) QNameUtil.uriToQName((String)rawValue);
 		}
 		
 		throw new IllegalArgumentException("Expected "+expectedType+" type, but got "+rawValue.getClass());
