@@ -61,6 +61,13 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
 		return context;
 	}
 	
+	public PrismContext createEmptyPrismContext() throws SchemaException, FileNotFoundException {
+		SchemaRegistry schemaRegistry = createSchemaRegistry();
+		PrismContext context = PrismContext.createEmptyContext(schemaRegistry);
+		context.setDefinitionFactory(createDefinitionFactory());
+		return context;
+	}
+	
 	private SchemaDefinitionFactory createDefinitionFactory() {
 		return new MidPointSchemaDefinitionFactory();
 	}

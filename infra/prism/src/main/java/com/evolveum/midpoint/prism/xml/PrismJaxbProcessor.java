@@ -401,11 +401,32 @@ public class PrismJaxbProcessor {
 		}
 	}
 	
-	public <T> JAXBElement<T> unmarshalElement(InputStream input, Class<T> type) throws JAXBException, SchemaException {
+	public <T> T unmarshalObject(InputStream input, Class<T> type) throws JAXBException, SchemaException {
 		Object object = getUnmarshaller().unmarshal(input);
 		JAXBElement<T> jaxbElement = (JAXBElement<T>) object;
 		adopt(jaxbElement);
-		return jaxbElement;
+		
+		if (jaxbElement == null) {
+			return null;
+		}
+		T value = jaxbElement.getValue();
+		// adopt not needed, already adopted in unmarshalElement call above
+		return value;
+		
+	}
+	
+	public <T> T unmarshalObject(InputStream input) throws JAXBException, SchemaException {
+		Object object = getUnmarshaller().unmarshal(input);
+		JAXBElement<T> jaxbElement = (JAXBElement<T>) object;
+		adopt(jaxbElement);
+		
+		if (jaxbElement == null) {
+			return null;
+		}
+		T value = jaxbElement.getValue();
+		// adopt not needed, already adopted in unmarshalElement call above
+		return value;
+		
 	}
 	
 	public <T> JAXBElement<T> unmarshalElement(Reader reader, Class<T> type) throws JAXBException, SchemaException {
@@ -502,6 +523,19 @@ public class PrismJaxbProcessor {
 		InputStream is = null;
 		try {
 			is = new FileInputStream(file);
+			JAXBElement<T> element = (JAXBElement<T>) getUnmarshaller().unmarshal(is);
+			adopt(element);
+			return element;
+		} finally {
+			if (is != null) {
+				IOUtils.closeQuietly(is);
+			}
+		}
+	}
+	
+	public <T> JAXBElement<T> unmarshalElement(InputStream is, Class<T> type) throws SchemaException, FileNotFoundException, JAXBException {
+		
+		try {
 			JAXBElement<T> element = (JAXBElement<T>) getUnmarshaller().unmarshal(is);
 			adopt(element);
 			return element;
