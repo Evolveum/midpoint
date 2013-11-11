@@ -67,6 +67,12 @@ class IcfUtil {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(IcfUtil.class);
 	
+	
+	static Throwable processIcfException(Throwable icfException, ConnectorInstanceIcfImpl conn,
+			OperationResult icfResult) {
+		return processIcfException(icfException, conn.getHumanReadableName(), icfResult);
+	}
+	
 	/**
 	 * Transform ICF exception to something more usable.
 	 *
@@ -90,7 +96,7 @@ class IcfUtil {
 	 *            OperationResult to record failure
 	 * @return reasonable midPoint exception
 	 */
-	static Throwable processIcfException(Throwable icfException,
+	static Throwable processIcfException(Throwable icfException, String desc,
 			OperationResult icfResult) {
 		// Whole exception handling in this case is a black magic.
 		// ICF does not define any exceptions and there is no "best practice"
@@ -103,7 +109,8 @@ class IcfUtil {
 			throw new IllegalArgumentException("Null exception while processing ICF exception ");
 		}
 		
-		LOGGER.error("ICF Exception {}: {}",new Object[]{icfException.getClass().getName(),icfException.getMessage(),icfException});
+		LOGGER.error("ICF Exception {} in {}: {}",new Object[]{icfException.getClass().getName(),
+				desc, icfException.getMessage(),icfException});
 		
 		if (icfException instanceof NullPointerException && icfException.getMessage() != null) {
 			// NPE with a message text is in fact not a NPE but an application exception
