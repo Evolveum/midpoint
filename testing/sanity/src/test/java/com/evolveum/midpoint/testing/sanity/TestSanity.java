@@ -70,6 +70,7 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.w3._2001._04.xmlenc.EncryptedDataType;
+import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.crypto.EncryptionException;
@@ -309,7 +310,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
     private static String accountShadowOidDerby;
     private static String accountShadowOidGuybrushOpendj;
     private static String accountGuybrushOpendjEntryUuuid = null;
-    private static String originalJacksPassword;
+    private static String originalJacksLdapPassword;
+    private static String lastJacksLdapPassword = null;
 
     private int lastSyncToken;
     
@@ -965,9 +967,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
         
         assertTrue("LDAP account is not enabled", openDJController.isAccountEnabled(entry));
 
-        originalJacksPassword = OpenDJController.getAttributeValue(entry, "userPassword");
-        assertNotNull("Pasword was not set on create", originalJacksPassword);
-        System.out.println("password after create: " + originalJacksPassword);
+        originalJacksLdapPassword = OpenDJController.getAttributeValue(entry, "userPassword");
+        assertNotNull("Pasword was not set on create", originalJacksLdapPassword);
+        System.out.println("password after create: " + originalJacksLdapPassword);
 
         // Use getObject to test fetch of complete shadow
 
@@ -1303,9 +1305,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
      * should be also applied to the account (by schemaHandling).
      */
     @Test
-    public void test022ChangePassword() throws FileNotFoundException, JAXBException, FaultMessage,
-            ObjectNotFoundException, SchemaException, DirectoryException {
-        TestUtil.displayTestTile("test022ChangePassword");
+    public void test022ChangePassword() throws Exception {
+    	final String TEST_NAME = "test022ChangePassword";
+        TestUtil.displayTestTile(TEST_NAME);
         // GIVEN
 
         ObjectModificationType objectChange = unmarshallJaxbFromFile(
@@ -1318,6 +1320,41 @@ public class TestSanity extends AbstractModelIntegrationTest {
         OperationResultType result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), objectChange);
 
         // THEN
+        assertUserPasswordChange("butUnd3dM4yT4lkAL0t", result);
+    }
+    
+    /**
+     * Similar to previous test just the request is constructed a bit differently.
+     */
+    @Test
+    public void test023ChangePasswordJAXB() throws Exception {
+    	final String TEST_NAME = "test023ChangePasswordJAXB";
+        TestUtil.displayTestTile(TEST_NAME);
+        
+        // GIVEN
+        final String NEW_PASSWORD = "abandonSHIP";
+        Document doc = ModelClientUtil.getDocumnent();
+        
+        ObjectModificationType userDelta = new ObjectModificationType();
+        userDelta.setOid(USER_JACK_OID);
+       
+        ItemDeltaType passwordDelta = new ItemDeltaType();
+        passwordDelta.setModificationType(ModificationTypeType.REPLACE);
+        passwordDelta.setPath(ModelClientUtil.createPathElement("credentials/password", doc));
+        ItemDeltaType.Value passwordValue = new ItemDeltaType.Value();
+        passwordValue.getAny().add(ModelClientUtil.toJaxbElement(ModelClientUtil.COMMON_VALUE, 
+        		ModelClientUtil.createProtectedString(NEW_PASSWORD)));
+        passwordDelta.setValue(passwordValue);
+        userDelta.getModification().add(passwordDelta);
+        
+        // WHEN
+        OperationResultType result = modelWeb.modifyObject(ObjectTypes.USER.getObjectTypeUri(), userDelta);
+
+        // THEN
+        assertUserPasswordChange(NEW_PASSWORD, result);
+    }
+    
+    private void assertUserPasswordChange(String expectedUserPassword, OperationResultType result) throws JAXBException, ObjectNotFoundException, SchemaException, DirectoryException, EncryptionException {
         assertNoRepoCache();
         displayJaxb("modifyObject result:", result, SchemaConstants.C_RESULT);
         TestUtil.assertSuccess("modifyObject has failed", result);
@@ -1334,14 +1371,11 @@ public class TestSanity extends AbstractModelIntegrationTest {
         PrismAsserts.assertEqualsPolyString("wrong repo locality", "somewhere", repoUserType.getLocality());
 
         // Check if appropriate accountRef is still there
-        List<ObjectReferenceType> accountRefs = repoUserType.getLinkRef();
-        assertEquals(2, accountRefs.size());
-        for (ObjectReferenceType accountRef : accountRefs) {
-            assertTrue("No OID in "+accountRef+" in "+repoUserType,
-                    accountRef.getOid().equals(accountShadowOidOpendj) ||
-                            accountRef.getOid().equals(accountShadowOidDerby));
-
-        }
+        assertAccounts(repoUser, 2);
+        assertLinked(repoUser, accountShadowOidOpendj);
+        assertLinked(repoUser, accountShadowOidDerby);
+        
+        assertPassword(repoUser, expectedUserPassword);
 
         // Check if shadow is still in the repo and that it is untouched
         repoResult = new OperationResult("getObject");
@@ -1359,12 +1393,16 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // Check if LDAP account was updated
         SearchResultEntry entry = assertOpenDJAccountJack(uid, "jack");
         
-        String passwordAfter = OpenDJController.getAttributeValue(entry, "userPassword");
-        assertNotNull(passwordAfter);
+        String ldapPasswordAfter = OpenDJController.getAttributeValue(entry, "userPassword");
+        assertNotNull(ldapPasswordAfter);
 
-        System.out.println("password after change: " + passwordAfter);
+        display("LDAP password after change", ldapPasswordAfter);
 
-        assertFalse("No change in password", passwordAfter.equals(originalJacksPassword));
+        assertFalse("No change in password (original)", ldapPasswordAfter.equals(originalJacksLdapPassword));
+        if (lastJacksLdapPassword != null) {
+        	assertFalse("No change in password (last)", ldapPasswordAfter.equals(lastJacksLdapPassword));
+        }
+        lastJacksLdapPassword = ldapPasswordAfter;
     }
 
     /**
