@@ -23,6 +23,7 @@
 	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
 	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
 	<modification>
+	<t:oid>there-will-be-oid</t:oid>
 		<t:modificationType>add</t:modificationType>
 		<t:value>
 			<c:assignment>
