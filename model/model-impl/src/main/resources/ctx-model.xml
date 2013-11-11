@@ -306,7 +306,7 @@
         </jaxrs:serviceBeans>
       <jaxrs:providers>
       	<ref bean="jaxbProvider" />
-      	<ref bean="jsonProvider" />
+<!--       	<ref bean="jsonProvider" /> -->
      	<ref bean="restAuthenticationHandler" />
     </jaxrs:providers>
    
@@ -314,7 +314,7 @@
      
       <bean id="modelRestService" class="com.evolveum.midpoint.model.ModelRestService"/>
      <bean id="jaxbProvider" class="com.evolveum.midpoint.model.rest.MidpointXmlProvider"/>
-     <bean id="jsonProvider" class="com.evolveum.midpoint.model.rest.MidpointJsonProvider"/>
+<!--      <bean id="jsonProvider" class="com.evolveum.midpoint.model.rest.MidpointJsonProvider"/> -->
      <bean id="restAuthenticationHandler" class="com.evolveum.midpoint.model.security.MidpointRestAuthenticationHandler"/>
 
     <bean id="authenticationInterceptor" class="org.apache.cxf.ws.security.wss4j.WSS4JInInterceptor">
