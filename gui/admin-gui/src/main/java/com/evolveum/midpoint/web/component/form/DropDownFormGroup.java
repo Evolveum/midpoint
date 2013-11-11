@@ -22,47 +22,53 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.IChoiceRenderer;
+import org.apache.wicket.markup.html.form.RequiredTextField;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
 
+import java.util.List;
+
 /**
  * @author lazyman
  */
-public class TextFormGroup extends SimplePanel<String> {
+public class DropDownFormGroup<T> extends SimplePanel<T> {
 
-    private static final String ID_TEXT = "text";
-    private static final String ID_TEXT_WRAPPER = "textWrapper";
+    private static final String ID_SELECT = "select";
+    private static final String ID_SELECT_WRAPPER = "selectWrapper";
     private static final String ID_LABEL = "label";
     private static final String ID_FEEDBACK = "feedback";
 
-    public TextFormGroup(String id, IModel<String> value, IModel<String> label, String labelSize, String textSize,
-                         boolean required) {
+    public DropDownFormGroup(String id, IModel<T> value, IModel<List<T>> choices, IChoiceRenderer renderer,
+                             IModel<String> label, String labelSize, String textSize, boolean required) {
         super(id, value);
 
-        initLayout(label, labelSize, textSize, required);
+        initLayout(choices, renderer, label, labelSize, textSize, required);
     }
 
-    private void initLayout(IModel<String> label, String labelSize, String textSize, boolean required) {
+    private void initLayout(IModel<List<T>> choices, IChoiceRenderer renderer, IModel<String> label,
+                            String labelSize, String textSize, boolean required) {
         Label l = new Label(ID_LABEL, label);
         if (StringUtils.isNotEmpty(labelSize)) {
             l.add(AttributeAppender.prepend("class", labelSize));
         }
         add(l);
 
-        WebMarkupContainer textWrapper = new WebMarkupContainer(ID_TEXT_WRAPPER);
+        WebMarkupContainer selectWrapper = new WebMarkupContainer(ID_SELECT_WRAPPER);
         if (StringUtils.isNotEmpty(textSize)) {
-            textWrapper.add(AttributeAppender.prepend("class", textSize));
+            selectWrapper.add(AttributeAppender.prepend("class", textSize));
         }
-        add(textWrapper);
+        add(selectWrapper);
 
-        TextField text = new TextField(ID_TEXT, getModel());
-        text.setRequired(required);
-        text.add(AttributeAppender.replace("placeholder", label));
-        text.setLabel(label);
-        textWrapper.add(text);
+        DropDownChoice select = new DropDownChoice(ID_SELECT, getModel(), choices, renderer);
+        if (!required) {
+            select.setNullValid(true);
+        }
+        selectWrapper.add(select);
 
-        FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK, new ComponentFeedbackMessageFilter(text));
-        textWrapper.add(feedback);
+        FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK, new ComponentFeedbackMessageFilter(select));
+        selectWrapper.add(feedback);
     }
 }

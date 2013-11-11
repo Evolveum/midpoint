@@ -16,7 +16,11 @@
 
 package com.evolveum.midpoint.web.page.admin.users;
 
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -24,20 +28,27 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.form.CheckFormGroup;
+import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
 import com.evolveum.midpoint.web.component.form.TextAreaFormGroup;
 import com.evolveum.midpoint.web.component.form.TextFormGroup;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.PrismPropertyModel;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.util.string.StringValue;
+
+import java.util.Collection;
 
 /**
  * @author lazyman
@@ -48,7 +59,8 @@ public class PageOrgUnit extends PageAdminUsers {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageOrgUnit.class);
     private static final String DOT_CLASS = PageOrgUnit.class.getName() + ".";
-    private static final String LOAD_UNIT =DOT_CLASS + "loadOrgUnit";
+    private static final String LOAD_UNIT = DOT_CLASS + "loadOrgUnit";
+    private static final String SAVE_UNIT = DOT_CLASS + "saveOrgUnit";
 
     private static final String ID_LABEL_SIZE = "col-md-4";
     private static final String ID_INPUT_SIZE = "col-md-6";
@@ -102,7 +114,7 @@ public class PageOrgUnit extends PageAdminUsers {
         add(form);
 
         TextFormGroup name = new TextFormGroup(ID_NAME, new PrismPropertyModel(orgModel, OrgType.F_NAME),
-                createStringResource("ObjectType.name"),                ID_LABEL_SIZE, ID_INPUT_SIZE, true);
+                createStringResource("ObjectType.name"), ID_LABEL_SIZE, ID_INPUT_SIZE, true);
         form.add(name);
         TextFormGroup displayName = new TextFormGroup(ID_DISPLAY_NAME, new PrismPropertyModel(orgModel,
                 OrgType.F_DISPLAY_NAME), createStringResource("OrgType.displayName"), ID_LABEL_SIZE, ID_INPUT_SIZE, true);
@@ -125,6 +137,13 @@ public class PageOrgUnit extends PageAdminUsers {
         TextFormGroup locality = new TextFormGroup(ID_LOCALITY, new PrismPropertyModel(orgModel, OrgType.F_LOCALITY),
                 createStringResource("OrgType.locality"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         form.add(locality);
+
+        IModel choices = WebMiscUtil.createReadonlyModelFromEnum(ActivationStatusType.class);
+        IChoiceRenderer renderer = new EnumChoiceRenderer();
+        DropDownFormGroup administrativeStatus = new DropDownFormGroup(ID_ADMINISTRATIVE_STATUS, new PrismPropertyModel(
+                orgModel, new ItemPath(OrgType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS)), choices,
+                renderer, createStringResource("ActivationType.administrativeStatus"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+        form.add(administrativeStatus);
 
         initButtons(form);
     }
@@ -165,7 +184,43 @@ public class PageOrgUnit extends PageAdminUsers {
     }
 
     private void savePerformed(AjaxRequestTarget target) {
+        OperationResult result = new OperationResult(SAVE_UNIT);
+        try {
+            ModelService model = getModelService();
+            ObjectDelta delta;
+            if (!isEditing()) {
+                delta = ObjectDelta.createAddDelta(orgModel.getObject());
+            } else {
+                PrismObject<OrgType> newOrgUnit = orgModel.getObject();
+                PrismObject<OrgType> oldOrgUnit;
 
+                OperationResult subResult = result.createSubresult(LOAD_UNIT);
+                try {
+                    oldOrgUnit = getModelService().getObject(OrgType.class, newOrgUnit.getOid(), null,
+                        createSimpleTask(LOAD_UNIT), subResult);
+                } finally {
+                    subResult.computeStatus();
+                }
+
+                delta = oldOrgUnit.diff(newOrgUnit);
+            }
+
+            Collection<ObjectDelta<? extends ObjectType>> deltas = WebMiscUtil.createDeltaCollection(delta);
+            model.executeChanges(deltas, null, createSimpleTask(SAVE_UNIT), result);
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "Couldn't save org. unit", ex);
+            result.recordFatalError("Couldn't save org. unit.", ex);
+        } finally {
+            result.computeStatus();
+        }
+
+        if (WebMiscUtil.isSuccessOrHandledError(result)) {
+            showResultInSession(result);
+            setResponsePage(PageOrgStruct.class);
+        } else {
+            showResult(result);
+            target.add(getFeedbackPanel());
+        }
     }
 
     private PrismObject<OrgType> loadOrgUnit() {
