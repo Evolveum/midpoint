@@ -51,6 +51,11 @@
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-core</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.0.1</version>
+		</dependency>
         <!-- This is needed only for equals methods. Simplify it now
         <dependency>
             <groupId>com.evolveum.midpoint.infra</groupId>
