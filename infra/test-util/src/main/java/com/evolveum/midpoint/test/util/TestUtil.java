@@ -223,6 +223,10 @@ public class TestUtil {
 		assertSuccess(message, result,-1);
 	}
 
+	public static void assertSuccess(OperationResultType result) {
+		assertSuccess(result.getOperation(), result);
+	}
+	
 	public static void assertSuccess(String message, OperationResultType result) {
 		if (!checkResults) {
 			return;
@@ -263,6 +267,9 @@ public class TestUtil {
 		assertEquals("Operation "+result.getOperation()+" result", expectedStatus, result.getStatus());		
 	}
 
+	public static void assertStatus(OperationResultType result, OperationResultStatusType expectedStatus) {
+		assertEquals("Operation "+result.getOperation()+" result", expectedStatus, result.getStatus());		
+	}
 
 	public static boolean hasWarningAssertSuccess(String message, OperationResultType result) {
 		boolean hasWarning = false;
