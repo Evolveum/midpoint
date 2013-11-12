@@ -152,6 +152,12 @@ public class PageOrgUnit extends PageAdminUsers {
                 ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         form.add(validTo);
 
+        //todo not finished [lazyman]
+        MultiValueTextFormGroup orgType = new MultiValueTextFormGroup(ID_ORG_TYPE,
+                new PrismPropertyModel(orgModel, OrgType.F_ORG_TYPE),
+                createStringResource("OrgType.orgType"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+        form.add(orgType);
+
         initButtons(form);
     }
 
