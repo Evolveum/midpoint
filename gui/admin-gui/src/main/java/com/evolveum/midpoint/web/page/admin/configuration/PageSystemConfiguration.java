@@ -16,6 +16,11 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
@@ -25,13 +30,18 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.LoggingConfigPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.SystemConfigPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.SystemConfigurationDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.model.PropertyModel;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -42,6 +52,7 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
     private static final Trace LOGGER = TraceManager.getTrace(PageSystemConfiguration.class);
 
     private static final String DOT_CLASS = PageSystemConfiguration.class.getName() + ".";
+    private static final String TASK_GET_SYSTEM_CONFIG = DOT_CLASS + "getSystemConfiguration";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_TAB_PANEL = "tabPanel";
@@ -63,8 +74,21 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
     }
 
     private SystemConfigurationDto loadSystemConfiguration() {
-        //todo implement
+        Task task = createSimpleTask(TASK_GET_SYSTEM_CONFIG);
+        OperationResult result = new OperationResult(TASK_GET_SYSTEM_CONFIG);
+        Collection<SelectorOptions<GetOperationOptions>> options =
+                SelectorOptions.createCollection(GetOperationOptions.createResolve(),
+                        SystemConfigurationType.F_DEFAULT_USER_TEMPLATE ,SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY);
 
+        try{
+            PrismObject<SystemConfigurationType> systemConfig = getModelService().getObject(SystemConfigurationType.class,
+                    SystemObjectsType.SYSTEM_CONFIGURATION.value(), options, task, result);
+
+            return new SystemConfigurationDto(systemConfig);
+        } catch(Exception e){
+            //TODO - handle this unpleasant situation
+        }
+        //TODO - what should I return, when something goes wrong?
         return null;
     }
 
@@ -77,7 +101,7 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 
             @Override
             public WebMarkupContainer getPanel(String panelId) {
-                return new SystemConfigPanel(panelId);
+                return new SystemConfigPanel(panelId, model);
             }
         });
         tabs.add(new AbstractTab(createStringResource("pageSystemConfiguration.logging.title")) {

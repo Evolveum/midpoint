@@ -38,6 +38,11 @@ public class ObjectViewDto<T extends ObjectType> implements Serializable {
     public ObjectViewDto() {
     }
 
+    public ObjectViewDto(String oid, String name){
+        this.name = name;
+        this.oid = oid;
+    }
+
     public ObjectViewDto(String oid, String name, PrismObject<T> object, String xml) {
         this.name = name;
         this.oid = oid;

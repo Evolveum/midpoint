@@ -16,14 +16,71 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.component;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.SystemConfigurationDto;
+import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectTemplateType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
 
 /**
  * @author lazyman
  */
-public class SystemConfigPanel extends SimplePanel {
+public class SystemConfigPanel extends SimplePanel<SystemConfigurationDto> {
 
-    public SystemConfigPanel(String id) {
-        super(id);
+    private static final Trace LOGGER = TraceManager.getTrace(SystemConfigPanel.class);
+
+    private static final String ID_GLOBAL_PASSWORD_POLICY_CHOOSER = "passwordPolicyChooser";
+    private static final String ID_GLOBAL_USER_TEMPLATE_CHOOSER = "userTemplateChooser";
+    private static final String DEFAULT_CHOOSE_VALUE_NAME = "None";
+    private static final String DEFAULT_CHOOSE_VALUE_OID = "";
+
+    private ObjectViewDto<ValuePolicyType> passPolicyDto;
+    private ObjectViewDto<ObjectTemplateType> objectTemplateDto;
+
+    public SystemConfigPanel(String id, IModel<SystemConfigurationDto> model) {
+        super(id, model);
+    }
+
+    private ObjectViewDto<ValuePolicyType> loadPasswordPolicy(){
+        ValuePolicyType passPolicy = getModel().getObject().getConfig().asObjectable().getGlobalPasswordPolicy();
+
+        if(passPolicy != null){
+            passPolicyDto = new ObjectViewDto<ValuePolicyType>(passPolicy.getOid(), passPolicy.getName().getOrig());
+        }else {
+            passPolicyDto = new ObjectViewDto<ValuePolicyType>(DEFAULT_CHOOSE_VALUE_OID, DEFAULT_CHOOSE_VALUE_NAME);
+        }
+
+        return passPolicyDto;
+    }
+
+    private ObjectViewDto<ObjectTemplateType> loadObjectTemplate(){
+        ObjectTemplateType objectTemplate = getModel().getObject().getConfig().asObjectable().getDefaultUserTemplate();
+
+        if(objectTemplate != null){
+            objectTemplateDto = new ObjectViewDto<ObjectTemplateType>(objectTemplate.getOid(), objectTemplate.getName().getOrig());
+        }else {
+            objectTemplateDto = new ObjectViewDto<ObjectTemplateType>(DEFAULT_CHOOSE_VALUE_OID, DEFAULT_CHOOSE_VALUE_NAME);
+        }
+
+        return objectTemplateDto;
+    }
+
+    @Override
+    protected void initLayout(){
+        passPolicyDto = loadPasswordPolicy();
+        objectTemplateDto = loadObjectTemplate();
+
+        ChooseTypePanel passPolicyChoosePanel = new ChooseTypePanel(ID_GLOBAL_PASSWORD_POLICY_CHOOSER,
+                new PropertyModel<ObjectViewDto>(this, "passPolicyDto"), ValuePolicyType.class);
+        ChooseTypePanel userTemplateChoosePanel = new ChooseTypePanel(ID_GLOBAL_USER_TEMPLATE_CHOOSER,
+                new PropertyModel<ObjectViewDto>(this, "objectTemplateDto"), ObjectTemplateType.class);
+        add(passPolicyChoosePanel);
+        add(userTemplateChoosePanel);
     }
 }
