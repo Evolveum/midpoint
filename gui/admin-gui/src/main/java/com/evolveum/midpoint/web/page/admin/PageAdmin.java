@@ -115,6 +115,7 @@ public class PageAdmin extends PageBase {
     private MenuBarItem createResourcesItems() {
         MenuBarItem resources = new MenuBarItem(createStringResource("PageAdmin.menu.top.resources"), null);
         resources.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.resources.list"), PageResources.class));
+        //delete this [lazyman]
         resources.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.resources.new"), PageResourceEdit.class));
         resources.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.resources.new"), PageResourceWizard.class));
 
@@ -163,6 +164,7 @@ public class PageAdmin extends PageBase {
         users.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.users.org"), true, null, null));
         users.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.users.org.tree"), PageOrgStruct.class));
         users.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.users.org.new"), PageOrgUnit.class));
+        users.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.users.org.new"), PageOrgTree.class));
 
         return users;
     }
