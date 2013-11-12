@@ -151,6 +151,10 @@ public class PrismJasonProcessor {
 	  private <T extends Containerable> void addValuesToContainerValue(PrismContainerValue<T> containerValue,
 				Collection<? extends Item> newContainerItems) throws SchemaException {
 			for (Item<?> newItem : newContainerItems) {
+				if (newItem == null){
+					System.out.println("new item name null");
+					continue;
+				}
 				Item existingItem = containerValue.findItem(newItem.getName());
 				if (existingItem == null) {
 					containerValue.add(newItem);

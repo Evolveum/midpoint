@@ -71,7 +71,7 @@ public class TestJsonParsing {
 		assertUserPrism(userType);
 	}
 	
-//	@Test
+	@Test
 	public void test002ParseResourceJson() throws Exception {
 		System.out.println("===[ test002ParseResourceJson ]===");
 		PrismJasonProcessor jsonProcessor = new PrismJasonProcessor();
@@ -92,7 +92,7 @@ public class TestJsonParsing {
 //		PrismObject<UserType> user = userType.asPrismObject();
 		System.out.println("object");
 		System.out.println(userType.dump());
-		assertUserPrism(userType);
+//		assertUserPrism(userType);
 	}
 	
 private void assertUserPrism(PrismObject<UserType> user) {
