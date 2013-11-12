@@ -102,14 +102,7 @@ public class CredentialsProcessor {
         PropertyDelta<PasswordType> userPasswordValueDelta = null;
         if (userDelta != null) {
         	userPasswordValueDelta = userDelta.findPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
-        	// Modification sanity check
-            if (userDelta.getChangeType() == ChangeType.MODIFY && userPasswordValueDelta != null && 
-            		(userPasswordValueDelta.isAdd() || userPasswordValueDelta.isDelete())) {
-            	throw new SchemaException("User password value cannot be added or deleted, it can only be replaced"); 
-            }
         }
-//            LOGGER.trace("userDelta is null, skipping credentials processing");
-//            return; 
 
         PrismObject<UserType> userNew = focusContext.getObjectNew();
         if (userNew == null) {

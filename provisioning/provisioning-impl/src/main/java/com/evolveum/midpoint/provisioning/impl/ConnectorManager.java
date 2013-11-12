@@ -145,7 +145,7 @@ public class ConnectorManager {
 		try {
 
 			connector = connectorFactory.createConnectorInstance(connectorType,
-					ResourceTypeUtil.getResourceNamespace(resourceType));
+					ResourceTypeUtil.getResourceNamespace(resourceType), resource.toString());
 
 		} catch (ObjectNotFoundException e) {
 			result.recordFatalError(e.getMessage(), e);
@@ -330,7 +330,7 @@ public class ConnectorManager {
 				// Let's instantiate the connector and generate the schema
 				ConnectorInstance connectorInstance = null;
 				try {
-					connectorInstance = connectorFactory.createConnectorInstance(foundConnector, null);
+					connectorInstance = connectorFactory.createConnectorInstance(foundConnector, null, "discovered connector");
 					PrismSchema connectorSchema = connectorInstance.generateConnectorSchema();
 					if (connectorSchema == null) {
 						LOGGER.warn("Connector {} haven't provided configuration schema", foundConnector);

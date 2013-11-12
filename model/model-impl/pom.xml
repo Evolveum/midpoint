@@ -76,6 +76,22 @@
             <groupId>org.apache.cxf</groupId>
             <artifactId>cxf-rt-ws-security</artifactId>
         </dependency>
+         <dependency>
+  			<groupId>org.apache.cxf</groupId>
+			<artifactId>cxf-rt-frontend-jaxrs</artifactId>
+  			<version>2.7.6</version>
+		</dependency>
+		<dependency>
+   <groupId>org.apache.cxf</groupId>
+   <artifactId>cxf-rt-rs-extension-providers</artifactId>
+   <version>2.7.6</version>
+</dependency>
+<dependency>
+    <groupId>org.codehaus.jettison</groupId>
+    <artifactId>jettison</artifactId>
+    <version>1.3.3</version>
+</dependency>
+
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-core</artifactId>

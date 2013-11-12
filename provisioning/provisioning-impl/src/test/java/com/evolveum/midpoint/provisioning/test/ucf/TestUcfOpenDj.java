@@ -173,7 +173,8 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		
 		factory = connectorFactoryIcfImpl;
 
-		cc = factory.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType));
+		cc = factory.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType),
+				"test connector");
 		AssertJUnit.assertNotNull("Cannot create connector instance", cc);
 		
 		connectorSchema = cc.generateConnectorSchema();
@@ -490,7 +491,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		OperationResult result = new OperationResult("testTestConnectionNegative");
 
 		ConnectorInstance badConnector = factory.createConnectorInstance(connectorType,
-				ResourceTypeUtil.getResourceNamespace(badResourceType));
+				ResourceTypeUtil.getResourceNamespace(badResourceType), "test connector");
 		badConnector.configure(badResourceType.getConnectorConfiguration().asPrismContainerValue(), result);
 
 		// WHEN

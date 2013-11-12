@@ -228,7 +228,7 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 	 * 
 	 */
 	@Override
-	public ConnectorInstance createConnectorInstance(ConnectorType connectorType, String namespace)
+	public ConnectorInstance createConnectorInstance(ConnectorType connectorType, String namespace, String desc)
 			throws ObjectNotFoundException, SchemaException {
 
 		ConnectorInfo cinfo = getConnectorInfo(connectorType);
@@ -250,6 +250,7 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 		ConnectorInstanceIcfImpl connectorImpl = new ConnectorInstanceIcfImpl(cinfo, connectorType, namespace,
 				connectorSchema, protector, prismContext);
 		connectorImpl.setIcfNameMapper(icfNameMapper);
+		connectorImpl.setDescription(desc);
 		
 		return connectorImpl;
 	}
@@ -296,7 +297,7 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 				return connectors;
 			}
 		} catch (Throwable icfException) {
-			Throwable ex = processIcfException(icfException, result);
+			Throwable ex = processIcfException(icfException, "list connectors", result);
 			result.recordFatalError(ex.getMessage(), ex);
 			if (ex instanceof CommunicationException) {
 				throw (CommunicationException) ex;

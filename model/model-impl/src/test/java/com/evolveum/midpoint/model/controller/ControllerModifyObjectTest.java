@@ -60,22 +60,22 @@ public class ControllerModifyObjectTest extends AbstractTestNGSpringContextTests
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullChange() throws Exception {
-		controller.modifyObject(UserType.class, null, null, null, null);
+		controller.modifyObject(UserType.class, null, null, null, null, null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullChangeOid() throws Exception {
-		controller.modifyObject(UserType.class, null, new ArrayList<ItemDelta>(), taskManager.createTaskInstance(), null);
+		controller.modifyObject(UserType.class, null, new ArrayList<ItemDelta>(), null, taskManager.createTaskInstance(), null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void emptyChangeOid() throws Exception {
-		controller.modifyObject(UserType.class, "", new ArrayList<ItemDelta>(), taskManager.createTaskInstance(), null);
+		controller.modifyObject(UserType.class, "", new ArrayList<ItemDelta>(), null, taskManager.createTaskInstance(), null);
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullResult() throws Exception {
 
-		controller.modifyObject(UserType.class, "1", new ArrayList<ItemDelta>(), taskManager.createTaskInstance(), null);
+		controller.modifyObject(UserType.class, "1", new ArrayList<ItemDelta>(), null, taskManager.createTaskInstance(), null);
 	}
 }
