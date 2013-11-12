@@ -267,7 +267,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			return runResult;
 		}
 		
-		opResult.computeStatus("Reconciliation run has failed");
+		opResult.computeStatus();
 		// This "run" is finished. But the task goes on ...
 		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
 		runResult.setProgress(progress);
@@ -330,14 +330,41 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		handler.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_RECON);
 		handler.setStopOnError(false);
 
-		ObjectQuery query = createAccountSearchQuery(resource, rObjectclassDef);
+		try {
+			
+			ObjectQuery query = createAccountSearchQuery(resource, rObjectclassDef);
+	
+			OperationResult searchResult = new OperationResult(OperationConstants.RECONCILIATION+".searchIterative"); 
+			provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, searchResult);
+	
+			opResult.computeStatus();
 
-		OperationResult searchResult = new OperationResult(OperationConstants.RECONCILIATION+".searchIterative"); 
-		provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, searchResult);
-
-		opResult.computeStatus();
-
-        result.createSubresult(OperationConstants.RECONCILIATION+".ResourceReconciliation.statistics").recordStatus(OperationResultStatus.SUCCESS, "Processed " + handler.getProgress() + " account(s), got " + handler.getErrors() + " error(s)");
+			String message = "Processed " + handler.getProgress() + " account(s), got " + handler.getErrors() + " error(s)";
+			OperationResultStatus resultStatus = OperationResultStatus.SUCCESS;
+			if (handler.getErrors() > 0) {
+				resultStatus = OperationResultStatus.PARTIAL_ERROR;
+			}
+			opResult.recordStatus(resultStatus, message);
+			
+		} catch (ConfigurationException e) {
+			opResult.recordFatalError(e);
+			throw e;
+		} catch (SecurityViolationException e) {
+			opResult.recordFatalError(e);
+			throw e;
+		} catch (SchemaException e) {
+			opResult.recordFatalError(e);
+			throw e;
+		} catch (CommunicationException e) {
+			opResult.recordFatalError(e);
+			throw e;
+		} catch (ObjectNotFoundException e) {
+			opResult.recordFatalError(e);
+			throw e;
+		} catch (RuntimeException e) {
+			opResult.recordFatalError(e);
+			throw e;
+		}
 	}
 	
 	private void performShadowReconciliation(final PrismObject<ResourceType> resource, 
