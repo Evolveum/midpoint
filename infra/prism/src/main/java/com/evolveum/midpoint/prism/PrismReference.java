@@ -119,6 +119,15 @@ public class PrismReference extends Item<PrismReferenceValue> {
 		if (existingValue == null) {
 			return add(value);
 		}
+		
+		
+		// if there is newValue containing object (instead of oid only) and also
+		// old value containing object (instead of oid only) we need to compare
+		// these two object if they are equals..this can avoid of bad resolving
+		// (e.g. creating user and adding two or more accounts at the same time)
+		if (value.getObject() != null && existingValue.getObject() != null && !value.equalsComplex(existingValue, false, false)){
+			return add(value);
+		}
 
 		// in the value.getObject() is not null, it it probably only resolving
 		// of refenrence, so only change oid to object
