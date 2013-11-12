@@ -33,7 +33,7 @@ import org.apache.wicket.model.IModel;
 /**
  *  @author shood
  * */
-public class ChooseTypePanel extends SimplePanel<ObjectViewDto>{
+public class ChooseTypePanel<T extends ObjectType> extends SimplePanel<ObjectViewDto>{
 
     private static final Trace LOGGER = TraceManager.getTrace(ChooseTypePanel.class);
 
@@ -46,15 +46,16 @@ public class ChooseTypePanel extends SimplePanel<ObjectViewDto>{
     private static final String DEFAULT_CHOOSE_VALUE_NAME = "None";
     private static final String DEFAULT_CHOOSE_VALUE_OID = "";
 
-    private Class clazz;
+    private Class<T> clazz;
 
-    public ChooseTypePanel(String id, IModel<ObjectViewDto> model, Class type){
+    public ChooseTypePanel(String id, IModel<ObjectViewDto> model, Class<T> type){
         super(id, model);
         this.clazz = type;
+        initLayout();
     }
 
-    @Override
     protected void initLayout(){
+
         final Label name = new Label(ID_OBJECT_NAME, new AbstractReadOnlyModel<String>(){
 
             @Override
@@ -92,13 +93,8 @@ public class ChooseTypePanel extends SimplePanel<ObjectViewDto>{
     }
 
     private void changeOptionPerformed(AjaxRequestTarget target){
-        showModalWindow(MODAL_ID_SHOW_CHOOSE_OPTIONS, target);
-    }
-
-    private void showModalWindow(String id, AjaxRequestTarget target){
-        ModalWindow window = (ModalWindow)get(id);
+        ModalWindow window = (ModalWindow)get(MODAL_ID_SHOW_CHOOSE_OPTIONS);
         window.show(target);
-        //TODO - there is some error here, further investigation is needed
     }
 
     private void setToDefault(){
