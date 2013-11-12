@@ -1,37 +1,32 @@
 package com.evolveum.midpoint.testing.rest;
 
+
+import static org.testng.AssertJUnit.*;
+import static com.evolveum.midpoint.test.util.TestUtil.displayTestTile;
 import java.io.File;
-
 import javax.ws.rs.core.Response;
-
-import org.apache.cxf.configuration.security.AuthorizationPolicy;
 import org.apache.cxf.endpoint.Server;
 import org.apache.cxf.jaxrs.JAXRSServerFactoryBean;
 import org.apache.cxf.jaxrs.client.ClientConfiguration;
 import org.apache.cxf.jaxrs.client.WebClient;
-import org.apache.cxf.message.Message;
-import org.apache.cxf.message.MessageImpl;
-import org.apache.cxf.transport.Conduit;
-import org.apache.cxf.transport.http.HTTPConduit;
 import org.apache.cxf.transport.local.LocalConduit;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
-
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
-import com.evolveum.midpoint.repo.cache.RepositoryCache;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.SqlRepositoryServiceImpl;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 @ContextConfiguration(locations = { "classpath:ctx-rest-test.xml" })
@@ -59,6 +54,8 @@ public class TestRestService {
 	private final static String ENDPOINT_ADDRESS = "http://localhost:8080/rest";
 //	private final static String WADL_ADDRESS = ENDPOINT_ADDRESS + "?_wadl";
 	private static Server server;
+	
+	private static RepositoryService repositoryService;
 	 
 	@BeforeClass
 	public static void initialize() throws Exception {
@@ -67,27 +64,16 @@ public class TestRestService {
 	}
 	 
 	private static void startServer() throws Exception {
-//	     JAXRSServerFactoryBean sf = new JAXRSServerFactoryBean();
 	     ApplicationContext applicationContext = new ClassPathXmlApplicationContext("ctx-rest-test-main.xml");
 	        LOGGER.info("Spring context initialized.");
 
-//	        ModelRestService restService = (ModelRestService) applicationContext.getBean("modelRestService");
-
 	        JAXRSServerFactoryBean sf = (JAXRSServerFactoryBean) applicationContext.getBean("restService");
 	        
-//	     sf.setResourceClasses(MyJaxrsResource.class);
-//	         
-//	     List<Object> providers = new ArrayList<Object>();
-//	     // add custom providers if any
-//	     sf.setProviders(providers);
-//	         
-//	     sf.setResourceProvider(MyJaxrsResource.class.class,
-//	                            new SingletonResourceProvider(new MyJaxrsResource(), true));
 	     sf.setAddress(ENDPOINT_ADDRESS);
 	 
 	     server = sf.create();
 	     
-	     SqlRepositoryServiceImpl repositoryService = (SqlRepositoryServiceImpl) applicationContext.getBean("repositoryService");
+	     repositoryService = (SqlRepositoryServiceImpl) applicationContext.getBean("repositoryService");
      
      
      PrismContext prismContext = (PrismContext) applicationContext.getBean("prismContext");
@@ -99,20 +85,6 @@ public class TestRestService {
      repositoryService.addObject(sysConfig, RepoAddOptions.createAllowUnencryptedValues(), parentResult);
 	}
 	 
-	// Optional step - may be needed to ensure that by the time individual
-	// tests start running the endpoint has been fully initialized
-//	private static void waitForWADL() throws Exception {
-//	    WebClient client = WebClient.create(WADL_ADDRESS);
-//	    // wait for 20 secs or so
-//	    for (int i = 0; i < 20; i++) {
-//	        Thread.currentThread().sleep(1000);
-//	        Response response = client.get();
-//	        if (response.getStatus() == 200) {
-//	            break;
-//	        }
-//	    }
-	    // no WADL is available yet - throw an exception or give tests a chance to run anyway
-//	}
 	 
 	 
 	@AfterClass
@@ -120,186 +92,88 @@ public class TestRestService {
 	   server.stop();
 	   server.destroy();
 	}
-	
-	
-//	@Autowired
-//	ModelRestService restService;
-//	
-//	public ModelRestService getRestService() {
-//		return restService;
-//	}
-//	
+
 	public TestRestService() {
 		super();
 	}
-//	
-////	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-////		LOGGER.trace("initSystem");
-////		super.initSystem(initTask, initResult);
-////		
-//////		repoAddObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
-////
-////		// This should discover the connectors
-////		LOGGER.trace("initSystem: trying modelService.postInit()");
-////		modelService.postInit(initResult);
-////		LOGGER.trace("initSystem: modelService.postInit() done");
-////
-////		// We need to add config after calling postInit() so it will not be
-////		// applied.
-////		// we want original logging configuration from the test logback config
-////		// file, not
-////		// the one from the system config.
-////		repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILENAME, SystemConfigurationType.class, initResult);
-////
-////		// Add broken connector before importing resources
-////		// addObjectFromFile(CONNECTOR_BROKEN_FILENAME, initResult);
-////
-////		// Need to import instead of add, so the (dynamic) connector reference
-////		// will be resolved
-////		// correctly
-////		importObjectFromFile(RESOURCE_OPENDJ_FILENAME, initResult);
-////		// importObjectFromFile(RESOURCE_DERBY_FILENAME, initResult);
-////		// importObjectFromFile(RESOURCE_BROKEN_FILENAME, initResult);
-////
-////		repoAddObjectFromFile(SAMPLE_CONFIGURATION_OBJECT_FILENAME, GenericObjectType.class, initResult);
-////		repoAddObjectFromFile(USER_TEMPLATE_FILENAME, ObjectTemplateType.class, initResult);
-////		// addObjectFromFile(ROLE_SAILOR_FILENAME, initResult);
-////		// addObjectFromFile(ROLE_PIRATE_FILENAME, initResult);
-////		repoAddObjectFromFile(ROLE_CAPTAIN_FILENAME, RoleType.class, initResult);
-////		
-////		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
-////		startServer();
-////	}
-//	 
-//	@BeforeClass
-//	public static void initialize() throws Exception {
-//	     startServer();
-//	}
-//	 
-//	private static void startServer() throws Exception {
-////	     JAXRSServerFactoryBean sf = new JAXRSServerFactoryBean();
-////	     sf.setResourceClasses(ModelRestService.class);
-////	         
-////	     List<Object> providers = new ArrayList<Object>();
-////	     // add custom providers if any
-////	     
-////	     sf.setProviders(providers);
-////	     
-//	     LOGGER.info("Start to initialize model context - rest service");
-//	     
-//	     
-//	     
-////	     <import resource="classpath*:ctx-task.xml"/>
-////	     <import resource="ctx-model.xml"/>
-////	     <import resource="ctx-provisioning.xml"/>
-////	     <import resource="ctx-rest-test.xml"/>
-////	     <import resource="ctx-audit.xml"/>
-////	     <import resource="ctx-common.xml"/>
-////	     <import resource="classpath*:ctx-repository.xml"/>
-////	     <import resource="ctx-repo-cache.xml"/>
-////	     <import resource="ctx-configuration-test.xml"/>
-////	     
-////	     ApplicationContext applicationContext = new ClassPathXmlApplicationContext("ctx-audit.xml", "ctx-common.xml", "ctx-repo-cache.xml", "classpath*:ctx-repository.xml", "ctx-task.xml", "ctx-provisioning.xml", "/ctx-model.xml");
-//	        
-//	     ApplicationContext applicationContext = new ClassPathXmlApplicationContext("ctx-rest-test-main.xml");
-//	        LOGGER.info("Spring context initialized.");
-//
-////	        ModelRestService restService = (ModelRestService) applicationContext.getBean("modelRestService");
-//
-//	        JAXRSServerFactoryBean sf = (JAXRSServerFactoryBean) applicationContext.getBean("restService");
-//	        
-////	        SqlRepositoryServiceImpl repositoryService = (SqlRepositoryServiceImpl) applicationContext.getBean("repositoryService");
-////	        
-////	        
-////	        PrismContext prismContext = (PrismContext) applicationContext.getBean("prismContext");
-////	        PrismObject<UserType> admin = prismContext.getPrismDomProcessor().parseObject(new File(USER_ADMINISTRATOR_FILENAME));
-////	        OperationResult parentResult = new OperationResult("add");
-////	        repositoryService.addObject(admin, null, parentResult);
-////	        sf.setAddress(ENDPOINT_ADDRESS);
-////	        PrismContext prismContext = (PrismContext) applicationContext.getBean("prismContext");
-////	        PrismTestUtil.createInitializedPrismContext();
-//         
-////	     sf.setResourceProvider(ModelRestService.class,
-////	                            new SingletonResourceProvider(restService, true));
-//	     sf.setAddress(ENDPOINT_ADDRESS);
-//	 
-//	     server = sf.create();
-//	}
-//	 
-//	@AfterClass
-//	public static void destroy() throws Exception {
-//	   server.stop();
-//	   server.destroy();
-//	}
-	 
 	
 	@Test
-	  public void test001addSystemCOnfiguration() throws Exception{
-		  WebClient client = WebClient.create(ENDPOINT_ADDRESS);
+	public void test001getUserAdministrator(){
+		displayTestTile(this, "test001getUserAdministrator");
+		
+		WebClient client = prepareClient();
+		
+		client.path("/users/"+ SystemObjectsType.USER_ADMINISTRATOR.value());
 		  
-		  ClientConfiguration clientConfig = WebClient.getConfig(client);
+		  Response response = client.get();
 		  
-//		  
-//		  
-//		  clientConfig.getRequestContext().put("Authorization", authorizationHeader);
-		  clientConfig.getRequestContext().put(LocalConduit.DIRECT_DISPATCH, Boolean.TRUE);
-//		  AuthorizationPolicy authPolicy = new AuthorizationPolicy();
-//		  authPolicy.setUserName("administrator");
-//		  authPolicy.setPassword("secret");
+		  assertEquals("Expected 200 but got " + response.getStatus(), 200, response.getStatus());
+		  UserType userType = response.readEntity(UserType.class);
+		  assertNotNull("Returned entity in body must not be null.", userType);
+		  LOGGER.info("Returned entity: {}", userType.asPrismObject().dump());
+	}
+	
+	@Test
+	  public void test101addSystemConfigurationOverwrite() throws Exception{
+		displayTestTile(this, "test101addSystemConfigurationOverwrite");
+		
+		WebClient client = prepareClient();
+		  client.path("/systemConfigurations");
 		  
-		  client.accept("application/xml");
-		  client.path("/users");
-		  
-		  String authorizationHeader = "Basic "
-			      + org.apache.cxf.common.util.Base64Utility.encode("administrator:5ecr3t".getBytes());
-		  client.header("Authorization", authorizationHeader);
+		
 		  
 		  client.query("options", "override");
 		 
 		  LOGGER.info("post starting");
 		  Response response = client.post(new File(SYSTEM_CONFIGURATION_FILENAME));
 		  LOGGER.info("post end");
-//		  Response response = client.get();
 		  LOGGER.info("response : {} ", response.getStatus());
 		  LOGGER.info("response : {} ", response.getStatusInfo().getReasonPhrase());
 		  
-		  AssertJUnit.assertEquals("Expected 200 but got " + response.getStatus(), 201, response.getStatus());
+		  assertEquals("Expected 200 but got " + response.getStatus(), 201, response.getStatus());
+		  String location = response.getHeaderString("Location");
+		  assertEquals(ENDPOINT_ADDRESS + "/systemConfigurations/"+SystemObjectsType.SYSTEM_CONFIGURATION.value(), location);
+		  
 		
 	  }
 
 
 	
-//  @Test
-  public void test002addUserAdministrator() throws Exception{
-	  WebClient client = WebClient.create(ENDPOINT_ADDRESS);
+  @Test
+  public void test102addUserTemplate() throws Exception{
+	  displayTestTile(this, "test102addUserTemplate");
 	  
-	  ClientConfiguration clientConfig = WebClient.getConfig(client);
+	  WebClient client = prepareClient();
 	  
-//	  
-//	  
-//	  clientConfig.getRequestContext().put("Authorization", authorizationHeader);
-	  clientConfig.getRequestContext().put(LocalConduit.DIRECT_DISPATCH, Boolean.TRUE);
-//	  AuthorizationPolicy authPolicy = new AuthorizationPolicy();
-//	  authPolicy.setUserName("administrator");
-//	  authPolicy.setPassword("secret");
-	  
-	  client.accept("application/xml");
-	  client.path("/users");
-	  
-	  String authorizationHeader = "Basic "
-		      + org.apache.cxf.common.util.Base64Utility.encode("administrator:5ecr3t".getBytes());
-	  client.header("Authorization", authorizationHeader);
-	  
+	  client.path("/objectTemplates");
 	 
 	  LOGGER.info("post starting");
-	  Response response = client.post(new File(USER_ADMINISTRATOR_FILENAME));
+	  Response response = client.post(new File(USER_TEMPLATE_FILENAME));
 	  LOGGER.info("post end");
-//	  Response response = client.get();
 	  LOGGER.info("response : {} ", response.getStatus());
 	  LOGGER.info("response : {} ", response.getStatusInfo().getReasonPhrase());
 	  
-	  AssertJUnit.assertEquals("Expected 200 but got " + response.getStatus(), 201, response.getStatus());
+	  assertEquals("Expected 200 but got " + response.getStatus(), 201, response.getStatus());
 	
 	
+  }
+  
+	private WebClient prepareClient() {
+		WebClient client = WebClient.create(ENDPOINT_ADDRESS);
+
+		ClientConfiguration clientConfig = WebClient.getConfig(client);
+
+		clientConfig.getRequestContext().put(LocalConduit.DIRECT_DISPATCH,
+				Boolean.TRUE);
+
+		client.accept("application/xml");
+
+		String authorizationHeader = "Basic "
+				+ org.apache.cxf.common.util.Base64Utility
+						.encode("administrator:5ecr3t".getBytes());
+		client.header("Authorization", authorizationHeader);
+
+		return client;
+
   }
 }
