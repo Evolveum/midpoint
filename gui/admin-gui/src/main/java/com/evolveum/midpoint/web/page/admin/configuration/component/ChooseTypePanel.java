@@ -46,14 +46,12 @@ public class ChooseTypePanel<T extends ObjectType> extends SimplePanel<ObjectVie
     private static final String DEFAULT_CHOOSE_VALUE_NAME = "None";
     private static final String DEFAULT_CHOOSE_VALUE_OID = "";
 
-    private Class<T> clazz;
 
-    public ChooseTypePanel(String id, IModel<ObjectViewDto> model, Class<T> type){
+    public ChooseTypePanel(String id, IModel<ObjectViewDto> model){
         super(id, model);
-        this.clazz = type;
-        initLayout();
     }
 
+    @Override
     protected void initLayout(){
 
         final Label name = new Label(ID_OBJECT_NAME, new AbstractReadOnlyModel<String>(){
@@ -88,8 +86,25 @@ public class ChooseTypePanel<T extends ObjectType> extends SimplePanel<ObjectVie
     }
 
     private void initDialog(){
-        ChooseTypeDialog dialog = new ChooseTypeDialog(MODAL_ID_SHOW_CHOOSE_OPTIONS, this.clazz);
+        ModalWindow dialog = new ChooseTypeDialog<T>(MODAL_ID_SHOW_CHOOSE_OPTIONS, getModel().getObject().getType()){
+
+            @Override
+            protected void chooseOperationPerformed(AjaxRequestTarget target, ObjectType object){
+                choosePerformed(target, object);
+            }
+        };
+
         add(dialog);
+    }
+
+    private void choosePerformed(AjaxRequestTarget target, ObjectType object){
+        ModalWindow window = (ModalWindow) get(MODAL_ID_SHOW_CHOOSE_OPTIONS);
+        window.close(target);
+
+        getModel().getObject().setName(object.getName().getOrig());
+        getModel().getObject().setOid(object.getOid());
+
+        target.add(get(ID_OBJECT_NAME));
     }
 
     private void changeOptionPerformed(AjaxRequestTarget target){

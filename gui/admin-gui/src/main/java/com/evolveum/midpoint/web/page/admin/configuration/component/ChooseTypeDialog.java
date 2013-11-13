@@ -113,16 +113,13 @@ public class ChooseTypeDialog<T extends ObjectType> extends ModalWindow{
         close(target);
     }
 
-    private void chooseOperationPerformed(AjaxRequestTarget target, ObjectType type){
-        close(target);
-    }
+    protected void chooseOperationPerformed(AjaxRequestTarget target, ObjectType object){}
 
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
         return new StringResourceModel(resourceKey, this, null, resourceKey, objects);
     }
 
     private PageBase getPageBase() {
-        //TODO - There seems to be a problem here
-        return (PageBase) getPage();
+         return (PageBase) getPage();
     }
 }
