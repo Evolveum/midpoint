@@ -56,6 +56,7 @@ public class SystemConfigPanel extends SimplePanel<SystemConfigurationDto> {
             passPolicyDto = new ObjectViewDto<ValuePolicyType>(DEFAULT_CHOOSE_VALUE_OID, DEFAULT_CHOOSE_VALUE_NAME);
         }
 
+        passPolicyDto.setType(ValuePolicyType.class);
         return passPolicyDto;
     }
 
@@ -68,6 +69,7 @@ public class SystemConfigPanel extends SimplePanel<SystemConfigurationDto> {
             objectTemplateDto = new ObjectViewDto<ObjectTemplateType>(DEFAULT_CHOOSE_VALUE_OID, DEFAULT_CHOOSE_VALUE_NAME);
         }
 
+        objectTemplateDto.setType(ObjectTemplateType.class);
         return objectTemplateDto;
     }
 
@@ -77,9 +79,9 @@ public class SystemConfigPanel extends SimplePanel<SystemConfigurationDto> {
         objectTemplateDto = loadObjectTemplate();
 
         ChooseTypePanel passPolicyChoosePanel = new ChooseTypePanel(ID_GLOBAL_PASSWORD_POLICY_CHOOSER,
-                new PropertyModel<ObjectViewDto>(this, "passPolicyDto"), ValuePolicyType.class);
+                new PropertyModel<ObjectViewDto>(this, "passPolicyDto"));
         ChooseTypePanel userTemplateChoosePanel = new ChooseTypePanel(ID_GLOBAL_USER_TEMPLATE_CHOOSER,
-                new PropertyModel<ObjectViewDto>(this, "objectTemplateDto"), ObjectTemplateType.class);
+                new PropertyModel<ObjectViewDto>(this, "objectTemplateDto"));
         add(passPolicyChoosePanel);
         add(userTemplateChoosePanel);
     }

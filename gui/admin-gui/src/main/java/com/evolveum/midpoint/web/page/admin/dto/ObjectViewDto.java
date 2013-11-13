@@ -34,6 +34,7 @@ public class ObjectViewDto<T extends ObjectType> implements Serializable {
     private String name;
     private String xml;
     private PrismObject<T> object;       //todo why this?
+    Class<T> type;
 
     public ObjectViewDto() {
     }
@@ -58,8 +59,16 @@ public class ObjectViewDto<T extends ObjectType> implements Serializable {
         return name;
     }
 
+    public void setName(String name){
+        this.name = name;
+    }
+
     public String getOid() {
         return oid;
+    }
+
+    public void setOid(String oid){
+        this.oid = oid;
     }
 
     public String getXml() {
@@ -68,5 +77,13 @@ public class ObjectViewDto<T extends ObjectType> implements Serializable {
 
     public void setXml(String xml) {
         this.xml = xml;
+    }
+
+    public Class<T> getType() {
+        return type;
+    }
+
+    public void setType(Class<T> type) {
+        this.type = type;
     }
 }
