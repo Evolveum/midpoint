@@ -22,10 +22,15 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
 
 import javax.xml.bind.JAXBException;
+import javax.xml.datatype.Duration;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.datatype.DatatypeConstants.Field;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -33,11 +38,13 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.common.expression.evaluator.GenerateExpressionEvaluator;
+import com.evolveum.midpoint.model.trigger.RecomputeTriggerHandler;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -103,6 +110,11 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         
         UserType userJackType = userJack.asObjectable();
         assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
+        
+        PrismAsserts.assertPropertyValue(userJack, UserType.F_ADDITIONAL_NAME, PrismTestUtil.createPolyString("Jackie"));
+        XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
+        XMLGregorianCalendar monthLater = XmlTypeConverter.addDuration(now, XmlTypeConverter.createDuration("P1M"));
+        assertTrigger(userJack, RecomputeTriggerHandler.HANDLER_URI, monthLater, 100000L);
 	}
 	
 	@Test
@@ -144,6 +156,10 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         jackEmployeeNumber = userJackType.getEmployeeNumber();
         assertEquals("Unexpected length  of employeeNumber, maybe it was not generated?", 
         		GenerateExpressionEvaluator.DEFAULT_LENGTH, jackEmployeeNumber.length());
+        
+        XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
+        XMLGregorianCalendar monthLater = XmlTypeConverter.addDuration(now, XmlTypeConverter.createDuration("P1M"));
+        assertTrigger(userJack, RecomputeTriggerHandler.HANDLER_URI, monthLater, 100000L);
 	}
 	
 	/**
@@ -553,6 +569,34 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         
         assertEquals("Unexpected length  of employeeNumber, maybe it was not generated?", 
         		GenerateExpressionEvaluator.DEFAULT_LENGTH, userAfterType.getEmployeeNumber().length());
+	}
+	
+	/**
+	 * Move the time to the future. See if the time-based mapping in user template is properly recomputed.
+	 */
+	@Test
+    public void test800Kaboom() throws Exception {
+		final String TEST_NAME = "test800Kaboom";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        importObjectFromFile(TASK_TRIGGER_SCANNER_FILE);
+        waitForTaskStart(TASK_TRIGGER_SCANNER_OID, false);
+        
+        XMLGregorianCalendar now = clock.currentTimeXMLGregorianCalendar();
+        now.add(XmlTypeConverter.createDuration("P1M1D"));
+        clock.override(now);
+        
+        // WHEN
+        waitForTaskNextRun(TASK_TRIGGER_SCANNER_OID, true);
+        
+        // THEN
+        PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+        PrismAsserts.assertPropertyValue(userJack, UserType.F_ADDITIONAL_NAME, PrismTestUtil.createPolyString("Kaboom!"));
+        assertNoTrigger(userJack);
 	}
 	
 	@Test

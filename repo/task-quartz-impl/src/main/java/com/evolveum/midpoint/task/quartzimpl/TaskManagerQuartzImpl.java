@@ -793,7 +793,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
     private List<PrismObject<NodeType>> searchNodes(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
 
-        ClusterStatusInformation clusterStatusInformation = getClusterStatusInformation(options, result);
+        ClusterStatusInformation clusterStatusInformation = getClusterStatusInformation(options, true, result);
 
         List<PrismObject<NodeType>> nodesInRepository;
         try {
@@ -832,11 +832,11 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         return list;
     }
 
-    private ClusterStatusInformation getClusterStatusInformation(Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) {
+    private ClusterStatusInformation getClusterStatusInformation(Collection<SelectorOptions<GetOperationOptions>> options, boolean allowCached, OperationResult result) {
         boolean noFetch = GetOperationOptions.isNoFetch(SelectorOptions.findRootOptions(options));
         ClusterStatusInformation clusterStatusInformation;
         if (!noFetch) {
-            clusterStatusInformation = executionManager.getClusterStatusInformation(true, result);
+            clusterStatusInformation = executionManager.getClusterStatusInformation(true, allowCached, result);
         } else {
             clusterStatusInformation = null;
         }
@@ -845,7 +845,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
     public List<PrismObject<TaskType>> searchTasks(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
 
-        ClusterStatusInformation clusterStatusInformation = getClusterStatusInformation(options, result);
+        ClusterStatusInformation clusterStatusInformation = getClusterStatusInformation(options, true, result);
 
         List<PrismObject<TaskType>> tasksInRepository;
         try {
@@ -1125,24 +1125,24 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     private long lastRunningTasksClusterwideQuery = 0;
     private ClusterStatusInformation lastClusterStatusInformation = null;
 
-    public ClusterStatusInformation getRunningTasksClusterwide(OperationResult parentResult) {
-        lastClusterStatusInformation = executionManager.getClusterStatusInformation(true, parentResult);
-        lastRunningTasksClusterwideQuery = System.currentTimeMillis();
-        return lastClusterStatusInformation;
-    }
+//    public ClusterStatusInformation getRunningTasksClusterwide(OperationResult parentResult) {
+//        lastClusterStatusInformation = executionManager.getClusterStatusInformation(true, parentResult);
+//        lastRunningTasksClusterwideQuery = System.currentTimeMillis();
+//        return lastClusterStatusInformation;
+//    }
 
-    public ClusterStatusInformation getRunningTasksClusterwide(long allowedAge, OperationResult parentResult) {
-        long age = System.currentTimeMillis() - lastRunningTasksClusterwideQuery;
-        if (lastClusterStatusInformation != null && age < allowedAge) {
-            LOGGER.trace("Using cached ClusterStatusInformation, age = " + age);
-            parentResult.recordSuccess();
-            return lastClusterStatusInformation;
-        } else {
-            LOGGER.trace("Cached ClusterStatusInformation too old, age = " + age);
-            return getRunningTasksClusterwide(parentResult);
-        }
-
-    }
+//    public ClusterStatusInformation getRunningTasksClusterwide(long allowedAge, OperationResult parentResult) {
+//        long age = System.currentTimeMillis() - lastRunningTasksClusterwideQuery;
+//        if (lastClusterStatusInformation != null && age < allowedAge) {
+//            LOGGER.trace("Using cached ClusterStatusInformation, age = " + age);
+//            parentResult.recordSuccess();
+//            return lastClusterStatusInformation;
+//        } else {
+//            LOGGER.trace("Cached ClusterStatusInformation too old, age = " + age);
+//            return getRunningTasksClusterwide(parentResult);
+//        }
+//
+//    }
 
     @Override
     public boolean isCurrentNode(PrismObject<NodeType> node) {

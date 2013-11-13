@@ -253,5 +253,15 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 	public boolean matches(String regex) {
 		return Pattern.matches(regex, norm) || Pattern.matches(regex, orig);
 	}
-	
+
+	@Override
+	public void checkConsistence() {
+		if (orig == null) {
+			throw new IllegalStateException("Null orig");
+		}
+		if (norm == null) {
+			throw new IllegalStateException("Null norm");
+		}
+	}
+
 }

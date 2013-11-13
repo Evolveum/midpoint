@@ -725,7 +725,8 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
         // WHEN (2) - now let's do a reconciliation on both resources
 
-        ObjectDelta innocentDelta = createModifyUserReplaceDelta(USER_JACK_OID, UserType.F_LOCALITY, userJack.asObjectable().getLocality());
+        ObjectDelta innocentDelta = createModifyUserReplaceDelta(USER_JACK_OID, UserType.F_LOCALITY, 
+        		userJack.asObjectable().getLocality().toPolyString());
         modelService.executeChanges(MiscSchemaUtil.createCollection(innocentDelta), ModelExecuteOptions.createReconcile(), task, result);
 
         // THEN
@@ -768,7 +769,8 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 
         // WHEN (2) - now let's do a reconciliation on both resources
 
-        ObjectDelta innocentDelta = createModifyUserReplaceDelta(USER_JACK_OID, UserType.F_LOCALITY, userJack.asObjectable().getLocality());
+        ObjectDelta innocentDelta = createModifyUserReplaceDelta(USER_JACK_OID, UserType.F_LOCALITY, 
+        		userJack.asObjectable().getLocality().toPolyString());
         modelService.executeChanges(MiscSchemaUtil.createCollection(innocentDelta), ModelExecuteOptions.createReconcile(), task, result);
 
         // THEN

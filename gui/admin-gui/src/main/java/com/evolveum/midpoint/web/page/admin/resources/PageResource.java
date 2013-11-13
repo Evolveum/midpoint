@@ -23,7 +23,11 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -314,15 +318,30 @@ public class PageResource extends PageAdminResources {
             return;
         }
 
-        OperationResult result = null;
+        Task task = createSimpleTask(TEST_CONNECTION);
+        OperationResult result = new OperationResult(TEST_CONNECTION);
         try {
-            result = getModelService().testResource(dto.getOid(), createSimpleTask(TEST_CONNECTION));
+            result = getModelService().testResource(dto.getOid(), task);
             ResourceController.updateResourceState(dto.getState(), result);
+
+            // this provides some additional tests, namely a test for schema handling section
+            getModelService().getObject(ResourceType.class, dto.getOid(), null, task, result);
         } catch (ObjectNotFoundException ex) {
-            if (result == null) {
-                result = new OperationResult(TEST_CONNECTION);
-            }
-            result.recordFatalError("Fail to test resource connection", ex);
+            result.recordFatalError("Failed to test resource connection", ex);
+        } catch (ConfigurationException e) {
+            result.recordFatalError("Failed to test resource connection", e);
+        } catch (SchemaException e) {
+            result.recordFatalError("Failed to test resource connection", e);
+        } catch (CommunicationException e) {
+            result.recordFatalError("Failed to test resource connection", e);
+        } catch (SecurityViolationException e) {
+            result.recordFatalError("Failed to test resource connection", e);
+        }
+
+        // a bit of hack: result of TestConnection contains a result of getObject as a subresult
+        // so in case of TestConnection succeeding we recompute the result to show any (potential) getObject problems
+        if (result.isSuccess()) {
+            result.recomputeStatus();
         }
 
         WebMarkupContainer connectors = (WebMarkupContainer) get("mainForm:connectors");
