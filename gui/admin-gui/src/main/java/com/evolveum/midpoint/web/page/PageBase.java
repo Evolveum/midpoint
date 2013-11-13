@@ -171,7 +171,13 @@ public abstract class PageBase extends WebPage {
         TopMenuBar topMenu = new TopMenuBar(ID_TOP_MENU, createMenuItems());
         add(topMenu);
 
-        WebMarkupContainer version = new WebMarkupContainer(ID_VERSION);
+        WebMarkupContainer version = new WebMarkupContainer(ID_VERSION) {
+
+            @Deprecated
+            public String getDescribe() {
+                return PageBase.this.getDescribe();
+            }
+        };
         version.add(new VisibleEnableBehaviour() {
 
             @Override
