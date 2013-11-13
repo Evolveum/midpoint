@@ -1055,6 +1055,8 @@ REFERENCES m_object (id, oid);
 
 CREATE INDEX iTaskNameNameNorm ON m_task (name_norm);
 
+CREATE INDEX iParent ON m_task (parent);
+
 CREATE INDEX iTaskNameOrig ON m_task (name_orig);
 
 ALTER TABLE m_task

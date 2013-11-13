@@ -45,11 +45,13 @@ public abstract class DummyObject implements Dumpable, DebugDumpable {
 	private Date validFrom = null;
 	private Date validTo = null;
 	protected DummyResource resource;
+	
+	private BreakMode modifyBreakMode = null;
 
 	public DummyObject() {
 	}
 	
-		public String getId() {
+	public String getId() {
 		return id;
 	}
 
@@ -102,6 +104,14 @@ public abstract class DummyObject implements Dumpable, DebugDumpable {
 	public void setValidTo(Date validTo) throws ConnectException, FileNotFoundException {
 		checkModifyBreak();
 		this.validTo = validTo;
+	}
+
+	public BreakMode getModifyBreakMode() {
+		return modifyBreakMode;
+	}
+
+	public void setModifyBreakMode(BreakMode modifyBreakMode) {
+		this.modifyBreakMode = modifyBreakMode;
 	}
 
 	public Set<String> getAttributeNames() {
@@ -240,7 +250,10 @@ public abstract class DummyObject implements Dumpable, DebugDumpable {
 		if (resource == null) {
 			return;
 		}
-		BreakMode modifyBreakMode = resource.getModifyBreakMode();
+		BreakMode modifyBreakMode = this.modifyBreakMode;
+		if (modifyBreakMode == null) {
+			modifyBreakMode = resource.getModifyBreakMode();
+		}
 		if (modifyBreakMode == BreakMode.NONE) {
 			// go on
 		} else if (modifyBreakMode == BreakMode.NETWORK) {

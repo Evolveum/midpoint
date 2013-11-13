@@ -152,7 +152,7 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 			change.checkConsistence();
 		} catch (RuntimeException ex) {
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Change:\n{}",change.dump());
+				LOGGER.trace("Check consistence failed: {}\nChange:\n{}",ex,change.dump());
 			}
 			throw ex;
 		}
@@ -160,7 +160,9 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 		// Invoke the change notification
         Utils.clearRequestee(getTask());
         objectChangeListener.notifyChange(change, getTask(), result);
-
+        
+        // No exception thrown here. The error is indicated in the result. Will be processed by superclass.
+        
 		return true;
 	}
 }

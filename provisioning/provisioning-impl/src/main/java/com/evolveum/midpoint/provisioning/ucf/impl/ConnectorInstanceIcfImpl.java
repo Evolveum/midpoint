@@ -976,7 +976,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 			icfResult.recordSuccess();
 		} catch (Throwable ex) {
-			Throwable midpointEx = processIcfException(ex, this, icfResult);
+			String desc = this.getHumanReadableName() + " while getting object identified by ICF UID '"+uid.getUidValue()+"'";
+			Throwable midpointEx = processIcfException(ex, desc, icfResult);
 			icfResult.computeStatus("Add object failed");
 
 			// Do some kind of acrobatics to do proper throwing of checked
@@ -1351,7 +1352,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				icfResult.recordSuccess();
 			}
 		} catch (Throwable ex) {
-			Throwable midpointEx = processIcfException(ex, this, icfResult);
+			String desc = this.getHumanReadableName() + " while adding attribute values to object identified by ICF UID '"+uid.getUidValue()+"'";
+			Throwable midpointEx = processIcfException(ex, desc, icfResult);
 			result.computeStatus("Adding attribute values failed");
 			// Do some kind of acrobatics to do proper throwing of checked
 			// exception
@@ -1422,7 +1424,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 
 				icfResult.recordSuccess();
 			} catch (Throwable ex) {
-				Throwable midpointEx = processIcfException(ex, this, icfResult);
+				String desc = this.getHumanReadableName() + " while updating object identified by ICF UID '"+uid.getUidValue()+"'";
+				Throwable midpointEx = processIcfException(ex, desc, icfResult);
 				result.computeStatus("Update failed");
 				// Do some kind of acrobatics to do proper throwing of checked
 				// exception
@@ -1478,7 +1481,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				icfResult.recordSuccess();
 			}
 		} catch (Throwable ex) {
-			Throwable midpointEx = processIcfException(ex, this, icfResult);
+			String desc = this.getHumanReadableName() + " while removing attribute values from object identified by ICF UID '"+uid.getUidValue()+"'";
+			Throwable midpointEx = processIcfException(ex, desc, icfResult);
 			result.computeStatus("Removing attribute values failed");
 			// Do some kind of acrobatics to do proper throwing of checked
 			// exception
@@ -1569,7 +1573,8 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			icfResult.recordSuccess();
 
 		} catch (Throwable ex) {
-			Throwable midpointEx = processIcfException(ex, this, icfResult);
+			String desc = this.getHumanReadableName() + " while deleting object identified by ICF UID '"+uid.getUidValue()+"'";
+			Throwable midpointEx = processIcfException(ex, desc, icfResult);
 			result.computeStatus("Removing attribute values failed");
 			// Do some kind of acrobatics to do proper throwing of checked
 			// exception
