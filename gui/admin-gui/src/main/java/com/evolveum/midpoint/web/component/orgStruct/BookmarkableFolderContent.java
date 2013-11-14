@@ -17,16 +17,22 @@
 package com.evolveum.midpoint.web.component.orgStruct;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.prism.query.OrgFilter;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.RetrieveOption;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.orgStruct.AbstractTree.State;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgStruct;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgStructDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.apache.wicket.Component;
 import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.RestartResponseException;
@@ -37,6 +43,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -265,6 +272,7 @@ public class BookmarkableFolderContent extends Content {
 	}
 
 	private OrgStructDto loadOrgUnit(NodeDto parent) {
+        TraceManager.getTrace(BookmarkableFolderContent.class).info(">>> LOADING ORG. UNITS");
 		Task task = createSimpleTask(OPERATION_LOAD_ORGUNIT);
 		OperationResult result = new OperationResult(OPERATION_LOAD_ORGUNIT);
 
@@ -276,7 +284,11 @@ public class BookmarkableFolderContent extends Content {
         query.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
 
 		try {
-			orgUnitList = getModelService().searchObjects(ObjectType.class, query, null, task, result);
+            Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<SelectorOptions<GetOperationOptions>>();
+            options.add(SelectorOptions.create(ObjectType.F_PARENT_ORG_REF,
+                    GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
+
+			orgUnitList = getModelService().searchObjects(ObjectType.class, query, options, task, result);
 			newOrgModel = new OrgStructDto<ObjectType>(orgUnitList, parent, result);
 			result.recomputeStatus();
 		} catch (Exception ex) {
@@ -293,6 +305,7 @@ public class BookmarkableFolderContent extends Content {
 //			showResultInSession(result);
 //			throw new RestartResponseException(PageOrgStruct.class);
 //		}
+        TraceManager.getTrace(BookmarkableFolderContent.class).info(">>> LOADING ORG. UNITS FINISHED");
 		return newOrgModel;
 	}
 }
