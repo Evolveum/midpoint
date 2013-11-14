@@ -469,7 +469,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         addReconScripts(scripts, ACCOUNT_ELAINE_DUMMY_USERNAME, "Elaine Marley", false);
         IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), scripts.toArray(new ProvisioningScriptSpec[0]));
         
-        assertReconAuditModifications(1);
+        assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_OID);
         
         // Task result
         PrismObject<TaskType> reconTaskAfter = getTask(TASK_RECONCILE_DUMMY_OID);
@@ -613,7 +613,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         addReconScripts(scripts, ACCOUNT_ELAINE_DUMMY_USERNAME, "Elaine Marley", false);
         IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), scripts.toArray(new ProvisioningScriptSpec[0]));
         
-        assertReconAuditModifications(1);
+        assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_OID);
         
         // Task result
         PrismObject<TaskType> reconTaskAfter = getTask(TASK_RECONCILE_DUMMY_OID);
@@ -691,7 +691,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         // Check audit
         display("Audit", dummyAuditService);
-        assertReconAuditModifications(1);
+        assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_OID);
 	}
 
 	/**
@@ -765,7 +765,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         addReconScripts(scripts, ACCOUNT_ELAINE_DUMMY_USERNAME, "Elaine Marley", false);
         IntegrationTestTools.assertScripts(dummyResource.getScriptHistory(), scripts.toArray(new ProvisioningScriptSpec[0]));
         
-        assertReconAuditModifications(1);
+        assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_OID);
         
         // Task result
         PrismObject<TaskType> reconTaskAfter = getTask(TASK_RECONCILE_DUMMY_OID);
@@ -856,7 +856,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         display("Dummy resource (azure)", dummyResourceAzure.dump());
         
-        assertReconAuditModifications(1);
+        assertReconAuditModifications(1, TASK_RECONCILE_DUMMY_AZURE_OID);
 	}
 	
 	@Test
@@ -912,7 +912,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
         display("Dummy resource (azure)", dummyResourceAzure.dump());
         
-        assertReconAuditModifications(0);
+        assertReconAuditModifications(0, TASK_RECONCILE_DUMMY_AZURE_OID);
 	}
 
 	private void assertImportAuditModifications(int expectedModifications) {
@@ -950,7 +950,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         assertEquals("Unexpected number of audit modifications", expectedModifications, modifications);
 	}
 
-	private void assertReconAuditModifications(int expectedModifications) {
+	private void assertReconAuditModifications(int expectedModifications, String taskOid) {
 		// Check audit
         display("Audit", dummyAuditService);
         
@@ -976,6 +976,13 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
     	for (; i < (auditRecords.size() - 1); i+=2) {
         	AuditEventRecord requestRecord = auditRecords.get(i);
         	assertNotNull("No request audit record ("+i+")", requestRecord);
+        	
+        	if (!requestRecord.getTaskOID().equals(taskOid)) {
+        		// Record from some other task, skip it
+        		i--;
+        		continue;
+        	}
+        	
         	assertEquals("Got this instead of request audit record ("+i+"): "+requestRecord, AuditEventStage.REQUEST, requestRecord.getEventStage());
         	// Request audit may or may not have a delta. Usual records will not have a delta. But e.g. disableAccount reactions will have.
 
