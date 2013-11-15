@@ -55,5 +55,6 @@
         <module>workflow-api</module>
         <module>workflow-impl</module>
         <module>notifications</module>
+        <module>report-impl</module>
     </modules>
 </project>
