@@ -28,14 +28,13 @@
                     <wicket:message key="SystemConfigPanel.title.passwordPolicy"/>
                 </label>
                 <div wicket:id="passwordPolicyChooser" />
-
             </div>
+
             <div class="form-group">
                 <label class="col-lg-4 control-label">
                     <wicket:message key="SystemConfigPanel.title.userTemplate"/>
                 </label>
                 <div wicket:id="userTemplateChooser" />
-
             </div>
 
             <h3 style="margin-left: 20px;">
@@ -58,16 +57,45 @@
                 </div>
             </div>
 
+            <h3 style="margin-left: 20px">
+                <wicket:message key="SystemConfigPanel.cleanupPolicy"/>
+            </h3>
+
             <div class="form-group">
                 <label class="col-lg-4 control-label">
-                    <wicket:message key="SystemConfigPanel.title.modelHooks"/>
+                    <wicket:message key="SystemConfigPanel.cleanupPolicy.auditRecords"/>
                 </label>
 
-                <div class="col-lg-4">
-
+                <div class="col-lg-2">
+                    <input type="text" class="form-control input-sm"
+                            wicket:message="placeholder:SystemConfigPanel.cleanupPolicy.placeholder">
                 </div>
+
+                <a href="#" rel="tooltip" class="btn btn-xs" data-placement="right" data-original-title="format: P[n][p], n-number, p-period (d - days, m - months, ...), P3M - cleanup every 3 months">
+                    <i class="glyphicon glyphicon-info-sign" ></i>
+                </a>
+            </div>
+            <div class="form-group">
+                <label class="col-lg-4 control-label">
+                    <wicket:message key="SystemConfigPanel.cleanupPolicy.closedTasks"/>
+                </label>
+
+                <div class="col-lg-2">
+                    <input type="text" class="form-control input-sm"
+                           wicket:message="placeholder:SystemConfigPanel.cleanupPolicy.placeholder">
+                </div>
+
+                <a href="#" rel="tooltip" class="btn btn-xs" data-placement="right" data-original-title="format: P[n][p], n-number, p-period (d - days, m - months, ...), P3M - cleanup every 3 months">
+                    <i class="glyphicon glyphicon-info-sign" ></i>
+                </a>
             </div>
         </div>
+
+        <!-- TODO - move this into webapps/js and change selector to attribute rather than to class -->
+        <script>
+            $('.btn-xs').tooltip();
+        </script>
+
         <div class="col-md-6">
             <h3>
                 <wicket:message key="SystemConfigPanel.title.notification"/>
@@ -151,6 +179,7 @@
                 </div>
             </div>
 
+            <!-- Connector frameworks configuration commented out for now
             <h3>
                 <wicket:message key="SystemConfigPanel.title.connectorFramework"/>
             </h3>
@@ -162,6 +191,8 @@
                     <input type="password" class="form-control input-sm" placeholder="Whatever">
                 </div>
             </div>
+            -->
+
         </div>
     </div>
 </wicket:panel>
