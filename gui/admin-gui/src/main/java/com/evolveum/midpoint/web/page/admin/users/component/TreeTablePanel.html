@@ -16,20 +16,12 @@
   ~ limitations under the License.
   -->
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
-    <!--<tbody wicket:id="row">-->
-        <!--<tr>-->
-            <!--<td><input type="checkbox"/></td>-->
-            <!--<td>tree</td>-->
-            <!--<td>display name</td>-->
-            <!--<td>relation</td>-->
-            <!--<td>description</td>-->
-        <!--</tr>-->
-        <!--<tr wicket:id="children"/>-->
-        <!--<tr wicket:id="pagingRow">-->
-            <!--<td></td>-->
-            <!--<td colspan="4">-->
-                <!--<div wicket:id="paging"/>-->
-            <!--</td>-->
-        <!--</tr>-->
-    <!--</tbody>-->
+    <div class="row">
+        <div class="col-md-4">
+            <div wicket:id="tree"/>
+        </div>
+        <div class="col-md-8">
+            <div wicket:id="table"/>
+        </div>
+    </div>
 </wicket:panel>
