@@ -47,25 +47,7 @@
             <a class="btn btn-danger" wicket:id="deleteLogger"/>
         </div>
 
-        <h3><wicket:message key="LoggingConfigPanel.logSubsystemEntryExit"/></h3>
-
-        <div class="form-group">
-            <label class="col-lg-4 control-label"><wicket:message key="LoggingConfigPanel.subsystem.level"/></label>
-
-            <div class="col-lg-4">
-                <select class="form-control input-sm" wicket:id="profilingLevel"/>
-            </div>
-        </div>
-        <div class="form-group">
-            <label class="col-lg-4 control-label"><wicket:message key="LoggingConfigPanel.subsystem.appender"/></label>
-
-            <div class="col-lg-4">
-                <select class="form-control input-sm" wicket:id="profilingAppender"/>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-lg-6">
+        <!-- Audit configuration -->
         <h3><wicket:message key="LoggingConfigPanel.audit"/></h3>
 
         <div class="form-group">
@@ -100,8 +82,145 @@
                 </select>
             </div>
         </div>
+    </div>
 
-        <h3>Profiling</h3>
+    <div class="col-lg-6">
+        <!-- General profiling section -->
+        <h3><wicket:message key="LoggingConfigPanel.profiling.general"/></h3>
+
+        <div class="form-group">
+            <label class="col-lg-4 control-label"><wicket:message key="LoggingConfigPanel.profiling.requestFilter"/></label>
+
+            <div class="col-lg-4">
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox">
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-lg-4 control-label"><wicket:message key="LoggingConfigPanel.profiling.performanceStatistics"/></label>
+
+            <div class="col-lg-4">
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox">
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-lg-4 control-label"><wicket:message key="LoggingConfigPanel.profiling.dumpInterval"/></label>
+
+            <div class="col-lg-2">
+                <input type="text" class="form-control input-sm"
+                       wicket:message="placeholder:LoggingConfigPanel.profiling.dumpInterval.placeholder">
+            </div>
+        </div>
+
+        <!-- Subsystem profiling section -->
+        <h3><wicket:message key="LoggingConfigPanel.profiling.subsystems"/></h3>
+
+        <div class="form-group">
+            <label class="col-lg-4 control-label"><wicket:message key="LoggingConfigPanel.profiling.subsystem.model"/></label>
+
+            <div class="col-lg-4">
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox">
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-lg-4 control-label"><wicket:message key="LoggingConfigPanel.profiling.subsystem.repository"/></label>
+
+            <div class="col-lg-4">
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox">
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-lg-4 control-label"><wicket:message key="LoggingConfigPanel.profiling.subsystem.provisioning"/></label>
+
+            <div class="col-lg-4">
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox">
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-lg-4 control-label"><wicket:message key="LoggingConfigPanel.profiling.subsystem.ucf"/></label>
+
+            <div class="col-lg-4">
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox">
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-lg-4 control-label"><wicket:message key="LoggingConfigPanel.profiling.subsystem.resourceObjectChangeListener"/></label>
+
+            <div class="col-lg-4">
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox">
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-lg-4 control-label"><wicket:message key="LoggingConfigPanel.profiling.subsystem.taskManager"/></label>
+
+            <div class="col-lg-4">
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox">
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-lg-4 control-label"><wicket:message key="LoggingConfigPanel.profiling.subsystem.workflow"/></label>
+
+            <div class="col-lg-4">
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox">
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profiling - Entry/Exit level -->
+        <h3><wicket:message key="LoggingConfigPanel.profiling.entryExit"/></h3>
+
+        <div class="form-group">
+            <label class="col-lg-4 control-label"><wicket:message key="LoggingConfigPanel.subsystem.level"/></label>
+
+            <div class="col-lg-4">
+                <select class="form-control input-sm" wicket:id="profilingLevel"/>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-lg-4 control-label"><wicket:message key="LoggingConfigPanel.subsystem.appender"/></label>
+
+            <div class="col-lg-4">
+                <select class="form-control input-sm" wicket:id="profilingAppender"/>
+            </div>
+        </div>
+
+
     </div>
 </div>
 <div class="row">
