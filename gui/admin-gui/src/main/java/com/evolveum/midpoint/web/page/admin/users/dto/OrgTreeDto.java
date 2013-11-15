@@ -21,7 +21,7 @@ import com.evolveum.midpoint.web.component.util.Selectable;
 /**
  * @author lazyman
  */
-public class OrgTreeDto extends Selectable {
+public class OrgTreeDto extends Selectable implements Comparable<OrgTreeDto> {
 
     private OrgTreeDto parent;
     private String oid;
@@ -62,5 +62,16 @@ public class OrgTreeDto extends Selectable {
 
     public String getName() {
         return name;
+    }
+
+    @Override
+    public String toString() {
+        return "OrgTreeDto{" + ", oid='" + oid + '\'' + ", name='" + name + '\'' + '}';
+    }
+
+    @Override
+    public int compareTo(OrgTreeDto o) {
+        //todo implement [lazyman]
+        return 0;
     }
 }

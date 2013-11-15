@@ -19,14 +19,17 @@ package com.evolveum.midpoint.web.page.admin.users.component;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgTreeDto;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.extensions.markup.html.repeater.tree.ISortableTreeProvider;
 import org.apache.wicket.extensions.markup.html.repeater.tree.NestedTree;
 import org.apache.wicket.extensions.markup.html.repeater.tree.content.CheckedFolder;
+import org.apache.wicket.extensions.markup.html.repeater.tree.theme.WindowsTheme;
+import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.list.ListItem;
-import org.apache.wicket.markup.html.list.ListView;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
@@ -44,7 +47,7 @@ public class TreeTablePanel extends SimplePanel {
 
     @Override
     protected void initLayout() {
-        ISortableTreeProvider provider = new OrgTreeProvider(this);
+        ISortableTreeProvider provider = new OrgTreeProvider(this, getModel());
         NestedTree<OrgTreeDto> tree = new NestedTree<OrgTreeDto>(ID_TREE, provider) {
 
             @Override
@@ -54,6 +57,21 @@ public class TreeTablePanel extends SimplePanel {
                     @Override
                     protected IModel<Boolean> newCheckBoxModel(final IModel<OrgTreeDto> model) {
                         return new PropertyModel<Boolean>(model, Selectable.F_SELECTED);
+                    }
+
+                    @Override
+                    protected IModel<?> newLabelModel(final IModel<OrgTreeDto> model) {
+                        return new AbstractReadOnlyModel<String>() {
+
+                            @Override
+                            public String getObject() {
+                                OrgTreeDto dto = model.getObject();
+                                if (StringUtils.isNotEmpty(dto.getDisplayName())) {
+                                    return dto.getDisplayName();
+                                }
+                                return dto.getName();
+                            }
+                        };
                     }
 
                     @Override
@@ -82,6 +100,7 @@ public class TreeTablePanel extends SimplePanel {
                 };
             }
         };
+        tree.add(new WindowsTheme());
         add(tree);
 
         add(new Label(ID_TABLE, "asdf"));
