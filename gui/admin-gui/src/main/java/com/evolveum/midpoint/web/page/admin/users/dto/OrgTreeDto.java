@@ -16,12 +16,12 @@
 
 package com.evolveum.midpoint.web.page.admin.users.dto;
 
-import com.evolveum.midpoint.web.component.util.Selectable;
+import java.io.Serializable;
 
 /**
  * @author lazyman
  */
-public class OrgTreeDto extends Selectable implements Comparable<OrgTreeDto> {
+public class OrgTreeDto implements Serializable, Comparable<OrgTreeDto> {
 
     private OrgTreeDto parent;
     private String oid;

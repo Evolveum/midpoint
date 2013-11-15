@@ -16,22 +16,23 @@
 
 package com.evolveum.midpoint.web.page.admin.users.component;
 
-import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgTreeDto;
-import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.HeadersToolbar;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.tree.ISortableTreeProvider;
-import org.apache.wicket.extensions.markup.html.repeater.tree.NestedTree;
-import org.apache.wicket.extensions.markup.html.repeater.tree.content.CheckedFolder;
+import org.apache.wicket.extensions.markup.html.repeater.tree.TableTree;
+import org.apache.wicket.extensions.markup.html.repeater.tree.table.TreeColumn;
 import org.apache.wicket.extensions.markup.html.repeater.tree.theme.WindowsTheme;
-import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.Model;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -40,6 +41,7 @@ public class TreeTablePanel extends SimplePanel {
 
     private static final String ID_TREE = "tree";
     private static final String ID_TABLE = "table";
+    private IModel<OrgTreeDto> selected = new Model<OrgTreeDto>();
 
     public TreeTablePanel(String id, IModel model) {
         super(id, model);
@@ -48,58 +50,19 @@ public class TreeTablePanel extends SimplePanel {
     @Override
     protected void initLayout() {
         ISortableTreeProvider provider = new OrgTreeProvider(this, getModel());
-        NestedTree<OrgTreeDto> tree = new NestedTree<OrgTreeDto>(ID_TREE, provider) {
+        List<IColumn<OrgTreeDto, String>> columns = new ArrayList<IColumn<OrgTreeDto, String>>();
+        columns.add(new TreeColumn<OrgTreeDto, String>(createStringResource("TreeTablePanel.hierarchy")));
+
+        TableTree<OrgTreeDto, String> tree = new TableTree<OrgTreeDto, String>(ID_TREE, columns, provider,
+                Integer.MAX_VALUE, new Model(new HashSet())) {
 
             @Override
             protected Component newContentComponent(String id, IModel<OrgTreeDto> model) {
-                return new CheckedFolder<OrgTreeDto>(id, this, model) {
-
-                    @Override
-                    protected IModel<Boolean> newCheckBoxModel(final IModel<OrgTreeDto> model) {
-                        return new PropertyModel<Boolean>(model, Selectable.F_SELECTED);
-                    }
-
-                    @Override
-                    protected IModel<?> newLabelModel(final IModel<OrgTreeDto> model) {
-                        return new AbstractReadOnlyModel<String>() {
-
-                            @Override
-                            public String getObject() {
-                                OrgTreeDto dto = model.getObject();
-                                if (StringUtils.isNotEmpty(dto.getDisplayName())) {
-                                    return dto.getDisplayName();
-                                }
-                                return dto.getName();
-                            }
-                        };
-                    }
-
-                    @Override
-                    protected void onUpdate(AjaxRequestTarget target) {
-//                        OrgTreeDto dto = getModelObject();
-//
-//                        // search first ancestor with quux not set
-//                        while (!dto.isSelected() && dto.getParent() != null) {
-//                            dto = dto.getParent();
-//                        }
-//
-//                        tree.updateBranch(dto, target);
-                        //todo do something...
-                    }
-
-                    @Override
-                    protected boolean isClickable() {
-                        return true;
-                    }
-
-                    @Override
-                    protected boolean isSelected() {
-                        OrgTreeDto dto = getModelObject();
-                        return dto.isSelected();
-                    }
-                };
+                return new SelectableFolderContent(id, this, model, selected);
             }
         };
+        tree.getTable().addTopToolbar(new HeadersToolbar<String>(tree.getTable(), null));
+        tree.getTable().add(AttributeModifier.replace("class", "table table-striped table-condensed"));
         tree.add(new WindowsTheme());
         add(tree);
 
