@@ -31,6 +31,8 @@ public class Main {
             "Create tables with sql script provided by this option.");
     public static final Option importOp = new Option("i", "import", true,
             "Import objects from XML file provided by this option.");
+    public static final Option schemaOp = new Option("s", "schema", false,
+            "validate schema of imported objects");
     public static final Option driver = new Option("d", "driver", true, "JDBC driver class");
     public static final Option url = new Option("u", "url", true, "JDBC url");
     public static final Option username = new Option("U", "username", true, "JDBC username");
@@ -46,6 +48,7 @@ public class Main {
         options.addOption(validate);
         options.addOption(create);
         options.addOption(importOp);
+        options.addOption(schemaOp);
         options.addOption(exportOp);
         options.addOption(driver);
         options.addOption(url);
@@ -78,7 +81,8 @@ public class Main {
             //import objects, only if repository validation didn't fail (in case it was tested)
             if (valid && line.hasOption(importOp.getOpt())) {
                 String path = line.getOptionValue(importOp.getOpt());
-                ImportObjects objects = new ImportObjects(path);
+                boolean validateSchema = line.hasOption(schemaOp.getOpt());
+                ImportObjects objects = new ImportObjects(path, validateSchema);
                 objects.execute();
             }
 
