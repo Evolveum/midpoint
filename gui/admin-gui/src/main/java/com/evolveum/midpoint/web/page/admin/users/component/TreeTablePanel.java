@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.users.component;
 
 import com.evolveum.midpoint.common.filter.Filter;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -145,11 +146,10 @@ public class TreeTablePanel extends SimplePanel {
                 return new Model(icon);
             }
         });
-        columns.add(new PropertyColumn<OrgTableDto, String>(createStringResource("ObjectType.name"), OrgTableDto.F_NAME));
+        columns.add(new PropertyColumn<OrgTableDto, String>(createStringResource("ObjectType.name"), OrgTableDto.F_NAME, "name"));
         columns.add(new PropertyColumn<OrgTableDto, String>(createStringResource("OrgType.displayName"), OrgTableDto.F_DISPLAY_NAME));
         //todo add relation
         columns.add(new PropertyColumn<OrgTableDto, String>(createStringResource("OrgType.identifier"), OrgTableDto.F_IDENTIFIER));
-//        columns.add(new PropertyColumn<OrgTableDto, String>(createStringResource("ObjectType.description"), OrgTableDto.F_DESCRIPTION));
         //todo add cog
 
         return columns;
@@ -162,7 +162,10 @@ public class TreeTablePanel extends SimplePanel {
         OrgTreeDto dto = selected.getObject();
         if (dto != null) {
             OrgFilter filter = OrgFilter.createOrg(dto.getOid(), null, 1);
-            provider.setQuery(ObjectQuery.createObjectQuery(filter));
+            ObjectPaging paging = ObjectPaging.createEmptyPaging();
+            paging.setOrderBy(ObjectType.F_NAME);
+
+            provider.setQuery(ObjectQuery.createObjectQuery(filter, paging));
         } else {
             provider.setQuery(null);
         }

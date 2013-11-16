@@ -53,6 +53,7 @@ import org.apache.wicket.request.resource.PackageResourceReference;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -191,6 +192,19 @@ public class PrismValuePanel extends Panel {
         return count;
     }
 
+    private List<ValueWrapper> getUsableValues(PropertyWrapper property) {
+        List<ValueWrapper> values = new ArrayList<ValueWrapper>();
+        for (ValueWrapper value : property.getValues()) {
+            value.normalize();
+            if (ValueStatus.DELETED.equals(value.getStatus())) {
+                continue;
+            }
+            values.add(value);
+        }
+
+        return values;
+    }
+
     private int countNonDeletedValues(PropertyWrapper property) {
         int count = 0;
         for (ValueWrapper value : property.getValues()) {
@@ -235,6 +249,11 @@ public class PrismValuePanel extends Panel {
 
         PrismPropertyDefinition definition = property.getDefinition();
         int max = definition.getMaxOccurs();
+        List<ValueWrapper> usableValues = getUsableValues(propertyWrapper);
+        if (usableValues.indexOf(valueWrapper) != usableValues.size() - 1) {
+            return false;
+        }
+
         if (max == -1) {
             return true;
         }
