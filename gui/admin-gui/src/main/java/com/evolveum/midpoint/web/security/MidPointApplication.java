@@ -31,16 +31,13 @@ import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.page.error.PageError401;
 import com.evolveum.midpoint.web.page.login.PageLogin;
-import com.evolveum.midpoint.web.resource.css.CssResources;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
-import com.evolveum.midpoint.web.resource.js.JsResources;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.wf.api.WorkflowService;
 import org.apache.commons.configuration.Configuration;
 import org.apache.wicket.RuntimeConfigurationType;
 import org.apache.wicket.atmosphere.EventBus;
 import org.apache.wicket.atmosphere.config.AtmosphereLogLevel;
-import org.apache.wicket.atmosphere.config.AtmosphereTransport;
 import org.apache.wicket.authroles.authentication.AbstractAuthenticatedWebSession;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
 import org.apache.wicket.core.request.handler.PageProvider;
@@ -48,13 +45,11 @@ import org.apache.wicket.core.request.handler.RenderPageRequestHandler;
 import org.apache.wicket.core.request.mapper.MountedMapper;
 import org.apache.wicket.markup.head.PriorityFirstComparator;
 import org.apache.wicket.markup.html.WebPage;
-import org.apache.wicket.markup.html.pages.ExceptionErrorPage;
 import org.apache.wicket.request.IRequestHandler;
 import org.apache.wicket.request.cycle.AbstractRequestCycleListener;
 import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.resource.SharedResourceReference;
 import org.apache.wicket.settings.IApplicationSettings;
-import org.apache.wicket.settings.IExceptionSettings;
 import org.apache.wicket.settings.IResourceSettings;
 import org.apache.wicket.spring.injection.annot.SpringComponentInjector;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,10 +57,6 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.FilenameFilter;
-import java.util.Date;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author lazyman
@@ -127,9 +118,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         }
 
         //pretty url resources
-        mountFiles(CssResources.BASE_PATH, CssResources.class);
         mountFiles(ImgResources.BASE_PATH, ImgResources.class);
-        mountFiles(JsResources.BASE_PATH, JsResources.class);
 
         for (PageUrlMapping m : PageUrlMapping.values()) {
             // usually m.getPage() will not return null, this is only the case we set the url with

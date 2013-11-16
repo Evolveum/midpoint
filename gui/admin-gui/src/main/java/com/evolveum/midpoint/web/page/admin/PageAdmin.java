@@ -17,10 +17,10 @@
 package com.evolveum.midpoint.web.page.admin;
 
 import com.evolveum.midpoint.common.security.AuthorizationConstants;
-import com.evolveum.midpoint.web.component.menu.top2.MenuBarItem;
-import com.evolveum.midpoint.web.component.menu.top2.MenuItem;
-import com.evolveum.midpoint.web.component.menu.top2.TopMenuBar;
-import com.evolveum.midpoint.web.component.menu.top2.right.UserMenuPanel;
+import com.evolveum.midpoint.web.component.menu.top.MenuBarItem;
+import com.evolveum.midpoint.web.component.menu.top.MenuItem;
+import com.evolveum.midpoint.web.component.menu.top.TopMenuBar;
+import com.evolveum.midpoint.web.component.menu.top.UserMenuPanel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;

@@ -1,6 +1,6 @@
 package com.evolveum.midpoint.web.security;
 
-import com.evolveum.midpoint.web.page.PageBootstrap;
+import com.evolveum.midpoint.web.page.test.PageBootstrap;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.home.PageMyPasswords;

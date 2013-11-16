@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.web.page;
+package com.evolveum.midpoint.web.page.test;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -7,6 +7,7 @@ import com.evolveum.midpoint.web.component.atmosphere.NotifyMessageFilter;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.page.PageBase;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.atmosphere.Subscribe;
 import org.apache.wicket.markup.html.form.Form;

@@ -1,4 +1,4 @@
-package com.evolveum.midpoint.web.component.menu.top2;
+package com.evolveum.midpoint.web.component.menu.top;
 
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.link.BookmarkablePageLink;

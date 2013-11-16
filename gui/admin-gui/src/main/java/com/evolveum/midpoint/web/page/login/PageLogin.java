@@ -16,8 +16,8 @@
 
 package com.evolveum.midpoint.web.page.login;
 
-import com.evolveum.midpoint.web.component.menu.top2.TopMenuBar;
-import com.evolveum.midpoint.web.component.menu.top2.right.LocalePanel;
+import com.evolveum.midpoint.web.component.menu.top.TopMenuBar;
+import com.evolveum.midpoint.web.component.menu.top.LocalePanel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
