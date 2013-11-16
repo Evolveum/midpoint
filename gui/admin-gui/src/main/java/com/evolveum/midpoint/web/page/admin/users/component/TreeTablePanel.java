@@ -26,9 +26,11 @@ import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgTableDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgTreeDto;
+import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.apache.wicket.AttributeModifier;
@@ -42,6 +44,7 @@ import org.apache.wicket.extensions.markup.html.repeater.tree.TableTree;
 import org.apache.wicket.extensions.markup.html.repeater.tree.table.TreeColumn;
 import org.apache.wicket.extensions.markup.html.repeater.tree.theme.WindowsTheme;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.markup.repeater.data.IDataProvider;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
@@ -88,6 +91,24 @@ public class TreeTablePanel extends SimplePanel {
                     }
                 };
             }
+
+            @Override
+            protected Item<OrgTreeDto> newRowItem(String id, int index, final IModel<OrgTreeDto> model) {
+                Item item = super.newRowItem(id, index, model);
+                item.add(AttributeModifier.append("class", new AbstractReadOnlyModel<String>() {
+
+                    @Override
+                    public String getObject() {
+                        OrgTreeDto itemObject = model.getObject();
+                        if (itemObject != null && itemObject.equals(selected.getObject())) {
+                            return "success";
+                        }
+
+                        return null;
+                    }
+                }));
+                return item;
+            }
         };
         tree.getTable().addTopToolbar(new HeadersToolbar<String>(tree.getTable(), null));
         tree.getTable().add(AttributeModifier.replace("class", "table table-striped table-condensed"));
@@ -112,11 +133,24 @@ public class TreeTablePanel extends SimplePanel {
         List<IColumn<OrgTableDto, String>> columns = new ArrayList<IColumn<OrgTableDto, String>>();
 
         columns.add(new CheckBoxHeaderColumn<OrgTableDto>());
+        columns.add(new IconColumn<OrgTableDto>(createStringResource("")) {
+
+            @Override
+            protected IModel<String> createIconModel(IModel<OrgTableDto> rowModel) {
+                OrgTableDto dto = rowModel.getObject();
+
+                ObjectTypeGuiDescriptor descr = ObjectTypeGuiDescriptor.getDescriptor(dto.getType());
+                String icon = descr != null ? descr.getIcon() : ObjectTypeGuiDescriptor.ERROR_ICON;
+
+                return new Model(icon);
+            }
+        });
         columns.add(new PropertyColumn<OrgTableDto, String>(createStringResource("ObjectType.name"), OrgTableDto.F_NAME));
         columns.add(new PropertyColumn<OrgTableDto, String>(createStringResource("OrgType.displayName"), OrgTableDto.F_DISPLAY_NAME));
         //todo add relation
         columns.add(new PropertyColumn<OrgTableDto, String>(createStringResource("OrgType.identifier"), OrgTableDto.F_IDENTIFIER));
-        columns.add(new PropertyColumn<OrgTableDto, String>(createStringResource("ObjectType.description"), OrgTableDto.F_DESCRIPTION));
+//        columns.add(new PropertyColumn<OrgTableDto, String>(createStringResource("ObjectType.description"), OrgTableDto.F_DESCRIPTION));
+        //todo add cog
 
         return columns;
     }

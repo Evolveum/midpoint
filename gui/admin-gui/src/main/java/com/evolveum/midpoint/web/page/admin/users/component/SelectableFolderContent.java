@@ -76,4 +76,9 @@ public class SelectableFolderContent extends Folder<OrgTreeDto> {
         OrgTreeDto dto = getModelObject();
         return dto.equals(selected.getObject());
     }
+
+    @Override
+    protected String getSelectedStyleClass() {
+        return null;
+    }
 }

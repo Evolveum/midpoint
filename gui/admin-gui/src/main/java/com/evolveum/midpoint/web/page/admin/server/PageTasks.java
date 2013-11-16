@@ -39,6 +39,7 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.server.dto.*;
 import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstance;
+import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
@@ -433,7 +434,11 @@ public class PageTasks extends PageAdminTasks {
         }
         if (task.getObjectRefType() != null) {
             builder.append(" (");
-            builder.append(createStringResource(task.getObjectRefType().getLocalizationKey()).getString());
+
+            ObjectTypeGuiDescriptor descr = ObjectTypeGuiDescriptor.getDescriptor(task.getObjectRefType());
+            String key = descr != null ? descr.getLocalizationKey() : ObjectTypeGuiDescriptor.ERROR_LOCALIZATION_KEY;
+            builder.append(createStringResource(key).getString());
+
             builder.append(")");
         }
 

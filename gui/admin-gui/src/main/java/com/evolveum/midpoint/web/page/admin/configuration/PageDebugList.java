@@ -49,6 +49,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.PageDebugDow
 import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugObjectItem;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugSearchDto;
 import com.evolveum.midpoint.web.session.ConfigurationStorage;
+import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
@@ -413,7 +414,10 @@ public class PageDebugList extends PageAdminConfiguration {
 
             @Override
             public Object getDisplayValue(ObjectTypes object) {
-                return new StringResourceModel(object.getLocalizationKey(), PageDebugList.this, null).getString();
+                ObjectTypeGuiDescriptor descr = ObjectTypeGuiDescriptor.getDescriptor(object);
+                String key = descr != null ? descr.getLocalizationKey() : ObjectTypeGuiDescriptor.ERROR_LOCALIZATION_KEY;
+
+                return new StringResourceModel(key, PageDebugList.this, null).getString();
             }
 
             @Override
