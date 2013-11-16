@@ -33,6 +33,9 @@ import com.evolveum.midpoint.web.page.admin.roles.PageRoles;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.users.*;
+import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstancesAll;
+import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstancesRequestedBy;
+import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstancesRequestedFor;
 import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItems;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 
@@ -93,29 +96,19 @@ public class PageAdmin extends PageBase {
             items.add(createConfigurationItems());
         }
 
-        //todo devel
-        //configuration
-        //        items.add(new BottomMenuItem(
-//                createStringResource("pageAdminConfiguration.timeTest"), PageTimeTest.class));
-//        items.add(new BottomMenuItem(
-//                createStringResource("pageAdminConfiguration.systemConfiguration"), PageSystemConfiguration.class));
-//        items.add(new BottomMenuItem(
-//                createStringResource("pageAdminConfiguration.logging"), PageLogging.class));
-
         return items;
     }
 
     private MenuBarItem createWorkItemsItems() {
         MenuBarItem workItems = new MenuBarItem(createStringResource("PageAdmin.menu.top.workItems"), null);
-        workItems.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.workItems.list"), PageWorkItems.class));
-
-//        items.add(new BottomMenuItem(createStringResource("pageAdminWorkItems.listWorkItems"), PageWorkItems.class));
-//        items.add(new BottomMenuItem(createStringResource("pageAdminWorkItems.listProcessInstancesAll"),
-//                PageProcessInstancesAll.class));
-//        items.add(new BottomMenuItem(createStringResource("pageAdminWorkItems.listProcessInstancesRequestedBy"),
-//                PageProcessInstancesRequestedBy.class));
-//        items.add(new BottomMenuItem(createStringResource("pageAdminWorkItems.listProcessInstancesRequestedFor"),
-//                PageProcessInstancesRequestedFor.class));
+        workItems.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.workItems.list"),
+                PageWorkItems.class));
+        workItems.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.workItems.listProcessInstancesAll"),
+                PageProcessInstancesAll.class));
+        workItems.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.workItems.listProcessInstancesRequestedBy"),
+                PageProcessInstancesRequestedBy.class));
+        workItems.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.workItems.listProcessInstancesRequestedFor"),
+                PageProcessInstancesRequestedFor.class));
 
         return workItems;
     }
@@ -125,30 +118,16 @@ public class PageAdmin extends PageBase {
         serverTasks.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.serverTasks.list"), PageTasks.class));
         serverTasks.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.serverTasks.new"), PageTaskAdd.class));
 
-//        items.add(new BottomMenuItem(createStringResource("pageAdminTasks.editTask"), PageTaskEdit.class, new VisibleEnableBehaviour() {
-//
-//            @Override
-//            public boolean isVisible() {
-//                return isEditingTask();
-//            }
-//
-//            @Override
-//            public boolean isEnabled() {
-//                return false;
-//            }
-//        }));
-
         return serverTasks;
     }
 
     private MenuBarItem createResourcesItems() {
         MenuBarItem resources = new MenuBarItem(createStringResource("PageAdmin.menu.top.resources"), null);
         resources.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.resources.list"), PageResources.class));
-        //delete this [lazyman]
+        //todo delete this [lazyman]
         resources.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.resources.new"), PageResourceEdit.class));
         resources.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.resources.new"), PageResourceWizard.class));
 
-//        items.add(new BottomMenuItem(createStringResource("pageAdminResources.listResources"), PageResources.class));
 //        items.add(new BottomMenuItem(createStringResource("pageAdminResources.detailsResource"), PageResource.class,
 //                new PageVisibleDisabledBehaviour(this, PageResource.class)));
 //        items.add(new BottomMenuItem(createResourceWizardLabel(), PageResourceEdit.class,
@@ -159,7 +138,6 @@ public class PageAdmin extends PageBase {
 //                PageContentAccounts.class, new PageVisibleDisabledBehaviour(this, PageContentAccounts.class)));
 //        items.add(new BottomMenuItem(createStringResource("pageAdminResources.accountDetails"), PageAccount.class,
 //                new PageVisibleDisabledBehaviour(this, PageAccount.class)));
-
 
         return resources;
     }
@@ -184,6 +162,8 @@ public class PageAdmin extends PageBase {
         configuration.addMenuItem(new MenuItem(null));
         configuration.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.configuration.development"), true, null, null));
         configuration.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.configuration.shadowsDetails"), PageAccounts.class));
+        configuration.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.configuration.timeTest"), PageTimeTest.class));
+        configuration.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.configuration.logging"), PageLogging.class));
         configuration.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.configuration.expressionEvaluator"), PageDashboard.class));
         configuration.addMenuItem(new MenuItem(null));
         configuration.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.configuration.about"), PageAbout.class));
