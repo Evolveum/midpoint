@@ -16,25 +16,11 @@
 
 package com.evolveum.midpoint.web.page.admin.reports;
 
-import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
- * Marker page class for {@link com.evolveum.midpoint.web.component.menu.top.TopMenu}
- *
- * @author mserbak
+ * @author lazyman
  */
 public class PageAdminReports extends PageAdmin {
 
-    @Override
-    public List<BottomMenuItem> getBottomMenuItems() {
-        List<BottomMenuItem> items = new ArrayList<BottomMenuItem>();
-
-        items.add(new BottomMenuItem(createStringResource("pageAdminReports.reports"), PageReports.class));
-
-        return items;
-    }
 }

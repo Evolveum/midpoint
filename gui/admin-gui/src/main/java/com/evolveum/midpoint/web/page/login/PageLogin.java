@@ -16,22 +16,16 @@
 
 package com.evolveum.midpoint.web.page.login;
 
-import com.evolveum.midpoint.web.component.atmosphere.NotifyMessage;
-import com.evolveum.midpoint.web.component.menu.top2.right.LocalePanel;
-import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
 import com.evolveum.midpoint.web.component.menu.top2.TopMenuBar;
+import com.evolveum.midpoint.web.component.menu.top2.right.LocalePanel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import org.apache.wicket.atmosphere.EventBus;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.PasswordTextField;
 import org.apache.wicket.markup.html.form.RequiredTextField;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * @author mserbak
@@ -74,10 +68,5 @@ public class PageLogin extends PageBase {
     @Override
     protected IModel<String> createPageTitleModel() {
         return new Model<String>("");
-    }
-
-    @Override
-    public List<BottomMenuItem> getBottomMenuItems() {
-        return new ArrayList<BottomMenuItem>();
     }
 }

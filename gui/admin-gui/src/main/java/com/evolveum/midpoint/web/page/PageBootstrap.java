@@ -7,7 +7,6 @@ import com.evolveum.midpoint.web.component.atmosphere.NotifyMessageFilter;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.atmosphere.Subscribe;
 import org.apache.wicket.markup.html.form.Form;
@@ -45,11 +44,6 @@ public class PageBootstrap extends PageBase {
         list.add(new InlineMenuItem(createStringResource("menu1"), new Model(false), null, false, new InlineMenuItemAction()));
 
         return list;
-    }
-
-    @Override
-    public List<BottomMenuItem> getBottomMenuItems() {
-        return null;
     }
 
     @Subscribe(filter = NotifyMessageFilter.class)

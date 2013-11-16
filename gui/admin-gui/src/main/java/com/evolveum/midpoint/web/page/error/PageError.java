@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.web.page.error;
 
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
@@ -30,7 +29,6 @@ import org.apache.wicket.request.http.WebResponse;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.List;
 
 /**
  * Base class for error web pages.
@@ -122,10 +120,5 @@ public class PageError extends PageBase {
                 return createStringResource("PageError.error." + getCode()).getString();
             }
         };
-    }
-
-    @Override
-    public List<BottomMenuItem> getBottomMenuItems() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 }

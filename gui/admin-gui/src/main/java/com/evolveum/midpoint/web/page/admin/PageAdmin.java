@@ -17,11 +17,10 @@
 package com.evolveum.midpoint.web.page.admin;
 
 import com.evolveum.midpoint.common.security.AuthorizationConstants;
-import com.evolveum.midpoint.web.component.menu.top2.right.UserMenuPanel;
-import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
 import com.evolveum.midpoint.web.component.menu.top2.MenuBarItem;
 import com.evolveum.midpoint.web.component.menu.top2.MenuItem;
 import com.evolveum.midpoint.web.component.menu.top2.TopMenuBar;
+import com.evolveum.midpoint.web.component.menu.top2.right.UserMenuPanel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
@@ -100,7 +99,8 @@ public class PageAdmin extends PageBase {
 //                createStringResource("pageAdminConfiguration.timeTest"), PageTimeTest.class));
 //        items.add(new BottomMenuItem(
 //                createStringResource("pageAdminConfiguration.systemConfiguration"), PageSystemConfiguration.class));
-
+//        items.add(new BottomMenuItem(
+//                createStringResource("pageAdminConfiguration.logging"), PageLogging.class));
 
         return items;
     }
@@ -109,6 +109,14 @@ public class PageAdmin extends PageBase {
         MenuBarItem workItems = new MenuBarItem(createStringResource("PageAdmin.menu.top.workItems"), null);
         workItems.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.workItems.list"), PageWorkItems.class));
 
+//        items.add(new BottomMenuItem(createStringResource("pageAdminWorkItems.listWorkItems"), PageWorkItems.class));
+//        items.add(new BottomMenuItem(createStringResource("pageAdminWorkItems.listProcessInstancesAll"),
+//                PageProcessInstancesAll.class));
+//        items.add(new BottomMenuItem(createStringResource("pageAdminWorkItems.listProcessInstancesRequestedBy"),
+//                PageProcessInstancesRequestedBy.class));
+//        items.add(new BottomMenuItem(createStringResource("pageAdminWorkItems.listProcessInstancesRequestedFor"),
+//                PageProcessInstancesRequestedFor.class));
+
         return workItems;
     }
 
@@ -116,6 +124,19 @@ public class PageAdmin extends PageBase {
         MenuBarItem serverTasks = new MenuBarItem(createStringResource("PageAdmin.menu.top.serverTasks"), null);
         serverTasks.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.serverTasks.list"), PageTasks.class));
         serverTasks.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.serverTasks.new"), PageTaskAdd.class));
+
+//        items.add(new BottomMenuItem(createStringResource("pageAdminTasks.editTask"), PageTaskEdit.class, new VisibleEnableBehaviour() {
+//
+//            @Override
+//            public boolean isVisible() {
+//                return isEditingTask();
+//            }
+//
+//            @Override
+//            public boolean isEnabled() {
+//                return false;
+//            }
+//        }));
 
         return serverTasks;
     }
@@ -126,6 +147,19 @@ public class PageAdmin extends PageBase {
         //delete this [lazyman]
         resources.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.resources.new"), PageResourceEdit.class));
         resources.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.resources.new"), PageResourceWizard.class));
+
+//        items.add(new BottomMenuItem(createStringResource("pageAdminResources.listResources"), PageResources.class));
+//        items.add(new BottomMenuItem(createStringResource("pageAdminResources.detailsResource"), PageResource.class,
+//                new PageVisibleDisabledBehaviour(this, PageResource.class)));
+//        items.add(new BottomMenuItem(createResourceWizardLabel(), PageResourceEdit.class,
+//                createWizardVisibleBehaviour()));
+//        items.add(new BottomMenuItem(createStringResource("pageAdminResources.importResource"),
+//                PageResourceImport.class, new PageVisibleDisabledBehaviour(this, PageResourceImport.class)));
+//        items.add(new BottomMenuItem(createStringResource("pageAdminResources.contentAccounts"),
+//                PageContentAccounts.class, new PageVisibleDisabledBehaviour(this, PageContentAccounts.class)));
+//        items.add(new BottomMenuItem(createStringResource("pageAdminResources.accountDetails"), PageAccount.class,
+//                new PageVisibleDisabledBehaviour(this, PageAccount.class)));
+
 
         return resources;
     }
@@ -182,11 +216,5 @@ public class PageAdmin extends PageBase {
         roles.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.roles.new"), PageRole.class));
 
         return roles;
-    }
-
-
-    @Override
-    public List<BottomMenuItem> getBottomMenuItems() {
-        return new ArrayList<BottomMenuItem>();
     }
 }

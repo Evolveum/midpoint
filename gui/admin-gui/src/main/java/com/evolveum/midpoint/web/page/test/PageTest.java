@@ -28,12 +28,6 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.atmosphere.NotifyMessage;
-import com.evolveum.midpoint.web.component.atmosphere.NotifyMessageFilter;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
-import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
@@ -42,7 +36,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.atmosphere.Subscribe;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
@@ -56,7 +49,6 @@ import org.apache.wicket.validation.ValidationError;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 /**
  * todo disable/remove before release
@@ -160,7 +152,7 @@ public class PageTest extends PageBase {
 //            or you can find user email (or other property) this way
             PrismProperty property = user.findProperty(UserType.F_EMAIL_ADDRESS);
             if (property != null) {
-                 email = (String) property.getRealValue();
+                email = (String) property.getRealValue();
             }
 
             UserType userType = user.asObjectable();
@@ -188,14 +180,5 @@ public class PageTest extends PageBase {
         userEmailModel.reset();
 
         target.add(getFeedbackPanel());
-    }
-
-    /**
-     * not used, will be removed before release [lazyman]
-     */
-    @Deprecated
-    @Override
-    public List<BottomMenuItem> getBottomMenuItems() {
-        return null;
     }
 }

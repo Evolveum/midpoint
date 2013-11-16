@@ -37,7 +37,6 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
-import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
 import com.evolveum.midpoint.web.component.menu.top2.MenuBarItem;
 import com.evolveum.midpoint.web.component.menu.top2.TopMenuBar;
 import com.evolveum.midpoint.web.component.message.MainFeedback;
@@ -290,12 +289,6 @@ public abstract class PageBase extends WebPage {
     public MidPointApplication getMidpointApplication() {
         return (MidPointApplication) getApplication();
     }
-
-    /**
-     * Was used for older menu, will be removed before release [lazyman]
-     */
-    @Deprecated
-    public abstract List<BottomMenuItem> getBottomMenuItems();
 
     public PrismContext getPrismContext() {
         return getMidpointApplication().getPrismContext();
