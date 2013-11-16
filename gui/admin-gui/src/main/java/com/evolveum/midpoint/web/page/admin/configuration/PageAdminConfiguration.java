@@ -56,10 +56,6 @@ public class PageAdminConfiguration extends PageAdmin {
                 createStringResource("pageAdminConfiguration.importObject"), PageImportObject.class));
         items.add(new BottomMenuItem(
                 createStringResource("pageAdminConfiguration.logging"), PageLogging.class));
-//        items.add(new BottomMenuItem(
-//                createStringResource("pageAdminConfiguration.timeTest"), PageTimeTest.class));
-//        items.add(new BottomMenuItem(
-//                createStringResource("pageAdminConfiguration.systemConfiguration"), PageSystemConfiguration.class));
 
         return items;
     }

@@ -18,7 +18,6 @@ package com.evolveum.midpoint.web.page.admin.users;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -27,7 +26,6 @@ import com.evolveum.midpoint.prism.query.*;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -733,8 +731,8 @@ public class PageUser extends PageAdminUsers {
         // showModalWindow(MODAL_ID_CONFIRM_CANCEL, target);
         // } else{
         StringValue orgReturn = getPageParameters().get(PARAM_RETURN_PAGE);
-        if (PageOrgStruct.PARAM_ORG_RETURN.equals(orgReturn.toString())) {
-            setResponsePage(PageOrgStruct.class);
+        if (PageOrgTree.PARAM_ORG_RETURN.equals(orgReturn.toString())) {
+            setResponsePage(PageOrgTree.class);
         } else {
             setResponsePage(PageUsers.class);
         }
@@ -1163,8 +1161,8 @@ public class PageUser extends PageAdminUsers {
             }
             StringValue returnPage = getPageParameters().get(PARAM_RETURN_PAGE);
             if (!StringUtils.isBlank(returnPage.toString())
-                    && PageOrgStruct.PARAM_ORG_RETURN.equals(returnPage.toString())) {
-                setResponsePage(PageOrgStruct.class);
+                    && PageOrgTree.PARAM_ORG_RETURN.equals(returnPage.toString())) {
+                setResponsePage(PageOrgTree.class);
             } else {
                 setResponsePage(PageUsers.class);
             }

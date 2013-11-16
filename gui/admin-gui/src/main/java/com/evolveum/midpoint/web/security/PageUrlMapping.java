@@ -48,12 +48,10 @@ public enum PageUrlMapping {
     ADMIN_FIND_USERS("/admin/users/find", PageFindUsers.class, MidPointPageParametersEncoder.ENCODER, new String[]{AUTZ_UI_FIND_USERS_URL, AUTZ_UI_USERS_ALL_URL}),
     ADMIN_USER("/admin/user", PageUser.class, MidPointPageParametersEncoder.ENCODER, new String[]{AUTZ_UI_USER_URL, AUTZ_UI_USERS_ALL_URL}),
     ADMIN_USER_DETAILS("/admin/user/**", null, null, new String[]{AUTZ_UI_USER_DETAILS_URL, AUTZ_UI_USERS_ALL_URL}),
-//    ADMIN_USER_PREVIEW("/admin/userPreview", PageUserPreview.class, MidPointPageParametersEncoder.ENCODER, new String[]{AUTZ_DENY_ALL_URL}),
     ADMIN_USERS_BULK("/admin/users/bulk", PageBulkUsers.class, MidPointPageParametersEncoder.ENCODER, new String[]{AUTZ_DENY_ALL_URL}),
-    ADMIN_ORG_STRUCT("/admin/orgStruct", PageOrgStruct.class, MidPointPageParametersEncoder.ENCODER, new String[]{AUTZ_UI_ORG_STRUCT_URL, AUTZ_UI_USERS_ALL_URL}),
     //fix security [lazyman]
     ORG_UNIT("/admin/org/unit", PageOrgUnit.class, new OnePageParameterEncoder(PageOrgUnit.PARAM_ORG_ID), null),
-    ORG_TREE("/admin/org/tree", PageOrgTree.class, MidPointPageParametersEncoder.ENCODER, null),
+    ORG_TREE("/admin/org/tree", PageOrgTree.class, MidPointPageParametersEncoder.ENCODER, new String[]{AUTZ_UI_ORG_STRUCT_URL, AUTZ_UI_USERS_ALL_URL}),
 
     TASK("/admin/task", PageTaskEdit.class, new OnePageParameterEncoder(PageTaskEdit.PARAM_TASK_EDIT_ID), new String[]{AUTZ_UI_TASK_URL, AUTZ_UI_TASKS_ALL_URL}),
     TASK_DETAILS("/admin/task/**", null, null, new String[]{AUTZ_UI_TASK_DETAIL_URL, AUTZ_UI_TASKS_ALL_URL}),

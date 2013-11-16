@@ -94,6 +94,14 @@ public class PageAdmin extends PageBase {
             items.add(createConfigurationItems());
         }
 
+        //todo devel
+        //configuration
+        //        items.add(new BottomMenuItem(
+//                createStringResource("pageAdminConfiguration.timeTest"), PageTimeTest.class));
+//        items.add(new BottomMenuItem(
+//                createStringResource("pageAdminConfiguration.systemConfiguration"), PageSystemConfiguration.class));
+
+
         return items;
     }
 
@@ -162,9 +170,8 @@ public class PageAdmin extends PageBase {
         users.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.users.new"), PageUser.class));
         users.addMenuItem(new MenuItem(null));
         users.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.users.org"), true, null, null));
-        users.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.users.org.tree"), PageOrgStruct.class));
+        users.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.users.org.tree"), PageOrgTree.class));
         users.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.users.org.new"), PageOrgUnit.class));
-        users.addMenuItem(new MenuItem(createStringResource("PageAdmin.menu.top.users.org.new"), PageOrgTree.class));
 
         return users;
     }

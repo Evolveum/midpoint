@@ -44,9 +44,14 @@ import java.util.List;
  */
 public class PageOrgTree extends PageAdminUsers {
 
-    private static final Trace LOGGER = TraceManager.getTrace(PageOrgStruct.class);
+    private static final Trace LOGGER = TraceManager.getTrace(PageOrgTree.class);
 
-    private static final String DOT_CLASS = PageOrgStruct.class.getName() + ".";
+    /**
+     * todo what is this for? [lazyman]
+     */
+    public static final String PARAM_ORG_RETURN = "org";
+
+    private static final String DOT_CLASS = PageOrgTree.class.getName() + ".";
     private static final String OPERATION_LOAD_ORG_UNIT = DOT_CLASS + "loadOrgUnit";
 
     private static final String ID_TABS = "tabs";

@@ -229,7 +229,7 @@ public class PageOrgUnit extends PageAdminUsers {
 
         if (WebMiscUtil.isSuccessOrHandledError(result)) {
             showResultInSession(result);
-            setResponsePage(PageOrgStruct.class);
+            setResponsePage(PageOrgTree.class);
         } else {
             showResult(result);
             target.add(getFeedbackPanel());
