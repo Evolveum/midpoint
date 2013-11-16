@@ -16,28 +16,48 @@
 
 package com.evolveum.midpoint.web.page.admin.users.component;
 
+import com.evolveum.midpoint.common.filter.Filter;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrgFilter;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
+import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
+import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.page.admin.users.dto.OrgTableDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgTreeDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.HeadersToolbar;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.extensions.markup.html.repeater.tree.ISortableTreeProvider;
 import org.apache.wicket.extensions.markup.html.repeater.tree.TableTree;
 import org.apache.wicket.extensions.markup.html.repeater.tree.table.TreeColumn;
 import org.apache.wicket.extensions.markup.html.repeater.tree.theme.WindowsTheme;
 import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.repeater.data.IDataProvider;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author lazyman
  */
 public class TreeTablePanel extends SimplePanel {
+
+    private static final Trace LOGGER = TraceManager.getTrace(TreeTablePanel.class);
 
     private static final String ID_TREE = "tree";
     private static final String ID_TABLE = "table";
@@ -54,11 +74,19 @@ public class TreeTablePanel extends SimplePanel {
         columns.add(new TreeColumn<OrgTreeDto, String>(createStringResource("TreeTablePanel.hierarchy")));
 
         TableTree<OrgTreeDto, String> tree = new TableTree<OrgTreeDto, String>(ID_TREE, columns, provider,
-                Integer.MAX_VALUE, new Model(new HashSet())) {
+                Integer.MAX_VALUE, new TreeStateModel()) {
 
             @Override
             protected Component newContentComponent(String id, IModel<OrgTreeDto> model) {
-                return new SelectableFolderContent(id, this, model, selected);
+                return new SelectableFolderContent(id, this, model, selected) {
+
+                    @Override
+                    protected void onClick(AjaxRequestTarget target) {
+                        super.onClick(target);
+
+                        selectTreeItemPerformed(target);
+                    }
+                };
             }
         };
         tree.getTable().addTopToolbar(new HeadersToolbar<String>(tree.getTable(), null));
@@ -66,6 +94,55 @@ public class TreeTablePanel extends SimplePanel {
         tree.add(new WindowsTheme());
         add(tree);
 
-        add(new Label(ID_TABLE, "asdf"));
+
+        BaseSortableDataProvider tableProvider = new ObjectDataProvider<OrgTableDto, ObjectType>(this, ObjectType.class) {
+
+            @Override
+            public OrgTableDto createDataObjectWrapper(PrismObject<ObjectType> obj) {
+                return OrgTableDto.createDto(obj);
+            }
+        };
+        List<IColumn<OrgTableDto, String>> tableColumns = createTableColumns();
+        TablePanel table = new TablePanel(ID_TABLE, tableProvider, tableColumns, 10);
+        table.setOutputMarkupId(true);
+        add(table);
+    }
+
+    private List<IColumn<OrgTableDto, String>> createTableColumns() {
+        List<IColumn<OrgTableDto, String>> columns = new ArrayList<IColumn<OrgTableDto, String>>();
+
+        columns.add(new CheckBoxHeaderColumn<OrgTableDto>());
+        columns.add(new PropertyColumn<OrgTableDto, String>(createStringResource("ObjectType.name"), OrgTableDto.F_NAME));
+        columns.add(new PropertyColumn<OrgTableDto, String>(createStringResource("OrgType.displayName"), OrgTableDto.F_DISPLAY_NAME));
+        //todo add relation
+        columns.add(new PropertyColumn<OrgTableDto, String>(createStringResource("OrgType.identifier"), OrgTableDto.F_IDENTIFIER));
+        columns.add(new PropertyColumn<OrgTableDto, String>(createStringResource("ObjectType.description"), OrgTableDto.F_DESCRIPTION));
+
+        return columns;
+    }
+
+    private void selectTreeItemPerformed(AjaxRequestTarget target) {
+        TablePanel table = (TablePanel) get(ID_TABLE);
+        BaseSortableDataProvider provider = (BaseSortableDataProvider) table.getDataTable().getDataProvider();
+
+        OrgTreeDto dto = selected.getObject();
+        if (dto != null) {
+            OrgFilter filter = OrgFilter.createOrg(dto.getOid(), null, 1);
+            provider.setQuery(ObjectQuery.createObjectQuery(filter));
+        } else {
+            provider.setQuery(null);
+        }
+
+        target.add(table);
+    }
+
+    private static class TreeStateModel extends AbstractReadOnlyModel<Set<OrgTreeDto>> {
+
+        private Set<OrgTreeDto> set = new HashSet<OrgTreeDto>();
+
+        @Override
+        public Set<OrgTreeDto> getObject() {
+            return set;
+        }
     }
 }

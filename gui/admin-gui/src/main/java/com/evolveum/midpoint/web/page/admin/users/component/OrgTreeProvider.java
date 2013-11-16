@@ -91,6 +91,8 @@ public class OrgTreeProvider extends SortableTreeProvider<OrgTreeDto, String> {
 
             List<PrismObject<OrgType>> units = getModelService().searchObjects(OrgType.class, query, options,
                     task, result);
+            LOGGER.debug("Found {} units.", units.size());
+
             List<OrgTreeDto> list = new ArrayList<OrgTreeDto>();
             for (PrismObject<OrgType> unit : units) {
                 list.add(createDto(node, unit));
