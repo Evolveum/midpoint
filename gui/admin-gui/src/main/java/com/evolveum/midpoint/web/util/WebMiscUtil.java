@@ -370,7 +370,7 @@ public final class WebMiscUtil {
 
     public static boolean showResultInPage(OperationResult result) {
         if (result == null) {
-            return true;
+            return false;
         }
 
         return !result.isSuccess() && !result.isHandledError() && !result.isInProgress();

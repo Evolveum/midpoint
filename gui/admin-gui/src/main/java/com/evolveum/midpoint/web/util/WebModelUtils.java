@@ -68,12 +68,12 @@ public class WebModelUtils {
         PrismObject<T> object = null;
         try {
             object = page.getModelService().getObject(type, oid, options, task, result);
-            result.recordSuccessIfUnknown();
         } catch (Exception ex) {
             result.recordFatalError("WebModelUtils.couldntLoadObject", ex);
             LoggingUtils.logException(LOGGER, "Couldn't load object", ex);
+        } finally {
+            result.computeStatus();
         }
-        result.recomputeStatus();
 
         return object;
     }

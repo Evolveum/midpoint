@@ -32,9 +32,11 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgTree;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgTreeDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
 import org.apache.wicket.Component;
@@ -58,6 +60,7 @@ public class OrgTreeProvider extends SortableTreeProvider<OrgTreeDto, String> {
 
     private Component component;
     private IModel<String> rootOid;
+    private OrgTreeDto root;
 
     public OrgTreeProvider(Component component, IModel<String> rootOid) {
         this.component = component;
@@ -137,30 +140,28 @@ public class OrgTreeProvider extends SortableTreeProvider<OrgTreeDto, String> {
 
     @Override
     public Iterator<? extends OrgTreeDto> getRoots() {
-        LOGGER.debug("Getting roots for: " + rootOid.getObject());
+        OperationResult result = null;
+        if (root == null) {
+            result = new OperationResult(LOAD_ORG_UNIT);
+            LOGGER.debug("Getting roots for: " + rootOid.getObject());
 
-        OperationResult result = new OperationResult(LOAD_ORG_UNIT);
-
-        List<OrgTreeDto> list = new ArrayList<OrgTreeDto>();
-        try {
-            Task task = getPage().createSimpleTask(LOAD_ORG_UNIT);
-            PrismObject<OrgType> root = getModelService().getObject(OrgType.class, rootOid.getObject(),
-                    createOptions(), task, result);
-            OrgTreeDto node = createDto(null, root);
-            list.add(node);
-        } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't load roots", ex);
-            result.recordFatalError("Unable to load org unit", ex);
-        } finally {
-            result.computeStatus();
+            PrismObject<OrgType> object = WebModelUtils.loadObject(OrgType.class, rootOid.getObject(),
+                    createOptions(), result, getPage());
+            root = createDto(null, object);
+            LOGGER.info("\n{}", result.dump());
+            LOGGER.debug("Finished roots loading.");
         }
 
         if (WebMiscUtil.showResultInPage(result)) {
             getPage().showResultInSession(result);
-            throw new RestartResponseException(PageOrgTree.class);
+            throw new RestartResponseException(PageDashboard.class);
         }
 
-        LOGGER.debug("Finished roots loading.");
+        List<OrgTreeDto> list = new ArrayList<OrgTreeDto>();
+        if (root != null) {
+            list.add(root);
+        }
+
         return list.iterator();
     }
 
