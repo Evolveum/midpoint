@@ -141,12 +141,13 @@ public class OrgTreeProvider extends SortableTreeProvider<OrgTreeDto, String> {
 
         OperationResult result = new OperationResult(LOAD_ORG_UNIT);
 
-        OrgTreeDto node = null;
+        List<OrgTreeDto> list = new ArrayList<OrgTreeDto>();
         try {
             Task task = getPage().createSimpleTask(LOAD_ORG_UNIT);
             PrismObject<OrgType> root = getModelService().getObject(OrgType.class, rootOid.getObject(),
                     createOptions(), task, result);
-            node = createDto(null, root);
+            OrgTreeDto node = createDto(null, root);
+            list.add(node);
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't load roots", ex);
             result.recordFatalError("Unable to load org unit", ex);
@@ -159,11 +160,8 @@ public class OrgTreeProvider extends SortableTreeProvider<OrgTreeDto, String> {
             throw new RestartResponseException(PageOrgTree.class);
         }
 
-
-        Iterator<? extends OrgTreeDto> iterator = getChildren(node);
         LOGGER.debug("Finished roots loading.");
-
-        return iterator;
+        return list.iterator();
     }
 
     @Override

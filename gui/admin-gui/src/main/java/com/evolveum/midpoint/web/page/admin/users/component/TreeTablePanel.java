@@ -37,6 +37,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.HeadersToolbar;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -59,7 +60,7 @@ import java.util.Set;
 /**
  * @author lazyman
  */
-public class TreeTablePanel extends SimplePanel {
+public class TreeTablePanel extends SimplePanel<String> {
 
     private static final Trace LOGGER = TraceManager.getTrace(TreeTablePanel.class);
 
@@ -67,7 +68,7 @@ public class TreeTablePanel extends SimplePanel {
     private static final String ID_TABLE = "table";
     private IModel<OrgTreeDto> selected = new Model<OrgTreeDto>();
 
-    public TreeTablePanel(String id, IModel model) {
+    public TreeTablePanel(String id, IModel<String> model) {
         super(id, model);
     }
 
@@ -160,15 +161,12 @@ public class TreeTablePanel extends SimplePanel {
         BaseSortableDataProvider provider = (BaseSortableDataProvider) table.getDataTable().getDataProvider();
 
         OrgTreeDto dto = selected.getObject();
-        if (dto != null) {
-            OrgFilter filter = OrgFilter.createOrg(dto.getOid(), null, 1);
-            ObjectPaging paging = ObjectPaging.createEmptyPaging();
-            paging.setOrderBy(ObjectType.F_NAME);
+        String oid = dto != null ? dto.getOid() : getModel().getObject();
 
-            provider.setQuery(ObjectQuery.createObjectQuery(filter, paging));
-        } else {
-            provider.setQuery(null);
-        }
+        OrgFilter filter = OrgFilter.createOrg(oid, null, 1);
+
+        provider.setQuery(ObjectQuery.createObjectQuery(filter));
+        provider.setSort(ObjectType.F_NAME.getLocalPart(), SortOrder.ASCENDING);
 
         target.add(table);
     }
