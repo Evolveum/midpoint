@@ -284,7 +284,7 @@ public class BookmarkableFolderContent extends Content {
             options.add(SelectorOptions.create(ObjectType.F_PARENT_ORG_REF,
                     GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
 
-			orgUnitList = getModelService().searchObjects(ObjectType.class, query, null, task, result);
+			orgUnitList = getModelService().searchObjects(ObjectType.class, query, options, task, result);
 			newOrgModel = new OrgStructDto<ObjectType>(orgUnitList, parent, result);
 			result.recomputeStatus();
 		} catch (Exception ex) {
