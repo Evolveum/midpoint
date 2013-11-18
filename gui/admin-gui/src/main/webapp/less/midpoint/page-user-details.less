@@ -111,11 +111,17 @@ table.table {
       font-size: 1.3em;
       margin-top: 4px;
     }
+
+    /* for table headers without icon, cog or checkboxes */
+    th > span {
+      padding-top: 4px;
+      display: inline-block;
+    }
   }
 
   th.icon {
     width: 22px;
-    padding-top: 11px;
+    //padding-top: 11px; disabled, I don't know why I add this in here
   }
 }
 

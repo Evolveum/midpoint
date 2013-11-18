@@ -16,16 +16,14 @@
 
 package com.evolveum.midpoint.web.component.data.column;
 
-import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.PropertyModel;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -52,6 +50,10 @@ public class InlineMenuColumn<T extends InlineMenuable> extends AbstractColumn<T
             public List<InlineMenuItem> load() {
                 T row = rowModel.getObject();
 
+                if (row.getMenuItems() == null) {
+                    return new ArrayList<InlineMenuItem>();
+                }
+
                 for (InlineMenuItem item : row.getMenuItems()) {
                     if (!(item.getAction() instanceof ColumnMenuAction)) {
                         continue;
@@ -61,7 +63,7 @@ public class InlineMenuColumn<T extends InlineMenuable> extends AbstractColumn<T
                     action.setRowModel(rowModel);
                 }
 
-                return  row.getMenuItems();
+                return row.getMenuItems();
             }
         };
     }

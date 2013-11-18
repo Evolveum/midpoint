@@ -18,6 +18,8 @@ package com.evolveum.midpoint.web.page.admin.configuration.component;
 
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.page.PageBase;
+import org.apache.wicket.Component;
+import org.apache.wicket.Page;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 
@@ -26,14 +28,18 @@ import org.apache.wicket.markup.html.form.Form;
  */
 public class HeaderMenuAction extends InlineMenuItemAction {
 
-    private PageBase page;
+    private Component component;
 
-    public HeaderMenuAction(PageBase page) {
-        this.page = page;
+    public HeaderMenuAction(Component component) {
+        this.component = component;
     }
 
     @Override
     public void onError(AjaxRequestTarget target, Form<?> form) {
-        target.add(page.getFeedbackPanel());
+        Page page = component.getPage();
+
+        if (page instanceof PageBase) {
+            target.add(((PageBase) page).getFeedbackPanel());
+        }
     }
 }

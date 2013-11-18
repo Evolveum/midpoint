@@ -18,17 +18,20 @@ package com.evolveum.midpoint.web.page.admin.users.dto;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
 
 import javax.xml.namespace.QName;
+import java.util.List;
 
 /**
  * @author lazyman
  */
-public class OrgTableDto extends Selectable {
+public class OrgTableDto extends Selectable implements InlineMenuable {
 
     public static final String F_NAME = "name";
     public static final String F_DISPLAY_NAME = "displayName";
@@ -124,5 +127,10 @@ public class OrgTableDto extends Selectable {
     public String toString() {
         return "OrgTableDto{oid='" + oid + '\'' + ",name='" + name + '\''
                 + ", type=" + (type != null ? type.getSimpleName() : null) + '}';
+    }
+
+    @Override
+    public List<InlineMenuItem> getMenuItems() {
+        return null;
     }
 }

@@ -26,12 +26,20 @@ import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
+import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
+import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
+import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgTableDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgTreeDto;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -44,10 +52,12 @@ import org.apache.wicket.extensions.markup.html.repeater.tree.ITreeProvider;
 import org.apache.wicket.extensions.markup.html.repeater.tree.TableTree;
 import org.apache.wicket.extensions.markup.html.repeater.tree.table.TreeColumn;
 import org.apache.wicket.extensions.markup.html.repeater.tree.theme.WindowsTheme;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.*;
 
@@ -60,6 +70,7 @@ public class TreeTablePanel extends SimplePanel<String> {
 
     private static final String ID_TREE = "tree";
     private static final String ID_TABLE = "table";
+    private static final String ID_FORM = "form";
     private IModel<OrgTreeDto> selected = new LoadableModel<OrgTreeDto>() {
 
         @Override
@@ -117,6 +128,8 @@ public class TreeTablePanel extends SimplePanel<String> {
         tree.add(new WindowsTheme());
         add(tree);
 
+        Form form = new Form(ID_FORM);
+        add(form);
         BaseSortableDataProvider tableProvider = new ObjectDataProvider<OrgTableDto, ObjectType>(this, ObjectType.class) {
 
             @Override
@@ -136,7 +149,7 @@ public class TreeTablePanel extends SimplePanel<String> {
         List<IColumn<OrgTableDto, String>> tableColumns = createTableColumns();
         TablePanel table = new TablePanel(ID_TABLE, tableProvider, tableColumns, 10);
         table.setOutputMarkupId(true);
-        add(table);
+        form.add(table);
     }
 
     private OrgTreeDto loadRoot() {
@@ -163,13 +176,77 @@ public class TreeTablePanel extends SimplePanel<String> {
                 return new Model(icon);
             }
         });
-        columns.add(new PropertyColumn<OrgTableDto, String>(createStringResource("ObjectType.name"), OrgTableDto.F_NAME, "name"));
+
+        columns.add(new LinkColumn<OrgTableDto>(createStringResource("ObjectType.name"), OrgTableDto.F_NAME, "name") {
+
+            @Override
+            public boolean isEnabled(IModel<OrgTableDto> rowModel) {
+                OrgTableDto dto = rowModel.getObject();
+                return UserType.class.equals(dto.getType()) || OrgType.class.equals(dto.getType());
+            }
+
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<OrgTableDto> rowModel) {
+                OrgTableDto dto = rowModel.getObject();
+                if (UserType.class.equals(dto.getType())) {
+                    PageParameters parameters = new PageParameters();
+                    parameters.add(PageUser.PARAM_USER_ID, dto.getOid());
+                    setResponsePage(PageUser.class, parameters);
+                } else if (OrgType.class.equals(dto.getType())) {
+                    PageParameters parameters = new PageParameters();
+                    parameters.add(PageOrgUnit.PARAM_ORG_ID, dto.getOid());
+                    setResponsePage(PageOrgUnit.class, parameters);
+                }
+            }
+        });
         columns.add(new PropertyColumn<OrgTableDto, String>(createStringResource("OrgType.displayName"), OrgTableDto.F_DISPLAY_NAME));
         //todo add relation
         columns.add(new PropertyColumn<OrgTableDto, String>(createStringResource("OrgType.identifier"), OrgTableDto.F_IDENTIFIER));
-        //todo add cog
+        columns.add(new InlineMenuHeaderColumn(initInlineMenu()));
 
         return columns;
+    }
+
+    private List<InlineMenuItem> initInlineMenu() {
+        List<InlineMenuItem> headerMenuItems = new ArrayList<InlineMenuItem>();
+        headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.addOrgUnit"), true,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                        addOrgUnit(target);
+                    }
+                }));
+        headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.deleteOrgUnit"), true,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                        deleteOrgUnit(target);
+                    }
+                }));
+        headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.move"), true,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                        move(target);
+                    }
+                }));
+
+        return headerMenuItems;
+    }
+
+    private void move(AjaxRequestTarget target) {
+        //todo implement [lazyman]
+    }
+
+    private void addOrgUnit(AjaxRequestTarget target) {
+        //todo implement [lazyman]
+    }
+
+    private void deleteOrgUnit(AjaxRequestTarget target) {
+        //todo implement [lazyman]
     }
 
     private void selectTreeItemPerformed(AjaxRequestTarget target) {

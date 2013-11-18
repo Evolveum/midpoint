@@ -60,7 +60,16 @@ public class LinkColumn<T> extends AbstractColumn<T, String> {
             public void onClick(AjaxRequestTarget target) {
                 LinkColumn.this.onClick(target, rowModel);
             }
+
+            @Override
+            public boolean isEnabled() {
+                return LinkColumn.this.isEnabled(rowModel);
+            }
         });
+    }
+
+    public boolean isEnabled(IModel<T> rowModel) {
+        return true;
     }
 
     public void onClick(AjaxRequestTarget target, IModel<T> rowModel) {
