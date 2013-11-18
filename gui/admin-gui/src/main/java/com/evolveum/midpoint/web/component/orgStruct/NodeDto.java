@@ -22,11 +22,12 @@ import java.util.List;
 
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgStructDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import org.apache.commons.lang.StringUtils;
 
 /**
  * @author mserbak
  */
-public class NodeDto implements Serializable {
+public class NodeDto implements Serializable, Comparable<NodeDto> {
 
 	private static final long serialVersionUID = 1L;
 
@@ -97,10 +98,6 @@ public class NodeDto implements Serializable {
 		this.nodes = nodes;
 	}
 	
-	public void addNode(NodeDto node) {
-		nodes.add(node);
-	}
-	
 	public NodeDto getNodeFromOid(String oid) {
 		for (NodeDto node : nodes) {
 			if(node.getOid().equals(oid)) {
@@ -151,6 +148,12 @@ public class NodeDto implements Serializable {
 			return false;
 		return true;
 	}
-	
-	
+
+    @Override
+    public int compareTo(NodeDto o) {
+        if (o == null) {
+            return 1;
+        }
+        return String.CASE_INSENSITIVE_ORDER.compare(displayName, o.getDisplayName());
+    }
 }
