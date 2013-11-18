@@ -21,6 +21,9 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrderDirection;
 import com.evolveum.midpoint.prism.query.OrgFilter;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.RetrieveOption;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.orgStruct.AbstractTree.State;
@@ -37,6 +40,7 @@ import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -276,6 +280,10 @@ public class BookmarkableFolderContent extends Content {
         query.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
 
 		try {
+            Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<SelectorOptions<GetOperationOptions>>();
+            options.add(SelectorOptions.create(ObjectType.F_PARENT_ORG_REF,
+                    GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
+
 			orgUnitList = getModelService().searchObjects(ObjectType.class, query, null, task, result);
 			newOrgModel = new OrgStructDto<ObjectType>(orgUnitList, parent, result);
 			result.recomputeStatus();
