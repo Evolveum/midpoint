@@ -270,6 +270,7 @@ public class AccountValuesProcessor {
 			        	LOGGER.trace("Current shadow satisfies uniqueness constraints. Iteration {}, token '{}'", iteration, iterationToken);
 			        	conflict = false;
 			        } else {
+			        	LOGGER.trace("Current shadow does not satisfy constraints. Conflicting shadow exists. Needed to found out what's wrong.");
 			        	if (checker.getConflictingShadow() != null){
 			        		PrismObject<ShadowType> fullConflictingShadow = null;
 			        		try{   //TODO task in the get method
@@ -297,6 +298,7 @@ public class AccountValuesProcessor {
 				        		
 				        		//the owner of the shadow exist and it is a current user..so the shadow was successfully created, linked etc..no other recompute is needed..
 				        		if (user != null && user.getOid().equals(context.getFocusContext().getOid())) {
+				        			LOGGER.trace("Conflicting account already linked to the current user, no recompute needed, continue processing with conflicting account.");
 			//	        			accountContext.setSecondaryDelta(null);
 				        			cleanupContext(accountContext);	        			
 				        			accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
@@ -323,11 +325,11 @@ public class AccountValuesProcessor {
 				        		}
 				        		
 				        		if (user == null) {
-					        		
+					        		LOGGER.trace("There is no owner linked with the conflicting account.");
 					        		ResourceType resourceType = accountContext.getResource();
 					        		
 					        		if (ResourceTypeUtil.isSynchronizationOpportunistic(resourceType)) {
-					        		
+					        			LOGGER.trace("Trying to find owner using correlation expression.");
 										boolean match = correlationConfirmationEvaluator.matchUserCorrelationRule(fullConflictingShadow, context
 												.getFocusContext().getObjectNew(), resourceType, result);
 										
