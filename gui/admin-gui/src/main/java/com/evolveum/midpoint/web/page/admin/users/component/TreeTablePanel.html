@@ -18,7 +18,12 @@
 <wicket:panel xmlns:wicket="http://wicket.apache.org">
     <div class="row" style="margin-top: 15px;">
         <div class="col-md-4">
-            <div wicket:id="tree"/>
+            <div id="treeHeader" class="org-tree-header">
+                <wicket:message key="TreeTablePanel.hierarchy"/>
+            </div>
+            <div wicket:id="treeContainer" class="org-tree-container">
+                <div wicket:id="tree"/>
+            </div>
         </div>
         <div class="col-md-8">
             <form wicket:id="form">

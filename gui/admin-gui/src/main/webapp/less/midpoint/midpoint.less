@@ -1,10 +1,8 @@
 @import "../bootstrap/variables.less";
 @import "../custom/variables.less";
 @import "../bootstrap/mixins.less";
-
 @import "midpoint-variables.less";
 @import "../custom/midpoint-variables.less";
-
 @import "top-menu.less";
 @import "prism-container.less";
 @import "wizard.less";
@@ -33,7 +31,6 @@ span.button-group {
 }
 
 .version-info {
-  margin-top: 40px;
   padding-right: 20px;
   font-size: 0.8em;
 }
@@ -87,7 +84,7 @@ th h3 {
 }
 
 div.mainContainer {
-  margin: 0px 20px;
+  margin: 0 20px;
 }
 
 div.main-button-bar {
@@ -132,4 +129,15 @@ span.yui-skin-sam {
   position: absolute;
   right: 24px;
   top: 3px;
+}
+
+div.org-tree-header {
+  padding: 8px @padding-small-vertical @padding-small-vertical;
+  font-weight: bold;
+  border-bottom: 2px solid @table-border-color;
+}
+
+div.org-tree-container {
+  overflow-y: auto;
+  margin-bottom: 20px;
 }

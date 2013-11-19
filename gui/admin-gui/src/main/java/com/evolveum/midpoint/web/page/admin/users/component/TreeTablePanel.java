@@ -52,6 +52,9 @@ import org.apache.wicket.extensions.markup.html.repeater.tree.ITreeProvider;
 import org.apache.wicket.extensions.markup.html.repeater.tree.TableTree;
 import org.apache.wicket.extensions.markup.html.repeater.tree.table.TreeColumn;
 import org.apache.wicket.extensions.markup.html.repeater.tree.theme.WindowsTheme;
+import org.apache.wicket.markup.head.IHeaderResponse;
+import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
+import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -69,6 +72,7 @@ public class TreeTablePanel extends SimplePanel<String> {
     private static final Trace LOGGER = TraceManager.getTrace(TreeTablePanel.class);
 
     private static final String ID_TREE = "tree";
+    private static final String ID_TREE_CONTAINER = "treeContainer";
     private static final String ID_TABLE = "table";
     private static final String ID_FORM = "form";
     private IModel<OrgTreeDto> selected = new LoadableModel<OrgTreeDto>() {
@@ -88,6 +92,19 @@ public class TreeTablePanel extends SimplePanel<String> {
         ISortableTreeProvider provider = new OrgTreeProvider(this, getModel());
         List<IColumn<OrgTreeDto, String>> columns = new ArrayList<IColumn<OrgTreeDto, String>>();
         columns.add(new TreeColumn<OrgTreeDto, String>(createStringResource("TreeTablePanel.hierarchy")));
+
+        WebMarkupContainer treeContainer = new WebMarkupContainer(ID_TREE_CONTAINER) {
+
+            @Override
+            public void renderHead(IHeaderResponse response) {
+                super.renderHead(response);
+
+                //method computes height based
+                response.render(OnDomReadyHeaderItem.forScript("updateHeight('" + getMarkupId()
+                        + "', ['#" + TreeTablePanel.this.get(ID_FORM).getMarkupId() + "'], ['#treeHeader'])"));
+            }
+        };
+        add(treeContainer);
 
         TableTree<OrgTreeDto, String> tree = new TableTree<OrgTreeDto, String>(ID_TREE, columns, provider,
                 Integer.MAX_VALUE, new TreeStateModel()) {
@@ -126,9 +143,10 @@ public class TreeTablePanel extends SimplePanel<String> {
         tree.getTable().addTopToolbar(new HeadersToolbar<String>(tree.getTable(), null));
         tree.getTable().add(AttributeModifier.replace("class", "table table-striped table-condensed"));
         tree.add(new WindowsTheme());
-        add(tree);
+        treeContainer.add(tree);
 
         Form form = new Form(ID_FORM);
+        form.setOutputMarkupId(true);
         add(form);
         BaseSortableDataProvider tableProvider = new ObjectDataProvider<OrgTableDto, ObjectType>(this, ObjectType.class) {
 
@@ -153,7 +171,7 @@ public class TreeTablePanel extends SimplePanel<String> {
     }
 
     private OrgTreeDto loadRoot() {
-        TableTree<OrgTreeDto, String> tree = (TableTree) get(ID_TREE);
+        TableTree<OrgTreeDto, String> tree = (TableTree) get(createComponentPath(ID_TREE_CONTAINER, ID_TREE));
         ITreeProvider<OrgTreeDto> provider = tree.getProvider();
         Iterator<? extends OrgTreeDto> iterator = provider.getRoots();
 
