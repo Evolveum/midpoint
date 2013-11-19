@@ -25,6 +25,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -955,8 +956,16 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         display("Audit", dummyAuditService);
         
         List<AuditEventRecord> auditRecords = dummyAuditService.getRecords();
-        
-        
+
+        Iterator<AuditEventRecord> iterator = auditRecords.iterator();
+        while (iterator.hasNext()) {
+        	AuditEventRecord record = iterator.next();
+	    	if (record.getTaskOID() != null && !record.getTaskOID().equals(taskOid)) {
+	    		// Record from some other task, skip it
+	    		iterator.remove();
+	    	}
+        }
+
     	int i=0;
     	while (i < (auditRecords.size() - 1)) {
     		AuditEventRecord reconStartRecord = auditRecords.get(i);
@@ -976,13 +985,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
     	for (; i < (auditRecords.size() - 1); i+=2) {
         	AuditEventRecord requestRecord = auditRecords.get(i);
         	assertNotNull("No request audit record ("+i+")", requestRecord);
-        	
-        	if (!requestRecord.getTaskOID().equals(taskOid)) {
-        		// Record from some other task, skip it
-        		i--;
-        		continue;
-        	}
-        	
+        	        	
         	assertEquals("Got this instead of request audit record ("+i+"): "+requestRecord, AuditEventStage.REQUEST, requestRecord.getEventStage());
         	// Request audit may or may not have a delta. Usual records will not have a delta. But e.g. disableAccount reactions will have.
 
