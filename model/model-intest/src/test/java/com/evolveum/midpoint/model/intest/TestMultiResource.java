@@ -18,7 +18,9 @@ package com.evolveum.midpoint.model.intest;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -29,9 +31,12 @@ import org.testng.annotations.Test;
 import com.evolveum.icf.dummy.resource.BreakMode;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -53,6 +58,7 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
@@ -109,6 +115,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
     protected static final String USER_WORLD_NAME = "world";
     protected static final String USER_WORLD_FULL_NAME = "The World";
+    private String USER_WORLD_OID = null;
 
 	private static final String USER_FIELD_NAME = "field";
 	
@@ -1613,5 +1620,117 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.assertExecutionDeltas(2,1);
         dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, UserType.class);
         
+	}
+    
+    @Test
+    public void test440DavidAndGoliathAssignRoleAndCreateUserInOneStep() throws Exception {
+		final String TEST_NAME = "test440DavidAndGoliathAssignRoleAndCreateUserInOneStep";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		dummyResourceGoliath.setBreakMode(BreakMode.NONE);
+        dummyResourceDavid.setBreakMode(BreakMode.NONE);
+		try{
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+		// delete user and his roles which were added before
+		
+        PrismObject<UserType> userWorld = findUserByUsername(USER_FIELD_NAME);
+        
+        AssertJUnit.assertNotNull("User must not be null.", userWorld);
+        
+		ObjectDelta<UserType> delta = ObjectDelta.createDeleteDelta(UserType.class, userWorld.getOid(), prismContext);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+		deltas.add(delta);
+		modelService.executeChanges(deltas, null, task, result);
+		
+		OperationResult deleteResult = new OperationResult("Check if user was deleted properly.");
+		try {
+		repositoryService.getObject(UserType.class, userWorld.getOid(), null, deleteResult);
+		} catch (ObjectNotFoundException ex){
+			//this is OK, we deleted user before
+		}
+		
+		// GIVEN
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+		
+		
+        
+        PrismObject<UserType> userBefore = createUser(USER_WORLD_NAME, USER_WORLD_FULL_NAME, true);
+        userBefore.asObjectable().getOrganizationalUnit().add(PrismTestUtil.createPolyStringType("stone"));
+          
+        PrismContainerValue<AssignmentType> cval = new PrismContainerValue<AssignmentType>();
+		PrismReference targetRef = cval.findOrCreateReference(AssignmentType.F_TARGET_REF);
+		targetRef.getValue().setOid(ROLE_FIGHT_OID);
+		targetRef.getValue().setTargetType(RoleType.COMPLEX_TYPE);
+		userBefore.findOrCreateContainer(UserType.F_ASSIGNMENT).add((PrismContainerValue) cval);
+		
+		
+		
+//		userBefore.asObjectable().getAssignment().add(cval.asContainerable());
+		
+		// this should add user and at the sate time assign the role fight..->
+		// the result of the operation have to be the same as in test 400
+        addObject(userBefore);
+        
+        dummyAuditService.clear();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+//        assignRole(userBefore.getOid(), ROLE_FIGHT_OID, task, result);
+        
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(userBefore.getOid());
+		display("User after fight", userAfter);
+		assertUser(userAfter, userBefore.getOid(), USER_WORLD_NAME, USER_WORLD_FULL_NAME, null, null);
+		assertAccount(userAfter, RESOURCE_DUMMY_GOLIATH_OID);
+		assertAccount(userAfter, RESOURCE_DUMMY_DAVID_OID);
+		assertAccounts(userAfter, 2);
+		
+		assertDummyAccount(RESOURCE_DUMMY_DAVID_NAME, USER_WORLD_NAME, USER_WORLD_FULL_NAME, true);
+        
+		assertDummyAccountAttribute(RESOURCE_DUMMY_DAVID_NAME, USER_WORLD_NAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "stone (world) take");
+        
+        assertUserProperty(userAfter, UserType.F_LOCALITY, PrismTestUtil.createPolyString("stone (world) take throw"));
+        
+        assertDummyAccount(RESOURCE_DUMMY_GOLIATH_NAME, USER_WORLD_NAME, USER_WORLD_FULL_NAME, true);
+        
+        assertDummyAccountAttribute(RESOURCE_DUMMY_GOLIATH_NAME, USER_WORLD_NAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "stone (world) take throw (world) hit");
+        
+        assertUserProperty(userAfter, UserType.F_TITLE, PrismTestUtil.createPolyString("stone (world) take throw (world) hit fall"));
+        
+        assertDummyAccountAttribute(RESOURCE_DUMMY_DAVID_NAME, USER_WORLD_NAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "stone (world) take throw (world) hit fall (world) win");
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+//        dummyAuditService.assertRecords(4);
+//        dummyAuditService.assertSimpleRecordSanity();
+//        dummyAuditService.assertAnyRequestDeltas();
+//        dummyAuditService.assertExecutionDeltas(0,3);
+//        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, UserType.class);
+//        dummyAuditService.asserHasDelta(0,ChangeType.ADD, ShadowType.class);
+//        dummyAuditService.assertExecutionDeltas(1,3);
+//        dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, UserType.class);
+//        dummyAuditService.asserHasDelta(1,ChangeType.ADD, ShadowType.class);
+//        dummyAuditService.assertExecutionDeltas(2,2);
+//        dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, UserType.class);
+//        dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, ShadowType.class);
+//        dummyAuditService.assertExecutionSuccess();
+//        
+//        // Have a closer look at the last shadow modify delta. Make sure there are no phantom changes.
+//        ObjectDeltaOperation<?> executionDeltaOp = dummyAuditService.getExecutionDelta(2, ChangeType.MODIFY, ShadowType.class);
+//        ObjectDelta<?> executionDelta = executionDeltaOp.getObjectDelta();
+//        display("Last execution delta", executionDelta);
+//        PrismAsserts.assertModifications("Phantom changes in last delta:", executionDelta, 2);
+		} catch (Exception ex){
+			LOGGER.info("ex: {}", ex);
+			throw ex;
+		}
 	}
 }
