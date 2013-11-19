@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.users.dto;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -90,6 +91,13 @@ public class OrgStructDto<T extends ObjectType> implements Serializable {
                         getRelation(parent, user)));
 			}
 		}
+
+        if (orgUnitList != null) {
+            Collections.sort(orgUnitList);
+        }
+        if (userList != null) {
+            Collections.sort(userList);
+        }
 	}
 
     private String getName(PolyStringType name, PolyStringType defaultValue) {
