@@ -45,9 +45,11 @@ import java.io.InputStreamReader;
 public class ImportObjects extends BaseNinjaAction {
 
     private String filePath;
+	private boolean validateSchema;
 
-    public ImportObjects(String filePath) {
+    public ImportObjects(String filePath, boolean validateSchema) {
         this.filePath = filePath;
+        this.validateSchema = validateSchema;
     }
 
     public boolean execute() {
@@ -107,7 +109,7 @@ public class ImportObjects extends BaseNinjaAction {
             };
             Validator validator = new Validator(prismContext, handler);
             validator.setVerbose(true);
-            validator.setValidateSchema(true);
+            validator.setValidateSchema(validateSchema);
 
             OperationResult result = new OperationResult("Import objeccts");
             validator.validate(input, result, OperationConstants.IMPORT_OBJECT);

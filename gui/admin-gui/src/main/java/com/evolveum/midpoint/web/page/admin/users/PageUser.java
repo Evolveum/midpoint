@@ -1855,7 +1855,7 @@ public class PageUser extends PageAdminUsers {
 			}
 
 			PropertyWrapper enabledProperty = activation.findPropertyWrapper(ActivationType.F_ADMINISTRATIVE_STATUS);
-			if (enabledProperty.getValues().size() != 1) {
+			if (enabledProperty == null || enabledProperty.getValues().size() != 1) {
 				warn(getString("pageUser.message.noEnabledPropertyFound", wrapper.getDisplayName()));
 				continue;
 			}
