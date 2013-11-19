@@ -787,6 +787,9 @@ public class ContextLoader {
 		PrismObject<P> projectionObject = projContext.getObjectCurrent();
 		if (projContext.getObjectCurrent() != null) {
 			projectionObject = projContext.getObjectCurrent();
+			if (projectionObjectOid != null){
+				projContext.setExists(true);
+			}
 		} else {
 			if (projContext.isAdd()) {
 				// No need to load old object, there is none
