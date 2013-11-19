@@ -88,6 +88,14 @@ public class InlineMenu extends SimplePanel<List<InlineMenuItem>> {
                 initLink(item);
             }
         };
+        li.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                List list = InlineMenu.this.getModel().getObject();
+                return list != null && !list.isEmpty();
+            }
+        });
         add(li);
     }
 

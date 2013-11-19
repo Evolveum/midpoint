@@ -209,20 +209,45 @@ public class TreeTablePanel extends SimplePanel<String> {
 
     private List<InlineMenuItem> initInlineMenu() {
         List<InlineMenuItem> headerMenuItems = new ArrayList<InlineMenuItem>();
-        headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.addOrgUnit"), true,
+        headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.addOrgUnit"), false,
                 new HeaderMenuAction(this) {
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                        addOrgUnit(target);
+                        addOrgUnitPerformed(target);
                     }
                 }));
-        headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.deleteOrgUnit"), true,
+        headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.addUser"), false,
                 new HeaderMenuAction(this) {
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                        deleteOrgUnit(target);
+                        addUserPerformed(target);
+                    }
+                }));
+        headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.delete"), true,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                        deletePerformed(target);
+                    }
+                }));
+        headerMenuItems.add(new InlineMenuItem());
+        headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.addToHierarchy"), true,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                        addToHierarchyPerformed(target);
+                    }
+                }));
+        headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.removeFromHierarchy"), true,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                        removeFromHierarchyPerformed(target);
                     }
                 }));
         headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.move"), true,
@@ -230,22 +255,34 @@ public class TreeTablePanel extends SimplePanel<String> {
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                        move(target);
+                        movePerformed(target);
                     }
                 }));
 
         return headerMenuItems;
     }
 
-    private void move(AjaxRequestTarget target) {
+    private void addOrgUnitPerformed(AjaxRequestTarget target) {
         //todo implement [lazyman]
     }
 
-    private void addOrgUnit(AjaxRequestTarget target) {
+    private void addUserPerformed(AjaxRequestTarget target) {
         //todo implement [lazyman]
     }
 
-    private void deleteOrgUnit(AjaxRequestTarget target) {
+    private void deletePerformed(AjaxRequestTarget target) {
+        //todo implement [lazyman]
+    }
+
+    private void addToHierarchyPerformed(AjaxRequestTarget target) {
+        //todo implement [lazyman]
+    }
+
+    private void removeFromHierarchyPerformed(AjaxRequestTarget target) {
+        //todo implement [lazyman]
+    }
+
+    private void movePerformed(AjaxRequestTarget target) {
         //todo implement [lazyman]
     }
 
