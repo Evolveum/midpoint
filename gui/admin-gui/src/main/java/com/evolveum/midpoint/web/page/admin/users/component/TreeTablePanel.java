@@ -43,8 +43,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.HeadersToolbar;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.extensions.markup.html.repeater.tree.ISortableTreeProvider;
@@ -140,9 +138,9 @@ public class TreeTablePanel extends SimplePanel<String> {
                 return item;
             }
         };
-        tree.getTable().addTopToolbar(new HeadersToolbar<String>(tree.getTable(), null));
         tree.getTable().add(AttributeModifier.replace("class", "table table-striped table-condensed"));
         tree.add(new WindowsTheme());
+//        tree.add(AttributeModifier.replace("class", "tree-midpoint"));
         treeContainer.add(tree);
 
         Form form = new Form(ID_FORM);
@@ -305,7 +303,7 @@ public class TreeTablePanel extends SimplePanel<String> {
     }
 
     private void selectTreeItemPerformed(AjaxRequestTarget target) {
-        TablePanel table = (TablePanel) get(ID_TABLE);
+        TablePanel table = (TablePanel) get(createComponentPath(ID_FORM, ID_TABLE));
 
         BaseSortableDataProvider provider = (BaseSortableDataProvider) table.getDataTable().getDataProvider();
         provider.setQuery(createTableQuery());
