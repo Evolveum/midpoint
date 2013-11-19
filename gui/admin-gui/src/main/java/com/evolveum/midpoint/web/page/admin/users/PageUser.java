@@ -141,11 +141,15 @@ public class PageUser extends PageAdminUsers {
     };
 
     public PageUser() {
+        this(null);
+    }
+
+    public PageUser(final PrismObject<UserType> userToEdit) {
         userModel = new LoadableModel<ObjectWrapper>(false) {
 
             @Override
             protected ObjectWrapper load() {
-                return loadUserWrapper();
+                return loadUserWrapper(userToEdit);
             }
         };
         accountsModel = new LoadableModel<List<UserAccountDto>>(false) {
@@ -166,14 +170,18 @@ public class PageUser extends PageAdminUsers {
         initLayout();
     }
 
-    private ObjectWrapper loadUserWrapper() {
+    private ObjectWrapper loadUserWrapper(PrismObject<UserType> userToEdit) {
         OperationResult result = new OperationResult(OPERATION_LOAD_USER);
         PrismObject<UserType> user = null;
         try {
             if (!isEditingUser()) {
-                UserType userType = new UserType();
-                getMidpointApplication().getPrismContext().adopt(userType);
-                user = userType.asPrismObject();
+                if (userToEdit == null) {
+                    UserType userType = new UserType();
+                    getMidpointApplication().getPrismContext().adopt(userType);
+                    user = userType.asPrismObject();
+                } else {
+                    user= userToEdit;
+                }
             } else {
                 Task task = createSimpleTask(OPERATION_LOAD_USER);
 

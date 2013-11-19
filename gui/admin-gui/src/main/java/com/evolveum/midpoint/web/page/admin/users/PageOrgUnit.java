@@ -78,15 +78,21 @@ public class PageOrgUnit extends PageAdminUsers {
     private static final String ID_BACK = "back";
     private static final String ID_SAVE = "save";
 
-    private IModel<PrismObject<OrgType>> orgModel = new LoadableModel<PrismObject<OrgType>>(false) {
-
-        @Override
-        protected PrismObject<OrgType> load() {
-            return loadOrgUnit();
-        }
-    };
+    private IModel<PrismObject<OrgType>> orgModel;
 
     public PageOrgUnit() {
+        this(null);
+    }
+
+    public PageOrgUnit(final PrismObject<OrgType> unitToEdit) {
+        orgModel = new LoadableModel<PrismObject<OrgType>>(false) {
+
+            @Override
+            protected PrismObject<OrgType> load() {
+                return loadOrgUnit(unitToEdit);
+            }
+        };
+
         initLayout();
     }
 
@@ -236,15 +242,19 @@ public class PageOrgUnit extends PageAdminUsers {
         }
     }
 
-    private PrismObject<OrgType> loadOrgUnit() {
+    private PrismObject<OrgType> loadOrgUnit(PrismObject<OrgType> unitToEdit) {
         OperationResult result = new OperationResult(LOAD_UNIT);
 
         PrismObject<OrgType> org = null;
         try {
             if (!isEditing()) {
-                OrgType o = new OrgType();
-                getMidpointApplication().getPrismContext().adopt(o);
-                org = o.asPrismObject();
+                if (unitToEdit == null) {
+                    OrgType o = new OrgType();
+                    getMidpointApplication().getPrismContext().adopt(o);
+                    org = o.asPrismObject();
+                } else {
+                    org = unitToEdit;
+                }
             } else {
                 StringValue oid = getPageParameters().get(PageOrgUnit.PARAM_ORG_ID);
                 org = getModelService().getObject(OrgType.class, oid.toString(), null,

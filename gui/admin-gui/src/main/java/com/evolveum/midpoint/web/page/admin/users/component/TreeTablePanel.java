@@ -16,9 +16,11 @@
 
 package com.evolveum.midpoint.web.page.admin.users.component;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrgFilter;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
@@ -31,12 +33,14 @@ import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgTableDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgTreeDto;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -229,7 +233,7 @@ public class TreeTablePanel extends SimplePanel<String> {
                 new HeaderMenuAction(this) {
 
                     @Override
-                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                    public void onClick(AjaxRequestTarget target) {
                         addOrgUnitPerformed(target);
                     }
                 }));
@@ -237,7 +241,7 @@ public class TreeTablePanel extends SimplePanel<String> {
                 new HeaderMenuAction(this) {
 
                     @Override
-                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                    public void onClick(AjaxRequestTarget target) {
                         addUserPerformed(target);
                     }
                 }));
@@ -279,12 +283,46 @@ public class TreeTablePanel extends SimplePanel<String> {
     }
 
     private void addOrgUnitPerformed(AjaxRequestTarget target) {
-        //todo implement [lazyman]
+        PrismObject object = addObjectPerformed(target, new OrgType());
+        if (object == null) {
+            return;
+        }
+        PageOrgUnit next = new PageOrgUnit(object);
+        setResponsePage(next);
     }
 
     private void addUserPerformed(AjaxRequestTarget target) {
-        //todo implement [lazyman]
+        PrismObject object = addObjectPerformed(target, new UserType());
+        if (object == null) {
+            return;
+        }
+        PageUser next = new PageUser(object);
+        setResponsePage(next);
     }
+
+    private PrismObject addObjectPerformed(AjaxRequestTarget target, ObjectType object) {
+        PageBase page = getPageBase();
+        try {
+            ObjectReferenceType ref = new ObjectReferenceType();
+            ref.setOid(selected.getObject().getOid());
+            ref.setType(OrgType.COMPLEX_TYPE);
+            object.getParentOrgRef().add(ref);
+
+            PrismContext context = page.getPrismContext();
+            context.adopt(object);
+
+            return object.asPrismContainer();
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "Couldn't create object with parent org. reference", ex);
+            page.error("Couldn't create object with parent org. reference, reason: " + ex.getMessage());
+
+            target.add(page.getFeedbackPanel());
+        }
+
+        return null;
+    }
+
+    //todo create function computeHeight() in midpoint.js, update height properly when in "mobile" mode... [lazyman]
 
     private void deletePerformed(AjaxRequestTarget target) {
         //todo implement [lazyman]
