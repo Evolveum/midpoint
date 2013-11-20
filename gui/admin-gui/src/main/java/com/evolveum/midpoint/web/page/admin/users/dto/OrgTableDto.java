@@ -52,7 +52,7 @@ public class OrgTableDto extends Selectable implements InlineMenuable {
         this.type = type;
     }
 
-    public static OrgTableDto createDto(PrismObject<ObjectType> object) {
+    public static OrgTableDto createDto(PrismObject<? extends ObjectType> object) {
         OrgTableDto dto = new OrgTableDto(object.getOid(), object.getCompileTimeClass());
         dto.name = WebMiscUtil.getName(object);
         dto.description = object.getPropertyRealValue(OrgType.F_DESCRIPTION, String.class);

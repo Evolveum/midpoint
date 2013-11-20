@@ -41,7 +41,6 @@ import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgTableDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgTreeDto;
-import com.evolveum.midpoint.web.page.admin.users.dto.UserListItemDto;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
@@ -83,14 +82,17 @@ public class TreeTablePanel extends SimplePanel<String> {
     private static final Trace LOGGER = TraceManager.getTrace(TreeTablePanel.class);
 
     private static final String DOT_CLASS = TreeTablePanel.class.getName() + ".";
-    private static final String OPERATION_DELETE_OBJECTS = DOT_CLASS + "";
-    private static final String OPERATION_DELETE_OBJECT = DOT_CLASS + "";
+    private static final String OPERATION_DELETE_OBJECTS = DOT_CLASS + "deleteObjects";
+    private static final String OPERATION_DELETE_OBJECT = DOT_CLASS + "deleteObject";
+    private static final String OPERATION_MOVE_OBJECTS = DOT_CLASS + "moveObjects";
+    private static final String OPERATION_MOVE_OBJECT = DOT_CLASS + "moveObject";
 
     private static final String ID_TREE = "tree";
     private static final String ID_TREE_CONTAINER = "treeContainer";
     private static final String ID_TABLE = "table";
     private static final String ID_FORM = "form";
     private static final String ID_CONFIRM_DELETE_POPUP = "confirmDeletePopup";
+    private static final String ID_MOVE_POPUP = "movePopup";
 
     private IModel<OrgTreeDto> selected = new LoadableModel<OrgTreeDto>() {
 
@@ -117,6 +119,8 @@ public class TreeTablePanel extends SimplePanel<String> {
             }
         });
 
+        add(new OrgUnitBrowser(ID_MOVE_POPUP));
+
         ISortableTreeProvider provider = new OrgTreeProvider(this, getModel());
         List<IColumn<OrgTreeDto, String>> columns = new ArrayList<IColumn<OrgTreeDto, String>>();
         columns.add(new TreeColumn<OrgTreeDto, String>(createStringResource("TreeTablePanel.hierarchy")));
@@ -127,7 +131,7 @@ public class TreeTablePanel extends SimplePanel<String> {
             public void renderHead(IHeaderResponse response) {
                 super.renderHead(response);
 
-                //method computes height based
+                //method computes height based on document.innerHeight() - screen height;
                 response.render(OnDomReadyHeaderItem.forScript("updateHeight('" + getMarkupId()
                         + "', ['#" + TreeTablePanel.this.get(ID_FORM).getMarkupId() + "'], ['#treeHeader'])"));
             }
@@ -396,8 +400,7 @@ public class TreeTablePanel extends SimplePanel<String> {
         }
         result.computeStatusComposite();
 
-        ObjectDataProvider<UserListItemDto, UserType> provider =
-                (ObjectDataProvider) getTable().getDataTable().getDataProvider();
+        ObjectDataProvider provider = (ObjectDataProvider) getTable().getDataTable().getDataProvider();
         provider.clearCache();
 
         page.showResult(result);
@@ -414,7 +417,42 @@ public class TreeTablePanel extends SimplePanel<String> {
     }
 
     private void movePerformed(AjaxRequestTarget target) {
-        //todo implement [lazyman]
+        List<OrgTableDto> objects = isAnythingSelected(target);
+        if (objects.isEmpty()) {
+            return;
+        }
+
+        ModalWindow dialog = (ModalWindow) get(ID_MOVE_POPUP);
+        dialog.show(target);
+    }
+
+    private void moveConfirmedPerformed(AjaxRequestTarget target) {
+        List<OrgTableDto> objects = isAnythingSelected(target);
+        if (objects.isEmpty()) {
+            return;
+        }
+
+        PageBase page = getPageBase();
+        OperationResult result = new OperationResult(OPERATION_MOVE_OBJECTS);
+        for (OrgTableDto object : objects) {
+            OperationResult subResult = result.createSubresult(OPERATION_MOVE_OBJECT);
+            try {
+
+            } catch (Exception ex) {
+                subResult.recordFatalError("Couldn't move object " + null + " to " + null + ".", ex);
+                LoggingUtils.logException(LOGGER, "Couldn't move object {} to {}", ex, object.getName());
+            } finally {
+                subResult.computeStatus();
+            }
+        }
+        result.computeStatusComposite();
+
+        ObjectDataProvider provider = (ObjectDataProvider) getTable().getDataTable().getDataProvider();
+        provider.clearCache();
+
+        page.showResult(result);
+        target.add(page.getFeedbackPanel());
+        target.add(getTable());
     }
 
     private TablePanel getTable() {

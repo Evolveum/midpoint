@@ -1,5 +1,3 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-
 <!--
   ~ Copyright (c) 2010-2013 Evolveum
   ~
@@ -15,23 +13,23 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<wicket:panel xmlns:wicket="http://wicket.apache.org">
-    <div wicket:id="confirmDeletePopup" />
-    <div wicket:id="movePopup" />
 
-    <div class="row" style="margin-top: 15px;">
-        <div class="col-md-4">
-            <div id="treeHeader" class="org-tree-header">
-                <wicket:message key="TreeTablePanel.hierarchy"/>
+<wicket:panel xmlns:wicket="http://wicket.apache.org">
+    <div wicket:id="content">
+        <form wicket:id="mainForm" class="form-inline pull-right"
+                style="padding: 5px;">
+            <div class="form-group">
+                <input type="text" class="form-control input-sm" wicket:id="searchText"/>
             </div>
-            <div wicket:id="treeContainer" class="org-tree-container">
-                <div wicket:id="tree"/>
-            </div>
+            <a class="btn btn-sm btn-default" wicket:id="search"/>
+        </form>
+
+        <div class="clearfix">
+            <div wicket:id="table"/>
         </div>
-        <div class="col-md-8">
-            <form wicket:id="form">
-                <div wicket:id="table"/>
-            </form>
+
+        <div style="text-align: center;">
+            <a class="btn btn-sm btn-default" wicket:id="cancel"/>
         </div>
     </div>
 </wicket:panel>
