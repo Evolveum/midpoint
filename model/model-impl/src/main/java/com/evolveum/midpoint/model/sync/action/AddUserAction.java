@@ -87,7 +87,7 @@ public class AddUserAction extends BaseAction {
 
                 //add account sync context for inbound processing
                 LensProjectionContext<ShadowType> accountContext = createAccountLensContext(context, change, situation,
-                		SynchronizationIntent.KEEP, null);
+                		null, null);
                 if (accountContext == null) {
                     LOGGER.warn("Couldn't create account sync context, skipping action for this change.");
                     return userOid;
