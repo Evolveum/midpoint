@@ -62,6 +62,7 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 	private RefinedObjectClassDefinition refinedObjectClass;
 	private QName sourceChannel;
 	private boolean forceAdd;
+    private Task task;
 
 	public SynchronizeAccountResultHandler(ResourceType resource, RefinedObjectClassDefinition refinedObjectClass,
 			String processShortName, Task task, ResourceObjectChangeListener objectChangeListener) {
@@ -69,6 +70,7 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 		this.objectChangeListener = objectChangeListener;
 		this.resource = resource;
 		this.refinedObjectClass = refinedObjectClass;
+        this.task = task;
 		forceAdd = false;
 	}
 
@@ -163,6 +165,6 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
         
         // No exception thrown here. The error is indicated in the result. Will be processed by superclass.
         
-		return true;
+		return task.canRun();
 	}
 }
