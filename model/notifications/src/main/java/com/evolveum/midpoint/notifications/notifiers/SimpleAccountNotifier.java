@@ -67,7 +67,7 @@ public class SimpleAccountNotifier extends GeneralNotifier {
     @Override
     protected boolean quickCheckApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
         if (!(event instanceof AccountEvent)) {
-            LOGGER.trace("SimpleAccountNotifier was called with incompatible notification event; class = " + event.getClass());
+            LOGGER.trace("SimpleAccountNotifier is not applicable for this kind of event, continuing in the handler chain; event class = " + event.getClass());
             return false;
         } else {
             return true;
