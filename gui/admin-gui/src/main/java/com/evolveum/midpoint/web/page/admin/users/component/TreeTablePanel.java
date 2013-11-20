@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrgFilter;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -30,6 +31,7 @@ import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
@@ -39,7 +41,10 @@ import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgTableDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgTreeDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.UserListItemDto;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
@@ -47,6 +52,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.extensions.markup.html.repeater.tree.ISortableTreeProvider;
@@ -67,16 +73,25 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import java.util.*;
 
 /**
+ * todo create function computeHeight() in midpoint.js, update height properly when in "mobile" mode... [lazyman]
+ * todo implement midpoint theme for tree [lazyman]
+ *
  * @author lazyman
  */
 public class TreeTablePanel extends SimplePanel<String> {
 
     private static final Trace LOGGER = TraceManager.getTrace(TreeTablePanel.class);
 
+    private static final String DOT_CLASS = TreeTablePanel.class.getName() + ".";
+    private static final String OPERATION_DELETE_OBJECTS = DOT_CLASS + "";
+    private static final String OPERATION_DELETE_OBJECT = DOT_CLASS + "";
+
     private static final String ID_TREE = "tree";
     private static final String ID_TREE_CONTAINER = "treeContainer";
     private static final String ID_TABLE = "table";
     private static final String ID_FORM = "form";
+    private static final String ID_CONFIRM_DELETE_POPUP = "confirmDeletePopup";
+
     private IModel<OrgTreeDto> selected = new LoadableModel<OrgTreeDto>() {
 
         @Override
@@ -91,6 +106,17 @@ public class TreeTablePanel extends SimplePanel<String> {
 
     @Override
     protected void initLayout() {
+        add(new ConfirmationDialog(ID_CONFIRM_DELETE_POPUP,
+                createStringResource("TreeTablePanel.dialog.title.confirmDelete"), createDeleteConfirmString()) {
+
+            @Override
+            public void yesPerformed(AjaxRequestTarget target) {
+                close(target);
+
+                deleteConfirmedPerformed(target);
+            }
+        });
+
         ISortableTreeProvider provider = new OrgTreeProvider(this, getModel());
         List<IColumn<OrgTreeDto, String>> columns = new ArrayList<IColumn<OrgTreeDto, String>>();
         columns.add(new TreeColumn<OrgTreeDto, String>(createStringResource("TreeTablePanel.hierarchy")));
@@ -170,6 +196,17 @@ public class TreeTablePanel extends SimplePanel<String> {
         TablePanel table = new TablePanel(ID_TABLE, tableProvider, tableColumns, 10);
         table.setOutputMarkupId(true);
         form.add(table);
+    }
+
+    private IModel<String> createDeleteConfirmString() {
+        return new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                return createStringResource("TreeTablePanel.message.deleteObjectConfirm",
+                        WebMiscUtil.getSelectedData(getTable()).size()).getString();
+            }
+        };
     }
 
     private OrgTreeDto loadRoot() {
@@ -322,10 +359,50 @@ public class TreeTablePanel extends SimplePanel<String> {
         return null;
     }
 
-    //todo create function computeHeight() in midpoint.js, update height properly when in "mobile" mode... [lazyman]
+    /**
+     * This method check selection in table.
+     */
+    private List<OrgTableDto> isAnythingSelected(AjaxRequestTarget target) {
+        List<OrgTableDto> objects = WebMiscUtil.getSelectedData(getTable());
+        if (objects.isEmpty()) {
+            warn(getString("TreeTablePanel.message.nothingSelected"));
+            target.add(getPageBase().getFeedbackPanel());
+        }
+
+        return objects;
+    }
 
     private void deletePerformed(AjaxRequestTarget target) {
-        //todo implement [lazyman]
+        List<OrgTableDto> objects = isAnythingSelected(target);
+        if (objects.isEmpty()) {
+            return;
+        }
+
+        ModalWindow dialog = (ModalWindow) get(ID_CONFIRM_DELETE_POPUP);
+        dialog.show(target);
+    }
+
+    private void deleteConfirmedPerformed(AjaxRequestTarget target) {
+        List<OrgTableDto> objects = isAnythingSelected(target);
+        if (objects.isEmpty()) {
+            return;
+        }
+
+        PageBase page = getPageBase();
+        OperationResult result = new OperationResult(OPERATION_DELETE_OBJECTS);
+        for (OrgTableDto object : objects) {
+            OperationResult subResult = result.createSubresult(OPERATION_DELETE_OBJECT);
+            WebModelUtils.deleteObject(object.getType(), object.getOid(), subResult, page);
+        }
+        result.computeStatusComposite();
+
+        ObjectDataProvider<UserListItemDto, UserType> provider =
+                (ObjectDataProvider) getTable().getDataTable().getDataProvider();
+        provider.clearCache();
+
+        page.showResult(result);
+        target.add(page.getFeedbackPanel());
+        target.add(getTable());
     }
 
     private void addToHierarchyPerformed(AjaxRequestTarget target) {
@@ -340,8 +417,12 @@ public class TreeTablePanel extends SimplePanel<String> {
         //todo implement [lazyman]
     }
 
+    private TablePanel getTable() {
+        return (TablePanel) get(createComponentPath(ID_FORM, ID_TABLE));
+    }
+
     private void selectTreeItemPerformed(AjaxRequestTarget target) {
-        TablePanel table = (TablePanel) get(createComponentPath(ID_FORM, ID_TABLE));
+        TablePanel table = getTable();
 
         BaseSortableDataProvider provider = (BaseSortableDataProvider) table.getDataTable().getDataProvider();
         provider.setQuery(createTableQuery());

@@ -16,7 +16,10 @@
 
 package com.evolveum.midpoint.web.util;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -63,10 +66,11 @@ public class WebModelUtils {
     private static <T extends ObjectType> PrismObject<T> loadObject(Class<T> type, String oid,
                                                                     Collection<SelectorOptions<GetOperationOptions>> options,
                                                                     OperationResult result, PageBase page, PrismObject<UserType> principal) {
-        Task task = page.createSimpleTask(result.getOperation(), principal);
+        LOGGER.debug("Loading {} with oid {}, options {}", new Object[]{type.getSimpleName(), oid, options});
 
         PrismObject<T> object = null;
         try {
+            Task task = page.createSimpleTask(result.getOperation(), principal);
             object = page.getModelService().getObject(type, oid, options, task, result);
         } catch (Exception ex) {
             result.recordFatalError("WebModelUtils.couldntLoadObject", ex);
@@ -75,6 +79,34 @@ public class WebModelUtils {
             result.computeStatus();
         }
 
+        LOGGER.debug("Loaded with result {}", new Object[]{result});
+
         return object;
+    }
+
+    public static <T extends ObjectType> void deleteObject(Class<T> type, String oid, OperationResult result,
+                                                           PageBase page) {
+        deleteObject(type, oid, result, null, page, null);
+    }
+
+    public static <T extends ObjectType> void deleteObject(Class<T> type, String oid, OperationResult result,
+                                                           ModelExecuteOptions options,
+                                                           PageBase page, PrismObject<UserType> principal) {
+        LOGGER.debug("Deleting {} with oid {}, options {}", new Object[]{type.getSimpleName(), oid, options});
+        try {
+            Task task = page.createSimpleTask(result.getOperation(), principal);
+
+            ObjectDelta delta = new ObjectDelta(type, ChangeType.DELETE, page.getPrismContext());
+            delta.setOid(oid);
+
+            page.getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), options, task, result);
+        } catch (Exception ex) {
+            result.recordFatalError("WebModelUtils.couldntDeleteObject", ex);
+            LoggingUtils.logException(LOGGER, "Couldn't delete object", ex);
+        } finally {
+            result.computeStatus();
+        }
+
+        LOGGER.debug("Deleted with result {}", new Object[]{result});
     }
 }
