@@ -116,7 +116,9 @@ public final class Utils {
 		while (cont) {
 			List<PrismObject<T>> objects = repositoryService.searchObjects(type, myQuery, null, opResult);
 			for (PrismObject<T> object: objects) {
-				handler.handle(object);
+				if (!handler.handle(object)) {
+                    return;
+                }
 			}
 			cont = objects.size() == blockSize;
 			myPaging.setOffset(myPaging.getOffset() + blockSize);
