@@ -93,15 +93,15 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
         }
 
         //refresh rows with ajax
-//        ComponentHierarchyIterator iterator = table.visitChildren(SelectableDataTable.SelectableRowItem.class);
-//        while (iterator.hasNext()) {
-//            SelectableDataTable.SelectableRowItem row = (SelectableDataTable.SelectableRowItem) iterator.next();
-//            if (!row.getOutputMarkupId()) {
-//                //we skip rows that doesn't have outputMarkupId set to true (it would fail)
-//                continue;
-//            }
-//            target.add(row);
-//        }
+        ComponentHierarchyIterator iterator = table.visitChildren(SelectableDataTable.SelectableRowItem.class);
+        while (iterator.hasNext()) {
+            SelectableDataTable.SelectableRowItem row = (SelectableDataTable.SelectableRowItem) iterator.next();
+            if (!row.getOutputMarkupId()) {
+                //we skip rows that doesn't have outputMarkupId set to true (it would fail)
+                continue;
+            }
+            target.add(row);
+        }
     }
 
     public static <T> boolean shouldBeHeaderSelected(DataTable table) {

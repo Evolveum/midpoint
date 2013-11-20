@@ -43,8 +43,8 @@ public class SelectableDataTable<T> extends DataTable<T, String> {
     protected Item<T> newRowItem(String id, int index, final IModel<T> model) {
         final Item<T> rowItem = new SelectableRowItem<T>(id, index, model);
 
-//        rowItem.setOutputMarkupId(true);
-//
+        rowItem.setOutputMarkupId(true);
+
 //        rowItem.add(new AttributeAppender("class", new AbstractReadOnlyModel<String>() {
 //
 //            @Override
