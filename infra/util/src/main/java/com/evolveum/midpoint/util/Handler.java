@@ -21,6 +21,7 @@ package com.evolveum.midpoint.util;
  */
 public interface Handler<T> {
 
-	void handle(T t);
+    // returns false if the iteration (if any) has to be stopped
+	boolean handle(T t);
 	
 }

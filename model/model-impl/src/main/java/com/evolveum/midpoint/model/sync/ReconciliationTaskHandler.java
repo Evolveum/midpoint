@@ -220,7 +220,10 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		auditService.audit(requestRecord, task);
 		
 		try {
-			scanForUnfinishedOperations(task, resourceOid, reconResult, opResult);
+			if (!scanForUnfinishedOperations(task, resourceOid, reconResult, opResult)) {
+                processInterruption(runResult, resource, task, opResult);
+                return runResult;
+            }
 		} catch (ObjectNotFoundException ex) {
 			// This is bad. The resource does not exist. Permanent problem.
 			processErrorPartial(runResult, "Resource does not exist, OID: " + resourceOid, ex, TaskRunResultStatus.PERMANENT_ERROR, progress, resource, task, opResult);
@@ -254,9 +257,15 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		long afterResourceReconTimestamp;
 		long afterShadowReconTimestamp;
 		try {			
-			performResourceReconciliation(resource, rObjectclassDef, reconResult, task, opResult);
+			if (!performResourceReconciliation(resource, rObjectclassDef, reconResult, task, opResult)) {
+                processInterruption(runResult, resource, task, opResult);
+                return runResult;
+            }
 			afterResourceReconTimestamp = clock.currentTimeMillis();
-			performShadowReconciliation(resource, reconStartTimestamp, afterResourceReconTimestamp, reconResult, task, opResult);
+			if (!performShadowReconciliation(resource, reconStartTimestamp, afterResourceReconTimestamp, reconResult, task, opResult)) {
+                processInterruption(runResult, resource, task, opResult);
+                return runResult;
+            }
 			afterShadowReconTimestamp = clock.currentTimeMillis();
 		} catch (ObjectNotFoundException ex) {
 			// This is bad. The resource does not exist. Permanent problem.
@@ -285,7 +294,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		} catch (SecurityViolationException ex) {
 			processErrorFinal(runResult, "Security violation", ex, TaskRunResultStatus.PERMANENT_ERROR, progress, resource, task, opResult);
 			return runResult;
-		}
+        }
 		
 		opResult.computeStatus();
 		// This "run" is finished. But the task goes on ...
@@ -322,7 +331,15 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		return runResult;
 	}
 
-	private void processErrorFinal(TaskRunResult runResult, String errorDesc, Exception ex,
+    private void processInterruption(TaskRunResult runResult, PrismObject<ResourceType> resource, Task task, OperationResult opResult) {
+        opResult.recordPartialError("Interrupted");
+        if (LOGGER.isWarnEnabled()) {
+            LOGGER.warn("Reconciliation on {} interrupted", resource);
+        }
+        runResult.setRunResultStatus(TaskRunResultStatus.INTERRUPTED);          // not strictly necessary, because using task.canRun() == false the task manager knows we were interrupted
+    }
+
+    private void processErrorFinal(TaskRunResult runResult, String errorDesc, Exception ex,
 			TaskRunResultStatus runResultStatus, long progress, PrismObject<ResourceType> resource, Task task, OperationResult opResult) {
 		String message = errorDesc+": "+ex.getMessage();
 		LOGGER.error("Reconciliation: {}", new Object[]{message, ex});
@@ -346,9 +363,12 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		runResult.setProgress(progress);
 	}
 
-	private void performResourceReconciliation(PrismObject<ResourceType> resource, RefinedObjectClassDefinition rObjectclassDef, ReconciliationTaskResult reconResult, Task task, OperationResult result)
+    // returns false in case of execution interruption
+	private boolean performResourceReconciliation(PrismObject<ResourceType> resource, RefinedObjectClassDefinition rObjectclassDef, ReconciliationTaskResult reconResult, Task task, OperationResult result)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
+
+        boolean interrupted;
 
 		OperationResult opResult = result.createSubresult(OperationConstants.RECONCILIATION+".ResourceReconciliation");
 
@@ -365,10 +385,14 @@ public class ReconciliationTaskHandler implements TaskHandler {
 	
 			OperationResult searchResult = new OperationResult(OperationConstants.RECONCILIATION+".searchIterative"); 
 			provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, searchResult);
-	
+	        interrupted = !task.canRun();
+
 			opResult.computeStatus();
 
 			String message = "Processed " + handler.getProgress() + " account(s), got " + handler.getErrors() + " error(s)";
+            if (interrupted) {
+                message += "; was interrupted during processing.";
+            }
 			OperationResultStatus resultStatus = OperationResultStatus.SUCCESS;
 			if (handler.getErrors() > 0) {
 				resultStatus = OperationResultStatus.PARTIAL_ERROR;
@@ -397,10 +421,14 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			opResult.recordFatalError(e);
 			throw e;
 		}
+        return !interrupted;
 	}
-	
-	private void performShadowReconciliation(final PrismObject<ResourceType> resource, 
+
+    // returns false in case of execution interruption
+	private boolean performShadowReconciliation(final PrismObject<ResourceType> resource,
 			long startTimestamp, long endTimestamp, ReconciliationTaskResult reconResult, final Task task, OperationResult result) throws SchemaException {
+        boolean interrupted;
+
 		// find accounts
 		
 		LOGGER.trace("Shadow reconciliation starting for {}, {} -> {}", new Object[]{resource, startTimestamp, endTimestamp});
@@ -420,12 +448,14 @@ public class ReconciliationTaskHandler implements TaskHandler {
 
 		Handler<PrismObject<ShadowType>> handler = new Handler<PrismObject<ShadowType>>() {
 			@Override
-			public void handle(PrismObject<ShadowType> shadow) {
+			public boolean handle(PrismObject<ShadowType> shadow) {
 				reconcileShadow(shadow, resource, task);
 				countHolder.setValue(countHolder.getValue() + 1);
+                return task.canRun();
 			}
 		};
 		Utils.searchIterative(repositoryService, ShadowType.class, query, handler , BLOCK_SIZE, opResult);
+        interrupted = !task.canRun();
 		
 		// for each try the operation again
 		
@@ -436,7 +466,11 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		
 		reconResult.setShadowReconCount(countHolder.getValue());
 
-        result.createSubresult(OperationConstants.RECONCILIATION+".shadowReconciliation.statistics").recordStatus(OperationResultStatus.SUCCESS, "Processed " + countHolder.getValue() + " shadow(s)");
+        result.createSubresult(OperationConstants.RECONCILIATION+".shadowReconciliation.statistics")
+                .recordStatus(OperationResultStatus.SUCCESS, "Processed " + countHolder.getValue() + " shadow(s)"
+                    + (interrupted ? "; was interrupted during processing" : ""));
+
+        return !interrupted;
 	}
 	
 	private void reconcileShadow(PrismObject<ShadowType> shadow, PrismObject<ResourceType> resource, Task task) {
@@ -495,8 +529,9 @@ public class ReconciliationTaskHandler implements TaskHandler {
 
 	/**
 	 * Scans shadows for unfinished operations and tries to finish them.
+     * Returns false if the reconciliation was interrupted.
 	 */
-	private void scanForUnfinishedOperations(Task task, String resourceOid, ReconciliationTaskResult reconResult, OperationResult result) throws SchemaException,
+	private boolean scanForUnfinishedOperations(Task task, String resourceOid, ReconciliationTaskResult reconResult, OperationResult result) throws SchemaException,
 			ObjectAlreadyExistsException, CommunicationException, ObjectNotFoundException,
 			ConfigurationException, SecurityViolationException {
 		LOGGER.trace("Scan for unfinished operations starting");
@@ -535,6 +570,10 @@ public class ReconciliationTaskHandler implements TaskHandler {
                     LoggingUtils.logException(LOGGER, "Failed to record finish operation failure with shadow: " + ObjectTypeUtil.toShortString(shadow.asObjectable()), e);
 				}
 			}
+
+            if (!task.canRun()) {
+                return false;
+            }
 		}
 
 		// for each try the operation again
@@ -542,6 +581,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		opResult.computeStatus();
 		
 		LOGGER.trace("Scan for unfinished operations finished, processed {} accounts, result: {}", shadows.size(), opResult.getStatus());
+        return true;
 	}
 
 	private ObjectFilter createFailedOpFilter(FailedOperationTypeType failedOp) throws SchemaException{
