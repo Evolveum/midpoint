@@ -946,13 +946,13 @@ public class PageUser extends PageAdminUsers {
             PrismContainerValue newValue = assDto.getNewValue();
             switch (assDto.getStatus()) {
                 case ADD:
-                case DELETE:
                     newValue.applyDefinition(assignmentDef, false);
-                    if (UserDtoStatus.ADD.equals(assDto.getStatus())) {
-                        assDelta.addValueToAdd(newValue.clone());
-                    } else {
-                        assDelta.addValueToDelete(newValue.clone());
-                    }
+                    assDelta.addValueToAdd(newValue.clone());
+                    break;
+                case DELETE:
+                    PrismContainerValue oldValue = assDto.getOldValue();
+                    oldValue.applyDefinition(assignmentDef);
+                    assDelta.addValueToDelete(oldValue.clone());
                     break;
                 case MODIFY:
                     if (!assDto.isModified()) {
