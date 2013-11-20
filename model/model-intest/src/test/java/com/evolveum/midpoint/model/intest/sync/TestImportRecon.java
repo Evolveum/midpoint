@@ -30,6 +30,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
@@ -43,6 +44,8 @@ import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
+import com.evolveum.midpoint.model.sync.ReconciliationTaskHandler;
+import com.evolveum.midpoint.model.sync.ReconciliationTaskResultListener;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -114,9 +117,17 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	protected ResourceType resourceDummyLimeType;
 	protected PrismObject<ResourceType> resourceDummyLime;
 
+	@Autowired(required=true)
+	private ReconciliationTaskHandler reconciliationTaskHandler;
+	
+	private DebugReconciliationTaskResultListener reconciliationTaskResultListener;
+	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
+		
+		reconciliationTaskResultListener = new DebugReconciliationTaskResultListener();
+		reconciliationTaskHandler.setReconciliationTaskResultListener(reconciliationTaskResultListener);
 		
 		dummyResourceCtlAzure = DummyResourceContoller.create(RESOURCE_DUMMY_AZURE_NAME, resourceDummyAzure);
 		dummyResourceCtlAzure.extendDummySchema();
@@ -406,6 +417,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         dummyResource.purgeScriptHistory();
         dummyAuditService.clear();
         rememberShadowFetchOperationCount();
+        reconciliationTaskResultListener.clear();
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
@@ -421,6 +433,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // First fetch: searchIterative
         // Second fetch: "fetchback" of modified account (guybrush)
         assertShadowFetchOperationCountIncrement(2);
+        
+        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_OID, 0, 7, 0, 0);
         
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after import", users);
