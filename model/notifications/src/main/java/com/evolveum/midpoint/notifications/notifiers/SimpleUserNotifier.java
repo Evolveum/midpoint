@@ -52,7 +52,7 @@ public class SimpleUserNotifier extends GeneralNotifier {
     @Override
     protected boolean quickCheckApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
         if (!(event instanceof ModelEvent)) {
-            LOGGER.trace("SimpleUserNotifier was called with incompatible notification event; class = " + event.getClass());
+            LOGGER.trace("SimpleUserNotifier is not applicable for this kind of event, continuing in the handler chain; event class = " + event.getClass());
             return false;
         } else {
             return true;

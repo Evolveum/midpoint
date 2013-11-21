@@ -54,7 +54,7 @@ public class AccountPasswordNotifier extends GeneralNotifier {
     @Override
     protected boolean quickCheckApplicability(Event event, GeneralNotifierType generalNotifierType, OperationResult result) {
         if (!(event instanceof AccountEvent)) {
-            LOGGER.trace("AccountPasswordNotifier was called with incompatible notification event; class = " + event.getClass());
+            LOGGER.trace("AccountPasswordNotifier is not applicable for this kind of event, continuing in the handler chain; event class = " + event.getClass());
             return false;
         } else {
             return true;

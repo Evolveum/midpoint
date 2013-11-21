@@ -180,13 +180,15 @@ public class ObjectWrapper implements Serializable {
 
 	public ContainerWrapper findContainerWrapper(ItemPath path) {
 		for (ContainerWrapper wrapper : getContainers()) {
-			if (path != null && path.equals(wrapper.getPath())) {
-				return wrapper;
-			} else {
-				if (wrapper.getPath() == null) {
-					return wrapper;
-				}
-			}
+            if (path != null) {
+                if (path.equals(wrapper.getPath())) {
+                    return wrapper;
+                }
+            } else {
+                if (wrapper.getPath() == null) {
+                    return wrapper;
+                }
+            }
 		}
 
 		return null;

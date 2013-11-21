@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2013 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.util;
+
+package com.evolveum.midpoint.model.sync;
 
 /**
+ * Testability interface. It is used in the tests to check correctness
+ * of reconciliation run.
+ * 
  * @author Radovan Semancik
  *
  */
-public interface Handler<T> {
+public interface ReconciliationTaskResultListener {
 
-    // returns false if the iteration (if any) has to be stopped
-	boolean handle(T t);
+	void process(ReconciliationTaskResult reconResult);
 	
 }

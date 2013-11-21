@@ -300,6 +300,7 @@ public class PageTasks extends PageAdminTasks {
         });
         columns.add(createTaskExecutionStatusColumn(this, "pageTasks.task.execution"));
         columns.add(new PropertyColumn<TaskDto, String>(createStringResource("pageTasks.task.executingAt"), "executingAt"));
+        columns.add(new PropertyColumn<TaskDto, String>(createStringResource("pageTasks.task.progress"), TaskDto.F_PROGRESS_DESCRIPTION));
         columns.add(new AbstractColumn<TaskDto, String>(createStringResource("pageTasks.task.currentRunTime")) {
 
             @Override

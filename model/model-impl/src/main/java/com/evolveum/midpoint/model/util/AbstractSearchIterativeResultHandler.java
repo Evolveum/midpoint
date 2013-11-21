@@ -104,7 +104,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 		}
 		
 		progress++;
-		
+
 		Long startTime = System.currentTimeMillis();
 
 		OperationResult result = parentResult.createSubresult(taskOperationPrefix + ".handle");
@@ -118,8 +118,10 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 		
 		boolean cont;
 		try {
-			
-			// The meat
+
+            task.setProgressImmediate(progress, parentResult);              // this is necessary for the progress to be immediately available in GUI
+
+            // The meat
 			cont = handleObject(object, result);
 			
 			if (logObjectProgress) {
