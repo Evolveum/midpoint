@@ -26,7 +26,6 @@ import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgTableDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
@@ -66,7 +65,7 @@ public class OrgUnitBrowser extends ModalWindow {
         setCssClassName(ModalWindow.CSS_CLASS_GRAY);
         setCookieName(OrgUnitBrowser.class.getSimpleName() + ((int) (Math.random() * 100)));
         setInitialWidth(900);
-        setInitialHeight(500);
+        setInitialHeight(530);
         setWidthUnit("px");
 
         WebMarkupContainer content = new WebMarkupContainer(getContentId());

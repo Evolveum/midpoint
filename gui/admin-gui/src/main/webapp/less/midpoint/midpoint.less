@@ -14,6 +14,8 @@
 
 div.wicket-debug-buttons {
   border: 1px solid #000000;
+  background-color: #ffffff;
+  opacity: 0.7;
   bottom: 50px;
   display: block;
   position: fixed;
@@ -21,6 +23,7 @@ div.wicket-debug-buttons {
   z-index: 1000000;
 
   a {
+    color: #0000ff;
     display: block;
     padding: 5px;
   }
@@ -141,4 +144,11 @@ div.org-tree-header {
 div.org-tree-container {
   overflow-y: auto;
   margin-bottom: 20px;
+}
+
+/*
+ * fix for wicket dialog
+ */
+h3.w_captionText {
+   font-size: 18px;
 }
