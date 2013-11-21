@@ -718,6 +718,21 @@ public interface Task extends Dumpable {
      */
     public void setProgressImmediate(long progress, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
+    /**
+     * Returns expected total progress.
+     * @return
+     */
+    public Long getExpectedTotal();
+
+    /**
+     * Stores expected total progress of the task, storing it persistently if needed.
+     */
+    public void setExpectedTotal(Long value);
+
+    /**
+     * "Immediate" version of the above method.
+     */
+    public void setExpectedTotalImmediate(Long value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
 
     // ===================================================================== Working with subtasks and dependent tasks
 

@@ -621,4 +621,19 @@ public class SimpleTaskAdapter implements Task {
     public Collection<ItemDelta<?>> getPendingModifications() {
         throw new UnsupportedOperationException("not implemented yet.");
     }
+
+    @Override
+    public Long getExpectedTotal() {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    public void setExpectedTotal(Long value) {
+        //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    public void setExpectedTotalImmediate(Long value, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+        //To change body of implemented methods use File | Settings | File Templates.
+    }
 }
