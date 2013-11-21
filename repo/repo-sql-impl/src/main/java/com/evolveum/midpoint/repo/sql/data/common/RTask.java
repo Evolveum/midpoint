@@ -74,6 +74,7 @@ public class RTask extends RObject<TaskType> {
     private RThreadStopAction threadStopAction;
     private Set<String> dependent;
     private RTaskWaitingReason waitingReason;
+    private Long expectedTotal;
 
     @ElementCollection
     @ForeignKey(name = "fk_task_dependent")
@@ -165,6 +166,14 @@ public class RTask extends RObject<TaskType> {
     @Embedded
     public RPolyString getName() {
         return name;
+    }
+
+    public Long getExpectedTotal() {
+        return expectedTotal;
+    }
+
+    public void setExpectedTotal(Long expectedTotal) {
+        this.expectedTotal = expectedTotal;
     }
 
     public void setName(RPolyString name) {
@@ -331,6 +340,8 @@ public class RTask extends RObject<TaskType> {
         if (dependent != null ? !dependent.equals(rTask.dependent) : rTask.dependent != null) return false;
         if (waitingReason != null ? !waitingReason.equals(rTask.waitingReason) : rTask.waitingReason != null)
             return false;
+        if (expectedTotal != null ? !expectedTotal.equals(rTask.expectedTotal) : rTask.expectedTotal != null)
+            return false;
 
         return true;
     }
@@ -357,6 +368,7 @@ public class RTask extends RObject<TaskType> {
         result1 = 31 * result1 + (category != null ? category.hashCode() : 0);
         result1 = 31 * result1 + (parent != null ? parent.hashCode() : 0);
         result1 = 31 * result1 + (waitingReason != null ? waitingReason.hashCode() : 0);
+        result1 = 31 * result1 + (expectedTotal != null ? expectedTotal.hashCode() : 0);
 
         return result1;
     }
@@ -377,6 +389,7 @@ public class RTask extends RObject<TaskType> {
         jaxb.setLastRunStartTimestamp(repo.getLastRunStartTimestamp());
         jaxb.setNode(repo.getNode());
         jaxb.setProgress(repo.getProgress());
+        jaxb.setExpectedTotal(repo.getExpectedTotal());
         if (repo.getBinding() != null) {
             jaxb.setBinding(repo.getBinding().getSchemaValue());
         }
@@ -442,6 +455,7 @@ public class RTask extends RObject<TaskType> {
         repo.setThreadStopAction(RUtil.getRepoEnumValue(jaxb.getThreadStopAction(), RThreadStopAction.class));
         repo.setCategory(jaxb.getCategory());
         repo.setParent(jaxb.getParent());
+        repo.setExpectedTotal(jaxb.getExpectedTotal());
 
         repo.setObjectRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getObjectRef(), prismContext));
         repo.setOwnerRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getOwnerRef(), prismContext));
