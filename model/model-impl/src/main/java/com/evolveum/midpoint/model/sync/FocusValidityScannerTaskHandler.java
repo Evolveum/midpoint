@@ -173,7 +173,7 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 				return true;
 			}
 		};
-		
+        handler.setStopOnError(false);
 		return handler;
 	}
 

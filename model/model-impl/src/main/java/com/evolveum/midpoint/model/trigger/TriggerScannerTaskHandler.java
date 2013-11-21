@@ -130,8 +130,8 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 				return true;
 			}
 		};
-		
-		return handler;
+        handler.setStopOnError(false);
+        return handler;
 	}
 
 	private void fireTriggers(AbstractScannerResultHandler<ObjectType> handler, PrismObject<ObjectType> object, Task task, OperationResult result) throws SchemaException, 

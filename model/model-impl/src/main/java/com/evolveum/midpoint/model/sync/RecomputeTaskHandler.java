@@ -136,8 +136,8 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeTaskHandler<Use
 				return true;
 			}
 		};
-		
-		return handler;
+        handler.setStopOnError(false);
+        return handler;
 	}
 
 	private void recomputeUser(PrismObject<UserType> user, Task task, OperationResult result) throws SchemaException, 
