@@ -19,6 +19,7 @@
 <xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/model/extension-2"
             xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/model/extension-2"
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
+            xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
             xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             elementFormDefault="qualified">
 
@@ -27,6 +28,15 @@
             Model object extension schema. Used mostly in task extensions.
         </xsd:documentation>
     </xsd:annotation>
+
+    <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-2"
+                schemaLocation="http://prism.evolveum.com/xml/ns/public/query-2">
+        <xsd:annotation>
+            <xsd:documentation>
+                Query-related schema.
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:import>
 
     <xsd:element name="freshnessInterval" type="xsd:long">
         <xsd:annotation>
@@ -67,6 +77,22 @@
             </xsd:appinfo>
         </xsd:annotation>
     </xsd:element>
+
+    <xsd:element name="objectQuery" type="q:QueryType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Some handlers (namely children of AbstractSearchIterativeTaskHandler) iterate over a set of objects.
+                For some of them (user recomputation, import from resource) the default is 'all available objects'.
+                By setting this item it is possible to restrict the set of objects to be searched (or extend it,
+                in case of handlers that by default provide a non-empty query).
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:minOccurs>0</a:minOccurs>
+                <a:maxOccurs>1</a:maxOccurs>
+            </xsd:appinfo>
+        </xsd:annotation>
+    </xsd:element>
+
 
 </xsd:schema>
 

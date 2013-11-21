@@ -146,6 +146,8 @@ public abstract class SchemaConstants {
 	public static final QName MODEL_EXTENSION_DRY_RUN = new QName(NS_MODEL_EXTENSION, "dryRun");
 	public static final QName MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME = new QName(NS_MODEL_EXTENSION, "lastScanTimestamp");
 
+    public static final QName MODEL_EXTENSION_OBJECT_QUERY = new QName(NS_MODEL_EXTENSION, "objectQuery");
+
 	public static final String INTENT_DEFAULT = "default";
 
 	// This constant should not be here. It is used by schema processor to
