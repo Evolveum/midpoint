@@ -1320,6 +1320,15 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="expectedTotal" type="xsd:long" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Expected target (goal) value of task progress. Perceived progress
+                                is computed as a ratio of progress/expectedTotal. May be null; in that
+                                case we just do not know how much progress we should expect.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="recurrence" type="tns:TaskRecurrenceType">
                         <xsd:annotation>
                             <xsd:documentation>
