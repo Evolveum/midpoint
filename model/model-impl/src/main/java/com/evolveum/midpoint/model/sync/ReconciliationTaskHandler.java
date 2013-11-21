@@ -142,7 +142,6 @@ public class ReconciliationTaskHandler implements TaskHandler {
 	public TaskRunResult run(Task task) {
 		LOGGER.trace("ReconciliationTaskHandler.run starting");
 
-		long progress = task.getProgress();
 		OperationResult opResult = new OperationResult(OperationConstants.RECONCILIATION);
 		opResult.setStatus(OperationResultStatus.IN_PROGRESS);
 		TaskRunResult runResult = new TaskRunResult();
@@ -153,6 +152,9 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		if (resourceOid == null) {
 			throw new IllegalArgumentException("Resource OID is missing in task extension");
 		}
+
+        recordProgress(task, 0, opResult);
+        // todo consider setting expectedTotal to null here
 		
 		PrismObject<ResourceType> resource;
 		RefinedObjectClassDefinition rObjectclassDef;
@@ -164,30 +166,30 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			
 		} catch (ObjectNotFoundException ex) {
 			// This is bad. The resource does not exist. Permanent problem.
-			processErrorPartial(runResult, "Resource does not exist, OID: " + resourceOid, ex, TaskRunResultStatus.PERMANENT_ERROR, progress, null, task, opResult);
+			processErrorPartial(runResult, "Resource does not exist, OID: " + resourceOid, ex, TaskRunResultStatus.PERMANENT_ERROR, null, task, opResult);
 			return runResult;
 		} catch (CommunicationException ex) {
 			// Error, but not critical. Just try later.
-			processErrorPartial(runResult, "Communication error", ex, TaskRunResultStatus.TEMPORARY_ERROR, progress, null, task, opResult);
+			processErrorPartial(runResult, "Communication error", ex, TaskRunResultStatus.TEMPORARY_ERROR, null, task, opResult);
 			return runResult;
 		} catch (SchemaException ex) {
 			// Not sure about this. But most likely it is a misconfigured resource or connector
 			// It may be worth to retry. Error is fatal, but may not be permanent.
-			processErrorPartial(runResult, "Error dealing with schema", ex, TaskRunResultStatus.TEMPORARY_ERROR, progress, null, task, opResult);
+			processErrorPartial(runResult, "Error dealing with schema", ex, TaskRunResultStatus.TEMPORARY_ERROR, null, task, opResult);
 			return runResult;
 		} catch (RuntimeException ex) {
 			// Can be anything ... but we can't recover from that.
 			// It is most likely a programming error. Does not make much sense
 			// to retry.
-			processErrorPartial(runResult, "Internal Error", ex, TaskRunResultStatus.PERMANENT_ERROR, progress, null, task, opResult);
+			processErrorPartial(runResult, "Internal Error", ex, TaskRunResultStatus.PERMANENT_ERROR, null, task, opResult);
 			return runResult;
 		} catch (ConfigurationException ex) {
 			// Not sure about this. But most likely it is a misconfigured resource or connector
 			// It may be worth to retry. Error is fatal, but may not be permanent.
-			processErrorPartial(runResult, "Configuration error", ex, TaskRunResultStatus.TEMPORARY_ERROR, progress, null, task, opResult);
+			processErrorPartial(runResult, "Configuration error", ex, TaskRunResultStatus.TEMPORARY_ERROR, null, task, opResult);
 			return runResult;
 		} catch (SecurityViolationException ex) {
-			processErrorPartial(runResult, "Security violation", ex, TaskRunResultStatus.PERMANENT_ERROR, progress, null, task, opResult);
+			processErrorPartial(runResult, "Security violation", ex, TaskRunResultStatus.PERMANENT_ERROR, null, task, opResult);
 			return runResult;
 		}
 
@@ -206,30 +208,30 @@ public class ReconciliationTaskHandler implements TaskHandler {
             }
 		} catch (ObjectNotFoundException ex) {
 			// This is bad. The resource does not exist. Permanent problem.
-			processErrorPartial(runResult, "Resource does not exist, OID: " + resourceOid, ex, TaskRunResultStatus.PERMANENT_ERROR, progress, resource, task, opResult);
+			processErrorPartial(runResult, "Resource does not exist, OID: " + resourceOid, ex, TaskRunResultStatus.PERMANENT_ERROR, resource, task, opResult);
 		} catch (ObjectAlreadyExistsException ex) {
-			processErrorPartial(runResult, "Object already exist", ex, TaskRunResultStatus.PERMANENT_ERROR, progress, resource, task, opResult);
+			processErrorPartial(runResult, "Object already exist", ex, TaskRunResultStatus.PERMANENT_ERROR, resource, task, opResult);
 		} catch (CommunicationException ex) {
 			// Error, but not critical. Just try later.
-			processErrorFinal(runResult, "Communication error", ex, TaskRunResultStatus.TEMPORARY_ERROR, progress, resource, task, opResult);
+			processErrorFinal(runResult, "Communication error", ex, TaskRunResultStatus.TEMPORARY_ERROR, resource, task, opResult);
 			return runResult;
 		} catch (SchemaException ex) {
 			// Not sure about this. But most likely it is a misconfigured resource or connector
 			// It may be worth to retry. Error is fatal, but may not be permanent.
-			processErrorPartial(runResult, "Error dealing with schema", ex, TaskRunResultStatus.TEMPORARY_ERROR, progress, resource, task, opResult);
+			processErrorPartial(runResult, "Error dealing with schema", ex, TaskRunResultStatus.TEMPORARY_ERROR, resource, task, opResult);
 		} catch (RuntimeException ex) {
 			// Can be anything ... but we can't recover from that.
 			// It is most likely a programming error. Does not make much sense
 			// to retry.
-			processErrorFinal(runResult, "Internal Error", ex, TaskRunResultStatus.PERMANENT_ERROR, progress, resource, task, opResult);
+			processErrorFinal(runResult, "Internal Error", ex, TaskRunResultStatus.PERMANENT_ERROR, resource, task, opResult);
 			return runResult;
 		} catch (ConfigurationException ex) {
 			// Not sure about this. But most likely it is a misconfigured resource or connector
 			// It may be worth to retry. Error is fatal, but may not be permanent.
-			processErrorFinal(runResult, "Configuration error", ex, TaskRunResultStatus.TEMPORARY_ERROR, progress, resource, task, opResult);
+			processErrorFinal(runResult, "Configuration error", ex, TaskRunResultStatus.TEMPORARY_ERROR, resource, task, opResult);
 			return runResult;
 		} catch (SecurityViolationException ex) {
-			processErrorPartial(runResult, "Security violation", ex, TaskRunResultStatus.PERMANENT_ERROR, progress, resource, task, opResult);
+			processErrorPartial(runResult, "Security violation", ex, TaskRunResultStatus.PERMANENT_ERROR, resource, task, opResult);
 		}
 
 
@@ -249,37 +251,37 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			afterShadowReconTimestamp = clock.currentTimeMillis();
 		} catch (ObjectNotFoundException ex) {
 			// This is bad. The resource does not exist. Permanent problem.
-			processErrorFinal(runResult, "Resource does not exist, OID: " + resourceOid, ex, TaskRunResultStatus.PERMANENT_ERROR, progress, resource, task, opResult);
+			processErrorFinal(runResult, "Resource does not exist, OID: " + resourceOid, ex, TaskRunResultStatus.PERMANENT_ERROR, resource, task, opResult);
 			return runResult;
 		} catch (CommunicationException ex) {
 			// Error, but not critical. Just try later.
-			processErrorFinal(runResult, "Communication error", ex, TaskRunResultStatus.TEMPORARY_ERROR, progress, resource, task, opResult);
+			processErrorFinal(runResult, "Communication error", ex, TaskRunResultStatus.TEMPORARY_ERROR, resource, task, opResult);
 			return runResult;
 		} catch (SchemaException ex) {
 			// Not sure about this. But most likely it is a misconfigured resource or connector
 			// It may be worth to retry. Error is fatal, but may not be permanent.
-			processErrorFinal(runResult, "Error dealing with schema", ex, TaskRunResultStatus.TEMPORARY_ERROR, progress, resource, task, opResult);
+			processErrorFinal(runResult, "Error dealing with schema", ex, TaskRunResultStatus.TEMPORARY_ERROR, resource, task, opResult);
 			return runResult;
 		} catch (RuntimeException ex) {
 			// Can be anything ... but we can't recover from that.
 			// It is most likely a programming error. Does not make much sense
 			// to retry.
-			processErrorFinal(runResult, "Internal Error", ex, TaskRunResultStatus.PERMANENT_ERROR, progress, resource, task, opResult);
+			processErrorFinal(runResult, "Internal Error", ex, TaskRunResultStatus.PERMANENT_ERROR, resource, task, opResult);
 			return runResult;
 		} catch (ConfigurationException ex) {
 			// Not sure about this. But most likely it is a misconfigured resource or connector
 			// It may be worth to retry. Error is fatal, but may not be permanent.
-			processErrorFinal(runResult, "Configuration error", ex, TaskRunResultStatus.TEMPORARY_ERROR, progress, resource, task, opResult);
+			processErrorFinal(runResult, "Configuration error", ex, TaskRunResultStatus.TEMPORARY_ERROR, resource, task, opResult);
 			return runResult;
 		} catch (SecurityViolationException ex) {
-			processErrorFinal(runResult, "Security violation", ex, TaskRunResultStatus.PERMANENT_ERROR, progress, resource, task, opResult);
+			processErrorFinal(runResult, "Security violation", ex, TaskRunResultStatus.PERMANENT_ERROR, resource, task, opResult);
 			return runResult;
         }
 		
 		opResult.computeStatus();
 		// This "run" is finished. But the task goes on ...
 		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
-		runResult.setProgress(progress);
+		runResult.setProgress(task.getProgress());
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Reconciliation.run stopping, result: {}", opResult.getStatus());
 //			LOGGER.trace("Reconciliation.run stopping, result: {}", opResult.dump());
@@ -302,21 +304,37 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		return runResult;
 	}
 
+    private void recordProgress(Task task, long progress, OperationResult opResult) {
+        try {
+            task.setProgressImmediate(progress, opResult);
+        } catch (ObjectNotFoundException e) {             // these exceptions are of so little probability and harmless, so we just log them and do not report higher
+            LoggingUtils.logException(LOGGER, "Couldn't record progress to task {}, probably because the task does not exist anymore", e, task);
+        } catch (SchemaException e) {
+            LoggingUtils.logException(LOGGER, "Couldn't record progress to task {}, due to unexpected schema exception", e, task);
+        }
+    }
+
+    private void incrementAndRecordProgress(Task task, OperationResult opResult) {
+        recordProgress(task, task.getProgress() + 1, opResult);
+    }
+
+
     private void processInterruption(TaskRunResult runResult, PrismObject<ResourceType> resource, Task task, OperationResult opResult) {
         opResult.recordPartialError("Interrupted");
         if (LOGGER.isWarnEnabled()) {
             LOGGER.warn("Reconciliation on {} interrupted", resource);
         }
+        runResult.setProgress(task.getProgress());
         runResult.setRunResultStatus(TaskRunResultStatus.INTERRUPTED);          // not strictly necessary, because using task.canRun() == false the task manager knows we were interrupted
     }
 
     private void processErrorFinal(TaskRunResult runResult, String errorDesc, Exception ex,
-			TaskRunResultStatus runResultStatus, long progress, PrismObject<ResourceType> resource, Task task, OperationResult opResult) {
+			TaskRunResultStatus runResultStatus, PrismObject<ResourceType> resource, Task task, OperationResult opResult) {
 		String message = errorDesc+": "+ex.getMessage();
 		LOGGER.error("Reconciliation: {}", new Object[]{message, ex});
 		opResult.recordFatalError(message, ex);
 		runResult.setRunResultStatus(runResultStatus);
-		runResult.setProgress(progress);
+		runResult.setProgress(task.getProgress());
 		
 		AuditEventRecord executionRecord = new AuditEventRecord(AuditEventType.RECONCILIATION, AuditEventStage.EXECUTION);
 		executionRecord.setTarget(resource);
@@ -326,12 +344,12 @@ public class ReconciliationTaskHandler implements TaskHandler {
 	}
 	
 	private void processErrorPartial(TaskRunResult runResult, String errorDesc, Exception ex,
-			TaskRunResultStatus runResultStatus, long progress, PrismObject<ResourceType> resource, Task task, OperationResult opResult) {
+			TaskRunResultStatus runResultStatus, PrismObject<ResourceType> resource, Task task, OperationResult opResult) {
 		String message = errorDesc+": "+ex.getMessage();
 		LOGGER.error("Reconciliation: {}", new Object[]{message, ex});
 		opResult.recordFatalError(message, ex);
 		runResult.setRunResultStatus(runResultStatus);
-		runResult.setProgress(progress);
+		runResult.setProgress(task.getProgress());
 	}
 
     // returns false in case of execution interruption
@@ -355,7 +373,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			ObjectQuery query = createAccountSearchQuery(resource, rObjectclassDef);
 	
 			OperationResult searchResult = new OperationResult(OperationConstants.RECONCILIATION+".searchIterative"); 
-			provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, searchResult);
+			provisioningService.searchObjectsIterative(ShadowType.class, query, null, handler, searchResult);               // note that progress is incremented within the handler, as it extends AbstractSearchIterativeResultHandler
 	        interrupted = !task.canRun();
 
 			opResult.computeStatus();
@@ -419,6 +437,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 			public boolean handle(PrismObject<ShadowType> shadow) {
 				reconcileShadow(shadow, resource, task);
 				countHolder.setValue(countHolder.getValue() + 1);
+                incrementAndRecordProgress(task, new OperationResult("dummy"));     // reconcileShadow writes to its own dummy OperationResult, so we do the same here
                 return task.canRun();
 			}
 		};
@@ -540,6 +559,8 @@ public class ReconciliationTaskHandler implements TaskHandler {
 				}
 			}
 
+            incrementAndRecordProgress(task, opResult);
+
             if (!task.canRun()) {
                 return false;
             }
@@ -562,116 +583,6 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		return EqualsFilter.createEqual(ShadowType.class, prismContext, ShadowType.F_FAILED_OPERATION_TYPE, failedOp);
 	}
 	
-//	private void retryFailedOperation(AccountShadowType shadow, OperationResult parentResult)
-//			throws ObjectAlreadyExistsException, SchemaException, CommunicationException,
-//			ObjectNotFoundException, ConfigurationException, SecurityViolationException {
-//		if (shadow.getFailedOperationType() == null){
-//			return;
-//		}
-//		if (shadow.getFailedOperationType().equals(FailedOperationTypeType.ADD)) {
-//			LOGGER.debug("Re-adding {}", shadow);
-//			addObject(shadow.asPrismObject(), parentResult);
-//			LOGGER.trace("Re-adding account was successful.");
-//			return;
-//
-//		}
-//		if (shadow.getFailedOperationType().equals(FailedOperationTypeType.MODIFY)) {
-//			ObjectDeltaType shadowDelta = shadow.getObjectChange();
-//			Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(
-//					shadowDelta.getModification(), shadow.asPrismObject().getDefinition());
-//
-//			LOGGER.debug("Re-modifying {}", shadow);
-//			modifyObject(shadow.getOid(), modifications, parentResult);
-//			LOGGER.trace("Re-modifying account was successful.");
-//			return;
-//		}
-//
-//		if (shadow.getFailedOperationType().equals(FailedOperationTypeType.DELETE)) {
-//			LOGGER.debug("Re-deleting {}", shadow);
-//			deleteObject(shadow.getOid(), parentResult);
-//			LOGGER.trace("Re-deleting account was successful.");
-//			return;
-//		}
-//	}
-//
-//	private void addObject(PrismObject<AccountShadowType> shadow, OperationResult parentResult)
-//			throws ObjectAlreadyExistsException, SchemaException, CommunicationException,
-//			ObjectNotFoundException, ConfigurationException, SecurityViolationException {
-//		try {
-//			provisioningService.addObject(shadow, null, parentResult);
-//		} catch (ObjectAlreadyExistsException e) {
-//			parentResult.recordFatalError("Cannot add object: object already exist: " + e.getMessage(), e);
-//			throw e;
-//		} catch (SchemaException e) {
-//			parentResult.recordFatalError("Cannot add object: schema violation: " + e.getMessage(), e);
-//			throw e;
-//		} catch (CommunicationException e) {
-//			parentResult.recordFatalError("Cannot add object: communication problem: " + e.getMessage(), e);
-//			throw e;
-//		} catch (ObjectNotFoundException e) {
-//			parentResult.recordFatalError("Cannot add object: object not found: " + e.getMessage(), e);
-//			throw e;
-//		} catch (ConfigurationException e) {
-//			parentResult.recordFatalError("Cannot add object: configuration problem: " + e.getMessage(), e);
-//			throw e;
-//		} catch (SecurityViolationException e) {
-//			parentResult.recordFatalError("Cannot add object: security violation: " + e.getMessage(), e);
-//			throw e;
-//		}
-//	}
-//
-//	private void modifyObject(String oid, Collection<? extends ItemDelta> modifications,
-//			OperationResult parentResult) throws ObjectNotFoundException, SchemaException,
-//			CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException {
-//		try {
-//			provisioningService.modifyObject(AccountShadowType.class, oid, modifications, null, parentResult);
-//		} catch (ObjectNotFoundException e) {
-//			parentResult.recordFatalError("Cannot modify object: object not found: " + e.getMessage(), e);
-//			throw e;
-//		} catch (SchemaException e) {
-//			parentResult.recordFatalError("Cannot modify object: schema violation: " + e.getMessage(), e);
-//			throw e;
-//		} catch (CommunicationException e) {
-//			parentResult
-//					.recordFatalError("Cannot modify object: communication problem: " + e.getMessage(), e);
-//			throw e;
-//		} catch (ConfigurationException e) {
-//			parentResult
-//					.recordFatalError("Cannot modify object: configuration problem: " + e.getMessage(), e);
-//			throw e;
-//		} catch (SecurityViolationException e) {
-//			parentResult.recordFatalError("Cannot modify object: security violation: " + e.getMessage(), e);
-//			throw e;
-//		} catch (ObjectAlreadyExistsException e) {
-//			parentResult.recordFatalError("Cannot modify object: conflict with another object: " + e.getMessage(), e);
-//			throw e;
-//		}
-//	}
-
-//	private void deleteObject(String oid, OperationResult parentResult) throws ObjectNotFoundException,
-//			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
-//		try {
-//			provisioningService.deleteObject(AccountShadowType.class, oid, null, null, parentResult);
-//		} catch (ObjectNotFoundException e) {
-//			parentResult.recordFatalError("Cannot delete object: object not found: " + e.getMessage(), e);
-//			throw e;
-//		} catch (CommunicationException e) {
-//			parentResult
-//					.recordFatalError("Cannot delete object: communication problem: " + e.getMessage(), e);
-//			throw e;
-//		} catch (SchemaException e) {
-//			parentResult.recordFatalError("Cannot delete object: schema violation: " + e.getMessage(), e);
-//			throw e;
-//		} catch (ConfigurationException e) {
-//			parentResult
-//					.recordFatalError("Cannot delete object: configuration problem: " + e.getMessage(), e);
-//			throw e;
-//		} catch (SecurityViolationException e) {
-//			parentResult.recordFatalError("Cannot delete object: security violation: " + e.getMessage(), e);
-//			throw e;
-//		}
-//	}
-
 	private ObjectQuery createAccountSearchQuery(PrismObject<ResourceType> resource,
 			RefinedObjectClassDefinition refinedAccountDefinition) throws SchemaException {
 		QName objectClass = refinedAccountDefinition.getObjectClassDefinition().getTypeName();
