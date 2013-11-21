@@ -302,7 +302,7 @@ public class TaskQuartzImpl implements Task {
 	 */
 	
 	/*
-	 * Progress
+	 * Progress / expectedTotal
 	 */
 	
 	@Override
@@ -339,7 +339,43 @@ public class TaskQuartzImpl implements Task {
 		setProgressTransient(value);
 		return isPersistent() ? PropertyDelta.createReplaceDelta(
 				taskManager.getTaskObjectDefinition(), TaskType.F_PROGRESS, value) : null;
-	}	
+	}
+
+    @Override
+    public Long getExpectedTotal() {
+        Long value = taskPrism.getPropertyRealValue(TaskType.F_EXPECTED_TOTAL, Long.class);
+        return value != null ? value : 0;
+    }
+
+    @Override
+    public void setExpectedTotal(Long value) {
+        processModificationBatched(setExpectedTotalAndPrepareDelta(value));
+    }
+
+    @Override
+    public void setExpectedTotalImmediate(Long value, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException {
+        try {
+            processModificationNow(setExpectedTotalAndPrepareDelta(value), parentResult);
+        } catch (ObjectAlreadyExistsException ex) {
+            throw new SystemException(ex);
+        }
+    }
+
+    public void setExpectedTotalTransient(Long value) {
+        try {
+            taskPrism.setPropertyRealValue(TaskType.F_EXPECTED_TOTAL, value);
+        } catch (SchemaException e) {
+            // This should not happen
+            throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
+        }
+    }
+
+    private PropertyDelta<?> setExpectedTotalAndPrepareDelta(Long value) {
+        setExpectedTotalTransient(value);
+        return isPersistent() ? PropertyDelta.createReplaceDelta(
+                taskManager.getTaskObjectDefinition(), TaskType.F_EXPECTED_TOTAL, value) : null;
+    }
 
 	/*
 	 * Result
