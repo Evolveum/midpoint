@@ -3237,7 +3237,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
         AssertJUnit.assertFalse("Zero last run finish in recon task", task.getLastRunFinishTimestamp().longValue() == 0);
 
         // The progress should be 0, as there were no changes yet
-        AssertJUnit.assertEquals(0, task.getProgress());
+        // [pm] commented out, as progress in recon task is now determined not only using # of changes
+        //AssertJUnit.assertEquals(0, task.getProgress());
 
         // Test for presence of a result. It should be there and it should
         // indicate success
