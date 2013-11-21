@@ -650,6 +650,7 @@ CREATE TABLE m_task (
   category                    VARCHAR(255),
   completionTimestamp         DATETIME(6),
   executionStatus             INTEGER,
+  expectedTotal               BIGINT,
   handlerUri                  VARCHAR(255),
   lastRunFinishTimestamp      DATETIME(6),
   lastRunStartTimestamp       DATETIME(6),
