@@ -140,6 +140,8 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
                 com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.ObjectFactory.class.getPackage());
 
         schemaRegistry.registerPrismSchemaResource("xml/ns/public/task/noop-1.xsd", "noop");
+
+        schemaRegistry.registerPrismSchemaResource("xml/ns/public/task/extension-2.xsd", "taskext");
     }
 	
 	private void setupDebug() {
