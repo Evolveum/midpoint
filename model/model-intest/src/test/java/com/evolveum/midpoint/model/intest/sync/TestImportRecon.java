@@ -238,7 +238,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // 6 fetches: fetchback to correctly process inbound (import changes the account).
         // The accounts are modified during import as there are also outbound mappings in
         // ther dummy resource. As the import is in fact just a recon the "fetchbacks" happens.
-        assertShadowFetchOperationCountIncrement(7);
+        // One is because of counting resource objects before importing them.
+        assertShadowFetchOperationCountIncrement(8);
         
         users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after import", users);
@@ -292,7 +293,8 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         // Even though there are outbound mappings these were already processes
         // by previous import run. There are no account modifications this time.
         // Therefore there should be no "fetchbacks".
-        assertShadowFetchOperationCountIncrement(1);
+        // Second fetch is because of counting resource objects before importing them.
+        assertShadowFetchOperationCountIncrement(2);
         
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after import", users);
@@ -345,10 +347,11 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         TestUtil.displayThen(TEST_NAME);
         TestUtil.assertSuccess(task.getResult());
         
-        // The only fetch: search in import handler
+        // One fetch: search in import handler
         // There are no outbound mappings in lime resource, therefore there are no
         // modifications of accounts during import, therefore there are no "fetchbacks".
-        assertShadowFetchOperationCountIncrement(1);
+        // Second is because of counting resource objects before importing them.
+        assertShadowFetchOperationCountIncrement(2);
                 
         assertImportedUserByOid(USER_ADMINISTRATOR_OID);
         assertImportedUserByOid(USER_JACK_OID);
