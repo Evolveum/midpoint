@@ -534,6 +534,7 @@ CREATE TABLE m_task (
   category                    NVARCHAR(255),
   completionTimestamp         DATETIME2,
   executionStatus             INT,
+  expectedTotal               BIGINT,
   handlerUri                  NVARCHAR(255),
   lastRunFinishTimestamp      DATETIME2,
   lastRunStartTimestamp       DATETIME2,
