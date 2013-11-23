@@ -16,10 +16,14 @@
 
 package com.evolveum.midpoint.web.page.admin.users.component;
 
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrgFilter;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -39,6 +43,7 @@ import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.users.PageOrgUnit;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
+import com.evolveum.midpoint.web.page.admin.users.dto.OrgDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgTableDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgTreeDto;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
@@ -119,7 +124,18 @@ public class TreeTablePanel extends SimplePanel<String> {
             }
         });
 
-        add(new OrgUnitBrowser(ID_MOVE_POPUP));
+        add(new OrgUnitBrowser(ID_MOVE_POPUP) {
+
+            @Override
+            protected void createRootPerformed(AjaxRequestTarget target) {
+                moveConfirmedPerformed(target, null, null, Operation.MOVE);
+            }
+
+            @Override
+            protected void rowSelected(AjaxRequestTarget target, IModel<OrgTableDto> row, Operation operation) {
+                moveConfirmedPerformed(target, selected.getObject(), row.getObject(), operation);
+            }
+        });
 
         ISortableTreeProvider provider = new OrgTreeProvider(this, getModel());
         List<IColumn<OrgTreeDto, String>> columns = new ArrayList<IColumn<OrgTreeDto, String>>();
@@ -300,7 +316,7 @@ public class TreeTablePanel extends SimplePanel<String> {
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                        addToHierarchyPerformed(target);
+                        movePerformed(target, OrgUnitBrowser.Operation.ADD);
                     }
                 }));
         headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.removeFromHierarchy"), true,
@@ -308,7 +324,7 @@ public class TreeTablePanel extends SimplePanel<String> {
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                        removeFromHierarchyPerformed(target);
+                        movePerformed(target, OrgUnitBrowser.Operation.REMOVE);
                     }
                 }));
         headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.move"), true,
@@ -316,7 +332,7 @@ public class TreeTablePanel extends SimplePanel<String> {
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                        movePerformed(target);
+                        movePerformed(target, OrgUnitBrowser.Operation.MOVE);
                     }
                 }));
 
@@ -408,36 +424,84 @@ public class TreeTablePanel extends SimplePanel<String> {
         target.add(getTable());
     }
 
-    private void addToHierarchyPerformed(AjaxRequestTarget target) {
-        //todo implement [lazyman]
-    }
-
-    private void removeFromHierarchyPerformed(AjaxRequestTarget target) {
-        //todo implement [lazyman]
-    }
-
-    private void movePerformed(AjaxRequestTarget target) {
+    private void movePerformed(AjaxRequestTarget target, OrgUnitBrowser.Operation operation) {
         List<OrgTableDto> objects = isAnythingSelected(target);
         if (objects.isEmpty()) {
             return;
         }
 
-        ModalWindow dialog = (ModalWindow) get(ID_MOVE_POPUP);
+        OrgUnitBrowser dialog = (OrgUnitBrowser) get(ID_MOVE_POPUP);
+        dialog.setOperation(operation);
         dialog.show(target);
     }
 
-    private void moveConfirmedPerformed(AjaxRequestTarget target) {
+    private PrismReferenceValue createPrismRefValue(OrgDto dto) {
+        PrismReferenceValue value = new PrismReferenceValue();
+        value.setOid(dto.getOid());
+        value.setRelation(dto.getRelation());
+        value.setTargetType(ObjectTypes.getObjectType(dto.getType()).getTypeQName());
+        return value;
+    }
+
+    private ObjectDelta createMoveDelta(PrismObject<OrgType> orgUnit, OrgTreeDto oldParent, OrgTableDto newParent,
+                                        OrgUnitBrowser.Operation operation) {
+        ObjectDelta delta = orgUnit.createDelta(ChangeType.MODIFY);
+        PrismReferenceDefinition refDef = orgUnit.getDefinition().findReferenceDefinition(OrgType.F_PARENT_ORG_REF);
+        ReferenceDelta refDelta = delta.createReferenceModification(OrgType.F_PARENT_ORG_REF, refDef);
+        PrismReferenceValue value;
+        switch (operation) {
+            case ADD:
+                //adding parentRef newParent to orgUnit
+                value = createPrismRefValue(newParent);
+                refDelta.getValuesToAdd().add(value);
+                break;
+            case REMOVE:
+                //removing parentRef newParent from orgUnit
+                value = createPrismRefValue(newParent);
+                refDelta.getValuesToDelete().add(value);
+                break;
+            case MOVE:
+                if (oldParent == null && newParent == null) {
+                    //moving orgUnit to root, removing all parentRefs
+                    PrismReference ref = orgUnit.findReference(OrgType.F_PARENT_ORG_REF);
+                    if (ref != null) {
+                        for (PrismReferenceValue val : ref.getValues()) {
+                            refDelta.getValuesToDelete().add(val);
+                        }
+                    }
+                } else {
+                    //moving from old to new, removing oldParent adding newParent refs
+                    value = createPrismRefValue(newParent);
+                    refDelta.getValuesToAdd().add(value);
+                    value = createPrismRefValue(oldParent);
+                    refDelta.getValuesToDelete().add(value);
+                }
+                break;
+        }
+
+        return delta;
+    }
+
+    private void moveConfirmedPerformed(AjaxRequestTarget target, OrgTreeDto oldParent, OrgTableDto newParent,
+                                        OrgUnitBrowser.Operation operation) {
         List<OrgTableDto> objects = isAnythingSelected(target);
         if (objects.isEmpty()) {
             return;
         }
 
         PageBase page = getPageBase();
+        ModelService model = page.getModelService();
         OperationResult result = new OperationResult(OPERATION_MOVE_OBJECTS);
         for (OrgTableDto object : objects) {
             OperationResult subResult = result.createSubresult(OPERATION_MOVE_OBJECT);
-            try {
 
+            PrismObject<OrgType> orgUnit = WebModelUtils.loadObject(OrgType.class, object.getOid(),
+                    WebModelUtils.createOptionsForParentOrgRefs(), subResult, getPageBase());
+            try {
+                ObjectDelta delta = createMoveDelta(orgUnit, oldParent, newParent, operation);
+
+                model.executeChanges(WebMiscUtil.createDeltaCollection(delta), null,
+                        page.createSimpleTask(OPERATION_MOVE_OBJECT), subResult);
             } catch (Exception ex) {
                 subResult.recordFatalError("Couldn't move object " + null + " to " + null + ".", ex);
                 LoggingUtils.logException(LOGGER, "Couldn't move object {} to {}", ex, object.getName());
@@ -453,6 +517,11 @@ public class TreeTablePanel extends SimplePanel<String> {
         page.showResult(result);
         target.add(page.getFeedbackPanel());
         target.add(getTable());
+        target.add(getTree());
+    }
+
+    private TableTree getTree() {
+        return (TableTree) get(ID_TREE);
     }
 
     private TablePanel getTable() {

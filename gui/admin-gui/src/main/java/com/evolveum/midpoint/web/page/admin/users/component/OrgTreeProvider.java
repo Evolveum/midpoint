@@ -87,7 +87,7 @@ public class OrgTreeProvider extends SortableTreeProvider<OrgTreeDto, String> {
 
         OperationResult result = new OperationResult(LOAD_ORG_UNITS);
         try {
-            Collection<SelectorOptions<GetOperationOptions>> options = createOptions();
+            Collection<SelectorOptions<GetOperationOptions>> options = WebModelUtils.createOptionsForParentOrgRefs();
             Task task = getPage().createSimpleTask(LOAD_ORG_UNITS);
 
             List<PrismObject<OrgType>> units = getModelService().searchObjects(OrgType.class, query, options,
@@ -121,13 +121,6 @@ public class OrgTreeProvider extends SortableTreeProvider<OrgTreeDto, String> {
         return iterator;
     }
 
-    private Collection<SelectorOptions<GetOperationOptions>> createOptions() {
-        Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<SelectorOptions<GetOperationOptions>>();
-        options.add(SelectorOptions.create(ObjectType.F_PARENT_ORG_REF,
-                GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
-        return options;
-    }
-
     private OrgTreeDto createDto(OrgTreeDto parent, PrismObject<OrgType> unit) {
         String name = WebMiscUtil.getName(unit);
         String description = unit.getPropertyRealValue(OrgType.F_DESCRIPTION, String.class);
@@ -135,7 +128,8 @@ public class OrgTreeProvider extends SortableTreeProvider<OrgTreeDto, String> {
                 unit.getPropertyRealValue(OrgType.F_DISPLAY_NAME, PolyString.class));
         String identifier = unit.getPropertyRealValue(OrgType.F_IDENTIFIER, String.class);
 
-        return new OrgTreeDto(parent, unit.getOid(), name, description, displayName, identifier);
+        //todo relation [lazyman]
+        return new OrgTreeDto(parent, unit.getOid(), null, name, description, displayName, identifier);
     }
 
     @Override
@@ -146,7 +140,9 @@ public class OrgTreeProvider extends SortableTreeProvider<OrgTreeDto, String> {
             LOGGER.debug("Getting roots for: " + rootOid.getObject());
 
             PrismObject<OrgType> object = WebModelUtils.loadObject(OrgType.class, rootOid.getObject(),
-                    createOptions(), result, getPage());
+                    WebModelUtils.createOptionsForParentOrgRefs(), result, getPage());
+            result.computeStatus();
+
             root = createDto(null, object);
             LOGGER.info("\n{}", result.dump());
             LOGGER.debug("Finished roots loading.");

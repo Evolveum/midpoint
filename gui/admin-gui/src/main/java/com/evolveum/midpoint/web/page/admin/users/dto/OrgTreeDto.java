@@ -16,12 +16,16 @@
 
 package com.evolveum.midpoint.web.page.admin.users.dto;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
+
+import javax.xml.namespace.QName;
 import java.io.Serializable;
 
 /**
  * @author lazyman
  */
-public class OrgTreeDto implements Serializable, Comparable<OrgTreeDto> {
+public class OrgTreeDto implements Serializable, Comparable<OrgTreeDto>, OrgDto {
 
     private OrgTreeDto parent;
     private String oid;
@@ -29,11 +33,13 @@ public class OrgTreeDto implements Serializable, Comparable<OrgTreeDto> {
     private String description;
     private String displayName;
     private String identifier;
+    private QName relation;
 
-    public OrgTreeDto(OrgTreeDto parent, String oid, String name, String description,
+    public OrgTreeDto(OrgTreeDto parent, String oid, QName relation, String name, String description,
                       String displayName, String identifier) {
         this.parent = parent;
         this.oid = oid;
+        this.relation = relation;
         this.name = name;
         this.description = description;
         this.displayName = displayName;
@@ -44,6 +50,7 @@ public class OrgTreeDto implements Serializable, Comparable<OrgTreeDto> {
         return parent;
     }
 
+    @Override
     public String getOid() {
         return oid;
     }
@@ -60,8 +67,23 @@ public class OrgTreeDto implements Serializable, Comparable<OrgTreeDto> {
         return identifier;
     }
 
+    @Override
     public String getName() {
         return name;
+    }
+
+    @Override
+    public QName getRelation() {
+        return relation;
+    }
+
+    public void setRelation(QName relation) {
+        this.relation = relation;
+    }
+
+    @Override
+    public Class<? extends ObjectType> getType() {
+        return OrgType.class;
     }
 
     @Override
@@ -76,6 +98,7 @@ public class OrgTreeDto implements Serializable, Comparable<OrgTreeDto> {
         if (identifier != null ? !identifier.equals(that.identifier) : that.identifier != null) return false;
         if (name != null ? !name.equals(that.name) : that.name != null) return false;
         if (oid != null ? !oid.equals(that.oid) : that.oid != null) return false;
+        if (relation != null ? !relation.equals(that.relation) : that.relation != null) return false;
 
         return true;
     }
@@ -87,6 +110,7 @@ public class OrgTreeDto implements Serializable, Comparable<OrgTreeDto> {
         result = 31 * result + (description != null ? description.hashCode() : 0);
         result = 31 * result + (displayName != null ? displayName.hashCode() : 0);
         result = 31 * result + (identifier != null ? identifier.hashCode() : 0);
+        result = 31 * result + (relation != null ? relation.hashCode() : 0);
         return result;
     }
 

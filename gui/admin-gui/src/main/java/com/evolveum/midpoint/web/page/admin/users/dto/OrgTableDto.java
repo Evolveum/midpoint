@@ -31,7 +31,7 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class OrgTableDto extends Selectable implements InlineMenuable {
+public class OrgTableDto extends Selectable implements OrgDto, InlineMenuable {
 
     public static final String F_NAME = "name";
     public static final String F_DISPLAY_NAME = "displayName";
@@ -60,19 +60,22 @@ public class OrgTableDto extends Selectable implements InlineMenuable {
                 object.getPropertyRealValue(OrgType.F_DISPLAY_NAME, PolyString.class));
         dto.identifier = object.getPropertyRealValue(OrgType.F_IDENTIFIER, String.class);
 
-        //todo add relation
+        //todo add relation [lazyman]
 
         return dto;
     }
 
+    @Override
     public String getOid() {
         return oid;
     }
 
+    @Override
     public Class<? extends ObjectType> getType() {
         return type;
     }
 
+    @Override
     public QName getRelation() {
         return relation;
     }
@@ -89,6 +92,7 @@ public class OrgTableDto extends Selectable implements InlineMenuable {
         return identifier;
     }
 
+    @Override
     public String getName() {
         return name;
     }

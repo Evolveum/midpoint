@@ -27,6 +27,7 @@ import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgTableDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
+import org.apache.commons.lang.Validate;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
@@ -48,13 +49,17 @@ public class OrgUnitBrowser extends ModalWindow {
 
     private static final Trace LOGGER = TraceManager.getTrace(OrgUnitBrowser.class);
 
+    public static enum Operation {MOVE, ADD, REMOVE}
+
     private static final String ID_SEARCH_TEXT = "searchText";
     private static final String ID_SEARCH = "search";
     private static final String ID_TABLE = "table";
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_CANCEL = "cancel";
+    private static final String ID_CREATE_ROOT = "createRoot";
 
     private boolean initialized;
+    private Operation operation;
 
     private IModel<String> searchModel = new Model<String>();
 
@@ -70,6 +75,15 @@ public class OrgUnitBrowser extends ModalWindow {
 
         WebMarkupContainer content = new WebMarkupContainer(getContentId());
         setContent(content);
+    }
+
+    public Operation getOperation() {
+        return operation;
+    }
+
+    public void setOperation(Operation operation) {
+        Validate.notNull(operation);
+        this.operation = operation;
     }
 
     private PageBase getPageBase() {
@@ -129,6 +143,16 @@ public class OrgUnitBrowser extends ModalWindow {
             }
         };
         container.add(cancel);
+
+        AjaxButton createRoot = new AjaxButton(ID_CREATE_ROOT,
+                createStringResource("OrgUnitBrowser.createRoot")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                createRootPerformed(target);
+            }
+        };
+        container.add(createRoot);
     }
 
     private List<IColumn<OrgTableDto, String>> initColumns() {
@@ -138,7 +162,7 @@ public class OrgUnitBrowser extends ModalWindow {
 
             @Override
             public void onClick(AjaxRequestTarget target, IModel<OrgTableDto> rowModel) {
-                rowSelected(target, rowModel);
+                rowSelected(target, rowModel, operation);
             }
         });
         columns.add(new PropertyColumn<OrgTableDto, String>(createStringResource("OrgType.displayName"),
@@ -149,7 +173,11 @@ public class OrgUnitBrowser extends ModalWindow {
         return columns;
     }
 
-    protected void rowSelected(AjaxRequestTarget target, IModel<OrgTableDto> row) {
+    protected void createRootPerformed(AjaxRequestTarget target) {
+
+    }
+
+    protected void rowSelected(AjaxRequestTarget target, IModel<OrgTableDto> row, Operation operation) {
 
     }
 

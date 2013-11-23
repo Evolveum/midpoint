@@ -64,9 +64,7 @@ public class PageDashboard extends PageAdminHome {
     private static final String DOT_CLASS = PageDashboard.class.getName() + ".";
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
     private static final String OPERATION_LOAD_ACCOUNTS = DOT_CLASS + "loadAccounts";
-    private static final String OPERATION_LOAD_ACCOUNT = DOT_CLASS + "loadAccount";
     private static final String OPERATION_LOAD_ASSIGNMENTS = DOT_CLASS + "loadAssignments";
-    private static final String OPERATION_LOAD_ASSIGNMENT = DOT_CLASS + "loadAssignment";
     private static final String OPERATION_LOAD_WORK_ITEMS = DOT_CLASS + "loadWorkItems";
 
     private static final String ID_PERSONAL_INFO = "personalInfo";
@@ -91,6 +89,7 @@ public class PageDashboard extends PageAdminHome {
         OperationResult result = new OperationResult(OPERATION_LOAD_USER);
         PrismObject<UserType> user = WebModelUtils.loadObject(UserType.class,
                 principal.getOid(), result, PageDashboard.this);
+        result.computeStatus();
 
         if (!WebMiscUtil.isSuccessOrHandledError(result)) {
             showResult(result);
@@ -125,10 +124,8 @@ public class PageDashboard extends PageAdminHome {
 
         List<ObjectReferenceType> references = user.asObjectable().getLinkRef();
         for (ObjectReferenceType reference : references) {
-            OperationResult subResult = result.createSubresult(OPERATION_LOAD_ACCOUNT);
-
             PrismObject<ShadowType> account = WebModelUtils.loadObjectAsync(ShadowType.class, reference.getOid(),
-                    options, subResult, this, user);
+                    options, result, this, user);
             if (account == null) {
                 continue;
             }
@@ -393,11 +390,9 @@ public class PageDashboard extends PageAdminHome {
 
                 if (constr.getResourceRef() != null) {
                     ObjectReferenceType resourceRef = constr.getResourceRef();
-                    OperationResult subResult = result.createSubresult(OPERATION_LOAD_ASSIGNMENT);
-                    subResult.addParam("targetRef", resourceRef.getOid());
 
                     PrismObject resource = WebModelUtils.loadObjectAsync(
-                            ResourceType.class, resourceRef.getOid(), subResult, this, user);
+                            ResourceType.class, resourceRef.getOid(), result, this, user);
                     name = WebMiscUtil.getName(resource);
                 }
             }
@@ -409,9 +404,7 @@ public class PageDashboard extends PageAdminHome {
         PrismObject value = refValue.getObject();
         if (value == null) {
             //resolve reference
-            OperationResult subResult = result.createSubresult(OPERATION_LOAD_ASSIGNMENT);
-            subResult.addParam("targetRef", refValue.getOid());
-            value = WebModelUtils.loadObjectAsync(ObjectType.class, refValue.getOid(), subResult, this, user);
+            value = WebModelUtils.loadObjectAsync(ObjectType.class, refValue.getOid(), result, this, user);
         }
 
         if (value == null) {

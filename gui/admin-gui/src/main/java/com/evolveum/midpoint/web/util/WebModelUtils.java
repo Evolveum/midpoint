@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -31,6 +32,7 @@ import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 /**
@@ -39,6 +41,10 @@ import java.util.Collection;
 public class WebModelUtils {
 
     private static final Trace LOGGER = TraceManager.getTrace(WebModelUtils.class);
+
+    private static final String DOT_CLASS = WebModelUtils.class.getName() + ".";
+    private static final String OPERATION_LOAD_OBJECT = DOT_CLASS + "loadObject";
+    private static final String OPERATION_DELETE_OBJECT = DOT_CLASS + "deleteObject";
 
     public static <T extends ObjectType> PrismObject<T> loadObjectAsync(Class<T> type, String oid, OperationResult result,
                                                                         PageBase page, PrismObject<UserType> principal) {
@@ -60,7 +66,7 @@ public class WebModelUtils {
                                                                    Collection<SelectorOptions<GetOperationOptions>> options,
                                                                    OperationResult result, PageBase page) {
 
-        return loadObject(type, oid, null, result, page, null);
+        return loadObject(type, oid, options, result, page, null);
     }
 
     private static <T extends ObjectType> PrismObject<T> loadObject(Class<T> type, String oid,
@@ -68,15 +74,16 @@ public class WebModelUtils {
                                                                     OperationResult result, PageBase page, PrismObject<UserType> principal) {
         LOGGER.debug("Loading {} with oid {}, options {}", new Object[]{type.getSimpleName(), oid, options});
 
+        OperationResult subResult = result.createMinorSubresult(OPERATION_LOAD_OBJECT);
         PrismObject<T> object = null;
         try {
             Task task = page.createSimpleTask(result.getOperation(), principal);
             object = page.getModelService().getObject(type, oid, options, task, result);
         } catch (Exception ex) {
-            result.recordFatalError("WebModelUtils.couldntLoadObject", ex);
+            subResult.recordFatalError("WebModelUtils.couldntLoadObject", ex);
             LoggingUtils.logException(LOGGER, "Couldn't load object", ex);
         } finally {
-            result.computeStatus();
+            subResult.computeStatus();
         }
 
         LOGGER.debug("Loaded with result {}", new Object[]{result});
@@ -108,5 +115,12 @@ public class WebModelUtils {
         }
 
         LOGGER.debug("Deleted with result {}", new Object[]{result});
+    }
+
+    public static Collection<SelectorOptions<GetOperationOptions>> createOptionsForParentOrgRefs() {
+        Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<SelectorOptions<GetOperationOptions>>();
+        options.add(SelectorOptions.create(ObjectType.F_PARENT_ORG_REF,
+                GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
+        return options;
     }
 }
