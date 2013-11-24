@@ -18,7 +18,10 @@ package com.evolveum.midpoint.model.util;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.model.ModelObjectResolver;
@@ -311,6 +314,17 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
     @Override
     public void refreshStatus(Task task) {
         // Local task. No refresh needed. The Task instance has always fresh data.
+    }
+
+    // meant to be used in specific createQuery methods; it is not used here directly, because QueryType->ObjectQuery conversion
+    // requires information on object class, and this is specific to individual subclasses (handlers)
+    protected QueryType getObjectQueryTypeFromTask(Task task) {
+        PrismProperty<QueryType> objectQueryPrismProperty = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
+        if (objectQueryPrismProperty != null && objectQueryPrismProperty.getRealValue() != null) {
+            return objectQueryPrismProperty.getRealValue();
+        } else {
+            return null;
+        }
     }
     
     /**

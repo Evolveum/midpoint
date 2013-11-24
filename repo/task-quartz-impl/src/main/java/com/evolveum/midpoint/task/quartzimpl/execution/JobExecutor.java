@@ -461,21 +461,20 @@ mainCycle:
 
     private TaskRunResult createFailureTaskRunResult(String message, Throwable t) {
         TaskRunResult runResult = new TaskRunResult();
-        OperationResult mainResult, currentResult;
+        OperationResult opResult;
         if (task.getResult() != null) {
-            mainResult = task.getResult();
-            currentResult = mainResult.createSubresult(DOT_CLASS + "executeHandler");
+            opResult = task.getResult();
         } else {
-            mainResult = createOperationResult("executeHandler");
-            currentResult = mainResult;
+            opResult = createOperationResult(DOT_CLASS + "executeHandler");
         }
         if (t != null) {
-            currentResult.recordFatalError(message, t);
+            opResult.recordFatalError(message, t);
         } else {
-            currentResult.recordFatalError(message);
+            opResult.recordFatalError(message);
         }
-        runResult.setOperationResult(mainResult);
+        runResult.setOperationResult(opResult);
         runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+        runResult.setProgress(task.getProgress());
         return runResult;
     }
 
