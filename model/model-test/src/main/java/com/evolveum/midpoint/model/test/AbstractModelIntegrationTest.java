@@ -1795,5 +1795,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		IntegrationTestTools.assertBetween("Wrong shadow disableTimestamp in "+shadow, 
 				startTime, endTime, userDisableTimestamp);
 	}
-
+	
+	protected void assertDisableReasonShadow(PrismObject<? extends ShadowType> shadow, String expectedReason) {
+		String disableReason = shadow.asObjectable().getActivation().getDisableReason();
+		assertEquals("Wrong shadow disableReason in "+shadow, expectedReason, disableReason);
+	}
+	
 }
