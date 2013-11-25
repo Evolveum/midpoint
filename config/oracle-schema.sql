@@ -123,6 +123,7 @@ CREATE TABLE m_assignment (
   accountConstruction         CLOB,
   administrativeStatus        NUMBER(10, 0),
   archiveTimestamp            TIMESTAMP,
+  disableReason               VARCHAR2(255 CHAR),
   disableTimestamp            TIMESTAMP,
   effectiveStatus             NUMBER(10, 0),
   enableTimestamp             TIMESTAMP,
@@ -273,6 +274,7 @@ CREATE TABLE m_exclusion (
 CREATE TABLE m_focus (
   administrativeStatus    NUMBER(10, 0),
   archiveTimestamp        TIMESTAMP,
+  disableReason           VARCHAR2(255 CHAR),
   disableTimestamp        TIMESTAMP,
   effectiveStatus         NUMBER(10, 0),
   enableTimestamp         TIMESTAMP,
@@ -463,6 +465,7 @@ CREATE TABLE m_role (
 CREATE TABLE m_shadow (
   administrativeStatus          NUMBER(10, 0),
   archiveTimestamp              TIMESTAMP,
+  disableReason                 VARCHAR2(255 CHAR),
   disableTimestamp              TIMESTAMP,
   effectiveStatus               NUMBER(10, 0),
   enableTimestamp               TIMESTAMP,

@@ -120,6 +120,7 @@ CREATE TABLE m_assignment (
   accountConstruction         NVARCHAR(MAX),
   administrativeStatus        INT,
   archiveTimestamp            DATETIME2,
+  disableReason               NVARCHAR(255),
   disableTimestamp            DATETIME2,
   effectiveStatus             INT,
   enableTimestamp             DATETIME2,
@@ -270,6 +271,7 @@ CREATE TABLE m_exclusion (
 CREATE TABLE m_focus (
   administrativeStatus    INT,
   archiveTimestamp        DATETIME2,
+  disableReason           NVARCHAR(255),
   disableTimestamp        DATETIME2,
   effectiveStatus         INT,
   enableTimestamp         DATETIME2,
@@ -460,6 +462,7 @@ CREATE TABLE m_role (
 CREATE TABLE m_shadow (
   administrativeStatus          INT,
   archiveTimestamp              DATETIME2,
+  disableReason                 NVARCHAR(255),
   disableTimestamp              DATETIME2,
   effectiveStatus               INT,
   enableTimestamp               DATETIME2,
