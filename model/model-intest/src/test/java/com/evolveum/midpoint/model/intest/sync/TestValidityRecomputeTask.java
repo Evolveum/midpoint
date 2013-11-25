@@ -28,6 +28,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
+import com.evolveum.midpoint.model.intest.TestActivation;
 import com.evolveum.midpoint.model.intest.TestMapping;
 import com.evolveum.midpoint.model.intest.TestTriggerTask;
 import com.evolveum.midpoint.model.trigger.RecomputeTriggerHandler;
@@ -35,11 +36,14 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
@@ -162,6 +166,32 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 	}
 	
 	/**
+	 * Explicitly disable Elaine's red account. Do this at the beginning of the test. We will
+	 * move time ahead in later tests. This account should remain here exactly like this
+	 * at the end of all tests.
+	 */
+	@Test
+    public void test205AccountRedElaineDisable() throws Exception {
+		final String TEST_NAME = "test205AccountRedElaineDisable";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        modifyAccountShadowReplace(ACCOUNT_SHADOW_ELAINE_DUMMY_RED_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, 
+        		task, result, ActivationStatusType.DISABLED);
+		
+		// THEN
+		result.computeStatus();
+        TestUtil.assertSuccess("executeChanges result", result);
+        
+        PrismObject<ShadowType> accountShadow = getAccount(ACCOUNT_SHADOW_ELAINE_DUMMY_RED_OID);
+		assertDisableReasonShadow(accountShadow, SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);
+	}
+	
+	/**
 	 * Note: red resource disables account on unsassign, does NOT delete it.
 	 * Just the recompute trigger is set
 	 */
@@ -214,6 +244,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         end.add(XmlTypeConverter.createDuration(true, 0, 0, 35, 0, 0, 0));
 		assertTrigger(accountRed, RecomputeTriggerHandler.HANDLER_URI, start, end);
 		assertAdministrativeStatusDisabled(accountRed);
+		assertDisableReasonShadow(accountRed, SchemaConstants.MODEL_DISABLE_REASON_DEPROVISION);
 
 		assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", false);
 	}
@@ -405,6 +436,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         String accountRedOid = getAccountRef(userDrakeAfter, RESOURCE_DUMMY_RED_OID);
         PrismObject<ShadowType> accountRed = getAccount(accountRedOid);
         display("Drake account RED after", accountRed);
+        assertDisableReasonShadow(accountRed, SchemaConstants.MODEL_DISABLE_REASON_MAPPED);
         
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, "drake", "Francis Drake", false);
 	}
@@ -432,6 +464,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         String accountRedOid = getAccountRef(userDrakeAfter, RESOURCE_DUMMY_RED_OID);
         PrismObject<ShadowType> accountRed = getAccount(accountRedOid);
         display("Drake account RED after", accountRed);
+        assertDisableReasonShadow(accountRed, SchemaConstants.MODEL_DISABLE_REASON_MAPPED);
         
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, "drake", "Francis Drake", false);
 	}
@@ -460,5 +493,26 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         
         assertNoDummyAccount(RESOURCE_DUMMY_RED_NAME, "drake");
 	}
+	
+	/**
+	 * Elaine's red account was explicitly disabled. We have moved the time ahead in previous tests.
+	 * But this account should remain as it is.
+	 */
+	@Test
+    public void test250CheckAccountRedElaine() throws Exception {
+		final String TEST_NAME = "test250CheckAccountRedElaine";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        
+		// WHEN
+        // nothing to do
+		
+		// THEN
+        
+        PrismObject<ShadowType> accountShadow = getAccount(ACCOUNT_SHADOW_ELAINE_DUMMY_RED_OID);
+		assertDisableReasonShadow(accountShadow, SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);
+	}
+
 
 }

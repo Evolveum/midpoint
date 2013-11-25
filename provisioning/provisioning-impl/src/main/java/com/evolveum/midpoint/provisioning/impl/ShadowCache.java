@@ -1323,6 +1323,7 @@ public abstract class ShadowCache {
             }
 			resultActivationType.setId(repoActivation.getId());
 			// .. but we want metadata from repo
+			resultActivationType.setDisableReason(repoActivation.getDisableReason());
 			resultActivationType.setEnableTimestamp(repoActivation.getEnableTimestamp());
 			resultActivationType.setDisableTimestamp(repoActivation.getDisableTimestamp());
 			resultActivationType.setArchiveTimestamp(repoActivation.getArchiveTimestamp());

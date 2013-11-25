@@ -281,18 +281,16 @@ public class ActivationProcessor {
     			if (disableReasonDelta == null) {
     				String disableReason = null;
     				ObjectDelta<ShadowType> projPrimaryDelta = accCtx.getPrimaryDelta();
-    				if (projPrimaryDelta != null) {
-    					if (projPrimaryDelta.findPropertyDelta(SchemaConstants.PATH_ACTIVATION_DISABLE_REASON) != null) {
+    				ObjectDelta<ShadowType> projSecondaryDelta = accCtx.getSecondaryDelta();
+    				if (projPrimaryDelta != null 
+    						&& projPrimaryDelta.findPropertyDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS) != null
+    						&& (projSecondaryDelta == null || projSecondaryDelta.findPropertyDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS) == null)) {
     						disableReason = SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT;
-    					}
-    				}
-    				if (disableReason == null) {
-    					if (accCtx.isLegal() != null && !accCtx.isLegal()) {
-    						disableReason = SchemaConstants.MODEL_DISABLE_REASON_DEPROVISION;
-    					} else {
-    						disableReason = SchemaConstants.MODEL_DISABLE_REASON_MAPPED;
-    					}
-    				}
+    				} else if (accCtx.isLegal()) {
+						disableReason = SchemaConstants.MODEL_DISABLE_REASON_MAPPED;
+					} else {
+						disableReason = SchemaConstants.MODEL_DISABLE_REASON_DEPROVISION;
+					}
     				
     				PrismPropertyDefinition<String> disableReasonDef = activationDefinition.findPropertyDefinition(ActivationType.F_DISABLE_REASON);
     				disableReasonDelta = disableReasonDef.createEmptyDelta(new ItemPath(UserType.F_ACTIVATION, ActivationType.F_DISABLE_REASON));
