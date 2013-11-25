@@ -47,12 +47,7 @@
                 </label>
 
                 <div class="col-lg-4">
-                    <select class="form-control input-sm">
-                        <option>None</option>
-                        <option>Positive</option>
-                        <option>Mark</option>
-                        <option>Legalize</option>
-                        <option>Full</option>
+                    <select class="form-control input-sm" wicket:id="aepChooser">
                     </select>
                 </div>
             </div>
@@ -67,7 +62,7 @@
                 </label>
 
                 <div class="col-lg-2">
-                    <input type="text" class="form-control input-sm"
+                    <input type="text" class="form-control input-sm" wicket:id="auditRecordsCleanup"
                             wicket:message="placeholder:SystemConfigPanel.cleanupPolicy.placeholder">
                 </div>
 
@@ -81,7 +76,7 @@
                 </label>
 
                 <div class="col-lg-2">
-                    <input type="text" class="form-control input-sm"
+                    <input type="text" class="form-control input-sm" wicket:id="closedTasksCleanup"
                            wicket:message="placeholder:SystemConfigPanel.cleanupPolicy.placeholder">
                 </div>
 

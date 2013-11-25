@@ -62,6 +62,7 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
     private LoadableModel<SystemConfigurationDto> model;
 
     public PageSystemConfiguration() {
+
         model = new LoadableModel<SystemConfigurationDto>(false) {
 
             @Override
@@ -70,12 +71,14 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
             }
         };
 
+
         initLayout();
     }
 
     private SystemConfigurationDto loadSystemConfiguration() {
         Task task = createSimpleTask(TASK_GET_SYSTEM_CONFIG);
         OperationResult result = new OperationResult(TASK_GET_SYSTEM_CONFIG);
+
         Collection<SelectorOptions<GetOperationOptions>> options =
                 SelectorOptions.createCollection(GetOperationOptions.createResolve(),
                         SystemConfigurationType.F_DEFAULT_USER_TEMPLATE ,SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY);
@@ -84,11 +87,17 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
             PrismObject<SystemConfigurationType> systemConfig = getModelService().getObject(SystemConfigurationType.class,
                     SystemObjectsType.SYSTEM_CONFIGURATION.value(), options, task, result);
 
+            result.recordSuccess();
             return new SystemConfigurationDto(systemConfig);
+
         } catch(Exception e){
-            //TODO - handle this unpleasant situation
+            result.recordFatalError("Couldn't load system configuration.", e);
         }
-        //TODO - what should I return, when something goes wrong?
+
+        if(!result.isSuccess()){
+            showResult(result);
+        }
+
         return null;
     }
 
@@ -143,6 +152,8 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
     }
 
     private void savePerformed(AjaxRequestTarget target) {
+
+
         //todo implement
     }
 

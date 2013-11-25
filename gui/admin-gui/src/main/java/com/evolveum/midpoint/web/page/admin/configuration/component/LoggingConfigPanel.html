@@ -56,7 +56,7 @@
             <div class="col-lg-4">
                 <div class="checkbox">
                     <label>
-                        <input type="checkbox">
+                        <input type="checkbox" wicket:id="auditLog">
                     </label>
                 </div>
             </div>
@@ -67,7 +67,7 @@
             <div class="col-lg-4">
                 <div class="checkbox">
                     <label>
-                        <input type="checkbox">
+                        <input type="checkbox" wicket:id="auditDetails">
                     </label>
                 </div>
             </div>
@@ -76,7 +76,7 @@
             <label class="col-lg-4 control-label"><wicket:message key="LoggingConfigPanel.appender"/></label>
 
             <div class="col-lg-4">
-                <select class="form-control input-sm">
+                <select class="form-control input-sm" wicket:id="auditAppender">
                     <option>None</option>
                     <option>IDM_LOG</option>
                 </select>
@@ -94,7 +94,7 @@
             <div class="col-lg-4">
                 <div class="checkbox">
                     <label>
-                        <input type="checkbox">
+                        <input type="checkbox" wicket:id="requestFilter">
                     </label>
                 </div>
             </div>
@@ -106,7 +106,7 @@
             <div class="col-lg-4">
                 <div class="checkbox">
                     <label>
-                        <input type="checkbox">
+                        <input type="checkbox" wicket:id="performanceStatistics">
                     </label>
                 </div>
             </div>
@@ -116,7 +116,7 @@
             <label class="col-lg-4 control-label"><wicket:message key="LoggingConfigPanel.profiling.dumpInterval"/></label>
 
             <div class="col-lg-2">
-                <input type="text" class="form-control input-sm"
+                <input type="text" class="form-control input-sm" wicket:id="dumpInterval"
                        wicket:message="placeholder:LoggingConfigPanel.profiling.dumpInterval.placeholder">
             </div>
         </div>
@@ -130,7 +130,7 @@
             <div class="col-lg-4">
                 <div class="checkbox">
                     <label>
-                        <input type="checkbox">
+                        <input type="checkbox" wicket:id="subsystemModel">
                     </label>
                 </div>
             </div>
@@ -141,7 +141,7 @@
             <div class="col-lg-4">
                 <div class="checkbox">
                     <label>
-                        <input type="checkbox">
+                        <input type="checkbox" wicket:id="subsystemRepository">
                     </label>
                 </div>
             </div>
@@ -152,7 +152,7 @@
             <div class="col-lg-4">
                 <div class="checkbox">
                     <label>
-                        <input type="checkbox">
+                        <input type="checkbox" wicket:id="subsystemProvisioning">
                     </label>
                 </div>
             </div>
@@ -163,7 +163,7 @@
             <div class="col-lg-4">
                 <div class="checkbox">
                     <label>
-                        <input type="checkbox">
+                        <input type="checkbox" wicket:id="subsystemUcf">
                     </label>
                 </div>
             </div>
@@ -174,7 +174,7 @@
             <div class="col-lg-4">
                 <div class="checkbox">
                     <label>
-                        <input type="checkbox">
+                        <input type="checkbox" wicket:id="subsystemResourceObjectChangeListener">
                     </label>
                 </div>
             </div>
@@ -185,7 +185,7 @@
             <div class="col-lg-4">
                 <div class="checkbox">
                     <label>
-                        <input type="checkbox">
+                        <input type="checkbox" wicket:id="subsystemTaskManager">
                     </label>
                 </div>
             </div>
@@ -196,7 +196,7 @@
             <div class="col-lg-4">
                 <div class="checkbox">
                     <label>
-                        <input type="checkbox">
+                        <input type="checkbox" wicket:id="subsystemWorkflow">
                     </label>
                 </div>
             </div>
