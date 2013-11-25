@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 
 import java.io.Serializable;
 
@@ -26,13 +26,102 @@ import java.io.Serializable;
  */
 public class SystemConfigurationDto implements Serializable {
 
-    private PrismObject<SystemConfigurationType> config;
+    private PrismObject<SystemConfigurationType> oldConfig;
+    private ValuePolicyType globalPasswordPolicy;
+    private ObjectTemplateType globalObjectTemplate;
+    private AssignmentPolicyEnforcementType globalAEP;
+    private CleanupPolicyType auditCleanup;
+    private CleanupPolicyType taskCleanup;
 
-    public SystemConfigurationDto(PrismObject<SystemConfigurationType> config) {
-        this.config = config;
+    private AEPlevel aepLevel;
+
+    private String auditCleanupValue;
+    private String taskCleanupValue;
+
+    public SystemConfigurationDto(){
+        this(null);
     }
 
-    public PrismObject<SystemConfigurationType> getConfig() {
-        return config;
+    public SystemConfigurationDto(PrismObject<SystemConfigurationType> config) {
+        this.oldConfig = config;
+        init(config.asObjectable());
+    }
+
+    private void init(SystemConfigurationType config){
+        if(config == null){
+            return;
+        }
+        globalObjectTemplate = config.getDefaultUserTemplate();
+        globalPasswordPolicy = config.getGlobalPasswordPolicy();
+        globalAEP = config.getGlobalAccountSynchronizationSettings().getAssignmentPolicyEnforcement();
+        auditCleanup = config.getCleanupPolicy().getAuditRecords();
+        taskCleanup = config.getCleanupPolicy().getClosedTasks();
+
+        auditCleanupValue = auditCleanup.getMaxAge().toString();
+        taskCleanupValue = taskCleanup.getMaxAge().toString();
+    }
+
+    public PrismObject<SystemConfigurationType> getOldConfig() {
+        return oldConfig;
+    }
+
+    public void setOldConfig(PrismObject<SystemConfigurationType> oldConfig) {
+        this.oldConfig = oldConfig;
+    }
+
+    public ValuePolicyType getGlobalPasswordPolicy() {
+        return globalPasswordPolicy;
+    }
+
+    public void setGlobalPasswordPolicy(ValuePolicyType globalPasswordPolicy) {
+        this.globalPasswordPolicy = globalPasswordPolicy;
+    }
+
+    public ObjectTemplateType getGlobalObjectTemplate() {
+        return globalObjectTemplate;
+    }
+
+    public void setGlobalObjectTemplate(ObjectTemplateType globalObjectTemplate) {
+        this.globalObjectTemplate = globalObjectTemplate;
+    }
+
+    public AssignmentPolicyEnforcementType getGlobalAEP() {
+        return globalAEP;
+    }
+
+    public void setGlobalAEP(AssignmentPolicyEnforcementType globalAEP) {
+        this.globalAEP = globalAEP;
+    }
+
+    public CleanupPolicyType getAuditCleanup() {
+        return auditCleanup;
+    }
+
+    public void setAuditCleanup(CleanupPolicyType auditCleanup) {
+        this.auditCleanup = auditCleanup;
+    }
+
+    public CleanupPolicyType getTaskCleanup() {
+        return taskCleanup;
+    }
+
+    public void setTaskCleanup(CleanupPolicyType taskCleanup) {
+        this.taskCleanup = taskCleanup;
+    }
+
+    public String getAuditCleanupValue() {
+        return auditCleanupValue;
+    }
+
+    public void setAuditCleanupValue(String auditCleanupValue) {
+        this.auditCleanupValue = auditCleanupValue;
+    }
+
+    public String getTaskCleanupValue() {
+        return taskCleanupValue;
+    }
+
+    public void setTaskCleanupValue(String taskCleanupValue) {
+        this.taskCleanupValue = taskCleanupValue;
     }
 }

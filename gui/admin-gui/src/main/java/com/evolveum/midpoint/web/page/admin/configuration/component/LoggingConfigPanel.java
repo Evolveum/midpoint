@@ -112,6 +112,8 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
     @Override
     protected void initLayout() {
         initLoggers();
+        initAudit();
+        initProfiling();
     }
 
     private void initLoggers() {
@@ -154,7 +156,7 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
         };
         add(deleteLogger);
 
-        initProfiling();
+        //initProfiling();
     }
 
     private void initRoot() {
@@ -170,7 +172,21 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
         add(rootAppender);
     }
 
-    private void initProfiling() {
+    private void initAudit(){
+        CheckBox auditLog = new CheckBox("auditLog", new PropertyModel<Boolean>(getModel(), "auditLog"));
+        add(auditLog);
+
+        CheckBox auditDetails = new CheckBox("auditDetails", new PropertyModel<Boolean>(getModel(), "auditDetails"));
+        add(auditDetails);
+
+        DropDownChoice<String> auditAppender = new DropDownChoice<String>("auditAppender", new PropertyModel<String>(
+                getModel(), "auditAppender"), createAppendersListModel());
+        auditAppender.setNullValid(true);
+        add(auditAppender);
+    }
+
+    private void initProfiling(){
+        //Entry-Exit profiling init
         DropDownChoice<ProfilingLevel> profilingLevel = new DropDownChoice<ProfilingLevel>("profilingLevel",
                 new PropertyModel<ProfilingLevel>(getModel(), "profilingLevel"),
                 WebMiscUtil.createReadonlyModelFromEnum(ProfilingLevel.class),
@@ -181,6 +197,30 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
                 new PropertyModel<String>(getModel(), "profilingAppender"), createAppendersListModel());
         profilingAppender.setNullValid(true);
         add(profilingAppender);
+
+        //Subsystem and general profiling init
+        CheckBox requestFilter = new CheckBox("requestFilter", new PropertyModel<Boolean>(getModel(), "requestFilter"));
+        CheckBox performanceStatistics = new CheckBox("performanceStatistics", new PropertyModel<Boolean>(getModel(), "performanceStatistics"));
+        CheckBox subsystemModel = new CheckBox("subsystemModel", new PropertyModel<Boolean>(getModel(), "subsystemModel"));
+        CheckBox subsystemRepository = new CheckBox("subsystemRepository", new PropertyModel<Boolean>(getModel(), "subsystemRepository"));
+        CheckBox subsystemProvisioning = new CheckBox("subsystemProvisioning", new PropertyModel<Boolean>(getModel(), "subsystemProvisioning"));
+        CheckBox subsystemUcf = new CheckBox("subsystemUcf", new PropertyModel<Boolean>(getModel(), "subsystemUcf"));
+        CheckBox subsystemResourceObjectChangeListener = new CheckBox("subsystemResourceObjectChangeListener", new PropertyModel<Boolean>(getModel(), "subsystemResourceObjectChangeListener"));
+        CheckBox subsystemTaskManager = new CheckBox("subsystemTaskManager", new PropertyModel<Boolean>(getModel(), "subsystemTaskManager"));
+        CheckBox subsystemWorkflow = new CheckBox("subsystemWorkflow", new PropertyModel<Boolean>(getModel(), "subsystemWorkflow"));
+        add(requestFilter);
+        add(performanceStatistics);
+        add(subsystemModel);
+        add(subsystemRepository);
+        add(subsystemProvisioning);
+        add(subsystemUcf);
+        add(subsystemResourceObjectChangeListener);
+        add(subsystemTaskManager);
+        add(subsystemWorkflow);
+
+        TextField<Integer> dumpInterval = new TextField<Integer>("dumpInterval", new PropertyModel<Integer>(getModel(),
+                "dumpInterval"));
+        add(dumpInterval);
     }
 
     private void addComponentLoggerPerformed(AjaxRequestTarget target) {
