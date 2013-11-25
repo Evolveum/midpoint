@@ -65,6 +65,7 @@ import org.apache.wicket.extensions.markup.html.repeater.tree.ITreeProvider;
 import org.apache.wicket.extensions.markup.html.repeater.tree.TableTree;
 import org.apache.wicket.extensions.markup.html.repeater.tree.table.TreeColumn;
 import org.apache.wicket.extensions.markup.html.repeater.tree.theme.WindowsTheme;
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -525,8 +526,13 @@ public class TreeTablePanel extends SimplePanel<String> {
         OrgUnitBrowser dialog = (OrgUnitBrowser) get(ID_MOVE_POPUP);
         dialog.close(target);
 
+        TabbedPanel tabbedPanel = findParent(TabbedPanel.class);
+        IModel<List<ITab>> tabs = tabbedPanel.getTabs();
+        if (tabs instanceof LoadableModel) {
+            ((LoadableModel) tabs).reset();
+        }
+        target.add(tabbedPanel);
         target.add(page.getFeedbackPanel());
-        target.add(findParent(TabbedPanel.class));
     }
 
     private TableTree getTree() {

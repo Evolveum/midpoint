@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.TabbedPanel;
+import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.users.component.TreeTablePanel;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
@@ -62,21 +63,32 @@ public class PageOrgTree extends PageAdminUsers {
     }
 
     private void initLayout() {
-        List<PrismObject<OrgType>> roots = loadOrgRoots();
+        IModel<List<ITab>> tabModel = new LoadableModel<List<ITab>>(false) {
 
-        List<ITab> tabs = new ArrayList<ITab>();
-        for (PrismObject<OrgType> root : roots) {
-            final String oid = root.getOid();
-            tabs.add(new AbstractTab(createTabTitle(root)) {
+            @Override
+            protected List<ITab> load() {
+                LOGGER.debug("Loading org. roots for tabs for tabbed panel.");
+                List<PrismObject<OrgType>> roots = loadOrgRoots();
 
-                @Override
-                public WebMarkupContainer getPanel(String panelId) {
-                    return new TreeTablePanel(panelId, new Model(oid));
+                List<ITab> tabs = new ArrayList<ITab>();
+                for (PrismObject<OrgType> root : roots) {
+                    final String oid = root.getOid();
+                    tabs.add(new AbstractTab(createTabTitle(root)) {
+
+                        @Override
+                        public WebMarkupContainer getPanel(String panelId) {
+                            return new TreeTablePanel(panelId, new Model(oid));
+                        }
+                    });
                 }
-            });
-        }
 
-        TabbedPanel tabbedPanel = new TabbedPanel(ID_TABS, tabs, new Model<Integer>(0));
+                LOGGER.debug("Tab count is {}", new Object[]{tabs.size()});
+
+                return tabs;
+            }
+        };
+
+        TabbedPanel tabbedPanel = new TabbedPanel(ID_TABS, tabModel, new Model<Integer>(0));
         tabbedPanel.setOutputMarkupId(true);
         add(tabbedPanel);
     }
