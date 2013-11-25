@@ -230,7 +230,7 @@ public class TreeTablePanel extends SimplePanel<String> {
     }
 
     private OrgTreeDto loadRoot() {
-        TableTree<OrgTreeDto, String> tree = (TableTree) get(createComponentPath(ID_TREE_CONTAINER, ID_TREE));
+        TableTree<OrgTreeDto, String> tree = getTree();
         ITreeProvider<OrgTreeDto> provider = tree.getProvider();
         Iterator<? extends OrgTreeDto> iterator = provider.getRoots();
 
@@ -451,30 +451,35 @@ public class TreeTablePanel extends SimplePanel<String> {
         PrismReferenceValue value;
         switch (operation) {
             case ADD:
+                LOGGER.debug("Adding new parent {}", new Object[]{newParent});
                 //adding parentRef newParent to orgUnit
                 value = createPrismRefValue(newParent);
-                refDelta.getValuesToAdd().add(value);
+                refDelta.addValuesToAdd(value);
                 break;
             case REMOVE:
+                LOGGER.debug("Removing new parent {}", new Object[]{newParent});
                 //removing parentRef newParent from orgUnit
                 value = createPrismRefValue(newParent);
-                refDelta.getValuesToDelete().add(value);
+                refDelta.addValuesToDelete(value);
                 break;
             case MOVE:
                 if (oldParent == null && newParent == null) {
+                    LOGGER.debug("Moving to root");
                     //moving orgUnit to root, removing all parentRefs
                     PrismReference ref = orgUnit.findReference(OrgType.F_PARENT_ORG_REF);
                     if (ref != null) {
                         for (PrismReferenceValue val : ref.getValues()) {
-                            refDelta.getValuesToDelete().add(val);
+                            refDelta.addValuesToDelete(val);
                         }
                     }
                 } else {
+                    LOGGER.debug("Adding new parent {}, removing old parent {}", new Object[]{newParent, oldParent});
                     //moving from old to new, removing oldParent adding newParent refs
                     value = createPrismRefValue(newParent);
-                    refDelta.getValuesToAdd().add(value);
+                    refDelta.addValuesToAdd(value);
+
                     value = createPrismRefValue(oldParent);
-                    refDelta.getValuesToDelete().add(value);
+                    refDelta.addValuesToDelete(value);
                 }
                 break;
         }
@@ -518,10 +523,13 @@ public class TreeTablePanel extends SimplePanel<String> {
         target.add(page.getFeedbackPanel());
         target.add(getTable());
         target.add(getTree());
+
+        OrgUnitBrowser dialog = (OrgUnitBrowser) get(ID_MOVE_POPUP);
+        dialog.close(target);
     }
 
     private TableTree getTree() {
-        return (TableTree) get(ID_TREE);
+        return (TableTree) get(createComponentPath(ID_TREE_CONTAINER, ID_TREE));
     }
 
     private TablePanel getTable() {
