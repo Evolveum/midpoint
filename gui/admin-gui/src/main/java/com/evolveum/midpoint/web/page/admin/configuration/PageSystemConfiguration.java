@@ -253,7 +253,7 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
         return config;
     }
 
-    //TODO - refresh the panel after saving
+    //TODO - save the rest of systemConfig
     private void savePerformed(AjaxRequestTarget target) {
         OperationResult result = new OperationResult(TASK_UPDATE_SYSTEM_CONFIG);
         String oid = SystemObjectsType.SYSTEM_CONFIGURATION.value();
@@ -264,14 +264,14 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 
             if(loggingConfig == null){
                 target.add(getFeedbackPanel());
-                //TODO - maybe refresh components?
+                target.add(get(ID_MAIN_FORM));
                 return;
             }
 
             ProfilingConfigurationType profilingConfig = createProfilingConfiguration(loggingDto);
             if(profilingConfig == null){
                 target.add(getFeedbackPanel());
-                //TODO - maybe refresh components?
+                target.add(get(ID_MAIN_FORM));
                 return;
             }
 
@@ -312,8 +312,7 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 
     private void resetPerformed(AjaxRequestTarget target) {
         model.reset();
-        //TODO - maybe refresh components?
-        //target.add(get("mainForm"));
+        target.add(get(ID_MAIN_FORM));
         target.appendJavaScript("init();");
     }
 
