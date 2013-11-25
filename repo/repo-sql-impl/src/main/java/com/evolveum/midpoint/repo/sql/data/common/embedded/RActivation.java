@@ -49,6 +49,7 @@ public class RActivation {
     private XMLGregorianCalendar enableTimestamp;
     private XMLGregorianCalendar archiveTimestamp;
     private XMLGregorianCalendar validityChangeTimestamp;
+    private String disableReason;
 
     @Column(nullable = true)
     public XMLGregorianCalendar getArchiveTimestamp() {
@@ -96,6 +97,14 @@ public class RActivation {
     @Column(nullable = true)
     public XMLGregorianCalendar getValidFrom() {
         return validFrom;
+    }
+
+    public String getDisableReason() {
+        return disableReason;
+    }
+
+    public void setDisableReason(String disableReason) {
+        this.disableReason = disableReason;
     }
 
     public void setValidityStatus(RTimeIntervalStatus validityStatus) {
@@ -157,6 +166,8 @@ public class RActivation {
                 that.enableTimestamp != null) return false;
         if (validityChangeTimestamp != null ? !validityChangeTimestamp.equals(that.validityChangeTimestamp) :
                 that.validityChangeTimestamp != null) return false;
+        if (disableReason != null ? !disableReason.equals(that.disableReason) :
+                that.disableReason != null) return false;
 
         return true;
     }
@@ -172,6 +183,7 @@ public class RActivation {
         result = 31 * result + (disableTimestamp != null ? disableTimestamp.hashCode() : 0);
         result = 31 * result + (enableTimestamp != null ? enableTimestamp.hashCode() : 0);
         result = 31 * result + (validityChangeTimestamp != null ? validityChangeTimestamp.hashCode() : 0);
+        result = 31 * result + (disableReason != null ? disableReason.hashCode() : 0);
         return result;
     }
 
@@ -190,6 +202,7 @@ public class RActivation {
         repo.setValidityStatus(RUtil.getRepoEnumValue(jaxb.getValidityStatus(), RTimeIntervalStatus.class));
         repo.setValidFrom(jaxb.getValidFrom());
         repo.setValidTo(jaxb.getValidTo());
+        repo.setDisableReason(jaxb.getDisableReason());
 
         repo.setArchiveTimestamp(jaxb.getArchiveTimestamp());
         repo.setDisableTimestamp(jaxb.getDisableTimestamp());
@@ -212,6 +225,7 @@ public class RActivation {
         }
         jaxb.setValidFrom(repo.getValidFrom());
         jaxb.setValidTo(repo.getValidTo());
+        jaxb.setDisableReason(repo.getDisableReason());
 
         jaxb.setArchiveTimestamp(repo.getArchiveTimestamp());
         jaxb.setDisableTimestamp(repo.getDisableTimestamp());
