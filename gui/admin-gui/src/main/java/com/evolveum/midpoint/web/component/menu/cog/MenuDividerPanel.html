@@ -17,20 +17,6 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <wicket:enclosure child="menuItem">
-    <ul class="nav nav-pills cog pull-right">
-        <li class="dropdown">
-            <a class="dropdown-toggle" data-toggle="dropdown">
-                <i class="silk-cog"></i>
-                <b class="caret"></b>
-            </a>
-            <ul class="dropdown-menu pull-right" role="menu">
-                <li wicket:id="menuItem">
-                    <div wicket:id="menuItemBody"/>
-                </li>
-            </ul>
-        </li>
-    </ul>
-    </wicket:enclosure>
+    <span wicket:id="menuItemLabel"/>
 </wicket:panel>
 </html>

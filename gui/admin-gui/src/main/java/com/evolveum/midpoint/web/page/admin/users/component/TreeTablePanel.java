@@ -304,15 +304,8 @@ public class TreeTablePanel extends SimplePanel<String> {
                         addUserPerformed(target);
                     }
                 }));
-        headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.delete"), true,
-                new HeaderMenuAction(this) {
-
-                    @Override
-                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                        deletePerformed(target);
-                    }
-                }));
         headerMenuItems.add(new InlineMenuItem());
+        headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.actionOnSelection")));
         headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.addToHierarchy"), true,
                 new HeaderMenuAction(this) {
 
@@ -335,6 +328,14 @@ public class TreeTablePanel extends SimplePanel<String> {
                     @Override
                     public void onSubmit(AjaxRequestTarget target, Form<?> form) {
                         movePerformed(target, OrgUnitBrowser.Operation.MOVE);
+                    }
+                }));
+        headerMenuItems.add(new InlineMenuItem(createStringResource("TreeTablePanel.menu.delete"), true,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                        deletePerformed(target);
                     }
                 }));
 

@@ -19,6 +19,10 @@ public class InlineMenuItem implements Serializable {
         this(null, null);
     }
 
+    public InlineMenuItem(IModel<String> label) {
+        this(label, null);
+    }
+
     public InlineMenuItem(IModel<String> label, InlineMenuItemAction action) {
         this(label, false, action);
     }
@@ -62,5 +66,13 @@ public class InlineMenuItem implements Serializable {
 
     public IModel<Boolean> getVisible() {
         return visible;
+    }
+
+    public boolean isDivider() {
+        return label == null && action == null;
+    }
+
+    public boolean isMenuHeader() {
+        return label != null && action == null;
     }
 }
