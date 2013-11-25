@@ -2583,6 +2583,18 @@
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="disableReason" type="xsd:anyURI" minOccurs="0">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			URL that identifies a reason for disable. This may be indication that that identity
+            			was disabled explicitly, that the disable status was computed or other source of the
+            			disabled event.
+            		</xsd:documentation>
+            		<xsd:appinfo>
+            			<a:operational>true</a:operational>
+            		</xsd:appinfo>
+            	</xsd:annotation>
+            </xsd:element>
             <xsd:element name="disableTimestamp" type="xsd:dateTime" minOccurs="0">
             	<xsd:annotation>
             		<xsd:documentation>
