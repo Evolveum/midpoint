@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.web.component;
 
 import org.apache.wicket.Component;
+import org.apache.wicket.extensions.ajax.markup.html.tabs.AjaxTabbedPanel;
+import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
@@ -26,13 +28,13 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class TabbedPanel extends org.apache.wicket.extensions.markup.html.tabs.TabbedPanel {
+public class TabbedPanel<T extends ITab> extends AjaxTabbedPanel<T> {
 
-    public TabbedPanel(String id, List tabs) {
+    public TabbedPanel(String id, List<T> tabs) {
         super(id, tabs);
     }
 
-    public TabbedPanel(String id, List tabs, IModel<Integer> model) {
+    public TabbedPanel(String id, List<T> tabs, IModel<Integer> model) {
         super(id, tabs, model);
     }
 

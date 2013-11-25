@@ -76,7 +76,8 @@ public class PageOrgTree extends PageAdminUsers {
             });
         }
 
-        TabbedPanel tabbedPanel = new TabbedPanel(ID_TABS, tabs);
+        TabbedPanel tabbedPanel = new TabbedPanel(ID_TABS, tabs, new Model<Integer>(0));
+        tabbedPanel.setOutputMarkupId(true);
         add(tabbedPanel);
     }
 

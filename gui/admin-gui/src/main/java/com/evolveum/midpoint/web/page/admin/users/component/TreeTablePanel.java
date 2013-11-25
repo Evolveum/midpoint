@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
@@ -469,7 +470,7 @@ public class TreeTablePanel extends SimplePanel<String> {
                     PrismReference ref = orgUnit.findReference(OrgType.F_PARENT_ORG_REF);
                     if (ref != null) {
                         for (PrismReferenceValue val : ref.getValues()) {
-                            refDelta.addValuesToDelete(val);
+                            refDelta.addValuesToDelete(val.clone());
                         }
                     }
                 } else {
@@ -511,7 +512,7 @@ public class TreeTablePanel extends SimplePanel<String> {
                 subResult.recordFatalError("Couldn't move object " + null + " to " + null + ".", ex);
                 LoggingUtils.logException(LOGGER, "Couldn't move object {} to {}", ex, object.getName());
             } finally {
-                subResult.computeStatus();
+                subResult.computeStatusIfUnknown();
             }
         }
         result.computeStatusComposite();
@@ -520,12 +521,12 @@ public class TreeTablePanel extends SimplePanel<String> {
         provider.clearCache();
 
         page.showResult(result);
-        target.add(page.getFeedbackPanel());
-        target.add(getTable());
-        target.add(getTree());
 
         OrgUnitBrowser dialog = (OrgUnitBrowser) get(ID_MOVE_POPUP);
         dialog.close(target);
+
+        target.add(page.getFeedbackPanel());
+        target.add(findParent(TabbedPanel.class));
     }
 
     private TableTree getTree() {
