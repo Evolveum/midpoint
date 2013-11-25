@@ -17,7 +17,9 @@
 package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import org.apache.wicket.model.IModel;
 
 import java.io.Serializable;
 
@@ -25,6 +27,9 @@ import java.io.Serializable;
  * @author lazyman
  */
 public class SystemConfigurationDto implements Serializable {
+
+    private static final String DEFAULT_CHOOSE_VALUE_NAME = "None";
+    private static final String DEFAULT_CHOOSE_VALUE_OID = "";
 
     private PrismObject<SystemConfigurationType> oldConfig;
     private ValuePolicyType globalPasswordPolicy;
@@ -37,6 +42,9 @@ public class SystemConfigurationDto implements Serializable {
 
     private String auditCleanupValue;
     private String taskCleanupValue;
+
+    private ObjectViewDto<ValuePolicyType> passPolicyDto;
+    private ObjectViewDto<ObjectTemplateType> objectTemplateDto;
 
     public SystemConfigurationDto(){
         this(null);
@@ -54,11 +62,41 @@ public class SystemConfigurationDto implements Serializable {
         globalObjectTemplate = config.getDefaultUserTemplate();
         globalPasswordPolicy = config.getGlobalPasswordPolicy();
         globalAEP = config.getGlobalAccountSynchronizationSettings().getAssignmentPolicyEnforcement();
+        aepLevel = AEPlevel.fromAEPLevelType(globalAEP);
         auditCleanup = config.getCleanupPolicy().getAuditRecords();
         taskCleanup = config.getCleanupPolicy().getClosedTasks();
 
         auditCleanupValue = auditCleanup.getMaxAge().toString();
         taskCleanupValue = taskCleanup.getMaxAge().toString();
+
+        passPolicyDto = loadPasswordPolicy(config);
+        objectTemplateDto = loadObjectTemplate(config);
+    }
+
+    private ObjectViewDto<ValuePolicyType> loadPasswordPolicy(SystemConfigurationType config){
+        ValuePolicyType passPolicy = config.getGlobalPasswordPolicy();
+
+        if(passPolicy != null){
+            passPolicyDto = new ObjectViewDto<ValuePolicyType>(passPolicy.getOid(), passPolicy.getName().getOrig());
+        }else {
+            passPolicyDto = new ObjectViewDto<ValuePolicyType>(DEFAULT_CHOOSE_VALUE_OID, DEFAULT_CHOOSE_VALUE_NAME);
+        }
+
+        passPolicyDto.setType(ValuePolicyType.class);
+        return passPolicyDto;
+    }
+
+    private ObjectViewDto<ObjectTemplateType> loadObjectTemplate(SystemConfigurationType config){
+        ObjectTemplateType objectTemplate = config.getDefaultUserTemplate();
+
+        if(objectTemplate != null){
+            objectTemplateDto = new ObjectViewDto<ObjectTemplateType>(objectTemplate.getOid(), objectTemplate.getName().getOrig());
+        }else {
+            objectTemplateDto = new ObjectViewDto<ObjectTemplateType>(DEFAULT_CHOOSE_VALUE_OID, DEFAULT_CHOOSE_VALUE_NAME);
+        }
+
+        objectTemplateDto.setType(ObjectTemplateType.class);
+        return objectTemplateDto;
     }
 
     public PrismObject<SystemConfigurationType> getOldConfig() {
@@ -123,5 +161,29 @@ public class SystemConfigurationDto implements Serializable {
 
     public void setTaskCleanupValue(String taskCleanupValue) {
         this.taskCleanupValue = taskCleanupValue;
+    }
+
+    public AEPlevel getAepLevel() {
+        return aepLevel;
+    }
+
+    public void setAepLevel(AEPlevel aepLevel) {
+        this.aepLevel = aepLevel;
+    }
+
+    public ObjectViewDto<ValuePolicyType> getPassPolicyDto() {
+        return passPolicyDto;
+    }
+
+    public void setPassPolicyDto(ObjectViewDto<ValuePolicyType> passPolicyDto) {
+        this.passPolicyDto = passPolicyDto;
+    }
+
+    public ObjectViewDto<ObjectTemplateType> getObjectTemplateDto() {
+        return objectTemplateDto;
+    }
+
+    public void setObjectTemplateDto(ObjectViewDto<ObjectTemplateType> objectTemplateDto) {
+        this.objectTemplateDto = objectTemplateDto;
     }
 }
