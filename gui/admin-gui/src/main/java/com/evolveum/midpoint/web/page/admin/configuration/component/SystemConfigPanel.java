@@ -45,21 +45,12 @@ public class SystemConfigPanel extends SimplePanel<SystemConfigurationDto> {
 
     private static final Trace LOGGER = TraceManager.getTrace(SystemConfigPanel.class);
 
-    private static final String DOT_CLASS = LoggingConfigPanel.class.getName() + ".";
-    private static final String OPERATION_LOAD_SYSTEM_CONFIGURATION = DOT_CLASS + "loadLoggingConfiguration";
-
     private static final String ID_GLOBAL_PASSWORD_POLICY_CHOOSER = "passwordPolicyChooser";
     private static final String ID_GLOBAL_USER_TEMPLATE_CHOOSER = "userTemplateChooser";
     private static final String ID_GLOBAL_AEP = "aepChooser";
     private static final String ID_CLEANUP_AUDIT_RECORDS = "auditRecordsCleanup";
     private static final String ID_CLEANUP_CLOSED_TASKS = "closedTasksCleanup";
 
-
-    private static final String DEFAULT_CHOOSE_VALUE_NAME = "None";
-    private static final String DEFAULT_CHOOSE_VALUE_OID = "";
-
-    private ObjectViewDto<ValuePolicyType> passPolicyDto;
-    private ObjectViewDto<ObjectTemplateType> objectTemplateDto;
     private ChooseTypePanel passPolicyChoosePanel;
     private ChooseTypePanel userTemplateChoosePanel;
 
@@ -69,13 +60,11 @@ public class SystemConfigPanel extends SimplePanel<SystemConfigurationDto> {
 
     @Override
     protected void initLayout(){
-        passPolicyDto = loadPasswordPolicy();
-        objectTemplateDto = loadObjectTemplate();
 
         passPolicyChoosePanel = new ChooseTypePanel(ID_GLOBAL_PASSWORD_POLICY_CHOOSER,
-                new PropertyModel<ObjectViewDto>(this, "passPolicyDto"));
+                new PropertyModel<ObjectViewDto>(getModel(), "passPolicyDto"));
         userTemplateChoosePanel = new ChooseTypePanel(ID_GLOBAL_USER_TEMPLATE_CHOOSER,
-                new PropertyModel<ObjectViewDto>(this, "objectTemplateDto"));
+                new PropertyModel<ObjectViewDto>(getModel(), "objectTemplateDto"));
 
         add(passPolicyChoosePanel);
         add(userTemplateChoosePanel);
@@ -91,32 +80,4 @@ public class SystemConfigPanel extends SimplePanel<SystemConfigurationDto> {
         add(auditRecordsField);
         add(closedTasksField);
     }
-
-    private ObjectViewDto<ValuePolicyType> loadPasswordPolicy(){
-        ValuePolicyType passPolicy = getModel().getObject().getGlobalPasswordPolicy();
-
-        if(passPolicy != null){
-            passPolicyDto = new ObjectViewDto<ValuePolicyType>(passPolicy.getOid(), passPolicy.getName().getOrig());
-        }else {
-            passPolicyDto = new ObjectViewDto<ValuePolicyType>(DEFAULT_CHOOSE_VALUE_OID, DEFAULT_CHOOSE_VALUE_NAME);
-        }
-
-        passPolicyDto.setType(ValuePolicyType.class);
-        return passPolicyDto;
-    }
-
-    private ObjectViewDto<ObjectTemplateType> loadObjectTemplate(){
-        ObjectTemplateType objectTemplate = getModel().getObject().getGlobalObjectTemplate();
-
-        if(objectTemplate != null){
-            objectTemplateDto = new ObjectViewDto<ObjectTemplateType>(objectTemplate.getOid(), objectTemplate.getName().getOrig());
-        }else {
-            objectTemplateDto = new ObjectViewDto<ObjectTemplateType>(DEFAULT_CHOOSE_VALUE_OID, DEFAULT_CHOOSE_VALUE_NAME);
-        }
-
-        objectTemplateDto.setType(ObjectTemplateType.class);
-        return objectTemplateDto;
-    }
-
-
 }

@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.web.page.admin.configuration;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.DiffUtil;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -29,10 +31,10 @@ import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.LoggingConfigPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.SystemConfigPanel;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.SystemConfigurationDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.*;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -53,11 +55,14 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 
     private static final String DOT_CLASS = PageSystemConfiguration.class.getName() + ".";
     private static final String TASK_GET_SYSTEM_CONFIG = DOT_CLASS + "getSystemConfiguration";
+    private static final String TASK_UPDATE_SYSTEM_CONFIG = DOT_CLASS + "updateSystemConfiguration";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_TAB_PANEL = "tabPanel";
     private static final String ID_CANCEL = "cancel";
     private static final String ID_SAVE = "save";
+
+    LoggingConfigPanel loggingConfigPanel;
 
     private LoadableModel<SystemConfigurationDto> model;
 
@@ -117,7 +122,8 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 
             @Override
             public WebMarkupContainer getPanel(String panelId) {
-                return new LoggingConfigPanel(panelId);
+                loggingConfigPanel = new LoggingConfigPanel(panelId);
+                return loggingConfigPanel;
             }
         });
 
@@ -151,10 +157,164 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
         mainForm.add(cancel);
     }
 
+    private LoggingConfigurationType createLoggingConfiguration(LoggingDto dto) {
+        LoggingConfigurationType configuration = new LoggingConfigurationType();
+        AuditingConfigurationType audit = new AuditingConfigurationType();
+        audit.setEnabled(dto.isAuditLog());
+        audit.setDetails(dto.isAuditDetails());
+        if (StringUtils.isNotEmpty(dto.getAuditAppender())) {
+            audit.getAppender().add(dto.getAuditAppender());
+        }
+        configuration.setAuditing(audit);
+        configuration.setRootLoggerAppender(dto.getRootAppender());
+        configuration.setRootLoggerLevel(dto.getRootLevel());
+
+        for (AppenderConfiguration item : dto.getAppenders()) {
+            configuration.getAppender().add(item.getConfig());
+        }
+
+        for (LoggerConfiguration item : dto.getLoggers()) {
+            if (LoggingDto.LOGGER_PROFILING.equals(item.getName())) {
+                continue;
+            }
+
+            for(ClassLoggerConfigurationType logger : configuration.getClassLogger()){
+                if(logger.getPackage().equals(item.getName())){
+                    error("Logger with name '" + item.getName() + "' is already defined.");
+                    return null;
+                }
+            }
+
+            if(item instanceof ComponentLogger){
+                configuration.getClassLogger().add(((ComponentLogger) item).toXmlType());
+            } else {
+                configuration.getClassLogger().add(((ClassLogger) item).toXmlType());
+            }
+
+        }
+
+        for (FilterConfiguration item : dto.getFilters()) {
+            if (LoggingDto.LOGGER_PROFILING.equals(item.getName())) {
+                continue;
+            }
+
+            for(SubSystemLoggerConfigurationType  filter : configuration.getSubSystemLogger()){
+                if(filter.getComponent().name().equals(item.getName())){
+                    error("Filter with name '" + item.getName() + "' is already defined.");
+                    return null;
+                }
+            }
+
+            configuration.getSubSystemLogger().add(item.toXmlType());
+        }
+
+        if (dto.getProfilingLevel() != null) {
+            ClassLoggerConfigurationType type = createCustomClassLogger(LoggingDto.LOGGER_PROFILING,
+                    ProfilingLevel.toLoggerLevelType(dto.getProfilingLevel()), dto.getProfilingAppender());
+            configuration.getClassLogger().add(type);
+        }
+
+        return configuration;
+    }
+
+    private ClassLoggerConfigurationType createCustomClassLogger(String name, LoggingLevelType level, String appender) {
+        ClassLoggerConfigurationType type = new ClassLoggerConfigurationType();
+        type.setPackage(name);
+        type.setLevel(level);
+        if (StringUtils.isNotEmpty(appender)) {
+            type.getAppender().add(appender);
+        }
+
+        return type;
+    }
+
+    private ProfilingConfigurationType createProfilingConfiguration(LoggingDto dto){
+        ProfilingConfigurationType config = new ProfilingConfigurationType();
+
+        if(dto.isPerformanceStatistics() || dto.isRequestFilter() || dto.isSubsystemModel() || dto.isSubsystemRepository() || dto.isSubsystemProvisioning()
+                || dto.isSubsystemResourceObjectChangeListener() || dto.isSubsystemUcf() || dto.isSubsystemTaskManager() || dto.isSubsystemWorkflow())
+            config.setEnabled(true);
+        else
+            config.setEnabled(false);
+
+        LOGGER.info("Profiling enabled: " + config.isEnabled());
+
+        config.setDumpInterval(dto.getDumpInterval());
+        config.setPerformanceStatistics(dto.isPerformanceStatistics());
+        config.setRequestFilter(dto.isRequestFilter());
+        config.setModel(dto.isSubsystemModel());
+        config.setProvisioning(dto.isSubsystemProvisioning());
+        config.setRepository(dto.isSubsystemRepository());
+        config.setUcf(dto.isSubsystemUcf());
+        config.setResourceObjectChangeListener(dto.isSubsystemResourceObjectChangeListener());
+        config.setTaskManager(dto.isSubsystemTaskManager());
+        config.setWorkflow(dto.isSubsystemWorkflow());
+
+        return config;
+    }
+
+    //TODO - refresh the panel after saving
     private void savePerformed(AjaxRequestTarget target) {
+        OperationResult result = new OperationResult(TASK_UPDATE_SYSTEM_CONFIG);
+        String oid = SystemObjectsType.SYSTEM_CONFIGURATION.value();
 
+        try{
+            LoggingDto loggingDto = loggingConfigPanel.getModel().getObject();
+            LoggingConfigurationType loggingConfig = createLoggingConfiguration(loggingDto);
 
-        //todo implement
+            if(loggingConfig == null){
+                target.add(getFeedbackPanel());
+                //TODO - maybe refresh components?
+                return;
+            }
+
+            ProfilingConfigurationType profilingConfig = createProfilingConfiguration(loggingDto);
+            if(profilingConfig == null){
+                target.add(getFeedbackPanel());
+                //TODO - maybe refresh components?
+                return;
+            }
+
+            Task task = createSimpleTask(TASK_UPDATE_SYSTEM_CONFIG);
+            PrismObject<SystemConfigurationType> newObject = loggingDto.getOldConfiguration();
+            newObject.asObjectable().setLogging(loggingConfig);
+            newObject.asObjectable().setProfilingConfiguration(profilingConfig);
+
+            PrismObject<SystemConfigurationType> oldObject = getModelService().getObject(SystemConfigurationType.class,
+                    oid, null, task, result);
+
+            ObjectDelta<SystemConfigurationType> delta = DiffUtil.diff(oldObject, newObject);
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Logging configuration delta:\n{}", delta.dump());
+            }
+            if (delta != null && !delta.isEmpty()){
+                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
+            }
+            for (LoggerConfiguration logger : loggingDto.getLoggers()) {
+                logger.setEditing(false);
+            }
+            for (FilterConfiguration filter : loggingDto.getFilters()) {
+                filter.setEditing(false);
+            }
+            for (AppenderConfiguration appender : loggingDto.getAppenders()) {
+                appender.setEditing(false);
+            }
+            result.computeStatusIfUnknown();
+        } catch (Exception e){
+            result.recomputeStatus();
+            result.recordFatalError("Couldn't save system configuration.", e);
+        }
+
+        showResult(result);
+        target.add(getFeedbackPanel());
+        resetPerformed(target);
+    }
+
+    private void resetPerformed(AjaxRequestTarget target) {
+        model.reset();
+        //TODO - maybe refresh components?
+        //target.add(get("mainForm"));
+        target.appendJavaScript("init();");
     }
 
     private void cancelPerformed(AjaxRequestTarget target) {
