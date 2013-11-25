@@ -520,11 +520,13 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertNotNull("No account secondary delta", accountSecondaryDelta);
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
-        assertEquals("Unexpected number of account secondary changes", 5, accountSecondaryDelta.getModifications().size());
+        assertEquals("Unexpected number of account secondary changes", 6, accountSecondaryDelta.getModifications().size());
         PropertyDelta<ActivationStatusType> enabledDelta = accountSecondaryDelta.findPropertyDelta(new ItemPath(ShadowType.F_ACTIVATION, 
         		ActivationType.F_ADMINISTRATIVE_STATUS));
         PrismAsserts.assertReplace(enabledDelta, ActivationStatusType.DISABLED);
         PrismAsserts.assertOrigin(enabledDelta, OriginType.OUTBOUND);
+        PrismAsserts.assertPropertyReplace(accountSecondaryDelta, SchemaConstants.PATH_ACTIVATION_DISABLE_REASON,
+        		SchemaConstants.MODEL_DISABLE_REASON_MAPPED);
         
         ContainerDelta<TriggerType> triggerDelta = accountSecondaryDelta.findContainerDelta(ObjectType.F_TRIGGER);
         assertNotNull("No trigger delta in account secondary delta", triggerDelta);
