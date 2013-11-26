@@ -37,7 +37,9 @@ import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.PageBase;
@@ -76,6 +78,7 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
+import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -100,6 +103,8 @@ public class TreeTablePanel extends SimplePanel<String> {
     private static final String ID_FORM = "form";
     private static final String ID_CONFIRM_DELETE_POPUP = "confirmDeletePopup";
     private static final String ID_MOVE_POPUP = "movePopup";
+    private static final String ID_TREE_MENU = "treeMenu";
+    private static final String ID_TREE_HEADER = "treeHeader";
 
     private IModel<OrgTreeDto> selected = new LoadableModel<OrgTreeDto>() {
 
@@ -139,6 +144,13 @@ public class TreeTablePanel extends SimplePanel<String> {
             }
         });
 
+        WebMarkupContainer treeHeader = new WebMarkupContainer(ID_TREE_HEADER);
+        treeHeader.setOutputMarkupId(true);
+        add(treeHeader);
+
+        InlineMenu treeMenu = new InlineMenu(ID_TREE_MENU, new Model((Serializable) createTreeMenu()));
+        treeHeader.add(treeMenu);
+
         ISortableTreeProvider provider = new OrgTreeProvider(this, getModel());
         List<IColumn<OrgTreeDto, String>> columns = new ArrayList<IColumn<OrgTreeDto, String>>();
         columns.add(new TreeColumn<OrgTreeDto, String>(createStringResource("TreeTablePanel.hierarchy")));
@@ -151,7 +163,8 @@ public class TreeTablePanel extends SimplePanel<String> {
 
                 //method computes height based on document.innerHeight() - screen height;
                 response.render(OnDomReadyHeaderItem.forScript("updateHeight('" + getMarkupId()
-                        + "', ['#" + TreeTablePanel.this.get(ID_FORM).getMarkupId() + "'], ['#treeHeader'])"));
+                        + "', ['#" + TreeTablePanel.this.get(ID_FORM).getMarkupId() + "'], ['#"
+                        + TreeTablePanel.this.get(ID_TREE_HEADER).getMarkupId() + "'])"));
             }
         };
         add(treeContainer);
@@ -218,6 +231,40 @@ public class TreeTablePanel extends SimplePanel<String> {
         TablePanel table = new TablePanel(ID_TABLE, tableProvider, tableColumns, 10);
         table.setOutputMarkupId(true);
         form.add(table);
+    }
+
+    private List<InlineMenuItem> createTreeMenu() {
+        List<InlineMenuItem> items = new ArrayList<InlineMenuItem>();
+
+        InlineMenuItem item = new InlineMenuItem(createStringResource("TreeTablePanel.collapseAll"),
+                new InlineMenuItemAction() {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        collapseAllPerformed(target);
+                    }
+                });
+        items.add(item);
+        item = new InlineMenuItem(createStringResource("TreeTablePanel.expandAll"),
+                new InlineMenuItemAction() {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        expandAllPerformed(target);
+                    }
+                });
+        items.add(item);
+        items.add(new InlineMenuItem());
+        item = new InlineMenuItem(createStringResource("TreeTablePanel.moveRoot"), new InlineMenuItemAction() {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                moveRootPerformed(target);
+            }
+        });
+        items.add(item);
+
+        return items;
     }
 
     private IModel<String> createDeleteConfirmString() {
@@ -559,6 +606,18 @@ public class TreeTablePanel extends SimplePanel<String> {
 
         OrgFilter filter = OrgFilter.createOrg(oid, null, 1);
         return ObjectQuery.createObjectQuery(filter);
+    }
+
+    private void collapseAllPerformed(AjaxRequestTarget target) {
+
+    }
+
+    private void expandAllPerformed(AjaxRequestTarget target) {
+
+    }
+
+    private void moveRootPerformed(AjaxRequestTarget target) {
+
     }
 
     private static class TreeStateModel extends AbstractReadOnlyModel<Set<OrgTreeDto>> {
