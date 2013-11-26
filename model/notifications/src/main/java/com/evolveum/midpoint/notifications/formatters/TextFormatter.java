@@ -79,22 +79,22 @@ public class TextFormatter {
         return retval.toString();
     }
 
-    public String formatAccountAttributes(ShadowType shadowType, boolean showOperationalAttributes) {
+    public String formatAccountAttributes(ShadowType shadowType, List<ItemPath> hiddenAttributes, boolean showOperationalAttributes) {
         Validate.notNull(shadowType, "shadowType is null");
 
         StringBuilder retval = new StringBuilder();
         if (shadowType.getAttributes() != null) {
-            formatContainerValue(retval, "", shadowType.getAttributes().asPrismContainerValue(), false, showOperationalAttributes);
+            formatContainerValue(retval, "", shadowType.getAttributes().asPrismContainerValue(), false, hiddenAttributes, showOperationalAttributes);
         }
         return retval.toString();
     }
 
-    public String formatObject(PrismObject object, boolean showOperationalAttributes) {
+    public String formatObject(PrismObject object, List<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
 
         Validate.notNull(object, "object is null");
 
         StringBuilder retval = new StringBuilder();
-        formatContainerValue(retval, "", object.getValue(), false, showOperationalAttributes);
+        formatContainerValue(retval, "", object.getValue(), false, hiddenPaths, showOperationalAttributes);
         return retval.toString();
     }
 
@@ -116,14 +116,14 @@ public class TextFormatter {
         }
     }
 
-    private void formatPrismValue(StringBuilder sb, String prefix, PrismValue prismValue, boolean mightBeRemoved, boolean showOperationalAttributes) {
+    private void formatPrismValue(StringBuilder sb, String prefix, PrismValue prismValue, boolean mightBeRemoved, List<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
         if (prismValue instanceof PrismPropertyValue) {
             sb.append(ValueDisplayUtil.toStringValue((PrismPropertyValue) prismValue));
         } else if (prismValue instanceof PrismReferenceValue) {
             sb.append(formatReferenceValue((PrismReferenceValue) prismValue, mightBeRemoved));
         } else if (prismValue instanceof PrismContainerValue) {
             sb.append("\n");
-            formatContainerValue(sb, prefix, (PrismContainerValue) prismValue, mightBeRemoved, showOperationalAttributes);
+            formatContainerValue(sb, prefix, (PrismContainerValue) prismValue, mightBeRemoved, hiddenPaths, showOperationalAttributes);
         } else {
             sb.append("Unexpected PrismValue type: ");
             sb.append(prismValue);
@@ -131,11 +131,11 @@ public class TextFormatter {
         }
     }
 
-    private void formatContainerValue(StringBuilder sb, String prefix, PrismContainerValue containerValue, boolean mightBeRemoved, boolean showOperationalAttributes) {
+    private void formatContainerValue(StringBuilder sb, String prefix, PrismContainerValue containerValue, boolean mightBeRemoved, List<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
 //        sb.append("Container of type " + containerValue.getParent().getDefinition().getTypeName());
 //        sb.append("\n");
 
-        List<Item> toBeDisplayed = filterAndOrderItems(containerValue.getItems(), showOperationalAttributes);
+        List<Item> toBeDisplayed = filterAndOrderItems(containerValue.getItems(), hiddenPaths, showOperationalAttributes);
 
         for (Item item : toBeDisplayed) {
             sb.append(prefix);
@@ -168,7 +168,8 @@ public class TextFormatter {
                 for (PrismContainerValue subContainerValue : ((PrismContainer<? extends Containerable>) item).getValues()) {
                     sb.append("\n");
                     String prefixSubContainer = prefix + "   ";
-                    formatContainerValue(sb, prefixSubContainer, subContainerValue, mightBeRemoved, showOperationalAttributes);
+                    formatContainerValue(sb, prefixSubContainer, subContainerValue, mightBeRemoved,
+                            hiddenPathsInSubcontainer(hiddenPaths, item), showOperationalAttributes);
                 }
             } else {
                 sb.append("Unexpected Item type: ");
@@ -302,10 +303,11 @@ public class TextFormatter {
                 item.getDefinition().getDisplayName() : item.getName().getLocalPart();
     }
 
-    private List<Item> filterAndOrderItems(List<Item> items, boolean showOperationalAttributes) {
+    private List<Item> filterAndOrderItems(List<Item> items, List<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
         List<Item> toBeDisplayed = new ArrayList<Item>(items.size());
         for (Item item : items) {
             if (item.getDefinition() != null) {
+                boolean isHidden = shouldItemBeHidden(hiddenPaths, item);
                 if (showOperationalAttributes || !item.getDefinition().isOperational()) {
                     toBeDisplayed.add(item);
                 }

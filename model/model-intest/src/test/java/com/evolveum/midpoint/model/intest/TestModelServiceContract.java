@@ -313,10 +313,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
 		userDelta.addModification(accountDelta);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
-		
-        dummyNotifier.clearRecords();
-        dummyTransport.clearMessages();
-        notificationManager.setDisabled(false);
+
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         
 		// WHEN

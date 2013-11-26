@@ -51,7 +51,7 @@ import java.util.Map;
  * @author mederly
  */
 @Component
-public abstract class GeneralNotifier extends BaseHandler {
+public class GeneralNotifier extends BaseHandler {
 
     private static final Trace DEFAULT_LOGGER = TraceManager.getTrace(GeneralNotifier.class);
 
