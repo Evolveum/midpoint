@@ -410,7 +410,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 			// synchronize changes
 			LOGGER.trace("Start synchronizing fetched changes.");
-			processedChanges = getShadowCache(Mode.STANDARD).processSynchronization(changes, task, resourceType, tokenProperty, result);
+			processedChanges = processSynchronization(changes, task, resourceType, tokenProperty, result);
 			LOGGER.trace("End synchronizing fetched changes.");
 			// This happens in the (scheduled async) task. Recording of results
 			// in the task is still not
@@ -480,27 +480,28 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		return tokenProperty;
 	}
 
-//	@SuppressWarnings("rawtypes")
-//	private int processSynchronization(List<Change<ShadowType>> changes, Task task, ResourceType resourceType,
-//			PrismProperty tokenProperty, OperationResult result) throws SchemaException, ObjectNotFoundException,
-//			ObjectAlreadyExistsException {
-//		int processedChanges = 0;
-//		// for each change from the connector create change description
-//		for (Change change : changes) {
-//
-//			// this is the case,when we want to skip processing of change,
-//			// because the shadow was not created or found to the resource
-//			// object
-//			// it may be caused with the fact, that the object which was
-//			// created in the resource was deleted before the sync run
-//			// such a change should be skipped to process consistent changes
-//			if (change.getOldShadow() == null) {
-//				PrismProperty<?> newToken = change.getToken();
-//				task.setExtensionProperty(newToken);
-//				processedChanges++;
-//				LOGGER.debug("Skipping processing change. Can't find appropriate shadow (e.g. the object was deleted on the resource meantime).");
-//				continue;
-//			}
+	@SuppressWarnings("rawtypes")
+	private int processSynchronization(List<Change<ShadowType>> changes, Task task, ResourceType resourceType,
+			PrismProperty tokenProperty, OperationResult result) throws SchemaException, ObjectNotFoundException,
+			ObjectAlreadyExistsException {
+		int processedChanges = 0;
+		// for each change from the connector create change description
+		for (Change<ShadowType> change : changes) {
+
+			// this is the case,when we want to skip processing of change,
+			// because the shadow was not created or found to the resource
+			// object
+			// it may be caused with the fact, that the object which was
+			// created in the resource was deleted before the sync run
+			// such a change should be skipped to process consistent changes
+			if (change.getOldShadow() == null) {
+				PrismProperty<?> newToken = change.getToken();
+				task.setExtensionProperty(newToken);
+				processedChanges++;
+				LOGGER.debug("Skipping processing change. Can't find appropriate shadow (e.g. the object was deleted on the resource meantime).");
+				continue;
+			}
+			boolean isSuccess = getShadowCache(Mode.STANDARD).processSynchronization(change, task, resourceType, result);
 //
 //			ResourceObjectShadowChangeDescription shadowChangeDescription = createResourceShadowChangeDescription(
 //					change, resourceType);
@@ -524,29 +525,29 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 //
 //			notifyChangeResult.computeStatus("Error by notify change operation.");
 //
-//			if (notifyChangeResult.isSuccess()) {
+			if (isSuccess) {
 //				deleteShadowFromRepo(change, result);
 //
 //				// get updated token from change,
 //				// create property modification from new token
 //				// and replace old token with the new one
-//				PrismProperty<?> newToken = change.getToken();
-//				task.setExtensionProperty(newToken);
-//				processedChanges++;
-//
+				PrismProperty<?> newToken = change.getToken();
+				task.setExtensionProperty(newToken);
+				processedChanges++;
+			}
 //			} else {
 //				saveAccountResult(shadowChangeDescription, change, notifyChangeResult, result);
 //			}
-//
-//		}
-//		// also if no changes was detected, update token
-//		if (changes.isEmpty() && tokenProperty != null) {
-//			LOGGER.trace("No changes to synchronize on " + ObjectTypeUtil.toShortString(resourceType));
-//			task.setExtensionProperty(tokenProperty);
-//		}
-//		task.savePendingModifications(result);
-//		return processedChanges;
-//	}
+
+		}
+		// also if no changes was detected, update token
+		if (changes.isEmpty() && tokenProperty != null) {
+			LOGGER.trace("No changes to synchronize on " + ObjectTypeUtil.toShortString(resourceType));
+			task.setExtensionProperty(tokenProperty);
+		}
+		task.savePendingModifications(result);
+		return processedChanges;
+	}
 	
 	@Override
 	public <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query, 
