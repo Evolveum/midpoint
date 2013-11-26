@@ -59,6 +59,7 @@ import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler;
 import com.evolveum.midpoint.provisioning.consistency.api.ErrorHandler.FailedOperation;
@@ -74,6 +75,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
@@ -89,6 +91,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -1030,6 +1033,207 @@ public abstract class ShadowCache {
 		parentResult.recordSuccess();
 		return changes;
 	}
+	
+	@SuppressWarnings("rawtypes")
+	public int processSynchronization(List<Change<ShadowType>> changes, Task task, ResourceType resourceType,
+			PrismProperty tokenProperty, OperationResult result) throws SchemaException, ObjectNotFoundException,
+			ObjectAlreadyExistsException {
+		int processedChanges = 0;
+		// for each change from the connector create change description
+		for (Change change : changes) {
+
+			// this is the case,when we want to skip processing of change,
+			// because the shadow was not created or found to the resource
+			// object
+			// it may be caused with the fact, that the object which was
+			// created in the resource was deleted before the sync run
+			// such a change should be skipped to process consistent changes
+			if (change.getOldShadow() == null) {
+				PrismProperty<?> newToken = change.getToken();
+				task.setExtensionProperty(newToken);
+				processedChanges++;
+				LOGGER.debug("Skipping processing change. Can't find appropriate shadow (e.g. the object was deleted on the resource meantime).");
+				continue;
+			}
+
+			ResourceObjectShadowChangeDescription shadowChangeDescription = createResourceShadowChangeDescription(
+					change, resourceType);
+
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("**PROVISIONING: Created resource object shadow change description {}",
+						SchemaDebugUtil.prettyPrint(shadowChangeDescription));
+			}
+			OperationResult notifyChangeResult = new OperationResult(ShadowCache.class.getName()
+					+ "notifyChange");
+			notifyChangeResult.addParam("resourceObjectShadowChangeDescription", shadowChangeDescription);
+
+			try {
+				notifyResourceObjectChangeListeners(shadowChangeDescription, task, notifyChangeResult);
+				notifyChangeResult.recordSuccess();
+			} catch (RuntimeException ex) {
+//				recordFatalError(LOGGER, notifyChangeResult, "Synchronization error: " + ex.getMessage(), ex);
+				saveAccountResult(shadowChangeDescription, change, notifyChangeResult, result);
+				throw new SystemException("Synchronization error: " + ex.getMessage(), ex);
+			}
+
+			notifyChangeResult.computeStatus("Error by notify change operation.");
+
+			if (notifyChangeResult.isSuccess()) {
+				deleteShadowFromRepo(change, result);
+
+				// get updated token from change,
+				// create property modification from new token
+				// and replace old token with the new one
+				PrismProperty<?> newToken = change.getToken();
+				task.setExtensionProperty(newToken);
+				processedChanges++;
+
+			} else {
+				saveAccountResult(shadowChangeDescription, change, notifyChangeResult, result);
+			}
+
+		}
+		// also if no changes was detected, update token
+		if (changes.isEmpty() && tokenProperty != null) {
+			LOGGER.trace("No changes to synchronize on " + ObjectTypeUtil.toShortString(resourceType));
+			task.setExtensionProperty(tokenProperty);
+		}
+		task.savePendingModifications(result);
+		return processedChanges;
+	}
+	
+	private void notifyResourceObjectChangeListeners(ResourceObjectShadowChangeDescription change,
+			Task task, OperationResult parentResult) {
+		changeNotificationDispatcher.notifyChange(change, task, parentResult);
+	}
+
+	@SuppressWarnings("unchecked")
+	private ResourceObjectShadowChangeDescription createResourceShadowChangeDescription(Change<ShadowType> change,
+			ResourceType resourceType) {
+		ResourceObjectShadowChangeDescription shadowChangeDescription = new ResourceObjectShadowChangeDescription();
+		shadowChangeDescription.setObjectDelta(change.getObjectDelta());
+		shadowChangeDescription.setResource(resourceType.asPrismObject());
+		shadowChangeDescription.setOldShadow(change.getOldShadow());
+		shadowChangeDescription.setCurrentShadow(change.getCurrentShadow());
+		shadowChangeDescription.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC));
+		return shadowChangeDescription;
+	}
+	
+	@SuppressWarnings("rawtypes")
+	private void saveAccountResult(ResourceObjectShadowChangeDescription shadowChangeDescription, Change change,
+			OperationResult notifyChangeResult, OperationResult parentResult) throws ObjectNotFoundException,
+			SchemaException, ObjectAlreadyExistsException {
+
+		Collection<? extends ItemDelta> shadowModification = createShadowResultModification(change, notifyChangeResult);
+		String oid = getOidFromChange(change);
+		// maybe better error handling is needed
+		try{
+		repositoryService.modifyObject(ShadowType.class, oid,
+				shadowModification, parentResult);
+		} catch (SchemaException ex){
+			parentResult.recordPartialError("Couldn't modify object: schema violation: " + ex.getMessage(), ex);
+//			throw ex;
+		} catch (ObjectNotFoundException ex){
+			parentResult.recordWarning("Couldn't modify object: object not found: " + ex.getMessage(), ex);
+//			throw ex;
+		} catch (ObjectAlreadyExistsException ex){
+			parentResult.recordPartialError("Couldn't modify object: object already exists: " + ex.getMessage(), ex);
+//			throw ex;
+		}
+
+	}
+	
+	private PrismObjectDefinition<ShadowType> getResourceObjectShadowDefinition() {
+//		if (resourceObjectShadowDefinition == null) {
+			return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(
+					ShadowType.class);
+//		}
+//		return resourceObjectShadowDefinition;
+	}
+	
+	@SuppressWarnings("rawtypes")
+	private Collection<? extends ItemDelta> createShadowResultModification(Change change, OperationResult shadowResult) {
+		PrismObjectDefinition<ShadowType> shadowDefinition = getResourceObjectShadowDefinition();
+		
+		Collection<ItemDelta> modifications = new ArrayList<ItemDelta>();
+		PropertyDelta resultDelta = PropertyDelta.createModificationReplaceProperty(
+				ShadowType.F_RESULT, shadowDefinition, shadowResult.createOperationResultType());
+		modifications.add(resultDelta);
+		if (change.getObjectDelta() != null && change.getObjectDelta().getChangeType() == ChangeType.DELETE) {
+			PropertyDelta failedOperationTypeDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_FAILED_OPERATION_TYPE, shadowDefinition, FailedOperationTypeType.DELETE);
+			modifications.add(failedOperationTypeDelta);
+		}		
+		return modifications;
+	}
+	
+	private String getOidFromChange(Change change){
+		String shadowOid = null;
+		if (change.getObjectDelta() != null && change.getObjectDelta().getOid() != null) {
+			shadowOid = change.getObjectDelta().getOid();
+		} else {
+			if (change.getCurrentShadow().getOid() != null) {
+				shadowOid = change.getCurrentShadow().getOid();
+			} else {
+				if (change.getOldShadow().getOid() != null) {
+					shadowOid = change.getOldShadow().getOid();
+				} else {
+					throw new IllegalArgumentException("No oid value defined for the object to synchronize.");
+				}
+			}
+		}
+		return shadowOid;
+	}
+
+	private void deleteShadowFromRepo(Change change, OperationResult parentResult) throws ObjectNotFoundException {
+		if (change.getObjectDelta() != null && change.getObjectDelta().getChangeType() == ChangeType.DELETE
+				&& change.getOldShadow() != null) {
+			LOGGER.debug("Deleting detected shadow object form repository.");
+			try {
+				repositoryService.deleteObject(ShadowType.class, change.getOldShadow().getOid(),
+						parentResult);
+			} catch (ObjectNotFoundException ex) {
+				parentResult.recordFatalError("Can't find object " + change.getOldShadow() + " in repository.");
+				throw new ObjectNotFoundException("Can't find object " + change.getOldShadow() + " in repository.");
+			}
+			LOGGER.debug("Shadow object deleted successfully form repository.");
+		}
+	}
+
+
+	
+//	public void processChange(ResourceType resourceType, RefinedObjectClassDefinition objectClassDefinition, OperationResult parentResult, ObjectDelta delta, PrismObject<ShadowType> currentShadow){
+//		PrismObject<ShadowType> oldShadow = shadowManager.findOrCreateShadowFromChange(resourceType, change, objectClassDefinition, parentResult);
+//		if (oldShadow != null) {
+//			applyAttributesDefinition(oldShadow, resourceType);
+//			ShadowType oldShadowType = oldShadow.asObjectable();
+//
+//			LOGGER.trace("Old shadow: {}", oldShadow);
+//
+//			// skip setting other attribute when shadow is null
+//			if (oldShadow == null) {
+//				change.setOldShadow(null);
+//				continue;
+//			}
+//
+//			resouceObjectConverter.setProtectedFlag(resourceType, oldShadow);
+//			change.setOldShadow(oldShadow);
+//
+//			if (change.getCurrentShadow() != null) {
+//				PrismObject<ShadowType> currentShadow = completeShadow(connector, change.getCurrentShadow(), 
+//						oldShadow, resourceType, objecClassDefinition, parentResult);
+//				change.setCurrentShadow(currentShadow);
+//				ShadowType currentShadowType = currentShadow.asObjectable();
+//				forceRenameIfNeeded(currentShadowType, oldShadowType, parentResult);
+//			}
+//
+//			// FIXME: hack. the object delta must have oid specified.
+//			if (change.getObjectDelta() != null && change.getObjectDelta().getOid() == null) {
+//				ObjectDelta<ShadowType> objDelta = new ObjectDelta<ShadowType>(ShadowType.class, ChangeType.DELETE, prismContext);
+//				change.setObjectDelta(objDelta);
+//				change.getObjectDelta().setOid(oldShadow.getOid());
+//			}
+//	}
+
 
 	private void forceRenameIfNeeded(ShadowType currentShadowType, ShadowType oldShadowType, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
 		Collection<ResourceAttribute<?>> oldSecondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(oldShadowType);

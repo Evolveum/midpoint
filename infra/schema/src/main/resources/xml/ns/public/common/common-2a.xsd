@@ -4985,6 +4985,54 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
+    
+    <xsd:complexType name="ResourceObjectShadowChangeDescriptionType">
+        <xsd:annotation>
+            <xsd:documentation>
+            	Description of the change in the external resource. 
+            </xsd:documentation>
+        </xsd:annotation>
+        	<xsd:sequence>
+            	<xsd:element name="oldShadowOid" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Identifier of the old shadow. According to this identifier, the shadow will be
+                                fetched from the repo (resource). It may be null in the case when the notification
+                                describes the ADD object sitaution.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="currentShadow" type="tns:ShadowType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Current shadow. This is used in the "absolute" mode, when we do not have change description.
+                                Shadow represents the current state with the modifications already applied to its. Current 
+                                shadow is used to compare to the old state so the modifications may be computed and synchronized.
+                                It may be null. If the current shadow is null, object delta have to be specified.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="objectDelta" type="t:ObjectDeltaType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Delta describing the changes made to the shadow. E.g. if the change in the resource was
+                                to add new account, delta will contain ADD modification with the object specified.
+                                It may be null. If the object delta is null, the current shadow have to be specified.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="channel" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Channel which triggers the execution of notification, e.g. synchronization, reconciliation etc.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+    </xsd:complexType>
+    
+<xsd:element name="resourceObjectShadowChangeDescription" type="tns:ResourceObjectShadowChangeDescriptionType"/>
+    
 
     <xsd:complexType name="ConnectorType">
         <xsd:annotation>

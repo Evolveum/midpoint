@@ -264,6 +264,22 @@
                     </xsd:sequence>
                 </xsd:complexType>
             </xsd:element>
+            
+                 <xsd:element name="notifyChange">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="changeDescription" type="c:ResourceObjectShadowChangeDescriptionType"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="notifyChangeResponse">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:element name="task" type="c:TaskType" />
+                    </xsd:sequence>
+                </xsd:complexType>
+            </xsd:element>
+       
         </xsd:schema>
     </types>
 
@@ -344,6 +360,13 @@
     </message>
     <message name="importFromResourceResponse">
         <part name="parameters" element="tns:importFromResourceResponse" />
+    </message>
+    
+    <message name="notifyChange">
+        <part name="parameters" element="tns:notifyChange" />
+    </message>
+    <message name="notifyChangeResponse">
+        <part name="parameters" element="tns:notifyChangeResponse" />
     </message>
 
     <portType name="modelPortType">
@@ -569,6 +592,16 @@
             <fault name="fault" message="f:FaultMessage"/>
         </operation>
 
+<operation name="notifyChange">
+            <documentation>
+            	TODO: update description
+            	
+               Trigger change notification.
+            </documentation>
+            <input name="notifyChangeInput" message="tns:notifyChange"/>
+            <output name="notifyChangeOutput" message="tns:notifyChangeResponse"/>
+            <fault name="fault" message="f:FaultMessage"/>
+        </operation>
     </portType>
 
     <binding name="modelBinding" type="tns:modelPortType">
@@ -687,6 +720,18 @@
                 <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
             </input>
             <output name="importFromResourceOutput">
+                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
+            </output>
+            <fault name="fault">
+                <soap:fault name="fault" use="literal"/>
+            </fault>
+        </operation>
+        <operation name="notifyChange">
+            <soap:operation/>
+            <input name="notifyChangeInput">
+                <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
+            </input>
+            <output name="notifyChangeOutput">
                 <soap:body use="literal" namespace="http://midpoint.evolveum.com/xml/ns/public/model/model-1.wsdl"/>
             </output>
             <fault name="fault">
