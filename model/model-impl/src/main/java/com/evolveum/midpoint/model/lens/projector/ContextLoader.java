@@ -785,12 +785,7 @@ public class ContextLoader {
 		
 		// Load current object
 		PrismObject<P> projectionObject = projContext.getObjectCurrent();
-		if (projContext.getObjectCurrent() != null) {
-			projectionObject = projContext.getObjectCurrent();
-			if (projectionObjectOid != null){
-				projContext.setExists(true);
-			}
-		} else {
+		if (projContext.getObjectCurrent() == null || needToReload(context, projContext)) {
 			if (projContext.isAdd()) {
 				// No need to load old object, there is none
 				projContext.setExists(false);
@@ -808,24 +803,17 @@ public class ContextLoader {
 					GetOperationOptions rootOptions = projContext.isDoReconciliation() ? 
 							GetOperationOptions.createDoNotDiscovery() : GetOperationOptions.createNoFetch();
 					Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(rootOptions);
-//						if (projContext.isDoReconciliation()) {
-//							options = GetOperationOptions.createDoNotDiscovery();
-////							projContext.setFullShadow(true);
-//						} else {
-////							projContext.setFullShadow(false);
-//							options = GetOperationOptions.createNoFetch();
-//						]}
 					try{
-					PrismObject<P> objectOld = provisioningService.getObject(
-							projContext.getObjectTypeClass(), projectionObjectOid, options, null, result);
-					projContext.setLoadedObject(objectOld);
-					P oldShadow = objectOld.asObjectable();
-					if (projContext.isDoReconciliation()) {
-                        projContext.determineFullShadowFlag(oldShadow.getFetchResult());
-					} else {
-						projContext.setFullShadow(false);
-					}
-					projectionObject = objectOld;
+						PrismObject<P> objectOld = provisioningService.getObject(
+								projContext.getObjectTypeClass(), projectionObjectOid, options, null, result);
+						projContext.setLoadedObject(objectOld);
+						P oldShadow = objectOld.asObjectable();
+						if (projContext.isDoReconciliation()) {
+	                        projContext.determineFullShadowFlag(oldShadow.getFetchResult());
+						} else {
+							projContext.setFullShadow(false);
+						}
+						projectionObject = objectOld;
 					} catch (ObjectNotFoundException ex){
 						projContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
 						LOGGER.warn("Could not find object with oid " + projectionObjectOid + ". Context for these object is marked as broken");
@@ -836,6 +824,12 @@ public class ContextLoader {
 						return;
 					}
 				}
+				projContext.setFresh(true);
+			}
+		} else {
+			projectionObject = projContext.getObjectCurrent();
+			if (projectionObjectOid != null) {
+				projContext.setExists(true);
 			}
 		}
 		
@@ -894,6 +888,28 @@ public class ContextLoader {
 			}
 			
 		}
+	}
+	
+	private <F extends ObjectType, P extends ObjectType> boolean needToReload(LensContext<F,P> context, 
+			LensProjectionContext<P> projContext) {
+		ResourceShadowDiscriminator discr = projContext.getResourceShadowDiscriminator();
+		if (discr == null) {
+			return false;
+		}
+		// This is kind of brutal. But effective. We are reloading all higher-order dependencies
+		// before they are processed. This makes sure we have fresh state when they are re-computed.
+		// Because higher-order dependencies may have more than one projection context and the
+		// changes applied to one of them are not automatically reflected on on other. therefore we need to reload.
+		if (discr.getOrder() == 0) {
+			return false;
+		}
+		int executionWave = context.getExecutionWave();
+		int projCtxWave = projContext.getWave();
+		if (executionWave == projCtxWave - 1) {
+			// Reload right before its execution wave
+			return true;
+		}
+		return false;
 	}
 	
 	private <F extends ObjectType, P extends ObjectType> void fullCheckConsistence(LensContext<F,P> context) {
