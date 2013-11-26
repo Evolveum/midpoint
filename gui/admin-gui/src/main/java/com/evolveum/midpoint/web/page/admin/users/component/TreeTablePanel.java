@@ -49,6 +49,7 @@ import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgTableDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgTreeDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.TreeStateSet;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
@@ -79,7 +80,10 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.io.Serializable;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 /**
  * todo create function computeHeight() in midpoint.js, update height properly when in "mobile" mode... [lazyman]
@@ -609,24 +613,44 @@ public class TreeTablePanel extends SimplePanel<String> {
     }
 
     private void collapseAllPerformed(AjaxRequestTarget target) {
+        TableTree tree = getTree();
+        TreeStateModel model = (TreeStateModel) tree.getDefaultModel();
+        model.collapseAll();
 
+        target.add(tree);
     }
 
     private void expandAllPerformed(AjaxRequestTarget target) {
+        TableTree tree = getTree();
+        TreeStateModel model = (TreeStateModel) tree.getDefaultModel();
+        model.expandAll();
 
+        target.add(tree);
     }
 
     private void moveRootPerformed(AjaxRequestTarget target) {
+        //todo implement [lazyman]
+    }
 
+    private void moveRootConfirmedPerformed(AjaxRequestTarget target) {
+        //todo implement [lazyman]
     }
 
     private static class TreeStateModel extends AbstractReadOnlyModel<Set<OrgTreeDto>> {
 
-        private Set<OrgTreeDto> set = new HashSet<OrgTreeDto>();
+        private TreeStateSet<OrgTreeDto> set = new TreeStateSet<OrgTreeDto>();
 
         @Override
         public Set<OrgTreeDto> getObject() {
             return set;
+        }
+
+        public void expandAll() {
+            set.expandAll();
+        }
+
+        public void collapseAll() {
+            set.collapseAll();
         }
     }
 }
