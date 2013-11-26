@@ -944,7 +944,7 @@ public abstract class ShadowCache {
 	
 	////////////////
 	
-	private ConnectorInstance getConnectorInstance(ResourceType resource, OperationResult parentResult)
+	ConnectorInstance getConnectorInstance(ResourceType resource, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		return connectorManager.getConfiguredConnectorInstance(resource.asPrismObject(), false, parentResult);
 	}
@@ -960,54 +960,56 @@ public abstract class ShadowCache {
 
 		InternalMonitor.recordShadowOtherOperation();
 		
-		RefinedObjectClassDefinition objecClassDefinition = determineObjectClassDefinition(objectClass, resourceType);
+		RefinedObjectClassDefinition refinedObjectClassDefinition = determineObjectClassDefinition(objectClass, resourceType);
 		ConnectorInstance connector = getConnectorInstance(resourceType, parentResult);
 		
 		List<Change<ShadowType>> changes = null;
 		try {
 
-			changes = resouceObjectConverter.fetchChanges(connector, resourceType, objecClassDefinition, lastToken, parentResult);
+			changes = resouceObjectConverter.fetchChanges(connector, resourceType, refinedObjectClassDefinition, lastToken, parentResult);
 
 			LOGGER.trace("Found {} change(s). Start processing it (them).", changes.size());
 
 			for (Iterator<Change<ShadowType>> i = changes.iterator(); i.hasNext();) {
 				// search objects in repository
 				Change<ShadowType> change = i.next();
+				
+				processChange(resourceType, refinedObjectClassDefinition, objectClass, parentResult, change, connector);
 
-				PrismObject<ShadowType> oldShadow = shadowManager.findOrCreateShadowFromChange(resourceType, change, objecClassDefinition, parentResult);
-				if (oldShadow != null) {
-					applyAttributesDefinition(oldShadow, resourceType);
-					ShadowType oldShadowType = oldShadow.asObjectable();
-	
-					LOGGER.trace("Old shadow: {}", oldShadow);
-	
-					// skip setting other attribute when shadow is null
-					if (oldShadow == null) {
-						change.setOldShadow(null);
-						continue;
-					}
-	
-					resouceObjectConverter.setProtectedFlag(resourceType, oldShadow);
-					change.setOldShadow(oldShadow);
-
-					if (change.getCurrentShadow() != null) {
-						PrismObject<ShadowType> currentShadow = completeShadow(connector, change.getCurrentShadow(), 
-								oldShadow, resourceType, objecClassDefinition, parentResult);
-						change.setCurrentShadow(currentShadow);
-						ShadowType currentShadowType = currentShadow.asObjectable();
-						forceRenameIfNeeded(currentShadowType, oldShadowType, parentResult);
-					}
-
-					// FIXME: hack. the object delta must have oid specified.
-					if (change.getObjectDelta() != null && change.getObjectDelta().getOid() == null) {
-						ObjectDelta<ShadowType> objDelta = new ObjectDelta<ShadowType>(ShadowType.class, ChangeType.DELETE, prismContext);
-						change.setObjectDelta(objDelta);
-						change.getObjectDelta().setOid(oldShadow.getOid());
-					}
-					
-				} else {
-					LOGGER.debug("No old shadow for synchronization event {}, the shadow must be gone in the meantime (this is probably harmless)", change);
-				}
+//				PrismObject<ShadowType> oldShadow = shadowManager.findOrCreateShadowFromChange(resourceType, change, objecClassDefinition, parentResult);
+//				if (oldShadow != null) {
+//					applyAttributesDefinition(oldShadow, resourceType);
+//					ShadowType oldShadowType = oldShadow.asObjectable();
+//	
+//					LOGGER.trace("Old shadow: {}", oldShadow);
+//	
+//					// skip setting other attribute when shadow is null
+//					if (oldShadow == null) {
+//						change.setOldShadow(null);
+//						continue;
+//					}
+//	
+//					resouceObjectConverter.setProtectedFlag(resourceType, oldShadow);
+//					change.setOldShadow(oldShadow);
+//
+//					if (change.getCurrentShadow() != null) {
+//						PrismObject<ShadowType> currentShadow = completeShadow(connector, change.getCurrentShadow(), 
+//								oldShadow, resourceType, objecClassDefinition, parentResult);
+//						change.setCurrentShadow(currentShadow);
+//						ShadowType currentShadowType = currentShadow.asObjectable();
+//						forceRenameIfNeeded(currentShadowType, oldShadowType, parentResult);
+//					}
+//
+//					// FIXME: hack. the object delta must have oid specified.
+//					if (change.getObjectDelta() != null && change.getObjectDelta().getOid() == null) {
+//						ObjectDelta<ShadowType> objDelta = new ObjectDelta<ShadowType>(ShadowType.class, ChangeType.DELETE, prismContext);
+//						change.setObjectDelta(objDelta);
+//						change.getObjectDelta().setOid(oldShadow.getOid());
+//					}
+//					
+//				} else {
+//					LOGGER.debug("No old shadow for synchronization event {}, the shadow must be gone in the meantime (this is probably harmless)", change);
+//				}
 
 			}
 
@@ -1035,26 +1037,25 @@ public abstract class ShadowCache {
 	}
 	
 	@SuppressWarnings("rawtypes")
-	public int processSynchronization(List<Change<ShadowType>> changes, Task task, ResourceType resourceType,
-			PrismProperty tokenProperty, OperationResult result) throws SchemaException, ObjectNotFoundException,
+	boolean processSynchronization(Change<ShadowType> change, Task task, ResourceType resourceType, OperationResult result) throws SchemaException, ObjectNotFoundException,
 			ObjectAlreadyExistsException {
-		int processedChanges = 0;
-		// for each change from the connector create change description
-		for (Change change : changes) {
-
-			// this is the case,when we want to skip processing of change,
-			// because the shadow was not created or found to the resource
-			// object
-			// it may be caused with the fact, that the object which was
-			// created in the resource was deleted before the sync run
-			// such a change should be skipped to process consistent changes
-			if (change.getOldShadow() == null) {
-				PrismProperty<?> newToken = change.getToken();
-				task.setExtensionProperty(newToken);
-				processedChanges++;
-				LOGGER.debug("Skipping processing change. Can't find appropriate shadow (e.g. the object was deleted on the resource meantime).");
-				continue;
-			}
+//		int processedChanges = 0;
+//		// for each change from the connector create change description
+//		for (Change change : changes) {
+//
+//			// this is the case,when we want to skip processing of change,
+//			// because the shadow was not created or found to the resource
+//			// object
+//			// it may be caused with the fact, that the object which was
+//			// created in the resource was deleted before the sync run
+//			// such a change should be skipped to process consistent changes
+//			if (change.getOldShadow() == null) {
+//				PrismProperty<?> newToken = change.getToken();
+//				task.setExtensionProperty(newToken);
+//				processedChanges++;
+//				LOGGER.debug("Skipping processing change. Can't find appropriate shadow (e.g. the object was deleted on the resource meantime).");
+//				continue;
+//			}
 
 			ResourceObjectShadowChangeDescription shadowChangeDescription = createResourceShadowChangeDescription(
 					change, resourceType);
@@ -1078,28 +1079,31 @@ public abstract class ShadowCache {
 
 			notifyChangeResult.computeStatus("Error by notify change operation.");
 
+			boolean successfull = false;
 			if (notifyChangeResult.isSuccess()) {
 				deleteShadowFromRepo(change, result);
-
-				// get updated token from change,
-				// create property modification from new token
-				// and replace old token with the new one
-				PrismProperty<?> newToken = change.getToken();
-				task.setExtensionProperty(newToken);
-				processedChanges++;
+				successfull  = true;
+//				// get updated token from change,
+//				// create property modification from new token
+//				// and replace old token with the new one
+//				PrismProperty<?> newToken = change.getToken();
+//				task.setExtensionProperty(newToken);
+//				processedChanges++;
 
 			} else {
+				successfull =false;
 				saveAccountResult(shadowChangeDescription, change, notifyChangeResult, result);
 			}
 
-		}
-		// also if no changes was detected, update token
-		if (changes.isEmpty() && tokenProperty != null) {
-			LOGGER.trace("No changes to synchronize on " + ObjectTypeUtil.toShortString(resourceType));
-			task.setExtensionProperty(tokenProperty);
-		}
-		task.savePendingModifications(result);
-		return processedChanges;
+			return successfull;
+//		}
+//		// also if no changes was detected, update token
+//		if (changes.isEmpty() && tokenProperty != null) {
+//			LOGGER.trace("No changes to synchronize on " + ObjectTypeUtil.toShortString(resourceType));
+//			task.setExtensionProperty(tokenProperty);
+//		}
+//		task.savePendingModifications(result);
+//		return processedChanges;
 	}
 	
 	private void notifyResourceObjectChangeListeners(ResourceObjectShadowChangeDescription change,
@@ -1201,38 +1205,47 @@ public abstract class ShadowCache {
 
 
 	
-//	public void processChange(ResourceType resourceType, RefinedObjectClassDefinition objectClassDefinition, OperationResult parentResult, ObjectDelta delta, PrismObject<ShadowType> currentShadow){
-//		PrismObject<ShadowType> oldShadow = shadowManager.findOrCreateShadowFromChange(resourceType, change, objectClassDefinition, parentResult);
-//		if (oldShadow != null) {
-//			applyAttributesDefinition(oldShadow, resourceType);
-//			ShadowType oldShadowType = oldShadow.asObjectable();
-//
-//			LOGGER.trace("Old shadow: {}", oldShadow);
-//
-//			// skip setting other attribute when shadow is null
-//			if (oldShadow == null) {
-//				change.setOldShadow(null);
-//				continue;
-//			}
-//
-//			resouceObjectConverter.setProtectedFlag(resourceType, oldShadow);
-//			change.setOldShadow(oldShadow);
-//
-//			if (change.getCurrentShadow() != null) {
-//				PrismObject<ShadowType> currentShadow = completeShadow(connector, change.getCurrentShadow(), 
-//						oldShadow, resourceType, objecClassDefinition, parentResult);
-//				change.setCurrentShadow(currentShadow);
-//				ShadowType currentShadowType = currentShadow.asObjectable();
-//				forceRenameIfNeeded(currentShadowType, oldShadowType, parentResult);
-//			}
-//
-//			// FIXME: hack. the object delta must have oid specified.
-//			if (change.getObjectDelta() != null && change.getObjectDelta().getOid() == null) {
-//				ObjectDelta<ShadowType> objDelta = new ObjectDelta<ShadowType>(ShadowType.class, ChangeType.DELETE, prismContext);
-//				change.setObjectDelta(objDelta);
-//				change.getObjectDelta().setOid(oldShadow.getOid());
-//			}
-//	}
+	void processChange(ResourceType resourceType, RefinedObjectClassDefinition refinedObjectClassDefinition, QName objectClass, OperationResult parentResult, Change<ShadowType> change, ConnectorInstance connector) throws SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectNotFoundException, GenericConnectorException, ObjectAlreadyExistsException{
+		
+		if (refinedObjectClassDefinition == null){
+			refinedObjectClassDefinition = determineObjectClassDefinition(objectClass, resourceType);
+		}
+		
+		PrismObject<ShadowType> oldShadow = shadowManager.findOrCreateShadowFromChange(resourceType, change, refinedObjectClassDefinition, parentResult);
+		if (oldShadow != null) {
+			applyAttributesDefinition(oldShadow, resourceType);
+			ShadowType oldShadowType = oldShadow.asObjectable();
+
+			LOGGER.trace("Old shadow: {}", oldShadow);
+
+			// skip setting other attribute when shadow is null
+			if (oldShadow == null) {
+				change.setOldShadow(null);
+				return;
+			}
+
+			resouceObjectConverter.setProtectedFlag(resourceType, oldShadow);
+			change.setOldShadow(oldShadow);
+
+			if (change.getCurrentShadow() != null) {
+				PrismObject<ShadowType> currentShadow = completeShadow(connector, change.getCurrentShadow(), 
+						oldShadow, resourceType, refinedObjectClassDefinition, parentResult);
+				change.setCurrentShadow(currentShadow);
+				ShadowType currentShadowType = currentShadow.asObjectable();
+				forceRenameIfNeeded(currentShadowType, oldShadowType, parentResult);
+			}
+
+			// FIXME: hack. the object delta must have oid specified.
+			if (change.getObjectDelta() != null && change.getObjectDelta().getOid() == null) {
+				ObjectDelta<ShadowType> objDelta = new ObjectDelta<ShadowType>(ShadowType.class, ChangeType.DELETE, prismContext);
+				change.setObjectDelta(objDelta);
+				change.getObjectDelta().setOid(oldShadow.getOid());
+			}
+		} else {
+			LOGGER.debug("No old shadow for synchronization event {}, the shadow must be gone in the meantime (this is probably harmless)", change);
+		}
+
+	}
 
 
 	private void forceRenameIfNeeded(ShadowType currentShadowType, ShadowType oldShadowType, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {

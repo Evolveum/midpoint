@@ -40,10 +40,14 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
+import com.evolveum.midpoint.provisioning.api.ResourceEventDescription;
+import com.evolveum.midpoint.provisioning.api.ResourceEventListener;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.PagingConvertor;
 import com.evolveum.midpoint.schema.QueryConvertor;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -105,7 +109,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 	private AuditService auditService;
 	
 	@Autowired(required = true)
-	private ChangeNotificationDispatcher notifier;
+	private ChangeNotificationDispatcher dispatcher;
 	
 	@Autowired(required = true)
 	private PrismContext prismContext;
@@ -391,14 +395,14 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		
 		String oldShadowOid = changeDescription.getOldShadowOid();
 		
-		ResourceObjectShadowChangeDescription notificationDescription = new ResourceObjectShadowChangeDescription();
+		ResourceEventDescription eventDescription = new ResourceEventDescription();
 		
 		try {
 			PrismObject<ShadowType> oldShadow = null;
 			LOGGER.info("resolving old object");
 			if (!StringUtils.isEmpty(oldShadowOid)){
-				oldShadow = model.getObject(ShadowType.class, oldShadowOid, null, task, parentResult);
-				notificationDescription.setOldShadow(oldShadow);
+				oldShadow = model.getObject(ShadowType.class, oldShadowOid, SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), task, parentResult);
+				eventDescription.setOldShadow(oldShadow);
 				LOGGER.info("old object resolved to: {}", oldShadow.dump());
 			} else{
 				LOGGER.info("Old shadow null");
@@ -413,7 +417,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 					LOGGER.info("current shadow resolved to {}", currentShadow.dump());
 				}
 				
-				notificationDescription.setCurrentShadow(currentShadow);
+				eventDescription.setCurrentShadow(currentShadow);
 				
 				ObjectDeltaType deltaType = changeDescription.getObjectDelta();
 				ObjectDelta delta = null;
@@ -446,35 +450,35 @@ public class ModelWebService implements ModelPortType, ModelPort {
 						delta.getModifications().addAll(modifications);
 					} 
 				}
-				notificationDescription.setObjectDelta(delta);
-				LOGGER.info("resolving shadow for resource");
-				PrismObject<ShadowType> shadowToResolveResource = null;
-				if (oldShadow != null){
-					shadowToResolveResource = oldShadow;
-				} else if (currentShadow != null){
-					shadowToResolveResource = currentShadow;
-				} else if (shadowToAdd != null){
-					shadowToResolveResource = shadowToAdd;
-				} else {
-					createIllegalArgumentFault("Could not determine resource from the change description. Description does not contain neither shadow, or delta.");
-				}
-			
-				PrismObject<ResourceType> resource = null;
-				
-				LOGGER.info("shadow to resolve resource: {}", shadowToResolveResource.dump());
-				
-				ResourceType resourceType = shadowToResolveResource.asObjectable().getResource();
-					if (resourceType != null){
-						resource = resourceType.asPrismObject();
-					} else {
-						resource = model.getObject(ResourceType.class, ShadowUtil.getResourceOid(shadowToResolveResource), null, task, parentResult);
-					}
-					LOGGER.info("Resource resolved: {}", resource != null ? resource.dump() : "noResource");
-					notificationDescription.setResource(resource);
+				eventDescription.setDelta(delta);
+//				LOGGER.info("resolving shadow for resource");
+//				PrismObject<ShadowType> shadowToResolveResource = null;
+//				if (oldShadow != null){
+//					shadowToResolveResource = oldShadow;
+//				} else if (currentShadow != null){
+//					shadowToResolveResource = currentShadow;
+//				} else if (shadowToAdd != null){
+//					shadowToResolveResource = shadowToAdd;
+//				} else {
+//					createIllegalArgumentFault("Could not determine resource from the change description. Description does not contain neither shadow, or delta.");
+//				}
+//			
+//				PrismObject<ResourceType> resource = null;
+//				
+//				LOGGER.info("shadow to resolve resource: {}", shadowToResolveResource.dump());
+//				
+//				ResourceType resourceType = shadowToResolveResource.asObjectable().getResource();
+//					if (resourceType != null){
+//						resource = resourceType.asPrismObject();
+//					} else {
+//						resource = model.getObject(ResourceType.class, ShadowUtil.getResourceOid(shadowToResolveResource), null, task, parentResult);
+//					}
+//					LOGGER.info("Resource resolved: {}", resource != null ? resource.dump() : "noResource");
+//					notificationDescription.setResource(resource);
 					
-					notificationDescription.setSourceChannel(changeDescription.getChannel());
+				eventDescription.setSourceChannel(changeDescription.getChannel());
 			
-					notifier.notifyChange(notificationDescription, task, parentResult);
+					dispatcher.notifyEvent(eventDescription, task, parentResult);
 					parentResult.computeStatus();
 					task.setResult(parentResult);
 			} catch (ObjectNotFoundException ex) {
@@ -498,6 +502,10 @@ public class ModelWebService implements ModelPortType, ModelPort {
 				auditLogout(task);
 				throw createSystemFault(ex, parentResult);
 			} catch (RuntimeException ex){
+				LoggingUtils.logException(LOGGER, "# MODEL notifyChange() failed", ex);
+				auditLogout(task);
+				throw createSystemFault(ex, parentResult);
+			} catch (ObjectAlreadyExistsException ex){
 				LoggingUtils.logException(LOGGER, "# MODEL notifyChange() failed", ex);
 				auditLogout(task);
 				throw createSystemFault(ex, parentResult);
