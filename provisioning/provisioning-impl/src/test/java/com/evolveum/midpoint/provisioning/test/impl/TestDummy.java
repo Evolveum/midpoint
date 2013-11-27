@@ -906,17 +906,10 @@ public class TestDummy extends AbstractDummyTest {
 		account.checkConsistence();
 
 		PrismObject<ShadowType> accountRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
-		display("Account repo", accountRepo);
-		ShadowType accountTypeRepo = accountRepo.asObjectable();
-		PrismAsserts.assertEqualsPolyString("Name not equal", ACCOUNT_WILL_USERNAME, accountTypeRepo.getName());
-		assertEquals("Wrong kind (repo)", ShadowKindType.ACCOUNT, accountTypeRepo.getKind());
-		assertAttribute(accountTypeRepo, ConnectorFactoryIcfImpl.ICFS_NAME, getWillRepoIcfName());
-		if (isIcfNameUidSame()) {
-			assertAttribute(accountTypeRepo, ConnectorFactoryIcfImpl.ICFS_UID, getWillRepoIcfName());
-		}
+		checkAccountShadowWill(accountRepo);
 		willIcfUid = getIcfUid(accountRepo);
 		
-		ActivationType activationRepo = accountTypeRepo.getActivation();
+		ActivationType activationRepo = accountRepo.asObjectable().getActivation();
 		if (supportsActivation()) {
 			assertNotNull("No activation in "+accountRepo+" (repo)", activationRepo);
 			assertEquals("Wrong activation enableTimestamp in "+accountRepo+" (repo)", ACCOUNT_WILL_ENABLE_TIMESTAMP, activationRepo.getEnableTimestamp());
@@ -952,6 +945,8 @@ public class TestDummy extends AbstractDummyTest {
 
 		DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, willIcfUid);
 		assertNotNull("No dummy account", dummyAccount);
+		// FIXME: strange TestDummyCaseIgnore failure when the following line is uncommented
+//		assertEquals("Username is wrong", ACCOUNT_WILL_USERNAME, dummyAccount.getName());
 		assertEquals("Fullname is wrong", "Will Turner", dummyAccount.getAttributeValue("fullname"));
 		assertTrue("The account is not enabled", dummyAccount.isEnabled());
 		assertEquals("Wrong password", "3lizab3th", dummyAccount.getPassword());
@@ -966,6 +961,17 @@ public class TestDummy extends AbstractDummyTest {
 
 		checkConsistency(accountProvisioning);
 		assertSteadyResource();
+	}
+
+	private void checkAccountShadowWill(PrismObject<ShadowType> accountRepo) {
+		display("Will account repo", accountRepo);
+		ShadowType accountTypeRepo = accountRepo.asObjectable();
+		PrismAsserts.assertEqualsPolyString("Will's name is wrong", ACCOUNT_WILL_USERNAME, accountTypeRepo.getName());
+		assertEquals("Wrong kind (repo)", ShadowKindType.ACCOUNT, accountTypeRepo.getKind());
+		assertAttribute(accountTypeRepo, ConnectorFactoryIcfImpl.ICFS_NAME, getWillRepoIcfName());
+		if (isIcfNameUidSame()) {
+			assertAttribute(accountTypeRepo, ConnectorFactoryIcfImpl.ICFS_UID, getWillRepoIcfName());
+		}
 	}
 
 	@Test
@@ -1051,6 +1057,8 @@ public class TestDummy extends AbstractDummyTest {
 		assertNotNull("No dummy account", shadow);
 
 		checkAccountWill(shadow, result);
+		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
+		checkAccountShadowWill(shadowRepo);
 
 		checkConsistency(shadow.asPrismObject());
 		
@@ -1094,6 +1102,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertNotNull("No dummy account", shadow);
 
 		checkAccountShadow(shadow, result, false);
+		checkAccountShadowWill(shadow.asPrismObject());
 
 		checkConsistency(shadow.asPrismObject());
 		
@@ -1191,6 +1200,11 @@ public class TestDummy extends AbstractDummyTest {
 		assertEquals(4, foundObjects.size());
 		checkConsistency(foundObjects);
 		assertProtected(foundObjects, 1);
+		
+		PrismObject<ShadowType> shadowWillRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
+		checkAccountShadowWill(shadowWillRepo);
+		DummyAccount willAccount = dummyResource.getAccountByUsername("Will");
+		display("Will dummy account",willAccount);
 
 		// And again ...
 
@@ -1209,6 +1223,9 @@ public class TestDummy extends AbstractDummyTest {
 		assertEquals(4, foundObjects.size());
 		checkConsistency(foundObjects);
 		assertProtected(foundObjects, 1);
+		
+		shadowWillRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
+		checkAccountShadowWill(shadowWillRepo);
 		
 		assertSteadyResource();
 	}

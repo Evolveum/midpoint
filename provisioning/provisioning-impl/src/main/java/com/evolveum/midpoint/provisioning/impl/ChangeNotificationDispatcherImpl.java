@@ -23,12 +23,21 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
+import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
+import com.evolveum.midpoint.provisioning.api.ResourceEventDescription;
+import com.evolveum.midpoint.provisioning.api.ResourceEventListener;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationListener;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -42,6 +51,7 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 	private boolean filterProtectedObjects = true;
 	private List<ResourceObjectChangeListener> changeListeners = new ArrayList<ResourceObjectChangeListener>();
 	private List<ResourceOperationListener> operationListeners = new ArrayList<ResourceOperationListener>();
+	private List<ResourceEventListener> eventListeners = new ArrayList<ResourceEventListener>();
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ChangeNotificationDispatcherImpl.class);
 	
@@ -75,13 +85,31 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 	public synchronized void registerNotificationListener(ResourceOperationListener listener) {
 		if (operationListeners.contains(listener)) {
 			LOGGER.warn(
-					"Resource object change listener '{}' is already registered. Subsequent registration is ignored",
+					"Resource operation listener '{}' is already registered. Subsequent registration is ignored",
 					listener);
 		} else {
 			operationListeners.add(listener);
 		}
 
 	}
+	@Override
+	public synchronized void registerNotificationListener(ResourceEventListener listener) {
+		if (eventListeners.contains(listener)) {
+			LOGGER.warn(
+					"Resource event listener '{}' is already registered. Subsequent registration is ignored",
+					listener);
+		} else {
+			eventListeners.add(listener);
+		}
+
+	}
+
+	@Override
+	public void unregisterNotificationListener(ResourceEventListener listener) {
+		eventListeners.remove(listener);
+		
+	}
+
 	
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.provisioning.api.ResourceObjectChangeNotificationManager#unregisterNotificationListener(com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener)
@@ -233,4 +261,42 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 		return "object change notification dispatcher";
 	}
 
+	@Override
+	public void notifyEvent(ResourceEventDescription eventDescription,
+			Task task, OperationResult parentResult) throws SchemaException,
+			CommunicationException, ConfigurationException,
+			SecurityViolationException, ObjectNotFoundException,
+			GenericConnectorException, ObjectAlreadyExistsException {
+		Validate.notNull(eventDescription, "Event description must not be null.");
+		
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("SYNCHRONIZATION change notification\n{} ", eventDescription.dump());
+		}
+		
+		if (filterProtectedObjects && eventDescription.isProtected()) {
+			LOGGER.trace("Skipping dispatching of {} because it is protected", eventDescription);
+			return;
+		}
+		
+//		if (InternalsConfig.consistencyChecks) eventDescription.checkConsistence();
+		
+		if ((null != eventListeners) && (!eventListeners.isEmpty())) {
+			for (ResourceEventListener listener : eventListeners) {
+				//LOGGER.trace("Listener: {}", listener.getClass().getSimpleName());
+				try {
+					listener.notifyEvent(eventDescription, task, parentResult);
+				} catch (RuntimeException e) {
+					LOGGER.error("Exception {} thrown by event listener {}: {}", new Object[]{
+							e.getClass(), listener.getName(), e.getMessage(), e });
+                    parentResult.createSubresult(CLASS_NAME_WITH_DOT + "notifyEvent").recordWarning("Event listener has thrown unexpected exception", e);
+                    throw e;
+				}
+			}
+		} else {
+			LOGGER.warn("Event notification received but listener list is empty, there is nobody to get the message");
+		}
+		
+	}
+
+	
 }
