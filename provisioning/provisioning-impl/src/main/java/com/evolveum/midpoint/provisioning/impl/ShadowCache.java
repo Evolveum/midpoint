@@ -784,7 +784,7 @@ public abstract class ShadowCache {
 						
 						applyAttributesDefinition(repoShadow, resourceType);
 						
-						forceRenameIfNeeded(resourceShadow.asObjectable(), repoShadow.asObjectable(), parentResult);
+						forceRenameIfNeeded(resourceShadow.asObjectable(), repoShadow.asObjectable(), objectClassDef, parentResult);
 						
 						resultShadow = completeShadow(connector, resourceShadow, repoShadow,
 								resourceType, objectClassDef, parentResult);
@@ -1235,7 +1235,7 @@ public abstract class ShadowCache {
 						oldShadow, resourceType, refinedObjectClassDefinition, parentResult);
 				change.setCurrentShadow(currentShadow);
 				ShadowType currentShadowType = currentShadow.asObjectable();
-				forceRenameIfNeeded(currentShadowType, oldShadowType, parentResult);
+				forceRenameIfNeeded(currentShadowType, oldShadowType, refinedObjectClassDefinition, parentResult);
 			}
 
 			// FIXME: hack. the object delta must have oid specified.
@@ -1251,7 +1251,7 @@ public abstract class ShadowCache {
 	}
 
 
-	private void forceRenameIfNeeded(ShadowType currentShadowType, ShadowType oldShadowType, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
+	private void forceRenameIfNeeded(ShadowType currentShadowType, ShadowType oldShadowType, RefinedObjectClassDefinition refinedObjectClassDefinition, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ObjectAlreadyExistsException {
 		Collection<ResourceAttribute<?>> oldSecondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(oldShadowType);
 		if (oldSecondaryIdentifiers.isEmpty()){
 			return;
@@ -1273,10 +1273,10 @@ public abstract class ShadowCache {
 			return;
 		}
 		
-		ResourceAttribute<?> newSecondaryIdentifier = newSecondaryIdentifiers.iterator().next();
+		ResourceAttribute newSecondaryIdentifier = newSecondaryIdentifiers.iterator().next();
 		Object newValue = newSecondaryIdentifier.getRealValue();
 		
-		if (!oldValue.equals(newValue)){
+		if (!shadowManager.compareAttribute(refinedObjectClassDefinition, newSecondaryIdentifier, oldValue)){
 			Collection<PropertyDelta> renameDeltas = new ArrayList<PropertyDelta>();
 			
 			

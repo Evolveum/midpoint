@@ -99,6 +99,9 @@ public abstract class SchemaConstants {
 	public static final QName C_PROTECTED_STRING = new QName(NS_C, "protectedString");
 	public static final QName C_PROTECTED_BYTE_ARRAY_TYPE = new QName(NS_C, "ProtectedByteArrayType");
 	
+	public static final QName C_REPORT = new QName(NS_C, "report");
+	public static final QName C_REPORT_TYPE = new QName(NS_C, "ReportType");
+	public static final QName C_ITEM_PATH_FIELD = new QName(NS_C, "itemPathField");
 	public static final QName C_ACTIVATION_STATUS_TYPE = new QName(NS_C, "ActivationStatusType");
 
 	public static final QName T_POLY_STRING_TYPE = new QName(SchemaConstantsGenerated.NS_TYPES, "PolyStringType");
