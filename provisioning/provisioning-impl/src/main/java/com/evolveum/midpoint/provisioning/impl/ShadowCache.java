@@ -1211,7 +1211,10 @@ public abstract class ShadowCache {
 			refinedObjectClassDefinition = determineObjectClassDefinition(objectClass, resourceType);
 		}
 		
-		PrismObject<ShadowType> oldShadow = shadowManager.findOrCreateShadowFromChange(resourceType, change, refinedObjectClassDefinition, parentResult);
+		PrismObject<ShadowType> oldShadow = change.getOldShadow();
+		if (oldShadow == null){
+			oldShadow = shadowManager.findOrCreateShadowFromChange(resourceType, change, refinedObjectClassDefinition, parentResult);
+		}
 		if (oldShadow != null) {
 			applyAttributesDefinition(oldShadow, resourceType);
 			ShadowType oldShadowType = oldShadow.asObjectable();
