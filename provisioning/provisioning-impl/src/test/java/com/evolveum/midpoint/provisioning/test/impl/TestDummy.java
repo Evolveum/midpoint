@@ -1203,8 +1203,6 @@ public class TestDummy extends AbstractDummyTest {
 		
 		PrismObject<ShadowType> shadowWillRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
 		checkAccountShadowWill(shadowWillRepo);
-		DummyAccount willAccount = dummyResource.getAccountByUsername("Will");
-		display("Will dummy account",willAccount);
 
 		// And again ...
 
