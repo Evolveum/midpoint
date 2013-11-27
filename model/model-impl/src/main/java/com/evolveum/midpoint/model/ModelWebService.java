@@ -401,7 +401,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 			PrismObject<ShadowType> oldShadow = null;
 			LOGGER.info("resolving old object");
 			if (!StringUtils.isEmpty(oldShadowOid)){
-				oldShadow = model.getObject(ShadowType.class, oldShadowOid, SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), task, parentResult);
+				oldShadow = model.getObject(ShadowType.class, oldShadowOid, SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()), task, parentResult);
 				eventDescription.setOldShadow(oldShadow);
 				LOGGER.info("old object resolved to: {}", oldShadow.dump());
 			} else{
@@ -421,29 +421,29 @@ public class ModelWebService implements ModelPortType, ModelPort {
 				
 				ObjectDeltaType deltaType = changeDescription.getObjectDelta();
 				ObjectDelta delta = null;
-				LOGGER.info("resolving resource");
+				
 				PrismObject<ShadowType> shadowToAdd = null;
 				if (deltaType != null){
 				
 					delta = ObjectDelta.createEmptyDelta(ShadowType.class, deltaType.getOid(), prismContext, ChangeType.toChangeType(deltaType.getChangeType()));
 					
 					if (delta.getChangeType() == ChangeType.ADD) {
-						LOGGER.info("determined ADD change ");
+//						LOGGER.trace("determined ADD change ");
 						if (deltaType.getObjectToAdd() == null){
-							LOGGER.info("No object to add specified. Check your delta. Add delta must contain object to add");
+							LOGGER.trace("No object to add specified. Check your delta. Add delta must contain object to add");
 							createIllegalArgumentFault("No object to add specified. Check your delta. Add delta must contain object to add");
 							return handleTaskResult(task);
 						}
 						Object objToAdd = deltaType.getObjectToAdd().getAny();
 						if (!(objToAdd instanceof ShadowType)){
-							LOGGER.info("Wrong object specified in change description. Expected on the the shadow type, but got " + objToAdd.getClass().getSimpleName());
+							LOGGER.trace("Wrong object specified in change description. Expected on the the shadow type, but got " + objToAdd.getClass().getSimpleName());
 							createIllegalArgumentFault("Wrong object specified in change description. Expected on the the shadow type, but got " + objToAdd.getClass().getSimpleName());
 							return handleTaskResult(task);
 						}
 						prismContext.adopt((ShadowType)objToAdd);
 						
 						shadowToAdd = ((ShadowType) objToAdd).asPrismObject();
-						LOGGER.info("object to add: {}", shadowToAdd.dump());
+						LOGGER.trace("object to add: {}", shadowToAdd.dump());
 						delta.setObjectToAdd(shadowToAdd);
 					} else {
 						Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(deltaType.getModification(), prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class));
@@ -451,30 +451,6 @@ public class ModelWebService implements ModelPortType, ModelPort {
 					} 
 				}
 				eventDescription.setDelta(delta);
-//				LOGGER.info("resolving shadow for resource");
-//				PrismObject<ShadowType> shadowToResolveResource = null;
-//				if (oldShadow != null){
-//					shadowToResolveResource = oldShadow;
-//				} else if (currentShadow != null){
-//					shadowToResolveResource = currentShadow;
-//				} else if (shadowToAdd != null){
-//					shadowToResolveResource = shadowToAdd;
-//				} else {
-//					createIllegalArgumentFault("Could not determine resource from the change description. Description does not contain neither shadow, or delta.");
-//				}
-//			
-//				PrismObject<ResourceType> resource = null;
-//				
-//				LOGGER.info("shadow to resolve resource: {}", shadowToResolveResource.dump());
-//				
-//				ResourceType resourceType = shadowToResolveResource.asObjectable().getResource();
-//					if (resourceType != null){
-//						resource = resourceType.asPrismObject();
-//					} else {
-//						resource = model.getObject(ResourceType.class, ShadowUtil.getResourceOid(shadowToResolveResource), null, task, parentResult);
-//					}
-//					LOGGER.info("Resource resolved: {}", resource != null ? resource.dump() : "noResource");
-//					notificationDescription.setResource(resource);
 					
 				eventDescription.setSourceChannel(changeDescription.getChannel());
 			

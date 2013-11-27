@@ -87,7 +87,9 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -109,6 +111,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -120,6 +123,7 @@ import com.evolveum.midpoint.test.ldap.OpenDJController;
 import com.evolveum.midpoint.test.util.DerbyController;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -3572,37 +3576,10 @@ public class TestSanity extends AbstractModelIntegrationTest {
 //    	}
     }
     
-//    @Test
+    @Test
     public void test501NotifyChangeModifyAccount() throws Exception{
     		 TestUtil.displayTestTile("test501NotifyChangeModifyAccount");
 
-//    	Entry ldifEntry = openDJController.addEntryFromLdifFile(LDIF_ANGELIKA_FILENAME);
-//        display("Entry from LDIF", ldifEntry);
-//        
-//        List<Attribute> attributes = ldifEntry.getAttributes();
-////        for (Attribute a : attributes){
-////        	display("attr anem : ", a.getAttributeType().toString());
-////        }
-//        List<Attribute> attrs = ldifEntry.getAttribute("entryUUID");
-//        
-//        AttributeValue val = null;
-//        if (attrs == null){
-//        	for (Attribute a : attributes){
-//        		if (a.getName().equals("entryUUID")){
-//        			val = a.iterator().next();
-//        		}
-//        	}
-//        } else{
-//        	val = attrs.get(0).iterator().next();
-//        }
-//        
-//        String icfUid = val.toString();
-//        
-//        ShadowType anglicaAccount = parseObjectType(new File(ACCOUNT_ANGELIKA_FILENAME), ShadowType.class);
-//    	PrismProperty prop = anglicaAccount.asPrismObject().findOrCreateProperty(new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_UID));
-//    	prop.setValue(new PrismPropertyValue(icfUid));
-//    	anglicaAccount.setResourceRef(ObjectTypeUtil.createObjectRef(RESOURCE_OPENDJ_OID, ObjectTypes.RESOURCE));
-//    	
     		 OperationResult parentResult = new OperationResult("test500notifyChange.addAngelicaAccount");	 
     		 PrismObject<UserType> userAngelika = findUserByUsername(ANGELIKA_NAME);
     		 assertNotNull("User with the name angelika must exist.", userAngelika);
@@ -3613,29 +3590,31 @@ public class TestSanity extends AbstractModelIntegrationTest {
     	    	assertEquals("Expected one account ref in user", 1, user.getLinkRef().size());
     	    	String oid = user.getLinkRef().get(0).getOid();
     	    	
-//    	    	PrismObject<ShadowType> angelicaShadow = modelService.getObject(ShadowType.class, oid, null, taskManager.createTaskInstance(), parentResult);
-//    	repositoryService.addObject(anglicaAccount.asPrismObject(), null, parentResult);
-    	
-//    	display("Angelica shdow: ", anglicaAccount.asPrismObject().dump());
-    	
-//    	provisioningService.applyDefinition(anglicaAccount.asPrismObject(), parentResult);
         
     	ResourceObjectShadowChangeDescriptionType changeDescription = new ResourceObjectShadowChangeDescriptionType();
     	ObjectDeltaType delta = new ObjectDeltaType();
     	delta.setChangeType(ChangeTypeType.MODIFY);
     	delta.setObjectType(ShadowType.COMPLEX_TYPE);
     	
-    	ItemDeltaType itemDelta = new ItemDeltaType();
-    	itemDelta.setModificationType(ModificationTypeType.REPLACE);
-    	XPathHolder holder = new XPathHolder(new ItemPath(ShadowType.F_ATTRIBUTES, new QName(resourceTypeOpenDjrepo.getNamespace(), "givenName")));
-    	Element path = holder.toElement(SchemaConstantsGenerated.NS_TYPES, "path");
-    	itemDelta.setPath(path);
-    	ItemDeltaType.Value value = new ItemDeltaType.Value();
-    	value.getAny().add("newAngelika");
-    	itemDelta.setValue(value);
+    	ItemDeltaType mod1 = new ItemDeltaType();
+    	mod1.setModificationType(ModificationTypeType.REPLACE);
+    	XPathHolder xpath = new XPathHolder(new ItemPath(ShadowType.F_ATTRIBUTES));
+    	Element path = xpath.toElement(SchemaConstantsGenerated.NS_TYPES, "path");
+    	mod1.setPath(path);
     	
-    	delta.getModification().add(itemDelta);
+    	ItemDeltaType.Value value = new ItemDeltaType.Value();
+    	Element el = DOMUtil.createElement(DOMUtil.getDocument(), new QName(resourceTypeOpenDjrepo.getNamespace(), "givenName"));
+    	el.setTextContent("newAngelika");
+        value.getAny().add(el);
+        mod1.setValue(value);
+    	
+    	delta.getModification().add(mod1);
     	delta.setOid(oid);
+    	
+    	LOGGER.info("item delta: {}", SchemaDebugUtil.prettyPrint(mod1));
+    	
+    	LOGGER.info("delta: {}", DebugUtil.dump(mod1));
+    	
     	changeDescription.setObjectDelta(delta);
     	
     	changeDescription.setOldShadowOid(oid);
@@ -3647,11 +3626,58 @@ public class TestSanity extends AbstractModelIntegrationTest {
     	assertSuccess(result);
     	
     	PrismObject<UserType> userAngelikaAfterSync = findUserByUsername(ANGELIKA_NAME);
-    	assertNotNull("User with the name angelika must exist.", userAngelika);
+    	assertNotNull("User with the name angelika must exist.", userAngelikaAfterSync);
     	
-    	UserType userAfterSync = userAngelika.asObjectable();
+    	UserType userAfterSync = userAngelikaAfterSync.asObjectable();
     	
     	PrismAsserts.assertEqualsPolyString("wrong given name in user angelika", PrismTestUtil.createPolyStringType("newAngelika"), userAfterSync.getGivenName());
+    	
+    }
+    
+    @Test
+    public void test502NotifyChangeDeleteAccount() throws Exception{
+    		 TestUtil.displayTestTile("test502NotifyChangeDeleteAccount");
+
+    		 OperationResult parentResult = new OperationResult("test500notifyChange.addAngelicaAccount");	 
+    		 PrismObject<UserType> userAngelika = findUserByUsername(ANGELIKA_NAME);
+    		 assertNotNull("User with the name angelika must exist.", userAngelika);
+    	    	
+    	    	UserType user = userAngelika.asObjectable();
+    	    	assertNotNull("User with the name angelika must have one link ref.", user.getLinkRef());
+    	    	
+    	    	assertEquals("Expected one account ref in user", 1, user.getLinkRef().size());
+    	    	String oid = user.getLinkRef().get(0).getOid();
+    	    	
+        
+    	ResourceObjectShadowChangeDescriptionType changeDescription = new ResourceObjectShadowChangeDescriptionType();
+    	ObjectDeltaType delta = new ObjectDeltaType();
+    	delta.setChangeType(ChangeTypeType.DELETE);
+    	delta.setObjectType(ShadowType.COMPLEX_TYPE);
+    	
+        delta.setOid(oid);
+    		
+    	changeDescription.setObjectDelta(delta);
+    	
+    	changeDescription.setOldShadowOid(oid);
+    	changeDescription.setChannel(SchemaConstants.CHANNEL_WEB_SERVICE_URI);
+    	
+    	TaskType task = modelWeb.notifyChange(changeDescription);
+    	OperationResult result = OperationResult.createOperationResult(task.getResult());
+    	display(result);
+    	assertSuccess(result);
+    	
+    	PrismObject<UserType> userAngelikaAfterSync = findUserByUsername(ANGELIKA_NAME);
+    	assertNotNull("User with the name angelika must exist.", userAngelikaAfterSync);
+    	
+    	UserType userType = userAngelikaAfterSync.asObjectable();
+    	assertNotNull("User with the name angelika must have one link ref.", userType.getLinkRef());
+    	
+    	assertEquals("Expected no account ref in user", 0, userType.getLinkRef().size());
+//    	String oid = userType.getLinkRef().get(0).getOid();
+    	
+//    	UserType userAfterSync = userAngelikaAfterSync.asObjectable();
+    	
+//    	PrismAsserts.assertEqualsPolyString("wrong given name in user angelika", PrismTestUtil.createPolyStringType("newAngelika"), userAfterSync.getGivenName());
     	
     }
     
