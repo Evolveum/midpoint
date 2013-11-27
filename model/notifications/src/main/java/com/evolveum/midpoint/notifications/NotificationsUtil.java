@@ -17,7 +17,10 @@
 package com.evolveum.midpoint.notifications;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -35,6 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -104,6 +108,9 @@ public class NotificationsUtil {
     }
 
     public static boolean isAmongHiddenPaths(ItemPath path, List<ItemPath> hiddenPaths) {
+        if (hiddenPaths == null) {
+            return false;
+        }
         for (ItemPath hiddenPath : hiddenPaths) {
             if (hiddenPath.isSubPathOrEquivalent(path)) {
                 return true;
@@ -113,4 +120,29 @@ public class NotificationsUtil {
     }
 
 
+    /**
+     * TODO
+     */
+    public static List<ItemPath> shiftPaths(ItemPath currentPath, List<ItemPath> hiddenPaths) {
+        if (hiddenPaths == null) {
+            return null;
+        }
+        List<ItemPath> retval = new ArrayList<ItemPath>();
+
+        NameItemPathSegment last = currentPath.lastNamed();
+        if (last == null) {
+            return retval;
+        }
+
+        for (ItemPath path : hiddenPaths) {
+            if (path.first().equals(last)) {
+                ItemPath reduced = path.rest();
+                if (!retval.contains(reduced)) {
+                    retval.add(reduced);
+                }
+            }
+        }
+
+        return retval;
+    }
 }

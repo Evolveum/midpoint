@@ -20,6 +20,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -377,11 +378,10 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleUserNotifier", 0);
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
 
-//        List<Message> messages = dummyTransport.getMessages("dummy:accountPasswordNotifier");
-//        assertNotNull("No messages recorded in dummy transport", messages);
-//        assertEquals("Invalid number of messages recorded in dummy transport", 1, messages.size());
-//        Message message = messages.get(0);
-//        assertEquals("Invalid list of recipients", Arrays.asList(userJackType.getEmailAddress()), message.getTo());
+        List<Message> messages = dummyTransport.getMessages("dummy:accountPasswordNotifier");
+        Message message = messages.get(0);          // number of messages was already checked
+        assertEquals("Invalid list of recipients", Arrays.asList(userJackType.getEmailAddress()), message.getTo());
+        assertTrue("No account name in account password notification", message.getBody().contains("Password for account jack on Dummy Resource is:"));
 //
 //        messages = dummyTransport.getMessages("dummy:newAccountsViaExpression");
 //        assertNotNull("No messages recorded in dummy transport (expressions)", messages);

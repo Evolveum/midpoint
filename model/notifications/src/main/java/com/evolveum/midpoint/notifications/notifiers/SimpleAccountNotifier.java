@@ -158,7 +158,7 @@ public class SimpleAccountNotifier extends GeneralNotifier {
 
         if (delta.isAdd()) {
             body.append("created on the resource with attributes:\n");
-            body.append(textFormatter.formatAccountAttributes(delta.getObjectToAdd().asObjectable(), isWatchAuxiliaryAttributes(generalNotifierType)));
+            body.append(textFormatter.formatAccountAttributes(delta.getObjectToAdd().asObjectable(), null, isWatchAuxiliaryAttributes(generalNotifierType)));
             body.append("\n");
         } else if (delta.isModify()) {
             body.append("modified on the resource. Modified attributes are:\n");

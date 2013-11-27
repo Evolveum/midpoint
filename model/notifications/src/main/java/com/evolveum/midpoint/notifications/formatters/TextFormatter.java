@@ -73,12 +73,30 @@ public class TextFormatter {
             retval.append(" - ");
             retval.append(getItemDeltaLabel(itemDelta));
             retval.append(":\n");
-            formatItemDeltaContent(retval, itemDelta, showOperationalAttributes);
+            formatItemDeltaContent(retval, itemDelta, NotificationsUtil.shiftPaths(itemDelta.getPath(), hiddenPaths), showOperationalAttributes);
         }
 
         return retval.toString();
     }
 
+    private void formatItemDeltaContent(StringBuilder sb, ItemDelta itemDelta, List<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
+        formatItemDeltaValues(sb, "ADD", itemDelta.getValuesToAdd(), false, hiddenPaths, showOperationalAttributes);
+        formatItemDeltaValues(sb, "DELETE", itemDelta.getValuesToDelete(), true, hiddenPaths, showOperationalAttributes);
+        formatItemDeltaValues(sb, "REPLACE", itemDelta.getValuesToReplace(), false, hiddenPaths, showOperationalAttributes);
+    }
+
+    private void formatItemDeltaValues(StringBuilder sb, String type, Collection<? extends PrismValue> values, boolean mightBeRemoved, List<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
+        if (values != null) {
+            for (PrismValue prismValue : values) {
+                sb.append("   - " + type + ": ");
+                String prefix = "     ";
+                formatPrismValue(sb, prefix, prismValue, mightBeRemoved, hiddenPaths, showOperationalAttributes);
+                sb.append("\n");
+            }
+        }
+    }
+
+    // todo - should each hiddenAttribute be prefixed with something like F_ATTRIBUTE? Currently it should not be.
     public String formatAccountAttributes(ShadowType shadowType, List<ItemPath> hiddenAttributes, boolean showOperationalAttributes) {
         Validate.notNull(shadowType, "shadowType is null");
 
@@ -96,24 +114,6 @@ public class TextFormatter {
         StringBuilder retval = new StringBuilder();
         formatContainerValue(retval, "", object.getValue(), false, hiddenPaths, showOperationalAttributes);
         return retval.toString();
-    }
-
-
-    private void formatItemDeltaContent(StringBuilder sb, ItemDelta itemDelta, boolean showOperationalAttributes) {
-        formatItemDeltaValues(sb, "ADD", itemDelta.getValuesToAdd(), false, showOperationalAttributes);
-        formatItemDeltaValues(sb, "DELETE", itemDelta.getValuesToDelete(), true, showOperationalAttributes);
-        formatItemDeltaValues(sb, "REPLACE", itemDelta.getValuesToReplace(), false, showOperationalAttributes);
-    }
-
-    private void formatItemDeltaValues(StringBuilder sb, String type, Collection<? extends PrismValue> values, boolean mightBeRemoved, boolean showOperationalAttributes) {
-        if (values != null) {
-            for (PrismValue prismValue : values) {
-                sb.append("   - " + type + ": ");
-                String prefix = "     ";
-                formatPrismValue(sb, prefix, prismValue, mightBeRemoved, showOperationalAttributes);
-                sb.append("\n");
-            }
-        }
     }
 
     private void formatPrismValue(StringBuilder sb, String prefix, PrismValue prismValue, boolean mightBeRemoved, List<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
@@ -169,7 +169,7 @@ public class TextFormatter {
                     sb.append("\n");
                     String prefixSubContainer = prefix + "   ";
                     formatContainerValue(sb, prefixSubContainer, subContainerValue, mightBeRemoved,
-                            hiddenPathsInSubcontainer(hiddenPaths, item), showOperationalAttributes);
+                            NotificationsUtil.shiftPaths(item.getPath(), hiddenPaths), showOperationalAttributes);
                 }
             } else {
                 sb.append("Unexpected Item type: ");
@@ -307,8 +307,8 @@ public class TextFormatter {
         List<Item> toBeDisplayed = new ArrayList<Item>(items.size());
         for (Item item : items) {
             if (item.getDefinition() != null) {
-                boolean isHidden = shouldItemBeHidden(hiddenPaths, item);
-                if (showOperationalAttributes || !item.getDefinition().isOperational()) {
+                boolean isHidden = NotificationsUtil.isAmongHiddenPaths(item.getPath(), hiddenPaths);
+                if (!isHidden && (showOperationalAttributes || !item.getDefinition().isOperational())) {
                     toBeDisplayed.add(item);
                 }
             } else {
