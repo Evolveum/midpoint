@@ -387,6 +387,9 @@ public class ShadowManager {
 				try {
 					String oid = repositoryService.addObject(newShadow, null, parentResult);
 					newShadow.setOid(oid);
+					if (change.getObjectDelta() != null && change.getObjectDelta().getOid() == null) {
+						change.getObjectDelta().setOid(oid);
+					}
 				} catch (ObjectAlreadyExistsException e) {
 					parentResult.recordFatalError("Can't add account " + SchemaDebugUtil.prettyPrint(newShadow)
 							+ " to the repository. Reason: " + e.getMessage(), e);

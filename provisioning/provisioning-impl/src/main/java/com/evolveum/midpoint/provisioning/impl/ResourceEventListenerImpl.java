@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+//import com.evolveum.midpoint.model.ModelWebService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
@@ -31,12 +32,17 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 
 @Component
 public class ResourceEventListenerImpl implements ResourceEventListener{
 
+	
+	private static final Trace LOGGER = TraceManager.getTrace(ResourceEventListenerImpl.class);
+	
 	@Autowired(required = true)
 	private ShadowCacheFactory shadowCacheFactory;
 	@Autowired
@@ -72,6 +78,7 @@ public class ResourceEventListenerImpl implements ResourceEventListener{
 		Validate.notNull(task, "Task must not be null.");
 		Validate.notNull(parentResult, "Operation result must not be null");
 		
+		LOGGER.trace("Received event notification with the description: {}", eventDescription.dump());
 		
 		if (eventDescription.getCurrentShadow() == null && eventDescription.getDelta() == null){
 			throw new IllegalStateException("Neither current shadow, nor delta specified. It is required to have at least one of them specified.");
@@ -126,8 +133,10 @@ public class ResourceEventListenerImpl implements ResourceEventListener{
 		
 		ShadowType shadowType = shadow.asObjectable();
 		
+		LOGGER.trace("Start to precess change: {}", change.toString());
 		shadowCache.processChange(resource, null, shadowType.getObjectClass(), parentResult, change, connector);
 		
+		LOGGER.trace("Change after processing {} . Start synchronizing.", change.toString());
 		shadowCache.processSynchronization(change, task, resource, parentResult);
 	
 	}

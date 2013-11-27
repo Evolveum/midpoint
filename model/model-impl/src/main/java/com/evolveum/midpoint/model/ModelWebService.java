@@ -443,7 +443,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 						prismContext.adopt((ShadowType)objToAdd);
 						
 						shadowToAdd = ((ShadowType) objToAdd).asPrismObject();
-						LOGGER.info("object to add: ", shadowToAdd.dump());
+						LOGGER.info("object to add: {}", shadowToAdd.dump());
 						delta.setObjectToAdd(shadowToAdd);
 					} else {
 						Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(deltaType.getModification(), prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class));
