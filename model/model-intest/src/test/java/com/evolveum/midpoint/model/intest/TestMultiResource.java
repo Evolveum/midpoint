@@ -57,6 +57,7 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
@@ -1260,6 +1261,129 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         ObjectDelta<?> executionDelta = executionDeltaOp.getObjectDelta();
         display("Last execution delta", executionDelta);
         PrismAsserts.assertModifications("Phantom changes in last delta:", executionDelta, 2);
+	}
+    
+    @Test
+    public void test403DavidAndGoliathDisable() throws Exception {
+		final String TEST_NAME = "test403DavidAndGoliathDisable";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		// GIVEN
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+		
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = findUserByUsername(USER_WORLD_NAME);
+        assertAdministrativeStatusEnabled(userBefore);
+        dummyAuditService.clear();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(userBefore.getOid(), ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.DISABLED);
+                
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(userBefore.getOid());
+		display("User after fight", userAfter);
+		assertUser(userAfter, userBefore.getOid(), USER_WORLD_NAME, USER_WORLD_FULL_NAME, null, null);
+		assertAdministrativeStatusDisabled(userAfter);
+		assertAccount(userAfter, RESOURCE_DUMMY_GOLIATH_OID);
+		assertAccount(userAfter, RESOURCE_DUMMY_DAVID_OID);
+		assertAccounts(userAfter, 2);
+		
+		assertDummyAccount(RESOURCE_DUMMY_DAVID_NAME, USER_WORLD_NAME, USER_WORLD_FULL_NAME, false);
+        
+		assertDummyAccountAttribute(RESOURCE_DUMMY_DAVID_NAME, USER_WORLD_NAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "rock (world) take");
+        
+        assertUserProperty(userAfter, UserType.F_LOCALITY, PrismTestUtil.createPolyString("rock (world) take throw"));
+        
+        assertDummyAccount(RESOURCE_DUMMY_GOLIATH_NAME, USER_WORLD_NAME, USER_WORLD_FULL_NAME, false);
+        
+        assertDummyAccountAttribute(RESOURCE_DUMMY_GOLIATH_NAME, USER_WORLD_NAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "rock (world) take throw (world) hit");
+        
+        assertUserProperty(userAfter, UserType.F_TITLE, PrismTestUtil.createPolyString("rock (world) take throw (world) hit fall"));
+        
+        assertDummyAccountAttribute(RESOURCE_DUMMY_DAVID_NAME, USER_WORLD_NAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "rock (world) take throw (world) hit fall (world) win");
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(3);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(0,2);
+        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertExecutionDeltas(1,1);
+        dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertExecutionSuccess();
+	}
+    
+    @Test
+    public void test404DavidAndGoliathEnable() throws Exception {
+		final String TEST_NAME = "test404DavidAndGoliathEnable";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		// GIVEN
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+		
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = findUserByUsername(USER_WORLD_NAME);
+        dummyAuditService.clear();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(userBefore.getOid(), ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.ENABLED);
+                
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(userBefore.getOid());
+		display("User after fight", userAfter);
+		assertUser(userAfter, userBefore.getOid(), USER_WORLD_NAME, USER_WORLD_FULL_NAME, null, null);
+		assertAdministrativeStatusEnabled(userAfter);
+		assertAccount(userAfter, RESOURCE_DUMMY_GOLIATH_OID);
+		assertAccount(userAfter, RESOURCE_DUMMY_DAVID_OID);
+		assertAccounts(userAfter, 2);
+		
+		assertDummyAccount(RESOURCE_DUMMY_DAVID_NAME, USER_WORLD_NAME, USER_WORLD_FULL_NAME, true);
+        
+		assertDummyAccountAttribute(RESOURCE_DUMMY_DAVID_NAME, USER_WORLD_NAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "rock (world) take");
+        
+        assertUserProperty(userAfter, UserType.F_LOCALITY, PrismTestUtil.createPolyString("rock (world) take throw"));
+        
+        assertDummyAccount(RESOURCE_DUMMY_GOLIATH_NAME, USER_WORLD_NAME, USER_WORLD_FULL_NAME, true);
+        
+        assertDummyAccountAttribute(RESOURCE_DUMMY_GOLIATH_NAME, USER_WORLD_NAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "rock (world) take throw (world) hit");
+        
+        assertUserProperty(userAfter, UserType.F_TITLE, PrismTestUtil.createPolyString("rock (world) take throw (world) hit fall"));
+        
+        assertDummyAccountAttribute(RESOURCE_DUMMY_DAVID_NAME, USER_WORLD_NAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "rock (world) take throw (world) hit fall (world) win");
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(3);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(0,2);
+        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertExecutionDeltas(1,1);
+        dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertExecutionSuccess();
 	}
     
     @Test

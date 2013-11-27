@@ -301,6 +301,9 @@
             			<source>
             				<path>$shadow/activation/administrativeStatus</path>
             			</source>
+            			<source>
+            				<path>$shadow/activation/disableReason</path>
+            			</source>
             			<expression>
             				<value>false</value>
             			</expression>
@@ -308,7 +311,11 @@
             				<script>
             					<code>
 		            				import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
-		            				administrativeStatus == ActivationStatusType.DISABLED;
+		            				import com.evolveum.midpoint.schema.constants.SchemaConstants;
+		            				administrativeStatus == ActivationStatusType.DISABLED &amp;&amp; 
+		            					// do not delete explicitly disabled accounts
+		            					(disableReason == SchemaConstants.MODEL_DISABLE_REASON_DEPROVISION ||
+		            					 disableReason == SchemaConstants.MODEL_DISABLE_REASON_MAPPED);
             					</code>
             				</script>
             			</condition>

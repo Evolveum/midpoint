@@ -146,6 +146,7 @@ CREATE TABLE m_assignment (
   accountConstruction         LONGTEXT,
   administrativeStatus        INTEGER,
   archiveTimestamp            DATETIME(6),
+  disableReason               VARCHAR(255),
   disableTimestamp            DATETIME(6),
   effectiveStatus             INTEGER,
   enableTimestamp             DATETIME(6),
@@ -326,6 +327,7 @@ CREATE TABLE m_exclusion (
 CREATE TABLE m_focus (
   administrativeStatus    INTEGER,
   archiveTimestamp        DATETIME(6),
+  disableReason           VARCHAR(255),
   disableTimestamp        DATETIME(6),
   effectiveStatus         INTEGER,
   enableTimestamp         DATETIME(6),
@@ -558,6 +560,7 @@ CREATE TABLE m_role (
 CREATE TABLE m_shadow (
   administrativeStatus          INTEGER,
   archiveTimestamp              DATETIME(6),
+  disableReason                 VARCHAR(255),
   disableTimestamp              DATETIME(6),
   effectiveStatus               INTEGER,
   enableTimestamp               DATETIME(6),

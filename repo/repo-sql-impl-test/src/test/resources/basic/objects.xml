@@ -106,6 +106,7 @@
         <activation>
             <administrativeStatus>archived</administrativeStatus>
             <effectiveStatus>disabled</effectiveStatus>
+            <disableReason>asdfreason</disableReason>
         </activation>
     </object>
 

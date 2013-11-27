@@ -268,11 +268,36 @@ public class ActivationProcessor {
     	PropertyDelta<ActivationStatusType> statusDelta = projDelta.findPropertyDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
     	
     	if (statusDelta != null && !statusDelta.isDelete()) {
+    		// timestamps
     		PrismProperty<ActivationStatusType> statusPropNew = (PrismProperty<ActivationStatusType>) statusDelta.getItemNew();
     		ActivationStatusType statusNew = statusPropNew.getRealValue();
 			PropertyDelta<XMLGregorianCalendar> timestampDelta = LensUtil.createActivationTimestampDelta(statusNew,
 					now, getActivationDefinition(), OriginType.OUTBOUND);
     		accCtx.addToSecondaryDelta(timestampDelta);
+    		
+    		// disableReason
+    		if (statusNew == ActivationStatusType.DISABLED) {
+    			PropertyDelta<String> disableReasonDelta = projDelta.findPropertyDelta(SchemaConstants.PATH_ACTIVATION_DISABLE_REASON);
+    			if (disableReasonDelta == null) {
+    				String disableReason = null;
+    				ObjectDelta<ShadowType> projPrimaryDelta = accCtx.getPrimaryDelta();
+    				ObjectDelta<ShadowType> projSecondaryDelta = accCtx.getSecondaryDelta();
+    				if (projPrimaryDelta != null 
+    						&& projPrimaryDelta.findPropertyDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS) != null
+    						&& (projSecondaryDelta == null || projSecondaryDelta.findPropertyDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS) == null)) {
+    						disableReason = SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT;
+    				} else if (accCtx.isLegal()) {
+						disableReason = SchemaConstants.MODEL_DISABLE_REASON_MAPPED;
+					} else {
+						disableReason = SchemaConstants.MODEL_DISABLE_REASON_DEPROVISION;
+					}
+    				
+    				PrismPropertyDefinition<String> disableReasonDef = activationDefinition.findPropertyDefinition(ActivationType.F_DISABLE_REASON);
+    				disableReasonDelta = disableReasonDef.createEmptyDelta(new ItemPath(UserType.F_ACTIVATION, ActivationType.F_DISABLE_REASON));
+    				disableReasonDelta.setValueToReplace(new PrismPropertyValue<String>(disableReason, OriginType.OUTBOUND, null));
+    				accCtx.addToSecondaryDelta(disableReasonDelta);
+    			}
+    		}
     	}
     	
     }

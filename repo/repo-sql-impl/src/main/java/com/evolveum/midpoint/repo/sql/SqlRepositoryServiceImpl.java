@@ -1141,7 +1141,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
                         }
                     }
                 }
-            } else {
+            } else if (delta.isAdd()) {
                 // fill closure table with new transitive relations
                 for (Object orgRefDValue : delta.getValuesToAdd()) {
                     if (!(orgRefDValue instanceof PrismReferenceValue)) {

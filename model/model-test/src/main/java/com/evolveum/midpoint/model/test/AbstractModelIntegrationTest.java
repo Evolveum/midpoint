@@ -1800,6 +1800,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				startTime, endTime, userDisableTimestamp);
 	}
 	
+	protected void assertDisableReasonShadow(PrismObject<? extends ShadowType> shadow, String expectedReason) {
+		String disableReason = shadow.asObjectable().getActivation().getDisableReason();
+		assertEquals("Wrong shadow disableReason in "+shadow, expectedReason, disableReason);
+	}
+	
 	protected void assertPassword(PrismObject<UserType> user, String expectedPassword) throws EncryptionException {
 		CredentialsType credentialsType = user.asObjectable().getCredentials();
 		assertNotNull("No credentials in "+user, credentialsType);
