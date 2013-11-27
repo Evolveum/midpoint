@@ -33,23 +33,35 @@ import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.model.api.ModelPort;
-import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
+import com.evolveum.midpoint.provisioning.api.ResourceEventDescription;
+import com.evolveum.midpoint.provisioning.api.ResourceEventListener;
+import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.PagingConvertor;
 import com.evolveum.midpoint.schema.QueryConvertor;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -60,6 +72,8 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_2.OperationOptionsT
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ResourceObjectShadowListType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectShadowChangeDescriptionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -72,6 +86,7 @@ import com.evolveum.midpoint.xml.ns._public.common.fault_1_wsdl.FaultMessage;
 import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
 import com.evolveum.prism.xml.ns._public.query_2.PagingType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 /**
@@ -92,6 +107,9 @@ public class ModelWebService implements ModelPortType, ModelPort {
 	
 	@Autowired(required = true)
 	private AuditService auditService;
+	
+	@Autowired(required = true)
+	private ChangeNotificationDispatcher dispatcher;
 	
 	@Autowired(required = true)
 	private PrismContext prismContext;
@@ -364,6 +382,141 @@ public class ModelWebService implements ModelPortType, ModelPort {
 			throw createSystemFault(ex, operationResult);
 		}
 	}
+	
+	@Override
+	public TaskType notifyChange(ResourceObjectShadowChangeDescriptionType changeDescription)
+			throws FaultMessage {
+		// TODO Auto-generated method stub
+		notNullArgument(changeDescription, "Change description must not be null");
+		LOGGER.info("notify change started");
+		
+		Task task = createTaskInstance(NOTIFY_CHANGE);
+		OperationResult parentResult = task.getResult();
+		
+		String oldShadowOid = changeDescription.getOldShadowOid();
+		
+		ResourceEventDescription eventDescription = new ResourceEventDescription();
+		
+		try {
+			PrismObject<ShadowType> oldShadow = null;
+			LOGGER.info("resolving old object");
+			if (!StringUtils.isEmpty(oldShadowOid)){
+				oldShadow = model.getObject(ShadowType.class, oldShadowOid, SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), task, parentResult);
+				eventDescription.setOldShadow(oldShadow);
+				LOGGER.info("old object resolved to: {}", oldShadow.dump());
+			} else{
+				LOGGER.info("Old shadow null");
+			}
+			
+				PrismObject<ShadowType> currentShadow = null;
+				ShadowType currentShadowType = changeDescription.getCurrentShadow();
+				LOGGER.info("resolving current shadow");
+				if (currentShadowType != null){
+					prismContext.adopt(currentShadowType);
+					currentShadow = currentShadowType.asPrismObject();
+					LOGGER.info("current shadow resolved to {}", currentShadow.dump());
+				}
+				
+				eventDescription.setCurrentShadow(currentShadow);
+				
+				ObjectDeltaType deltaType = changeDescription.getObjectDelta();
+				ObjectDelta delta = null;
+				LOGGER.info("resolving resource");
+				PrismObject<ShadowType> shadowToAdd = null;
+				if (deltaType != null){
+				
+					delta = ObjectDelta.createEmptyDelta(ShadowType.class, deltaType.getOid(), prismContext, ChangeType.toChangeType(deltaType.getChangeType()));
+					
+					if (delta.getChangeType() == ChangeType.ADD) {
+						LOGGER.info("determined ADD change ");
+						if (deltaType.getObjectToAdd() == null){
+							LOGGER.info("No object to add specified. Check your delta. Add delta must contain object to add");
+							createIllegalArgumentFault("No object to add specified. Check your delta. Add delta must contain object to add");
+							return handleTaskResult(task);
+						}
+						Object objToAdd = deltaType.getObjectToAdd().getAny();
+						if (!(objToAdd instanceof ShadowType)){
+							LOGGER.info("Wrong object specified in change description. Expected on the the shadow type, but got " + objToAdd.getClass().getSimpleName());
+							createIllegalArgumentFault("Wrong object specified in change description. Expected on the the shadow type, but got " + objToAdd.getClass().getSimpleName());
+							return handleTaskResult(task);
+						}
+						prismContext.adopt((ShadowType)objToAdd);
+						
+						shadowToAdd = ((ShadowType) objToAdd).asPrismObject();
+						LOGGER.info("object to add: {}", shadowToAdd.dump());
+						delta.setObjectToAdd(shadowToAdd);
+					} else {
+						Collection<? extends ItemDelta> modifications = DeltaConvertor.toModifications(deltaType.getModification(), prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class));
+						delta.getModifications().addAll(modifications);
+					} 
+				}
+				eventDescription.setDelta(delta);
+//				LOGGER.info("resolving shadow for resource");
+//				PrismObject<ShadowType> shadowToResolveResource = null;
+//				if (oldShadow != null){
+//					shadowToResolveResource = oldShadow;
+//				} else if (currentShadow != null){
+//					shadowToResolveResource = currentShadow;
+//				} else if (shadowToAdd != null){
+//					shadowToResolveResource = shadowToAdd;
+//				} else {
+//					createIllegalArgumentFault("Could not determine resource from the change description. Description does not contain neither shadow, or delta.");
+//				}
+//			
+//				PrismObject<ResourceType> resource = null;
+//				
+//				LOGGER.info("shadow to resolve resource: {}", shadowToResolveResource.dump());
+//				
+//				ResourceType resourceType = shadowToResolveResource.asObjectable().getResource();
+//					if (resourceType != null){
+//						resource = resourceType.asPrismObject();
+//					} else {
+//						resource = model.getObject(ResourceType.class, ShadowUtil.getResourceOid(shadowToResolveResource), null, task, parentResult);
+//					}
+//					LOGGER.info("Resource resolved: {}", resource != null ? resource.dump() : "noResource");
+//					notificationDescription.setResource(resource);
+					
+				eventDescription.setSourceChannel(changeDescription.getChannel());
+			
+					dispatcher.notifyEvent(eventDescription, task, parentResult);
+					parentResult.computeStatus();
+					task.setResult(parentResult);
+			} catch (ObjectNotFoundException ex) {
+				LoggingUtils.logException(LOGGER, "# MODEL notifyChange() failed", ex);
+				auditLogout(task);
+				throw createSystemFault(ex, parentResult);
+			} catch (SchemaException ex) {
+				 LoggingUtils.logException(LOGGER, "# MODEL notifyChange() failed", ex);
+				auditLogout(task);
+				throw createSystemFault(ex, parentResult);
+			} catch (CommunicationException ex) {
+				LoggingUtils.logException(LOGGER, "# MODEL notifyChange() failed", ex);
+				auditLogout(task);
+				throw createSystemFault(ex, parentResult);
+			} catch (ConfigurationException ex) {
+				LoggingUtils.logException(LOGGER, "# MODEL notifyChange() failed", ex);
+				auditLogout(task);
+				throw createSystemFault(ex, parentResult);
+			} catch (SecurityViolationException ex) {
+				LoggingUtils.logException(LOGGER, "# MODEL notifyChange() failed", ex);
+				auditLogout(task);
+				throw createSystemFault(ex, parentResult);
+			} catch (RuntimeException ex){
+				LoggingUtils.logException(LOGGER, "# MODEL notifyChange() failed", ex);
+				auditLogout(task);
+				throw createSystemFault(ex, parentResult);
+			} catch (ObjectAlreadyExistsException ex){
+				LoggingUtils.logException(LOGGER, "# MODEL notifyChange() failed", ex);
+				auditLogout(task);
+				throw createSystemFault(ex, parentResult);
+			}
+		
+		
+		LOGGER.info("notify change ended.");
+		LOGGER.info("result of notify change: {}", parentResult.dump());
+		return handleTaskResult(task);
+	}
+
 
     private void setTaskOwner(Task task) {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

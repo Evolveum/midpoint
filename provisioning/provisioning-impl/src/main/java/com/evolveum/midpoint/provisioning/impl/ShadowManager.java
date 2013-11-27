@@ -49,6 +49,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.Visitor;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
+import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
@@ -363,7 +364,7 @@ public class ShadowManager {
     // beware, may return null if an shadow that was to be marked as DEAD, was deleted in the meantime
 	public PrismObject<ShadowType> findOrCreateShadowFromChange(ResourceType resource, Change<ShadowType> change,
 			RefinedObjectClassDefinition objectClassDefinition, OperationResult parentResult) throws SchemaException, CommunicationException,
-			GenericFrameworkException, ConfigurationException, SecurityViolationException {
+			ConfigurationException, SecurityViolationException {
 
 		// Try to locate existing shadow in the repository
 		List<PrismObject<ShadowType>> accountList = searchAccountByIdenifiers(change, resource, parentResult);
@@ -386,6 +387,9 @@ public class ShadowManager {
 				try {
 					String oid = repositoryService.addObject(newShadow, null, parentResult);
 					newShadow.setOid(oid);
+					if (change.getObjectDelta() != null && change.getObjectDelta().getOid() == null) {
+						change.getObjectDelta().setOid(oid);
+					}
 				} catch (ObjectAlreadyExistsException e) {
 					parentResult.recordFatalError("Can't add account " + SchemaDebugUtil.prettyPrint(newShadow)
 							+ " to the repository. Reason: " + e.getMessage(), e);
@@ -429,10 +433,22 @@ public class ShadowManager {
 	private PrismObject<ShadowType> createNewAccountFromChange(Change<ShadowType> change, ResourceType resource, 
 			RefinedObjectClassDefinition objectClassDefinition,
 			OperationResult parentResult) throws SchemaException,
-			CommunicationException, GenericFrameworkException, ConfigurationException,
+			CommunicationException, ConfigurationException,
 			SecurityViolationException {
 
 		PrismObject<ShadowType> shadow = change.getCurrentShadow();
+		
+		if (shadow == null){
+			//try to look in the delta, if there exists some account to be added
+			if (change.getObjectDelta() != null && change.getObjectDelta().isAdd()){
+				shadow = (PrismObject<ShadowType>) change.getObjectDelta().getObjectToAdd();
+			}
+		}
+		
+		if (shadow == null){
+			throw new IllegalStateException("Could not create shadow from change description. Neither current shadow, nor delta containing shadow exits.");
+		}
+		
 		try {
 			shadow = createRepositoryShadow(shadow, resource, objectClassDefinition);
 		} catch (SchemaException ex) {
