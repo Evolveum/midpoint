@@ -330,7 +330,7 @@ public abstract class DummyObject implements Dumpable, DebugDumpable {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, indent);
 		sb.append("DummyAccount: ").append(name).append("\n");
-		DebugUtil.debugDumpWithLabelToStringLn(sb, "Enabled", enabled, indent + 1);
+		DebugUtil.debugDumpWithLabelToString(sb, "Enabled", enabled, indent + 1);
 		if (validFrom != null || validTo != null) {
 			sb.append("\n");
 			DebugUtil.debugDumpLabel(sb, "Validity", indent + 1);

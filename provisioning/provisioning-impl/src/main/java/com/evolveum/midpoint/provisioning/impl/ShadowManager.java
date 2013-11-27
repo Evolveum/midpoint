@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.provisioning.impl;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
@@ -72,6 +73,7 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -696,6 +698,27 @@ public class ShadowManager {
 				pval.setValue(normalizedRealValue);
 			}
 		}
+	}
+	
+	private <T> Collection<T> getNormalizedAttributeValues(ResourceAttribute<T> attribute, RefinedAttributeDefinition rAttrDef) throws SchemaException {
+		MatchingRule<T> matchingRule = matchingRuleRegistry.getMatchingRule(rAttrDef.getMatchingRuleQName(), rAttrDef.getTypeName());
+		if (matchingRule == null) {
+			return attribute.getRealValues();
+		} else {
+			Collection<T> normalizedValues = new ArrayList<T>();
+			for (PrismPropertyValue<T> pval: attribute.getValues()) {
+				T normalizedRealValue = matchingRule.normalize(pval.getValue());
+				normalizedValues.add(normalizedRealValue);
+			}
+			return normalizedValues;
+		}
+	}
+
+	public <T> boolean compareAttribute(RefinedObjectClassDefinition refinedObjectClassDefinition,
+			ResourceAttribute<T> attributeA, T... valuesB) throws SchemaException {
+		RefinedAttributeDefinition refinedAttributeDefinition = refinedObjectClassDefinition.findAttributeDefinition(attributeA.getName());
+		Collection<T> valuesA = getNormalizedAttributeValues(attributeA, refinedAttributeDefinition);
+		return MiscUtil.unorderedCollectionEquals(valuesA, Arrays.asList(valuesB));
 	}
 
 }

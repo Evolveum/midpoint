@@ -182,7 +182,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
      * {@inheritDoc}
      */
     public Uid create(final ObjectClass objectClass, final Set<Attribute> createAttributes, final OperationOptions options) {
-        log.info("create::begin");
+        log.info("create::begin attributes {0}", createAttributes);
         validate(objectClass);
         
         DummyObject newObject;
@@ -192,18 +192,24 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 	            // Convert attributes to account
 	            DummyAccount newAccount = convertToAccount(createAttributes);
 	    			
+	            log.ok("Adding dummy account:\n{0}", newAccount.dump());
+	            
     			resource.addAccount(newAccount);
     			newObject = newAccount;
 	
 	        } else if (ObjectClass.GROUP.is(objectClass.getObjectClassValue())) {
 	            DummyGroup newGroup = convertToGroup(createAttributes);
-	    			
+	    		
+	            log.ok("Adding dummy group:\n{0}", newGroup.dump());
+	            
     			resource.addGroup(newGroup);
     			newObject = newGroup;
 	            
 	        } else if (objectClass.is(OBJECTCLASS_PRIVILEGE_NAME)) {
 	            DummyPrivilege newPriv = convertToPriv(createAttributes);
 	
+	            log.ok("Adding dummy privilege:\n{0}", newPriv.dump());
+	            
     			resource.addPrivilege(newPriv);
     			newObject = newPriv;
 
@@ -1101,9 +1107,11 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 
 	
 	private DummyAccount convertToAccount(Set<Attribute> createAttributes) throws ConnectException, FileNotFoundException {
-		String userName = Utils.getMandatoryStringAttribute(createAttributes,Name.NAME);
+		log.ok("Create attributes: {0}", createAttributes);
+		String userName = Utils.getMandatoryStringAttribute(createAttributes, Name.NAME);
+		log.ok("Username {0}", userName);
 		final DummyAccount newAccount = new DummyAccount(userName);
-
+		
 		Boolean enabled = null;
 		for (Attribute attr : createAttributes) {
 			if (attr.is(Uid.NAME)) {
