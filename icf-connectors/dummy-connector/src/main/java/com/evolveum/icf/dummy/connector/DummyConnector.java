@@ -97,7 +97,7 @@ import com.evolveum.icf.dummy.connector.Utils;
 @ConnectorClass(displayNameKey = "UI_CONNECTOR_NAME",
 configurationClass = DummyConfiguration.class)
 public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernameOp, CreateOp, DeleteOp, SchemaOp,
-        ScriptOnConnectorOp, ScriptOnResourceOp, SearchOp<Filter>, SyncOp, TestOp, UpdateAttributeValuesOp, AttributeNormalizer {
+        ScriptOnConnectorOp, ScriptOnResourceOp, SearchOp<Filter>, SyncOp, TestOp, UpdateAttributeValuesOp {
 	
 	// We want to see if the ICF framework logging works properly
     private static final Log log = Log.getLog(DummyConnector.class);
@@ -1277,26 +1277,26 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 		});
 	}
 
-	/* (non-Javadoc)
-	 * @see org.identityconnectors.framework.spi.AttributeNormalizer#normalizeAttribute(org.identityconnectors.framework.common.objects.ObjectClass, org.identityconnectors.framework.common.objects.Attribute)
-	 */
-	@Override
-	public Attribute normalizeAttribute(ObjectClass ObjectClass, Attribute attribute) {
-		if (!configuration.getCaseIgnoreId()) {
-			return attribute;
-		}
-		String attrName = attribute.getName();
-		if (Uid.NAME.equals(attrName) || Name.NAME.equals(attrName)) {
-			List<String> values = (List) attribute.getValue();
-			AttributeBuilder builder = new AttributeBuilder();
-			builder.setName(attrName);
-			for (String origVal: values) {
-				builder.addValue(StringUtils.lowerCase(origVal));
-			}
-			return builder.build();
-		} else {
-			return attribute;
-		}
-	}
+//	/* (non-Javadoc)
+//	 * @see org.identityconnectors.framework.spi.AttributeNormalizer#normalizeAttribute(org.identityconnectors.framework.common.objects.ObjectClass, org.identityconnectors.framework.common.objects.Attribute)
+//	 */
+//	@Override
+//	public Attribute normalizeAttribute(ObjectClass ObjectClass, Attribute attribute) {
+//		if (!configuration.getCaseIgnoreId()) {
+//			return attribute;
+//		}
+//		String attrName = attribute.getName();
+//		if (Uid.NAME.equals(attrName) || Name.NAME.equals(attrName)) {
+//			List<String> values = (List) attribute.getValue();
+//			AttributeBuilder builder = new AttributeBuilder();
+//			builder.setName(attrName);
+//			for (String origVal: values) {
+//				builder.addValue(StringUtils.lowerCase(origVal));
+//			}
+//			return builder.build();
+//		} else {
+//			return attribute;
+//		}
+//	}
 
 }

@@ -55,6 +55,7 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
+import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
@@ -700,13 +701,23 @@ public class PrismAsserts {
 	}
 	
 	public static <T> void assertSets(String message, Collection<T> actualValues, T... expectedValues) {
+		assertSets(message, null, actualValues, expectedValues);
+	}
+	
+	public static <T> void assertSets(String message, MatchingRule<T> matchingRule, Collection<T> actualValues, T... expectedValues) {
 		assertNotNull("Null set in " + message, actualValues);
 		assertEquals("Wrong number of values in " + message, expectedValues.length, actualValues.size());
 		for (T actualValue: actualValues) {
 			boolean found = false;
 			for (T value: expectedValues) {
-				if (value.equals(actualValue)) {
-					found = true;
+				if (matchingRule == null) {
+					if (value.equals(actualValue)) {
+						found = true;
+					}
+				} else {
+					if (matchingRule.match(value, actualValue)) {
+						found = true;
+					}
 				}
 			}
 			if (!found) {

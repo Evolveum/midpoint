@@ -44,6 +44,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -161,6 +162,12 @@ public class ProvisioningTestUtil {
 			T... expectedValues) {
 		List<T> actualValues = ShadowUtil.getAttributeValues(shadow, attrQname);
 		PrismAsserts.assertSets("attribute "+attrQname+" in " + shadow, actualValues, expectedValues);
+	}
+	
+	public static <T> void assertAttribute(PrismObject<ResourceType> resource, ShadowType shadow, MatchingRule<T> matchingRule, 
+			QName attrQname, T... expectedValues) {
+		List<T> actualValues = ShadowUtil.getAttributeValues(shadow, attrQname);
+		PrismAsserts.assertSets("attribute "+attrQname+" in " + shadow, matchingRule, actualValues, expectedValues);
 	}
 	
 	public static void assertNoAttribute(PrismObject<ResourceType> resource, ShadowType shadow, QName attrQname) {
