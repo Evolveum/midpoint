@@ -473,10 +473,7 @@ public class ActivationProcessor {
         }
         
         ObjectDelta<ShadowType> projectionDelta = accCtx.getDelta();
-        PropertyDelta<T> shadowPropertyDelta = null;
-        if (projectionDelta != null) {
-        	shadowPropertyDelta = projectionDelta.findPropertyDelta(projectionPropertyPath);
-        }
+        PropertyDelta<T> shadowPropertyDelta = LensUtil.findAPrioriDelta(context, accCtx, projectionPropertyPath);
         
         PrismObject<ShadowType> shadowNew = accCtx.getObjectNew();
         PrismProperty<T> shadowPropertyNew = null;
