@@ -32,6 +32,8 @@ import org.w3c.dom.NodeList;
 import com.evolveum.midpoint.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.common.expression.script.ScriptVariables;
+import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.Itemable;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -39,8 +41,10 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
@@ -66,18 +70,23 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
  */
 public class LazyXPathVariableResolver implements XPathVariableResolver {
 
+	private static final QName FAKE_VARIABLE_QNAME = new QName(SchemaConstants.NS_C, "fakeVar");
+	
     private ScriptVariables variables;
     private ObjectResolver objectResolver;
     private String contextDescription;
     private OperationResult result;
+    private PrismContext prismContext;
     
     private static final Trace LOGGER = TraceManager.getTrace(LazyXPathVariableResolver.class);
 
-    public LazyXPathVariableResolver(ScriptVariables variables, ObjectResolver objectResolver, String contextDescription, OperationResult result) {
+    public LazyXPathVariableResolver(ScriptVariables variables, ObjectResolver objectResolver, 
+    		String contextDescription, PrismContext prismContext, OperationResult result) {
     	this.variables = variables;
     	this.objectResolver = objectResolver;
     	this.contextDescription = contextDescription;
     	this.result = result;
+    	this.prismContext = prismContext;
     }
 
     @Override
@@ -124,14 +133,14 @@ public class LazyXPathVariableResolver implements XPathVariableResolver {
         }
      
         try {
-        	return convertToXml(variableValue, name, contextDescription);
+        	return convertToXml(variableValue, name, prismContext, contextDescription);
         } catch (SchemaException e) {
 			throw new TunnelException(e);
 		}
     }
         
     // May return primitive types or DOM Node
-    public static Object convertToXml(Object variableValue, QName variableName, String contextDescription) throws SchemaException {
+    public static Object convertToXml(Object variableValue, QName variableName, final PrismContext prismContext, String contextDescription) throws SchemaException {
     	
     	try {
 	        if (variableValue instanceof Objectable) {
@@ -165,8 +174,31 @@ public class LazyXPathVariableResolver implements XPathVariableResolver {
 				
 	        } else if (variableValue instanceof PrismValue) {
 	        	PrismValue pval = (PrismValue)variableValue;
-	        	PrismContext prismContext = pval.getPrismContext();
 	        	PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
+	        	if (pval.getParent() == null) {
+	        		// Set a fake parent to allow serialization
+	        		pval.setParent(new Itemable() {
+						@Override
+						public PrismContext getPrismContext() {
+							return prismContext;
+						}
+						
+						@Override
+						public ItemPath getPath() {
+							return null;
+						}
+						
+						@Override
+						public QName getName() {
+							return FAKE_VARIABLE_QNAME;
+						}
+						
+						@Override
+						public ItemDefinition getDefinition() {
+							return null;
+						}
+					});
+	        	}
 	        	variableValue = domProcessor.serializeValueToDom(pval, variableName);
 	        }
 	        
