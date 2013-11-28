@@ -73,6 +73,7 @@ import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
@@ -171,6 +172,10 @@ public class TestDummy extends AbstractDummyTest {
 	private String blackbeardIcfUid;
 	private String drakeIcfUid;
 
+	protected MatchingRule<String> getUidMatchingRule() {
+		return null;
+	}
+	
 	@Test
 	public void test000Integrity() throws ObjectNotFoundException, SchemaException {
 		TestUtil.displayTestTile("test000Integrity");
@@ -926,8 +931,8 @@ public class TestDummy extends AbstractDummyTest {
 		display("account from provisioning", accountTypeProvisioning);
 		PrismAsserts.assertEqualsPolyString("Name not equal", ACCOUNT_WILL_USERNAME, accountTypeProvisioning.getName());
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, accountTypeProvisioning.getKind());
-		assertAttribute(accountTypeProvisioning, ConnectorFactoryIcfImpl.ICFS_NAME, getWillRepoIcfName());
-		assertAttribute(accountTypeProvisioning, ConnectorFactoryIcfImpl.ICFS_UID, willIcfUid);
+		assertAttribute(accountTypeProvisioning, ConnectorFactoryIcfImpl.ICFS_NAME, ACCOUNT_WILL_USERNAME);
+		assertAttribute(accountTypeProvisioning, getUidMatchingRule(), ConnectorFactoryIcfImpl.ICFS_UID, willIcfUid);
 		
 		ActivationType activationProvisioning = accountTypeProvisioning.getActivation();
 		if (supportsActivation()) {
@@ -945,8 +950,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, willIcfUid);
 		assertNotNull("No dummy account", dummyAccount);
-		// FIXME: strange TestDummyCaseIgnore failure when the following line is uncommented
-//		assertEquals("Username is wrong", ACCOUNT_WILL_USERNAME, dummyAccount.getName());
+		assertEquals("Username is wrong", ACCOUNT_WILL_USERNAME, dummyAccount.getName());
 		assertEquals("Fullname is wrong", "Will Turner", dummyAccount.getAttributeValue("fullname"));
 		assertTrue("The account is not enabled", dummyAccount.isEnabled());
 		assertEquals("Wrong password", "3lizab3th", dummyAccount.getPassword());
@@ -2141,21 +2145,39 @@ public class TestDummy extends AbstractDummyTest {
 	}
 
 	@Test
-	public void test167SearchIcfNameExact() throws Exception {
-		final String TEST_NAME = "test167SearchIcfNameExact";
+	public void test167SearchIcfNameRepoized() throws Exception {
+		final String TEST_NAME = "test167SearchIcfNameRepoized";
 		TestUtil.displayTestTile(TEST_NAME);
 		testSeachIterativeSingleAttrFilter(TEST_NAME,
 				ConnectorFactoryIcfImpl.ICFS_NAME, getWillRepoIcfName(), null, true,
-				"Will");
+				ACCOUNT_WILL_USERNAME);
 	}
 	
 	@Test
-	public void test168SearchIcfNameExactNoFetch() throws Exception {
-		final String TEST_NAME = "test168SearchIcfNameExactNoFetch";
+	public void test167aSearchIcfNameRepoizedNoFetch() throws Exception {
+		final String TEST_NAME = "test167aSearchIcfNameRepoizedNoFetch";
 		TestUtil.displayTestTile(TEST_NAME);
 		testSeachIterativeSingleAttrFilter(TEST_NAME, ConnectorFactoryIcfImpl.ICFS_NAME, getWillRepoIcfName(),
 				GetOperationOptions.createNoFetch(), false,
-				"Will");
+				ACCOUNT_WILL_USERNAME);
+	}
+
+	@Test
+	public void test168SearchIcfNameExact() throws Exception {
+		final String TEST_NAME = "test168SearchIcfNameExact";
+		TestUtil.displayTestTile(TEST_NAME);
+		testSeachIterativeSingleAttrFilter(TEST_NAME,
+				ConnectorFactoryIcfImpl.ICFS_NAME, ACCOUNT_WILL_USERNAME, null, true,
+				ACCOUNT_WILL_USERNAME);
+	}
+	
+	@Test
+	public void test168aSearchIcfNameExactNoFetch() throws Exception {
+		final String TEST_NAME = "test168aSearchIcfNameExactNoFetch";
+		TestUtil.displayTestTile(TEST_NAME);
+		testSeachIterativeSingleAttrFilter(TEST_NAME, ConnectorFactoryIcfImpl.ICFS_NAME, ACCOUNT_WILL_USERNAME,
+				GetOperationOptions.createNoFetch(), false,
+				ACCOUNT_WILL_USERNAME);
 	}
 
 	protected <T> void testSeachIterativeSingleAttrFilter(final String TEST_NAME, String attrName, T attrVal, 
@@ -2165,7 +2187,7 @@ public class TestDummy extends AbstractDummyTest {
 	}
 	
 	protected <T> void testSeachIterativeSingleAttrFilter(final String TEST_NAME, QName attrQName, T attrVal, 
-			GetOperationOptions rootOptions, boolean fullShadow, String... expectedAccountIds) throws Exception {
+			GetOperationOptions rootOptions, boolean fullShadow, String... expectedAccountNames) throws Exception {
 		PrismPropertyValue<T> attrPVal = null;
 		if (attrVal != null) {
 			attrPVal = new PrismPropertyValue<T>(attrVal);
@@ -2175,11 +2197,11 @@ public class TestDummy extends AbstractDummyTest {
 		ResourceAttributeDefinition attrDef = objectClassDef.findAttributeDefinition(attrQName);
 		ObjectFilter filter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), attrDef, attrPVal);
 		
-		testSeachIterative(TEST_NAME, filter, rootOptions, fullShadow, expectedAccountIds);
+		testSeachIterative(TEST_NAME, filter, rootOptions, fullShadow, expectedAccountNames);
 	}
 	
 	private void testSeachIterative(final String TEST_NAME, ObjectFilter attrFilter, GetOperationOptions rootOptions, 
-			final boolean fullShadow, String... expectedAccountIds) throws Exception {
+			final boolean fullShadow, String... expectedAccountNames) throws Exception {
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ "." + TEST_NAME);
 
@@ -2220,7 +2242,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		display("found shadows", foundObjects);
 
-		for (String expectedAccountId: expectedAccountIds) {
+		for (String expectedAccountId: expectedAccountNames) {
 			boolean found = false;
 			for (PrismObject<ShadowType> foundObject: foundObjects) {
 				if (expectedAccountId.equals(foundObject.asObjectable().getName().getOrig())) {
@@ -2229,11 +2251,11 @@ public class TestDummy extends AbstractDummyTest {
 				}
 			}
 			if (!found) {
-				AssertJUnit.fail("Account "+expectedAccountId+" was expected to be found but it was not found (found "+foundObjects.size()+", expected "+expectedAccountIds.length+")");
+				AssertJUnit.fail("Account "+expectedAccountId+" was expected to be found but it was not found (found "+foundObjects.size()+", expected "+expectedAccountNames.length+")");
 			}
 		}
 		
-		assertEquals("Wrong number of found objects", expectedAccountIds.length, foundObjects.size());
+		assertEquals("Wrong number of found objects ("+foundObjects+"): "+foundObjects, expectedAccountNames.length, foundObjects.size());
 		checkConsistency(foundObjects);
 		
 		assertSteadyResource();
@@ -3538,7 +3560,7 @@ public class TestDummy extends AbstractDummyTest {
 	private void checkAccountShadow(ShadowType shadowType, OperationResult parentResult, boolean fullShadow) {
 		ObjectChecker<ShadowType> checker = createShadowChecker(fullShadow);
 		ShadowUtil.checkConsistence(shadowType.asPrismObject(), parentResult.getOperation());
-		IntegrationTestTools.checkAccountShadow(shadowType, resourceType, repositoryService, checker, prismContext, parentResult);
+		IntegrationTestTools.checkAccountShadow(shadowType, resourceType, repositoryService, checker, getUidMatchingRule(), prismContext, parentResult);
 	}
 
 	private void checkGroupShadow(ShadowType shadow, OperationResult parentResult) {
@@ -3552,7 +3574,7 @@ public class TestDummy extends AbstractDummyTest {
 	private void checkEntitlementShadow(ShadowType shadowType, OperationResult parentResult, String objectClassLocalName, boolean fullShadow) {
 		ObjectChecker<ShadowType> checker = createShadowChecker(fullShadow);
 		ShadowUtil.checkConsistence(shadowType.asPrismObject(), parentResult.getOperation());
-		IntegrationTestTools.checkEntitlementShadow(shadowType, resourceType, repositoryService, checker, objectClassLocalName, prismContext, parentResult);
+		IntegrationTestTools.checkEntitlementShadow(shadowType, resourceType, repositoryService, checker, objectClassLocalName, getUidMatchingRule(), prismContext, parentResult);
 	}
 
 	private void checkAllShadows() throws SchemaException, ObjectNotFoundException, CommunicationException,

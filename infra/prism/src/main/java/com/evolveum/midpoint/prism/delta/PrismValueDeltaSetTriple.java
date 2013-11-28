@@ -211,6 +211,23 @@ public class PrismValueDeltaSetTriple<V extends PrismValue> extends DeltaSetTrip
 		}
 	}
 	
+	public void checkNoParent() {
+		checkNoParent(zeroSet);
+		checkNoParent(plusSet);
+		checkNoParent(minusSet);
+	}
+	
+	private void checkNoParent(Collection<V> set) {
+		if (set == null) {
+			return;
+		}
+		for (V val: set) {
+			if (val.getParent() != null) {
+				throw new IllegalStateException("Value "+val+" in triple set "+this+" has a parrent "+val.getParent()+". This is unexpected");
+			}
+		}
+	}
+	
 	protected String debugName() {
     	return "PVDeltaSetTriple";
     }
@@ -218,6 +235,6 @@ public class PrismValueDeltaSetTriple<V extends PrismValue> extends DeltaSetTrip
 	@Override
 	protected void toHumanReadableString(StringBuilder sb, V item) {
 		sb.append(item.toHumanReadableString());
-	}	
+	}
 
 }

@@ -165,6 +165,9 @@ public class ResourceShadowDiscriminator implements Serializable {
 		return true;
 	}
 
+	/**
+	 * Similar to equals but ignores the order. 
+	 */
 	public boolean equivalent(Object obj) {
 		if (this == obj)
 			return true;
