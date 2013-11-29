@@ -7,6 +7,7 @@ import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensDebugListener;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -71,14 +72,14 @@ public class ProfilingLensDebugListener implements LensDebugListener {
 			}
 		}
 		int changes = 0;
-		Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = null;
+		Collection<ObjectDelta<? extends ObjectType>> allDeltas = null;
 		try {
-			executedDeltas = context.getExecutedDeltas();
+			allDeltas = context.getAllChanges();
 		} catch (SchemaException e) {
 			changes = -1;
 		}
-		if (executedDeltas != null) {
-			changes = executedDeltas.size();
+		if (allDeltas != null) {
+			changes = allDeltas.size();
 		}
 		long projectorEtime = projectorEndTime - projectorStartTime;
 		LOGGER.trace("Projector finished ({}), {} changes, etime: {} ms ({} mapping evaluated, {} ms total)", 

@@ -640,5 +640,17 @@ public class LensUtil {
 		Collections.sort(projCtxs, orderComparator);
 		return projCtxs;
 	}
+
+	public static boolean hasLowerOrderContext(LensContext<UserType, ShadowType> context,
+			LensProjectionContext<ShadowType> refProjCtx) {
+		ResourceShadowDiscriminator refDiscr = refProjCtx.getResourceShadowDiscriminator();
+		for (LensProjectionContext<ShadowType> aProjCtx: context.getProjectionContexts()) {
+			ResourceShadowDiscriminator aDiscr = aProjCtx.getResourceShadowDiscriminator();
+			if (refDiscr.equivalent(aDiscr) && (refDiscr.getOrder() > aDiscr.getOrder())) {
+				return true;
+			}
+		}
+		return false;
+	}
     
 }
