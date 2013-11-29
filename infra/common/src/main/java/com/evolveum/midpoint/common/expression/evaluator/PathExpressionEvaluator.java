@@ -130,8 +130,8 @@ public class PathExpressionEvaluator<V extends PrismValue> implements Expression
         	return null;
         }
         
-        while (!resolvePath.isEmpty()) {
-        	if (resolveContext.isContainer()) {
+       while (!resolvePath.isEmpty()) {
+    	    if (resolveContext.isContainer()) {
         		resolveContext = resolveContext.findIdi(resolvePath.head());
         		resolvePath = resolvePath.tail();
         		if (resolveContext == null) {
@@ -140,6 +140,8 @@ public class PathExpressionEvaluator<V extends PrismValue> implements Expression
         	} else if (resolveContext.isStructuredProperty()) {
         		// The output path does not really matter. The delta will be converted to triple anyway
         		resolveContext = resolveContext.resolveStructuredProperty(resolvePath, (PrismPropertyDefinition) outputDefinition, null);
+        		break;
+        	} else if (resolveContext.isNull()){
         		break;
         	} else {
         		throw new ExpressionEvaluationException("Cannot resolve path "+resolvePath+" on "+resolveContext+" in "+params.getContextDescription());
