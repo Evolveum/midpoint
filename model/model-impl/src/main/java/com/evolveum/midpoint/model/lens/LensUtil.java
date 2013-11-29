@@ -512,7 +512,7 @@ public class LensUtil {
 		}
 	}
 	
-	public static void loadFullAccount(LensProjectionContext<ShadowType> accCtx, ProvisioningService provisioningService,
+	public static void loadFullAccount(LensContext<UserType,ShadowType> context, LensProjectionContext<ShadowType> accCtx, ProvisioningService provisioningService,
 			OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 		if (accCtx.isFullShadow()) {
 			// already loaded
@@ -522,16 +522,24 @@ public class LensUtil {
 			// nothing to load yet
 			return;
 		}
+		ResourceShadowDiscriminator discr = accCtx.getResourceShadowDiscriminator();
+		if (discr != null && discr.getOrder() > 0) {
+			// It may be just too early to load the projection
+			if (LensUtil.hasLowerOrderContext(context, accCtx) && (context.getExecutionWave() < accCtx.getWave())) {
+				// We cannot reliably load the context now
+				return;
+			}
+		}
 		LOGGER.trace("Loading full account {} from provisioning", accCtx);
 		
 		try{
-		PrismObject<ShadowType> objectOld = provisioningService.getObject(ShadowType.class,
-				accCtx.getOid(), SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()),
-				null, result);
-		// TODO: use setLoadedObject() instead?
-		accCtx.setObjectCurrent(objectOld);
-		ShadowType oldShadow = objectOld.asObjectable();
-		accCtx.determineFullShadowFlag(oldShadow.getFetchResult());
+			PrismObject<ShadowType> objectOld = provisioningService.getObject(ShadowType.class,
+					accCtx.getOid(), SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()),
+					null, result);
+			// TODO: use setLoadedObject() instead?
+			accCtx.setObjectCurrent(objectOld);
+			ShadowType oldShadow = objectOld.asObjectable();
+			accCtx.determineFullShadowFlag(oldShadow.getFetchResult());
 		
 		} catch (ObjectNotFoundException ex){
 			if (accCtx.isDelete()){
@@ -619,19 +627,22 @@ public class LensUtil {
 	 * Returns a list of context that have equivalent discriminator with the reference context. Ordered by "order" in the
 	 * discriminator.
 	 */
-	public static List<LensProjectionContext<ShadowType>> findRelatedContexts(LensContext<UserType,ShadowType> context, 
-			LensProjectionContext<ShadowType> refProjCtx) {
-		List<LensProjectionContext<ShadowType>> projCtxs = new ArrayList<LensProjectionContext<ShadowType>>();
+	public static <F extends ObjectType, P extends ObjectType> List<LensProjectionContext<P>> findRelatedContexts(
+			LensContext<F,P> context, LensProjectionContext<P> refProjCtx) {
+		List<LensProjectionContext<P>> projCtxs = new ArrayList<LensProjectionContext<P>>();
 		ResourceShadowDiscriminator refDiscr = refProjCtx.getResourceShadowDiscriminator();
-		for (LensProjectionContext<ShadowType> aProjCtx: context.getProjectionContexts()) {
+		if (refDiscr == null) {
+			return projCtxs;
+		}
+		for (LensProjectionContext<P> aProjCtx: context.getProjectionContexts()) {
 			ResourceShadowDiscriminator aDiscr = aProjCtx.getResourceShadowDiscriminator();
 			if (refDiscr.equivalent(aDiscr)) {
 				projCtxs.add(aProjCtx);
 			}
 		}
-		Comparator<? super LensProjectionContext<ShadowType>> orderComparator = new Comparator<LensProjectionContext<ShadowType>>() {
+		Comparator<? super LensProjectionContext<P>> orderComparator = new Comparator<LensProjectionContext<P>>() {
 			@Override
-			public int compare(LensProjectionContext<ShadowType> ctx1, LensProjectionContext<ShadowType> ctx2) {
+			public int compare(LensProjectionContext<P> ctx1, LensProjectionContext<P> ctx2) {
 				int order1 = ctx1.getResourceShadowDiscriminator().getOrder();
 				int order2 = ctx2.getResourceShadowDiscriminator().getOrder();
 				return Integer.compare(order1, order2);
@@ -651,6 +662,43 @@ public class LensUtil {
 			}
 		}
 		return false;
+	}
+	
+	public static <F extends ObjectType, P extends ObjectType> LensProjectionContext<P> findLowerOrderContext(LensContext<F, P> context,
+			LensProjectionContext<P> refProjCtx) {
+		int minOrder = -1;
+		LensProjectionContext<P> foundCtx = null;
+		ResourceShadowDiscriminator refDiscr = refProjCtx.getResourceShadowDiscriminator();
+		for (LensProjectionContext<P> aProjCtx: context.getProjectionContexts()) {
+			ResourceShadowDiscriminator aDiscr = aProjCtx.getResourceShadowDiscriminator();
+			if (refDiscr.equivalent(aDiscr) && (refDiscr.getOrder() > aDiscr.getOrder())) {
+				if (minOrder < 0 || (aDiscr.getOrder() < minOrder)) {
+					minOrder = aDiscr.getOrder();
+					foundCtx = aProjCtx;
+				}
+			}
+		}
+		return foundCtx;
+	}
+	
+	public static <T extends ObjectType, F extends ObjectType, P extends ObjectType> void setContextOid(LensContext<F,P> context,
+			LensElementContext<T> objectContext, String oid) {
+		objectContext.setOid(oid);
+		// Check if we need to propagate this oid also to higher-order contexts
+		if (!(objectContext instanceof LensProjectionContext)) {
+			return;
+		}
+		LensProjectionContext<P> refProjCtx = (LensProjectionContext<P>)objectContext;
+		ResourceShadowDiscriminator refDiscr = refProjCtx.getResourceShadowDiscriminator();
+		if (refDiscr == null) {
+			return;
+		}
+		for (LensProjectionContext<P> aProjCtx: context.getProjectionContexts()) {
+			ResourceShadowDiscriminator aDiscr = aProjCtx.getResourceShadowDiscriminator();
+			if (aDiscr != null && refDiscr.equivalent(aDiscr) && (refDiscr.getOrder() < aDiscr.getOrder())) {
+				aProjCtx.setOid(oid);
+			}
+		}
 	}
     
 }

@@ -226,7 +226,7 @@ public class InboundProcessor {
 	                		LOGGER.warn("Attempted to execute inbound expression on account shadow {} WITHOUT full account. Trying to load the account now.", accContext.getOid());      // todo change to trace level eventually
                             Throwable failure = null;
                             try {
-                                LensUtil.loadFullAccount(accContext, provisioningService, result);
+                                LensUtil.loadFullAccount(context, accContext, provisioningService, result);
                             } catch (ObjectNotFoundException e) {
                                 failure = e;
                             } catch (SecurityViolationException e) {
@@ -242,6 +242,11 @@ public class InboundProcessor {
                                 return;
                             }
                             if (!accContext.isFullShadow()) {
+                            	if (accContext.getResourceShadowDiscriminator().getOrder() > 0) {
+                            		// higher-order context. It is OK not to load this
+                            		LOGGER.trace("Skipped load of higher-order account with shadow OID {} skipping inbound processing on it", accContext.getOid());
+                            		return;
+                            	}
                                 LOGGER.warn("Couldn't load account with shadow OID {}, setting context as broken and skipping inbound processing on it", accContext.getOid());
                                 accContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
                                 return;

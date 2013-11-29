@@ -57,6 +57,7 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.SynchronizationSituationUtil;
@@ -238,6 +239,14 @@ public class ChangeExecutor {
 						subResult.recordNotApplicableIfUnknown();
 						continue;
 						
+					} else if (accDelta.isDelete() && accCtx.getResourceShadowDiscriminator().getOrder() > 0) {
+						// HACK ... for higher-order context check if this was already deleted
+						LensProjectionContext<P> lowerOrderContext = LensUtil.findLowerOrderContext(syncContext, accCtx);
+						if (lowerOrderContext != null && lowerOrderContext.isDelete()) {
+							// We assume that this was already executed
+							subResult.setStatus(OperationResultStatus.NOT_APPLICABLE);
+							continue;
+						}
 					}
 
 					executeDelta(accDelta, accCtx, syncContext, accCtx.getResource(), task, subResult);
@@ -360,8 +369,15 @@ public class ChangeExecutor {
         	}
             
     		if (accCtx.isDelete() || accCtx.isThombstone()) {
-    			LOGGER.trace("Account {} deleted, updating also situation in account.", accountOid);	
-				updateSituationInAccount(task, SynchronizationSituationType.DELETED, focusContext, accCtx, result);
+    			LOGGER.trace("Account {} deleted, updating also situation in account.", accountOid);
+    			// HACK HACK?
+    			try {
+    				updateSituationInAccount(task, SynchronizationSituationType.DELETED, focusContext, accCtx, result);
+    			} catch (ObjectNotFoundException e) {
+    				// HACK HACK?
+    				LOGGER.trace("Account {} is gone, cannot update situation in account (this is probably harmless).", accountOid);
+    				result.getLastSubresult().setStatus(OperationResultStatus.HANDLED_ERROR);
+    			}
     		} else {
     			// This should NOT be UNLINKED. We just do not know the situation here. Reflect that in the shadow.
 				LOGGER.trace("Account {} unlinked from the user, updating also situation in account.", accountOid);	
@@ -530,7 +546,7 @@ public class ChangeExecutor {
 	        }
 	        
 	        // To make sure that the OID is set (e.g. after ADD operation)
-	        objectContext.setOid(objectDelta.getOid());
+	        LensUtil.setContextOid(context, objectContext, objectDelta.getOid());
 	        
     	} finally {
     		
@@ -666,7 +682,13 @@ public class ChangeExecutor {
         	if (context.getChannel() != null && context.getChannel().equals(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON))){
         		options.setCompletePostponed(false);
     		}
-            deleteProvisioningObject(objectTypeClass, oid, context, options, resource, task, result);
+        	try {
+        		deleteProvisioningObject(objectTypeClass, oid, context, options, resource, task, result);
+        	} catch (ObjectNotFoundException e) {
+        		// HACK. We wanted to delete something that is not there. So in fact this is OK. Almost.
+        		LOGGER.trace("Attempt to delete object {} that is already gone", oid);
+        		result.getLastSubresult().setStatus(OperationResultStatus.HANDLED_ERROR);
+        	}
         } else {
             cacheRepositoryService.deleteObject(objectTypeClass, oid, result);
         }
