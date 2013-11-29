@@ -711,7 +711,20 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
         sb.append(", Wave(e=").append(executionWave);
         sb.append(",p=").append(projectionWave);
         sb.append(",max=").append(getMaxWave());
-        sb.append("), fresh=").append(isFresh);
+        sb.append("), ");
+        if (focusContext != null) {
+        	sb.append("focus, ");
+        }
+        sb.append(projectionContexts.size());
+        sb.append(" projections, ");
+        try {
+			Collection<ObjectDelta<? extends ObjectType>> allChanges = getAllChanges();
+			sb.append(allChanges.size());
+		} catch (SchemaException e) {
+			sb.append("[ERROR]");
+		}
+        sb.append(" changes, ");
+        sb.append("fresh=").append(isFresh);
         sb.append("\n");
 
         DebugUtil.debugDumpLabel(sb, "Channel", indent + 1);
