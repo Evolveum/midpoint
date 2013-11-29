@@ -37,6 +37,12 @@
 			</icfi:uselessGuardedString>
 			<icfi:supportValidity>true</icfi:supportValidity>
 		</icfc:configurationProperties>
+		 
+		<icfc:resultsHandlerConfiguration>
+<!-- 			<icfc:enableNormalizingResultsHandler>false</icfc:enableNormalizingResultsHandler>  -->
+ 			<icfc:enableFilteredResultsHandler>true</icfc:enableFilteredResultsHandler>  
+ 			<icfc:enableCaseInsensitiveFilter>true</icfc:enableCaseInsensitiveFilter> 
+		</icfc:resultsHandlerConfiguration> 
 
 	</connectorConfiguration>
 	<namespace>http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9999dddddddd</namespace>
