@@ -580,13 +580,13 @@ public class Clockwork {
 		}
 				
 		if (focusContext != null) {
-			sb.append("Focus: ").append(focusContext.toString()).append("\n");
+			sb.append("Focus: ").append(focusContext.getHumanReadableName()).append("\n");
 		}
 		if (!context.getProjectionContexts().isEmpty()) {
 			sb.append("Projections (").append(context.getProjectionContexts().size()).append("):\n");
 			for (LensProjectionContext<P> projectionContext: context.getProjectionContexts()) {
 				DebugUtil.indentDebugDump(sb, 1);
-				sb.append(projectionContext.toString());
+				sb.append(projectionContext.getHumanReadableName());
 				sb.append(": ");
 				sb.append(projectionContext.getSynchronizationPolicyDecision());
 				sb.append("\n");
