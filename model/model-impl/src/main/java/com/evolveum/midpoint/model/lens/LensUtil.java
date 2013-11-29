@@ -17,8 +17,11 @@ package com.evolveum.midpoint.model.lens;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -587,6 +590,67 @@ public class LensUtil {
 		propNew.setRealValue(accCtx.getIterationToken());
 		ItemDeltaItem<PrismPropertyValue<String>> idi = new ItemDeltaItem<PrismPropertyValue<String>>(propOld, propDelta, propNew);
 		return idi;
+	}
+	
+	/**
+	 * Extracts the delta from this projection context and also from all other projection contexts that have 
+	 * equivalent discriminator.
+	 */
+	public static <T> PropertyDelta<T> findAPrioriDelta(LensContext<UserType,ShadowType> context, 
+			LensProjectionContext<ShadowType> projCtx, ItemPath projectionPropertyPath) throws SchemaException {
+		PropertyDelta<T> aPrioriDelta = null;
+		for (LensProjectionContext<ShadowType> aProjCtx: findRelatedContexts(context, projCtx)) {
+			ObjectDelta<ShadowType> aProjDelta = aProjCtx.getDelta();
+			if (aProjDelta != null) {
+				PropertyDelta<T> aPropProjDelta = aProjDelta.findPropertyDelta(projectionPropertyPath);
+				if (aPropProjDelta != null) {
+					if (aPrioriDelta == null) {
+						aPrioriDelta = aPropProjDelta.clone();
+					} else {
+						aPrioriDelta.merge(aPropProjDelta);
+					}
+				}
+			}
+		}
+		return aPrioriDelta;
+	}
+	
+	/**
+	 * Returns a list of context that have equivalent discriminator with the reference context. Ordered by "order" in the
+	 * discriminator.
+	 */
+	public static List<LensProjectionContext<ShadowType>> findRelatedContexts(LensContext<UserType,ShadowType> context, 
+			LensProjectionContext<ShadowType> refProjCtx) {
+		List<LensProjectionContext<ShadowType>> projCtxs = new ArrayList<LensProjectionContext<ShadowType>>();
+		ResourceShadowDiscriminator refDiscr = refProjCtx.getResourceShadowDiscriminator();
+		for (LensProjectionContext<ShadowType> aProjCtx: context.getProjectionContexts()) {
+			ResourceShadowDiscriminator aDiscr = aProjCtx.getResourceShadowDiscriminator();
+			if (refDiscr.equivalent(aDiscr)) {
+				projCtxs.add(aProjCtx);
+			}
+		}
+		Comparator<? super LensProjectionContext<ShadowType>> orderComparator = new Comparator<LensProjectionContext<ShadowType>>() {
+			@Override
+			public int compare(LensProjectionContext<ShadowType> ctx1, LensProjectionContext<ShadowType> ctx2) {
+				int order1 = ctx1.getResourceShadowDiscriminator().getOrder();
+				int order2 = ctx2.getResourceShadowDiscriminator().getOrder();
+				return Integer.compare(order1, order2);
+			}
+		};
+		Collections.sort(projCtxs, orderComparator);
+		return projCtxs;
+	}
+
+	public static boolean hasLowerOrderContext(LensContext<UserType, ShadowType> context,
+			LensProjectionContext<ShadowType> refProjCtx) {
+		ResourceShadowDiscriminator refDiscr = refProjCtx.getResourceShadowDiscriminator();
+		for (LensProjectionContext<ShadowType> aProjCtx: context.getProjectionContexts()) {
+			ResourceShadowDiscriminator aDiscr = aProjCtx.getResourceShadowDiscriminator();
+			if (refDiscr.equivalent(aDiscr) && (refDiscr.getOrder() > aDiscr.getOrder())) {
+				return true;
+			}
+		}
+		return false;
 	}
     
 }

@@ -1,18 +1,18 @@
 CREATE TABLE m_abstract_role (
-  approvalExpression    CLOB,
+  approvalExpression    TEXT,
   approvalProcess       VARCHAR(255),
-  approvalSchema        CLOB,
-  automaticallyApproved CLOB,
+  approvalSchema        TEXT,
+  automaticallyApproved TEXT,
   requestable           BOOLEAN,
-  id                    BIGINT      NOT NULL,
+  id                    INT8        NOT NULL,
   oid                   VARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid)
 );
 
 CREATE TABLE m_any (
-  owner_id   BIGINT      NOT NULL,
+  owner_id   INT8        NOT NULL,
   owner_oid  VARCHAR(36) NOT NULL,
-  owner_type INTEGER     NOT NULL,
+  owner_type INT4        NOT NULL,
   PRIMARY KEY (owner_id, owner_oid, owner_type)
 );
 
@@ -20,153 +20,153 @@ CREATE TABLE m_any_clob (
   checksum                VARCHAR(32)  NOT NULL,
   name_namespace          VARCHAR(255) NOT NULL,
   name_localPart          VARCHAR(100) NOT NULL,
-  anyContainer_owner_id   BIGINT       NOT NULL,
+  anyContainer_owner_id   INT8         NOT NULL,
   anyContainer_owner_oid  VARCHAR(36)  NOT NULL,
-  anyContainer_owner_type INTEGER      NOT NULL,
+  anyContainer_owner_type INT4         NOT NULL,
   type_namespace          VARCHAR(255) NOT NULL,
   type_localPart          VARCHAR(100) NOT NULL,
   dynamicDef              BOOLEAN,
-  clobValue               CLOB,
-  valueType               INTEGER,
+  clobValue               TEXT,
+  valueType               INT4,
   PRIMARY KEY (checksum, name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type, type_namespace, type_localPart)
 );
 
 CREATE TABLE m_any_date (
   name_namespace          VARCHAR(255) NOT NULL,
   name_localPart          VARCHAR(100) NOT NULL,
-  anyContainer_owner_id   BIGINT       NOT NULL,
+  anyContainer_owner_id   INT8         NOT NULL,
   anyContainer_owner_oid  VARCHAR(36)  NOT NULL,
-  anyContainer_owner_type INTEGER      NOT NULL,
+  anyContainer_owner_type INT4         NOT NULL,
   type_namespace          VARCHAR(255) NOT NULL,
   type_localPart          VARCHAR(100) NOT NULL,
   dateValue               TIMESTAMP    NOT NULL,
   dynamicDef              BOOLEAN,
-  valueType               INTEGER,
+  valueType               INT4,
   PRIMARY KEY (name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type, type_namespace, type_localPart, dateValue)
 );
 
 CREATE TABLE m_any_long (
   name_namespace          VARCHAR(255) NOT NULL,
   name_localPart          VARCHAR(100) NOT NULL,
-  anyContainer_owner_id   BIGINT       NOT NULL,
+  anyContainer_owner_id   INT8         NOT NULL,
   anyContainer_owner_oid  VARCHAR(36)  NOT NULL,
-  anyContainer_owner_type INTEGER      NOT NULL,
+  anyContainer_owner_type INT4         NOT NULL,
   type_namespace          VARCHAR(255) NOT NULL,
   type_localPart          VARCHAR(100) NOT NULL,
-  longValue               BIGINT       NOT NULL,
+  longValue               INT8         NOT NULL,
   dynamicDef              BOOLEAN,
-  valueType               INTEGER,
+  valueType               INT4,
   PRIMARY KEY (name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type, type_namespace, type_localPart, longValue)
 );
 
 CREATE TABLE m_any_poly_string (
   name_namespace          VARCHAR(255) NOT NULL,
   name_localPart          VARCHAR(100) NOT NULL,
-  anyContainer_owner_id   BIGINT       NOT NULL,
+  anyContainer_owner_id   INT8         NOT NULL,
   anyContainer_owner_oid  VARCHAR(36)  NOT NULL,
-  anyContainer_owner_type INTEGER      NOT NULL,
+  anyContainer_owner_type INT4         NOT NULL,
   type_namespace          VARCHAR(255) NOT NULL,
   type_localPart          VARCHAR(100) NOT NULL,
   orig                    VARCHAR(255) NOT NULL,
   dynamicDef              BOOLEAN,
   norm                    VARCHAR(255),
-  valueType               INTEGER,
+  valueType               INT4,
   PRIMARY KEY (name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type, type_namespace, type_localPart, orig)
 );
 
 CREATE TABLE m_any_reference (
   name_namespace          VARCHAR(255) NOT NULL,
   name_localPart          VARCHAR(100) NOT NULL,
-  anyContainer_owner_id   BIGINT       NOT NULL,
+  anyContainer_owner_id   INT8         NOT NULL,
   anyContainer_owner_oid  VARCHAR(36)  NOT NULL,
-  anyContainer_owner_type INTEGER      NOT NULL,
+  anyContainer_owner_type INT4         NOT NULL,
   type_namespace          VARCHAR(255) NOT NULL,
   type_localPart          VARCHAR(100) NOT NULL,
   targetoid               VARCHAR(36)  NOT NULL,
-  description             CLOB,
+  description             TEXT,
   dynamicDef              BOOLEAN,
-  filter                  CLOB,
+  filter                  TEXT,
   relation_namespace      VARCHAR(255),
   relation_localPart      VARCHAR(100),
-  targetType              INTEGER,
-  valueType               INTEGER,
+  targetType              INT4,
+  valueType               INT4,
   PRIMARY KEY (name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type, type_namespace, type_localPart, targetoid)
 );
 
 CREATE TABLE m_any_string (
   name_namespace          VARCHAR(255) NOT NULL,
   name_localPart          VARCHAR(100) NOT NULL,
-  anyContainer_owner_id   BIGINT       NOT NULL,
+  anyContainer_owner_id   INT8         NOT NULL,
   anyContainer_owner_oid  VARCHAR(36)  NOT NULL,
-  anyContainer_owner_type INTEGER      NOT NULL,
+  anyContainer_owner_type INT4         NOT NULL,
   type_namespace          VARCHAR(255) NOT NULL,
   type_localPart          VARCHAR(100) NOT NULL,
   stringValue             VARCHAR(255) NOT NULL,
   dynamicDef              BOOLEAN,
-  valueType               INTEGER,
+  valueType               INT4,
   PRIMARY KEY (name_namespace, name_localPart, anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type, type_namespace, type_localPart, stringValue)
 );
 
 CREATE TABLE m_assignment (
-  accountConstruction         CLOB,
-  administrativeStatus        INTEGER,
+  accountConstruction         TEXT,
+  administrativeStatus        INT4,
   archiveTimestamp            TIMESTAMP,
   disableReason               VARCHAR(255),
   disableTimestamp            TIMESTAMP,
-  effectiveStatus             INTEGER,
+  effectiveStatus             INT4,
   enableTimestamp             TIMESTAMP,
   validFrom                   TIMESTAMP,
   validTo                     TIMESTAMP,
   validityChangeTimestamp     TIMESTAMP,
-  validityStatus              INTEGER,
-  assignmentOwner             INTEGER,
-  construction                CLOB,
-  description                 CLOB,
-  owner_id                    BIGINT      NOT NULL,
+  validityStatus              INT4,
+  assignmentOwner             INT4,
+  construction                TEXT,
+  description                 TEXT,
+  owner_id                    INT8        NOT NULL,
   owner_oid                   VARCHAR(36) NOT NULL,
-  targetRef_description       CLOB,
-  targetRef_filter            CLOB,
+  targetRef_description       TEXT,
+  targetRef_filter            TEXT,
   targetRef_relationLocalPart VARCHAR(100),
   targetRef_relationNamespace VARCHAR(255),
   targetRef_targetOid         VARCHAR(36),
-  targetRef_type              INTEGER,
-  id                          BIGINT      NOT NULL,
+  targetRef_type              INT4,
+  id                          INT8        NOT NULL,
   oid                         VARCHAR(36) NOT NULL,
-  extId                       BIGINT,
+  extId                       INT8,
   extOid                      VARCHAR(36),
-  extType                     INTEGER,
+  extType                     INT4,
   PRIMARY KEY (id, oid)
 );
 
 CREATE TABLE m_audit_delta (
   checksum         VARCHAR(32) NOT NULL,
-  record_id        BIGINT      NOT NULL,
-  delta            CLOB,
+  record_id        INT8        NOT NULL,
+  delta            TEXT,
   deltaOid         VARCHAR(36),
-  deltaType        INTEGER,
-  details          CLOB,
-  localizedMessage CLOB,
-  message          CLOB,
+  deltaType        INT4,
+  details          TEXT,
+  localizedMessage TEXT,
+  message          TEXT,
   messageCode      VARCHAR(255),
-  operation        CLOB,
-  params           CLOB,
-  partialResults   CLOB,
-  status           INTEGER,
-  token            BIGINT,
+  operation        TEXT,
+  params           TEXT,
+  partialResults   TEXT,
+  status           INT4,
+  token            INT8,
   PRIMARY KEY (checksum, record_id)
 );
 
 CREATE TABLE m_audit_event (
-  id                BIGINT NOT NULL,
+  id                INT8 NOT NULL,
   channel           VARCHAR(255),
   eventIdentifier   VARCHAR(255),
-  eventStage        INTEGER,
-  eventType         INTEGER,
+  eventStage        INT4,
+  eventType         INT4,
   hostIdentifier    VARCHAR(255),
   initiatorName     VARCHAR(255),
   initiatorOid      VARCHAR(36),
   message           VARCHAR(1024),
-  outcome           INTEGER,
+  outcome           INT4,
   parameter         VARCHAR(255),
   result            VARCHAR(255),
   sessionIdentifier VARCHAR(255),
@@ -174,7 +174,7 @@ CREATE TABLE m_audit_event (
   targetOid         VARCHAR(36),
   targetOwnerName   VARCHAR(255),
   targetOwnerOid    VARCHAR(36),
-  targetType        INTEGER,
+  targetType        INT4,
   taskIdentifier    VARCHAR(255),
   taskOID           VARCHAR(255),
   timestampValue    TIMESTAMP,
@@ -182,37 +182,37 @@ CREATE TABLE m_audit_event (
 );
 
 CREATE TABLE m_authorization (
-  decision    INTEGER,
-  description CLOB,
-  owner_id    BIGINT      NOT NULL,
+  decision    INT4,
+  description TEXT,
+  owner_id    INT8        NOT NULL,
   owner_oid   VARCHAR(36) NOT NULL,
-  id          BIGINT      NOT NULL,
+  id          INT8        NOT NULL,
   oid         VARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid)
 );
 
 CREATE TABLE m_authorization_action (
-  role_id  BIGINT      NOT NULL,
+  role_id  INT8        NOT NULL,
   role_oid VARCHAR(36) NOT NULL,
   action   VARCHAR(255)
 );
 
 CREATE TABLE m_connector (
   connectorBundle              VARCHAR(255),
-  connectorHostRef_description CLOB,
-  connectorHostRef_filter      CLOB,
+  connectorHostRef_description TEXT,
+  connectorHostRef_filter      TEXT,
   c16_relationLocalPart        VARCHAR(100),
   c16_relationNamespace        VARCHAR(255),
   connectorHostRef_targetOid   VARCHAR(36),
-  connectorHostRef_type        INTEGER,
+  connectorHostRef_type        INT4,
   connectorType                VARCHAR(255),
   connectorVersion             VARCHAR(255),
   framework                    VARCHAR(255),
   name_norm                    VARCHAR(255),
   name_orig                    VARCHAR(255),
   namespace                    VARCHAR(255),
-  xmlSchema                    CLOB,
-  id                           BIGINT      NOT NULL,
+  xmlSchema                    TEXT,
+  id                           INT8        NOT NULL,
   oid                          VARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid)
 );
@@ -223,54 +223,54 @@ CREATE TABLE m_connector_host (
   name_orig         VARCHAR(255),
   port              VARCHAR(255),
   protectConnection BOOLEAN,
-  sharedSecret      CLOB,
-  timeout           INTEGER,
-  id                BIGINT      NOT NULL,
+  sharedSecret      TEXT,
+  timeout           INT4,
+  id                INT8        NOT NULL,
   oid               VARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid),
   UNIQUE (name_norm)
 );
 
 CREATE TABLE m_connector_target_system (
-  connector_id     BIGINT      NOT NULL,
+  connector_id     INT8        NOT NULL,
   connector_oid    VARCHAR(36) NOT NULL,
   targetSystemType VARCHAR(255)
 );
 
 CREATE TABLE m_container (
-  id  BIGINT      NOT NULL,
+  id  INT8        NOT NULL,
   oid VARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid)
 );
 
 CREATE TABLE m_exclusion (
-  description                 CLOB,
-  owner_id                    BIGINT      NOT NULL,
+  description                 TEXT,
+  owner_id                    INT8        NOT NULL,
   owner_oid                   VARCHAR(36) NOT NULL,
-  policy                      INTEGER,
-  targetRef_description       CLOB,
-  targetRef_filter            CLOB,
+  policy                      INT4,
+  targetRef_description       TEXT,
+  targetRef_filter            TEXT,
   targetRef_relationLocalPart VARCHAR(100),
   targetRef_relationNamespace VARCHAR(255),
   targetRef_targetOid         VARCHAR(36),
-  targetRef_type              INTEGER,
-  id                          BIGINT      NOT NULL,
+  targetRef_type              INT4,
+  id                          INT8        NOT NULL,
   oid                         VARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid)
 );
 
 CREATE TABLE m_focus (
-  administrativeStatus    INTEGER,
+  administrativeStatus    INT4,
   archiveTimestamp        TIMESTAMP,
   disableReason           VARCHAR(255),
   disableTimestamp        TIMESTAMP,
-  effectiveStatus         INTEGER,
+  effectiveStatus         INT4,
   enableTimestamp         TIMESTAMP,
   validFrom               TIMESTAMP,
   validTo                 TIMESTAMP,
   validityChangeTimestamp TIMESTAMP,
-  validityStatus          INTEGER,
-  id                      BIGINT      NOT NULL,
+  validityStatus          INT4,
+  id                      INT8        NOT NULL,
   oid                     VARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid)
 );
@@ -279,29 +279,29 @@ CREATE TABLE m_generic_object (
   name_norm  VARCHAR(255),
   name_orig  VARCHAR(255),
   objectType VARCHAR(255),
-  id         BIGINT      NOT NULL,
+  id         INT8        NOT NULL,
   oid        VARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid),
   UNIQUE (name_norm)
 );
 
 CREATE TABLE m_metadata (
-  owner_id                      BIGINT      NOT NULL,
+  owner_id                      INT8        NOT NULL,
   owner_oid                     VARCHAR(36) NOT NULL,
   createChannel                 VARCHAR(255),
   createTimestamp               TIMESTAMP,
-  creatorRef_description        CLOB,
-  creatorRef_filter             CLOB,
+  creatorRef_description        TEXT,
+  creatorRef_filter             TEXT,
   creatorRef_relationLocalPart  VARCHAR(100),
   creatorRef_relationNamespace  VARCHAR(255),
   creatorRef_targetOid          VARCHAR(36),
-  creatorRef_type               INTEGER,
-  modifierRef_description       CLOB,
-  modifierRef_filter            CLOB,
+  creatorRef_type               INT4,
+  modifierRef_description       TEXT,
+  modifierRef_filter            TEXT,
   modifierRef_relationLocalPart VARCHAR(100),
   modifierRef_relationNamespace VARCHAR(255),
   modifierRef_targetOid         VARCHAR(36),
-  modifierRef_type              INTEGER,
+  modifierRef_type              INT4,
   modifyChannel                 VARCHAR(255),
   modifyTimestamp               TIMESTAMP,
   PRIMARY KEY (owner_id, owner_oid)
@@ -311,36 +311,36 @@ CREATE TABLE m_node (
   clusteredNode          BOOLEAN,
   hostname               VARCHAR(255),
   internalNodeIdentifier VARCHAR(255),
-  jmxPort                INTEGER,
+  jmxPort                INT4,
   lastCheckInTime        TIMESTAMP,
   name_norm              VARCHAR(255),
   name_orig              VARCHAR(255),
   nodeIdentifier         VARCHAR(255),
   running                BOOLEAN,
-  id                     BIGINT      NOT NULL,
+  id                     INT8        NOT NULL,
   oid                    VARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid),
   UNIQUE (name_norm)
 );
 
 CREATE TABLE m_object (
-  description CLOB,
-  version     BIGINT      NOT NULL,
-  id          BIGINT      NOT NULL,
+  description TEXT,
+  version     INT8        NOT NULL,
+  id          INT8        NOT NULL,
   oid         VARCHAR(36) NOT NULL,
-  extId       BIGINT,
+  extId       INT8,
   extOid      VARCHAR(36),
-  extType     INTEGER,
+  extType     INT4,
   PRIMARY KEY (id, oid)
 );
 
 CREATE TABLE m_object_template (
-  accountConstruction CLOB,
-  mapping             CLOB,
+  accountConstruction TEXT,
+  mapping             TEXT,
   name_norm           VARCHAR(255),
   name_orig           VARCHAR(255),
-  type                INTEGER,
-  id                  BIGINT      NOT NULL,
+  type                INT4,
+  id                  INT8        NOT NULL,
   oid                 VARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid),
   UNIQUE (name_norm)
@@ -348,16 +348,16 @@ CREATE TABLE m_object_template (
 
 CREATE TABLE m_operation_result (
   owner_oid        VARCHAR(36) NOT NULL,
-  owner_id         BIGINT      NOT NULL,
-  details          CLOB,
-  localizedMessage CLOB,
-  message          CLOB,
+  owner_id         INT8        NOT NULL,
+  details          TEXT,
+  localizedMessage TEXT,
+  message          TEXT,
   messageCode      VARCHAR(255),
-  operation        CLOB,
-  params           CLOB,
-  partialResults   CLOB,
-  status           INTEGER,
-  token            BIGINT,
+  operation        TEXT,
+  params           TEXT,
+  partialResults   TEXT,
+  status           INT4,
+  token            INT8,
   PRIMARY KEY (owner_oid, owner_id)
 );
 
@@ -370,71 +370,89 @@ CREATE TABLE m_org (
   locality_orig    VARCHAR(255),
   name_norm        VARCHAR(255),
   name_orig        VARCHAR(255),
-  id               BIGINT      NOT NULL,
+  id               INT8        NOT NULL,
   oid              VARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid),
   UNIQUE (name_norm)
 );
 
 CREATE TABLE m_org_closure (
-  id             BIGINT NOT NULL,
-  ancestor_id    BIGINT,
+  id             INT8 NOT NULL,
+  ancestor_id    INT8,
   ancestor_oid   VARCHAR(36),
-  depthValue     INTEGER,
-  descendant_id  BIGINT,
+  depthValue     INT4,
+  descendant_id  INT8,
   descendant_oid VARCHAR(36),
   PRIMARY KEY (id)
 );
 
 CREATE TABLE m_org_incorrect (
   descendant_oid VARCHAR(36) NOT NULL,
-  descendant_id  BIGINT      NOT NULL,
+  descendant_id  INT8        NOT NULL,
   ancestor_oid   VARCHAR(36) NOT NULL,
   PRIMARY KEY (descendant_oid, descendant_id, ancestor_oid)
 );
 
 CREATE TABLE m_org_org_type (
-  org_id  BIGINT      NOT NULL,
+  org_id  INT8        NOT NULL,
   org_oid VARCHAR(36) NOT NULL,
   orgType VARCHAR(255)
 );
 
 CREATE TABLE m_reference (
-  reference_type INTEGER      NOT NULL,
-  owner_id       BIGINT       NOT NULL,
+  reference_type INT4         NOT NULL,
+  owner_id       INT8         NOT NULL,
   owner_oid      VARCHAR(36)  NOT NULL,
   relLocalPart   VARCHAR(100) NOT NULL,
   relNamespace   VARCHAR(255) NOT NULL,
   targetOid      VARCHAR(36)  NOT NULL,
-  description    CLOB,
-  filter         CLOB,
-  containerType  INTEGER,
+  description    TEXT,
+  filter         TEXT,
+  containerType  INT4,
   PRIMARY KEY (owner_id, owner_oid, relLocalPart, relNamespace, targetOid)
 );
 
+CREATE TABLE m_report (
+  name_norm               VARCHAR(255),
+  name_orig               VARCHAR(255),
+  class_namespace         VARCHAR(255),
+  class_localPart         VARCHAR(100),
+  query                   TEXT,
+  reportExport            INT4,
+  reportFields            TEXT,
+  reportOrientation       INT4,
+  reportParameters        TEXT,
+  reportTemplateJRXML     TEXT,
+  reportTemplateStyleJRTX TEXT,
+  id                      INT8        NOT NULL,
+  oid                     VARCHAR(36) NOT NULL,
+  PRIMARY KEY (id, oid),
+  UNIQUE (name_norm)
+);
+
 CREATE TABLE m_resource (
-  administrativeState            INTEGER,
-  capabilities_cachingMetadata   CLOB,
-  capabilities_configured        CLOB,
-  capabilities_native            CLOB,
-  configuration                  CLOB,
-  connectorRef_description       CLOB,
-  connectorRef_filter            CLOB,
+  administrativeState            INT4,
+  capabilities_cachingMetadata   TEXT,
+  capabilities_configured        TEXT,
+  capabilities_native            TEXT,
+  configuration                  TEXT,
+  connectorRef_description       TEXT,
+  connectorRef_filter            TEXT,
   connectorRef_relationLocalPart VARCHAR(100),
   connectorRef_relationNamespace VARCHAR(255),
   connectorRef_targetOid         VARCHAR(36),
-  connectorRef_type              INTEGER,
-  consistency                    CLOB,
+  connectorRef_type              INT4,
+  consistency                    TEXT,
   name_norm                      VARCHAR(255),
   name_orig                      VARCHAR(255),
   namespace                      VARCHAR(255),
-  o16_lastAvailabilityStatus     INTEGER,
-  projection                     CLOB,
-  schemaHandling                 CLOB,
-  scripts                        CLOB,
-  synchronization                CLOB,
-  xmlSchema                      CLOB,
-  id                             BIGINT      NOT NULL,
+  o16_lastAvailabilityStatus     INT4,
+  projection                     TEXT,
+  schemaHandling                 TEXT,
+  scripts                        TEXT,
+  synchronization                TEXT,
+  xmlSchema                      TEXT,
+  id                             INT8        NOT NULL,
   oid                            VARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid),
   UNIQUE (name_norm)
@@ -444,144 +462,144 @@ CREATE TABLE m_role (
   name_norm VARCHAR(255),
   name_orig VARCHAR(255),
   roleType  VARCHAR(255),
-  id        BIGINT      NOT NULL,
+  id        INT8        NOT NULL,
   oid       VARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid),
   UNIQUE (name_norm)
 );
 
 CREATE TABLE m_shadow (
-  administrativeStatus          INTEGER,
+  administrativeStatus          INT4,
   archiveTimestamp              TIMESTAMP,
   disableReason                 VARCHAR(255),
   disableTimestamp              TIMESTAMP,
-  effectiveStatus               INTEGER,
+  effectiveStatus               INT4,
   enableTimestamp               TIMESTAMP,
   validFrom                     TIMESTAMP,
   validTo                       TIMESTAMP,
   validityChangeTimestamp       TIMESTAMP,
-  validityStatus                INTEGER,
+  validityStatus                INT4,
   assigned                      BOOLEAN,
-  attemptNumber                 INTEGER,
+  attemptNumber                 INT4,
   dead                          BOOLEAN,
   exist                         BOOLEAN,
-  failedOperationType           INTEGER,
+  failedOperationType           INT4,
   fullSynchronizationTimestamp  TIMESTAMP,
   intent                        VARCHAR(255),
-  iteration                     INTEGER,
+  iteration                     INT4,
   iterationToken                VARCHAR(255),
-  kind                          INTEGER,
+  kind                          INT4,
   name_norm                     VARCHAR(255),
   name_orig                     VARCHAR(255),
-  objectChange                  CLOB,
+  objectChange                  TEXT,
   class_namespace               VARCHAR(255),
   class_localPart               VARCHAR(100),
-  resourceRef_description       CLOB,
-  resourceRef_filter            CLOB,
+  resourceRef_description       TEXT,
+  resourceRef_filter            TEXT,
   resourceRef_relationLocalPart VARCHAR(100),
   resourceRef_relationNamespace VARCHAR(255),
   resourceRef_targetOid         VARCHAR(36),
-  resourceRef_type              INTEGER,
-  synchronizationSituation      INTEGER,
+  resourceRef_type              INT4,
+  synchronizationSituation      INT4,
   synchronizationTimestamp      TIMESTAMP,
-  id                            BIGINT      NOT NULL,
+  id                            INT8        NOT NULL,
   oid                           VARCHAR(36) NOT NULL,
-  attrId                        BIGINT,
+  attrId                        INT8,
   attrOid                       VARCHAR(36),
-  attrType                      INTEGER,
+  attrType                      INT4,
   PRIMARY KEY (id, oid)
 );
 
 CREATE TABLE m_sync_situation_description (
   checksum       VARCHAR(32) NOT NULL,
-  shadow_id      BIGINT      NOT NULL,
+  shadow_id      INT8        NOT NULL,
   shadow_oid     VARCHAR(36) NOT NULL,
   chanel         VARCHAR(255),
   fullFlag       BOOLEAN,
-  situation      INTEGER,
+  situation      INT4,
   timestampValue TIMESTAMP,
   PRIMARY KEY (checksum, shadow_id, shadow_oid)
 );
 
 CREATE TABLE m_system_configuration (
-  cleanupPolicy                  CLOB,
-  connectorFramework             CLOB,
-  d22_description                CLOB,
-  defaultUserTemplateRef_filter  CLOB,
+  cleanupPolicy                  TEXT,
+  connectorFramework             TEXT,
+  d22_description                TEXT,
+  defaultUserTemplateRef_filter  TEXT,
   d22_relationLocalPart          VARCHAR(100),
   d22_relationNamespace          VARCHAR(255),
   d22_targetOid                  VARCHAR(36),
-  defaultUserTemplateRef_type    INTEGER,
-  g36                            CLOB,
-  g23_description                CLOB,
-  globalPasswordPolicyRef_filter CLOB,
+  defaultUserTemplateRef_type    INT4,
+  g36                            TEXT,
+  g23_description                TEXT,
+  globalPasswordPolicyRef_filter TEXT,
   g23_relationLocalPart          VARCHAR(100),
   g23_relationNamespace          VARCHAR(255),
   g23_targetOid                  VARCHAR(36),
-  globalPasswordPolicyRef_type   INTEGER,
-  logging                        CLOB,
-  modelHooks                     CLOB,
+  globalPasswordPolicyRef_type   INT4,
+  logging                        TEXT,
+  modelHooks                     TEXT,
   name_norm                      VARCHAR(255),
   name_orig                      VARCHAR(255),
-  notificationConfiguration      CLOB,
-  profilingConfiguration         CLOB,
-  id                             BIGINT      NOT NULL,
+  notificationConfiguration      TEXT,
+  profilingConfiguration         TEXT,
+  id                             INT8        NOT NULL,
   oid                            VARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid),
   UNIQUE (name_norm)
 );
 
 CREATE TABLE m_task (
-  binding                     INTEGER,
+  binding                     INT4,
   canRunOnNode                VARCHAR(255),
   category                    VARCHAR(255),
   completionTimestamp         TIMESTAMP,
-  executionStatus             INTEGER,
-  expectedTotal               BIGINT,
+  executionStatus             INT4,
+  expectedTotal               INT8,
   handlerUri                  VARCHAR(255),
   lastRunFinishTimestamp      TIMESTAMP,
   lastRunStartTimestamp       TIMESTAMP,
   name_norm                   VARCHAR(255),
   name_orig                   VARCHAR(255),
   node                        VARCHAR(255),
-  objectRef_description       CLOB,
-  objectRef_filter            CLOB,
+  objectRef_description       TEXT,
+  objectRef_filter            TEXT,
   objectRef_relationLocalPart VARCHAR(100),
   objectRef_relationNamespace VARCHAR(255),
   objectRef_targetOid         VARCHAR(36),
-  objectRef_type              INTEGER,
-  otherHandlersUriStack       CLOB,
-  ownerRef_description        CLOB,
-  ownerRef_filter             CLOB,
+  objectRef_type              INT4,
+  otherHandlersUriStack       TEXT,
+  ownerRef_description        TEXT,
+  ownerRef_filter             TEXT,
   ownerRef_relationLocalPart  VARCHAR(100),
   ownerRef_relationNamespace  VARCHAR(255),
   ownerRef_targetOid          VARCHAR(36),
-  ownerRef_type               INTEGER,
+  ownerRef_type               INT4,
   parent                      VARCHAR(255),
-  progress                    BIGINT,
-  recurrence                  INTEGER,
-  resultStatus                INTEGER,
-  schedule                    CLOB,
+  progress                    INT8,
+  recurrence                  INT4,
+  resultStatus                INT4,
+  schedule                    TEXT,
   taskIdentifier              VARCHAR(255),
-  threadStopAction            INTEGER,
-  waitingReason               INTEGER,
-  id                          BIGINT      NOT NULL,
+  threadStopAction            INT4,
+  waitingReason               INT4,
+  id                          INT8        NOT NULL,
   oid                         VARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid)
 );
 
 CREATE TABLE m_task_dependent (
-  task_id   BIGINT      NOT NULL,
+  task_id   INT8        NOT NULL,
   task_oid  VARCHAR(36) NOT NULL,
   dependent VARCHAR(255)
 );
 
 CREATE TABLE m_trigger (
   handlerUri     VARCHAR(255),
-  owner_id       BIGINT      NOT NULL,
+  owner_id       INT8        NOT NULL,
   owner_oid      VARCHAR(36) NOT NULL,
   timestampValue TIMESTAMP,
-  id             BIGINT      NOT NULL,
+  id             INT8        NOT NULL,
   oid            VARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid)
 );
@@ -591,7 +609,7 @@ CREATE TABLE m_user (
   additionalName_orig      VARCHAR(255),
   costCenter               VARCHAR(255),
   allowedIdmAdminGuiAccess BOOLEAN,
-  passwordXml              CLOB,
+  passwordXml              TEXT,
   emailAddress             VARCHAR(255),
   employeeNumber           VARCHAR(255),
   familyName_norm          VARCHAR(255),
@@ -616,38 +634,38 @@ CREATE TABLE m_user (
   timezone                 VARCHAR(255),
   title_norm               VARCHAR(255),
   title_orig               VARCHAR(255),
-  id                       BIGINT      NOT NULL,
+  id                       INT8        NOT NULL,
   oid                      VARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid),
   UNIQUE (name_norm)
 );
 
 CREATE TABLE m_user_employee_type (
-  user_id      BIGINT      NOT NULL,
+  user_id      INT8        NOT NULL,
   user_oid     VARCHAR(36) NOT NULL,
   employeeType VARCHAR(255)
 );
 
 CREATE TABLE m_user_organization (
-  user_id  BIGINT      NOT NULL,
+  user_id  INT8        NOT NULL,
   user_oid VARCHAR(36) NOT NULL,
   norm     VARCHAR(255),
   orig     VARCHAR(255)
 );
 
 CREATE TABLE m_user_organizational_unit (
-  user_id  BIGINT      NOT NULL,
+  user_id  INT8        NOT NULL,
   user_oid VARCHAR(36) NOT NULL,
   norm     VARCHAR(255),
   orig     VARCHAR(255)
 );
 
 CREATE TABLE m_value_policy (
-  lifetime     CLOB,
+  lifetime     TEXT,
   name_norm    VARCHAR(255),
   name_orig    VARCHAR(255),
-  stringPolicy CLOB,
-  id           BIGINT      NOT NULL,
+  stringPolicy TEXT,
+  id           INT8        NOT NULL,
   oid          VARCHAR(36) NOT NULL,
   PRIMARY KEY (id, oid),
   UNIQUE (name_norm)
@@ -839,6 +857,13 @@ ADD CONSTRAINT fk_reference_owner
 FOREIGN KEY (owner_id, owner_oid)
 REFERENCES m_container;
 
+CREATE INDEX iReportName ON m_report (name_orig);
+
+ALTER TABLE m_report
+ADD CONSTRAINT fk_report
+FOREIGN KEY (id, oid)
+REFERENCES m_object;
+
 CREATE INDEX iResourceName ON m_resource (name_orig);
 
 ALTER TABLE m_resource
@@ -955,4 +980,4 @@ ADD CONSTRAINT fk_value_policy
 FOREIGN KEY (id, oid)
 REFERENCES m_object;
 
-CREATE SEQUENCE hibernate_sequence START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE hibernate_sequence START 1 INCREMENT 1;

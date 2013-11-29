@@ -150,7 +150,14 @@ public class ActivationProcessor {
 	    		if (accCtx.isExists()) {
 	    			decision = SynchronizationPolicyDecision.KEEP;
 	    		} else {
-	    			decision = SynchronizationPolicyDecision.ADD;
+	    			if (LensUtil.hasLowerOrderContext(context, accCtx)) {
+	    				// If there is a lower-order context then that one will be ADD
+	    				// and this one is KEEP. When the execution comes to this context
+	    				// then the projection already exists
+	    				decision = SynchronizationPolicyDecision.KEEP;
+	    			} else {
+	    				decision = SynchronizationPolicyDecision.ADD;
+	    			}
 	    		}
 	    	} else {
 	    		// Delete
@@ -473,10 +480,7 @@ public class ActivationProcessor {
         }
         
         ObjectDelta<ShadowType> projectionDelta = accCtx.getDelta();
-        PropertyDelta<T> shadowPropertyDelta = null;
-        if (projectionDelta != null) {
-        	shadowPropertyDelta = projectionDelta.findPropertyDelta(projectionPropertyPath);
-        }
+        PropertyDelta<T> shadowPropertyDelta = LensUtil.findAPrioriDelta(context, accCtx, projectionPropertyPath);
         
         PrismObject<ShadowType> shadowNew = accCtx.getObjectNew();
         PrismProperty<T> shadowPropertyNew = null;
@@ -556,8 +560,8 @@ public class ActivationProcessor {
 				outbound, desc + " outbound activation mapping in projection " + accCtxDesc,
         		now, initializer, shadowPropertyNew, shadowPropertyDelta, shadowNew, current, strongMappingWasUsed, context, accCtx, result);
 
-        LOGGER.trace("evaluateActivationMapping after evaluateMappingSetProjection: accCtx.isFullShadow = {}, accCtx.isFresh = {}, shadowPropertyDelta = {}, shadowPropertyNew = {}, outputTriple = {}, strongMappingWasUsed = {}",
-                new Object[] { accCtx.isFullShadow(), accCtx.isFresh(), shadowPropertyDelta, shadowPropertyNew, outputTriple, strongMappingWasUsed});
+        LOGGER.trace("evaluateActivationMapping for {} after evaluateMappingSetProjection: accCtx.isFullShadow = {}, accCtx.isFresh = {}, shadowPropertyDelta = {}, shadowPropertyNew = {}, outputTriple = {}, strongMappingWasUsed = {}",
+                new Object[] { desc, accCtx.isFullShadow(), accCtx.isFresh(), shadowPropertyDelta, shadowPropertyNew, outputTriple, strongMappingWasUsed});
 
         if (outputTriple == null) {
     		LOGGER.trace("Activation '{}' expression resulted in null triple for projection {}, skipping", desc, accCtxDesc);

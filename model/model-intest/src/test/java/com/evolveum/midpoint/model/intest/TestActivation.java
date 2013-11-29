@@ -359,6 +359,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		
 		String accountOid = getAccountRef(userJack, RESOURCE_DUMMY_OID);
 		PrismObject<ShadowType> accountShadow = getAccount(accountOid);
+		assertAdministrativeStatusDisabled(accountShadow);
 		assertDisableTimestampShadow(accountShadow, startTime, endTime);
 		assertDisableReasonShadow(accountShadow, SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);
         
@@ -367,14 +368,60 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	}
 	
 	/**
+	 * Make sure that recompute does not destroy anything.
+	 */
+	@Test
+    public void test112UserJackRecompute() throws Exception {
+		final String TEST_NAME = "test112UserJackRecompute";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
+        dummyAuditService.clear();
+        
+		// WHEN
+        recomputeUser(USER_JACK_OID, task, result);
+		
+		// THEN
+		result.computeStatus();
+        TestUtil.assertSuccess("recompute result", result);
+        
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after change execution", userJack);
+		assertUserJack(userJack, "Jack Sparrow");
+		
+		String accountOid = getAccountRef(userJack, RESOURCE_DUMMY_OID);
+		PrismObject<ShadowType> accountShadow = getAccount(accountOid);
+		assertAdministrativeStatusDisabled(accountShadow);
+		assertDisableTimestampShadow(accountShadow, null, startTime);
+		assertDisableReasonShadow(accountShadow, SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);
+        
+		assertAdministrativeStatusEnabled(userJack);
+		assertDummyDisabled("jack");
+		
+		// Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertNoRecord();
+//        dummyAuditService.assertRecords(2);
+//        dummyAuditService.assertSimpleRecordSanity();
+//        dummyAuditService.assertAnyRequestDeltas();
+//        dummyAuditService.assertExecutionDeltas(0);
+//        dummyAuditService.assertExecutionSuccess();
+	}
+	
+	/**
 	 * Re-enabling the user should enable the account as well. Even if the user is already enabled.
 	 */
 	@Test
-    public void test112ModifyUserJackEnable() throws Exception {
-        TestUtil.displayTestTile(this, "test112ModifyUserJackEnable");
+    public void test114ModifyUserJackEnable() throws Exception {
+		final String TEST_NAME = "test114ModifyUserJackEnable";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + ".test112ModifyUserJackEnable");
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
@@ -407,11 +454,12 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	 * and account should have its own state.
 	 */
 	@Test
-    public void test113ModifyJackActivationUserAndAccount() throws Exception {
-        TestUtil.displayTestTile(this, "test113ModifyJackActivationUserAndAccount");
+    public void test115ModifyJackActivationUserAndAccount() throws Exception {
+		final String TEST_NAME = "test115ModifyJackActivationUserAndAccount";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + ".test113ModifyJackActivationUserAndAccount");
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         

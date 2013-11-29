@@ -116,7 +116,6 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 
     protected static final String USER_WORLD_NAME = "world";
     protected static final String USER_WORLD_FULL_NAME = "The World";
-    private String USER_WORLD_OID = null;
 
 	private static final String USER_FIELD_NAME = "field";
 	
@@ -1264,8 +1263,8 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	}
     
     @Test
-    public void test403DavidAndGoliathDisable() throws Exception {
-		final String TEST_NAME = "test403DavidAndGoliathDisable";
+    public void test403DavidAndGoliathDisableUser() throws Exception {
+		final String TEST_NAME = "test403DavidAndGoliathDisableUser";
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
@@ -1326,8 +1325,8 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 	}
     
     @Test
-    public void test404DavidAndGoliathEnable() throws Exception {
-		final String TEST_NAME = "test404DavidAndGoliathEnable";
+    public void test404DavidAndGoliathEnableUser() throws Exception {
+		final String TEST_NAME = "test404DavidAndGoliathEnableUser";
 		TestUtil.displayTestTile(TEST_NAME);
 		
 		// GIVEN
@@ -1383,6 +1382,200 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, ShadowType.class);
         dummyAuditService.assertExecutionDeltas(1,1);
         dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertExecutionSuccess();
+	}
+    
+    @Test
+    public void test405DavidAndGoliathDisableAccountDavid() throws Exception {
+		final String TEST_NAME = "test405DavidAndGoliathDisableAccountDavid";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		// GIVEN
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+		
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = findUserByUsername(USER_WORLD_NAME);
+        assertAdministrativeStatusEnabled(userBefore);
+        String accountDavidOid = getAccountRef(userBefore, RESOURCE_DUMMY_DAVID_OID);
+        dummyAuditService.clear();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyAccountShadowReplace(accountDavidOid, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.DISABLED);
+                
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(userBefore.getOid());
+		display("User after fight", userAfter);
+		assertUser(userAfter, userBefore.getOid(), USER_WORLD_NAME, USER_WORLD_FULL_NAME, null, null);
+		assertAdministrativeStatusEnabled(userAfter);
+		assertAccount(userAfter, RESOURCE_DUMMY_GOLIATH_OID);
+		assertAccount(userAfter, RESOURCE_DUMMY_DAVID_OID);
+		assertAccounts(userAfter, 2);
+		
+		assertDummyAccount(RESOURCE_DUMMY_DAVID_NAME, USER_WORLD_NAME, USER_WORLD_FULL_NAME, false);
+        
+		assertDummyAccountAttribute(RESOURCE_DUMMY_DAVID_NAME, USER_WORLD_NAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "rock (world) take");
+        
+        assertUserProperty(userAfter, UserType.F_LOCALITY, PrismTestUtil.createPolyString("rock (world) take throw"));
+        
+        assertDummyAccount(RESOURCE_DUMMY_GOLIATH_NAME, USER_WORLD_NAME, USER_WORLD_FULL_NAME, true);
+        
+        assertDummyAccountAttribute(RESOURCE_DUMMY_GOLIATH_NAME, USER_WORLD_NAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "rock (world) take throw (world) hit");
+        
+        assertUserProperty(userAfter, UserType.F_TITLE, PrismTestUtil.createPolyString("rock (world) take throw (world) hit fall"));
+        
+        assertDummyAccountAttribute(RESOURCE_DUMMY_DAVID_NAME, USER_WORLD_NAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "rock (world) take throw (world) hit fall (world) win");
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(3);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(0,1);
+        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, ShadowType.class);
+        
+        // Change of iterationToken and other metadata. Not ideal but OK for now.
+        dummyAuditService.assertExecutionDeltas(1,1);
+        dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, ShadowType.class);
+        
+        dummyAuditService.assertExecutionSuccess();
+	}
+    
+    /**
+     * Try to recompute to make sure it does not destroy anything. The recompute should do nothing.
+     */
+    @Test
+    public void test406DavidAndGoliathRecompute() throws Exception {
+		final String TEST_NAME = "test406DavidAndGoliathRecompute";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		// GIVEN
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+		
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = findUserByUsername(USER_WORLD_NAME);
+        assertAdministrativeStatusEnabled(userBefore);
+        dummyAuditService.clear();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        recomputeUser(userBefore.getOid(), task, result);
+                
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(userBefore.getOid());
+		display("User after fight", userAfter);
+		assertUser(userAfter, userBefore.getOid(), USER_WORLD_NAME, USER_WORLD_FULL_NAME, null, null);
+		assertAdministrativeStatusEnabled(userAfter);
+		assertAccount(userAfter, RESOURCE_DUMMY_GOLIATH_OID);
+		assertAccount(userAfter, RESOURCE_DUMMY_DAVID_OID);
+		assertAccounts(userAfter, 2);
+		
+		assertDummyAccount(RESOURCE_DUMMY_DAVID_NAME, USER_WORLD_NAME, USER_WORLD_FULL_NAME, false);
+        
+		assertDummyAccountAttribute(RESOURCE_DUMMY_DAVID_NAME, USER_WORLD_NAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "rock (world) take");
+        
+        assertUserProperty(userAfter, UserType.F_LOCALITY, PrismTestUtil.createPolyString("rock (world) take throw"));
+        
+        assertDummyAccount(RESOURCE_DUMMY_GOLIATH_NAME, USER_WORLD_NAME, USER_WORLD_FULL_NAME, true);
+        
+        assertDummyAccountAttribute(RESOURCE_DUMMY_GOLIATH_NAME, USER_WORLD_NAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "rock (world) take throw (world) hit");
+        
+        assertUserProperty(userAfter, UserType.F_TITLE, PrismTestUtil.createPolyString("rock (world) take throw (world) hit fall"));
+        
+        assertDummyAccountAttribute(RESOURCE_DUMMY_DAVID_NAME, USER_WORLD_NAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "rock (world) take throw (world) hit fall (world) win");
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertExecutionDeltas(1);
+        
+        // Change of iterationToken and other metadata. Not ideal but OK for now.
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, ShadowType.class);
+        
+        dummyAuditService.assertExecutionSuccess();
+	}
+    
+    @Test
+    public void test408DavidAndGoliathEnableAccountDavid() throws Exception {
+		final String TEST_NAME = "test408DavidAndGoliathEnableAccountDavid";
+		TestUtil.displayTestTile(TEST_NAME);
+		
+		// GIVEN
+		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+		
+		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        PrismObject<UserType> userBefore = findUserByUsername(USER_WORLD_NAME);
+        assertAdministrativeStatusEnabled(userBefore);
+        String accountDavidOid = getAccountRef(userBefore, RESOURCE_DUMMY_DAVID_OID);
+        dummyAuditService.clear();
+        
+        // WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyAccountShadowReplace(accountDavidOid, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, task, result, ActivationStatusType.ENABLED);
+                
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> userAfter = getUser(userBefore.getOid());
+		display("User after fight", userAfter);
+		assertUser(userAfter, userBefore.getOid(), USER_WORLD_NAME, USER_WORLD_FULL_NAME, null, null);
+		assertAdministrativeStatusEnabled(userAfter);
+		assertAccount(userAfter, RESOURCE_DUMMY_GOLIATH_OID);
+		assertAccount(userAfter, RESOURCE_DUMMY_DAVID_OID);
+		assertAccounts(userAfter, 2);
+		
+		assertDummyAccount(RESOURCE_DUMMY_DAVID_NAME, USER_WORLD_NAME, USER_WORLD_FULL_NAME, true);
+        
+		assertDummyAccountAttribute(RESOURCE_DUMMY_DAVID_NAME, USER_WORLD_NAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "rock (world) take");
+        
+        assertUserProperty(userAfter, UserType.F_LOCALITY, PrismTestUtil.createPolyString("rock (world) take throw"));
+        
+        assertDummyAccount(RESOURCE_DUMMY_GOLIATH_NAME, USER_WORLD_NAME, USER_WORLD_FULL_NAME, true);
+        
+        assertDummyAccountAttribute(RESOURCE_DUMMY_GOLIATH_NAME, USER_WORLD_NAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, "rock (world) take throw (world) hit");
+        
+        assertUserProperty(userAfter, UserType.F_TITLE, PrismTestUtil.createPolyString("rock (world) take throw (world) hit fall"));
+        
+        assertDummyAccountAttribute(RESOURCE_DUMMY_DAVID_NAME, USER_WORLD_NAME,
+        		DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_QUOTE_NAME, "rock (world) take throw (world) hit fall (world) win");
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(3);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(0,1);
+        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, ShadowType.class);
+        
+        // Change of iterationToken and other metadata. Not ideal but OK for now.
+        dummyAuditService.assertExecutionDeltas(1,1);
+        dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, ShadowType.class);
+        
         dummyAuditService.assertExecutionSuccess();
 	}
     

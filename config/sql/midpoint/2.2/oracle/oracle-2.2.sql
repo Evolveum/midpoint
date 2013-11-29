@@ -1,6 +1,3 @@
--- INITRANS added because we use serializable transactions http://docs.oracle.com/cd/B14117_01/appdev.101/b10795/adfns_sq.htm#1025374
--- replace ");" with ") INITRANS 30;"
-
 CREATE TABLE m_abstract_role (
   approvalExpression    CLOB,
   approvalProcess       VARCHAR2(255 CHAR),
@@ -9,6 +6,15 @@ CREATE TABLE m_abstract_role (
   requestable           NUMBER(1, 0),
   id                    NUMBER(19, 0)     NOT NULL,
   oid                   VARCHAR2(36 CHAR) NOT NULL,
+  PRIMARY KEY (id, oid)
+) INITRANS 30;
+
+CREATE TABLE m_account_shadow (
+  accountType              VARCHAR2(255 CHAR),
+  allowedIdmAdminGuiAccess NUMBER(1, 0),
+  passwordXml              CLOB,
+  id                       NUMBER(19, 0)     NOT NULL,
+  oid                      VARCHAR2(36 CHAR) NOT NULL,
   PRIMARY KEY (id, oid)
 ) INITRANS 30;
 
@@ -114,7 +120,6 @@ CREATE TABLE m_assignment (
   accountConstruction         CLOB,
   administrativeStatus        NUMBER(10, 0),
   archiveTimestamp            TIMESTAMP,
-  disableReason               VARCHAR2(255 CHAR),
   disableTimestamp            TIMESTAMP,
   effectiveStatus             NUMBER(10, 0),
   enableTimestamp             TIMESTAMP,
@@ -265,7 +270,6 @@ CREATE TABLE m_exclusion (
 CREATE TABLE m_focus (
   administrativeStatus    NUMBER(10, 0),
   archiveTimestamp        TIMESTAMP,
-  disableReason           VARCHAR2(255 CHAR),
   disableTimestamp        TIMESTAMP,
   effectiveStatus         NUMBER(10, 0),
   enableTimestamp         TIMESTAMP,
@@ -456,7 +460,6 @@ CREATE TABLE m_role (
 CREATE TABLE m_shadow (
   administrativeStatus          NUMBER(10, 0),
   archiveTimestamp              TIMESTAMP,
-  disableReason                 VARCHAR2(255 CHAR),
   disableTimestamp              TIMESTAMP,
   effectiveStatus               NUMBER(10, 0),
   enableTimestamp               TIMESTAMP,
@@ -469,7 +472,6 @@ CREATE TABLE m_shadow (
   dead                          NUMBER(1, 0),
   exist                         NUMBER(1, 0),
   failedOperationType           NUMBER(10, 0),
-  fullSynchronizationTimestamp  TIMESTAMP,
   intent                        VARCHAR2(255 CHAR),
   iteration                     NUMBER(10, 0),
   iterationToken                VARCHAR2(255 CHAR),
@@ -500,7 +502,6 @@ CREATE TABLE m_sync_situation_description (
   shadow_id      NUMBER(19, 0)     NOT NULL,
   shadow_oid     VARCHAR2(36 CHAR) NOT NULL,
   chanel         VARCHAR2(255 CHAR),
-  fullFlag       NUMBER(1, 0),
   situation      NUMBER(10, 0),
   timestampValue TIMESTAMP,
   PRIMARY KEY (checksum, shadow_id, shadow_oid)
@@ -540,7 +541,6 @@ CREATE TABLE m_task (
   category                    VARCHAR2(255 CHAR),
   completionTimestamp         TIMESTAMP,
   executionStatus             NUMBER(10, 0),
-  expectedTotal               NUMBER(19, 0),
   handlerUri                  VARCHAR2(255 CHAR),
   lastRunFinishTimestamp      TIMESTAMP,
   lastRunStartTimestamp       TIMESTAMP,
@@ -662,6 +662,11 @@ ALTER TABLE m_abstract_role
 ADD CONSTRAINT fk_abstract_role
 FOREIGN KEY (id, oid)
 REFERENCES m_focus;
+
+ALTER TABLE m_account_shadow
+ADD CONSTRAINT fk_account_shadow
+FOREIGN KEY (id, oid)
+REFERENCES m_shadow;
 
 ALTER TABLE m_any_clob
 ADD CONSTRAINT fk_any_clob
@@ -886,8 +891,6 @@ FOREIGN KEY (id, oid)
 REFERENCES m_object;
 
 CREATE INDEX iTaskNameNameNorm ON m_task (name_norm) INITRANS 30;
-
-CREATE INDEX iParent ON m_task (parent) INITRANS 30;
 
 CREATE INDEX iTaskNameOrig ON m_task (name_orig) INITRANS 30;
 

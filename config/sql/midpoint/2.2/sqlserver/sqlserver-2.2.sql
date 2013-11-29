@@ -9,6 +9,15 @@ CREATE TABLE m_abstract_role (
   PRIMARY KEY (id, oid)
 );
 
+CREATE TABLE m_account_shadow (
+  accountType              NVARCHAR(255),
+  allowedIdmAdminGuiAccess BIT,
+  passwordXml              NVARCHAR(MAX),
+  id                       BIGINT       NOT NULL,
+  oid                      NVARCHAR(36) NOT NULL,
+  PRIMARY KEY (id, oid)
+);
+
 CREATE TABLE m_any (
   owner_id   BIGINT       NOT NULL,
   owner_oid  NVARCHAR(36) NOT NULL,
@@ -111,7 +120,6 @@ CREATE TABLE m_assignment (
   accountConstruction         NVARCHAR(MAX),
   administrativeStatus        INT,
   archiveTimestamp            DATETIME2,
-  disableReason               NVARCHAR(255),
   disableTimestamp            DATETIME2,
   effectiveStatus             INT,
   enableTimestamp             DATETIME2,
@@ -262,7 +270,6 @@ CREATE TABLE m_exclusion (
 CREATE TABLE m_focus (
   administrativeStatus    INT,
   archiveTimestamp        DATETIME2,
-  disableReason           NVARCHAR(255),
   disableTimestamp        DATETIME2,
   effectiveStatus         INT,
   enableTimestamp         DATETIME2,
@@ -453,7 +460,6 @@ CREATE TABLE m_role (
 CREATE TABLE m_shadow (
   administrativeStatus          INT,
   archiveTimestamp              DATETIME2,
-  disableReason                 NVARCHAR(255),
   disableTimestamp              DATETIME2,
   effectiveStatus               INT,
   enableTimestamp               DATETIME2,
@@ -466,7 +472,6 @@ CREATE TABLE m_shadow (
   dead                          BIT,
   exist                         BIT,
   failedOperationType           INT,
-  fullSynchronizationTimestamp  DATETIME2,
   intent                        NVARCHAR(255),
   iteration                     INT,
   iterationToken                NVARCHAR(255),
@@ -497,7 +502,6 @@ CREATE TABLE m_sync_situation_description (
   shadow_id      BIGINT       NOT NULL,
   shadow_oid     NVARCHAR(36) NOT NULL,
   chanel         NVARCHAR(255),
-  fullFlag       BIT,
   situation      INT,
   timestampValue DATETIME2,
   PRIMARY KEY (checksum, shadow_id, shadow_oid)
@@ -537,7 +541,6 @@ CREATE TABLE m_task (
   category                    NVARCHAR(255),
   completionTimestamp         DATETIME2,
   executionStatus             INT,
-  expectedTotal               BIGINT,
   handlerUri                  NVARCHAR(255),
   lastRunFinishTimestamp      DATETIME2,
   lastRunStartTimestamp       DATETIME2,
@@ -659,6 +662,11 @@ ALTER TABLE m_abstract_role
 ADD CONSTRAINT fk_abstract_role
 FOREIGN KEY (id, oid)
 REFERENCES m_focus;
+
+ALTER TABLE m_account_shadow
+ADD CONSTRAINT fk_account_shadow
+FOREIGN KEY (id, oid)
+REFERENCES m_shadow;
 
 ALTER TABLE m_any_clob
 ADD CONSTRAINT fk_any_clob
@@ -883,8 +891,6 @@ FOREIGN KEY (id, oid)
 REFERENCES m_object;
 
 CREATE INDEX iTaskNameNameNorm ON m_task (name_norm);
-
-CREATE INDEX iParent ON m_task (parent);
 
 CREATE INDEX iTaskNameOrig ON m_task (name_orig);
 

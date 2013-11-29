@@ -33,8 +33,7 @@
     <xsd:annotation>
         <xsd:documentation>
             This is a common schema for midPoint project. It contains all the
-            data types that the stock midPoint is using.
-
+            data types that the stock midPoint is using
             This file contains more that a common schema in fact. It contains
             all the objects, even parts of what is known as identity schema and
             model schema in midPoint.
@@ -1868,6 +1867,7 @@
         </xsd:complexContent>
     </xsd:complexType>
 
+	    
     <xsd:complexType name="UserType">
         <xsd:annotation>
             <xsd:documentation>
@@ -4985,6 +4985,54 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
+    
+    <xsd:complexType name="ResourceObjectShadowChangeDescriptionType">
+        <xsd:annotation>
+            <xsd:documentation>
+            	Description of the change in the external resource. 
+            </xsd:documentation>
+        </xsd:annotation>
+        	<xsd:sequence>
+            	<xsd:element name="oldShadowOid" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Identifier of the old shadow. According to this identifier, the shadow will be
+                                fetched from the repo (resource). It may be null in the case when the notification
+                                describes the ADD object sitaution.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="currentShadow" type="tns:ShadowType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Current shadow. This is used in the "absolute" mode, when we do not have change description.
+                                Shadow represents the current state with the modifications already applied to its. Current 
+                                shadow is used to compare to the old state so the modifications may be computed and synchronized.
+                                It may be null. If the current shadow is null, object delta have to be specified.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="objectDelta" type="t:ObjectDeltaType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Delta describing the changes made to the shadow. E.g. if the change in the resource was
+                                to add new account, delta will contain ADD modification with the object specified.
+                                It may be null. If the object delta is null, the current shadow have to be specified.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="channel" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Channel which triggers the execution of notification, e.g. synchronization, reconciliation etc.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+    </xsd:complexType>
+    
+<xsd:element name="resourceObjectShadowChangeDescription" type="tns:ResourceObjectShadowChangeDescriptionType"/>
+    
 
     <xsd:complexType name="ConnectorType">
         <xsd:annotation>
@@ -8182,5 +8230,257 @@
             <xsd:element name="processName" minOccurs="1" type="xsd:string" />
         </xsd:sequence>
     </xsd:complexType>
+    
+    
+    <!-- Report Types -->
+    
+    <xsd:simpleType name="ExportType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Report export type.
+                pdf, csv, xml, xmlEmbed, html, rtf, xls, odt, ods, docx, xlsx, pptx, xhtml, jxl.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="pdf">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PDF"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="csv">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CSV"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="xml">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="XML"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="xmlEmbed">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="XML_EMBED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="html">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="HTML"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="rtf">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="RTF"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="xls">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="XLS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="odt">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ODT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="ods">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ODS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="docx">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DOCX"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="xlsx">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="XLSX"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="pptx">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PPTX"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="xhtml">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="XHTML"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="jxl">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="JXL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+    
+    
+    
+    <xsd:simpleType name="OrientationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Report orientation.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="landscape">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="LANDSCAPE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="portrait">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PORTRAIT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+    
+    
+    <xsd:complexType name="ReportFieldConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration of report fields.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="nameReportField" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="nameHeaderField" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="itemPathField" type="t:XPathType" minOccurs="0"/>
+            <xsd:element name="sortOrderNumber" type="xsd:int" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="sortOrder" type="q:OrderDirectionType" minOccurs="0" maxOccurs="1"/>  
+            <xsd:element name="widthField" type="xsd:integer" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="classTypeField" type="xsd:QName" minOccurs="0" maxOccurs="1"/>   
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="reportFieldConfiguration" type="tns:ReportFieldConfigurationType"/>
+    
+    <xsd:complexType name="ReportParameterConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration of report parameters.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="nameParameter" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="valueParameter" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="classTypeParameter" type="xsd:QName" minOccurs="0" maxOccurs="1"/>     
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="reportParameterConfiguration" type="tns:ReportParameterConfigurationType"/>
+    
+	<xsd:complexType name="ReportType">
+	    <xsd:annotation>
+            <xsd:documentation>
+            	TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:ObjectType">
+                <xsd:sequence>
+                
+                	<xsd:element name="reportTemplateJRXML" type="xsd:string" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                JRXML report template with user definitions.                            
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                	<xsd:element name="reportTemplateStyleJRTX" type="xsd:string" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                JRTX report style template with user definitions.                            
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    
+                    <xsd:element name="reportOrientation" type="tns:OrientationType" minOccurs="0" maxOccurs="1">
+    				<xsd:annotation>
+                            <xsd:documentation>
+                                Report orientation.                          
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    
+                    <xsd:element name="reportExport" type="tns:ExportType" minOccurs="0" maxOccurs="1">
+    				<xsd:annotation>
+                            <xsd:documentation>
+                                Report export type.                          
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    
+                 	<xsd:element name="query" type="q:QueryType" minOccurs="0" maxOccurs="1">
+                		<xsd:annotation>
+                    		<xsd:documentation>
+                        		Query expression with conditions for select data in the report.
+                    		</xsd:documentation>
+                		</xsd:annotation>
+            		</xsd:element>
+            		
+            		<xsd:element name="objectClass" type="xsd:QName" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The reference to a type definition for data in report. The reference should point
+                                to the complexType definition in the resource schema.                    
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+            	
+            		<xsd:element name="reportFields" type="tns:ReportFieldConfigurationType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Columns user definition. Name, type, report field, column name.                            
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                                        
+                    <xsd:element name="reportParameters" type="tns:ReportParameterConfigurationType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Parameters definition. Name, type, value.                            
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>              
+            	</xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="report" type="tns:ReportType" substitutionGroup="c:object"/>
+    
 </xsd:schema>
 

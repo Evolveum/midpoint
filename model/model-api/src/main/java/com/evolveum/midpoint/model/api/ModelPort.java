@@ -37,4 +37,5 @@ public interface ModelPort {
 	String LIST_RESOURCE_OBJECTS = CLASS_NAME_WITH_DOT + "listResourceObjects";
 	String TEST_RESOURCE = CLASS_NAME_WITH_DOT + "testResource";
 	String IMPORT_FROM_RESOURCE = CLASS_NAME_WITH_DOT + "importFromResource";
+	String NOTIFY_CHANGE = CLASS_NAME_WITH_DOT + "notifyChange";
 }

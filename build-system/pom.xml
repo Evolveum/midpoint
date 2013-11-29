@@ -346,12 +346,12 @@
             <dependency>
                 <groupId>org.forgerock.openicf.framework</groupId>
                 <artifactId>connector-framework</artifactId>
-                <version>1.1.1.e6329</version>
+                <version>1.1.2.em82</version>
             </dependency>
             <dependency>
                 <groupId>org.forgerock.openicf.framework</groupId>
                 <artifactId>connector-framework-internal</artifactId>
-                <version>1.1.1.e6329</version>
+                <version>1.1.2.em82</version>
             </dependency>
             <dependency>
                 <groupId>org.forgerock.openicf.connectors</groupId>
