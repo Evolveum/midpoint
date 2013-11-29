@@ -71,7 +71,9 @@ public enum ObjectTypes {
     ABSTRACT_ROLE(AbstractRoleType.COMPLEX_TYPE, SchemaConstants.C_ABSTRACT_ROLE, AbstractRoleType.class,
             ObjectManager.MODEL, "abstractRoles"),
 
-    FOCUS_TYPE(FocusType.COMPLEX_TYPE, SchemaConstants.C_FOCUS, FocusType.class, ObjectManager.MODEL, "focus");
+    FOCUS_TYPE(FocusType.COMPLEX_TYPE, SchemaConstants.C_FOCUS, FocusType.class, ObjectManager.MODEL, "focus"),
+
+    REPORT(ReportType.COMPLEX_TYPE, SchemaConstants.C_REPORT, ReportType.class, ObjectManager.MODEL, "reports");
 
     public static enum ObjectManager {
         PROVISIONING, TASK_MANAGER, WORKFLOW, MODEL, REPOSITORY;
