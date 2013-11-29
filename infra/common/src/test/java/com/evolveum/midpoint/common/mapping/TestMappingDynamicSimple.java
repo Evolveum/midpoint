@@ -306,6 +306,22 @@ public class TestMappingDynamicSimple {
     }
     
     @Test
+    public void testPathExtensionProperty() throws Exception {
+    	// WHEN
+    	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMapping(
+    			"mapping-path-extension-variable.xml",
+    			"testPathExtensionProperty",
+    			ShadowType.F_NAME				// target
+    			);	// changed values
+    	
+    	// THEN
+    	assertNull("expected null triple", outputTriple);
+//    	PrismAsserts.assertTripleNoZero(outputTriple);
+//    	PrismAsserts.assertTripleNoPlus(outputTriple);
+//    	PrismAsserts.assertTripleNoMinus(outputTriple);    	
+    }
+    
+    @Test
     public void testPathVariablesNamespace() throws Exception {
     	// WHEN
     	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMappingDynamicAdd(
@@ -350,6 +366,22 @@ public class TestMappingDynamicSimple {
     	
     	// THEN
     	PrismAsserts.assertTripleZero(outputTriple, "Jack Sparrow");
+    	PrismAsserts.assertTripleNoPlus(outputTriple);
+    	PrismAsserts.assertTripleNoMinus(outputTriple);    	
+    }
+    
+    @Test
+    public void testPathVariablesExtension() throws Exception {
+    	// WHEN
+    	PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = evaluator.evaluateMappingDynamicAdd(
+    			"mapping-path-system-variables-polystring-long.xml",
+    			"testPathVariablesPolyStringToStringLong",
+    			"employeeType",				// target
+    			"employeeType",				// changed property
+    			"CAPTAIN", "SWASHBUCKLER");	// changed values
+    	
+    	// THEN
+    	PrismAsserts.assertTripleZero(outputTriple, "jack sparrow");
     	PrismAsserts.assertTripleNoPlus(outputTriple);
     	PrismAsserts.assertTripleNoMinus(outputTriple);    	
     }
