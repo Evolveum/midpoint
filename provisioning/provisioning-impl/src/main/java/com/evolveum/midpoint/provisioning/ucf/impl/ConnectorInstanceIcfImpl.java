@@ -1797,10 +1797,14 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				// ResourceObject
 				if (query != null && query.getPaging() != null && query.getPaging().getOffset() != null
 						&& query.getPaging().getMaxSize() != null) {
-					if (!(count >= query.getPaging().getOffset() && count < (query.getPaging().getOffset() + query.getPaging().getMaxSize()))) {
+					if (count < query.getPaging().getOffset()){
 						count++;
 						return true;
 					}
+					
+					if (count == (query.getPaging().getOffset() + query.getPaging().getMaxSize())) {
+						return false;
+				}
 
 				}
 				PrismObject<T> resourceObject;
