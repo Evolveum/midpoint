@@ -160,7 +160,7 @@ public class AccountValuesProcessor {
 		if (consistencyChecks) context.checkConsistence();
 		
 		if (!accountContext.hasFullShadow() && hasIterationExpression(accountContext)) {
-			LensUtil.loadFullAccount(accountContext, provisioningService, result);
+			LensUtil.loadFullAccount(context, accountContext, provisioningService, result);
 		}
 		
 		int maxIterations = determineMaxIterations(accountContext);

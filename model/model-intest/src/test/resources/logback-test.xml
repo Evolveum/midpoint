@@ -40,7 +40,6 @@
          if any of the following is set to "TRACE" then it was changed by mistake and should be changed back -->
 	<logger name="com.evolveum.midpoint.model.lens.projector" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.lens.projector.Projector" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.model.lens.projector.ActivationProcessor" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.lens" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.lens.Clockwork" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.lens.ChangeExecutor" level="DEBUG" />

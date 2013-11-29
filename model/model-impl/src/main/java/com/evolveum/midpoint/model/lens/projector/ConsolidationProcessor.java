@@ -180,7 +180,7 @@ public class ConsolidationProcessor {
  	 		// resource availability. We need to know, if the account was read full
  	 		// or we have only the shadow from the repository. If we have only
  	 		// shadow, the weak mappings may applied even if they should not be. 
- 			LensUtil.loadFullAccount(accCtx, provisioningService, result);
+ 			LensUtil.loadFullAccount(context, accCtx, provisioningService, result);
      	}
 		
 		boolean completeAccount = accCtx.hasFullShadow();

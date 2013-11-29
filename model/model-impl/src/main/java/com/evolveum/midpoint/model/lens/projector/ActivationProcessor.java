@@ -137,24 +137,36 @@ public class ActivationProcessor {
     		LOGGER.trace("Evaluated decision for {} to {}, skipping further activation processing", accCtxDesc, SynchronizationPolicyDecision.DELETE);
     		return;
     	}
-    	
+    	    	
     	boolean shadowShouldExist = evaluateExistenceMapping(context, accCtx, now, true, result);
     	
     	LOGGER.trace("Evaluated intended existence of projection {} to {}", accCtxDesc, shadowShouldExist);
     	
     	// Let's reconcile the existence intent (shadowShouldExist) and the synchronization intent in the context
+
+    	LensProjectionContext<ShadowType> lowerOrderContext = LensUtil.findLowerOrderContext(context, accCtx);
     	
     	if (synchronizationIntent == null || synchronizationIntent == SynchronizationIntent.SYNCHRONIZE) {
 	    	if (shadowShouldExist) {
 	    		accCtx.setActive(true);
 	    		if (accCtx.isExists()) {
-	    			decision = SynchronizationPolicyDecision.KEEP;
+	    			if (lowerOrderContext != null && lowerOrderContext.isDelete()) {
+    					// HACK HACK HACK
+    					decision = SynchronizationPolicyDecision.DELETE;
+    				} else {
+    					decision = SynchronizationPolicyDecision.KEEP;
+    				}
 	    		} else {
-	    			if (LensUtil.hasLowerOrderContext(context, accCtx)) {
-	    				// If there is a lower-order context then that one will be ADD
-	    				// and this one is KEEP. When the execution comes to this context
-	    				// then the projection already exists
-	    				decision = SynchronizationPolicyDecision.KEEP;
+	    			if (lowerOrderContext != null) {
+	    				if (lowerOrderContext.isDelete()) {
+	    					// HACK HACK HACK
+	    					decision = SynchronizationPolicyDecision.DELETE;
+	    				} else {
+		    				// If there is a lower-order context then that one will be ADD
+		    				// and this one is KEEP. When the execution comes to this context
+		    				// then the projection already exists
+		    				decision = SynchronizationPolicyDecision.KEEP;
+	    				}
 	    			} else {
 	    				decision = SynchronizationPolicyDecision.ADD;
 	    			}
