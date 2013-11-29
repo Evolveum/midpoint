@@ -100,14 +100,16 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
             result.recordSuccess();
             return new SystemConfigurationDto(systemConfig);
 
-        } catch(Exception e){
-            result.recordFatalError("Couldn't load system configuration.", e);
+        } catch(Exception ex){
+            LoggingUtils.logException(LOGGER, "Couldn't load system configuration", ex);
+            result.recordFatalError("Couldn't load system configuration.", ex);
         }
 
-        if(!result.isSuccess()){
-            showResult(result);
+        if (WebMiscUtil.showResultInPage(result)) {
+            showResultInSession(result);
         }
 
+        //what do you do with null? many components depends on this not to be null :)
         return null;
     }
 
