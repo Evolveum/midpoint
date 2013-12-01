@@ -1182,6 +1182,7 @@
         	<itemField>Name</itemField>
     		<sortOrderNumber>1</sortOrderNumber>
     		<sortOrder>ascending</sortOrder>
+    		<widthField>20</widthField>
     		<classTypeField>xsd:string</classTypeField>
         </reportFields>
         <reportParameters>
