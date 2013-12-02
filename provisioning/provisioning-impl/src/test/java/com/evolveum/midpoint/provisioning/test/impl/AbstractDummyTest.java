@@ -215,6 +215,11 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		PrismProperty<String> icfUidAttr = shadow.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_UID));
 		return icfUidAttr.getRealValue();
 	}
+	
+	protected String getIcfName(PrismObject<ShadowType> shadow) {
+		PrismProperty<String> icfUidAttr = shadow.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME));
+		return icfUidAttr.getRealValue();
+	}
 
 	protected String getResourceDummyFilename() {
 		return RESOURCE_DUMMY_FILENAME;

@@ -861,22 +861,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 	}
 	
-	private ObjectQuery createAccountShadowQuery(String username, PrismObject<ResourceType> resource) throws SchemaException {
-		RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resource);
-        RefinedObjectClassDefinition rAccount = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
-        Collection<? extends ResourceAttributeDefinition> identifierDefs = rAccount.getIdentifiers();
-        assert identifierDefs.size() == 1 : "Unexpected identifier set in "+resource+" refined schema: "+identifierDefs;
-        ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();
-        //TODO: set matching rule instead of null
-        EqualsFilter idFilter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), identifierDef, null,username);
-        EqualsFilter ocFilter = EqualsFilter.createEqual(ShadowType.class, prismContext, 
-        		ShadowType.F_OBJECT_CLASS, rAccount.getObjectClassDefinition().getTypeName());
-        RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.class, 
-        		ShadowType.F_RESOURCE_REF, resource);
-        AndFilter filter = AndFilter.createAnd(idFilter, ocFilter, resourceRefFilter);
-        return ObjectQuery.createObjectQuery(filter);
-	}
-
 	protected String getSingleUserAccountRef(PrismObject<UserType> user) {
         UserType userType = user.asObjectable();
         assertEquals("Unexpected number of accountRefs", 1, userType.getLinkRef().size());
@@ -1049,15 +1033,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			}
 		}
 	}
-
-	protected PrismObjectDefinition<UserType> getUserDefinition() {
-		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-	}
 	
-	protected PrismObjectDefinition<ShadowType> getShadowDefinition() {
-		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
-	}
-
     protected PrismContainerDefinition<AssignmentType> getAssignmentDefinition() {
         return prismContext.getSchemaRegistry().findContainerDefinitionByType(AssignmentType.COMPLEX_TYPE);
     }
@@ -1627,33 +1603,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		if (triggers != null && !triggers.isEmpty()) {
 			AssertJUnit.fail("Expected that "+object+" will have no triggers but it has "+triggers.size()+ " trigger: "+ triggers);
 		}
-	}
-	
-	protected PrismObject<ShadowType> createShadow(PrismObject<ResourceType> resource, String id) throws SchemaException {
-		return createShadow(resource, id, id);
-	}
-	
-	protected PrismObject<ShadowType> createShadow(PrismObject<ResourceType> resource, String uid, String name) throws SchemaException {
-		PrismObject<ShadowType> shadow = getShadowDefinition().instantiate();
-		ShadowType shadowType = shadow.asObjectable();
-		shadowType.setName(PrismTestUtil.createPolyStringType(name));
-		ObjectReferenceType resourceRef = new ObjectReferenceType();
-		resourceRef.setOid(resource.getOid());
-		shadowType.setResourceRef(resourceRef);
-		shadowType.setKind(ShadowKindType.ACCOUNT);
-		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
-		RefinedObjectClassDefinition objectClassDefinition = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
-		shadowType.setObjectClass(objectClassDefinition.getTypeName());
-		ResourceAttributeContainer attrContainer = ShadowUtil.getOrCreateAttributesContainer(shadow, objectClassDefinition);
-		RefinedAttributeDefinition uidAttrDef = objectClassDefinition.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA,"uid"));
-		ResourceAttribute<String> uidAttr = uidAttrDef.instantiate();
-		uidAttr.setRealValue(uid);
-		attrContainer.add(uidAttr);
-		RefinedAttributeDefinition nameAttrDef = objectClassDefinition.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA,"name"));
-		ResourceAttribute<String> nameAttr = nameAttrDef.instantiate();
-		nameAttr.setRealValue(name);
-		attrContainer.add(nameAttr);
-		return shadow;
 	}
 
     protected void prepareNotifications() {
