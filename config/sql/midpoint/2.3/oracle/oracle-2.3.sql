@@ -838,6 +838,8 @@ ADD CONSTRAINT fk_org
 FOREIGN KEY (id, oid)
 REFERENCES m_abstract_role;
 
+CREATE INDEX iAncestorDepth ON m_org_closure (ancestor_id, ancestor_oid, depthValue) INITRANS 30;
+
 ALTER TABLE m_org_closure
 ADD CONSTRAINT fk_descendant
 FOREIGN KEY (descendant_id, descendant_oid)
