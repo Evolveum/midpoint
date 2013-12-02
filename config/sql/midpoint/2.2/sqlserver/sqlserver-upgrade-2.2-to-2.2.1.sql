@@ -6,3 +6,5 @@ ALTER TABLE m_task ADD expectedTotal BIGINT;
 ALTER TABLE m_assignment ADD disableReason NVARCHAR(255);
 ALTER TABLE m_focus ADD disableReason NVARCHAR(255);
 ALTER TABLE m_shadow ADD disableReason NVARCHAR(255);
+
+CREATE INDEX iAncestorDepth ON m_org_closure (ancestor_id, ancestor_oid, depthValue);

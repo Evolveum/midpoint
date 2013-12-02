@@ -32,3 +32,4 @@ ALTER TABLE m_report
     FOREIGN KEY (id, oid) 
     REFERENCES m_object;
 
+CREATE INDEX iAncestorDepth ON m_org_closure (ancestor_id, ancestor_oid, depthValue) INITRANS 30;
