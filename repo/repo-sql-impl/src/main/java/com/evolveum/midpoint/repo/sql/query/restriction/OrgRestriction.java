@@ -36,6 +36,7 @@ public class OrgRestriction extends Restriction<OrgFilter> {
     private static final String CLOSURE_ALIAS = "closure";
     private static final String ANCESTOR = CLOSURE_ALIAS + ".ancestor";
     private static final String ANCESTOR_ALIAS = "anc";
+    private static final String ANCESTOR_ID = ANCESTOR_ALIAS + ".id";
     private static final String ANCESTOR_OID = ANCESTOR_ALIAS + ".oid";
     private static final String DEPTH = CLOSURE_ALIAS + ".depth";
 
@@ -80,10 +81,10 @@ public class OrgRestriction extends Restriction<OrgFilter> {
         }
 
         if (maxDepth == null) {
-
             return Restrictions.eq(ANCESTOR_OID, orgRefOid);
         } else {
             Conjunction conjunction = Restrictions.conjunction();
+            conjunction.add(Restrictions.eq(ANCESTOR_ID, 0L));
             conjunction.add(Restrictions.eq(ANCESTOR_OID, orgRefOid));
             conjunction.add(Restrictions.le(DEPTH, maxDepth));
             conjunction.add(Restrictions.gt(DEPTH, 0));

@@ -134,6 +134,9 @@ public class DomSerializer {
 	
 	private void serialize(PrismPropertyValue<?> value, Element parentElement) throws SchemaException {
 		Itemable parent = value.getParent();
+		if (parent == null) {
+			throw new IllegalArgumentException("PValue "+value+" has no parent therefore it cannot be serialized to DOM");
+		}
 		QName elementName = parent.getName();
 		if (value.getRawElement() != null) {
 			// This element was not yet touched by the schema, but we still can serialize it

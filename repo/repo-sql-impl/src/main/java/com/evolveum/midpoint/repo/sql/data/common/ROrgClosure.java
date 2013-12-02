@@ -133,7 +133,6 @@ public class ROrgClosure implements Serializable {
         return depth;
     }
 
-
     public void setDepth(int depth) {
         this.depth = depth;
     }

@@ -16,10 +16,14 @@
 
 package com.evolveum.midpoint.report;
 
+import static org.testng.AssertJUnit.assertNull;
+
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -30,30 +34,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.xml.namespace.QName;
-
-import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRParameter;
 import net.sf.jasperreports.engine.JasperCompileManager;
-import net.sf.jasperreports.engine.JasperExportManager;
 import net.sf.jasperreports.engine.JasperFillManager;
+import net.sf.jasperreports.engine.JasperPrint;
 import net.sf.jasperreports.engine.JasperReport;
-import net.sf.jasperreports.engine.design.JRDesignBand;
-import net.sf.jasperreports.engine.design.JRDesignExpression;
-import net.sf.jasperreports.engine.design.JRDesignField;
-import net.sf.jasperreports.engine.design.JRDesignFrame;
-import net.sf.jasperreports.engine.design.JRDesignImage;
-import net.sf.jasperreports.engine.design.JRDesignParameter;
-import net.sf.jasperreports.engine.design.JRDesignReportTemplate;
-import net.sf.jasperreports.engine.design.JRDesignStaticText;
-import net.sf.jasperreports.engine.design.JRDesignStyle;
-import net.sf.jasperreports.engine.design.JRDesignTextField;
 import net.sf.jasperreports.engine.design.JasperDesign;
-import net.sf.jasperreports.engine.type.HorizontalAlignEnum;
-import net.sf.jasperreports.engine.type.OrientationEnum;
-import net.sf.jasperreports.engine.type.SplitTypeEnum;
-import net.sf.jasperreports.engine.type.VerticalAlignEnum;
-import net.sf.jasperreports.engine.type.WhenNoDataTypeEnum;
 import net.sf.jasperreports.engine.xml.JRXmlLoader;
 
 import org.apache.commons.lang.StringUtils;
@@ -68,17 +54,13 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.data.common.RReport;
 import com.evolveum.midpoint.repo.sql.data.common.RUser;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
@@ -90,11 +72,12 @@ import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.PagingConvertor;
 import com.evolveum.midpoint.schema.QueryConvertor;
-import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -107,6 +90,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.prism.xml.ns._public.query_2.OrderDirectionType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 //import ar.com.fdvs.dj.core.DynamicJasperHelper;
 
 /**
@@ -124,33 +108,30 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
     private static final String REPORT_DATASOURCE_TEST_1 = REPORTS_DIR + "/reportDataSourceTest.jrxml";
     private static final String STYLE_TEMPLATE_DEFAULT = STYLES_DIR + "/midpoint_base_styles.jrtx";
     
-    private static final String FINAL_REPORT_1 = REPORTS_DIR + "/reportDataSourceTestFinal_1.jrprint";
+    //private static final String FINAL_REPORT_1 = REPORTS_DIR + "/reportDataSourceTestFinal_1.jrprint";
     private static final String FINAL_EXPORT_REPORT_1 = REPORTS_DIR + "/reportDataSourceTestFinal_1";
     
-    private static final String REPORT_DATASOURCE_TEST_2 = REPORTS_DIR + "/reportDataSourceTest_2.jrxml";
-    private static final String FINAL_JASPER_REPORT_2 = REPORTS_DIR + "/reportDataSourceTestFinal_2.jasper";
-    private static final String FINAL_REPORT_2 = REPORTS_DIR + "/reportDataSourceTestFinal_2.jrprint";
+    //private static final String REPORT_DATASOURCE_TEST_2 = REPORTS_DIR + "/reportDataSourceTest_2.jrxml";
+    //private static final String FINAL_JASPER_REPORT_2 = REPORTS_DIR + "/reportDataSourceTestFinal_2.jasper";
+    //private static final String FINAL_REPORT_2 = REPORTS_DIR + "/reportDataSourceTestFinal_2.jrprint";
     private static final String FINAL_EXPORT_REPORT_2 = REPORTS_DIR + "/reportDataSourceTestFinal_2";
     
+    private static final String FINAL_EXPORT_REPORT_3 = REPORTS_DIR + "/reportDataSourceTestFinal_3";
+    
     private static final String REPORT_OID_001 = "00000000-3333-3333-0000-100000000001";
+    private static final String REPORT_OID_002 = "00000000-3333-3333-0000-100000000002";
+    
     @Autowired
-    private ModelService modelService;
-
+    private SessionFactory sessionFactory;
+        
     @Autowired
     private PrismContext prismContext;
     
     @Autowired
-    private RepositoryService repositoryService;
+	protected TaskManager taskManager;
     
     @Autowired
-    private SessionFactory sessionFactory;
-
-
-    @Test
-    public void sampleTest() {
-        AssertJUnit.assertNotNull(modelService);
-        LOGGER.info("Model service is available.");
-    }
+    private ModelReport modelReport;
     
     private static String readFile(String path, Charset encoding) 
 			  throws IOException 
@@ -163,276 +144,26 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
         Session session = sessionFactory.openSession();
         session.beginTransaction();
         RReport report = (RReport) session.get(RReport.class, new RContainerId(0L, oid));
-        AssertJUnit.assertNotNull(report);
         session.getTransaction().commit();
         session.close();
 
         return report;
     }
+
+       
     
-    private static Class<?> getFieldClassType(QName classtType)
-    {
-   	// TODO compare with ordinal types        
-    	return java.lang.String.class;
-    }
-
-    
-    private static JasperDesign getJasperDesign(ReportType reportType) throws JRException
-	{
-		//JasperDesign
-		JasperDesign jasperDesign = new JasperDesign();
-		jasperDesign.setName("reportDataSource");
-		jasperDesign.setOrientation(OrientationEnum.getByName(reportType.getReportOrientation().name()));
-		jasperDesign.setPageWidth(842);
-		jasperDesign.setPageHeight(595);
-		jasperDesign.setColumnWidth(802);
-		jasperDesign.setColumnSpacing(0);
-		jasperDesign.setWhenNoDataType(WhenNoDataTypeEnum.ALL_SECTIONS_NO_DETAIL);
-		jasperDesign.setLeftMargin(20);
-		jasperDesign.setRightMargin(20);
-		jasperDesign.setTopMargin(20);
-		jasperDesign.setBottomMargin(20);
-		
-	
-		//Templates
-		/*JRDesignExpression exTemplateStyle = new JRDesignExpression();
-		exTemplateStyle.addParameterChunk("BaseTemplateStyles");*/
-		JRDesignReportTemplate templateStyle = new JRDesignReportTemplate(new JRDesignExpression("$P{BaseTemplateStyles}"));
-		jasperDesign.addTemplate(templateStyle);
-		
-		//Parameters
-		JRDesignParameter parameter = new JRDesignParameter();
-		parameter.setName("BaseTemplateStyles");
-		parameter.setValueClass(java.lang.String.class);
-		jasperDesign.addParameter(parameter);
-
-		parameter = new JRDesignParameter();
-		parameter.setName("LOGO_PATH");
-		parameter.setValueClass(java.lang.String.class);
-		jasperDesign.addParameter(parameter);
-
-		parameter = new JRDesignParameter();
-		parameter.setName("column");
-		parameter.setValueClass(java.lang.String[].class);
-		jasperDesign.addParameter(parameter);
-
-		//Fields
-		for(ReportFieldConfigurationType fieldRepo : reportType.getReportFields())
-		{
-			JRDesignField field = new JRDesignField();
-			field.setName(fieldRepo.getNameReportField());
-			//field.setValueClass(java.lang.String.class);
-			field.setValueClass(getFieldClassType(fieldRepo.getClassTypeField()));	
-			jasperDesign.addField(field);
-		}
-
-		//Background
-		JRDesignBand bandBackground = new JRDesignBand();
-		bandBackground.setHeight(30);
-		bandBackground.setSplitType(SplitTypeEnum.STRETCH);
-		jasperDesign.setBackground(bandBackground);
-		
-		//Title
-		JRDesignBand bandTitle = new JRDesignBand();
-		bandTitle.setHeight(110);
-		bandTitle.setSplitType(SplitTypeEnum.STRETCH);
-		
-		JRDesignFrame frame = new JRDesignFrame();
-		frame.setX(1);
-		frame.setY(0);
-		frame.setWidth(799);
-		frame.setHeight(67);
-		frame.setStyleNameReference("Title");
-		bandTitle.addElement(frame);
-		
-		JRDesignStaticText staticText = new JRDesignStaticText();
-		staticText.setX(10);
-		staticText.setY(13);
-		staticText.setWidth(266);
-		staticText.setHeight(38);
-		staticText.setStyleNameReference("Title");
-		staticText.setVerticalAlignment(VerticalAlignEnum.MIDDLE);
-		staticText.setText("DataSource Report");
-		frame.addElement(staticText);
-		
-		JRDesignImage image = new JRDesignImage(new JRDesignStyle().getDefaultStyleProvider());
-		image.setX(589);
-		image.setY(13);
-		image.setWidth(203);
-		image.setHeight(45);
-		image.setStyleNameReference("Title");
-		image.setExpression(new JRDesignExpression("$P{LOGO_PATH}"));
-		frame.addElement(image);
-		
-		staticText = new JRDesignStaticText();
-		staticText.setX(400);
-		staticText.setY(67);
-		staticText.setWidth(150);
-		staticText.setHeight(20);
-		staticText.setStyleNameReference("Page header");
-		staticText.setVerticalAlignment(VerticalAlignEnum.MIDDLE);
-		staticText.setText("Report generated on:");
-		bandTitle.addElement(staticText);
-		
-		JRDesignTextField textField = new JRDesignTextField();
-		textField.setX(550);
-		textField.setY(67);
-		textField.setWidth(250);
-		textField.setHeight(20);
-		textField.setHorizontalAlignment(HorizontalAlignEnum.RIGHT);
-		textField.setVerticalAlignment(VerticalAlignEnum.MIDDLE);
-		textField.setStyleNameReference("Page header");
-		textField.setBold(false);
-		textField.setExpression(new JRDesignExpression("new java.util.Date()"));
-		bandTitle.addElement(textField);
-		jasperDesign.setTitle(bandTitle);
-		
-	/*	
-		JRDesignImage image = new JRDesignImage();
-		staticText = new JRDesignStaticText();
-		staticText.setX(55);
-		staticText.setY(0);
-		staticText.setWidth(205);
-		staticText.setHeight(15);
-		staticText.setForecolor(Color.white);
-		staticText.setBackcolor(new Color(0x33, 0x33, 0x33));
-		staticText.setMode(ModeEnum.OPAQUE);
-		staticText.setStyle(boldStyle);
-		staticText.setText("Name");
-		frame.addElement(staticText);
-		JRDesignTextField textField = new JRDesignTextField();
-		textField.setBlankWhenNull(true); 
-		textField.setX(0);
-		textField.setY(10);
-		textField.setWidth(515);
-		textField.setHeight(30);
-		textField.setHorizontalAlignment(HorizontalAlignEnum.CENTER);
-		textField.setStyle(normalStyle);
-		textField.setFontSize(22);
-		textField.setExpression(new JRDesignExpression("$P{ReportTitle}"));
-		band.addElement(textField);
-		jasperDesign.setTitle(band);
-		
-		//Page header
-		band = new JRDesignBand();
-		band.setHeight(20);
-		JRDesignFrame frame = new JRDesignFrame();
-		frame.setX(0);
-		frame.setY(5);
-		frame.setWidth(515);
-		frame.setHeight(15);
-		frame.setForecolor(new Color(0x33, 0x33, 0x33));
-		frame.setBackcolor(new Color(0x33, 0x33, 0x33));
-		frame.setMode(ModeEnum.OPAQUE);
-		band.addElement(frame);
-		JRDesignStaticText staticText = new JRDesignStaticText();
-		staticText.setX(0);
-		staticText.setY(0);
-		staticText.setWidth(55);
-		staticText.setHeight(15);
-		staticText.setForecolor(Color.white);
-		staticText.setBackcolor(new Color(0x33, 0x33, 0x33));
-		staticText.setMode(ModeEnum.OPAQUE);
-		staticText.setHorizontalAlignment(HorizontalAlignEnum.CENTER);
-		staticText.setStyle(boldStyle);
-		staticText.setText("ID");
-		frame.addElement(staticText);
-		staticText = new JRDesignStaticText();
-		staticText.setX(55);
-		staticText.setY(0);
-		staticText.setWidth(205);
-		staticText.setHeight(15);
-		staticText.setForecolor(Color.white);
-		staticText.setBackcolor(new Color(0x33, 0x33, 0x33));
-		staticText.setMode(ModeEnum.OPAQUE);
-		staticText.setStyle(boldStyle);
-		staticText.setText("Name");
-		frame.addElement(staticText);
-		staticText = new JRDesignStaticText();
-		staticText.setX(260);
-		staticText.setY(0);
-		staticText.setWidth(255);
-		staticText.setHeight(15);
-		staticText.setForecolor(Color.white);
-		staticText.setBackcolor(new Color(0x33, 0x33, 0x33));
-		staticText.setMode(ModeEnum.OPAQUE);
-		staticText.setStyle(boldStyle);
-		staticText.setText("Street");
-		frame.addElement(staticText);
-		jasperDesign.setPageHeader(band);
-
-		//Column header
-		band = new JRDesignBand();
-		jasperDesign.setColumnHeader(band);
-
-		//Detail
-		band = new JRDesignBand();
-		band.setHeight(20);
-		textField = new JRDesignTextField();
-		textField.setX(0);
-		textField.setY(4);
-		textField.setWidth(50);
-		textField.setHeight(15);
-		textField.setHorizontalAlignment(HorizontalAlignEnum.RIGHT);
-		textField.setStyle(normalStyle);
-		textField.setExpression(new JRDesignExpression("$F{Id}"));
-		band.addElement(textField);
-		textField = new JRDesignTextField();
-		textField.setStretchWithOverflow(true);
-		textField.setX(55);
-		textField.setY(4);
-		textField.setWidth(200);
-		textField.setHeight(15);
-		textField.setPositionType(PositionTypeEnum.FLOAT);
-		textField.setStyle(normalStyle);
-		textField.setExpression(new JRDesignExpression("$F{FirstName} + \" \" + $F{LastName}"));
-		band.addElement(textField);
-		textField = new JRDesignTextField();
-		textField.setStretchWithOverflow(true);
-		textField.setX(260);
-		textField.setY(4);
-		textField.setWidth(255);
-		textField.setHeight(15);
-		textField.setPositionType(PositionTypeEnum.FLOAT);
-		textField.setStyle(normalStyle);
-		textField.setExpression(new JRDesignExpression("$F{Street}"));
-		band.addElement(textField);
-		line = new JRDesignLine();
-		line.setX(0);
-		line.setY(19);
-		line.setWidth(515);
-		line.setHeight(0);
-		line.setForecolor(new Color(0x80, 0x80, 0x80));
-		line.setPositionType(PositionTypeEnum.FLOAT);
-		band.addElement(line);
-		((JRDesignSection)jasperDesign.getDetailSection()).addBand(band);
-
-		//Column footer
-		band = new JRDesignBand();
-		jasperDesign.setColumnFooter(band);
-
-		//Page footer
-		band = new JRDesignBand();
-		jasperDesign.setPageFooter(band);
-
-		//Summary
-		band = new JRDesignBand();
-		jasperDesign.setSummary(band);
-		*/
-		return jasperDesign;
-	}
-
     @Test
-    public void createTestReport001() throws Exception {
+    public void test001CreateReport() throws Exception {
     	
-         RReport report = new RReport();
+    	
+        RReport report = new RReport();
          
          LOGGER.debug("Creating Test report. DATASOURCE ..... ");
          
          report.setOid(REPORT_OID_001);
          
          //description and name
-         report.setName(new RPolyString("Test report - Datasource","Test report - Datasource"));
+         report.setName(new RPolyString("Test report - Datasource1","Test report - Datasource1"));
          report.setDescription("TEST Report with DataSource parameter.");
          
          //file templates
@@ -515,6 +246,7 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
          field.setSortOrderNumber(1);
          field.setSortOrder(OrderDirectionType.ASCENDING);
          itemDef = userDefinition.findItemDefinition(itemPath);
+         field.setWidthField(25);
          field.setClassTypeField(itemDef.getTypeName());    
          reportFields.add(field);
          
@@ -529,6 +261,7 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
          field.setSortOrderNumber(null);
          field.setSortOrder(null);
          itemDef = userDefinition.findItemDefinition(itemPath);
+         field.setWidthField(25);
          field.setClassTypeField(itemDef.getTypeName());    
          reportFields.add(field);
          
@@ -543,6 +276,7 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
          field.setSortOrderNumber(null);
          field.setSortOrder(null);
          itemDef = userDefinition.findItemDefinition(itemPath);
+         field.setWidthField(25);
          field.setClassTypeField(itemDef.getTypeName());    
          reportFields.add(field);
          
@@ -557,6 +291,7 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
          field.setSortOrderNumber(null);
          field.setSortOrder(null);
          itemDef = userDefinition.findItemDefinition(itemPath);
+         field.setWidthField(25);
          field.setClassTypeField(itemDef.getTypeName());    
          reportFields.add(field);
         
@@ -567,7 +302,7 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
          List<ReportParameterConfigurationType> reportParameters = new ArrayList<ReportParameterConfigurationType>();
          
          ReportParameterConfigurationType parameter = new ReportParameterConfigurationType();
-         parameter.setNameParameter("Logo");
+         parameter.setNameParameter("LOGO_PATH");
          parameter.setValueParameter(REPORTS_DIR.getPath() + "/logo.jpg");
          parameter.setClassTypeParameter(DOMUtil.XSD_ANY);
          reportParameters.add(parameter);
@@ -580,17 +315,17 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
          
          report.setReportParameters(RUtil.toRepo(reportParameters, prismContext));
          
-         OperationResult result = new OperationResult("CREATE REPORT RECORD");
-         repositoryService.addObject(report.toJAXB(prismContext, null).asPrismObject(), null, result);
+         Task task = taskManager.createTaskInstance(BasicReportTest.class.getName()+".test001CreateReport");
+         OperationResult result = task.getResult();
+         modelReport.addReportType(report.toJAXB(prismContext, null), task, result);
          
          OperationResult subResult = result.createSubresult("READ REPORT RECORD");
-         
-         ReportType reportType = repositoryService.getObject(ReportType.class, REPORT_OID_001, null, subResult).asObjectable();
+         ReportType reportType = modelReport.getReportType(REPORT_OID_001, task, subResult);
          subResult.computeStatus();
          
          // check reportType
          AssertJUnit.assertNotNull(reportType);
-         AssertJUnit.assertEquals("Test report - Datasource", reportType.getName().getOrig());
+         AssertJUnit.assertEquals("Test report - Datasource1", reportType.getName().getOrig());
          AssertJUnit.assertEquals("TEST Report with DataSource parameter.", reportType.getDescription());
  		 AssertJUnit.assertEquals(jrxmlFile, reportType.getReportTemplateJRXML());
          AssertJUnit.assertEquals(jrtxFile, reportType.getReportTemplateStyleJRTX());
@@ -615,6 +350,7 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
         	 AssertJUnit.assertEquals(fieldPath, fieldRepoPath);
         	 AssertJUnit.assertEquals(field.getSortOrder(), fieldRepo.getSortOrder());
         	 AssertJUnit.assertEquals(field.getSortOrderNumber(), fieldRepo.getSortOrderNumber());
+        	 AssertJUnit.assertEquals(field.getWidthField(), fieldRepo.getWidthField());
         	 AssertJUnit.assertEquals(field.getClassTypeField(), fieldRepo.getClassTypeField());
          }
         
@@ -637,7 +373,7 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
          
       // check report
          AssertJUnit.assertNotNull(report);
-         AssertJUnit.assertEquals("Test report - Datasource", report.getName().getOrig());
+         AssertJUnit.assertEquals("Test report - Datasource1", report.getName().getOrig());
          AssertJUnit.assertEquals("TEST Report with DataSource parameter.", report.getDescription());
  		 AssertJUnit.assertEquals(jrxmlFile, report.getReportTemplateJRXML());
          AssertJUnit.assertEquals(jrtxFile, report.getReportTemplateStyleJRTX());
@@ -731,8 +467,10 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
          session.close();
     }
     
-    private String[] getColumn(List<ReportFieldConfigurationType> fieldsRepo)
+    private String[] getColumn(ReportType reportType)
     {
+    	List<ReportFieldConfigurationType> fieldsRepo = reportType.getReportFields();
+    	
     	String[] column = new String[fieldsRepo.size()];
     	int i=0;
     	for (ReportFieldConfigurationType fieldRepo : fieldsRepo)
@@ -742,128 +480,10 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
     	}	
     	return column;
     }
-    //export report
-    private static void pdf(String input, String output) throws JRException
-    {
-    	JasperExportManager.exportReportToPdfFile(input, output + ".pdf");
-    }
-    
-    private static void csv(String input, String output) throws JRException
-    {
-    	JasperExportManager.exportReportToPdfFile(input, output + ".csv");
-    }
-    
-    private static void xml(String input, String output) throws JRException
-    {
-    	String fileName = JasperExportManager.exportReportToXmlFile(input, false);
-    }
-    
-    private static void xmlEmbed(String input, String output) throws JRException
-    {
-    	String fileName = JasperExportManager.exportReportToXmlFile(input, true);
-    }
-    
-    private static void html(String input, String output) throws JRException
-    {
-    	JasperExportManager.exportReportToPdfFile(input, output + ".html");
-    }
-    
-    private static void rtf(String input, String output) throws JRException
-    {
-    	JasperExportManager.exportReportToPdfFile(input, output + ".rtf");
-    }
-    
-    private static void xls(String input, String output) throws JRException
-    {
-    	JasperExportManager.exportReportToPdfFile(input, output + ".xls");
-    }
-    
-    private static void odt(String input, String output) throws JRException
-    {
-    	JasperExportManager.exportReportToPdfFile(input, output + ".odt");
-    }
-    
-    private static void ods(String input, String output) throws JRException
-    {
-    	JasperExportManager.exportReportToPdfFile(input, output + ".ods");
-    }
-    
-    private static void docx(String input, String output) throws JRException
-    {
-    	JasperExportManager.exportReportToPdfFile(input, output + ".docx");
-    }
-    
-    private static void xlsx(String input, String output) throws JRException
-    {
-    	JasperExportManager.exportReportToPdfFile(input, output + ".xlsx");
-    }
-    
-    private static void pptx(String input, String output) throws JRException
-    {
-    	JasperExportManager.exportReportToPdfFile(input, output + ".pptx");
-    }
-    
-    private static void xhtml(String input, String output) throws JRException
-    {
-    	JasperExportManager.exportReportToPdfFile(input, output + ".xhtml");
-    }
-    
-    private static void jxl(String input, String output) throws JRException
-    {
-    	JasperExportManager.exportReportToPdfFile(input, output + ".jxl");
-    }
-    
-    
-    // generate report - export
-    private static void generateReport(ExportType type, String input, String output) throws JRException
-    {
-    	  switch (type)
-          {
-          	case PDF : pdf(input, output);
-          		break;
-          	case CSV : csv(input, output);
-      			break;
-          	case XML : xml(input, output);
-      			break;
-          	case XML_EMBED : xmlEmbed(input, output);
-          		break;
-          	case HTML : html(input, output);
-  				break;
-          	case RTF : rtf(input, output);
-  				break;
-          	case XLS : xls(input, output);
-  				break;
-          	case ODT : odt(input, output);
-  				break;
-          	case ODS : ods(input, output);
-  				break;
-          	case DOCX : docx(input, output);
-  				break;
-          	case XLSX : xlsx(input, output);
-  				break;
-          	case PPTX : pptx(input, output);
-  				break;
-          	case XHTML : xhtml(input, output);
-  				break;
-          	case JXL : jxl(input, output);
-          		break; 	
-			default:
-				break;
-          }
-    }
-      
-    private static Map<String, Object> getReportParams(ReportType reportType)
-    {
-    	Map<String, Object> params = new HashMap<String, Object>();
-    	for(ReportParameterConfigurationType parameterRepo : reportType.getReportParameters())
-		{
-    		params.put(parameterRepo.getNameParameter(),parameterRepo.getValueParameter());
-		}
-    	
-    	return params;
-    }
+          
+   
     @Test
-    public void generateTestReport002() throws Exception {
+    public void test002GenerateReport() throws Exception {
     	
     	generateUsers();
         
@@ -878,27 +498,29 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
             
             session = sessionFactory.openSession();
             session.beginTransaction();
+                    
+            Task task = taskManager.createTaskInstance(BasicReportTest.class.getName()+".test002GenerateReport");
+            OperationResult result = task.getResult();
             
-            OperationResult result = new OperationResult("LOAD REPORT RECORD");
-        
-            ReportType reportType = repositoryService.getObject(ReportType.class, REPORT_OID_001, null, result).asObjectable();
+            ReportType reportType = modelReport.getReportType(REPORT_OID_001, task, result);
             result.computeStatus();
             
             OperationResult subResult = new OperationResult("LOAD DATASOURCE");
-            reportDataSource = new DataSourceReport(modelService, prismContext, reportType, subResult);
+            reportDataSource = new DataSourceReport(reportType, modelReport, subResult);
             
-            params.putAll(getReportParams(reportType));
+            params.putAll(modelReport.getReportParams(reportType));
+            params.put("columns", getColumn(reportType));
             params.put(JRParameter.REPORT_DATA_SOURCE, reportDataSource);
         
             // Loading template
             InputStream inputStreamJRXML = new ByteArrayInputStream(reportType.getReportTemplateJRXML().getBytes("UTF-8"));
-            JasperDesign design = JRXmlLoader.load(inputStreamJRXML); 
+            JasperDesign jasperDesign = JRXmlLoader.load(inputStreamJRXML); 
    
-            JasperReport report = JasperCompileManager.compileReport(design);
-            JasperFillManager.fillReportToFile(report, FINAL_REPORT_1, params);
-            generateReport(reportType.getReportExport(), FINAL_REPORT_1, FINAL_EXPORT_REPORT_1);
+            JasperReport jasperReport = JasperCompileManager.compileReport(jasperDesign);
+            JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, params);
+ 
+            modelReport.generateReport(reportType, jasperPrint, FINAL_EXPORT_REPORT_1);
          
-            
             subResult.computeStatus();
         
             session.getTransaction().commit();
@@ -907,7 +529,7 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
         		session.getTransaction().rollback();
         	}
 
-            LOGGER.error("Couldn't create jasper report.", ex);
+            LOGGER.error("Couldn't generate jasper report.", ex);
         	throw ex;
         } finally {
         	if (session != null) {
@@ -916,55 +538,193 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
         }
     }
     
-		
-    
     @Test
-    public void generateTestReportDynamic003() throws Exception {
+    public void test003GenerateReportDynamic() throws Exception {
     	
     	Map<String, Object> params = new HashMap<String, Object>();
     	
         Session session = null;
         DataSourceReport reportDataSource = null;
         
-        LOGGER.debug("Generating dybamic Test report. DATASOURCE ..... ");
+        LOGGER.debug("Generating dynamic Test report. DATASOURCE ..... ");
         
         try {
             session = sessionFactory.openSession();
             session.beginTransaction();
                
-            OperationResult result = new OperationResult("LOAD REPORT RECORD");
-        
-            ReportType reportType = repositoryService.getObject(ReportType.class, REPORT_OID_001, null, result).asObjectable();
+            Task task = taskManager.createTaskInstance(BasicReportTest.class.getName()+".test003GenerateReportDynamic");
+            OperationResult result = task.getResult();
+            ReportType reportType = modelReport.getReportType(REPORT_OID_001, task, result);
+            
+            reportType.setOid(REPORT_OID_002);
+            reportType.setName(new PolyStringType("Test report - Datasource2"));
+            
             result.computeStatus();
             
             OperationResult subResult = new OperationResult("LOAD DATASOURCE");
-            reportDataSource = new DataSourceReport(modelService, prismContext, reportType, subResult);
+            reportDataSource = new DataSourceReport(reportType, modelReport, subResult);
         
-            params.putAll(getReportParams(reportType));
+            params.putAll(modelReport.getReportParams(reportType));
             params.put(JRParameter.REPORT_DATA_SOURCE, reportDataSource);
         
             // Create template
-            //JasperDesign design = getJasperDesign(reportType);
-            InputStream inputStreamJRXML = new ByteArrayInputStream(reportType.getReportTemplateJRXML().getBytes("UTF-8"));
-            JasperDesign design = JRXmlLoader.load(inputStreamJRXML); 
-            
-            JasperCompileManager.compileReportToFile(design, FINAL_JASPER_REPORT_2);
-            JasperCompileManager.writeReportToXmlFile(FINAL_JASPER_REPORT_2);
-            
-            JasperReport report = JasperCompileManager.compileReport(design);
-            JasperFillManager.fillReportToFile(report, FINAL_REPORT_2, params);
-            generateReport(reportType.getReportExport(), FINAL_REPORT_2, FINAL_EXPORT_REPORT_2);
+            JasperDesign jasperDesign = modelReport.createJasperDesign(reportType);
+            JasperReport jasperReport = JasperCompileManager.compileReport(jasperDesign);
           
+            OutputStream outputStreamJRXML = new ByteArrayOutputStream();  
+            JasperCompileManager.writeReportToXmlStream(jasperReport, outputStreamJRXML);
+            reportType.setReportTemplateJRXML(outputStreamJRXML.toString()); 
+            JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, params);
+            
+            modelReport.generateReport(reportType, jasperPrint, FINAL_EXPORT_REPORT_2);
+          
+            subResult = task.getResult();
+            modelReport.addReportType(reportType, task, subResult);
             
             subResult.computeStatus();
-        
             session.getTransaction().commit();
         } catch (Exception ex) {
         	if (session != null && session.getTransaction().isActive()) {
         		session.getTransaction().rollback();
         	}
 
-            LOGGER.error("Couldn't create jasper report.", ex);
+            LOGGER.error("Couldn't generate jasper report at runtime.", ex);
+        	throw ex;
+        } finally {
+        	if (session != null) {
+        		session.close();
+        	}
+        }
+    }
+    
+    @Test
+    public void test004ExportReport() throws Exception {
+    	
+    	Map<String, Object> params = new HashMap<String, Object>();
+    	
+        Session session = null;
+        DataSourceReport reportDataSource = null;
+        
+        LOGGER.debug("Export Test report into various types. DATASOURCE ..... ");
+        
+        try {
+            session = sessionFactory.openSession();
+            session.beginTransaction();
+               
+            Task task = taskManager.createTaskInstance(BasicReportTest.class.getName()+".test004ExportReport");
+            OperationResult result = task.getResult();
+            ReportType reportType = modelReport.getReportType(REPORT_OID_002, task, result);
+            result.computeStatus();
+            
+            OperationResult subResult = new OperationResult("LOAD DATASOURCE");
+            reportDataSource = new DataSourceReport(reportType, modelReport, subResult);
+        
+            params.putAll(modelReport.getReportParams(reportType));
+            params.put(JRParameter.REPORT_DATA_SOURCE, reportDataSource);
+        
+            //Loading template
+            InputStream inputStreamJRXML = new ByteArrayInputStream(reportType.getReportTemplateJRXML().getBytes("UTF-8"));
+            JasperDesign jasperDesign = JRXmlLoader.load(inputStreamJRXML); 
+            JasperReport jasperReport = JasperCompileManager.compileReport(jasperDesign);
+            JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, params);
+
+            for(ExportType exportType : ExportType.values())
+            {
+            	reportType.setReportExport(exportType);
+            	modelReport.generateReport(reportType, jasperPrint, FINAL_EXPORT_REPORT_3);	
+            }          
+            
+            subResult.computeStatus();
+            session.getTransaction().commit();
+        } catch (Exception ex) {
+        	if (session != null && session.getTransaction().isActive()) {
+        		session.getTransaction().rollback();
+        	}
+
+            LOGGER.error("Couldn't export jasper report.", ex);
+        	throw ex;
+        } finally {
+        	if (session != null) {
+        		session.close();
+        	}
+        }
+
+    }
+
+    @Test
+    public void test005ModifyReport() throws Exception {
+    	
+        Session session = null;
+    
+        LOGGER.debug("Modify Test report. MODEL REPORT ..... ");
+        
+        try {
+            session = sessionFactory.openSession();
+            session.beginTransaction();
+               
+            Task task = taskManager.createTaskInstance(BasicReportTest.class.getName()+".test005ModifyReport");
+            OperationResult result = task.getResult();
+            ReportType reportType = modelReport.getReportType(REPORT_OID_002, task, result);
+            result.computeStatus();
+            
+            reportType.setReportExport(ExportType.CSV);
+            
+            OperationResult subResult = result.createSubresult("MODIFY - MODEL REPORT");
+            modelReport.modifyReportType(REPORT_OID_002, reportType, task, subResult);
+            subResult.computeStatus();
+            
+            subResult = result.createSubresult("READ REPORT RECORD");
+            reportType = modelReport.getReportType(REPORT_OID_002, task, subResult);
+            subResult.computeStatus();
+            
+            AssertJUnit.assertEquals(ExportType.CSV, reportType.getReportExport());
+            
+            session.getTransaction().commit();
+        } catch (Exception ex) {
+        	if (session != null && session.getTransaction().isActive()) {
+        		session.getTransaction().rollback();
+        	}
+
+            LOGGER.error("Couldn't modify report type.", ex);
+        	throw ex;
+        } finally {
+        	if (session != null) {
+        		session.close();
+        	}
+        }
+
+    }
+
+    @Test
+    public void test006DeleteReport() throws Exception
+    {	
+        Session session = null;
+        
+        LOGGER.debug("Delete Test report. MODEL REPORT ..... ");
+        
+        try {
+            session = sessionFactory.openSession();
+            session.beginTransaction();
+               
+            Task task = taskManager.createTaskInstance(BasicReportTest.class.getName()+".test006DeleteReport");
+            OperationResult result = task.getResult();
+        
+            modelReport.deleteReportType(REPORT_OID_002, task, result);
+            result.computeStatus();
+            
+            OperationResult subResult = result.createSubresult("READ REPORT RECORD");
+            ReportType reportType = modelReport.getReportType(REPORT_OID_002, task, subResult);
+            subResult.computeStatus();
+            
+            AssertJUnit.assertNull("Report is not gone", reportType);
+            
+            session.getTransaction().commit();
+        } catch (Exception ex) {
+        	if (session != null && session.getTransaction().isActive()) {
+        		session.getTransaction().rollback();
+        	}
+
+            LOGGER.error("Couldn't delete report type.", ex);
         	throw ex;
         } finally {
         	if (session != null) {

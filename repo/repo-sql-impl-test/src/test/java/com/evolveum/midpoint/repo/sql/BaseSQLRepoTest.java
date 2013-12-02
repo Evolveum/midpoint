@@ -17,13 +17,23 @@
 package com.evolveum.midpoint.repo.sql;
 
 import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
+import com.evolveum.midpoint.repo.sql.util.HibernateToSqlTranslator;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.schema.QueryConvertor;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+import org.hibernate.Criteria;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
+import org.hibernate.criterion.Projections;
 import org.hibernate.dialect.H2Dialect;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.orm.hibernate4.LocalSessionFactoryBean;
@@ -33,6 +43,8 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -141,5 +153,53 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
     protected void close(Session session) {
         session.getTransaction().commit();
         session.close();
+    }
+
+    protected <T extends ObjectType> String getInterpretedQuery(Session session, Class<T> type, ObjectQuery query)
+            throws Exception {
+        return getInterpretedQuery(session, type, query, false);
+    }
+
+    protected <T extends ObjectType> String getInterpretedQuery(Session session, Class<T> type, ObjectQuery query,
+                                                                boolean interpretCount) throws Exception {
+
+        QueryInterpreter interpreter = new QueryInterpreter();
+        LOGGER.info("QUERY TYPE TO CONVERT : {}", (query.getFilter() != null ? query.getFilter().debugDump(3) : null));
+
+        Criteria criteria = interpreter.interpret(query, type, null, prismContext, interpretCount, session);
+        if (interpretCount) {
+            criteria.setProjection(Projections.rowCount());
+        }
+
+        return HibernateToSqlTranslator.toSql(criteria);
+    }
+
+    protected <T extends ObjectType> String getInterpretedQuery(Session session, Class<T> type, File file) throws
+            Exception {
+        return getInterpretedQuery(session, type, file, false);
+    }
+
+    protected <T extends ObjectType> String getInterpretedQuery(Session session, Class<T> type, File file,
+                                                                boolean interpretCount) throws Exception {
+
+        QueryInterpreter interpreter = new QueryInterpreter();
+
+        Document document = DOMUtil.parseFile(file);
+        QueryType queryType = prismContext.getPrismJaxbProcessor().unmarshalObject(file, QueryType.class);
+        Element filter = DOMUtil.listChildElements(document.getDocumentElement()).get(0);
+
+        LOGGER.info("QUERY TYPE TO CONVERT : {}", QueryUtil.dump(queryType));
+
+        ObjectQuery query = null;
+        try {
+            query = QueryConvertor.createObjectQuery(type, queryType, prismContext);
+        } catch (Exception ex) {
+            LOGGER.info("error while converting query: " + ex.getMessage(), ex);
+        }
+        Criteria criteria = interpreter.interpret(query, type, null, prismContext, interpretCount, session);
+        if (interpretCount) {
+            criteria.setProjection(Projections.rowCount());
+        }
+        return HibernateToSqlTranslator.toSql(criteria);
     }
 }

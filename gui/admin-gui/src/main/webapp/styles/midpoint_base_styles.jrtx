@@ -20,7 +20,7 @@
 		mode="Opaque" forecolor="#FFFFFF" backcolor="#333333" fontSize="12"/>
 		
 	<style name="Detail" style="Base"
-		isBold="false"/>
+		isBold="false" fontName="DejaVu Serif"/>
 		
 	<style name="Page footer" style="Base" 
 		forecolor="#000000" fontSize="9"/>
