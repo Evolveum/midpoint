@@ -61,6 +61,9 @@ public class AccountOperationListener implements ResourceOperationListener {
     @Qualifier("cacheRepositoryService")
     private transient RepositoryService cacheRepositoryService;
 
+    @Autowired
+    private NotificationsUtil notificationsUtil;
+
     @PostConstruct
     public void init() {
         provisioningNotificationDispatcher.registerNotificationListener(this);
@@ -165,11 +168,11 @@ public class AccountOperationListener implements ResourceOperationListener {
 
         PrismObject<UserType> user = findRequestee(accountOid, task, result, operationDescription.getObjectDelta().isDelete());
         if (user != null) {
-            event.setRequestee(user.asObjectable());
+            event.setRequestee(new SimpleObjectRefImpl(notificationsUtil, user.asObjectable()));
         }   // otherwise, appropriate messages were already logged
 
         if (task != null && task.getOwner() != null) {
-            event.setRequester(task.getOwner().asObjectable());
+            event.setRequester(new SimpleObjectRefImpl(notificationsUtil, task.getOwner().asObjectable()));
         } else {
             LOGGER.warn("No owner for task " + task + ", therefore no requester will be set for event " + event.getId());
         }

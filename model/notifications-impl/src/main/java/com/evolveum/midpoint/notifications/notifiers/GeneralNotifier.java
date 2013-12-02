@@ -18,6 +18,7 @@ package com.evolveum.midpoint.notifications.notifiers;
 
 import com.evolveum.midpoint.notifications.NotificationManager;
 import com.evolveum.midpoint.notifications.NotificationsUtil;
+import com.evolveum.midpoint.notifications.events.BaseEvent;
 import com.evolveum.midpoint.notifications.events.Event;
 import com.evolveum.midpoint.notifications.formatters.TextFormatter;
 import com.evolveum.midpoint.notifications.handlers.BaseHandler;

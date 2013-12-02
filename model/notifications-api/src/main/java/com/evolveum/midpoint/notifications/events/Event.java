@@ -16,8 +16,12 @@
 
 package com.evolveum.midpoint.notifications.events;
 
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.LightweightIdentifier;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+
+import javax.xml.namespace.QName;
+import java.util.Map;
 
 /**
  * @author mederly
@@ -58,22 +62,19 @@ public interface Event {
 
     // requester
 
-    //SimpleObjectRef getRequester();
+    SimpleObjectRef getRequester();
 
     String getRequesterOid();
 
-    void setRequester(UserType requester);
-
-    void setRequesterOid(String requesterOid);
+    void setRequester(SimpleObjectRef requester);
 
     // requestee
 
-    //SimpleObjectRef getRequestee();
+    SimpleObjectRef getRequestee();
 
     String getRequesteeOid();
 
-    void setRequestee(ObjectType requestee);
+    void setRequestee(SimpleObjectRef requestee);
 
-    void setRequesteeOid(String requesteeOid);
-
+    void createExpressionVariables(Map<QName, Object> variables, OperationResult result);
 }

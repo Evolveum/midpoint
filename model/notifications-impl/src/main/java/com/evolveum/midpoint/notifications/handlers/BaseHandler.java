@@ -22,6 +22,7 @@ import com.evolveum.midpoint.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.notifications.EventHandler;
 import com.evolveum.midpoint.notifications.NotificationManager;
 import com.evolveum.midpoint.notifications.NotificationsUtil;
+import com.evolveum.midpoint.notifications.events.BaseEvent;
 import com.evolveum.midpoint.notifications.events.Event;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -165,7 +166,7 @@ public abstract class BaseHandler implements EventHandler {
     protected Map<QName, Object> getDefaultVariables(Event event, OperationResult result) {
 
         Map<QName, Object> variables = new HashMap<QName, Object>();
-        event.createExpressionVariables(variables, notificationsUtil, result);
+        event.createExpressionVariables(variables, result);
         return variables;
     }
 

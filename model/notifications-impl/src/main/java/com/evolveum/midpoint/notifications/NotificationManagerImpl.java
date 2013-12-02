@@ -57,7 +57,7 @@ public class NotificationManagerImpl implements NotificationManager {
         handlers.put(clazz, handler);
     }
 
-    private EventHandler getEventHandler(EventHandlerType eventHandlerType) {
+    public EventHandler getEventHandler(EventHandlerType eventHandlerType) {
         EventHandler handler = handlers.get(eventHandlerType.getClass());
         if (handler == null) {
             throw new IllegalStateException("Unknown handler for " + eventHandlerType);

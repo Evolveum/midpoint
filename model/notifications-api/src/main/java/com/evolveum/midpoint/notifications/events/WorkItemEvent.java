@@ -16,8 +16,6 @@
 
 package com.evolveum.midpoint.notifications.events;
 
-import com.evolveum.midpoint.notifications.NotificationsUtil;
-import com.evolveum.midpoint.notifications.SimpleObjectRef;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -56,14 +54,16 @@ public class WorkItemEvent extends WorkflowEvent {
         return assignee;
     }
 
-    public void setAssigneeOid(String oid) {
-        this.assignee = new SimpleObjectRef(oid);
+    public void setAssignee(SimpleObjectRef assignee) {
+        this.assignee = assignee;
     }
 
     @Override
-    public void createExpressionVariables(Map<QName, Object> variables, NotificationsUtil notificationsUtil, OperationResult result) {
-        super.createExpressionVariables(variables, notificationsUtil, result);
-        variables.put(SchemaConstants.C_ASSIGNEE, notificationsUtil.getObjectType(assignee, result));
+    public void createExpressionVariables(Map<QName, Object> variables, OperationResult result) {
+        super.createExpressionVariables(variables, result);
+        if (assignee != null) {
+            variables.put(SchemaConstants.C_ASSIGNEE, assignee.resolveObjectType(result));
+        }
     }
 
     @Override

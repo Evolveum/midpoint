@@ -73,7 +73,7 @@ public class TextFormatter {
             retval.append(" - ");
             retval.append(getItemDeltaLabel(itemDelta));
             retval.append(":\n");
-            formatItemDeltaContent(retval, itemDelta, NotificationsUtil.shiftPaths(itemDelta.getPath(), hiddenPaths), showOperationalAttributes);
+            formatItemDeltaContent(retval, itemDelta, hiddenPaths, showOperationalAttributes);
         }
 
         return retval.toString();
@@ -168,8 +168,7 @@ public class TextFormatter {
                 for (PrismContainerValue subContainerValue : ((PrismContainer<? extends Containerable>) item).getValues()) {
                     sb.append("\n");
                     String prefixSubContainer = prefix + "   ";
-                    formatContainerValue(sb, prefixSubContainer, subContainerValue, mightBeRemoved,
-                            NotificationsUtil.shiftPaths(item.getPath(), hiddenPaths), showOperationalAttributes);
+                    formatContainerValue(sb, prefixSubContainer, subContainerValue, mightBeRemoved, hiddenPaths, showOperationalAttributes);
                 }
             } else {
                 sb.append("Unexpected Item type: ");

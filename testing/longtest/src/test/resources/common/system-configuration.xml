@@ -37,20 +37,6 @@
         </appender>
     </logging>
     <notificationConfiguration>
-        <dummyNotifier name="newAccounts">
-            <categoryFilter><category>accountEvent</category></categoryFilter>
-            <operationFilter><operation>add</operation></operationFilter>
-            <statusFilter><status>success</status></statusFilter>
-        </dummyNotifier>
-        <dummyNotifier name="newAccountsViaExpression">
-            <expressionFilter>
-                <expression>
-                    <script>
-                        <code>event.isAccountRelated() &amp;&amp; event.isAdd() &amp;&amp; event.isSuccess()</code>
-                    </script>
-                </expression>
-            </expressionFilter>
-        </dummyNotifier>
         <accountPasswordNotifier>
             <recipientExpression>
                 <value>recipient@evolveum.com</value>

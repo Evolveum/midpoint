@@ -51,7 +51,7 @@ public class WorkflowListener implements ProcessListener, WorkItemListener {
 
     private static final Trace LOGGER = TraceManager.getTrace(WorkflowListener.class);
 
-    private static final String DOT_CLASS = WorkflowListener.class.getName() + ".";
+    //private static final String DOT_CLASS = WorkflowListener.class.getName() + ".";
 
     @Autowired
     private LightweightIdentifierGenerator lightweightIdentifierGenerator;
@@ -65,6 +65,9 @@ public class WorkflowListener implements ProcessListener, WorkItemListener {
     @Autowired
     @Qualifier("cacheRepositoryService")
     private transient RepositoryService cacheRepositoryService;
+
+    @Autowired
+    private NotificationsUtil notificationsUtil;
 
     // WorkflowService is not required, because e.g. within model-test and model-intest we have no workflows present
     // However, during normal operation, it is expected to be present
@@ -134,20 +137,23 @@ public class WorkflowListener implements ProcessListener, WorkItemListener {
             } else {
                 ObjectType objectType = object.asObjectable();
                 if (objectType instanceof UserType) {
-                    event.setRequestee((UserType) objectType);
+                    event.setRequestee(new SimpleObjectRefImpl(notificationsUtil, objectType));
                 }
             }
         } else {
-            event.setRequesteeOid((String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_OID));
+            event.setRequestee(new SimpleObjectRefImpl(
+                    notificationsUtil, (String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_OID)));
         }
 
-        event.setRequesterOid((String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_REQUESTER_OID));
+        event.setRequester(new SimpleObjectRefImpl(
+                notificationsUtil,
+                (String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_REQUESTER_OID)));
     }
 
     private WorkItemEvent createWorkItemEvent(String workItemName, String assigneeOid, String processInstanceName, Map<String, Object> processVariables, ChangeType changeType, String decision) {
         WorkItemEvent event = new WorkItemEvent(lightweightIdentifierGenerator, changeType);
         event.setWorkItemName(workItemName);
-        event.setAssigneeOid(assigneeOid);
+        event.setAssignee(new SimpleObjectRefImpl(notificationsUtil, assigneeOid));
         fillInEvent(event, processInstanceName, processVariables, decision, new OperationResult("dummy"));
         return event;
 

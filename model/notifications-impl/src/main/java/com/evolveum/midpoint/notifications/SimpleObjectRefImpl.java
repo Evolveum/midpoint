@@ -16,22 +16,27 @@
 
 package com.evolveum.midpoint.notifications;
 
+import com.evolveum.midpoint.notifications.events.SimpleObjectRef;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 
 /**
  * @author mederly
  */
-public class SimpleObjectRef {
+public class SimpleObjectRefImpl implements SimpleObjectRef {
     private String oid;
     private ObjectType objectType;
+    private NotificationsUtil notificationsUtil;        // used to resolve object refs
 
-    public SimpleObjectRef(ObjectType objectType) {
+    public SimpleObjectRefImpl(NotificationsUtil notificationsUtil, ObjectType objectType) {
         this.oid = objectType.getOid();
         this.objectType = objectType;
+        this.notificationsUtil = notificationsUtil;
     }
 
-    public SimpleObjectRef(String oid) {
+    public SimpleObjectRefImpl(NotificationsUtil notificationsUtil, String oid) {
         this.oid = oid;
+        this.notificationsUtil = notificationsUtil;
     }
 
     public String getOid() {
@@ -48,6 +53,11 @@ public class SimpleObjectRef {
 
     public void setObjectType(ObjectType objectType) {
         this.objectType = objectType;
+    }
+
+    @Override
+    public ObjectType resolveObjectType(OperationResult result) {
+        return notificationsUtil.getObjectType(this, result);
     }
 
     @Override

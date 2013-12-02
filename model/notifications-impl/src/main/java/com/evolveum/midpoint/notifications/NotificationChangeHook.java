@@ -66,6 +66,9 @@ public class NotificationChangeHook implements ChangeHook {
     @Qualifier("cacheRepositoryService")
     private transient RepositoryService cacheRepositoryService;
 
+    @Autowired
+    private NotificationsUtil notificationsUtil;
+
     @PostConstruct
     public void init() {
         hookRegistry.registerChangeHook(HOOK_URI, this);
@@ -129,7 +132,7 @@ public class NotificationChangeHook implements ChangeHook {
         event.setModelContext(modelContext);
 
         if (task.getOwner() != null) {
-            event.setRequester(task.getOwner().asObjectable());
+            event.setRequester(new SimpleObjectRefImpl(notificationsUtil, task.getOwner().asObjectable()));
         } else {
             LOGGER.warn("No owner for task " + task + ", therefore no requester will be set for event " + event.getId());
         }
@@ -139,7 +142,7 @@ public class NotificationChangeHook implements ChangeHook {
             object = object.clone();
             object.setOid(modelContext.getFocusContext().getOid());
         }
-        event.setRequestee(object.asObjectable());
+        event.setRequestee(new SimpleObjectRefImpl(notificationsUtil, object.asObjectable()));
         return event;
     }
 }
