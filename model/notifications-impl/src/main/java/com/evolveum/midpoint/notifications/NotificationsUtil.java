@@ -1,0 +1,148 @@
+/*
+ * Copyright (c) 2010-2013 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.evolveum.midpoint.notifications;
+
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * @author mederly
+ */
+@Component
+public class NotificationsUtil {
+
+    private static final Trace LOGGER = TraceManager.getTrace(NotificationsUtil.class);
+
+    @Autowired
+    @Qualifier("cacheRepositoryService")
+    private RepositoryService cacheRepositoryService;
+
+    public static PrismObject<SystemConfigurationType> getSystemConfiguration(RepositoryService repositoryService, OperationResult result) {
+        PrismObject<SystemConfigurationType> systemConfiguration;
+        try {
+            systemConfiguration = repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
+            		null, result);
+        } catch (ObjectNotFoundException e) {
+            LoggingUtils.logException(LOGGER, "Couldn't get system configuration", e);
+            throw new SystemException("Couldn't get system configuration", e);
+        } catch (SchemaException e) {
+            LoggingUtils.logException(LOGGER, "Couldn't get system configuration", e);
+            throw new SystemException("Couldn't get system configuration", e);
+        }
+        if (systemConfiguration == null) {
+            throw new SystemException("Couldn't get system configuration");
+        }
+        return systemConfiguration;
+    }
+
+    public static String getResourceNameFromRepo(RepositoryService repositoryService, String oid, OperationResult result) {
+        try {
+            PrismObject<ResourceType> resource = repositoryService.getObject(ResourceType.class, oid, null, result);
+            return PolyString.getOrig(resource.asObjectable().getName());
+        } catch (ObjectNotFoundException e) {
+            LoggingUtils.logException(LOGGER, "Couldn't get resource", e);
+            return null;
+        } catch (SchemaException e) {
+            LoggingUtils.logException(LOGGER, "Couldn't get resource", e);
+            return null;
+        }
+    }
+
+    public ObjectType getObjectType(SimpleObjectRef simpleObjectRef, OperationResult result) {
+        if (simpleObjectRef == null) {
+            return null;
+        }
+        if (simpleObjectRef.getObjectType() != null) {
+            return simpleObjectRef.getObjectType();
+        }
+        if (simpleObjectRef.getOid() == null) {
+            return null;
+        }
+
+        ObjectType objectType;
+        try {
+            objectType = cacheRepositoryService.getObject(ObjectType.class, simpleObjectRef.getOid(), null, result).asObjectable();
+        } catch (ObjectNotFoundException e) {   // todo correct error handling
+            throw new SystemException(e);
+        } catch (SchemaException e) {
+            throw new SystemException(e);
+        }
+        simpleObjectRef.setObjectType(objectType);
+        return objectType;
+    }
+
+    public static boolean isAmongHiddenPaths(ItemPath path, List<ItemPath> hiddenPaths) {
+        if (hiddenPaths == null) {
+            return false;
+        }
+        for (ItemPath hiddenPath : hiddenPaths) {
+            if (hiddenPath.isSubPathOrEquivalent(path)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    /**
+     * TODO
+     */
+    public static List<ItemPath> shiftPaths(ItemPath currentPath, List<ItemPath> hiddenPaths) {
+        if (hiddenPaths == null) {
+            return null;
+        }
+        List<ItemPath> retval = new ArrayList<ItemPath>();
+
+        NameItemPathSegment last = currentPath.lastNamed();
+        if (last == null) {
+            return retval;
+        }
+
+        for (ItemPath path : hiddenPaths) {
+            if (path.first().equals(last)) {
+                ItemPath reduced = path.rest();
+                if (!retval.contains(reduced)) {
+                    retval.add(reduced);
+                }
+            }
+        }
+
+        return retval;
+    }
+}
