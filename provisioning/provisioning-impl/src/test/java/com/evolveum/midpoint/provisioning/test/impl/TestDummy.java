@@ -46,6 +46,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
+import org.eclipse.core.internal.runtime.FindSupport;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -153,8 +154,10 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.TestConnecti
 @DirtiesContext
 public class TestDummy extends AbstractDummyTest {
 
-	private static final String BLACKBEARD_USERNAME = "blackbeard";
-	private static final String DRAKE_USERNAME = "drake";
+	protected static final String BLACKBEARD_USERNAME = "BlackBeard";
+	protected static final String DRAKE_USERNAME = "Drake";
+	// Make this ugly by design. it check for some caseExact/caseIgnore cases
+	protected static final String ACCOUNT_MURRAY_USERNAME = "muRRay";
 
 	private static final Trace LOGGER = TraceManager.getTrace(TestDummy.class);
 	protected static final long VALID_FROM_MILLIS = 12322342345435L;
@@ -174,6 +177,18 @@ public class TestDummy extends AbstractDummyTest {
 
 	protected MatchingRule<String> getUidMatchingRule() {
 		return null;
+	}
+	
+	protected String getMurrayRepoIcfName() {
+		return ACCOUNT_MURRAY_USERNAME;
+	}
+	
+	protected String getBlackbeardRepoIcfName() {
+		return BLACKBEARD_USERNAME;
+	}
+	
+	protected String getDrakeRepoIcfName() {
+		return DRAKE_USERNAME;
 	}
 	
 	@Test
@@ -3196,6 +3211,49 @@ public class TestDummy extends AbstractDummyTest {
 		assertSteadyResource();
 	}
 
+	@Test
+	public void test600AddAccountAlreadyExist() throws Exception {
+		final String TEST_NAME = "test600AddAccountAlreadyExist";
+		TestUtil.displayTestTile(TEST_NAME);
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+		OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
+		syncServiceMock.reset();
+		
+		dummyResourceCtl.addAccount(ACCOUNT_MURRAY_USERNAME, ACCOUNT_MURRAY_USERNAME);
+
+		PrismObject<ShadowType> account = createShadowNameOnly(resource, ACCOUNT_MURRAY_USERNAME);
+		account.checkConsistence();
+
+		display("Adding shadow", account);
+
+		// WHEN
+		try {
+			provisioningService.addObject(account, null, null, task, result);
+			
+			AssertJUnit.fail("Unexpected success");
+		} catch (ObjectAlreadyExistsException e) {
+			// This is expected
+			display("Expected exception", e);
+		}
+
+		// THEN
+		result.computeStatus();
+		display("add object result", result);
+		TestUtil.assertFailure(result);
+
+		// Even though the operation failed a shadow should be created for the conflicting object
+		
+		PrismObject<ShadowType> accountRepo = findShadowByUsername(getMurrayRepoIcfName(), resource, result);		
+		assertNotNull("Shadow was not created in the repository", accountRepo);
+		display("Repository shadow", accountRepo);
+		ProvisioningTestUtil.checkRepoAccountShadow(accountRepo);
+		
+		assertEquals("Wrong ICF NAME in murray (repo) shadow", getMurrayRepoIcfName(),  getIcfName(accountRepo));
+
+		assertSteadyResource();
+	}
+	
 	static Task syncTokenTask = null;
 	
 	@Test
@@ -3283,6 +3341,11 @@ public class TestDummy extends AbstractDummyTest {
 		assertAttribute(currentShadowType, 
 				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 66666L);
 		assertEquals("Unexpected number of attributes", 4, attributes.size());
+		
+		PrismObject<ShadowType> accountRepo = findShadowByUsername(getBlackbeardRepoIcfName(), resource, result);		
+		assertNotNull("Shadow was not created in the repository", accountRepo);
+		display("Repository shadow", accountRepo);
+		ProvisioningTestUtil.checkRepoAccountShadow(accountRepo);
 
 		checkAllShadows();
 		
@@ -3330,7 +3393,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertEquals("Unexpected number of attributes", 2, attributes.size());
 		ResourceAttribute<?> icfsNameAttribute = attributesContainer.findAttribute(ConnectorFactoryIcfImpl.ICFS_NAME);
 		assertNotNull("No ICF name attribute in old  shadow", icfsNameAttribute);
-		assertEquals("Wrong value of ICF name attribute in old  shadow", BLACKBEARD_USERNAME,
+		assertEquals("Wrong value of ICF name attribute in old  shadow", getBlackbeardRepoIcfName(),
 				icfsNameAttribute.getRealValue());
 		
 		assertNull("Delta present when not expecting it", lastChange.getObjectDelta());
@@ -3350,9 +3413,10 @@ public class TestDummy extends AbstractDummyTest {
 				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 66666L);
 		assertEquals("Unexpected number of attributes", 4, attributes.size());
 
-		PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, currentShadowType.getOid(), null, result);
-		// TODO: check the shadow
-
+		PrismObject<ShadowType> accountRepo = findShadowByUsername(getBlackbeardRepoIcfName(), resource, result);		
+		assertNotNull("Shadow was not created in the repository", accountRepo);
+		display("Repository shadow", accountRepo);
+		ProvisioningTestUtil.checkRepoAccountShadow(accountRepo);
 		
 		checkAllShadows();
 		
@@ -3417,7 +3481,12 @@ public class TestDummy extends AbstractDummyTest {
 		
 		drakeAccountOid = currentShadowType.getOid();
 		PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, drakeAccountOid, null, result);
-		// TODO: check the shadow
+		display("Drake repo shadow", repoShadow);
+		
+		PrismObject<ShadowType> accountRepo = findShadowByUsername(getDrakeRepoIcfName(), resource, result);	
+		assertNotNull("Shadow was not created in the repository", accountRepo);
+		display("Repository shadow", accountRepo);
+		ProvisioningTestUtil.checkRepoAccountShadow(accountRepo);
 
 		checkAllShadows();
 		
@@ -3469,7 +3538,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertEquals("Unexpected number of attributes", 2, attributes.size());
 		ResourceAttribute<?> icfsNameAttribute = attributesContainer.findAttribute(ConnectorFactoryIcfImpl.ICFS_NAME);
 		assertNotNull("No ICF name attribute in old  shadow", icfsNameAttribute);
-		assertEquals("Wrong value of ICF name attribute in old  shadow", DRAKE_USERNAME,
+		assertEquals("Wrong value of ICF name attribute in old  shadow", getDrakeRepoIcfName(),
 				icfsNameAttribute.getRealValue());
 		
 		ObjectDelta<? extends ShadowType> objectDelta = lastChange.getObjectDelta();
