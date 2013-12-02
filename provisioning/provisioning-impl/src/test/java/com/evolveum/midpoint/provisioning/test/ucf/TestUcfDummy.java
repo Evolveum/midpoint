@@ -141,7 +141,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		
 		dummyResourceCtl = DummyResourceContoller.create(null);
 		dummyResourceCtl.setResource(resource);
-		dummyResourceCtl.extendDummySchema();
+		dummyResourceCtl.extendSchemaPirate();
 		dummyResource = dummyResourceCtl.getDummyResource();
 				
 		manager = connectorFactoryIcfImpl;

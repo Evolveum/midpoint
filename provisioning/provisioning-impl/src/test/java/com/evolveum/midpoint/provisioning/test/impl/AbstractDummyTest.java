@@ -186,7 +186,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 
 		dummyResourceCtl = DummyResourceContoller.create(null);
 		dummyResourceCtl.setResource(resource);
-		dummyResourceCtl.extendDummySchema();
+		dummyResourceCtl.extendSchemaPirate();
 		dummyResource = dummyResourceCtl.getDummyResource();
 
 		DummyAccount dummyAccountDaemon = new DummyAccount(ACCOUNT_DAEMON_USERNAME);
@@ -213,6 +213,11 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	
 	protected String getIcfUid(PrismObject<ShadowType> shadow) {
 		PrismProperty<String> icfUidAttr = shadow.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_UID));
+		return icfUidAttr.getRealValue();
+	}
+	
+	protected String getIcfName(PrismObject<ShadowType> shadow) {
+		PrismProperty<String> icfUidAttr = shadow.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME));
 		return icfUidAttr.getRealValue();
 	}
 

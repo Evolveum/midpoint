@@ -121,7 +121,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 		
 		dummyResourceCtlEmerald = DummyResourceContoller.create(RESOURCE_DUMMY_EMERALD_NAME, resourceDummyEmerald);
-		dummyResourceCtlEmerald.extendDummySchema();
+		dummyResourceCtlEmerald.extendSchemaPirate();
 		dummyResourceEmerald = dummyResourceCtlEmerald.getDummyResource();
 		resourceDummyEmerald = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_EMERALD_FILE, RESOURCE_DUMMY_EMERALD_OID, initTask, initResult); 
 		resourceDummyEmeraldType = resourceDummyEmerald.asObjectable();

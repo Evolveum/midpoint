@@ -30,7 +30,7 @@
     <modules>
         <module>sanity</module>
         <module>consistency-mechanism</module>
-        <!-- DO NOT include longtest by default, this runs too long for
+        <!-- DO NOT include longtest and story by default, this runs too long for
         ordinary build -->
 <!--         <module>rest</module> -->
     </modules>
@@ -40,6 +40,7 @@
 			<id>extratest</id>
 			<modules>
 				<module>longtest</module>
+				<module>story</module>
 			</modules>
 		</profile>
 	</profiles>

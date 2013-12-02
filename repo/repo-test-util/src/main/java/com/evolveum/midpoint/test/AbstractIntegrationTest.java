@@ -26,6 +26,8 @@ import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.monitor.CachingStatistics;
 import com.evolveum.midpoint.common.monitor.InternalMonitor;
+import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
@@ -38,10 +40,12 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -52,9 +56,13 @@ import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.ldap.OpenDJController;
@@ -489,6 +497,11 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 	
 	protected void assertShadowCommon(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType) {
+		assertShadowCommon(accountShadow, oid, username, resourceType, null);
+	}
+	
+	protected void assertShadowCommon(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType,
+			MatchingRule<String> nameMatchingRule) {
 		assertShadow(accountShadow);
 		assertEquals("Account shadow OID mismatch (prism)", oid, accountShadow.getOid());
 		ShadowType ResourceObjectShadowType = accountShadow.asObjectable();
@@ -500,7 +513,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertFalse("Empty attributes in shadow for "+username, attributesContainer.isEmpty());
 		PrismProperty<String> icfNameProp = attributesContainer.findProperty(new QName(SchemaConstants.NS_ICF_SCHEMA,"name"));
 		assertNotNull("No ICF name attribute in shadow for "+username, icfNameProp);
-		assertEquals("Unexpected ICF name attribute in shadow for "+username, username, icfNameProp.getRealValue());
+		PrismAsserts.assertEquals("Unexpected ICF name attribute in shadow for "+username, nameMatchingRule, username, icfNameProp.getRealValue());
 	}
 	
 	protected void assertShadowRepo(String oid, String username, ResourceType resourceType) throws ObjectNotFoundException, SchemaException {
@@ -511,12 +524,27 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertShadowRepo(shadow, oid, username, resourceType);
 	}
 	
+	
 	protected void assertShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType) {
-		assertShadowCommon(accountShadow, oid, username, resourceType);
+		assertShadowRepo(accountShadow, oid, username, resourceType, null);
+	}
+	
+	protected void assertShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType, MatchingRule<String> nameMatchingRule) {
+		assertShadowCommon(accountShadow, oid, username, resourceType, nameMatchingRule);
 		PrismContainer<Containerable> attributesContainer = accountShadow.findContainer(ShadowType.F_ATTRIBUTES);
 		List<Item<?>> attributes = attributesContainer.getValue().getItems();
 		assertEquals("Unexpected number of attributes in repo shadow", 2, attributes.size());
 	}
+	
+	protected String getIcfUid(PrismObject<ShadowType> shadow) {
+		PrismContainer<Containerable> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
+		assertNotNull("Null attributes in "+shadow, attributesContainer);
+		assertFalse("Empty attributes in "+shadow, attributesContainer.isEmpty());
+		PrismProperty<String> icfUidProp = attributesContainer.findProperty(new QName(SchemaConstants.NS_ICF_SCHEMA,"uid"));
+		assertNotNull("No ICF name attribute in "+shadow, icfUidProp);
+		return icfUidProp.getRealValue();
+	}
+
 	
 	protected void rememberResourceSchemaFetchCount() {
 		lastResourceSchemaFetchCount = InternalMonitor.getResourceSchemaFetchCount();
@@ -637,4 +665,90 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertEquals("Unexpected increment in shadow fetch count", (long)expectedIncrement, actualIncrement);
 		lastShadowFetchOperationCount = currentCount;
 	}
+	
+	protected PrismObject<ShadowType> createShadow(PrismObject<ResourceType> resource, String id) throws SchemaException {
+		return createShadow(resource, id, id);
+	}
+	
+	protected PrismObject<ShadowType> createShadowNameOnly(PrismObject<ResourceType> resource, String name) throws SchemaException {
+		return createShadow(resource, null, name);
+	}
+	
+	protected PrismObject<ShadowType> createShadow(PrismObject<ResourceType> resource, String uid, String name) throws SchemaException {
+		PrismObject<ShadowType> shadow = getShadowDefinition().instantiate();
+		ShadowType shadowType = shadow.asObjectable();
+		shadowType.setName(PrismTestUtil.createPolyStringType(name));
+		ObjectReferenceType resourceRef = new ObjectReferenceType();
+		resourceRef.setOid(resource.getOid());
+		shadowType.setResourceRef(resourceRef);
+		shadowType.setKind(ShadowKindType.ACCOUNT);
+		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
+		RefinedObjectClassDefinition objectClassDefinition = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
+		shadowType.setObjectClass(objectClassDefinition.getTypeName());
+		ResourceAttributeContainer attrContainer = ShadowUtil.getOrCreateAttributesContainer(shadow, objectClassDefinition);
+		if (uid != null) {
+			RefinedAttributeDefinition uidAttrDef = objectClassDefinition.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA,"uid"));
+			ResourceAttribute<String> uidAttr = uidAttrDef.instantiate();
+			uidAttr.setRealValue(uid);
+			attrContainer.add(uidAttr);
+		}
+		if (name != null) {
+			RefinedAttributeDefinition nameAttrDef = objectClassDefinition.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA,"name"));
+			ResourceAttribute<String> nameAttr = nameAttrDef.instantiate();
+			nameAttr.setRealValue(name);
+			attrContainer.add(nameAttr);
+		}
+		return shadow;
+	}
+	
+	protected PrismObject<ShadowType> findShadowByUsername(String username, PrismObject<ResourceType> resource, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+        ObjectQuery query = createAccountShadowQuerySecondaryIdentifier(username, resource);
+		List<PrismObject<ShadowType>> accounts = repositoryService.searchObjects(ShadowType.class, query, null, result);
+		if (accounts.isEmpty()) {
+			return null;
+		}
+		assert accounts.size() == 1 : "Too many accounts found for username "+username+" on "+resource+": "+accounts;
+		return accounts.iterator().next();
+	}
+	
+	protected ObjectQuery createAccountShadowQuery(String identifier, PrismObject<ResourceType> resource) throws SchemaException {
+		RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resource);
+        RefinedObjectClassDefinition rAccount = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
+        Collection<? extends ResourceAttributeDefinition> identifierDefs = rAccount.getIdentifiers();
+        assert identifierDefs.size() == 1 : "Unexpected identifier set in "+resource+" refined schema: "+identifierDefs;
+        ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();
+        //TODO: set matching rule instead of null
+        EqualsFilter idFilter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), identifierDef, null,identifier);
+        EqualsFilter ocFilter = EqualsFilter.createEqual(ShadowType.class, prismContext, 
+        		ShadowType.F_OBJECT_CLASS, rAccount.getObjectClassDefinition().getTypeName());
+        RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.class, 
+        		ShadowType.F_RESOURCE_REF, resource);
+        AndFilter filter = AndFilter.createAnd(idFilter, ocFilter, resourceRefFilter);
+        return ObjectQuery.createObjectQuery(filter);
+	}
+	
+	protected ObjectQuery createAccountShadowQuerySecondaryIdentifier(String identifier, PrismObject<ResourceType> resource) throws SchemaException {
+		RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resource);
+        RefinedObjectClassDefinition rAccount = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
+        Collection<? extends ResourceAttributeDefinition> identifierDefs = rAccount.getSecondaryIdentifiers();
+        assert identifierDefs.size() == 1 : "Unexpected identifier set in "+resource+" refined schema: "+identifierDefs;
+        ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();
+        //TODO: set matching rule instead of null
+        EqualsFilter idFilter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), identifierDef, null,identifier);
+        EqualsFilter ocFilter = EqualsFilter.createEqual(ShadowType.class, prismContext, 
+        		ShadowType.F_OBJECT_CLASS, rAccount.getObjectClassDefinition().getTypeName());
+        RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.class, 
+        		ShadowType.F_RESOURCE_REF, resource);
+        AndFilter filter = AndFilter.createAnd(idFilter, ocFilter, resourceRefFilter);
+        return ObjectQuery.createObjectQuery(filter);
+	}
+		
+	protected PrismObjectDefinition<UserType> getUserDefinition() {
+		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
+	}
+	
+	protected PrismObjectDefinition<ShadowType> getShadowDefinition() {
+		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
+	}
+
 }

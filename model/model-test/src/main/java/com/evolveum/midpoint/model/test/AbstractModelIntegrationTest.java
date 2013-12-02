@@ -49,6 +49,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
@@ -846,22 +847,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 	}
 	
-	private ObjectQuery createAccountShadowQuery(String username, PrismObject<ResourceType> resource) throws SchemaException {
-		RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resource);
-        RefinedObjectClassDefinition rAccount = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
-        Collection<? extends ResourceAttributeDefinition> identifierDefs = rAccount.getIdentifiers();
-        assert identifierDefs.size() == 1 : "Unexpected identifier set in "+resource+" refined schema: "+identifierDefs;
-        ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();
-        //TODO: set matching rule instead of null
-        EqualsFilter idFilter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), identifierDef, null,username);
-        EqualsFilter ocFilter = EqualsFilter.createEqual(ShadowType.class, prismContext, 
-        		ShadowType.F_OBJECT_CLASS, rAccount.getObjectClassDefinition().getTypeName());
-        RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.class, 
-        		ShadowType.F_RESOURCE_REF, resource);
-        AndFilter filter = AndFilter.createAnd(idFilter, ocFilter, resourceRefFilter);
-        return ObjectQuery.createObjectQuery(filter);
-	}
-
 	protected String getSingleUserAccountRef(PrismObject<UserType> user) {
         UserType userType = user.asObjectable();
         assertEquals("Unexpected number of accountRefs", 1, userType.getLinkRef().size());
@@ -1034,15 +1019,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			}
 		}
 	}
-
-	protected PrismObjectDefinition<UserType> getUserDefinition() {
-		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-	}
 	
-	protected PrismObjectDefinition<ShadowType> getShadowDefinition() {
-		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
-	}
-
     protected PrismContainerDefinition<AssignmentType> getAssignmentDefinition() {
         return prismContext.getSchemaRegistry().findContainerDefinitionByType(AssignmentType.COMPLEX_TYPE);
     }
@@ -1255,8 +1232,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return modelService.searchObjects(OrgType.class, query, null, task, result);
 	}
 	
-	protected void assertShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType) {
-		assertShadowCommon(accountShadow, oid, username, resourceType);
+    protected void assertShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType) {
+    	assertShadowModel(accountShadow, oid, username, resourceType, null);
+    }
+    
+	protected void assertShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType, MatchingRule<String> nameMatchingRule) {
+		assertShadowCommon(accountShadow, oid, username, resourceType, nameMatchingRule);
 		IntegrationTestTools.assertProvisioningAccountShadow(accountShadow, resourceType, RefinedAttributeDefinition.class);
 	}
 	
@@ -1609,33 +1590,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			AssertJUnit.fail("Expected that "+object+" will have no triggers but it has "+triggers.size()+ " trigger: "+ triggers);
 		}
 	}
-	
-	protected PrismObject<ShadowType> createShadow(PrismObject<ResourceType> resource, String id) throws SchemaException {
-		return createShadow(resource, id, id);
-	}
-	
-	protected PrismObject<ShadowType> createShadow(PrismObject<ResourceType> resource, String uid, String name) throws SchemaException {
-		PrismObject<ShadowType> shadow = getShadowDefinition().instantiate();
-		ShadowType shadowType = shadow.asObjectable();
-		shadowType.setName(PrismTestUtil.createPolyStringType(name));
-		ObjectReferenceType resourceRef = new ObjectReferenceType();
-		resourceRef.setOid(resource.getOid());
-		shadowType.setResourceRef(resourceRef);
-		shadowType.setKind(ShadowKindType.ACCOUNT);
-		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
-		RefinedObjectClassDefinition objectClassDefinition = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
-		shadowType.setObjectClass(objectClassDefinition.getTypeName());
-		ResourceAttributeContainer attrContainer = ShadowUtil.getOrCreateAttributesContainer(shadow, objectClassDefinition);
-		RefinedAttributeDefinition uidAttrDef = objectClassDefinition.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA,"uid"));
-		ResourceAttribute<String> uidAttr = uidAttrDef.instantiate();
-		uidAttr.setRealValue(uid);
-		attrContainer.add(uidAttr);
-		RefinedAttributeDefinition nameAttrDef = objectClassDefinition.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA,"name"));
-		ResourceAttribute<String> nameAttr = nameAttrDef.instantiate();
-		nameAttr.setRealValue(name);
-		attrContainer.add(nameAttr);
-		return shadow;
-	}
 
     protected void prepareNotifications() {
         notificationManager.setDisabled(false);
@@ -1685,6 +1639,17 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			throw new IllegalStateException(e.getMessage(),e);
 		}
 	}
+    
+    protected DummyAccount getDummyAccountById(String dummyInstanceName, String id) {
+		DummyResource dummyResource = DummyResource.getInstance(dummyInstanceName);
+		try {
+			return dummyResource.getAccountById(id);
+		} catch (ConnectException e) {
+			throw new IllegalStateException(e.getMessage(),e);
+		} catch (FileNotFoundException e) {
+			throw new IllegalStateException(e.getMessage(),e);
+		}
+	}
 	
 	protected void assertDummyAccount(String username, String fullname, boolean active) {
 		assertDummyAccount(null, username, fullname, active);
@@ -1694,6 +1659,27 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		DummyAccount account = getDummyAccount(dummyInstanceName, username);
 		assertNotNull("No dummy("+dummyInstanceName+") account for username "+username, account);
 		assertEquals("Wrong fullname for dummy("+dummyInstanceName+") account "+username, fullname, account.getAttributeValue("fullname"));
+		assertEquals("Wrong activation for dummy("+dummyInstanceName+") account "+username, active, account.isEnabled());
+	}
+	
+	protected void assertDummyAccount(String dummyInstanceName, String username) {
+		DummyAccount account = getDummyAccount(dummyInstanceName, username);
+		assertNotNull("No dummy("+dummyInstanceName+") account for username "+username, account);
+	}
+	
+	protected void assertDummyAccountById(String dummyInstanceName, String id) {
+		DummyAccount account = getDummyAccountById(dummyInstanceName, id);
+		assertNotNull("No dummy("+dummyInstanceName+") account for id "+id, account);
+	}
+	
+	protected void assertNoDummyAccountById(String dummyInstanceName, String id) {
+		DummyAccount account = getDummyAccountById(dummyInstanceName, id);
+		assertNull("Dummy("+dummyInstanceName+") account for id "+id+" exists while not expecting it", account);
+	}
+	
+	protected void assertDummyAccountActivation(String dummyInstanceName, String username, boolean active) {
+		DummyAccount account = getDummyAccount(dummyInstanceName, username);
+		assertNotNull("No dummy("+dummyInstanceName+") account for username "+username, account);
 		assertEquals("Wrong activation for dummy("+dummyInstanceName+") account "+username, active, account.isEnabled());
 	}
 
@@ -1725,6 +1711,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 						" but not found. Values found: "+values);
 			}
 		}
+	}
+	
+	protected void assertDummyAccountNoAttribute(String dummyInstanceName, String username, String attributeName) {
+		DummyAccount account = getDummyAccount(dummyInstanceName, username);
+		assertNotNull("No dummy account for username "+username, account);
+		Set<Object> values = account.getAttributeValues(attributeName, Object.class);
+		assertTrue("Unexpected values for attribute "+attributeName+" of dummy account "+username+": "+values, values == null || values.isEmpty());
 	}
     
 	protected void assertOpenDjAccount(String uid, String cn, Boolean active) throws DirectoryException {

@@ -147,34 +147,34 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		super.initSystem(initTask, initResult);
 		
 		dummyResourceCtlYellow = DummyResourceContoller.create(RESOURCE_DUMMY_YELLOW_NAME, resourceDummyYellow);
-		dummyResourceCtlYellow.extendDummySchema();
+		dummyResourceCtlYellow.extendSchemaPirate();
 		dummyResourceYellow = dummyResourceCtlYellow.getDummyResource();
 		resourceDummyYellow = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_YELLOW_FILE, RESOURCE_DUMMY_YELLOW_OID, initTask, initResult);
 		resourceDummyYellowType = resourceDummyYellow.asObjectable();
 		dummyResourceCtlYellow.setResource(resourceDummyYellow);
 		
 		dummyResourceCtlIvory = DummyResourceContoller.create(RESOURCE_DUMMY_IVORY_NAME, resourceDummyIvory);
-		dummyResourceCtlIvory.extendDummySchema();
+		dummyResourceCtlIvory.extendSchemaPirate();
 		dummyResourceIvory = dummyResourceCtlIvory.getDummyResource();
 		resourceDummyIvory = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_IVORY_FILE, RESOURCE_DUMMY_IVORY_OID, initTask, initResult);
 		resourceDummyIvoryType = resourceDummyIvory.asObjectable();
 		dummyResourceCtlIvory.setResource(resourceDummyIvory);
 		
 		dummyResourceCtlBeige = DummyResourceContoller.create(RESOURCE_DUMMY_BEIGE_NAME, resourceDummyBeige);
-		dummyResourceCtlBeige.extendDummySchema();
+		dummyResourceCtlBeige.extendSchemaPirate();
 		dummyResourceBeige = dummyResourceCtlBeige.getDummyResource();
 		resourceDummyBeige = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_BEIGE_FILE, RESOURCE_DUMMY_BEIGE_OID, initTask, initResult);
 		resourceDummyBeigeType = resourceDummyBeige.asObjectable();
 		dummyResourceCtlBeige.setResource(resourceDummyBeige);
 
 		dummyResourceCtlDavid = DummyResourceContoller.create(RESOURCE_DUMMY_DAVID_NAME);
-		dummyResourceCtlDavid.extendDummySchema();
+		dummyResourceCtlDavid.extendSchemaPirate();
 		dummyResourceDavid = dummyResourceCtlDavid.getDummyResource();
 		resourceDummyDavid = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_DAVID_FILE, RESOURCE_DUMMY_DAVID_OID, initTask, initResult);
 		dummyResourceCtlDavid.setResource(resourceDummyDavid);
 
 		dummyResourceCtlGoliath = DummyResourceContoller.create(RESOURCE_DUMMY_GOLIATH_NAME);
-		dummyResourceCtlGoliath.extendDummySchema();
+		dummyResourceCtlGoliath.extendSchemaPirate();
 		dummyResourceGoliath = dummyResourceCtlGoliath.getDummyResource();
 		resourceDummyGoliath = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_GOLIATH_FILE, RESOURCE_DUMMY_GOLIATH_OID, initTask, initResult);
 		dummyResourceCtlGoliath.setResource(resourceDummyGoliath);

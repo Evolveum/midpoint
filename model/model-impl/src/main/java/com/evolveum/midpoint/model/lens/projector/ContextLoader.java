@@ -180,6 +180,11 @@ public class ContextLoader {
 				// chance to be executed yet
 				continue;
 			}
+			ResourceShadowDiscriminator discr = projectionContext.getResourceShadowDiscriminator();
+			if (discr != null && discr.getOrder() > 0) {
+				// HACK never rot higher-order context. TODO: check if lower-order context is rotten, the also rot this one
+				continue;
+			}
 			if (!projectionContext.isFresh()) {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Removing rotten context {}", projectionContext.getHumanReadableName());
