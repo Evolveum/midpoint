@@ -776,6 +776,12 @@ public class PrismAsserts {
 				+ ", was " + MiscUtil.getValueWithClass(actual);
 	}
 	
+	public static <T> void assertEquals(String message, MatchingRule<T> matchingRule, T expected, T actual) {
+		assert equals(matchingRule, expected, actual) : message 
+				+ ": expected " + MiscUtil.getValueWithClass(expected)
+				+ ", was " + MiscUtil.getValueWithClass(actual);
+	}
+	
 	static void assertSame(String message, Object expected, Object actual) {
 		assert expected == actual : message 
 				+ ": expected ("+expected.getClass().getSimpleName() + ")"  + expected 
@@ -784,6 +790,20 @@ public class PrismAsserts {
 	
 	static void fail(String message) {
 		assert false: message;
+	}
+	
+	private static <T> boolean equals(MatchingRule<T> matchingRule, T a, T b) {
+		if (a == null && b == null) {
+			return true;
+		}
+		if (a == null || b == null) {
+			return false;
+		}
+		if (matchingRule == null) {
+			return a.equals(b);
+		} else {
+			return matchingRule.match(a, b);
+		}
 	}
 
 	private static boolean equals(Object a, Object b) {

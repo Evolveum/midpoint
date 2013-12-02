@@ -108,7 +108,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		super.initSystem(initTask, initResult);
 		
 		dummyResourceCtlKhaki = DummyResourceContoller.create(RESOURCE_DUMMY_KHAKI_NAME, resourceDummyKhaki);
-		dummyResourceCtlKhaki.extendDummySchema();
+		dummyResourceCtlKhaki.extendSchemaPirate();
 		dummyResourceKhaki = dummyResourceCtlKhaki.getDummyResource();
 		resourceDummyKhaki = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_KHAKI_FILE, RESOURCE_DUMMY_KHAKI_OID, initTask, initResult); 
 		resourceDummyKhakiType = resourceDummyKhaki.asObjectable();

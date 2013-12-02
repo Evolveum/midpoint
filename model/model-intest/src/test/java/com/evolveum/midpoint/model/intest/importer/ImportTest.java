@@ -116,7 +116,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		
 		// Just initialize the resource, do NOT import resource definition
 		dummyResourceCtl = DummyResourceContoller.create(null);
-		dummyResourceCtl.extendDummySchema();
+		dummyResourceCtl.extendSchemaPirate();
 		dummyResource = dummyResourceCtl.getDummyResource();
 		
 		dummyConnector = findConnectorByTypeAndVersion(CONNECTOR_DUMMY_TYPE, CONNECTOR_DUMMY_VERSION, initResult);

@@ -197,7 +197,7 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 		resourceDummyType = resourceDummy.asObjectable();
 		
 		dummyResourceCtl = DummyResourceContoller.create(null, resourceDummy);
-		dummyResourceCtl.extendDummySchema();
+		dummyResourceCtl.extendSchemaPirate();
 		dummyResource = dummyResourceCtl.getDummyResource();
 		
 		// We need to create Barbossa's account in exactly the shape that is given by his existing assignments

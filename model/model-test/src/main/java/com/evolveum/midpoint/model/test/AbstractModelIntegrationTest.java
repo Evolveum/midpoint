@@ -83,6 +83,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
@@ -1269,8 +1270,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return modelService.searchObjects(OrgType.class, query, null, task, result);
 	}
 	
-	protected void assertShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType) {
-		assertShadowCommon(accountShadow, oid, username, resourceType);
+    protected void assertShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType) {
+    	assertShadowModel(accountShadow, oid, username, resourceType, null);
+    }
+    
+	protected void assertShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType, MatchingRule<String> nameMatchingRule) {
+		assertShadowCommon(accountShadow, oid, username, resourceType, nameMatchingRule);
 		IntegrationTestTools.assertProvisioningAccountShadow(accountShadow, resourceType, RefinedAttributeDefinition.class);
 	}
 	
@@ -1700,6 +1705,17 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			throw new IllegalStateException(e.getMessage(),e);
 		}
 	}
+    
+    protected DummyAccount getDummyAccountById(String dummyInstanceName, String id) {
+		DummyResource dummyResource = DummyResource.getInstance(dummyInstanceName);
+		try {
+			return dummyResource.getAccountById(id);
+		} catch (ConnectException e) {
+			throw new IllegalStateException(e.getMessage(),e);
+		} catch (FileNotFoundException e) {
+			throw new IllegalStateException(e.getMessage(),e);
+		}
+	}
 	
 	protected void assertDummyAccount(String username, String fullname, boolean active) {
 		assertDummyAccount(null, username, fullname, active);
@@ -1709,6 +1725,27 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		DummyAccount account = getDummyAccount(dummyInstanceName, username);
 		assertNotNull("No dummy("+dummyInstanceName+") account for username "+username, account);
 		assertEquals("Wrong fullname for dummy("+dummyInstanceName+") account "+username, fullname, account.getAttributeValue("fullname"));
+		assertEquals("Wrong activation for dummy("+dummyInstanceName+") account "+username, active, account.isEnabled());
+	}
+	
+	protected void assertDummyAccount(String dummyInstanceName, String username) {
+		DummyAccount account = getDummyAccount(dummyInstanceName, username);
+		assertNotNull("No dummy("+dummyInstanceName+") account for username "+username, account);
+	}
+	
+	protected void assertDummyAccountById(String dummyInstanceName, String id) {
+		DummyAccount account = getDummyAccountById(dummyInstanceName, id);
+		assertNotNull("No dummy("+dummyInstanceName+") account for id "+id, account);
+	}
+	
+	protected void assertNoDummyAccountById(String dummyInstanceName, String id) {
+		DummyAccount account = getDummyAccountById(dummyInstanceName, id);
+		assertNull("Dummy("+dummyInstanceName+") account for id "+id+" exists while not expecting it", account);
+	}
+	
+	protected void assertDummyAccountActivation(String dummyInstanceName, String username, boolean active) {
+		DummyAccount account = getDummyAccount(dummyInstanceName, username);
+		assertNotNull("No dummy("+dummyInstanceName+") account for username "+username, account);
 		assertEquals("Wrong activation for dummy("+dummyInstanceName+") account "+username, active, account.isEnabled());
 	}
 
@@ -1740,6 +1777,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 						" but not found. Values found: "+values);
 			}
 		}
+	}
+	
+	protected void assertDummyAccountNoAttribute(String dummyInstanceName, String username, String attributeName) {
+		DummyAccount account = getDummyAccount(dummyInstanceName, username);
+		assertNotNull("No dummy account for username "+username, account);
+		Set<Object> values = account.getAttributeValues(attributeName, Object.class);
+		assertTrue("Unexpected values for attribute "+attributeName+" of dummy account "+username+": "+values, values == null || values.isEmpty());
 	}
     
 	protected void assertOpenDjAccount(String uid, String cn, Boolean active) throws DirectoryException {
