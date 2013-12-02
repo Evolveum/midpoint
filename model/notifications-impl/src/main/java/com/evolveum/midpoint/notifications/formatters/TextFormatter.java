@@ -104,6 +104,12 @@ public class TextFormatter {
         if (shadowType.getAttributes() != null) {
             formatContainerValue(retval, "", shadowType.getAttributes().asPrismContainerValue(), false, hiddenAttributes, showOperationalAttributes);
         }
+        if (shadowType.getCredentials() != null) {
+            formatContainerValue(retval, "", shadowType.getCredentials().asPrismContainerValue(), false, hiddenAttributes, showOperationalAttributes);
+        }
+        if (shadowType.getActivation() != null) {
+            formatContainerValue(retval, "", shadowType.getActivation().asPrismContainerValue(), false, hiddenAttributes, showOperationalAttributes);
+        }
         return retval.toString();
     }
 

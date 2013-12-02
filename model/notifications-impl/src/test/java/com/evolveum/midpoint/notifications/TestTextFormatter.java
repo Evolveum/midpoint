@@ -48,6 +48,7 @@ public class TestTextFormatter extends AbstractTestNGSpringContextTests {
 
     public static final String OBJECTS_DIR_NAME = "src/test/resources/objects";
     public static final String USER_JACK_FILE = OBJECTS_DIR_NAME + "/user-jack.xml";
+    public static final String ACCOUNT_JACK_FILE = OBJECTS_DIR_NAME + "/account-jack.xml";
 
     public static final String CHANGES_DIR_NAME = "src/test/resources/changes";
     public static final String USER_JACK_MODIFICATION_FILE = CHANGES_DIR_NAME + "/user-jack-modification.xml";
@@ -133,7 +134,7 @@ public class TestTextFormatter extends AbstractTestNGSpringContextTests {
     }
 
 
-    @Test
+    @Test(enabled = false)
     public void test020FormatUserModification() throws Exception {
 
         // GIVEN
@@ -176,6 +177,56 @@ public class TestTextFormatter extends AbstractTestNGSpringContextTests {
         AssertJUnit.assertTrue("hidden standard attribute when it should be shown ('hide aux and oper')", deltaFormattedHideAuxAndOper.contains("BLACK PEARL"));
 
     }
+
+    @Test(enabled = true)
+    public void test030FormatAccount() throws Exception {
+
+        // GIVEN
+
+        PrismObject<ShadowType> jack = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_FILE));
+        System.out.println(jack.dump());
+        // WHEN
+
+        String jackFormattedHideNone = textFormatter.formatAccountAttributes(jack.asObjectable(), null, true);
+        System.out.println("no hidden paths + show operational attributes: " + jackFormattedHideNone);
+
+        String jackFormattedHideAux = textFormatter.formatAccountAttributes(jack.asObjectable(), auxiliaryPaths, true);
+        System.out.println("hide auxiliary paths + show operational attributes: " + jackFormattedHideAux);
+
+        // THEN
+
+        AssertJUnit.assertTrue("account name is not shown", jackFormattedHideNone.contains("name: jack"));
+        AssertJUnit.assertTrue("account password is not shown", jackFormattedHideNone.contains("(protected string)"));
+        AssertJUnit.assertTrue("administrative status is not shown", jackFormattedHideNone.contains("Administrative Status: ENABLED"));
+        AssertJUnit.assertTrue("effective status is not shown", jackFormattedHideNone.contains("Effective Status: ENABLED"));
+
+        AssertJUnit.assertTrue("account name is not shown", jackFormattedHideAux.contains("name: jack"));
+        AssertJUnit.assertTrue("account password is not shown", jackFormattedHideAux.contains("(protected string)"));
+        AssertJUnit.assertTrue("administrative status is not shown", jackFormattedHideAux.contains("Administrative Status: ENABLED"));
+        AssertJUnit.assertTrue("effective status is shown although it should be hidden", !jackFormattedHideAux.contains("Effective Status: ENABLED"));
+
+//        AssertJUnit.assertTrue("hidden operational attribute when it should be shown ('hide none')", jackFormattedHideNone.contains("createTimestamp:"));
+//        AssertJUnit.assertTrue("hidden auxiliary attribute (effective status) when it should be shown ('hide none')", jackFormattedHideNone.contains("Effective Status: ENABLED"));
+//        AssertJUnit.assertTrue("hidden auxiliary attribute (family name) when it should be shown ('hide none')", jackFormattedHideNone.contains("Family Name: Sparrow"));
+//        AssertJUnit.assertTrue("hidden standard attribute when it should be shown ('hide none')", jackFormattedHideNone.contains("ship: Black Pearl"));
+//
+//        AssertJUnit.assertTrue("shown operational attribute when it should be hidden ('hide oper')", !jackFormattedHideOper.contains("createTimestamp:"));
+//        AssertJUnit.assertTrue("hidden auxiliary attribute when it should be shown ('hide oper')", jackFormattedHideOper.contains("Effective Status: ENABLED"));
+//        AssertJUnit.assertTrue("hidden auxiliary attribute (family name) when it should be shown ('hide oper')", jackFormattedHideOper.contains("Family Name: Sparrow"));
+//        AssertJUnit.assertTrue("hidden standard attribute when it should be shown ('hide oper')", jackFormattedHideOper.contains("ship: Black Pearl"));
+//
+//        AssertJUnit.assertTrue("shown auxiliary attribute (metadata) when it should be hidden ('hide aux')", !jackFormattedHideAux.contains("createTimestamp:"));
+//        AssertJUnit.assertTrue("shown auxiliary attribute (family name) when it should be hidden ('hide aux')", !jackFormattedHideAux.contains("Family Name: Sparrow"));
+//        AssertJUnit.assertTrue("shown auxiliary attribute (effective status) when it should be hidden ('hide aux')", !jackFormattedHideAux.contains("Effective Status: ENABLED"));
+//        AssertJUnit.assertTrue("hidden standard attribute when it should be shown ('hide aux')", jackFormattedHideAux.contains("ship: Black Pearl"));
+//
+//        AssertJUnit.assertTrue("shown operational attribute when it should be hidden ('hide aux and oper')", !jackFormattedHideAuxAndOper.contains("createTimestamp:"));
+//        AssertJUnit.assertTrue("shown auxiliary attribute (effective status) when it should be hidden ('hide aux and oper')", !jackFormattedHideAuxAndOper.contains("Effective Status: ENABLED"));
+//        AssertJUnit.assertTrue("shown auxiliary attribute (family name) when it should be hidden ('hide aux and oper')", !jackFormattedHideAuxAndOper.contains("Family Name: Sparrow"));
+//        AssertJUnit.assertTrue("hidden standard attribute when it should be shown ('hide aux and oper')", jackFormattedHideAuxAndOper.contains("ship: Black Pearl"));
+
+    }
+
 
     private ObjectDelta<UserType> parseDelta(String filename) throws JAXBException, SchemaException, FileNotFoundException {
         ObjectModificationType modElement = PrismTestUtil.unmarshalObject(new File(filename), ObjectModificationType.class);
