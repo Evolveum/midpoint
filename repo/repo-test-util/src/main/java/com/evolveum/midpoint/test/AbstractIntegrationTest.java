@@ -38,6 +38,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
@@ -489,6 +490,11 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 	}
 	
 	protected void assertShadowCommon(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType) {
+		assertShadowCommon(accountShadow, oid, username, resourceType, null);
+	}
+	
+	protected void assertShadowCommon(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType,
+			MatchingRule<String> nameMatchingRule) {
 		assertShadow(accountShadow);
 		assertEquals("Account shadow OID mismatch (prism)", oid, accountShadow.getOid());
 		ShadowType ResourceObjectShadowType = accountShadow.asObjectable();
@@ -500,7 +506,7 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertFalse("Empty attributes in shadow for "+username, attributesContainer.isEmpty());
 		PrismProperty<String> icfNameProp = attributesContainer.findProperty(new QName(SchemaConstants.NS_ICF_SCHEMA,"name"));
 		assertNotNull("No ICF name attribute in shadow for "+username, icfNameProp);
-		assertEquals("Unexpected ICF name attribute in shadow for "+username, username, icfNameProp.getRealValue());
+		PrismAsserts.assertEquals("Unexpected ICF name attribute in shadow for "+username, nameMatchingRule, username, icfNameProp.getRealValue());
 	}
 	
 	protected void assertShadowRepo(String oid, String username, ResourceType resourceType) throws ObjectNotFoundException, SchemaException {
@@ -511,12 +517,27 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertShadowRepo(shadow, oid, username, resourceType);
 	}
 	
+	
 	protected void assertShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType) {
-		assertShadowCommon(accountShadow, oid, username, resourceType);
+		assertShadowRepo(accountShadow, oid, username, resourceType, null);
+	}
+	
+	protected void assertShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType, MatchingRule<String> nameMatchingRule) {
+		assertShadowCommon(accountShadow, oid, username, resourceType, nameMatchingRule);
 		PrismContainer<Containerable> attributesContainer = accountShadow.findContainer(ShadowType.F_ATTRIBUTES);
 		List<Item<?>> attributes = attributesContainer.getValue().getItems();
 		assertEquals("Unexpected number of attributes in repo shadow", 2, attributes.size());
 	}
+	
+	protected String getIcfUid(PrismObject<ShadowType> shadow) {
+		PrismContainer<Containerable> attributesContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
+		assertNotNull("Null attributes in "+shadow, attributesContainer);
+		assertFalse("Empty attributes in "+shadow, attributesContainer.isEmpty());
+		PrismProperty<String> icfUidProp = attributesContainer.findProperty(new QName(SchemaConstants.NS_ICF_SCHEMA,"uid"));
+		assertNotNull("No ICF name attribute in "+shadow, icfUidProp);
+		return icfUidProp.getRealValue();
+	}
+
 	
 	protected void rememberResourceSchemaFetchCount() {
 		lastResourceSchemaFetchCount = InternalMonitor.getResourceSchemaFetchCount();

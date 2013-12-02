@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.common;
 
+import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -69,6 +70,16 @@ public class Clock {
 	
 	public void override(XMLGregorianCalendar overrideTimestamp) {
 		override(XmlTypeConverter.toMillis(overrideTimestamp));
+	}
+	
+	public void overrideDuration(String durationString) {
+		overrideDuration(XmlTypeConverter.createDuration(durationString));
+	}
+
+	public void overrideDuration(Duration duration) {
+		XMLGregorianCalendar time = currentTimeXMLGregorianCalendar();
+		time.add(duration);
+		override(time);
 	}
 
 	public void resetOverride() {

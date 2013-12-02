@@ -119,14 +119,14 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 		super.initSystem(initTask, initResult);
 		
 		dummyResourceCtlAzure = DummyResourceContoller.create(RESOURCE_DUMMY_AZURE_NAME, resourceDummyAzure);
-		dummyResourceCtlAzure.extendDummySchema();
+		dummyResourceCtlAzure.extendSchemaPirate();
 		dummyResourceAzure = dummyResourceCtlAzure.getDummyResource();
 		resourceDummyAzure = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_AZURE_FILE, RESOURCE_DUMMY_AZURE_OID, initTask, initResult); 
 		resourceDummyAzureType = resourceDummyAzure.asObjectable();
 		dummyResourceCtlAzure.setResource(resourceDummyAzure);	
 		
 		dummyResourceCtlLime = DummyResourceContoller.create(RESOURCE_DUMMY_LIME_NAME, resourceDummyLime);
-		dummyResourceCtlLime.extendDummySchema();
+		dummyResourceCtlLime.extendSchemaPirate();
 		dummyResourceLime = dummyResourceCtlLime.getDummyResource();
 		resourceDummyLime = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_LIME_FILE, RESOURCE_DUMMY_LIME_OID, initTask, initResult); 
 		resourceDummyLimeType = resourceDummyLime.asObjectable();

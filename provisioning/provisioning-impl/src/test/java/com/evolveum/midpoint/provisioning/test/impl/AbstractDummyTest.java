@@ -186,7 +186,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 
 		dummyResourceCtl = DummyResourceContoller.create(null);
 		dummyResourceCtl.setResource(resource);
-		dummyResourceCtl.extendDummySchema();
+		dummyResourceCtl.extendSchemaPirate();
 		dummyResource = dummyResourceCtl.getDummyResource();
 
 		DummyAccount dummyAccountDaemon = new DummyAccount(ACCOUNT_DAEMON_USERNAME);
