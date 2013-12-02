@@ -638,6 +638,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         main.addOrder(Order.asc("o.name.orig"));
 
         Conjunction conjunction = Restrictions.conjunction();
+        conjunction.add(Restrictions.eq("anc.id", 0L));
         conjunction.add(Restrictions.eq("anc.oid", "some oid"));
         conjunction.add(Restrictions.le("closure.depth", 1));
         conjunction.add(Restrictions.gt("closure.depth", 0));
