@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <!--
   ~ Copyright (c) 2010-2013 Evolveum
   ~
@@ -15,14 +14,16 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
-<suite name="unit" parallel="false">
-	<listeners>
-		<listener class-name="com.evolveum.midpoint.tools.testng.TestMethodLoggerListener"/>
-	</listeners>
-    <test name="Default" preserve-order="true" parallel="false" verbose="10" enabled="true">
-        <classes>
-            <class name="com.evolveum.midpoint.report.BasicReportTest"/>
-        </classes>
-    </test>
-</suite>
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context-3.0.xsd"
+       default-lazy-init="true" default-autowire="byName">
+
+ <context:component-scan base-package="com.evolveum.midpoint.report" />
+</beans>

@@ -531,6 +531,7 @@ public class AssignmentProcessor {
 			
 			if (projectionContext.isLegal() != null) {
 				// already have decision
+				propagateLegalDecisionToHigherOrders(context, projectionContext);
 				continue;
 			}
 		
@@ -582,6 +583,25 @@ public class AssignmentProcessor {
 						new Object[]{projectionContext.toHumanReadableString(), projectionContext.isThombstone(),
 						projectionContext.getAssignmentPolicyEnforcementType(),
 						projectionContext.isLegalize(), projectionContext.isLegalOld(), projectionContext.isLegal()});
+			}
+			
+			propagateLegalDecisionToHigherOrders(context, projectionContext);
+		}
+	}
+
+	private void propagateLegalDecisionToHigherOrders(
+			LensContext<UserType, ShadowType> context,
+			LensProjectionContext<ShadowType> refProjCtx) {
+		ResourceShadowDiscriminator refDiscr = refProjCtx.getResourceShadowDiscriminator();
+		if (refDiscr == null) {
+			return;
+		}
+		for (LensProjectionContext<ShadowType> aProjCtx: context.getProjectionContexts()) {
+			ResourceShadowDiscriminator aDiscr = aProjCtx.getResourceShadowDiscriminator();
+			if (aDiscr != null && refDiscr.equivalent(aDiscr) && (refDiscr.getOrder() < aDiscr.getOrder())) {
+				aProjCtx.setLegal(refProjCtx.isLegal());
+				aProjCtx.setLegalOld(refProjCtx.isLegalOld());
+				aProjCtx.setExists(refProjCtx.isExists());
 			}
 		}
 	}

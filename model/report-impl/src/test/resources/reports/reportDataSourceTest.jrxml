@@ -4,7 +4,7 @@
 	<template><![CDATA[$P{BaseTemplateStyles}]]></template>
 	<parameter name="BaseTemplateStyles" class="java.lang.String"/>
 	<parameter name="LOGO_PATH" class="java.lang.String"/>
-	<parameter name="column" class="java.lang.String[]"/>
+	<parameter name="columns" class="java.lang.String[]"/>
 	<field name="Field_1" class="java.lang.String"/>
 	<field name="Field_2" class="java.lang.String"/>
 	<field name="Field_3" class="java.lang.String"/>
@@ -62,22 +62,22 @@
 				<textField>
 					<reportElement style="Column header" x="0" y="0" width="119" height="18" uuid="86c74beb-bddd-48cc-945a-167b261b1e0b"/>
 					<textElement verticalAlignment="Middle"/>
-					<textFieldExpression><![CDATA[$P{column}[0]]]></textFieldExpression>
+					<textFieldExpression><![CDATA[$P{columns}[0]]]></textFieldExpression>
 				</textField>
 				<textField>
 					<reportElement style="Column header" x="119" y="0" width="100" height="18" uuid="86c74beb-bddd-48cc-945a-167b261b1e0b"/>
 					<textElement verticalAlignment="Middle"/>
-					<textFieldExpression><![CDATA[$P{column}[1]]]></textFieldExpression>
+					<textFieldExpression><![CDATA[$P{columns}[1]]]></textFieldExpression>
 				</textField>
 				<textField>
 					<reportElement style="Column header" x="219" y="0" width="100" height="18" uuid="86c74beb-bddd-48cc-945a-167b261b1e0b"/>
 					<textElement verticalAlignment="Middle"/>
-					<textFieldExpression><![CDATA[$P{column}[2]]]></textFieldExpression>
+					<textFieldExpression><![CDATA[$P{columns}[2]]]></textFieldExpression>
 				</textField>
 				<textField>
 					<reportElement style="Column header" x="319" y="0" width="100" height="18" uuid="86c74beb-bddd-48cc-945a-167b261b1e0b"/>
 					<textElement verticalAlignment="Middle"/>
-					<textFieldExpression><![CDATA[$P{column}[3]]]></textFieldExpression>
+					<textFieldExpression><![CDATA[$P{columns}[3]]]></textFieldExpression>
 				</textField>
 			</frame>
 		</band>
@@ -131,15 +131,15 @@
 		<band height="32" splitType="Stretch">
 			<frame>
 				<reportElement style="Page footer" mode="Transparent" x="0" y="1" width="800" height="24" uuid="fbe8aae4-6500-468a-b1e8-700b569139a1"/>
-				<textField>
-					<reportElement style="Page footer" x="680" y="1" width="80" height="20" uuid="5c062c66-ba45-4288-9dcd-246e28c5af75"/>
-					<textElement textAlignment="Right" verticalAlignment="Middle"/>
-					<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
-				</textField>
 				<textField pattern="EEEEE dd MMMMM yyyy">
 					<reportElement style="Page footer" x="2" y="1" width="197" height="20" uuid="28bb9b47-a69c-48e1-9073-d54d926242e8"/>
 					<textElement verticalAlignment="Middle"/>
 					<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement style="Page footer" x="680" y="1" width="80" height="20" uuid="5c062c66-ba45-4288-9dcd-246e28c5af75"/>
+					<textElement textAlignment="Right" verticalAlignment="Middle"/>
+					<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
 				</textField>
 				<textField evaluationTime="Report">
 					<reportElement style="Page footer" x="760" y="1" width="40" height="20" uuid="934b16e8-c3eb-4017-866a-0b7735bf2917"/>
