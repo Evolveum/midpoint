@@ -117,6 +117,13 @@
                 <transport>dummy:simpleUserNotifier-DELETE</transport>
             </simpleUserNotifier>
         </handlerChain>
+        <simpleUserNotifier>
+            <statusFilter><status>failure</status></statusFilter>
+            <recipientExpression>
+                <value>recipient@evolveum.com</value>
+            </recipientExpression>
+            <transport>dummy:simpleUserNotifier-FAILURE</transport>
+        </simpleUserNotifier>
         <mail>
             <redirectToFile>target/mail-notifications.log</redirectToFile>
         </mail>

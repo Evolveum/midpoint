@@ -18,6 +18,7 @@ package com.evolveum.midpoint.notifications.events;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
+import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
@@ -28,6 +29,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventCategoryType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 import java.util.ArrayList;
@@ -59,15 +61,24 @@ public class ModelEvent extends Event {
         this.modelContext = modelContext;
     }
 
-    public List<? extends ObjectDeltaOperation> getExecutedDeltas() {
+    public List<? extends ObjectDeltaOperation> getFocusExecutedDeltas() {
         return getFocusContext().getExecutedDeltas();
+    }
+
+    public List<ObjectDeltaOperation> getAllExecutedDeltas() {
+        List<ObjectDeltaOperation> retval = new ArrayList<ObjectDeltaOperation>();
+        retval.addAll(getFocusContext().getExecutedDeltas());
+        for (Object o : modelContext.getProjectionContexts()) {
+            ModelProjectionContext modelProjectionContext = (ModelProjectionContext) o;
+            retval.addAll(modelProjectionContext.getExecutedDeltas());
+        }
+        return retval;
     }
 
     @Override
     public boolean isStatusType(EventStatusType eventStatusType) {
         boolean allSuccess = true, anySuccess = false, allFailure = true, anyFailure = false, anyInProgress = false;
-        for (Object o : getExecutedDeltas()) {
-            ObjectDeltaOperation objectDeltaOperation = (ObjectDeltaOperation) o;
+        for (ObjectDeltaOperation objectDeltaOperation : getAllExecutedDeltas()) {
             if (objectDeltaOperation.getExecutionResult() != null) {
                 switch (objectDeltaOperation.getExecutionResult().getStatus()) {
                     case SUCCESS: anySuccess = true; allFailure = false; break;
@@ -114,7 +125,7 @@ public class ModelEvent extends Event {
         //
         // alternatively, we could summarize deltas and then decide based on the type of summarized delta (would be a bit inefficient)
 
-        for (Object o : getExecutedDeltas()) {
+        for (Object o : getFocusExecutedDeltas()) {
             ObjectDeltaOperation objectDeltaOperation = (ObjectDeltaOperation) o;
             if (objectDeltaOperation.getObjectDelta().isAdd()) {
                 return eventOperationType == EventOperationType.ADD;
@@ -134,7 +145,7 @@ public class ModelEvent extends Event {
         List<ObjectDelta<UserType>> retval = new ArrayList<ObjectDelta<UserType>>();
         Class c = modelContext.getFocusClass();
         if (c != null && UserType.class.isAssignableFrom(c)) {
-            for (Object o : getExecutedDeltas()) {
+            for (Object o : getFocusExecutedDeltas()) {
                 ObjectDeltaOperation objectDeltaOperation = (ObjectDeltaOperation) o;
                 retval.add(objectDeltaOperation.getObjectDelta());
             }

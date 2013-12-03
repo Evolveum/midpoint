@@ -31,8 +31,10 @@ import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.icf.dummy.resource.BreakMode;
 import com.evolveum.midpoint.notifications.events.AccountEvent;
 import com.evolveum.midpoint.notifications.transports.Message;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
 import com.evolveum.midpoint.prism.match.PolyStringStrictMatchingRule;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
@@ -295,8 +297,73 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         
         assertSteadyResources();
 	}
-	
-	@Test
+
+    @Test(enabled = true)
+    public void test099ModifyUserAddAccountFailing() throws Exception {
+        TestUtil.displayTestTile(this, "test099ModifyUserAddAccountFailing");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test099ModifyUserAddAccountFailing");
+        OperationResult result = task.getResult();
+        preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
+
+        PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
+
+        ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
+        PrismReferenceValue accountRefVal = new PrismReferenceValue();
+        accountRefVal.setObject(account);
+        ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
+        userDelta.addModification(accountDelta);
+        // the following modifies nothing but it is used to produce a user-level notification (LINK_REF by itself causes no such notification)
+        PropertyDelta<String> attributeDelta = PropertyDelta.createReplaceDeltaOrEmptyDelta(getUserDefinition(), UserType.F_TELEPHONE_NUMBER, "555-1234");
+        userDelta.addModification(attributeDelta);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
+
+        dummyResource.setAddBreakMode(BreakMode.UNSUPPORTED);       // hopefully this does not kick consistency mechanism
+
+        // WHEN
+        modelService.executeChanges(deltas, null, task, result);
+
+        // THEN
+        result.computeStatus();
+        TestUtil.assertFailure(result);
+        assertShadowFetchOperationCountIncrement(0);
+
+        // Check accountRef
+        PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+        assertUserJack(userJack);
+        UserType userJackType = userJack.asObjectable();
+        assertEquals("Unexpected number of accountRefs", 0, userJackType.getLinkRef().size());
+
+//        // Check audit
+//        display("Audit", dummyAuditService);
+//        dummyAuditService.assertRecords(2);
+//        dummyAuditService.assertSimpleRecordSanity();
+//        dummyAuditService.assertAnyRequestDeltas();
+//        dummyAuditService.assertExecutionDeltas(3);
+//        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+//        dummyAuditService.asserHasDelta(ChangeType.ADD, ShadowType.class);
+//        dummyAuditService.assertTarget(USER_JACK_OID);
+//        dummyAuditService.assertExecutionSuccess();
+
+        notificationManager.setDisabled(true);
+        dummyResource.resetBreakMode();
+
+        // Check notifications
+        checkDummyTransportMessages("accountPasswordNotifier", 0);
+        checkDummyTransportMessages("userPasswordNotifier", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);        // actually I don't know why provisioning does not report unsupported operation as a failure...
+        checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);
+        checkDummyTransportMessages("simpleUserNotifier", 1);
+        checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
+        checkDummyTransportMessages("simpleUserNotifier-FAILURE", 1);
+
+        assertSteadyResources();
+    }
+
+
+    @Test
     public void test100ModifyUserAddAccount() throws Exception {
         TestUtil.displayTestTile(this, "test100ModifyUserAddAccount");
 
@@ -359,7 +426,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(3);
+        dummyAuditService.assertExecutionDeltas(2);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.asserHasDelta(ChangeType.ADD, ShadowType.class);
         dummyAuditService.assertTarget(USER_JACK_OID);
