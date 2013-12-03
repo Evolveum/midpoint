@@ -4241,6 +4241,15 @@
             		</xsd:documentation>
             	</xsd:annotation>
             </xsd:element>
+            <xsd:element name="exceptChannel" type="xsd:anyURI" minOccurs="0" maxOccurs="unbounded">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Limits application of this mapping except for channel specified. If the channel is listed then the
+            			mapping will be not applied in this channel. If it is not then it will be applied.
+            			If no channel is specified then no limitations apply and the mapping will be applied for all channels.
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>
             <xsd:element name="timeFrom" type="tns:MappingTimeDeclarationType" minOccurs="0"/>
             <xsd:element name="timeTo" type="tns:MappingTimeDeclarationType" minOccurs="0"/>
             <xsd:element name="source" type="tns:MappingSourceDeclarationType" minOccurs="0" maxOccurs="unbounded"/>
