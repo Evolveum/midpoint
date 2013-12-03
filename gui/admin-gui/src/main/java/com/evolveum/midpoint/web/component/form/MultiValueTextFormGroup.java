@@ -72,7 +72,7 @@ public class MultiValueTextFormGroup extends SimplePanel<List<String>> {
                 if (StringUtils.isNotEmpty(textSize)) {
                     textWrapper.add(AttributeAppender.prepend("class", textSize));
                 }
-                add(textWrapper);
+                item.add(textWrapper);
 
                 TextField text = new TextField(ID_TEXT, item.getModel());
                 text.setRequired(required);
