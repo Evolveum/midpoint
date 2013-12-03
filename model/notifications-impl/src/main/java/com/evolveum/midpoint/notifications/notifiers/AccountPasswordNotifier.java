@@ -102,8 +102,9 @@ public class AccountPasswordNotifier extends GeneralNotifier {
         ObjectDelta<ShadowType> delta = (ObjectDelta<ShadowType>) rod.getObjectDelta();
 
         body.append("Password for account ");
-        if (rod.getCurrentShadow() != null && rod.getCurrentShadow().asObjectable().getName() != null) {
-            body.append(rod.getCurrentShadow().asObjectable().getName() + " ");
+        String name = notificationsUtil.getShadowName(rod.getCurrentShadow());
+        if (name != null) {
+            body.append(name + " ");
         }
         body.append("on " + rod.getResource().asObjectable().getName());
         body.append(" is: " + getPasswordFromDelta(delta));

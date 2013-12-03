@@ -21,21 +21,21 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -116,4 +116,27 @@ public class NotificationsUtil {
         return false;
     }
 
+    public String getShadowName(PrismObject<? extends ShadowType> shadow) {
+        if (shadow == null) {
+            return null;
+        } else if (shadow.asObjectable().getName() != null) {
+            return shadow.asObjectable().getName().getOrig();
+        } else {
+            Collection<ResourceAttribute<?>> secondaryIdentifiers = ShadowUtil.getSecondaryIdentifiers(shadow);
+            LOGGER.trace("secondary identifiers: {}", secondaryIdentifiers);
+            // first phase = looking for "name" identifier
+            for (ResourceAttribute ra : secondaryIdentifiers) {
+                if (ra.getName() != null && ra.getName().getLocalPart().contains("name")) {
+                    LOGGER.trace("Considering {} as a name", ra);
+                    return String.valueOf(ra.getAnyRealValue());
+                }
+            }
+            // second phase = returning any value ;)
+            if (!secondaryIdentifiers.isEmpty()) {
+                return String.valueOf(secondaryIdentifiers.iterator().next().getAnyRealValue());
+            } else {
+                return null;
+            }
+        }
+    }
 }
