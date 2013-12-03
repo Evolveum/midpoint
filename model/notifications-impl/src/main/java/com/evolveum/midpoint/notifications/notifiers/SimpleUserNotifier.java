@@ -108,26 +108,42 @@ public class SimpleUserNotifier extends GeneralNotifier {
 
         StringBuilder body = new StringBuilder();
 
-        body.append("Notification about user-related operation\n\n");
+        String status;
+        if (event.isSuccess()) {
+            status = "SUCCESS";
+        } else if (event.isOnlyFailure()) {
+            status = "FAILURE";
+        } else if (event.isFailure()) {
+            status = "PARTIAL FAILURE";
+        } else if (event.isInProgress()) {
+            status = "IN PROGRESS";
+        } else {
+            status = "UNKNOWN";
+        }
+
+        String attemptedTo = event.isSuccess() ? "" : " (attempted to be) ";
+
+        body.append("Notification about user-related operation (status: " + status + "\n\n");
         body.append("User: " + userType.getFullName() + " (" + userType.getName() + ", oid " + oid + ")\n");
         body.append("Notification created on: " + new Date() + "\n\n");
 
         List<ItemPath> hiddenPaths = isWatchAuxiliaryAttributes(generalNotifierType) ? new ArrayList<ItemPath>() : auxiliaryPaths;
         if (delta.isAdd()) {
-            body.append("The user record was created with the following data:\n");
+            body.append("The user record was " + attemptedTo + "created with the following data:\n");
             body.append(textFormatter.formatObject(delta.getObjectToAdd(), hiddenPaths, isWatchAuxiliaryAttributes(generalNotifierType)));
             body.append("\n");
         } else if (delta.isModify()) {
-            body.append("The user record was modified. Modified attributes are:\n");
+            body.append("The user record was " + attemptedTo + "modified. Modified attributes are:\n");
             body.append(textFormatter.formatObjectModificationDelta(delta, hiddenPaths, isWatchAuxiliaryAttributes(generalNotifierType)));
 //            appendModifications(body, delta, hiddenPaths, generalNotifierType.isShowModifiedValues());
             body.append("\n");
         } else if (delta.isDelete()) {
-            body.append("The user record was removed.\n\n");
+            body.append("The user record was " + attemptedTo + "removed.\n\n");
         }
 
-//        // todo what about the status?
-//        body.append("Operation status: " + event.getOperationStatus() + "\n\n");
+        if (event.isSuccess()) {
+            body.append("More information about the status of the request was displayed and/or is present in log files.\n\n");
+        }
 
         if (techInfo) {
             body.append("----------------------------------------\n");
