@@ -203,64 +203,6 @@ public class ShadowManager {
 
 		return results.get(0);
 	}
-
-//	public PrismObject<ShadowType> lookupShadowByIdentifier( 
-//			PrismObject<ShadowType> resourceShadow, RefinedObjectClassDefinition rObjClassDef, 
-//			ResourceType resource, OperationResult parentResult) 
-//					throws SchemaException, ConfigurationException {
-//
-//		Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getIdentifiers(resourceShadow);
-//		ResourceAttribute<?> identifier = null;
-//		if (identifiers.size() < 1){
-//			LOGGER.trace("Shadow does not contain primary idetifier. Skipping shadow lookup.");
-//			return null;
-//		}
-//		
-//		identifier = identifiers.iterator().next();
-//		LOGGER.trace("Shadow primary identifier {}", identifier);
-//		
-//		AndFilter filter = AndFilter.createAnd(RefFilter.createReferenceEqual(ShadowType.class,
-//				ShadowType.F_RESOURCE_REF, prismContext, resource.getOid()), EqualsFilter.createEqual(
-//				new ItemPath(ShadowType.F_ATTRIBUTES), identifier.getDefinition(),
-//				getNormalizedValue(identifier, rObjClassDef)));
-//		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-//		if (LOGGER.isTraceEnabled()) {
-//			LOGGER.trace("Searching for shadow using filter on primary identifier:\n{}",
-//					query.dump());
-//		}
-//
-//		// TODO: check for errors
-//		List<PrismObject<ShadowType>> results;
-//
-//		results = repositoryService.searchObjects(ShadowType.class, query, null, parentResult);
-//
-//		LOGGER.trace("lookupShadow found {} objects", results.size());
-//
-//		if (results.size() == 0) {
-//			return null;
-//		}
-//		if (results.size() > 1) {
-//			for (PrismObject<ShadowType> result : results) {
-//				LOGGER.trace("Search result:\n{}", result.dump());
-//			}
-//			LOGGER.error("More than one shadows found for " + resourceShadow);
-//			// TODO: Better error handling later
-//			throw new IllegalStateException("More than one shadows found for " + resourceShadow);
-//		}
-//
-//		PrismObject<ShadowType> repoShadow = results.get(0);
-//		ShadowType repoShadowType = repoShadow.asObjectable();
-//		if (repoShadow != null) {
-//			if (repoShadowType.getFailedOperationType() == null){
-//				LOGGER.trace("Found shadow is ok, returning null");
-//				return null;
-//			} 
-//			if (repoShadowType.getFailedOperationType() != null && FailedOperationTypeType.ADD != repoShadowType.getFailedOperationType()){
-//				return null;
-//			}
-//		}
-//		return repoShadow;
-//	}
 	
 	public PrismObject<ShadowType> lookupShadowByName( 
 			PrismObject<ShadowType> resourceShadow, RefinedObjectClassDefinition rObjClassDef, 
@@ -333,17 +275,6 @@ public class ShadowManager {
 			throw new IllegalStateException("More than one shadows found for " + resourceShadow);
 		}
 
-//		PrismObject<ShadowType> repoShadow = results.get(0);
-//		ShadowType repoShadowType = repoShadow.asObjectable();
-//		if (repoShadow != null) {
-//			if (repoShadowType.getFailedOperationType() == null){
-//				LOGGER.trace("Found shadow is ok, returning null");
-//				return null;
-//			} 
-//			if (repoShadowType.getFailedOperationType() != null && FailedOperationTypeType.ADD != repoShadowType.getFailedOperationType()){
-//				return null;
-//			}
-//		}
 		return conflictingShadows.get(0);
 	}
 
@@ -369,7 +300,7 @@ public class ShadowManager {
 			ConfigurationException, SecurityViolationException {
 
 		// Try to locate existing shadow in the repository
-		List<PrismObject<ShadowType>> accountList = searchAccountByIdenifiers(change, resource, parentResult);
+		List<PrismObject<ShadowType>> accountList = searchAccountByIdenifiers(change, objectClassDefinition, resource, parentResult);
 
 		if (accountList.size() > 1) {
 			String message = "Found more than one account with the identifier " + change.getIdentifiers() + ".";
@@ -464,10 +395,11 @@ public class ShadowManager {
 		return shadow;
 	}
 	
-	private List<PrismObject<ShadowType>> searchAccountByIdenifiers(Change<ShadowType> change, ResourceType resource, OperationResult parentResult)
+	private List<PrismObject<ShadowType>> searchAccountByIdenifiers(Change<ShadowType> change, 
+			RefinedObjectClassDefinition rOcDef, ResourceType resource, OperationResult parentResult)
 			throws SchemaException {
 
-		ObjectQuery query = createSearchShadowQuery(change.getIdentifiers(), resource, prismContext, parentResult);
+		ObjectQuery query = createSearchShadowQuery(change.getIdentifiers(), rOcDef, resource, prismContext, parentResult);
 
 		List<PrismObject<ShadowType>> accountList = null;
 		try {
@@ -483,11 +415,15 @@ public class ShadowManager {
 	}
 	
 	private ObjectQuery createSearchShadowQuery(Collection<ResourceAttribute<?>> identifiers,
-			ResourceType resource, PrismContext prismContext, OperationResult parentResult) throws SchemaException {
+			RefinedObjectClassDefinition rOcDef, ResourceType resource, PrismContext prismContext, 
+			OperationResult parentResult) throws SchemaException {
 		List<ObjectFilter> conditions = new ArrayList<ObjectFilter>();
 		for (PrismProperty<?> identifier : identifiers) {
+			PrismPropertyValue<?> identifierValue = identifier.getValue();
+			RefinedAttributeDefinition rAttrDef = rOcDef.findAttributeDefinition(identifier.getName());
+			Object normalizedIdentifierValue = getNormalizedAttributeValue(identifierValue, rAttrDef);
 			EqualsFilter filter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES),
-					identifier.getDefinition(), identifier.getValue());
+					identifier.getDefinition(), new PrismPropertyValue(normalizedIdentifierValue));
 			conditions.add(filter);
 		}
 
@@ -697,6 +633,16 @@ public class ShadowManager {
 				T normalizedRealValue = matchingRule.normalize(pval.getValue());
 				pval.setValue(normalizedRealValue);
 			}
+		}
+	}
+	
+	private <T> T getNormalizedAttributeValue(PrismPropertyValue<T> pval, RefinedAttributeDefinition rAttrDef) throws SchemaException {
+		MatchingRule<T> matchingRule = matchingRuleRegistry.getMatchingRule(rAttrDef.getMatchingRuleQName(), rAttrDef.getTypeName());
+		if (matchingRule != null) {
+			T normalizedRealValue = matchingRule.normalize(pval.getValue());
+			return normalizedRealValue;
+		} else {
+			return pval.getValue();
 		}
 	}
 	

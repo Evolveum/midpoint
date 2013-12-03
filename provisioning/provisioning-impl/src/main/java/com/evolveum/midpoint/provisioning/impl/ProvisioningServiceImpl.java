@@ -339,7 +339,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				recordFatalError(LOGGER, result, "Couldn't add object. Schema violation: " + ex.getMessage(), ex);
 				throw new SchemaException("Couldn't add object. Schema violation: " + ex.getMessage(), ex);
 			} catch (ObjectAlreadyExistsException ex) {
-//				result.computeStatus();
+				result.computeStatus();
 				if (!result.isSuccess() && !result.isHandledError()) {
 					recordFatalError(LOGGER, result, "Couldn't add object. Object already exist: " + ex.getMessage(), ex);
 				} else {
