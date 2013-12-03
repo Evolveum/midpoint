@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2013 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<objectModification
+	xmlns='http://midpoint.evolveum.com/xml/ns/public/common/api-types-2'
+	xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
+	xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+	<oid>c0c010c0-d34d-b33f-f00d-111111111111</oid>
+	<modification>
+		<t:modificationType>replace</t:modificationType>
+        <t:path>c:credentials/c:password</t:path>
+        <t:value>
+			<c:value>
+                <clearValue>jack123456</clearValue>
+			</c:value>
+		</t:value>
+	</modification>
+    <modification>
+        <t:modificationType>replace</t:modificationType>
+        <t:value>
+            <c:familyName>SPARROW</c:familyName>
+        </t:value>
+    </modification>
+    <modification>
+        <t:modificationType>replace</t:modificationType>
+        <t:path>c:metadata</t:path>
+        <t:value>
+            <c:createTimestamp>2013-12-01T11:22:33.44</c:createTimestamp>
+        </t:value>
+    </modification>
+    <modification>
+        <t:modificationType>replace</t:modificationType>
+        <t:path>c:extension</t:path>
+        <t:value xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
+            <piracy:ship xmlns:xsd='http://www.w3.org/2001/XMLSchema' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:type="xsd:string">BLACK PEARL</piracy:ship>
+        </t:value>
+    </modification>
+
+</objectModification>

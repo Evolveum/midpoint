@@ -251,7 +251,8 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         display("User mancomb", userMancomb);
         assertNotNull("User mancomb was not created", userMancomb);
         assertAccounts(userMancomb, 0);
-        assertAdministrativeStatusEnabled(userMancomb);
+        // Disabled by sync reaction
+        assertAdministrativeStatusDisabled(userMancomb);
         assertValidFrom(userMancomb, ACCOUNT_MANCOMB_VALID_FROM_DATE);
         assertValidTo(userMancomb, ACCOUNT_MANCOMB_VALID_TO_DATE);
         

@@ -130,6 +130,15 @@ public class ItemPath implements Serializable {
 		}
 		return new ItemPath(segments.subList(1, segments.size()));
 	}
+
+    public NameItemPathSegment lastNamed() {
+        for (int i = segments.size()-1; i >= 0; i++) {
+            if (segments.get(i) instanceof NameItemPathSegment) {
+                return (NameItemPathSegment) segments.get(i);
+            }
+        }
+        return null;
+    }
 	
 	public ItemPathSegment last() {
 		if (segments.size() == 0) {

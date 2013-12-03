@@ -96,7 +96,9 @@ public class TestCleanStartup extends AbstractModelIntegrationTest {
 		
 		assertMessages("Error", tailer.getErrors(),
 				"Unable to find file com/../../keystore.jceks",
-				"Provided Icf connector path /C:/tmp is not a directory");
+				"Provided Icf connector path /C:/tmp is not a directory",
+                "Provided Icf connector path C:\\tmp is not a directory",
+                "Provided Icf connector path C:\\var\\tmp is not a directory");
 		
 		assertMessages("Warning", tailer.getWarnings());
 		
