@@ -76,7 +76,6 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
 		
 		dummyResource.purgeScriptHistory();
 		dummyAuditService.clear();
-        dummyNotifier.clearRecords();
         dummyTransport.clearMessages();
         notificationManager.setDisabled(false);
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();

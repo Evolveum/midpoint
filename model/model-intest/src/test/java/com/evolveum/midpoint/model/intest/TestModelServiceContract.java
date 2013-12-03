@@ -20,6 +20,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -31,10 +32,8 @@ import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.notifications.events.AccountEvent;
-import com.evolveum.midpoint.notifications.transports.Message;
+import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
-import com.evolveum.midpoint.prism.match.PolyStringStrictMatchingRule;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -55,7 +54,6 @@ import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.notifications.notifiers.DummyNotifier;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -313,10 +311,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
 		userDelta.addModification(accountDelta);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
-		
-        dummyNotifier.clearRecords();
-        dummyTransport.clearMessages();
-        notificationManager.setDisabled(false);
+
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         
 		// WHEN
@@ -368,10 +363,6 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         notificationManager.setDisabled(true);
 
         // Check notifications
-        display("Notifier", dummyNotifier);
-        checkTest100NotificationRecords("newAccounts");
-        checkTest100NotificationRecords("newAccountsViaExpression");
-
         checkDummyTransportMessages("accountPasswordNotifier", 1);
         checkDummyTransportMessages("userPasswordNotifier", 0);
         checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
@@ -380,11 +371,10 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleUserNotifier", 0);
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
 
-//        List<Message> messages = dummyTransport.getMessages("dummy:accountPasswordNotifier");
-//        assertNotNull("No messages recorded in dummy transport", messages);
-//        assertEquals("Invalid number of messages recorded in dummy transport", 1, messages.size());
-//        Message message = messages.get(0);
-//        assertEquals("Invalid list of recipients", Arrays.asList(userJackType.getEmailAddress()), message.getTo());
+        List<Message> messages = dummyTransport.getMessages("dummy:accountPasswordNotifier");
+        Message message = messages.get(0);          // number of messages was already checked
+        assertEquals("Invalid list of recipients", Arrays.asList("recipient@evolveum.com"), message.getTo());
+        assertTrue("No account name in account password notification", message.getBody().contains("Password for account jack on Dummy Resource is:"));
 //
 //        messages = dummyTransport.getMessages("dummy:newAccountsViaExpression");
 //        assertNotNull("No messages recorded in dummy transport (expressions)", messages);
@@ -396,15 +386,6 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         assertSteadyResources();
 	}
-
-    private void checkTest100NotificationRecords(String notifierName) {
-        assertEquals("Invalid number of notification records [" + notifierName + "]", 1, dummyNotifier.getRecords(notifierName).size());
-        DummyNotifier.NotificationRecord record = dummyNotifier.getRecords(notifierName).get(0);
-        assertEquals("Wrong user in notification record [" + notifierName + "]", USER_JACK_OID, ((AccountEvent) record.getEvent()).getRequestee().getOid());
-        assertEquals("Wrong number of account OIDs in notification record [" + notifierName + "]", 1, record.getAccountsOids().size());
-        assertEquals("Wrong account OID in notification record [" + notifierName + "]", accountOid, record.getAccountsOids().iterator().next());
-        assertEquals("Wrong change type in notification record [" + notifierName + "]", ChangeType.ADD, record.getFirstChangeType());
-    }
 
     @Test
     public void test101GetAccount() throws Exception {
@@ -1794,7 +1775,6 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
 		
 		dummyAuditService.clear();
-        dummyNotifier.clearRecords();
         dummyTransport.clearMessages();
         notificationManager.setDisabled(false);
         
@@ -1843,10 +1823,6 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         notificationManager.setDisabled(true);
 
         // Check notifications
-        display("Notifier", dummyNotifier);
-        checkTest100NotificationRecords("newAccounts");
-        checkTest100NotificationRecords("newAccountsViaExpression");
-
         checkDummyTransportMessages("accountPasswordNotifier", 1);
         checkDummyTransportMessages("userPasswordNotifier", 0);
         checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
@@ -1913,7 +1889,6 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         notificationManager.setDisabled(true);
 
         // Check notifications
-        display("Notifier", dummyNotifier);
         checkDummyTransportMessages("accountPasswordNotifier", 0);
         checkDummyTransportMessages("userPasswordNotifier", 0);
         checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 0);
