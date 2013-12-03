@@ -2163,8 +2163,12 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 
 		if (passwordDelta.getName().equals(PasswordType.F_VALUE)) {
-			GuardedString guardedPassword = toGuardedString(passwordDelta
-					.getPropertyNew().getValue().getValue(), "new password");
+			PrismProperty<ProtectedStringType> newPassword = passwordDelta.getPropertyNew();
+			if (newPassword == null || newPassword.isEmpty()){
+				LOGGER.trace("Skipping processing password delta. Password delta does not contain new value.");
+				return;
+			}
+			GuardedString guardedPassword = toGuardedString(newPassword.getValue().getValue(), "new password");
 			attributes.add(AttributeBuilder.build(OperationalAttributes.PASSWORD_NAME, guardedPassword));
 		}
 
