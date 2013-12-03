@@ -193,12 +193,10 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 				handler.handle(object, task, result);
 				
 			// Properly handle everything that the handler spits out. We do not want this task to die.
-			} catch (RuntimeException e) {
-				LOGGER.error("Trigger handler {} executed on {} thrown an runtime exception: {}", new Object[] { handler, object, e.getMessage(), e});
-				result.recordPartialError(e);
-			} catch (Error e) {
+			// Looks like the impossible happens and checked exceptions can somehow get here. Hence the heavy artillery below.
+			} catch (Throwable e) {
 				LOGGER.error("Trigger handler {} executed on {} thrown an error: {}", new Object[] { handler, object, e.getMessage(), e});
-				result.recordPartialError(e);				
+				result.recordPartialError(e);
 			}
 		}
 	}
