@@ -425,54 +425,6 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         close(session);
     }
 
-    private <T extends ObjectType> String getInterpretedQuery(Session session, Class<T> type, ObjectQuery query)
-            throws Exception {
-        return getInterpretedQuery(session, type, query, false);
-    }
-
-    private <T extends ObjectType> String getInterpretedQuery(Session session, Class<T> type, ObjectQuery query,
-                                                              boolean interpretCount) throws Exception {
-
-        QueryInterpreter interpreter = new QueryInterpreter();
-        LOGGER.info("QUERY TYPE TO CONVERT : {}", (query.getFilter() != null ? query.getFilter().debugDump(3) : null));
-
-        Criteria criteria = interpreter.interpret(query, type, null, prismContext, interpretCount, session);
-        if (interpretCount) {
-            criteria.setProjection(Projections.rowCount());
-        }
-
-        return HibernateToSqlTranslator.toSql(criteria);
-    }
-
-    private <T extends ObjectType> String getInterpretedQuery(Session session, Class<T> type, File file) throws
-            Exception {
-        return getInterpretedQuery(session, type, file, false);
-    }
-
-    private <T extends ObjectType> String getInterpretedQuery(Session session, Class<T> type, File file,
-                                                              boolean interpretCount) throws Exception {
-
-        QueryInterpreter interpreter = new QueryInterpreter();
-
-        Document document = DOMUtil.parseFile(file);
-        QueryType queryType = prismContext.getPrismJaxbProcessor().unmarshalObject(file, QueryType.class);
-        Element filter = DOMUtil.listChildElements(document.getDocumentElement()).get(0);
-
-        LOGGER.info("QUERY TYPE TO CONVERT : {}", QueryUtil.dump(queryType));
-
-        ObjectQuery query = null;
-        try {
-            query = QueryConvertor.createObjectQuery(type, queryType, prismContext);
-        } catch (Exception ex) {
-            LOGGER.info("error while converting query: " + ex.getMessage(), ex);
-        }
-        Criteria criteria = interpreter.interpret(query, type, null, prismContext, interpretCount, session);
-        if (interpretCount) {
-            criteria.setProjection(Projections.rowCount());
-        }
-        return HibernateToSqlTranslator.toSql(criteria);
-    }
-
     @Test
     public void queryTrigger() throws Exception {
         final Date NOW = new Date();
@@ -686,6 +638,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         main.addOrder(Order.asc("o.name.orig"));
 
         Conjunction conjunction = Restrictions.conjunction();
+        conjunction.add(Restrictions.eq("anc.id", 0L));
         conjunction.add(Restrictions.eq("anc.oid", "some oid"));
         conjunction.add(Restrictions.le("closure.depth", 1));
         conjunction.add(Restrictions.gt("closure.depth", 0));

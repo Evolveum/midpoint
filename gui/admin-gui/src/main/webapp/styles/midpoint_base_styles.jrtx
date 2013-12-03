@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<!DOCTYPE jasperTemplate
+  PUBLIC "-//JasperReports//DTD Template//EN"
+  "http://jasperreports.sourceforge.net/dtds/jaspertemplate.dtd">
+
+<jasperTemplate>
+
+	<style name="Base" isDefault="true" hAlign="Left" vAlign="Middle"
+			fontSize="10" pdfFontName="Helvetica" pdfEncoding="Cp1252" isPdfEmbedded="false">
+	</style>
+	
+	
+	<style name="Title" style="Base" mode="Opaque" backcolor="#267994"
+		forecolor="#FFFFFF" fontSize="26"/>
+		
+	<style name="Page header" style="Base" 
+		forecolor="#000000" fontSize="12"/>
+		
+	<style name="Column header" style="Base" hAlign="Center"
+		mode="Opaque" forecolor="#FFFFFF" backcolor="#333333" fontSize="12"/>
+		
+	<style name="Detail" style="Base"
+		isBold="false" fontName="DejaVu Serif"/>
+		
+	<style name="Page footer" style="Base" 
+		forecolor="#000000" fontSize="9"/>
+	
+</jasperTemplate> 

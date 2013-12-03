@@ -8382,7 +8382,7 @@
             <xsd:element name="itemPathField" type="t:XPathType" minOccurs="0"/>
             <xsd:element name="sortOrderNumber" type="xsd:int" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="sortOrder" type="q:OrderDirectionType" minOccurs="0" maxOccurs="1"/>  
-            <xsd:element name="widthField" type="xsd:integer" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="widthField" type="xsd:int" minOccurs="0" maxOccurs="1" />
             <xsd:element name="classTypeField" type="xsd:QName" minOccurs="0" maxOccurs="1"/>   
         </xsd:sequence>
     </xsd:complexType>

@@ -180,6 +180,11 @@ public class ContextLoader {
 				// chance to be executed yet
 				continue;
 			}
+			ResourceShadowDiscriminator discr = projectionContext.getResourceShadowDiscriminator();
+			if (discr != null && discr.getOrder() > 0) {
+				// HACK never rot higher-order context. TODO: check if lower-order context is rotten, the also rot this one
+				continue;
+			}
 			if (!projectionContext.isFresh()) {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Removing rotten context {}", projectionContext.getHumanReadableName());
@@ -228,21 +233,30 @@ public class ContextLoader {
 		}
 		// We still may not have resource OID here. E.g. in case of the delete when the account is not loaded yet. It is
 		// perhaps safe to skip this. It will be sorted out later.
-		if (resourceOid == null) {
-			return;
+		if (resourceOid != null) {
+			if (intent == null && projectionContext.getObjectNew() != null) {
+				intent = ((ShadowType) projectionContext.getObjectNew().asObjectable()).getIntent();
+			}
+			ResourceType resource = projectionContext.getResource();
+			if (resource == null) {
+				resource = LensUtil.getResource(context, resourceOid, provisioningService, result);
+				projectionContext.setResource(resource);
+			}
+			String refinedIntent = LensUtil.refineAccountType(intent, resource, prismContext);
+			rsd = new ResourceShadowDiscriminator(resourceOid, refinedIntent, isThombstone);
+			rsd.setOrder(order);
+			projectionContext.setResourceShadowDiscriminator(rsd);
 		}
-		if (intent == null && projectionContext.getObjectNew() != null) {
-			intent = ((ShadowType) projectionContext.getObjectNew().asObjectable()).getIntent();
+		if (projectionContext.getOid() == null && rsd.getOrder() != 0) {
+			// Try to determine OID from lower-order contexts
+			for (LensProjectionContext<P> aProjCtx: context.getProjectionContexts()) {
+				ResourceShadowDiscriminator aDiscr = aProjCtx.getResourceShadowDiscriminator();
+				if (rsd.equivalent(aDiscr) && aProjCtx.getOid() != null) {
+					projectionContext.setOid(aProjCtx.getOid());
+					break;
+				}
+			}
 		}
-		ResourceType resource = projectionContext.getResource();
-		if (resource == null) {
-			resource = LensUtil.getResource(context, resourceOid, provisioningService, result);
-			projectionContext.setResource(resource);
-		}
-		String refinedIntent = LensUtil.refineAccountType(intent, resource, prismContext);
-		rsd = new ResourceShadowDiscriminator(resourceOid, refinedIntent, isThombstone);
-		rsd.setOrder(order);
-		projectionContext.setResourceShadowDiscriminator(rsd);
 	}
 	
 	/** 

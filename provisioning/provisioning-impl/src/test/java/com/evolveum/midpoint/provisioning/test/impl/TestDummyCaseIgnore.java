@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.provisioning.test.impl;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
@@ -59,6 +60,21 @@ public class TestDummyCaseIgnore extends TestDummy {
 		return "will";
 	}
 	
+	@Override
+	protected String getMurrayRepoIcfName() {
+		return StringUtils.lowerCase(super.getMurrayRepoIcfName());
+	}
+
+	@Override
+	protected String getBlackbeardRepoIcfName() {
+		return StringUtils.lowerCase(super.getBlackbeardRepoIcfName());
+	}
+
+	@Override
+	protected String getDrakeRepoIcfName() {
+		return StringUtils.lowerCase(super.getDrakeRepoIcfName());
+	}
+
 	@Override
 	protected MatchingRule<String> getUidMatchingRule() {
 		return uidMatchingRule;
