@@ -120,7 +120,7 @@ public class TestBrokenCSV extends AbstractConfiguredModelIntegrationTest {
 		repoAddObjectFromFile(CONNECTOR_DUMMY_NOJARS_FILENAME, ConnectorType.class, initResult);
 		
 		dummyResourceCtl = DummyResourceContoller.create(null);
-		dummyResourceCtl.extendDummySchema();
+		dummyResourceCtl.extendSchemaPirate();
 		dummyResource = dummyResourceCtl.getDummyResource();
 		
 		resourceDummy = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_FILENAME, RESOURCE_DUMMY_OID, initTask, initResult);

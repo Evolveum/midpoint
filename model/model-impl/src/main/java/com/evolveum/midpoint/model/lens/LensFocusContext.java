@@ -17,10 +17,12 @@ package com.evolveum.midpoint.model.lens;
 
 import java.util.Collection;
 
+import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -323,6 +325,22 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 	@Override
 	public String toString() {
 		return "LensFocusContext(" + getObjectTypeClass().getSimpleName() + ":" + getOid() + ")";
+	}
+	
+	public String getHumanReadableName() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("focus(");
+		PrismObject<O> object = getObjectNew();
+		if (object == null) {
+			object = getObjectOld();
+		}
+		if (object == null) {
+			sb.append(getOid());
+		} else {
+			sb.append(object.toString());
+		}
+		sb.append(")");
+		return sb.toString();
 	}
 
     public void addToPrismContainer(PrismContainer<LensFocusContextType> lensFocusContextTypeContainer) throws SchemaException {

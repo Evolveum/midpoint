@@ -104,21 +104,21 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		super.initSystem(initTask, initResult);
 		
 		dummyResourceCtlPink = DummyResourceContoller.create(RESOURCE_DUMMY_PINK_NAME, resourceDummyPink);
-		dummyResourceCtlPink.extendDummySchema();
+		dummyResourceCtlPink.extendSchemaPirate();
 		dummyResourcePink = dummyResourceCtlPink.getDummyResource();
 		resourceDummyPink = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_PINK_FILE, RESOURCE_DUMMY_PINK_OID, initTask, initResult); 
 		resourceDummyPinkType = resourceDummyPink.asObjectable();
 		dummyResourceCtlPink.setResource(resourceDummyPink);
 		
 		dummyResourceCtlViolet = DummyResourceContoller.create(RESOURCE_DUMMY_VIOLET_NAME, resourceDummyViolet);
-		dummyResourceCtlViolet.extendDummySchema();
+		dummyResourceCtlViolet.extendSchemaPirate();
 		dummyResourceViolet = dummyResourceCtlViolet.getDummyResource();
 		resourceDummyViolet = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_VIOLET_FILE, RESOURCE_DUMMY_VIOLET_OID, initTask, initResult); 
 		resourceDummyVioletType = resourceDummyViolet.asObjectable();
 		dummyResourceCtlViolet.setResource(resourceDummyViolet);
 		
 		dummyResourceCtlMagenta = DummyResourceContoller.create(RESOURCE_DUMMY_MAGENTA_NAME, resourceDummyMagenta);
-		dummyResourceCtlMagenta.extendDummySchema();
+		dummyResourceCtlMagenta.extendSchemaPirate();
 		dummyResourceMagenta = dummyResourceCtlMagenta.getDummyResource();
 		resourceDummyMagenta = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_MAGENTA_FILE, RESOURCE_DUMMY_MAGENTA_OID, initTask, initResult); 
 		resourceDummyMagentaType = resourceDummyMagenta.asObjectable();

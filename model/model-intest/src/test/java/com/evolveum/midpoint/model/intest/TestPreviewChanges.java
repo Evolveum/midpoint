@@ -1218,7 +1218,7 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         		accountSecondaryDelta.findPropertyDelta(
         				new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP)));
         PrismAsserts.assertPropertyReplace(accountSecondaryDelta, SchemaConstants.PATH_ACTIVATION_DISABLE_REASON,
-        		SchemaConstants.MODEL_DISABLE_REASON_MAPPED);
+        		SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);
 		
 		ModelProjectionContext<ShadowType> accContextBlue = modelContext.findProjectionContext(
 				new ResourceShadowDiscriminator(RESOURCE_DUMMY_BLUE_OID, null));
@@ -1236,6 +1236,6 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
         		accountSecondaryDeltaBlue.findPropertyDelta(
         				new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP)));
         PrismAsserts.assertPropertyReplace(accountSecondaryDeltaBlue, SchemaConstants.PATH_ACTIVATION_DISABLE_REASON,
-        		SchemaConstants.MODEL_DISABLE_REASON_MAPPED);
+        		SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);
 	}
 }

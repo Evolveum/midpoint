@@ -1265,6 +1265,7 @@ public class PageUser extends PageAdminUsers {
 			case ADD:
 				newValue.applyDefinition(assignmentDef, false);
 				assDelta.addValueToAdd(newValue.clone());
+				break;
 			case DELETE:
 				
 //				if (UserDtoStatus.ADD.equals(assDto.getStatus())) {

@@ -52,6 +52,13 @@ public final class Change<T extends ShadowType> {
         this.currentShadow = currentShadow;
         this.token = token;
     }
+    
+    public Change(Collection<ResourceAttribute<?>> identifiers, PrismObject<T> currentShadow, PrismObject<T> oldStadow, ObjectDelta<T> objectDetla){
+    	this.identifiers = identifiers;
+    	this.currentShadow = currentShadow;
+    	this.oldShadow = oldStadow;
+    	this.objectDelta = objectDetla;
+    }
 
     public Change(ObjectDelta<T> change, PrismProperty<?> token) {
         this.objectDelta = change;

@@ -50,6 +50,8 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.match.MatchingRule;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -161,6 +163,9 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	@Autowired(required = true) 
 	protected TaskManager taskManager;
 	
+	@Autowired(required = true)
+	protected MatchingRuleRegistry matchingRuleRegistry;
+	
 	// Values used to check if something is unchanged or changed properly
 	private Long lastResourceVersion = null;
 	private ConnectorInstance lastConfiguredConnectorInstance;
@@ -181,7 +186,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 
 		dummyResourceCtl = DummyResourceContoller.create(null);
 		dummyResourceCtl.setResource(resource);
-		dummyResourceCtl.extendDummySchema();
+		dummyResourceCtl.extendSchemaPirate();
 		dummyResource = dummyResourceCtl.getDummyResource();
 
 		DummyAccount dummyAccountDaemon = new DummyAccount(ACCOUNT_DAEMON_USERNAME);
@@ -208,6 +213,11 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	
 	protected String getIcfUid(PrismObject<ShadowType> shadow) {
 		PrismProperty<String> icfUidAttr = shadow.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_UID));
+		return icfUidAttr.getRealValue();
+	}
+	
+	protected String getIcfName(PrismObject<ShadowType> shadow) {
+		PrismProperty<String> icfUidAttr = shadow.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME));
 		return icfUidAttr.getRealValue();
 	}
 
@@ -260,6 +270,10 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	
 	protected <T> void assertAttribute(ShadowType shadow, QName attrName, T... expectedValues) {
 		ProvisioningTestUtil.assertAttribute(resource, shadow, attrName, expectedValues);
+	}
+	
+	protected <T> void assertAttribute(ShadowType shadow, MatchingRule<T> matchingRule, QName attrName, T... expectedValues) {
+		ProvisioningTestUtil.assertAttribute(resource, shadow, matchingRule, attrName, expectedValues);
 	}
 	
 	protected <T> void assertNoAttribute(ShadowType shadow, String attrName) {

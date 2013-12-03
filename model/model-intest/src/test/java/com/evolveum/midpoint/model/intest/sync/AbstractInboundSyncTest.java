@@ -121,7 +121,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 		
 		dummyResourceCtlEmerald = DummyResourceContoller.create(RESOURCE_DUMMY_EMERALD_NAME, resourceDummyEmerald);
-		dummyResourceCtlEmerald.extendDummySchema();
+		dummyResourceCtlEmerald.extendSchemaPirate();
 		dummyResourceEmerald = dummyResourceCtlEmerald.getDummyResource();
 		resourceDummyEmerald = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_EMERALD_FILE, RESOURCE_DUMMY_EMERALD_OID, initTask, initResult); 
 		resourceDummyEmeraldType = resourceDummyEmerald.asObjectable();
@@ -251,7 +251,8 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         display("User mancomb", userMancomb);
         assertNotNull("User mancomb was not created", userMancomb);
         assertAccounts(userMancomb, 0);
-        assertAdministrativeStatusEnabled(userMancomb);
+        // Disabled by sync reaction
+        assertAdministrativeStatusDisabled(userMancomb);
         assertValidFrom(userMancomb, ACCOUNT_MANCOMB_VALID_FROM_DATE);
         assertValidTo(userMancomb, ACCOUNT_MANCOMB_VALID_TO_DATE);
         

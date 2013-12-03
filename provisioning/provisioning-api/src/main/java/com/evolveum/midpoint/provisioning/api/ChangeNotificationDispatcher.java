@@ -28,12 +28,16 @@ package com.evolveum.midpoint.provisioning.api;
  * @author Radovan Semancik
  *
  */
-public interface ChangeNotificationDispatcher extends ResourceObjectChangeListener, ResourceOperationListener {
+public interface ChangeNotificationDispatcher extends ResourceObjectChangeListener, ResourceOperationListener, ResourceEventListener {
 	
 	public  void registerNotificationListener(ResourceObjectChangeListener listener);
 	public  void registerNotificationListener(ResourceOperationListener listener);
+	public  void registerNotificationListener(ResourceEventListener listener);
 		
 	public  void unregisterNotificationListener(ResourceObjectChangeListener listener);
 	public  void unregisterNotificationListener(ResourceOperationListener listener);
+	public  void unregisterNotificationListener(ResourceEventListener listener);
+	
+	
 	
 }

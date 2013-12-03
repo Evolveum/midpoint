@@ -16,13 +16,18 @@
 
 package com.evolveum.midpoint.model.util;
 
+import java.util.Collection;
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
 
+import com.evolveum.midpoint.common.crypto.CryptoUtil;
+import com.evolveum.midpoint.common.crypto.EncryptionException;
+import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.importer.ImportConstants;
 import com.evolveum.midpoint.model.importer.ObjectImporter;
 import com.evolveum.midpoint.model.lens.LensContext;
@@ -36,6 +41,7 @@ import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -314,6 +320,20 @@ public final class Utils {
 	        return refinedObjectClassDefinition;
 	    }
 
+	    public static void encrypt(Collection<ObjectDelta<? extends ObjectType>> deltas, Protector protector, ModelExecuteOptions options,
+				OperationResult result) {
+			// Encrypt values even before we log anything. We want to avoid showing unencrypted values in the logfiles
+			if (!ModelExecuteOptions.isNoCrypt(options)) {
+				for(ObjectDelta<? extends ObjectType> delta: deltas) {				
+					try {
+						CryptoUtil.encryptValues(protector, delta);
+					} catch (EncryptionException e) {
+						result.recordFatalError(e);
+						throw new SystemException(e.getMessage(), e);
+					}
+				}
+			}
+		}
 
     public static void setRequestee(Task task, LensContext context) {
         String oid;

@@ -122,6 +122,12 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
 		searchFettucini(3);
 	}
 	
+	@Override
+	@Test
+	public void test600AddAccountAlreadyExist() throws Exception {
+		// DO nothing. This test is meaningless in non-unique environment
+	}
+
 	private String addFettucini(final String TEST_NAME, File file, String oid, String expectedFullName) throws SchemaException, ObjectAlreadyExistsException, CommunicationException, ObjectNotFoundException, ConfigurationException, SecurityViolationException, ConnectException, FileNotFoundException {
 		// GIVEN
 		Task task = taskManager.createTaskInstance(TestDummy.class.getName()
