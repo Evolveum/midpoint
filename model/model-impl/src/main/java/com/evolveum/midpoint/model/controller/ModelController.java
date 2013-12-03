@@ -319,7 +319,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		// But before that we need to make sure that we have proper definition, otherwise we
 		// might miss some encryptable data in dynamic schemas
 		applyDefinitions(deltas, options, result);
-		encrypt(deltas, options, result);
+		Utils.encrypt(deltas, protector, options, result);
 
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("MODEL.executeChanges(\n  deltas:\n{}\n  options:{}", DebugUtil.debugDump(deltas, 2), options);
@@ -532,20 +532,20 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		}
 	}
 
-	private void encrypt(Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options,
-			OperationResult result) {
-		// Encrypt values even before we log anything. We want to avoid showing unencrypted values in the logfiles
-		if (!ModelExecuteOptions.isNoCrypt(options)) {
-			for(ObjectDelta<? extends ObjectType> delta: deltas) {				
-				try {
-					CryptoUtil.encryptValues(protector, delta);
-				} catch (EncryptionException e) {
-					result.recordFatalError(e);
-					throw new SystemException(e.getMessage(), e);
-				}
-			}
-		}
-	}
+//	private void encrypt(Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options,
+//			OperationResult result) {
+//		// Encrypt values even before we log anything. We want to avoid showing unencrypted values in the logfiles
+//		if (!ModelExecuteOptions.isNoCrypt(options)) {
+//			for(ObjectDelta<? extends ObjectType> delta: deltas) {				
+//				try {
+//					CryptoUtil.encryptValues(protector, delta);
+//				} catch (EncryptionException e) {
+//					result.recordFatalError(e);
+//					throw new SystemException(e.getMessage(), e);
+//				}
+//			}
+//		}
+//	}
 
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.model.api.ModelInteractionService#previewChanges(com.evolveum.midpoint.prism.delta.ObjectDelta, com.evolveum.midpoint.schema.result.OperationResult)
