@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
@@ -31,8 +32,10 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.model.api.ModelPort;
+import com.evolveum.midpoint.model.util.Utils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -56,6 +59,7 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -113,6 +117,9 @@ public class ModelWebService implements ModelPortType, ModelPort {
 	
 	@Autowired(required = true)
 	private PrismContext prismContext;
+	
+	@Autowired(required = true)
+	private Protector protector;
 
 	@Override
 	public void addObject(ObjectType objectType, Holder<String> oidHolder, Holder<OperationResultType> result) throws FaultMessage {
@@ -388,7 +395,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 			throws FaultMessage {
 		// TODO Auto-generated method stub
 		notNullArgument(changeDescription, "Change description must not be null");
-		LOGGER.info("notify change started");
+		LOGGER.trace("notify change started");
 		
 		Task task = createTaskInstance(NOTIFY_CHANGE);
 		OperationResult parentResult = task.getResult();
@@ -399,22 +406,22 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		
 		try {
 			PrismObject<ShadowType> oldShadow = null;
-			LOGGER.info("resolving old object");
+			LOGGER.trace("resolving old object");
 			if (!StringUtils.isEmpty(oldShadowOid)){
 				oldShadow = model.getObject(ShadowType.class, oldShadowOid, SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()), task, parentResult);
 				eventDescription.setOldShadow(oldShadow);
-				LOGGER.info("old object resolved to: {}", oldShadow.dump());
+				LOGGER.trace("old object resolved to: {}", oldShadow.dump());
 			} else{
-				LOGGER.info("Old shadow null");
+				LOGGER.trace("Old shadow null");
 			}
 			
 				PrismObject<ShadowType> currentShadow = null;
 				ShadowType currentShadowType = changeDescription.getCurrentShadow();
-				LOGGER.info("resolving current shadow");
+				LOGGER.trace("resolving current shadow");
 				if (currentShadowType != null){
 					prismContext.adopt(currentShadowType);
 					currentShadow = currentShadowType.asPrismObject();
-					LOGGER.info("current shadow resolved to {}", currentShadow.dump());
+					LOGGER.trace("current shadow resolved to {}", currentShadow.dump());
 				}
 				
 				eventDescription.setCurrentShadow(currentShadow);
@@ -450,6 +457,9 @@ public class ModelWebService implements ModelPortType, ModelPort {
 						delta.getModifications().addAll(modifications);
 					} 
 				}
+				Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+				deltas.add(delta);
+				Utils.encrypt(deltas, protector, null, parentResult);
 				eventDescription.setDelta(delta);
 					
 				eventDescription.setSourceChannel(changeDescription.getChannel());
