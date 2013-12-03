@@ -42,6 +42,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -134,11 +135,15 @@ public class InboundProcessor {
             	}
 //                LOGGER.trace("Processing inbound expressions for account {} starting", rat);
 
-            	ObjectDelta<ShadowType> accountDelta = accountContext.getDelta();
-                if (accountDelta != null && ChangeType.DELETE.equals(accountDelta.getChangeType())) {
-                    //we don't need to do inbound if account was deleted
-                    continue;
-                }
+//            	/ObjectDelta<ShadowType> accountDelta = accountContext.getDelta()
+            	if (isDeleteAccountDelta(accountContext)){
+            		 //we don't need to do inbound if account was deleted
+            		continue;
+            	}
+//                if (accountDelta != null && ChangeType.DELETE.equals(accountDelta.getChangeType())) {
+//                    //we don't need to do inbound if account was deleted
+//                    continue;
+//                }
 
                 RefinedObjectClassDefinition accountDefinition = accountContext.getRefinedAccountDefinition();
                 if (accountDefinition == null) {
@@ -157,7 +162,19 @@ public class InboundProcessor {
         }
     }
 
-    private void processInboundExpressionsForAccount(LensContext<UserType,ShadowType> context, 
+    private boolean isDeleteAccountDelta(
+			LensProjectionContext<ShadowType> accountContext) throws SchemaException {
+		if (accountContext.getSyncDelta() != null && ChangeType.DELETE == accountContext.getSyncDelta().getChangeType()){
+			return true;
+		}
+		
+		if (accountContext.getDelta() != null && ChangeType.DELETE == accountContext.getDelta().getChangeType()){
+			return true;
+		}
+		return false;
+	}
+
+	private void processInboundExpressionsForAccount(LensContext<UserType,ShadowType> context, 
     		LensProjectionContext<ShadowType> accContext,
             RefinedObjectClassDefinition accountDefinition, ObjectDelta<ShadowType> aPrioriDelta, OperationResult result)
     		throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
@@ -530,7 +547,7 @@ public class InboundProcessor {
         if (!mapping.isApplicableToChannel(context.getChannel())) {
         	return;
         }
-
+        
         PrismProperty<?> property = newUser.findOrCreateProperty(sourcePath);
         if (mapping.getStrength() == MappingStrengthType.WEAK && !property.isEmpty()) {
             //inbound will be constructed only if initial == false or initial == true and value doesn't exist
@@ -568,9 +585,17 @@ public class InboundProcessor {
                 throw new SystemException(message);
             }
         }
-
+        
+        ObjectDelta<ShadowType> aPrioriDelta = getAPrioriDelta(context, accContext);
+        ItemDelta<PrismPropertyValue<?>> specialAttributeDelta = null;
+        if (aPrioriDelta != null){
+        	specialAttributeDelta = (ItemDelta<PrismPropertyValue<?>>) aPrioriDelta.findItemDelta(sourcePath);
+        }
         ItemDeltaItem<PrismPropertyValue<?>> sourceIdi = accContext.getObjectDeltaObject().findIdi(sourcePath);
-        Source<PrismPropertyValue<?>> source = new Source<PrismPropertyValue<?>>(sourceIdi.getItemOld(), sourceIdi.getDelta(), 
+        if (specialAttributeDelta == null){
+        	specialAttributeDelta = sourceIdi.getDelta();
+        }
+        Source<PrismPropertyValue<?>> source = new Source<PrismPropertyValue<?>>(sourceIdi.getItemOld(), specialAttributeDelta, 
         		sourceIdi.getItemOld(), ExpressionConstants.VAR_INPUT);
 		mapping.setDefaultSource(source);
 		
