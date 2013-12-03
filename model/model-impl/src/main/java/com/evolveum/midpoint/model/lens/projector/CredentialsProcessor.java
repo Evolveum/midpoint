@@ -194,7 +194,7 @@ public class CredentialsProcessor {
 		LensUtil.evaluateMapping(passwordMapping, context, result);
         
         PrismProperty<ProtectedStringType> accountPasswordNew = (PrismProperty) passwordMapping.getOutput();
-        if (accountPasswordNew == null) {
+        if (accountPasswordNew == null || accountPasswordNew.isEmpty()) {
             LOGGER.trace("Credentials 'password' expression resulted in null, skipping credentials processing for {}", rat);
             return;
         }
