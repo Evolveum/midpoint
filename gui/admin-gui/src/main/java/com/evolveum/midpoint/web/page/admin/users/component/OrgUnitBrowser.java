@@ -17,6 +17,11 @@
 package com.evolveum.midpoint.web.page.admin.users.component;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
@@ -26,6 +31,7 @@ import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgTableDto;
+import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -47,9 +53,12 @@ import java.util.List;
  */
 public class OrgUnitBrowser extends ModalWindow {
 
+    public static enum Operation {MOVE, ADD, REMOVE}
+
     private static final Trace LOGGER = TraceManager.getTrace(OrgUnitBrowser.class);
 
-    public static enum Operation {MOVE, ADD, REMOVE}
+    private static final String DOT_CLASS = OrgUnitBrowser.class.getName() + ".";
+    private static final String OPERATION_LOAD_PARENT_ORG_REFS = DOT_CLASS + "loadParentOrgRefs";
 
     private static final String ID_SEARCH_TEXT = "searchText";
     private static final String ID_SEARCH = "search";
@@ -60,6 +69,13 @@ public class OrgUnitBrowser extends ModalWindow {
 
     private boolean initialized;
     private Operation operation;
+
+    /**
+     * Objects which were selected on page, not in this dialog. It's used for example to filter org. units
+     * when removing from hierarchy. In that case we don't want to show list of all org. units, just org.
+     * units which are parents to selected.
+     */
+    private List<OrgTableDto> selected;
 
     private IModel<String> searchModel = new Model<String>();
 
@@ -92,6 +108,14 @@ public class OrgUnitBrowser extends ModalWindow {
 
     public StringResourceModel createStringResource(String resourceKey, Object... objects) {
         return new StringResourceModel(resourceKey, this, null, resourceKey, objects);
+    }
+
+    public void setSelectedObjects(List<OrgTableDto> selected) {
+        this.selected = selected;
+    }
+
+    public List<OrgTableDto> getSelected() {
+        return selected;
     }
 
     @Override
@@ -129,6 +153,11 @@ public class OrgUnitBrowser extends ModalWindow {
             public OrgTableDto createDataObjectWrapper(PrismObject<OrgType> obj) {
                 return OrgTableDto.createDto(obj);
             }
+
+            @Override
+            public ObjectQuery getQuery() {
+                return createQueryFromSelected();
+            }
         };
         List<IColumn<OrgTableDto, String>> columns = initColumns();
         TablePanel table = new TablePanel(ID_TABLE, provider, columns);
@@ -153,6 +182,36 @@ public class OrgUnitBrowser extends ModalWindow {
             }
         };
         container.add(createRoot);
+    }
+
+    private ObjectQuery createQueryFromSelected() {
+        if (selected == null) {
+            return null;
+        }
+
+        OperationResult result = new OperationResult(OPERATION_LOAD_PARENT_ORG_REFS);
+        List<String> oids = new ArrayList<String>();
+        try {
+            for (OrgTableDto dto : selected) {
+                PrismObject object = WebModelUtils.loadObject(dto.getType(), dto.getOid(),
+                        WebModelUtils.createOptionsForParentOrgRefs(), result, getPageBase());
+                PrismReference parentRef = object.findReference(OrgType.F_PARENT_ORG_REF);
+                if (parentRef != null) {
+                    for (PrismReferenceValue value : parentRef.getValues()) {
+                        oids.add(value.getOid());
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "Couldn't load parent org. refs for selected objects", ex);
+            result.recordFatalError("Couldn't load parent org. refs for selected objects.", ex);
+        } finally {
+            result.computeStatusIfUnknown();
+        }
+
+        //todo here we must create query which select object which have oid from oids list [lazyman]
+        //todo create IN(oids) filter in schema, objectfilter and repo implementation
+        return null;
     }
 
     private List<IColumn<OrgTableDto, String>> initColumns() {

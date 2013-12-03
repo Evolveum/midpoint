@@ -20,6 +20,8 @@ import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -34,6 +36,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -45,6 +48,7 @@ public class WebModelUtils {
     private static final String DOT_CLASS = WebModelUtils.class.getName() + ".";
     private static final String OPERATION_LOAD_OBJECT = DOT_CLASS + "loadObject";
     private static final String OPERATION_DELETE_OBJECT = DOT_CLASS + "deleteObject";
+    private static final String OPERATION_SEARCH_OBJECTS = DOT_CLASS + "searchObjects";
 
     public static <T extends ObjectType> PrismObject<T> loadObjectAsync(Class<T> type, String oid, OperationResult result,
                                                                         PageBase page, PrismObject<UserType> principal) {
@@ -78,7 +82,7 @@ public class WebModelUtils {
         PrismObject<T> object = null;
         try {
             Task task = page.createSimpleTask(result.getOperation(), principal);
-            object = page.getModelService().getObject(type, oid, options, task, result);
+            object = page.getModelService().getObject(type, oid, options, task, subResult);
         } catch (Exception ex) {
             subResult.recordFatalError("WebModelUtils.couldntLoadObject", ex);
             LoggingUtils.logException(LOGGER, "Couldn't load object", ex);
@@ -86,9 +90,32 @@ public class WebModelUtils {
             subResult.computeStatus();
         }
 
-        LOGGER.debug("Loaded with result {}", new Object[]{result});
+        LOGGER.debug("Loaded with result {}", new Object[]{subResult});
 
         return object;
+    }
+
+    public static <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
+                                                                            Collection<SelectorOptions<GetOperationOptions>> options,
+                                                                            OperationResult result, PageBase page,
+                                                                            PrismObject<UserType> principal) {
+        LOGGER.debug("Searching {} with oid {}, options {}", new Object[]{type.getSimpleName(), query, options});
+
+        OperationResult subResult = result.createMinorSubresult(OPERATION_SEARCH_OBJECTS);
+        List<PrismObject<T>> objects = null;
+        try {
+            Task task = page.createSimpleTask(result.getOperation(), principal);
+            objects = page.getModelService().searchObjects(type, query, options, task, subResult);
+        } catch (Exception ex) {
+            subResult.recordFatalError("WebModelUtils.couldntSearchObjects", ex);
+            LoggingUtils.logException(LOGGER, "Couldn't search objects", ex);
+        } finally {
+            subResult.computeStatus();
+        }
+
+        LOGGER.debug("Loaded with result {}", new Object[]{subResult});
+
+        return objects;
     }
 
     public static <T extends ObjectType> void deleteObject(Class<T> type, String oid, OperationResult result,
@@ -121,6 +148,13 @@ public class WebModelUtils {
         Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<SelectorOptions<GetOperationOptions>>();
         options.add(SelectorOptions.create(ObjectType.F_PARENT_ORG_REF,
                 GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
+        return options;
+    }
+
+    public static Collection<SelectorOptions<GetOperationOptions>> createMinimalOptions() {
+        Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<SelectorOptions<GetOperationOptions>>();
+        options.add(SelectorOptions.create(ItemPath.EMPTY_PATH,
+                GetOperationOptions.createRetrieve(RetrieveOption.DEFAULT)));
         return options;
     }
 }

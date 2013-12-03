@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.web.page.admin.users.dto;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -26,6 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
 
 import javax.xml.namespace.QName;
+import java.util.ArrayList;
 import java.util.List;
 
 /**

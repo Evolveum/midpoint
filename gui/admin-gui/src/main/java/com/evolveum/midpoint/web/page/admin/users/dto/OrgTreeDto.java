@@ -124,4 +124,8 @@ public class OrgTreeDto implements Serializable, Comparable<OrgTreeDto>, OrgDto 
         //todo implement [lazyman]
         return 0;
     }
+
+    public void setParent(OrgTreeDto parent) {
+        this.parent = parent;
+    }
 }

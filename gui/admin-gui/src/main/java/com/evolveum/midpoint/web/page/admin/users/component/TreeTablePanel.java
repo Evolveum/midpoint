@@ -118,8 +118,8 @@ public class TreeTablePanel extends SimplePanel<String> {
         }
     };
 
-    public TreeTablePanel(String id, IModel<String> model) {
-        super(id, model);
+    public TreeTablePanel(String id, IModel<String> rootOid) {
+        super(id, rootOid);
     }
 
     @Override
@@ -174,7 +174,7 @@ public class TreeTablePanel extends SimplePanel<String> {
         add(treeContainer);
 
         TableTree<OrgTreeDto, String> tree = new TableTree<OrgTreeDto, String>(ID_TREE, columns, provider,
-                Integer.MAX_VALUE, new TreeStateModel()) {
+                Integer.MAX_VALUE, new TreeStateModel(provider)) {
 
             @Override
             protected Component newContentComponent(String id, IModel<OrgTreeDto> model) {
@@ -215,7 +215,7 @@ public class TreeTablePanel extends SimplePanel<String> {
         Form form = new Form(ID_FORM);
         form.setOutputMarkupId(true);
         add(form);
-        BaseSortableDataProvider tableProvider = new ObjectDataProvider<OrgTableDto, ObjectType>(this, ObjectType.class) {
+        ObjectDataProvider tableProvider = new ObjectDataProvider<OrgTableDto, ObjectType>(this, ObjectType.class) {
 
             @Override
             public OrgTableDto createDataObjectWrapper(PrismObject<ObjectType> obj) {
@@ -231,6 +231,7 @@ public class TreeTablePanel extends SimplePanel<String> {
                 return query;
             }
         };
+        tableProvider.setOptions(WebModelUtils.createMinimalOptions());
         List<IColumn<OrgTableDto, String>> tableColumns = createTableColumns();
         TablePanel table = new TablePanel(ID_TABLE, tableProvider, tableColumns, 10);
         table.setOutputMarkupId(true);
@@ -479,13 +480,24 @@ public class TreeTablePanel extends SimplePanel<String> {
     }
 
     private void movePerformed(AjaxRequestTarget target, OrgUnitBrowser.Operation operation) {
-        List<OrgTableDto> objects = isAnythingSelected(target);
-        if (objects.isEmpty()) {
-            return;
+        movePerformed(target, operation, null);
+    }
+
+    private void movePerformed(AjaxRequestTarget target, OrgUnitBrowser.Operation operation, OrgTableDto selected) {
+        List<OrgTableDto> objects;
+        if (selected == null) {
+            objects = isAnythingSelected(target);
+            if (objects.isEmpty()) {
+                return;
+            }
+        } else {
+            objects = new ArrayList<OrgTableDto>();
+            objects.add(selected);
         }
 
         OrgUnitBrowser dialog = (OrgUnitBrowser) get(ID_MOVE_POPUP);
         dialog.setOperation(operation);
+        dialog.setSelectedObjects(objects);
         dialog.show(target);
     }
 
@@ -543,10 +555,8 @@ public class TreeTablePanel extends SimplePanel<String> {
 
     private void moveConfirmedPerformed(AjaxRequestTarget target, OrgTreeDto oldParent, OrgTableDto newParent,
                                         OrgUnitBrowser.Operation operation) {
-        List<OrgTableDto> objects = isAnythingSelected(target);
-        if (objects.isEmpty()) {
-            return;
-        }
+        OrgUnitBrowser dialog = (OrgUnitBrowser) get(ID_MOVE_POPUP);
+        List<OrgTableDto> objects = dialog.getSelected();
 
         PageBase page = getPageBase();
         ModelService model = page.getModelService();
@@ -574,11 +584,10 @@ public class TreeTablePanel extends SimplePanel<String> {
         provider.clearCache();
 
         page.showResult(result);
-
-        OrgUnitBrowser dialog = (OrgUnitBrowser) get(ID_MOVE_POPUP);
         dialog.close(target);
 
         TabbedPanel tabbedPanel = findParent(TabbedPanel.class);
+        tabbedPanel.setSelectedTab(0);
         IModel<List<ITab>> tabs = tabbedPanel.getTabs();
         if (tabs instanceof LoadableModel) {
             ((LoadableModel) tabs).reset();
@@ -629,19 +638,30 @@ public class TreeTablePanel extends SimplePanel<String> {
     }
 
     private void moveRootPerformed(AjaxRequestTarget target) {
-        //todo implement [lazyman]
-    }
-
-    private void moveRootConfirmedPerformed(AjaxRequestTarget target) {
-        //todo implement [lazyman]
+        OrgTreeDto root = loadRoot();
+        OrgTableDto dto = new OrgTableDto(root.getOid(), root.getType());
+        movePerformed(target, OrgUnitBrowser.Operation.MOVE, dto);
     }
 
     private static class TreeStateModel extends AbstractReadOnlyModel<Set<OrgTreeDto>> {
 
         private TreeStateSet<OrgTreeDto> set = new TreeStateSet<OrgTreeDto>();
+        private ISortableTreeProvider provider;
+
+        TreeStateModel(ISortableTreeProvider provider) {
+            this.provider = provider;
+        }
 
         @Override
         public Set<OrgTreeDto> getObject() {
+            //just to have root expanded at all time
+            if (set.isEmpty()) {
+                Iterator<OrgTreeDto> iterator = provider.getRoots();
+                if (iterator.hasNext()) {
+                    set.add(iterator.next());
+                }
+
+            }
             return set;
         }
 
