@@ -16,8 +16,10 @@
 
 package com.evolveum.midpoint.notifications;
 
-import com.evolveum.midpoint.notifications.events.Event;
-import com.evolveum.midpoint.notifications.transports.Transport;
+import com.evolveum.midpoint.notifications.api.EventHandler;
+import com.evolveum.midpoint.notifications.api.NotificationManager;
+import com.evolveum.midpoint.notifications.api.events.Event;
+import com.evolveum.midpoint.notifications.api.transports.Transport;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;

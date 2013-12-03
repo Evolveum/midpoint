@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.notifications.transports;
+package com.evolveum.midpoint.notifications.api.transports;
 
 import com.evolveum.midpoint.common.expression.Expression;
 import com.evolveum.midpoint.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.notifications.NotificationManager;
+import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.NotificationsUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;

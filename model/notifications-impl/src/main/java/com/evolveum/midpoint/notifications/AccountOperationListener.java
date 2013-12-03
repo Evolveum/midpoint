@@ -16,7 +16,9 @@
 
 package com.evolveum.midpoint.notifications;
 
-import com.evolveum.midpoint.notifications.events.AccountEvent;
+import com.evolveum.midpoint.notifications.api.NotificationManager;
+import com.evolveum.midpoint.notifications.api.OperationStatus;
+import com.evolveum.midpoint.notifications.api.events.AccountEvent;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;

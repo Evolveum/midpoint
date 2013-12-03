@@ -32,10 +32,8 @@ import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.notifications.events.AccountEvent;
-import com.evolveum.midpoint.notifications.transports.Message;
+import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
-import com.evolveum.midpoint.prism.match.PolyStringStrictMatchingRule;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -375,7 +373,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         List<Message> messages = dummyTransport.getMessages("dummy:accountPasswordNotifier");
         Message message = messages.get(0);          // number of messages was already checked
-        assertEquals("Invalid list of recipients", Arrays.asList(userJackType.getEmailAddress()), message.getTo());
+        assertEquals("Invalid list of recipients", Arrays.asList("recipient@evolveum.com"), message.getTo());
         assertTrue("No account name in account password notification", message.getBody().contains("Password for account jack on Dummy Resource is:"));
 //
 //        messages = dummyTransport.getMessages("dummy:newAccountsViaExpression");

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.notifications;
+package com.evolveum.midpoint.notifications.api;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventStatusType;
 

@@ -16,14 +16,13 @@
 
 package com.evolveum.midpoint.notifications.notifiers;
 
-import com.evolveum.midpoint.notifications.NotificationManager;
+import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.NotificationsUtil;
-import com.evolveum.midpoint.notifications.events.BaseEvent;
-import com.evolveum.midpoint.notifications.events.Event;
+import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.formatters.TextFormatter;
 import com.evolveum.midpoint.notifications.handlers.BaseHandler;
-import com.evolveum.midpoint.notifications.transports.Message;
-import com.evolveum.midpoint.notifications.transports.Transport;
+import com.evolveum.midpoint.notifications.api.transports.Message;
+import com.evolveum.midpoint.notifications.api.transports.Transport;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;

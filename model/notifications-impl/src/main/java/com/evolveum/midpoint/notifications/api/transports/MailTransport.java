@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.notifications.transports;
+package com.evolveum.midpoint.notifications.api.transports;
 
-import com.evolveum.midpoint.notifications.NotificationManager;
+import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.NotificationsUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;

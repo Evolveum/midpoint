@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.notifications;
+package com.evolveum.midpoint.notifications.api;
 
-import com.evolveum.midpoint.notifications.events.Event;
-import com.evolveum.midpoint.notifications.transports.Transport;
+import com.evolveum.midpoint.notifications.api.events.Event;
+import com.evolveum.midpoint.notifications.api.transports.Transport;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventHandlerType;
 

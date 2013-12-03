@@ -14,20 +14,18 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.notifications.transports;
+package com.evolveum.midpoint.notifications.api;
 
-import java.io.FileWriter;
-import java.io.IOException;
+import com.evolveum.midpoint.notifications.api.events.Event;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventHandlerType;
 
 /**
  * @author mederly
  */
-public class TransportUtil {
+public interface EventHandler {
 
-    static void appendToFile(String filename, String text) throws IOException {
-        FileWriter fw = new FileWriter(filename, true);
-        fw.append(text);
-        fw.close();
-    }
-
+    // true if we should continue with processing, false otherwise
+    boolean processEvent(Event event, EventHandlerType eventHandlerType, NotificationManager notificationManager, OperationResult result) throws SchemaException;
 }

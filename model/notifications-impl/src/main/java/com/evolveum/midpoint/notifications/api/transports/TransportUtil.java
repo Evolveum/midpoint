@@ -14,18 +14,20 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.notifications.events;
+package com.evolveum.midpoint.notifications.api.transports;
 
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import java.io.FileWriter;
+import java.io.IOException;
 
 /**
  * @author mederly
  */
-public interface SimpleObjectRef {
-    public String getOid();
-    public void setOid(String oid);
-    public ObjectType getObjectType();
-    public void setObjectType(ObjectType objectType);
-    ObjectType resolveObjectType(OperationResult result);
+public class TransportUtil {
+
+    static void appendToFile(String filename, String text) throws IOException {
+        FileWriter fw = new FileWriter(filename, true);
+        fw.append(text);
+        fw.close();
+    }
+
 }

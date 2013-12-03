@@ -16,9 +16,9 @@
 
 package com.evolveum.midpoint.model.test;
 
-import com.evolveum.midpoint.notifications.NotificationManager;
-import com.evolveum.midpoint.notifications.transports.Message;
-import com.evolveum.midpoint.notifications.transports.Transport;
+import com.evolveum.midpoint.notifications.api.NotificationManager;
+import com.evolveum.midpoint.notifications.api.transports.Message;
+import com.evolveum.midpoint.notifications.api.transports.Transport;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -43,12 +43,18 @@ public class DummyTransport implements Transport {
     private static final String DOT_CLASS = DummyTransport.class.getName() + ".";
     public static final String NAME = "dummy";
 
-    @Autowired
+    // if NotificationManager is not found, this transport will simply be disabled
+    // it is legal for modules, in which tests do not need it
+    @Autowired(required = false)
     private NotificationManager notificationManager;
 
     @PostConstruct
     public void init() {
-        notificationManager.registerTransport(NAME, this);
+        if (notificationManager != null) {
+            notificationManager.registerTransport(NAME, this);
+        } else {
+            LOGGER.info("NotificationManager is not available, skipping the registration.");
+        }
     }
 
     private Map<String,List<Message>> messages = new HashMap<String,List<Message>>();

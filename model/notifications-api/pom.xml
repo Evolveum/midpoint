@@ -62,6 +62,12 @@
             <artifactId>schema</artifactId>
             <version>2.3-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.tools</groupId>
+            <artifactId>test-ng</artifactId>
+            <version>2.3-SNAPSHOT</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     <profiles>
         <profile>

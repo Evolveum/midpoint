@@ -18,8 +18,8 @@ package com.evolveum.midpoint.notifications.notifiers;
 
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
-import com.evolveum.midpoint.notifications.events.AccountEvent;
-import com.evolveum.midpoint.notifications.events.Event;
+import com.evolveum.midpoint.notifications.api.events.AccountEvent;
+import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.schema.result.OperationResult;

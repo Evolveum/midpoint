@@ -16,9 +16,10 @@
 
 package com.evolveum.midpoint.notifications;
 
-import com.evolveum.midpoint.notifications.events.WorkItemEvent;
-import com.evolveum.midpoint.notifications.events.WorkflowEvent;
-import com.evolveum.midpoint.notifications.events.WorkflowProcessEvent;
+import com.evolveum.midpoint.notifications.api.NotificationManager;
+import com.evolveum.midpoint.notifications.api.events.WorkItemEvent;
+import com.evolveum.midpoint.notifications.api.events.WorkflowEvent;
+import com.evolveum.midpoint.notifications.api.events.WorkflowProcessEvent;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;

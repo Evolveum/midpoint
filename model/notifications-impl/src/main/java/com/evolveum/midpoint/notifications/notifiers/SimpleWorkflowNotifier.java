@@ -16,9 +16,9 @@
 
 package com.evolveum.midpoint.notifications.notifiers;
 
-import com.evolveum.midpoint.notifications.events.Event;
-import com.evolveum.midpoint.notifications.events.WorkItemEvent;
-import com.evolveum.midpoint.notifications.events.WorkflowEvent;
+import com.evolveum.midpoint.notifications.api.events.Event;
+import com.evolveum.midpoint.notifications.api.events.WorkItemEvent;
+import com.evolveum.midpoint.notifications.api.events.WorkflowEvent;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
