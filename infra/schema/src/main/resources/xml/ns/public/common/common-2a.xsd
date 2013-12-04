@@ -2579,7 +2579,7 @@
                         If this property is not present then the computation haven't taken place yet.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>Effective Status</a:displayName>
+                        <a:displayName>Validity Status</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
