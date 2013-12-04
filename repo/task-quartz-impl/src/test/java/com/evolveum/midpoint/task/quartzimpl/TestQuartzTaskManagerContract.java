@@ -523,7 +523,8 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         ((TaskQuartzImpl) task001).finishHandler(result);
         task001.refresh(result);
-        AssertJUnit.assertNull("Handler URI after third POP is not null", task001.getHandlerUri());
+        //AssertJUnit.assertNull("Handler URI after third POP is not null", task001.getHandlerUri());
+        AssertJUnit.assertEquals("Handler URI after third POP is not correct", "http://no-handler.org/", task001.getHandlerUri());
         AssertJUnit.assertEquals("Task state after third POP is not CLOSED", TaskExecutionStatus.CLOSED, task001.getExecutionStatus());
 
     }
@@ -601,7 +602,8 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertTrue("Task did not yield 'success' status", taskResult.isSuccess());
 
         // Test for no presence of handlers
-        AssertJUnit.assertNull("Handler is still present", task1.getHandlerUri());
+        //AssertJUnit.assertNull("Handler is still present", task1.getHandlerUri());
+        AssertJUnit.assertNotNull("Handler is gone", task1.getHandlerUri());
         AssertJUnit.assertTrue("Other handlers are still present",
         		task1.getOtherHandlersUriStack() == null || task1.getOtherHandlersUriStack().getUriStackEntry().isEmpty());
 
@@ -752,7 +754,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         // Test for no presence of handlers
 
-        AssertJUnit.assertNull("Handler is still present", task.getHandlerUri());
+        AssertJUnit.assertNotNull("Handler is gone", task.getHandlerUri());
         AssertJUnit.assertTrue("Other handlers are still present",
         		task.getOtherHandlersUriStack() == null || task.getOtherHandlersUriStack().getUriStackEntry().isEmpty());
 
@@ -938,7 +940,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         // Test for no presence of handlers
 
-        AssertJUnit.assertNull("Handler is still present", task.getHandlerUri());
+        AssertJUnit.assertNotNull("Handler is gone", task.getHandlerUri());
         AssertJUnit.assertTrue("Other handlers are still present",
                 task.getOtherHandlersUriStack() == null || task.getOtherHandlersUriStack().getUriStackEntry().isEmpty());
 
@@ -1386,7 +1388,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         // Test for no presence of handlers
 
-        AssertJUnit.assertNull("Handler is still present", task.getHandlerUri());
+        AssertJUnit.assertNotNull("Handler is gone", task.getHandlerUri());
         AssertJUnit.assertTrue("Other handlers are still present",
                 task.getOtherHandlersUriStack() == null || task.getOtherHandlersUriStack().getUriStackEntry().isEmpty());
 
