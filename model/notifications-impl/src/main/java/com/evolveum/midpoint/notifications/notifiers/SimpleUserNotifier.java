@@ -121,7 +121,7 @@ public class SimpleUserNotifier extends GeneralNotifier {
             status = "UNKNOWN";
         }
 
-        String attemptedTo = event.isSuccess() ? "" : " (attempted to be) ";
+        String attemptedTo = event.isSuccess() ? "" : "(attempted to be) ";
 
         body.append("Notification about user-related operation (status: " + status + ")\n\n");
         body.append("User: " + userType.getFullName() + " (" + userType.getName() + ", oid " + oid + ")\n");
