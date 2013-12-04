@@ -441,18 +441,23 @@ public class PageTasks extends PageAdminTasks {
     private String createScheduledToRunAgain(IModel<TaskDto> taskModel) {
         TaskDto task = taskModel.getObject();
         Long time = task.getScheduledToStartAgain();
+
+        boolean runnable = task.getRawExecutionStatus() == TaskExecutionStatus.RUNNABLE;
+
         if (time == null) {
             return "";
         } else if (time == 0) {
-            return getString("pageTasks.now");
+            return getString(runnable ? "pageTasks.now" : "pageTasks.nowForNotRunningTasks");
         } else if (time == -1) {
             return getString("pageTasks.runsContinually");
         } else if (time == -2) {
-            return getString("pageTasks.alreadyPassed");
+            return getString(runnable ? "pageTasks.alreadyPassed" : "pageTasks.alreadyPassedForNotRunningTasks");
         }
 
+        String key = runnable ? "pageTasks.in" : "pageTasks.inForNotRunningTasks";
+
         //todo i18n
-        return new StringResourceModel("pageTasks.in", this, null, null,
+        return new StringResourceModel(key, this, null, null,
                 DurationFormatUtils.formatDurationWords(time, true, true)).getString();
     }
 

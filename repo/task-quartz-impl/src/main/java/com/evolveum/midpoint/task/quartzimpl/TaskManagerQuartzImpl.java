@@ -318,7 +318,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
                     LoggingUtils.logException(LOGGER, message, e);
                 }
 
-                executionManager.unscheduleTask(task, result);
+                executionManager.pauseTaskJob(task, result);
                 // even if this will not succeed, by setting the execution status to SUSPENDED we hope the task
                 // thread will exit on next iteration (does not apply to single-run tasks, of course)
             }
@@ -1155,8 +1155,21 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     }
 
     @Override
-    public void scheduleTaskNow(Task task, OperationResult parentResult) {
-        executionManager.scheduleTaskNow(task, parentResult);
+    public void scheduleTaskNow(Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+        if (task.isClosed()) {
+            executionManager.reRunClosedTask(task, parentResult);
+        } else if (task.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
+            scheduleRunnableTaskNow(task, parentResult);
+        } else {
+            String message = "Task " + task + " cannot be run now, because it is not in RUNNABLE nor CLOSED state.";
+            parentResult.createSubresult(DOT_INTERFACE + "scheduleTaskNow").recordFatalError(message);
+            LOGGER.error(message);
+            return;
+        }
+    }
+
+    public void scheduleRunnableTaskNow(Task task, OperationResult parentResult) {
+        executionManager.scheduleRunnableTaskNow(task, parentResult);
     }
 
     @Override

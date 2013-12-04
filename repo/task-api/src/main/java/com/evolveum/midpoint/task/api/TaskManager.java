@@ -457,16 +457,16 @@ public interface TaskManager {
     public void switchToBackground(Task task, OperationResult parentResult);
 
     /**
-     * Schedules a RUNNABLE task to be run immediately. (If the task will really start immediately,
+     * Schedules a RUNNABLE task or CLOSED single-run task to be run immediately. (If the task will really start immediately,
      * depends e.g. on whether a scheduler is started, whether there are available threads, and so on.)
      *
      * @param task
      * @param parentResult
      */
-    void scheduleTaskNow(Task task, OperationResult parentResult);
+    void scheduleTaskNow(Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
 
     /**
-     * Schedules a RUNNABLE tasks to be run immediately. (If a task will really start immediately,
+     * Schedules a RUNNABLE/CLOSED tasks to be run immediately. (If a task will really start immediately,
      * depends e.g. on whether a scheduler is started, whether there are available threads, and so on.)
      *
      * @param taskOids a collection of OIDs of tasks that have to be scheduled

@@ -213,12 +213,12 @@ public class JobExecutor implements InterruptableJob {
             taskManagerImpl.suspendTask(task, TaskManager.WAIT_INDEFINITELY, executionResult);
         } else if (task.getThreadStopAction() == null || task.getThreadStopAction() == ThreadStopActionType.RESTART) {
             LOGGER.info("Node going down: Rescheduling resilient task to run immediately; task = {}", task);
-            taskManagerImpl.scheduleTaskNow(task, executionResult);
+            taskManagerImpl.scheduleRunnableTaskNow(task, executionResult);
         } else if (task.getThreadStopAction() == ThreadStopActionType.RESCHEDULE) {
             if (task.getRecurrenceStatus() == TaskRecurrence.RECURRING && task.isLooselyBound()) {
                 ; // nothing to do, task will be automatically started by Quartz on next trigger fire time
             } else {
-                taskManagerImpl.scheduleTaskNow(task, executionResult);     // for tightly-bound tasks we do not know next schedule time, so we run them immediately
+                taskManagerImpl.scheduleRunnableTaskNow(task, executionResult);     // for tightly-bound tasks we do not know next schedule time, so we run them immediately
             }
         } else {
             throw new SystemException("Unknown value of ThreadStopAction: " + task.getThreadStopAction() + " for task " + task);
