@@ -93,7 +93,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     private TaskManagerConfiguration configuration = new TaskManagerConfiguration();
     private ExecutionManager executionManager = new ExecutionManager(this);
     private ClusterManager clusterManager = new ClusterManager(this);
-    
+
     // task handlers (mapped from their URIs)
     private Map<String,TaskHandler> handlers = new HashMap<String, TaskHandler>();
 
@@ -231,6 +231,10 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     /*
      *  ********************* STATE MANAGEMENT *********************
      */
+
+    public boolean isRunning() {
+        return executionManager.isLocalNodeRunning();
+    }
 
     public boolean isInErrorState() {
         return nodeErrorStatus != NodeErrorStatusType.OK;

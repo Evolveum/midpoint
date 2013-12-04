@@ -98,6 +98,14 @@ public class JobExecutor implements InterruptableJob {
             return;
         }
 
+        // if task manager is stopping or stopped, stop this task immediately
+        // this can occur in rare situations, see https://jira.evolveum.com/browse/MID-1167
+        if (!taskManagerImpl.isRunning()) {
+            LOGGER.warn("Task was started while task manager is not running: exiting and rescheduling (if needed)");
+            processTaskStop(executionResult);
+            return;
+        }
+
         // if this is a restart, check whether the task is resilient
         if (context.isRecovering()) {
 

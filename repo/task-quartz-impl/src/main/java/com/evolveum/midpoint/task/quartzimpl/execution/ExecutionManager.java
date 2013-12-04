@@ -118,7 +118,6 @@ public class ExecutionManager {
         return stopped;
     }
 
-
     public void startScheduler(String nodeIdentifier, OperationResult parentResult) {
         OperationResult result = parentResult.createSubresult(this.getClass().getName() + ".startScheduler");
         result.addParam("nodeIdentifier", nodeIdentifier);
@@ -127,6 +126,10 @@ public class ExecutionManager {
         } else {
             remoteNodesManager.startRemoteScheduler(nodeIdentifier, result);
         }
+    }
+
+    public boolean isLocalNodeRunning() {
+        return localNodeManager.isRunning();
     }
 
     /*
