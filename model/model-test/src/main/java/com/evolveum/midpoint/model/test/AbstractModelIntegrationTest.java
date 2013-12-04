@@ -53,6 +53,7 @@ import org.testng.annotations.AfterClass;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.QueryUtil;
+import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
@@ -130,11 +131,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusTyp
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
@@ -1796,6 +1800,17 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected void assertDisableReasonShadow(PrismObject<? extends ShadowType> shadow, String expectedReason) {
 		String disableReason = shadow.asObjectable().getActivation().getDisableReason();
 		assertEquals("Wrong shadow disableReason in "+shadow, expectedReason, disableReason);
+	}
+	
+	protected void assertPassword(PrismObject<UserType> user, String expectedPassword) throws EncryptionException {
+		CredentialsType credentialsType = user.asObjectable().getCredentials();
+		assertNotNull("No credentials in "+user, credentialsType);
+		PasswordType passwordType = credentialsType.getPassword();
+		assertNotNull("No password in "+user, passwordType);
+		ProtectedStringType protectedStringType = passwordType.getValue();
+		assertNotNull("No password value in "+user, protectedStringType);
+		String decryptedUserPassword = protector.decryptString(protectedStringType);
+		assertEquals("Wrong password in "+user, expectedPassword, decryptedUserPassword);
 	}
 	
 }
