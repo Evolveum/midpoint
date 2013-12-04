@@ -1302,7 +1302,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     }
 
     @Override
-    public void cleanupTasks(CleanupPolicyType policy, OperationResult parentResult) throws SchemaException {
+    public void cleanupTasks(CleanupPolicyType policy, Task executionTask, OperationResult parentResult) throws SchemaException {
         OperationResult result = parentResult.createSubresult(CLEANUP_TASKS);
 
         if (policy.getMaxAge() == null) {
@@ -1334,10 +1334,18 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
         LOGGER.debug("Found {} task tree(s) to be cleaned up", obsoleteTasks.size());
 
+        boolean interrupted = false;
         int deleted = 0;
         int problems = 0;
         int bigProblems = 0;
         for (PrismObject<TaskType> rootTaskPrism : obsoleteTasks) {
+
+            if (!executionTask.canRun()) {
+                result.recordPartialError("Interrupted");
+                LOGGER.warn("Task cleanup was interrupted.");
+                interrupted = true;
+                break;
+            }
 
             // get whole tree
             Task rootTask = createTaskInstance(rootTaskPrism, result);
@@ -1371,17 +1379,18 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
                 }
             }
         }
-        result.recomputeStatus();
+        result.computeStatusIfUnknown();
 
-        LOGGER.info("Task cleanup procedure finished. Successfully deleted {} tasks; there were problems with deleting {} tasks.", deleted, problems);
+        LOGGER.info("Task cleanup procedure " + (interrupted ? "was interrupted" : "finished") + ". Successfully deleted {} tasks; there were problems with deleting {} tasks.", deleted, problems);
         if (bigProblems > 0) {
             LOGGER.error("{} subtask(s) couldn't be deleted. Inspect that manually, otherwise they might reside in repo forever.", bigProblems);
         }
+        String suffix = interrupted ? " Interrupted." : "";
         if (problems == 0) {
-            parentResult.createSubresult(CLEANUP_TASKS + ".statistics").recordStatus(OperationResultStatus.SUCCESS, "Successfully deleted " + deleted + " task(s).");
+            parentResult.createSubresult(CLEANUP_TASKS + ".statistics").recordStatus(OperationResultStatus.SUCCESS, "Successfully deleted " + deleted + " task(s)." + suffix);
         } else {
             parentResult.createSubresult(CLEANUP_TASKS + ".statistics").recordPartialError("Successfully deleted " + deleted + " task(s), "
-                    + "there was problems with deleting " + problems + " tasks."
+                    + "there was problems with deleting " + problems + " tasks." + suffix
                     + (bigProblems > 0 ? (" " + bigProblems + " subtask(s) couldn't be deleted, please see the log.") : ""));
         }
 

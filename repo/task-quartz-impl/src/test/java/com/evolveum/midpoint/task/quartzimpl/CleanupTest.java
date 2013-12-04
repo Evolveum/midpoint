@@ -87,7 +87,7 @@ public class CleanupTest extends AbstractTestNGSpringContextTests {
         Calendar when = create_2013_07_12_12_00_Calendar();
         CleanupPolicyType policy = createPolicy(when, NOW);
 
-        taskManager.cleanupTasks(policy, result);
+        taskManager.cleanupTasks(policy, taskManager.createTaskInstance(), result);
 
         // THEN
         List<PrismObject<TaskType>> tasks = repositoryService.searchObjects(TaskType.class, null, null, result);

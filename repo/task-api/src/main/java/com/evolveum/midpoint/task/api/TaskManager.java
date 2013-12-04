@@ -302,11 +302,13 @@ public interface TaskManager {
      * This method removes whole task trees, i.e. not single tasks. A task tree is deleted if the root task is closed
      * (assuming all tasks in the tree are closed) and was closed before at least specified time.
      *
+     *
      * @param closedTasksPolicy specifies which tasks are to be deleted, e.g. how old they have to be
+     * @param task task, within which context the cleanup executes (used to test for interruptions)
      * @param opResult
      * @throws SchemaException
      */
-    void cleanupTasks(CleanupPolicyType closedTasksPolicy, OperationResult opResult) throws SchemaException;
+    void cleanupTasks(CleanupPolicyType closedTasksPolicy, Task task, OperationResult opResult) throws SchemaException;
 
     /**
      * This is a signal to task manager that a new task was created in the repository.
