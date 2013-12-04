@@ -142,7 +142,7 @@ public class SimpleUserNotifier extends GeneralNotifier {
             body.append("The user record was " + attemptedTo + "removed.\n\n");
         }
 
-        if (event.isSuccess()) {
+        if (!event.isSuccess()) {
             body.append("More information about the status of the request was displayed and/or is present in log files.\n\n");
         }
 
