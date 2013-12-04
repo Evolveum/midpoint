@@ -139,6 +139,19 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
         }
         secondaryDelta.swallow(propDelta);
 	}
+    
+    public void swallowToSecondaryDelta(ItemDelta<?> propDelta) throws SchemaException {
+    	if (alreadyHaveDelta(propDelta)) {
+    		return;
+    	}
+    	ObjectDelta<O> secondaryDelta = getSecondaryDelta(0);
+		if (secondaryDelta == null) {
+            secondaryDelta = new ObjectDelta<O>(getObjectTypeClass(), ChangeType.MODIFY, getPrismContext());        
+            secondaryDelta.setOid(getOid());
+            setSecondaryDelta(secondaryDelta, 0);
+        }
+        secondaryDelta.swallow(propDelta);
+	}
         
 	private boolean alreadyHaveDelta(ItemDelta<?> itemDelta) {
 		ObjectDelta<O> primaryDelta = getPrimaryDelta();

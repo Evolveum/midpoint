@@ -6845,7 +6845,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="hook" type="tns:HookType"/>
+            <xsd:element name="hook" type="tns:HookType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -6856,7 +6856,31 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="ref" type="xsd:anyURI"/>
+        	<xsd:element name="name" type="xsd:string" minOccurs="0">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Free-form hook name. Used for diagnostic purposed (e.g. in logfiles)
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="description" type="xsd:string" minOccurs="0"/>
+        	<xsd:element name="enabled" type="xsd:boolean" minOccurs="0" default="true"/>
+            <xsd:element name="ref" type="xsd:anyURI" minOccurs="0">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			URL of hook handler.
+            			Exactly one of "ref" or "script" has to be specified.
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>
+            <xsd:element name="script" type="tns:ScriptExpressionEvaluatorType" minOccurs="0">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Script that will be executed instead of hook handler.
+            			Exactly one of "ref" or "script" has to be specified.
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 

@@ -293,7 +293,7 @@ public class ActivationProcessor {
     		ActivationStatusType statusNew = statusPropNew.getRealValue();
 			PropertyDelta<XMLGregorianCalendar> timestampDelta = LensUtil.createActivationTimestampDelta(statusNew,
 					now, getActivationDefinition(), OriginType.OUTBOUND);
-    		accCtx.addToSecondaryDelta(timestampDelta);
+    		accCtx.swallowToSecondaryDelta(timestampDelta);
     		
     		// disableReason
     		if (statusNew == ActivationStatusType.DISABLED) {
@@ -315,7 +315,7 @@ public class ActivationProcessor {
     				PrismPropertyDefinition<String> disableReasonDef = activationDefinition.findPropertyDefinition(ActivationType.F_DISABLE_REASON);
     				disableReasonDelta = disableReasonDef.createEmptyDelta(new ItemPath(UserType.F_ACTIVATION, ActivationType.F_DISABLE_REASON));
     				disableReasonDelta.setValueToReplace(new PrismPropertyValue<String>(disableReason, OriginType.OUTBOUND, null));
-    				accCtx.addToSecondaryDelta(disableReasonDelta);
+    				accCtx.swallowToSecondaryDelta(disableReasonDelta);
     			}
     		}
     	}
@@ -633,7 +633,7 @@ public class ActivationProcessor {
         }
         
         LOGGER.trace("Adding new '{}' delta for account {}: {}", new Object[]{desc, accCtxDesc, projectionPropertyDelta});
-        accCtx.addToSecondaryDelta(projectionPropertyDelta);
+        accCtx.swallowToSecondaryDelta(projectionPropertyDelta);
         
         return projectionPropertyDelta;
     }

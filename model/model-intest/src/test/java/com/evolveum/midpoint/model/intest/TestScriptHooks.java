@@ -66,6 +66,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TimeIntervalStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -85,8 +86,13 @@ public class TestScriptHooks extends AbstractInitializedModelIntegrationTest {
 	protected static final String RESOURCE_DUMMY_HOOK_NAME = "hook";
 	protected static final String RESOURCE_DUMMY_HOOK_NAMESPACE = MidPointConstants.NS_RI;
 
+	private static final File ORG_TOP_FILE = new File(TEST_DIR, "org-top.xml");
+	private static final String ORG_TOP_OID = "80808080-8888-6666-0000-100000000001";
+	
 	private static final File GENERIC_BLACK_PEARL_FILE = new File(TEST_DIR, "generic-blackpearl.xml");
 	private static final String GENERIC_BLACK_PEARL_OID = "54195419-5419-5419-5419-000000000001";
+
+	private static final File SYSTEM_CONFIGURATION_HOOKS_FILE = new File(TEST_DIR, "system-configuration-hooks.xml");
 		
 	protected DummyResource dummyResourceHook;
 	protected DummyResourceContoller dummyResourceCtlHook;
@@ -106,7 +112,15 @@ public class TestScriptHooks extends AbstractInitializedModelIntegrationTest {
 		dummyResourceCtlHook.setResource(resourceDummyHook);
 		
 		importObjectFromFile(GENERIC_BLACK_PEARL_FILE);
+		importObjectFromFile(ORG_TOP_FILE);
 	}
+
+	@Override
+	protected File getSystemConfigurationFile() {
+		return SYSTEM_CONFIGURATION_HOOKS_FILE;
+	}
+
+
 
 	@Test
     public void test100JackAssignHookAccount() throws Exception {
@@ -154,6 +168,60 @@ public class TestScriptHooks extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.asserHasDelta(ChangeType.ADD, ShadowType.class);
         dummyAuditService.assertTarget(USER_JACK_OID);
         dummyAuditService.assertExecutionSuccess();
+	}
+	
+	@Test
+    public void test110JackAddOrganization() throws Exception {
+		final String TEST_NAME = "test110JackAddOrganization";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestScriptHooks.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);        
+        dummyAuditService.clear();
+                
+		// WHEN
+        modifyUserAdd(USER_JACK_OID, UserType.F_ORGANIZATION, task, result, new PolyString("Pirate Brethren"));
+		
+		// THEN
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after change execution", userJack);
+		assertUserJack(userJack);
+        String accountOid = getSingleUserAccountRef(userJack);
+        
+		// Check shadow
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
+        display("Shadow (repo)", accountShadow);
+        assertShadowRepo(accountShadow, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyHookType);
+        
+        // Check account
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
+        display("Shadow (model)", accountModel);
+        assertShadowModel(accountModel, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyHookType);
+        
+        // Check account in dummy resource
+        assertDummyAccount(RESOURCE_DUMMY_HOOK_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
+        
+        PrismObject<OrgType> brethrenOrg = searchObjectByName(OrgType.class, "Pirate Brethren", task, result);
+        assertNotNull("Brethren org was not created", brethrenOrg);
+        display("Brethren org", brethrenOrg);
+        
+        // TODO: check if the org is assigned to the user
+
+        // TODO
+//        // Check audit
+//        display("Audit", dummyAuditService);
+//        dummyAuditService.assertRecords(4);
+//        dummyAuditService.assertAnyRequestDeltas();
+//        dummyAuditService.assertExecutionDeltas(1,1);
+//        dummyAuditService.asserHasDelta(1,ChangeType.ADD, OrgType.class);
+//        dummyAuditService.assertExecutionDeltas(3,1);
+//        dummyAuditService.asserHasDelta(3,ChangeType.MODIFY, UserType.class);
+//        dummyAuditService.assertExecutionSuccess();
 	}
 			
 }

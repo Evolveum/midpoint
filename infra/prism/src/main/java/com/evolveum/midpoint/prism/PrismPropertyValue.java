@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
@@ -163,13 +164,7 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 		if (realValue == null) {
 			return;
 		}
-		// TODO: switch to Recomputable interface instead of PolyString
-		if (realValue instanceof PolyString && prismContext != null) {
-			PolyStringNormalizer polyStringNormalizer = prismContext.getDefaultPolyStringNormalizer();
-			if (polyStringNormalizer != null) {
-				((PolyString)realValue).recompute(polyStringNormalizer);
-			}
-		}
+		PrismUtil.recomputeRealValue(realValue, prismContext);
 	}
 
 	@Override

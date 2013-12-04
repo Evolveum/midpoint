@@ -22,6 +22,7 @@ import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
@@ -42,6 +43,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 import java.util.Collection;
 import java.util.List;
@@ -50,6 +52,14 @@ import java.util.List;
  * @author mederly
  */
 public interface MidpointFunctions {
+	
+	<T extends ObjectType> T createEmptyObject(Class<T> type);
+	
+	<T extends ObjectType> T createEmptyObjectWithName(Class<T> type, String name);
+	
+	<T extends ObjectType> T createEmptyObjectWithName(Class<T> type, PolyString name);
+	
+	<T extends ObjectType> T createEmptyObjectWithName(Class<T> type, PolyStringType name);
 	
 	/**
 	 * <p>
@@ -88,7 +98,7 @@ public interface MidpointFunctions {
 	 *             unknown error from underlying layers or other unexpected
 	 *             state
 	 */
-	<T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options)
+	<T extends ObjectType> T getObject(Class<T> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException;
 
 	/**
@@ -582,6 +592,108 @@ public interface MidpointFunctions {
 
 	/**
 	 * <p>
+	 * Search for objects by name.
+	 * </p>
+	 * <p>
+	 * Searches through all object of a specified type for an object with specified name.
+	 * Returns that object if it is found, return null otherwise. The method fails if more than
+	 * one object is found therefore it cannot be reliably used on types with non-unique names
+	 * (such as Shadows). 
+	 * </p>
+	 * 
+	 * @param type
+	 *            (class) of an object to search
+	 * @param name
+	 *            Name of the object to look for
+	 * @return an object of specified type with a matching name or null
+	 * 
+	 * @throws SchemaException
+	 *             unknown property used in search query
+	 * @throws ObjectNotFoundException
+	 *             object required for a search was not found (e.g. resource definition)
+	 * @throws CommunicationException 
+	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
+	 * @throw SecurityViolationException
+	 * 				Security violation during operation execution. May be caused either by midPoint internal
+	 * 				security mechanism but also by external mechanism (e.g. on the resource)
+	 * @throws ConfigurationException
+	 * 				Configuration error. E.g. misconfigured resource parameters, invalid policies, etc.
+	 * @throws IllegalArgumentException
+	 *             wrong query format
+	 */
+	<T extends ObjectType> T searchObjectByName(Class<T> type, String name) throws SecurityViolationException, 
+					ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException;
+	
+	/**
+	 * <p>
+	 * Search for objects by name.
+	 * </p>
+	 * <p>
+	 * Searches through all object of a specified type for an object with specified name.
+	 * Returns that object if it is found, return null otherwise. The method fails if more than
+	 * one object is found therefore it cannot be reliably used on types with non-unique names
+	 * (such as Shadows). 
+	 * </p>
+	 * 
+	 * @param type
+	 *            (class) of an object to search
+	 * @param name
+	 *            Name of the object to look for
+	 * @return an object of specified type with a matching name or null
+	 * 
+	 * @throws SchemaException
+	 *             unknown property used in search query
+	 * @throws ObjectNotFoundException
+	 *             object required for a search was not found (e.g. resource definition)
+	 * @throws CommunicationException 
+	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
+	 * @throw SecurityViolationException
+	 * 				Security violation during operation execution. May be caused either by midPoint internal
+	 * 				security mechanism but also by external mechanism (e.g. on the resource)
+	 * @throws ConfigurationException
+	 * 				Configuration error. E.g. misconfigured resource parameters, invalid policies, etc.
+	 * @throws IllegalArgumentException
+	 *             wrong query format
+	 */
+	<T extends ObjectType> T searchObjectByName(Class<T> type, PolyString name) throws SecurityViolationException, 
+					ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException;
+	
+	/**
+	 * <p>
+	 * Search for objects by name.
+	 * </p>
+	 * <p>
+	 * Searches through all object of a specified type for an object with specified name.
+	 * Returns that object if it is found, return null otherwise. The method fails if more than
+	 * one object is found therefore it cannot be reliably used on types with non-unique names
+	 * (such as Shadows). 
+	 * </p>
+	 * 
+	 * @param type
+	 *            (class) of an object to search
+	 * @param name
+	 *            Name of the object to look for
+	 * @return an object of specified type with a matching name or null
+	 * 
+	 * @throws SchemaException
+	 *             unknown property used in search query
+	 * @throws ObjectNotFoundException
+	 *             object required for a search was not found (e.g. resource definition)
+	 * @throws CommunicationException 
+	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
+	 * @throw SecurityViolationException
+	 * 				Security violation during operation execution. May be caused either by midPoint internal
+	 * 				security mechanism but also by external mechanism (e.g. on the resource)
+	 * @throws ConfigurationException
+	 * 				Configuration error. E.g. misconfigured resource parameters, invalid policies, etc.
+	 * @throws IllegalArgumentException
+	 *             wrong query format
+	 */
+	<T extends ObjectType> T searchObjectByName(Class<T> type, PolyStringType name) throws SecurityViolationException, 
+					ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException;
+	
+	/**
+	 * <p>
 	 * Count objects.
 	 * </p>
 	 * <p>
@@ -713,4 +825,12 @@ public interface MidpointFunctions {
     String getPlaintextUserPasswordFromDeltas(List<ObjectDelta<UserType>> deltas) throws EncryptionException;
 
     ModelContext unwrapModelContext(LensContextType lensContextType) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException;
+
+    <F extends FocusType> boolean isDirectlyAssigned(F focusType, String targetOid);
+    
+    boolean isDirectlyAssigned(String targetOid);
+    
+    boolean isDirectlyAssigned(ObjectType target);
+
+    <F extends FocusType> boolean isDirectlyAssigned(F focusType, ObjectType target);
 }

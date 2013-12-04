@@ -208,7 +208,7 @@ public class MappingEvaluationHelper {
 				triggerType.setTimestamp(nextRecomputeTime);
 				triggerType.setHandlerUri(RecomputeTriggerHandler.HANDLER_URI);
 
-				accCtx.addToSecondaryDelta(triggerDelta);
+				accCtx.swallowToSecondaryDelta(triggerDelta);
 			}
 		}		
 		

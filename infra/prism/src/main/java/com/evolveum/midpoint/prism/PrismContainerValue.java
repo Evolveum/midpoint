@@ -64,6 +64,11 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
     	// Nothing to do
     }
     
+    public PrismContainerValue(T containerable) {
+		super();
+		this.containerable = containerable;
+	}
+    
     public PrismContainerValue(OriginType type, Objectable source, PrismContainerable container, Long id) {
 		super(type, source, container);
 		this.id = id;

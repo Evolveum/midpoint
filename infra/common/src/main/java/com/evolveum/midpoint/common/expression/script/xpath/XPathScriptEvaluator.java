@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -350,9 +351,7 @@ public class XPathScriptEvaluator implements ScriptEvaluator {
             if (returnType.equals(PrismConstants.POLYSTRING_TYPE_QNAME) && resultValue instanceof String) {
             	resultValue = (T) new PolyString((String)resultValue);
             }
-            if (resultValue instanceof PolyString) {
-            	((PolyString)resultValue).recompute(prismContext.getDefaultPolyStringNormalizer());
-            }
+            PrismUtil.recomputeRealValue(resultValue, prismContext);
             
             return new PrismPropertyValue<T>(resultValue);
         } catch (SchemaException e) {

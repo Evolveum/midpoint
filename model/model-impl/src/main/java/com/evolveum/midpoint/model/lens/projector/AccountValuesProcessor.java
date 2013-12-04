@@ -715,13 +715,13 @@ public class AccountValuesProcessor {
 		iterationVal.setOriginType(OriginType.OUTBOUND);
 		PropertyDelta<Integer> iterationDelta = PropertyDelta.createReplaceDelta(shadowDef, 
 				ShadowType.F_ITERATION, iterationVal);
-		accountContext.addToSecondaryDelta(iterationDelta);
+		accountContext.swallowToSecondaryDelta(iterationDelta);
 		
 		PrismPropertyValue<String> iterationTokenVal = new PrismPropertyValue<String>(accountContext.getIterationToken());
 		iterationTokenVal.setOriginType(OriginType.OUTBOUND);
 		PropertyDelta<String> iterationTokenDelta = PropertyDelta.createReplaceDelta(shadowDef, 
 				ShadowType.F_ITERATION_TOKEN, iterationTokenVal);
-		accountContext.addToSecondaryDelta(iterationTokenDelta);
+		accountContext.swallowToSecondaryDelta(iterationTokenDelta);
 		
 	}
 
