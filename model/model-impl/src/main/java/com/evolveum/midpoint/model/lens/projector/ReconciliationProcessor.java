@@ -394,7 +394,7 @@ public class ReconciliationProcessor {
 			throw new IllegalArgumentException("Unknown change type " + changeType);
 		}
 
-		accCtx.addToSecondaryDelta(attrDelta);
+		accCtx.swallowToSecondaryDelta(attrDelta);
 	}
 
 	private <T> boolean isInDelta(ItemDelta existingDelta, ValueMatcher valueMatcher, T value) {

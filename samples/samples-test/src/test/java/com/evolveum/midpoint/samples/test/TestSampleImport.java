@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.samples.test;
 
-import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;

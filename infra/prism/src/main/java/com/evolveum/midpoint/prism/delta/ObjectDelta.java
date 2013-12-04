@@ -40,6 +40,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
@@ -970,12 +971,7 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     protected static <X> Collection<PrismPropertyValue<X>> toPrismPropertyValues(PrismContext prismContext, X... propertyValues) {
     	Collection<PrismPropertyValue<X>> pvalues = new ArrayList<PrismPropertyValue<X>>(propertyValues.length);
     	for (X val: propertyValues) {
-    		if (val instanceof PolyString) {
-    			PolyString polyStringVal = (PolyString)val;
-    			if (!polyStringVal.isComputed()) {
-    				polyStringVal.recompute(prismContext.getDefaultPolyStringNormalizer());
-    			}
-    		}
+    		PrismUtil.recomputeRealValue(val, prismContext);
     		PrismPropertyValue<X> pval = new PrismPropertyValue<X>(val);
     		pvalues.add(pval);
     	}

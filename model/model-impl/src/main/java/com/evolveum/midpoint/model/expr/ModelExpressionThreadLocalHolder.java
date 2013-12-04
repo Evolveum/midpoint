@@ -15,6 +15,9 @@
  */
 package com.evolveum.midpoint.model.expr;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
+
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -27,44 +30,75 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
  */
 public class ModelExpressionThreadLocalHolder {
 	
-	private static ThreadLocal<LensContext<ObjectType, ShadowType>> lensContext = new ThreadLocal<LensContext<ObjectType, ShadowType>>();
-	private static ThreadLocal<OperationResult> currentResult = new ThreadLocal<OperationResult>();
-	private static ThreadLocal<Task> currentTask = new ThreadLocal<Task>();
+	private static ThreadLocal<Deque<LensContext<ObjectType, ShadowType>>> lensContextStackTl = 
+			new ThreadLocal<Deque<LensContext<ObjectType, ShadowType>>>();
+	private static ThreadLocal<Deque<OperationResult>> currentResultStackTl = new ThreadLocal<Deque<OperationResult>>();
+	private static ThreadLocal<Deque<Task>> currentTaskStackTl = new ThreadLocal<Deque<Task>>();
 	
-	public static <F extends ObjectType, P extends ObjectType> void setLensContext(LensContext<F, P> ctx) {
-		lensContext.set((LensContext<ObjectType, ShadowType>) ctx);
+	public static <F extends ObjectType, P extends ObjectType> void pushLensContext(LensContext<F, P> ctx) {
+		Deque<LensContext<ObjectType, ShadowType>> stack = lensContextStackTl.get();
+		if (stack == null) {
+			stack = new ArrayDeque<LensContext<ObjectType,ShadowType>>();
+			lensContextStackTl.set(stack);
+		}
+		stack.push((LensContext<ObjectType, ShadowType>)ctx);
 	}
 	
-	public static <F extends ObjectType, P extends ObjectType> void resetLensContext() {
-		lensContext.set(null);
+	public static <F extends ObjectType, P extends ObjectType> void popLensContext() {
+		Deque<LensContext<ObjectType, ShadowType>> stack = lensContextStackTl.get();
+		stack.pop();
 	}
 
 	public static <F extends ObjectType, P extends ObjectType> LensContext<F, P> getLensContext() {
-		return (LensContext<F, P>) lensContext.get();
+		Deque<LensContext<ObjectType, ShadowType>> stack = lensContextStackTl.get();
+		if (stack == null) {
+			return null;
+		}
+		return (LensContext<F, P>) stack.peek();
 	}
 	
-	public static void setCurrentResult(OperationResult result) {
-		currentResult.set(result);
+	public static void pushCurrentResult(OperationResult result) {
+		Deque<OperationResult> stack = currentResultStackTl.get();
+		if (stack == null) {
+			stack = new ArrayDeque<OperationResult>();
+			currentResultStackTl.set(stack);
+		}
+		stack.push(result);
 	}
 	
-	public static void resetCurrentResult() {
-		currentResult.set(null);
+	public static void popCurrentResult() {
+		Deque<OperationResult> stack = currentResultStackTl.get();
+		stack.pop();
 	}
 
 	public static OperationResult getCurrentResult() {
-		return currentResult.get();
+		Deque<OperationResult> stack = currentResultStackTl.get();
+		if (stack == null) {
+			return null;
+		}
+		return stack.peek();
 	}
 
-	public static void setCurrentTask(Task task) {
-		currentTask.set(task);
+	public static void pushCurrentTask(Task task) {
+		Deque<Task> stack = currentTaskStackTl.get();
+		if (stack == null) {
+			stack = new ArrayDeque<Task>();
+			currentTaskStackTl.set(stack);
+		}
+		stack.push(task);
 	}
 	
-	public static void resetCurrentTask() {
-		currentTask.set(null);
+	public static void popCurrentTask() {
+		Deque<Task> stack = currentTaskStackTl.get();
+		stack.pop();
 	}
 
 	public static Task getCurrentTask() {
-		return currentTask.get();
+		Deque<Task> stack = currentTaskStackTl.get();
+		if (stack == null) {
+			return null;
+		}
+		return stack.peek();
 	}
 
 }

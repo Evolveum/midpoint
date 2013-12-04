@@ -95,8 +95,6 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     private MidPointPrincipal findByUsername(String username) throws SchemaException, ObjectNotFoundException {
         PolyString usernamePoly = new PolyString(username);
-        usernamePoly.recompute(prismContext.getDefaultPolyStringNormalizer());
-
         ObjectQuery query = ObjectQuery.createObjectQuery(
                 EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_NAME, usernamePoly));
         LOGGER.trace("Looking for user, query:\n" + query.dump());

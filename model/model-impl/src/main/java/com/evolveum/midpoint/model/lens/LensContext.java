@@ -75,6 +75,11 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 	transient private DeltaSetTriple<Assignment> evaluatedAssignmentTriple;
 	
 	/**
+	 * Just a cached copy. Keep it in context so we do not need to reload it all the time.
+	 */
+	transient private PrismObject<SystemConfigurationType> systemConfiguration;
+	
+	/**
      * True if we want to reconcile all accounts in this context.
      */
     private boolean doReconciliationForAllProjections = false;
@@ -225,6 +230,15 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 		return projectionContext;
 	}
 	
+	public PrismObject<SystemConfigurationType> getSystemConfiguration() {
+		return systemConfiguration;
+	}
+
+	public void setSystemConfiguration(
+			PrismObject<SystemConfigurationType> systemConfiguration) {
+		this.systemConfiguration = systemConfiguration;
+	}
+
 	public ObjectTemplateType getUserTemplate() {
 		return userTemplate;
 	}

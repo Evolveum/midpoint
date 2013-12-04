@@ -202,7 +202,7 @@ public class CredentialsProcessor {
         PropertyDelta<ProtectedStringType> accountPasswordDeltaNew = new PropertyDelta<ProtectedStringType>(SchemaConstants.PATH_PASSWORD_VALUE, accountPasswordPropertyDefinition);
         accountPasswordDeltaNew.setValuesToReplace(accountPasswordNew.getClonedValues());
         LOGGER.trace("Adding new password delta for account {}", rat);
-        accCtx.addToSecondaryDelta(accountPasswordDeltaNew);
+        accCtx.swallowToSecondaryDelta(accountPasswordDeltaNew);
 
     }
 

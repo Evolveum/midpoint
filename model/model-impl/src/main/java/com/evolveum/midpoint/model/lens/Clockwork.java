@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.lens;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
@@ -27,24 +28,32 @@ import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
+import com.evolveum.midpoint.common.expression.ExpressionSyntaxException;
+import com.evolveum.midpoint.common.expression.script.ScriptExpression;
+import com.evolveum.midpoint.common.expression.script.ScriptExpressionFactory;
+import com.evolveum.midpoint.common.expression.script.ScriptVariables;
 import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.lens.projector.ContextLoader;
 import com.evolveum.midpoint.model.lens.projector.Projector;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -60,8 +69,13 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.HookListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.HookType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ModelHooksType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScriptExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
 
 /**
  * @author semancik
@@ -93,6 +107,16 @@ public class Clockwork {
     
     @Autowired(required = true)
     private Clock clock;
+    
+    @Autowired(required = true)
+    @Qualifier("cacheRepositoryService")
+    private transient RepositoryService repositoryService;
+    
+    @Autowired(required = true)
+    private ScriptExpressionFactory scriptExpressionFactory;
+    
+    @Autowired(required = true)
+    private PrismContext prismContext;
 
     private LensDebugListener debugListener;
 	
@@ -228,10 +252,52 @@ public class Clockwork {
      * @return
      *  - ERROR, if any hook reported error; otherwise returns
      *  - BACKGROUND, if any hook reported switching to background; otherwise
-     *  - FOREGROUND (if all hooks reported finishing on foreground)
+     *  - FOREGROUND (if all hooks reported finishing on foreground) 
      */
-    private HookOperationMode invokeHooks(LensContext context, Task task, OperationResult result) {
-
+    private HookOperationMode invokeHooks(LensContext context, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    	// TODO: following two parts should be merged together in later versions
+    	
+    	// Execute configured scripting hooks
+    	PrismObject<SystemConfigurationType> systemConfiguration = LensUtil.getSystemConfiguration(context, repositoryService, result);
+    	// systemConfiguration may be null in some tests
+    	if (systemConfiguration != null) {
+	    	ModelHooksType modelHooks = systemConfiguration.asObjectable().getModelHooks();
+	    	if (modelHooks != null) {
+	    		HookListType changeHooks = modelHooks.getChange();
+	    		if (changeHooks != null) {
+	    			for (HookType hookType: changeHooks.getHook()) {
+	    				if (hookType.isEnabled() != null && !hookType.isEnabled()) {
+	    					// Disabled hook, skip
+	    					continue;
+	    				}
+	    				String shortDesc;
+	    				if (hookType.getName() != null) {
+	    					shortDesc = "hook '"+hookType.getName()+"'";
+	    				} else {
+	    					shortDesc = "scripting hook in system configuration";
+	    				}
+	    				ScriptExpressionEvaluatorType scriptExpressionEvaluatorType = hookType.getScript();
+	    				if (scriptExpressionEvaluatorType == null) {
+	    					continue;
+	    				}
+	    				try {
+							evaluateScriptingHook(context, hookType, scriptExpressionEvaluatorType, shortDesc, task, result);
+						} catch (ExpressionEvaluationException e) {
+							LOGGER.error("Evaluation of {} failed: {}", new Object[]{shortDesc, e.getMessage(), e});
+							throw new ExpressionEvaluationException("Evaluation of "+shortDesc+" failed: "+e.getMessage(), e);
+						} catch (ObjectNotFoundException e) {
+							LOGGER.error("Evaluation of {} failed: {}", new Object[]{shortDesc, e.getMessage(), e});
+							throw new ObjectNotFoundException("Evaluation of "+shortDesc+" failed: "+e.getMessage(), e);
+						} catch (SchemaException e) {
+							LOGGER.error("Evaluation of {} failed: {}", new Object[]{shortDesc, e.getMessage(), e});
+							throw new SchemaException("Evaluation of "+shortDesc+" failed: "+e.getMessage(), e);
+						}
+	    			}
+	    		}
+	    	}
+    	}
+    	
+    	// Execute registered Java hooks
         HookOperationMode resultMode = HookOperationMode.FOREGROUND;
         if (hookRegistry != null) {
             for (ChangeHook hook : hookRegistry.getAllChangeHooks()) {
@@ -249,7 +315,29 @@ public class Clockwork {
     }
 
 
-    private <F extends ObjectType, P extends ObjectType> void processInitialToPrimary(LensContext<F,P> context, Task task, OperationResult result) {
+    private void evaluateScriptingHook(LensContext context, HookType hookType, 
+    		ScriptExpressionEvaluatorType scriptExpressionEvaluatorType, String shortDesc, Task task, OperationResult result) 
+    				throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    	
+    	LOGGER.trace("Evaluating {}", shortDesc);
+		// TODO: it would be nice to cache this
+		// null output definition: this script has no output
+		ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptExpressionEvaluatorType, null, shortDesc);
+		
+		ScriptVariables variables = new ScriptVariables();
+		variables.addVariableDefinition(ExpressionConstants.VAR_PRISM_CONTEXT, prismContext);
+		variables.addVariableDefinition(ExpressionConstants.VAR_MODEL_CONTEXT, context);
+		LensFocusContext focusContext = context.getFocusContext();
+		PrismObject focus = null;
+		if (focusContext != null) {
+			focus = focusContext.getObjectAny();
+		}
+		variables.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focus);
+		
+		LensUtil.evaluateScript(scriptExpression, context, variables, shortDesc, task, result);
+	}
+
+	private <F extends ObjectType, P extends ObjectType> void processInitialToPrimary(LensContext<F,P> context, Task task, OperationResult result) {
 		// Context loaded, nothing special do. Bump state to PRIMARY.
 		context.setState(ModelState.PRIMARY);		
 	}

@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.provisioning.util;
 
-import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;

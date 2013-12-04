@@ -47,6 +47,7 @@ import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.JavaTypeConverter;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -148,10 +149,7 @@ public class ExpressionUtil {
 		
 		O convertedVal = JavaTypeConverter.convert(finalExpectedJavaType, intermediateVal);
 		
-		// HACK, TODO: convert to Recomputable interface
-		if (convertedVal != null && convertedVal instanceof PolyString) {
-			((PolyString)convertedVal).recompute(prismContext.getDefaultPolyStringNormalizer());
-		}
+		PrismUtil.recomputeRealValue(convertedVal, prismContext);
 
 		return convertedVal;
     }

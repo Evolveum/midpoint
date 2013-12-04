@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.model.expr;
 
-import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.expression.script.ScriptExpressionEvaluationContext;
@@ -46,6 +45,7 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Holder;
@@ -73,6 +73,7 @@ import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.lens.SynchronizationIntent;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 import java.util.*;
 
@@ -181,8 +182,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @Override
     public OrgType getOrgByName(String name) throws ObjectNotFoundException, SchemaException {
         PolyString polyName = new PolyString(name);
-        polyName.recompute(prismContext.getDefaultPolyStringNormalizer());
-        ObjectQuery q = QueryUtil.createNameQuery(polyName, prismContext);
+        ObjectQuery q = ObjectQueryUtil.createNameQuery(polyName, prismContext);
         List<PrismObject<OrgType>> result = repositoryService.searchObjects(OrgType.class, q, null, new OperationResult("getOrgByName"));
         if (result.isEmpty()) {
             throw new ObjectNotFoundException("No organizational unit with the name '" + name + "'", name);
@@ -358,7 +358,21 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		SynchronizationPolicyDecision synchronizationPolicyDecision = projectionContext.getSynchronizationPolicyDecision();
 		SynchronizationIntent synchronizationIntent = projectionContext.getSynchronizationIntent();
 		ScriptExpressionEvaluationContext scriptContext = ScriptExpressionEvaluationContext.getThreadLocal();
-		if (scriptContext.isEvaluateNew()) {
+		if (scriptContext == null) {
+			if (synchronizationPolicyDecision == null) {
+				if (synchronizationIntent == SynchronizationIntent.DELETE || synchronizationIntent == SynchronizationIntent.UNLINK) {
+					return false;
+				} else {
+					return true;
+				}
+			} else {
+				if (synchronizationPolicyDecision == SynchronizationPolicyDecision.DELETE || synchronizationPolicyDecision == SynchronizationPolicyDecision.UNLINK) {
+					return false;
+				} else {
+					return true;
+				}
+			}
+		} else if (scriptContext.isEvaluateNew()) {
 			// Evaluating new state
 			if (focusContext.isDelete()) {
 				return false;
@@ -395,6 +409,61 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 				}
 			}
 	    }
+    }
+    
+    @Override
+    public <F extends FocusType> boolean isDirectlyAssigned(F focusType, String targetOid) {
+    	for (AssignmentType assignment: focusType.getAssignment()) {
+    		ObjectReferenceType targetRef = assignment.getTargetRef();
+    		if (targetRef != null && targetRef.getOid().equals(targetOid)) {
+    			return true;
+    		}
+    	}
+    	return false;
+    }
+    
+    @Override
+    public <F extends FocusType> boolean isDirectlyAssigned(F focusType, ObjectType target) {
+    	return isDirectlyAssigned(focusType, target.getOid());
+    }
+    
+    @Override
+    public boolean isDirectlyAssigned(String targetOid) {
+    	LensContext<? extends FocusType, ShadowType> ctx = ModelExpressionThreadLocalHolder.getLensContext();
+    	if (ctx == null) {
+    		throw new IllegalStateException("No lens context");
+    	}
+    	LensFocusContext<? extends FocusType> focusContext = ctx.getFocusContext();
+    	if (focusContext == null) {
+    		throw new IllegalStateException("No focus in lens context");
+    	}
+    	
+    	PrismObject<? extends FocusType> focus;
+    	ScriptExpressionEvaluationContext scriptContext = ScriptExpressionEvaluationContext.getThreadLocal();
+    	if (scriptContext == null) {
+    		focus = focusContext.getObjectAny();
+    	} else if (scriptContext.isEvaluateNew()) {
+			// Evaluating new state
+			if (focusContext.isDelete()) {
+				return false;
+			}
+			focus = focusContext.getObjectNew();
+		} else {
+	    	// Evaluating old state
+	    	if (focusContext.isAdd()) {
+	    		return false;
+	    	}
+	    	focus = focusContext.getObjectOld();
+	    }
+    	if (focus == null) {
+    		return false;
+    	}
+    	return isDirectlyAssigned(focus.asObjectable(), targetOid);
+    }
+    
+    @Override
+    public boolean isDirectlyAssigned(ObjectType target) {
+    	return isDirectlyAssigned(target.getOid());
     }
         
     public <T> int countAccounts(String resourceOid, QName attributeName, T attributeValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -528,13 +597,45 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         return lensContext.toPrismContainer().getValue().asContainerable();
     }
     
+    // Convenience functions
+    
 	@Override
-	public <T extends ObjectType> PrismObject<T> getObject(Class<T> type,
+	public <T extends ObjectType> T createEmptyObject(Class<T> type) {
+		PrismObjectDefinition<T> objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
+		PrismObject<T> object = objectDefinition.instantiate();
+		return object.asObjectable();
+	}
+
+	@Override
+	public <T extends ObjectType> T createEmptyObjectWithName(Class<T> type, String name) {
+		T objectType = createEmptyObject(type);
+		objectType.setName(new PolyStringType(name));
+		return objectType;
+	}
+
+	@Override
+	public <T extends ObjectType> T createEmptyObjectWithName(Class<T> type, PolyString name) {
+		T objectType = createEmptyObject(type);
+		objectType.setName(new PolyStringType(name));
+		return objectType;
+	}
+
+	@Override
+	public <T extends ObjectType> T createEmptyObjectWithName(Class<T> type, PolyStringType name) {
+		T objectType = createEmptyObject(type);
+		objectType.setName(name);
+		return objectType;
+	}
+    
+    // Functions accessing modelService
+    
+	@Override
+	public <T extends ObjectType> T getObject(Class<T> type,
 			String oid, Collection<SelectorOptions<GetOperationOptions>> options)
 			throws ObjectNotFoundException, SchemaException,
 			CommunicationException, ConfigurationException,
 			SecurityViolationException {
-		return modelService.getObject(type, oid, options, getCurrentTask(), getCurrentResult());
+		return modelService.getObject(type, oid, options, getCurrentTask(), getCurrentResult()).asObjectable();
 	}
 
 	@Override
@@ -712,6 +813,48 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			CommunicationException, ConfigurationException,
 			SecurityViolationException {
 		modelService.searchObjectsIterative(type, query, handler, null, getCurrentTask(), getCurrentResult());
+	}
+	
+	@Override
+	public <T extends ObjectType> T searchObjectByName(Class<T> type, String name) 
+				throws SecurityViolationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException {
+		ObjectQuery nameQuery = ObjectQueryUtil.createNameQuery(name, prismContext);
+		List<PrismObject<T>> foundObjects = modelService.searchObjects(type, nameQuery, null, getCurrentTask(), getCurrentResult());
+		if (foundObjects.isEmpty()) {
+			return null;
+		}
+		if (foundObjects.size() > 1) {
+			throw new IllegalStateException("More than one object found for type "+type+" and name '"+name+"'");
+		}
+		return foundObjects.iterator().next().asObjectable();
+	}
+	
+	@Override
+	public <T extends ObjectType> T searchObjectByName(Class<T> type, PolyString name) 
+				throws SecurityViolationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException {
+		ObjectQuery nameQuery = ObjectQueryUtil.createNameQuery(name, prismContext);
+		List<PrismObject<T>> foundObjects = modelService.searchObjects(type, nameQuery, null, getCurrentTask(), getCurrentResult());
+		if (foundObjects.isEmpty()) {
+			return null;
+		}
+		if (foundObjects.size() > 1) {
+			throw new IllegalStateException("More than one object found for type "+type+" and name '"+name+"'");
+		}
+		return foundObjects.iterator().next().asObjectable();
+	}
+	
+	@Override
+	public <T extends ObjectType> T searchObjectByName(Class<T> type, PolyStringType name) 
+				throws SecurityViolationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException {
+		ObjectQuery nameQuery = ObjectQueryUtil.createNameQuery(name, prismContext);
+		List<PrismObject<T>> foundObjects = modelService.searchObjects(type, nameQuery, null, getCurrentTask(), getCurrentResult());
+		if (foundObjects.isEmpty()) {
+			return null;
+		}
+		if (foundObjects.size() > 1) {
+			throw new IllegalStateException("More than one object found for type "+type+" and name '"+name+"'");
+		}
+		return foundObjects.iterator().next().asObjectable();
 	}
 
 	@Override
