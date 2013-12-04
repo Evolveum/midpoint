@@ -48,6 +48,7 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Handler;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -85,7 +86,7 @@ public class MappingEvaluationHelper {
 			XMLGregorianCalendar now, MappingInitializer<V> initializer, 
 			Item<V> aPrioriValue, ItemDelta<V> aPrioriDelta, PrismObject<? extends ShadowType> aPrioriObject,
 			Boolean evaluateCurrent, MutableBoolean strongMappingWasUsed,
-			LensContext<UserType,ShadowType> context, LensProjectionContext<ShadowType> accCtx, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			LensContext<UserType,ShadowType> context, LensProjectionContext<ShadowType> accCtx, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
 		PrismValueDeltaSetTriple<V> outputTriple = null;
 		XMLGregorianCalendar nextRecomputeTime = null;
@@ -135,7 +136,7 @@ public class MappingEvaluationHelper {
 	        	}
 	        }
 						
-			LensUtil.evaluateMapping(mapping, context, result);
+			LensUtil.evaluateMapping(mapping, context, task, result);
 			
 			PrismValueDeltaSetTriple<V> mappingOutputTriple = mapping.getOutputTriple();
 			if (mappingOutputTriple != null) {
@@ -161,7 +162,7 @@ public class MappingEvaluationHelper {
 					continue;
 				}
 
-				LensUtil.evaluateMapping(mapping, context, result);
+				LensUtil.evaluateMapping(mapping, context, task, result);
 
 				PrismValueDeltaSetTriple<V> mappingOutputTriple = mapping.getOutputTriple();
 				if (mappingOutputTriple != null) {

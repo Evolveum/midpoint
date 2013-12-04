@@ -57,6 +57,7 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -498,14 +499,17 @@ public class LensUtil {
 		}
 	}
 	
-	public static <V extends PrismValue, F extends ObjectType, P extends ObjectType> void evaluateMapping(Mapping<V> mapping, LensContext<F, P> lensContext, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+	public static <V extends PrismValue, F extends ObjectType, P extends ObjectType> void evaluateMapping(
+			Mapping<V> mapping, LensContext<F, P> lensContext, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		ModelExpressionThreadLocalHolder.setLensContext(lensContext);
 		ModelExpressionThreadLocalHolder.setCurrentResult(parentResult);
+		ModelExpressionThreadLocalHolder.setCurrentTask(task);
 		try {
 			mapping.evaluate(parentResult);
 		} finally {
 			ModelExpressionThreadLocalHolder.resetLensContext();
 			ModelExpressionThreadLocalHolder.resetCurrentResult();
+			ModelExpressionThreadLocalHolder.resetCurrentTask();
 			if (lensContext.getDebugListener() != null) {
 				lensContext.getDebugListener().afterMappingEvaluation(lensContext, mapping);
 			}

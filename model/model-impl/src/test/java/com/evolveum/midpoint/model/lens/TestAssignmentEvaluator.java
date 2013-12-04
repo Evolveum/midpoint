@@ -42,6 +42,7 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -68,11 +69,13 @@ public class TestAssignmentEvaluator extends AbstractInternalModelIntegrationTes
 	}
 
 	@Test
-	public void testDirect() throws ObjectNotFoundException, SchemaException, FileNotFoundException, JAXBException, ExpressionEvaluationException {
-		TestUtil.displayTestTile(this, "testDirect");
+	public void testDirect() throws Exception {
+		final String TEST_NAME = "testDirect";
+		TestUtil.displayTestTile(this, TEST_NAME);
 		
 		// GIVEN
-		OperationResult result = new OperationResult(TestAssignmentEvaluator.class.getName() + ".testDirect");
+		Task task = taskManager.createTaskInstance(TestAssignmentEvaluator.class.getName() + "." + TEST_NAME);
+		OperationResult result = task.getResult();
 		AssignmentEvaluator assignmentEvaluator = createAssignmentEvaluator();
 		PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 		
@@ -84,7 +87,7 @@ public class TestAssignmentEvaluator extends AbstractInternalModelIntegrationTes
 		assignmentContainer.add(assignmentType.asPrismContainerValue());
 		
 		// WHEN
-		Assignment evaluatedAssignment = assignmentEvaluator.evaluate(assignmentType, userTypeJack, "testDirect", result);
+		Assignment evaluatedAssignment = assignmentEvaluator.evaluate(assignmentType, userTypeJack, "testDirect", task, result);
 		
 		// THEN
 		assertNotNull(evaluatedAssignment);

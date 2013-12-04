@@ -153,7 +153,7 @@ public class Clockwork {
 			
 			if (!context.isFresh()) {
 				context.cleanup();
-				projector.project((LensContext<F, ShadowType>)context, "PROJECTOR ("+state+")", result);
+				projector.project((LensContext<F, ShadowType>)context, "PROJECTOR ("+state+")", task, result);
 			} else {
 				LOGGER.trace("Skipping projection because the context is fresh");
 			}

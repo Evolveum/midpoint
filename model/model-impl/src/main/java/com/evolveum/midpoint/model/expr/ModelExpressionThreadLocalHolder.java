@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.expr;
 
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 
@@ -28,6 +29,7 @@ public class ModelExpressionThreadLocalHolder {
 	
 	private static ThreadLocal<LensContext<ObjectType, ShadowType>> lensContext = new ThreadLocal<LensContext<ObjectType, ShadowType>>();
 	private static ThreadLocal<OperationResult> currentResult = new ThreadLocal<OperationResult>();
+	private static ThreadLocal<Task> currentTask = new ThreadLocal<Task>();
 	
 	public static <F extends ObjectType, P extends ObjectType> void setLensContext(LensContext<F, P> ctx) {
 		lensContext.set((LensContext<ObjectType, ShadowType>) ctx);
@@ -52,5 +54,17 @@ public class ModelExpressionThreadLocalHolder {
 	public static OperationResult getCurrentResult() {
 		return currentResult.get();
 	}
+
+	public static void setCurrentTask(Task task) {
+		currentTask.set(task);
+	}
 	
+	public static void resetCurrentTask() {
+		currentTask.set(null);
+	}
+
+	public static Task getCurrentTask() {
+		return currentTask.get();
+	}
+
 }

@@ -66,6 +66,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -125,7 +126,7 @@ public class AccountValuesProcessor {
 	private List<LensProjectionContext<? extends ObjectType>> conflictingAccountContexts = new ArrayList<LensProjectionContext<? extends ObjectType>>();
 	
 	public <F extends ObjectType, P extends ObjectType> void process(LensContext<F,P> context, 
-			LensProjectionContext<P> projectionContext, String activityDescription, OperationResult result) 
+			LensProjectionContext<P> projectionContext, String activityDescription, Task task, OperationResult result) 
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, 
 			CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
@@ -139,12 +140,12 @@ public class AccountValuesProcessor {
     	OperationResult processorResult = result.createSubresult(AccountValuesProcessor.class.getName()+".processAccountsValues");
     	processorResult.recordSuccessIfUnknown();
     	processAccounts((LensContext<UserType,ShadowType>) context, (LensProjectionContext<ShadowType>)projectionContext, 
-    			activityDescription, processorResult);
+    			activityDescription, task, processorResult);
     	
 	}
 	
 	public void processAccounts(LensContext<UserType,ShadowType> context, 
-			LensProjectionContext<ShadowType> accountContext, String activityDescription, OperationResult result) 
+			LensProjectionContext<ShadowType> accountContext, String activityDescription, Task task, OperationResult result) 
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException,
 			CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {
 		
@@ -216,7 +217,7 @@ public class AccountValuesProcessor {
 //				LensUtil.traceContext(LOGGER, activityDescription, "values (assignment account values)", false, context, true);
 				
 				// Evaluates the values in outbound mappings
-				outboundProcessor.processOutbound(context, accountContext, result);
+				outboundProcessor.processOutbound(context, accountContext, task, result);
 				
 				context.recompute();
 				if (consistencyChecks) context.checkConsistence();

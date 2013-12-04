@@ -44,6 +44,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -78,7 +79,7 @@ public class OutboundProcessor {
     @Autowired(required = true)
     private MappingFactory mappingFactory;
 
-    void processOutbound(LensContext<UserType,ShadowType> context, LensProjectionContext<ShadowType> accCtx, OperationResult result) throws SchemaException,
+    void processOutbound(LensContext<UserType,ShadowType> context, LensProjectionContext<ShadowType> accCtx, Task task, OperationResult result) throws SchemaException,
             ExpressionEvaluationException, ObjectNotFoundException {
 
         ResourceShadowDiscriminator rat = accCtx.getResourceShadowDiscriminator();
@@ -200,7 +201,7 @@ public class OutboundProcessor {
 				mapping.setConditionMaskNew(false);
 			}
 			
-			LensUtil.evaluateMapping(mapping, context, result);
+			LensUtil.evaluateMapping(mapping, context, task, result);
 			
 			outboundAccountConstruction.addAttributeConstruction(mapping);
         }

@@ -151,7 +151,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         OperationResult result = new OperationResult(UserDetailsServiceImpl.class.getName() + ".addAuthorizations");
         for(AssignmentType assignmentType: userType.getAssignment()) {
         	try {
-				Assignment assignment = assignmentEvaluator.evaluate(assignmentType, userType, userType.toString(), result);
+				Assignment assignment = assignmentEvaluator.evaluate(assignmentType, userType, userType.toString(), null, result);
 				authorizations.addAll(assignment.getAuthorizations());
 			} catch (SchemaException e) {
 				LOGGER.error("Schema violation while processing assignment of {}: {}; assignment: {}", 
