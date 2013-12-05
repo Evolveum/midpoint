@@ -17,72 +17,71 @@
 package com.evolveum.midpoint.report;
 
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.api.hooks.ChangeHook;
+import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
+import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.Collection;
-import java.util.List;
+import javax.annotation.PostConstruct;
 
 /**
  * @author lazyman
  */
 @Component
-public class ReportManagerImpl implements ReportManager {
+public class ReportManagerImpl implements ReportManager, ChangeHook {
 
+    public static final String HOOK_URI = "http://midpoint.evolveum.com/model/report-hook-1";
+
+    @Autowired
+    private HookRegistry hookRegistry;
     @Autowired
     private ModelService modelService;
     @Autowired
     private PrismContext prismContext;
 
+    @PostConstruct
+    public void init() {
+        hookRegistry.registerChangeHook(HOOK_URI, this);
+    }
+
+    /**
+     * Creates and starts task with proper handler, also adds necessary information to task
+     * (like ReportType reference and so on).
+     *
+     * @param report
+     * @param task
+     * @param parentResult describes report which has to be created
+     */
     @Override
-    public String addReport(PrismObject<ReportType> object, OperationResult parentResult) throws ObjectAlreadyExistsException, SchemaException {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    public void runReport(PrismObject<ReportType> report, Task task, OperationResult parentResult) {
+        //todo implement
+    }
+
+    /**
+     * Transforms change:
+     * 1/ ReportOutputType DELETE to MODIFY some attribute to mark it for deletion.
+     * 2/ ReportType ADD and MODIFY should compute jasper design and styles if necessary
+     *
+     * @param context
+     * @param task
+     * @param result
+     * @return
+     */
+    @Override
+    public HookOperationMode invoke(ModelContext context, Task task, OperationResult result) {
+        //todo implement
+        return HookOperationMode.FOREGROUND;
     }
 
     @Override
-    public PrismObject<ReportType> getReport(String oid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
-    }
+    public void invokeOnException(ModelContext context, Throwable throwable, Task task, OperationResult result) {
 
-    @Override
-    public List<PrismObject<ReportType>> searchReports(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public int countReports(ObjectQuery query, OperationResult parentResult) throws SchemaException {
-        return 0;  //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public void modifyReport(String oid, Collection<? extends ItemDelta> modifications, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
-        //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public void deleteReport(String oid, OperationResult parentResult) throws ObjectNotFoundException {
-        //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public void createReport(PrismObject<ReportType> report, OperationResult parentResult) {
-        //To change body of implemented methods use File | Settings | File Templates.
-    }
-
-    @Override
-    public void cleanupReports(CleanupPolicyType cleanupPolicy, OperationResult parentResult) {
-        //To change body of implemented methods use File | Settings | File Templates.
     }
 }
