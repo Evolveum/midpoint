@@ -30,8 +30,6 @@ import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.model.IModel;
 
 import javax.xml.namespace.QName;
-import java.io.Serializable;
-import java.util.*;
 
 /**
  * Simple implementation, now it can't handle multivalue properties.
@@ -46,7 +44,7 @@ public class PrismPropertyModel<T extends ObjectType> implements IModel {
     private ItemPath path;
 
     private boolean multivalue;
-    private PrismList values;
+    private PrismPropertyList values;
 
     public PrismPropertyModel(IModel<PrismObject<T>> model, QName item) {
         this(model, new ItemPath(item), false);
@@ -83,7 +81,7 @@ public class PrismPropertyModel<T extends ObjectType> implements IModel {
 
         if (multivalue) {
             if (values == null) {
-                values = new PrismList(property);
+                values = new PrismPropertyList(property);
             }
             return values;
         }
@@ -123,130 +121,5 @@ public class PrismPropertyModel<T extends ObjectType> implements IModel {
         }
 
         return value;
-    }
-
-    private static class PrismList implements List<Object>, Serializable {
-
-        private PrismProperty property;
-
-        private PrismList(PrismProperty property) {
-            this.property = property;
-        }
-
-        @Override
-        public boolean add(Object o) {
-
-            return false;  //To change body of implemented methods use File | Settings | File Templates.
-        }
-
-        @Override
-        public int size() {
-            return property.size();
-        }
-
-        @Override
-        public boolean isEmpty() {
-            return property.size() == 0;
-        }
-
-        @Override
-        public boolean contains(Object o) {
-            return false;  //To change body of implemented methods use File | Settings | File Templates.
-        }
-
-        @Override
-        public Iterator iterator() {
-            return null;  //To change body of implemented methods use File | Settings | File Templates.
-        }
-
-        @Override
-        public Object[] toArray() {
-            return new Object[0];  //To change body of implemented methods use File | Settings | File Templates.
-        }
-
-        @Override
-        public Object[] toArray(Object[] a) {
-            return new Object[0];  //To change body of implemented methods use File | Settings | File Templates.
-        }
-
-        @Override
-        public boolean remove(Object o) {
-            return false;  //To change body of implemented methods use File | Settings | File Templates.
-        }
-
-        @Override
-        public boolean containsAll(Collection<?> c) {
-            return false;  //To change body of implemented methods use File | Settings | File Templates.
-        }
-
-        @Override
-        public boolean addAll(Collection c) {
-            return false;  //To change body of implemented methods use File | Settings | File Templates.
-        }
-
-        @Override
-        public boolean addAll(int index, Collection c) {
-            return false;  //To change body of implemented methods use File | Settings | File Templates.
-        }
-
-        @Override
-        public boolean removeAll(Collection<?> c) {
-            return false;  //To change body of implemented methods use File | Settings | File Templates.
-        }
-
-        @Override
-        public boolean retainAll(Collection<?> c) {
-            return false;  //To change body of implemented methods use File | Settings | File Templates.
-        }
-
-        @Override
-        public void clear() {
-            //To change body of implemented methods use File | Settings | File Templates.
-        }
-
-        @Override
-        public Object get(int index) {
-            return property.getRealValues().iterator().next();
-        }
-
-        @Override
-        public Object set(int index, Object element) {
-            return null;  //To change body of implemented methods use File | Settings | File Templates.
-        }
-
-        @Override
-        public void add(int index, Object element) {
-            //To change body of implemented methods use File | Settings | File Templates.
-        }
-
-        @Override
-        public Object remove(int index) {
-            return null;  //To change body of implemented methods use File | Settings | File Templates.
-        }
-
-        @Override
-        public int indexOf(Object o) {
-            return 0;  //To change body of implemented methods use File | Settings | File Templates.
-        }
-
-        @Override
-        public int lastIndexOf(Object o) {
-            return 0;  //To change body of implemented methods use File | Settings | File Templates.
-        }
-
-        @Override
-        public ListIterator listIterator() {
-            return null;  //To change body of implemented methods use File | Settings | File Templates.
-        }
-
-        @Override
-        public ListIterator listIterator(int index) {
-            return null;  //To change body of implemented methods use File | Settings | File Templates.
-        }
-
-        @Override
-        public List subList(int fromIndex, int toIndex) {
-            return null;  //To change body of implemented methods use File | Settings | File Templates.
-        }
     }
 }

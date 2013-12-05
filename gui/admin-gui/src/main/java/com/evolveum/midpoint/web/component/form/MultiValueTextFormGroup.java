@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.form;
 
+import com.evolveum.midpoint.web.component.util.PrismPropertyList;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.commons.lang.StringUtils;
@@ -94,7 +95,7 @@ public class MultiValueTextFormGroup extends SimplePanel<List<String>> {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                addValue(target, item);
+                addValuePerformed(target, item);
             }
         };
         add.add(new VisibleEnableBehaviour() {
@@ -110,7 +111,7 @@ public class MultiValueTextFormGroup extends SimplePanel<List<String>> {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
-                removeValue(target, item);
+                removeValuePerformed(target, item);
             }
         };
         remove.add(new VisibleEnableBehaviour() {
@@ -128,16 +129,22 @@ public class MultiValueTextFormGroup extends SimplePanel<List<String>> {
     }
 
     private boolean isRemoveButtonVisible(ListItem<String> item) {
+        List object = getModelObject();
+        if (!(object instanceof PrismPropertyList)) {
+            return true;
+        }
+
+//        PrismPropertyList list =
         return true;
     }
 
-    private void addValue(AjaxRequestTarget target, ListItem<String> item) {
+    private void addValuePerformed(AjaxRequestTarget target, ListItem<String> item) {
         getModel().getObject().add("");
 
         target.add(this);
     }
 
-    private void removeValue(AjaxRequestTarget target, ListItem<String> item) {
+    private void removeValuePerformed(AjaxRequestTarget target, ListItem<String> item) {
         target.add(this);
     }
 }
