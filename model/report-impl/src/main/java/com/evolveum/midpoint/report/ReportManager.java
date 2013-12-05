@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -43,88 +44,8 @@ public interface ReportManager {
     /**
      * todo comments [lazyman]
      *
-     * @param oid
-     * @param options
-     * @param parentResult
-     * @return
-     * @throws ObjectNotFoundException
-     * @throws SchemaException
-     */
-    PrismObject<ReportType> getReport(String oid, Collection<SelectorOptions<GetOperationOptions>> options,
-                                      OperationResult parentResult) throws ObjectNotFoundException, SchemaException;
-
-    /**
-     * todo comments [lazyman]
-     *
-     * @param object
-     * @param parentResult
-     * @return
-     * @throws ObjectAlreadyExistsException
-     * @throws SchemaException
-     */
-    String addReport(PrismObject<ReportType> object, OperationResult parentResult)
-            throws ObjectAlreadyExistsException, SchemaException;
-
-    /**
-     * todo comments [lazyman]
-     *
-     * @param query
-     * @param options
-     * @param parentResult
-     * @return
-     * @throws SchemaException
-     */
-    List<PrismObject<ReportType>> searchReports(ObjectQuery query,
-                                                Collection<SelectorOptions<GetOperationOptions>> options,
-                                                OperationResult parentResult)
-            throws SchemaException;
-
-    /**
-     * todo comments [lazyman]
-     *
-     * @param query
-     * @param parentResult
-     * @return
-     * @throws SchemaException
-     */
-    int countReports(ObjectQuery query, OperationResult parentResult) throws SchemaException;
-
-    /**
-     * todo comments [lazyman]
-     *
-     * @param oid
-     * @param modifications
-     * @param parentResult
-     * @throws ObjectNotFoundException
-     * @throws SchemaException
-     * @throws ObjectAlreadyExistsException
-     */
-    void modifyReport(String oid, Collection<? extends ItemDelta> modifications, OperationResult parentResult)
-            throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException;
-
-    /**
-     * todo comments [lazyman]
-     *
-     * @param oid
-     * @param parentResult
-     * @throws ObjectNotFoundException
-     */
-    void deleteReport(String oid, OperationResult parentResult) throws ObjectNotFoundException;
-
-    /**
-     * todo comments [lazyman]
-     *
      * @param report
      * @param parentResult describes report which has to be created
      */
-    void createReport(PrismObject<ReportType> report, OperationResult parentResult);
-
-    /**
-     * todo comments [lazyman]
-     * todo how to return progress
-     *
-     * @param cleanupPolicy
-     * @param parentResult
-     */
-    void cleanupReports(CleanupPolicyType cleanupPolicy, OperationResult parentResult);
+    void runReport(PrismObject<ReportType> report, Task task, OperationResult parentResult);
 }
