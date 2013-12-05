@@ -122,10 +122,10 @@ public class ClusterManager {
         public void run() {
             LOGGER.info("ClusterManager thread starting.");
 
-            OperationResult result = new OperationResult(ClusterManagerThread.class + ".run");
-
             long delay = taskManager.getConfiguration().getNodeRegistrationCycleTime() * 1000L;
             while (canRun) {
+
+                OperationResult result = new OperationResult(ClusterManagerThread.class + ".run");
 
                 try {
 
@@ -143,6 +143,12 @@ public class ClusterManager {
                         checkWaitingTasks(result);
                     } catch (Throwable t) {
                         LoggingUtils.logException(LOGGER, "Unexpected exception while checking waiting tasks; continuing execution.", t);
+                    }
+
+                    try {
+                        checkStalledTasks(result);
+                    } catch (Throwable t) {
+                        LoggingUtils.logException(LOGGER, "Unexpected exception while checking stalled tasks; continuing execution.", t);
                     }
 
                 } catch(Throwable t) {
@@ -297,11 +303,21 @@ public class ClusterManager {
     private long lastCheckedWaitingTasks = 0L;
 
     public void checkWaitingTasks(OperationResult result) throws SchemaException {
-        if (System.currentTimeMillis() > lastCheckedWaitingTasks + taskManager.getConfiguration().getCheckWaitingTasksInterval()) {
+        if (System.currentTimeMillis() > lastCheckedWaitingTasks + taskManager.getConfiguration().getWaitingTasksCheckInterval() * 1000L) {
             lastCheckedWaitingTasks = System.currentTimeMillis();
             taskManager.checkWaitingTasks(result);
         }
     }
+
+    private long lastCheckedStalledTasks = 0L;
+
+    public void checkStalledTasks(OperationResult result) throws SchemaException {
+        if (System.currentTimeMillis() > lastCheckedStalledTasks + taskManager.getConfiguration().getStalledTasksCheckInterval() * 1000L) {
+            lastCheckedStalledTasks = System.currentTimeMillis();
+            taskManager.checkStalledTasks(result);
+        }
+    }
+
 
 
 }

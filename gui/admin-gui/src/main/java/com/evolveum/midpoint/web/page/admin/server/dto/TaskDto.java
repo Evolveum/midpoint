@@ -637,4 +637,8 @@ public class TaskDto extends Selectable {
     public void setThreadStop(ThreadStopActionType value) {
         taskType.setThreadStopAction(value);
     }
+
+    public Long getStalledSince() {
+        return xgc2long(taskType.getStalledSince());
+    }
 }

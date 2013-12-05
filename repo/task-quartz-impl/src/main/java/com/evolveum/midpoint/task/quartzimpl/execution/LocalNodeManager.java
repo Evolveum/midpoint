@@ -235,8 +235,6 @@ public class LocalNodeManager {
         }
     }
 
-
-
     private Scheduler getQuartzScheduler() {
         return getGlobalExecutionManager().getQuartzScheduler();
     }

@@ -131,6 +131,8 @@ public class JobExecutor implements InterruptableJob {
 
         TaskHandler handler = null;
 		try {
+
+            taskManagerImpl.registerRunningTask(task);
         
 			handler = taskManagerImpl.getHandler(task.getHandlerUri());
             logRunStart(handler);
@@ -156,7 +158,8 @@ public class JobExecutor implements InterruptableJob {
 			}
 		
 		} finally {
-			executingThread = null;
+            taskManagerImpl.unregisterRunningTask(task);
+            executingThread = null;
 
             if (!task.canRun()) {
                 processTaskStop(executionResult);

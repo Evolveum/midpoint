@@ -15,23 +15,52 @@
  */
 package com.evolveum.midpoint.task.quartzimpl;
 
-import java.text.ParseException;
-import java.util.*;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import javax.xml.datatype.Duration;
-import javax.xml.datatype.XMLGregorianCalendar;
-
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.LessFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.task.api.*;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.task.api.LightweightIdentifier;
+import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskExecutionStatus;
+import com.evolveum.midpoint.task.api.TaskHandler;
+import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.task.api.TaskManagerException;
+import com.evolveum.midpoint.task.api.TaskManagerInitializationException;
+import com.evolveum.midpoint.task.api.TaskPersistenceStatus;
+import com.evolveum.midpoint.task.api.TaskWaitingReason;
+import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterStatusInformation;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.midpoint.task.quartzimpl.execution.ExecutionManager;
+import com.evolveum.midpoint.task.quartzimpl.execution.StalledTasksWatcher;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.NodeErrorStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.NodeExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.NodeType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
 import org.quartz.SchedulerException;
@@ -42,21 +71,22 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
 
-import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
-import com.evolveum.midpoint.task.quartzimpl.execution.ExecutionManager;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import javax.xml.datatype.Duration;
+import javax.xml.datatype.XMLGregorianCalendar;
+import java.text.ParseException;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Task Manager implementation using Quartz scheduler.
@@ -93,6 +123,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     private TaskManagerConfiguration configuration = new TaskManagerConfiguration();
     private ExecutionManager executionManager = new ExecutionManager(this);
     private ClusterManager clusterManager = new ClusterManager(this);
+    private StalledTasksWatcher stalledTasksWatcher = new StalledTasksWatcher(this);
 
     // task handlers (mapped from their URIs)
     private Map<String,TaskHandler> handlers = new HashMap<String, TaskHandler>();
@@ -102,6 +133,12 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
     // error status for this node (local Quartz scheduler is not allowed to be started if this status is not "OK")
     private NodeErrorStatusType nodeErrorStatus = NodeErrorStatusType.OK;
+
+    // locally running task instances - here are EXACT instances of TaskQuartzImpl that are used to execute handlers.
+    // Use ONLY for those actions that need to work with these instances, e.g. when calling heartbeat() methods on them.
+    // For any other business please use LocalNodeManager.getLocallyRunningTasks(...).
+    // Maps task id -> task
+    private HashMap<String,TaskQuartzImpl> locallyRunningTaskInstancesMap = new HashMap<String,TaskQuartzImpl>();
 
 	private BeanFactory beanFactory;
 
@@ -715,6 +752,21 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
             throw e;
         }
     }
+
+    public void registerRunningTask(TaskQuartzImpl task) {
+        synchronized (locallyRunningTaskInstancesMap) {
+            locallyRunningTaskInstancesMap.put(task.getTaskIdentifier(), task);
+            LOGGER.trace("Registered task {}, locally running instances = {}", task, locallyRunningTaskInstancesMap);
+        }
+    }
+
+    public void unregisterRunningTask(TaskQuartzImpl task) {
+        synchronized (locallyRunningTaskInstancesMap) {
+            locallyRunningTaskInstancesMap.remove(task.getTaskIdentifier());
+            LOGGER.trace("Unregistered task {}, locally running instances = {}", task, locallyRunningTaskInstancesMap);
+        }
+    }
+
     //endregion
 
     //region Getting and searching for tasks and nodes
@@ -875,6 +927,10 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
                 if (nextRunStartTime != null) {
                     taskInResult.setNextRunStartTimestamp(XmlTypeConverter.createXMLGregorianCalendar(nextRunStartTime));
                 }
+            }
+            Long stalledSince = stalledTasksWatcher.getStalledSinceForTask(taskInResult);
+            if (stalledSince != null) {
+                taskInResult.setStalledSince(XmlTypeConverter.createXMLGregorianCalendar(stalledSince));
             }
             retval.add(taskInResult.asPrismObject());
         }
@@ -1255,46 +1311,6 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         return list.get(0);
     }
 
-    public void checkWaitingTasks(OperationResult result) throws SchemaException {
-        int count = 0;
-        List<Task> tasks = listWaitingTasks(TaskWaitingReason.OTHER_TASKS, result);
-        for (Task task : tasks) {
-            try {
-                ((TaskQuartzImpl) task).checkDependencies(result);
-                count++;
-            } catch (SchemaException e) {
-                LoggingUtils.logException(LOGGER, "Couldn't check dependencies for task {}", e, task);
-            } catch (ObjectNotFoundException e) {
-                LoggingUtils.logException(LOGGER, "Couldn't check dependencies for task {}", e, task);
-            }
-        }
-        LOGGER.trace("Check waiting tasks completed; {} tasks checked.", count);
-    }
-
-    private List<Task> listWaitingTasks(TaskWaitingReason reason, OperationResult result) throws SchemaException {
-
-        ObjectFilter filter, filter1 = null, filter2 = null;
-        try {
-            filter1 = EqualsFilter.createEqual(TaskType.class, prismContext, TaskType.F_EXECUTION_STATUS, TaskExecutionStatusType.WAITING);
-            if (reason != null) {
-                filter2 = EqualsFilter.createEqual(TaskType.class, prismContext, TaskType.F_WAITING_REASON, reason.toTaskType());
-            }
-        } catch (SchemaException e) {
-            throw new SystemException("Cannot create filter for listing waiting tasks due to schema exception", e);
-        }
-        filter = filter2 != null ? AndFilter.createAnd(filter1, filter2) : filter1;
-        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-
-//        query = new ObjectQuery();  // todo remove this hack when searching will work
-
-        List<PrismObject<TaskType>> prisms = repositoryService.searchObjects(TaskType.class, query, null, result);
-        List<Task> tasks = resolveTasksFromTaskTypes(prisms, result);
-
-        result.recordSuccessIfUnknown();
-        return tasks;
-
-    }
-
     List<Task> resolveTasksFromTaskTypes(List<PrismObject<TaskType>> taskPrisms, OperationResult result) throws SchemaException {
         List<Task> tasks = new ArrayList<Task>(taskPrisms.size());
         for (PrismObject<TaskType> taskPrism : taskPrisms) {
@@ -1429,5 +1445,59 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         result.addParam("oid", oid);
         return executionManager.getNextRunStartTime(oid, result);
     }
+
+    public void checkStalledTasks(OperationResult result) {
+        stalledTasksWatcher.checkStalledTasks(result);
+    }
+
+    //endregion
+
+    //region Task housekeeping
+    public void checkWaitingTasks(OperationResult result) throws SchemaException {
+        int count = 0;
+        List<Task> tasks = listWaitingTasks(TaskWaitingReason.OTHER_TASKS, result);
+        for (Task task : tasks) {
+            try {
+                ((TaskQuartzImpl) task).checkDependencies(result);
+                count++;
+            } catch (SchemaException e) {
+                LoggingUtils.logException(LOGGER, "Couldn't check dependencies for task {}", e, task);
+            } catch (ObjectNotFoundException e) {
+                LoggingUtils.logException(LOGGER, "Couldn't check dependencies for task {}", e, task);
+            }
+        }
+        LOGGER.trace("Check waiting tasks completed; {} tasks checked.", count);
+    }
+
+    private List<Task> listWaitingTasks(TaskWaitingReason reason, OperationResult result) throws SchemaException {
+
+        ObjectFilter filter, filter1 = null, filter2 = null;
+        try {
+            filter1 = EqualsFilter.createEqual(TaskType.class, prismContext, TaskType.F_EXECUTION_STATUS, TaskExecutionStatusType.WAITING);
+            if (reason != null) {
+                filter2 = EqualsFilter.createEqual(TaskType.class, prismContext, TaskType.F_WAITING_REASON, reason.toTaskType());
+            }
+        } catch (SchemaException e) {
+            throw new SystemException("Cannot create filter for listing waiting tasks due to schema exception", e);
+        }
+        filter = filter2 != null ? AndFilter.createAnd(filter1, filter2) : filter1;
+        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+
+//        query = new ObjectQuery();  // todo remove this hack when searching will work
+
+        List<PrismObject<TaskType>> prisms = repositoryService.searchObjects(TaskType.class, query, null, result);
+        List<Task> tasks = resolveTasksFromTaskTypes(prisms, result);
+
+        result.recordSuccessIfUnknown();
+        return tasks;
+    }
+
+    // returns map task lightweight id -> task
+    public Map<String,TaskQuartzImpl> getLocallyRunningTaskInstances() {
+        synchronized (locallyRunningTaskInstancesMap) {    // must be synchronized while iterating over it (addAll)
+            return new HashMap<String,TaskQuartzImpl>(locallyRunningTaskInstancesMap);
+        }
+    }
+
     //endregion
 }

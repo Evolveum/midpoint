@@ -1319,6 +1319,15 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="stalledSince" type="xsd:dateTime" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                From which moment is this task stalled (if applicable)?
+                                TRANSIENT. This value is not stored in the repo, it is queried dynamically.
+                                (It is currently not possible to use it for filtering or sorting.)
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="expectedTotal" type="xsd:long" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -1756,6 +1765,13 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         URI of the task handler.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="recurrence" type="tns:TaskRecurrenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Recurrence type of this task (may be null - in that case it is guessed from the schedule).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
