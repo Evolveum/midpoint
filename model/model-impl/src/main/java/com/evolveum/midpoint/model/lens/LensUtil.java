@@ -736,8 +736,7 @@ public class LensUtil {
 					repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
 							null, result);
 			} catch (ObjectNotFoundException e) {
-				LOGGER.error("Cannot get system configuration: {}", e.getMessage());
-				// But otherwise go on ... we will return and continue
+				// just go on ... we will return and continue
 				// This is needed e.g. to set up new system configuration is the old one gets deleted
 			}
 			if (systemConfiguration == null) {
