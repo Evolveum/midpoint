@@ -122,10 +122,10 @@ public class ClusterManager {
         public void run() {
             LOGGER.info("ClusterManager thread starting.");
 
-            OperationResult result = new OperationResult(ClusterManagerThread.class + ".run");
-
             long delay = taskManager.getConfiguration().getNodeRegistrationCycleTime() * 1000L;
             while (canRun) {
+
+                OperationResult result = new OperationResult(ClusterManagerThread.class + ".run");
 
                 try {
 
