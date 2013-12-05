@@ -282,30 +282,41 @@ public class LocalNodeManager {
         }
     }
 
-
-
     public NodeExecutionStatusType getLocalNodeExecutionStatus() {
 
         if (taskManager.getLocalNodeErrorStatus() != NodeErrorStatusType.OK) {
             return NodeExecutionStatusType.ERROR;
         } else {
-            Scheduler quartzScheduler = getGlobalExecutionManager().getQuartzScheduler();
-
-            if (quartzScheduler == null) {      // this should not occur if error status is OK
+            Boolean quartzRunning = isQuartzSchedulerRunning();
+            if (quartzRunning == null) {      // this should not occur if error status is OK
                 return NodeExecutionStatusType.COMMUNICATION_ERROR;
+            } else {
+                return quartzRunning ? NodeExecutionStatusType.RUNNING : NodeExecutionStatusType.PAUSED;
             }
-
-            boolean quartzRunning;
-            try {
-                quartzRunning = quartzScheduler.isStarted() && !quartzScheduler.isInStandbyMode() && !quartzScheduler.isShutdown();
-            } catch (SchedulerException e) {
-                LoggingUtils.logException(LOGGER, "Cannot determine Quartz scheduler state", e);
-                return NodeExecutionStatusType.COMMUNICATION_ERROR;
-            }
-            return quartzRunning ? NodeExecutionStatusType.RUNNING : NodeExecutionStatusType.PAUSED;
         }
     }
 
+    private Boolean isQuartzSchedulerRunning() {
+        Scheduler quartzScheduler = getGlobalExecutionManager().getQuartzScheduler();
+        if (quartzScheduler == null) {
+            return null;
+        }
+        try {
+            return quartzScheduler.isStarted() && !quartzScheduler.isInStandbyMode() && !quartzScheduler.isShutdown();
+        } catch (SchedulerException e) {
+            LoggingUtils.logException(LOGGER, "Cannot determine Quartz scheduler state", e);
+            return null;
+        }
+    }
+
+    public boolean isRunning() {
+        Boolean retval = isQuartzSchedulerRunning();
+        if (retval == null) {
+            return false;           // should not occur anyway
+        } else {
+            return retval;
+        }
+    }
 
     /*
     * ==================== STOP TASK METHODS: "soft" and "hard" ====================

@@ -302,11 +302,13 @@ public interface TaskManager {
      * This method removes whole task trees, i.e. not single tasks. A task tree is deleted if the root task is closed
      * (assuming all tasks in the tree are closed) and was closed before at least specified time.
      *
+     *
      * @param closedTasksPolicy specifies which tasks are to be deleted, e.g. how old they have to be
+     * @param task task, within which context the cleanup executes (used to test for interruptions)
      * @param opResult
      * @throws SchemaException
      */
-    void cleanupTasks(CleanupPolicyType closedTasksPolicy, OperationResult opResult) throws SchemaException;
+    void cleanupTasks(CleanupPolicyType closedTasksPolicy, Task task, OperationResult opResult) throws SchemaException;
 
     /**
      * This is a signal to task manager that a new task was created in the repository.
@@ -457,16 +459,16 @@ public interface TaskManager {
     public void switchToBackground(Task task, OperationResult parentResult);
 
     /**
-     * Schedules a RUNNABLE task to be run immediately. (If the task will really start immediately,
+     * Schedules a RUNNABLE task or CLOSED single-run task to be run immediately. (If the task will really start immediately,
      * depends e.g. on whether a scheduler is started, whether there are available threads, and so on.)
      *
      * @param task
      * @param parentResult
      */
-    void scheduleTaskNow(Task task, OperationResult parentResult);
+    void scheduleTaskNow(Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException;
 
     /**
-     * Schedules a RUNNABLE tasks to be run immediately. (If a task will really start immediately,
+     * Schedules a RUNNABLE/CLOSED tasks to be run immediately. (If a task will really start immediately,
      * depends e.g. on whether a scheduler is started, whether there are available threads, and so on.)
      *
      * @param taskOids a collection of OIDs of tasks that have to be scheduled

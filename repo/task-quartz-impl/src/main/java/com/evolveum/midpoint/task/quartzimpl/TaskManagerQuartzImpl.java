@@ -93,7 +93,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     private TaskManagerConfiguration configuration = new TaskManagerConfiguration();
     private ExecutionManager executionManager = new ExecutionManager(this);
     private ClusterManager clusterManager = new ClusterManager(this);
-    
+
     // task handlers (mapped from their URIs)
     private Map<String,TaskHandler> handlers = new HashMap<String, TaskHandler>();
 
@@ -232,6 +232,10 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
      *  ********************* STATE MANAGEMENT *********************
      */
 
+    public boolean isRunning() {
+        return executionManager.isLocalNodeRunning();
+    }
+
     public boolean isInErrorState() {
         return nodeErrorStatus != NodeErrorStatusType.OK;
     }
@@ -318,7 +322,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
                     LoggingUtils.logException(LOGGER, message, e);
                 }
 
-                executionManager.unscheduleTask(task, result);
+                executionManager.pauseTaskJob(task, result);
                 // even if this will not succeed, by setting the execution status to SUSPENDED we hope the task
                 // thread will exit on next iteration (does not apply to single-run tasks, of course)
             }
@@ -1155,8 +1159,21 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     }
 
     @Override
-    public void scheduleTaskNow(Task task, OperationResult parentResult) {
-        executionManager.scheduleTaskNow(task, parentResult);
+    public void scheduleTaskNow(Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+        if (task.isClosed()) {
+            executionManager.reRunClosedTask(task, parentResult);
+        } else if (task.getExecutionStatus() == TaskExecutionStatus.RUNNABLE) {
+            scheduleRunnableTaskNow(task, parentResult);
+        } else {
+            String message = "Task " + task + " cannot be run now, because it is not in RUNNABLE nor CLOSED state.";
+            parentResult.createSubresult(DOT_INTERFACE + "scheduleTaskNow").recordFatalError(message);
+            LOGGER.error(message);
+            return;
+        }
+    }
+
+    public void scheduleRunnableTaskNow(Task task, OperationResult parentResult) {
+        executionManager.scheduleRunnableTaskNow(task, parentResult);
     }
 
     @Override
@@ -1289,7 +1306,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     }
 
     @Override
-    public void cleanupTasks(CleanupPolicyType policy, OperationResult parentResult) throws SchemaException {
+    public void cleanupTasks(CleanupPolicyType policy, Task executionTask, OperationResult parentResult) throws SchemaException {
         OperationResult result = parentResult.createSubresult(CLEANUP_TASKS);
 
         if (policy.getMaxAge() == null) {
@@ -1321,10 +1338,18 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
         LOGGER.debug("Found {} task tree(s) to be cleaned up", obsoleteTasks.size());
 
+        boolean interrupted = false;
         int deleted = 0;
         int problems = 0;
         int bigProblems = 0;
         for (PrismObject<TaskType> rootTaskPrism : obsoleteTasks) {
+
+            if (!executionTask.canRun()) {
+                result.recordPartialError("Interrupted");
+                LOGGER.warn("Task cleanup was interrupted.");
+                interrupted = true;
+                break;
+            }
 
             // get whole tree
             Task rootTask = createTaskInstance(rootTaskPrism, result);
@@ -1358,17 +1383,18 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
                 }
             }
         }
-        result.recomputeStatus();
+        result.computeStatusIfUnknown();
 
-        LOGGER.info("Task cleanup procedure finished. Successfully deleted {} tasks; there were problems with deleting {} tasks.", deleted, problems);
+        LOGGER.info("Task cleanup procedure " + (interrupted ? "was interrupted" : "finished") + ". Successfully deleted {} tasks; there were problems with deleting {} tasks.", deleted, problems);
         if (bigProblems > 0) {
             LOGGER.error("{} subtask(s) couldn't be deleted. Inspect that manually, otherwise they might reside in repo forever.", bigProblems);
         }
+        String suffix = interrupted ? " Interrupted." : "";
         if (problems == 0) {
-            parentResult.createSubresult(CLEANUP_TASKS + ".statistics").recordStatus(OperationResultStatus.SUCCESS, "Successfully deleted " + deleted + " task(s).");
+            parentResult.createSubresult(CLEANUP_TASKS + ".statistics").recordStatus(OperationResultStatus.SUCCESS, "Successfully deleted " + deleted + " task(s)." + suffix);
         } else {
             parentResult.createSubresult(CLEANUP_TASKS + ".statistics").recordPartialError("Successfully deleted " + deleted + " task(s), "
-                    + "there was problems with deleting " + problems + " tasks."
+                    + "there was problems with deleting " + problems + " tasks." + suffix
                     + (bigProblems > 0 ? (" " + bigProblems + " subtask(s) couldn't be deleted, please see the log.") : ""));
         }
 

@@ -333,16 +333,11 @@ public class ContextLoader {
 	
 	private <F extends ObjectType, P extends ObjectType> void loadFromSystemConfig(LensContext<F,P> context, OperationResult result)
 			throws ObjectNotFoundException, SchemaException {
-		PrismObject<SystemConfigurationType> systemConfiguration = 
-			cacheRepositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
-					null, result);
+		PrismObject<SystemConfigurationType> systemConfiguration = LensUtil.getSystemConfiguration(context, cacheRepositoryService, result);
 		if (systemConfiguration == null) {
-		    // throw new SystemException("System configuration object is null (should not happen!)");
-		    // This should not happen, but it happens in tests. And it is a convenient short cut. Tolerate it for now.
-		    LOGGER.warn("System configuration object is null (should not happen!)");
-		    return;
+			// This happens in some tests
+			return;
 		}
-		
 		SystemConfigurationType systemConfigurationType = systemConfiguration.asObjectable();
 		
 		if (context.getUserTemplate() == null) {

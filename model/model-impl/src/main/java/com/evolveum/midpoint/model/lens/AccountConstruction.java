@@ -46,6 +46,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -229,10 +230,10 @@ public class AccountConstruction implements DebugDumpable, Dumpable, Serializabl
 		return resource;
 	}
 	
-	public void evaluate(OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+	public void evaluate(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		evaluateAccountType(result);
 		computeVariables(result);
-		evaluateAttributes(result);
+		evaluateAttributes(task, result);
 	}
 	
 	private void evaluateAccountType(OperationResult result) throws SchemaException, ObjectNotFoundException {
@@ -318,7 +319,7 @@ public class AccountConstruction implements DebugDumpable, Dumpable, Serializabl
 		}
 	}
 
-	private void evaluateAttributes(OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+	private void evaluateAttributes(Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		attributeMappings = new ArrayList<Mapping<? extends PrismPropertyValue<?>>>();
 //		LOGGER.trace("Assignments used for account construction for {} ({}): {}", new Object[]{this.resource,
 //				assignments.size(), assignments});
@@ -334,7 +335,7 @@ public class AccountConstruction implements DebugDumpable, Dumpable, Serializabl
 			if (outboundMappingType == null) {
 				throw new SchemaException("No outbound section in definition of attribute "+attrName+" in account construction in "+source);
 			}
-			Mapping<? extends PrismPropertyValue<?>> attributeMapping = evaluateAttribute(attribudeDefinitionType, result);
+			Mapping<? extends PrismPropertyValue<?>> attributeMapping = evaluateAttribute(attribudeDefinitionType, task, result);
 			if (attributeMapping != null) {
 				attributeMappings.add(attributeMapping);
 			}
@@ -342,7 +343,7 @@ public class AccountConstruction implements DebugDumpable, Dumpable, Serializabl
 	}
 
 	private Mapping<? extends PrismPropertyValue<?>> evaluateAttribute(ResourceAttributeDefinitionType attribudeDefinitionType,
-			OperationResult result) 
+			Task task, OperationResult result) 
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		QName attrName = attribudeDefinitionType.getRef();
 		if (attrName == null) {
@@ -393,7 +394,7 @@ public class AccountConstruction implements DebugDumpable, Dumpable, Serializabl
 			mapping.setConditionMaskNew(false);
 		}
 
-		LensUtil.evaluateMapping(mapping, lensContext, result);
+		LensUtil.evaluateMapping(mapping, lensContext, task, result);
 		
 		LOGGER.trace("Evaluated mapping for "+attrName+": "+mapping);
 		return mapping;

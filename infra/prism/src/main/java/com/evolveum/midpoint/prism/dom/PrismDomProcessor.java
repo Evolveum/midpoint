@@ -597,12 +597,7 @@ public class PrismDomProcessor {
 		if (realValue == null) {
 			return;
 		}
-		if (realValue instanceof PolyString) {
-			PolyString polyString = (PolyString) realValue;
-			if (!polyString.isComputed()) {
-				polyString.recompute(getPrismContext().getDefaultPolyStringNormalizer());
-			}
-		}
+		PrismUtil.recomputeRealValue(realValue, getPrismContext());
 	}
 
 	/**

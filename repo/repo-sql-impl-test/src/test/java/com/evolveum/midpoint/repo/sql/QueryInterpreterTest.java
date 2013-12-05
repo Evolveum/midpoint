@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;

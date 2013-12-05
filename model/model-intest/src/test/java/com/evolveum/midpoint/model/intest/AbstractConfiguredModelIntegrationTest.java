@@ -61,7 +61,7 @@ import javax.xml.namespace.QName;
  */
 public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegrationTest {
 			
-	public static final String SYSTEM_CONFIGURATION_FILENAME = COMMON_DIR_NAME + "/system-configuration.xml";
+	public static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR_NAME, "system-configuration.xml");
 	public static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
 	
 	protected static final String USER_ADMINISTRATOR_FILENAME = COMMON_DIR_NAME + "/user-administrator.xml";
@@ -313,7 +313,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 		
 		// System Configuration
 		try {
-			repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILENAME, SystemConfigurationType.class, initResult);
+			repoAddObjectFromFile(getSystemConfigurationFile(), SystemConfigurationType.class, initResult);
 		} catch (ObjectAlreadyExistsException e) {
 			throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
 					"looks like the previous test haven't cleaned it up", e);
@@ -325,6 +325,10 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 		
 	}
     	
+	protected File getSystemConfigurationFile() {
+		return SYSTEM_CONFIGURATION_FILE;
+	}
+
 	protected Task createTask(String operationName) {
 		Task task = taskManager.createTaskInstance(operationName);
 		task.setOwner(userAdministrator);

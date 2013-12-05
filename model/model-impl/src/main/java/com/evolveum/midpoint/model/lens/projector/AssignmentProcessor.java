@@ -51,6 +51,7 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -123,7 +124,8 @@ public class AssignmentProcessor {
      * Processing all the assignments to determine which projections should be added, deleted or kept as they are.
      * Generic method for all projection types (theoretically). 
      */
-    public <F extends ObjectType, P extends ObjectType> void processAssignmentsProjections(LensContext<F,P> context, OperationResult result) throws SchemaException,
+    public <F extends ObjectType, P extends ObjectType> void processAssignmentsProjections(LensContext<F,P> context, 
+    		Task task, OperationResult result) throws SchemaException,
             ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
     	LensFocusContext<F> focusContext = context.getFocusContext();
     	if (focusContext == null) {
@@ -133,13 +135,13 @@ public class AssignmentProcessor {
     		// We can do this only for user.
     		return;
     	}
-    	processAssignmentsAccounts((LensContext<UserType,ShadowType>) context, result);
+    	processAssignmentsAccounts((LensContext<UserType,ShadowType>) context, task, result);
     }
     
     /**
      * Processing user-account assignments (including roles). Specific user-account method.
      */
-    public void processAssignmentsAccounts(LensContext<UserType,ShadowType> context, OperationResult result) throws SchemaException,
+    public void processAssignmentsAccounts(LensContext<UserType,ShadowType> context, Task task, OperationResult result) throws SchemaException,
     		ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
     	
     	LensFocusContext<UserType> focusContext = context.getFocusContext();
@@ -237,7 +239,7 @@ public class AssignmentProcessor {
             
             Assignment evaluatedAssignment = null;
             try{
-            	evaluatedAssignment = assignmentEvaluator.evaluate(assignmentType, source, assignmentPlacementDesc, result);
+            	evaluatedAssignment = assignmentEvaluator.evaluate(assignmentType, source, assignmentPlacementDesc, task, result);
             } catch (ObjectNotFoundException ex){
             	if (ModelExecuteOptions.isForce(context.getOptions())){
             		continue;
@@ -607,7 +609,7 @@ public class AssignmentProcessor {
 	}
 
 	private <F extends ObjectType, P extends ObjectType, T extends ObjectType> void createAssignmentDelta(LensContext<F, P> context, LensProjectionContext<T> accountContext) throws SchemaException{
-		ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(prismContext, UserType.class, UserType.F_ASSIGNMENT);
+		ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(UserType.F_ASSIGNMENT, UserType.class, prismContext);
 		AssignmentType assignmet = new AssignmentType();
 		ConstructionType constructionType = new ConstructionType();
 		constructionType.setResourceRef(ObjectTypeUtil.createObjectRef(accountContext.getResource()));

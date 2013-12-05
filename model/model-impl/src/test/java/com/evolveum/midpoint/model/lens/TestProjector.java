@@ -241,7 +241,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         
         // WHEN
         TestUtil.displayWhen(TEST_NAME);
-        projector.project(context, "test", result);
+        projector.project(context, "test", task, result);
         
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -303,7 +303,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         rememberShadowFetchOperationCount();
         
         // WHEN
-        projector.project(context, "test", result);
+        projector.project(context, "test", task, result);
         
         // THEN
         assertAssignAccountToJack(context);
@@ -335,7 +335,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         rememberShadowFetchOperationCount();
         
         // WHEN
-        projector.project(context, "test", result);
+        projector.project(context, "test", task, result);
         
         // THEN
         assertAssignAccountToJack(context);
@@ -396,7 +396,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         assertUserModificationSanity(context);
 
         // WHEN
-        projector.project(context, "test", result);
+        projector.project(context, "test", task, result);
         
         // THEN
         display("Output context", context);
@@ -448,7 +448,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         assertUserModificationSanity(context);
 
         // WHEN
-        projector.project(context, "test", result);
+        projector.project(context, "test", task, result);
         
         // THEN
         display("Output context", context);
@@ -502,7 +502,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         assertUserModificationSanity(context);
 
         // WHEN
-        projector.project(context, "test", result);
+        projector.project(context, "test", task, result);
         
         // THEN
         display("Output context", context);
@@ -566,7 +566,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         assertUserModificationSanity(context);
 
         // WHEN
-        projector.project(context, "test", result);
+        projector.project(context, "test", task, result);
         
         // THEN
         display("Output context", context);
@@ -622,7 +622,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
 
         try {
 	        // WHEN
-	        projector.project(context, "test", result);
+	        projector.project(context, "test", task, result);
 	        
 	        AssertJUnit.fail("Unexpected success of projector");
         } catch (PolicyViolationException e) {
@@ -661,7 +661,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         assertUserModificationSanity(context);
 
         // WHEN
-        projector.project(context, "test", result);
+        projector.project(context, "test", task, result);
         
         // THEN
         display("Output context", context);
@@ -722,7 +722,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         try {
         	
             // WHEN        	
-        	projector.project(context, "test", result);
+        	projector.project(context, "test", task, result);
 
             // THEN: fail
         	display("Output context", context);
@@ -760,7 +760,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         assertUserModificationSanity(context);
         
         // WHEN
-        projector.project(context, "test", result);
+        projector.project(context, "test", task, result);
         
         // THEN
         display("Output context", context);
@@ -809,7 +809,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         assertUserModificationSanity(context);
 
         // WHEN
-        projector.project(context, "test", result);
+        projector.project(context, "test", task, result);
         
         // THEN
         display("Output context", context);
@@ -867,7 +867,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         assertUserModificationSanity(context);
 
         // WHEN
-        projector.project(context, "test", result);
+        projector.project(context, "test", task, result);
         
         // THEN
         display("Output context", context);
@@ -912,7 +912,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         assertUserModificationSanity(context);
 
         // WHEN
-        projector.project(context, "test", result);
+        projector.project(context, "test", task, result);
         
         // THEN
         display("Output context", context);
@@ -974,7 +974,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         assertUserModificationSanity(context);
 
         // WHEN
-        projector.project(context, "test", result);
+        projector.project(context, "test", task, result);
         
         // THEN
         display("Output context", context);
@@ -1017,7 +1017,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         assertUserModificationSanity(context);
 
         // WHEN
-        projector.project(context, "test", result);
+        projector.project(context, "test", task, result);
         
         // THEN
         display("Output context", context);
@@ -1073,7 +1073,7 @@ public class TestProjector extends AbstractInternalModelIntegrationTest {
         assertUserModificationSanity(context);
 
         // WHEN
-        projector.project(context, "test", result);
+        projector.project(context, "test", task, result);
         
         // THEN
         display("Output context", context);

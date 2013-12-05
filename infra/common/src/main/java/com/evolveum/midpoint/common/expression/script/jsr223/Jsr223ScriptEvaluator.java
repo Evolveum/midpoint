@@ -125,6 +125,11 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 			throw new ExpressionEvaluationException(e.getMessage() + " " + contextDescription, e);
 		}
 		
+		if (outputDefinition == null) {
+			// No outputDefinition means "void" return type, we can return right now
+			return null;
+		}
+		
 		QName xsdReturnType = outputDefinition.getTypeName();
 		
 		Class<T> javaReturnType = XsdTypeMapper.toJavaType(xsdReturnType);

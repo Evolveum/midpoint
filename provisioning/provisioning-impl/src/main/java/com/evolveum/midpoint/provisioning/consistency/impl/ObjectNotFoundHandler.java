@@ -28,7 +28,6 @@ import org.springframework.stereotype.Component;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -297,20 +296,4 @@ public class ObjectNotFoundHandler extends ErrorHandler {
 		return;
 	}
 
-	private QueryType createQueryByIcfName(ShadowType shadow) throws SchemaException {
-		// TODO: error handling
-		Document doc = DOMUtil.getDocument();
-		XPathHolder holder = ObjectTypeUtil.createXPathHolder(SchemaConstants.C_ATTRIBUTES);
-		PrismProperty nameProperty = shadow.getAttributes().asPrismContainerValue()
-				.findProperty(new QName(SchemaConstants.NS_ICF_SCHEMA, "name"));
-		Element nameFilter = QueryUtil.createEqualFilter(doc, holder, nameProperty.getName(), (String) nameProperty
-				.getValue().getValue());
-		Element resourceFilter = QueryUtil.createEqualRefFilter(doc, null, ShadowType.F_RESOURCE_REF,
-				shadow.getResourceRef().getOid());
-		Element objectClassFilter = QueryUtil.createEqualFilter(doc, null, ShadowType.F_OBJECT_CLASS,
-				shadow.getObjectClass());
-		Element filter = QueryUtil
-				.createAndFilter(doc, new Element[] { nameFilter, resourceFilter, objectClassFilter });
-		return QueryUtil.createQuery(filter);
-	}
 }
