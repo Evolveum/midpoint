@@ -1127,7 +1127,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
         assertFalse(task.getLastRunStartTimestamp().longValue() == 0);
         AssertJUnit.assertNull(task.getLastRunFinishTimestamp());
-        AssertJUnit.assertTrue("There should be no progress reported", task.getProgress() == 0);
+        AssertJUnit.assertEquals("There should be no progress reported", 0, task.getProgress());
 
         // now let us wait for the finish
 
