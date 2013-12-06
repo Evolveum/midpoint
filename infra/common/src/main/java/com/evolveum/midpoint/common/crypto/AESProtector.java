@@ -137,8 +137,7 @@ public class AESProtector implements Protector {
             for (TrustManager trustManager : tmFactory.getTrustManagers()) {
                 trustManagers.add(trustManager);
             }
-
-
+            
         } catch (Exception ex) {
             LOGGER.error("Unable to work with keystore {}, reason {}.",
                     new Object[]{getKeyStorePath(), ex.getMessage()}, ex);
@@ -285,8 +284,15 @@ public class AESProtector implements Protector {
                 }
             }
 
+            String xmlCipherAlgorithm = null;
+            if (encrypted.getEncryptionMethod() != null){
+            	xmlCipherAlgorithm = encrypted.getEncryptionMethod().getAlgorithm();
+            	if (xmlCipherAlgorithm == null){
+            		xmlCipherAlgorithm = getXmlCipher();
+            	}
+            }
             SecretKey secret = getSecretKeyByDigest(digest);
-            XMLCipher xmlCipher = XMLCipher.getInstance(getXmlCipher());
+            XMLCipher xmlCipher = XMLCipher.getInstance(xmlCipherAlgorithm);
             xmlCipher.init(XMLCipher.DECRYPT_MODE, secret);
 
             document = DOMUtil.getDocument();
