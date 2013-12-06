@@ -335,7 +335,7 @@ public class ContextLoader {
 			throws ObjectNotFoundException, SchemaException {
 		PrismObject<SystemConfigurationType> systemConfiguration = LensUtil.getSystemConfiguration(context, cacheRepositoryService, result);
 		if (systemConfiguration == null) {
-			// This happens in some tests
+			// This happens in some tests. And also during first startup.
 			return;
 		}
 		SystemConfigurationType systemConfigurationType = systemConfiguration.asObjectable();

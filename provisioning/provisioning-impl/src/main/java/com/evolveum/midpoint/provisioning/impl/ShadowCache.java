@@ -1002,7 +1002,7 @@ public abstract class ShadowCache {
 	}
 	
 	@SuppressWarnings("rawtypes")
-	boolean processSynchronization(Change<ShadowType> change, Task task, ResourceType resourceType, OperationResult result) throws SchemaException, ObjectNotFoundException,
+	boolean processSynchronization(Change<ShadowType> change, Task task, ResourceType resourceType, String channel, OperationResult result) throws SchemaException, ObjectNotFoundException,
 			ObjectAlreadyExistsException {
 //		int processedChanges = 0;
 //		// for each change from the connector create change description
@@ -1023,7 +1023,7 @@ public abstract class ShadowCache {
 //			}
 
 			ResourceObjectShadowChangeDescription shadowChangeDescription = createResourceShadowChangeDescription(
-					change, resourceType);
+					change, resourceType, channel);
 
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("**PROVISIONING: Created resource object shadow change description {}",
@@ -1078,13 +1078,17 @@ public abstract class ShadowCache {
 
 	@SuppressWarnings("unchecked")
 	private ResourceObjectShadowChangeDescription createResourceShadowChangeDescription(Change<ShadowType> change,
-			ResourceType resourceType) {
+			ResourceType resourceType, String channel) {
 		ResourceObjectShadowChangeDescription shadowChangeDescription = new ResourceObjectShadowChangeDescription();
 		shadowChangeDescription.setObjectDelta(change.getObjectDelta());
 		shadowChangeDescription.setResource(resourceType.asPrismObject());
 		shadowChangeDescription.setOldShadow(change.getOldShadow());
 		shadowChangeDescription.setCurrentShadow(change.getCurrentShadow());
+		if (null == channel){
 		shadowChangeDescription.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC));
+		} else{
+			shadowChangeDescription.setSourceChannel(channel);
+		}
 		return shadowChangeDescription;
 	}
 	

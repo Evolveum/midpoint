@@ -3663,28 +3663,39 @@ public class TestSanity extends AbstractModelIntegrationTest {
     	delta.setChangeType(ChangeTypeType.MODIFY);
     	delta.setObjectType(ShadowType.COMPLEX_TYPE);
     	
-    	ItemDeltaType mod1 = new ItemDeltaType();
-    	mod1.setModificationType(ModificationTypeType.REPLACE);
-    	XPathHolder xpath = new XPathHolder(SchemaConstants.PATH_PASSWORD);
-    	Element path = xpath.toElement(SchemaConstantsGenerated.NS_TYPES, "path");
-    	mod1.setPath(path);
+    	
+    	Document doc = DOMUtil.getDocument();
+        ItemDeltaType passwordDelta = new ItemDeltaType();
+        passwordDelta.setModificationType(ModificationTypeType.REPLACE);
+        passwordDelta.setPath(ModelClientUtil.createPathElement("credentials/password", doc));
+        ItemDeltaType.Value passwordValue = new ItemDeltaType.Value();
+        passwordValue.getAny().add(ModelClientUtil.toJaxbElement(ModelClientUtil.COMMON_VALUE, ModelClientUtil.createProtectedString(newPassword)));
+        passwordDelta.setValue(passwordValue);
+    	
+//    	ItemDeltaType mod1 = new ItemDeltaType();
+//    	mod1.setModificationType(ModificationTypeType.REPLACE);
+//    	ModelClientUtil.createProtectedString(clearValue)
+//    	XPathHolder xpath = new XPathHolder(SchemaConstants.PATH_PASSWORD);
+//    	Element path = xpath.toElement(SchemaConstantsGenerated.NS_TYPES, "path");
+//    	mod1.setPath(path);
     	
 //    	String newPassword = "newPassword";
-    	ItemDeltaType.Value value = new ItemDeltaType.Value();
-    	Document doc = DOMUtil.getDocument();
-    	Element el = DOMUtil.createElement(doc, SchemaConstantsGenerated.C_VALUE);
-    	Element passwdEl = DOMUtil.createElement(doc, new QName(SchemaConstants.NS_C, "clearValue"));
-    	passwdEl.setTextContent(newPassword);
-    	el.appendChild(passwdEl);
-        value.getAny().add(el);
-        mod1.setValue(value);
+//    	ItemDeltaType.Value value = new ItemDeltaType.Value();
+//    	Document doc = DOMUtil.getDocument();
+//    	Element el = DOMUtil.createElement(doc, SchemaConstantsGenerated.C_VALUE);
+//    	Element passwdEl = DOMUtil.createElement(doc, new QName(SchemaConstants.NS_C, "clearValue"));
+//    	passwdEl.setTextContent(newPassword);
+//    	el.appendChild(passwdEl);
+//        value.getAny().add(el);
+//        mod1.setValue(value);
     	
-    	delta.getModification().add(mod1);
+//    	delta.getModification().add(mod1);
+        delta.getModification().add(passwordDelta);
     	delta.setOid(oid);
     	
-    	LOGGER.info("item delta: {}", SchemaDebugUtil.prettyPrint(mod1));
+    	LOGGER.info("item delta: {}", SchemaDebugUtil.prettyPrint(passwordDelta));
     	
-    	LOGGER.info("delta: {}", DebugUtil.dump(mod1));
+    	LOGGER.info("delta: {}", DebugUtil.dump(passwordDelta));
     	
     	changeDescription.setObjectDelta(delta);
     	

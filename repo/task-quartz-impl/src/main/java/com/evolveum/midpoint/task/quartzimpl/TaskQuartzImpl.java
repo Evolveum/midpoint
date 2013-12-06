@@ -619,6 +619,7 @@ public class TaskQuartzImpl implements Task {
 
             UriStackEntry use = new UriStackEntry();
             use.setHandlerUri(getHandlerUri());
+            use.setRecurrence(getRecurrenceStatus().toTaskType());
             use.setSchedule(getSchedule());
             use.setBinding(getBinding().toTaskType());
             if (extensionDeltas != null) {
@@ -704,7 +705,7 @@ public class TaskQuartzImpl implements Task {
 		if (otherHandlersUriStack != null && !otherHandlersUriStack.getUriStackEntry().isEmpty()) {
             UriStackEntry use = popFromOtherHandlersUriStack();
 			setHandlerUri(use.getHandlerUri());
-            setRecurrenceStatus(recurrenceFromSchedule(use.getSchedule()));
+            setRecurrenceStatus(use.getRecurrence() != null ? TaskRecurrence.fromTaskType(use.getRecurrence()) : recurrenceFromSchedule(use.getSchedule()));
             setSchedule(use.getSchedule());
             if (use.getBinding() != null) {
                 setBinding(TaskBinding.fromTaskType(use.getBinding()));

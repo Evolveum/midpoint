@@ -239,7 +239,7 @@ public class ChangeExecutor {
 						subResult.recordNotApplicableIfUnknown();
 						continue;
 						
-					} else if (accDelta.isDelete() && accCtx.getResourceShadowDiscriminator().getOrder() > 0) {
+					} else if (accDelta.isDelete() && accCtx.getResourceShadowDiscriminator() != null && accCtx.getResourceShadowDiscriminator().getOrder() > 0) {
 						// HACK ... for higher-order context check if this was already deleted
 						LensProjectionContext<P> lowerOrderContext = LensUtil.findLowerOrderContext(syncContext, accCtx);
 						if (lowerOrderContext != null && lowerOrderContext.isDelete()) {

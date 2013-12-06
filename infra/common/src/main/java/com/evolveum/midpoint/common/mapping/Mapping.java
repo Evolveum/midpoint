@@ -381,6 +381,10 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 	}
 	
 	public boolean isApplicableToChannel(String channelUri) {
+		List<String> exceptChannel = mappingType.getExceptChannel();
+		if (exceptChannel != null &&  !exceptChannel.isEmpty()){
+			return !exceptChannel.contains(channelUri);
+		}
 		List<String> applicableChannels = mappingType.getChannel();
 		if (applicableChannels == null || applicableChannels.isEmpty()) {
 			return true;
