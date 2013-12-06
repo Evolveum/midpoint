@@ -100,7 +100,7 @@ public class InboundProcessor {
     @Autowired(required = true)
     private MappingEvaluationHelper mappingEvaluatorHelper;
 
-    <F extends ObjectType, P extends ObjectType> void processInbound(LensContext<F,P> context, Task task, XMLGregorianCalendar now, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+    <F extends ObjectType, P extends ObjectType> void processInbound(LensContext<F,P> context, XMLGregorianCalendar now, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
     	LensFocusContext<F> focusContext = context.getFocusContext();
     	if (focusContext == null) {
     		LOGGER.trace("Skipping inbound processing because focus is null");
@@ -636,7 +636,7 @@ public class InboundProcessor {
         };
         
         MutableBoolean strongMappingWasUsed = new MutableBoolean();
-        PrismValueDeltaSetTriple<PrismPropertyValue> outputTriple = mappingEvaluatorHelper.evaluateMappingSetProjection(inboundMappingTypes, "inbound mapping for "+sourcePath+" in "+accContext.getResource(), now, initializer, property, primaryPropDelta, newUser, true, strongMappingWasUsed, context, accContext, opResult);
+        PrismValueDeltaSetTriple<PrismPropertyValue> outputTriple = mappingEvaluatorHelper.evaluateMappingSetProjection(inboundMappingTypes, "inbound mapping for "+sourcePath+" in "+accContext.getResource(), now, initializer, property, primaryPropDelta, newUser, true, strongMappingWasUsed, context, accContext, task, opResult);
 		
 //        for (Mapping mapping : mappings){
 //        

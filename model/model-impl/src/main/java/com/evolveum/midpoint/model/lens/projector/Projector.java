@@ -154,7 +154,7 @@ public class Projector {
 	        	
 	        	if (consistencyChecks) context.checkConsistence();
 		        // Loop through the account changes, apply inbound expressions
-		        inboundProcessor.processInbound(context, task, now, result);
+		        inboundProcessor.processInbound(context, now, task, result);
 		        if (consistencyChecks) context.checkConsistence();
 		        context.recomputeFocus();
 		        LensUtil.traceContext(LOGGER, activityDescription, "inbound", false, context, false);
