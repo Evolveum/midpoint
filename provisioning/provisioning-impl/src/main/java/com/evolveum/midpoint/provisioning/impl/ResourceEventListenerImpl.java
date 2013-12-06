@@ -137,7 +137,7 @@ public class ResourceEventListenerImpl implements ResourceEventListener{
 		shadowCache.processChange(resource, null, shadowType.getObjectClass(), parentResult, change, connector);
 		
 		LOGGER.trace("Change after processing {} . Start synchronizing.", change.toString());
-		shadowCache.processSynchronization(change, task, resource, parentResult);
+		shadowCache.processSynchronization(change, task, resource, eventDescription.getSourceChannel(), parentResult);
 	
 	}
 
