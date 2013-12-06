@@ -17,11 +17,15 @@
 package com.evolveum.midpoint.web.page.admin.users;
 
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -31,6 +35,7 @@ import com.evolveum.midpoint.web.component.form.*;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.PrismPropertyModel;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
@@ -42,10 +47,14 @@ import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.util.string.StringValue;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -79,6 +88,7 @@ public class PageOrgUnit extends PageAdminUsers {
     private static final String ID_SAVE = "save";
 
     private IModel<PrismObject<OrgType>> orgModel;
+    private IModel<List<PrismPropertyValue>> orgTypeModel;
 
     public PageOrgUnit() {
         this(null);
@@ -90,6 +100,24 @@ public class PageOrgUnit extends PageAdminUsers {
             @Override
             protected PrismObject<OrgType> load() {
                 return loadOrgUnit(unitToEdit);
+            }
+        };
+
+        orgTypeModel = new LoadableModel<List<PrismPropertyValue>>(false) {
+
+            @Override
+            protected List<PrismPropertyValue> load() {
+                List<PrismPropertyValue> values = new ArrayList<PrismPropertyValue>();
+
+                PrismObject<OrgType> org = orgModel.getObject();
+                PrismProperty orgType = org.findProperty(OrgType.F_ORG_TYPE);
+                if (orgType == null || orgType.isEmpty()) {
+                    values.add(new PrismPropertyValue(null, OriginType.USER_ACTION, null));
+                } else {
+                    values.addAll(orgType.getValues());
+                }
+
+                return values;
             }
         };
 
@@ -159,9 +187,19 @@ public class PageOrgUnit extends PageAdminUsers {
         form.add(validTo);
 
         //todo not finished [lazyman]
-        MultiValueTextFormGroup orgType = new MultiValueTextFormGroup(ID_ORG_TYPE,
-                new PrismPropertyModel(orgModel, OrgType.F_ORG_TYPE, true),
-                createStringResource("OrgType.orgType"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+        MultiValueTextFormGroup orgType = new MultiValueTextFormGroup(ID_ORG_TYPE, orgTypeModel,
+                createStringResource("OrgType.orgType"), ID_LABEL_SIZE, ID_INPUT_SIZE, false) {
+
+            @Override
+            protected IModel<String> createTextModel(IModel model) {
+                return new PropertyModel<String>(model, "value");
+            }
+
+            @Override
+            protected Serializable createNewEmptyItem() {
+                return new PrismPropertyValue(null, OriginType.USER_ACTION, null);
+            }
+        };
         form.add(orgType);
 
         initButtons(form);
@@ -202,35 +240,51 @@ public class PageOrgUnit extends PageAdminUsers {
 
     }
 
+    private PrismObject<OrgType> buildUnitFromModel() throws SchemaException {
+        PrismObject<OrgType> org = orgModel.getObject();
+
+        //update orgType values
+        List<PrismPropertyValue> orgTypes = orgTypeModel.getObject();
+        PrismProperty orgType = org.findOrCreateProperty(OrgType.F_ORG_TYPE);
+        orgType.clear();
+
+        for (PrismPropertyValue type : orgTypes) {
+            if (StringUtils.isNotEmpty((String) type.getValue())) {
+                orgType.addValue(type);
+            }
+        }
+
+        //todo update parentOrgRefs
+
+        return org;
+    }
+
     private void savePerformed(AjaxRequestTarget target) {
         OperationResult result = new OperationResult(SAVE_UNIT);
         try {
             ModelService model = getModelService();
-            ObjectDelta delta;
+
+            PrismObject<OrgType> newOrgUnit = buildUnitFromModel();
+
+            ObjectDelta delta = null;
             if (!isEditing()) {
-                delta = ObjectDelta.createAddDelta(orgModel.getObject());
+                delta = ObjectDelta.createAddDelta(newOrgUnit);
             } else {
-                PrismObject<OrgType> newOrgUnit = orgModel.getObject();
-                PrismObject<OrgType> oldOrgUnit;
-
-                OperationResult subResult = result.createSubresult(LOAD_UNIT);
-                try {
-                    oldOrgUnit = getModelService().getObject(OrgType.class, newOrgUnit.getOid(), null,
-                            createSimpleTask(LOAD_UNIT), subResult);
-                } finally {
-                    subResult.computeStatus();
+                PrismObject<OrgType> oldOrgUnit = WebModelUtils.loadObject(OrgType.class, newOrgUnit.getOid(), result, this);
+                if (oldOrgUnit != null) {
+                    delta = oldOrgUnit.diff(newOrgUnit);
                 }
-
-                delta = oldOrgUnit.diff(newOrgUnit);
             }
 
-            Collection<ObjectDelta<? extends ObjectType>> deltas = WebMiscUtil.createDeltaCollection(delta);
-            model.executeChanges(deltas, null, createSimpleTask(SAVE_UNIT), result);
+            if (delta != null) {
+                Collection<ObjectDelta<? extends ObjectType>> deltas = WebMiscUtil.createDeltaCollection(delta);
+                model.executeChanges(deltas, null, createSimpleTask(SAVE_UNIT), result);
+            }
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't save org. unit", ex);
             result.recordFatalError("Couldn't save org. unit.", ex);
         } finally {
-            result.computeStatus();
+            result.computeStatusIfUnknown();
         }
 
         if (WebMiscUtil.isSuccessOrHandledError(result)) {

@@ -43,28 +43,16 @@ public class PrismPropertyModel<T extends ObjectType> implements IModel {
     private IModel<PrismObject<T>> model;
     private ItemPath path;
 
-    private boolean multivalue;
-    private PrismPropertyList values;
-
     public PrismPropertyModel(IModel<PrismObject<T>> model, QName item) {
-        this(model, new ItemPath(item), false);
+        this(model, new ItemPath(item));
     }
 
     public PrismPropertyModel(IModel<PrismObject<T>> model, ItemPath path) {
-        this(model, path, false);
-    }
-
-    public PrismPropertyModel(IModel<PrismObject<T>> model, QName item, boolean multivalue) {
-        this(model, new ItemPath(item), multivalue);
-    }
-
-    public PrismPropertyModel(IModel<PrismObject<T>> model, ItemPath path, boolean multivalue) {
         Validate.notNull(model, "Prism object model must not be null.");
         Validate.notNull(path, "Item path must not be null.");
 
         this.model = model;
         this.path = path;
-        this.multivalue = multivalue;
     }
 
     @Override
@@ -77,13 +65,6 @@ public class PrismPropertyModel<T extends ObjectType> implements IModel {
             LoggingUtils.logException(LOGGER, "Couldn't create property in path {}", ex, path);
             //todo show message in page error [lazyman]
             throw new RestartResponseException(PageError.class);
-        }
-
-        if (multivalue) {
-            if (values == null) {
-                values = new PrismPropertyList(property);
-            }
-            return values;
         }
 
         return getRealValue(property != null ? property.getRealValue() : null);

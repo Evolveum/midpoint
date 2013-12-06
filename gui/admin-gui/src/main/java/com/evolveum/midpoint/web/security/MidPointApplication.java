@@ -143,20 +143,6 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
         eventBus = new EventBus(this);
         eventBus.getParameters().setLogLevel(AtmosphereLogLevel.DEBUG);
-
-//        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-//        final Runnable beeper = new Runnable() {
-//
-//            @Override
-//            public void run() {
-//                try {
-//                    eventBus.post(new Date());
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        };
-//        scheduler.scheduleWithFixedDelay(beeper, 2, 2, TimeUnit.SECONDS);
     }
 
     private void mountFiles(String path, Class<?> clazz) {
