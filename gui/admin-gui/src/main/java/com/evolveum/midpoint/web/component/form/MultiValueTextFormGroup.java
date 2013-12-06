@@ -51,6 +51,9 @@ public class MultiValueTextFormGroup<T extends Serializable> extends SimplePanel
     private static final String ID_REPEATER = "repeater";
     private static final String ID_ADD = "add";
     private static final String ID_REMOVE = "remove";
+    private static final String ID_BUTTON_GROUP = "buttonGroup";
+
+    private static final String CLASS_MULTI_VALUE = "multivalue-form";
 
     public MultiValueTextFormGroup(String id, IModel<List<T>> value, IModel<String> label, String labelSize,
                                    String textSize, boolean required) {
@@ -81,8 +84,9 @@ public class MultiValueTextFormGroup<T extends Serializable> extends SimplePanel
                         if (StringUtils.isNotEmpty(textSize)) {
                             sb.append(textSize).append(' ');
                         }
-                        if (item.getIndex() > 0 && StringUtils.isNotEmpty(labelSize)) {
-                            sb.append(getOffsetClass());
+                        if (item.getIndex() > 0 && StringUtils.isNotEmpty(getOffsetClass())) {
+                            sb.append(getOffsetClass()).append(' ');
+                            sb.append(CLASS_MULTI_VALUE);
                         }
 
                         return sb.toString();
@@ -104,7 +108,21 @@ public class MultiValueTextFormGroup<T extends Serializable> extends SimplePanel
                 FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK, new ComponentFeedbackMessageFilter(text));
                 textWrapper.add(feedback);
 
-                initButtons(item);
+                WebMarkupContainer buttonGroup = new WebMarkupContainer(ID_BUTTON_GROUP);
+                buttonGroup.add(AttributeAppender.append("class", new AbstractReadOnlyModel<String>() {
+
+                    @Override
+                    public String getObject() {
+                        if (item.getIndex() > 0 && StringUtils.isNotEmpty(labelSize)) {
+                            return CLASS_MULTI_VALUE;
+                        }
+
+                        return null;
+                    }
+                }));
+                item.add(buttonGroup);
+
+                initButtons(buttonGroup, item);
             }
         };
         add(repeater);
@@ -136,7 +154,7 @@ public class MultiValueTextFormGroup<T extends Serializable> extends SimplePanel
         };
     }
 
-    private void initButtons(final ListItem<T> item) {
+    private void initButtons(WebMarkupContainer buttonGroup, final ListItem<T> item) {
         AjaxLink add = new AjaxLink(ID_ADD) {
 
             @Override
@@ -151,7 +169,7 @@ public class MultiValueTextFormGroup<T extends Serializable> extends SimplePanel
                 return isAddButtonVisible(item);
             }
         });
-        item.add(add);
+        buttonGroup.add(add);
 
         AjaxLink remove = new AjaxLink(ID_REMOVE) {
 
@@ -167,7 +185,7 @@ public class MultiValueTextFormGroup<T extends Serializable> extends SimplePanel
                 return isRemoveButtonVisible(item);
             }
         });
-        item.add(remove);
+        buttonGroup.add(remove);
     }
 
     protected boolean isAddButtonVisible(ListItem<T> item) {
