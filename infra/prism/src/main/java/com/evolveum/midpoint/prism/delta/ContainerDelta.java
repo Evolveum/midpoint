@@ -230,7 +230,7 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
     	ContainerDelta<T> delta = createDelta(containerPath, type, prismContext);
     	PrismContainerValue<T> cval = containerable.asPrismContainerValue();
     	prismContext.adopt(cval, type, containerPath);
-    	delta.addValuesToAdd();
+    	delta.addValuesToAdd(cval);
     	return delta;
     }
     

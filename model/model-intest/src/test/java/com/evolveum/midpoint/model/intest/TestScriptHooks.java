@@ -210,7 +210,7 @@ public class TestScriptHooks extends AbstractInitializedModelIntegrationTest {
         assertNotNull("Brethren org was not created", brethrenOrg);
         display("Brethren org", brethrenOrg);
         
-        // TODO: check if the org is assigned to the user
+        assertAssignedOrg(userJack, brethrenOrg);
 
         // TODO
 //        // Check audit
