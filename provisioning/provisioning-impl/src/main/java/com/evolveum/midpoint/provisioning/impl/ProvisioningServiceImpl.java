@@ -501,7 +501,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 				LOGGER.debug("Skipping processing change. Can't find appropriate shadow (e.g. the object was deleted on the resource meantime).");
 				continue;
 			}
-			boolean isSuccess = getShadowCache(Mode.STANDARD).processSynchronization(change, task, resourceType, result);
+			boolean isSuccess = getShadowCache(Mode.STANDARD).processSynchronization(change, task, resourceType, null, result);
 //
 //			ResourceObjectShadowChangeDescription shadowChangeDescription = createResourceShadowChangeDescription(
 //					change, resourceType);

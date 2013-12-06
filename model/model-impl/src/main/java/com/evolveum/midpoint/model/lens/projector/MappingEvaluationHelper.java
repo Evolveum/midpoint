@@ -83,7 +83,7 @@ public class MappingEvaluationHelper {
      */
 	public <V extends PrismValue> PrismValueDeltaSetTriple<V> evaluateMappingSetProjection(Collection<MappingType> mappingTypes, String mappingDesc,
 			XMLGregorianCalendar now, MappingInitializer<V> initializer, 
-			Item<V> aPrioriValue, ItemDelta<V> aPrioriDelta, PrismObject<? extends ShadowType> aPrioriObject,
+			Item<V> aPrioriValue, ItemDelta<V> aPrioriDelta, PrismObject<? extends ObjectType> aPrioriObject,
 			Boolean evaluateCurrent, MutableBoolean strongMappingWasUsed,
 			LensContext<UserType,ShadowType> context, LensProjectionContext<ShadowType> accCtx, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 

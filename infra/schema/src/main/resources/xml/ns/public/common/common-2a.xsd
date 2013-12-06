@@ -3623,7 +3623,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="inbound" type="tns:MappingType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="inbound" type="tns:MappingType" minOccurs="0" maxOccurs="unbounded">
             	<xsd:annotation>
             		<xsd:documentation>
             			Defines how user password is constructed if he user is created or updated from this account.
