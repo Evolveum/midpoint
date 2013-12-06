@@ -51,9 +51,14 @@
 			<class name="com.evolveum.midpoint.common.mapping.TestMappingTime" />
 		</classes>
 	</test>
-		<test name="Schema" preserve-order="false">
+	<test name="Schema" preserve-order="false">
 		<classes>
 			<class name="com.evolveum.midpoint.common.refinery.TestRefinedSchema" />
+		</classes>
+	</test>
+	<test name="Crypto" preserve-order="false">
+		<classes>
+			<class name="com.evolveum.midpoint.common.crypto.TestProtector" />
 		</classes>
 	</test>
 	
