@@ -27,7 +27,7 @@
         <version>2.3-SNAPSHOT</version>
     </parent>
     <properties>
-        <wro4j.version>1.7.1</wro4j.version>
+        <wro4j.version>1.6.2</wro4j.version>
     </properties>
     <build>
         <finalName>midpoint</finalName>

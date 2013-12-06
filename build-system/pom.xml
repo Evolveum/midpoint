@@ -49,8 +49,8 @@
         <cxf-xjc.version>2.4.0</cxf-xjc.version>
         <camel.version>2.10.2</camel.version>
         <dbunit.version>2.4.7</dbunit.version>
-        <jaxb.version>2.2.7</jaxb.version>
-        <jaxb-xjc.version>2.2.7</jaxb-xjc.version>
+        <jaxb.version>2.2.3</jaxb.version>
+        <jaxb-xjc.version>2.2.4-1</jaxb-xjc.version>
         <junit.version>4.8.2</junit.version>
         <opendj.version>2.4.3</opendj.version>
         <mockito.version>1.8.5</mockito.version>
