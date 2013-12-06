@@ -937,7 +937,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected void assertAssignedOrg(PrismObject<UserType> user, String orgOid) {
 		MidPointAsserts.assertAssignedOrg(user, orgOid);
 	}
-	
+
+	protected void assertAssignedOrg(PrismObject<UserType> user, PrismObject<OrgType> org) {
+		MidPointAsserts.assertAssignedOrg(user, org.getOid());
+	}
+
 	protected void assertHasOrg(String userOid, String orgOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
 		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
 		assertAssignedOrg(user, orgOid);
