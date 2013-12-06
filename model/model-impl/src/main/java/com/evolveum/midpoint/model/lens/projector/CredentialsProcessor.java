@@ -47,6 +47,7 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -79,11 +80,11 @@ public class CredentialsProcessor {
     @Autowired(required = true)
     private PasswordPolicyProcessor passwordPolicyProcessor;
 
-    public <F extends ObjectType, P extends ObjectType> void processCredentials(LensContext<F,P> context, LensProjectionContext<P> projectionContext, OperationResult result) 
+    public <F extends ObjectType, P extends ObjectType> void processCredentials(LensContext<F,P> context, LensProjectionContext<P> projectionContext, Task task, OperationResult result) 
     		throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {	
     	LensFocusContext<F> focusContext = context.getFocusContext();
     	if (focusContext != null && focusContext.getObjectTypeClass() == UserType.class) {
-    		processCredentialsUser((LensContext<UserType,ShadowType>) context, (LensProjectionContext<ShadowType>)projectionContext, result);
+    		processCredentialsUser((LensContext<UserType,ShadowType>) context, (LensProjectionContext<ShadowType>)projectionContext, task, result);
 //    		return;
     	}
 //    	if (focusContext.getObjectTypeClass() != UserType.class) {
@@ -95,7 +96,7 @@ public class CredentialsProcessor {
     }
     
     
-    public void processCredentialsUser(LensContext<UserType,ShadowType> context, final LensProjectionContext<ShadowType> accCtx, OperationResult result) 
+    public void processCredentialsUser(LensContext<UserType,ShadowType> context, final LensProjectionContext<ShadowType> accCtx, Task task, OperationResult result) 
 		throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
     	LensFocusContext<UserType> focusContext = context.getFocusContext();
         ObjectDelta<UserType> userDelta = focusContext.getDelta();
@@ -191,7 +192,7 @@ public class CredentialsProcessor {
 		};
 		passwordMapping.setStringPolicyResolver(stringPolicyResolver);
 		
-		LensUtil.evaluateMapping(passwordMapping, context, result);
+		LensUtil.evaluateMapping(passwordMapping, context, task, result);
         
         PrismProperty<ProtectedStringType> accountPasswordNew = (PrismProperty) passwordMapping.getOutput();
         if (accountPasswordNew == null || accountPasswordNew.isEmpty()) {
@@ -201,7 +202,7 @@ public class CredentialsProcessor {
         PropertyDelta<ProtectedStringType> accountPasswordDeltaNew = new PropertyDelta<ProtectedStringType>(SchemaConstants.PATH_PASSWORD_VALUE, accountPasswordPropertyDefinition);
         accountPasswordDeltaNew.setValuesToReplace(accountPasswordNew.getClonedValues());
         LOGGER.trace("Adding new password delta for account {}", rat);
-        accCtx.addToSecondaryDelta(accountPasswordDeltaNew);
+        accCtx.swallowToSecondaryDelta(accountPasswordDeltaNew);
 
     }
 

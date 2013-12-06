@@ -108,6 +108,16 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		this.objectCurrent = objectCurrent;
 	}
 	
+	public PrismObject<O> getObjectAny() {
+		if (objectNew != null) {
+			return objectNew;
+		}
+		if (objectCurrent != null) {
+			return objectCurrent;
+		}
+		return objectOld;
+	}
+	
 	/**
 	 * Sets current and possibly also old object. This method is used with
 	 * freshly loaded object. The object is set as current object.
@@ -165,12 +175,20 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         }
     }
 	
-	public void addToSecondaryDelta(ItemDelta accountPasswordDelta) throws SchemaException {
+	public void swallowToPrimaryDelta(ItemDelta<?> itemDelta) throws SchemaException {
+        if (primaryDelta == null) {
+        	primaryDelta = new ObjectDelta<O>(getObjectTypeClass(), ChangeType.MODIFY, getPrismContext());
+        	primaryDelta.setOid(oid);
+        }
+        primaryDelta.swallow(itemDelta);
+    }
+	
+	public void swallowToSecondaryDelta(ItemDelta<?> itemDelta) throws SchemaException {
         if (secondaryDelta == null) {
             secondaryDelta = new ObjectDelta<O>(getObjectTypeClass(), ChangeType.MODIFY, getPrismContext());
             secondaryDelta.setOid(oid);
         }
-        secondaryDelta.swallow(accountPasswordDelta);
+        secondaryDelta.swallow(itemDelta);
     }
 	
 	public boolean isAdd() {

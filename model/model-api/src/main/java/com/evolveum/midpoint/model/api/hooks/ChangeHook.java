@@ -52,4 +52,19 @@ public interface ChangeHook {
      *     (this case is currently not defined very well)
      */
     HookOperationMode invoke(ModelContext context, Task task, OperationResult result);
+
+    /**
+     * This method is invoked by the clockwork when an exception occurs.
+     *
+     * It is intended e.g. to implement a notification to the user.
+     *
+     * @param context actual model context at the point of processing the exception
+     * @param throwable the exception itself
+     * @param task actual task, in context of which the operation was carried out
+     * @param result actual operation result - the handler should create a subresult here for its operation
+     *
+     * This method has no return value, as it is not expected that the processing would continue in
+     * the background. (This could change in the future.)
+     */
+    void invokeOnException(ModelContext context, Throwable throwable, Task task, OperationResult result);
 }

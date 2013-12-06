@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.report;
 
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -41,7 +42,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
     @Autowired
     private TaskManager taskManager;
     @Autowired
-    private ReportManager reportManager;
+    private ModelService model;
 
     @PostConstruct
     private void initialize() {
@@ -53,26 +54,28 @@ public class ReportCreateTaskHandler implements TaskHandler {
 
     @Override
     public String getCategoryName(Task task) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return null;
     }
 
     @Override
     public TaskRunResult run(Task task) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        //here a jasper magic should be done which creates PDF file (or something else) in midpoint directory
+        //also as a result ReportOutputType should be created and stored to DB.
+
+        return null;
     }
 
     @Override
     public Long heartbeat(Task task) {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return null;
     }
 
     @Override
     public void refreshStatus(Task task) {
-        //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @Override
     public List<String> getCategoryNames() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return null;
     }
 }

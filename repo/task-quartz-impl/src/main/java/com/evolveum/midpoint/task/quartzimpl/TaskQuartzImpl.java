@@ -619,6 +619,7 @@ public class TaskQuartzImpl implements Task {
 
             UriStackEntry use = new UriStackEntry();
             use.setHandlerUri(getHandlerUri());
+            use.setRecurrence(getRecurrenceStatus().toTaskType());
             use.setSchedule(getSchedule());
             use.setBinding(getBinding().toTaskType());
             if (extensionDeltas != null) {
@@ -704,7 +705,7 @@ public class TaskQuartzImpl implements Task {
 		if (otherHandlersUriStack != null && !otherHandlersUriStack.getUriStackEntry().isEmpty()) {
             UriStackEntry use = popFromOtherHandlersUriStack();
 			setHandlerUri(use.getHandlerUri());
-            setRecurrenceStatus(recurrenceFromSchedule(use.getSchedule()));
+            setRecurrenceStatus(use.getRecurrence() != null ? TaskRecurrence.fromTaskType(use.getRecurrence()) : recurrenceFromSchedule(use.getSchedule()));
             setSchedule(use.getSchedule());
             if (use.getBinding() != null) {
                 setBinding(TaskBinding.fromTaskType(use.getBinding()));
@@ -718,7 +719,7 @@ public class TaskQuartzImpl implements Task {
             }
             this.setRecreateQuartzTrigger(true);
 		} else {
-			setHandlerUri(null);
+			//setHandlerUri(null);                                                  // we want the last handler to remain set so the task can be revived
 			taskManager.closeTaskWithoutSavingState(this, parentResult);			// if there are no more handlers, let us close this task
 		}
         try {
@@ -766,6 +767,10 @@ public class TaskQuartzImpl implements Task {
             }
         }
 
+        // this could be a bit tricky, taking MID-1683 into account:
+        // when a task finishes its execution, we now leave the last handler set
+        // however, this applies to executable tasks; for WAITING tasks we can safely expect that if there is a handler
+        // on the stack, we can run it (by unpausing the task)
         if (getHandlerUri() != null) {
             LOGGER.trace("All dependencies of {} are closed, unpausing the task (it has a handler defined)", this);
             taskManager.unpauseTask(this, result);

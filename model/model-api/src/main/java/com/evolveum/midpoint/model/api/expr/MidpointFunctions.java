@@ -17,16 +17,33 @@
 package com.evolveum.midpoint.model.api.expr;
 
 import com.evolveum.midpoint.common.crypto.EncryptionException;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 import java.util.Collection;
 import java.util.List;
@@ -35,6 +52,745 @@ import java.util.List;
  * @author mederly
  */
 public interface MidpointFunctions {
+	
+	<T extends ObjectType> T createEmptyObject(Class<T> type);
+	
+	<T extends ObjectType> T createEmptyObjectWithName(Class<T> type, String name);
+	
+	<T extends ObjectType> T createEmptyObjectWithName(Class<T> type, PolyString name);
+	
+	<T extends ObjectType> T createEmptyObjectWithName(Class<T> type, PolyStringType name);
+	
+	/**
+	 * <p>
+	 * Returns object for provided OID. It retrieves the object from an appropriate source
+	 * for an object type (e.g. internal repository, resource or both), merging data as necessary,
+	 * processing any policies, caching mechanisms, etc. This can be influenced by using options.
+	 * </p>
+	 * <p>
+	 * Fails if object with the OID does not exists.
+	 * </p>
+	 * 
+	 * @param type
+	 *            (class) of an object to get
+	 * @param oid
+	 *            OID of the object to get
+	 * @param options
+	 *            options influencing the retrieval and processing of the object
+	 * @return Retrieved object
+	 * @throws ObjectNotFoundException
+	 *             requested object does not exist
+	 * @throws SchemaException 
+	 * 				the object is not schema compliant
+	 * @throw SecurityViolationException
+	 * 				Security violation during operation execution. May be caused either by midPoint internal
+	 * 				security mechanism but also by external mechanism (e.g. on the resource)
+	 * @throws CommunicationException
+	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
+	 * @throw ConfigurationException
+	 * 				Configuration error. E.g. misconfigured resource parameters, invalid policies, etc.
+	 * @throws IllegalArgumentException
+	 *             missing required parameter, wrong OID format, etc.
+	 * @throws ClassCastException
+	 *             OID represents object of a type incompatible with requested
+	 *             type
+	 * @throws SystemException
+	 *             unknown error from underlying layers or other unexpected
+	 *             state
+	 */
+	<T extends ObjectType> T getObject(Class<T> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options)
+			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException;
+
+	/**
+	 * <p>
+	 * Returns object for provided OID. It retrieves the object from an appropriate source
+	 * for an object type (e.g. internal repository, resource or both), merging data as necessary,
+	 * processing any policies, caching mechanisms, etc.
+	 * </p>
+	 * <p>
+	 * Fails if object with the OID does not exists.
+	 * </p>
+	 * 
+	 * @param type
+	 *            (class) of an object to get
+	 * @param oid
+	 *            OID of the object to get
+	 * @return Retrieved object
+	 * @throws ObjectNotFoundException
+	 *             requested object does not exist
+	 * @throws SchemaException 
+	 * 				the object is not schema compliant
+	 * @throw SecurityViolationException
+	 * 				Security violation during operation execution. May be caused either by midPoint internal
+	 * 				security mechanism but also by external mechanism (e.g. on the resource)
+	 * @throws CommunicationException
+	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
+	 * @throw ConfigurationException
+	 * 				Configuration error. E.g. misconfigured resource parameters, invalid policies, etc.
+	 * @throws IllegalArgumentException
+	 *             missing required parameter, wrong OID format, etc.
+	 * @throws ClassCastException
+	 *             OID represents object of a type incompatible with requested
+	 *             type
+	 * @throws SystemException
+	 *             unknown error from underlying layers or other unexpected
+	 *             state
+	 */
+	<T extends ObjectType> T getObject(Class<T> type, String oid)
+			throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, SecurityViolationException;
+	
+	/**
+	 * <p>
+	 * Execute the provided object deltas.
+	 * </p>
+	 * <p>
+	 * The operation executes the provided object deltas. All deltas must relate to analogous objects (e.g. user
+	 * and linked accounts). The implementation may throw an error if the objects are not analogous. The implementation
+	 * also implicitly links the objects (mark them to be analogous) if such a link is part of the data model.
+	 * E.g. the implementation links all accounts to the user if they are passed in a single delta collection.
+	 * This is especially useful if the account deltas are ADD deltas without OID and therefore cannot be linked
+	 * explicitly. 
+	 * </p>
+	 * <p>
+	 * There must be no more than one delta for each object.
+	 * The order of execution is not defined and the implementation is free to determine the correct or most suitable ordering.
+	 * </p>
+	 * <p>
+	 * The OID provided in ADD deltas may be empty. In that case the OID
+	 * will be assigned by the implementation and the OIDs will be set in the
+	 * deltas after the operation is completed.
+	 * </p>
+	 * <p>
+	 * Execution of ADD deltas should fail if such object already exists (if object with
+	 * the provided OID already exists). Execution of MODIFY and DELETE deltas should fail if
+	 * such objects do not exist.
+	 * </p>
+	 * <p>
+	 * The operation may fail if provided OIDs are in an unusable format for the
+	 * storage. Generating own OIDs and providing them to this method is not
+	 * recommended for normal operation.
+	 * </p>
+	 * <p>
+	 * There are no explicit atomicity guarantees for the operations. Some of the operations may pass, some may fail
+	 * or even fail partially. The consistency of the data and state are not based on operation atomicity but rather
+	 * a data model that can "repair" inconsistencies.
+	 * </p>
+	 * <p>
+	 * The operation may fail if any of the objects to be created or modified does not conform to
+	 * the underlying schema of the storage system or the schema enforced by the implementation.
+	 * </p>
+	 * 
+	 * @param deltas
+	 *            Collection of object deltas to execute
+	 * @param options
+	 *            options influencing processing of the deltas
+	 * @throws ObjectAlreadyExistsException
+	 *             object with specified identifiers already exists, cannot add
+	 * @throws ObjectNotFoundException
+	 *             object required to complete the operation was not found (e.g.
+	 *             appropriate connector or resource definition)
+	 * @throws SchemaException
+	 *             error dealing with resource schema, e.g. created object does
+	 *             not conform to schema
+	 * @throws ExpressionEvaluationException 
+	 * 				evaluation of expression associated with the object has failed
+	 * @throws CommunicationException
+	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
+	 * @throws ConfigurationException
+	 * 				Configuration error. E.g. misconfigured resource parameters, invalid policies, etc.
+	 * @throws PolicyViolationException
+	 * 				Policy violation was detected during processing of the object
+	 * @throw SecurityViolationException
+	 * 				Security violation during operation execution. May be caused either by midPoint internal
+	 * 				security mechanism but also by external mechanism (e.g. on the resource)
+	 * @throws IllegalArgumentException
+	 *             wrong OID format, etc.
+	 * @throws SystemException
+	 *             unknown error from underlying layers or other unexpected state
+	 */
+	void executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options) 
+			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, 
+			CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException;
+
+	/**
+	 * <p>
+	 * Execute the provided object deltas.
+	 * </p>
+	 * <p>
+	 * The operation executes the provided object deltas. All deltas must relate to analogous objects (e.g. user
+	 * and linked accounts). The implementation may throw an error if the objects are not analogous. The implementation
+	 * also implicitly links the objects (mark them to be analogous) if such a link is part of the data model.
+	 * E.g. the implementation links all accounts to the user if they are passed in a single delta collection.
+	 * This is especially useful if the account deltas are ADD deltas without OID and therefore cannot be linked
+	 * explicitly. 
+	 * </p>
+	 * <p>
+	 * There must be no more than one delta for each object.
+	 * The order of execution is not defined and the implementation is free to determine the correct or most suitable ordering.
+	 * </p>
+	 * <p>
+	 * The OID provided in ADD deltas may be empty. In that case the OID
+	 * will be assigned by the implementation and the OIDs will be set in the
+	 * deltas after the operation is completed.
+	 * </p>
+	 * <p>
+	 * Execution of ADD deltas should fail if such object already exists (if object with
+	 * the provided OID already exists). Execution of MODIFY and DELETE deltas should fail if
+	 * such objects do not exist.
+	 * </p>
+	 * <p>
+	 * The operation may fail if provided OIDs are in an unusable format for the
+	 * storage. Generating own OIDs and providing them to this method is not
+	 * recommended for normal operation.
+	 * </p>
+	 * <p>
+	 * There are no explicit atomicity guarantees for the operations. Some of the operations may pass, some may fail
+	 * or even fail partially. The consistency of the data and state are not based on operation atomicity but rather
+	 * a data model that can "repair" inconsistencies.
+	 * </p>
+	 * <p>
+	 * The operation may fail if any of the objects to be created or modified does not conform to
+	 * the underlying schema of the storage system or the schema enforced by the implementation.
+	 * </p>
+	 * 
+	 * @param deltas
+	 *            Collection of object deltas to execute
+	 * @throws ObjectAlreadyExistsException
+	 *             object with specified identifiers already exists, cannot add
+	 * @throws ObjectNotFoundException
+	 *             object required to complete the operation was not found (e.g.
+	 *             appropriate connector or resource definition)
+	 * @throws SchemaException
+	 *             error dealing with resource schema, e.g. created object does
+	 *             not conform to schema
+	 * @throws ExpressionEvaluationException 
+	 * 				evaluation of expression associated with the object has failed
+	 * @throws CommunicationException
+	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
+	 * @throws ConfigurationException
+	 * 				Configuration error. E.g. misconfigured resource parameters, invalid policies, etc.
+	 * @throws PolicyViolationException
+	 * 				Policy violation was detected during processing of the object
+	 * @throw SecurityViolationException
+	 * 				Security violation during operation execution. May be caused either by midPoint internal
+	 * 				security mechanism but also by external mechanism (e.g. on the resource)
+	 * @throws IllegalArgumentException
+	 *             wrong OID format, etc.
+	 * @throws SystemException
+	 *             unknown error from underlying layers or other unexpected state
+	 */
+	void executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas) 
+			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, 
+			CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException;
+
+	/**
+	 * <p>
+	 * Execute the provided object deltas.
+	 * </p>
+	 * <p>
+	 * The operation executes the provided object deltas. All deltas must relate to analogous objects (e.g. user
+	 * and linked accounts). The implementation may throw an error if the objects are not analogous. The implementation
+	 * also implicitly links the objects (mark them to be analogous) if such a link is part of the data model.
+	 * E.g. the implementation links all accounts to the user if they are passed in a single delta collection.
+	 * This is especially useful if the account deltas are ADD deltas without OID and therefore cannot be linked
+	 * explicitly. 
+	 * </p>
+	 * <p>
+	 * There must be no more than one delta for each object.
+	 * The order of execution is not defined and the implementation is free to determine the correct or most suitable ordering.
+	 * </p>
+	 * <p>
+	 * The OID provided in ADD deltas may be empty. In that case the OID
+	 * will be assigned by the implementation and the OIDs will be set in the
+	 * deltas after the operation is completed.
+	 * </p>
+	 * <p>
+	 * Execution of ADD deltas should fail if such object already exists (if object with
+	 * the provided OID already exists). Execution of MODIFY and DELETE deltas should fail if
+	 * such objects do not exist.
+	 * </p>
+	 * <p>
+	 * The operation may fail if provided OIDs are in an unusable format for the
+	 * storage. Generating own OIDs and providing them to this method is not
+	 * recommended for normal operation.
+	 * </p>
+	 * <p>
+	 * There are no explicit atomicity guarantees for the operations. Some of the operations may pass, some may fail
+	 * or even fail partially. The consistency of the data and state are not based on operation atomicity but rather
+	 * a data model that can "repair" inconsistencies.
+	 * </p>
+	 * <p>
+	 * The operation may fail if any of the objects to be created or modified does not conform to
+	 * the underlying schema of the storage system or the schema enforced by the implementation.
+	 * </p>
+	 * 
+	 * @param deltas
+	 *            Collection of object deltas to execute
+	 * @throws ObjectAlreadyExistsException
+	 *             object with specified identifiers already exists, cannot add
+	 * @throws ObjectNotFoundException
+	 *             object required to complete the operation was not found (e.g.
+	 *             appropriate connector or resource definition)
+	 * @throws SchemaException
+	 *             error dealing with resource schema, e.g. created object does
+	 *             not conform to schema
+	 * @throws ExpressionEvaluationException 
+	 * 				evaluation of expression associated with the object has failed
+	 * @throws CommunicationException
+	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
+	 * @throws ConfigurationException
+	 * 				Configuration error. E.g. misconfigured resource parameters, invalid policies, etc.
+	 * @throws PolicyViolationException
+	 * 				Policy violation was detected during processing of the object
+	 * @throw SecurityViolationException
+	 * 				Security violation during operation execution. May be caused either by midPoint internal
+	 * 				security mechanism but also by external mechanism (e.g. on the resource)
+	 * @throws IllegalArgumentException
+	 *             wrong OID format, etc.
+	 * @throws SystemException
+	 *             unknown error from underlying layers or other unexpected state
+	 */
+	void executeChanges(ObjectDelta<? extends ObjectType>... deltas) 
+			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, 
+			CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException;
+
+	<T extends ObjectType> String addObject(PrismObject<T> newObject, ModelExecuteOptions options)
+			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, 
+			CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException;
+	
+	<T extends ObjectType> String addObject(PrismObject<T> newObject)
+			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, 
+			CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException;
+	
+	<T extends ObjectType> String addObject(T newObject, ModelExecuteOptions options)
+			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, 
+			CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException;
+	
+	<T extends ObjectType> String addObject(T newObject)
+			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, 
+			CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException;
+
+	<T extends ObjectType> void modifyObject(ObjectDelta<T> modifyDelta, ModelExecuteOptions options)
+			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, 
+			CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException;
+	
+	<T extends ObjectType> void modifyObject(ObjectDelta<T> modifyDelta)
+			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, 
+			CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException;
+	
+	<T extends ObjectType> void deleteObject(Class<T> type, String oid, ModelExecuteOptions options)
+			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, 
+			CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException;
+
+	<T extends ObjectType> void deleteObject(Class<T> type, String oid)
+			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, 
+			CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException;
+	
+	/**
+	 * Recomputes focal object with the specified OID. The operation considers all the applicable policies and
+	 * mapping and tries to re-apply them as necessary.
+	 * 
+	 * @param type type (class) of an object to recompute
+	 * @param oid OID of the object to recompute
+	 */
+	<F extends FocusType> void recompute(Class<F> type, String oid)
+			 throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException;
+
+	/**
+	 * <p>
+	 * Returns the User object representing owner of specified account (account
+	 * shadow).
+	 * </p>
+	 * <p>
+	 * May return null if there is no owner specified for the account.
+	 * </p>
+	 * <p>
+	 * Implements the backward "owns" association between account shadow and
+	 * user. Forward association is implemented by property "account" of user
+	 * object.
+	 * </p>
+	 * 
+	 * @param accountOid
+	 *            OID of the account to look for an owner
+	 * @return owner of the account or null
+	 * @throws ObjectNotFoundException
+	 *             specified account was not found
+	 * @throws IllegalArgumentException
+	 *             wrong OID format, described change is not applicable
+	 * @throws SystemException
+	 *             unknown error from underlying layers or other unexpected
+	 *             state
+	 */
+	PrismObject<UserType> findShadowOwner(String accountOid) throws ObjectNotFoundException;
+
+	/**
+	 * <p>
+	 * Search for objects.
+	 * </p>
+	 * <p>
+	 * Searches through all object of a specified type. Returns a list of objects that match
+	 * search criteria. 
+	 * </p>
+	 * <p>
+	 * Note that this method has a very limited scaling capability
+	 * as all the results are stored in the memory. DO NOT USE on large datasets.
+	 * Recommended usage is only when using queries that cannot return large number
+	 * of results (e.g. queries for unique values) or when combined with paging capability.
+	 * For other cases use searchObjectsIterative instead.
+	 * </p>
+	 * <p>
+	 * Returns empty list if object type is correct but there are no objects of
+	 * that type. Fails if object type is wrong. Should fail if unknown property is
+	 * specified in the query.
+	 * </p>
+	 * 
+	 * @param type
+	 *            (class) of an object to search
+	 * @param query
+	 *            search query
+	 * @param options
+	 *            options influencing the retrieval and processing of the objects
+	 * @return all objects of specified type that match search criteria (subject
+	 *         to paging)
+	 * 
+	 * @throws SchemaException
+	 *             unknown property used in search query
+	 * @throws ObjectNotFoundException
+	 *             object required for a search was not found (e.g. resource definition)
+	 * @throws CommunicationException 
+	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
+	 * @throw SecurityViolationException
+	 * 				Security violation during operation execution. May be caused either by midPoint internal
+	 * 				security mechanism but also by external mechanism (e.g. on the resource)
+	 * @throws ConfigurationException
+	 * 				Configuration error. E.g. misconfigured resource parameters, invalid policies, etc.
+	 * @throws IllegalArgumentException
+	 *             wrong query format
+	 */
+	<T extends ObjectType> List<T> searchObjects(Class<T> type, ObjectQuery query,
+			Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException,
+            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException;
+
+	/**
+	 * <p>
+	 * Search for objects.
+	 * </p>
+	 * <p>
+	 * Searches through all object of a specified type. Returns a list of objects that match
+	 * search criteria. 
+	 * </p>
+	 * <p>
+	 * Note that this method has a very limited scaling capability
+	 * as all the results are stored in the memory. DO NOT USE on large datasets.
+	 * Recommended usage is only when using queries that cannot return large number
+	 * of results (e.g. queries for unique values) or when combined with paging capability.
+	 * For other cases use searchObjectsIterative instead.
+	 * </p>
+	 * <p>
+	 * Returns empty list if object type is correct but there are no objects of
+	 * that type. Fails if object type is wrong. Should fail if unknown property is
+	 * specified in the query.
+	 * </p>
+	 * 
+	 * @param type
+	 *            (class) of an object to search
+	 * @param query
+	 *            search query
+	 * @return all objects of specified type that match search criteria (subject
+	 *         to paging)
+	 * 
+	 * @throws SchemaException
+	 *             unknown property used in search query
+	 * @throws ObjectNotFoundException
+	 *             object required for a search was not found (e.g. resource definition)
+	 * @throws CommunicationException 
+	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
+	 * @throw SecurityViolationException
+	 * 				Security violation during operation execution. May be caused either by midPoint internal
+	 * 				security mechanism but also by external mechanism (e.g. on the resource)
+	 * @throws ConfigurationException
+	 * 				Configuration error. E.g. misconfigured resource parameters, invalid policies, etc.
+	 * @throws IllegalArgumentException
+	 *             wrong query format
+	 */
+	<T extends ObjectType> List<T> searchObjects(Class<T> type, ObjectQuery query) throws SchemaException,
+            ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException;
+
+	/**
+	 * <p>
+	 * Search for objects in iterative fashion (using callback).
+	 * </p>
+	 * <p>
+	 * Searches through all object of a specified type. A handler is invoked for each object found.
+	 * </p>
+	 * <p>
+	 * The handler is not called at all if object type is correct but there are no objects of
+	 * that type. Fails if object type is wrong. Should fail if unknown property is
+	 * specified in the query.
+	 * </p>
+	 * 
+	 * @param type
+	 *            (class) of an object to search
+	 * @param query
+	 *            search query
+	 * @param handler
+	 * 			callback handler that will be called for each found object
+	 * @param options
+	 *            options influencing the retrieval and processing of the objects
+	 * @throws SchemaException
+	 *             unknown property used in search query
+	 * @throws ObjectNotFoundException
+	 *             object required for a search was not found (e.g. resource definition)
+	 * @throws CommunicationException 
+	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
+	 * @throw SecurityViolationException
+	 * 				Security violation during operation execution. May be caused either by midPoint internal
+	 * 				security mechanism but also by external mechanism (e.g. on the resource)
+	 * @throws ConfigurationException
+	 * 				Configuration error. E.g. misconfigured resource parameters, invalid policies, etc.
+	 * @throws IllegalArgumentException
+	 *             wrong query format
+	 */
+	<T extends ObjectType> void searchObjectsIterative(Class<T> type, ObjectQuery query,
+			ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException;
+
+	/**
+	 * <p>
+	 * Search for objects in iterative fashion (using callback).
+	 * </p>
+	 * <p>
+	 * Searches through all object of a specified type. A handler is invoked for each object found.
+	 * </p>
+	 * <p>
+	 * The handler is not called at all if object type is correct but there are no objects of
+	 * that type. Fails if object type is wrong. Should fail if unknown property is
+	 * specified in the query.
+	 * </p>
+	 * 
+	 * @param type
+	 *            (class) of an object to search
+	 * @param query
+	 *            search query
+	 * @param handler
+	 * 			callback handler that will be called for each found object
+	 * @throws SchemaException
+	 *             unknown property used in search query
+	 * @throws ObjectNotFoundException
+	 *             object required for a search was not found (e.g. resource definition)
+	 * @throws CommunicationException 
+	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
+	 * @throw SecurityViolationException
+	 * 				Security violation during operation execution. May be caused either by midPoint internal
+	 * 				security mechanism but also by external mechanism (e.g. on the resource)
+	 * @throws ConfigurationException
+	 * 				Configuration error. E.g. misconfigured resource parameters, invalid policies, etc.
+	 * @throws IllegalArgumentException
+	 *             wrong query format
+	 */
+	<T extends ObjectType> void searchObjectsIterative(Class<T> type, ObjectQuery query, ResultHandler<T> handler) 
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException;
+
+	/**
+	 * <p>
+	 * Search for objects by name.
+	 * </p>
+	 * <p>
+	 * Searches through all object of a specified type for an object with specified name.
+	 * Returns that object if it is found, return null otherwise. The method fails if more than
+	 * one object is found therefore it cannot be reliably used on types with non-unique names
+	 * (such as Shadows). 
+	 * </p>
+	 * 
+	 * @param type
+	 *            (class) of an object to search
+	 * @param name
+	 *            Name of the object to look for
+	 * @return an object of specified type with a matching name or null
+	 * 
+	 * @throws SchemaException
+	 *             unknown property used in search query
+	 * @throws ObjectNotFoundException
+	 *             object required for a search was not found (e.g. resource definition)
+	 * @throws CommunicationException 
+	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
+	 * @throw SecurityViolationException
+	 * 				Security violation during operation execution. May be caused either by midPoint internal
+	 * 				security mechanism but also by external mechanism (e.g. on the resource)
+	 * @throws ConfigurationException
+	 * 				Configuration error. E.g. misconfigured resource parameters, invalid policies, etc.
+	 * @throws IllegalArgumentException
+	 *             wrong query format
+	 */
+	<T extends ObjectType> T searchObjectByName(Class<T> type, String name) throws SecurityViolationException, 
+					ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException;
+	
+	/**
+	 * <p>
+	 * Search for objects by name.
+	 * </p>
+	 * <p>
+	 * Searches through all object of a specified type for an object with specified name.
+	 * Returns that object if it is found, return null otherwise. The method fails if more than
+	 * one object is found therefore it cannot be reliably used on types with non-unique names
+	 * (such as Shadows). 
+	 * </p>
+	 * 
+	 * @param type
+	 *            (class) of an object to search
+	 * @param name
+	 *            Name of the object to look for
+	 * @return an object of specified type with a matching name or null
+	 * 
+	 * @throws SchemaException
+	 *             unknown property used in search query
+	 * @throws ObjectNotFoundException
+	 *             object required for a search was not found (e.g. resource definition)
+	 * @throws CommunicationException 
+	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
+	 * @throw SecurityViolationException
+	 * 				Security violation during operation execution. May be caused either by midPoint internal
+	 * 				security mechanism but also by external mechanism (e.g. on the resource)
+	 * @throws ConfigurationException
+	 * 				Configuration error. E.g. misconfigured resource parameters, invalid policies, etc.
+	 * @throws IllegalArgumentException
+	 *             wrong query format
+	 */
+	<T extends ObjectType> T searchObjectByName(Class<T> type, PolyString name) throws SecurityViolationException, 
+					ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException;
+	
+	/**
+	 * <p>
+	 * Search for objects by name.
+	 * </p>
+	 * <p>
+	 * Searches through all object of a specified type for an object with specified name.
+	 * Returns that object if it is found, return null otherwise. The method fails if more than
+	 * one object is found therefore it cannot be reliably used on types with non-unique names
+	 * (such as Shadows). 
+	 * </p>
+	 * 
+	 * @param type
+	 *            (class) of an object to search
+	 * @param name
+	 *            Name of the object to look for
+	 * @return an object of specified type with a matching name or null
+	 * 
+	 * @throws SchemaException
+	 *             unknown property used in search query
+	 * @throws ObjectNotFoundException
+	 *             object required for a search was not found (e.g. resource definition)
+	 * @throws CommunicationException 
+	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
+	 * @throw SecurityViolationException
+	 * 				Security violation during operation execution. May be caused either by midPoint internal
+	 * 				security mechanism but also by external mechanism (e.g. on the resource)
+	 * @throws ConfigurationException
+	 * 				Configuration error. E.g. misconfigured resource parameters, invalid policies, etc.
+	 * @throws IllegalArgumentException
+	 *             wrong query format
+	 */
+	<T extends ObjectType> T searchObjectByName(Class<T> type, PolyStringType name) throws SecurityViolationException, 
+					ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException;
+	
+	/**
+	 * <p>
+	 * Count objects.
+	 * </p>
+	 * <p>
+	 * Searches through all object of a specified type and returns a count of such objects.
+	 * This method is usually much more efficient than equivalent search method. It is used mostly for
+	 * presentation purposes, e.g. displaying correct number of pages in the GUI listings. 
+	 * </p>
+	 * 
+	 * @param type
+	 *            (class) of an object to search
+	 * @param query
+	 *            search query
+	 * @param options
+	 *            options influencing the retrieval and processing of the objects
+	 * @return number of objects of specified type that match search criteria (subject
+	 *         to paging)
+	 * 
+	 * @throws SchemaException
+	 *             unknown property used in search query
+	 * @throws ObjectNotFoundException
+	 *             object required for a search was not found (e.g. resource definition)
+	 * @throws CommunicationException 
+	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
+	 * @throw SecurityViolationException
+	 * 				Security violation during operation execution. May be caused either by midPoint internal
+	 * 				security mechanism but also by external mechanism (e.g. on the resource)
+	 * @throws ConfigurationException
+	 * 				Configuration error. E.g. misconfigured resource parameters, invalid policies, etc.
+	 * @throws IllegalArgumentException
+	 *             wrong query format
+	 */
+	<T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options) 
+            		throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException;
+
+	/**
+	 * <p>
+	 * Count objects.
+	 * </p>
+	 * <p>
+	 * Searches through all object of a specified type and returns a count of such objects.
+	 * This method is usually much more efficient than equivalent search method. It is used mostly for
+	 * presentation purposes, e.g. displaying correct number of pages in the GUI listings. 
+	 * </p>
+	 * 
+	 * @param type
+	 *            (class) of an object to search
+	 * @param query
+	 *            search query
+	 * @return number of objects of specified type that match search criteria (subject
+	 *         to paging)
+	 * 
+	 * @throws SchemaException
+	 *             unknown property used in search query
+	 * @throws ObjectNotFoundException
+	 *             object required for a search was not found (e.g. resource definition)
+	 * @throws CommunicationException 
+	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
+	 * @throw SecurityViolationException
+	 * 				Security violation during operation execution. May be caused either by midPoint internal
+	 * 				security mechanism but also by external mechanism (e.g. on the resource)
+	 * @throws ConfigurationException
+	 * 				Configuration error. E.g. misconfigured resource parameters, invalid policies, etc.
+	 * @throws IllegalArgumentException
+	 *             wrong query format
+	 */
+	<T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query) 
+    		throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException;
+
+	/**
+	 * <p>
+	 * Test the resource connection and basic resource connector functionality.
+	 * </p>
+	 * <p>
+	 * This operation will NOT throw exception in case the resource connection
+	 * fails. It such case it will indicate the failure in the return message,
+	 * but the operation itself succeeds. The operations fails only if the
+	 * provided arguments are wrong, in case of system error, system
+	 * misconfiguration, etc.
+	 * </p>
+	 * <p>
+	 * This returns OperationResult instead of taking it as in/out argument.
+	 * This is different from the other methods. The testResource method is not
+	 * using OperationResult to track its own execution but rather to track the
+	 * execution of resource tests (that in fact happen in provisioning).
+	 * </p>
+	 * 
+	 * @param resourceOid
+	 *            OID of resource to test
+	 * @return results of executed tests
+	 * @throws ObjectNotFoundException
+	 *             specified object does not exist
+	 * @throws IllegalArgumentException
+	 *             wrong OID format
+	 */
+	OperationResult testResource(String resourceOid) throws ObjectNotFoundException;
+	
+	
 
     List<String> toList(String... s);
 
@@ -69,4 +825,12 @@ public interface MidpointFunctions {
     String getPlaintextUserPasswordFromDeltas(List<ObjectDelta<UserType>> deltas) throws EncryptionException;
 
     ModelContext unwrapModelContext(LensContextType lensContextType) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException;
+
+    <F extends FocusType> boolean isDirectlyAssigned(F focusType, String targetOid);
+    
+    boolean isDirectlyAssigned(String targetOid);
+    
+    boolean isDirectlyAssigned(ObjectType target);
+
+    <F extends FocusType> boolean isDirectlyAssigned(F focusType, ObjectType target);
 }

@@ -27,6 +27,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.expression.ItemDeltaItem;
+import com.evolveum.midpoint.common.expression.script.ScriptExpression;
+import com.evolveum.midpoint.common.expression.script.ScriptVariables;
 import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
@@ -51,12 +53,14 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -72,9 +76,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScriptExpressionReturnTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
@@ -498,17 +505,37 @@ public class LensUtil {
 		}
 	}
 	
-	public static <V extends PrismValue, F extends ObjectType, P extends ObjectType> void evaluateMapping(Mapping<V> mapping, LensContext<F, P> lensContext, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-		ModelExpressionThreadLocalHolder.setLensContext(lensContext);
-		ModelExpressionThreadLocalHolder.setCurrentResult(parentResult);
+	public static <V extends PrismValue, F extends ObjectType, P extends ObjectType> void evaluateMapping(
+			Mapping<V> mapping, LensContext<F, P> lensContext, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		ModelExpressionThreadLocalHolder.pushLensContext(lensContext);
+		ModelExpressionThreadLocalHolder.pushCurrentResult(parentResult);
+		ModelExpressionThreadLocalHolder.pushCurrentTask(task);
 		try {
 			mapping.evaluate(parentResult);
 		} finally {
-			ModelExpressionThreadLocalHolder.resetLensContext();
-			ModelExpressionThreadLocalHolder.resetCurrentResult();
+			ModelExpressionThreadLocalHolder.popLensContext();
+			ModelExpressionThreadLocalHolder.popCurrentResult();
+			ModelExpressionThreadLocalHolder.popCurrentTask();
 			if (lensContext.getDebugListener() != null) {
 				lensContext.getDebugListener().afterMappingEvaluation(lensContext, mapping);
 			}
+		}
+	}
+	
+	public static <V extends PrismValue, F extends ObjectType, P extends ObjectType> void evaluateScript(
+			ScriptExpression scriptExpression, LensContext<F, P> lensContext, ScriptVariables variables, String shortDesc, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		ModelExpressionThreadLocalHolder.pushLensContext(lensContext);
+		ModelExpressionThreadLocalHolder.pushCurrentResult(parentResult);
+		ModelExpressionThreadLocalHolder.pushCurrentTask(task);
+		try {
+			scriptExpression.evaluate(variables, ScriptExpressionReturnTypeType.SCALAR, false, shortDesc, parentResult);
+		} finally {
+			ModelExpressionThreadLocalHolder.popLensContext();
+			ModelExpressionThreadLocalHolder.popCurrentResult();
+			ModelExpressionThreadLocalHolder.popCurrentTask();
+//			if (lensContext.getDebugListener() != null) {
+//				lensContext.getDebugListener().afterScriptEvaluation(lensContext, scriptExpression);
+//			}
 		}
 	}
 	
@@ -699,6 +726,28 @@ public class LensUtil {
 				aProjCtx.setOid(oid);
 			}
 		}
+	}
+
+	public static PrismObject<SystemConfigurationType> getSystemConfiguration(LensContext context, RepositoryService repositoryService, OperationResult result) throws ObjectNotFoundException, SchemaException {
+		PrismObject<SystemConfigurationType> systemConfiguration = context.getSystemConfiguration();
+		if (systemConfiguration == null) {
+			try {
+				systemConfiguration = 
+					repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
+							null, result);
+			} catch (ObjectNotFoundException e) {
+				// just go on ... we will return and continue
+				// This is needed e.g. to set up new system configuration is the old one gets deleted
+			}
+			if (systemConfiguration == null) {
+			    // throw new SystemException("System configuration object is null (should not happen!)");
+			    // This should not happen, but it happens in tests. And it is a convenient short cut. Tolerate it for now.
+			    LOGGER.warn("System configuration object is null (should not happen!)");
+			    return null;
+			}
+			context.setSystemConfiguration(systemConfiguration);
+		}
+		return systemConfiguration;
 	}
     
 }

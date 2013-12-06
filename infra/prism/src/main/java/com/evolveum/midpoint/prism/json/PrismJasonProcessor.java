@@ -38,6 +38,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.JavaTypeConverter;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -315,12 +316,7 @@ public class PrismJasonProcessor {
 			if (realValue == null) {
 				return;
 			}
-			if (realValue instanceof PolyString) {
-				PolyString polyString = (PolyString) realValue;
-				if (!polyString.isComputed()) {
-					polyString.recompute(getPrismContext().getDefaultPolyStringNormalizer());
-				}
-			}
+			PrismUtil.recomputeRealValue(realValue, getPrismContext());
 		}
 		
 		public PrismReference parsePrismReference(JsonNode values, QName propName,

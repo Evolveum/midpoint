@@ -79,6 +79,17 @@ public class MiscSchemaUtil {
 		return list;
 	}
 	
+	public static <T extends ObjectType> List<T> toObjectableList(List<PrismObject<T>> objectList) {
+		if (objectList == null) {
+			return null;
+		}
+		List<T> objectableList = new ArrayList<T>(objectList.size());
+		for (PrismObject<T> object: objectList) {
+			objectableList.add(object.asObjectable());
+		}
+		return objectableList;
+	}
+	
 	public static ImportOptionsType getDefaultImportOptions() {
 		ImportOptionsType options = new ImportOptionsType();
 		options.setOverwrite(false);

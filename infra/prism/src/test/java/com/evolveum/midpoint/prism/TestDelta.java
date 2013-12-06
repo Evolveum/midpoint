@@ -565,7 +565,7 @@ public class TestDelta {
     	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValue<AssignmentType>();
     	// The value id is null
     	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "jamalalicha patlama paprtala");
-    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(getUserTypeDefinition(), UserType.F_ASSIGNMENT);
+    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(UserType.F_ASSIGNMENT,getUserTypeDefinition());
     	containerDelta2.addValueToAdd(assignmentValue2);
     	
 		// WHEN
@@ -601,7 +601,7 @@ public class TestDelta {
     	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValue<AssignmentType>();
     	// The value id is null
     	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "abra kadabra");
-    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(getUserTypeDefinition(), UserType.F_ASSIGNMENT);
+    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(UserType.F_ASSIGNMENT,getUserTypeDefinition());
     	containerDelta2.addValueToAdd(assignmentValue2);
     	
 		// WHEN
@@ -638,7 +638,7 @@ public class TestDelta {
     	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValue<AssignmentType>();
     	// The value id is null    	
     	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "abra kadabra");
-    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(getUserTypeDefinition(), UserType.F_ASSIGNMENT);
+    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(UserType.F_ASSIGNMENT, getUserTypeDefinition());
     	containerDelta2.addValueToAdd(assignmentValue2);
     	
 		// WHEN
@@ -675,7 +675,7 @@ public class TestDelta {
     	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValue<AssignmentType>();
     	assignmentValue2.setId(USER_ASSIGNMENT_2_ID);
     	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "abra kadabra");
-    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(getUserTypeDefinition(), UserType.F_ASSIGNMENT);
+    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(UserType.F_ASSIGNMENT,getUserTypeDefinition());
     	containerDelta2.addValueToAdd(assignmentValue2);
     	
 		// WHEN
@@ -712,7 +712,7 @@ public class TestDelta {
     	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValue<AssignmentType>();
     	assignmentValue2.setId(USER_ASSIGNMENT_2_ID);
     	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "abra kadabra");
-    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(getUserTypeDefinition(), UserType.F_ASSIGNMENT);
+    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(UserType.F_ASSIGNMENT,getUserTypeDefinition());
     	containerDelta2.addValueToAdd(assignmentValue2);
     	
 		// WHEN
@@ -749,7 +749,7 @@ public class TestDelta {
     	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValue<AssignmentType>();
     	assignmentValue2.setId(USER_ASSIGNMENT_1_ID);
     	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "jamalalicha patlama paprtala");
-    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(getUserTypeDefinition(), UserType.F_ASSIGNMENT);
+    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(UserType.F_ASSIGNMENT,getUserTypeDefinition());
     	containerDelta2.addValueToAdd(assignmentValue2);
     	
 		// WHEN
@@ -786,7 +786,7 @@ public class TestDelta {
     	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValue<AssignmentType>();
     	assignmentValue2.setId(USER_ASSIGNMENT_1_ID);
     	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "abra kadabra");
-    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(getUserTypeDefinition(), UserType.F_ASSIGNMENT);
+    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(UserType.F_ASSIGNMENT, getUserTypeDefinition());
     	containerDelta2.addValueToAdd(assignmentValue2);
     	
 		// WHEN
@@ -808,7 +808,7 @@ public class TestDelta {
     	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValue<AssignmentType>();
     	// null container ID
     	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "abra kadabra");
-    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(getUserTypeDefinition(), UserType.F_ASSIGNMENT);
+    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(UserType.F_ASSIGNMENT,getUserTypeDefinition());
     	containerDelta2.addValueToAdd(assignmentValue2);
     	
 		// WHEN
@@ -844,7 +844,7 @@ public class TestDelta {
     	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValue<AssignmentType>();
     	// null container ID
     	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "abra kadabra");
-    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(getUserTypeDefinition(), UserType.F_ASSIGNMENT);
+    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(UserType.F_ASSIGNMENT,getUserTypeDefinition());
     	containerDelta2.addValueToAdd(assignmentValue2);
     	
 		// WHEN
@@ -876,7 +876,7 @@ public class TestDelta {
     	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValue<AssignmentType>();
     	assignmentValue2.setId(USER_ASSIGNMENT_2_ID);
     	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "abra kadabra");
-    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(getUserTypeDefinition(), UserType.F_ASSIGNMENT);
+    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(UserType.F_ASSIGNMENT,getUserTypeDefinition());
     	containerDelta2.addValueToAdd(assignmentValue2);
     	
 		// WHEN

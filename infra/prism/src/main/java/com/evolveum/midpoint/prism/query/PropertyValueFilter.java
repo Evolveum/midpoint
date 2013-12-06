@@ -97,8 +97,11 @@ public abstract class PropertyValueFilter extends ValueFilter{
 			List<PrismValue> prismValues = new ArrayList<PrismValue>();
 			for (Object o : (List) realValue) {
 				if (o instanceof PrismPropertyValue) {
-					prismValues.add((PrismPropertyValue) o);
+					PrismPropertyValue pval = (PrismPropertyValue) o;
+					PrismUtil.recomputePrismPropertyValue(pval, item.getPrismContext());
+					prismValues.add(pval);
 				} else {
+					PrismUtil.recomputeRealValue(o, item.getPrismContext());
 					PrismPropertyValue val = new PrismPropertyValue(o);
 					prismValues.add(val);
 				}
@@ -109,11 +112,10 @@ public abstract class PropertyValueFilter extends ValueFilter{
 		//temporary hack to not allow polystring type to go to the filter..we want polyString
 		PrismPropertyValue value = null;
 		if (realValue instanceof PolyStringType){
-			value = new PrismPropertyValue(((PolyStringType) realValue).toPolyString());
-		} else{
-			value = new PrismPropertyValue(realValue);
+			realValue = ((PolyStringType) realValue).toPolyString();
 		}
-		
+		PrismUtil.recomputeRealValue(realValue, item.getPrismContext());
+		value = new PrismPropertyValue(realValue);
 		return create(filterClass, parentPath, item, matchingRule, value);
 	}
 

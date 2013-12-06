@@ -40,7 +40,7 @@
 
             See https://wiki.evolveum.com/display/midPoint/Data+Model for more details.
             
-            Version: 2a.2-SNAPSHOT
+            Version: 2a.3-SNAPSHOT
             Recommended namespace prefix: (default), c
         </xsd:documentation>
         <xsd:appinfo>
@@ -1319,6 +1319,15 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="stalledSince" type="xsd:dateTime" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                From which moment is this task stalled (if applicable)?
+                                TRANSIENT. This value is not stored in the repo, it is queried dynamically.
+                                (It is currently not possible to use it for filtering or sorting.)
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="expectedTotal" type="xsd:long" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -1756,6 +1765,13 @@
                 <xsd:annotation>
                     <xsd:documentation>
                         URI of the task handler.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="recurrence" type="tns:TaskRecurrenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Recurrence type of this task (may be null - in that case it is guessed from the schedule).
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -2579,7 +2595,7 @@
                         If this property is not present then the computation haven't taken place yet.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>Effective Status</a:displayName>
+                        <a:displayName>Validity Status</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
@@ -6854,7 +6870,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="hook" type="tns:HookType"/>
+            <xsd:element name="hook" type="tns:HookType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -6865,7 +6881,31 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="ref" type="xsd:anyURI"/>
+        	<xsd:element name="name" type="xsd:string" minOccurs="0">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Free-form hook name. Used for diagnostic purposed (e.g. in logfiles)
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="description" type="xsd:string" minOccurs="0"/>
+        	<xsd:element name="enabled" type="xsd:boolean" minOccurs="0" default="true"/>
+            <xsd:element name="ref" type="xsd:anyURI" minOccurs="0">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			URL of hook handler.
+            			Exactly one of "ref" or "script" has to be specified.
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>
+            <xsd:element name="script" type="tns:ScriptExpressionEvaluatorType" minOccurs="0">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Script that will be executed instead of hook handler.
+            			Exactly one of "ref" or "script" has to be specified.
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 

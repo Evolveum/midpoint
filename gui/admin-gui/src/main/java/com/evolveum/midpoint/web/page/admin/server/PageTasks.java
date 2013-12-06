@@ -296,7 +296,18 @@ public class PageTasks extends PageAdminTasks {
         });
         columns.add(createTaskExecutionStatusColumn(this, "pageTasks.task.execution"));
         columns.add(new PropertyColumn<TaskDto, String>(createStringResource("pageTasks.task.executingAt"), "executingAt"));
-        columns.add(new PropertyColumn<TaskDto, String>(createStringResource("pageTasks.task.progress"), TaskDto.F_PROGRESS_DESCRIPTION));
+        columns.add(new AbstractColumn<TaskDto, String>(createStringResource("pageTasks.task.progress")) {
+
+            @Override
+            public void populateItem(Item<ICellPopulator<TaskDto>> cellItem, String componentId, final IModel<TaskDto> rowModel) {
+                cellItem.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
+                    @Override
+                    public Object getObject() {
+                        return createProgress(rowModel);
+                    }
+                }));
+            }
+        });
         columns.add(new AbstractColumn<TaskDto, String>(createStringResource("pageTasks.task.currentRunTime")) {
 
             @Override
@@ -441,19 +452,34 @@ public class PageTasks extends PageAdminTasks {
     private String createScheduledToRunAgain(IModel<TaskDto> taskModel) {
         TaskDto task = taskModel.getObject();
         Long time = task.getScheduledToStartAgain();
+
+        boolean runnable = task.getRawExecutionStatus() == TaskExecutionStatus.RUNNABLE;
+
         if (time == null) {
             return "";
         } else if (time == 0) {
-            return getString("pageTasks.now");
+            return getString(runnable ? "pageTasks.now" : "pageTasks.nowForNotRunningTasks");
         } else if (time == -1) {
             return getString("pageTasks.runsContinually");
         } else if (time == -2) {
-            return getString("pageTasks.alreadyPassed");
+            return getString(runnable ? "pageTasks.alreadyPassed" : "pageTasks.alreadyPassedForNotRunningTasks");
         }
 
+        String key = runnable ? "pageTasks.in" : "pageTasks.inForNotRunningTasks";
+
         //todo i18n
-        return new StringResourceModel("pageTasks.in", this, null, null,
+        return new StringResourceModel(key, this, null, null,
                 DurationFormatUtils.formatDurationWords(time, true, true)).getString();
+    }
+
+    private String createProgress(IModel<TaskDto> taskModel) {
+        TaskDto task = taskModel.getObject();
+
+        if (task.getStalledSince() != null) {
+            return getString("pageTasks.stalledSince", new Date(task.getStalledSince()).toLocaleString(), task.getProgressDescription());
+        } else {
+            return task.getProgressDescription();
+        }
     }
 
     private String createCurrentRuntime(IModel<TaskDto> taskModel) {
@@ -479,6 +505,7 @@ public class PageTasks extends PageAdminTasks {
             return DurationFormatUtils.formatDurationWords(time, true, true);
         }
     }
+
 
     private String createLastCheckInTime(IModel<NodeDto> nodeModel) {
         NodeDto node = nodeModel.getObject();

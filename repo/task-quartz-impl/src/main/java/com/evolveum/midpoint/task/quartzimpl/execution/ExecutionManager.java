@@ -118,7 +118,6 @@ public class ExecutionManager {
         return stopped;
     }
 
-
     public void startScheduler(String nodeIdentifier, OperationResult parentResult) {
         OperationResult result = parentResult.createSubresult(this.getClass().getName() + ".startScheduler");
         result.addParam("nodeIdentifier", nodeIdentifier);
@@ -127,6 +126,10 @@ public class ExecutionManager {
         } else {
             remoteNodesManager.startRemoteScheduler(nodeIdentifier, result);
         }
+    }
+
+    public boolean isLocalNodeRunning() {
+        return localNodeManager.isRunning();
     }
 
     /*
@@ -504,8 +507,32 @@ public class ExecutionManager {
         localNodeManager.initializeScheduler();
     }
 
-    public void scheduleTaskNow(Task task, OperationResult parentResult) {
-        OperationResult result = parentResult.createSubresult(DOT_CLASS + "scheduleTaskNow");
+    public void reRunClosedTask(Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+        OperationResult result = parentResult.createSubresult(DOT_CLASS + "reRunClosedTask");
+
+        if (task.getExecutionStatus() != TaskExecutionStatus.CLOSED) {
+            String message = "Task " + task + " cannot be re-run, because it is not in CLOSED state.";
+            result.recordFatalError(message);
+            LOGGER.error(message);
+            return;
+        }
+
+        if (!task.isSingle()) {
+            String message = "Closed recurring task " + task + " cannot be re-run, because this operation is not available for recurring tasks.";
+            result.recordWarning(message);
+            LOGGER.warn(message);
+            return;
+        }
+        taskSynchronizer.synchronizeTask((TaskQuartzImpl) task, result);        // this should remove any triggers
+        ((TaskQuartzImpl) task).setRecreateQuartzTrigger(true);
+        ((TaskQuartzImpl) task).setExecutionStatusImmediate(TaskExecutionStatus.RUNNABLE, result);  // this will create the trigger
+        result.recordSuccess();
+
+        // note that if scheduling (not executes before/after) prevents the task from running, it will not run!
+    }
+
+    public void scheduleRunnableTaskNow(Task task, OperationResult parentResult) {
+        OperationResult result = parentResult.createSubresult(DOT_CLASS + "scheduleRunnableTaskNow");
 
         if (task.getExecutionStatus() != TaskExecutionStatus.RUNNABLE) {
             String message = "Task " + task + " cannot be scheduled, because it is not in RUNNABLE state.";
@@ -537,6 +564,19 @@ public class ExecutionManager {
             result.recordFatalError(message, e);
             LOGGER.error(message);
         }
+    }
+
+    public void pauseTaskJob(Task task, OperationResult parentResult) {
+        OperationResult result = parentResult.createSubresult(DOT_CLASS + "pauseTaskJob");
+        JobKey jobKey = TaskQuartzImplUtil.createJobKeyForTask(task);
+        try {
+            quartzScheduler.pauseJob(jobKey);
+            result.recordSuccess();
+        } catch (SchedulerException e) {
+            LoggingUtils.logException(LOGGER, "Cannot pause job for task {}", e, task);
+            result.recordFatalError("Cannot pause job for task " + task, e);
+        }
+
     }
 }
 

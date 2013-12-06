@@ -98,6 +98,14 @@ public class JobExecutor implements InterruptableJob {
             return;
         }
 
+        // if task manager is stopping or stopped, stop this task immediately
+        // this can occur in rare situations, see https://jira.evolveum.com/browse/MID-1167
+        if (!taskManagerImpl.isRunning()) {
+            LOGGER.warn("Task was started while task manager is not running: exiting and rescheduling (if needed)");
+            processTaskStop(executionResult);
+            return;
+        }
+
         // if this is a restart, check whether the task is resilient
         if (context.isRecovering()) {
 
@@ -123,6 +131,8 @@ public class JobExecutor implements InterruptableJob {
 
         TaskHandler handler = null;
 		try {
+
+            taskManagerImpl.registerRunningTask(task);
         
 			handler = taskManagerImpl.getHandler(task.getHandlerUri());
             logRunStart(handler);
@@ -148,7 +158,8 @@ public class JobExecutor implements InterruptableJob {
 			}
 		
 		} finally {
-			executingThread = null;
+            taskManagerImpl.unregisterRunningTask(task);
+            executingThread = null;
 
             if (!task.canRun()) {
                 processTaskStop(executionResult);
@@ -213,12 +224,12 @@ public class JobExecutor implements InterruptableJob {
             taskManagerImpl.suspendTask(task, TaskManager.WAIT_INDEFINITELY, executionResult);
         } else if (task.getThreadStopAction() == null || task.getThreadStopAction() == ThreadStopActionType.RESTART) {
             LOGGER.info("Node going down: Rescheduling resilient task to run immediately; task = {}", task);
-            taskManagerImpl.scheduleTaskNow(task, executionResult);
+            taskManagerImpl.scheduleRunnableTaskNow(task, executionResult);
         } else if (task.getThreadStopAction() == ThreadStopActionType.RESCHEDULE) {
             if (task.getRecurrenceStatus() == TaskRecurrence.RECURRING && task.isLooselyBound()) {
                 ; // nothing to do, task will be automatically started by Quartz on next trigger fire time
             } else {
-                taskManagerImpl.scheduleTaskNow(task, executionResult);     // for tightly-bound tasks we do not know next schedule time, so we run them immediately
+                taskManagerImpl.scheduleRunnableTaskNow(task, executionResult);     // for tightly-bound tasks we do not know next schedule time, so we run them immediately
             }
         } else {
             throw new SystemException("Unknown value of ThreadStopAction: " + task.getThreadStopAction() + " for task " + task);

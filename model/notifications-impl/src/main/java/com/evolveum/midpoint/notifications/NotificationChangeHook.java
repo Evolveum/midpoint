@@ -126,6 +126,11 @@ public class NotificationChangeHook implements ChangeHook {
         return HookOperationMode.FOREGROUND;
     }
 
+    @Override
+    public void invokeOnException(ModelContext context, Throwable throwable, Task task, OperationResult result) {
+        // todo implement this
+    }
+
     private Event createRequest(PrismObject<? extends ObjectType> object, Task task,
                                 ModelContext<UserType, ShadowType> modelContext) {
 
