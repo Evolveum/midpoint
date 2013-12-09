@@ -45,6 +45,7 @@ form.search-form {
 
 /* table panel sorting */
 th.sortable {
+
   span.sortableArrowIcon {
     position: relative;
     top: 1px;
@@ -60,14 +61,14 @@ th.sortable {
     color: @text-color;
     font-size: 0.7em;
   }
-}
 
-th.sortable.asc span.sortableArrowIcon:before {
-  content: "\e113";
-}
+  &.asc span.sortableArrowIcon:before {
+    content: "\e113";
+  }
 
-th.sortable.desc span.sortableArrowIcon:before {
-  content: "\e114";
+  &.desc span.sortableArrowIcon:before {
+    content: "\e114";
+  }
 }
 
 /*
@@ -119,6 +120,7 @@ div.main-button-bar {
  * - removing bullet and paddings
  */
 div.form-group > div > span.text-danger {
+
   ul.feedbackPanel {
     margin: 0;
     list-style: none;
@@ -151,4 +153,12 @@ div.org-tree-container {
  */
 h3.w_captionText {
    font-size: 18px;
+}
+
+/*
+ * Org. unit editor, orgType (MultiValueTextFormGroup)
+ * todo this must be unified with user details for example (prism form) [lazyman]
+ */
+div.multivalue-form {
+  margin-top: @padding-base-vertical;
 }
