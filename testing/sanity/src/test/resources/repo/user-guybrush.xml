@@ -24,6 +24,10 @@
     <emailAddress>guybrush@evolveum.com</emailAddress>
     <organizationalUnit>Loosers</organizationalUnit>
     <locality>Deep in the Caribbean</locality>
+    <employeeType>A</employeeType>
+    <employeeType>B</employeeType>
+    <employeeType>C</employeeType>
+    
 
     <credentials>
         <password>
