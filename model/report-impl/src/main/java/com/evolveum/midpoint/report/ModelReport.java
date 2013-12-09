@@ -29,7 +29,6 @@ import net.sf.jasperreports.engine.design.JRDesignStaticText;
 import net.sf.jasperreports.engine.design.JRDesignStyle;
 import net.sf.jasperreports.engine.design.JRDesignTextField;
 import net.sf.jasperreports.engine.design.JasperDesign;
-import net.sf.jasperreports.engine.export.JExcelApiExporter;
 import net.sf.jasperreports.engine.export.JRCsvExporter;
 import net.sf.jasperreports.engine.export.JRRtfExporter;
 import net.sf.jasperreports.engine.export.JRXhtmlExporter;
@@ -52,19 +51,19 @@ import net.sf.jasperreports.engine.type.WhenNoDataTypeEnum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import ch.qos.logback.classic.Logger;
-
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.controller.ModelUtils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -73,18 +72,23 @@ import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportFieldConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportParameterConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 
 @Component
 public class ModelReport {
-	 
-	private static final Trace LOGGER = TraceManager.getTrace(ModelReport.class);
 	
 	@Autowired
 	private ModelService modelService;
@@ -92,37 +96,10 @@ public class ModelReport {
 	@Autowired
 	private PrismContext prismContext;
 	
-	public Map<String, Object> getReportParams(ReportType reportType)
-	{
-	 	Map<String, Object> params = new HashMap<String, Object>();
-	  	for(ReportParameterConfigurationType parameterRepo : reportType.getReportParameters())
-		{
-    		params.put(parameterRepo.getNameParameter(), parameterRepo.getValueParameter());			
-    	}
-	    	
-	    return params;
-	}
-	
-	
-	public LinkedHashMap<String, ItemPath> getFieldsPair(ReportType reportType)
-	{
-		LinkedHashMap<String, ItemPath> fieldsPair = new LinkedHashMap<String, ItemPath>();
-	    // pair fields in the report with fields in repo
-	    for (ReportFieldConfigurationType fieldRepo : reportType.getReportFields())
-	   	{
-	   		fieldsPair.put(fieldRepo.getNameReportField(), new XPathHolder(fieldRepo.getItemPathField()).toItemPath());
-	   	}	
-	   	return fieldsPair;
-	}
-	
-	private Class<?> getClassType(QName classtType)
-  	{
-	   	// TODO compare with ordinal types        
-	    return java.lang.String.class;
-	}
-	
-	
 	public String addReportType(ReportType reportType, Task task, OperationResult result) 
+			throws ObjectAlreadyExistsException, ObjectNotFoundException,
+			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
+			PolicyViolationException, SecurityViolationException
 	{	
 		String oid = null;
 		
@@ -140,30 +117,112 @@ public class ModelReport {
 			result.computeStatus();
 			result.cleanupResult();
 
-		} catch (Exception ex)
+		} 
+		catch (ObjectAlreadyExistsException ex) 
 		{
-			LOGGER.equals("Add report type. " + ex.toString());
-		}		
+			result.recordFatalError(ex);
+			throw ex;
+		} 
+		catch (ObjectNotFoundException ex) 
+		{
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+		} 
+		catch (SchemaException ex) 
+		{
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+		} 
+		catch (ExpressionEvaluationException ex) 
+		{
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+		} 
+		catch (CommunicationException ex) 
+		{
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+		} 		
+		catch (ConfigurationException ex) 
+		{
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+		} 
+		catch (PolicyViolationException ex)
+		{
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+		}
+		catch (SecurityViolationException ex) 
+		{
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+		} 
+		catch (RuntimeException ex) 
+		{
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+		} 
+		finally
+		{
+			RepositoryCache.exit();
+		}
 
 		return oid;
 	}
 	
 	public ReportType getReportType(String oid, Task task, OperationResult result)
+			throws ObjectNotFoundException, SchemaException, SecurityViolationException, 
+			CommunicationException, ConfigurationException
 	{  
+		ReportType reportType = null;
 		try
 		{
-			return  modelService.getObject(ReportType.class, oid, null, task, result).asObjectable();
+			reportType = modelService.getObject(ReportType.class, oid, null, task, result).asObjectable();
 		}
-		catch (Exception ex)
+		catch (ObjectNotFoundException ex) 
 		{
-			LOGGER.equals("Get report type. " + ex.toString());
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+		} 
+		catch (SchemaException ex) {
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+		} 
+		catch (CommunicationException ex) 
+		{
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+		} 
+		catch (ConfigurationException ex) 
+		{
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+		} 
+		catch (SecurityViolationException ex) 
+		{
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+		} 
+		catch (RuntimeException ex) 
+		{
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+		}
+		finally 
+		{
+			RepositoryCache.exit();
 		}
 		
-		return null;
+		return reportType;
 	}
 	
 	
 	public void deleteReportType(String oid, Task task, OperationResult result)
+			throws ObjectAlreadyExistsException, ObjectNotFoundException,
+			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
+			PolicyViolationException, SecurityViolationException
+
 	{	
 		try 
 		{
@@ -177,17 +236,63 @@ public class ModelReport {
 			result.computeStatus();
 
 		} 
-		catch (Exception ex)
+		catch (ObjectAlreadyExistsException ex) 
 		{
-			LOGGER.equals("Delete report type. " + ex.toString());
-		}		
-	}
-	
-	protected ObjectDelta<UserType> createModifyUserReplaceDelta(String userOid, ItemPath propertyName, Object... newRealValue) {
-		return ObjectDelta.createModificationReplaceProperty(UserType.class, userOid, propertyName, prismContext, newRealValue);
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+		} 
+		catch (ObjectNotFoundException ex) 
+		{
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+		} 
+		catch (SchemaException ex) 
+		{
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+		} 
+		catch (ExpressionEvaluationException ex) 
+		{
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+		} 
+		catch (CommunicationException ex) 
+		{
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+		} 		
+		catch (ConfigurationException ex) 
+		{
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+		} 
+		catch (PolicyViolationException ex)
+		{
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+		}
+		catch (SecurityViolationException ex) 
+		{
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+		} 
+		catch (RuntimeException ex) 
+		{
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+		} 
+		finally
+		{
+			RepositoryCache.exit();
+		}
+		
 	}
 	
 	public void modifyReportType(String oid, ReportType reportType, Task task, OperationResult result)
+			throws ObjectAlreadyExistsException, ObjectNotFoundException,
+			SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException,
+			PolicyViolationException, SecurityViolationException
+
 	{
 		try 
 		{	 
@@ -211,50 +316,100 @@ public class ModelReport {
 
             result.computeStatus();
 		}
-		catch (Exception ex)
+		catch (ObjectAlreadyExistsException ex) 
 		{
-			LOGGER.equals("Modify report type. " + ex.toString());
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+		} 
+		catch (ObjectNotFoundException ex) 
+		{
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+		} 
+		catch (SchemaException ex) 
+		{
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+		} 
+		catch (ExpressionEvaluationException ex) 
+		{
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+		} 
+		catch (CommunicationException ex) 
+		{
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+		} 		
+		catch (ConfigurationException ex) 
+		{
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+		} 
+		catch (PolicyViolationException ex)
+		{
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
 		}
-			/*
-        } catch (ExpressionEvaluationException ex) {
-			LOGGER.error("model.modifyObject failed: {}", ex.getMessage(), ex);
-			result.recordFatalError(ex);
-			throw ex;
-		} catch (ObjectNotFoundException ex) {
-			LOGGER.error("model.modifyObject failed: {}", ex.getMessage(), ex);
-			result.recordFatalError(ex);
-			throw ex;
-		} catch (SchemaException ex) {
+		catch (SecurityViolationException ex) 
+		{
 			ModelUtils.recordFatalError(result, ex);
 			throw ex;
-		} catch (ConfigurationException ex) {
+		} 
+		catch (RuntimeException ex) 
+		{
 			ModelUtils.recordFatalError(result, ex);
 			throw ex;
-		} catch (SecurityViolationException ex) {
-			ModelUtils.recordFatalError(result, ex);
-			throw ex;
-		} catch (RuntimeException ex) {
-			ModelUtils.recordFatalError(result, ex);
-			throw ex;
-		} finally {
+		} 
+		finally
+		{
 			RepositoryCache.exit();
 		}
-		*/
+		
 	}
 	
-	@SuppressWarnings("unchecked")
-	public <T extends ObjectType> List<PrismObject<T>> searchReportObjects(ReportType reportType, OperationResult parentResult) 
+	public <T extends ObjectType> List<PrismObject<T>> searchReportObjects(ReportType reportType, OperationResult result) 
+			throws SchemaException, ObjectNotFoundException, SecurityViolationException, 
+			CommunicationException, ConfigurationException
 	{
+		List<PrismObject<T>> listReportObjects = null;
 		try
 		{
 			Class<T> clazz = (Class<T>) ObjectTypes.getObjectTypeFromTypeQName(reportType.getObjectClass()).getClassDefinition();
 			ObjectQuery objectQuery = QueryConvertor.createObjectQuery(clazz, reportType.getQuery(), prismContext);
-			return modelService.searchObjects(clazz, objectQuery, SelectorOptions.createCollection(GetOperationOptions.createRaw()), null, parentResult);
+			listReportObjects = modelService.searchObjects(clazz, objectQuery, SelectorOptions.createCollection(GetOperationOptions.createRaw()), null, result);
 		}
-		catch (Exception ex) 
+		catch (SchemaException ex) 
 		{
-			return null;
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
         }
+		catch (ObjectNotFoundException ex) 
+		{
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+        }
+		catch (SecurityViolationException ex) 
+		{
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+        }
+		catch (CommunicationException ex) 
+		{
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+        }
+		catch (ConfigurationException ex) 
+		{
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+        }
+		catch (RuntimeException ex) 
+		{
+			ModelUtils.recordFatalError(result, ex);
+			throw ex;
+        }
+		return listReportObjects;
 	}
 	
 	public List<ReportType> searchReportTypes(ObjectQuery query, OperationResult parentResult) 
@@ -265,6 +420,51 @@ public class ModelReport {
 		return listReportType;
 	}
 	
+	public Map<String, Object> getReportParams(ReportType reportType)
+	{
+	 	Map<String, Object> params = new HashMap<String, Object>();
+	  	for(ReportParameterConfigurationType parameterRepo : reportType.getReportParameters())
+		{
+    		params.put(parameterRepo.getNameParameter(), parameterRepo.getValueParameter());			
+    	}
+	    	
+	    return params;
+	}
+	
+	public LinkedHashMap<String, ItemPath> getFieldsPair(ReportType reportType)
+	{
+		LinkedHashMap<String, ItemPath> fieldsPair = new LinkedHashMap<String, ItemPath>();
+	    // pair fields in the report with fields in repo
+	    for (ReportFieldConfigurationType fieldRepo : reportType.getReportFields())
+	   	{
+	   		fieldsPair.put(fieldRepo.getNameReportField(), new XPathHolder(fieldRepo.getItemPathField()).toItemPath());
+	   	}	
+	   	return fieldsPair;
+	}
+	
+	private Class<?> getClassType(QName classtType)
+  	{
+	   	// TODO compare with ordinal types        
+	    return java.lang.String.class;
+	}
+	
+	public QName getObjectClassForResource(String resourceOid, Task task, OperationResult result) 
+		throws Exception
+	{
+        try {
+            PrismObject<ResourceType> resource = modelService.getObject(ResourceType.class,
+                    resourceOid, null, task, result);
+            RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource,
+                    LayerType.PRESENTATION, prismContext);
+
+            RefinedObjectClassDefinition def = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
+            return def.getTypeName();
+        } catch (Exception ex) {
+            result.recordFatalError("Couldn't get default object class qname for resource oid '"
+                    + resourceOid + "'.", ex);
+            throw ex;
+        }
+    }
 	
 	public ReportType createReportType(JasperDesign jasperDesign) throws JRException
 	{
@@ -314,15 +514,23 @@ public class ModelReport {
 		jasperDesign.addTemplate(templateStyle);
 		
 		//Parameters
-		//two parameters are there every time - template styles and logo image
-		for(ReportParameterConfigurationType parameterRepo : reportType.getReportParameters())
+		//two parameters are there every time - template styles and logo image and will be excluded
+		List<ReportParameterConfigurationType> parameters = new ArrayList<ReportParameterConfigurationType>();
+		parameters.addAll(reportType.getReportParameters());
+		
+		for(ReportParameterConfigurationType parameterRepo : parameters)
 		{
 			JRDesignParameter parameter = new JRDesignParameter();
 			parameter.setName(parameterRepo.getNameParameter());
 			parameter.setValueClass(getClassType(parameterRepo.getClassTypeParameter()));
 			jasperDesign.addParameter(parameter);
+			/*if(parameterRepo.getNameParameter().equals("LOGO_PATH") || parameterRepo.getNameParameter().equals("BaseTemplateStyles")) 
+			{
+				parameters.remove(parameterRepo);
+			}
+			*/
 		}
-
+				
 		//Fields
 		for(ReportFieldConfigurationType fieldRepo : reportType.getReportFields())
 		{
@@ -339,24 +547,27 @@ public class ModelReport {
 		jasperDesign.setBackground(bandBackground);
 		
 		//Title
+		//band size depends on the number of parameters
+		//two pre-defined parameters were excluded
+		int secondColumn = Math.round(jasperDesign.getColumnWidth()/2 - 1);
 		JRDesignBand titleBand = new JRDesignBand();
-		titleBand.setHeight(110);
+		int height = 70 + Math.max(40, parameters.size()*20);
+		titleBand.setHeight(height);
 		titleBand.setSplitType(SplitTypeEnum.STRETCH);
 		
 		JRDesignFrame frame = new JRDesignFrame();
 		frame.setX(0);
 		frame.setY(0);
-		//frame.setWidth(799);
 		frame.setWidth(jasperDesign.getColumnWidth() - 2);
-		frame.setHeight(67);
+		frame.setHeight(70);
 		frame.setStyleNameReference("Title");
 		titleBand.addElement(frame);
 		
 		JRDesignStaticText staticText = new JRDesignStaticText();
 		staticText.setX(10);
-		staticText.setY(13);
+		staticText.setY(15);
 		staticText.setWidth(266);
-		staticText.setHeight(38);
+		staticText.setHeight(40);
 		staticText.setStyleNameReference("Title");
 		staticText.setVerticalAlignment(VerticalAlignEnum.MIDDLE);
 		staticText.setText("DataSource Report");
@@ -364,17 +575,17 @@ public class ModelReport {
 		
 		JRDesignImage image = new JRDesignImage(new JRDesignStyle().getDefaultStyleProvider());
 		image.setX(589);
-		image.setY(13);
+		image.setY(15);
 		image.setWidth(203);
-		image.setHeight(45);
+		image.setHeight(40);
 		image.setStyleNameReference("Title");
 		image.setExpression(new JRDesignExpression("$P{LOGO_PATH}"));
 		frame.addElement(image);
 		
+		 
 		staticText = new JRDesignStaticText();
-		//staticText.setX(400);
-		staticText.setX(Math.round(jasperDesign.getColumnWidth()/2 - 1));
-		staticText.setY(67);
+		staticText.setX(secondColumn);
+		staticText.setY(70);
 		staticText.setWidth(150);
 		staticText.setHeight(20);
 		staticText.setStyleNameReference("Page header");
@@ -383,8 +594,8 @@ public class ModelReport {
 		titleBand.addElement(staticText);
 		
 		JRDesignTextField textField = new JRDesignTextField();
-		textField.setX(550);
-		textField.setY(67);
+		textField.setX(secondColumn + 150);
+		textField.setY(70);
 		textField.setWidth(250);
 		textField.setHeight(20);
 		textField.setHorizontalAlignment(HorizontalAlignEnum.RIGHT);
@@ -395,9 +606,8 @@ public class ModelReport {
 		titleBand.addElement(textField);
 		
 		staticText = new JRDesignStaticText();
-		//staticText.setX(400);
-		staticText.setX(Math.round(jasperDesign.getColumnWidth()/2 - 1));
-		staticText.setY(87);
+		staticText.setX(secondColumn);
+		staticText.setY(90);
 		staticText.setWidth(150);
 		staticText.setHeight(20);
 		staticText.setStyleNameReference("Page header");
@@ -406,8 +616,8 @@ public class ModelReport {
 		titleBand.addElement(staticText);
 		
 		textField = new JRDesignTextField();
-		textField.setX(550);
-		textField.setY(87);
+		textField.setX(secondColumn + 150);
+		textField.setY(90);
 		textField.setWidth(250);
 		textField.setHeight(20);
 		textField.setHorizontalAlignment(HorizontalAlignEnum.RIGHT);
@@ -416,6 +626,36 @@ public class ModelReport {
 		textField.setBold(false);
 		textField.setExpression(new JRDesignExpression("$V{REPORT_COUNT}"));
 		titleBand.addElement(textField);
+		
+		parameters.remove(0);
+		parameters.remove(0);
+		int y = 70;
+		for(ReportParameterConfigurationType parameterRepo : parameters)
+		{
+			staticText = new JRDesignStaticText();
+			staticText.setX(2);
+			staticText.setY(y);
+			staticText.setWidth(150);
+			staticText.setHeight(20);
+			staticText.setStyleNameReference("Page header");
+			staticText.setVerticalAlignment(VerticalAlignEnum.MIDDLE);
+			staticText.setText(parameterRepo.getDescriptionParameter() + ":");
+			titleBand.addElement(staticText);
+			
+			textField = new JRDesignTextField();
+			textField.setX(160);
+			textField.setY(y);
+			textField.setWidth(240);
+			textField.setHeight(20);
+			textField.setHorizontalAlignment(HorizontalAlignEnum.RIGHT);
+			textField.setVerticalAlignment(VerticalAlignEnum.MIDDLE);
+			textField.setStyleNameReference("Page header");
+			textField.setBold(false);
+			textField.setExpression(new JRDesignExpression("$P{"+ parameterRepo.getNameParameter() + "}"));
+			titleBand.addElement(textField);
+			
+			y = y + 20;
+		}
 		
 		jasperDesign.setTitle(titleBand);
 	
