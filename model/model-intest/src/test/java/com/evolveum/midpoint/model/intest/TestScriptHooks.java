@@ -31,6 +31,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.intest.util.StaticHookRecorder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
@@ -132,6 +133,7 @@ public class TestScriptHooks extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);        
         dummyAuditService.clear();
+        StaticHookRecorder.reset();
                 
 		// WHEN
         assignAccount(USER_JACK_OID, RESOURCE_DUMMY_HOOK_OID, null, task, result);
@@ -157,6 +159,12 @@ public class TestScriptHooks extends AbstractInitializedModelIntegrationTest {
         
         // Check account in dummy resource
         assertDummyAccount(RESOURCE_DUMMY_HOOK_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", true);
+
+        display("StaticHookRecorder", StaticHookRecorder.dump());
+        StaticHookRecorder.assertInvocationCount("org", 1);
+        StaticHookRecorder.assertInvocationCount("foo", 5);
+        StaticHookRecorder.assertInvocationCount("bar", 5);
+        StaticHookRecorder.assertInvocationCount("bar-user", 1);
         
         // Check audit
         display("Audit", dummyAuditService);
@@ -180,6 +188,7 @@ public class TestScriptHooks extends AbstractInitializedModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);        
         dummyAuditService.clear();
+        StaticHookRecorder.reset();
                 
 		// WHEN
         modifyUserAdd(USER_JACK_OID, UserType.F_ORGANIZATION, task, result, new PolyString("Pirate Brethren"));
@@ -211,6 +220,13 @@ public class TestScriptHooks extends AbstractInitializedModelIntegrationTest {
         display("Brethren org", brethrenOrg);
         
         assertAssignedOrg(userJack, brethrenOrg);
+
+        display("StaticHookRecorder", StaticHookRecorder.dump());
+        StaticHookRecorder.assertInvocationCount("org", 1);
+        StaticHookRecorder.assertInvocationCount("foo", 10);
+        StaticHookRecorder.assertInvocationCount("bar", 10);
+        StaticHookRecorder.assertInvocationCount("bar-user", 1);
+
 
         // TODO
 //        // Check audit
