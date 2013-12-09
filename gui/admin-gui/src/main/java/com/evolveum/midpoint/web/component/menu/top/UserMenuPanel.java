@@ -60,13 +60,13 @@ public class UserMenuPanel extends BaseSimplePanel {
                 createStringResource("UserMenuPanel.logout"));
         add(logoutLink);
 
-        LabeledBookmarkableLink editProfile = new LabeledBookmarkableLink(ID_EDIT_PROFILE,
-                new MenuItem(createStringResource("UserMenuPanel.editProfile"), PageDashboard.class));
-        add(editProfile);
-
-        LabeledBookmarkableLink resetPasswords = new LabeledBookmarkableLink(ID_RESET_PASSWORDS,
-                new MenuItem(createStringResource("UserMenuPanel.resetPasswords"), PageDashboard.class));
-        add(resetPasswords);
+//        LabeledBookmarkableLink editProfile = new LabeledBookmarkableLink(ID_EDIT_PROFILE,
+//                new MenuItem(createStringResource("UserMenuPanel.editProfile"), PageDashboard.class));
+//        add(editProfile);
+//
+//        LabeledBookmarkableLink resetPasswords = new LabeledBookmarkableLink(ID_RESET_PASSWORDS,
+//                new MenuItem(createStringResource("UserMenuPanel.resetPasswords"), PageDashboard.class));
+//        add(resetPasswords);
     }
 
     private String getShortUserName() {
