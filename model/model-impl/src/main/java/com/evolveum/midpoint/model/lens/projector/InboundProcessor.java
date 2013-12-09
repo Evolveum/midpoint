@@ -408,7 +408,7 @@ public class InboundProcessor {
 	                if (targetUserProperty == null || targetUserProperty.hasRealValue(value)) {
 	                	if (!outputUserPropertydelta.isReplace()) {
 	                		// This is not needed if we are going to replace. In fact it might cause an error.
-	                		outputUserPropertydelta.addValueToDelete(value);
+	                		outputUserPropertydelta.addValueToDelete(value.clone());
 	                	}
 	                }
 	            }
