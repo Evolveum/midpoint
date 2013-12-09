@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.report;
 
-import static org.testng.AssertJUnit.assertNull;
+import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -30,6 +30,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,6 +57,7 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
@@ -70,8 +72,10 @@ import com.evolveum.midpoint.repo.sql.data.common.enums.RExportType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROrientationType;
 import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.PagingConvertor;
 import com.evolveum.midpoint.schema.QueryConvertor;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
@@ -79,6 +83,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
@@ -87,6 +92,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrientationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportFieldConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportParameterConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.prism.xml.ns._public.query_2.OrderDirectionType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
@@ -104,22 +110,24 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
     
     private static final File REPORTS_DIR = new File("src/test/resources/reports");
     private static final File STYLES_DIR = new File("src/test/resources/styles");
+    private static final File DATA_DIR = new File("src/test/resources/data");
+    private static final File RESOURCE_OPENDJ_FILE = new File(DATA_DIR, "resource-opendj.xml");
     
     private static final String REPORT_DATASOURCE_TEST_1 = REPORTS_DIR + "/reportDataSourceTest.jrxml";
     private static final String STYLE_TEMPLATE_DEFAULT = STYLES_DIR + "/midpoint_base_styles.jrtx";
     
-    //private static final String FINAL_REPORT_1 = REPORTS_DIR + "/reportDataSourceTestFinal_1.jrprint";
     private static final String FINAL_EXPORT_REPORT_1 = REPORTS_DIR + "/reportDataSourceTestFinal_1";
-    
-    //private static final String REPORT_DATASOURCE_TEST_2 = REPORTS_DIR + "/reportDataSourceTest_2.jrxml";
-    //private static final String FINAL_JASPER_REPORT_2 = REPORTS_DIR + "/reportDataSourceTestFinal_2.jasper";
-    //private static final String FINAL_REPORT_2 = REPORTS_DIR + "/reportDataSourceTestFinal_2.jrprint";
     private static final String FINAL_EXPORT_REPORT_2 = REPORTS_DIR + "/reportDataSourceTestFinal_2";
-    
     private static final String FINAL_EXPORT_REPORT_3 = REPORTS_DIR + "/reportDataSourceTestFinal_3";
+    private static final String FINAL_EXPORT_REPORT_RECONCILIATION = REPORTS_DIR + "/reportDataSourceReconciliation";
     
     private static final String REPORT_OID_001 = "00000000-3333-3333-0000-100000000001";
     private static final String REPORT_OID_002 = "00000000-3333-3333-0000-100000000002";
+    
+    private static final String REPORT_OID_RECONCILIATION = "00000000-3333-3333-0000-100000000003";
+    private static final String RESOURCE_OID = "10000000-0000-0000-0000-000000000003";
+    private static final String RESOURCE_NAME = "Localhost OpenDJ";
+    private static final String INTENT = "default";
     
     @Autowired
     private SessionFactory sessionFactory;
@@ -132,6 +140,9 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
     
     @Autowired
     private ModelReport modelReport;
+    
+    @Autowired
+    private ReportManager reportManager;
     
     private static String readFile(String path, Charset encoding) 
 			  throws IOException 
@@ -148,13 +159,10 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
         session.close();
 
         return report;
-    }
-
-       
+    }   
     
     @Test
     public void test001CreateReport() throws Exception {
-    	
     	
         RReport report = new RReport();
          
@@ -255,8 +263,7 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
          field.setNameReportField("FirstName");
          itemPath = new ItemPath(UserType.F_GIVEN_NAME);
          xpath = new XPathHolder(itemPath);
-         element = xpath.toElement(SchemaConstants.C_ITEM_PATH_FIELD, DOMUtil.getDocument());
-         //element = xpath.toElement(SchemaConstantsGenerated.NS_COMMON, "itemPathField");         
+         element = xpath.toElement(SchemaConstants.C_ITEM_PATH_FIELD, DOMUtil.getDocument());         
          field.setItemPathField(element);         
          field.setSortOrderNumber(null);
          field.setSortOrder(null);
@@ -270,8 +277,7 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
          field.setNameReportField("LastName");
          itemPath = new ItemPath(UserType.F_FAMILY_NAME);
          xpath = new XPathHolder(itemPath);
-         element = xpath.toElement(SchemaConstants.C_ITEM_PATH_FIELD, DOMUtil.getDocument());
-         //element = xpath.toElement(SchemaConstantsGenerated.NS_COMMON, "itemField");         
+         element = xpath.toElement(SchemaConstants.C_ITEM_PATH_FIELD, DOMUtil.getDocument());        
          field.setItemPathField(element);         
          field.setSortOrderNumber(null);
          field.setSortOrder(null);
@@ -285,8 +291,7 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
          field.setNameReportField("Activation");
          itemPath = new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
          xpath = new XPathHolder(itemPath);
-         element = xpath.toElement(SchemaConstants.C_ITEM_PATH_FIELD, DOMUtil.getDocument());
-         //element = xpath.toElement(SchemaConstantsGenerated.NS_COMMON, "itemField");         
+         element = xpath.toElement(SchemaConstants.C_ITEM_PATH_FIELD, DOMUtil.getDocument());  
          field.setItemPathField(element);         
          field.setSortOrderNumber(null);
          field.setSortOrder(null);
@@ -296,7 +301,6 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
          reportFields.add(field);
         
          report.setReportFields(RUtil.toRepo(reportFields, prismContext));
-         
          
          //parameters
          List<ReportParameterConfigurationType> reportParameters = new ArrayList<ReportParameterConfigurationType>();
@@ -353,7 +357,6 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
         	 AssertJUnit.assertEquals(field.getWidthField(), fieldRepo.getWidthField());
         	 AssertJUnit.assertEquals(field.getClassTypeField(), fieldRepo.getClassTypeField());
          }
-        
          
          int parameterCount = reportParameters.size();
          List<ReportParameterConfigurationType> parametersRepo = reportType.getReportParameters();
@@ -467,6 +470,27 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
          session.close();
     }
     
+    
+    private void importReconciliationData() throws Exception 
+    {
+         LOGGER.info("import resource");
+         
+         OperationResult result = new OperationResult(BasicReportTest.class.getName()+".IMPORT RESOURCE");
+         PrismObject<ResourceType> resource = prismContext.getPrismDomProcessor().parseObject(RESOURCE_OPENDJ_FILE);
+         
+       
+         /*
+         Session session = sessionFactory.openSession();
+         session.beginTransaction();
+            
+         Query qCount = session.createQuery("select count(*) from RUser");
+         long count = (Long) qCount.uniqueResult();
+         AssertJUnit.assertEquals(2L, count);
+         
+         session.getTransaction().commit();
+         session.close();*/
+         
+    }
     private String[] getColumn(ReportType reportType)
     {
     	List<ReportFieldConfigurationType> fieldsRepo = reportType.getReportFields();
@@ -538,8 +562,304 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
         }
     }
     
+    
     @Test
     public void test003GenerateReportDynamic() throws Exception {
+     	
+    	Map<String, Object> params = new HashMap<String, Object>();
+    	
+        Session session = null;
+        DataSourceReport reportDataSource = null;
+        
+        LOGGER.debug("Generating dynamic Test report. DATASOURCE ..... ");
+        
+        try {
+            session = sessionFactory.openSession();
+            session.beginTransaction();
+               
+            Task task = taskManager.createTaskInstance(BasicReportTest.class.getName()+".test003GenerateReportDynamic");
+            OperationResult result = task.getResult();
+            ReportType reportType = modelReport.getReportType(REPORT_OID_001, task, result);
+            
+            reportType.setOid(REPORT_OID_002);
+            reportType.setName(new PolyStringType("Test report - Datasource2"));
+            
+            result.computeStatus();
+            
+            OperationResult subResult = new OperationResult("LOAD DATASOURCE");
+            reportDataSource = new DataSourceReport(reportType, modelReport, subResult);
+        
+            params.putAll(modelReport.getReportParams(reportType));
+            params.put(JRParameter.REPORT_DATA_SOURCE, reportDataSource);
+        
+            // Create template
+            JasperDesign jasperDesign = modelReport.createJasperDesign(reportType);
+            JasperReport jasperReport = JasperCompileManager.compileReport(jasperDesign);
+          
+            OutputStream outputStreamJRXML = new ByteArrayOutputStream();  
+            JasperCompileManager.writeReportToXmlStream(jasperReport, outputStreamJRXML);
+            reportType.setReportTemplateJRXML(outputStreamJRXML.toString()); 
+            JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, params);
+            
+            modelReport.generateReport(reportType, jasperPrint, FINAL_EXPORT_REPORT_2);
+          
+            subResult = task.getResult();
+            modelReport.addReportType(reportType, task, subResult);
+            
+            subResult.computeStatus();
+            session.getTransaction().commit();
+        } catch (Exception ex) {
+        	if (session != null && session.getTransaction().isActive()) {
+        		session.getTransaction().rollback();
+        	}
+
+            LOGGER.error("Couldn't generate jasper report at runtime.", ex);
+        	throw ex;
+        } finally {
+        	if (session != null) {
+        		session.close();
+        	}
+        }
+    }
+    /*
+    @Test
+    public void test004GenerateReconciliationReportDynamic() throws Exception {
+    	
+    	importReconciliationData();
+    	
+    	RReport report = new RReport();
+        
+        LOGGER.debug("Creating Test report. RECONCILIATION DATASOURCE ..... ");
+        
+        report.setOid(REPORT_OID_RECONCILIATION);
+        
+        //description and name
+        report.setName(new RPolyString("Reconciliation","Reconciliation"));
+        report.setDescription("Reconciliation report for selected resource.");
+        
+        String jrtxFile = null;
+        try
+        {
+       	 jrtxFile = readFile(STYLE_TEMPLATE_DEFAULT, StandardCharsets.UTF_8);
+        }
+        catch (Exception ex)
+        {
+       	 LOGGER.error("Exception occurred. STYLE_TEMPLATE_DEFAULT", ex);
+           
+        }
+        report.setReportTemplateStyleJRTX(jrtxFile);
+        
+        //orientation
+        report.setReportOrientation(RUtil.getRepoEnumValue(OrientationType.LANDSCAPE, ROrientationType.class));
+        
+        //export
+    	 report.setReportExport(RUtil.getRepoEnumValue(ExportType.PDF, RExportType.class));
+    	 
+        //object class
+        report.setObjectClass(ObjectTypes.getObjectType(ShadowType.class).getTypeQName());
+        
+        //object query        
+        Task task = taskManager.createTaskInstance(BasicReportTest.class.getName()+".test004GenerateReconciliationReportDynamic (Resource)");
+        OperationResult result = task.getResult();
+        
+    	QName objectClass = modelReport.getObjectClassForResource(RESOURCE_OID, task, result);
+        List<ObjectFilter> conditions = new ArrayList<ObjectFilter>();
+    	
+    	EqualsFilter eqFilter = EqualsFilter.createEqual(ShadowType.class, prismContext, ShadowType.F_KIND, ShadowKindType.ACCOUNT);
+    	conditions.add(eqFilter);
+    	eqFilter = EqualsFilter.createEqual(ShadowType.class, prismContext, ShadowType.F_OBJECT_CLASS, objectClass);
+    	conditions.add(eqFilter);
+    	RefFilter refFilter = RefFilter.createReferenceEqual(ShadowType.class, ShadowType.F_RESOURCE_REF, prismContext, RESOURCE_OID);
+    	conditions.add(refFilter);
+    	AndFilter queryFilter = AndFilter.createAnd(conditions);
+    	
+        ObjectPaging paging = ObjectPaging.createPaging(0, 10);
+        ObjectQuery query = ObjectQuery.createObjectQuery(queryFilter, paging);
+        QueryType queryType = new QueryType();
+        try
+        {
+       	 queryType = QueryConvertor.createQueryType(query, prismContext);
+        }
+        catch (Exception ex)
+        {
+       	 LOGGER.error("Exception occurred. QueryType", ex);
+        }
+        try
+        {
+       	 queryType.setPaging(PagingConvertor.createPagingType(query.getPaging()));
+        }
+        catch (Exception ex)
+        {
+       	 LOGGER.error("Exception occurred. QueryType pagging", ex);
+        }  
+        report.setQuery(RUtil.toRepo(queryType, prismContext));
+         
+        //fields
+        List<ReportFieldConfigurationType> reportFields = new ArrayList<ReportFieldConfigurationType>();
+        
+        ReportFieldConfigurationType field = new ReportFieldConfigurationType();
+        ItemPath itemPath;
+        XPathHolder xpath;
+        Element element;
+        ItemDefinition itemDef;
+        SchemaRegistry schemaRegistry  = prismContext.getSchemaRegistry();  
+        
+        PrismObjectDefinition<UserType> userDefinition = schemaRegistry.findObjectDefinitionByCompileTimeClass(UserType.class);
+        
+        field.setNameHeaderField("Name");
+        field.setNameReportField("Name");
+        itemPath = new ItemPath(ShadowType.F_NAME);
+        xpath = new XPathHolder(itemPath);
+        element = xpath.toElement(SchemaConstants.C_ITEM_PATH_FIELD, DOMUtil.getDocument());         
+        field.setItemPathField(element);         
+        field.setSortOrderNumber(2);
+        field.setSortOrder(OrderDirectionType.ASCENDING);
+        itemDef = userDefinition.findItemDefinition(itemPath);
+        field.setWidthField(25);
+        field.setClassTypeField(itemDef.getTypeName());    
+        reportFields.add(field);
+        
+        field = new ReportFieldConfigurationType();
+        field.setNameHeaderField("Situtation");
+        field.setNameReportField("Situation");
+        itemPath = new ItemPath(ShadowType.F_SYNCHRONIZATION_SITUATION);
+        xpath = new XPathHolder(itemPath);
+        element = xpath.toElement(SchemaConstants.C_ITEM_PATH_FIELD, DOMUtil.getDocument());         
+        field.setItemPathField(element);         
+        field.setSortOrderNumber(2);
+        field.setSortOrder(OrderDirectionType.ASCENDING);
+        itemDef = userDefinition.findItemDefinition(itemPath);
+        field.setWidthField(25);
+        field.setClassTypeField(itemDef.getTypeName());    
+        reportFields.add(field);
+        
+        field = new ReportFieldConfigurationType();
+        field.setNameHeaderField("Owner");
+        field.setNameReportField("Username");
+        itemPath = new ItemPath(UserType.F_NAME);
+        xpath = new XPathHolder(itemPath);
+        element = xpath.toElement(SchemaConstants.C_ITEM_PATH_FIELD, DOMUtil.getDocument());         
+        field.setItemPathField(element);         
+        field.setSortOrderNumber(null);
+        field.setSortOrder(null);
+        itemDef = userDefinition.findItemDefinition(itemPath);
+        field.setWidthField(25);
+        field.setClassTypeField(itemDef.getTypeName());    
+        reportFields.add(field);
+       
+        field = new ReportFieldConfigurationType();
+        field.setNameHeaderField("Timestamp");
+        field.setNameReportField("Timestamp");
+        itemPath = new ItemPath(ShadowType.F_SYNCHRONIZATION_TIMESTAMP);
+        xpath = new XPathHolder(itemPath);
+        element = xpath.toElement(SchemaConstants.C_ITEM_PATH_FIELD, DOMUtil.getDocument());
+        field.setItemPathField(element);         
+        field.setSortOrderNumber(null);
+        field.setSortOrder(null);
+        itemDef = userDefinition.findItemDefinition(itemPath);
+        field.setWidthField(25);
+        field.setClassTypeField(itemDef.getTypeName());    
+        reportFields.add(field);
+        
+        report.setReportFields(RUtil.toRepo(reportFields, prismContext));
+         
+        //parameters
+        List<ReportParameterConfigurationType> reportParameters = new ArrayList<ReportParameterConfigurationType>();
+        
+        ReportParameterConfigurationType parameter = new ReportParameterConfigurationType();
+        parameter.setNameParameter("LOGO_PATH");
+        parameter.setValueParameter(REPORTS_DIR.getPath() + "/logo.jpg");
+        parameter.setClassTypeParameter(DOMUtil.XSD_ANY);
+        reportParameters.add(parameter);
+        
+        parameter = new ReportParameterConfigurationType();
+        parameter.setNameParameter("BaseTemplateStyles");
+        parameter.setValueParameter(STYLE_TEMPLATE_DEFAULT);
+        parameter.setClassTypeParameter(DOMUtil.XSD_STRING);
+        reportParameters.add(parameter);
+        
+        parameter = new ReportParameterConfigurationType();
+        parameter.setNameParameter("RESOURCE_NAME");
+        parameter.setValueParameter(RESOURCE_NAME);
+        parameter.setDescriptionParameter("Resource");
+        parameter.setClassTypeParameter(DOMUtil.XSD_STRING);
+        reportParameters.add(parameter);
+        
+        parameter = new ReportParameterConfigurationType();
+        parameter.setNameParameter("INTENT");
+        parameter.setValueParameter(INTENT);
+        parameter.setDescriptionParameter("Intent");
+        parameter.setClassTypeParameter(DOMUtil.XSD_STRING);
+        reportParameters.add(parameter);
+        
+        parameter = new ReportParameterConfigurationType();
+        parameter.setNameParameter("CLASS");
+        parameter.setValueParameter(objectClass.getLocalPart());
+        parameter.setDescriptionParameter("Object class");
+        parameter.setClassTypeParameter(DOMUtil.XSD_STRING);
+        reportParameters.add(parameter);
+              
+        report.setReportParameters(RUtil.toRepo(reportParameters, prismContext));    
+        
+    	Map<String, Object> params = new HashMap<String, Object>();
+    	
+        Session session = null;
+        DataSourceReport reportDataSource = null;
+        
+        LOGGER.debug("Generating dynamic Test report. RECONCILIATION ..... ");
+        
+        try {
+            session = sessionFactory.openSession();
+            session.beginTransaction();
+            
+            task = taskManager.createTaskInstance(BasicReportTest.class.getName()+".test004GenerateReconciliationReportDynamic (Add Report Type)");
+            result = task.getResult();
+            modelReport.addReportType(report.toJAXB(prismContext, null), task, result);
+            
+            OperationResult subResult = result.createSubresult("READ REPORT RECORD");
+            ReportType reportType = modelReport.getReportType(REPORT_OID_RECONCILIATION, task, subResult);
+            subResult.computeStatus();
+            
+            result.computeStatus();
+            
+            subResult = new OperationResult("LOAD RECONCILIATION REPORT");
+            reportDataSource = new DataSourceReport(reportType, modelReport, subResult);
+        
+            params.putAll(modelReport.getReportParams(reportType));
+            params.put(JRParameter.REPORT_DATA_SOURCE, reportDataSource);
+        
+            // Create template
+            JasperDesign jasperDesign = modelReport.createJasperDesign(reportType);
+            JasperReport jasperReport = JasperCompileManager.compileReport(jasperDesign);
+          
+            OutputStream outputStreamJRXML = new ByteArrayOutputStream();  
+            JasperCompileManager.writeReportToXmlStream(jasperReport, outputStreamJRXML);
+            reportType.setReportTemplateJRXML(outputStreamJRXML.toString()); 
+            JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, params);
+            
+            modelReport.generateReport(reportType, jasperPrint, FINAL_EXPORT_REPORT_RECONCILIATION);
+          
+            subResult = task.getResult();
+            modelReport.addReportType(reportType, task, subResult);
+            
+            subResult.computeStatus();
+            session.getTransaction().commit();
+        } catch (Exception ex) {
+        	if (session != null && session.getTransaction().isActive()) {
+        		session.getTransaction().rollback();
+        	}
+
+            LOGGER.error("Couldn't generate jasper report at runtime.", ex);
+        	throw ex;
+        } finally {
+        	if (session != null) {
+        		session.close();
+        	}
+        }
+    }*/
+/*
+    @Test
+    public void test005GenerateUserListReportDynamic() throws Exception {
     	
     	Map<String, Object> params = new HashMap<String, Object>();
     	
@@ -598,7 +918,66 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
     }
     
     @Test
-    public void test004ExportReport() throws Exception {
+    public void test006GenerateAuditLOGReportDynamic() throws Exception {
+    	
+    	Map<String, Object> params = new HashMap<String, Object>();
+    	
+        Session session = null;
+        DataSourceReport reportDataSource = null;
+        
+        LOGGER.debug("Generating dynamic Test report. DATASOURCE ..... ");
+        
+        try {
+            session = sessionFactory.openSession();
+            session.beginTransaction();
+               
+            Task task = taskManager.createTaskInstance(BasicReportTest.class.getName()+".test003GenerateReportDynamic");
+            OperationResult result = task.getResult();
+            ReportType reportType = modelReport.getReportType(REPORT_OID_001, task, result);
+            
+            reportType.setOid(REPORT_OID_002);
+            reportType.setName(new PolyStringType("Test report - Datasource2"));
+            
+            result.computeStatus();
+            
+            OperationResult subResult = new OperationResult("LOAD DATASOURCE");
+            reportDataSource = new DataSourceReport(reportType, modelReport, subResult);
+        
+            params.putAll(modelReport.getReportParams(reportType));
+            params.put(JRParameter.REPORT_DATA_SOURCE, reportDataSource);
+        
+            // Create template
+            JasperDesign jasperDesign = modelReport.createJasperDesign(reportType);
+            JasperReport jasperReport = JasperCompileManager.compileReport(jasperDesign);
+          
+            OutputStream outputStreamJRXML = new ByteArrayOutputStream();  
+            JasperCompileManager.writeReportToXmlStream(jasperReport, outputStreamJRXML);
+            reportType.setReportTemplateJRXML(outputStreamJRXML.toString()); 
+            JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, params);
+            
+            modelReport.generateReport(reportType, jasperPrint, FINAL_EXPORT_REPORT_2);
+          
+            subResult = task.getResult();
+            modelReport.addReportType(reportType, task, subResult);
+            
+            subResult.computeStatus();
+            session.getTransaction().commit();
+        } catch (Exception ex) {
+        	if (session != null && session.getTransaction().isActive()) {
+        		session.getTransaction().rollback();
+        	}
+
+            LOGGER.error("Couldn't generate jasper report at runtime.", ex);
+        	throw ex;
+        } finally {
+        	if (session != null) {
+        		session.close();
+        	}
+        }
+    }
+*/
+    @Test
+    public void test007ExportReport() throws Exception {
     	
     	Map<String, Object> params = new HashMap<String, Object>();
     	
@@ -652,7 +1031,7 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
     }
 
     @Test
-    public void test005ModifyReport() throws Exception {
+    public void test008ModifyReport() throws Exception {
     	
         Session session = null;
     
@@ -696,7 +1075,7 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
     }
 
     @Test
-    public void test006DeleteReport() throws Exception
+    public void test009DeleteReport() throws Exception
     {	
         Session session = null;
         
@@ -706,17 +1085,25 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
             session = sessionFactory.openSession();
             session.beginTransaction();
                
-            Task task = taskManager.createTaskInstance(BasicReportTest.class.getName()+".test006DeleteReport");
-            OperationResult result = task.getResult();
-        
-            modelReport.deleteReportType(REPORT_OID_002, task, result);
+            //Task task = taskManager.createTaskInstance(BasicReportTest.class.getName()+".test006DeleteReport");
+            //OperationResult result = task.getResult();
+            
+            //modelReport.deleteReportType(REPORT_OID_002, task, result);
+            
+            OperationResult result = new OperationResult(BasicReportTest.class.getName()+".test006DeleteReport");
+            reportManager.deleteReport(REPORT_OID_002, result);
             result.computeStatus();
-            
-            OperationResult subResult = result.createSubresult("READ REPORT RECORD");
-            ReportType reportType = modelReport.getReportType(REPORT_OID_002, task, subResult);
-            subResult.computeStatus();
-            
-            AssertJUnit.assertNull("Report is not gone", reportType);
+                        
+            try {
+            	OperationResult subResult = result.createSubresult("READ REPORT RECORD");
+                Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
+                PrismObject<ReportType> reportTypePrism = reportManager.getReport(REPORT_OID_002, options, subResult);
+                subResult.computeStatus();	
+                display("Report type after", reportTypePrism);
+    			assert false : "Report type was not deleted: "+ reportTypePrism;
+    		} catch (ObjectNotFoundException e) {
+    			// This is expected
+    		}
             
             session.getTransaction().commit();
         } catch (Exception ex) {

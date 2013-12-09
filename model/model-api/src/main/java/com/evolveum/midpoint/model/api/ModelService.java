@@ -494,8 +494,7 @@ public interface ModelService {
 	 * TODO: Better description
 	 */
 	void importFromResource(String resourceOid, QName objectClass, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, 
-			SecurityViolationException;
+			throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException; 
 	
 	/**
 	 * <p>
@@ -504,8 +503,7 @@ public interface ModelService {
 	 * TODO: Better description 
 	 */
 	void importFromResource(String shadowOid, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, 
-			SecurityViolationException;
+			throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException;
 
 	/**
 	 * Import objects from file.
