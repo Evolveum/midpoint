@@ -84,7 +84,6 @@ public class PageResources extends PageAdminResources {
     private static final String OPERATION_DELETE_HOSTS = DOT_CLASS + "deleteHosts";
     private static final String OPERATION_CONNECTOR_DISCOVERY = DOT_CLASS + "connectorDiscovery";
 
-    private static final String ID_DELETE_HOST = "deleteHost";
     private static final String ID_DELETE_RESOURCES_POPUP = "deleteResourcesPopup";
     private static final String ID_DELETE_HOSTS_POPUP = "deleteHostsPopup";
     private static final String ID_MAIN_FORM = "mainForm";
@@ -108,8 +107,6 @@ public class PageResources extends PageAdminResources {
         connectorHosts.setShowPaging(false);
         connectorHosts.setOutputMarkupId(true);
         mainForm.add(connectorHosts);
-
-        initButtons(mainForm);
 
         add(new ConfirmationDialog(ID_DELETE_RESOURCES_POPUP,
                 createStringResource("pageResources.dialog.title.confirmDeleteResource"),
@@ -153,7 +150,7 @@ public class PageResources extends PageAdminResources {
     }
 
     private ResourceDto createRowDto(PrismObject<ResourceType> object) {
-        ResourceDto dto =  new ResourceDto(object);
+        ResourceDto dto = new ResourceDto(object);
         dto.getMenuItems().add(new InlineMenuItem(createStringResource("PageBase.button.delete"),
                 new ColumnMenuAction<ResourceDto>() {
 
@@ -165,28 +162,6 @@ public class PageResources extends PageAdminResources {
                 }));
 
         return dto;
-    }
-
-    private void initButtons(Form mainForm) {
-        AjaxLinkButton deleteHost = new AjaxLinkButton(ID_DELETE_HOST, ButtonType.NEGATIVE,
-                createStringResource("PageBase.button.delete")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                deleteHostPerformed(target);
-            }
-        };
-        mainForm.add(deleteHost);
-
-        AjaxLinkButton discoveryRemote = new AjaxLinkButton("discoveryRemote",
-                createStringResource("pageResources.button.discoveryRemote")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                discoveryRemotePerformed(target);
-            }
-        };
-        mainForm.add(discoveryRemote);
     }
 
     private List<IColumn<ResourceDto, String>> initResourceColumns() {
@@ -323,19 +298,38 @@ public class PageResources extends PageAdminResources {
         columns.add(new CheckBoxColumn(createStringResource("pageResources.connector.protectConnection"),
                 "value.protectConnection"));
 
+        InlineMenuHeaderColumn menu = new InlineMenuHeaderColumn(initInlineHostsMenu());
+        columns.add(menu);
+
         return columns;
+    }
+
+    private List<InlineMenuItem> initInlineHostsMenu() {
+        List<InlineMenuItem> headerMenuItems = new ArrayList<InlineMenuItem>();
+        headerMenuItems.add(new InlineMenuItem(createStringResource("PageBase.button.delete"),
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        deleteHostPerformed(target);
+                    }
+                }));
+        headerMenuItems.add(new InlineMenuItem(createStringResource("pageResources.button.discoveryRemote"),
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        discoveryRemotePerformed(target);
+                    }
+                }));
+
+        return headerMenuItems;
     }
 
     private void resourceDetailsPerformed(AjaxRequestTarget target, String oid) {
         PageParameters parameters = new PageParameters();
         parameters.add(PageResource.PARAM_RESOURCE_ID, oid);
         setResponsePage(PageResource.class, parameters);
-    }
-
-    private void resourceImportPerformed(AjaxRequestTarget target, String oid) {
-        PageParameters parameters = new PageParameters();
-        parameters.add(PageResourceImport.PARAM_RESOURCE_IMPORT_ID, oid);
-        setResponsePage(PageResourceImport.class, parameters);
     }
 
     private void deleteHostPerformed(AjaxRequestTarget target) {
