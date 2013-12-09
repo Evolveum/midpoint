@@ -8445,6 +8445,7 @@
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="nameParameter" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="descriptionParameter" type="xsd:string" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="valueParameter" type="xsd:string" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="classTypeParameter" type="xsd:QName" minOccurs="0" maxOccurs="1"/>     
         </xsd:sequence>
