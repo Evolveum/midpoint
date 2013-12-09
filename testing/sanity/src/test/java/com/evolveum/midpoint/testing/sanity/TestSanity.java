@@ -86,7 +86,9 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -2184,8 +2186,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
 
     @Test
-    public void test055ModifyAccount() throws FileNotFoundException, JAXBException, FaultMessage,
-            ObjectNotFoundException, SchemaException, EncryptionException, DirectoryException {
+    public void test055ModifyAccount() throws Exception {
         TestUtil.displayTestTile("test055ModifyAccount");
 
         // GIVEN
@@ -2196,7 +2197,37 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
         // WHEN
         OperationResultType result = modelWeb.modifyObject(ObjectTypes.SHADOW.getObjectTypeUri(), objectChange);
-
+        
+        Task task = taskManager.createTaskInstance();
+        OperationResult parentResult = new OperationResult("test55ModifyAccount-get after first modify");
+        PrismObject<ShadowType> shadow= modelService.getObject(ShadowType.class, accountShadowOidGuybrushOpendj, null, task, parentResult);
+        assertNotNull("shadow must not be null", shadow);
+        
+        ShadowType shadowType = shadow.asObjectable();
+        QName employeeTypeQName = new QName(resourceTypeOpenDjrepo.getNamespace(), "employeeType");
+        ItemPath employeeTypePath = new ItemPath(ShadowType.F_ATTRIBUTES, employeeTypeQName);
+        PrismProperty item = shadow.findProperty(employeeTypePath);
+        
+        PropertyDelta deleteDelta = new PropertyDelta(new ItemPath(ShadowType.F_ATTRIBUTES), item.getDefinition().getName(), item.getDefinition());
+//        PropertyDelta deleteDelta = PropertyDelta.createDelta(employeeTypePath, shadow.getDefinition());
+//        PrismPropertyValue valToDelte = new PrismPropertyValue("A");
+//        valToDelte.setParent(deleteDelta);
+        Collection<PrismPropertyValue> values= item.getValues();
+        for (PrismPropertyValue val : values){
+        	if ("A".equals(val.getValue())){
+        		deleteDelta.addValueToDelete(val);
+        	}
+        }
+        
+     
+        ObjectDelta delta = new ObjectDelta(ShadowType.class, ChangeType.MODIFY, prismContext);
+        delta.addModification(deleteDelta);
+        delta.setOid(accountShadowOidGuybrushOpendj);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        deltas.add(delta);
+        LOGGER.info("-------->>EXECUTE DELETE MODIFICATION<<------------");
+        modelService.executeChanges(deltas, null, task, parentResult);
+        
         // THEN
         assertNoRepoCache();
         displayJaxb("modifyObject result", result, SchemaConstants.C_RESULT);

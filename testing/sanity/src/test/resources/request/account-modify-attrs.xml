@@ -38,4 +38,11 @@
 			<ri:businessCategory>fighting</ri:businessCategory>
 		</t:value>
 	</modification>
+	<modification>
+		<t:modificationType>add</t:modificationType>
+		<t:path>c:attributes</t:path>
+		<t:value>
+			<ri:employeeType>A</ri:employeeType>
+		</t:value>
+	</modification>
 </objectModification>
