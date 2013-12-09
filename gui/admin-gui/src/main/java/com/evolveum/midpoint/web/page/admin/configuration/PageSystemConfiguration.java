@@ -110,7 +110,10 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
         }
 
         //what do you do with null? many components depends on this not to be null :)
-        return null;
+        if(!result.isSuccess())
+            throw getRestartResponseException(PageSystemConfiguration.class);
+
+        return new SystemConfigurationDto();
     }
 
     private void initLayout() {
@@ -303,8 +306,10 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 
             Duration auditCleanupDuration = DatatypeFactory.newInstance().newDuration(model.getObject().getAuditCleanupValue());
             Duration cleanupTaskDuration = DatatypeFactory.newInstance().newDuration(model.getObject().getTaskCleanupValue());
-            CleanupPolicyType auditCleanup = model.getObject().getAuditCleanup();
-            CleanupPolicyType taskCleanup = model.getObject().getTaskCleanup();
+            //CleanupPolicyType auditCleanup = model.getObject().getAuditCleanup();
+            //CleanupPolicyType taskCleanup = model.getObject().getTaskCleanup();
+            CleanupPolicyType auditCleanup = new CleanupPolicyType();
+            CleanupPolicyType taskCleanup = new CleanupPolicyType();
             auditCleanup.setMaxAge(auditCleanupDuration);
             taskCleanup.setMaxAge(cleanupTaskDuration);
             CleanupPoliciesType cleanupPolicies = new CleanupPoliciesType();
@@ -321,7 +326,6 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
                 s.setProfilingConfiguration(profilingConfig);
             }
 
-            //LOGGER.info(s.asPrismObject().dump());
             if(StringUtils.isEmpty(globalPasswordPolicyOid)){
                 s.setGlobalPasswordPolicyRef(null);
             }else{

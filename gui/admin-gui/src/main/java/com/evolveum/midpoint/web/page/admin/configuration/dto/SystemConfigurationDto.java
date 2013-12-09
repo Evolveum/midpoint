@@ -32,11 +32,6 @@ public class SystemConfigurationDto implements Serializable {
     private static final String DEFAULT_CHOOSE_VALUE_OID = "";
 
     private PrismObject<SystemConfigurationType> oldConfig;
-    private ValuePolicyType globalPasswordPolicy;
-    private ObjectTemplateType globalObjectTemplate;
-    private AssignmentPolicyEnforcementType globalAEP;
-    private CleanupPolicyType auditCleanup;
-    private CleanupPolicyType taskCleanup;
 
     private AEPlevel aepLevel;
 
@@ -59,12 +54,14 @@ public class SystemConfigurationDto implements Serializable {
         if(config == null){
             return;
         }
-        globalObjectTemplate = config.getDefaultUserTemplate();
-        globalPasswordPolicy = config.getGlobalPasswordPolicy();
-        globalAEP = config.getGlobalAccountSynchronizationSettings().getAssignmentPolicyEnforcement();
-        aepLevel = AEPlevel.fromAEPLevelType(globalAEP);
-        auditCleanup = config.getCleanupPolicy().getAuditRecords();
-        taskCleanup = config.getCleanupPolicy().getClosedTasks();
+
+        if(config.getGlobalAccountSynchronizationSettings() != null){
+            AssignmentPolicyEnforcementType globalAEP = config.getGlobalAccountSynchronizationSettings().getAssignmentPolicyEnforcement();
+            aepLevel = AEPlevel.fromAEPLevelType(globalAEP);
+        }
+
+        CleanupPolicyType auditCleanup = config.getCleanupPolicy().getAuditRecords();
+        CleanupPolicyType taskCleanup = config.getCleanupPolicy().getClosedTasks();
 
         auditCleanupValue = auditCleanup.getMaxAge().toString();
         taskCleanupValue = taskCleanup.getMaxAge().toString();
@@ -105,46 +102,6 @@ public class SystemConfigurationDto implements Serializable {
 
     public void setOldConfig(PrismObject<SystemConfigurationType> oldConfig) {
         this.oldConfig = oldConfig;
-    }
-
-    public ValuePolicyType getGlobalPasswordPolicy() {
-        return globalPasswordPolicy;
-    }
-
-    public void setGlobalPasswordPolicy(ValuePolicyType globalPasswordPolicy) {
-        this.globalPasswordPolicy = globalPasswordPolicy;
-    }
-
-    public ObjectTemplateType getGlobalObjectTemplate() {
-        return globalObjectTemplate;
-    }
-
-    public void setGlobalObjectTemplate(ObjectTemplateType globalObjectTemplate) {
-        this.globalObjectTemplate = globalObjectTemplate;
-    }
-
-    public AssignmentPolicyEnforcementType getGlobalAEP() {
-        return globalAEP;
-    }
-
-    public void setGlobalAEP(AssignmentPolicyEnforcementType globalAEP) {
-        this.globalAEP = globalAEP;
-    }
-
-    public CleanupPolicyType getAuditCleanup() {
-        return auditCleanup;
-    }
-
-    public void setAuditCleanup(CleanupPolicyType auditCleanup) {
-        this.auditCleanup = auditCleanup;
-    }
-
-    public CleanupPolicyType getTaskCleanup() {
-        return taskCleanup;
-    }
-
-    public void setTaskCleanup(CleanupPolicyType taskCleanup) {
-        this.taskCleanup = taskCleanup;
     }
 
     public String getAuditCleanupValue() {
