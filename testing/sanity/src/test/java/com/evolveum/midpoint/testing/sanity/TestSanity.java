@@ -2215,7 +2215,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         Collection<PrismPropertyValue> values= item.getValues();
         for (PrismPropertyValue val : values){
         	if ("A".equals(val.getValue())){
-        		deleteDelta.addValueToDelete(val);
+        		deleteDelta.addValueToDelete(val.clone());
         	}
         }
         
