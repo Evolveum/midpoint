@@ -22,52 +22,87 @@
     <modelHooks>
     	<change>
     		<hook>
-    			<name>foo</name>
+    			<name>org</name>
+                <state>primary</state>
+                <focusType>c:UserType</focusType>
     			<script>
     				<code>
     					import com.evolveum.midpoint.prism.delta.*;
     					import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
-    					import com.evolveum.midpoint.model.api.context.ModelState;
-    					
-    					log.info('FOO HOOK WAS HERE: ' + modelContext)
-    					log.info('focus='+focus+", "+focus.getClass())
-    					
-    					if (focus instanceof UserType &amp;&amp; modelContext.getState() == ModelState.PRIMARY) {
-    						UserType user = (UserType)focus;
-    						organizations = user.getOrganization();
-    						log.info("orgs="+organizations);
-    						for (orgName in organizations) {
-    							log.info("orgName="+orgName)
-    							org = midpoint.searchObjectByName(OrgType.class, orgName)
-    							log.info("org="+org)
-    							if (org == null) {
-    								// Org does not exist, lets create it
-    								org = midpoint.createEmptyObjectWithName(OrgType.class, orgName);
-    								topOrgRef = new ObjectReferenceType();
-    								topOrgRef.setOid('80808080-8888-6666-0000-100000000001');
-    								org.getParentOrgRef().add(topOrgRef);
-    								midpoint.addObject(org);
-    								log.info("org "+org+" created")
-    							}
-    							if (!midpoint.isDirectlyAssigned(org)) {
-    								// The org is not assigned. Let's assign it.
-    								log.info("BAR BAR BAR Not assigned")
-    								// We need to construct a delta to do this
-    								assignment = new AssignmentType();
-    								orgTarget = new ObjectReferenceType();
-    								orgTarget.setOid(org.getOid());
-    								orgTarget.setType(OrgType.COMPLEX_TYPE);
-    								assignment.setTargetRef(orgTarget);
-    								assignmentDelta = ContainerDelta.createModificationAdd(UserType.F_ASSIGNMENT, UserType.class, prismContext, assignment);
-    								modelContext.getFocusContext().swallowToPrimaryDelta(assignmentDelta);
-    								// This forces complete recompute of context in next stage
-    								//modelContext.rot();
-    							}
-    						}
-    					}
+                        import com.evolveum.midpoint.model.intest.util.StaticHookRecorder;
+
+                        log.info('ORG HOOK WAS HERE: ' + modelContext)
+                        log.info('ORG focus='+focus+", "+focus.getClass())
+
+                        StaticHookRecorder.record("org");
+
+                        UserType user = (UserType)focus;
+                        organizations = user.getOrganization();
+                        log.info("orgs="+organizations);
+                        for (orgName in organizations) {
+                            log.info("orgName="+orgName)
+                            org = midpoint.searchObjectByName(OrgType.class, orgName)
+                            log.info("org="+org)
+                            if (org == null) {
+                                // Org does not exist, lets create it
+                                org = midpoint.createEmptyObjectWithName(OrgType.class, orgName);
+                                topOrgRef = new ObjectReferenceType();
+                                topOrgRef.setOid('80808080-8888-6666-0000-100000000001');
+                                org.getParentOrgRef().add(topOrgRef);
+                                midpoint.addObject(org);
+                                log.info("org "+org+" created")
+                            }
+                            if (!midpoint.isDirectlyAssigned(org)) {
+                                // The org is not assigned. Let's assign it.
+                                log.info("BAR BAR BAR Not assigned")
+                                // We need to construct a delta to do this
+                                assignment = new AssignmentType();
+                                orgTarget = new ObjectReferenceType();
+                                orgTarget.setOid(org.getOid());
+                                orgTarget.setType(OrgType.COMPLEX_TYPE);
+                                assignment.setTargetRef(orgTarget);
+                                assignmentDelta = ContainerDelta.createModificationAdd(UserType.F_ASSIGNMENT, UserType.class, prismContext, assignment);
+                                modelContext.getFocusContext().swallowToPrimaryDelta(assignmentDelta);
+                                // This forces complete recompute of context in next stage
+                                //modelContext.rot();
+                            }
+                        }
     				</code>
     			</script>
     		</hook>
+            <hook>
+                <name>Bar</name>
+                <script>
+                    <code>
+                        import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+                        import com.evolveum.midpoint.model.api.context.ModelState;
+                        import com.evolveum.midpoint.model.intest.util.StaticHookRecorder;
+
+                        log.info('BAR HOOK WAS HERE: ' + modelContext)
+                        log.info('BAR focus='+focus+", "+focus.getClass())
+
+                        StaticHookRecorder.record("bar");
+
+                        if (focus instanceof UserType &amp;&amp; modelContext.getState() == ModelState.PRIMARY) {
+                            log.info("BAR hook has what it wanted");
+                            StaticHookRecorder.record("bar-user");
+                        }
+                    </code>
+                </script>
+            </hook>
+
+            <hook>
+                <name>foo</name>
+                <script>
+                    <code>
+                        import com.evolveum.midpoint.model.intest.util.StaticHookRecorder;
+
+                        log.info('FOO HOOK WAS HERE: ' + modelContext)
+
+                        StaticHookRecorder.record("foo");
+                    </code>
+                </script>
+            </hook>
     	</change>
     </modelHooks>
     <logging>
