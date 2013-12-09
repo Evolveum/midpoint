@@ -295,25 +295,21 @@ public final class PrismForJAXBUtil {
 		if (reference == null) {
         	throw new IllegalArgumentException("No reference "+referenceName+" in "+parentValue);
         }
-    	if (reference.isEmpty()) {
-    		if (value.getParent() != null) {
-    			value = value.clone();
-    		}
-    		reference.add(value);
-    	} else {
-            if (value == null) {
-                parentValue.remove(reference);
-//                reference.getValue().setOid(null);
-//                reference.getValue().setTargetType(null);
-//                reference.getValue().setFilter(null);
-//                reference.getValue().setDescription(null);
-	        } else {
+        if (value == null) {
+            parentValue.remove(reference);
+        } else {
+            if (reference.isEmpty()) {
+                if (value.getParent() != null) {
+                    value = value.clone();
+                }
+                reference.add(value);
+            } else {
                 reference.getValue().setOid(value.getOid());
                 reference.getValue().setTargetType(value.getTargetType());
                 reference.getValue().setFilter(value.getFilter());
                 reference.getValue().setDescription(value.getDescription());
-	        }
-    	}
+            }
+        }
     }
 
     public static void setReferenceValueAsRef(PrismContainer parent, QName name, PrismReferenceValue value) {
