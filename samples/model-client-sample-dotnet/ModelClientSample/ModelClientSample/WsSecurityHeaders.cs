@@ -4,7 +4,6 @@ using System.ServiceModel.Channels;
 using System.Text;
 using System.Xml;
 using System.ServiceModel;
-using System.ServiceModel.Channels;
 using System.ServiceModel.Description;
 using System.ServiceModel.Dispatcher;
 
@@ -57,7 +56,7 @@ namespace ModelClientSample
         {
             var nonce = new byte[64];
             RandomNumberGenerator.Create().GetBytes(nonce);
-            string created = DateTime.Now.ToString("yyyy-MM-ddThh:mm:ss.msZ");
+            string created = DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss.mszzzz");
 
             writer.WriteStartElement("wsse", "UsernameToken", null);
             writer.WriteAttributeString("wsu:Id", "UsernameToken-1");
