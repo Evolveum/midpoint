@@ -40,6 +40,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -441,7 +442,7 @@ public abstract class ShadowCache {
 
 		afterModifyOnResource(shadow, modifications, parentResult);
 
-		Collection<PropertyDelta<?>> renameDeltas = distillRenameDeltas(modifications, shadow);
+		Collection<PropertyDelta<?>> renameDeltas = distillRenameDeltas(modifications, shadow, objectClassDefinition);
 
 		Collection<? extends ItemDelta> sideEffectDelta = convertToPropertyDelta(sideEffectChanges);
 		if (renameDeltas != null) {
@@ -468,7 +469,7 @@ public abstract class ShadowCache {
 	}
 
 	private Collection<PropertyDelta<?>> distillRenameDeltas(Collection<? extends ItemDelta> modifications, 
-			PrismObject<ShadowType> shadow) throws SchemaException {
+			PrismObject<ShadowType> shadow, RefinedObjectClassDefinition objectClassDefinition) throws SchemaException {
 		PropertyDelta<String> nameDelta = (PropertyDelta<String>) ItemDelta.findItemDelta(modifications, new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME), ItemDelta.class); 
 		if (nameDelta == null){
 			return null;
@@ -480,10 +481,15 @@ public abstract class ShadowCache {
 		Collection<PropertyDelta<?>> deltas = new ArrayList<PropertyDelta<?>>();
 		
 		// $shadow/attributes/icfs:name
-		deltas.add(nameDelta.clone());
+		String normalizedNewName = shadowManager.getNormalizedAttributeValue(name.getValue(), objectClassDefinition.findAttributeDefinition(name.getName()));
+		PropertyDelta<String> cloneNameDelta = nameDelta.clone();
+		cloneNameDelta.clearValuesToReplace();
+		cloneNameDelta.setValueToReplace(new PrismPropertyValue<String>(normalizedNewName));
+		deltas.add(cloneNameDelta);
 		
 		// $shadow/name
 		if (!newName.equals(shadow.asObjectable().getName().getOrig())){
+			
 			PropertyDelta<?> shadowNameDelta = PropertyDelta.createModificationReplaceProperty(ShadowType.F_NAME, shadow.getDefinition(), 
 					new PolyString(newName));
 			deltas.add(shadowNameDelta);
