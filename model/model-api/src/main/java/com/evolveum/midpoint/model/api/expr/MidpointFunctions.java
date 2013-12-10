@@ -53,12 +53,70 @@ import java.util.List;
  */
 public interface MidpointFunctions {
 	
+	/**
+	 * <p>
+	 * Creates empty prism object of specified type in memory. This is used to construct
+	 * Java instances of object before they are added to the repository.
+	 * </p>
+	 * <p>
+	 * Please note that this method constructs the object <b>in memory only</b>. If you
+	 * intend to create an object in repository or on the resource you need to populate
+	 * this object with data and then invoke the addObject or executeChanges method.
+	 * </p>
+	 * @param type Class of the object to create
+	 * @return empty object in memory
+	 */
 	<T extends ObjectType> T createEmptyObject(Class<T> type);
-	
+
+	/**
+	 * <p>
+	 * Creates empty prism object of specified type and with specified name in memory.
+	 * This is used to construct Java instances of object before they are added to the
+	 * repository. The 'name' property of the new object will be set to a specified value.
+	 * </p>
+	 * <p>
+	 * Please note that this method constructs the object <b>in memory only</b>. If you
+	 * intend to create an object in repository or on the resource you need to populate
+	 * this object with data and then invoke the addObject or executeChanges method.
+	 * </p>
+	 * @param type Class of the object to create
+	 * @param name Name of the object
+	 * @return empty object in memory
+	 */
 	<T extends ObjectType> T createEmptyObjectWithName(Class<T> type, String name);
-	
+
+	/**
+	 * <p>
+	 * Creates empty prism object of specified type and with specified name in memory.
+	 * This is used to construct Java instances of object before they are added to the
+	 * repository. The 'name' property of the new object will be set to a specified value.
+	 * </p>
+	 * <p>
+	 * Please note that this method constructs the object <b>in memory only</b>. If you
+	 * intend to create an object in repository or on the resource you need to populate
+	 * this object with data and then invoke the addObject or executeChanges method.
+	 * </p>
+	 * @param type Class of the object to create
+	 * @param name Name of the object
+	 * @return empty object in memory
+	 */
 	<T extends ObjectType> T createEmptyObjectWithName(Class<T> type, PolyString name);
 	
+	/**
+	 * <p>
+	 * Creates empty prism object of specified type and with specified name in memory.
+	 * This is used to construct Java instances of object before they are added to the
+	 * repository. The 'name' property of the new object will be set to a specified value.
+	 * </p>
+	 * <p>
+	 * Please note that this method constructs the object <b>in memory only</b>. If you
+	 * intend to create an object in repository or on the resource you need to populate
+	 * this object with data and then invoke the addObject or executeChanges method.
+	 * </p>
+	 * @param type Class of the object to create
+	 * @param name Name of the object
+	 * @return empty object in memory
+	 */
 	<T extends ObjectType> T createEmptyObjectWithName(Class<T> type, PolyStringType name);
 	
 	/**
