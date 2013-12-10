@@ -289,7 +289,8 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	}
 	
 	protected DummyAccount getDummyAccount(String icfName, String icfUid) throws ConnectException, FileNotFoundException {
-		if (isNameUnique()) {
+//		if (isNameUnique()) {
+		if (isIcfNameUidSame()) {
 			return dummyResource.getAccountByUsername(icfName);
 		} else {
 			 return dummyResource.getAccountById(icfUid);
@@ -297,7 +298,8 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	}
 	
 	protected DummyAccount getDummyAccountAssert(String icfName, String icfUid) throws ConnectException, FileNotFoundException {
-		if (isNameUnique()) {
+//		if (isNameUnique()) {
+		if (isIcfNameUidSame()) {
 			return dummyResource.getAccountByUsername(icfName);
 		} else {
 			 DummyAccount account = dummyResource.getAccountById(icfUid);
@@ -308,7 +310,8 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	}
 	
 	protected DummyGroup getDummyGroup(String icfName, String icfUid) throws ConnectException, FileNotFoundException {
-		if (isNameUnique()) {
+//		if (isNameUnique()) {
+		if (isIcfNameUidSame()) {
 			return dummyResource.getGroupByName(icfName);
 		} else {
 			 return dummyResource.getGroupById(icfUid);
@@ -316,7 +319,8 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	}
 	
 	protected DummyGroup getDummyGroupAssert(String icfName, String icfUid) throws ConnectException, FileNotFoundException {
-		if (isNameUnique()) {
+//		if (isNameUnique()) {
+		if (isIcfNameUidSame()) {
 			return dummyResource.getGroupByName(icfName);
 		} else {
 			 DummyGroup group = dummyResource.getGroupById(icfUid);
@@ -327,7 +331,8 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	}
 	
 	protected DummyPrivilege getDummyPrivilege(String icfName, String icfUid) throws ConnectException, FileNotFoundException {
-		if (isNameUnique()) {
+//		if (isNameUnique()) {
+		if (isIcfNameUidSame()) {
 			return dummyResource.getPrivilegeByName(icfName);
 		} else {
 			 return dummyResource.getPrivilegeById(icfUid);
@@ -335,7 +340,8 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	}
 
 	protected DummyPrivilege getDummyPrivilegeAssert(String icfName, String icfUid) throws ConnectException, FileNotFoundException {
-		if (isNameUnique()) {
+//		if (isNameUnique()) {
+		if (isIcfNameUidSame()) {
 			return dummyResource.getPrivilegeByName(icfName);
 		} else {
 			 DummyPrivilege priv = dummyResource.getPrivilegeById(icfUid);

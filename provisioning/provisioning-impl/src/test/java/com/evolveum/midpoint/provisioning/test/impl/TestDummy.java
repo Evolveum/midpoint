@@ -3028,12 +3028,25 @@ public class TestDummy extends AbstractDummyTest {
 		TestUtil.assertSuccess(result);
 		
 		delta.checkConsistence();
-		assertDummyAccountAttributeValues("cptmorgan", morganIcfUid,
+		PrismObject<ShadowType> account = provisioningService.getObject(ShadowType.class, ACCOUNT_MORGAN_OID, null, task, result);
+		Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getIdentifiers(account);
+		assertNotNull("Identifiers must not be null", identifiers);
+		assertEquals("Expected one identifier", 1, identifiers.size());
+		
+		ResourceAttribute<?> identifier = identifiers.iterator().next();
+		
+		String shadowUuid = "cptmorgan";
+		
+		assertDummyAccountAttributeValues(shadowUuid, morganIcfUid,
 				DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Captain Morgan");
 		
 		PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, ACCOUNT_MORGAN_OID, null, result);
 		assertShadowRepo(repoShadow, ACCOUNT_MORGAN_OID, "cptmorgan", resourceType);
-		PrismAsserts.assertPropertyValue(repoShadow, SchemaTestConstants.ICFS_UID_PATH, "cptmorgan");
+		
+		if (!isIcfNameUidSame()) {
+			shadowUuid = (String) identifier.getRealValue();
+		}
+		PrismAsserts.assertPropertyValue(repoShadow, SchemaTestConstants.ICFS_UID_PATH, shadowUuid);
 		
 		syncServiceMock.assertNotifySuccessOnly();
 		
