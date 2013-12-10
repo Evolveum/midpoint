@@ -274,8 +274,10 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 						} catch (ObjectAlreadyExistsException e) {
 							throw new org.identityconnectors.framework.common.exceptions.AlreadyExistsException(e.getMessage(), e);
 						}
-		        		// We need to change the returned uid here
-		        		uid = new Uid(newName);
+		        		// We need to change the returned uid here (only if the mode is not set to UUID)
+						if (!(configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID))){
+							uid = new Uid(newName);
+						}
 		        	} else if (attr.is(OperationalAttributes.PASSWORD_NAME)) {
 		        		changePassword(account,attr);
 		        	

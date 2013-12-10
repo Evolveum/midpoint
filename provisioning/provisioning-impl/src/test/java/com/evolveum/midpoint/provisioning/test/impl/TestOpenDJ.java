@@ -669,9 +669,12 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertFalse("Surname attributes must not be empty", snValues.isEmpty());
 		assertEquals(1, snValues.size());
 		
-		String name = ShadowUtil.getSingleStringAttributeValue(accountType, ConnectorFactoryIcfImpl.ICFS_NAME);
-		assertEquals("After rename, dn is not equal.", "uid=rename,ou=People,dc=example,dc=com", name);
-		assertEquals("shadow name not changed after rename", "uid=rename,ou=People,dc=example,dc=com", accountType.getName().getOrig());
+		
+		//check icf_name in the shadow object fetched only from the repository
+		ShadowType repoShadow = repositoryService.getObject(ShadowType.class, objectChange.getOid(), null, result).asObjectable();
+		String name = ShadowUtil.getSingleStringAttributeValue(repoShadow, ConnectorFactoryIcfImpl.ICFS_NAME);
+		assertEquals("After rename, dn is not equal.", "uid=rename,ou=people,dc=example,dc=com", name);
+		assertEquals("shadow name not changed after rename", "uid=rename,ou=People,dc=example,dc=com", repoShadow.getName().getOrig());
 		
 		String changedSn = (String) snValues.get(0);
 		
