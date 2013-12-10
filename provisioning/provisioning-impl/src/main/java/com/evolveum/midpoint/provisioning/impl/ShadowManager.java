@@ -636,7 +636,7 @@ public class ShadowManager {
 		}
 	}
 	
-	private <T> T getNormalizedAttributeValue(PrismPropertyValue<T> pval, RefinedAttributeDefinition rAttrDef) throws SchemaException {
+	<T> T getNormalizedAttributeValue(PrismPropertyValue<T> pval, RefinedAttributeDefinition rAttrDef) throws SchemaException {
 		MatchingRule<T> matchingRule = matchingRuleRegistry.getMatchingRule(rAttrDef.getMatchingRuleQName(), rAttrDef.getTypeName());
 		if (matchingRule != null) {
 			T normalizedRealValue = matchingRule.normalize(pval.getValue());
