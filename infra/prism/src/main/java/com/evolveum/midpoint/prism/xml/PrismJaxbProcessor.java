@@ -105,7 +105,7 @@ public class PrismJaxbProcessor {
 		}
 		String jaxbPaths = sb.toString();
 		if (jaxbPaths.isEmpty()) {
-			LOGGER.warn("No JAXB paths, skipping creation of JAXB context");
+			LOGGER.debug("No JAXB paths, skipping creation of JAXB context");
 		} else {
 			try {
 				context = JAXBContext.newInstance(jaxbPaths);

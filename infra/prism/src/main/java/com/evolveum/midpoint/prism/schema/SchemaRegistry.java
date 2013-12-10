@@ -403,6 +403,14 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		return parsedSchemas.get(namespace).getSchema();
 	}
 	
+	public Collection<PrismSchema> getSchemas() {
+		Collection<PrismSchema> schemas = new ArrayList<PrismSchema>();
+		for (Entry<String,SchemaDescription> entry: parsedSchemas.entrySet()) {
+			schemas.add(entry.getValue().getSchema());
+		}
+		return schemas;
+	}
+	
 	/**
 	 * Returns a schema that contains all the object definitions augmented with
 	 * extension definitions as appropriate. This is the method intended for common
@@ -884,6 +892,5 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		}
 		return objDef.instantiate();
 	}
-
 
 }
