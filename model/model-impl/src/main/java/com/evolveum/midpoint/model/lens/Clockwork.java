@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
@@ -36,6 +37,7 @@ import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -266,16 +268,37 @@ public class Clockwork {
 	    		HookListType changeHooks = modelHooks.getChange();
 	    		if (changeHooks != null) {
 	    			for (HookType hookType: changeHooks.getHook()) {
+                        String shortDesc;
+                        if (hookType.getName() != null) {
+                            shortDesc = "hook '"+hookType.getName()+"'";
+                        } else {
+                            shortDesc = "scripting hook in system configuration";
+                        }
 	    				if (hookType.isEnabled() != null && !hookType.isEnabled()) {
 	    					// Disabled hook, skip
 	    					continue;
 	    				}
-	    				String shortDesc;
-	    				if (hookType.getName() != null) {
-	    					shortDesc = "hook '"+hookType.getName()+"'";
-	    				} else {
-	    					shortDesc = "scripting hook in system configuration";
-	    				}
+                        if (hookType.getState() != null) {
+                            if (!context.getState().toModelStateType().equals(hookType.getState())) {
+                                continue;
+                            }
+                        }
+                        if (hookType.getFocusType() != null) {
+                            if (context.getFocusContext() == null) {
+                                continue;
+                            }
+                            QName hookFocusTypeQname = hookType.getFocusType();
+                            ObjectTypes hookFocusType = ObjectTypes.getObjectTypeFromTypeQName(hookFocusTypeQname);
+                            if (hookFocusType == null) {
+                                throw new SchemaException("Unknown focus type QName "+hookFocusTypeQname+" in "+shortDesc);
+                            }
+                            Class focusClass = context.getFocusClass();
+                            Class<? extends ObjectType> hookFocusClass = hookFocusType.getClassDefinition();
+                            if (!hookFocusClass.isAssignableFrom(focusClass)) {
+                                continue;
+                            }
+                        }
+
 	    				ScriptExpressionEvaluatorType scriptExpressionEvaluatorType = hookType.getScript();
 	    				if (scriptExpressionEvaluatorType == null) {
 	    					continue;
