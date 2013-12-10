@@ -71,7 +71,9 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
@@ -171,13 +173,17 @@ public class TestTrafo extends AbstractModelIntegrationTest {
 	
 	private static final String ACCOUNT_SMITH111_AD_DN = "CN=Smith John,OU=People,O=Trafo";
 	private static final Object ACCOUNT_SMITH111_AD_SAM_NAME = USER_SMITH111_USERNAME;
+	private static final String ACCOUNT_SMITH111_AD_DN_AFTER_RENAME = "CN=Smither John,OU=People,O=Trafo";
 	
 	private static final String ACCOUNT_SMITH111_MAIL_USERNAME = "John Smith/111/TRAFO/XX";
+	private static final String ACCOUNT_SMITH111_MAIL_USERNAME_AFTER_RENAME = "John Smither/111/TRAFO/XX";
 	
 	private static final String ACCOUNT_SMITH222_AD_DN = "CN=Smith John2,OU=People,O=Trafo";
 	private static final Object ACCOUNT_SMITH222_AD_SAM_NAME = USER_SMITH222_USERNAME;
+	private static final String ACCOUNT_SMITH222_AD_DN_AFTER_RENAME = "CN=Smither John2,OU=People,O=Trafo";
 	
 	private static final String ACCOUNT_SMITH222_MAIL_USERNAME = "John Smith/222/TRAFO/XX";
+	private static final String ACCOUNT_SMITH222_MAIL_USERNAME_AFTER_RENAME = "John Smither/222/TRAFO/XX";
 	
 	protected static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR_NAME, "role-superuser.xml");
 	protected static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
@@ -278,7 +284,7 @@ public class TestTrafo extends AbstractModelIntegrationTest {
 		DummyObjectClass dummyAdAccountObjectClass = dummyResourceCtlMail.getDummyResource().getAccountObjectClass();
 		dummyResourceCtlMail.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_MAIL_FIRST_NAME_NAME, String.class, false, false);
 		dummyResourceCtlMail.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_MAIL_LAST_NAME_NAME, String.class, false, false);
-		dummyResourceCtlMail.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_MAIL_SHORT_NAME_NAME, String.class, false, false);
+		dummyResourceCtlMail.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_MAIL_SHORT_NAME_NAME, String.class, false, true);
 		dummyResourceCtlMail.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_MAIL_ID_FILE_NAME, String.class, false, false);
 		dummyResourceCtlMail.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_MAIL_MAIL_TEMPLATE_NAME_NAME, String.class, false, false);
 		dummyResourceCtlMail.addAttrDef(dummyAdAccountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_MAIL_MAIL_FILE_NAME_NAME, String.class, false, false);
@@ -1152,6 +1158,266 @@ public class TestTrafo extends AbstractModelIntegrationTest {
         dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, ShadowType.class); // AD account
         dummyAuditService.assertExecutionDeltas(3,1);
         dummyAuditService.asserHasDelta(3,ChangeType.MODIFY, UserType.class); // inbound - SHOULD THIS BE HERE?? FIXME
+        dummyAuditService.assertExecutionSuccess();
+	}
+
+	/**
+	 * Attempt to rename two employees that are boh "John Smith". This is the first user. Everything shouyld do as normal.
+	 * Note: this is a different case than jack-angelica. Jack and Angelica are "externists". Smithes are employees (type "T")
+	 */
+	@Test
+    public void test300Smith111Rename() throws Exception {
+		final String TEST_NAME = "test300Smith111Rename";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+//        addObject(USER_SMITH111_FILE);
+		
+		
+//        TestUtil.displayThen(TEST_NAME);
+//		result.computeStatus();
+//        TestUtil.assertSuccess(result);
+        
+		PrismObject<UserType> userSmith = getUser(USER_SMITH111_OID);
+		display("User smith111 before change execution", userSmith);
+		assertUser(userSmith, USER_SMITH111_OID, USER_SMITH111_USERNAME, "John Smith", "John", "Smith");
+		assertAccounts(userSmith, 2);
+		String accountAdOid = getAccountRef(userSmith, RESOURCE_DUMMY_AD_OID);
+		String accountMailOid = getAccountRef(userSmith, RESOURCE_DUMMY_MAIL_OID);
+        
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        Collection<? extends ItemDelta> fullNameModification = PropertyDelta.createModificationReplacePropertyCollection(UserType.F_FAMILY_NAME, userSmith.getDefinition(), new PolyString("Smither", "smither"));
+        ObjectDelta.createModifyDelta(userSmith.getOid(), fullNameModification, UserType.class, prismContext);
+        
+        
+        
+        modifyUserReplace(userSmith.getOid(), UserType.F_FAMILY_NAME, task, result, new PolyString("Smither", "smither"));
+		
+		// AD ACCOUNT
+		
+		// Check shadow
+        PrismObject<ShadowType> accountAdShadow = repositoryService.getObject(ShadowType.class, accountAdOid, null, result);
+        display("AD shadow", accountAdShadow);
+        assertShadowRepo(accountAdShadow, accountAdOid, ACCOUNT_SMITH111_AD_DN_AFTER_RENAME, resourceDummyAdType, caseIgnoreMatchingRule);
+        
+        // Check account
+        PrismObject<ShadowType> accountAdModel = modelService.getObject(ShadowType.class, accountAdOid, null, task, result);
+        display("AD shadow", accountAdModel);
+        assertShadowModel(accountAdModel, accountAdOid, ACCOUNT_SMITH111_AD_DN_AFTER_RENAME, resourceDummyAdType, caseIgnoreMatchingRule);
+        assertAdministrativeStatusEnabled(accountAdModel);
+        
+        smith111AdIcfUid = getIcfUid(accountAdModel);
+        
+        // Check account in dummy resource
+        assertDummyAccountById(RESOURCE_DUMMY_AD_ID, smith111AdIcfUid);
+        assertDummyAccount(RESOURCE_DUMMY_AD_ID, ACCOUNT_SMITH111_AD_DN_AFTER_RENAME);
+        assertDummyAccountActivation(RESOURCE_DUMMY_AD_ID, ACCOUNT_SMITH111_AD_DN_AFTER_RENAME, true);
+ 		assertDummyAccountAttribute(RESOURCE_DUMMY_AD_ID, ACCOUNT_SMITH111_AD_DN_AFTER_RENAME, 
+ 				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_AD_SAM_ACCOUNT_NAME_NAME, ACCOUNT_SMITH111_AD_SAM_NAME);
+ 		assertDummyAccountAttribute(RESOURCE_DUMMY_AD_ID, ACCOUNT_SMITH111_AD_DN_AFTER_RENAME, 
+ 				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_AD_USER_PRINCIPAL_NAME_NAME, ACCOUNT_SMITH111_AD_SAM_NAME + "@" + TRAFO_MAIL_DOMAIN);
+ 		assertDummyAccountAttribute(RESOURCE_DUMMY_AD_ID, ACCOUNT_SMITH111_AD_DN_AFTER_RENAME, 
+ 				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_AD_GIVEN_NAME_NAME, "John");
+ 		assertDummyAccountAttribute(RESOURCE_DUMMY_AD_ID, ACCOUNT_SMITH111_AD_DN_AFTER_RENAME, 
+ 				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_AD_SN_NAME, "Smither");
+ 		assertDummyAccountAttribute(RESOURCE_DUMMY_AD_ID, ACCOUNT_SMITH111_AD_DN_AFTER_RENAME, 
+ 				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_AD_MAIL_NAME, "John.Smither@" + TRAFO_MAIL_DOMAIN);
+ 		assertDummyAccountNoAttribute(RESOURCE_DUMMY_AD_ID, ACCOUNT_SMITH111_AD_DN_AFTER_RENAME, 
+ 				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_AD_TELEPHONE_NUMBER_NAME);
+ 		assertDummyAccountAttribute(RESOURCE_DUMMY_AD_ID, ACCOUNT_SMITH111_AD_DN_AFTER_RENAME, 
+ 				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_AD_USER_SHARED_FOLDER_OTHER_NAME, "\\\\medusa\\User\\Smither_smith111");
+ 		
+ 		// MAIL ACCOUNT
+ 		
+ 		// Check shadow
+        PrismObject<ShadowType> accountMailShadow = repositoryService.getObject(ShadowType.class, accountMailOid, null, result);
+        assertShadowRepo(accountMailShadow, accountMailOid, ACCOUNT_SMITH111_MAIL_USERNAME_AFTER_RENAME, resourceDummyMailType, caseIgnoreMatchingRule);
+        
+        // Check account
+        PrismObject<ShadowType> accountMailModel = modelService.getObject(ShadowType.class, accountMailOid, null, task, result);
+        display("Mail shadow", accountMailModel);
+        assertShadowModel(accountMailModel, accountMailOid, ACCOUNT_SMITH111_MAIL_USERNAME_AFTER_RENAME, resourceDummyMailType, caseIgnoreMatchingRule);
+        assertAdministrativeStatusEnabled(accountMailModel);
+        
+        smith111MailIcfUid = getIcfUid(accountMailModel);
+        
+        // Check account in dummy resource
+        assertDummyAccountById(RESOURCE_DUMMY_MAIL_ID, smith111MailIcfUid);
+        assertDummyAccount(RESOURCE_DUMMY_MAIL_ID, ACCOUNT_SMITH111_MAIL_USERNAME_AFTER_RENAME);
+        assertDummyAccountActivation(RESOURCE_DUMMY_MAIL_ID, ACCOUNT_SMITH111_MAIL_USERNAME_AFTER_RENAME, true);
+ 		assertDummyAccountAttribute(RESOURCE_DUMMY_MAIL_ID, ACCOUNT_SMITH111_MAIL_USERNAME_AFTER_RENAME, 
+ 				DUMMY_ACCOUNT_ATTRIBUTE_MAIL_INTERNET_ADDRESS_NAME, "John.Smither@" + TRAFO_MAIL_DOMAIN);
+ 		assertDummyAccountAttribute(RESOURCE_DUMMY_MAIL_ID, ACCOUNT_SMITH111_MAIL_USERNAME_AFTER_RENAME, 
+ 				DUMMY_ACCOUNT_ATTRIBUTE_MAIL_FIRST_NAME_NAME, "John");
+ 		assertDummyAccountAttribute(RESOURCE_DUMMY_MAIL_ID, ACCOUNT_SMITH111_MAIL_USERNAME_AFTER_RENAME, 
+ 				DUMMY_ACCOUNT_ATTRIBUTE_MAIL_LAST_NAME_NAME, "Smither");
+ 		assertDummyAccountAttribute(RESOURCE_DUMMY_MAIL_ID, ACCOUNT_SMITH111_MAIL_USERNAME_AFTER_RENAME, 
+ 				DUMMY_ACCOUNT_ATTRIBUTE_MAIL_ID_FILE_NAME, "c:\\install\\test-id-folder\\jsmith.id");
+ 		assertDummyAccountAttribute(RESOURCE_DUMMY_MAIL_ID, ACCOUNT_SMITH111_MAIL_USERNAME_AFTER_RENAME, 
+ 				DUMMY_ACCOUNT_ATTRIBUTE_MAIL_SHORT_NAME_NAME, "PS111", "jsmither");
+ 		assertDummyAccountAttribute(RESOURCE_DUMMY_MAIL_ID, ACCOUNT_SMITH111_MAIL_USERNAME_AFTER_RENAME, 
+ 				DUMMY_ACCOUNT_ATTRIBUTE_MAIL_MAIL_FILE_NAME_NAME, "mail\\js111");
+ 		assertDummyAccountAttribute(RESOURCE_DUMMY_MAIL_ID, ACCOUNT_SMITH111_MAIL_USERNAME_AFTER_RENAME, 
+ 				DUMMY_ACCOUNT_ATTRIBUTE_MAIL_MAIL_DOMAIN_NAME, "TRAFO");
+        
+ 		PrismObject<UserType> userSmithAfter = getUser(USER_SMITH111_OID);
+		display("User smith111 after change execution", userSmithAfter);
+ 		// Set by inbound mappings
+ 		PrismAsserts.assertPropertyValue(userSmithAfter, UserType.F_EMAIL_ADDRESS, "John.Smither@" + TRAFO_MAIL_DOMAIN);
+ 		PrismAsserts.assertPropertyValue(userSmithAfter, 
+ 				new ItemPath(UserType.F_EXTENSION, TRAFO_EXTENSION_HOMEDIR_QNAME), "\\\\medusa\\User\\Smither_smith111");
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(4);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(0,2);
+        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, UserType.class); // primary
+//        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, UserType.class); // link
+        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, ShadowType.class); // AD account (outbound)
+        dummyAuditService.assertExecutionDeltas(1,2);
+        dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, UserType.class); // link, inbound (2 deltas)
+        dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, ShadowType.class); // Mail account (outboud)
+        dummyAuditService.assertExecutionDeltas(2,2);
+        dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, UserType.class); // inbound
+        dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, ShadowType.class); // AD account (mail change compued from outboud)
+//        dummyAuditService.assertExecutionDeltas(3,1);
+//        dummyAuditService.asserHasDelta(3,ChangeType.MODIFY, UserType.class); // inbound - SHOULD THIS BE HERE?? FIXME
+        dummyAuditService.assertExecutionSuccess();
+	}
+
+	/**
+	 * Attempt to rename two employees that are boh "John Smith". This is the second user. There should be a naming conflict.
+	 * Note: this is a different case than jack-angelica. Jack and Angelica are "externists". Smithes are employees (type "T")
+	 */
+	@Test
+    public void test310Smith222Rename() throws Exception {
+		final String TEST_NAME = "test310Smith222Rename";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        dummyAuditService.clear();
+        
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+		PrismObject<UserType> userSmith = getUser(USER_SMITH222_OID);
+		display("User smith222 before change execution", userSmith);
+		assertUser(userSmith, USER_SMITH222_OID, USER_SMITH222_USERNAME, "John Smith", "John", "Smith");
+		assertAccounts(userSmith, 2);
+		String accountAdOid = getAccountRef(userSmith, RESOURCE_DUMMY_AD_OID);
+		String accountMailOid = getAccountRef(userSmith, RESOURCE_DUMMY_MAIL_OID);
+        
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+        TestUtil.assertSuccess(result);
+               
+        modifyUserReplace(userSmith.getOid(), UserType.F_FAMILY_NAME, task, result, new PolyString("Smither", "smither"));
+		
+		// AD ACCOUNT
+		
+		// Check shadow
+        PrismObject<ShadowType> accountAdShadow = repositoryService.getObject(ShadowType.class, accountAdOid, null, result);
+        display("AD shadow", accountAdShadow);
+        assertShadowRepo(accountAdShadow, accountAdOid, ACCOUNT_SMITH222_AD_DN_AFTER_RENAME, resourceDummyAdType, caseIgnoreMatchingRule);
+        
+        // Check account
+        PrismObject<ShadowType> accountAdModel = modelService.getObject(ShadowType.class, accountAdOid, null, task, result);
+        display("AD shadow", accountAdModel);
+        assertShadowModel(accountAdModel, accountAdOid, ACCOUNT_SMITH222_AD_DN_AFTER_RENAME, resourceDummyAdType, caseIgnoreMatchingRule);
+        assertAdministrativeStatusEnabled(accountAdModel);
+        
+        smith222AdIcfUid = getIcfUid(accountAdModel);
+        
+        // Check account in dummy resource
+        assertDummyAccountById(RESOURCE_DUMMY_AD_ID, smith222AdIcfUid);
+        assertDummyAccount(RESOURCE_DUMMY_AD_ID, ACCOUNT_SMITH222_AD_DN_AFTER_RENAME);
+        assertDummyAccountActivation(RESOURCE_DUMMY_AD_ID, ACCOUNT_SMITH222_AD_DN_AFTER_RENAME, true);
+ 		assertDummyAccountAttribute(RESOURCE_DUMMY_AD_ID, ACCOUNT_SMITH222_AD_DN_AFTER_RENAME, 
+ 				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_AD_SAM_ACCOUNT_NAME_NAME, ACCOUNT_SMITH222_AD_SAM_NAME);
+ 		assertDummyAccountAttribute(RESOURCE_DUMMY_AD_ID, ACCOUNT_SMITH222_AD_DN_AFTER_RENAME, 
+ 				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_AD_USER_PRINCIPAL_NAME_NAME, ACCOUNT_SMITH222_AD_SAM_NAME + "@" + TRAFO_MAIL_DOMAIN);
+ 		assertDummyAccountAttribute(RESOURCE_DUMMY_AD_ID, ACCOUNT_SMITH222_AD_DN_AFTER_RENAME, 
+ 				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_AD_GIVEN_NAME_NAME, "John");
+ 		assertDummyAccountAttribute(RESOURCE_DUMMY_AD_ID, ACCOUNT_SMITH222_AD_DN_AFTER_RENAME, 
+ 				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_AD_SN_NAME, "Smither");
+ 		assertDummyAccountAttribute(RESOURCE_DUMMY_AD_ID, ACCOUNT_SMITH222_AD_DN_AFTER_RENAME, 
+ 				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_AD_MAIL_NAME, "John.Smither2@" + TRAFO_MAIL_DOMAIN);
+ 		assertDummyAccountNoAttribute(RESOURCE_DUMMY_AD_ID, ACCOUNT_SMITH222_AD_DN_AFTER_RENAME, 
+ 				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_AD_TELEPHONE_NUMBER_NAME);
+ 		assertDummyAccountAttribute(RESOURCE_DUMMY_AD_ID, ACCOUNT_SMITH222_AD_DN_AFTER_RENAME, 
+ 				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_AD_USER_SHARED_FOLDER_OTHER_NAME, "\\\\medusa\\User\\Smither_smith222");
+ 		
+ 		// MAIL ACCOUNT
+ 		
+ 		// Check shadow
+        PrismObject<ShadowType> accountMailShadow = repositoryService.getObject(ShadowType.class, accountMailOid, null, result);
+        assertShadowRepo(accountMailShadow, accountMailOid, ACCOUNT_SMITH222_MAIL_USERNAME_AFTER_RENAME, resourceDummyMailType, caseIgnoreMatchingRule);
+        
+        // Check account
+        PrismObject<ShadowType> accountMailModel = modelService.getObject(ShadowType.class, accountMailOid, null, task, result);
+        display("Mail shadow", accountMailModel);
+        assertShadowModel(accountMailModel, accountMailOid, ACCOUNT_SMITH222_MAIL_USERNAME_AFTER_RENAME, resourceDummyMailType, caseIgnoreMatchingRule);
+        assertAdministrativeStatusEnabled(accountMailModel);
+        
+        smith222MailIcfUid = getIcfUid(accountMailModel);
+        
+        // Check account in dummy resource
+        assertDummyAccountById(RESOURCE_DUMMY_MAIL_ID, smith222MailIcfUid);
+        assertDummyAccount(RESOURCE_DUMMY_MAIL_ID, ACCOUNT_SMITH222_MAIL_USERNAME_AFTER_RENAME);
+        assertDummyAccountActivation(RESOURCE_DUMMY_MAIL_ID, ACCOUNT_SMITH222_MAIL_USERNAME_AFTER_RENAME, true);
+ 		assertDummyAccountAttribute(RESOURCE_DUMMY_MAIL_ID, ACCOUNT_SMITH222_MAIL_USERNAME_AFTER_RENAME, 
+ 				DUMMY_ACCOUNT_ATTRIBUTE_MAIL_INTERNET_ADDRESS_NAME, "John.Smither2@" + TRAFO_MAIL_DOMAIN);
+ 		assertDummyAccountAttribute(RESOURCE_DUMMY_MAIL_ID, ACCOUNT_SMITH222_MAIL_USERNAME_AFTER_RENAME, 
+ 				DUMMY_ACCOUNT_ATTRIBUTE_MAIL_FIRST_NAME_NAME, "John");
+ 		assertDummyAccountAttribute(RESOURCE_DUMMY_MAIL_ID, ACCOUNT_SMITH222_MAIL_USERNAME_AFTER_RENAME, 
+ 				DUMMY_ACCOUNT_ATTRIBUTE_MAIL_LAST_NAME_NAME, "Smither2");
+ 		assertDummyAccountAttribute(RESOURCE_DUMMY_MAIL_ID, ACCOUNT_SMITH222_MAIL_USERNAME_AFTER_RENAME, 
+ 				DUMMY_ACCOUNT_ATTRIBUTE_MAIL_ID_FILE_NAME, "c:\\install\\test-id-folder\\jsmith2.id");
+ 		assertDummyAccountAttribute(RESOURCE_DUMMY_MAIL_ID, ACCOUNT_SMITH222_MAIL_USERNAME_AFTER_RENAME, 
+ 				DUMMY_ACCOUNT_ATTRIBUTE_MAIL_SHORT_NAME_NAME, "PS222", "jsmither2");
+ 		assertDummyAccountAttribute(RESOURCE_DUMMY_MAIL_ID, ACCOUNT_SMITH222_MAIL_USERNAME_AFTER_RENAME, 
+ 				DUMMY_ACCOUNT_ATTRIBUTE_MAIL_MAIL_FILE_NAME_NAME, "mail\\js222");
+ 		assertDummyAccountAttribute(RESOURCE_DUMMY_MAIL_ID, ACCOUNT_SMITH222_MAIL_USERNAME_AFTER_RENAME, 
+ 				DUMMY_ACCOUNT_ATTRIBUTE_MAIL_MAIL_DOMAIN_NAME, "TRAFO");
+        
+ 		PrismObject<UserType> userSmithAfter = getUser(USER_SMITH222_OID);
+		display("User smith222 after change execution", userSmithAfter);
+ 		// Set by inbound mappings
+ 		PrismAsserts.assertPropertyValue(userSmithAfter, UserType.F_EMAIL_ADDRESS, "John.Smither2@" + TRAFO_MAIL_DOMAIN);
+ 		PrismAsserts.assertPropertyValue(userSmithAfter, 
+ 				new ItemPath(UserType.F_EXTENSION, TRAFO_EXTENSION_HOMEDIR_QNAME), "\\\\medusa\\User\\Smither_smith222");
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(4);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(0,2);
+        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, UserType.class); // primary
+//        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, UserType.class); // link
+        dummyAuditService.asserHasDelta(0,ChangeType.MODIFY, ShadowType.class); // AD account (outbound)
+        dummyAuditService.assertExecutionDeltas(1,2);
+        dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, UserType.class); // link, inbound (2 deltas)
+        dummyAuditService.asserHasDelta(1,ChangeType.MODIFY, ShadowType.class); // Mail account (outboud)
+        dummyAuditService.assertExecutionDeltas(2,2);
+        dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, UserType.class); // inbound
+        dummyAuditService.asserHasDelta(2,ChangeType.MODIFY, ShadowType.class); // AD account (mail change compued from outboud)
+//        dummyAuditService.assertExecutionDeltas(3,1);
+//        dummyAuditService.asserHasDelta(3,ChangeType.MODIFY, UserType.class); // inbound - SHOULD THIS BE HERE?? FIXME
         dummyAuditService.assertExecutionSuccess();
 	}
 
