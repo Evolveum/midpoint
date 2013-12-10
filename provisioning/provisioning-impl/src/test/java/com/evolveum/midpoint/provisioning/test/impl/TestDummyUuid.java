@@ -45,5 +45,10 @@ public class TestDummyUuid extends TestDummy {
 	protected boolean isIcfNameUidSame() {
 		return false;
 	}
+	
+	@Override
+	protected boolean isNameUnique(){
+		return false;
+	}
 		
 }
