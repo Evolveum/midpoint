@@ -122,45 +122,52 @@ public abstract class PropertyValueFilter extends ValueFilter{
 	
 	public static PropertyValueFilter createPropertyFilter(Class filterClass, ItemPath parentPath, PrismContainerDefinition<? extends Containerable> containerDef,
 			PrismValue... values) throws SchemaException {
-		ItemDefinition itemDef = containerDef.findItemDefinition(parentPath);
-		if (itemDef == null) {
-			throw new SchemaException("No definition for item " + parentPath + " in container definition "
-					+ containerDef);
-		}
+//		ItemDefinition itemDef = containerDef.findItemDefinition(parentPath);
+//		if (itemDef == null) {
+//			throw new SchemaException("No definition for item " + parentPath + " in container definition "
+//					+ containerDef);
+//		}
+		ItemDefinition itemDef = findItemDefinition(parentPath, containerDef);
 
 		return create(filterClass, parentPath, itemDef, null, Arrays.asList(values));
 	}
-
+	
 	public static PropertyValueFilter createPropertyFilter(Class filterClass, ItemPath parentPath, PrismContainerDefinition<? extends Containerable> containerDef,
 			Object realValue) throws SchemaException {
-		ItemDefinition itemDef = containerDef.findItemDefinition(parentPath);
-		if (itemDef == null) {
-			throw new SchemaException("No definition for item " + parentPath + " in container definition "
-					+ containerDef);
-		}
+//		ItemDefinition itemDef = containerDef.findItemDefinition(parentPath);
+//		if (itemDef == null) {
+//			throw new SchemaException("No definition for item " + parentPath + " in container definition "
+//					+ containerDef);
+//		}
+		ItemDefinition itemDef = findItemDefinition(parentPath, containerDef);
 
 		return createPropertyFilter(filterClass, parentPath, itemDef, null, realValue);
 	}
 
+	private static ItemDefinition findItemDefinition(ItemPath parentPath, PrismContainerDefinition<? extends Containerable> containerDef) throws SchemaException {
+		ItemDefinition itemDef = containerDef.findItemDefinition(parentPath);
+		if (itemDef == null) {
+			throw new SchemaException("No definition for item " + parentPath + " in container definition "
+					+ containerDef);
+		}
+
+		return itemDef;
+	}
+
 	public static PropertyValueFilter createPropertyFilter(Class filterClass, Class<? extends Objectable> type, PrismContext prismContext, QName propertyName, Object realValue)
 			throws SchemaException {
+		ItemPath path = new ItemPath(propertyName);
 		PrismObjectDefinition<?> objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
-		return createPropertyFilter(filterClass, new ItemPath(propertyName), objDef, realValue);
+		ItemDefinition def = findItemDefinition(path, objDef);
+		
+		return createPropertyFilter(filterClass, path, def, null, realValue);		
 	}
 	
 	public static PropertyValueFilter createPropertyFilter(Class filterClass, Class<? extends Objectable> type, 
 			PrismContext prismContext, ItemPath propertyPath, Object realValue) throws SchemaException {
 		PrismObjectDefinition<? extends Objectable> objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
-		PrismContainerDefinition<? extends Containerable> containerDef = objDef;
-		ItemPath parentPath = propertyPath.allExceptLast();
-		if (!parentPath.isEmpty()) {
-			containerDef = objDef.findContainerDefinition(parentPath);
-			if (containerDef == null) {
-				throw new SchemaException("No definition for container " + parentPath + " in object definition "
-						+ objDef);
-			}
-		}
-		return createPropertyFilter(filterClass, propertyPath, containerDef, realValue);
+		ItemDefinition itemDef = findItemDefinition(propertyPath, objDef);
+		return createPropertyFilter(filterClass, propertyPath, itemDef, null, realValue);
 	}
 	
 	public List<? extends PrismValue> getValues() {

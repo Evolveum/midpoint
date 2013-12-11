@@ -489,7 +489,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     	RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resourceType);
         RefinedObjectClassDefinition rAccountDef = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
         RefinedAttributeDefinition attrDef = rAccountDef.findAttributeDefinition(attributeName);
-        EqualsFilter idFilter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), attrDef, null, attributeValue);
+        EqualsFilter idFilter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, attrDef.getName()), attrDef, null, attributeValue);
         EqualsFilter ocFilter = EqualsFilter.createEqual(ShadowType.class, prismContext, 
         		ShadowType.F_OBJECT_CLASS, rAccountDef.getObjectClassDefinition().getTypeName());
         RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.class, 
@@ -517,7 +517,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     	RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resourceType);
         RefinedObjectClassDefinition rAccountDef = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
         RefinedAttributeDefinition attrDef = rAccountDef.findAttributeDefinition(attributeName);
-        EqualsFilter idFilter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), attrDef, null, attributeValue);
+        EqualsFilter idFilter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, attrDef.getName()), attrDef, null, attributeValue);
         EqualsFilter ocFilter = EqualsFilter.createEqual(ShadowType.class, prismContext, 
         		ShadowType.F_OBJECT_CLASS, rAccountDef.getObjectClassDefinition().getTypeName());
         RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.class, 

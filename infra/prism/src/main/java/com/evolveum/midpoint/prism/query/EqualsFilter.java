@@ -104,6 +104,12 @@ public class EqualsFilter extends PropertyValueFilter implements Itemable{
 		Validate.notNull(itemDef, "Item definition in the equals filter must not be null");
 		return new EqualsFilter(parentPath, itemDef, null, value);
 	}
+	
+	public static EqualsFilter createEqual(ItemPath parentPath, ItemDefinition itemDef, List<PrismValue> value) {
+		Validate.notNull(itemDef, "Item definition in the equals filter must not be null");
+		return new EqualsFilter(parentPath, itemDef, null, value);
+	}
+	
 	public static EqualsFilter createEqual(ItemPath parentPath, ItemDefinition itemDef, String matchingRule, PrismValue value) {
 		Validate.notNull(itemDef, "Item definition in the equals filter must not be null");
 		return new EqualsFilter(parentPath, itemDef, matchingRule, value);

@@ -23,6 +23,7 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -173,7 +174,7 @@ public class ShadowConstraintsChecker {
 //		QueryType query = QueryUtil.createAttributeQuery(identifier, accountDefinition.getObjectClassDefinition().getTypeName(),
 //				resourceType, prismContext);
 		
-		List<?> identifierValues = identifier.getValues();
+		List identifierValues = identifier.getValues();
 		if (identifierValues.isEmpty()) {
 			throw new SchemaException("Empty identifier "+identifier+" while checking uniqueness of "+oid+" ("+resourceType+")");
 		}
@@ -182,11 +183,12 @@ public class ShadowConstraintsChecker {
 				EqualsFilter.createEqual(ShadowType.class, prismContext, ShadowType.F_DEAD, false),
 				EqualsFilter.createEqual(ShadowType.class, prismContext, ShadowType.F_DEAD, null));
 		//TODO: set matching rule instead of null
+		ItemDefinition identifierDef = identifier.getDefinition();
 		ObjectQuery query = ObjectQuery.createObjectQuery(
 				AndFilter.createAnd(
 						RefFilter.createReferenceEqual(ShadowType.class, ShadowType.F_RESOURCE_REF, prismContext, resourceType.getOid()),
 						EqualsFilter.createEqual(ShadowType.class, prismContext, ShadowType.F_OBJECT_CLASS, accountDefinition.getTypeName()),
-						EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), identifier.getDefinition(), null, identifierValues),
+						EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, identifierDef.getName()), identifierDef, identifierValues),
 						isNotDead));
 		
 		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
