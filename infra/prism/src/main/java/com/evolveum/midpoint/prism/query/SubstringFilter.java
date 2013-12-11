@@ -19,6 +19,7 @@ package com.evolveum.midpoint.prism.query;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -46,6 +47,15 @@ public class SubstringFilter extends StringValueFilter {
 		super(parentPath, definition, matchingRule, value);
 	}
 
+	public static SubstringFilter createSubstring(ItemDefinition definition, String value) {
+		Validate.notNull(definition, "Item definition must not be null");
+		return createSubstring(definition.getName(), definition, value);
+	}
+	
+	public static SubstringFilter createSubstring(QName itemName, ItemDefinition definition, String value) {
+		return new SubstringFilter(new ItemPath(itemName), definition, value);
+	}
+	
 	public static SubstringFilter createSubstring(ItemPath path, ItemDefinition definition, String value) {
 		return new SubstringFilter(path, definition, value);
 	}
@@ -66,7 +76,7 @@ public class SubstringFilter extends StringValueFilter {
 
 	@Override
 	public SubstringFilter clone() {
-		return new SubstringFilter(getParentPath(),getDefinition(),getValue());
+		return new SubstringFilter(getFullPath(),getDefinition(),getValue());
 	}
 
 	@Override
@@ -84,10 +94,10 @@ public class SubstringFilter extends StringValueFilter {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, indent);
 		sb.append("SUBSTRING: \n");
-		if (getParentPath() != null){
+		if (getFullPath() != null){
 			DebugUtil.indentDebugDump(sb, indent+1);
 			sb.append("PATH: ");
-			sb.append(getParentPath().toString());
+			sb.append(getFullPath().toString());
 			sb.append("\n");
 		}
 		DebugUtil.indentDebugDump(sb, indent+1);
@@ -126,8 +136,8 @@ public class SubstringFilter extends StringValueFilter {
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("SUBSTRING: ");
-		if (getParentPath() != null){
-			sb.append(getParentPath().toString());
+		if (getFullPath() != null){
+			sb.append(getFullPath().toString());
 			sb.append(", ");
 		}
 		if (getDefinition() != null){
@@ -143,8 +153,8 @@ public class SubstringFilter extends StringValueFilter {
 	@Override
 	public <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry) {
 		ItemPath path = null;
-		if (getParentPath() != null){
-			path = new ItemPath(getParentPath(), getDefinition().getName());
+		if (getFullPath() != null){
+			path = new ItemPath(getFullPath(), getDefinition().getName());
 		} else{
 			path = new ItemPath(getDefinition().getName());
 		}

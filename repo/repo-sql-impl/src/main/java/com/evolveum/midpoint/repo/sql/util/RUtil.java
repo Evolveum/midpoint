@@ -529,7 +529,7 @@ public final class RUtil {
     @Deprecated
     public static ItemPath createFullPath(ValueFilter filter) {
         ItemDefinition def = filter.getDefinition();
-        ItemPath parentPath = filter.getParentPath();
+        ItemPath parentPath = filter.getParentPath2();
 
         List<ItemPathSegment> segments = new ArrayList<ItemPathSegment>();
         if (parentPath != null) {

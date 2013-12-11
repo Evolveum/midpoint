@@ -53,8 +53,8 @@ public class GreaterFilter extends ComparativeFilter{
 	}
 	
 	public static GreaterFilter createGreaterFilter(ItemPath parentPath, PrismContainerDefinition<? extends Containerable> containerDef,
-			QName propertyName, PrismValue value, boolean equals) throws SchemaException {
-		return (GreaterFilter) createComparativeFilter(GreaterFilter.class, parentPath, containerDef, propertyName, value, equals);
+			PrismValue value, boolean equals) throws SchemaException {
+		return (GreaterFilter) createComparativeFilter(GreaterFilter.class, parentPath, containerDef, value, equals);
 	}
 
 	public static GreaterFilter createGreaterFilter(ItemPath parentPath, ItemDefinition item, Object realValue, boolean equals) throws SchemaException{
@@ -62,8 +62,8 @@ public class GreaterFilter extends ComparativeFilter{
 	}
 
 	public static GreaterFilter createGreaterFilter(ItemPath parentPath, PrismContainerDefinition<? extends Containerable> containerDef,
-			QName propertyName, Object realValue, boolean equals) throws SchemaException {
-		return (GreaterFilter) createComparativeFilter(GreaterFilter.class, parentPath, containerDef, propertyName, realValue, equals);
+			Object realValue, boolean equals) throws SchemaException {
+		return (GreaterFilter) createComparativeFilter(GreaterFilter.class, parentPath, containerDef, realValue, equals);
 	}
 
 	public static GreaterFilter createGreaterFilter(Class<? extends Objectable> type, PrismContext prismContext, QName propertyName, Object realValue, boolean equals)
@@ -73,7 +73,7 @@ public class GreaterFilter extends ComparativeFilter{
 	
 	@Override
 	public GreaterFilter clone() {
-		return new GreaterFilter(getParentPath(), getDefinition(), getValues().get(0), isEquals());
+		return new GreaterFilter(getFullPath(), getDefinition(), getValues().get(0), isEquals());
 	}
 
 	@Override
@@ -92,10 +92,10 @@ public class GreaterFilter extends ComparativeFilter{
 		DebugUtil.indentDebugDump(sb, indent);
 		sb.append("GREATER: \n");
 		
-		if (getParentPath() != null){
+		if (getFullPath() != null){
 			DebugUtil.indentDebugDump(sb, indent+1);
 			sb.append("PATH: ");
-			sb.append(getParentPath().toString());
+			sb.append(getFullPath().toString());
 			sb.append("\n");
 		} 
 		DebugUtil.indentDebugDump(sb, indent+1);

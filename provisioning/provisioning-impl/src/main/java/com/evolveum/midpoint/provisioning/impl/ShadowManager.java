@@ -31,6 +31,7 @@ import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -219,9 +220,9 @@ public class ShadowManager {
 		secondaryIdentifier = secondaryIdentifiers.iterator().next();
 		LOGGER.trace("Shadow secondary identifier {}", secondaryIdentifier);
 		
-		AndFilter filter = AndFilter.createAnd(RefFilter.createReferenceEqual(ShadowType.class,
-				ShadowType.F_RESOURCE_REF, prismContext, resource.getOid()), EqualsFilter.createEqual(
-				new ItemPath(ShadowType.F_ATTRIBUTES), secondaryIdentifier.getDefinition(),
+		AndFilter filter = AndFilter.createAnd(
+				RefFilter.createReferenceEqual(ShadowType.class, ShadowType.F_RESOURCE_REF, prismContext, resource.getOid()), 
+				EqualsFilter.createEqual(secondaryIdentifier.getPath(), secondaryIdentifier.getDefinition(),
 				getNormalizedValue(secondaryIdentifier, rObjClassDef)));
 		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 		if (LOGGER.isTraceEnabled()) {
@@ -422,8 +423,9 @@ public class ShadowManager {
 			PrismPropertyValue<?> identifierValue = identifier.getValue();
 			RefinedAttributeDefinition rAttrDef = rOcDef.findAttributeDefinition(identifier.getName());
 			Object normalizedIdentifierValue = getNormalizedAttributeValue(identifierValue, rAttrDef);
-			EqualsFilter filter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES),
-					identifier.getDefinition(), new PrismPropertyValue(normalizedIdentifierValue));
+			//new ItemPath(ShadowType.F_ATTRIBUTES)
+			ItemDefinition def = identifier.getDefinition();
+			EqualsFilter filter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, def.getName()), def, new PrismPropertyValue(normalizedIdentifierValue));
 			conditions.add(filter);
 		}
 
@@ -476,10 +478,10 @@ public class ShadowManager {
 		ObjectFilter filter = null;
 		try {
 			// TODO TODO TODO TODO: set matching rule instead of null
-			filter = AndFilter.createAnd(RefFilter.createReferenceEqual(ShadowType.class,
-					ShadowType.F_RESOURCE_REF, prismContext, resource.getOid()), EqualsFilter.createEqual(
-					new ItemPath(ShadowType.F_ATTRIBUTES), identifier.getDefinition(), null,
-					getNormalizedValue(identifier, rObjClassDef)));
+			ItemDefinition def = identifier.getDefinition();
+			filter = AndFilter.createAnd(
+					RefFilter.createReferenceEqual(ShadowType.class,ShadowType.F_RESOURCE_REF, prismContext, resource.getOid()), 
+					EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, def.getName()), def, getNormalizedValue(identifier, rObjClassDef)));
 		} catch (SchemaException e) {
 			// LOGGER.error("Schema error while creating search filter: {}",
 			// e.getMessage(), e);
@@ -529,7 +531,7 @@ public class ShadowManager {
 			return;
 		}
 		EqualsFilter eqFilter = (EqualsFilter)filter;
-		ItemPath parentPath = eqFilter.getParentPath();
+		ItemPath parentPath = eqFilter.getParentPath2();
 		if (parentPath == null || !parentPath.equals(SchemaConstants.PATH_ATTRIBUTES)) {
 			return;
 		}

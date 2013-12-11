@@ -56,7 +56,8 @@ public class AnyPropertyRestriction extends ItemRestriction<ValueFilter> {
         }
 
         ValueFilter valFilter = (ValueFilter) filter;
-        ItemPath fullPath = RUtil.createFullPath(valFilter);
+//        ItemPath fullPath = RUtil.createFullPath(valFilter);
+        ItemPath fullPath = valFilter.getFullPath();
 
         List<Definition> defPath = createDefinitionPath(fullPath, context);
         return containsAnyDefinition(defPath);
@@ -83,7 +84,7 @@ public class AnyPropertyRestriction extends ItemRestriction<ValueFilter> {
             throw new QueryException("Couldn't get name or type for queried item '" + itemDefinition + "'");
         }
 
-        ItemPath anyItemPath = createAnyItemPath(filter.getParentPath(), filter.getDefinition());
+        ItemPath anyItemPath = createAnyItemPath(filter.getParentPath2(), filter.getDefinition());
         if (!getContext().hasAlias(anyItemPath)) {
             QName anyTypeName = ((NameItemPathSegment) anyItemPath.last()).getName();
             LOGGER.trace("Condition item is from 'any' container, adding new criteria based on any type '{}'",

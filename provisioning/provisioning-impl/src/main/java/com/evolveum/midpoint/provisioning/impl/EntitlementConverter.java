@@ -191,9 +191,10 @@ class EntitlementConverter {
 			throw new SchemaException("Value attribute "+valueAttrName+" has no more than one value; attribute defined in entitlement association '"+associationName+"' in "+resourceType);
 		}
 		
-		ObjectFilter filter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), assocAttrDef, valueAttr.getValue());
-		ObjectQuery query = new ObjectQuery();
-		query.setFilter(filter);
+		ObjectFilter filter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, assocAttrDef.getName()), assocAttrDef, valueAttr.getValue());
+		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+//		ObjectQuery query = new ObjectQuery();
+//		query.setFilter(filter);
 		
 		AttributesToReturn attributesToReturn = ProvisioningUtil.createAttributesToReturn(entitlementDef, resourceType);
 		
@@ -346,9 +347,11 @@ class EntitlementConverter {
 				throw new SchemaException("Value attribute "+valueAttrName+" has no more than one value; attribute defined in entitlement association '"+associationName+"' in "+resourceType);
 			}
 			
-			ObjectFilter filter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), assocAttrDef, valueAttr.getValue());
-			ObjectQuery query = new ObjectQuery();
-			query.setFilter(filter);
+//			ObjectFilter filter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), assocAttrDef, valueAttr.getValue());
+			ObjectFilter filter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, assocAttrDef.getName()), assocAttrDef, valueAttr.getValue());
+			ObjectQuery query = ObjectQuery.createObjectQuery(filter); 
+//					new ObjectQuery();
+//			query.setFilter(filter);
 			
 			AttributesToReturn attributesToReturn = ProvisioningUtil.createAttributesToReturn(entitlementOcDef, resourceType);
 			

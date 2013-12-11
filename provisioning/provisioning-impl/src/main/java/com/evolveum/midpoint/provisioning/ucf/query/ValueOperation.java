@@ -51,8 +51,8 @@ public class ValueOperation extends Operation {
 		OperationResult parentResult = new OperationResult("interpret");
 
 		ValueFilter valueFilter= (ValueFilter) objectFilter;
-		if (valueFilter.getParentPath() != null && !valueFilter.getParentPath().isEmpty()
-				&& valueFilter.getParentPath().equals(new ItemPath(ShadowType.F_ATTRIBUTES))) {
+		if (valueFilter.getParentPath2() != null && !valueFilter.getParentPath2().isEmpty()
+				&& valueFilter.getParentPath2().equals(new ItemPath(ShadowType.F_ATTRIBUTES))) {
 			try {
 				QName propName = valueFilter.getDefinition().getName();
 				String icfName = icfNameMapper.convertAttributeNameToIcf(propName, getInterpreter()
@@ -91,7 +91,7 @@ public class ValueOperation extends Operation {
 
 			}
 		} else {
-			throw new UnsupportedOperationException("Unsupported parent path "+valueFilter.getParentPath()+" in filter: " + objectFilter.dump());
+			throw new UnsupportedOperationException("Unsupported parent path "+valueFilter.getParentPath2()+" in filter: " + objectFilter.dump());
 		}
 		
 	}

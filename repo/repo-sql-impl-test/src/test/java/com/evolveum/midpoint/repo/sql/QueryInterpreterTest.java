@@ -439,10 +439,9 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
         SchemaRegistry registry = prismContext.getSchemaRegistry();
         PrismObjectDefinition objectDef = registry.findObjectDefinitionByCompileTimeClass(ObjectType.class);
-        ItemPath triggerPath = new ItemPath(ObjectType.F_TRIGGER);
-        PrismContainerDefinition triggerContainerDef = objectDef.findContainerDefinition(triggerPath);
-        ObjectFilter filter = LessFilter.createLessFilter(triggerPath, triggerContainerDef,
-                TriggerType.F_TIMESTAMP, thisScanTimestamp, true);
+        ItemPath triggerPath = new ItemPath(ObjectType.F_TRIGGER, TriggerType.F_TIMESTAMP);
+//        PrismContainerDefinition triggerContainerDef = objectDef.findContainerDefinition(triggerPath);
+        ObjectFilter filter = LessFilter.createLessFilter(triggerPath, objectDef, thisScanTimestamp, true);
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
         String real = getInterpretedQuery(session, ObjectType.class, query);
 
@@ -466,12 +465,11 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
         SchemaRegistry registry = prismContext.getSchemaRegistry();
         PrismObjectDefinition objectDef = registry.findObjectDefinitionByCompileTimeClass(UserType.class);
-        ItemPath activationPath = new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION);
+        ItemPath activationPath = new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
 
-        PrismContainerDefinition activationDef = objectDef.findContainerDefinition(activationPath);
+//        PrismContainerDefinition activationDef = objectDef.findContainerDefinition(activationPath);
 
-        ObjectFilter filter = EqualsFilter.createEqual(activationPath, activationDef,
-                ActivationType.F_ADMINISTRATIVE_STATUS, ActivationStatusType.ENABLED);
+        ObjectFilter filter = EqualsFilter.createEqual(activationPath, objectDef, ActivationStatusType.ENABLED);
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
         String real = getInterpretedQuery(session, UserType.class, query);
 
@@ -495,12 +493,11 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
         SchemaRegistry registry = prismContext.getSchemaRegistry();
         PrismObjectDefinition objectDef = registry.findObjectDefinitionByCompileTimeClass(RoleType.class);
-        ItemPath activationPath = new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_ACTIVATION);
+        ItemPath activationPath = new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
 
-        PrismContainerDefinition activationDef = objectDef.findContainerDefinition(activationPath);
+//        PrismContainerDefinition activationDef = objectDef.findContainerDefinition(activationPath);
 
-        ObjectFilter filter = EqualsFilter.createEqual(activationPath, activationDef,
-                ActivationType.F_ADMINISTRATIVE_STATUS, ActivationStatusType.ENABLED);
+        ObjectFilter filter = EqualsFilter.createEqual(activationPath, objectDef, ActivationStatusType.ENABLED);
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
         String real = getInterpretedQuery(session, RoleType.class, query);
 
@@ -534,16 +531,14 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         PrismObjectDefinition objectDef = registry.findObjectDefinitionByCompileTimeClass(RoleType.class);
 
         //filter1
-        ItemPath activationPath1 = new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION);
-        PrismContainerDefinition activationDef1 = objectDef.findContainerDefinition(activationPath1);
-        ObjectFilter filter1 = EqualsFilter.createEqual(activationPath1, activationDef1,
-                ActivationType.F_ADMINISTRATIVE_STATUS, ActivationStatusType.ENABLED);
+        ItemPath activationPath1 = new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
+//        PrismContainerDefinition activationDef1 = objectDef.findContainerDefinition(activationPath1);
+        ObjectFilter filter1 = EqualsFilter.createEqual(activationPath1, objectDef, ActivationStatusType.ENABLED);
 
         //filter2
-        ItemPath activationPath2 = new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_ACTIVATION);
-        PrismContainerDefinition activationDef2 = objectDef.findContainerDefinition(activationPath2);
-        ObjectFilter filter2 = EqualsFilter.createEqual(activationPath2, activationDef2,
-                ActivationType.F_ADMINISTRATIVE_STATUS, ActivationStatusType.ENABLED);
+        ItemPath activationPath2 = new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
+//        PrismContainerDefinition activationDef2 = objectDef.findContainerDefinition(activationPath2);
+        ObjectFilter filter2 = EqualsFilter.createEqual(activationPath2, objectDef, ActivationStatusType.ENABLED);
 
         ObjectQuery query = ObjectQuery.createObjectQuery(OrFilter.createOr(filter1, filter2));
         String real = getInterpretedQuery(session, RoleType.class, query);
@@ -568,15 +563,15 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
         SchemaRegistry registry = prismContext.getSchemaRegistry();
         PrismObjectDefinition objectDef = registry.findObjectDefinitionByCompileTimeClass(UserType.class);
-        ItemPath triggerPath = new ItemPath(AssignmentType.F_ACTIVATION);
+//        ItemPath triggerPath = new ItemPath(AssignmentType.F_ACTIVATION);
 
-        PrismContainerDefinition triggerContainerDef = objectDef.findContainerDefinition(triggerPath);
+//        PrismContainerDefinition triggerContainerDef = objectDef.findContainerDefinition(triggerPath);
 
-        ObjectFilter filter1 = EqualsFilter.createEqual(triggerPath, triggerContainerDef,
-                ActivationType.F_ADMINISTRATIVE_STATUS, ActivationStatusType.ENABLED);
+        ObjectFilter filter1 = EqualsFilter.createEqual(new ItemPath(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), objectDef,
+                ActivationStatusType.ENABLED);
 
-        ObjectFilter filter2 = EqualsFilter.createEqual(triggerPath, triggerContainerDef,
-                ActivationType.F_VALID_FROM, XmlTypeConverter.createXMLGregorianCalendar(NOW.getTime()));
+        ObjectFilter filter2 = EqualsFilter.createEqual(new ItemPath(AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM), objectDef,
+                XmlTypeConverter.createXMLGregorianCalendar(NOW.getTime()));
 
         ObjectQuery query = ObjectQuery.createObjectQuery(AndFilter.createAnd(filter1, filter2));
         String real = getInterpretedQuery(session, UserType.class, query);
@@ -605,12 +600,10 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
         SchemaRegistry registry = prismContext.getSchemaRegistry();
         PrismObjectDefinition objectDef = registry.findObjectDefinitionByCompileTimeClass(ObjectType.class);
-        ItemPath triggerPath = new ItemPath(ObjectType.F_TRIGGER);
-        PrismContainerDefinition triggerContainerDef = objectDef.findContainerDefinition(triggerPath);
-        ObjectFilter greater = GreaterFilter.createGreaterFilter(triggerPath, triggerContainerDef,
-                TriggerType.F_TIMESTAMP, thisScanTimestamp, false);
-        ObjectFilter lesser = LessFilter.createLessFilter(triggerPath, triggerContainerDef,
-                TriggerType.F_TIMESTAMP, thisScanTimestamp, false);
+        ItemPath triggerPath = new ItemPath(ObjectType.F_TRIGGER, TriggerType.F_TIMESTAMP);
+//        PrismContainerDefinition triggerContainerDef = objectDef.findContainerDefinition(triggerPath);
+        ObjectFilter greater = GreaterFilter.createGreaterFilter(triggerPath, objectDef, thisScanTimestamp, false);
+        ObjectFilter lesser = LessFilter.createLessFilter(triggerPath, objectDef, thisScanTimestamp, false);
         AndFilter and = AndFilter.createAnd(greater, lesser);
         LOGGER.info(and.dump());
 

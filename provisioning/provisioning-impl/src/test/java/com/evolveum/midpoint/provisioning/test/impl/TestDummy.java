@@ -2210,7 +2210,7 @@ public class TestDummy extends AbstractDummyTest {
 		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
 		ObjectClassComplexTypeDefinition objectClassDef = resourceSchema.findObjectClassDefinition(SchemaTestConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
 		ResourceAttributeDefinition attrDef = objectClassDef.findAttributeDefinition(attrQName);
-		ObjectFilter filter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), attrDef, attrPVal);
+		ObjectFilter filter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, attrDef.getName()), attrDef, attrPVal);
 		
 		testSeachIterative(TEST_NAME, filter, rootOptions, fullShadow, expectedAccountNames);
 	}

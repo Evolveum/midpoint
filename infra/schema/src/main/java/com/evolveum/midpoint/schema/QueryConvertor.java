@@ -327,8 +327,8 @@ public class QueryConvertor {
 	private static Element createPathElement(ValueFilter filter, Document doc) {
 		Element path = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_PATH);
 		XPathHolder xpath = null;
-		if (filter.getParentPath() != null) {
-			xpath = new XPathHolder(new ItemPath(filter.getParentPath(), filter.getDefinition().getName()));
+		if (filter.getFullPath() != null) {
+			xpath = new XPathHolder(filter.getFullPath());
 		} else {
 			xpath = new XPathHolder(filter.getDefinition().getName());
 		}
@@ -437,19 +437,19 @@ public class QueryConvertor {
 				expression = DOMUtil.findElementRecursive((Element) filter, SchemaConstantsGenerated.C_VALUE_EXPRESSION);
 			}
 			ItemDefinition itemDef = pcd.findItemDefinition(path);
-			return EqualsFilter.createEqual(path.allExceptLast(), itemDef, matchingRule, expression);
+			return EqualsFilter.createEqual(path, itemDef, matchingRule, expression);
 		}
 		
 		if (path.last() == null){
 			throw new SchemaException("Cannot convert query, becasue query does not contian property path.");
 		}
 		QName propertyName = ItemPath.getName(path.last());
-		path = path.allExceptLast();
-		if (path.isEmpty()){
-			path = null;
+		ItemPath parentPath = path.allExceptLast();
+		if (parentPath.isEmpty()){
+			parentPath = null;
 		}
 		
-		Item item = getItem(values, pcd, path, propertyName, false);
+		Item item = getItem(values, pcd, parentPath, propertyName, false);
 		ItemDefinition itemDef = item.getDefinition();
 		if (itemDef == null) {
 			throw new SchemaException("Item definition for property " + item.getName() + " in container definition " + pcd
@@ -466,7 +466,7 @@ public class QueryConvertor {
 				throw new IllegalStateException("Single value property "+itemDef.getName()+"should have specified only one value.");
 			}
 		}
-		return EqualsFilter.createEqual(path, itemDef, matchingRule, item.getValues());
+		return EqualsFilter.createEqual(path, item, matchingRule);
 	}
 	
 	private static RefFilter createRefFilter(PrismContainerDefinition pcd, Node filter) throws SchemaException{
@@ -483,12 +483,12 @@ public class QueryConvertor {
 		}
 		
 		QName propertyName = ItemPath.getName(path.last());
-		path = path.allExceptLast();
-		if (path.isEmpty()){
-			path = null;
+		ItemPath parentPath = path.allExceptLast();
+		if (parentPath.isEmpty()){
+			parentPath = null;
 		}
 		
-		Item item = getItem(values, pcd, path, propertyName, true);
+		Item item = getItem(values, pcd, parentPath, propertyName, true);
 		ItemDefinition itemDef = item.getDefinition();
 		if (itemDef == null) {
 			throw new SchemaException("Item definition for property " + item.getName() + " in container definition " + pcd
@@ -502,9 +502,9 @@ public class QueryConvertor {
 		}
 
 		if (expression != null) {
-			return RefFilter.createReferenceEqual(path, itemDef, expression);
+			return RefFilter.createReferenceEqual(path, item, expression);
 		} 
-		return RefFilter.createReferenceEqual(path, itemDef, item.getValues());
+		return RefFilter.createReferenceEqual(path, item);
 	}
 
 	private static Item getItem(List<Element> values, PrismContainerDefinition pcd,
@@ -585,7 +585,7 @@ public class QueryConvertor {
 
 		String substring = values.get(0).getTextContent();
 
-		return SubstringFilter.createSubstring(path, itemDef, matchingRule, substring);
+		return SubstringFilter.createSubstring(item.getPath(), itemDef, matchingRule, substring);
 	}
 
 	private static OrgFilter createOrgFilter(PrismContainerDefinition pcd, Node filter) throws SchemaException {

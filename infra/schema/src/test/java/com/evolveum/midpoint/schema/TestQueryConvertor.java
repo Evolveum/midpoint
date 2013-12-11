@@ -30,6 +30,7 @@ import org.xml.sax.SAXException;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -127,6 +128,7 @@ public class TestQueryConvertor {
 					((PrismPropertyValue) values.get(0)).getValue());
 			AssertJUnit.assertEquals(ConnectorType.F_CONNECTOR_TYPE, ((EqualsFilter) query.getFilter()).getDefinition()
 					.getName());
+			AssertJUnit.assertEquals(new ItemPath(ConnectorType.F_CONNECTOR_TYPE), ((EqualsFilter) query.getFilter()).getFullPath());
 			AssertJUnit.assertEquals(DOMUtil.XSD_STRING, ((EqualsFilter) query.getFilter()).getDefinition()
 					.getTypeName());
 

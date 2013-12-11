@@ -36,6 +36,7 @@ import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
@@ -200,8 +201,8 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
 							prismContext, resource.getOid()), 
 					EqualsFilter.createEqual(ShadowType.class, prismContext, ShadowType.F_OBJECT_CLASS, 
 							new QName(dummyResourceCtl.getNamespace(), "AccountObjectClass")),
-					EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), 
-							getIcfNameDefinition(), null, ACCOUNT_FETTUCINI_NAME));
+					EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, getIcfNameDefinition().getName()), 
+							getIcfNameDefinition(), null, new PrismPropertyValue(ACCOUNT_FETTUCINI_NAME)));
 		ObjectQuery query = new ObjectQuery();
 		query.setFilter(filter);
 		// WHEN

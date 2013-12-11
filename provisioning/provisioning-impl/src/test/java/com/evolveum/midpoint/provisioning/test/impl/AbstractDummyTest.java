@@ -248,7 +248,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		
 		LOGGER.info("item definition: {}", itemDef.dump());
 		//TODO: matching rule
-		EqualsFilter equal = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), itemDef, null, getWillRepoIcfName());
+		EqualsFilter equal = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, itemDef.getName()), itemDef, null, getWillRepoIcfName());
 		ObjectQuery query = ObjectQuery.createObjectQuery(equal);
 		
 		System.out.println("Looking for shadows of \"" + getWillRepoIcfName() + "\" with filter "

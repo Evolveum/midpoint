@@ -588,7 +588,6 @@ public class IntegrationTestTools {
 
 	private static ObjectQuery createShadowQuery(ShadowType resourceShadow, MatchingRule<String> uidMatchingRule, PrismContext prismContext) throws SchemaException {
 		
-		XPathHolder xpath = new XPathHolder(ShadowType.F_ATTRIBUTES);
 		PrismContainer<?> attributesContainer = resourceShadow.asPrismObject().findContainer(ShadowType.F_ATTRIBUTES);
 		PrismProperty<String> identifier = attributesContainer.findProperty(SchemaTestConstants.ICFS_UID);
 		if (identifier == null) {
@@ -599,29 +598,13 @@ public class IntegrationTestTools {
 			uidValue = uidMatchingRule.normalize(uidValue);
 		}
 
-		Document doc = DOMUtil.getDocument();
-//		Element filter;
 		ObjectFilter filter;
-		List<Element> identifierElements = prismContext.getPrismDomProcessor().serializeItemToDom(identifier, doc);
-//		try {
-//			filter = QueryUtil.createAndFilter(doc, QueryUtil.createEqualRefFilter(doc, null,
-//					SchemaConstants.I_RESOURCE_REF, resourceShadow.getResourceRef().getOid()),
-//					QueryUtil.createEqualFilterFromElements(doc, xpath, identifierElements, 
-//							resourceShadow.asPrismObject().getPrismContext()));
-
-//			filter = QueryUtil.createEqualFilterFromElements(doc, xpath, identifierElements, 
-//					resourceShadow.asPrismObject().getPrismContext());
-			ItemDefinition itemDef = resourceShadow.asPrismObject().getDefinition().findItemDefinition(ShadowType.F_RESOURCE_REF);
-			filter = AndFilter.createAnd(
-					RefFilter.createReferenceEqual(null, itemDef, resourceShadow.getResourceRef().getOid()),
-					EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), identifier.getDefinition(), new PrismPropertyValue(uidValue)));
+		ItemDefinition identifierDef = identifier.getDefinition();
+		ItemDefinition itemDef = resourceShadow.asPrismObject().getDefinition().findItemDefinition(ShadowType.F_RESOURCE_REF);
+		filter = AndFilter.createAnd(
+					RefFilter.createReferenceEqual(ShadowType.class, ShadowType.F_RESOURCE_REF, prismContext, ShadowUtil.getResourceOid(resourceShadow)),
+					EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, identifierDef.getName()), identifierDef, new PrismPropertyValue(uidValue)));
 			
-//		} catch (SchemaException e) {
-//			throw new SchemaException("Schema error while creating search filter: " + e.getMessage(), e);
-//		}
-
-//		QueryType query = new QueryType();
-//		query.setFilter(filter);
 		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 
 		return query;

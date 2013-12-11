@@ -181,7 +181,8 @@ public class QueryInterpreter {
                                                                                      Collection<SelectorOptions<GetOperationOptions>> options) {
         if (filter instanceof ValueFilter) {
             ValueFilter vFilter = (ValueFilter) filter;
-            ItemPath path = RUtil.createFullPath(vFilter);
+//            ItemPath path = RUtil.createFullPath(vFilter);
+            ItemPath path = vFilter.getFullPath();
             options.add(SelectorOptions.create(path, GetOperationOptions.createRetrieve(RetrieveOption.INCLUDE)));
         } else if (filter instanceof LogicalFilter) {
             LogicalFilter lFilter = (LogicalFilter) filter;

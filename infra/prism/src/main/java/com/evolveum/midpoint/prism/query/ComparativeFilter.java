@@ -60,15 +60,15 @@ public abstract class ComparativeFilter extends PropertyValueFilter{
 	}
 	
 	public static ComparativeFilter createComparativeFilter(Class filterClass, ItemPath parentPath, PrismContainerDefinition<? extends Containerable> containerDef,
-			QName propertyName, PrismValue value, boolean equals) throws SchemaException {
-		ComparativeFilter comparativeFilter = (ComparativeFilter) createPropertyFilter(filterClass, parentPath, containerDef, propertyName, value);
+			PrismValue value, boolean equals) throws SchemaException {
+		ComparativeFilter comparativeFilter = (ComparativeFilter) createPropertyFilter(filterClass, parentPath, containerDef, value);
 		comparativeFilter.setEquals(equals);
 		return comparativeFilter;
 	}
 	
 	public static ComparativeFilter createComparativeFilter(Class filterClass, ItemPath parentPath, PrismContainerDefinition<? extends Containerable> containerDef,
-			QName propertyName, Object realValue, boolean equals) throws SchemaException {
-		ComparativeFilter comparativeFilter = (ComparativeFilter) createPropertyFilter(filterClass, parentPath, containerDef, propertyName, realValue);
+			Object realValue, boolean equals) throws SchemaException {
+		ComparativeFilter comparativeFilter = (ComparativeFilter) createPropertyFilter(filterClass, parentPath, containerDef, realValue);
 		comparativeFilter.setEquals(equals);
 		return comparativeFilter;
 	}

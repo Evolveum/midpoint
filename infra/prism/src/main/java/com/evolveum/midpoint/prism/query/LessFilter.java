@@ -51,11 +51,14 @@ public class LessFilter extends ComparativeFilter{
 		return new LessFilter(parentPath, definition, value, equals);
 	}
 	
+	public static LessFilter createLessFilter(ItemDefinition definition, Object realValue, boolean equals) throws SchemaException{
+		return createLessFilter(new ItemPath(definition.getName()), definition, realValue, equals);
+	}
 	
 	public static LessFilter createLessFilter(ItemPath parentPath, PrismContainerDefinition<? extends Containerable> containerDef,
-			QName propertyName, PrismValue value, boolean equals) throws SchemaException {
+			PrismValue value, boolean equals) throws SchemaException {
 		
-		return (LessFilter) createComparativeFilter(LessFilter.class, parentPath, containerDef, propertyName, value, equals);
+		return (LessFilter) createComparativeFilter(LessFilter.class, parentPath, containerDef, value, equals);
 	}
 
 	public static LessFilter createLessFilter(ItemPath parentPath, ItemDefinition item, Object realValue, boolean equals) throws SchemaException{
@@ -63,8 +66,8 @@ public class LessFilter extends ComparativeFilter{
 	}
 
 	public static LessFilter createLessFilter(ItemPath parentPath, PrismContainerDefinition<? extends Containerable> containerDef,
-			QName propertyName, Object realValue, boolean equals) throws SchemaException {
-		return (LessFilter) createComparativeFilter(LessFilter.class, parentPath, containerDef, propertyName, realValue, equals);
+			Object realValue, boolean equals) throws SchemaException {
+		return (LessFilter) createComparativeFilter(LessFilter.class, parentPath, containerDef, realValue, equals);
 	}
 
 	public static LessFilter createLessFilter(Class<? extends Objectable> type, PrismContext prismContext, QName propertyName, Object realValue, boolean equals)
@@ -74,7 +77,7 @@ public class LessFilter extends ComparativeFilter{
 	
 	@Override
 	public LessFilter clone() {
-		return new LessFilter(getParentPath(), getDefinition(), getValues().get(0), isEquals());
+		return new LessFilter(getFullPath(), getDefinition(), getValues().get(0), isEquals());
 	}
 
 	@Override
@@ -93,10 +96,10 @@ public class LessFilter extends ComparativeFilter{
 		DebugUtil.indentDebugDump(sb, indent);
 		sb.append("LESS: \n");
 		
-		if (getParentPath() != null){
+		if (getFullPath() != null){
 			DebugUtil.indentDebugDump(sb, indent+1);
 			sb.append("PATH: ");
-			sb.append(getParentPath().toString());
+			sb.append(getFullPath().toString());
 			sb.append("\n");
 		} 
 		DebugUtil.indentDebugDump(sb, indent+1);

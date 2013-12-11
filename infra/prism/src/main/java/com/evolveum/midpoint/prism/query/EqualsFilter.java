@@ -70,6 +70,36 @@ public class EqualsFilter extends PropertyValueFilter implements Itemable{
 		super(parentPath, definition, matchingRule, expression);
 	}
 	
+	public static EqualsFilter createEqual(ItemPath path, Item item){
+		Validate.notNull(item, "Item must not be null");
+		return new EqualsFilter(path, item.getDefinition(), null, item.getValues());
+	}
+	
+	public static EqualsFilter createEqual(ItemPath path, Item item, String matchingRule){
+		Validate.notNull(item, "Item must not be null");
+		return new EqualsFilter(path, item.getDefinition(), matchingRule, item.getValues());
+	}
+	
+	public static EqualsFilter createEqual(ItemDefinition itemDefinition, PrismValue value){
+		Validate.notNull(itemDefinition, "Item definition in the filter must not be null");
+		return createEqual(new ItemPath(itemDefinition.getName()), itemDefinition, null, value);
+	}
+	
+	public static EqualsFilter createEqual(ItemDefinition itemDefinition, Object value){
+		Validate.notNull(itemDefinition, "Item definition in the filter must not be null");
+		return createEqual(new ItemPath(itemDefinition.getName()), itemDefinition, null, value);
+	}
+	
+	public static EqualsFilter createEqual(ItemDefinition itemDefinition, String matchingRule, PrismValue value){
+		Validate.notNull(itemDefinition, "Item definition in the filter must not be null");
+		return createEqual(new ItemPath(itemDefinition.getName()), itemDefinition, null, value);
+	}
+	
+	public static EqualsFilter createEqual(ItemDefinition itemDefinition, String matchingRule, Object value){
+		Validate.notNull(itemDefinition, "Item definition in the filter must not be null");
+		return createEqual(new ItemPath(itemDefinition.getName()), itemDefinition, null, value);
+	}
+	
 	public static EqualsFilter createEqual(ItemPath parentPath, ItemDefinition itemDef, PrismValue value) {
 		Validate.notNull(itemDef, "Item definition in the equals filter must not be null");
 		return new EqualsFilter(parentPath, itemDef, null, value);
@@ -99,13 +129,13 @@ public class EqualsFilter extends PropertyValueFilter implements Itemable{
 	}	
 	
 	public static EqualsFilter createEqual(ItemPath parentPath, PrismContainerDefinition<? extends Containerable> containerDef,
-			QName propertyName, PrismValue... values) throws SchemaException {
-		return (EqualsFilter) createPropertyFilter(EqualsFilter.class, parentPath, containerDef, propertyName, values);
+			PrismValue... values) throws SchemaException {
+		return (EqualsFilter) createPropertyFilter(EqualsFilter.class, parentPath, containerDef, values);
 	}
 
 	public static EqualsFilter createEqual(ItemPath parentPath, PrismContainerDefinition<? extends Containerable> containerDef,
-			QName propertyName, Object realValue) throws SchemaException {
-		return (EqualsFilter) createPropertyFilter(EqualsFilter.class, parentPath, containerDef, propertyName, realValue);
+			Object realValue) throws SchemaException {
+		return (EqualsFilter) createPropertyFilter(EqualsFilter.class, parentPath, containerDef, realValue);
 	}
 
 	public static EqualsFilter createEqual(Class<? extends Objectable> type, PrismContext prismContext, QName propertyName, Object realValue)
@@ -136,7 +166,7 @@ public class EqualsFilter extends PropertyValueFilter implements Itemable{
 
     @Override
 	public EqualsFilter clone() {
-		EqualsFilter clone = new EqualsFilter(getParentPath(), getDefinition(), getMatchingRule(), (List<PrismValue>) getValues());
+		EqualsFilter clone = new EqualsFilter(getFullPath(), getDefinition(), getMatchingRule(), (List<PrismValue>) getValues());
 		cloneValues(clone);
 		return clone;
 	}
@@ -157,11 +187,11 @@ public class EqualsFilter extends PropertyValueFilter implements Itemable{
 		DebugUtil.indentDebugDump(sb, indent);
 		sb.append("EQUALS:");
 		
-		if (getParentPath() != null){
+		if (getFullPath() != null){
 			sb.append("\n");
 			DebugUtil.indentDebugDump(sb, indent+1);
 			sb.append("PATH: ");
-			sb.append(getParentPath().toString());
+			sb.append(getFullPath().toString());
 		} 
 		
 		sb.append("\n");
@@ -200,8 +230,8 @@ public class EqualsFilter extends PropertyValueFilter implements Itemable{
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("EQUALS: ");
-		if (getParentPath() != null){
-			sb.append(getParentPath().toString());
+		if (getFullPath() != null){
+			sb.append(getFullPath().toString());
 			sb.append(", ");
 		}
 		if (getDefinition() != null){

@@ -63,7 +63,8 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
     @Override
     public Criterion interpret(T filter) throws QueryException {
 
-        ItemPath path = RUtil.createFullPath(filter);
+//        ItemPath path = RUtil.createFullPath(filter);
+    	ItemPath path = filter.getFullPath();
         if (path != null) {
             // at first we build criterias with aliases
             updateQueryContext(path);

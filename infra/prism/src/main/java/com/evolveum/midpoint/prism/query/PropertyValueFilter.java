@@ -121,10 +121,10 @@ public abstract class PropertyValueFilter extends ValueFilter{
 
 	
 	public static PropertyValueFilter createPropertyFilter(Class filterClass, ItemPath parentPath, PrismContainerDefinition<? extends Containerable> containerDef,
-			QName propertyName, PrismValue... values) throws SchemaException {
-		ItemDefinition itemDef = containerDef.findItemDefinition(propertyName);
+			PrismValue... values) throws SchemaException {
+		ItemDefinition itemDef = containerDef.findItemDefinition(parentPath);
 		if (itemDef == null) {
-			throw new SchemaException("No definition for item " + propertyName + " in container definition "
+			throw new SchemaException("No definition for item " + parentPath + " in container definition "
 					+ containerDef);
 		}
 
@@ -132,10 +132,10 @@ public abstract class PropertyValueFilter extends ValueFilter{
 	}
 
 	public static PropertyValueFilter createPropertyFilter(Class filterClass, ItemPath parentPath, PrismContainerDefinition<? extends Containerable> containerDef,
-			QName propertyName, Object realValue) throws SchemaException {
-		ItemDefinition itemDef = containerDef.findItemDefinition(propertyName);
+			Object realValue) throws SchemaException {
+		ItemDefinition itemDef = containerDef.findItemDefinition(parentPath);
 		if (itemDef == null) {
-			throw new SchemaException("No definition for item " + propertyName + " in container definition "
+			throw new SchemaException("No definition for item " + parentPath + " in container definition "
 					+ containerDef);
 		}
 
@@ -145,7 +145,7 @@ public abstract class PropertyValueFilter extends ValueFilter{
 	public static PropertyValueFilter createPropertyFilter(Class filterClass, Class<? extends Objectable> type, PrismContext prismContext, QName propertyName, Object realValue)
 			throws SchemaException {
 		PrismObjectDefinition<?> objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
-		return createPropertyFilter(filterClass, null, objDef, propertyName, realValue);
+		return createPropertyFilter(filterClass, new ItemPath(propertyName), objDef, realValue);
 	}
 	
 	public static PropertyValueFilter createPropertyFilter(Class filterClass, Class<? extends Objectable> type, 
@@ -160,7 +160,7 @@ public abstract class PropertyValueFilter extends ValueFilter{
 						+ objDef);
 			}
 		}
-		return createPropertyFilter(filterClass, propertyPath.allExceptLast(), containerDef, ItemPath.getName(propertyPath.last()), realValue);
+		return createPropertyFilter(filterClass, propertyPath, containerDef, realValue);
 	}
 	
 	public List<? extends PrismValue> getValues() {
@@ -194,14 +194,14 @@ public abstract class PropertyValueFilter extends ValueFilter{
 		return clonedValues;
 	}
 	
-	private ItemPath getFullPath(){
-		ItemPath path = null;
-		if (getParentPath() != null){
-			return new ItemPath(getParentPath(), getDefinition().getName());
-		} else{
-			return new ItemPath(getDefinition().getName());
-		}
-	}
+//	private ItemPath getFullPath(){
+//		ItemPath path = null;
+//		if (getParentPath() != null){
+//			return new ItemPath(getParentPath(), getDefinition().getName());
+//		} else{
+//			return new ItemPath(getDefinition().getName());
+//		}
+//	}
 	
 	public Item getObjectItem(PrismObject object){
 		

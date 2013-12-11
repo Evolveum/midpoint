@@ -52,6 +52,15 @@ public class RefFilter extends PropertyValueFilter{
 		super(path, definition, expression);
 	}
 	
+	
+	public static RefFilter createReferenceEqual(ItemPath path, Item item){
+		return new RefFilter(path, item.getDefinition(), null, item.getValues());
+	}
+	
+	public static RefFilter createReferenceEqual(ItemPath path, Item item, Element expression){
+		return new RefFilter(path, item.getDefinition(), expression);
+	}
+	
 	public static RefFilter createReferenceEqual(ItemPath path, ItemDefinition definition, List<PrismReferenceValue> values){
 		return new RefFilter(path, definition, null, values);
 	}
@@ -72,15 +81,15 @@ public class RefFilter extends PropertyValueFilter{
 	public static RefFilter createReferenceEqual(Class type, QName propertyName, PrismContext prismContext,
 			String oid) throws SchemaException {
 		PrismObjectDefinition objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
-		return createReferenceEqual(null, objDef, propertyName, oid);
+		return createReferenceEqual(new ItemPath(propertyName), objDef,oid);
 
 	}
 
 	public static RefFilter createReferenceEqual(ItemPath path, PrismContainerDefinition containerDef,
-			QName propertyName, String realValue) throws SchemaException {
-		ItemDefinition itemDef = containerDef.findItemDefinition(propertyName);
+			String realValue) throws SchemaException {
+		ItemDefinition itemDef = containerDef.findItemDefinition(path);
 		if (itemDef == null) {
-			throw new SchemaException("No definition for item " + propertyName + " in container definition "
+			throw new SchemaException("No definition for item " + path + " in container definition "
 					+ containerDef);
 		}
 		return createReferenceEqual(path, itemDef, realValue);
@@ -88,13 +97,13 @@ public class RefFilter extends PropertyValueFilter{
 	
 	public static RefFilter createReferenceEqual(Class type, QName propertyName, PrismObject<? extends Objectable> targetObject) throws SchemaException {
 		PrismObjectDefinition objDef = targetObject.getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
-		return createReferenceEqual(null, objDef, propertyName, targetObject.getOid());
+		return createReferenceEqual(new ItemPath(propertyName), objDef, targetObject.getOid());
 
 	}
 
 	@Override
 	public RefFilter clone() {
-		RefFilter clone = new RefFilter(getParentPath(), getDefinition(), getMatchingRule(), (List<PrismReferenceValue>) getValues());
+		RefFilter clone = new RefFilter(getFullPath(), getDefinition(), getMatchingRule(), (List<PrismReferenceValue>) getValues());
 		cloneValues(clone);
 		return clone;
 	}
@@ -115,11 +124,11 @@ public class RefFilter extends PropertyValueFilter{
 		DebugUtil.indentDebugDump(sb, indent);
 		sb.append("REF:");
 		
-		if (getParentPath() != null){
+		if (getFullPath() != null){
 			sb.append("\n");
 			DebugUtil.indentDebugDump(sb, indent+1);
 			sb.append("PATH: ");
-			sb.append(getParentPath().toString());
+			sb.append(getFullPath().toString());
 		} 
 		sb.append("\n");
 		DebugUtil.indentDebugDump(sb, indent+1);
@@ -150,8 +159,8 @@ public class RefFilter extends PropertyValueFilter{
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("REF: ");
-		if (getParentPath() != null){
-			sb.append(getParentPath().toString());
+		if (getFullPath() != null){
+			sb.append(getFullPath().toString());
 			sb.append(", ");
 		}
 		if (getDefinition() != null){

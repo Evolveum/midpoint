@@ -139,22 +139,22 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 		XMLGregorianCalendar thisScanTimestamp = handler.getThisScanTimestamp();
 		if (lastScanTimestamp == null) {
 			filter = OrFilter.createOr(
-						LessFilter.createLessFilter(new ItemPath(FocusType.F_ACTIVATION), activationContainerDef, 
-								ActivationType.F_VALID_FROM, thisScanTimestamp, true),
-						LessFilter.createLessFilter(new ItemPath(FocusType.F_ACTIVATION), activationContainerDef, 
-								ActivationType.F_VALID_TO, thisScanTimestamp, true));
+						LessFilter.createLessFilter(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM), focusObjectDef, 
+								thisScanTimestamp, true),
+						LessFilter.createLessFilter(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), focusObjectDef, 
+								thisScanTimestamp, true));
 		} else {
 			filter = OrFilter.createOr(
 						AndFilter.createAnd(
-							GreaterFilter.createGreaterFilter(new ItemPath(FocusType.F_ACTIVATION), activationContainerDef, 
-									ActivationType.F_VALID_FROM, lastScanTimestamp, false),
-							LessFilter.createLessFilter(new ItemPath(FocusType.F_ACTIVATION), activationContainerDef, 
-									ActivationType.F_VALID_FROM, thisScanTimestamp, true)),
+							GreaterFilter.createGreaterFilter(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM), focusObjectDef, 
+									lastScanTimestamp, false),
+							LessFilter.createLessFilter(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM), focusObjectDef, 
+									thisScanTimestamp, true)),
 						AndFilter.createAnd(
-							GreaterFilter.createGreaterFilter(new ItemPath(FocusType.F_ACTIVATION), activationContainerDef, 
-									ActivationType.F_VALID_TO, lastScanTimestamp, false),
-							LessFilter.createLessFilter(new ItemPath(FocusType.F_ACTIVATION), activationContainerDef, 
-									ActivationType.F_VALID_TO, thisScanTimestamp, true)));			
+							GreaterFilter.createGreaterFilter(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), focusObjectDef, 
+									lastScanTimestamp, false),
+							LessFilter.createLessFilter(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), focusObjectDef, 
+									thisScanTimestamp, true)));			
 		}
 		
 		query.setFilter(filter);

@@ -32,7 +32,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 public abstract class ValueFilter extends ObjectFilter {
 	
-	private ItemPath parentPath;
+	private ItemPath fullPath;
 	private ItemDefinition definition;
 	private String matchingRule;
 	
@@ -41,26 +41,26 @@ public abstract class ValueFilter extends ObjectFilter {
 	}
 	
 	public ValueFilter(ItemPath parentPath, ItemDefinition definition){
-		this.parentPath = parentPath;
+		this.fullPath = parentPath;
 		this.definition = definition;
 	}
 	
 	public ValueFilter(ItemPath parentPath, ItemDefinition definition, String matchingRule){
-		this.parentPath = parentPath;
+		this.fullPath = parentPath;
 		this.definition = definition;
 		this.matchingRule = matchingRule;
 	}
 	
 	public ValueFilter(ItemPath parentPath, ItemDefinition definition, String matchingRule, Element expression){
 		super(expression);
-		this.parentPath = parentPath;
+		this.fullPath = parentPath;
 		this.definition = definition;
 		this.matchingRule = matchingRule;
 	}
 	
 	public ValueFilter(ItemPath parentPath, ItemDefinition definition, Element expression){
 		super(expression);
-		this.parentPath = parentPath;
+		this.fullPath = parentPath;
 		this.definition = definition;
 	}
 	
@@ -72,12 +72,12 @@ public abstract class ValueFilter extends ObjectFilter {
 		this.definition = definition;
 	}
 	
-	public ItemPath getParentPath() {
-		return parentPath;
+	public ItemPath getFullPath() {
+		return fullPath;
 	}
 	
-	public void setParentPath(ItemPath path) {
-		this.parentPath = path;
+	public void setFullPath(ItemPath path) {
+		this.fullPath = path;
 	}
 	
 	public String getMatchingRule() {
@@ -86,6 +86,19 @@ public abstract class ValueFilter extends ObjectFilter {
 	
 	public void setMatchingRule(String matchingRule) {
 		this.matchingRule = matchingRule;
+	}
+	
+	public ItemPath getParentPath2(){
+		if (fullPath == null){
+			return null;
+		}
+		ItemPath parentPath = fullPath.allExceptLast();
+		
+		if (parentPath == null || parentPath.isEmpty()){
+			return null;
+		}
+		
+		return parentPath; 
 	}
 	
 	public MatchingRule getMatchingRuleFromRegistry(MatchingRuleRegistry matchingRuleRegistry, Item filterItem){
@@ -107,7 +120,7 @@ public abstract class ValueFilter extends ObjectFilter {
 	
 	protected void cloneValues(ValueFilter clone) {
 		super.cloneValues(clone);
-		clone.parentPath = this.parentPath;
+		clone.fullPath = this.fullPath;
 		clone.definition = this.definition;
 		clone.matchingRule = this.matchingRule;
 	}
