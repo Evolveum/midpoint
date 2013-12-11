@@ -23,19 +23,14 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.page.admin.configuration.PageDebugView;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceController;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceObjectTypeDto;
@@ -45,7 +40,6 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
@@ -122,16 +116,6 @@ public class PageResource extends PageAdminResources {
         initConnectorDetails(mainForm);
         createCapabilitiesList(mainForm);
 
-        AjaxLink<String> link = new AjaxLink<String>("editResource") {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                PageParameters parameters = new PageParameters();
-                parameters.add(PageResourceEdit.PARAM_RESOURCE_ID, model.getObject().getOid());
-                setResponsePage(PageResourceEdit.class, parameters);
-            }
-        };
-        mainForm.add(link);
         initButtons(mainForm);
     }
 
@@ -205,14 +189,6 @@ public class PageResource extends PageAdminResources {
         image.add(new AttributeModifier("title", createTestConnectionStateTooltip("state.conConnection")));
         container.add(image);
 
-        /*container.add(new Image("conSanity", new AbstractReadOnlyModel() {
-              @Override
-              public Object getObject() {
-                  return new PackageResourceReference(PageResource.class, model.getObject().getState()
-                          .getConSanity().getIcon());
-              }
-          }));*/
-
         image = new Image("conSchema", new AbstractReadOnlyModel() {
             @Override
             public Object getObject() {
@@ -281,7 +257,7 @@ public class PageResource extends PageAdminResources {
     }
 
     private void initButtons(Form mainForm) {
-        AjaxLinkButton back = new AjaxLinkButton("back", createStringResource("pageResource.button.back")) {
+        AjaxButton back = new AjaxButton("back", createStringResource("pageResource.button.back")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -290,7 +266,7 @@ public class PageResource extends PageAdminResources {
         };
         mainForm.add(back);
 
-        AjaxLinkButton test = new AjaxLinkButton("test", createStringResource("pageResource.button.test")) {
+        AjaxButton test = new AjaxButton("test", createStringResource("pageResource.button.test")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -299,7 +275,7 @@ public class PageResource extends PageAdminResources {
         };
         mainForm.add(test);
 
-        AjaxLinkButton importAccounts = new AjaxLinkButton("importAccounts",
+        AjaxButton importAccounts = new AjaxButton("importAccounts",
                 createStringResource("pageResource.button.importAccounts")) {
 
             @Override
@@ -308,6 +284,17 @@ public class PageResource extends PageAdminResources {
             }
         };
         mainForm.add(importAccounts);
+
+        AjaxButton link = new AjaxButton("editResource", createStringResource("pageResource.editResource")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                PageParameters parameters = new PageParameters();
+                parameters.add(PageResourceEdit.PARAM_RESOURCE_ID, model.getObject().getOid());
+                setResponsePage(PageResourceEdit.class, parameters);
+            }
+        };
+        mainForm.add(link);
     }
 
     private void testConnectionPerformed(AjaxRequestTarget target) {
