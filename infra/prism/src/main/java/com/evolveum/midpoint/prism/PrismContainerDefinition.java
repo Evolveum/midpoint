@@ -482,6 +482,11 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
         return "PCD";
     }
 
+    @Override
+    public String getDocClassName() {
+        return "container";
+    }
+
 	@Override
 	protected void extendToString(StringBuilder sb) {
 		super.extendToString(sb);

@@ -313,4 +313,9 @@ public class ComplexTypeDefinition extends Definition {
         return "CTD";
     }
 
+    @Override
+    public String getDocClassName() {
+        return "complex type";
+    }
+
 }

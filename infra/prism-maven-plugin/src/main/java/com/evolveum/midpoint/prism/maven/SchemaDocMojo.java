@@ -16,13 +16,23 @@
 
 package com.evolveum.midpoint.prism.maven;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 
+import com.evolveum.midpoint.prism.ComplexTypeDefinition;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import org.apache.maven.archiver.MavenArchiveConfiguration;
+import org.apache.maven.archiver.MavenArchiver;
+import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.project.MavenProjectHelper;
+import org.apache.velocity.Template;
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.VelocityEngine;
+import org.codehaus.plexus.archiver.ArchiverException;
+import org.codehaus.plexus.archiver.jar.ManifestException;
+import org.codehaus.plexus.archiver.zip.ZipArchiver;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -39,65 +49,241 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  */
 //@Mojo(name="schemadoc")
 public class SchemaDocMojo extends AbstractMojo {
-	
-	/**
+
+    private static final String VELOCITY_CONTEXT_VAR_PRISM_CONTEXT = "prismContext";
+    private static final String VELOCITY_CONTEXT_VAR_SCHEMA = "schema";
+    private static final String VELOCITY_CONTEXT_VAR_SCHEMA_REGISTRY = "schemaRegistry";
+    private static final String VELOCITY_CONTEXT_VAR_PATH = "path";
+    private static final String VELOCITY_CONTEXT_VAR_DEFINITION = "definition";
+    private static final String VELOCITY_CONTEXT_VAR_PREFIX_TO_BASE = "prefixToBase";
+
+    private static final String TEMPLATE_SCHEMA_INDEX_NAME = "schema-index.vm";
+    private static final String TEMPLATE_SCHEMA_NAME = "schema.vm";
+    private static final String TEMPLATE_OBJECT_DEFINITION_NAME = "object-definition.vm";
+    private static final String TEMPLATE_COMPLEX_TYPE_DEFINITION_NAME = "complex-type-definition.vm";
+
+    /**
 	 * @parameter
 	 */
 	private File[] schemaFiles;
-	
+
+    /**
+     * @parameter default-value="${project.build.directory}" required=true
+     */
+    private File buildDir;
+
 	/**
 	 * @parameter default-value="${project.build.directory}/schemadoc" required=true
 	 */
-	protected File destDir;
-	
-	public void execute() throws MojoExecutionException, MojoFailureException {
+    private File destDir;
+
+    /**
+     * @parameter required=true
+     */
+    private File templateDir;
+
+    /** @parameter default-value="${project}" */
+    private org.apache.maven.project.MavenProject project;
+
+    /** @parameter */
+    private MavenArchiveConfiguration archive = new MavenArchiveConfiguration();
+
+    /** @parameter default-value="${project.build.finalName}" */
+    private String finalName;
+
+    /**
+     * @component
+     */
+    private MavenProjectHelper projectHelper;
+
+    /** @component role="org.codehaus.plexus.archiver.Archiver" roleHint="zip" */
+    private ZipArchiver zipArchiver;
+
+    private String getTemplateDirName() {
+        return templateDir.getAbsolutePath();
+    }
+
+    public void execute() throws MojoExecutionException, MojoFailureException {
         getLog().info( "SchemaDoc plugin started" );
-        
+
+        PrismContext prismContext = createInitializedPrismContext();
+
+        File outDir = initializeOutDir();
+        PathGenerator pathGenerator = new PathGenerator(outDir);
+
+        VelocityEngine velocityEngine = createVelocityEngine();
+
+        SchemaRegistry schemaRegistry = prismContext.getSchemaRegistry();
         try {
-	        SchemaRegistry schemaRegistry = createSchemaRegistry();
-	        
-	        for (File schemaFile: schemaFiles) {
-	        	getLog().info("SchemaDoc: registering schema file: "+schemaFile);
-	        	if (!schemaFile.exists()) {
-	        		throw new MojoFailureException("Schema file "+schemaFile+" does not exist");
-	        	}
-	        	schemaRegistry.registerPrismSchemaFile(schemaFile);
-	        }
-	        
-	        PrismContext context = PrismContext.create(schemaRegistry);
-	        context.setDefinitionFactory(new SchemaDefinitionFactory());
-	        context.initialize();
-	        
-	        for (PrismSchema schema: schemaRegistry.getSchemas()) {
-	        	getLog().info("Schema: "+schema);
-	        }
-	        
-        } catch (SchemaException e) {
-        	throw new MojoFailureException(e.getMessage());
-        } catch (FileNotFoundException e) {
-        	throw new MojoFailureException(e.getMessage());
-        } catch (SAXException e) {
-        	throw new MojoFailureException(e.getMessage());
-		} catch (IOException e) {
-			throw new MojoFailureException(e.getMessage());
-		}
-        
-        getLog().info("Output dir: "+destDir);
-        if ( destDir.exists() && !destDir.isDirectory() ) {
-        	throw new MojoFailureException("Destination directory is not a directory: "+destDir);
+            renderSchemaIndex(schemaRegistry, prismContext, velocityEngine, pathGenerator);
+        } catch (IOException e) {
+            throw new MojoExecutionException(e.getMessage(),e);
         }
-        if (destDir.exists() && !destDir.canWrite()) {
-        	throw new MojoFailureException("Destination directory is not writable: "+destDir);
+        for (PrismSchema schema: schemaRegistry.getSchemas()) {
+            try {
+                renderSchema(schema, prismContext, velocityEngine, pathGenerator);
+            } catch (IOException e) {
+                throw new MojoExecutionException(e.getMessage(),e);
+            }
         }
-        destDir.mkdirs();
-        
+
+        File archiveFile = null;
+        try {
+            archiveFile = generateArchive(outDir, finalName + "-schemadoc.zip");
+        } catch (IOException e) {
+            throw new MojoExecutionException(e.getMessage(),e);
+        } catch (ArchiverException e) {
+            throw new MojoExecutionException(e.getMessage(),e);
+        }
+        projectHelper.attachArtifact(project, "zip", "schemadoc", archiveFile);
+
         getLog().info( "SchemaDoc plugin finished" );
     }
-	
-	private SchemaRegistry createSchemaRegistry() throws SchemaException {
+
+    private void renderSchemaIndex(SchemaRegistry schemaRegistry, PrismContext prismContext, VelocityEngine velocityEngine, PathGenerator pathGenerator) throws IOException {
+        getLog().info("Rendering schema index");
+        VelocityContext velocityContext = new VelocityContext();
+        populateVelocityContextBase(velocityContext, prismContext, pathGenerator, null, ".");
+        velocityContext.put(VELOCITY_CONTEXT_VAR_SCHEMA_REGISTRY, schemaRegistry);
+
+        Template template = velocityEngine.getTemplate(TEMPLATE_SCHEMA_INDEX_NAME);
+
+        Writer writer = new FileWriter(pathGenerator.prepareSchemaIndexOutputFile());
+        template.merge(velocityContext, writer);
+        writer.close();
+    }
+
+    private void renderSchema(PrismSchema schema, PrismContext prismContext, VelocityEngine velocityEngine, PathGenerator pathGenerator) throws IOException {
+        getLog().info("Processing schema: "+schema);
+        VelocityContext velocityContext = new VelocityContext();
+        populateVelocityContextBase(velocityContext, prismContext, pathGenerator, schema, "..");
+
+        Template template = velocityEngine.getTemplate(TEMPLATE_SCHEMA_NAME);
+
+        Writer writer = new FileWriter(pathGenerator.prepareSchemaOutputFile(schema));
+        template.merge(velocityContext, writer);
+        writer.close();
+
+        // Object Definitions
+        for (PrismObjectDefinition objectDefinition: schema.getObjectDefinitions()) {
+            renderObjectDefinition(objectDefinition, schema, prismContext, velocityEngine, pathGenerator);
+        }
+
+        // Types
+        for (ComplexTypeDefinition typeDefinition : schema.getComplexTypeDefinitions()) {
+            renderComplexTypeDefinition(typeDefinition, schema, prismContext, velocityEngine, pathGenerator);
+        }
+
+    }
+
+    private void renderObjectDefinition(PrismObjectDefinition objectDefinition, PrismSchema schema, PrismContext prismContext, VelocityEngine velocityEngine, PathGenerator pathGenerator) throws IOException {
+        getLog().info("  Processing object definition: "+objectDefinition);
+
+        VelocityContext velocityContext = new VelocityContext();
+        populateVelocityContextBase(velocityContext, prismContext, pathGenerator, schema, "../..");
+        velocityContext.put(VELOCITY_CONTEXT_VAR_DEFINITION, objectDefinition);
+
+        Template template = velocityEngine.getTemplate(TEMPLATE_OBJECT_DEFINITION_NAME);
+
+        Writer writer = new FileWriter(pathGenerator.prepareObjectDefinitionOutputFile(schema, objectDefinition));
+        template.merge(velocityContext, writer);
+        writer.close();
+    }
+
+    private void renderComplexTypeDefinition(ComplexTypeDefinition typeDefinition, PrismSchema schema, PrismContext prismContext, VelocityEngine velocityEngine, PathGenerator pathGenerator) throws IOException {
+        getLog().info("  Processing complex type definition: "+typeDefinition);
+
+        VelocityContext velocityContext = new VelocityContext();
+        populateVelocityContextBase(velocityContext, prismContext, pathGenerator, schema, "../..");
+        velocityContext.put(VELOCITY_CONTEXT_VAR_DEFINITION, typeDefinition);
+
+        Template template = velocityEngine.getTemplate(TEMPLATE_COMPLEX_TYPE_DEFINITION_NAME);
+
+        Writer writer = new FileWriter(pathGenerator.prepareTypeDefinitionOutputFile(schema, typeDefinition));
+        template.merge(velocityContext, writer);
+        writer.close();
+    }
+
+    private void populateVelocityContextBase(VelocityContext velocityContext, PrismContext prismContext, PathGenerator pathGenerator,
+                                             PrismSchema schema, String prefixToBase) {
+        if (schema != null) {
+            velocityContext.put(VELOCITY_CONTEXT_VAR_SCHEMA, schema);
+        }
+        velocityContext.put(VELOCITY_CONTEXT_VAR_PRISM_CONTEXT, prismContext);
+        velocityContext.put(VELOCITY_CONTEXT_VAR_PATH, pathGenerator);
+        velocityContext.put(VELOCITY_CONTEXT_VAR_PREFIX_TO_BASE, prefixToBase);
+    }
+
+    private File initializeOutDir() throws MojoFailureException {
+        getLog().info("Output dir: "+destDir);
+        if ( destDir.exists() && !destDir.isDirectory() ) {
+            throw new MojoFailureException("Destination directory is not a directory: "+destDir);
+        }
+        if (destDir.exists() && !destDir.canWrite()) {
+            throw new MojoFailureException("Destination directory is not writable: "+destDir);
+        }
+        destDir.mkdirs();
+        return destDir;
+    }
+
+    private PrismContext createInitializedPrismContext() throws MojoFailureException {
+        try {
+            SchemaRegistry schemaRegistry = createSchemaRegistry();
+
+            for (File schemaFile: schemaFiles) {
+                getLog().info("SchemaDoc: registering schema file: "+schemaFile);
+                if (!schemaFile.exists()) {
+                    throw new MojoFailureException("Schema file "+schemaFile+" does not exist");
+                }
+                schemaRegistry.registerPrismSchemaFile(schemaFile);
+            }
+
+            PrismContext context = PrismContext.create(schemaRegistry);
+            context.setDefinitionFactory(new SchemaDefinitionFactory());
+            context.initialize();
+
+            return context;
+
+        } catch (SchemaException e) {
+            throw new MojoFailureException(e.getMessage());
+        } catch (FileNotFoundException e) {
+            throw new MojoFailureException(e.getMessage());
+        } catch (SAXException e) {
+            throw new MojoFailureException(e.getMessage());
+        } catch (IOException e) {
+            throw new MojoFailureException(e.getMessage());
+        }
+    }
+
+    private SchemaRegistry createSchemaRegistry() throws SchemaException {
 		SchemaRegistry schemaRegistry = new SchemaRegistry();
 		schemaRegistry.setNamespacePrefixMapper(new GlobalDynamicNamespacePrefixMapper());
 		return schemaRegistry;
 	}
+
+    private VelocityEngine createVelocityEngine() {
+        VelocityEngine ve = new VelocityEngine();
+        ve.setProperty("resource.loader","file");
+        ve.setProperty("file.resource.loader.class","org.apache.velocity.runtime.resource.loader.FileResourceLoader");
+        ve.setProperty("file.resource.loader.path", getTemplateDirName());
+        ve.setProperty("file.resource.loader.cache","true");
+        ve.setProperty("directive.set.null.allowed","true");
+
+        ve.init();
+        return ve;
+    }
+
+    private File generateArchive(File outDir, String archiveFilename) throws IOException, ArchiverException {
+        File zipFile = new File(buildDir, archiveFilename);
+        if (zipFile.exists()) {
+            zipFile.delete();
+        }
+
+        zipArchiver.addDirectory(outDir);
+        zipArchiver.setDestFile(zipFile);
+        zipArchiver.createArchive();
+
+        return zipFile;
+    }
 
 }

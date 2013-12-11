@@ -513,6 +513,11 @@
 			    <artifactId>opendj-ldap-sdk</artifactId>
 			    <version>2.6.0</version>
 			</dependency>
+            <dependency>
+                <groupId>org.apache.velocity</groupId>
+                <artifactId>velocity</artifactId>
+                <version>1.7</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
     <organization>
