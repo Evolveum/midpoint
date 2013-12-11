@@ -19,120 +19,136 @@
 <body>
 <wicket:extend>
     <form wicket:id="mainForm">
-        <table>
-            <tr>
-                <td width="350px"><wicket:message key="pageTaskEdit.name"/></td>
-                <td><input type="text" wicket:id="name"/><span wicket:id="nameLabel"/></td>
-            </tr>
-            <tr>
-                <td width="350px"><wicket:message key="pageTaskEdit.description"/></td>
-                <td><textarea cols="34" rows="2" wicket:id="description"/><span wicket:id="descriptionLabel"/></td>
-            </tr>
-            <tr>
-                <td><wicket:message key="pageTaskEdit.oid"/></td>
-                <td><span wicket:id="oid"/></td>
-            </tr>
-            <tr>
-                <td><wicket:message key="pageTaskEdit.identifier"/></td>
-                <td><span wicket:id="identifier"/></td>
-            </tr>
-            <tr>
-                <td><wicket:message key="pageTaskEdit.category"/></td>
-                <td><span wicket:id="category"/></td>
-            </tr>
-            <tr>
-                <td><wicket:message key="pageTaskEdit.parent"/></td>
-                <td><span wicket:id="parent"/></td>
-            </tr>
-            <tr wicket:id="handlerUriList">
-                <td><wicket:message key="pageTaskEdit.handlerUri"/></td>
-                <td><span wicket:id="handlerUri"/></td>
-            </tr>
-            <tr>
-                <td><wicket:message key="pageTaskEdit.execution"/></td>
-                <td><span wicket:id="execution"/> <span wicket:id="node"/></td>
-            </tr>
-       	</table>
-       	
-       	<h2><wicket:message key="pageTaskEdit.scheduleTitle"/><br />
-       		<small style="font-size: 12px;"><wicket:message key="pageTaskEdit.scheduleHelp"/></small>
-       	</h2>
-       <table>
-	       	<tbody>
-	       		<tr>
-	                <td style="vertical-align: top; width: 350px;"><wicket:message key="pageTaskEdit.recurring"/></td>
-	                <td><input type="checkbox" wicket:id="recurring"/>
-	                	<small wicket:id="suspendReqRecurring" class="reqMessage"> &nbsp;<wicket:message key="pageTaskEdit.suspendReq"/></small>
-	                </td>
-	            </tr>
-	       	</tbody>
-			<tbody wicket:id="container">  
-				<tr wicket:id="boundContainer">
-				    <td style="vertical-align: top; width: 350px;"><wicket:message key="pageTaskEdit.bound"/></td>
-				    <td><input type="checkbox" wicket:id="bound"/>
-				    	<img class="tipsyComponent" wicket:id="boundHelp"/>
-       					<small wicket:id="suspendReqBound" class="reqMessage"> &nbsp;<wicket:message key="pageTaskEdit.suspendReq"/></small>
-				    </td>
-				</tr>
-				<tr wicket:id="intervalContainer">
-				    <td><wicket:message key="pageTaskEdit.scheduleInterval"/></td>
-				    <td><input type="text" wicket:id="interval"/></td>
-				</tr>
-				<tr wicket:id="cronContainer">
-				    <td style="vertical-align: top;"><wicket:message key="pageTaskEdit.cronSpec"/></td>
-				    <td><input type="text" wicket:id="cron"/>
-				    	<img class="tipsyComponent" wicket:id="cronHelp"/> 
-				    	<small>
-					    	<wicket:message key="pageTaskEdit.cronHelpLink" />
-					    	<a href="http://www.quartz-scheduler.org/documentation/quartz-2.1.x/tutorials/tutorial-lesson-06"
-								target="_blank">tutorial</a>.
-						</small>
-					</td>
-				</tr>
-			</tbody>
-			<tbody>            
-				<tr>
-				    <td width="350px"><wicket:message key="pageTaskEdit.notStartBefore"/></td>
-				    <td><span wicket:id="notStartBeforeField" /></td>
-				</tr>
-				<tr>
-				    <td><wicket:message key="pageTaskEdit.notStartAfter"/></td>
-				    <td><span wicket:id="notStartAfterField" /></td>
-				</tr>
-				<tr>
-	                <td><wicket:message key="pageTaskEdit.misfire"/></td>
-	                <td><select wicket:id="misfireAction"/></td>
-	            </tr>
-	            <tr>
-				    <td><wicket:message key="pageTaskEdit.lastStarted"/></td>
-				    <td><span wicket:id="lastStarted" /></td>
-				</tr>
-				<tr>
-				    <td><wicket:message key="pageTaskEdit.lastFinished"/></td>
-				    <td><span wicket:id="lastFinished" /></td>
-				</tr>
-				<tr>
-				    <td><wicket:message key="pageTaskEdit.nextRun"/></td>
-				    <td><span wicket:id="nextRun" /></td>
-				</tr>
-			</tbody>
-        </table>
-        <table>
-        	<!-- <tr>
-	            <td><wicket:message key="pageTaskEdit.tightlyBound"/></td>
-	            <td><input type="checkbox" wicket:id="tightlyBound"/></td>
-	        </tr> -->
-            <!--
-	        <tr>
-	            <td><wicket:message key="pageTaskEdit.runUntilNodeDown"/></td>
-	            <td><input type="checkbox" wicket:id="runUntilNodeDown"/></td>
-	        </tr>
-	        -->
-	        <tr>
-                <td width="350px"><wicket:message key="pageTaskEdit.threadStop"/></td>
-                <td><select wicket:id="threadStop"/></td>
-            </tr>
-        </table>
+        <div class="row">
+            <div class="col-md-6">
+                <h2><wicket:message key="pageTaskEdit.basic"/></h2>
+                <table class="table table-condensed table-striped">
+                    <tr>
+                        <td><wicket:message key="pageTaskEdit.name"/></td>
+                        <td><input type="text" class="form-control input-sm" wicket:id="name"/><span wicket:id="nameLabel"/></td>
+                    </tr>
+                    <tr>
+                        <td><wicket:message key="pageTaskEdit.description"/></td>
+                        <td><textarea class="form-control input-sm" rows="2" wicket:id="description"/><span wicket:id="descriptionLabel"/></td>
+                    </tr>
+                    <tr>
+                        <td><wicket:message key="pageTaskEdit.oid"/></td>
+                        <td><span wicket:id="oid"/></td>
+                    </tr>
+                    <tr>
+                        <td><wicket:message key="pageTaskEdit.identifier"/></td>
+                        <td><span wicket:id="identifier"/></td>
+                    </tr>
+                    <tr>
+                        <td><wicket:message key="pageTaskEdit.category"/></td>
+                        <td><span wicket:id="category"/></td>
+                    </tr>
+                    <tr>
+                        <td><wicket:message key="pageTaskEdit.parent"/></td>
+                        <td><span wicket:id="parent"/></td>
+                    </tr>
+                    <tr wicket:id="handlerUriList">
+                        <td><wicket:message key="pageTaskEdit.handlerUri"/></td>
+                        <td><span wicket:id="handlerUri"/></td>
+                    </tr>
+                    <tr>
+                        <td><wicket:message key="pageTaskEdit.execution"/></td>
+                        <td><span wicket:id="execution"/> <span wicket:id="node"/></td>
+                    </tr>
+                </table>
+                <h2>Some title, todo i18n</h2>
+                <table class="table table-condensed table-striped">
+                    <wicket:remove>
+                    <!-- <tr>
+                        <td><wicket:message key="pageTaskEdit.tightlyBound"/></td>
+                        <td><input type="checkbox" wicket:id="tightlyBound"/></td>
+                    </tr> -->
+                    <!--
+                    <tr>
+                        <td><wicket:message key="pageTaskEdit.runUntilNodeDown"/></td>
+                        <td><input type="checkbox" wicket:id="runUntilNodeDown"/></td>
+                    </tr>
+                    -->
+                    </wicket:remove>
+                    <tr>
+                        <td><wicket:message key="pageTaskEdit.threadStop"/></td>
+                        <td><select class="form-control input-sm" wicket:id="threadStop"/></td>
+                    </tr>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <h2><wicket:message key="pageTaskEdit.scheduleTitle"/><br />
+                    <small style="font-size: 12px;"><wicket:message key="pageTaskEdit.scheduleHelp"/></small>
+                </h2>
+                <table class="table table-condensed table-striped">
+                    <tbody>
+                        <tr>
+                            <td><wicket:message key="pageTaskEdit.recurring"/></td>
+                            <td>
+                                <input type="checkbox" class="form-control input-sm" wicket:id="recurring"/>
+                                <span wicket:id="suspendReqRecurring" class="text-warning"><wicket:message key="pageTaskEdit.suspendReq"/></span>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tbody wicket:id="container">
+                        <tr wicket:id="boundContainer">
+                            <td>
+                                <wicket:message key="pageTaskEdit.bound"/>
+                                <img class="tipsyComponent" wicket:id="boundHelp"/>
+                            </td>
+                            <td>
+                                <input type="checkbox" class="form-control input-sm" wicket:id="bound"/>
+                                <span wicket:id="suspendReqBound" class="text-warning"><wicket:message key="pageTaskEdit.suspendReq"/></span>
+                            </td>
+                        </tr>
+                        <tr wicket:id="intervalContainer">
+                            <td><wicket:message key="pageTaskEdit.scheduleInterval"/></td>
+                            <td><input type="text" class="form-control input-sm" wicket:id="interval"/></td>
+                        </tr>
+                        <tr wicket:id="cronContainer">
+                            <td>
+                                <wicket:message key="pageTaskEdit.cronSpec"/>
+                                <img class="tipsyComponent" wicket:id="cronHelp"/>
+                            </td>
+                            <td>
+                                <input type="text" class="form-control input-sm" wicket:id="cron"/>
+                                <span class="help-block">
+                                    <wicket:message key="pageTaskEdit.cronHelpLink" />
+                                    <a href="http://www.quartz-scheduler.org/documentation/quartz-2.1.x/tutorials/tutorial-lesson-06"
+                                       target="_blank"><wicket:message key="pageTaskEdit.cronHelpLinkTutorial" /></a>
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <tbody>
+                        <tr>
+                            <td><wicket:message key="pageTaskEdit.notStartBefore"/></td>
+                            <td><span wicket:id="notStartBeforeField" /></td>
+                        </tr>
+                        <tr>
+                            <td><wicket:message key="pageTaskEdit.notStartAfter"/></td>
+                            <td><span wicket:id="notStartAfterField" /></td>
+                        </tr>
+                        <tr>
+                            <td><wicket:message key="pageTaskEdit.misfire"/></td>
+                            <td><select class="form-control input-sm" wicket:id="misfireAction"/></td>
+                        </tr>
+                        <tr>
+                            <td><wicket:message key="pageTaskEdit.lastStarted"/></td>
+                            <td><span wicket:id="lastStarted" /></td>
+                        </tr>
+                        <tr>
+                            <td><wicket:message key="pageTaskEdit.lastFinished"/></td>
+                            <td><span wicket:id="lastFinished" /></td>
+                        </tr>
+                        <tr>
+                            <td><wicket:message key="pageTaskEdit.nextRun"/></td>
+                            <td><span wicket:id="nextRun" /></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
 
         <h2><span wicket:id="subtasksLabel" /></h2>
         <div wicket:id="subtasksPanel"/>
@@ -146,10 +162,12 @@
         <h2><wicket:message key="pageTaskEdit.opResult"/></h2>
         <div wicket:id="operationResult"/>
 
-        <div class="operatingFormButtons">
-            <a wicket:id="backButton"/>
-            <a wicket:id="saveButton"/>
-            <a wicket:id="editButton"/>
+        <div class="main-button-bar">
+            <span class="button-group">
+                <a class="btn btn-default" wicket:id="backButton" />
+            </span>
+            <a class="btn btn-primary" wicket:id="saveButton"/>
+            <a class="btn btn-primary" wicket:id="editButton"/>
         </div>
     </form>
 </wicket:extend>

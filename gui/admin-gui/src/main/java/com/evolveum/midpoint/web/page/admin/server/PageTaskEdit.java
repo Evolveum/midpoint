@@ -20,7 +20,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -32,8 +31,8 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
-import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.button.ButtonType;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.LinkPanel;
@@ -57,7 +56,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ThreadStopActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
@@ -406,6 +404,7 @@ public class PageTaskEdit extends PageAdminTasks {
 	}
 
 	private void initSchedule(Form mainForm) {
+        //todo probably can be removed, visibility can be updated in children (already components) [lazyman]
 		final WebMarkupContainer container = new WebMarkupContainer("container");
 		container.setOutputMarkupId(true);
 		mainForm.add(container);
@@ -657,8 +656,7 @@ public class PageTaskEdit extends PageAdminTasks {
 	}
 
 	private void initButtons(final Form mainForm) {
-		AjaxLinkButton backButton = new AjaxLinkButton("backButton",
-				createStringResource("pageTaskEdit.button.back")) {
+		AjaxButton backButton = new AjaxButton("backButton", createStringResource("pageTaskEdit.button.back")) {
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
@@ -668,8 +666,8 @@ public class PageTaskEdit extends PageAdminTasks {
 		};
 		mainForm.add(backButton);
 
-		AjaxSubmitLinkButton saveButton = new AjaxSubmitLinkButton("saveButton", ButtonType.POSITIVE,
-				createStringResource("pageTaskEdit.button.save")) {
+		AjaxSubmitButton saveButton = new AjaxSubmitButton("saveButton",
+                createStringResource("pageTaskEdit.button.save")) {
 
 			@Override
 			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
@@ -690,7 +688,7 @@ public class PageTaskEdit extends PageAdminTasks {
 		});
 		mainForm.add(saveButton);
 
-		AjaxLinkButton editButton = new AjaxLinkButton("editButton",
+        AjaxButton editButton = new AjaxButton("editButton",
 				createStringResource("pageTaskEdit.button.edit")) {
 
 			@Override
