@@ -95,15 +95,10 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
     
 	@Autowired
     private HookRegistry hookRegistry;
-	
-	public ReportManagerImpl() {
-		LOGGER.info("construotooooooooooooooooooooooooooooooooooo");
-	}
-   
+
     @PostConstruct
     public void init() {   	
         hookRegistry.registerChangeHook(HOOK_URI, this);
-        throw new RuntimeException("bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb");
     }
     
     /**
@@ -159,7 +154,6 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
      */
     @Override
     public HookOperationMode invoke(ModelContext context, Task task, OperationResult parentResult)  {
-        if (1==1)throw new RuntimeException("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
     	 ModelState state = context.getState();
          if (state != ModelState.FINAL) {
              if (LOGGER.isTraceEnabled()) {
