@@ -69,7 +69,7 @@ public class PageProcessInstance extends PageAdminWorkItems {
 			}
 		};
 
-        String detailsPageClassName = getWorkflowService().getProcessInstanceDetailsPanelName(model.getObject().getProcessInstance());
+        String detailsPageClassName = getWorkflowManager().getProcessInstanceDetailsPanelName(model.getObject().getProcessInstance());
         initLayout(detailsPageClassName);
 	}
 
@@ -81,11 +81,11 @@ public class PageProcessInstance extends PageAdminWorkItems {
             boolean finished = parameters.get(PARAM_PROCESS_INSTANCE_FINISHED).toBoolean();
             ProcessInstance processInstance;
             try {
-                processInstance = getWorkflowService().getProcessInstanceByInstanceId(pid.toString(), finished, true, result);
+                processInstance = getWorkflowManager().getProcessInstanceByInstanceId(pid.toString(), finished, true, result);
             } catch (ObjectNotFoundException e) {
                 if (finished == false) {
                     // maybe the process instance has finished in the meanwhile...
-                    processInstance = getWorkflowService().getProcessInstanceByInstanceId(pid.toString(), true, true, result);
+                    processInstance = getWorkflowManager().getProcessInstanceByInstanceId(pid.toString(), true, true, result);
                 } else {
                     throw e;
                 }

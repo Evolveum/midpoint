@@ -35,16 +35,10 @@ import com.evolveum.midpoint.web.page.admin.users.PageAdminUsers;
 import com.evolveum.midpoint.web.page.admin.users.PageUsers;
 import com.evolveum.midpoint.web.page.admin.workflow.PageAdminWorkItems;
 import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItems;
-import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
-import com.evolveum.midpoint.web.security.MidPointAuthenticationProvider;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
-import org.apache.wicket.authroles.authorization.strategies.role.Roles;
 
 /**
  * @author lazyman
@@ -72,7 +66,7 @@ public class PageAdmin extends PageBase {
 		}
 		// todo fix with visible behaviour [lazyman]
 		if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_WORK_ITEMS_URL, AuthorizationConstants.AUTZ_UI_WORK_ITEMS_ALL_URL)) {
-			if (getWorkflowService().isEnabled()) {
+			if (getWorkflowManager().isEnabled()) {
 				items.add(new TopMenuItem("pageAdmin.workItems", "pageAdmin.workItems.description",
 						PageWorkItems.class, PageAdminWorkItems.class));
 			}

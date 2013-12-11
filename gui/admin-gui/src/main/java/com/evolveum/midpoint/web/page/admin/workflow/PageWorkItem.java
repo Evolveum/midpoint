@@ -45,7 +45,7 @@ import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.wf.api.ProcessInstance;
 import com.evolveum.midpoint.wf.api.WorkItemDetailed;
-import com.evolveum.midpoint.wf.api.WorkflowService;
+import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.apache.wicket.Component;
@@ -254,7 +254,7 @@ public class PageWorkItem extends PageAdminWorkItems {
     private PrismObject<? extends ObjectType> createEmptyUserObject() {
         PrismObject<? extends ObjectType> p = new PrismObject<UserType>(UserType.COMPLEX_TYPE, UserType.class);
         try {
-            getWorkflowService().getPrismContext().adopt(p);
+            getWorkflowManager().getPrismContext().adopt(p);
         } catch (SchemaException e) {   // safe to convert; this should not occur
             throw new SystemException("Got schema exception when creating empty user object.", e);
         }
@@ -319,7 +319,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         OperationResult result = new OperationResult(OPERATION_LOAD_WORK_ITEM);
         WorkItemDetailed workItem = null;
         try {
-            WorkflowService wfm = getWorkflowService();
+            WorkflowManager wfm = getWorkflowManager();
             workItem = wfm.getWorkItemDetailsByTaskId(parameters.get(PARAM_TASK_ID).toString(), result);
             result.recordSuccessIfUnknown();
         } catch (Exception ex) {
@@ -341,7 +341,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         try {
             String taskId = parameters.get(PARAM_TASK_ID).toString();
             LOGGER.trace("Loading process instance for task {}", taskId);
-            WorkflowService wfm = getWorkflowService();
+            WorkflowManager wfm = getWorkflowManager();
             processInstance = wfm.getProcessInstanceByTaskId(taskId, result);
             LOGGER.trace("Found process instance {}", processInstance);
             result.recordSuccess();
@@ -502,7 +502,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         LOGGER.trace("processInstanceDtoModel = {}, loaded = {}", processInstanceDtoModel, processInstanceDtoModel.isLoaded());
         ProcessInstanceDto processInstanceDto = processInstanceDtoModel.getObject();
         ProcessInstance processInstance = processInstanceDto.getProcessInstance();
-        String detailsPageClassName = getWorkflowService().getProcessInstanceDetailsPanelName(processInstance);
+        String detailsPageClassName = getWorkflowManager().getProcessInstanceDetailsPanelName(processInstance);
 
         additionalInfoAccordionItem.getBodyContainer().add(createAccordion(ID_PROCESS_INSTANCE_ACCORDION,
                 ID_PROCESS_INSTANCE_ACCORDION_INFO,
@@ -567,7 +567,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         VisibleEnableBehaviour isAuthorizedToSubmit = new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {
-                return getWorkflowService().isCurrentUserAuthorizedToSubmit(workItemDtoModel.getObject().getWorkItem());
+                return getWorkflowManager().isCurrentUserAuthorizedToSubmit(workItemDtoModel.getObject().getWorkItem());
             }
         };
 
@@ -659,7 +659,7 @@ public class PageWorkItem extends PageAdminWorkItems {
             ObjectDelta delta = rsWrapper.getObjectDelta();
             delta.applyTo(object);
 
-            getWorkflowService().approveOrRejectWorkItemWithDetails(workItemDtoModel.getObject().getWorkItem().getTaskId(), object, decision, result);
+            getWorkflowManager().approveOrRejectWorkItemWithDetails(workItemDtoModel.getObject().getWorkItem().getTaskId(), object, decision, result);
             setReinitializePreviousPages(true);
         } catch (Exception ex) {
             result.recordFatalError("Couldn't save work item.", ex);
