@@ -41,32 +41,13 @@
 
         <h3><wicket:message key="pageTasks.nodes"/></h3>
         <div wicket:id="nodeTable"/>
-
-        <div class="operatingFormButtons">
-        	<div class="operatingFormBlock">
-	            <span class="operatingFormText"><wicket:message key="pageTasks.button.label.task"/></span>
-	            <a wicket:id="suspendTask"/>
-	            <a wicket:id="resumeTask"/>
-	            <a wicket:id="deleteTask"/>
-	            <a wicket:id="scheduleTask"/>
-			</div>
-			
-			<div class="operatingFormBlock">
-	            <span class="operatingFormText"><wicket:message key="pageTasks.button.label.node"/></span>
-                <a wicket:id="stopScheduler"/>
-                <a wicket:id="stopSchedulerAndTasks"/>
-                <a wicket:id="startScheduler"/>
-                <a wicket:id="deleteNode"/>
-            </div>
-
-            <div class="operatingFormBlock">
-                <span class="operatingFormText"><wicket:message key="pageTasks.diagnostics"/></span>
-                <a wicket:id="deactivateServiceThreads"/>
-                <a wicket:id="reactivateServiceThreads"/>
-                <a wicket:id="synchronizeTasks"/>
-            </div>
-        </div>
     </form>
+
+    <div class="main-button-bar">
+        <a class="btn btn-danger" wicket:id="deactivateServiceThreads"/>
+        <a class="btn btn-success" wicket:id="reactivateServiceThreads"/>
+        <a class="btn btn-default" wicket:id="synchronizeTasks"/>
+    </div>
 </wicket:extend>
 </body>
 </html>

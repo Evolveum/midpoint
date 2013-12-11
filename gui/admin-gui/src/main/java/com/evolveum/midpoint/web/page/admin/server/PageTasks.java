@@ -28,15 +28,13 @@ import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
-import com.evolveum.midpoint.web.component.button.ButtonType;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
-import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.data.column.*;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.server.dto.*;
 import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstance;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
@@ -57,7 +55,10 @@ import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColu
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.markup.repeater.Item;
-import org.apache.wicket.model.*;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
 import java.util.*;
@@ -87,12 +88,11 @@ public class PageTasks extends PageAdminTasks {
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_SEARCH_FORM = "searchForm";
-    private static final String ID_STATE="state";
-    private static final String ID_CATEGORY="category";
-    private static final String ID_SHOW_SUBTASKS="showSubtasks";
-    private static final String ID_TASK_TABLE="taskTable";
-    private static final String ID_NODE_TABLE="nodeTable";
-    private static final String ID_="";
+    private static final String ID_STATE = "state";
+    private static final String ID_CATEGORY = "category";
+    private static final String ID_SHOW_SUBTASKS = "showSubtasks";
+    private static final String ID_TASK_TABLE = "taskTable";
+    private static final String ID_NODE_TABLE = "nodeTable";
 
     private IModel<TasksSearchDto> searchModel;
 
@@ -145,9 +145,7 @@ public class PageTasks extends PageAdminTasks {
         nodeTable.setShowPaging(false);
         mainForm.add(nodeTable);
 
-        initTaskButtons(mainForm);
-        initNodeButtons(mainForm);
-        initDiagnosticButtons(mainForm);
+        initDiagnosticButtons();
     }
 
     private void initSearchForm(Form searchForm) {
@@ -255,7 +253,7 @@ public class PageTasks extends PageAdminTasks {
 
             @Override
             public void populateItem(Item<ICellPopulator<NodeDto>> item, String componentId,
-                    final IModel<NodeDto> rowModel) {
+                                     final IModel<NodeDto> rowModel) {
                 item.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
 
                     @Override
@@ -270,7 +268,47 @@ public class PageTasks extends PageAdminTasks {
         columns.add(check);
         columns.add(new PropertyColumn(createStringResource("pageTasks.node.statusMessage"), "statusMessage"));
 
+        columns.add(new InlineMenuHeaderColumn(createNodesInlineMenu()));
+
         return columns;
+    }
+
+    private List<InlineMenuItem> createNodesInlineMenu() {
+        List<InlineMenuItem> items = new ArrayList<InlineMenuItem>();
+        items.add(new InlineMenuItem(createStringResource("pageTasks.button.stopScheduler"), false,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        stopSchedulersPerformed(target);
+                    }
+                }));
+        items.add(new InlineMenuItem(createStringResource("pageTasks.button.stopSchedulerAndTasks"), false,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        stopSchedulersAndTasksPerformed(target);
+                    }
+                }));
+        items.add(new InlineMenuItem(createStringResource("pageTasks.button.startScheduler"), false,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        startSchedulersPerformed(target);
+                    }
+                }));
+        items.add(new InlineMenuItem(createStringResource("pageTasks.button.deleteNode"), false,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        deleteNodesPerformed(target);
+                    }
+                }));
+
+        return items;
     }
 
     private List<IColumn<TaskDto, String>> initTaskColumns() {
@@ -288,7 +326,7 @@ public class PageTasks extends PageAdminTasks {
 
             @Override
             public void populateItem(Item<ICellPopulator<TaskDto>> item, String componentId,
-                    final IModel<TaskDto> rowModel) {
+                                     final IModel<TaskDto> rowModel) {
                 item.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
 
                     @Override
@@ -316,7 +354,7 @@ public class PageTasks extends PageAdminTasks {
 
             @Override
             public void populateItem(Item<ICellPopulator<TaskDto>> item, String componentId,
-                    final IModel<TaskDto> rowModel) {
+                                     final IModel<TaskDto> rowModel) {
                 item.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
 
                     @Override
@@ -330,7 +368,7 @@ public class PageTasks extends PageAdminTasks {
 
             @Override
             public void populateItem(Item<ICellPopulator<TaskDto>> item, String componentId,
-                    final IModel<TaskDto> rowModel) {
+                                     final IModel<TaskDto> rowModel) {
                 item.add(new Label(componentId, new AbstractReadOnlyModel<Object>() {
 
                     @Override
@@ -342,7 +380,48 @@ public class PageTasks extends PageAdminTasks {
         });
 
         columns.add(createTaskResultStatusColumn(this, "pageTasks.task.status"));
+
+        columns.add(new InlineMenuHeaderColumn(createTasksInlineMenu()));
+
         return columns;
+    }
+
+    private List<InlineMenuItem> createTasksInlineMenu() {
+        List<InlineMenuItem> items = new ArrayList<InlineMenuItem>();
+        items.add(new InlineMenuItem(createStringResource("pageTasks.button.suspendTask"), false,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        suspendTasksPerformed(target);
+                    }
+                }));
+        items.add(new InlineMenuItem(createStringResource("pageTasks.button.resumeTask"), false,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        resumeTasksPerformed(target);
+                    }
+                }));
+        items.add(new InlineMenuItem(createStringResource("pageTasks.button.deleteTask"), false,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        deleteTasksPerformed(target);
+                    }
+                }));
+        items.add(new InlineMenuItem(createStringResource("pageTasks.button.scheduleTask"), false,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        scheduleTasksPerformed(target);
+                    }
+                }));
+
+        return items;
     }
 
 
@@ -527,92 +606,8 @@ public class PageTasks extends PageAdminTasks {
                 + " ago";
     }
 
-    private void initTaskButtons(Form mainForm) {
-        AjaxLinkButton suspend = new AjaxLinkButton("suspendTask",
-                createStringResource("pageTasks.button.suspendTask")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                suspendTasksPerformed(target);
-            }
-        };
-        mainForm.add(suspend);
-
-        AjaxLinkButton resume = new AjaxLinkButton("resumeTask",
-                createStringResource("pageTasks.button.resumeTask")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                resumeTasksPerformed(target);
-            }
-        };
-        mainForm.add(resume);
-
-        AjaxLinkButton delete = new AjaxLinkButton("deleteTask", ButtonType.NEGATIVE, 
-                createStringResource("pageTasks.button.deleteTask")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                deleteTasksPerformed(target);
-            }
-        };
-        mainForm.add(delete);
-
-        AjaxLinkButton schedule = new AjaxLinkButton("scheduleTask",
-                createStringResource("pageTasks.button.scheduleTask")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                scheduleTasksPerformed(target);
-            }
-        };
-        mainForm.add(schedule);
-    }
-
-    private void initNodeButtons(Form mainForm) {
-        AjaxLinkButton pause = new AjaxLinkButton("stopScheduler",
-                createStringResource("pageTasks.button.stopScheduler")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                stopSchedulersPerformed(target);
-            }
-        };
-        mainForm.add(pause);
-
-        AjaxLinkButton stop = new AjaxLinkButton("stopSchedulerAndTasks",
-                createStringResource("pageTasks.button.stopSchedulerAndTasks")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                stopSchedulersAndTasksPerformed(target);
-            }
-        };
-        mainForm.add(stop);
-
-        AjaxLinkButton start = new AjaxLinkButton("startScheduler",
-                createStringResource("pageTasks.button.startScheduler")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                startSchedulersPerformed(target);
-            }
-        };
-        mainForm.add(start);
-
-        AjaxLinkButton delete = new AjaxLinkButton("deleteNode", ButtonType.NEGATIVE, 
-                createStringResource("pageTasks.button.deleteNode")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                deleteNodesPerformed(target);
-            }
-        };
-        mainForm.add(delete);
-    }
-
-    private void initDiagnosticButtons(Form mainForm) {
-        AjaxLinkButton deactivate = new AjaxLinkButton("deactivateServiceThreads",
+    private void initDiagnosticButtons() {
+        AjaxButton deactivate = new AjaxButton("deactivateServiceThreads",
                 createStringResource("pageTasks.button.deactivateServiceThreads")) {
 
             @Override
@@ -620,9 +615,9 @@ public class PageTasks extends PageAdminTasks {
                 deactivateServiceThreadsPerformed(target);
             }
         };
-        mainForm.add(deactivate);
+        add(deactivate);
 
-        AjaxLinkButton reactivate = new AjaxLinkButton("reactivateServiceThreads",
+        AjaxButton reactivate = new AjaxButton("reactivateServiceThreads",
                 createStringResource("pageTasks.button.reactivateServiceThreads")) {
 
             @Override
@@ -630,9 +625,9 @@ public class PageTasks extends PageAdminTasks {
                 reactivateServiceThreadsPerformed(target);
             }
         };
-        mainForm.add(reactivate);
+        add(reactivate);
 
-        AjaxLinkButton synchronize = new AjaxLinkButton("synchronizeTasks",
+        AjaxButton synchronize = new AjaxButton("synchronizeTasks",
                 createStringResource("pageTasks.button.synchronizeTasks")) {
 
             @Override
@@ -640,7 +635,7 @@ public class PageTasks extends PageAdminTasks {
                 synchronizeTasksPerformed(target);
             }
         };
-        mainForm.add(synchronize);
+        add(synchronize);
     }
 
     private TablePanel getTaskTable() {
@@ -705,7 +700,7 @@ public class PageTasks extends PageAdminTasks {
             result.computeStatus();
             if (result.isSuccess()) {
                 if (suspended) {
-                result.recordStatus(OperationResultStatus.SUCCESS, "The task(s) have been successfully suspended.");
+                    result.recordStatus(OperationResultStatus.SUCCESS, "The task(s) have been successfully suspended.");
                 } else {
                     result.recordWarning("Task(s) suspension has been successfully requested; please check for its completion using task list.");
                 }
