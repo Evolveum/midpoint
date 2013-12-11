@@ -143,7 +143,6 @@ class DomToSchemaProcessor {
 	 * 
 	 * 
 	 * @param xsdSchema DOM-represented XSD schema
-	 * @param isResourceSchema true if this is "resource schema"
 	 * @return parsed midPoint schema
 	 * @throws SchemaException in case of any error
 	 */
@@ -336,6 +335,8 @@ class DomToSchemaProcessor {
 		if (isAny(complexType)) {
 			ctd.setXsdAnyMarker(true);
 		}
+
+        extractDocumentation(ctd, complexType.getAnnotation());
 		
 		if (getSchemaRegistry() != null) {
 			Class<?> compileTimeClass = getSchemaRegistry().determineCompileTimeClass(ctd);
@@ -348,7 +349,18 @@ class DomToSchemaProcessor {
 
 	}
 
-	/**
+    private void extractDocumentation(Definition definition, XSAnnotation annotation) {
+        if (annotation == null) {
+            return;
+        }
+        Element documentationElement = SchemaProcessorUtil.getAnnotationElement(annotation, DOMUtil.XSD_DOCUMENTATION_ELEMENT);
+        if (documentationElement != null) {
+            String documentationText = documentationElement.getTextContent();
+            definition.setDocumentation(documentationText);
+        }
+    }
+
+    /**
 	 * Creates ComplexTypeDefinition object from a XSModelGroup inside XSD complexType definition.
 	 * This is a recursive method. It can create "anonymous" internal PropertyContainerDefinitions.
 	 * The definitions will be added to the ComplexTypeDefinition provided as parameter.
@@ -483,6 +495,7 @@ class DomToSchemaProcessor {
 		if (composite != null) {
 			definition.setComposite(composite);
 		}
+        extractDocumentation(definition, annotation);
 		return definition;
 	}
 
@@ -704,13 +717,6 @@ class DomToSchemaProcessor {
 	 * 
 	 * We need to pass createResourceObject flag explicitly here. Because even if we are in resource schema, we want PropertyContainers inside
 	 * ResourceObjects, not ResourceObjects inside ResouceObjects.
-	 * 
-	 * @param xsType
-	 * @param elementName name of the created definition
-	 * @param complexTypeDefinition complex type to use for the definition.
-	 * @param annotation XS annotation to apply.
-	 * @param createResourceObject true if ResourceObjectDefinition should be created
-	 * @return appropriate PropertyContainerDefinition instance
 	 */
 	private PrismContainerDefinition<?> createPropertyContainerDefinition(XSType xsType, XSParticle elementParticle, 
 			ComplexTypeDefinition complexTypeDefinition, XSAnnotation annotation, boolean topLevel) throws SchemaException {	
@@ -849,6 +855,9 @@ class DomToSchemaProcessor {
 		if (help != null) {
 			itemDef.setHelp(help.getTextContent());
 		}
+
+        // documentation
+        extractDocumentation(itemDef, annotation);
 	}
 
 

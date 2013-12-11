@@ -135,6 +135,11 @@ public class PrismReferenceDefinition extends ItemDefinition {
         return "PRD";
     }
 
+    @Override
+    public String getDocClassName() {
+        return "reference";
+    }
+
 	@Override
 	protected void extendToString(StringBuilder sb) {
 		super.extendToString(sb);

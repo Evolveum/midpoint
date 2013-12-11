@@ -62,6 +62,7 @@ public abstract class Definition implements Serializable, Dumpable, DebugDumpabl
 	protected String displayName;
 	protected Integer displayOrder;
 	protected String help;
+    protected String documentation;
 	
 	/**
      * This means that the property container is not defined by fixed (compile-time) schema.
@@ -184,8 +185,30 @@ public abstract class Definition implements Serializable, Dumpable, DebugDumpabl
 	public void setHelp(String help) {
 		this.help = help;
 	}
-	
-	public boolean isRuntimeSchema() {
+
+    public String getDocumentation() {
+        return documentation;
+    }
+
+    public void setDocumentation(String documentation) {
+        this.documentation = documentation;
+    }
+
+    /**
+     * Returns only a first sentence of documentation.
+     */
+    public String getDocumentationPreview() {
+        if (documentation == null) {
+            return null;
+        }
+        int i = documentation.indexOf('.');
+        if (i<0) {
+            return documentation;
+        }
+        return documentation.substring(0,i+1);
+    }
+
+    public boolean isRuntimeSchema() {
         return isRuntimeSchema;
     }
 
@@ -272,7 +295,12 @@ public abstract class Definition implements Serializable, Dumpable, DebugDumpabl
 	}
 	
 	/**
-     * Return a human readable name of this class suitable for logs.
+     * Return a human readable name of this class suitable for logs. (e.g. "PPD")
      */
     protected abstract String getDebugDumpClassName();
+
+    /**
+     * Returns human-readable name of this class suitable for documentation. (e.g. "property")
+     */
+    public abstract String getDocClassName();
 }
