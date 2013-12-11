@@ -19,68 +19,76 @@
 <body>
 <wicket:extend>
     <form wicket:id="mainForm">
-        <table>
-            <tr>
-                <td width="350px"><wicket:message key="pageTask.type"/></td>
-                <td><select wicket:id="category"/></td>
-            </tr>
-            <tr>
-                <td><wicket:message key="pageTask.objectRef"/></td>
-                <td><select wicket:id="resource"/></td>
-            </tr>
-            <tr>
-                <td><wicket:message key="pageTask.name"/></td>
-                <td><input type="text" wicket:id="name"/></td>
-            </tr>
-       	</table>
+        <div class="row">
+            <div class="col-md-6">
+                <table class="table table-condensed table-striped">
+                    <tr>
+                        <td><wicket:message key="pageTask.type"/></td>
+                        <td><select class="form-control input-sm" wicket:id="category"/></td>
+                    </tr>
+                    <tr>
+                        <td><wicket:message key="pageTask.objectRef"/></td>
+                        <td><select class="form-control input-sm" wicket:id="resource"/></td>
+                    </tr>
+                    <tr>
+                        <td><wicket:message key="pageTask.name"/></td>
+                        <td><input class="form-control input-sm" type="text" wicket:id="name"/></td>
+                    </tr>
+                </table>
+            </div>
+            <div class="col-md-6">
+                <h2><wicket:message key="pageTask.scheduleTitle"/><br />
+                    <small style="font-size: 12px;"><wicket:message key="pageTask.scheduleHelp"/></small>
+                </h2>
+                <table class="table table-condensed table-striped">
+                    <tbody>
+                    <tr>
+                        <td><wicket:message key="pageTask.recurring"/></td>
+                        <td><input type="checkbox" wicket:id="recurring"/></td>
+                    </tr>
+                    </tbody>
+                    <tbody wicket:id="container">
+                    <tr wicket:id="boundContainer">
+                        <td style="vertical-align: top; width: 350px;"><wicket:message key="pageTask.bound"/></td>
+                        <td><input type="checkbox" wicket:id="bound"/>
+                            <img class="tipsyComponent" wicket:id="boundHelp"/>
+                        </td>
+                    </tr>
+                    <tr wicket:id="intervalContainer">
+                        <td><wicket:message key="pageTask.scheduleInterval"/></td>
+                        <td><input type="text" wicket:id="interval"/></td>
+                    </tr>
+                    <tr wicket:id="cronContainer">
+                        <td style="vertical-align: top;"><wicket:message key="pageTask.cronSpec"/></td>
+                        <td><input type="text" wicket:id="cron"/>
+                            <img class="tipsyComponent" wicket:id="cronHelp"/>
+                            <small>
+                                <wicket:message key="pageTask.cronHelpLink" />
+                                <a href="http://www.quartz-scheduler.org/documentation/quartz-2.1.x/tutorials/tutorial-lesson-06"
+                                   target="_blank">tutorial</a>.
+                            </small>
+                        </td>
+                    </tr>
+                    </tbody>
+                    <tbody>
+                    <tr>
+                        <td><wicket:message key="pageTask.notStartBefore"/></td>
+                        <td><span wicket:id="notStartBeforeField" /></td>
+                    </tr>
+                    <tr>
+                        <td><wicket:message key="pageTask.notStartAfter"/></td>
+                        <td><span wicket:id="notStartAfterField" /></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
        	
-       	<h2><wicket:message key="pageTask.scheduleTitle"/><br />
-       		<small style="font-size: 12px;"><wicket:message key="pageTask.scheduleHelp"/></small>
-       	</h2>
-       <table>
-	  		<tbody>
-	            <tr>
-	                <td width="350px"><wicket:message key="pageTask.recurring"/></td>
-	                <td><input type="checkbox" wicket:id="recurring"/></td>
-	            </tr>
-	        </tbody>
-			<tbody wicket:id="container">    
-				<tr wicket:id="boundContainer">
-				    <td style="vertical-align: top; width: 350px;"><wicket:message key="pageTask.bound"/></td>
-				    <td><input type="checkbox" wicket:id="bound"/>
-				    	<img class="tipsyComponent" wicket:id="boundHelp"/>
-				    </td>
-				</tr>
-				<tr wicket:id="intervalContainer">
-				    <td><wicket:message key="pageTask.scheduleInterval"/></td>
-				    <td><input type="text" wicket:id="interval"/></td>
-				</tr>
-				<tr wicket:id="cronContainer">
-				    <td style="vertical-align: top;"><wicket:message key="pageTask.cronSpec"/></td>
-				    <td><input type="text" wicket:id="cron"/>
-				    	<img class="tipsyComponent" wicket:id="cronHelp"/> 
-				    	<small>
-					    	<wicket:message key="pageTask.cronHelpLink" />
-					    	<a href="http://www.quartz-scheduler.org/documentation/quartz-2.1.x/tutorials/tutorial-lesson-06"
-								target="_blank">tutorial</a>.
-						</small>
-				    </td>
-				</tr>
-			</tbody>
-			<tbody>            
-				<tr>
-				    <td width="350px"><wicket:message key="pageTask.notStartBefore"/></td>
-				    <td><span wicket:id="notStartBeforeField" /></td>
-				</tr>
-				<tr>
-				    <td><wicket:message key="pageTask.notStartAfter"/></td>
-				    <td><span wicket:id="notStartAfterField" /></td>
-				</tr>
-			</tbody>
-        </table>
+
         <table>
 	        <tr>
-	            <td width="350px"><wicket:message key="pageTask.runUntilNodeDown"/></td>
+	            <td><wicket:message key="pageTask.runUntilNodeDown"/></td>
 	            <td><input type="checkbox" wicket:id="runUntilNodeDown"/></td>
 	        </tr>
         </table>
@@ -88,7 +96,7 @@
         <h2><wicket:message key="pageTask.advancedOption"/></h2>
         <table>
             <tr>
-                <td width="350px"><wicket:message key="pageTask.createSuspended"/></td>
+                <td><wicket:message key="pageTask.createSuspended"/></td>
                 <td><input type="checkbox" wicket:id="createSuspended"/></td>
             </tr>
             <tr>
@@ -100,10 +108,12 @@
                 <td><select wicket:id="misfireAction"/></td>
             </tr>
         </table>
-        
-        <div class="operatingFormButtons">
-            <a wicket:id="backButton"/>
-            <a wicket:id="saveButton"/>
+
+        <div class="main-button-bar">
+            <span class="button-group">
+                <a class="btn btn-default" wicket:id="backButton" />
+            </span>
+            <a class="btn btn-primary" wicket:id="saveButton"/>
         </div>
     </form>
 </wicket:extend>
