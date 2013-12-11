@@ -299,6 +299,7 @@ public class PageTasks extends PageAdminTasks {
                         startSchedulersPerformed(target);
                     }
                 }));
+        items.add(new InlineMenuItem());
         items.add(new InlineMenuItem(createStringResource("pageTasks.button.deleteNode"), false,
                 new HeaderMenuAction(this) {
 
@@ -404,20 +405,21 @@ public class PageTasks extends PageAdminTasks {
                         resumeTasksPerformed(target);
                     }
                 }));
-        items.add(new InlineMenuItem(createStringResource("pageTasks.button.deleteTask"), false,
-                new HeaderMenuAction(this) {
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        deleteTasksPerformed(target);
-                    }
-                }));
         items.add(new InlineMenuItem(createStringResource("pageTasks.button.scheduleTask"), false,
                 new HeaderMenuAction(this) {
 
                     @Override
                     public void onClick(AjaxRequestTarget target) {
                         scheduleTasksPerformed(target);
+                    }
+                }));
+        items.add(new InlineMenuItem());
+        items.add(new InlineMenuItem(createStringResource("pageTasks.button.deleteTask"), false,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        deleteTasksPerformed(target);
                     }
                 }));
 
