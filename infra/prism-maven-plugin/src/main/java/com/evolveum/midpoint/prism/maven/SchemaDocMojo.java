@@ -20,12 +20,19 @@ import java.io.*;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import org.apache.maven.archiver.MavenArchiveConfiguration;
+import org.apache.maven.archiver.MavenArchiver;
+import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.project.MavenProjectHelper;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
+import org.codehaus.plexus.archiver.ArchiverException;
+import org.codehaus.plexus.archiver.jar.ManifestException;
+import org.codehaus.plexus.archiver.zip.ZipArchiver;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.PrismContext;
@@ -59,16 +66,38 @@ public class SchemaDocMojo extends AbstractMojo {
 	 * @parameter
 	 */
 	private File[] schemaFiles;
-	
+
+    /**
+     * @parameter default-value="${project.build.directory}" required=true
+     */
+    private File buildDir;
+
 	/**
 	 * @parameter default-value="${project.build.directory}/schemadoc" required=true
 	 */
-	protected File destDir;
+    private File destDir;
 
     /**
      * @parameter required=true
      */
-    protected File templateDir;
+    private File templateDir;
+
+    /** @parameter default-value="${project}" */
+    private org.apache.maven.project.MavenProject project;
+
+    /** @parameter */
+    private MavenArchiveConfiguration archive = new MavenArchiveConfiguration();
+
+    /** @parameter default-value="${project.build.finalName}" */
+    private String finalName;
+
+    /**
+     * @component
+     */
+    private MavenProjectHelper projectHelper;
+
+    /** @component role="org.codehaus.plexus.archiver.Archiver" roleHint="zip" */
+    private ZipArchiver zipArchiver;
 
     private String getTemplateDirName() {
         return templateDir.getAbsolutePath();
@@ -97,6 +126,16 @@ public class SchemaDocMojo extends AbstractMojo {
                 throw new MojoExecutionException(e.getMessage(),e);
             }
         }
+
+        File archiveFile = null;
+        try {
+            archiveFile = generateArchive(outDir, finalName + "-schemadoc.zip");
+        } catch (IOException e) {
+            throw new MojoExecutionException(e.getMessage(),e);
+        } catch (ArchiverException e) {
+            throw new MojoExecutionException(e.getMessage(),e);
+        }
+        projectHelper.attachArtifact(project, "zip", "schemadoc", archiveFile);
 
         getLog().info( "SchemaDoc plugin finished" );
     }
@@ -232,6 +271,19 @@ public class SchemaDocMojo extends AbstractMojo {
 
         ve.init();
         return ve;
+    }
+
+    private File generateArchive(File outDir, String archiveFilename) throws IOException, ArchiverException {
+        File zipFile = new File(buildDir, archiveFilename);
+        if (zipFile.exists()) {
+            zipFile.delete();
+        }
+
+        zipArchiver.addDirectory(outDir);
+        zipArchiver.setDestFile(zipFile);
+        zipArchiver.createArchive();
+
+        return zipFile;
     }
 
 }
