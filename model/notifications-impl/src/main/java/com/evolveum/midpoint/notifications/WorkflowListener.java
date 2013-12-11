@@ -32,7 +32,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.api.ProcessListener;
 import com.evolveum.midpoint.wf.api.WorkItemListener;
-import com.evolveum.midpoint.wf.api.WorkflowService;
+import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -70,18 +70,18 @@ public class WorkflowListener implements ProcessListener, WorkItemListener {
     @Autowired
     private NotificationsUtil notificationsUtil;
 
-    // WorkflowService is not required, because e.g. within model-test and model-intest we have no workflows present
+    // WorkflowManager is not required, because e.g. within model-test and model-intest we have no workflows present
     // However, during normal operation, it is expected to be present
     @Autowired(required = false)
-    private WorkflowService workflowService;
+    private WorkflowManager workflowManager;
 
     @PostConstruct
     public void init() {
-        if (workflowService != null) {
-            workflowService.registerProcessListener(this);
-            workflowService.registerWorkItemListener(this);
+        if (workflowManager != null) {
+            workflowManager.registerProcessListener(this);
+            workflowManager.registerWorkItemListener(this);
         } else {
-            LOGGER.warn("WorkflowService not present, notifications for workflows will not be enabled.");
+            LOGGER.warn("WorkflowManager not present, notifications for workflows will not be enabled.");
         }
     }
 

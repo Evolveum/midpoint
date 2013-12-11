@@ -1,0 +1,33 @@
+#include("header.html")
+
+<h1>Schema $schema.Namespace</h1>
+
+<h2>Object Type Definitions</h2>
+<table border="1">
+    <tr>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+#foreach($definition in $schema.getObjectDefinitions())
+    <tr>
+        <td><a href="$path.objectDefinitionUrl($definition)">$definition.TypeName.LocalPart</a></td>
+        <td>$!definition.getDocumentationPreview()</td>
+    </tr>
+#end
+</table>
+
+<h2>Complex Type Definitions</h2>
+<table border="1">
+    <tr>
+        <th>Type</th>
+        <th>Description</th>
+    </tr>
+    #foreach($definition in $schema.getComplexTypeDefinitions())
+        <tr>
+            <td><a href="$path.objectDefinitionUrl($definition)">$definition.TypeName.LocalPart</a></td>
+            <td>$!definition.getDocumentationPreview()</td>
+        </tr>
+    #end
+</table>
+
+#include("footer.html")

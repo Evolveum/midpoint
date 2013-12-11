@@ -1,0 +1,11 @@
+#include("header.html")
+
+<h1>Schema Index</h1>
+
+<ul>
+#foreach($schema in $schemaRegistry.getSchemas())
+    <li><a href="$path.schemaUrl($schema)">$schema.Namespace</a></li>
+#end
+</ul>
+
+#include("footer.html")

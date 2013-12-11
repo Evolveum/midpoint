@@ -1,0 +1,14 @@
+#include("header.html")
+
+<h1>$definition.TypeName.LocalPart (Object Definition)</h1>
+<p>
+    Namespace: $definition.TypeName.NamespaceURI
+</p>
+
+<p>
+    $!definition.Documentation
+</p>
+
+#parse("items-inc.vm")
+
+#include("footer.html")

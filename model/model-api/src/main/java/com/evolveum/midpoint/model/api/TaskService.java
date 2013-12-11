@@ -63,7 +63,7 @@ public interface TaskService {
     void resumeTasks(Collection<String> taskOids, OperationResult parentResult);
 
     /**
-     * Schedules a RUNNABLE tasks to be run immediately. (If a task will really start immediately,
+     * Schedules a RUNNABLE/CLOSED tasks to be run immediately. (If a task will really start immediately,
      * depends e.g. on whether a scheduler is started, whether there are available threads, and so on.)
      *
      * @param taskOids a collection of OIDs of tasks that have to be scheduled

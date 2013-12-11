@@ -256,5 +256,8 @@ public class PrismPropertyDefinition<T> extends ItemDefinition {
         return "PPD";
     }
 
-
+    @Override
+    public String getDocClassName() {
+        return "property";
+    }
 }

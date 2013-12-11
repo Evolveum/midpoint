@@ -51,5 +51,6 @@
         <module>common</module>
         <module>test-util</module>
         <module>prism</module>
+        <module>prism-maven-plugin</module>
     </modules>
 </project>

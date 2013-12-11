@@ -41,7 +41,7 @@
         <verbose.jaxb2>false</verbose.jaxb2>
         <verbose.jaxws>false</verbose.jaxws>
         <!-- Dependencies global versions -->
-        <aspectj.version>1.6.12</aspectj.version>
+        <aspectj.version>1.7.3</aspectj.version>
         <commons.io.version>2.0.1</commons.io.version>
         <commons.lang.version>2.6</commons.lang.version>
         <commons.cli>1.2</commons.cli>
@@ -508,6 +508,11 @@
 			    <artifactId>opendj-ldap-sdk</artifactId>
 			    <version>2.6.0</version>
 			</dependency>
+            <dependency>
+                <groupId>org.apache.velocity</groupId>
+                <artifactId>velocity</artifactId>
+                <version>1.7</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
     <organization>

@@ -31,7 +31,6 @@ import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.home.component.*;
 import com.evolveum.midpoint.web.page.admin.home.dto.AccountCallableResult;
 import com.evolveum.midpoint.web.page.admin.home.dto.AssignmentItemDto;
-import com.evolveum.midpoint.web.page.admin.home.dto.MyWorkItemDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.SimpleAccountDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.security.SecurityUtils;
@@ -44,7 +43,6 @@ import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.head.CssHeaderItem;
 import org.apache.wicket.markup.head.IHeaderResponse;
-import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -180,7 +178,7 @@ public class PageDashboard extends PageAdminHome {
         List<WorkItemDto> list = new ArrayList<WorkItemDto>();
         callableResult.setValue(list);
 
-        if (!getWorkflowService().isEnabled()) {
+        if (!getWorkflowManager().isEnabled()) {
             return callableResult;
         }
 
@@ -193,7 +191,7 @@ public class PageDashboard extends PageAdminHome {
         callableResult.setResult(result);
 
         try {
-            List<WorkItem> workItems = getWorkflowService().listWorkItemsRelatedToUser(user.getOid(),
+            List<WorkItem> workItems = getWorkflowManager().listWorkItemsRelatedToUser(user.getOid(),
                     true, 0, MAX_WORK_ITEMS, result);
             for (WorkItem workItem : workItems) {
                 list.add(new WorkItemDto(workItem));
@@ -235,7 +233,7 @@ public class PageDashboard extends PageAdminHome {
         workItems.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {
-                return getWorkflowService().isEnabled();
+                return getWorkflowManager().isEnabled();
             }
         });
         add(workItems);

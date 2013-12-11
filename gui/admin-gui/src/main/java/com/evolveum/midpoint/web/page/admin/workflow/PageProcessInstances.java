@@ -30,7 +30,7 @@ import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDtoProvider;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.wf.api.WorkflowService;
+import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import org.apache.commons.lang.time.DurationFormatUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -293,10 +293,10 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
 
         OperationResult result = new OperationResult(OPERATION_STOP_PROCESS_INSTANCES);
 
-        WorkflowService workflowServiceImpl = getWorkflowService();
+        WorkflowManager workflowManagerImpl = getWorkflowManager();
         for (ProcessInstanceDto processInstanceDto : processInstanceDtoList) {
             try {
-                workflowServiceImpl.stopProcessInstance(processInstanceDto.getInstanceId(),
+                workflowManagerImpl.stopProcessInstance(processInstanceDto.getInstanceId(),
                         WebMiscUtil.getOrigStringFromPoly(user.getName()), result);
             } catch (Exception ex) {    // todo
                 result.createSubresult("stopProcessInstance").recordPartialError("Couldn't stop process instance " + processInstanceDto.getName(), ex);
@@ -304,7 +304,7 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
         }
         for (ProcessInstanceDto processInstanceDto : finishedProcessInstanceDtoList) {
             try {
-                workflowServiceImpl.deleteProcessInstance(processInstanceDto.getInstanceId(), result);
+                workflowManagerImpl.deleteProcessInstance(processInstanceDto.getInstanceId(), result);
             } catch (Exception ex) {    // todo
                 result.createSubresult("deleteProcessInstance").recordPartialError("Couldn't delete process instance " + processInstanceDto.getName(), ex);
             }

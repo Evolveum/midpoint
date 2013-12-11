@@ -1,0 +1,40 @@
+
+<h2>Item Summary</h2>
+
+<table border="1">
+    <tr>
+        <th>Name</th>
+        <th>Type</th>
+        <th>Multiplicity</th>
+        <th>Description</th>
+    </tr>
+#foreach($itemDefinition in $definition.getDefinitions())
+  #set( $typeUrl = $path.typeDefinitionUrl($itemDefinition.TypeName,$prefixToBase,$prismContext))
+    <tr>
+        <td><a href="#item-$itemDefinition.Name.LocalPart">$itemDefinition.Name.LocalPart</a></td>
+        <td>
+            $itemDefinition.DocClassName<br/>
+            #if ($typeUrl)
+                <a href="$typeUrl">
+            #end
+                 $itemDefinition.TypeName.LocalPart
+            #if ($typeUrl)
+                </a>
+            #end
+        </td>
+        <td>$itemDefinition.debugMultiplicity()</td>
+        <td>$!itemDefinition.getDocumentationPreview()</td>
+    </tr>
+#end
+</table>
+
+<h2>Items</h2>
+
+#foreach($itemDefinition in $definition.getDefinitions())
+<a id="item-$itemDefinition.Name.LocalPart"><h3>$itemDefinition.Name.LocalPart</h3></a>
+<p>Flags: $!itemDefinition.debugFlags()</p>
+<p>Multiplicity: $itemDefinition.debugMultiplicity()</p>
+<p>
+    $!itemDefinition.getDocumentation()
+</p>
+#end

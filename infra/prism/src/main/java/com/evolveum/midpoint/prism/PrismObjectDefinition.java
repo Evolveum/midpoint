@@ -116,5 +116,10 @@ public class PrismObjectDefinition<T extends Objectable> extends PrismContainerD
 	protected String getDebugDumpClassName() {
 		return "POD";
 	}
+
+    @Override
+    public String getDocClassName() {
+        return "object";
+    }
 	
 }

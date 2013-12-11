@@ -86,6 +86,8 @@ public class DOMUtil {
 			NS_W3C_XML_SCHEMA_PREFIX);
 	public static final QName XSD_APPINFO_ELEMENT = new QName(W3C_XML_SCHEMA_NS_URI, "appinfo",
 			NS_W3C_XML_SCHEMA_PREFIX);
+    public static final QName XSD_DOCUMENTATION_ELEMENT = new QName(W3C_XML_SCHEMA_NS_URI, "documentation",
+            NS_W3C_XML_SCHEMA_PREFIX);;
 
 	public static final QName XSD_ATTR_TARGET_NAMESPACE = new QName(W3C_XML_SCHEMA_NS_URI, "targetNamespace",
 			NS_W3C_XML_SCHEMA_PREFIX);
@@ -127,7 +129,8 @@ public class DOMUtil {
 	private static final String RANDOM_ATTR_PREFIX_PREFIX = "qn";
 	private static final int RANDOM_ATTR_PREFIX_RND = 1000;
 	private static final int RANDOM_ATTR_PREFIX_MAX_ITERATIONS = 30;
-	// To generate random namespace prefixes
+
+    // To generate random namespace prefixes
 	private static Random rnd = new Random();
 	
 	private static final DocumentBuilder loader;

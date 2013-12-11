@@ -114,6 +114,14 @@ public class PrismSchema implements Dumpable, DebugDumpable {
 		}
 		return defs;
 	}
+
+    public Collection<PrismObjectDefinition> getObjectDefinitions() {
+        return getDefinitions(PrismObjectDefinition.class);
+    }
+
+    public Collection<ComplexTypeDefinition> getComplexTypeDefinitions() {
+        return getDefinitions(ComplexTypeDefinition.class);
+    }
 	
 	public void add(Definition def) {
 		definitions.add(def);
