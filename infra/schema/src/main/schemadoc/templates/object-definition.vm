@@ -1,4 +1,4 @@
-#include("header.html")
+#parse("header-inc.vm")
 
 <h1>$definition.TypeName.LocalPart (Object Definition)</h1>
 <p>
@@ -16,4 +16,4 @@
 
 #parse("items-inc.vm")
 
-#include("footer.html")
+#parse("footer-inc.vm")

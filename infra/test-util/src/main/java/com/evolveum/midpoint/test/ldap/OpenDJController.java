@@ -227,10 +227,6 @@ public class OpenDJController extends AbstractResourceController {
 
 	/**
 	 * Extract template from class
-	 * 
-	 * @param destination
-	 * @throws IOException
-	 * @throws URISyntaxException 
 	 */
 	private void extractTemplate(File dst) throws IOException, URISyntaxException {
 
@@ -243,7 +239,7 @@ public class OpenDJController extends AbstractResourceController {
 		// Determing if we need to extract from JAR or directory
 		if (templateRoot.isDirectory()) {
 			LOGGER.trace("Need to do directory copy.");
-			copyDirectory(templateRoot, dst);
+            MiscUtil.copyDirectory(templateRoot, dst);
 			return;
 		}
 
@@ -308,7 +304,7 @@ public class OpenDJController extends AbstractResourceController {
 				File[] files = file.listFiles();
 				for (File subFile : files) {
 					if (subFile.isDirectory()) {
-						copyDirectory(subFile, new File(dst, subFile.getName()));
+						MiscUtil.copyDirectory(subFile, new File(dst, subFile.getName()));
 					} else {
 						MiscUtil.copyFile(subFile, new File(dst, subFile.getName()));
 					}
@@ -398,32 +394,6 @@ public class OpenDJController extends AbstractResourceController {
 	
 	public boolean isRunning() {
 		return EmbeddedUtils.isRunning();
-	}
-
-	/**
-	 * Copy a directory and its contents.
-	 * 
-	 * @param src
-	 *            The name of the directory to copy.
-	 * @param dst
-	 *            The name of the destination directory.
-	 * @throws IOException
-	 *             If the directory could not be copied.
-	 */
-	public static void copyDirectory(File src, File dst) throws IOException {
-		if (src.isDirectory()) {
-			// Create the destination directory if it does not exist.
-			if (!dst.exists()) {
-				dst.mkdirs();
-			}
-
-			// Recursively copy sub-directories and files.
-			for (String child : src.list()) {
-				copyDirectory(new File(src, child), new File(dst, child));
-			}
-		} else {
-			MiscUtil.copyFile(src, dst);
-		}
 	}
 
 	/**

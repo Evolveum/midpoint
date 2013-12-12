@@ -1,4 +1,4 @@
-#include("header.html")
+#parse("header-inc.vm")
 
 <h1>Schema $schema.Namespace</h1>
 
@@ -30,4 +30,4 @@
     #end
 </table>
 
-#include("footer.html")
+#parse("footer-inc.vm")

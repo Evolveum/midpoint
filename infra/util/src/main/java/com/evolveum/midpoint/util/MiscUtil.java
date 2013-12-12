@@ -168,6 +168,32 @@ public class MiscUtil {
 		}
 	}
 
+    /**
+     * Copy a directory and its contents.
+     *
+     * @param src
+     *            The name of the directory to copy.
+     * @param dst
+     *            The name of the destination directory.
+     * @throws IOException
+     *             If the directory could not be copied.
+     */
+    public static void copyDirectory(File src, File dst) throws IOException {
+        if (src.isDirectory()) {
+            // Create the destination directory if it does not exist.
+            if (!dst.exists()) {
+                dst.mkdirs();
+            }
+
+            // Recursively copy sub-directories and files.
+            for (String child : src.list()) {
+                copyDirectory(new File(src, child), new File(dst, child));
+            }
+        } else {
+            MiscUtil.copyFile(src, dst);
+        }
+    }
+
 	public static <T> Collection<T> createCollection(T... items) {
 		Collection<T> collection = new ArrayList<T>(items.length);
 		for (T item: items) {

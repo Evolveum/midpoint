@@ -1,4 +1,4 @@
-#include("header.html")
+#parse("header-inc.vm")
 
 <h1>Schema Index</h1>
 
@@ -8,4 +8,4 @@
 #end
 </ul>
 
-#include("footer.html")
+#parse("footer-inc.vm")
