@@ -21,7 +21,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
@@ -214,8 +214,7 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
 
     private void initItemButtons(Form mainForm) {
 
-        AjaxLinkButton stop = new AjaxLinkButton(ID_STOP,
-                createStringResource("pageProcessInstances.button.stop")) {
+        AjaxButton stop = new AjaxButton(ID_STOP, createStringResource("pageProcessInstances.button.stop")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -229,8 +228,7 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
         };
         mainForm.add(stop);
 
-        AjaxLinkButton back = new AjaxLinkButton(ID_BACK,
-                createStringResource("pageProcessInstances.button.back")) {
+        AjaxButton back = new AjaxButton(ID_BACK, createStringResource("pageProcessInstances.button.back")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {

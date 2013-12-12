@@ -20,7 +20,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
@@ -166,7 +166,7 @@ public class PageWorkItems extends PageAdminWorkItems {
 //        };
 //        mainForm.add(release);
 
-        AjaxLinkButton approve = new AjaxLinkButton("approve",
+        AjaxButton approve = new AjaxButton("approve",
                 createStringResource("pageWorkItems.button.approve")) {
 
             @Override
@@ -176,7 +176,7 @@ public class PageWorkItems extends PageAdminWorkItems {
         };
         mainForm.add(approve);
 
-        AjaxLinkButton reject = new AjaxLinkButton("reject",
+        AjaxButton reject = new AjaxButton("reject",
                 createStringResource("pageWorkItems.button.reject")) {
 
             @Override

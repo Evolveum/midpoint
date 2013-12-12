@@ -26,10 +26,10 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.accordion.Accordion;
 import com.evolveum.midpoint.web.component.accordion.AccordionItem;
-import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
-import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.model.delta.ContainerValuePanel;
 import com.evolveum.midpoint.web.component.model.delta.DeltaDto;
 import com.evolveum.midpoint.web.component.model.delta.DeltaPanel;
@@ -571,8 +571,7 @@ public class PageWorkItem extends PageAdminWorkItems {
             }
         };
 
-        AjaxSubmitLinkButton approve = new AjaxSubmitLinkButton("approve",
-                createStringResource("pageWorkItem.button.approve")) {
+        AjaxSubmitButton approve = new AjaxSubmitButton("approve", createStringResource("pageWorkItem.button.approve")) {
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
@@ -587,8 +586,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         approve.add(isAuthorizedToSubmit);
         mainForm.add(approve);
 
-        AjaxSubmitLinkButton reject = new AjaxSubmitLinkButton("reject",
-                createStringResource("pageWorkItem.button.reject")) {
+        AjaxSubmitButton reject = new AjaxSubmitButton("reject", createStringResource("pageWorkItem.button.reject")) {
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
@@ -623,8 +621,7 @@ public class PageWorkItem extends PageAdminWorkItems {
 //        };
 //        mainForm.add(done);
 
-        AjaxLinkButton cancel = new AjaxLinkButton("cancel",
-                createStringResource("pageWorkItem.button.cancel")) {
+        AjaxButton cancel = new AjaxButton("cancel", createStringResource("pageWorkItem.button.cancel")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
