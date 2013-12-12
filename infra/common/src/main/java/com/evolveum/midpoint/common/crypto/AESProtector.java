@@ -411,7 +411,8 @@ public class AESProtector implements Protector {
         encrypt(stringToElement(clearValue), ps);
     }
 
-    private String getSecretKeyDigest(SecretKey key) throws EncryptionException {
+    // public -> add to some utility method
+    public String getSecretKeyDigest(SecretKey key) throws EncryptionException {
         MessageDigest sha1 = null;
         try {
             sha1 = MessageDigest.getInstance(KEY_DIGEST_TYPE);

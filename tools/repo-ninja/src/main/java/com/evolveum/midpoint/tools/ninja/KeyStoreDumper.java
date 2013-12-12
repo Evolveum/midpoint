@@ -21,6 +21,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import com.evolveum.midpoint.common.crypto.AESProtector;
+import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
 
 public class KeyStoreDumper extends BaseNinjaAction{
@@ -68,7 +69,10 @@ public class KeyStoreDumper extends BaseNinjaAction{
 				SecretKey key = skEntry.getSecretKey();
 				System.out.println("	Algorithm: " + key.getAlgorithm());
 				System.out.println("	Format: " + key.getFormat());
-				System.out.println("	Key length: " + key.getEncoded().length);
+				System.out.println("	Key length: " + key.getEncoded().length * 8);
+				if (protector instanceof AESProtector) {
+					System.out.println("	Key name: " + ((AESProtector) protector).getSecretKeyDigest(key));
+				}
 //				Cipher cipher = Cipher.getInstance(key.getAlgorithm());
 //				System.out.println("	Cipher algorithm" + cipher.getAlgorithm());
 			}
@@ -92,9 +96,9 @@ public class KeyStoreDumper extends BaseNinjaAction{
 		} catch (NoSuchAlgorithmException ex){
 			System.out.println("Failed to print information about keyStore. Reason: " + ex.getMessage());
 			return;
-//		} catch (NoSuchPaddingException ex){
-//			System.out.println("Failed to print information about keyStore. Reason: " + ex.getMessage());
-//			return;
+		} catch (EncryptionException ex){
+			System.out.println("Failed to print information about keyStore. Reason: " + ex.getMessage());
+			return;
 		}
 		
 		
