@@ -4,6 +4,11 @@
 <p>
     Namespace: $definition.TypeName.NamespaceURI
 </p>
+#if($definition.Abstract)
+<p>
+    ABSTRACT
+</p>
+#end
 
 <p>
     $!definition.Documentation
