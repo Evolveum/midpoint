@@ -91,7 +91,6 @@ import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.util.string.StringValue;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -223,14 +222,14 @@ public class PageTaskEdit extends PageAdminTasks {
         Label subtasksLabel = new Label(ID_SUBTASKS_LABEL, new ResourceModel("pageTaskEdit.subtasksLabel"));
         subtasksLabel.add(hiddenWhenEditingOrNoSubtasks);
         mainForm.add(subtasksLabel);
-        SubtasksPanel subtasksPanel = new SubtasksPanel(ID_SUBTASKS_PANEL, new PropertyModel<List<TaskDto>>(model, TaskDto.F_SUBTASKS), getWorkflowService().isEnabled());
+        SubtasksPanel subtasksPanel = new SubtasksPanel(ID_SUBTASKS_PANEL, new PropertyModel<List<TaskDto>>(model, TaskDto.F_SUBTASKS), getWorkflowManager().isEnabled());
         subtasksPanel.add(hiddenWhenEditingOrNoSubtasks);
         mainForm.add(subtasksPanel);
 
         VisibleEnableBehaviour hiddenWhenEditingOrNoWorkflowInformation = new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {
-                return !edit && model.getObject().isWorkflowShadowTask() && getWorkflowService().isEnabled();
+                return !edit && model.getObject().isWorkflowShadowTask() && getWorkflowManager().isEnabled();
             }
         };
 

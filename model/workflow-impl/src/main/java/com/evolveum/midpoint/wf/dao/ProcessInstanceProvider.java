@@ -16,20 +16,18 @@
 
 package com.evolveum.midpoint.wf.dao;
 
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.WorkflowServiceImpl;
+import com.evolveum.midpoint.wf.WorkflowManagerImpl;
 import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.activiti.ActivitiEngineDataHelper;
 import com.evolveum.midpoint.wf.api.ProcessInstance;
 import com.evolveum.midpoint.wf.api.WorkflowException;
-import com.evolveum.midpoint.wf.api.WorkflowService;
+import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
-import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import org.activiti.engine.ActivitiException;
 import org.activiti.engine.HistoryService;
 import org.activiti.engine.RuntimeService;
@@ -61,8 +59,8 @@ public class ProcessInstanceProvider {
     @Autowired
     private WorkItemProvider workItemProvider;
 
-    private static final String DOT_CLASS = WorkflowServiceImpl.class.getName() + ".";
-    private static final String DOT_INTERFACE = WorkflowService.class.getName() + ".";
+    private static final String DOT_CLASS = WorkflowManagerImpl.class.getName() + ".";
+    private static final String DOT_INTERFACE = WorkflowManager.class.getName() + ".";
 
     private static final String OPERATION_COUNT_PROCESS_INSTANCES_RELATED_TO_USER = DOT_INTERFACE + "countProcessInstancesRelatedToUser";
     private static final String OPERATION_LIST_PROCESS_INSTANCES_RELATED_TO_USER = DOT_INTERFACE + "listProcessInstancesRelatedToUser";

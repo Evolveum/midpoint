@@ -27,7 +27,10 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.model.util.Utils;
+import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.Validate;
@@ -41,7 +44,6 @@ import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
-import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.model.ModelObjectResolver;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -171,6 +173,9 @@ public class ModelController implements ModelService, ModelInteractionService, T
 
 	@Autowired(required = true)
 	private TaskManager taskManager;
+
+    @Autowired(required = true)
+    private WorkflowManager workflowManager;
 	
 	@Autowired(required = true)
 	private ChangeExecutor changeExecutor;
@@ -1343,6 +1348,65 @@ public class ModelController implements ModelService, ModelInteractionService, T
     //endregion
 
     //region Workflow-related operations
+    @Override
+    public int countWorkItemsRelatedToUser(String userOid, boolean assigned, OperationResult parentResult) {
+        return 0;
+    }
+
+    @Override
+    public List<WorkItemType> listWorkItemsRelatedToUser(String userOid, boolean assigned, int first, int count, OperationResult parentResult) {
+        return null;
+    }
+
+    @Override
+    public WorkItemType getWorkItemDetailsById(String workItemId, OperationResult parentResult) throws ObjectNotFoundException {
+        return null;
+    }
+
+    @Override
+    public int countProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, OperationResult parentResult) {
+        return 0;
+    }
+
+    @Override
+    public List<WfProcessInstanceType> listProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, int first, int count, OperationResult parentResult) {
+        return null;
+    }
+
+    @Override
+    public WfProcessInstanceType getProcessInstanceByWorkItemId(String workItemId, OperationResult parentResult) throws ObjectNotFoundException {
+        return null;
+    }
+
+    @Override
+    public WfProcessInstanceType getProcessInstanceById(String instanceId, boolean historic, boolean getWorkItems, OperationResult parentResult) throws ObjectNotFoundException {
+        return null;
+    }
+
+    @Override
+    public void approveOrRejectWorkItem(String workItemId, boolean decision, OperationResult parentResult) {
+
+    }
+
+    @Override
+    public void approveOrRejectWorkItemWithDetails(String workItemId, PrismObject specific, boolean decision, OperationResult result) {
+
+    }
+
+    @Override
+    public void completeWorkItemWithDetails(String workItemId, PrismObject specific, String decision, OperationResult parentResult) {
+
+    }
+
+    @Override
+    public void stopProcessInstance(String instanceId, String username, OperationResult parentResult) {
+
+    }
+
+    @Override
+    public void deleteProcessInstance(String instanceId, OperationResult parentResult) {
+
+    }
     //endregion
 
 }

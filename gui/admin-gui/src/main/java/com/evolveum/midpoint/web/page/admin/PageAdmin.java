@@ -79,7 +79,9 @@ public class PageAdmin extends PageBase {
 
         if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_WORK_ITEMS_URL,
                 AuthorizationConstants.AUTZ_UI_WORK_ITEMS_ALL_URL)) {
-            items.add(createWorkItemsItems());
+            if (getWorkflowManager().isEnabled()) {
+                items.add(createWorkItemsItems());
+            }
         }
 
         if (WebMiscUtil.isAuthorized(AuthorizationConstants.AUTZ_UI_TASKS_URL,

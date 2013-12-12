@@ -102,7 +102,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
 	private TaskManager taskManager;
 
     @Autowired(required = true)
-    private WorkflowServiceImpl workflowServiceImpl;
+    private WorkflowManagerImpl workflowServiceImpl;
 
     @Autowired
     private WfTaskUtil wfTaskUtil;

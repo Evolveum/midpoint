@@ -16,31 +16,14 @@
 
 package com.evolveum.midpoint.web.component.model.delta;
 
-import com.evolveum.midpoint.model.api.context.ModelState;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.prism.ContainerStatus;
-import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
-import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItems;
-import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDetailedDto;
-import com.evolveum.midpoint.web.resource.img.ImgResources;
-import com.evolveum.midpoint.wf.api.WorkItemDetailed;
-import com.evolveum.midpoint.wf.api.WorkflowService;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.ResourceModel;
-import org.apache.wicket.request.resource.PackageResourceReference;
 
 /**
  * @author mederly

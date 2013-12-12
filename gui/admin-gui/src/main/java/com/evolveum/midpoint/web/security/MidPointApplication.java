@@ -33,7 +33,7 @@ import com.evolveum.midpoint.web.page.error.PageError401;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.wf.api.WorkflowService;
+import com.evolveum.midpoint.wf.api.WorkflowManager;
 import org.apache.commons.configuration.Configuration;
 import org.apache.wicket.RuntimeConfigurationType;
 import org.apache.wicket.atmosphere.EventBus;
@@ -81,7 +81,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     @Autowired
     transient TaskManager taskManager;
     @Autowired
-    transient private WorkflowService workflowService;
+    transient private WorkflowManager workflowManager;
     @Autowired
     transient MidpointConfiguration configuration;
     @Autowired(required = true)
@@ -210,8 +210,8 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         return MidPointAuthWebSession.class;
     }
 
-    public WorkflowService getWorkflowService() {
-        return workflowService;
+    public WorkflowManager getWorkflowManager() {
+        return workflowManager;
     }
 
     public ModelInteractionService getModelInteractionService() {
