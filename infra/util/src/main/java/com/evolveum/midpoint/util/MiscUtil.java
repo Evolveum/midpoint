@@ -359,4 +359,10 @@ public class MiscUtil {
 		return false;
 	}
 
+    public static String stripHtmlMarkup(String htmlString) {
+        if (htmlString == null) {
+            return null;
+        }
+        return htmlString.replaceAll("<[^>]*>", "");
+    }
 }

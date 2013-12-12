@@ -355,7 +355,8 @@ class DomToSchemaProcessor {
         }
         Element documentationElement = SchemaProcessorUtil.getAnnotationElement(annotation, DOMUtil.XSD_DOCUMENTATION_ELEMENT);
         if (documentationElement != null) {
-            String documentationText = documentationElement.getTextContent();
+            // The documentation may be HTML-formatted. Therefore we want to keep the formatting and tag names
+            String documentationText = DOMUtil.serializeElementContent(documentationElement);
             definition.setDocumentation(documentationText);
         }
     }
