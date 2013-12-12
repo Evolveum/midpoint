@@ -1176,7 +1176,7 @@
                 </equal>
 		</query>
         <objectClass>c:UserType</objectClass>
-        <reportFields>
+        <reportField>
         	<nameReportField>Name</nameReportField>	
         	<nameHeaderField>Name</nameHeaderField>	
         	<itemField>Name</itemField>
@@ -1184,11 +1184,11 @@
     		<sortOrder>ascending</sortOrder>
     		<widthField>20</widthField>
     		<classTypeField>xsd:string</classTypeField>
-        </reportFields>
-        <reportParameters>
+        </reportField>
+        <reportParameter>
         	<nameParameter>Logo</nameParameter>
         	<valueParameter>/logo.jopg</valueParameter>
         	<classTypeParameter>xsd:any</classTypeParameter>
-        </reportParameters>
+        </reportParameter>
      </object>
 </objects>

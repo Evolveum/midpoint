@@ -209,8 +209,8 @@ public class RReport extends RObject<ReportType> {
     	repo.setObjectClass(jaxb.getObjectClass());
     	try
     	{
-    		repo.setReportFields(RUtil.toRepo(jaxb.getReportFields(),prismContext));
-    		repo.setReportParameters(RUtil.toRepo(jaxb.getReportParameters(), prismContext));
+    		repo.setReportFields(RUtil.toRepo(jaxb.getReportField(),prismContext));
+    		repo.setReportParameters(RUtil.toRepo(jaxb.getReportParameter(), prismContext));
     		repo.setQuery(RUtil.toRepo(jaxb.getQuery(), prismContext));
     	}
     	catch (Exception ex) {
@@ -239,13 +239,13 @@ public class RReport extends RObject<ReportType> {
     		 if (StringUtils.isNotEmpty(repo.getReportFields())) {
     			 List<ReportFieldConfigurationType> reportField = RUtil.toJAXB(ReportType.class, null, repo.getReportFields(), List.class, null,
                          prismContext);
-                 jaxb.getReportFields().addAll(reportField);
+                 jaxb.getReportField().addAll(reportField);
              }
     		 
     		 if (StringUtils.isNotEmpty(repo.getReportParameters())) {
     			 List<ReportParameterConfigurationType> reportParameter = RUtil.toJAXB(ReportType.class, null, repo.getReportParameters(), List.class, null,
                          prismContext);
-                 jaxb.getReportParameters().addAll(reportParameter);
+                 jaxb.getReportParameter().addAll(reportParameter);
              }
     		 
     		 jaxb.setQuery(RUtil.toJAXB(ReportType.class, new ItemPath(ReportType.F_QUERY), repo.getQuery(), QueryType.class, prismContext));

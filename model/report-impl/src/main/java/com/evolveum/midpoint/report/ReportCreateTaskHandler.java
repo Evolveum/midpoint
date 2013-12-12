@@ -84,7 +84,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
 	 
 	 	ReportType reportType = object.asObjectable();
 	 	
-	  	for(ReportParameterConfigurationType parameterRepo : reportType.getReportParameters())
+	  	for(ReportParameterConfigurationType parameterRepo : reportType.getReportParameter())
 		{
     		params.put(parameterRepo.getNameParameter(), parameterRepo.getValueParameter());			
     	}
