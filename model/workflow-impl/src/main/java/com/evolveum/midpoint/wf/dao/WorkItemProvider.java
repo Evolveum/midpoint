@@ -27,18 +27,18 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.WfConfiguration;
-import com.evolveum.midpoint.wf.WorkflowServiceImpl;
+import com.evolveum.midpoint.wf.WorkflowManagerImpl;
 import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.activiti.ActivitiEngineDataHelper;
 import com.evolveum.midpoint.wf.api.WorkItem;
 import com.evolveum.midpoint.wf.api.WorkItemDetailed;
 import com.evolveum.midpoint.wf.api.WorkflowException;
-import com.evolveum.midpoint.wf.api.WorkflowService;
+import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.TrackingDataFormType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.TrackingDataType;
 import org.activiti.engine.ActivitiException;
 import org.activiti.engine.runtime.ProcessInstanceQuery;
 import org.activiti.engine.task.Task;
@@ -75,8 +75,8 @@ public class WorkItemProvider {
     @Autowired
     private PrismContext prismContext;
 
-    private static final String DOT_CLASS = WorkflowServiceImpl.class.getName() + ".";
-    private static final String DOT_INTERFACE = WorkflowService.class.getName() + ".";
+    private static final String DOT_CLASS = WorkflowManagerImpl.class.getName() + ".";
+    private static final String DOT_INTERFACE = WorkflowManager.class.getName() + ".";
 
     private static final String OPERATION_COUNT_WORK_ITEMS_RELATED_TO_USER = DOT_INTERFACE + "countWorkItemsRelatedToUser";
     private static final String OPERATION_LIST_WORK_ITEMS_RELATED_TO_USER = DOT_INTERFACE  + "listWorkItemsRelatedToUser";
@@ -259,9 +259,9 @@ public class WorkItemProvider {
         piq.processInstanceId(task.getProcessInstanceId());
         org.activiti.engine.runtime.ProcessInstance processInstance = piq.singleResult();
 
-        PrismObjectDefinition<TrackingDataFormType> formDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByType(TrackingDataFormType.COMPLEX_TYPE);
-        PrismObject<TrackingDataFormType> formPrism = formDefinition.instantiate();
-        TrackingDataFormType form = formPrism.asObjectable();
+        PrismObjectDefinition<TrackingDataType> formDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByType(TrackingDataType.COMPLEX_TYPE);
+        PrismObject<TrackingDataType> formPrism = formDefinition.instantiate();
+        TrackingDataType form = formPrism.asObjectable();
 
         form.setTaskId(task.getId());
         form.setProcessInstanceId(task.getProcessInstanceId());

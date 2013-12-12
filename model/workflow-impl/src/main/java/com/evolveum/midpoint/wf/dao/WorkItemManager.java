@@ -22,9 +22,9 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.WorkflowServiceImpl;
+import com.evolveum.midpoint.wf.WorkflowManagerImpl;
 import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
-import com.evolveum.midpoint.wf.api.WorkflowService;
+import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import org.activiti.engine.FormService;
@@ -52,8 +52,8 @@ public class WorkItemManager {
     @Autowired
     private MiscDataUtil miscDataUtil;
 
-    private static final String DOT_CLASS = WorkflowServiceImpl.class.getName() + ".";
-    private static final String DOT_INTERFACE = WorkflowService.class.getName() + ".";
+    private static final String DOT_CLASS = WorkflowManagerImpl.class.getName() + ".";
+    private static final String DOT_INTERFACE = WorkflowManager.class.getName() + ".";
 
     private static final String OPERATION_COMPLETE_WORK_ITEM = DOT_CLASS + "completeWorkItemWithDetails";
 
