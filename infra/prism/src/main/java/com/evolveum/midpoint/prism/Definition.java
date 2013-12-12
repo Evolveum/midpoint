@@ -60,6 +60,7 @@ public abstract class Definition implements Serializable, Dumpable, DebugDumpabl
 	protected QName defaultName;
 	protected QName typeName;
 	protected boolean ignored = false;
+    protected boolean isAbstract = false;
 	protected String displayName;
 	protected Integer displayOrder;
 	protected String help;
@@ -131,7 +132,15 @@ public abstract class Definition implements Serializable, Dumpable, DebugDumpabl
 		this.ignored = ignored;
 	}
 
-	/**
+    public boolean isAbstract() {
+        return isAbstract;
+    }
+
+    public void setAbstract(boolean isAbstract) {
+        this.isAbstract = isAbstract;
+    }
+
+    /**
 	 * Returns display name.
 	 * 
 	 * Specifies the printable name of the object class or attribute. It must

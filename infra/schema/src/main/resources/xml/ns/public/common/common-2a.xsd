@@ -662,14 +662,17 @@
     <xsd:complexType name="GenericObjectType">
         <xsd:annotation>
             <xsd:documentation>
+                <p>
                 Generic object for storing unknown (unexpected) object types.
+                </p>
 
+                <p>
                 The generic object should be used if there is a need to
-                store a custom object (e.g KangarooType) at deployment-time
-                and the XML type relacement extensibility cannot be used.
+                store a custom object (e.g KangarooType) at deployment-time.
                 The properties of such custom objects are to be placed in the
                 extension part of this object. The schema is not checked or
                 enforced for this type of objects if technically possible.
+                </p>
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
@@ -678,19 +681,23 @@
                     <xsd:element name="objectType" type="xsd:anyURI">
                         <xsd:annotation>
                             <xsd:documentation>
+                                <p>
                                 Type of the stored object.
                                 This attribute contains URI defining the type (class) of
                                 stored object. The URI that maps to a QName of an object
                                 XML element should be used if possible (see QName
                                 mapping above). However this is not mandatory and the
                                 implementation must be able to work with any URI.
+                                </p>
 
+                                <p>
                                 Object type may be changed, but the possible values may
                                 be constrained by the implementation. E.g. the implementation
                                 may allow to change the object type only to the subtype or
                                 supertype, or it may fail if the attributes of the object
                                 does not conform to the schema constraints defined for the
                                 new type.
+                                </p>
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -703,7 +710,8 @@
 	<xsd:complexType name="TriggerType">
        	<xsd:annotation>
     		<xsd:documentation>
-    			TODO
+    			Defines triggers for an object. Trigger is an action that should take place
+                at specified time or under some other condition.
     		</xsd:documentation>
     		<xsd:appinfo>
     			<a:operational>true</a:operational>
@@ -737,19 +745,27 @@
     <xsd:complexType name="MetadataType">
        	<xsd:annotation>
     		<xsd:documentation>
+                <p>
     			Meta-data about data creation, modification, etc.
     			It may apply to objects but also parts of the object (e.g. assignments).
-    			
+                </p>
+
+                <p>
     			Mata-data only apply to successful operations. That is obvious for create, but it also applies
     			to modify. For obvious reasons there are no metadata about delete.
     			We keep no metadata about reading. That would be a huge performance hit.
-    			
+                </p>
+
+                <p>
     			These data are informational only. They should not be used for security purposes (use auditing
     			subsystem for that). But presence of metadata simplifies system administration and may provide
     			some basic information "at the glance" which may be later confirmed by the audit logs.
-    			
+                </p>
+
+                <p>
     			Meta-data are also supposed to be searchable. Therefore they may be used to quickly find
     			"candidate" objects for a closer examination.
+                </p>
     		</xsd:documentation>
     		<xsd:appinfo>
     			<a:operational>true</a:operational>
@@ -936,8 +952,6 @@
             <xsd:documentation>
                 Node describes a single installation of midPoint. MidPoint installations can work in cluster.
                 The Node objects are the way how the nodes in cluster know about each other.
-                
-                EXPERIMENTAL
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
@@ -1168,7 +1182,9 @@
             <xsd:documentation>
                 TaskType contains information about a task (either transient or persistent).
                 For background information and clarification of various terms used here, please see
-                http://wiki.evolveum.com/display/midPoint/Task+Manager.
+                <a href="http://wiki.evolveum.com/display/midPoint/Task+Manager">wiki:Task Manager</a>
+                and
+                <a href="https://wiki.evolveum.com/display/midPoint/Task">wiki:Task</a>.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
@@ -1177,15 +1193,19 @@
                     <xsd:element name="taskIdentifier" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
+                                <p>
                                 Task (lightweight) identifier. This is an unique identification of any task,
                                 regardless whether it is persistent or transient (cf. OID). Therefore this can be used
                                 to identify all tasks, e.g. for the purposes of auditing and logging.
+                                </p>
 
+                                <p>
                                 Task identifier is assigned automatically when the task is created. It is immutable.
                                 It is formally set as optional, however it is mandatory for any task to work. Setting
                                 it to optional allows creating a task without identifier and generating the identifier
                                 during import. However any tasks that live inside midPoint (running or stored in repository)
-                                must have valid task identifier. 
+                                must have valid task identifier.
+                                </p>
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -1429,14 +1449,20 @@
                     <xsd:element name="canRunOnNode" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
+                                <p>
                                 Whether a task is constrained to be run on a particular node,
                                 i.e. it will *not* be executed on a different node.
                                 If this attribute is not specified, the task will be executed on any available node.
+                                </p>
 
+                                <p>
                                 (There may be other constraints on the node(s) where this task may be run,
                                 determined e.g. by task handler.)
+                                </p>
 
+                                <p>
                                 NOTE: This attribute is currently not used; its use is planned.
+                                </p>
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -1854,8 +1880,13 @@
     <xsd:complexType name="FocusType" abstract="true">
         <xsd:annotation>
             <xsd:documentation>
-            	TODO
+            	<p>
+                    Abstract supertype for all object types that can be focus of midPoint computation.
+            	</p>
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:object/>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="c:ObjectType">
@@ -1863,22 +1894,6 @@
 
                     <xsd:element name="link" type="tns:ShadowType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
-                            <xsd:documentation>
-                            	TODO: update
-                            
-                                Set of user's accounts. This is the set of
-                                accounts that belongs to the user in a sense
-                                that these accounts represents the user (the
-                                same physical person, they are analogous).
-                                This element contains full AccountType XML
-                                elements.
-                                This version will probably be used in workflows and
-                                business logic.
-
-                                If this attribute is present in the User object,
-                                the accountRef attribute for the same account
-                                OID must not be present.
-                            </xsd:documentation>
                             <xsd:appinfo>
                     			<a:objectReference>tns:linkRef</a:objectReference>
                     		</xsd:appinfo>
@@ -1888,19 +1903,17 @@
                     <xsd:element name="linkRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                            	TODO: update
-                            	
-                                Set of user's accounts. This is the set of
-                                accounts that belongs to the user in a sense
-                                that these accounts represents the user (the
-                                same physical person, they are analogous).
-                                This element contains a set of pointers to
-                                Account objects (by OID) this version
-                                will be used in repository (for storage).
-
-                                If this attribute is present in the User
-                                object, the account attribute for the same account
-                                OID must not be present.
+                                <p>
+                                Set of shadows linked to this focal object.
+                                E.g. a set of accounts linked to a user. This is the set of
+                                shadows that belongs to the focal object in a sense
+                                that these shadows represents the focal object on the resource.
+                                E.g. The set of accounts that represent the same midPoint user (the
+                                same physical person, they are "analogous").
+                                </p>
+                                <p>
+                                Links define what the object HAS. The links reflect real state of things (cf. assignment).
+                                </p>
                             </xsd:documentation>
                             <xsd:appinfo>
                     			<a:objectReferenceTargetType>tns:ShadowType</a:objectReferenceTargetType>
@@ -1911,23 +1924,21 @@
                     <xsd:element name="assignment" type="tns:AssignmentType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                            	TODO: update
-                                Set of user's assignments.
-                                Represents objects (such as roles) or accounts directly assigned to
-                                a user.
+                                <p>
+                                Set of object's assignments.
+                                Assignments define the privileges and "features" that this object should have, that
+                                this object is entitled to. Typical assignment will point to a role or define
+                                a construction of an account.
+                                </p>
+                                <p>
+                                Assignments represent what the object SHOULD HAVE. The assignments represent a policy,
+                                a desired state of things (cf. linkRef).
+                                </p>
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
 
                     <xsd:element name="activation" type="tns:ActivationType" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Activation. e.g. enable/disable status, start and end dates, etc.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>Activation</a:displayName>
-                            </xsd:appinfo>
-                        </xsd:annotation>
                     </xsd:element>
 
                 </xsd:sequence>
@@ -1953,19 +1964,26 @@
                     <xsd:element name="fullName" type="t:PolyStringType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
+                                <p>
                                 Full name of the user with all the decorations,
                                 middle name initials, honorific title and any
                                 other structure that is usual in the cultural
                                 environment that the system operates in. This
                                 element is intended to be displayed to
                                 a common user of the system.
+                                </p>
 
-                                Examples: cpt. Jack Sparrow,
-                                          William "Bootstrap" Turner,
-                                		  James W. Random, PhD.,
-                                		  Vladimir Iljic Lenin,
-                                		  Josip Broz Tito,
-                                		  Chuck Norris
+                                <p>
+                                Examples:
+                                    <ul>
+                                        <li>cpt. Jack Sparrow</li>
+                                        <li>William "Bootstrap" Turner</li>
+                                        <li>James W. Random, PhD.</li>
+                                        <li>Vladimir Iljic Lenin</li>
+                                        <li>Josip Broz Tito</li>
+                                        <li>Chuck Norris</li>
+                                    </ul>
+                                </p>
                             </xsd:documentation>
                             <xsd:appinfo>
 		                    	<a:displayName>Full Name</a:displayName>
@@ -1977,14 +1995,22 @@
                     <xsd:element name="givenName" type="t:PolyStringType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
+                                <p>
                                 Given name of the user. It is usually the first
                                 name of the user, but the order of names may
                                 differ in various cultural environments. This
                                 element will always contain the name that was
                                 given to the user at birth or was chosen
                                 by the user.
+                                </p>
 
-                                Examples: Jack, Chuck
+                                <p>
+                                Examples:
+                                    <ul>
+                                        <li>Jack</li>
+                                        <li>Chuck</li>
+                                    </ul>
+                                </p>
                             </xsd:documentation>
                             <xsd:appinfo>
 		                    	<a:displayName>Given Name</a:displayName>
@@ -1996,14 +2022,22 @@
                     <xsd:element name="familyName" type="t:PolyStringType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
+                                <p>
                                 Family name of the user. It is usually the last
                                 name of the user, but the order of names may
                                 differ in various cultural environments. This
                                 element will always contain the name that was
                                 inherited from the family or was assigned
                                 to a user by some other means.
+                                </p>
 
-                                Examples: Sparrow, Norris
+                                <p>
+                                Examples:
+                                    <ul>
+                                        <li>Sparrow</li>
+                                        <li>Norris</li>
+                                    </ul>
+                                </p>
                             </xsd:documentation>
                             <xsd:appinfo>
 		                    	<a:displayName>Family Name</a:displayName>
@@ -2543,6 +2577,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
+                <a:displayName>Activation</a:displayName>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>

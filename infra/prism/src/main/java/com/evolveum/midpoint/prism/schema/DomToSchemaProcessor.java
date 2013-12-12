@@ -319,6 +319,10 @@ class DomToSchemaProcessor {
 		}
 		
 		markRuntime(ctd);
+
+        if (complexType.isAbstract()) {
+            ctd.setAbstract(true);
+        }
 		
 		QName superType = determineSupertype(complexType);
 		if (superType != null) {
