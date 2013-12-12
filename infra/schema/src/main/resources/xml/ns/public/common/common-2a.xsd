@@ -8597,7 +8597,7 @@
                         </xsd:annotation>
                     </xsd:element>
             	
-            		<xsd:element name="reportFields" type="tns:ReportFieldConfigurationType" minOccurs="0" maxOccurs="unbounded">
+            		<xsd:element name="reportField" type="tns:ReportFieldConfigurationType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Columns user definition. Name, type, report field, column name.                            
@@ -8605,7 +8605,7 @@
                         </xsd:annotation>
                     </xsd:element>
                                         
-                    <xsd:element name="reportParameters" type="tns:ReportParameterConfigurationType" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="reportParameter" type="tns:ReportParameterConfigurationType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Parameters definition. Name, type, value.                            

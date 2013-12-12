@@ -29,10 +29,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
-import org.hibernate.Query;
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -41,9 +37,9 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -52,16 +48,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.repo.cache.RepositoryCache;
-import com.evolveum.midpoint.repo.sql.data.common.RReport;
-import com.evolveum.midpoint.repo.sql.data.common.RUser;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
-import com.evolveum.midpoint.repo.sql.data.common.enums.RActivationStatus;
-import com.evolveum.midpoint.repo.sql.data.common.enums.RExportType;
-import com.evolveum.midpoint.repo.sql.data.common.enums.ROrientationType;
-import com.evolveum.midpoint.repo.sql.data.common.id.RContainerId;
-import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.PagingConvertor;
 import com.evolveum.midpoint.schema.QueryConvertor;
@@ -84,12 +70,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrientationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportFieldConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportParameterConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.prism.xml.ns._public.query_2.OrderDirectionType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
-//import ar.com.fdvs.dj.core.DynamicJasperHelper;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+
 
 /**
  * @author garbika
@@ -98,10 +83,14 @@ import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class BasicReportTest extends AbstractTestNGSpringContextTests {
 
+	
+	
 	private static final String CLASS_NAME_WITH_DOT = BasicReportTest.class.getName() + ".";
 	private static final String CREATE_REPORT = CLASS_NAME_WITH_DOT + "test001CreateReport";
-	private static final String COMPILE_REPORT = CLASS_NAME_WITH_DOT + "test002CompileReport";
-	private static final String GENERATE_REPORT = CLASS_NAME_WITH_DOT + "test002GenerateReport";
+	private static final String CREATE_REPORT_FROM_FILE = CLASS_NAME_WITH_DOT + "test002CreateReportFromFile";
+	private static final String COPY_REPORT_WITHOUT_JRXML = CLASS_NAME_WITH_DOT + "test003CopyReportWithoutJRXML";
+	//private static final String GENERATE_REPORT = CLASS_NAME_WITH_DOT + "test002GenerateReport";
+	private static final String COUNT_REPORT = CLASS_NAME_WITH_DOT + "test006CountReport";
 	private static final String SEARCH_REPORT = CLASS_NAME_WITH_DOT + "test007SearchReport";
 	private static final String MODIFY_REPORT = CLASS_NAME_WITH_DOT + "test008ModifyReport";
 	private static final String DELETE_REPORT = CLASS_NAME_WITH_DOT + "test009DeleteReport";
@@ -110,27 +99,27 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
     
     private static final File REPORTS_DIR = new File("src/test/resources/reports");
     private static final File STYLES_DIR = new File("src/test/resources/styles");
-    private static final File DATA_DIR = new File("src/test/resources/data");
-    private static final File RESOURCE_OPENDJ_FILE = new File(DATA_DIR, "resource-opendj.xml");
+   // private static final File DATA_DIR = new File("src/test/resources/data");
+   // private static final File RESOURCE_OPENDJ_FILE = new File(DATA_DIR, "resource-opendj.xml");
     
-    private static final String REPORT_DATASOURCE_TEST_1 = REPORTS_DIR + "/reportDataSourceTest.jrxml";
+    private static final String TEST_REPORT_FILE = REPORTS_DIR + "/report-test.xml";
+    private static final String REPORT_DATASOURCE_TEST = REPORTS_DIR + "/reportDataSourceTest.jrxml";
     private static final String STYLE_TEMPLATE_DEFAULT = STYLES_DIR + "/midpoint_base_styles.jrtx";
-    
+    /*
     private static final String FINAL_EXPORT_REPORT_1 = REPORTS_DIR + "/reportDataSourceTestFinal_1";
     private static final String FINAL_EXPORT_REPORT_2 = REPORTS_DIR + "/reportDataSourceTestFinal_2";
     private static final String FINAL_EXPORT_REPORT_3 = REPORTS_DIR + "/reportDataSourceTestFinal_3";
     private static final String FINAL_EXPORT_REPORT_RECONCILIATION = REPORTS_DIR + "/reportDataSourceReconciliation";
-    
+    */
     private static final String REPORT_OID_001 = "00000000-3333-3333-0000-100000000001";
     private static final String REPORT_OID_002 = "00000000-3333-3333-0000-100000000002";
-    
+    private static final String REPORT_OID_TEST = "00000000-3333-3333-TEST-10000000000";
+    /*
     private static final String REPORT_OID_RECONCILIATION = "00000000-3333-3333-0000-100000000003";
     private static final String RESOURCE_OID = "10000000-0000-0000-0000-000000000003";
     private static final String RESOURCE_NAME = "Localhost OpenDJ";
     private static final String INTENT = "default";
-    
-    @Autowired
-    private SessionFactory sessionFactory;
+    */
         
     @Autowired
     private PrismContext prismContext;
@@ -148,42 +137,35 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
 			  return encoding.decode(ByteBuffer.wrap(encoded)).toString();
 	}
  
-    private RReport getReport(String oid) {
-        Session session = sessionFactory.openSession();
-        session.beginTransaction();
-        RReport report = (RReport) session.get(RReport.class, new RContainerId(0L, oid));
-        session.getTransaction().commit();
-        session.close();
-
-        return report;
-    }   
-    
-    @SuppressWarnings("unchecked")
 	@Test
     public void test001CreateReport() throws Exception {
     	
-        RReport report = new RReport();
+    	// vytvorit vstup xml file na report type
+    	// import vo for cycle cez usertype zrusit vsetky RTable
+    	
+        ReportType reportType = new ReportType();
+        prismContext.adopt(reportType);
          
         LOGGER.debug("Creating Test report. DATASOURCE ..... ");
          
-        report.setOid(REPORT_OID_001);
+        reportType.setOid(REPORT_OID_001);
          
         //description and name
-        report.setName(new RPolyString("Test report - Datasource1","Test report - Datasource1"));
-        report.setDescription("TEST Report with DataSource parameter.");
+        reportType.setName(new PolyStringType("Test report - Datasource1"));
+        reportType.setDescription("TEST Report with DataSource parameter.");
          
         //file templates
         String jrxmlFile = null;
         try 
         {
-        	jrxmlFile = readFile(REPORT_DATASOURCE_TEST_1, StandardCharsets.UTF_8);
+        	jrxmlFile = readFile(REPORT_DATASOURCE_TEST, StandardCharsets.UTF_8);
         }
         catch (Exception ex)
         {
         	LOGGER.error("Exception occurred. REPORT_DATASOURCE_TEST", ex);
             
         }
-        report.setReportTemplateJRXML(jrxmlFile);
+        reportType.setReportTemplateJRXML(jrxmlFile);
          
         String jrtxFile = null;
         try
@@ -194,16 +176,16 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
         {
         	LOGGER.error("Exception occurred. STYLE_TEMPLATE_DEFAULT", ex);
         }
-        report.setReportTemplateStyleJRTX(jrtxFile);
+        reportType.setReportTemplateStyleJRTX(jrtxFile);
          
         //orientation
-        report.setReportOrientation(RUtil.getRepoEnumValue(OrientationType.LANDSCAPE, ROrientationType.class));
+        reportType.setReportOrientation(OrientationType.LANDSCAPE);
         
         //export
-     	report.setReportExport(RUtil.getRepoEnumValue(ExportType.PDF, RExportType.class));
+     	reportType.setReportExport(ExportType.PDF);
      	 
         //object class
-        report.setObjectClass(ObjectTypes.getObjectType(UserType.class).getTypeQName());
+        reportType.setObjectClass(ObjectTypes.getObjectType(UserType.class).getTypeQName());
         
         //object query
         ObjectPaging paging = ObjectPaging.createPaging(0, 10);
@@ -225,7 +207,7 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
         {
         	LOGGER.error("Exception occurred. QueryType pagging", ex);
         }  
-        report.setQuery(RUtil.toRepo(queryType, prismContext));
+        reportType.setQuery(queryType);
           
         //fields
         List<ReportFieldConfigurationType> reportFields = new ArrayList<ReportFieldConfigurationType>();
@@ -294,7 +276,7 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
         field.setClassTypeField(itemDef.getTypeName());    
         reportFields.add(field);
         
-        report.setReportFields(RUtil.toRepo(reportFields, prismContext));
+        reportType.getReportField().addAll(reportFields);
          
         //parameters
         List<ReportParameterConfigurationType> reportParameters = new ArrayList<ReportParameterConfigurationType>();
@@ -311,16 +293,16 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
         parameter.setClassTypeParameter(DOMUtil.XSD_STRING);
         reportParameters.add(parameter);
                   
-        report.setReportParameters(RUtil.toRepo(reportParameters, prismContext));
+        reportType.getReportParameter().addAll(reportParameters);
         
         Task task = taskManager.createTaskInstance(CREATE_REPORT);
         OperationResult result = task.getResult();
         result.addParams(new String[] { "task" }, task.getResult());
-        result.addParams(new String[] { "object" }, report);
+        result.addParams(new String[] { "object" }, reportType);
 
         try 
         {
-        	ObjectDelta<ReportType> objectDelta = ObjectDelta.createAddDelta(report.toJAXB(prismContext, null).asPrismObject());
+        	ObjectDelta<ReportType> objectDelta = ObjectDelta.createAddDelta(reportType.asPrismObject());
 			Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 			
 			modelService.executeChanges(deltas, null, task, result);
@@ -334,7 +316,6 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
         	LOGGER.error("Exception occurred. Create report", ex);
         }       
         
-        ReportType reportType = null;
         try
         {
         	Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
@@ -347,8 +328,12 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
         catch (Exception ex)
         {
         	LOGGER.error("Exception occurred. Create report - read", ex);
+        	reportType = null;
         }
          
+        String xmlReportType = prismContext.getPrismDomProcessor().serializeObjectToString(reportType.asPrismObject());
+        LOGGER.warn(xmlReportType);
+        
         // check reportType 
         AssertJUnit.assertNotNull(reportType);
         AssertJUnit.assertEquals("Test report - Datasource1", reportType.getName().getOrig());
@@ -361,7 +346,7 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
         AssertJUnit.assertEquals(queryType, reportType.getQuery());
          
         int fieldCount = reportFields.size();
-        List<ReportFieldConfigurationType> fieldsRepo = reportType.getReportFields();
+        List<ReportFieldConfigurationType> fieldsRepo = reportType.getReportField();
         
         ReportFieldConfigurationType fieldRepo = null;
         AssertJUnit.assertEquals(fieldCount, fieldsRepo.size());
@@ -381,7 +366,7 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
         }
          
         int parameterCount = reportParameters.size();
-        List<ReportParameterConfigurationType> parametersRepo = reportType.getReportParameters();
+        List<ReportParameterConfigurationType> parametersRepo = reportType.getReportParameter();
         
         ReportParameterConfigurationType parameterRepo = null;
         AssertJUnit.assertEquals(parameterCount, parametersRepo.size());
@@ -393,59 +378,8 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
         	AssertJUnit.assertEquals(parameter.getValueParameter(), parameterRepo.getValueParameter());
         	AssertJUnit.assertEquals(parameter.getClassTypeParameter(), parameterRepo.getClassTypeParameter());
         }        
-        report = getReport(REPORT_OID_001);
-         
-        //check report
-        AssertJUnit.assertNotNull(report);
-        AssertJUnit.assertEquals("Test report - Datasource1", report.getName().getOrig());
-        AssertJUnit.assertEquals("TEST Report with DataSource parameter.", report.getDescription());
- 		AssertJUnit.assertEquals(jrxmlFile, report.getReportTemplateJRXML());
-        AssertJUnit.assertEquals(jrtxFile, report.getReportTemplateStyleJRTX());
-        AssertJUnit.assertEquals(RUtil.getRepoEnumValue(OrientationType.LANDSCAPE, ROrientationType.class), report.getReportOrientation());
-        AssertJUnit.assertEquals(RUtil.getRepoEnumValue(ExportType.PDF, RExportType.class), report.getReportExport());
-        AssertJUnit.assertEquals(ObjectTypes.getObjectType(UserType.class).getTypeQName(), report.getObjectClass());      
-        AssertJUnit.assertEquals(queryType, RUtil.toJAXB(ReportType.class, new ItemPath(ReportType.F_QUERY), report.getQuery(), QueryType.class, prismContext));
-        
-        fieldsRepo = null;
-        if (StringUtils.isNotEmpty(report.getReportFields())) 
-        {
-        	fieldsRepo = RUtil.toJAXB(ReportType.class, null, report.getReportFields(), List.class, null, prismContext); 
-        }
-        AssertJUnit.assertEquals(fieldCount, fieldsRepo.size());
-        fieldRepo = null;
-        field = null;
-        for (int i=0; i<fieldCount; i++)
-        {
-        	fieldRepo = fieldsRepo.get(i);
-        	field = reportFields.get(i);
-        	AssertJUnit.assertEquals(field.getNameHeaderField(), fieldRepo.getNameHeaderField());
-        	AssertJUnit.assertEquals(field.getNameReportField(), fieldRepo.getNameReportField());
-        	ItemPath fieldPath = new XPathHolder(field.getItemPathField()).toItemPath();
-        	ItemPath fieldRepoPath = new XPathHolder(fieldRepo.getItemPathField()).toItemPath();
-        	AssertJUnit.assertEquals(fieldPath, fieldRepoPath);
-        	AssertJUnit.assertEquals(field.getSortOrder(), fieldRepo.getSortOrder());
-        	AssertJUnit.assertEquals(field.getSortOrderNumber(), fieldRepo.getSortOrderNumber());
-        	AssertJUnit.assertEquals(field.getClassTypeField(), fieldRepo.getClassTypeField());
-        }        
-         
-        parametersRepo = null;
-        if (StringUtils.isNotEmpty(report.getReportParameters())) 
-        {
-        	parametersRepo = RUtil.toJAXB(ReportType.class, null, report.getReportParameters(), List.class, null, prismContext); 
-        }
-        AssertJUnit.assertEquals(parameterCount, parametersRepo.size());
-        parameterRepo = null;
-        parameter = null;
-        for (int i=0; i<parameterCount; i++)
-        {
-        	parameterRepo = parametersRepo.get(i);
-        	parameter = reportParameters.get(i);
-        	AssertJUnit.assertEquals(parameter.getNameParameter(), parameterRepo.getNameParameter());
-        	AssertJUnit.assertEquals(parameter.getValueParameter(), parameterRepo.getValueParameter());
-        	AssertJUnit.assertEquals(parameter.getClassTypeParameter(), parameterRepo.getClassTypeParameter());
-        }
     }
-    
+    /*
     private void generateUsers()
     {
          LOGGER.info("import users");
@@ -502,7 +436,7 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
          PrismObject<ResourceType> resource = prismContext.getPrismDomProcessor().parseObject(RESOURCE_OPENDJ_FILE);
          
        
-         /*
+         
          Session session = sessionFactory.openSession();
          session.beginTransaction();
             
@@ -511,25 +445,67 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
          AssertJUnit.assertEquals(2L, count);
          
          session.getTransaction().commit();
-         session.close();*/
+         session.close();
          
     }
-    
-   
-    @Test
-    public void test002CompileReport() throws Exception {
+    *//*
+	
+	@Test
+    public void test002CreateReportFromFile() throws Exception 
+    {
     	
-        Session session = null;
-        
-        
-        LOGGER.debug("Generating Test report. DATASOURCE ..... ");
+        LOGGER.debug("Create Test report from xml file.  ");
         
         try {
             
-            session = sessionFactory.openSession();
-            session.beginTransaction();
+            Task task = taskManager.createTaskInstance(CREATE_REPORT_FROM_FILE);
+            OperationResult result = task.getResult();
+            
+            
+            List<PrismObject<? extends Objectable>> report = prismContext.getPrismDomProcessor().parseObjects(
+                    new File(TEST_REPORT_FILE));  
+            
+            for (PrismObject<? extends Objectable> reportType : report) 
+            {
+                
+            	try 
+            	{
+            		ObjectDelta<ReportType> objectDelta = ObjectDelta.createAddDelta((PrismObject<ReportType>) reportType);
+            		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
+    			
+            		modelService.executeChanges(deltas, null, task, result);
+    			
+            		AssertJUnit.assertEquals(REPORT_OID_TEST, objectDelta.getOid());
+
+            		result.computeStatus();
+            	}
+            	catch (Exception ex)
+            	{
+            		LOGGER.error("Exception occurred. Create report", ex);
+            	} 
+
+            }
                
-            Task task = taskManager.createTaskInstance(COMPILE_REPORT);
+        }
+        catch (Exception ex) 
+        {
+        
+            LOGGER.error("Couldn't create jasper report from file.", ex);
+        	throw ex;
+        } 
+   }
+   
+*/
+ 
+    @Test
+    public void test003CopyReportWithoutJRXML() throws Exception 
+    {
+    	
+        LOGGER.debug("Copy Test report without jrxml.");
+        
+        try {
+            
+            Task task = taskManager.createTaskInstance(COPY_REPORT_WITHOUT_JRXML);
             OperationResult result = task.getResult();
             
             ReportType reportType = null;
@@ -544,7 +520,7 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
             }
             catch (Exception ex)
             {
-            	LOGGER.error("Exception occurred. Compile report - read", ex);
+            	LOGGER.error("Exception occurred. Copy report - read", ex);
             }
             reportType = reportType.clone();
             reportType.setOid(REPORT_OID_002);
@@ -564,24 +540,17 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
     		}
             catch (Exception ex)
             {
-            	LOGGER.error("Exception occurred. Compile report", ex);
+            	LOGGER.error("Exception occurred. Copy report", ex);
             }       
             
-            
-            session.getTransaction().commit();
-        } catch (Exception ex) {
-        	if (session != null && session.getTransaction().isActive()) {
-        		session.getTransaction().rollback();
-        	}
-
-            LOGGER.error("Couldn't generate jasper report.", ex);
-        	throw ex;
-        } finally {
-        	if (session != null) {
-        		session.close();
-        	}
         }
-    }
+        catch (Exception ex) 
+        {
+        
+            LOGGER.error("Couldn't copy report.", ex);
+        	throw ex;
+        } 
+   }
    
     /*
     @Test
@@ -1051,17 +1020,46 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
         }
 
     }*/
-    @Test
-    public void test007SearchReport() throws Exception {
-    	
-        Session session = null;
     
+    @Test
+    public void test006CountReport() throws Exception 
+    {
+        LOGGER.debug("Count Test report..... ");
+        
+        try 
+        {
+            Task task = taskManager.createTaskInstance(COUNT_REPORT);
+            OperationResult result = task.getResult();
+            int count = 0;
+            try 
+    		{	 
+            	Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
+            	
+    			count = modelService.countObjects(ReportType.class, null, options, task, result);
+
+    			result.computeStatus();
+    		}
+            catch (Exception ex)
+            {
+            	LOGGER.error("Exception occurred. Count report ", ex);
+            } 
+            AssertJUnit.assertEquals(2, count);
+        } 
+        catch (Exception ex) 
+        {	
+            LOGGER.error("Count test report type.", ex);
+        	throw ex;
+        }
+    }
+
+
+    @Test
+    public void test007SearchReport() throws Exception 
+    {
         LOGGER.debug("Search Test report..... ");
         
-        try {
-            session = sessionFactory.openSession();
-            session.beginTransaction();
-               
+        try 
+        {
             Task task = taskManager.createTaskInstance(SEARCH_REPORT);
             OperationResult result = task.getResult();
             List<PrismObject<ReportType>> listReportType = null;
@@ -1080,33 +1078,22 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
             
             AssertJUnit.assertEquals(2, listReportType.size());
             
-            session.getTransaction().commit();
-        } catch (Exception ex) {
-        	if (session != null && session.getTransaction().isActive()) {
-        		session.getTransaction().rollback();
-        	}
-
+        } 
+        catch (Exception ex) 
+        {	
             LOGGER.error("Couldn't search report type.", ex);
         	throw ex;
-        } finally {
-        	if (session != null) {
-        		session.close();
-        	}
         }
-
     }
 
     @Test
-    public void test008ModifyReport() throws Exception {
+    public void test008ModifyReport() throws Exception 
+    {
     	
-        Session session = null;
-    
         LOGGER.debug("Modify Test report..... ");
         
-        try {
-            session = sessionFactory.openSession();
-            session.beginTransaction();
-               
+        try 
+        {
             Task task = taskManager.createTaskInstance(MODIFY_REPORT);
             OperationResult result = task.getResult();
 
@@ -1158,33 +1145,21 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
             	LOGGER.error("Exception occurred. Modify report - read", ex);
             }            
             
-            session.getTransaction().commit();
-        } catch (Exception ex) {
-        	if (session != null && session.getTransaction().isActive()) {
-        		session.getTransaction().rollback();
-        	}
-
+        } 
+        catch (Exception ex) 
+        {	
             LOGGER.error("Couldn't modify report type.", ex);
         	throw ex;
-        } finally {
-        	if (session != null) {
-        		session.close();
-        	}
         }
-
     }
 
     @Test
     public void test009DeleteReport() throws Exception
     {	
-        Session session = null;
-        
         LOGGER.debug("Delete Test report..... ");
         
-        try {
-            session = sessionFactory.openSession();
-            session.beginTransaction();
-               
+        try 
+        {       
             Task task = taskManager.createTaskInstance(DELETE_REPORT);
     		OperationResult result = task.getResult();		
 
@@ -1212,20 +1187,12 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
     			// This is expected
     		}
             
-            session.getTransaction().commit();
-        } catch (Exception ex) {
-        	if (session != null && session.getTransaction().isActive()) {
-        		session.getTransaction().rollback();
-        	}
-
+        } 
+        catch (Exception ex) 
+        {
             LOGGER.error("Couldn't delete report type.", ex);
         	throw ex;
-        } finally {
-        	if (session != null) {
-        		session.close();
-        	}
-        }
-
+        } 
     }
 
 }

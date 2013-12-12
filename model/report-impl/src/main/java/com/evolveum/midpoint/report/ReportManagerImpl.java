@@ -28,7 +28,6 @@ import javax.xml.namespace.QName;
 
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperCompileManager;
-import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.base.JRBasePen;
 import net.sf.jasperreports.engine.design.JRDesignBand;
 import net.sf.jasperreports.engine.design.JRDesignExpression;
@@ -57,19 +56,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.LoggingConfigurationManager;
-import com.evolveum.midpoint.common.ProfilingConfigurationManager;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
-import com.evolveum.midpoint.model.controller.SystemConfigurationHandler;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -77,8 +72,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportFieldConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportParameterConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
 
 
 /**
@@ -154,7 +147,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
      */
     @Override
     public HookOperationMode invoke(ModelContext context, Task task, OperationResult parentResult)  {
-    	 ModelState state = context.getState();
+    	ModelState state = context.getState();
          if (state != ModelState.FINAL) {
              if (LOGGER.isTraceEnabled()) {
                  LOGGER.trace("report manager called in state = " + state + ", exiting.");
@@ -168,13 +161,13 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
 
          boolean relatesToReport = false;
          boolean isDeletion = false; 
-         PrismObject object = null;
+         PrismObject<?> object = null;
          for (Object o : context.getProjectionContexts()) {     
              boolean deletion = false;
-             object = ((ModelElementContext) o).getObjectNew();
+             object = ((ModelElementContext<?>) o).getObjectNew();
              if (object == null) {
                  deletion = true;
-                 object = ((ModelElementContext) o).getObjectOld();
+                 object = ((ModelElementContext<?>) o).getObjectOld();
              }
              if (object == null) {
                  LOGGER.warn("Probably invalid projection context: both old and new objects are null");  
@@ -282,7 +275,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
 		//Parameters
 		//two parameters are there every time - template styles and logo image and will be excluded
 		List<ReportParameterConfigurationType> parameters = new ArrayList<ReportParameterConfigurationType>();
-		parameters.addAll(reportType.getReportParameters());
+		parameters.addAll(reportType.getReportParameter());
 		
 		for(ReportParameterConfigurationType parameterRepo : parameters)
 		{
@@ -298,7 +291,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
 		}
 				
 		//Fields
-		for(ReportFieldConfigurationType fieldRepo : reportType.getReportFields())
+		for(ReportFieldConfigurationType fieldRepo : reportType.getReportField())
 		{
 			JRDesignField field = new JRDesignField();
 			field.setName(fieldRepo.getNameReportField());
@@ -446,7 +439,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
 		
 		int x = 0;
 		int width = 0;
-		for(ReportFieldConfigurationType fieldRepo : reportType.getReportFields())
+		for(ReportFieldConfigurationType fieldRepo : reportType.getReportField())
 		{
 			staticText = new JRDesignStaticText();
 			staticText.setX(x);
@@ -479,7 +472,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
 		
 		x = 0;
 		width = 0;
-		for(ReportFieldConfigurationType fieldRepo : reportType.getReportFields())
+		for(ReportFieldConfigurationType fieldRepo : reportType.getReportField())
 		{
 			textField = new JRDesignTextField();
 			textField.setX(x);
