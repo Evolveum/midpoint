@@ -210,7 +210,7 @@ public class AESProtector implements Protector {
         this.keyStorePath = keyStorePath;
     }
 
-    private String getKeyStorePath() {
+    public String getKeyStorePath() {
         if (StringUtils.isEmpty(keyStorePath)) {
             throw new IllegalStateException("Keystore path was not defined (is null or empty).");
         }
@@ -287,9 +287,14 @@ public class AESProtector implements Protector {
             String xmlCipherAlgorithm = null;
             if (encrypted.getEncryptionMethod() != null){
             	xmlCipherAlgorithm = encrypted.getEncryptionMethod().getAlgorithm();
-            	if (xmlCipherAlgorithm == null){
+            	LOGGER.trace("Obtaining cipher algorithm.");
+            	if (StringUtils.isNotBlank(xmlCipherAlgorithm)){
+            		LOGGER.trace("Cipher algorithm obtained from the encrypted data: {}", xmlCipherAlgorithm);
+            	} else{
             		xmlCipherAlgorithm = getXmlCipher();
+            		LOGGER.trace("Using default cipher algorith [{}] for decryption: ", xmlCipherAlgorithm);
             	}
+            	
             }
             SecretKey secret = getSecretKeyByDigest(digest);
             XMLCipher xmlCipher = XMLCipher.getInstance(xmlCipherAlgorithm);
@@ -489,4 +494,9 @@ public class AESProtector implements Protector {
     private PrismJaxbProcessor getJaxbProcessor() {
         return prismContext.getPrismJaxbProcessor();
     }
+
+	@Override
+	public KeyStore getKeyStore() {
+		return keyStore;
+	}
 }

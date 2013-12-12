@@ -134,6 +134,9 @@ public class ResourceManager {
 		PrismObject<ResourceType> cachedResource = resourceCache.get(oid, version);
 		if (cachedResource != null) {
 			InternalMonitor.getResourceCacheStats().recordHit();
+			if (LOGGER.isTraceEnabled()){
+				LOGGER.trace("Returning resource from cache:\n{}", cachedResource.dump());
+			}
 			return cachedResource;
 		}
 		
