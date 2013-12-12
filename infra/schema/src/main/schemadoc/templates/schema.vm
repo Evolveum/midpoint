@@ -24,7 +24,7 @@
     </tr>
     #foreach($definition in $schema.getComplexTypeDefinitions())
         <tr>
-            <td><a href="$path.objectDefinitionUrl($definition)">$definition.TypeName.LocalPart</a></td>
+            <td><a href="$path.typeDefinitionUrl($definition)">$definition.TypeName.LocalPart</a></td>
             <td>$!definition.getDocumentationPreview()</td>
         </tr>
     #end

@@ -174,8 +174,8 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	@Autowired(required = true)
 	private TaskManager taskManager;
 
-    @Autowired(required = true)
-    private WorkflowManager workflowManager;
+//    @Autowired(required = true)
+//    private WorkflowManager workflowManager;
 	
 	@Autowired(required = true)
 	private ChangeExecutor changeExecutor;

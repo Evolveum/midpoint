@@ -4,6 +4,17 @@
 <p>
 Namespace: $definition.TypeName.NamespaceURI
 </p>
+#if($definition.Abstract)
+<p>
+    ABSTRACT
+</p>
+#end
+#if($definition.SuperType)
+    #set( $typeUrl = $path.typeDefinitionUrl($definition.TypeName,$prefixToBase,$prismContext))
+<p>
+    Supertype: <a href="$!typeUrl">$definition.SuperType.LocalPart</a>
+</p>
+#end
 
 <p>
 $!definition.Documentation

@@ -22,6 +22,7 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.MiscUtil;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 
@@ -59,6 +60,7 @@ public abstract class Definition implements Serializable, Dumpable, DebugDumpabl
 	protected QName defaultName;
 	protected QName typeName;
 	protected boolean ignored = false;
+    protected boolean isAbstract = false;
 	protected String displayName;
 	protected Integer displayOrder;
 	protected String help;
@@ -130,7 +132,15 @@ public abstract class Definition implements Serializable, Dumpable, DebugDumpabl
 		this.ignored = ignored;
 	}
 
-	/**
+    public boolean isAbstract() {
+        return isAbstract;
+    }
+
+    public void setAbstract(boolean isAbstract) {
+        this.isAbstract = isAbstract;
+    }
+
+    /**
 	 * Returns display name.
 	 * 
 	 * Specifies the printable name of the object class or attribute. It must
@@ -198,14 +208,15 @@ public abstract class Definition implements Serializable, Dumpable, DebugDumpabl
      * Returns only a first sentence of documentation.
      */
     public String getDocumentationPreview() {
-        if (documentation == null) {
-            return null;
-        }
-        int i = documentation.indexOf('.');
-        if (i<0) {
+        if (documentation == null || documentation.isEmpty()) {
             return documentation;
         }
-        return documentation.substring(0,i+1);
+        String plainDoc = MiscUtil.stripHtmlMarkup(documentation);
+        int i = plainDoc.indexOf('.');
+        if (i<0) {
+            return plainDoc;
+        }
+        return plainDoc.substring(0,i+1);
     }
 
     public boolean isRuntimeSchema() {

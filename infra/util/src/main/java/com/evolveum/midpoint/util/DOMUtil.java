@@ -1106,4 +1106,13 @@ public class DOMUtil {
 	public static void setNill(Element element) {
 		element.setAttributeNS(XSI_NIL.getNamespaceURI(), XSI_NIL.getLocalPart(), "true");
 	}
+
+    /**
+     * Serializes the content of the element to a string (without the eclosing element tags).
+     */
+    public static String serializeElementContent(Element element) {
+        String completeXml = serializeDOMToString(element);
+        String restXml = completeXml.replaceFirst("^\\s*<[^>]>", "");
+        return restXml.replaceFirst("</[^>]>\\s*$", "");
+    }
 }
