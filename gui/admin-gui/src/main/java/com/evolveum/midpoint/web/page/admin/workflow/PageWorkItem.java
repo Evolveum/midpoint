@@ -320,7 +320,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         WorkItemDetailed workItem = null;
         try {
             WorkflowManager wfm = getWorkflowManager();
-            workItem = wfm.getWorkItemDetailsByTaskId(parameters.get(PARAM_TASK_ID).toString(), result);
+            workItem = wfm.getWorkItemDetailsById(parameters.get(PARAM_TASK_ID).toString(), result);
             result.recordSuccessIfUnknown();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't get work item.", ex);
@@ -342,7 +342,7 @@ public class PageWorkItem extends PageAdminWorkItems {
             String taskId = parameters.get(PARAM_TASK_ID).toString();
             LOGGER.trace("Loading process instance for task {}", taskId);
             WorkflowManager wfm = getWorkflowManager();
-            processInstance = wfm.getProcessInstanceByTaskId(taskId, result);
+            processInstance = wfm.getProcessInstanceByWorkItemId(taskId, result);
             LOGGER.trace("Found process instance {}", processInstance);
             result.recordSuccess();
             return new ProcessInstanceDto(processInstance);

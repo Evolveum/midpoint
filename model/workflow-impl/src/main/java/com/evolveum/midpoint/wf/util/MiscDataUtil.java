@@ -102,6 +102,24 @@ public class MiscDataUtil {
         }
     }
 
+    public PrismObject<UserType> getUserByOid(String oid, OperationResult result) {
+        if (oid == null) {
+            return null;
+        }
+        try {
+            return repositoryService.getObject(UserType.class, oid, null, result);
+        } catch (ObjectNotFoundException e) {
+            // there should be a note in result by now
+            LoggingUtils.logException(LOGGER, "Couldn't get user {} details because it couldn't be found", e, oid);
+            return null;
+        } catch (SchemaException e) {
+            // there should be a note in result by now
+            LoggingUtils.logException(LOGGER, "Couldn't get user {} details due to schema exception", e, oid);
+            return null;
+        }
+    }
+
+
     // returns oid when user cannot be retrieved
     public String getUserNameByOid(String oid, OperationResult result) {
         try {
@@ -145,6 +163,11 @@ public class MiscDataUtil {
     }
 
     public ObjectDelta getObjectDelta(Map<String, Object> variables, OperationResult result, boolean mayBeNull) throws JAXBException, SchemaException {
+        ObjectDeltaType objectDeltaType = getObjectDeltaType(variables, result, mayBeNull);
+        return DeltaConvertor.createObjectDelta(objectDeltaType, prismContext);
+    }
+
+    public ObjectDeltaType getObjectDeltaType(Map<String, Object> variables, OperationResult result, boolean mayBeNull) throws JAXBException, SchemaException {
         StringHolder deltaXml = (StringHolder) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_DELTA);
         if (deltaXml == null) {
             if (mayBeNull) {
@@ -153,12 +176,15 @@ public class MiscDataUtil {
                 throw new IllegalStateException("There's no delta in process variables");
             }
         }
-        ObjectDeltaType objectDeltaType = prismContext.getPrismJaxbProcessor().unmarshalObject(deltaXml.getValue(), ObjectDeltaType.class);
-        return DeltaConvertor.createObjectDelta(objectDeltaType, prismContext);
+        return prismContext.getPrismJaxbProcessor().unmarshalObject(deltaXml.getValue(), ObjectDeltaType.class);
     }
 
-    public PrismObject<? extends ObjectType> getObjectAfter(Map<String, Object> variables, ObjectDelta delta, PrismObject<? extends ObjectType> objectBefore, PrismContext prismContext, OperationResult result) throws JAXBException, SchemaException {
-        if (delta == null) {
+    public PrismObject<? extends ObjectType> getObjectAfter(Map<String, Object> variables, ObjectDeltaType deltaType, PrismObject<? extends ObjectType> objectBefore, PrismContext prismContext, OperationResult result) throws JAXBException, SchemaException {
+
+        ObjectDelta delta;
+        if (deltaType != null) {
+            delta = DeltaConvertor.createObjectDelta(deltaType, prismContext);
+        } else {
             delta = getObjectDelta(variables, result, true);
         }
 

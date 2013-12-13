@@ -439,6 +439,9 @@ public class XmlTypeConverter {
     }
     
 	public static XMLGregorianCalendar createXMLGregorianCalendar(Date date) {
+        if (date == null) {
+            return null;
+        }
 		GregorianCalendar gregorianCalendar = new GregorianCalendar();
 		gregorianCalendar.setTime(date);
 		return createXMLGregorianCalendar(gregorianCalendar);

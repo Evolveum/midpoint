@@ -81,11 +81,11 @@ public class PageProcessInstance extends PageAdminWorkItems {
             boolean finished = parameters.get(PARAM_PROCESS_INSTANCE_FINISHED).toBoolean();
             ProcessInstance processInstance;
             try {
-                processInstance = getWorkflowManager().getProcessInstanceByInstanceId(pid.toString(), finished, true, result);
+                processInstance = getWorkflowManager().getProcessInstanceById(pid.toString(), finished, true, result);
             } catch (ObjectNotFoundException e) {
                 if (finished == false) {
                     // maybe the process instance has finished in the meanwhile...
-                    processInstance = getWorkflowManager().getProcessInstanceByInstanceId(pid.toString(), true, true, result);
+                    processInstance = getWorkflowManager().getProcessInstanceById(pid.toString(), true, true, result);
                 } else {
                     throw e;
                 }

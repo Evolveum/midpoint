@@ -346,8 +346,8 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
     }
 
     @Override
-    public PrismObject<? extends ObjectType> getAdditionalData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        return getProcessWrapper(variables).getAdditionalData(task, variables, result);
+    public PrismObject<? extends ObjectType> getRelatedObject(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        return getProcessWrapper(variables).getRelatedObject(task, variables, result);
     }
 
     @Override
