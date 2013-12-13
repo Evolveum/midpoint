@@ -20,9 +20,8 @@ import java.io.*;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.util.MiscUtil;
 import org.apache.maven.archiver.MavenArchiveConfiguration;
-import org.apache.maven.archiver.MavenArchiver;
-import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
@@ -31,7 +30,6 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 import org.codehaus.plexus.archiver.ArchiverException;
-import org.codehaus.plexus.archiver.jar.ManifestException;
 import org.codehaus.plexus.archiver.zip.ZipArchiver;
 import org.xml.sax.SAXException;
 
@@ -78,9 +76,14 @@ public class SchemaDocMojo extends AbstractMojo {
     private File destDir;
 
     /**
-     * @parameter required=true
+     * @parameter default-value="src/main/schemadoc/templates" required=true
      */
     private File templateDir;
+
+    /**
+     * @parameter default-value="src/main/schemadoc/resources"
+     */
+    private File resourcesDir;
 
     /** @parameter default-value="${project}" */
     private org.apache.maven.project.MavenProject project;
@@ -125,6 +128,12 @@ public class SchemaDocMojo extends AbstractMojo {
             } catch (IOException e) {
                 throw new MojoExecutionException(e.getMessage(),e);
             }
+        }
+
+        try {
+            copyResources(outDir);
+        } catch (IOException e) {
+            throw new MojoExecutionException(e.getMessage(),e);
         }
 
         File archiveFile = null;
@@ -272,6 +281,13 @@ public class SchemaDocMojo extends AbstractMojo {
         ve.init();
         return ve;
     }
+
+    private void copyResources(File outDir) throws IOException {
+        if (resourcesDir.exists()) {
+            MiscUtil.copyDirectory(resourcesDir, outDir);
+        }
+    }
+
 
     private File generateArchive(File outDir, String archiveFilename) throws IOException, ArchiverException {
         File zipFile = new File(buildDir, archiveFilename);
