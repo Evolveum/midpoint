@@ -19,10 +19,13 @@
 <body>
 <wicket:extend>
     <form wicket:id="mainForm">
-         <span class="operatingFormText"><wicket:message key="PageTimeTest.offset"/></span>
-    <span wicket:id="offset"/>
+        <span class="operatingFormText"><wicket:message key="PageTimeTest.offset"/></span>
 
-    <a wicket:id="save" />
+        <span wicket:id="offset"/>
+
+        <div class="main-button-bar">
+            <a class="btn btn-default" wicket:id="save"/>
+        </div>
     </form>
 </wicket:extend>
 </body>

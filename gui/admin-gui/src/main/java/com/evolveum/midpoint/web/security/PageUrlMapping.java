@@ -84,7 +84,7 @@ public enum PageUrlMapping {
     CONFIG_DEBUGS("/admin/config/debugs", PageDebugList.class, MidPointPageParametersEncoder.ENCODER, new String[]{AUTZ_UI_CONFIGURATION_DEBUGS_URL, AUTZ_UI_CONFIGURATION_ALL_URL}),
     CONFIG_IMPORT("/admin/config/import", PageImportObject.class, MidPointPageParametersEncoder.ENCODER, new String[]{AUTZ_UI_CONFIGURATION_IMPORT_URL, AUTZ_UI_CONFIGURATION_ALL_URL}),
     CONFIG_LOGGING("/admin/config/logging", PageLogging.class, MidPointPageParametersEncoder.ENCODER, new String[]{AUTZ_UI_CONFIGURATION_LOGGING_URL, AUTZ_UI_CONFIGURATION_ALL_URL}),
-    CONFIG_TIME_TEST("/admin/config/timeTest", PageTimeTest.class, MidPointPageParametersEncoder.ENCODER, new String[]{AUTZ_DENY_ALL_URL}),
+    CONFIG_TIME_TEST("/admin/config/timeTest", PageTimeTest.class, MidPointPageParametersEncoder.ENCODER, new String[]{null}),
     CONFIG_SYSTEM_CONFIGURATION("/admin/config/system", PageSystemConfiguration.class, MidPointPageParametersEncoder.ENCODER, new String[]{AUTZ_UI_CONFIGURATION_SYSTEM_CONFIG_URL}),
     CONFIG_ABOUT("/admin/config/about", PageAbout.class, MidPointPageParametersEncoder.ENCODER, new String[]{AUTZ_UI_PERMIT_ALL_URL}),
     CONFIG_SYNC_ACCOUNTS("/admin/config/sync/accounts", PageAccounts.class, MidPointPageParametersEncoder.ENCODER, null),

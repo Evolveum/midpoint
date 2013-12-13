@@ -20,9 +20,7 @@
 <wicket:extend>
     <div wicket:id="ownerChangePopup" />
 
-    <h2>
-        <wicket:message key="pageContentAccounts.accounts"/>
-    </h2>
+    <h3><wicket:message key="pageContentAccounts.accounts"/></h3>
     <form wicket:id="mainForm" >
         <div wicket:id="option">
             <div wicket:id="search">
@@ -38,8 +36,8 @@
                         </td>
                     </tr>
                 </table>
-                <a class="submitSearch" wicket:id="clearButton"/>
-                <a wicket:id="searchButton"/>
+                <a class="btn btn-default btn-sm" class="submitSearch" wicket:id="clearButton"/>
+                <a class="btn btn-default btn-sm" wicket:id="searchButton"/>
             </div>
         </div>
 
@@ -47,10 +45,8 @@
             <div wicket:id="table"/>
         </div>
 
-        <div class="operatingFormButtons">
-            <div class="operatingFormBlock">
-                <a wicket:id="removeOwner"/>
-            </div>
+        <div class="main-button-bar">
+            <a class="btn btn-default" wicket:id="removeOwner"/>
         </div>
     </form>
 </wicket:extend>

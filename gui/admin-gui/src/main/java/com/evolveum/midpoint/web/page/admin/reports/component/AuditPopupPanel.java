@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.reports.component;
 
 import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
 import com.evolveum.midpoint.web.component.button.ButtonType;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
@@ -113,8 +114,7 @@ public class AuditPopupPanel extends SimplePanel<AuditReportDto> {
 
         form.add(new DateValidator(dateFrom, dateTo));
 
-        AjaxSubmitLinkButton run = new AjaxSubmitLinkButton(ID_RUN, ButtonType.POSITIVE,
-                createStringResource("PageBase.button.run")) {
+        AjaxSubmitButton run = new AjaxSubmitButton(ID_RUN, createStringResource("PageBase.button.run")) {
 
             @Override
             protected void onError(AjaxRequestTarget target, Form<?> form) {

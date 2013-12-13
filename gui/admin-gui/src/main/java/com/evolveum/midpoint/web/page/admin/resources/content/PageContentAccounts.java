@@ -35,9 +35,8 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
-import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
-import com.evolveum.midpoint.web.component.button.ButtonType;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.ButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
@@ -163,7 +162,7 @@ public class PageContentAccounts extends PageAdminResources {
     }
 
     private void initButtons(Form mainForm) {
-        AjaxLinkButton removeOwner = new AjaxLinkButton("removeOwner", ButtonType.NEGATIVE,
+        AjaxButton removeOwner = new AjaxButton("removeOwner",
                 createStringResource("pageContentAccounts.button.removeOwner")) {
 
             @Override
@@ -183,7 +182,7 @@ public class PageContentAccounts extends PageAdminResources {
         CheckBox fullNameCheck = new CheckBox("identifiersCheck", new PropertyModel<Boolean>(model, "identifiers"));
         item.add(fullNameCheck);
 
-        AjaxSubmitLinkButton clearButton = new AjaxSubmitLinkButton("clearButton",
+        AjaxSubmitButton clearButton = new AjaxSubmitButton("clearButton",
                 createStringResource("pageContentAccounts.button.clearButton")) {
 
             @Override
@@ -198,7 +197,7 @@ public class PageContentAccounts extends PageAdminResources {
         };
         item.add(clearButton);
 
-        AjaxSubmitLinkButton searchButton = new AjaxSubmitLinkButton("searchButton",
+        AjaxSubmitButton searchButton = new AjaxSubmitButton("searchButton",
                 createStringResource("pageContentAccounts.button.searchButton")) {
 
             @Override
