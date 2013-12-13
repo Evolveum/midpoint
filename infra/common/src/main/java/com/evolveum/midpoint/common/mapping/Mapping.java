@@ -33,6 +33,7 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.expression.Expression;
 import com.evolveum.midpoint.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.common.expression.ExpressionFactory;
@@ -380,6 +381,10 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 	}
 	
 	public boolean isApplicableToChannel(String channelUri) {
+		List<String> exceptChannel = mappingType.getExceptChannel();
+		if (exceptChannel != null &&  !exceptChannel.isEmpty()){
+			return !exceptChannel.contains(channelUri);
+		}
 		List<String> applicableChannels = mappingType.getChannel();
 		if (applicableChannels == null || applicableChannels.isEmpty()) {
 			return true;
@@ -950,6 +955,13 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 	}
 	
 	public PrismValueDeltaSetTriple<V> getOutputTriple() {
+		if (outputTriple != null && InternalsConfig.consistencyChecks) {
+			try {
+				outputTriple.checkNoParent();
+			} catch (IllegalStateException e) {
+				throw new IllegalStateException(e.getMessage() + " in output triple in " + getContextDescription(), e);
+			}
+		}
 		return outputTriple;
 	}
 

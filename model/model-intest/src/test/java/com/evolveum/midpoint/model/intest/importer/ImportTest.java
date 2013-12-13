@@ -17,7 +17,6 @@ package com.evolveum.midpoint.model.intest.importer;
 
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.common.InternalsConfig;
-import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.intest.AbstractConfiguredModelIntegrationTest;
 import com.evolveum.midpoint.prism.*;
@@ -116,7 +115,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		
 		// Just initialize the resource, do NOT import resource definition
 		dummyResourceCtl = DummyResourceContoller.create(null);
-		dummyResourceCtl.extendDummySchema();
+		dummyResourceCtl.extendSchemaPirate();
 		dummyResource = dummyResourceCtl.getDummyResource();
 		
 		dummyConnector = findConnectorByTypeAndVersion(CONNECTOR_DUMMY_TYPE, CONNECTOR_DUMMY_VERSION, initResult);

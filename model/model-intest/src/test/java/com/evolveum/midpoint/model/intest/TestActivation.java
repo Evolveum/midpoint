@@ -52,6 +52,7 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -107,7 +108,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		super.initSystem(initTask, initResult);
 		
 		dummyResourceCtlKhaki = DummyResourceContoller.create(RESOURCE_DUMMY_KHAKI_NAME, resourceDummyKhaki);
-		dummyResourceCtlKhaki.extendDummySchema();
+		dummyResourceCtlKhaki.extendSchemaPirate();
 		dummyResourceKhaki = dummyResourceCtlKhaki.getDummyResource();
 		resourceDummyKhaki = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_KHAKI_FILE, RESOURCE_DUMMY_KHAKI_OID, initTask, initResult); 
 		resourceDummyKhakiType = resourceDummyKhaki.asObjectable();
@@ -300,6 +301,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		String accountOid = getAccountRef(userJack, RESOURCE_DUMMY_OID);
 		PrismObject<ShadowType> accountShadow = getAccount(accountOid);
 		assertDisableTimestampShadow(accountShadow, startTime, endTime);
+		assertDisableReasonShadow(accountShadow, SchemaConstants.MODEL_DISABLE_REASON_MAPPED);
 	}
 	
 	@Test
@@ -357,21 +359,69 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		
 		String accountOid = getAccountRef(userJack, RESOURCE_DUMMY_OID);
 		PrismObject<ShadowType> accountShadow = getAccount(accountOid);
+		assertAdministrativeStatusDisabled(accountShadow);
 		assertDisableTimestampShadow(accountShadow, startTime, endTime);
+		assertDisableReasonShadow(accountShadow, SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);
         
 		assertAdministrativeStatusEnabled(userJack);
 		assertDummyDisabled("jack");
 	}
 	
 	/**
+	 * Make sure that recompute does not destroy anything.
+	 */
+	@Test
+    public void test112UserJackRecompute() throws Exception {
+		final String TEST_NAME = "test112UserJackRecompute";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
+        dummyAuditService.clear();
+        
+		// WHEN
+        recomputeUser(USER_JACK_OID, task, result);
+		
+		// THEN
+		result.computeStatus();
+        TestUtil.assertSuccess("recompute result", result);
+        
+        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after change execution", userJack);
+		assertUserJack(userJack, "Jack Sparrow");
+		
+		String accountOid = getAccountRef(userJack, RESOURCE_DUMMY_OID);
+		PrismObject<ShadowType> accountShadow = getAccount(accountOid);
+		assertAdministrativeStatusDisabled(accountShadow);
+		assertDisableTimestampShadow(accountShadow, null, startTime);
+		assertDisableReasonShadow(accountShadow, SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);
+        
+		assertAdministrativeStatusEnabled(userJack);
+		assertDummyDisabled("jack");
+		
+		// Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertNoRecord();
+//        dummyAuditService.assertRecords(2);
+//        dummyAuditService.assertSimpleRecordSanity();
+//        dummyAuditService.assertAnyRequestDeltas();
+//        dummyAuditService.assertExecutionDeltas(0);
+//        dummyAuditService.assertExecutionSuccess();
+	}
+	
+	/**
 	 * Re-enabling the user should enable the account as well. Even if the user is already enabled.
 	 */
 	@Test
-    public void test112ModifyUserJackEnable() throws Exception {
-        TestUtil.displayTestTile(this, "test112ModifyUserJackEnable");
+    public void test114ModifyUserJackEnable() throws Exception {
+		final String TEST_NAME = "test114ModifyUserJackEnable";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + ".test112ModifyUserJackEnable");
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
@@ -404,17 +454,18 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 	 * and account should have its own state.
 	 */
 	@Test
-    public void test113ModifyJackActivationUserAndAccount() throws Exception {
-        TestUtil.displayTestTile(this, "test113ModifyJackActivationUserAndAccount");
+    public void test115ModifyJackActivationUserAndAccount() throws Exception {
+		final String TEST_NAME = "test115ModifyJackActivationUserAndAccount";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + ".test113ModifyJackActivationUserAndAccount");
+        Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
         
         ObjectDelta<UserType> userDelta = createModifyUserReplaceDelta(USER_JACK_OID, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, ActivationStatusType.ENABLED);
         ObjectDelta<ShadowType> accountDelta = createModifyAccountShadowReplaceDelta(accountOid, resourceDummy, 
-        		ACTIVATION_ADMINISTRATIVE_STATUS_PATH, ActivationStatusType.DISABLED);        
+        		ACTIVATION_ADMINISTRATIVE_STATUS_PATH, ActivationStatusType.DISABLED);
 		
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta);
         
@@ -440,6 +491,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertShadowModel(account, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyType);
         assertAdministrativeStatusDisabled(account);
         assertDisableTimestampShadow(account, startTime, endTime);
+        assertDisableReasonShadow(account, SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);
 	}
 	
 	/**
@@ -537,6 +589,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         assertShadowModel(accountRed, accountRedOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyRedType);
         assertAdministrativeStatusDisabled(accountRed);
         assertDisableTimestampShadow(accountRed, startTime, endTime);
+        assertDisableReasonShadow(accountRed, SchemaConstants.MODEL_DISABLE_REASON_MAPPED);
 	}
 	
 	@Test
@@ -636,6 +689,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         PrismObject<ShadowType> accountRed = getAccount(accountRedOid);
         assertShadowModel(accountRed, accountRedOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyRedType);
         assertAdministrativeStatusDisabled(accountRed);
+        assertDisableReasonShadow(accountRed, SchemaConstants.MODEL_DISABLE_REASON_DEPROVISION);
                 
         // Check account in dummy resource
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow", false);
@@ -784,10 +838,18 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     private void checkAdminStatusFor15x(PrismObject user, boolean userStatus, boolean accountStatus, boolean accountStatusYellow) throws Exception {
         PrismObject<ShadowType> account = getAccount(accountOid);
         PrismObject<ShadowType> accountYellow = getAccount(accountYellowOid);
+        
         assertShadowModel(account, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyType);
         assertAdministrativeStatus(account, accountStatus ? ActivationStatusType.ENABLED : ActivationStatusType.DISABLED);
+        if (!accountStatus) {
+        	assertDisableReasonShadow(account, SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);
+        }
+        
         assertShadowModel(accountYellow, accountYellowOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyYellowType);
         assertAdministrativeStatus(accountYellow, accountStatusYellow ? ActivationStatusType.ENABLED : ActivationStatusType.DISABLED);
+        if (!accountStatusYellow) {
+        	assertDisableReasonShadow(accountYellow, SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);
+        }
 
         assertAdministrativeStatus(user, userStatus ? ActivationStatusType.ENABLED : ActivationStatusType.DISABLED);
 

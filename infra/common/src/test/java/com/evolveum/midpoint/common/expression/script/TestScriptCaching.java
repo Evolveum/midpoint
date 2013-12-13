@@ -120,11 +120,11 @@ public class TestScriptCaching {
     	
     	long etimeSecond = executeScript("expression-string-variables.xml", "FOOBAR", "second");
     	assertScriptMonitor(1,2, "second");
-    	assertTrue("Einstein was wrong! "+etimeFirst+" -> "+etimeSecond, etimeSecond < etimeFirst);
+    	assertTrue("Einstein was wrong! "+etimeFirst+" -> "+etimeSecond, etimeSecond <= etimeFirst);
     	
     	long etimeThird = executeScript("expression-string-variables.xml", "FOOBAR", "second");
     	assertScriptMonitor(1,3, "third");
-    	assertTrue("Einstein was wrong again! "+etimeFirst+" -> "+etimeThird, etimeThird < etimeFirst);
+    	assertTrue("Einstein was wrong again! "+etimeFirst+" -> "+etimeThird, etimeThird <= etimeFirst);
     	
     	// Different script. Should compile.
     	long horatio1Time = executeScript("expression-func-concatname.xml", "Horatio Torquemada Marley", "horatio");
@@ -133,12 +133,12 @@ public class TestScriptCaching {
     	// Same script. No compilation.
     	long etimeFourth = executeScript("expression-string-variables.xml", "FOOBAR", "fourth");
     	assertScriptMonitor(2,5, "fourth");
-    	assertTrue("Einstein was wrong all the time! "+etimeFirst+" -> "+etimeFourth, etimeFourth < etimeFirst);
+    	assertTrue("Einstein was wrong all the time! "+etimeFirst+" -> "+etimeFourth, etimeFourth <= etimeFirst);
     	
     	// Try this again. No compile.
     	long horatio2Time = executeScript("expression-func-concatname.xml", "Horatio Torquemada Marley", "horatio2");
     	assertScriptMonitor(2,6, "horatio2");
-    	assertTrue("Even Horatio was wrong! "+horatio1Time+" -> "+horatio2Time, horatio2Time < horatio1Time);
+    	assertTrue("Even Horatio was wrong! "+horatio1Time+" -> "+horatio2Time, horatio2Time <= horatio1Time);
     }
     	
     private void assertScriptMonitor(int expCompilations, int expExecutions, String desc) {

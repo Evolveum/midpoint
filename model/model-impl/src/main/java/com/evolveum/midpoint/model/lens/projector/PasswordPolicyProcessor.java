@@ -95,16 +95,21 @@ public class PasswordPolicyProcessor {
 			PropertyDelta<PasswordType> passwordValueDelta = null;
 			if (userDelta != null) {
 				passwordValueDelta = userDelta.findPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
-				// Modification sanity check
-				if (userDelta.getChangeType() == ChangeType.MODIFY && passwordValueDelta != null
-						&& (passwordValueDelta.isAdd() || passwordValueDelta.isDelete())) {
-					throw new SchemaException("User password value cannot be added or deleted, it can only be replaced");
-				}
 				if (passwordValueDelta == null) {
 					LOGGER.trace("Skipping processing password policies. User delta does not contain password change.");
 					return ;
 				}
-				password = passwordValueDelta.getPropertyNew();
+				if (userDelta.getChangeType() == ChangeType.MODIFY && passwordValueDelta != null) {
+					if (passwordValueDelta.isAdd()) {
+						password = passwordValueDelta.getPropertyNew();
+					} else if (passwordValueDelta.isDelete()) {
+						password = null;
+					} else {
+						password = passwordValueDelta.getPropertyNew();
+					}
+				} else {
+					password = passwordValueDelta.getPropertyNew();
+				}
 			}
 		}
 		

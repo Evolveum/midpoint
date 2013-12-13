@@ -90,7 +90,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 		LogfileTestTailer tailer = new LogfileTestTailer();
 		
 		PrismObject<SystemConfigurationType> systemConfiguration = 
-			PrismTestUtil.parseObject(new File(AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_FILENAME));
+			PrismTestUtil.parseObject(AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_FILE);
 		Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName()+".test001AddConfiguration");
 		OperationResult result = task.getResult();
 		ObjectDelta<SystemConfigurationType> systemConfigurationAddDelta = ObjectDelta.createAddDelta(systemConfiguration);		
@@ -121,7 +121,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 		OperationResult result = task.getResult();
 		
 		PrismObject<SystemConfigurationType> systemConfiguration = 
-			PrismTestUtil.parseObject(new File(AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_FILENAME));
+			PrismTestUtil.parseObject(AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_FILE);
 		LoggingConfigurationType logging = systemConfiguration.asObjectable().getLogging();
 		
 		applyTestLoggingConfig(logging);
@@ -194,7 +194,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 
 		// Setup
 		PrismObject<SystemConfigurationType> systemConfiguration = 
-			PrismTestUtil.parseObject(new File(AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_FILENAME));
+			PrismTestUtil.parseObject(AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_FILE);
 		LoggingConfigurationType logging = systemConfiguration.asObjectable().getLogging();
 		
 		applyTestLoggingConfig(logging);
@@ -282,7 +282,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 		
 		// Setup
 		PrismObject<SystemConfigurationType> systemConfiguration = 
-			PrismTestUtil.parseObject(new File(AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_FILENAME));
+			PrismTestUtil.parseObject(AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_FILE);
 		LoggingConfigurationType logging = systemConfiguration.asObjectable().getLogging();
 		
 		applyTestLoggingConfig(logging);
@@ -341,7 +341,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 		
 		// Setup
 		PrismObject<SystemConfigurationType> systemConfiguration = 
-			PrismTestUtil.parseObject(new File(AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_FILENAME));
+			PrismTestUtil.parseObject(AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_FILE);
 		LoggingConfigurationType logging = systemConfiguration.asObjectable().getLogging();
 		
 		applyTestLoggingConfig(logging);
@@ -403,7 +403,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 
 		// Setup
 		PrismObject<SystemConfigurationType> systemConfiguration = 
-			PrismTestUtil.parseObject(new File(AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_FILENAME));
+			PrismTestUtil.parseObject(AbstractInitializedModelIntegrationTest.SYSTEM_CONFIGURATION_FILE);
 		LoggingConfigurationType logging = systemConfiguration.asObjectable().getLogging();
 		
 		applyTestLoggingConfig(logging);

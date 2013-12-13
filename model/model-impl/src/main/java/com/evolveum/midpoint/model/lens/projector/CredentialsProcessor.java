@@ -47,6 +47,7 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.*;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -79,11 +80,11 @@ public class CredentialsProcessor {
     @Autowired(required = true)
     private PasswordPolicyProcessor passwordPolicyProcessor;
 
-    public <F extends ObjectType> void processCredentials(LensContext<F> context, LensProjectionContext projectionContext, OperationResult result) 
+    public <F extends ObjectType> void processCredentials(LensContext<F> context, LensProjectionContext projectionContext, Task task, OperationResult result)
     		throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {	
     	LensFocusContext<F> focusContext = context.getFocusContext();
     	if (focusContext != null && FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
-    		processCredentialsFocal((LensContext<? extends FocusType>)context, projectionContext, result);
+    		processCredentialsFocal((LensContext<? extends FocusType>)context, projectionContext, task, result);
 //    		return;
     	}
 //    	if (focusContext.getObjectTypeClass() != UserType.class) {
@@ -95,22 +96,15 @@ public class CredentialsProcessor {
     }
     
     
-    public <F extends FocusType> void processCredentialsFocal(LensContext<F> context, 
-    		final LensProjectionContext accCtx, OperationResult result) 
+    public <F extends FocusType> void processCredentialsFocal(LensContext<F> context,
+    		final LensProjectionContext accCtx, Task task, OperationResult result)
 		throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
     	LensFocusContext<F> focusContext = context.getFocusContext();
         ObjectDelta<F> userDelta = focusContext.getDelta();
         PropertyDelta<PasswordType> userPasswordValueDelta = null;
         if (userDelta != null) {
         	userPasswordValueDelta = userDelta.findPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
-        	// Modification sanity check
-            if (userDelta.getChangeType() == ChangeType.MODIFY && userPasswordValueDelta != null && 
-            		(userPasswordValueDelta.isAdd() || userPasswordValueDelta.isDelete())) {
-            	throw new SchemaException("User password value cannot be added or deleted, it can only be replaced"); 
-            }
         }
-//            LOGGER.trace("userDelta is null, skipping credentials processing");
-//            return; 
 
         PrismObject<F> userNew = focusContext.getObjectNew();
         if (userNew == null) {
@@ -199,17 +193,17 @@ public class CredentialsProcessor {
 		};
 		passwordMapping.setStringPolicyResolver(stringPolicyResolver);
 		
-		LensUtil.evaluateMapping(passwordMapping, context, result);
+		LensUtil.evaluateMapping(passwordMapping, context, task, result);
         
         PrismProperty<ProtectedStringType> accountPasswordNew = (PrismProperty) passwordMapping.getOutput();
-        if (accountPasswordNew == null) {
+        if (accountPasswordNew == null || accountPasswordNew.isEmpty()) {
             LOGGER.trace("Credentials 'password' expression resulted in null, skipping credentials processing for {}", rat);
             return;
         }
         PropertyDelta<ProtectedStringType> accountPasswordDeltaNew = new PropertyDelta<ProtectedStringType>(SchemaConstants.PATH_PASSWORD_VALUE, accountPasswordPropertyDefinition);
         accountPasswordDeltaNew.setValuesToReplace(accountPasswordNew.getClonedValues());
         LOGGER.trace("Adding new password delta for account {}", rat);
-        accCtx.addToSecondaryDelta(accountPasswordDeltaNew);
+        accCtx.swallowToSecondaryDelta(accountPasswordDeltaNew);
 
     }
 

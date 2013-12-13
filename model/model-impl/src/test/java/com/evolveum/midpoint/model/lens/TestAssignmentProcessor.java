@@ -36,6 +36,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -89,18 +90,20 @@ public class TestAssignmentProcessor extends AbstractLensTest {
      * resulting changes are also empty.
      */
     @Test
-    public void test001OutboundEmpty() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        TestUtil.displayTestTile(this, "test001OutboundEmpty");
+    public void test001OutboundEmpty() throws Exception {
+    	final String TEST_NAME = "test001OutboundEmpty";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        OperationResult result = new OperationResult(TestAssignmentProcessor.class.getName() + ".test001OutboundEmpty");
+        Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
 
         LensContext<UserType> context = createUserAccountContext();
         fillContextWithUser(context, USER_JACK_OID, result);
         context.recompute();
 
         // WHEN
-        assignmentProcessor.processAssignmentsAccounts(context, result);
+        assignmentProcessor.processAssignmentsAccounts(context, task, result);
 
         // THEN
         display("outbound processor result", result);
@@ -113,10 +116,12 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
     @Test
     public void test002ModifyUser() throws Exception {
-        TestUtil.displayTestTile(this, "test002ModifyUser");
+    	final String TEST_NAME = "test002ModifyUser";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        OperationResult result = new OperationResult(TestAssignmentProcessor.class.getName() + ".test002ModifyUser");
+        Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
 
         LensContext<UserType> context = createUserAccountContext();
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
@@ -129,7 +134,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        assignmentProcessor.processAssignmentsAccounts(context, result);
+        assignmentProcessor.processAssignmentsAccounts(context, task, result);
 
         // THEN
         display("Output context", context);
@@ -172,11 +177,13 @@ public class TestAssignmentProcessor extends AbstractLensTest {
     }
     
 	@Test
-    public void test011AddAssignmentAddAccountDirect() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, JAXBException, FileNotFoundException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        TestUtil.displayTestTile(this, "test011AddAssignmentAddAccountDirect");
+    public void test011AddAssignmentAddAccountDirect() throws Exception {
+		final String TEST_NAME = "test011AddAssignmentAddAccountDirect";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        OperationResult result = new OperationResult(TestAssignmentProcessor.class.getName() + ".test011AddAssignmentAddAccountDirect");
+        Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
 
         LensContext<UserType> context = createUserAccountContext();
         fillContextWithUser(context, USER_JACK_OID, result);
@@ -188,7 +195,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        assignmentProcessor.processAssignmentsAccounts(context, result);
+        assignmentProcessor.processAssignmentsAccounts(context, task, result);
 
         // THEN
         display("Output context", context);
@@ -212,11 +219,13 @@ public class TestAssignmentProcessor extends AbstractLensTest {
     }
 
     @Test
-    public void test012AddAssignmentAddAccountDirectAssignmentWithAttrs() throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, JAXBException, FileNotFoundException, PolicyViolationException, CommunicationException, ConfigurationException, SecurityViolationException {
-        TestUtil.displayTestTile(this, "test012AddAssignmentAddAccountDirectAssignmentWithAttrs");
+    public void test012AddAssignmentAddAccountDirectAssignmentWithAttrs() throws Exception {
+    	final String TEST_NAME = "test012AddAssignmentAddAccountDirectAssignmentWithAttrs";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        OperationResult result = new OperationResult(TestAssignmentProcessor.class.getName() + ".test012AddAssignmentAddAccountDirectAssignmentWithAttrs");
+        Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
 
         LensContext<UserType> context = createUserAccountContext();
         fillContextWithUser(context, USER_JACK_OID, result);
@@ -228,7 +237,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        assignmentProcessor.processAssignmentsAccounts(context, result);
+        assignmentProcessor.processAssignmentsAccounts(context, task, result);
 
         // THEN
         display("Output context", context);
@@ -280,10 +289,11 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
 	@Test
     public void test021AddAssignmentModifyAccountAssignment() throws Exception {
-        TestUtil.displayTestTile(this, "test021AddAssignmentModifyAccountAssignment");
-
+		final String TEST_NAME = "test021AddAssignmentModifyAccountAssignment";
+        TestUtil.displayTestTile(this, TEST_NAME);
         // GIVEN
-        OperationResult result = new OperationResult(TestAssignmentProcessor.class.getName() + ".test021AddAssignmentModifyAccountAssignment");
+        Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
 
         LensContext<UserType> context = createUserAccountContext();
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
@@ -296,7 +306,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        assignmentProcessor.processAssignmentsAccounts(context, result);
+        assignmentProcessor.processAssignmentsAccounts(context, task, result);
 
         // THEN
         display("Output context", context);
@@ -375,10 +385,12 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 
 	@Test
     public void test031DeleteAssignmentModifyAccount() throws Exception {
-        TestUtil.displayTestTile(this, "test031DeleteAssignmentModifyAccount");
+		final String TEST_NAME = "test031DeleteAssignmentModifyAccount";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        OperationResult result = new OperationResult(TestAssignmentProcessor.class.getName() + ".test031DeleteAssignmentModifyAccount");
+        Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
 
         LensContext<UserType> context = createUserAccountContext();
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
@@ -394,7 +406,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assertFocusModificationSanity(context);
 
         // WHEN
-        assignmentProcessor.processAssignmentsAccounts(context, result);
+        assignmentProcessor.processAssignmentsAccounts(context, task, result);
 
         // THEN
         display("Output context", context.dump(true));
@@ -457,10 +469,12 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 	
 	@Test
 	 public void test032ModifyUserLegalizeAccount() throws Exception {
-	        TestUtil.displayTestTile(this, "test032ModifyUserLegalizeAccount");
+		final String TEST_NAME = "test032ModifyUserLegalizeAccount";
+	        TestUtil.displayTestTile(this, TEST_NAME);
 
 	        // GIVEN
-	        OperationResult result = new OperationResult(TestAssignmentProcessor.class.getName() + ".test032ModifyUserLegalizeAccount");
+	        Task task = taskManager.createTaskInstance(TestAssignmentProcessor.class.getName() + "." + TEST_NAME);
+	        OperationResult result = task.getResult();
 
 	        repoAddObjectFromFile(USER_LARGO_FILENAME, UserType.class, result);
 	        
@@ -481,7 +495,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
 	        assertFocusModificationSanity(context);
 
 	        // WHEN
-	        assignmentProcessor.processAssignmentsAccounts(context, result);
+	        assignmentProcessor.processAssignmentsAccounts(context, task, result);
 	        
 	        context.recompute();
 	        // THEN

@@ -98,6 +98,14 @@ public class JobExecutor implements InterruptableJob {
             return;
         }
 
+        // if task manager is stopping or stopped, stop this task immediately
+        // this can occur in rare situations, see https://jira.evolveum.com/browse/MID-1167
+        if (!taskManagerImpl.isRunning()) {
+            LOGGER.warn("Task was started while task manager is not running: exiting and rescheduling (if needed)");
+            processTaskStop(executionResult);
+            return;
+        }
+
         // if this is a restart, check whether the task is resilient
         if (context.isRecovering()) {
 
@@ -123,6 +131,8 @@ public class JobExecutor implements InterruptableJob {
 
         TaskHandler handler = null;
 		try {
+
+            taskManagerImpl.registerRunningTask(task);
         
 			handler = taskManagerImpl.getHandler(task.getHandlerUri());
             logRunStart(handler);
@@ -148,7 +158,8 @@ public class JobExecutor implements InterruptableJob {
 			}
 		
 		} finally {
-			executingThread = null;
+            taskManagerImpl.unregisterRunningTask(task);
+            executingThread = null;
 
             if (!task.canRun()) {
                 processTaskStop(executionResult);
@@ -167,7 +178,7 @@ public class JobExecutor implements InterruptableJob {
             return false;
         } else if (task.getThreadStopAction() == ThreadStopActionType.SUSPEND) {
             LOGGER.info("Suspending recovered non-resilient task {}", task);
-            taskManagerImpl.suspendTask(task, TaskManager.WAIT_INDEFINITELY, executionResult);
+            taskManagerImpl.suspendTask(task, TaskManager.DO_NOT_STOP, executionResult);        // we must NOT wait here, as we would wait infinitely -- we do not have to stop the task neither, because we are that task :)
             return false;
         } else if (task.getThreadStopAction() == null || task.getThreadStopAction() == ThreadStopActionType.RESTART) {
             LOGGER.info("Recovering resilient task {}", task);
@@ -210,15 +221,15 @@ public class JobExecutor implements InterruptableJob {
             closeTask(task, executionResult);
         } else if (task.getThreadStopAction() == ThreadStopActionType.SUSPEND) {
             LOGGER.info("Suspending non-resilient task on node shutdown; task = {}", task);
-            taskManagerImpl.suspendTask(task, TaskManager.WAIT_INDEFINITELY, executionResult);
+            taskManagerImpl.suspendTask(task, TaskManager.DO_NOT_STOP, executionResult);            // we must NOT wait here, as we would wait infinitely -- we do not have to stop the task neither, because we are that task
         } else if (task.getThreadStopAction() == null || task.getThreadStopAction() == ThreadStopActionType.RESTART) {
             LOGGER.info("Node going down: Rescheduling resilient task to run immediately; task = {}", task);
-            taskManagerImpl.scheduleTaskNow(task, executionResult);
+            taskManagerImpl.scheduleRunnableTaskNow(task, executionResult);
         } else if (task.getThreadStopAction() == ThreadStopActionType.RESCHEDULE) {
             if (task.getRecurrenceStatus() == TaskRecurrence.RECURRING && task.isLooselyBound()) {
                 ; // nothing to do, task will be automatically started by Quartz on next trigger fire time
             } else {
-                taskManagerImpl.scheduleTaskNow(task, executionResult);     // for tightly-bound tasks we do not know next schedule time, so we run them immediately
+                taskManagerImpl.scheduleRunnableTaskNow(task, executionResult);     // for tightly-bound tasks we do not know next schedule time, so we run them immediately
             }
         } else {
             throw new SystemException("Unknown value of ThreadStopAction: " + task.getThreadStopAction() + " for task " + task);
@@ -276,7 +287,7 @@ public class JobExecutor implements InterruptableJob {
             } else if (runResult.getRunResultStatus() == TaskRunResultStatus.TEMPORARY_ERROR) {
                 // in case of temporary error, we want to suspend the task and exit
                 LOGGER.info("Task encountered temporary error, suspending it. Task = {}", task);
-                taskManagerImpl.suspendTask(task, TaskManager.DO_NOT_WAIT, executionResult);
+                taskManagerImpl.suspendTask(task, TaskManager.DO_NOT_STOP, executionResult);
             } else if (runResult.getRunResultStatus() == TaskRunResultStatus.RESTART_REQUESTED) {
                 // in case of RESTART_REQUESTED we have to get (new) current handler and restart it
                 // this is implemented by pushHandler and by Quartz
@@ -347,7 +358,7 @@ mainCycle:
                     break;
                 } else if (runResult.getRunResultStatus() == TaskRunResultStatus.PERMANENT_ERROR) {
                     LOGGER.info("Task encountered permanent error, suspending the task. Task = {}", task);
-                    taskManagerImpl.suspendTask(task, TaskManager.DO_NOT_WAIT, executionResult);
+                    taskManagerImpl.suspendTask(task, TaskManager.DO_NOT_STOP, executionResult);
                     break;
                 } else if (runResult.getRunResultStatus() == TaskRunResultStatus.FINISHED) {
                     LOGGER.trace("Task handler finished, continuing with the execution cycle. Task = {}", task);
@@ -461,21 +472,20 @@ mainCycle:
 
     private TaskRunResult createFailureTaskRunResult(String message, Throwable t) {
         TaskRunResult runResult = new TaskRunResult();
-        OperationResult mainResult, currentResult;
+        OperationResult opResult;
         if (task.getResult() != null) {
-            mainResult = task.getResult();
-            currentResult = mainResult.createSubresult(DOT_CLASS + "executeHandler");
+            opResult = task.getResult();
         } else {
-            mainResult = createOperationResult("executeHandler");
-            currentResult = mainResult;
+            opResult = createOperationResult(DOT_CLASS + "executeHandler");
         }
         if (t != null) {
-            currentResult.recordFatalError(message, t);
+            opResult.recordFatalError(message, t);
         } else {
-            currentResult.recordFatalError(message);
+            opResult.recordFatalError(message);
         }
-        runResult.setOperationResult(mainResult);
+        runResult.setOperationResult(opResult);
         runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+        runResult.setProgress(task.getProgress());
         return runResult;
     }
 

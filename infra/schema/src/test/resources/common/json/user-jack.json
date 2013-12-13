@@ -1,0 +1,46 @@
+{ 
+"_type" : "user",
+        "_oid" : "2f9b9299-6f45-498f-bc8e-8d17c6b93b20", 
+        "_ns" : "http://midpoint.evolveum.com/xml/ns/public/common/common-2a",
+         
+
+    "name" : "jack",
+    
+    "link" : {
+     	"_oid" : "2f9b9299-6f45-498f-aaaa-000000002222",
+     	"_type" : "RoleType",
+      	"name" : "captain",
+      	"resource" : {
+      		"_oid" : "2f9b9299-5555-5555-5555-000000002222",
+    		"name" : "Rum Supply System",
+    		"connectorRef" : { 
+    			 "_oid" : "2f9b9299-cccc-cccc-cccc-000000002222"
+    		 }
+    		
+      	},
+    	"objectClass" : "{http://midpoint.evolveum.com/xml/ns/public/common/common-2a}AccountObjectClass"
+    },
+
+"linkRef" :{
+	"_oid" : "2f9b9299-6f45-498f-aaaa-000000003333",
+	"_type" : "ShadowType",
+    	"description" : "This is third accountRef",
+    	"filter" : {
+    		"_ns" : "http://prism.evolveum.com/xml/ns/public/query-2",
+    		"equal" : {
+                "value" : "org.identityconnectors.ldap.LdapConnector"
+                }
+                
+            }
+    	},
+    
+   "activation" : {
+        "administrativeStatus" : "enabled"
+        },
+    "fullName" : "Jack Sparrow",
+    "givenName" : "Jack",
+    "familyName" : "Sparrow",
+    "honorificPrefix" : "Cpt.",
+    "emailAddress" : "email@email.sk",
+    "organizationalUnit" : ["Brethren of the Coast", "Davie Jones' Locker"]
+}

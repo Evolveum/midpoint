@@ -1212,10 +1212,12 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		PrismAsserts.assertPropertyReplace(accountPrimaryDelta, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, ActivationStatusType.DISABLED);
 		
         ObjectDelta<ShadowType> accountSecondaryDelta = accContextDefault.getSecondaryDelta();
-        PrismAsserts.assertModifications(accountSecondaryDelta, 1);
+        PrismAsserts.assertModifications(accountSecondaryDelta, 2);
         assertNotNull("No disableTimestamp delta in account secodary delta (default)", 
         		accountSecondaryDelta.findPropertyDelta(
         				new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP)));
+        PrismAsserts.assertPropertyReplace(accountSecondaryDelta, SchemaConstants.PATH_ACTIVATION_DISABLE_REASON,
+        		SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);
 		
 		ModelProjectionContext accContextBlue = modelContext.findProjectionContext(
 				new ResourceShadowDiscriminator(RESOURCE_DUMMY_BLUE_OID, ShadowKindType.ACCOUNT, null));
@@ -1228,9 +1230,11 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 		PrismAsserts.assertPropertyReplace(accountPrimaryDeltaBlue, ACTIVATION_ADMINISTRATIVE_STATUS_PATH, ActivationStatusType.DISABLED);
 		
         ObjectDelta<ShadowType> accountSecondaryDeltaBlue = accContextBlue.getSecondaryDelta();
-        PrismAsserts.assertModifications(accountSecondaryDeltaBlue, 1);
+        PrismAsserts.assertModifications(accountSecondaryDeltaBlue, 2);
         assertNotNull("No disableTimestamp delta in account secodary delta (blue)", 
         		accountSecondaryDeltaBlue.findPropertyDelta(
         				new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_DISABLE_TIMESTAMP)));
+        PrismAsserts.assertPropertyReplace(accountSecondaryDeltaBlue, SchemaConstants.PATH_ACTIVATION_DISABLE_REASON,
+        		SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);
 	}
 }

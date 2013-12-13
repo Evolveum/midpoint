@@ -21,14 +21,9 @@ import static com.evolveum.midpoint.common.InternalsConfig.consistencyChecks;
 import com.evolveum.midpoint.common.expression.Expression;
 import com.evolveum.midpoint.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
-import com.evolveum.midpoint.model.controller.ModelUtils;
-import com.evolveum.midpoint.model.sync.SynchronizationSituation;
 import com.evolveum.midpoint.model.util.Utils;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -37,7 +32,6 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
@@ -47,7 +41,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.repo.api.RepoAddOptions;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -57,6 +50,7 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.SynchronizationSituationUtil;
@@ -64,14 +58,12 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.api.WorkflowService;
-import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
+import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -87,7 +79,6 @@ import java.util.Map;
 
 import javax.annotation.PostConstruct;
 import javax.xml.bind.JAXBElement;
-import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 /**
@@ -124,7 +115,7 @@ public class ChangeExecutor {
 
     // for inserting workflow-related metadata to changed object
     @Autowired(required = false)
-    private WorkflowService workflowService;
+    private WorkflowManager workflowManager;
     
     private PrismObjectDefinition<UserType> userDefinition = null;
     private PrismObjectDefinition<ShadowType> shadowDefinition = null;
@@ -238,6 +229,14 @@ public class ChangeExecutor {
 						subResult.recordNotApplicableIfUnknown();
 						continue;
 						
+					} else if (accDelta.isDelete() && accCtx.getResourceShadowDiscriminator() != null && accCtx.getResourceShadowDiscriminator().getOrder() > 0) {
+						// HACK ... for higher-order context check if this was already deleted
+						LensProjectionContext lowerOrderContext = LensUtil.findLowerOrderContext(syncContext, accCtx);
+						if (lowerOrderContext != null && lowerOrderContext.isDelete()) {
+							// We assume that this was already executed
+							subResult.setStatus(OperationResultStatus.NOT_APPLICABLE);
+							continue;
+						}
 					}
 
 					executeDelta(accDelta, accCtx, syncContext, null, accCtx.getResource(), task, subResult);
@@ -360,8 +359,15 @@ public class ChangeExecutor {
         	}
             
     		if (accCtx.isDelete() || accCtx.isThombstone()) {
-    			LOGGER.trace("Account {} deleted, updating also situation in account.", accountOid);	
-				updateSituationInAccount(task, SynchronizationSituationType.DELETED, focusContext, accCtx, result);
+    			LOGGER.trace("Account {} deleted, updating also situation in account.", accountOid);
+    			// HACK HACK?
+    			try {
+    				updateSituationInAccount(task, SynchronizationSituationType.DELETED, focusContext, accCtx, result);
+    			} catch (ObjectNotFoundException e) {
+    				// HACK HACK?
+    				LOGGER.trace("Account {} is gone, cannot update situation in account (this is probably harmless).", accountOid);
+    				result.getLastSubresult().setStatus(OperationResultStatus.HANDLED_ERROR);
+    			}
     		} else {
     			// This should NOT be UNLINKED. We just do not know the situation here. Reflect that in the shadow.
 				LOGGER.trace("Account {} unlinked from the user, updating also situation in account.", accountOid);	
@@ -530,11 +536,9 @@ public class ChangeExecutor {
 	            executeDeletion(objectDelta, context, options, resource, task, result);
 	        }
 	        
-	        if (objectContext != null) {
-		        // To make sure that the OID is set (e.g. after ADD operation)
-		        objectContext.setOid(objectDelta.getOid());
-	        }
-	        
+	        // To make sure that the OID is set (e.g. after ADD operation)
+	        LensUtil.setContextOid(context, objectContext, objectDelta.getOid());
+
     	} finally {
     		
     		result.computeStatus();
@@ -685,7 +689,13 @@ public class ChangeExecutor {
         	if (context != null && context.getChannel() != null && context.getChannel().equals(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_RECON))){
         		provisioningOptions.setCompletePostponed(false);
     		}
-            deleteProvisioningObject(objectTypeClass, oid, context, provisioningOptions, resource, task, result);
+        	try {
+        		deleteProvisioningObject(objectTypeClass, oid, context, provisioningOptions, resource, task, result);
+        	} catch (ObjectNotFoundException e) {
+        		// HACK. We wanted to delete something that is not there. So in fact this is OK. Almost.
+        		LOGGER.trace("Attempt to delete object {} that is already gone", oid);
+        		result.getLastSubresult().setStatus(OperationResultStatus.HANDLED_ERROR);
+        	}
         } else {
             cacheRepositoryService.deleteObject(objectTypeClass, oid, result);
         }
@@ -732,8 +742,8 @@ public class ChangeExecutor {
 		if (task.getOwner() != null) {
 			metaData.setCreatorRef(ObjectTypeUtil.createObjectRef(task.getOwner()));
 		}
-        if (workflowService != null) {
-            metaData.getCreateApproverRef().addAll(workflowService.getApprovedBy(task, result));
+        if (workflowManager != null) {
+            metaData.getCreateApproverRef().addAll(workflowManager.getApprovedBy(task, result));
         }
 
 		objectTypeToAdd.setMetadata(metaData);
@@ -768,8 +778,8 @@ public class ChangeExecutor {
 
         List<PrismReferenceValue> approverReferenceValues = new ArrayList<PrismReferenceValue>();
 
-        if (workflowService != null) {
-            for (ObjectReferenceType approverRef : workflowService.getApprovedBy(task, result)) {
+        if (workflowManager != null) {
+            for (ObjectReferenceType approverRef : workflowManager.getApprovedBy(task, result)) {
                 approverReferenceValues.add(new PrismReferenceValue(approverRef.getOid()));
             }
         }

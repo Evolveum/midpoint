@@ -55,6 +55,7 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
+import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
@@ -712,13 +713,23 @@ public class PrismAsserts {
 	}
 	
 	public static <T> void assertSets(String message, Collection<T> actualValues, T... expectedValues) {
+		assertSets(message, null, actualValues, expectedValues);
+	}
+	
+	public static <T> void assertSets(String message, MatchingRule<T> matchingRule, Collection<T> actualValues, T... expectedValues) {
 		assertNotNull("Null set in " + message, actualValues);
 		assertEquals("Wrong number of values in " + message, expectedValues.length, actualValues.size());
 		for (T actualValue: actualValues) {
 			boolean found = false;
 			for (T value: expectedValues) {
-				if (value.equals(actualValue)) {
-					found = true;
+				if (matchingRule == null) {
+					if (value.equals(actualValue)) {
+						found = true;
+					}
+				} else {
+					if (matchingRule.match(value, actualValue)) {
+						found = true;
+					}
 				}
 			}
 			if (!found) {
@@ -777,6 +788,12 @@ public class PrismAsserts {
 				+ ", was " + MiscUtil.getValueWithClass(actual);
 	}
 	
+	public static <T> void assertEquals(String message, MatchingRule<T> matchingRule, T expected, T actual) {
+		assert equals(matchingRule, expected, actual) : message 
+				+ ": expected " + MiscUtil.getValueWithClass(expected)
+				+ ", was " + MiscUtil.getValueWithClass(actual);
+	}
+	
 	static void assertSame(String message, Object expected, Object actual) {
 		assert expected == actual : message 
 				+ ": expected ("+expected.getClass().getSimpleName() + ")"  + expected 
@@ -785,6 +802,20 @@ public class PrismAsserts {
 	
 	static void fail(String message) {
 		assert false: message;
+	}
+	
+	private static <T> boolean equals(MatchingRule<T> matchingRule, T a, T b) {
+		if (a == null && b == null) {
+			return true;
+		}
+		if (a == null || b == null) {
+			return false;
+		}
+		if (matchingRule == null) {
+			return a.equals(b);
+		} else {
+			return matchingRule.match(a, b);
+		}
 	}
 
 	private static boolean equals(Object a, Object b) {

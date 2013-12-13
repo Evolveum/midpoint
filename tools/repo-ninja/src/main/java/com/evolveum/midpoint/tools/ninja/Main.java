@@ -31,6 +31,8 @@ public class Main {
             "Create tables with sql script provided by this option.");
     public static final Option importOp = new Option("i", "import", true,
             "Import objects from XML file provided by this option.");
+    public static final Option schemaOp = new Option("s", "schema", false,
+            "validate schema of imported objects");
     public static final Option driver = new Option("d", "driver", true, "JDBC driver class");
     public static final Option url = new Option("u", "url", true, "JDBC url");
     public static final Option username = new Option("U", "username", true, "JDBC username");
@@ -38,6 +40,8 @@ public class Main {
     public static final Option Password = new Option("P", "password-prompt", false, "JDBC password (prompt)");
     public static final Option exportOp = new Option("e", "export", true,
             "Export objects to XML file provided by this option.");
+    public static final Option keyStore = new Option("k", "keystore", false,
+            "Dumping key store entries.");
 
 
     public static void main(String[] args) {
@@ -46,12 +50,14 @@ public class Main {
         options.addOption(validate);
         options.addOption(create);
         options.addOption(importOp);
+        options.addOption(schemaOp);
         options.addOption(exportOp);
         options.addOption(driver);
         options.addOption(url);
         options.addOption(username);
         options.addOption(password);
         options.addOption(Password);
+        options.addOption(keyStore);
 
         try {
             CommandLineParser parser = new GnuParser();
@@ -78,7 +84,8 @@ public class Main {
             //import objects, only if repository validation didn't fail (in case it was tested)
             if (valid && line.hasOption(importOp.getOpt())) {
                 String path = line.getOptionValue(importOp.getOpt());
-                ImportObjects objects = new ImportObjects(path);
+                boolean validateSchema = line.hasOption(schemaOp.getOpt());
+                ImportObjects objects = new ImportObjects(path, validateSchema);
                 objects.execute();
             }
 
@@ -87,6 +94,12 @@ public class Main {
                 ExportObjects objects = new ExportObjects(path);
                 objects.execute();
             }
+            
+            if (line.hasOption(keyStore.getOpt())){
+            	KeyStoreDumper keyStoreDumper = new KeyStoreDumper();
+            	keyStoreDumper.execute();
+            }
+            
         } catch (ParseException ex) {
             System.out.println("Error: " + ex.getMessage());
             printHelp(options);

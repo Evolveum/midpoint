@@ -48,6 +48,7 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Handler;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -84,9 +85,9 @@ public class MappingEvaluationHelper {
      */
 	public <V extends PrismValue, F extends FocusType> PrismValueDeltaSetTriple<V> evaluateMappingSetProjection(Collection<MappingType> mappingTypes, String mappingDesc,
 			XMLGregorianCalendar now, MappingInitializer<V> initializer, 
-			Item<V> aPrioriValue, ItemDelta<V> aPrioriDelta, PrismObject<? extends ShadowType> aPrioriObject,
+			Item<V> aPrioriValue, ItemDelta<V> aPrioriDelta, PrismObject<? extends ObjectType> aPrioriObject,
 			Boolean evaluateCurrent, MutableBoolean strongMappingWasUsed,
-			LensContext<F> context, LensProjectionContext accCtx, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			LensContext<F> context, LensProjectionContext accCtx, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
 		PrismValueDeltaSetTriple<V> outputTriple = null;
 		XMLGregorianCalendar nextRecomputeTime = null;
@@ -136,7 +137,7 @@ public class MappingEvaluationHelper {
 	        	}
 	        }
 						
-			LensUtil.evaluateMapping(mapping, context, result);
+			LensUtil.evaluateMapping(mapping, context, task, result);
 			
 			PrismValueDeltaSetTriple<V> mappingOutputTriple = mapping.getOutputTriple();
 			if (mappingOutputTriple != null) {
@@ -162,7 +163,7 @@ public class MappingEvaluationHelper {
 					continue;
 				}
 
-				LensUtil.evaluateMapping(mapping, context, result);
+				LensUtil.evaluateMapping(mapping, context, task, result);
 
 				PrismValueDeltaSetTriple<V> mappingOutputTriple = mapping.getOutputTriple();
 				if (mappingOutputTriple != null) {
@@ -208,7 +209,7 @@ public class MappingEvaluationHelper {
 				triggerType.setTimestamp(nextRecomputeTime);
 				triggerType.setHandlerUri(RecomputeTriggerHandler.HANDLER_URI);
 
-				accCtx.addToSecondaryDelta(triggerDelta);
+				accCtx.swallowToSecondaryDelta(triggerDelta);
 			}
 		}		
 		

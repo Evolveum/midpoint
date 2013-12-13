@@ -66,6 +66,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -125,8 +126,8 @@ public class UserPolicyProcessor {
 	@Autowired(required = true)
     private MappingEvaluationHelper mappingHelper;
 
-	<O extends ObjectType, F extends FocusType> void processUserPolicy(LensContext<O> context, XMLGregorianCalendar now, 
-			OperationResult result) throws ObjectNotFoundException,
+	<O extends ObjectType, F extends FocusType> void processUserPolicy(LensContext<O> context, XMLGregorianCalendar now,
+            Task task, OperationResult result) throws ObjectNotFoundException,
             SchemaException, ExpressionEvaluationException, PolicyViolationException {
 
 		LensFocusContext<O> focusContext = context.getFocusContext();
@@ -151,8 +152,8 @@ public class UserPolicyProcessor {
 		
 		processActivation(fContext, now, result);
 
-		applyUserTemplate(fContext, now, result);
-				
+		applyUserTemplate(fContext, now, task, result);
+
 	}
 
 	private <F extends FocusType> void processActivation(LensContext<F> context, XMLGregorianCalendar now, 
@@ -261,7 +262,7 @@ public class UserPolicyProcessor {
 		focusContext.swallowToProjectionWaveSecondaryDelta(timestampDelta);
 	}
 	
-	private <F extends FocusType> void applyUserTemplate(LensContext<F> context, XMLGregorianCalendar now, OperationResult result) 
+	private <F extends FocusType> void applyUserTemplate(LensContext<F> context, XMLGregorianCalendar now, Task task, OperationResult result)
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
 
@@ -283,7 +284,8 @@ public class UserPolicyProcessor {
 		Map<ItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> outputTripleMap 
 			= new HashMap<ItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>>();
 		
-		XMLGregorianCalendar nextRecomputeTime = collectTripleFromTemplate(context, userTemplate, userOdo, outputTripleMap, now, userTemplate.toString(), result);
+		XMLGregorianCalendar nextRecomputeTime = collectTripleFromTemplate(context, userTemplate, userOdo, outputTripleMap, 
+				now, userTemplate.toString(), task, result);
 		
 		for (Entry<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> entry: outputTripleMap.entrySet()) {
 			ItemPath itemPath = entry.getKey();
@@ -345,7 +347,8 @@ public class UserPolicyProcessor {
 	private <F extends FocusType> XMLGregorianCalendar collectTripleFromTemplate(LensContext<F> context,
 			ObjectTemplateType objectTemplateType, ObjectDeltaObject<F> userOdo,
 			Map<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> outputTripleMap,
-			XMLGregorianCalendar now, String contextDesc, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			XMLGregorianCalendar now, String contextDesc, Task task, OperationResult result)
+					throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		
 		XMLGregorianCalendar nextRecomputeTime = null;
 		
@@ -360,7 +363,8 @@ public class UserPolicyProcessor {
 			}
 			LOGGER.trace("Including template {}", includeObject);
 			ObjectTemplateType includeObjectType = includeObject.asObjectable();
-			XMLGregorianCalendar includeNextRecomputeTime = collectTripleFromTemplate(context, includeObjectType, userOdo, outputTripleMap, now, "include "+includeObject+" in "+objectTemplateType + " in " + contextDesc, result);
+			XMLGregorianCalendar includeNextRecomputeTime = collectTripleFromTemplate(context, includeObjectType, userOdo, 
+					outputTripleMap, now, "include "+includeObject+" in "+objectTemplateType + " in " + contextDesc, task, result);
 			if (includeNextRecomputeTime != null) {
 				if (nextRecomputeTime == null || nextRecomputeTime.compare(includeNextRecomputeTime) == DatatypeConstants.GREATER) {
 					nextRecomputeTime = includeNextRecomputeTime;
@@ -370,7 +374,8 @@ public class UserPolicyProcessor {
 		
 		// Process own mappings
 		Collection<MappingType> mappings = objectTemplateType.getMapping();
-		XMLGregorianCalendar templateNextRecomputeTime = collectTripleFromMappings(mappings, context, objectTemplateType, userOdo, outputTripleMap, now, contextDesc, result);
+		XMLGregorianCalendar templateNextRecomputeTime = collectTripleFromMappings(mappings, context, objectTemplateType, userOdo, 
+				outputTripleMap, now, contextDesc, task, result);
 		if (templateNextRecomputeTime != null) {
 			if (nextRecomputeTime == null || nextRecomputeTime.compare(templateNextRecomputeTime) == DatatypeConstants.GREATER) {
 				nextRecomputeTime = templateNextRecomputeTime;
@@ -384,7 +389,7 @@ public class UserPolicyProcessor {
 	private <V extends PrismValue, F extends FocusType> XMLGregorianCalendar collectTripleFromMappings(Collection<MappingType> mappings, LensContext<F> context,
 			ObjectTemplateType objectTemplateType, ObjectDeltaObject<F> userOdo,
 			Map<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> outputTripleMap,
-			XMLGregorianCalendar now, String contextDesc, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			XMLGregorianCalendar now, String contextDesc, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		
 		XMLGregorianCalendar nextRecomputeTime = null;
 		
@@ -408,7 +413,7 @@ public class UserPolicyProcessor {
 				continue;
 			}
 			
-			LensUtil.evaluateMapping(mapping, context, result);
+			LensUtil.evaluateMapping(mapping, context, task, result);
 			
 			ItemPath itemPath = mapping.getOutputPath();
 			DeltaSetTriple<ItemValueWithOrigin<V>> outputTriple = ItemValueWithOrigin.createOutputTriple(mapping);

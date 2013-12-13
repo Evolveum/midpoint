@@ -41,11 +41,11 @@
         <verbose.jaxb2>false</verbose.jaxb2>
         <verbose.jaxws>false</verbose.jaxws>
         <!-- Dependencies global versions -->
-        <aspectj.version>1.6.12</aspectj.version>
+        <aspectj.version>1.7.3</aspectj.version>
         <commons.io.version>2.0.1</commons.io.version>
         <commons.lang.version>2.6</commons.lang.version>
         <commons.cli>1.2</commons.cli>
-        <cxf.version>2.4.3</cxf.version>
+        <cxf.version>2.7.6</cxf.version>
         <cxf-xjc.version>2.4.0</cxf-xjc.version>
         <camel.version>2.10.2</camel.version>
         <dbunit.version>2.4.7</dbunit.version>
@@ -317,11 +317,11 @@
                 <artifactId>cxf-rt-management</artifactId>
                 <version>${cxf.version}</version>
             </dependency>
-            <dependency>
-                <groupId>org.apache.cxf</groupId>
-                <artifactId>cxf-common-utilities</artifactId>
-                <version>${cxf.version}</version>
-            </dependency>
+<!--             <dependency> -->
+<!--                 <groupId>org.apache.cxf</groupId> -->
+<!--                 <artifactId>cxf-common-utilities</artifactId> -->
+<!--                 <version>${cxf.version}</version> -->
+<!--             </dependency> -->
             <dependency>
                 <groupId>org.apache.cxf</groupId>
                 <artifactId>cxf-rt-ws-security</artifactId>
@@ -341,12 +341,12 @@
             <dependency>
                 <groupId>org.forgerock.openicf.framework</groupId>
                 <artifactId>connector-framework</artifactId>
-                <version>1.1.1.e6329</version>
+                <version>1.1.2.em82</version>
             </dependency>
             <dependency>
                 <groupId>org.forgerock.openicf.framework</groupId>
                 <artifactId>connector-framework-internal</artifactId>
-                <version>1.1.1.e6329</version>
+                <version>1.1.2.em82</version>
             </dependency>
             <dependency>
                 <groupId>org.forgerock.openicf.connectors</groupId>
@@ -356,7 +356,7 @@
             <dependency>
                 <groupId>org.forgerock.openicf.connectors</groupId>
                 <artifactId>csvfile-connector</artifactId>
-                <version>1.1.0.em61</version>
+                <version>1.1.1.0.em80</version>
             </dependency>
             <dependency>
                 <groupId>org.forgerock.openicf.connectors</groupId>
@@ -508,6 +508,11 @@
 			    <artifactId>opendj-ldap-sdk</artifactId>
 			    <version>2.6.0</version>
 			</dependency>
+            <dependency>
+                <groupId>org.apache.velocity</groupId>
+                <artifactId>velocity</artifactId>
+                <version>1.7</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
     <organization>
@@ -582,6 +587,7 @@
                         <executions>
                             <execution>
                                 <id>attach-sources</id>
+                                <phase>package</phase>
                                 <goals>
                                     <goal>jar</goal>
                                 </goals>

@@ -22,7 +22,6 @@ import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.Validate;
 
-import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;

@@ -98,7 +98,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         // WHEN
         PrismObject<ResourceType> object = resourceType.asPrismObject();
 		prismContext.adopt(resourceType);
-		modelCrudService.addObject(object, task, result);
+		modelCrudService.addObject(object, null, task, result);
         		
 		// THEN
 		result.computeStatus();
@@ -128,7 +128,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 		modifications.add(accountDelta);
         
 		// WHEN
-		modelCrudService.modifyObject(UserType.class, USER_JACK_OID, modifications , task, result);
+		modelCrudService.modifyObject(UserType.class, USER_JACK_OID, modifications , null, task, result);
 		
 		// THEN
 		// Check accountRef
@@ -176,7 +176,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 		modifications.add(accountDelta);
         
 		// WHEN
-		modelCrudService.modifyObject(UserType.class, USER_JACK_OID, modifications , task, result);
+		modelCrudService.modifyObject(UserType.class, USER_JACK_OID, modifications , null, task, result);
 		
 		// THEN
 		// Check accountRef
@@ -211,7 +211,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_FILE);
         
 		// WHEN
-        accountOid = modelCrudService.addObject(account, task, result);
+        accountOid = modelCrudService.addObject(account, null, task, result);
 		
 		// THEN
 		// Check accountRef (should be none)
@@ -248,7 +248,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 		modifications.add(accountDelta);
         
 		// WHEN
-		modelCrudService.modifyObject(UserType.class, USER_JACK_OID, modifications , task, result);
+		modelCrudService.modifyObject(UserType.class, USER_JACK_OID, modifications , null, task, result);
 		
 		// THEN
 		// Check accountRef
@@ -290,7 +290,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 		modifications.add(accountDelta);
         
 		// WHEN
-		modelCrudService.modifyObject(UserType.class, USER_JACK_OID, modifications , task, result);
+		modelCrudService.modifyObject(UserType.class, USER_JACK_OID, modifications , null, task, result);
 		
 		// THEN
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -322,7 +322,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
 		// WHEN
-        modelCrudService.deleteObject(ShadowType.class, accountOid, task, result);
+        modelCrudService.deleteObject(ShadowType.class, accountOid, null, task, result);
 		
 		// THEN
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
@@ -349,7 +349,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_CONTRACT_DIR, "user-blackbeard-account-dummy.xml"));
                 
 		// WHEN
-        modelCrudService.addObject(user , task, result);
+        modelCrudService.addObject(user , null, task, result);
 		
 		// THEN
 		// Check accountRef
@@ -385,7 +385,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_CONTRACT_DIR, "user-morgan-assignment-dummy.xml"));
                 
 		// WHEN
-        modelCrudService.addObject(user , task, result);
+        modelCrudService.addObject(user , null, task, result);
 		
 		// THEN
 		// Check accountRef

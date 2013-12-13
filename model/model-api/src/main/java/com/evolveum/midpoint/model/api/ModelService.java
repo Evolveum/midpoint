@@ -99,26 +99,36 @@ public interface ModelService {
 
 	/**
 	 * <p>
-	 * Returns object for provided OID.
+	 * Returns object for provided OID. It retrieves the object from an appropriate source
+	 * for an object type (e.g. internal repository, resource or both), merging data as necessary,
+	 * processing any policies, caching mechanisms, etc. This can be influenced by using options.
 	 * </p>
 	 * <p>
-	 * Must fail if object with the OID does not exists.
+	 * Fails if object with the OID does not exists.
 	 * </p>
 	 * 
-	 * @param <T>
-	 * @param oid
-	 *            OID of the object to get
-	 * @param resolve
-	 *            list of properties to resolve in the fetched object
 	 * @param type
 	 *            (class) of an object to get
-	 * @param result
+	 * @param oid
+	 *            OID of the object to get
+	 * @param options
+	 *            options influencing the retrieval and processing of the object
+	 * @param parentResult
 	 *            parent OperationResult (in/out)
+	 * @param task
+	 * 			  Task instance. It gives context to the execution (e.g. security context)
 	 * @return Retrieved object
 	 * @throws ObjectNotFoundException
 	 *             requested object does not exist
 	 * @throws SchemaException 
 	 * 				the object is not schema compliant
+	 * @throw SecurityViolationException
+	 * 				Security violation during operation execution. May be caused either by midPoint internal
+	 * 				security mechanism but also by external mechanism (e.g. on the resource)
+	 * @throws CommunicationException
+	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
+	 * @throw ConfigurationException
+	 * 				Configuration error. E.g. misconfigured resource parameters, invalid policies, etc.
 	 * @throws IllegalArgumentException
 	 *             missing required parameter, wrong OID format, etc.
 	 * @throws ClassCastException
@@ -129,8 +139,8 @@ public interface ModelService {
 	 *             state
 	 */
 	<T extends ObjectType> PrismObject<T> getObject(Class<T> type, String oid, Collection<SelectorOptions<GetOperationOptions>> options,
-			Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, SecurityViolationException, 
-			CommunicationException, ConfigurationException, SecurityViolationException;
+			Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, 
+			CommunicationException, ConfigurationException;
 
 	/**
 	 * <p>
@@ -175,9 +185,12 @@ public interface ModelService {
 	 * 
 	 * @param deltas
 	 *            Collection of object deltas to execute
+	 * @param options
+	 *            options influencing processing of the deltas
 	 * @param parentResult
 	 *            parent OperationResult (in/out)
-	 * @return OID assigned to the created object
+	 * @param task
+	 * 			  Task instance. It gives context to the execution (e.g. security context)
 	 * @throws ObjectAlreadyExistsException
 	 *             object with specified identifiers already exists, cannot add
 	 * @throws ObjectNotFoundException
@@ -188,27 +201,34 @@ public interface ModelService {
 	 *             not conform to schema
 	 * @throws ExpressionEvaluationException 
 	 * 				evaluation of expression associated with the object has failed
-	 * @throws CommunicationException 
-	 * @throws ConfigurationException 
+	 * @throws CommunicationException
+	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
+	 * @throws ConfigurationException
+	 * 				Configuration error. E.g. misconfigured resource parameters, invalid policies, etc.
 	 * @throws PolicyViolationException
 	 * 				Policy violation was detected during processing of the object
+	 * @throw SecurityViolationException
+	 * 				Security violation during operation execution. May be caused either by midPoint internal
+	 * 				security mechanism but also by external mechanism (e.g. on the resource)
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, etc.
 	 * @throws SystemException
-	 *             unknown error from underlying layers or other unexpected
-	 *             state
+	 *             unknown error from underlying layers or other unexpected state
 	 */
 	void executeChanges(Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, OperationResult parentResult) 
 			throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, 
 			CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException;
 	
 	/**
-	 * Recomputes focal object with the specified OID. The operation considers all the aplicable policies and
+	 * Recomputes focal object with the specified OID. The operation considers all the applicable policies and
 	 * mapping and tries to re-apply them as necessary.
 	 * 
 	 * @param type type (class) of an object to recompute
 	 * @param oid OID of the object to recompute
+	 * @param parentResult
+	 *            parent OperationResult (in/out)
 	 * @param task
+	 * 			  Task instance. It gives context to the execution (e.g. security context)
 	 * @param parentResult parent OperationResult (in/out)
 	 */
 	<F extends ObjectType> void recompute(Class<F> type, String oid, Task task, OperationResult parentResult)
@@ -228,8 +248,10 @@ public interface ModelService {
 	 * object.
 	 * </p>
 	 * 
-	 * @param accountOid
+	 * @param shadowOid
 	 *            OID of the account to look for an owner
+	 * @param task
+	 * 			  Task instance. It gives context to the execution (e.g. security context)
 	 * @param parentResult
 	 *            parent OperationResult (in/out)
 	 * @return owner of the account or null
@@ -241,7 +263,7 @@ public interface ModelService {
 	 *             unknown error from underlying layers or other unexpected
 	 *             state
 	 */
-	PrismObject<UserType> findShadowOwner(String accountOid, Task task, OperationResult parentResult)
+	PrismObject<UserType> findShadowOwner(String shadowOid, Task task, OperationResult parentResult)
 			throws ObjectNotFoundException;
 
 	/**
@@ -294,58 +316,40 @@ public interface ModelService {
 	 * @throws CommunicationException
 	 *             error communicating with the resource
 	 */
+	@Deprecated
 	List<PrismObject<? extends ShadowType>> listResourceObjects(String resourceOid, QName objectClass, ObjectPaging paging,
 			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, 
 			ConfigurationException, SecurityViolationException;
 
 	/**
 	 * <p>
-	 * Returns all objects of specified type that are available to the
-	 * implementation.
-	 * </p>
-	 * <p>
-	 * This can be considered as a simplified search operation.
-	 * </p>
-	 * <p>
-	 * Returns empty list if object type is correct but there are no objects of
-	 * that type.
-	 * </p>
-	 * <p>
-	 * Should fail if object type is wrong.
-	 * </p>
-	 * 
-	 * @param objectType
-	 * @param paging
-	 *            paging specification to limit operation result (optional)
-	 * @param result
-	 *            parent OperationResult (in/out)
-	 * @return all objects of specified type (subject to paging)
-	 * 
-	 * @throws IllegalArgumentException
-	 *             wrong object type
-	 */
-
-	/**
-	 * <p>
 	 * Search for objects.
 	 * </p>
 	 * <p>
-	 * Searches through all object types. Returns a list of objects that match
-	 * search criteria.
+	 * Searches through all object of a specified type. Returns a list of objects that match
+	 * search criteria. 
+	 * </p>
+	 * <p>
+	 * Note that this method has a very limited scaling capability
+	 * as all the results are stored in the memory. DO NOT USE on large datasets.
+	 * Recommended usage is only when using queries that cannot return large number
+	 * of results (e.g. queries for unique values) or when combined with paging capability.
+	 * For other cases use searchObjectsIterative instead.
 	 * </p>
 	 * <p>
 	 * Returns empty list if object type is correct but there are no objects of
-	 * that type.
-	 * </p>
-	 * <p>
-	 * Should fail if object type is wrong. Should fail if unknown property is
+	 * that type. Fails if object type is wrong. Should fail if unknown property is
 	 * specified in the query.
 	 * </p>
 	 * 
+	 * @param type
+	 *            (class) of an object to search
 	 * @param query
 	 *            search query
-	 * @param paging
-	 *            paging specification to limit operation result (optional)
+	 * @param options
+	 *            options influencing the retrieval and processing of the objects
+	 * @param task
+	 * 			  Task instance. It gives context to the execution (e.g. security context)
 	 * @param parentResult
 	 *            parent OperationResult (in/out)
 	 * @return all objects of specified type that match search criteria (subject
@@ -354,11 +358,14 @@ public interface ModelService {
 	 * @throws SchemaException
 	 *             unknown property used in search query
 	 * @throws ObjectNotFoundException
-	 *             object required for a search was not found (e.g. resource
-	 *             definition)
+	 *             object required for a search was not found (e.g. resource definition)
 	 * @throws CommunicationException 
-	 * 				error communicating with the resource
-	 * @throws ConfigurationException 
+	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
+	 * @throw SecurityViolationException
+	 * 				Security violation during operation execution. May be caused either by midPoint internal
+	 * 				security mechanism but also by external mechanism (e.g. on the resource)
+	 * @throws ConfigurationException
+	 * 				Configuration error. E.g. misconfigured resource parameters, invalid policies, etc.
 	 * @throws IllegalArgumentException
 	 *             wrong query format
 	 */
@@ -366,9 +373,85 @@ public interface ModelService {
 			Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws SchemaException,
             ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException;
 	
+	/**
+	 * <p>
+	 * Search for objects in iterative fashion (using callback).
+	 * </p>
+	 * <p>
+	 * Searches through all object of a specified type. A handler is invoked for each object found.
+	 * </p>
+	 * <p>
+	 * The handler is not called at all if object type is correct but there are no objects of
+	 * that type. Fails if object type is wrong. Should fail if unknown property is
+	 * specified in the query.
+	 * </p>
+	 * 
+	 * @param type
+	 *            (class) of an object to search
+	 * @param query
+	 *            search query
+	 * @param handler
+	 * 			callback handler that will be called for each found object
+	 * @param options
+	 *            options influencing the retrieval and processing of the objects
+	 * @param task
+	 * 			  Task instance. It gives context to the execution (e.g. security context)
+	 * @param parentResult
+	 *            parent OperationResult (in/out)
+	 * @throws SchemaException
+	 *             unknown property used in search query
+	 * @throws ObjectNotFoundException
+	 *             object required for a search was not found (e.g. resource definition)
+	 * @throws CommunicationException 
+	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
+	 * @throw SecurityViolationException
+	 * 				Security violation during operation execution. May be caused either by midPoint internal
+	 * 				security mechanism but also by external mechanism (e.g. on the resource)
+	 * @throws ConfigurationException
+	 * 				Configuration error. E.g. misconfigured resource parameters, invalid policies, etc.
+	 * @throws IllegalArgumentException
+	 *             wrong query format
+	 */
 	<T extends ObjectType> void searchObjectsIterative(Class<T> type, ObjectQuery query,
 			ResultHandler<T> handler, Collection<SelectorOptions<GetOperationOptions>> options, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException;
 
+	/**
+	 * <p>
+	 * Count objects.
+	 * </p>
+	 * <p>
+	 * Searches through all object of a specified type and returns a count of such objects.
+	 * This method is usually much more efficient than equivalent search method. It is used mostly for
+	 * presentation purposes, e.g. displaying correct number of pages in the GUI listings. 
+	 * </p>
+	 * 
+	 * @param type
+	 *            (class) of an object to search
+	 * @param query
+	 *            search query
+	 * @param options
+	 *            options influencing the retrieval and processing of the objects
+	 * @param task
+	 * 			  Task instance. It gives context to the execution (e.g. security context)
+	 * @param parentResult
+	 *            parent OperationResult (in/out)
+	 * @return number of objects of specified type that match search criteria (subject
+	 *         to paging)
+	 * 
+	 * @throws SchemaException
+	 *             unknown property used in search query
+	 * @throws ObjectNotFoundException
+	 *             object required for a search was not found (e.g. resource definition)
+	 * @throws CommunicationException 
+	 * 				Communication (network) error during retrieval. E.g. error communicating with the resource
+	 * @throw SecurityViolationException
+	 * 				Security violation during operation execution. May be caused either by midPoint internal
+	 * 				security mechanism but also by external mechanism (e.g. on the resource)
+	 * @throws ConfigurationException
+	 * 				Configuration error. E.g. misconfigured resource parameters, invalid policies, etc.
+	 * @throws IllegalArgumentException
+	 *             wrong query format
+	 */
 	<T extends ObjectType> int countObjects(Class<T> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options,
             Task task, OperationResult parentResult) 
             		throws SchemaException, ObjectNotFoundException, SecurityViolationException, ConfigurationException, CommunicationException;
@@ -411,8 +494,7 @@ public interface ModelService {
 	 * TODO: Better description
 	 */
 	void importFromResource(String resourceOid, QName objectClass, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, 
-			SecurityViolationException;
+			throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException; 
 	
 	/**
 	 * <p>
@@ -421,8 +503,7 @@ public interface ModelService {
 	 * TODO: Better description 
 	 */
 	void importFromResource(String shadowOid, Task task, OperationResult parentResult)
-			throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, 
-			SecurityViolationException;
+			throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException;
 
 	/**
 	 * Import objects from file.

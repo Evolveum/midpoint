@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.lens;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
+import com.evolveum.midpoint.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 
@@ -44,4 +45,9 @@ public interface LensDebugListener {
 	 */
 	public <F extends ObjectType> void afterMappingEvaluation(LensContext<F> context, Mapping<?> evaluatedMapping);
 	
+//	/**
+//	 * For all scripts expect for mappings.
+//	 * May be used to gather profiling data, etc.
+//	 */	
+//	public <F extends ObjectType, P extends ObjectType> void afterScriptEvaluation(LensContext<F,P> context, ScriptExpression scriptExpression);
 }

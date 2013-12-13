@@ -141,7 +141,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		
 		dummyResourceCtl = DummyResourceContoller.create(null);
 		dummyResourceCtl.setResource(resource);
-		dummyResourceCtl.extendDummySchema();
+		dummyResourceCtl.extendSchemaPirate();
 		dummyResource = dummyResourceCtl.getDummyResource();
 				
 		manager = connectorFactoryIcfImpl;
@@ -206,7 +206,8 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 	public void test002ConnectorSchema() throws ObjectNotFoundException, SchemaException {
 		TestUtil.displayTestTile("test002ConnectorSchema");
 		
-		ConnectorInstance cc = manager.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType));
+		ConnectorInstance cc = manager.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType),
+				"test connector");
 		assertNotNull("Failed to instantiate connector", cc);
 		PrismSchema connectorSchema = cc.generateConnectorSchema();
 		ProvisioningTestUtil.assertConnectorSchemaSanity(connectorSchema, "generated");
@@ -258,7 +259,8 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 			GenericFrameworkException, SchemaException, ConfigurationException {
 		TestUtil.displayTestTile("test004CreateConfiguredConnector");
 		
-		ConnectorInstance cc = manager.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType));
+		ConnectorInstance cc = manager.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType),
+				"test connector");
 		assertNotNull("Failed to instantiate connector", cc);
 		OperationResult result = new OperationResult(TestUcfDummy.class.getName() + ".testCreateConfiguredConnector");
 		PrismContainerValue configContainer = resourceType.getConnectorConfiguration().asPrismContainerValue();
@@ -279,7 +281,8 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		
 		OperationResult result = new OperationResult(TestUcfDummy.class+".test030ResourceSchema");
 		
-		cc = manager.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType));
+		cc = manager.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType), 
+				"test connector");
 		assertNotNull("Failed to instantiate connector", cc);
 		
 		PrismContainerValue configContainer = resourceType.getConnectorConfiguration().asPrismContainerValue();
@@ -314,7 +317,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		
 		OperationResult result = new OperationResult(TestUcfDummy.class+".test030ResourceSchema");
 		
-		cc = manager.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType));
+		cc = manager.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType), "test connector");
 		assertNotNull("Failed to instantiate connector", cc);
 		
 		PrismContainerValue configContainer = resourceType.getConnectorConfiguration().asPrismContainerValue();

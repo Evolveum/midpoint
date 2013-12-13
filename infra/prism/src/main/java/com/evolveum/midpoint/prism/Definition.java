@@ -22,6 +22,7 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.MiscUtil;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 
@@ -59,9 +60,11 @@ public abstract class Definition implements Serializable, Dumpable, DebugDumpabl
 	protected QName defaultName;
 	protected QName typeName;
 	protected boolean ignored = false;
+    protected boolean isAbstract = false;
 	protected String displayName;
 	protected Integer displayOrder;
 	protected String help;
+    protected String documentation;
 	
 	/**
      * This means that the property container is not defined by fixed (compile-time) schema.
@@ -129,7 +132,15 @@ public abstract class Definition implements Serializable, Dumpable, DebugDumpabl
 		this.ignored = ignored;
 	}
 
-	/**
+    public boolean isAbstract() {
+        return isAbstract;
+    }
+
+    public void setAbstract(boolean isAbstract) {
+        this.isAbstract = isAbstract;
+    }
+
+    /**
 	 * Returns display name.
 	 * 
 	 * Specifies the printable name of the object class or attribute. It must
@@ -184,8 +195,31 @@ public abstract class Definition implements Serializable, Dumpable, DebugDumpabl
 	public void setHelp(String help) {
 		this.help = help;
 	}
-	
-	public boolean isRuntimeSchema() {
+
+    public String getDocumentation() {
+        return documentation;
+    }
+
+    public void setDocumentation(String documentation) {
+        this.documentation = documentation;
+    }
+
+    /**
+     * Returns only a first sentence of documentation.
+     */
+    public String getDocumentationPreview() {
+        if (documentation == null || documentation.isEmpty()) {
+            return documentation;
+        }
+        String plainDoc = MiscUtil.stripHtmlMarkup(documentation);
+        int i = plainDoc.indexOf('.');
+        if (i<0) {
+            return plainDoc;
+        }
+        return plainDoc.substring(0,i+1);
+    }
+
+    public boolean isRuntimeSchema() {
         return isRuntimeSchema;
     }
 
@@ -272,7 +306,12 @@ public abstract class Definition implements Serializable, Dumpable, DebugDumpabl
 	}
 	
 	/**
-     * Return a human readable name of this class suitable for logs.
+     * Return a human readable name of this class suitable for logs. (e.g. "PPD")
      */
     protected abstract String getDebugDumpClassName();
+
+    /**
+     * Returns human-readable name of this class suitable for documentation. (e.g. "property")
+     */
+    public abstract String getDocClassName();
 }

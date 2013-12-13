@@ -752,6 +752,10 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 				synchronizationPolicyDecision == SynchronizationPolicyDecision.IGNORE) {
 			return false;
 		}
+		if (getResourceShadowDiscriminator() != null && getResourceShadowDiscriminator().getOrder() > 0) {
+			// These may not have the OID yet
+			return false;
+		}
 		return super.isRequireSecondardyDeltaOid();
 	}
     
@@ -902,6 +906,9 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 			sb.append(", type '");
 			sb.append(discr.getIntent());
 			sb.append("', ");
+			if (discr.getOrder() != 0) {
+				sb.append("order ").append(discr.getOrder()).append(", ");
+			}
 		} else {
 			sb.append(" (no discriminator) ");
 		}

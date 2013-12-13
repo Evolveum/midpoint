@@ -37,6 +37,8 @@ public class ExpressionConstants {
 	public static final QName VAR_IMMEDIATE_ROLE = new QName(SchemaConstants.NS_C, "immediateRole");
 	public static final QName VAR_OPERATION = new QName(SchemaConstants.NS_C, "operation");
 	public static final QName VAR_RESOURCE = new QName(SchemaConstants.NS_C, "resource");
+	public static final QName VAR_MODEL_CONTEXT = new QName(SchemaConstants.NS_C, "modelContext");
+	public static final QName VAR_PRISM_CONTEXT = new QName(SchemaConstants.NS_C, "prismContext");
 	
 	public static final QName VAR_LEGAL = new QName(SchemaConstants.NS_C, "legal");
 	public static final QName VAR_FOCUS_EXISTS = new QName(SchemaConstants.NS_C, "focusExists");

@@ -83,6 +83,7 @@ public class TaskDto extends Selectable {
     public static final String F_HANDLER_URI_LIST = "handlerUriList";
     public static final String F_WORKFLOW_HISTORY = "workflowHistory";
     public static final String F_TASK_OPERATION_RESULT = "taskOperationResult";
+    public static final String F_PROGRESS_DESCRIPTION = "progressDescription";
 
     private List<String> handlerUriList;
     private String parentTaskName;
@@ -414,6 +415,23 @@ public class TaskDto extends Selectable {
         return taskType.getNodeAsObserved();
     }
 
+    public String getProgressDescription() {
+        if (taskType.getProgress() == null && taskType.getExpectedTotal() == null) {
+            return "";      // the task handler probably does not report progress at all
+        } else {
+            StringBuilder sb = new StringBuilder();
+            if (taskType.getProgress() != null){
+                sb.append(taskType.getProgress());
+            } else {
+                sb.append("0");
+            }
+            if (taskType.getExpectedTotal() != null) {
+                sb.append("/" + taskType.getExpectedTotal());
+            }
+            return sb.toString();
+        }
+    }
+
     public List<OperationResult> getResult() {
 		return opResult;
 	}
@@ -618,5 +636,9 @@ public class TaskDto extends Selectable {
 
     public void setThreadStop(ThreadStopActionType value) {
         taskType.setThreadStopAction(value);
+    }
+
+    public Long getStalledSince() {
+        return xgc2long(taskType.getStalledSince());
     }
 }

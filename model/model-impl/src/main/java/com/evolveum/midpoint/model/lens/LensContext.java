@@ -74,6 +74,11 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	transient private DeltaSetTriple<Assignment> evaluatedAssignmentTriple;
 	
 	/**
+	 * Just a cached copy. Keep it in context so we do not need to reload it all the time.
+	 */
+	transient private PrismObject<SystemConfigurationType> systemConfiguration;
+	
+	/**
      * True if we want to reconcile all accounts in this context.
      */
     private boolean doReconciliationForAllProjections = false;
@@ -222,6 +227,15 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 		}
 		 
 		return projectionContext;
+	}
+
+	public PrismObject<SystemConfigurationType> getSystemConfiguration() {
+		return systemConfiguration;
+	}
+
+	public void setSystemConfiguration(
+			PrismObject<SystemConfigurationType> systemConfiguration) {
+		this.systemConfiguration = systemConfiguration;
 	}
 
 	public void setFocusTemplate(ObjectTemplateType focusTemplate) {
@@ -700,7 +714,20 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
         sb.append(", Wave(e=").append(executionWave);
         sb.append(",p=").append(projectionWave);
         sb.append(",max=").append(getMaxWave());
-        sb.append("), fresh=").append(isFresh);
+        sb.append("), ");
+        if (focusContext != null) {
+        	sb.append("focus, ");
+        }
+        sb.append(projectionContexts.size());
+        sb.append(" projections, ");
+        try {
+			Collection<ObjectDelta<? extends ObjectType>> allChanges = getAllChanges();
+			sb.append(allChanges.size());
+		} catch (SchemaException e) {
+			sb.append("[ERROR]");
+		}
+        sb.append(" changes, ");
+        sb.append("fresh=").append(isFresh);
         sb.append("\n");
 
         DebugUtil.debugDumpLabel(sb, "Channel", indent + 1);

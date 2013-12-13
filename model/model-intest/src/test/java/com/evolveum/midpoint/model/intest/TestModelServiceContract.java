@@ -20,6 +20,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -31,10 +32,10 @@ import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.notifications.events.AccountEvent;
-import com.evolveum.midpoint.notifications.transports.Message;
+import com.evolveum.icf.dummy.resource.BreakMode;
+import com.evolveum.midpoint.notifications.api.transports.Message;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
-import com.evolveum.midpoint.prism.match.PolyStringStrictMatchingRule;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -55,7 +56,6 @@ import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.notifications.notifiers.DummyNotifier;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -295,8 +295,73 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         
         assertSteadyResources();
 	}
-	
-	@Test
+
+    @Test(enabled = true)
+    public void test099ModifyUserAddAccountFailing() throws Exception {
+        TestUtil.displayTestTile(this, "test099ModifyUserAddAccountFailing");
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + ".test099ModifyUserAddAccountFailing");
+        OperationResult result = task.getResult();
+        preTestCleanup(AssignmentPolicyEnforcementType.POSITIVE);
+
+        PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
+
+        ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
+        PrismReferenceValue accountRefVal = new PrismReferenceValue();
+        accountRefVal.setObject(account);
+        ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
+        userDelta.addModification(accountDelta);
+        // the following modifies nothing but it is used to produce a user-level notification (LINK_REF by itself causes no such notification)
+        PropertyDelta<String> attributeDelta = PropertyDelta.createReplaceDeltaOrEmptyDelta(getUserDefinition(), UserType.F_TELEPHONE_NUMBER, "555-1234");
+        userDelta.addModification(attributeDelta);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
+
+        dummyResource.setAddBreakMode(BreakMode.UNSUPPORTED);       // hopefully this does not kick consistency mechanism
+
+        // WHEN
+        modelService.executeChanges(deltas, null, task, result);
+
+        // THEN
+        result.computeStatus();
+        TestUtil.assertFailure(result);
+        assertShadowFetchOperationCountIncrement(0);
+
+        // Check accountRef
+        PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+        assertUserJack(userJack);
+        UserType userJackType = userJack.asObjectable();
+        assertEquals("Unexpected number of accountRefs", 0, userJackType.getLinkRef().size());
+
+//        // Check audit
+//        display("Audit", dummyAuditService);
+//        dummyAuditService.assertRecords(2);
+//        dummyAuditService.assertSimpleRecordSanity();
+//        dummyAuditService.assertAnyRequestDeltas();
+//        dummyAuditService.assertExecutionDeltas(3);
+//        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+//        dummyAuditService.asserHasDelta(ChangeType.ADD, ShadowType.class);
+//        dummyAuditService.assertTarget(USER_JACK_OID);
+//        dummyAuditService.assertExecutionSuccess();
+
+        notificationManager.setDisabled(true);
+        dummyResource.resetBreakMode();
+
+        // Check notifications
+        checkDummyTransportMessages("accountPasswordNotifier", 0);
+        checkDummyTransportMessages("userPasswordNotifier", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 0);
+        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);        // actually I don't know why provisioning does not report unsupported operation as a failure...
+        checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);
+        checkDummyTransportMessages("simpleUserNotifier", 1);
+        checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
+        checkDummyTransportMessages("simpleUserNotifier-FAILURE", 1);
+
+        assertSteadyResources();
+    }
+
+
+    @Test
     public void test100ModifyUserAddAccount() throws Exception {
         TestUtil.displayTestTile(this, "test100ModifyUserAddAccount");
 
@@ -313,10 +378,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
 		userDelta.addModification(accountDelta);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
-		
-        dummyNotifier.clearRecords();
-        dummyTransport.clearMessages();
-        notificationManager.setDisabled(false);
+
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
         
 		// WHEN
@@ -359,7 +421,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         dummyAuditService.assertRecords(2);
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
-        dummyAuditService.assertExecutionDeltas(3);
+        dummyAuditService.assertExecutionDeltas(2);
         dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
         dummyAuditService.asserHasDelta(ChangeType.ADD, ShadowType.class);
         dummyAuditService.assertTarget(USER_JACK_OID);
@@ -368,10 +430,6 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         notificationManager.setDisabled(true);
 
         // Check notifications
-        display("Notifier", dummyNotifier);
-        checkTest100NotificationRecords("newAccounts");
-        checkTest100NotificationRecords("newAccountsViaExpression");
-
         checkDummyTransportMessages("accountPasswordNotifier", 1);
         checkDummyTransportMessages("userPasswordNotifier", 0);
         checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
@@ -380,11 +438,10 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         checkDummyTransportMessages("simpleUserNotifier", 0);
         checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
 
-//        List<Message> messages = dummyTransport.getMessages("dummy:accountPasswordNotifier");
-//        assertNotNull("No messages recorded in dummy transport", messages);
-//        assertEquals("Invalid number of messages recorded in dummy transport", 1, messages.size());
-//        Message message = messages.get(0);
-//        assertEquals("Invalid list of recipients", Arrays.asList(userJackType.getEmailAddress()), message.getTo());
+        List<Message> messages = dummyTransport.getMessages("dummy:accountPasswordNotifier");
+        Message message = messages.get(0);          // number of messages was already checked
+        assertEquals("Invalid list of recipients", Arrays.asList("recipient@evolveum.com"), message.getTo());
+        assertTrue("No account name in account password notification", message.getBody().contains("Password for account jack on Dummy Resource is:"));
 //
 //        messages = dummyTransport.getMessages("dummy:newAccountsViaExpression");
 //        assertNotNull("No messages recorded in dummy transport (expressions)", messages);
@@ -396,15 +453,6 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 
         assertSteadyResources();
 	}
-
-    private void checkTest100NotificationRecords(String notifierName) {
-        assertEquals("Invalid number of notification records [" + notifierName + "]", 1, dummyNotifier.getRecords(notifierName).size());
-        DummyNotifier.NotificationRecord record = dummyNotifier.getRecords(notifierName).get(0);
-        assertEquals("Wrong user in notification record [" + notifierName + "]", USER_JACK_OID, ((AccountEvent) record.getEvent()).getRequestee().getOid());
-        assertEquals("Wrong number of account OIDs in notification record [" + notifierName + "]", 1, record.getAccountsOids().size());
-        assertEquals("Wrong account OID in notification record [" + notifierName + "]", accountOid, record.getAccountsOids().iterator().next());
-        assertEquals("Wrong change type in notification record [" + notifierName + "]", ChangeType.ADD, record.getFirstChangeType());
-    }
 
     @Test
     public void test101GetAccount() throws Exception {
@@ -1794,7 +1842,6 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
 		
 		dummyAuditService.clear();
-        dummyNotifier.clearRecords();
         dummyTransport.clearMessages();
         notificationManager.setDisabled(false);
         
@@ -1843,10 +1890,6 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         notificationManager.setDisabled(true);
 
         // Check notifications
-        display("Notifier", dummyNotifier);
-        checkTest100NotificationRecords("newAccounts");
-        checkTest100NotificationRecords("newAccountsViaExpression");
-
         checkDummyTransportMessages("accountPasswordNotifier", 1);
         checkDummyTransportMessages("userPasswordNotifier", 0);
         checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
@@ -1913,7 +1956,6 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         notificationManager.setDisabled(true);
 
         // Check notifications
-        display("Notifier", dummyNotifier);
         checkDummyTransportMessages("accountPasswordNotifier", 0);
         checkDummyTransportMessages("userPasswordNotifier", 0);
         checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 0);

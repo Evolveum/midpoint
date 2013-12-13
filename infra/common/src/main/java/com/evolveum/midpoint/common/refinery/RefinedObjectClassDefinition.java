@@ -598,7 +598,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
         return attrNames;
     }
 
-    public MappingType getCredentialsInbound() {
+    public List<MappingType> getCredentialsInbound() {
         
     	ResourcePasswordDefinitionType password = getPasswordDefinition();
     	

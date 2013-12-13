@@ -54,6 +54,8 @@
 		<module>model-client</module>
         <module>workflow-api</module>
         <module>workflow-impl</module>
-        <module>notifications</module>
+        <module>notifications-api</module>
+        <module>notifications-impl</module>
+        <module>report-impl</module>
     </modules>
 </project>

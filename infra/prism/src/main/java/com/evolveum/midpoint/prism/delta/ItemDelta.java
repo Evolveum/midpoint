@@ -1099,7 +1099,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		}
 		if (delta == null) {
 			PrismValueDeltaSetTriple<T> triple = new PrismValueDeltaSetTriple<T>();
-			triple.addAllToZeroSet(item.getValues());
+			triple.addAllToZeroSet(PrismValue.cloneCollection(item.getValues()));
 			return triple;
 		}
 		return delta.toDeltaSetTriple(item);
@@ -1112,22 +1112,22 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 	public PrismValueDeltaSetTriple<V> toDeltaSetTriple(Item<V> itemOld) {
 		PrismValueDeltaSetTriple<V> triple = new PrismValueDeltaSetTriple<V>();
 		if (isReplace()) {
-			triple.getPlusSet().addAll(getValuesToReplace());
+			triple.getPlusSet().addAll(PrismValue.cloneCollection(getValuesToReplace()));
 			if (itemOld != null) {
-				triple.getMinusSet().addAll(itemOld.getValues());
+				triple.getMinusSet().addAll(PrismValue.cloneCollection(itemOld.getValues()));
 			}
 			return triple;
 		}
 		if (isAdd()) {
-			triple.getPlusSet().addAll(getValuesToAdd());
+			triple.getPlusSet().addAll(PrismValue.cloneCollection(getValuesToAdd()));
 		}
 		if (isDelete()) {
-			triple.getMinusSet().addAll(getValuesToDelete());
+			triple.getMinusSet().addAll(PrismValue.cloneCollection(getValuesToDelete()));
 		}
 		if (itemOld != null && itemOld.getValues() != null) {
 			for (V itemVal: itemOld.getValues()) {
 				if (!PrismValue.containsRealValue(valuesToDelete, itemVal) && !PrismValue.containsRealValue(valuesToAdd, itemVal)) {
-					triple.getZeroSet().add(itemVal);
+					triple.getZeroSet().add((V) itemVal.clone());
 				}
 			}
 		}

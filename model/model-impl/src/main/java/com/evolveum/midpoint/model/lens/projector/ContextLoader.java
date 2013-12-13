@@ -180,6 +180,11 @@ public class ContextLoader {
 				// chance to be executed yet
 				continue;
 			}
+			ResourceShadowDiscriminator discr = projectionContext.getResourceShadowDiscriminator();
+			if (discr != null && discr.getOrder() > 0) {
+				// HACK never rot higher-order context. TODO: check if lower-order context is rotten, the also rot this one
+				continue;
+			}
 			if (!projectionContext.isFresh()) {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Removing rotten context {}", projectionContext.getHumanReadableName());
@@ -230,23 +235,33 @@ public class ContextLoader {
 		}
 		// We still may not have resource OID here. E.g. in case of the delete when the account is not loaded yet. It is
 		// perhaps safe to skip this. It will be sorted out later.
-		if (resourceOid == null) {
-			return;
+
+		if (resourceOid != null) {
+			if (intent == null && projectionContext.getObjectNew() != null) {
+                ShadowType shadowNewType = projectionContext.getObjectNew().asObjectable();
+                kind = ShadowUtil.getKind(shadowNewType);
+                intent = ShadowUtil.getIntent(shadowNewType);
+			}
+			ResourceType resource = projectionContext.getResource();
+			if (resource == null) {
+				resource = LensUtil.getResource(context, resourceOid, provisioningService, result);
+				projectionContext.setResource(resource);
+			}
+            String refinedIntent = LensUtil.refineProjectionIntent(kind, intent, resource, prismContext);
+            rsd = new ResourceShadowDiscriminator(resourceOid, kind, refinedIntent, isThombstone);
+			rsd.setOrder(order);
+			projectionContext.setResourceShadowDiscriminator(rsd);
 		}
-		if (intent == null && projectionContext.getObjectNew() != null) {
-			ShadowType shadowNewType = projectionContext.getObjectNew().asObjectable();
-			kind = ShadowUtil.getKind(shadowNewType);
-			intent = ShadowUtil.getIntent(shadowNewType);
+		if (projectionContext.getOid() == null && rsd.getOrder() != 0) {
+			// Try to determine OID from lower-order contexts
+			for (LensProjectionContext<P> aProjCtx: context.getProjectionContexts()) {
+				ResourceShadowDiscriminator aDiscr = aProjCtx.getResourceShadowDiscriminator();
+				if (rsd.equivalent(aDiscr) && aProjCtx.getOid() != null) {
+					projectionContext.setOid(aProjCtx.getOid());
+					break;
+				}
+			}
 		}
-		ResourceType resource = projectionContext.getResource();
-		if (resource == null) {
-			resource = LensUtil.getResource(context, resourceOid, provisioningService, result);
-			projectionContext.setResource(resource);
-		}
-		String refinedIntent = LensUtil.refineProjectionIntent(kind, intent, resource, prismContext);
-		rsd = new ResourceShadowDiscriminator(resourceOid, kind, refinedIntent, isThombstone);
-		rsd.setOrder(order);
-		projectionContext.setResourceShadowDiscriminator(rsd);
 	}
 	
 	/** 
@@ -320,25 +335,11 @@ public class ContextLoader {
 	
 	private <F extends ObjectType> void loadFromSystemConfig(LensContext<F> context, OperationResult result)
 			throws ObjectNotFoundException, SchemaException {
-		PrismObject<SystemConfigurationType> systemConfiguration = null;
-		try {
-			systemConfiguration = 
-			cacheRepositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
-					null, result);
-		} catch (ObjectNotFoundException e) {
-		    // This should not normally happen, but it may happen in some cases (e.g. deleted and re-created
-			// configuration object, initial import of system configuration, etc.)
-		    LOGGER.warn("System configuration object is not present");
-		    return;
-		}
-		
+		PrismObject<SystemConfigurationType> systemConfiguration = LensUtil.getSystemConfiguration(context, cacheRepositoryService, result);
 		if (systemConfiguration == null) {
-			// This should not normally happen in production code.
-			// But it happens in tests. And it is a convenient short cut. Tolerate it for now.
-		    LOGGER.warn("System configuration object is null (this should not normally happen!)");
-		    return;
+			// This happens in some tests. And also during first startup.
+			return;
 		}
-		
 		SystemConfigurationType systemConfigurationType = systemConfiguration.asObjectable();
 		
 		if (context.getFocusTemplate() == null) {
@@ -803,9 +804,7 @@ public class ContextLoader {
 		
 		// Load current object
 		PrismObject<ShadowType> projectionObject = projContext.getObjectCurrent();
-		if (projContext.getObjectCurrent() != null) {
-			projectionObject = projContext.getObjectCurrent();
-		} else {
+		if (projContext.getObjectCurrent() == null || needToReload(context, projContext)) {
 			if (projContext.isAdd()) {
 				// No need to load old object, there is none
 				projContext.setExists(false);
@@ -823,24 +822,17 @@ public class ContextLoader {
 					GetOperationOptions rootOptions = projContext.isDoReconciliation() ? 
 							GetOperationOptions.createDoNotDiscovery() : GetOperationOptions.createNoFetch();
 					Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(rootOptions);
-//						if (projContext.isDoReconciliation()) {
-//							options = GetOperationOptions.createDoNotDiscovery();
-////							projContext.setFullShadow(true);
-//						} else {
-////							projContext.setFullShadow(false);
-//							options = GetOperationOptions.createNoFetch();
-//						]}
 					try{
-					PrismObject<ShadowType> objectOld = provisioningService.getObject(
-							projContext.getObjectTypeClass(), projectionObjectOid, options, null, result);
-					projContext.setLoadedObject(objectOld);
-					ShadowType oldShadow = objectOld.asObjectable();
-					if (projContext.isDoReconciliation()) {
-                        projContext.determineFullShadowFlag(oldShadow.getFetchResult());
-					} else {
-						projContext.setFullShadow(false);
-					}
-					projectionObject = objectOld;
+						PrismObject<ShadowType> objectOld = provisioningService.getObject(
+								projContext.getObjectTypeClass(), projectionObjectOid, options, null, result);
+						projContext.setLoadedObject(objectOld);
+                        ShadowType oldShadow = objectOld.asObjectable();
+						if (projContext.isDoReconciliation()) {
+	                        projContext.determineFullShadowFlag(oldShadow.getFetchResult());
+						} else {
+							projContext.setFullShadow(false);
+						}
+						projectionObject = objectOld;
 					} catch (ObjectNotFoundException ex){
 						projContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
 						LOGGER.warn("Could not find object with oid " + projectionObjectOid + ". Context for these object is marked as broken");
@@ -851,6 +843,12 @@ public class ContextLoader {
 						return;
 					}
 				}
+				projContext.setFresh(true);
+			}
+		} else {
+			projectionObject = projContext.getObjectCurrent();
+			if (projectionObjectOid != null) {
+				projContext.setExists(true);
 			}
 		}
 		
@@ -907,7 +905,29 @@ public class ContextLoader {
 		
 	}
 	
-	private <F extends ObjectType> void fullCheckConsistence(LensContext<F> context) {
+	private <F extends ObjectType> boolean needToReload(LensContext<F> context,
+			LensProjectionContext projContext) {
+		ResourceShadowDiscriminator discr = projContext.getResourceShadowDiscriminator();
+		if (discr == null) {
+			return false;
+		}
+		// This is kind of brutal. But effective. We are reloading all higher-order dependencies
+		// before they are processed. This makes sure we have fresh state when they are re-computed.
+		// Because higher-order dependencies may have more than one projection context and the
+		// changes applied to one of them are not automatically reflected on on other. therefore we need to reload.
+		if (discr.getOrder() == 0) {
+			return false;
+		}
+		int executionWave = context.getExecutionWave();
+		int projCtxWave = projContext.getWave();
+		if (executionWave == projCtxWave - 1) {
+			// Reload right before its execution wave
+			return true;
+		}
+		return false;
+	}
+	
+	private <F extends ObjectType, P extends ObjectType> void fullCheckConsistence(LensContext<F,P> context) {
 		context.checkConsistence();
 		for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
 			if (projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {

@@ -67,6 +67,9 @@ public class ValueMatcher<T> {
 	}
 	
 	public boolean isRealValueToAdd(PropertyDelta<T> delta, PrismPropertyValue<T> pValue) {
+		if (delta.getValuesToAdd() == null){
+			return false;
+		}
 		for (PrismPropertyValue<T> existingPValue: delta.getValuesToAdd()) {
 			if (matchingRule.match(existingPValue.getValue(), pValue.getValue())) {
 				return true;

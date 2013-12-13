@@ -146,4 +146,9 @@ public class SystemConfigurationHandler implements ChangeHook {
 
         return HookOperationMode.FOREGROUND;
     }
+
+    @Override
+    public void invokeOnException(ModelContext context, Throwable throwable, Task task, OperationResult result) {
+        // do nothing
+    }
 }

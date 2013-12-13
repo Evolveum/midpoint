@@ -22,6 +22,8 @@ import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.schema.QueryConvertor;
+import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -119,9 +121,18 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeTaskHandler<Use
 	}
 	
 	@Override
-	protected ObjectQuery createQuery(AbstractSearchIterativeResultHandler<UserType> handler, TaskRunResult runResult, Task task, OperationResult opResult) {
-		// Search all objects
-		return new ObjectQuery();
+	protected ObjectQuery createQuery(AbstractSearchIterativeResultHandler<UserType> handler, TaskRunResult runResult, Task task, OperationResult opResult) throws SchemaException {
+        QueryType queryFromTask = getObjectQueryTypeFromTask(task);
+        if (queryFromTask != null) {
+            ObjectQuery query = QueryConvertor.createObjectQuery(UserType.class, queryFromTask, prismContext);
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("Using object query from the task: {}", query.dump());
+            }
+            return query;
+        } else {
+		    // Search all objects
+		    return new ObjectQuery();
+        }
 	}
 	
 	@Override
@@ -136,8 +147,8 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeTaskHandler<Use
 				return true;
 			}
 		};
-		
-		return handler;
+        handler.setStopOnError(false);
+        return handler;
 	}
 
 	private void recomputeUser(PrismObject<UserType> user, Task task, OperationResult result) throws SchemaException, 

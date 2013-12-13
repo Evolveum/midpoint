@@ -138,6 +138,8 @@ public class ModifyUserAction extends BaseAction {
             if (accountContext == null) {
                 LOGGER.warn("Couldn't create account sync context, skipping action for this change.");
                 return userOid;
+            } else{
+            	LOGGER.trace("Created account context (for sychronization): {}", accountContext.dump());
             }
         } catch (RuntimeException ex) {
         	subResult.recordFatalError("Couldn't update account sync context in modify user action: "+ex.getMessage(), ex);

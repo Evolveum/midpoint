@@ -96,7 +96,7 @@ public class ExecutionManager {
         for (String nodeIdentifier : nodeIdentifiers) {
             stopScheduler(nodeIdentifier, result);
         }
-        ClusterStatusInformation csi = getClusterStatusInformation(true, result);
+        ClusterStatusInformation csi = getClusterStatusInformation(true, false, result);
         Set<ClusterStatusInformation.TaskInfo> taskInfoList = csi.getTasksOnNodes(nodeIdentifiers);
 
         LOGGER.debug("{} task(s) found on nodes that are going down, stopping them.", taskInfoList.size());
@@ -118,7 +118,6 @@ public class ExecutionManager {
         return stopped;
     }
 
-
     public void startScheduler(String nodeIdentifier, OperationResult parentResult) {
         OperationResult result = parentResult.createSubresult(this.getClass().getName() + ".startScheduler");
         result.addParam("nodeIdentifier", nodeIdentifier);
@@ -129,16 +128,20 @@ public class ExecutionManager {
         }
     }
 
+    public boolean isLocalNodeRunning() {
+        return localNodeManager.isRunning();
+    }
+
     /*
      * ==================== NODE-LEVEL METHODS (QUERIES) ====================
      */
 
-    public ClusterStatusInformation getClusterStatusInformation(boolean clusterwide, OperationResult parentResult) {
+    public ClusterStatusInformation getClusterStatusInformation(boolean clusterwide, boolean allowCached, OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(ExecutionManager.class.getName() + ".getClusterStatusInformation");
         result.addParam("clusterwide", clusterwide);
 
-        if (clusterwide && lastClusterStatusInformation != null && lastClusterStatusInformation.isFresh(ALLOWED_CLUSTER_STATE_INFORMATION_AGE)) {
+        if (allowCached && clusterwide && lastClusterStatusInformation != null && lastClusterStatusInformation.isFresh(ALLOWED_CLUSTER_STATE_INFORMATION_AGE)) {
             result.recordSuccess();
             return lastClusterStatusInformation;
         }
@@ -247,7 +250,7 @@ public class ExecutionManager {
         LOGGER.trace("Stopping tasks " + tasks + " (waiting " + waitTime + " msec); clusterwide = " + clusterwide);
 
         if (clusterwide && csi == null) {
-            csi = getClusterStatusInformation(true, result);
+            csi = getClusterStatusInformation(true, false, result);
         }
 
         for (Task task : tasks)
@@ -290,7 +293,7 @@ public class ExecutionManager {
         for(;;) {
 
             boolean isAnythingExecuting = false;
-            ClusterStatusInformation rtinfo = getClusterStatusInformation(clusterwide, result);
+            ClusterStatusInformation rtinfo = getClusterStatusInformation(clusterwide, false, result);
             for (String oid : oids) {
                 if (rtinfo.findNodeInfoForTask(oid) != null) {
                     isAnythingExecuting = true;
@@ -504,8 +507,32 @@ public class ExecutionManager {
         localNodeManager.initializeScheduler();
     }
 
-    public void scheduleTaskNow(Task task, OperationResult parentResult) {
-        OperationResult result = parentResult.createSubresult(DOT_CLASS + "scheduleTaskNow");
+    public void reRunClosedTask(Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
+        OperationResult result = parentResult.createSubresult(DOT_CLASS + "reRunClosedTask");
+
+        if (task.getExecutionStatus() != TaskExecutionStatus.CLOSED) {
+            String message = "Task " + task + " cannot be re-run, because it is not in CLOSED state.";
+            result.recordFatalError(message);
+            LOGGER.error(message);
+            return;
+        }
+
+        if (!task.isSingle()) {
+            String message = "Closed recurring task " + task + " cannot be re-run, because this operation is not available for recurring tasks.";
+            result.recordWarning(message);
+            LOGGER.warn(message);
+            return;
+        }
+        taskSynchronizer.synchronizeTask((TaskQuartzImpl) task, result);        // this should remove any triggers
+        ((TaskQuartzImpl) task).setRecreateQuartzTrigger(true);
+        ((TaskQuartzImpl) task).setExecutionStatusImmediate(TaskExecutionStatus.RUNNABLE, result);  // this will create the trigger
+        result.recordSuccess();
+
+        // note that if scheduling (not executes before/after) prevents the task from running, it will not run!
+    }
+
+    public void scheduleRunnableTaskNow(Task task, OperationResult parentResult) {
+        OperationResult result = parentResult.createSubresult(DOT_CLASS + "scheduleRunnableTaskNow");
 
         if (task.getExecutionStatus() != TaskExecutionStatus.RUNNABLE) {
             String message = "Task " + task + " cannot be scheduled, because it is not in RUNNABLE state.";
@@ -537,6 +564,19 @@ public class ExecutionManager {
             result.recordFatalError(message, e);
             LOGGER.error(message);
         }
+    }
+
+    public void pauseTaskJob(Task task, OperationResult parentResult) {
+        OperationResult result = parentResult.createSubresult(DOT_CLASS + "pauseTaskJob");
+        JobKey jobKey = TaskQuartzImplUtil.createJobKeyForTask(task);
+        try {
+            quartzScheduler.pauseJob(jobKey);
+            result.recordSuccess();
+        } catch (SchedulerException e) {
+            LoggingUtils.logException(LOGGER, "Cannot pause job for task {}", e, task);
+            result.recordFatalError("Cannot pause job for task " + task, e);
+        }
+
     }
 }
 

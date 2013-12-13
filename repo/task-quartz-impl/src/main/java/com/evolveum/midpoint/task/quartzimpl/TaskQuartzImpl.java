@@ -302,7 +302,7 @@ public class TaskQuartzImpl implements Task {
 	 */
 	
 	/*
-	 * Progress
+	 * Progress / expectedTotal
 	 */
 	
 	@Override
@@ -339,7 +339,43 @@ public class TaskQuartzImpl implements Task {
 		setProgressTransient(value);
 		return isPersistent() ? PropertyDelta.createReplaceDelta(
 				taskManager.getTaskObjectDefinition(), TaskType.F_PROGRESS, value) : null;
-	}	
+	}
+
+    @Override
+    public Long getExpectedTotal() {
+        Long value = taskPrism.getPropertyRealValue(TaskType.F_EXPECTED_TOTAL, Long.class);
+        return value != null ? value : 0;
+    }
+
+    @Override
+    public void setExpectedTotal(Long value) {
+        processModificationBatched(setExpectedTotalAndPrepareDelta(value));
+    }
+
+    @Override
+    public void setExpectedTotalImmediate(Long value, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException {
+        try {
+            processModificationNow(setExpectedTotalAndPrepareDelta(value), parentResult);
+        } catch (ObjectAlreadyExistsException ex) {
+            throw new SystemException(ex);
+        }
+    }
+
+    public void setExpectedTotalTransient(Long value) {
+        try {
+            taskPrism.setPropertyRealValue(TaskType.F_EXPECTED_TOTAL, value);
+        } catch (SchemaException e) {
+            // This should not happen
+            throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
+        }
+    }
+
+    private PropertyDelta<?> setExpectedTotalAndPrepareDelta(Long value) {
+        setExpectedTotalTransient(value);
+        return isPersistent() ? PropertyDelta.createReplaceDelta(
+                taskManager.getTaskObjectDefinition(), TaskType.F_EXPECTED_TOTAL, value) : null;
+    }
 
 	/*
 	 * Result
@@ -583,6 +619,7 @@ public class TaskQuartzImpl implements Task {
 
             UriStackEntry use = new UriStackEntry();
             use.setHandlerUri(getHandlerUri());
+            use.setRecurrence(getRecurrenceStatus().toTaskType());
             use.setSchedule(getSchedule());
             use.setBinding(getBinding().toTaskType());
             if (extensionDeltas != null) {
@@ -668,7 +705,7 @@ public class TaskQuartzImpl implements Task {
 		if (otherHandlersUriStack != null && !otherHandlersUriStack.getUriStackEntry().isEmpty()) {
             UriStackEntry use = popFromOtherHandlersUriStack();
 			setHandlerUri(use.getHandlerUri());
-            setRecurrenceStatus(recurrenceFromSchedule(use.getSchedule()));
+            setRecurrenceStatus(use.getRecurrence() != null ? TaskRecurrence.fromTaskType(use.getRecurrence()) : recurrenceFromSchedule(use.getSchedule()));
             setSchedule(use.getSchedule());
             if (use.getBinding() != null) {
                 setBinding(TaskBinding.fromTaskType(use.getBinding()));
@@ -682,7 +719,7 @@ public class TaskQuartzImpl implements Task {
             }
             this.setRecreateQuartzTrigger(true);
 		} else {
-			setHandlerUri(null);
+			//setHandlerUri(null);                                                  // we want the last handler to remain set so the task can be revived
 			taskManager.closeTaskWithoutSavingState(this, parentResult);			// if there are no more handlers, let us close this task
 		}
         try {
@@ -730,6 +767,10 @@ public class TaskQuartzImpl implements Task {
             }
         }
 
+        // this could be a bit tricky, taking MID-1683 into account:
+        // when a task finishes its execution, we now leave the last handler set
+        // however, this applies to executable tasks; for WAITING tasks we can safely expect that if there is a handler
+        // on the stack, we can run it (by unpausing the task)
         if (getHandlerUri() != null) {
             LOGGER.trace("All dependencies of {} are closed, unpausing the task (it has a handler defined)", this);
             taskManager.unpauseTask(this, result);

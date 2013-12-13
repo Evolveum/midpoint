@@ -42,7 +42,7 @@
         </audit>
         <taskManager>
             <jdbcJobStore>false</jdbcJobStore>
-            <checkWaitingTasksInterval>5</checkWaitingTasksInterval>
+            <waitingTasksCheckInterval>5</waitingTasksCheckInterval>
             <testMode>true</testMode>
         </taskManager>
         <icf>

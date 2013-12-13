@@ -20,7 +20,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -57,7 +56,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ThreadStopActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
@@ -93,7 +91,6 @@ import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.util.string.StringValue;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -225,14 +222,14 @@ public class PageTaskEdit extends PageAdminTasks {
         Label subtasksLabel = new Label(ID_SUBTASKS_LABEL, new ResourceModel("pageTaskEdit.subtasksLabel"));
         subtasksLabel.add(hiddenWhenEditingOrNoSubtasks);
         mainForm.add(subtasksLabel);
-        SubtasksPanel subtasksPanel = new SubtasksPanel(ID_SUBTASKS_PANEL, new PropertyModel<List<TaskDto>>(model, TaskDto.F_SUBTASKS), getWorkflowService().isEnabled());
+        SubtasksPanel subtasksPanel = new SubtasksPanel(ID_SUBTASKS_PANEL, new PropertyModel<List<TaskDto>>(model, TaskDto.F_SUBTASKS), getWorkflowManager().isEnabled());
         subtasksPanel.add(hiddenWhenEditingOrNoSubtasks);
         mainForm.add(subtasksPanel);
 
         VisibleEnableBehaviour hiddenWhenEditingOrNoWorkflowInformation = new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {
-                return !edit && model.getObject().isWorkflowShadowTask() && getWorkflowService().isEnabled();
+                return !edit && model.getObject().isWorkflowShadowTask() && getWorkflowManager().isEnabled();
             }
         };
 

@@ -15,45 +15,12 @@
  */
 package com.evolveum.midpoint.model.test;
 
-import static com.evolveum.midpoint.test.util.TestUtil.assertSuccess;
-import static com.evolveum.midpoint.test.IntegrationTestTools.display;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.net.ConnectException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Set;
-
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-
 import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.icf.dummy.resource.DummyResource;
-import com.evolveum.midpoint.notifications.NotificationManager;
-import com.evolveum.midpoint.notifications.transports.DummyTransport;
-import com.evolveum.midpoint.notifications.transports.Message;
-import org.apache.commons.lang.StringUtils;
-import org.opends.server.types.DirectoryException;
-import org.opends.server.types.SearchResultEntry;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.testng.AssertJUnit;
-import org.testng.annotations.AfterClass;
-
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.InternalsConfig;
-import com.evolveum.midpoint.common.QueryUtil;
+import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
@@ -65,9 +32,8 @@ import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
-import com.evolveum.midpoint.notifications.notifiers.DummyNotifier;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.notifications.api.NotificationManager;
+import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -83,6 +49,7 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
@@ -99,12 +66,12 @@ import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
@@ -128,18 +95,20 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
@@ -148,6 +117,32 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TriggerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
+import org.apache.commons.lang.StringUtils;
+import org.opends.server.types.DirectoryException;
+import org.opends.server.types.SearchResultEntry;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.testng.AssertJUnit;
+
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.net.ConnectException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Set;
+
+import static com.evolveum.midpoint.test.IntegrationTestTools.display;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertFalse;
+import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.assertTrue;
 
 /**
  * Abstract framework for an integration test that is placed on top of a model API.
@@ -200,12 +195,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	@Autowired(required = true)
 	protected PrismContext prismContext;
 
-    @Autowired(required = false)  // dummyNotifier is currently used only in model-intest,
-                                  // but AbstractModelIntegrationTest is used in other modules as well.
-                                  // So until all POMs are modified we keep required=false here.
-    protected DummyNotifier dummyNotifier;
-
-    @Autowired(required = false)
+    @Autowired(required = true)
     protected DummyTransport dummyTransport;
 
     @Autowired(required = false)
@@ -547,6 +537,20 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		modelService.executeChanges(deltas, null, task, result);	
 	}
 	
+	protected void modifyUserAdd(String userOid, QName propertyName, Task task, OperationResult result, Object... newRealValue) 
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, 
+			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+		modifyUserAdd(userOid, new ItemPath(propertyName), task, result, newRealValue);
+	}
+	
+	protected void modifyUserAdd(String userOid, ItemPath propertyPath, Task task, OperationResult result, Object... newRealValue) 
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, 
+			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+		ObjectDelta<UserType> objectDelta = createModifyUserAddDelta(userOid, propertyPath, newRealValue);
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
+		modelService.executeChanges(deltas, null, task, result);	
+	}
+	
 	protected void modifyUserDelete(String userOid, ItemPath propertyPath, Task task, OperationResult result, Object... newRealValue) 
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, 
 			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
@@ -564,6 +568,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		ObjectDelta<ShadowType> objectDelta = createModifyAccountShadowReplaceDelta(accountOid, resource, propertyPath, newRealValue);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 		modelService.executeChanges(deltas, null, task, result);
+	}
+	
+	protected void recomputeUser(String userOid, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException  {
+		modelService.recompute(UserType.class, userOid, task, result);
 	}
 	
 	protected void assignRole(String userOid, String roleOid, Task task, OperationResult result) throws ObjectNotFoundException,
@@ -641,7 +649,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	protected ContainerDelta<AssignmentType> createAssignmentModification(String roleOid, QName refType, QName relation, PrismContainer<?> extension, boolean add) throws SchemaException {
-		ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(getUserDefinition(), UserType.F_ASSIGNMENT);
+		ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(UserType.F_ASSIGNMENT, getUserDefinition());
 		PrismContainerValue<AssignmentType> cval = new PrismContainerValue<AssignmentType>();
 		if (add) {
 			assignmentDelta.addValueToAdd(cval);
@@ -671,9 +679,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected ContainerDelta<AssignmentType> createAssignmentModification(String resourceOid, ShadowKindType kind, 
 			String intent, boolean add) throws SchemaException {
-		ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(getUserDefinition(), 
-				UserType.F_ASSIGNMENT);
-		
+		ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(UserType.F_ASSIGNMENT, getUserDefinition());
+
 		AssignmentType assignmentType = createAssignment(resourceOid, kind, intent);
 		
 		if (add) {
@@ -765,7 +772,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected PrismObject<UserType> findUserByUsername(String username) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
 		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".findUserByUsername");
         OperationResult result = task.getResult();
-        ObjectQuery query = QueryUtil.createNameQuery(PrismTestUtil.createPolyString(username), prismContext);
+        ObjectQuery query = ObjectQueryUtil.createNameQuery(PrismTestUtil.createPolyString(username), prismContext);
 		List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, query, null, task, result);
 		if (users.isEmpty()) {
 			return null;
@@ -868,8 +875,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			AssertJUnit.fail("Too many shadows for "+username+" on "+resource+" ("+accounts.size()+"): "+accounts);
 		}
 	}
-	
-	private ObjectQuery createAccountShadowQuery(String username, PrismObject<ResourceType> resource) throws SchemaException {
+
+	protected ObjectQuery createAccountShadowQuery(String username, PrismObject<ResourceType> resource) throws SchemaException {
 		RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resource);
         RefinedObjectClassDefinition rAccount = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
         Collection<? extends ResourceAttributeDefinition> identifierDefs = rAccount.getIdentifiers();
@@ -962,7 +969,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected void assertAssignedOrg(PrismObject<UserType> user, String orgOid) {
 		MidPointAsserts.assertAssignedOrg(user, orgOid);
 	}
-	
+
+	protected void assertAssignedOrg(PrismObject<UserType> user, PrismObject<OrgType> org) {
+		MidPointAsserts.assertAssignedOrg(user, org.getOid());
+	}
+
 	protected void assertHasOrg(String userOid, String orgOid, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
 		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
 		assertAssignedOrg(user, orgOid);
@@ -1056,10 +1067,6 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				}
 			}
 		}
-	}
-
-	protected PrismObjectDefinition<UserType> getUserDefinition() {
-		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
 	}
 	
 	protected PrismObjectDefinition<RoleType> getRoleDefinition() {
@@ -1281,9 +1288,25 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 		return modelService.searchObjects(OrgType.class, query, null, task, result);
 	}
+    
+    protected <T extends ObjectType> PrismObject<T> searchObjectByName(Class<T> type, String name, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+        ObjectQuery query = ObjectQueryUtil.createNameQuery(name, prismContext);
+		List<PrismObject<T>> foundObjects = modelService.searchObjects(type, query, null, task, result);
+		if (foundObjects.isEmpty()) {
+			return null;
+		}
+		if (foundObjects.size() > 1) {
+			throw new IllegalStateException("More than one object found for type "+type+" and name '"+name+"'");
+		}
+		return foundObjects.iterator().next();
+	}
 	
-	protected void assertShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType) {
-		assertShadowCommon(accountShadow, oid, username, resourceType);
+    protected void assertShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType) {
+    	assertShadowModel(accountShadow, oid, username, resourceType, null);
+    }
+    
+	protected void assertShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType, MatchingRule<String> nameMatchingRule) {
+		assertShadowCommon(accountShadow, oid, username, resourceType, nameMatchingRule);
 		IntegrationTestTools.assertProvisioningAccountShadow(accountShadow, resourceType, RefinedAttributeDefinition.class);
 	}
 	
@@ -1639,38 +1662,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			AssertJUnit.fail("Expected that "+object+" will have no triggers but it has "+triggers.size()+ " trigger: "+ triggers);
 		}
 	}
-	
-	protected PrismObject<ShadowType> createShadow(PrismObject<ResourceType> resource, String id) throws SchemaException {
-		return createShadow(resource, id, id);
-	}
-	
-	protected PrismObject<ShadowType> createShadow(PrismObject<ResourceType> resource, String uid, String name) throws SchemaException {
-		PrismObject<ShadowType> shadow = getShadowDefinition().instantiate();
-		ShadowType shadowType = shadow.asObjectable();
-		shadowType.setName(PrismTestUtil.createPolyStringType(name));
-		ObjectReferenceType resourceRef = new ObjectReferenceType();
-		resourceRef.setOid(resource.getOid());
-		shadowType.setResourceRef(resourceRef);
-		shadowType.setKind(ShadowKindType.ACCOUNT);
-		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource);
-		RefinedObjectClassDefinition objectClassDefinition = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
-		shadowType.setObjectClass(objectClassDefinition.getTypeName());
-		ResourceAttributeContainer attrContainer = ShadowUtil.getOrCreateAttributesContainer(shadow, objectClassDefinition);
-		RefinedAttributeDefinition uidAttrDef = objectClassDefinition.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA,"uid"));
-		ResourceAttribute<String> uidAttr = uidAttrDef.instantiate();
-		uidAttr.setRealValue(uid);
-		attrContainer.add(uidAttr);
-		RefinedAttributeDefinition nameAttrDef = objectClassDefinition.findAttributeDefinition(new QName(SchemaConstants.NS_ICF_SCHEMA,"name"));
-		ResourceAttribute<String> nameAttr = nameAttrDef.instantiate();
-		nameAttr.setRealValue(name);
-		attrContainer.add(nameAttr);
-		return shadow;
-	}
 
     protected void prepareNotifications() {
         notificationManager.setDisabled(false);
         dummyTransport.clearMessages();
-        dummyNotifier.clearRecords();
     }
 
     protected void checkDummyTransportMessages(String name, int expectedCount) {
@@ -1716,6 +1711,17 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			throw new IllegalStateException(e.getMessage(),e);
 		}
 	}
+    
+    protected DummyAccount getDummyAccountById(String dummyInstanceName, String id) {
+		DummyResource dummyResource = DummyResource.getInstance(dummyInstanceName);
+		try {
+			return dummyResource.getAccountById(id);
+		} catch (ConnectException e) {
+			throw new IllegalStateException(e.getMessage(),e);
+		} catch (FileNotFoundException e) {
+			throw new IllegalStateException(e.getMessage(),e);
+		}
+	}
 	
 	protected void assertDummyAccount(String username, String fullname, boolean active) {
 		assertDummyAccount(null, username, fullname, active);
@@ -1725,6 +1731,27 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		DummyAccount account = getDummyAccount(dummyInstanceName, username);
 		assertNotNull("No dummy("+dummyInstanceName+") account for username "+username, account);
 		assertEquals("Wrong fullname for dummy("+dummyInstanceName+") account "+username, fullname, account.getAttributeValue("fullname"));
+		assertEquals("Wrong activation for dummy("+dummyInstanceName+") account "+username, active, account.isEnabled());
+	}
+	
+	protected void assertDummyAccount(String dummyInstanceName, String username) {
+		DummyAccount account = getDummyAccount(dummyInstanceName, username);
+		assertNotNull("No dummy("+dummyInstanceName+") account for username "+username, account);
+	}
+	
+	protected void assertDummyAccountById(String dummyInstanceName, String id) {
+		DummyAccount account = getDummyAccountById(dummyInstanceName, id);
+		assertNotNull("No dummy("+dummyInstanceName+") account for id "+id, account);
+	}
+	
+	protected void assertNoDummyAccountById(String dummyInstanceName, String id) {
+		DummyAccount account = getDummyAccountById(dummyInstanceName, id);
+		assertNull("Dummy("+dummyInstanceName+") account for id "+id+" exists while not expecting it", account);
+	}
+	
+	protected void assertDummyAccountActivation(String dummyInstanceName, String username, boolean active) {
+		DummyAccount account = getDummyAccount(dummyInstanceName, username);
+		assertNotNull("No dummy("+dummyInstanceName+") account for username "+username, account);
 		assertEquals("Wrong activation for dummy("+dummyInstanceName+") account "+username, active, account.isEnabled());
 	}
 
@@ -1757,7 +1784,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 			}
 		}
 	}
-	
+
 	protected DummyGroup getDummyGroup(String dummyInstanceName, String name) {
 		DummyResource dummyResource = DummyResource.getInstance(dummyInstanceName);
 		try {
@@ -1794,6 +1821,13 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected void assertNoDummyGroup(String dummyInstanceName, String groupname) {
 		DummyGroup group = getDummyGroup(dummyInstanceName, groupname);
 		assertNull("Dummy group '"+groupname+"' exists while not expecting it ("+dummyInstanceName+")", group);
+    }
+
+	protected void assertDummyAccountNoAttribute(String dummyInstanceName, String username, String attributeName) {
+		DummyAccount account = getDummyAccount(dummyInstanceName, username);
+		assertNotNull("No dummy account for username "+username, account);
+		Set<Object> values = account.getAttributeValues(attributeName, Object.class);
+		assertTrue("Unexpected values for attribute "+attributeName+" of dummy account "+username+": "+values, values == null || values.isEmpty());
 	}
     
 	protected void assertOpenDjAccount(String uid, String cn, Boolean active) throws DirectoryException {
@@ -1856,6 +1890,22 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		XMLGregorianCalendar userDisableTimestamp = shadow.asObjectable().getActivation().getDisableTimestamp();
 		IntegrationTestTools.assertBetween("Wrong shadow disableTimestamp in "+shadow, 
 				startTime, endTime, userDisableTimestamp);
+	}
+	
+	protected void assertDisableReasonShadow(PrismObject<? extends ShadowType> shadow, String expectedReason) {
+		String disableReason = shadow.asObjectable().getActivation().getDisableReason();
+		assertEquals("Wrong shadow disableReason in "+shadow, expectedReason, disableReason);
+	}
+	
+	protected void assertPassword(PrismObject<UserType> user, String expectedPassword) throws EncryptionException {
+		CredentialsType credentialsType = user.asObjectable().getCredentials();
+		assertNotNull("No credentials in "+user, credentialsType);
+		PasswordType passwordType = credentialsType.getPassword();
+		assertNotNull("No password in "+user, passwordType);
+		ProtectedStringType protectedStringType = passwordType.getValue();
+		assertNotNull("No password value in "+user, protectedStringType);
+		String decryptedUserPassword = protector.decryptString(protectedStringType);
+		assertEquals("Wrong password in "+user, expectedPassword, decryptedUserPassword);
 	}
 
 }

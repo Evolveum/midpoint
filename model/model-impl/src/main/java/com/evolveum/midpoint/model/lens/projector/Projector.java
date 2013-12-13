@@ -40,6 +40,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -102,9 +103,9 @@ public class Projector {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(Projector.class);
 	
-	public <F extends ObjectType> void project(LensContext<F> context, String activityDescription, 
-			OperationResult parentResult)
-			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, 
+	public <F extends ObjectType> void project(LensContext<F> context, String activityDescription,
+            Task task, OperationResult parentResult)
+			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException,
 			ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 		
 		if (context.getDebugListener() != null) {
@@ -154,20 +155,20 @@ public class Projector {
 	        	
 	        	if (consistencyChecks) context.checkConsistence();
 		        // Loop through the account changes, apply inbound expressions
-		        inboundProcessor.processInbound(context, result);
+		        inboundProcessor.processInbound(context, now, task, result);
 		        if (consistencyChecks) context.checkConsistence();
 		        context.recomputeFocus();
 		        LensUtil.traceContext(LOGGER, activityDescription, "inbound", false, context, false);
 		        if (consistencyChecks) context.checkConsistence();
 		
-		        userPolicyProcessor.processUserPolicy(context, now, result);
+		        userPolicyProcessor.processUserPolicy(context, now, task, result);
 		        context.recomputeFocus();
 		        LensUtil.traceContext(LOGGER, activityDescription,"user policy", false, context, false);
 		        if (consistencyChecks) context.checkConsistence();
 		        
 		        checkContextSanity(context, "inbound and user policy", result);
 		
-		        assignmentProcessor.processAssignmentsProjections(context, result);
+		        assignmentProcessor.processAssignmentsProjections(context, task, result);
 		        assignmentProcessor.processOrgAssignments(context, result);
 		        context.recompute();
 		        sortAccountsToWaves(context);
@@ -209,7 +210,7 @@ public class Projector {
 		        	
 		        	if (consistencyChecks) context.checkConsistence();
 		        	
-		        	activationProcessor.processActivation(context, projectionContext, now, result);
+		        	activationProcessor.processActivation(context, projectionContext, now, task, result);
 		        	
 		        	projectionContext.recompute();
 		        	
@@ -227,7 +228,7 @@ public class Projector {
 		        	// TODO: decide if we need to continue
 		        	
 		        	// This is a "composite" processor. it contains several more processor invocations inside
-		        	accountValuesProcessor.process(context, projectionContext, activityDescription, result);
+		        	accountValuesProcessor.process(context, projectionContext, activityDescription, task, result);
 		        	
 		        	if (consistencyChecks) context.checkConsistence();
 		        	
@@ -235,7 +236,7 @@ public class Projector {
 		        	//SynchronizerUtil.traceContext("values", context, false);
 		        	if (consistencyChecks) context.checkConsistence();
 		        	
-		        	credentialsProcessor.processCredentials(context, projectionContext, result);
+		        	credentialsProcessor.processCredentials(context, projectionContext, task, result);
 		        	
 		        	//SynchronizerUtil.traceContext("credentials", context, false);
 		        	if (consistencyChecks) context.checkConsistence();

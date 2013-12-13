@@ -303,7 +303,7 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 		return refinedObjectClassDefinition.getNamesOfAttributesWithInboundExpressions();
 	}
 
-	public MappingType getCredentialsInbound() {
+	public List<MappingType> getCredentialsInbound() {
 		return refinedObjectClassDefinition.getCredentialsInbound();
 	}
 

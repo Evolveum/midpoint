@@ -1263,13 +1263,17 @@ public class PageUser extends PageAdminUsers {
 			PrismContainerValue newValue = assDto.getNewValue();
 			switch (assDto.getStatus()) {
 			case ADD:
-			case DELETE:
 				newValue.applyDefinition(assignmentDef, false);
-				if (UserDtoStatus.ADD.equals(assDto.getStatus())) {
-					assDelta.addValueToAdd(newValue.clone());
-				} else {
-					assDelta.addValueToDelete(newValue.clone());
-				}
+				assDelta.addValueToAdd(newValue.clone());
+				break;
+			case DELETE:
+				
+//				if (UserDtoStatus.ADD.equals(assDto.getStatus())) {
+//					
+//				} else {
+				PrismContainerValue oldValue = assDto.getOldValue();
+					assDelta.addValueToDelete(oldValue.clone());
+//				}
 				break;
 			case MODIFY:
 				if (!assDto.isModified()) {
@@ -1855,7 +1859,7 @@ public class PageUser extends PageAdminUsers {
 			}
 
 			PropertyWrapper enabledProperty = activation.findPropertyWrapper(ActivationType.F_ADMINISTRATIVE_STATUS);
-			if (enabledProperty.getValues().size() != 1) {
+			if (enabledProperty == null || enabledProperty.getValues().size() != 1) {
 				warn(getString("pageUser.message.noEnabledPropertyFound", wrapper.getDisplayName()));
 				continue;
 			}

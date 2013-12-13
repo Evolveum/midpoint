@@ -165,7 +165,7 @@ public class TestProjectorAddUser extends AbstractTestNGSpringContextTests {
 			LOGGER.info("repo" + repository.getClass());
 						
 			// WHEN
-			projector.project(syncContext, "test", result);
+			projector.project(syncContext, "test", task, result);
 			
 		} finally {
 			LOGGER.info(result.dump());

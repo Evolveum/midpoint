@@ -73,8 +73,15 @@ public class TaskQuartzImplUtil {
 	
 	public static Trigger createTriggerForTask(Task task) throws ParseException {
 		
-		if (task.getExecutionStatus() != TaskExecutionStatus.RUNNABLE)
+		if (task.getExecutionStatus() != TaskExecutionStatus.RUNNABLE) {
 			return null;			// no triggers for such tasks
+        }
+
+        // special case - recurrent task with no schedule (means "run on demand only")
+        if (task.isCycle() && (task.getSchedule() == null ||
+                (task.getSchedule().getInterval() == null && task.getSchedule().getCronLikePattern() == null))) {
+            return null;
+        }
 
 		TriggerBuilder<Trigger> tb = TriggerBuilder.newTrigger()
 		      .withIdentity(createTriggerKeyForTask(task))
@@ -121,8 +128,10 @@ public class TaskQuartzImplUtil {
             looselyBoundRecurrent = true;
 
         	ScheduleType sch = task.getSchedule();
-        	if (sch == null)
-        		throw new IllegalStateException("Recurrent task " + task + " does not have a schedule.");
+        	if (sch == null) {
+                return null;
+        		//throw new IllegalStateException("Recurrent task " + task + " does not have a schedule.");
+            }
 
             ScheduleBuilder sb;
         	if (sch.getInterval() != null) {
@@ -146,8 +155,10 @@ public class TaskQuartzImplUtil {
                 } else {
                     throw new SystemException("Invalid value of misfireAction: " + sch.getMisfireAction() + " for task " + task);
                 }
-        	} else
-        		throw new IllegalStateException("The schedule for task " + task + " is neither fixed nor cron-like one.");
+        	} else {
+                return null;
+        		//throw new IllegalStateException("The schedule for task " + task + " is neither fixed nor cron-like one.");
+            }
 
             tb.withSchedule(sb);
         } else {
@@ -173,7 +184,7 @@ public class TaskQuartzImplUtil {
         return tb.build();
     }
 
-    private static long xmlGCtoMillis(XMLGregorianCalendar gc) {
+    public static long xmlGCtoMillis(XMLGregorianCalendar gc) {
         return gc != null ? gc.toGregorianCalendar().getTimeInMillis() : 0L;
     }
 

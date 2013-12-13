@@ -16,6 +16,10 @@
 package com.evolveum.midpoint.prism.util;
 
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.lang.StringUtils;
@@ -34,6 +38,29 @@ import java.util.Map.Entry;
  */
 public class PrismUtil {
 
+	public static <T> void recomputeRealValue(T realValue, PrismContext prismContext) {
+		if (realValue == null) {
+			return;
+		}
+		// TODO: switch to Recomputable interface instead of PolyString
+		if (realValue instanceof PolyString && prismContext != null) {
+			PolyString polyStringVal = (PolyString)realValue;
+			if (!polyStringVal.isComputed()) {
+				PolyStringNormalizer polyStringNormalizer = prismContext.getDefaultPolyStringNormalizer();
+				if (polyStringNormalizer != null) {
+					polyStringVal.recompute(polyStringNormalizer);
+				}
+			}
+		}
+	}
+	
+	public static <T> void recomputePrismPropertyValue(PrismPropertyValue<T> pValue, PrismContext prismContext) {
+		if (pValue == null) {
+			return;
+		}
+		recomputeRealValue(pValue.getValue(), prismContext);
+	}
+	
 	/**
 	 * Super-mega-giga-ultra hack. This is used to "fortify" XML namespace declaration in a non-standard way.
 	 * It is useful in case that someone will try some stupid kind of schema-less XML normalization that removes

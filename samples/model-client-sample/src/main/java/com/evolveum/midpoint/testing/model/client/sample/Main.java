@@ -90,17 +90,6 @@ public class Main {
 	// Object OIDs
 	private static final String ROLE_PIRATE_OID = "12345678-d34d-b33f-f00d-987987987988";
 	private static final String ROLE_CAPTAIN_OID = "12345678-d34d-b33f-f00d-987987cccccc";
-	
-	// XML constants
-	public static final String NS_COMMON = "http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
-	private static final QName COMMON_PATH = new QName(NS_COMMON, "path");
-	private static final QName COMMON_VALUE = new QName(NS_COMMON, "value");
-	private static final QName COMMON_ASSIGNMENT = new QName(NS_COMMON, "assignment");
-	
-	public static final String NS_TYPES = "http://prism.evolveum.com/xml/ns/public/types-2";
-	private static final QName TYPES_POLYSTRING_ORIG = new QName(NS_TYPES, "orig");
-	
-	private static final DocumentBuilder domDocumentBuilder;
 
 	/**
 	 * @param args
@@ -162,7 +151,7 @@ public class Main {
 		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
 		OperationOptionsType options = new OperationOptionsType();
 		
-		modelPort.getObject(getTypeUri(SystemConfigurationType.class), SystemObjectsType.SYSTEM_CONFIGURATION.value(), options, 
+		modelPort.getObject(ModelClientUtil.getTypeUri(SystemConfigurationType.class), SystemObjectsType.SYSTEM_CONFIGURATION.value(), options, 
 				objectHolder, resultHolder);
 		
 		return (SystemConfigurationType) objectHolder.value;
@@ -174,24 +163,24 @@ public class Main {
 		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
 		PagingType paging = new PagingType();
 		
-		modelPort.listObjects(getTypeUri(ResourceType.class), paging, options, objectListHolder, resultHolder);
+		modelPort.listObjects(ModelClientUtil.getTypeUri(ResourceType.class), paging, options, objectListHolder, resultHolder);
 		
 		ObjectListType objectList = objectListHolder.value;
 		return (Collection) objectList.getObject();
 	}
 
 	private static String createUserGuybrush(ModelPortType modelPort, RoleType role) throws FaultMessage {
-		Document doc = getDocumnent();
+		Document doc = ModelClientUtil.getDocumnent();
 		
 		UserType user = new UserType();
-		user.setName(createPolyStringType("guybrush", doc));
-		user.setFullName(createPolyStringType("Guybrush Threepwood", doc));
-		user.setGivenName(createPolyStringType("Guybrush", doc));
-		user.setFamilyName(createPolyStringType("Threepwood", doc));
+		user.setName(ModelClientUtil.createPolyStringType("guybrush", doc));
+		user.setFullName(ModelClientUtil.createPolyStringType("Guybrush Threepwood", doc));
+		user.setGivenName(ModelClientUtil.createPolyStringType("Guybrush", doc));
+		user.setFamilyName(ModelClientUtil.createPolyStringType("Threepwood", doc));
 		user.setEmailAddress("guybrush@meleeisland.net");
-		user.getOrganization().add(createPolyStringType("Pirate Brethren International", doc));
-		user.getOrganizationalUnit().add(createPolyStringType("Pirate Wannabes", doc));
-		user.setCredentials(createPasswordCredentials("IwannaBEaPIRATE"));
+		user.getOrganization().add(ModelClientUtil.createPolyStringType("Pirate Brethren International", doc));
+		user.getOrganizationalUnit().add(ModelClientUtil.createPolyStringType("Pirate Wannabes", doc));
+		user.setCredentials(ModelClientUtil.createPasswordCredentials("IwannaBEaPIRATE"));
 		
 		if (role != null) {
 			// create user with a role assignment
@@ -260,20 +249,20 @@ public class Main {
 	}
 	
 	private static void changeUserPassword(ModelPortType modelPort, String oid, String newPassword) throws FaultMessage {
-		Document doc = getDocumnent();
+		Document doc = ModelClientUtil.getDocumnent();
 		
 		ObjectModificationType userDelta = new ObjectModificationType();
 		userDelta.setOid(oid);
 		
 		ItemDeltaType passwordDelta = new ItemDeltaType();
 		passwordDelta.setModificationType(ModificationTypeType.REPLACE);
-		passwordDelta.setPath(createPathElement("credentials/password", doc));
+		passwordDelta.setPath(ModelClientUtil.createPathElement("credentials/password", doc));
 		ItemDeltaType.Value passwordValue = new ItemDeltaType.Value();
-		passwordValue.getAny().add(toJaxbElement(COMMON_VALUE, createProtectedString(newPassword)));
+		passwordValue.getAny().add(ModelClientUtil.toJaxbElement(ModelClientUtil.COMMON_VALUE, ModelClientUtil.createProtectedString(newPassword)));
 		passwordDelta.setValue(passwordValue);
 		userDelta.getModification().add(passwordDelta);
 		
-		modelPort.modifyObject(getTypeUri(UserType.class), userDelta);
+		modelPort.modifyObject(ModelClientUtil.getTypeUri(UserType.class), userDelta);
 	}
 	
 	private static void assignRoles(ModelPortType modelPort, String userOid, String... roleOids) throws FaultMessage {
@@ -285,7 +274,7 @@ public class Main {
 	}
 	
 	private static void modifyRoleAssignment(ModelPortType modelPort, String userOid, boolean isAdd, String... roleOids) throws FaultMessage {
-		Document doc = getDocumnent();
+		Document doc = ModelClientUtil.getDocumnent();
 		
 		ObjectModificationType userDelta = new ObjectModificationType();
 		userDelta.setOid(userOid);
@@ -298,12 +287,12 @@ public class Main {
 		}
 		ItemDeltaType.Value assignmentValue = new ItemDeltaType.Value();
 		for (String roleOid: roleOids) {
-			assignmentValue.getAny().add(toJaxbElement(COMMON_ASSIGNMENT, createRoleAssignment(roleOid)));
+			assignmentValue.getAny().add(ModelClientUtil.toJaxbElement(ModelClientUtil.COMMON_ASSIGNMENT, createRoleAssignment(roleOid)));
 		}
 		assignmentDelta.setValue(assignmentValue);
 		userDelta.getModification().add(assignmentDelta);
 		
-		modelPort.modifyObject(getTypeUri(UserType.class), userDelta);
+		modelPort.modifyObject(ModelClientUtil.getTypeUri(UserType.class), userDelta);
 	}
 
 
@@ -311,14 +300,14 @@ public class Main {
 		AssignmentType roleAssignment = new AssignmentType();
 		ObjectReferenceType roleRef = new ObjectReferenceType();
 		roleRef.setOid(roleOid);
-		roleRef.setType(getTypeQName(RoleType.class));
+		roleRef.setType(ModelClientUtil.getTypeQName(RoleType.class));
 		roleAssignment.setTargetRef(roleRef);
 		return roleAssignment;
 	}
 
 	private static UserType searchUserByName(ModelPortType modelPort, String username) throws SAXException, IOException, FaultMessage {
 		// WARNING: in a real case make sure that the username is properly escaped before putting it in XML
-		Element filter = parseElement(
+		Element filter = ModelClientUtil.parseElement(
 				"<equal xmlns='http://prism.evolveum.com/xml/ns/public/query-2' xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a' >" +
 				  "<path>c:name</path>" +
 				  "<value>" + username + "</value>" +
@@ -330,7 +319,7 @@ public class Main {
 		Holder<ObjectListType> objectListHolder = new Holder<ObjectListType>();
 		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
 		
-		modelPort.searchObjects(getTypeUri(UserType.class), query, options, objectListHolder, resultHolder);
+		modelPort.searchObjects(ModelClientUtil.getTypeUri(UserType.class), query, options, objectListHolder, resultHolder);
 		
 		ObjectListType objectList = objectListHolder.value;
 		List<ObjectType> objects = objectList.getObject();
@@ -345,7 +334,7 @@ public class Main {
 	
 	private static RoleType searchRoleByName(ModelPortType modelPort, String roleName) throws SAXException, IOException, FaultMessage {
 		// WARNING: in a real case make sure that the username is properly escaped before putting it in XML
-		Element filter = parseElement(
+		Element filter = ModelClientUtil.parseElement(
 				"<equal xmlns='http://prism.evolveum.com/xml/ns/public/query-2' xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a' >" +
 				  "<path>c:name</path>" +
 				  "<value>" + roleName + "</value>" +
@@ -357,7 +346,7 @@ public class Main {
 		Holder<ObjectListType> objectListHolder = new Holder<ObjectListType>();
 		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
 		
-		modelPort.searchObjects(getTypeUri(RoleType.class), query, options, objectListHolder, resultHolder);
+		modelPort.searchObjects(ModelClientUtil.getTypeUri(RoleType.class), query, options, objectListHolder, resultHolder);
 		
 		ObjectListType objectList = objectListHolder.value;
 		List<ObjectType> objects = objectList.getObject();
@@ -371,7 +360,7 @@ public class Main {
 	}
 
 	private static Collection<RoleType> listRequestableRoles(ModelPortType modelPort) throws SAXException, IOException, FaultMessage {
-		Element filter = parseElement(
+		Element filter = ModelClientUtil.parseElement(
 				"<equal xmlns='http://prism.evolveum.com/xml/ns/public/query-2' xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a' >" +
 				  "<path>c:requestable</path>" +
 				  "<value>true</value>" +
@@ -383,95 +372,17 @@ public class Main {
 		Holder<ObjectListType> objectListHolder = new Holder<ObjectListType>();
 		Holder<OperationResultType> resultHolder = new Holder<OperationResultType>();
 		
-		modelPort.searchObjects(getTypeUri(RoleType.class), query, options, objectListHolder, resultHolder);
+		modelPort.searchObjects(ModelClientUtil.getTypeUri(RoleType.class), query, options, objectListHolder, resultHolder);
 		
 		ObjectListType objectList = objectListHolder.value;
 		return (Collection) objectList.getObject();
 	}
 	
 	private static void deleteUser(ModelPortType modelPort, String userGuybrushoid) throws FaultMessage {
-		modelPort.deleteObject(getTypeUri(UserType.class), userGuybrushoid);
+		modelPort.deleteObject(ModelClientUtil.getTypeUri(UserType.class), userGuybrushoid);
 	}
 	
-	private static Element parseElement(String stringXml) throws SAXException, IOException {
-		Document document = domDocumentBuilder.parse(IOUtils.toInputStream(stringXml, "utf-8"));
-		return getFirstChildElement(document);
-	}
-	
-	public static Element getFirstChildElement(Node parent) {
-		if (parent == null || parent.getChildNodes() == null) {
-			return null;
-		}
-
-		NodeList nodes = parent.getChildNodes();
-		for (int i = 0; i < nodes.getLength(); i++) {
-			Node child = nodes.item(i);
-			if (child.getNodeType() == Node.ELEMENT_NODE) {
-				return (Element) child;
-			}
-		}
-
-		return null;
-	}
-
-	private static <T> JAXBElement<T> toJaxbElement(QName name, T value) {
-		return new JAXBElement<T>(name, (Class<T>) value.getClass(), value);
-	}
-
-	private static Element createPathElement(String stringPath, Document doc) {
-		String pathDeclaration = "declare default namespace '" + NS_COMMON + "'; " + stringPath;
-		return createTextElement(COMMON_PATH, pathDeclaration, doc);
-	}
-
-	private static PolyStringType createPolyStringType(String string, Document doc) {
-		PolyStringType polyStringType = new PolyStringType();
-		Element origElement = createTextElement(TYPES_POLYSTRING_ORIG, string, doc);
-		polyStringType.getContent().add(origElement);
-		return polyStringType;
-	}
-	
-	private static Element createTextElement(QName qname, String value, Document doc) {
-		Element element = doc.createElementNS(qname.getNamespaceURI(), qname.getLocalPart());
-		element.setTextContent(value);
-		return element;
-	}
-
-	private static Document getDocumnent() {
-		return domDocumentBuilder.newDocument();
-	}
-
-	private static String getTypeUri(Class<? extends ObjectType> type) {
-//		QName typeQName = JAXBUtil.getTypeQName(type);
-//		String typeUri = QNameUtil.qNameToUri(typeQName);
-		String typeUri = NS_COMMON + "#" + type.getSimpleName();
-		return typeUri;
-	}
-	
-	private static QName getTypeQName(Class<? extends ObjectType> type) {
-//		QName typeQName = JAXBUtil.getTypeQName(type);
-		QName typeQName = new QName(NS_COMMON, type.getSimpleName());
-		return typeQName;
-	}
-
-	private static CredentialsType createPasswordCredentials(String password) {
-		CredentialsType credentialsType = new CredentialsType();
-		credentialsType.setPassword(createPasswordType(password));
-		return credentialsType;
-	}
-	
-	private static PasswordType createPasswordType(String password) {
-		PasswordType passwordType = new PasswordType();
-		passwordType.setValue(createProtectedString(password));
-		return passwordType;
-	}
-
-	private static ProtectedStringType createProtectedString(String clearValue) {
-		ProtectedStringType protectedString = new ProtectedStringType();
-		protectedString.setClearValue(clearValue);
-		return protectedString;
-	}
-
-	private static ModelPortType createModelPort(String[] args) {
+	public static ModelPortType createModelPort(String[] args) {
 		String endpointUrl = DEFAULT_ENDPOINT_URL;
 		
 		if (args.length > 0) {
@@ -502,13 +413,4 @@ public class Main {
 		return modelPort;
 	}
 
-	static {
-		try {
-			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-			factory.setNamespaceAware(true);
-			domDocumentBuilder = factory.newDocumentBuilder();
-		} catch (ParserConfigurationException ex) {
-			throw new IllegalStateException("Error creating XML document " + ex.getMessage());
-		}
-	}
 }

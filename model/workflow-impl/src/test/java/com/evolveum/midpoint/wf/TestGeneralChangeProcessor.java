@@ -95,7 +95,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 	private TaskManager taskManager;
 
     @Autowired(required = true)
-    private WorkflowServiceImpl workflowServiceImpl;
+    private WorkflowManagerImpl workflowServiceImpl;
 
     @Autowired
     private WfTaskUtil wfTaskUtil;

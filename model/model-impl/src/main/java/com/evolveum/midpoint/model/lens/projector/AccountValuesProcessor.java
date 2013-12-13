@@ -66,6 +66,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -124,9 +125,9 @@ public class AccountValuesProcessor {
 	
 	private List<LensProjectionContext> conflictingAccountContexts = new ArrayList<LensProjectionContext>();
 	
-	public <O extends ObjectType> void process(LensContext<O> context, 
-			LensProjectionContext projectionContext, String activityDescription, OperationResult result) 
-			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, 
+	public <O extends ObjectType> void process(LensContext<O> context,
+			LensProjectionContext projectionContext, String activityDescription, Task task, OperationResult result)
+			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException,
 			CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {
 		LensFocusContext<O> focusContext = context.getFocusContext();
     	if (focusContext == null) {
@@ -138,13 +139,13 @@ public class AccountValuesProcessor {
     	}
     	OperationResult processorResult = result.createSubresult(AccountValuesProcessor.class.getName()+".processAccountsValues");
     	processorResult.recordSuccessIfUnknown();
-    	processAccounts((LensContext<? extends FocusType>) context, projectionContext, 
-    			activityDescription, processorResult);
+    	processAccounts((LensContext<? extends FocusType>) context, projectionContext,
+    			activityDescription, task, processorResult);
     	
 	}
 	
 	public <F extends FocusType> void processAccounts(LensContext<F> context, 
-			LensProjectionContext accountContext, String activityDescription, OperationResult result) 
+			LensProjectionContext accountContext, String activityDescription, Task task, OperationResult result)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException,
 			CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {
 		
@@ -160,7 +161,7 @@ public class AccountValuesProcessor {
 		if (consistencyChecks) context.checkConsistence();
 		
 		if (!accountContext.hasFullShadow() && hasIterationExpression(accountContext)) {
-			LensUtil.loadFullAccount(accountContext, provisioningService, result);
+			LensUtil.loadFullAccount(context, accountContext, provisioningService, result);
 		}
 		
 		int maxIterations = determineMaxIterations(accountContext);
@@ -216,7 +217,7 @@ public class AccountValuesProcessor {
 //				LensUtil.traceContext(LOGGER, activityDescription, "values (assignment account values)", false, context, true);
 				
 				// Evaluates the values in outbound mappings
-				outboundProcessor.processOutbound(context, accountContext, result);
+				outboundProcessor.processOutbound(context, accountContext, task, result);
 				
 				context.recompute();
 				if (consistencyChecks) context.checkConsistence();
@@ -270,6 +271,7 @@ public class AccountValuesProcessor {
 			        	LOGGER.trace("Current shadow satisfies uniqueness constraints. Iteration {}, token '{}'", iteration, iterationToken);
 			        	conflict = false;
 			        } else {
+			        	LOGGER.trace("Current shadow does not satisfy constraints. Conflicting shadow exists. Needed to found out what's wrong.");
 			        	if (checker.getConflictingShadow() != null){
 			        		PrismObject<ShadowType> fullConflictingShadow = null;
 			        		try{   //TODO task in the get method
@@ -297,6 +299,7 @@ public class AccountValuesProcessor {
 				        		
 				        		//the owner of the shadow exist and it is a current user..so the shadow was successfully created, linked etc..no other recompute is needed..
 				        		if (user != null && user.getOid().equals(context.getFocusContext().getOid())) {
+				        			LOGGER.trace("Conflicting account already linked to the current user, no recompute needed, continue processing with conflicting account.");
 			//	        			accountContext.setSecondaryDelta(null);
 				        			cleanupContext(accountContext);	        			
 				        			accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
@@ -323,11 +326,11 @@ public class AccountValuesProcessor {
 				        		}
 				        		
 				        		if (user == null) {
-					        		
+					        		LOGGER.trace("There is no owner linked with the conflicting account.");
 					        		ResourceType resourceType = accountContext.getResource();
 					        		
 					        		if (ResourceTypeUtil.isSynchronizationOpportunistic(resourceType)) {
-					        		
+					        			LOGGER.trace("Trying to find owner using correlation expression.");
 										boolean match = correlationConfirmationEvaluator.matchUserCorrelationRule(fullConflictingShadow, context
 												.getFocusContext().getObjectNew(), resourceType, result);
 										
@@ -712,13 +715,13 @@ public class AccountValuesProcessor {
 		iterationVal.setOriginType(OriginType.OUTBOUND);
 		PropertyDelta<Integer> iterationDelta = PropertyDelta.createReplaceDelta(shadowDef, 
 				ShadowType.F_ITERATION, iterationVal);
-		accountContext.addToSecondaryDelta(iterationDelta);
+		accountContext.swallowToSecondaryDelta(iterationDelta);
 		
 		PrismPropertyValue<String> iterationTokenVal = new PrismPropertyValue<String>(accountContext.getIterationToken());
 		iterationTokenVal.setOriginType(OriginType.OUTBOUND);
 		PropertyDelta<String> iterationTokenDelta = PropertyDelta.createReplaceDelta(shadowDef, 
 				ShadowType.F_ITERATION_TOKEN, iterationTokenVal);
-		accountContext.addToSecondaryDelta(iterationTokenDelta);
+		accountContext.swallowToSecondaryDelta(iterationTokenDelta);
 		
 	}
 

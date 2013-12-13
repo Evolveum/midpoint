@@ -102,6 +102,11 @@ public class MockClockworkHook implements ChangeHook, Dumpable, DebugDumpable {
 		return HookOperationMode.FOREGROUND;
 	}
 
+    @Override
+    public void invokeOnException(ModelContext context, Throwable throwable, Task task, OperationResult result) {
+        // do nothing
+    }
+
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.model.api.hooks.ChangeHook#postChange(java.util.Collection, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
 	 */

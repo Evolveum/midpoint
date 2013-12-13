@@ -89,7 +89,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
 	private void initDummy(String name, Task initTask, OperationResult initResult) throws FileNotFoundException, ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ConnectException {
 		String resourceOid = getDummyOid(name);
 		DummyResourceContoller resourceCtl = DummyResourceContoller.create(name.toUpperCase());
-		resourceCtl.extendDummySchema();
+		resourceCtl.extendSchemaPirate();
 		PrismObject<ResourceType> resource = importAndGetObjectFromFile(ResourceType.class, 
 				getDummFile(name), resourceOid, initTask, initResult);
 		resourceCtl.setResource(resource);

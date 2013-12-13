@@ -219,22 +219,25 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 	}
 	
 	public void registerPrismSchemasFromDirectory(File directory) throws FileNotFoundException, SchemaException {
-		List<File> files = Arrays.asList(directory.listFiles());
-		// Sort the filenames so we have deterministic order of loading
-		// This is useful in tests but may come handy also during customization
-		Collections.sort(files);
-		for (File file: files) {
-			if (file.getName().startsWith(".")) {
-				// skip dotfiles. this will skip SVN data and similar things
-				continue;
-			}
-			if (file.isDirectory()) {
-				registerPrismSchemasFromDirectory(file);
-			}
-			if (file.isFile()) {
-				registerPrismSchemaFile(file);
-			}
-		}
+        File[] fileArray = directory.listFiles();
+        if (fileArray != null) {
+            List<File> files = Arrays.asList(fileArray);
+            // Sort the filenames so we have deterministic order of loading
+            // This is useful in tests but may come handy also during customization
+            Collections.sort(files);
+            for (File file: files) {
+                if (file.getName().startsWith(".")) {
+                    // skip dotfiles. this will skip SVN data and similar things
+                    continue;
+                }
+                if (file.isDirectory()) {
+                    registerPrismSchemasFromDirectory(file);
+                }
+                if (file.isFile()) {
+                    registerPrismSchemaFile(file);
+                }
+            }
+        }
 	}
 	
 	/**
@@ -398,6 +401,14 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 	
 	public PrismSchema getSchema(String namespace) {
 		return parsedSchemas.get(namespace).getSchema();
+	}
+	
+	public Collection<PrismSchema> getSchemas() {
+		Collection<PrismSchema> schemas = new ArrayList<PrismSchema>();
+		for (Entry<String,SchemaDescription> entry: parsedSchemas.entrySet()) {
+			schemas.add(entry.getValue().getSchema());
+		}
+		return schemas;
 	}
 	
 	/**
@@ -881,6 +892,5 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		}
 		return objDef.instantiate();
 	}
-
 
 }

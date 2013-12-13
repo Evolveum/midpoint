@@ -24,7 +24,9 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -121,7 +123,7 @@ public class XPathScriptEvaluator implements ScriptEvaluator {
         	propertyValues = convertList(type, (NodeList) evaluatedExpression, contextDescription);
         }
         
-        return propertyValues;
+        return (List<PrismPropertyValue<T>>) PrismValue.cloneCollection(propertyValues);
     }
 
 	private boolean isScalar(ScriptExpressionReturnTypeType returnType) {
@@ -140,7 +142,8 @@ public class XPathScriptEvaluator implements ScriptEvaluator {
         XPathExpressionCodeHolder codeHolder = new XPathExpressionCodeHolder(code);
 
         XPath xpath = factory.newXPath();
-        XPathVariableResolver variableResolver = new LazyXPathVariableResolver(variables, objectResolver, contextDescription, result);
+        XPathVariableResolver variableResolver = new LazyXPathVariableResolver(variables, objectResolver, 
+        		contextDescription, prismContext, result);
         xpath.setXPathVariableResolver(variableResolver);
         xpath.setNamespaceContext(new MidPointNamespaceContext(codeHolder.getNamespaceMap()));
         xpath.setXPathFunctionResolver(getFunctionResolver(functions));
@@ -233,7 +236,7 @@ public class XPathScriptEvaluator implements ScriptEvaluator {
         	// This is necessary e.g. on deletes in sync when there may be nothing to evaluate.
         	return DOMUtil.getDocument();
         } else {
-        	return LazyXPathVariableResolver.convertToXml(rootNode, null, contextDescription);
+        	return LazyXPathVariableResolver.convertToXml(rootNode, null, prismContext, contextDescription);
         }
     }
 
@@ -348,9 +351,7 @@ public class XPathScriptEvaluator implements ScriptEvaluator {
             if (returnType.equals(PrismConstants.POLYSTRING_TYPE_QNAME) && resultValue instanceof String) {
             	resultValue = (T) new PolyString((String)resultValue);
             }
-            if (resultValue instanceof PolyString) {
-            	((PolyString)resultValue).recompute(prismContext.getDefaultPolyStringNormalizer());
-            }
+            PrismUtil.recomputeRealValue(resultValue, prismContext);
             
             return new PrismPropertyValue<T>(resultValue);
         } catch (SchemaException e) {

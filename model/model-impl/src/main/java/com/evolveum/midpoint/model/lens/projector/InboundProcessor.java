@@ -42,6 +42,7 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
@@ -52,6 +53,7 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -64,9 +66,11 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 
+import org.apache.commons.lang.mutable.MutableBoolean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -93,8 +97,10 @@ public class InboundProcessor {
     private MappingFactory mappingFactory;
     @Autowired
     private ProvisioningService provisioningService;
-    
-    <O extends ObjectType> void processInbound(LensContext<O> context, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+    @Autowired(required = true)
+    private MappingEvaluationHelper mappingEvaluatorHelper;
+
+    <O extends ObjectType> void processInbound(LensContext<O> context, XMLGregorianCalendar now, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
     	LensFocusContext<O> focusContext = context.getFocusContext();
     	if (focusContext == null) {
     		return;
@@ -143,11 +149,15 @@ public class InboundProcessor {
             	}
 //                LOGGER.trace("Processing inbound expressions for account {} starting", rat);
 
-            	ObjectDelta<ShadowType> accountDelta = accountContext.getDelta();
-                if (accountDelta != null && ChangeType.DELETE.equals(accountDelta.getChangeType())) {
-                    //we don't need to do inbound if account was deleted
-                    continue;
-                }
+//            	/ObjectDelta<ShadowType> accountDelta = accountContext.getDelta()
+            	if (isDeleteAccountDelta(accountContext)){
+            		 //we don't need to do inbound if account was deleted
+            		continue;
+            	}
+//                if (accountDelta != null && ChangeType.DELETE.equals(accountDelta.getChangeType())) {
+//                    //we don't need to do inbound if account was deleted
+//                    continue;
+//                }
 
                 RefinedObjectClassDefinition accountDefinition = accountContext.getRefinedAccountDefinition();
                 if (accountDefinition == null) {
@@ -158,7 +168,7 @@ public class InboundProcessor {
                 }
 
                 
-                processInboundExpressionsForAccount(context, accountContext, accountDefinition, aPrioriDelta, result);
+                processInboundExpressionsForAccount(context, accountContext, accountDefinition, aPrioriDelta, task, now, result);
             }
 
         } finally {
@@ -166,9 +176,21 @@ public class InboundProcessor {
         }
     }
 
-    private <F extends FocusType> void processInboundExpressionsForAccount(LensContext<F> context, 
+    private boolean isDeleteAccountDelta(
+            LensProjectionContext<ShadowType> accountContext) throws SchemaException {
+        if (accountContext.getSyncDelta() != null && ChangeType.DELETE == accountContext.getSyncDelta().getChangeType()){
+            return true;
+        }
+
+        if (accountContext.getDelta() != null && ChangeType.DELETE == accountContext.getDelta().getChangeType()){
+            return true;
+        }
+        return false;
+    }
+
+    private <F extends FocusType> void processInboundExpressionsForAccount(LensContext<F> context,
     		LensProjectionContext accContext,
-            RefinedObjectClassDefinition accountDefinition, ObjectDelta<ShadowType> aPrioriDelta, OperationResult result)
+            RefinedObjectClassDefinition accountDefinition, ObjectDelta<ShadowType> aPrioriDelta, Task task, XMLGregorianCalendar now, OperationResult result)
     		throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
     	
         if (aPrioriDelta == null && accContext.getObjectCurrent() == null) {
@@ -229,13 +251,13 @@ public class InboundProcessor {
 	                if (aPrioriDelta != null) {
 	                    LOGGER.trace("Processing inbound from a priori delta.");
 	                    userPropertyDelta = evaluateInboundMapping(context, inboundMappingType, accountAttributeName, null, accountAttributeDelta, 
-	                    		context.getFocusContext().getObjectNew(), accountNew, accContext.getResource(), result);
+	                    		context.getFocusContext().getObjectNew(), accountNew, accContext.getResource(), task, result);
 	                } else if (accountCurrent != null) {
 	                	if (!accContext.isFullShadow()) {
 	                		LOGGER.warn("Attempted to execute inbound expression on account shadow {} WITHOUT full account. Trying to load the account now.", accContext.getOid());      // todo change to trace level eventually
                             Throwable failure = null;
                             try {
-                                LensUtil.loadFullAccount(accContext, provisioningService, result);
+                                LensUtil.loadFullAccount(context, accContext, provisioningService, result);
                             } catch (ObjectNotFoundException e) {
                                 failure = e;
                             } catch (SecurityViolationException e) {
@@ -251,6 +273,11 @@ public class InboundProcessor {
                                 return;
                             }
                             if (!accContext.isFullShadow()) {
+                            	if (accContext.getResourceShadowDiscriminator().getOrder() > 0) {
+                            		// higher-order context. It is OK not to load this
+                            		LOGGER.trace("Skipped load of higher-order account with shadow OID {} skipping inbound processing on it", accContext.getOid());
+                            		return;
+                            	}
                                 LOGGER.warn("Couldn't load account with shadow OID {}, setting context as broken and skipping inbound processing on it", accContext.getOid());
                                 accContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
                                 return;
@@ -259,7 +286,7 @@ public class InboundProcessor {
 	                    LOGGER.trace("Processing inbound from account sync absolute state (oldAccount).");
 	                    PrismProperty<?> oldAccountProperty = accountCurrent.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, accountAttributeName));
 	                    userPropertyDelta = evaluateInboundMapping(context, inboundMappingType, accountAttributeName, oldAccountProperty, null, 
-	                    		context.getFocusContext().getObjectNew(), accountNew, accContext.getResource(), result);
+	                    		context.getFocusContext().getObjectNew(), accountNew, accContext.getResource(), task, result);
 	                }
 	
 	                if (userPropertyDelta != null && !userPropertyDelta.isEmpty()) {
@@ -273,14 +300,14 @@ public class InboundProcessor {
             }
         }
         processSpecialPropertyInbound(accountDefinition.getCredentialsInbound(), SchemaConstants.PATH_PASSWORD_VALUE,
-        		context.getFocusContext().getObjectNew(), accContext, accountDefinition, context, result);
+        		context.getFocusContext().getObjectNew(), accContext, accountDefinition, context, task, now, result);
         
         processSpecialPropertyInbound(accountDefinition.getActivationBidirectionalMappingType(ActivationType.F_ADMINISTRATIVE_STATUS), SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS,
-        		context.getFocusContext().getObjectNew(), accContext, accountDefinition, context, result);        
+        		context.getFocusContext().getObjectNew(), accContext, accountDefinition, context, task, now, result);        
         processSpecialPropertyInbound(accountDefinition.getActivationBidirectionalMappingType(ActivationType.F_VALID_FROM), SchemaConstants.PATH_ACTIVATION_VALID_FROM,
-        		context.getFocusContext().getObjectNew(), accContext, accountDefinition, context, result);
+        		context.getFocusContext().getObjectNew(), accContext, accountDefinition, context, task, now, result);
         processSpecialPropertyInbound(accountDefinition.getActivationBidirectionalMappingType(ActivationType.F_VALID_TO), SchemaConstants.PATH_ACTIVATION_VALID_TO,
-        		context.getFocusContext().getObjectNew(), accContext, accountDefinition, context, result);
+        		context.getFocusContext().getObjectNew(), accContext, accountDefinition, context, task, now, result);
     }
 
     /**
@@ -317,8 +344,8 @@ public class InboundProcessor {
     private <A,U, F extends FocusType> PropertyDelta<U> evaluateInboundMapping(final LensContext<F> context, 
     		MappingType inboundMappingType, 
     		QName accountAttributeName, PrismProperty<A> oldAccountProperty, PropertyDelta<A> accountAttributeDelta,
-            PrismObject<F> newUser, PrismObject<ShadowType> account, ResourceType resource, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-    	
+            PrismObject<F> newUser, PrismObject<ShadowType> account, ResourceType resource, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+
     	if (oldAccountProperty != null && oldAccountProperty.hasRaw()) {
         	throw new SystemException("Property "+oldAccountProperty+" has raw parsing state, such property cannot be used in inbound expressions");
         }
@@ -357,7 +384,7 @@ public class InboundProcessor {
         
         PropertyDelta<U> outputUserPropertydelta = new PropertyDelta<U>(targetUserPropertyPath, targetPropertyDef);
     	
-        LensUtil.evaluateMapping(mapping, context, result);
+        LensUtil.evaluateMapping(mapping, context, task, result);
     	
     	PrismValueDeltaSetTriple<PrismPropertyValue<U>> triple = mapping.getOutputTriple();
     	// Meaning of the resulting triple:
@@ -493,62 +520,43 @@ public class InboundProcessor {
 	
 	/**
      * Processing for special (fixed-schema) properties such as credentials and activation. 
+	 * @throws ObjectNotFoundException 
+	 * @throws ExpressionEvaluationException 
      */
     private <F extends FocusType> void processSpecialPropertyInbound(ResourceBidirectionalMappingType biMappingType, ItemPath sourcePath,
             PrismObject<F> newUser, LensProjectionContext accContext, 
-            RefinedObjectClassDefinition accountDefinition, LensContext<F> context, 
-            OperationResult opResult) throws SchemaException {
+            RefinedObjectClassDefinition accountDefinition, LensContext<F> context,
+            Task task, XMLGregorianCalendar now, OperationResult opResult) throws SchemaException {
     	if (biMappingType == null) {
     		return;
     	}
-    	processSpecialPropertyInbound(biMappingType.getInbound(), sourcePath, newUser, accContext, accountDefinition, context, opResult);
+    	processSpecialPropertyInbound(biMappingType.getInbound(), sourcePath, newUser, accContext, accountDefinition, context, task, now, opResult);
     }
 
-    private <F extends FocusType> void processSpecialPropertyInbound(MappingType inboundMappingType, ItemPath sourcePath,
-            PrismObject<F> newUser, LensProjectionContext accContext, 
-            RefinedObjectClassDefinition accountDefinition, LensContext<F> context, 
-            OperationResult opResult) throws SchemaException {
-    	if (inboundMappingType == null) {
-    		return;
-    	}
-    	Collection<MappingType> inboundMappingTypes = new ArrayList<MappingType>(1);
-    	inboundMappingTypes.add(inboundMappingType);
-    	processSpecialPropertyInbound(inboundMappingTypes, sourcePath, newUser, accContext, accountDefinition, context, opResult);
-    }
-    
+//    private void processSpecialPropertyInbound(MappingType inboundMappingType, ItemPath sourcePath,
+//            PrismObject<UserType> newUser, LensProjectionContext<ShadowType> accContext, 
+//            RefinedObjectClassDefinition accountDefinition, LensContext<UserType,ShadowType> context, 
+//            OperationResult opResult) throws SchemaException {
+//    	if (inboundMappingType == null) {
+//    		return;
+//    	}
+//    	Collection<MappingType> inboundMappingTypes = new ArrayList<MappingType>(1);
+//    	inboundMappingTypes.add(inboundMappingType);
+//    	processSpecialPropertyInbound(inboundMappingTypes, sourcePath, newUser, accContext, accountDefinition, context, opResult);
+//    }
+
     /**
      * Processing for special (fixed-schema) properties such as credentials and activation. 
+     * @throws ObjectNotFoundException 
+     * @throws ExpressionEvaluationException 
      */
     private <F extends FocusType> void processSpecialPropertyInbound(Collection<MappingType> inboundMappingTypes, ItemPath sourcePath,
             PrismObject<F> newUser, LensProjectionContext accContext, 
-            RefinedObjectClassDefinition accountDefinition, LensContext<F> context, 
-            OperationResult opResult) throws SchemaException {
-    	
+            RefinedObjectClassDefinition accountDefinition, LensContext<F> context,
+            Task task, XMLGregorianCalendar now, OperationResult opResult) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+
         if (inboundMappingTypes == null || inboundMappingTypes.isEmpty() || newUser == null || !accContext.isFullShadow()) {
             return;
-        }
-
-        // TODO: fix multiple inbounds
-        Mapping<PrismPropertyValue<?>> mapping = mappingFactory.createMapping(inboundMappingTypes.iterator().next(), 
-        		"inbound mapping for "+sourcePath+" in "+accContext.getResource());
-        
-        if (!mapping.isApplicableToChannel(context.getChannel())) {
-        	return;
-        }
-
-        PrismProperty<?> property = newUser.findOrCreateProperty(sourcePath);
-        if (mapping.getStrength() == MappingStrengthType.WEAK && !property.isEmpty()) {
-            //inbound will be constructed only if initial == false or initial == true and value doesn't exist
-            return;
-        }
-        
-        ObjectDelta<F> userPrimaryDelta = context.getFocusContext().getPrimaryDelta();
-        if (userPrimaryDelta != null) {
-        	PropertyDelta primaryPropDelta = userPrimaryDelta.findPropertyDelta(sourcePath);
-        	if (primaryPropDelta != null && primaryPropDelta.isReplace()) {
-        		// Replace primary delta overrides any inbound
-        		return;
-        	}
         }
 
         ObjectDelta<F> userSecondaryDelta = context.getFocusContext().getProjectionWaveSecondaryDelta();
@@ -559,58 +567,194 @@ public class InboundProcessor {
 	            userSecondaryDelta.getModifications().remove(delta);
 	        }
         }
-
-        if (accContext.getObjectNew() == null) {
-            accContext.recompute();
-            if (accContext.getObjectNew() == null) {
-                // Still null? something must be really wrong here.
-                String message = "Recomputing account " + accContext.getResourceShadowDiscriminator()
-                        + " results in null new account. Something must be really broken.";
-                LOGGER.error(message);
-                if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("Account context:\n{}", accContext.dump());
-                }
-                throw new SystemException(message);
-            }
+//        
+        // TODO: fix multiple inbounds
+//        Collection<Mapping> mappings = getMappingApplicableToChannel(inboundMappingTypes, "inbound mapping for "+sourcePath+" in "+accContext.getResource(), context.getChannel());
+//        Mapping<PrismPropertyValue<?>> mapping = mappingFactory.createMapping(inboundMappingTypes.iterator().next(), 
+//        		"inbound mapping for "+sourcePath+" in "+accContext.getResource());
+        
+        int strongMappings = 0;
+        final PrismProperty<?> property = newUser.findOrCreateProperty(sourcePath);
+        
+        ObjectDelta<UserType> userPrimaryDelta = context.getFocusContext().getPrimaryDelta();
+        PropertyDelta primaryPropDelta = null;
+        if (userPrimaryDelta != null) {
+        	primaryPropDelta = userPrimaryDelta.findPropertyDelta(sourcePath);
+        	if (primaryPropDelta != null && primaryPropDelta.isReplace()) {
+//        		 Replace primary delta overrides any inbound
+        		return;
+        	}
         }
-
-        ItemDeltaItem<PrismPropertyValue<?>> sourceIdi = accContext.getObjectDeltaObject().findIdi(sourcePath);
-        Source<PrismPropertyValue<?>> source = new Source<PrismPropertyValue<?>>(sourceIdi.getItemOld(), sourceIdi.getDelta(), 
-        		sourceIdi.getItemOld(), ExpressionConstants.VAR_INPUT);
-		mapping.setDefaultSource(source);
+//        if (mappings.size() > 1){
+//        	// for password mapping, it should exists only one strong mapping..in other case we cannot reliable compute the value for the password
+//        	for (Mapping mapping : mappings){
+//        		if (mapping.getStrength() == MappingStrengthType.STRONG){
+//        			strongMappings++;
+//        		}
+//        		
+//        	}
+//        	
+//        	if (strongMappings > 1){
+//        		throw new IllegalStateException("Found more than one STRONG mapping for the "+ sourcePath +". Could not evaluate value, there should exist only one strong mapping for the channel.");
+//        	}
+//        }
+        
+        MappingInitializer initializer = new MappingInitializer() {
+			@Override
+			public void initialize(Mapping mapping) throws SchemaException {
+				 if (accContext.getObjectNew() == null) {
+			            accContext.recompute();
+			            if (accContext.getObjectNew() == null) {
+			                // Still null? something must be really wrong here.
+			                String message = "Recomputing account " + accContext.getResourceShadowDiscriminator()
+			                        + " results in null new account. Something must be really broken.";
+			                LOGGER.error(message);
+			                if (LOGGER.isTraceEnabled()) {
+			                    LOGGER.trace("Account context:\n{}", accContext.dump());
+			                }
+			                throw new SystemException(message);
+			            }
+			        }
+			        
+			        ObjectDelta<ShadowType> aPrioriDelta = getAPrioriDelta(context, accContext);
+			        ItemDelta<PrismPropertyValue<?>> specialAttributeDelta = null;
+			        if (aPrioriDelta != null){
+			        	specialAttributeDelta = (ItemDelta<PrismPropertyValue<?>>) aPrioriDelta.findItemDelta(sourcePath);
+			        }
+			        ItemDeltaItem<PrismPropertyValue<?>> sourceIdi = accContext.getObjectDeltaObject().findIdi(sourcePath);
+			        if (specialAttributeDelta == null){
+			        	specialAttributeDelta = sourceIdi.getDelta();
+			        }
+			        Source<PrismPropertyValue<?>> source = new Source<PrismPropertyValue<?>>(sourceIdi.getItemOld(), specialAttributeDelta, 
+			        		sourceIdi.getItemOld(), ExpressionConstants.VAR_INPUT);
+					mapping.setDefaultSource(source);
+					
+			    	mapping.setDefaultTargetDefinition(property.getDefinition());
+			    	
+			    	mapping.addVariableDefinition(ExpressionConstants.VAR_USER, newUser);
+			    	mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS, newUser);
+			    	
+			    	PrismObject<ShadowType> accountNew = accContext.getObjectNew();
+			    	mapping.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, accountNew);
+			    	mapping.addVariableDefinition(ExpressionConstants.VAR_SHADOW, accountNew);
+			    	mapping.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, accContext.getResource());
+			    	
+			    	mapping.setStringPolicyResolver(createStringPolicyResolver(context));
+			    	mapping.setOriginType(OriginType.INBOUND);
+			    	mapping.setOriginObject(accContext.getResource());
+			}
+        };
+        
+        MutableBoolean strongMappingWasUsed = new MutableBoolean();
+        PrismValueDeltaSetTriple<PrismPropertyValue> outputTriple = mappingEvaluatorHelper.evaluateMappingSetProjection(inboundMappingTypes, "inbound mapping for "+sourcePath+" in "+accContext.getResource(), now, initializer, property, primaryPropDelta, newUser, true, strongMappingWasUsed, context, accContext, task, opResult);
 		
-    	mapping.setDefaultTargetDefinition(property.getDefinition());
-    	
-    	mapping.addVariableDefinition(ExpressionConstants.VAR_USER, newUser);
-    	mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS, newUser);
-    	
-    	PrismObject<ShadowType> accountNew = accContext.getObjectNew();
-    	mapping.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, accountNew);
-    	mapping.addVariableDefinition(ExpressionConstants.VAR_SHADOW, accountNew);
-    	mapping.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, accContext.getResource());
-    	
-    	mapping.setStringPolicyResolver(createStringPolicyResolver(context));
-    	mapping.setOriginType(OriginType.INBOUND);
-    	mapping.setOriginObject(accContext.getResource());
-    	
-        PrismProperty result;
-        try {
-        	LensUtil.evaluateMapping(mapping, context, opResult);
-            result = (PrismProperty) mapping.getOutput();
-        } catch (SchemaException ex) {
-            throw ex;
-        } catch (Exception ex) {
-            throw new SchemaException(ex.getMessage(), ex);
-        }
+//        for (Mapping mapping : mappings){
+//        
+//        if (!mapping.isApplicableToChannel(context.getChannel())) {
+//        	return;
+//        }
+//        
+//        PrismProperty<?> property = newUser.findOrCreateProperty(sourcePath);
+//        if (mapping.getStrength() == MappingStrengthType.WEAK && !property.isEmpty()) {
+//            //inbound will be constructed only if initial == false or initial == true and value doesn't exist
+//            continue;
+//        }
+        
+       
 
+//        ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getProjectionWaveSecondaryDelta();
+//        if (userSecondaryDelta != null) {
+//	        PropertyDelta<?> delta = userSecondaryDelta.findPropertyDelta(sourcePath);
+//	        if (delta != null) {
+//	            //remove delta if exists, it will be handled by inbound
+//	            userSecondaryDelta.getModifications().remove(delta);
+//	        }
+//        }
+
+//        if (accContext.getObjectNew() == null) {
+//            accContext.recompute();
+//            if (accContext.getObjectNew() == null) {
+//                // Still null? something must be really wrong here.
+//                String message = "Recomputing account " + accContext.getResourceShadowDiscriminator()
+//                        + " results in null new account. Something must be really broken.";
+//                LOGGER.error(message);
+//                if (LOGGER.isTraceEnabled()) {
+//                    LOGGER.trace("Account context:\n{}", accContext.dump());
+//                }
+//                throw new SystemException(message);
+//            }
+//        }
+//        
+//        ObjectDelta<ShadowType> aPrioriDelta = getAPrioriDelta(context, accContext);
+//        ItemDelta<PrismPropertyValue<?>> specialAttributeDelta = null;
+//        if (aPrioriDelta != null){
+//        	specialAttributeDelta = (ItemDelta<PrismPropertyValue<?>>) aPrioriDelta.findItemDelta(sourcePath);
+//        }
+//        ItemDeltaItem<PrismPropertyValue<?>> sourceIdi = accContext.getObjectDeltaObject().findIdi(sourcePath);
+//        if (specialAttributeDelta == null){
+//        	specialAttributeDelta = sourceIdi.getDelta();
+//        }
+//        Source<PrismPropertyValue<?>> source = new Source<PrismPropertyValue<?>>(sourceIdi.getItemOld(), specialAttributeDelta, 
+//        		sourceIdi.getItemOld(), ExpressionConstants.VAR_INPUT);
+//		mapping.setDefaultSource(source);
+//		
+//    	mapping.setDefaultTargetDefinition(property.getDefinition());
+//    	
+//    	mapping.addVariableDefinition(ExpressionConstants.VAR_USER, newUser);
+//    	mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS, newUser);
+//    	
+//    	PrismObject<ShadowType> accountNew = accContext.getObjectNew();
+//    	mapping.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, accountNew);
+//    	mapping.addVariableDefinition(ExpressionConstants.VAR_SHADOW, accountNew);
+//    	mapping.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, accContext.getResource());
+//    	
+//    	mapping.setStringPolicyResolver(createStringPolicyResolver(context));
+//    	mapping.setOriginType(OriginType.INBOUND);
+//    	mapping.setOriginObject(accContext.getResource());
+//    	
+//        PrismProperty result;
+//        try {
+//        	LensUtil.evaluateMapping(mapping, context, opResult);
+//            result = (PrismProperty) mapping.getOutput();
+//        } catch (SchemaException ex) {
+//            throw ex;
+//        } catch (Exception ex) {
+//            throw new SchemaException(ex.getMessage(), ex);
+//        }
+        
+//         result = null;
+        if (outputTriple == null){
+        	LOGGER.trace("Mapping for property {} evaluated to null. Skipping inboud processing for that property.", sourcePath);
+        	return;
+        }
+        
+        PrismProperty result = property.getDefinition().instantiate();
+    	result.addAll(PrismValue.cloneCollection(outputTriple.getNonNegativeValues()));
+            
         PropertyDelta<?> delta = property.diff(result);
         if (delta != null && !delta.isEmpty()) {
         	delta.setParentPath(sourcePath.allExceptLast());
         	context.getFocusContext().swallowToProjectionWaveSecondaryDelta(delta);
         }
+//        }
     }
     
-    private PrismObjectDefinition<UserType> getUserDefinition() {
+    private Collection<Mapping> getMappingApplicableToChannel(
+			Collection<MappingType> inboundMappingTypes, String description, String channelUri) {
+    	Collection<Mapping> inboundMappings = new ArrayList<Mapping>(); 
+		for (MappingType inboundMappingType : inboundMappingTypes){
+			Mapping<PrismPropertyValue<?>> mapping = mappingFactory.createMapping(inboundMappingType, 
+	        		description);
+			
+			if (mapping.isApplicableToChannel(channelUri)){
+				inboundMappings.add(mapping);
+			}
+		}
+		
+		return inboundMappings;
+	}
+
+	private PrismObjectDefinition<UserType> getUserDefinition() {
 		return prismContext.getSchemaRegistry().getObjectSchema()
 				.findObjectDefinitionByCompileTimeClass(UserType.class);
 	}

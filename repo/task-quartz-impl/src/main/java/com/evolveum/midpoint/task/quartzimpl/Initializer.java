@@ -54,6 +54,7 @@ public class Initializer {
 
         // get the configuration (general section + JDBC section as well)
         TaskManagerConfiguration configuration = taskManager.getConfiguration();
+        configuration.checkAllowedKeys(midpointConfiguration);
         configuration.setBasicInformation(midpointConfiguration);
         configuration.validateBasicInformation();
 
@@ -62,8 +63,6 @@ public class Initializer {
                 + (configuration.isClustered() ? "":"NOT ") + "clustered. Threads: " + configuration.getThreads());
 
         if (configuration.isJdbcJobStore()) {
-
-
 
             // quartz properties related to database connection will be taken from SQL repository
             String defaultJdbcUrlPrefix = null;

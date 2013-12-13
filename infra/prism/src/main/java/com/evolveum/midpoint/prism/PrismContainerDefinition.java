@@ -121,6 +121,17 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
     }
 
     @Override
+    public boolean isAbstract() {
+        if (super.isAbstract()) {
+            return true;
+        }
+        if (complexTypeDefinition != null && complexTypeDefinition.isAbstract()) {
+            return true;
+        }
+        return false;
+    }
+
+    @Override
 	void revive(PrismContext prismContext) {
 		if (this.prismContext != null) {
 			return;
@@ -480,6 +491,11 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
     @Override
     protected String getDebugDumpClassName() {
         return "PCD";
+    }
+
+    @Override
+    public String getDocClassName() {
+        return "container";
     }
 
 	@Override

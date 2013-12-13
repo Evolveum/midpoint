@@ -17,13 +17,18 @@ package com.evolveum.midpoint.model.lens;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.expression.ItemDeltaItem;
+import com.evolveum.midpoint.common.expression.script.ScriptExpression;
+import com.evolveum.midpoint.common.expression.script.ScriptVariables;
 import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
@@ -48,12 +53,14 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -70,9 +77,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScriptExpressionReturnTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
@@ -499,23 +509,41 @@ public class LensUtil {
 		}
 	}
 	
-	public static <V extends PrismValue, F extends FocusType> void evaluateMapping(Mapping<V> mapping, 
-			LensContext<F> lensContext, OperationResult parentResult) 
-					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-		ModelExpressionThreadLocalHolder.setLensContext(lensContext);
-		ModelExpressionThreadLocalHolder.setCurrentResult(parentResult);
+	public static <V extends PrismValue, F extends ObjectType> void evaluateMapping(
+			Mapping<V> mapping, LensContext<F> lensContext, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		ModelExpressionThreadLocalHolder.pushLensContext(lensContext);
+		ModelExpressionThreadLocalHolder.pushCurrentResult(parentResult);
+		ModelExpressionThreadLocalHolder.pushCurrentTask(task);
 		try {
 			mapping.evaluate(parentResult);
 		} finally {
-			ModelExpressionThreadLocalHolder.resetLensContext();
-			ModelExpressionThreadLocalHolder.resetCurrentResult();
+			ModelExpressionThreadLocalHolder.popLensContext();
+			ModelExpressionThreadLocalHolder.popCurrentResult();
+			ModelExpressionThreadLocalHolder.popCurrentTask();
 			if (lensContext.getDebugListener() != null) {
 				lensContext.getDebugListener().afterMappingEvaluation(lensContext, mapping);
 			}
 		}
 	}
-	
-	public static void loadFullAccount(LensProjectionContext accCtx, ProvisioningService provisioningService,
+
+    public static <V extends PrismValue, F extends ObjectType> void evaluateScript(
+            ScriptExpression scriptExpression, LensContext<F> lensContext, ScriptVariables variables, String shortDesc, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+        ModelExpressionThreadLocalHolder.pushLensContext(lensContext);
+        ModelExpressionThreadLocalHolder.pushCurrentResult(parentResult);
+        ModelExpressionThreadLocalHolder.pushCurrentTask(task);
+        try {
+            scriptExpression.evaluate(variables, ScriptExpressionReturnTypeType.SCALAR, false, shortDesc, parentResult);
+        } finally {
+            ModelExpressionThreadLocalHolder.popLensContext();
+            ModelExpressionThreadLocalHolder.popCurrentResult();
+            ModelExpressionThreadLocalHolder.popCurrentTask();
+//			if (lensContext.getDebugListener() != null) {
+//				lensContext.getDebugListener().afterScriptEvaluation(lensContext, scriptExpression);
+//			}
+        }
+    }
+
+	public static <F extends ObjectType> void loadFullAccount(LensContext<F> context, LensProjectionContext accCtx, ProvisioningService provisioningService,
 			OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 		if (accCtx.isFullShadow()) {
 			// already loaded
@@ -525,16 +553,24 @@ public class LensUtil {
 			// nothing to load yet
 			return;
 		}
+		ResourceShadowDiscriminator discr = accCtx.getResourceShadowDiscriminator();
+		if (discr != null && discr.getOrder() > 0) {
+			// It may be just too early to load the projection
+			if (LensUtil.hasLowerOrderContext(context, accCtx) && (context.getExecutionWave() < accCtx.getWave())) {
+				// We cannot reliably load the context now
+				return;
+			}
+		}
 		LOGGER.trace("Loading full account {} from provisioning", accCtx);
 		
 		try{
-		PrismObject<ShadowType> objectOld = provisioningService.getObject(ShadowType.class,
-				accCtx.getOid(), SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()),
-				null, result);
-		// TODO: use setLoadedObject() instead?
-		accCtx.setObjectCurrent(objectOld);
-		ShadowType oldShadow = objectOld.asObjectable();
-		accCtx.determineFullShadowFlag(oldShadow.getFetchResult());
+			PrismObject<ShadowType> objectOld = provisioningService.getObject(ShadowType.class,
+					accCtx.getOid(), SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()),
+					null, result);
+			// TODO: use setLoadedObject() instead?
+			accCtx.setObjectCurrent(objectOld);
+			ShadowType oldShadow = objectOld.asObjectable();
+			accCtx.determineFullShadowFlag(oldShadow.getFetchResult());
 		
 		} catch (ObjectNotFoundException ex){
 			if (accCtx.isDelete()){
@@ -593,6 +629,129 @@ public class LensUtil {
 		propNew.setRealValue(accCtx.getIterationToken());
 		ItemDeltaItem<PrismPropertyValue<String>> idi = new ItemDeltaItem<PrismPropertyValue<String>>(propOld, propDelta, propNew);
 		return idi;
+	}
+	
+	/**
+	 * Extracts the delta from this projection context and also from all other projection contexts that have 
+	 * equivalent discriminator.
+	 */
+	public static <T> PropertyDelta<T> findAPrioriDelta(LensContext<UserType,ShadowType> context, 
+			LensProjectionContext<ShadowType> projCtx, ItemPath projectionPropertyPath) throws SchemaException {
+		PropertyDelta<T> aPrioriDelta = null;
+		for (LensProjectionContext<ShadowType> aProjCtx: findRelatedContexts(context, projCtx)) {
+			ObjectDelta<ShadowType> aProjDelta = aProjCtx.getDelta();
+			if (aProjDelta != null) {
+				PropertyDelta<T> aPropProjDelta = aProjDelta.findPropertyDelta(projectionPropertyPath);
+				if (aPropProjDelta != null) {
+					if (aPrioriDelta == null) {
+						aPrioriDelta = aPropProjDelta.clone();
+					} else {
+						aPrioriDelta.merge(aPropProjDelta);
+					}
+				}
+			}
+		}
+		return aPrioriDelta;
+	}
+	
+	/**
+	 * Returns a list of context that have equivalent discriminator with the reference context. Ordered by "order" in the
+	 * discriminator.
+	 */
+	public static <F extends ObjectType, P extends ObjectType> List<LensProjectionContext<P>> findRelatedContexts(
+			LensContext<F,P> context, LensProjectionContext<P> refProjCtx) {
+		List<LensProjectionContext<P>> projCtxs = new ArrayList<LensProjectionContext<P>>();
+		ResourceShadowDiscriminator refDiscr = refProjCtx.getResourceShadowDiscriminator();
+		if (refDiscr == null) {
+			return projCtxs;
+		}
+		for (LensProjectionContext<P> aProjCtx: context.getProjectionContexts()) {
+			ResourceShadowDiscriminator aDiscr = aProjCtx.getResourceShadowDiscriminator();
+			if (refDiscr.equivalent(aDiscr)) {
+				projCtxs.add(aProjCtx);
+			}
+		}
+		Comparator<? super LensProjectionContext<P>> orderComparator = new Comparator<LensProjectionContext<P>>() {
+			@Override
+			public int compare(LensProjectionContext<P> ctx1, LensProjectionContext<P> ctx2) {
+				int order1 = ctx1.getResourceShadowDiscriminator().getOrder();
+				int order2 = ctx2.getResourceShadowDiscriminator().getOrder();
+				return Integer.compare(order1, order2);
+			}
+		};
+		Collections.sort(projCtxs, orderComparator);
+		return projCtxs;
+	}
+
+	public static boolean hasLowerOrderContext(LensContext<UserType, ShadowType> context,
+			LensProjectionContext<ShadowType> refProjCtx) {
+		ResourceShadowDiscriminator refDiscr = refProjCtx.getResourceShadowDiscriminator();
+		for (LensProjectionContext<ShadowType> aProjCtx: context.getProjectionContexts()) {
+			ResourceShadowDiscriminator aDiscr = aProjCtx.getResourceShadowDiscriminator();
+			if (refDiscr.equivalent(aDiscr) && (refDiscr.getOrder() > aDiscr.getOrder())) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public static <F extends ObjectType, P extends ObjectType> LensProjectionContext<P> findLowerOrderContext(LensContext<F, P> context,
+			LensProjectionContext<P> refProjCtx) {
+		int minOrder = -1;
+		LensProjectionContext<P> foundCtx = null;
+		ResourceShadowDiscriminator refDiscr = refProjCtx.getResourceShadowDiscriminator();
+		for (LensProjectionContext<P> aProjCtx: context.getProjectionContexts()) {
+			ResourceShadowDiscriminator aDiscr = aProjCtx.getResourceShadowDiscriminator();
+			if (refDiscr.equivalent(aDiscr) && (refDiscr.getOrder() > aDiscr.getOrder())) {
+				if (minOrder < 0 || (aDiscr.getOrder() < minOrder)) {
+					minOrder = aDiscr.getOrder();
+					foundCtx = aProjCtx;
+				}
+			}
+		}
+		return foundCtx;
+	}
+	
+	public static <T extends ObjectType, F extends ObjectType, P extends ObjectType> void setContextOid(LensContext<F,P> context,
+			LensElementContext<T> objectContext, String oid) {
+		objectContext.setOid(oid);
+		// Check if we need to propagate this oid also to higher-order contexts
+		if (!(objectContext instanceof LensProjectionContext)) {
+			return;
+		}
+		LensProjectionContext<P> refProjCtx = (LensProjectionContext<P>)objectContext;
+		ResourceShadowDiscriminator refDiscr = refProjCtx.getResourceShadowDiscriminator();
+		if (refDiscr == null) {
+			return;
+		}
+		for (LensProjectionContext<P> aProjCtx: context.getProjectionContexts()) {
+			ResourceShadowDiscriminator aDiscr = aProjCtx.getResourceShadowDiscriminator();
+			if (aDiscr != null && refDiscr.equivalent(aDiscr) && (refDiscr.getOrder() < aDiscr.getOrder())) {
+				aProjCtx.setOid(oid);
+			}
+		}
+	}
+
+	public static PrismObject<SystemConfigurationType> getSystemConfiguration(LensContext context, RepositoryService repositoryService, OperationResult result) throws ObjectNotFoundException, SchemaException {
+		PrismObject<SystemConfigurationType> systemConfiguration = context.getSystemConfiguration();
+		if (systemConfiguration == null) {
+			try {
+				systemConfiguration = 
+					repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
+							null, result);
+			} catch (ObjectNotFoundException e) {
+				// just go on ... we will return and continue
+				// This is needed e.g. to set up new system configuration is the old one gets deleted
+			}
+			if (systemConfiguration == null) {
+			    // throw new SystemException("System configuration object is null (should not happen!)");
+			    // This should not happen, but it happens in tests. And it is a convenient short cut. Tolerate it for now.
+			    LOGGER.warn("System configuration object is null (should not happen!)");
+			    return null;
+			}
+			context.setSystemConfiguration(systemConfiguration);
+		}
+		return systemConfiguration;
 	}
     
 }

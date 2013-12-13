@@ -15,7 +15,6 @@
  */
 package com.evolveum.midpoint.model.importer;
 
-import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
@@ -41,6 +40,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
@@ -256,7 +256,7 @@ public class ObjectImporter {
 
         if (BooleanUtils.isTrue(options.isKeepOid()) && object.getOid() == null) {
 			// Try to check if there is existing object with the same type and name
-        	ObjectQuery query = QueryUtil.createNameQuery(object);
+        	ObjectQuery query = ObjectQueryUtil.createNameQuery(object);
         	List<PrismObject<T>> foundObjects = repository.searchObjects(object.getCompileTimeClass(), query, null, result);
         	if (foundObjects.size() == 1) {
         		String oid = foundObjects.iterator().next().getOid();
@@ -280,7 +280,7 @@ public class ObjectImporter {
      	 	 	// This is overwrite, without keep oid, therefore we do not have conflict on OID
         		// this has to be conflict on name. So try to delete the conflicting object and create new one (with a new OID).
         		result.muteLastSubresultError();
-        		ObjectQuery query = QueryUtil.createNameQuery(object);
+        		ObjectQuery query = ObjectQueryUtil.createNameQuery(object);
             	List<PrismObject<T>> foundObjects = repository.searchObjects(object.getCompileTimeClass(), query, null, result);
             	if (foundObjects.size() == 1) {
             		PrismObject<T> foundObject = foundObjects.iterator().next();

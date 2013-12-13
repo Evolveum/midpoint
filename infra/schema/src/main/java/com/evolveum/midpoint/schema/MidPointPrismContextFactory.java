@@ -61,6 +61,13 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
 		return context;
 	}
 	
+	public PrismContext createEmptyPrismContext() throws SchemaException, FileNotFoundException {
+		SchemaRegistry schemaRegistry = createSchemaRegistry();
+		PrismContext context = PrismContext.createEmptyContext(schemaRegistry);
+		context.setDefinitionFactory(createDefinitionFactory());
+		return context;
+	}
+	
 	private SchemaDefinitionFactory createDefinitionFactory() {
 		return new MidPointSchemaDefinitionFactory();
 	}
@@ -140,6 +147,8 @@ public class MidPointPrismContextFactory implements PrismContextFactory {
                 com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.ObjectFactory.class.getPackage());
 
         schemaRegistry.registerPrismSchemaResource("xml/ns/public/task/noop-1.xsd", "noop");
+
+        schemaRegistry.registerPrismSchemaResource("xml/ns/public/task/extension-2.xsd", "taskext");
     }
 	
 	private void setupDebug() {
