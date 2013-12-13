@@ -16,8 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.reports.component;
 
-import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
-import com.evolveum.midpoint.web.component.button.ButtonType;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ResourceItemDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReconciliationReportDto;
@@ -67,8 +66,7 @@ public class ReconciliationPopupPanel extends SimplePanel<ReconciliationReportDt
                 resources, renderer);
         form.add(dropDown);
 
-        AjaxSubmitLinkButton run = new AjaxSubmitLinkButton(ID_RUN, ButtonType.POSITIVE,
-                createStringResource("PageBase.button.run")) {
+        AjaxSubmitButton run = new AjaxSubmitButton(ID_RUN, createStringResource("PageBase.button.run")) {
 
             @Override
             protected void onError(AjaxRequestTarget target, Form<?> form) {

@@ -18,13 +18,17 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <form wicket:id="mainForm">
-        <span class="operatingFormText"><wicket:message key="PageTimeTest.offset"/></span>
+    <form wicket:id="mainForm" class="form-horizontal">
+        <div class="form-group">
+            <label class="col-md-2 control-label"><wicket:message key="PageTimeTest.offset"/></label>
 
-        <span wicket:id="offset"/>
+            <div class="col-md-2">
+                <span wicket:id="offset"/>
+            </div>
+        </div>
 
         <div class="main-button-bar">
-            <a class="btn btn-default" wicket:id="save"/>
+            <a class="btn btn-primary" wicket:id="save"/>
         </div>
     </form>
 </wicket:extend>

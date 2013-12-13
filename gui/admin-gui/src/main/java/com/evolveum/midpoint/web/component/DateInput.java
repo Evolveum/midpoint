@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.web.component;
 
-import org.apache.wicket.extensions.yui.calendar.DateField;
+import org.apache.wicket.extensions.yui.calendar.DateTimeField;
 import org.apache.wicket.model.IModel;
 
 import java.util.Date;
@@ -24,7 +24,7 @@ import java.util.Date;
 /**
  * @author lazyman
  */
-public class DateInput extends DateField {
+public class DateInput extends DateTimeField {
 
     public DateInput(String id, IModel<Date> model) {
         super(id, model);

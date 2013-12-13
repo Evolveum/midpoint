@@ -18,8 +18,7 @@ package com.evolveum.midpoint.web.page.admin.reports.component;
 
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
-import com.evolveum.midpoint.web.component.button.ButtonType;
+import com.evolveum.midpoint.web.component.DateInput;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditReportDto;
 import com.evolveum.midpoint.web.util.DateValidator;
@@ -27,7 +26,6 @@ import com.evolveum.midpoint.web.util.WebMiscUtil;
 
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.yui.calendar.DateTimeField;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
@@ -91,24 +89,11 @@ public class AuditPopupPanel extends SimplePanel<AuditReportDto> {
 
         form.add(dropDown);
 
-        DateTimeField dateFrom = new DateTimeField(ID_DATE_FROM, new PropertyModel<Date>(getModel(),
-                AuditReportDto.F_FROM)) {
-
-            @Override
-            protected boolean use12HourFormat() {
-                return false;
-            }
-        };
+        DateInput dateFrom = new DateInput(ID_DATE_FROM, new PropertyModel<Date>(getModel(), AuditReportDto.F_FROM));
         dateFrom.setRequired(true);
         form.add(dateFrom);
 
-        DateTimeField dateTo = new DateTimeField(ID_DATE_TO, new PropertyModel<Date>(getModel(), AuditReportDto.F_TO)) {
-
-            @Override
-            protected boolean use12HourFormat() {
-                return false;
-            }
-        };
+        DateInput dateTo = new DateInput(ID_DATE_TO, new PropertyModel<Date>(getModel(), AuditReportDto.F_TO));
         dateTo.setRequired(true);
         form.add(dateTo);
 
