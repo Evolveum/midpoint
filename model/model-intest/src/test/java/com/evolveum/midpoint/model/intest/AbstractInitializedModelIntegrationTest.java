@@ -23,14 +23,10 @@ import static org.testng.AssertJUnit.assertNull;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.AssertJUnit;
 
-import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
-import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.intest.util.ProfilingLensDebugListener;
 import com.evolveum.midpoint.model.lens.Clockwork;
@@ -42,7 +38,6 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
@@ -58,7 +53,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
@@ -282,16 +276,24 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		assertUserJack(user, "jack", fullName, givenName, familyName, locality);
 	}
 	
-	protected void assertDummyShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username) {
-		assertShadowRepo(accountShadow, oid, username, resourceDummyType);
+	protected void assertDummyAccountShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username) {
+		assertAccountShadowRepo(accountShadow, oid, username, resourceDummyType);
 	}
+
+    protected void assertDummyGroupShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username) {
+        assertShadowRepo(accountShadow, oid, username, resourceDummyType, getGroupObjectClass(resourceDummyType));
+    }
 	
-	protected void assertDummyShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username) {
-		assertShadowModel(accountShadow, oid, username, resourceDummyType);
+	protected void assertDummyAccountShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username) {
+		assertShadowModel(accountShadow, oid, username, resourceDummyType, getAccountObjectClass(resourceDummyType));
 	}
+
+    protected void assertDummyGroupShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username) {
+        assertShadowModel(accountShadow, oid, username, resourceDummyType, getGroupObjectClass(resourceDummyType));
+    }
 	
-	protected void assertDummyShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, String fullname) {
-		assertDummyShadowModel(accountShadow, oid, username);
+	protected void assertDummyAccountShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, String fullname) {
+		assertDummyAccountShadowModel(accountShadow, oid, username);
 		IntegrationTestTools.assertAttribute(accountShadow, dummyResourceCtl.getAttributeFullnameQName(), fullname);
 	}
 		

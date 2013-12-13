@@ -22,80 +22,31 @@ import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
-import com.evolveum.midpoint.prism.match.PolyStringStrictMatchingRule;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
-import com.evolveum.midpoint.prism.query.NotFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
-import org.w3c.dom.Element;
 
-import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.midpoint.common.expression.evaluator.LiteralExpressionEvaluatorFactory;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
-import com.evolveum.midpoint.model.api.PolicyViolationException;
-import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.schema.ResultHandler;
-import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.test.DummyResourceContoller;
-import com.evolveum.midpoint.test.IntegrationTestTools;
-import com.evolveum.midpoint.test.ProvisioningScriptSpec;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectFactory;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceAttributeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
@@ -108,7 +59,7 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 	
 	public static final File TEST_DIR = new File("src/test/resources/contract");
 
-	private static String accountOid;
+	private static String groupOid;
 	private static String userCharlesOid;
 	
 	@Test
@@ -153,7 +104,7 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
         ObjectDelta<RoleType> roleDelta = ObjectDelta.createEmptyModifyDelta(RoleType.class, ROLE_PIRATE_OID, prismContext);
         PrismReferenceValue linkRefVal = new PrismReferenceValue();
 		linkRefVal.setObject(group);
-		ReferenceDelta groupDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getRoleDefinition(), linkRefVal);
+		ReferenceDelta groupDelta = ReferenceDelta.createModificationAdd(RoleType.F_LINK_REF, getRoleDefinition(), linkRefVal);
 		roleDelta.addModification(groupDelta);
 		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(roleDelta);
 		
@@ -173,18 +124,19 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
         
 		// Check accountRef
 		PrismObject<RoleType> rolePirate = modelService.getObject(RoleType.class, ROLE_PIRATE_OID, null, task, result);
+        display("Role pirate after", rolePirate);
 		assertRolePirate(rolePirate);
 		assertLinks(rolePirate, 1);
-		accountOid = getSingleLinkOid(rolePirate);
-        assertFalse("No linkRef oid", StringUtils.isBlank(accountOid));
+		groupOid = getSingleLinkOid(rolePirate);
+        assertFalse("No linkRef oid", StringUtils.isBlank(groupOid));
         
 		// Check shadow
-        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-        assertDummyShadowRepo(accountShadow, accountOid, GROUP_PIRATE_DUMMY_NAME);
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, groupOid, null, result);
+        assertDummyGroupShadowRepo(accountShadow, groupOid, GROUP_PIRATE_DUMMY_NAME);
         
         // Check account
-        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-        assertDummyShadowModel(accountModel, accountOid, GROUP_PIRATE_DUMMY_NAME);
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, groupOid, null, task, result);
+        assertDummyGroupShadowModel(accountModel, groupOid, GROUP_PIRATE_DUMMY_NAME);
         
         // Check account in dummy resource
         assertDummyGroup(GROUP_PIRATE_DUMMY_NAME, GROUP_PIRATE_DUMMY_DESCRIPTION);
@@ -195,34 +147,12 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
         dummyAuditService.assertSimpleRecordSanity();
         dummyAuditService.assertAnyRequestDeltas();
         dummyAuditService.assertExecutionDeltas(3);
-        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, RoleType.class);
         dummyAuditService.asserHasDelta(ChangeType.ADD, ShadowType.class);
         dummyAuditService.assertTarget(ROLE_PIRATE_OID);
         dummyAuditService.assertExecutionSuccess();
 
         notificationManager.setDisabled(true);
-
-        checkDummyTransportMessages("accountPasswordNotifier", 1);
-        checkDummyTransportMessages("userPasswordNotifier", 0);
-        checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
-        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
-        checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 1);
-        checkDummyTransportMessages("simpleUserNotifier", 0);
-        checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
-
-//        List<Message> messages = dummyTransport.getMessages("dummy:accountPasswordNotifier");
-//        assertNotNull("No messages recorded in dummy transport", messages);
-//        assertEquals("Invalid number of messages recorded in dummy transport", 1, messages.size());
-//        Message message = messages.get(0);
-//        assertEquals("Invalid list of recipients", Arrays.asList(userJackType.getEmailAddress()), message.getTo());
-//
-//        messages = dummyTransport.getMessages("dummy:newAccountsViaExpression");
-//        assertNotNull("No messages recorded in dummy transport (expressions)", messages);
-//        assertEquals("Invalid number of messages recorded in dummy transport (expressions)", 1, messages.size());
-//        message = messages.get(0);
-//        assertEquals("Invalid list of recipients (expressions)", Arrays.asList("test1", "test2"), message.getTo());
-//        assertEquals("Invalid message subject", "Changed account for jack", message.getSubject());
-//        assertEquals("Invalid message body", "Body: Changed account for jack", message.getBody());
 
 	}
 
@@ -243,7 +173,7 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //        jackDummyAccount.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WATER_NAME, "cold");
 //        
 //		// WHEN
-//		PrismObject<ShadowType> account = modelService.getObject(ShadowType.class, accountOid, null , task, result);
+//		PrismObject<ShadowType> account = modelService.getObject(ShadowType.class, groupOid, null , task, result);
 //		
 //		// THEN
 //		display("Account", account);
@@ -251,7 +181,7 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //		PrismContainer<Containerable> accountContainer = account.findContainer(ShadowType.F_ATTRIBUTES);
 //		display("Account attributes def", accountContainer.getDefinition());
 //		display("Account attributes def complex type def", accountContainer.getDefinition().getComplexTypeDefinition());
-//        assertDummyShadowModel(account, accountOid, "jack", "Jack Sparrow");
+//        assertDummyAccountShadowModel(account, groupOid, "jack", "Jack Sparrow");
 //        
 //        result.computeStatus();
 //        TestUtil.assertSuccess("getObject result", result);
@@ -277,14 +207,14 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
 //		
 //		// WHEN
-//		PrismObject<ShadowType> account = modelService.getObject(ShadowType.class, accountOid, options , task, result);
+//		PrismObject<ShadowType> account = modelService.getObject(ShadowType.class, groupOid, options , task, result);
 //		
 //		display("Account", account);
 //		display("Account def", account.getDefinition());
 //		PrismContainer<Containerable> accountContainer = account.findContainer(ShadowType.F_ATTRIBUTES);
 //		display("Account attributes def", accountContainer.getDefinition());
 //		display("Account attributes def complex type def", accountContainer.getDefinition().getComplexTypeDefinition());
-//        assertDummyShadowRepo(account, accountOid, "jack");
+//        assertDummyAccountShadowRepo(account, groupOid, "jack");
 //        
 //        result.computeStatus();
 //        TestUtil.assertSuccess("getObject result", result);
@@ -301,14 +231,14 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
 //		
 //		// WHEN
-//		PrismObject<ShadowType> account = modelService.getObject(ShadowType.class, accountOid, options , task, result);
+//		PrismObject<ShadowType> account = modelService.getObject(ShadowType.class, groupOid, options , task, result);
 //		
 //		display("Account", account);
 //		display("Account def", account.getDefinition());
 //		PrismContainer<Containerable> accountContainer = account.findContainer(ShadowType.F_ATTRIBUTES);
 //		display("Account attributes def", accountContainer.getDefinition());
 //		display("Account attributes def complex type def", accountContainer.getDefinition().getComplexTypeDefinition());
-//        assertDummyShadowRepo(account, accountOid, "jack");
+//        assertDummyAccountShadowRepo(account, groupOid, "jack");
 //        
 //        result.computeStatus();
 //        TestUtil.assertSuccess("getObject result", result);
@@ -427,16 +357,16 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //        UserType userJackType = userJack.asObjectable();
 //        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
 //        ObjectReferenceType accountRefType = userJackType.getLinkRef().get(0);
-//        String accountOid = accountRefType.getOid();
-//        assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
+//        String groupOid = accountRefType.getOid();
+//        assertFalse("No accountRef oid", StringUtils.isBlank(groupOid));
 //        
 //        PrismReferenceValue accountRefValue = accountRefType.asReferenceValue();
-//        assertEquals("OID mismatch in accountRefValue", accountOid, accountRefValue.getOid());
+//        assertEquals("OID mismatch in accountRefValue", groupOid, accountRefValue.getOid());
 //        assertNotNull("Missing account object in accountRefValue", accountRefValue.getObject());
 //
 //        assertEquals("Unexpected number of accounts", 1, userJackType.getLink().size());
 //        ShadowType ResourceObjectShadowType = userJackType.getLink().get(0);
-//        assertDummyShadowModel(ResourceObjectShadowType.asPrismObject(), accountOid, "jack", "Jack Sparrow");
+//        assertDummyAccountShadowModel(ResourceObjectShadowType.asPrismObject(), groupOid, "jack", "Jack Sparrow");
 //        
 //        result.computeStatus();
 //        TestUtil.assertSuccess("getObject result", result);
@@ -465,16 +395,16 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //        UserType userJackType = userJack.asObjectable();
 //        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
 //        ObjectReferenceType accountRefType = userJackType.getLinkRef().get(0);
-//        String accountOid = accountRefType.getOid();
-//        assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
+//        String groupOid = accountRefType.getOid();
+//        assertFalse("No accountRef oid", StringUtils.isBlank(groupOid));
 //        
 //        PrismReferenceValue accountRefValue = accountRefType.asReferenceValue();
-//        assertEquals("OID mismatch in accountRefValue", accountOid, accountRefValue.getOid());
+//        assertEquals("OID mismatch in accountRefValue", groupOid, accountRefValue.getOid());
 //        assertNotNull("Missing account object in accountRefValue", accountRefValue.getObject());
 //
 //        assertEquals("Unexpected number of accounts", 1, userJackType.getLink().size());
 //        ShadowType ResourceObjectShadowType = userJackType.getLink().get(0);
-//        assertDummyShadowModel(ResourceObjectShadowType.asPrismObject(), accountOid, "jack", "Jack Sparrow");
+//        assertDummyAccountShadowModel(ResourceObjectShadowType.asPrismObject(), groupOid, "jack", "Jack Sparrow");
 //        
 //        assertNotNull("Resource in account was not resolved", ResourceObjectShadowType.getResource());
 //        
@@ -506,16 +436,16 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //        UserType userJackType = userJack.asObjectable();
 //        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
 //        ObjectReferenceType accountRefType = userJackType.getLinkRef().get(0);
-//        String accountOid = accountRefType.getOid();
-//        assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
+//        String groupOid = accountRefType.getOid();
+//        assertFalse("No accountRef oid", StringUtils.isBlank(groupOid));
 //        
 //        PrismReferenceValue accountRefValue = accountRefType.asReferenceValue();
-//        assertEquals("OID mismatch in accountRefValue", accountOid, accountRefValue.getOid());
+//        assertEquals("OID mismatch in accountRefValue", groupOid, accountRefValue.getOid());
 //        assertNotNull("Missing account object in accountRefValue", accountRefValue.getObject());
 //
 //        assertEquals("Unexpected number of accounts", 1, userJackType.getLink().size());
 //        ShadowType ResourceObjectShadowType = userJackType.getLink().get(0);
-//        assertDummyShadowRepo(ResourceObjectShadowType.asPrismObject(), accountOid, "jack");
+//        assertDummyAccountShadowRepo(ResourceObjectShadowType.asPrismObject(), groupOid, "jack");
 //        
 //        result.computeStatus();
 //        TestUtil.assertSuccess("getObject result", result);
@@ -536,7 +466,7 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //        purgeScriptHistory();
 //
 //        PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
-//        account.setOid(accountOid);
+//        account.setOid(groupOid);
 //        		
 //		ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
 //		ReferenceDelta accountDelta = ReferenceDelta.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), account);
@@ -562,8 +492,8 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //        
 //		// Check is shadow is gone
 //        try {
-//        	PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-//        	AssertJUnit.fail("Shadow "+accountOid+" still exists");
+//        	PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, groupOid, null, result);
+//        	AssertJUnit.fail("Shadow "+groupOid+" still exists");
 //        } catch (ObjectNotFoundException e) {
 //        	// This is OK
 //        }
@@ -624,8 +554,8 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //        TestUtil.assertSuccess("executeChanges result", result);
 //        XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
 //        
-//        accountOid = accountDelta.getOid();
-//        assertNotNull("No account OID in resulting delta", accountOid);
+//        groupOid = accountDelta.getOid();
+//        assertNotNull("No account OID in resulting delta", groupOid);
 //		// Check accountRef (should be none)
 //		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
 //        assertUserJack(userJack);
@@ -633,13 +563,13 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //        assertEquals("Unexpected number of accountRefs", 0, userJackType.getLinkRef().size());
 //        
 //		// Check shadow
-//        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-//        assertDummyShadowRepo(accountShadow, accountOid, "jack");
+//        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, groupOid, null, result);
+//        assertDummyAccountShadowRepo(accountShadow, groupOid, "jack");
 //        assertEnableTimestampShadow(accountShadow, startTime, endTime);
 //        
 //        // Check account
-//        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-//        assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
+//        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, groupOid, null, task, result);
+//        assertDummyAccountShadowModel(accountModel, groupOid, "jack", "Jack Sparrow");
 //        assertEnableTimestampShadow(accountModel, startTime, endTime);
 //        
 //        // Check account in dummy resource
@@ -683,7 +613,7 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //        prepareNotifications();
 //
 //        ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
-//        ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountOid);
+//        ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), groupOid);
 //		userDelta.addModification(accountDelta);
 //		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 //                
@@ -696,15 +626,15 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //        
 //		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 //		assertUserJack(userJack);
-//        accountOid = getSingleUserAccountRef(userJack);
+//        groupOid = getSingleUserAccountRef(userJack);
 //        
 //		// Check shadow
-//        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-//        assertDummyShadowRepo(accountShadow, accountOid, "jack");
+//        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, groupOid, null, result);
+//        assertDummyAccountShadowRepo(accountShadow, groupOid, "jack");
 //        
 //        // Check account
-//        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-//        assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
+//        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, groupOid, null, task, result);
+//        assertDummyAccountShadowModel(accountModel, groupOid, "jack", "Jack Sparrow");
 //        
 //        // Check account in dummy resource
 //        assertDummyAccount("jack", "Jack Sparrow", true);
@@ -750,7 +680,7 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //        ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
 //        PrismReferenceValue accountRefVal = new PrismReferenceValue();
 //		accountRefVal.setObject(account);
-//		ReferenceDelta accountDelta = ReferenceDelta.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), accountOid);
+//		ReferenceDelta accountDelta = ReferenceDelta.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), groupOid);
 //		userDelta.addModification(accountDelta);
 //		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
 //		        
@@ -767,12 +697,12 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //        assertUserNoAccountRefs(userJack);
 //		        
 //		// Check shadow (if it is unchanged)
-//        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-//        assertDummyShadowRepo(accountShadow, accountOid, "jack");
+//        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, groupOid, null, result);
+//        assertDummyAccountShadowRepo(accountShadow, groupOid, "jack");
 //        
 //        // Check account (if it is unchanged)
-//        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-//        assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
+//        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, groupOid, null, task, result);
+//        assertDummyAccountShadowModel(accountModel, groupOid, "jack", "Jack Sparrow");
 //        
 //        // Check account in dummy resource (if it is unchanged)
 //        assertDummyAccount("jack", "Jack Sparrow", true);
@@ -812,7 +742,7 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //        prepareNotifications();
 //        purgeScriptHistory();
 //        
-//        ObjectDelta<ShadowType> accountDelta = ObjectDelta.createDeleteDelta(ShadowType.class, accountOid, prismContext);
+//        ObjectDelta<ShadowType> accountDelta = ObjectDelta.createDeleteDelta(ShadowType.class, groupOid, prismContext);
 //        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta);
 //        
 //		// WHEN
@@ -828,7 +758,7 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //        assertUserNoAccountRefs(userJack);
 //        
 //		// Check is shadow is gone
-//        assertNoAccountShadow(accountOid);
+//        assertNoAccountShadow(groupOid);
 //        
 //        // Check if dummy resource account is gone
 //        assertNoDummyAccount("jack");
@@ -842,7 +772,7 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //        dummyAuditService.assertAnyRequestDeltas();
 //        dummyAuditService.assertExecutionDeltas(1);
 //        dummyAuditService.asserHasDelta(ChangeType.DELETE, ShadowType.class);
-//        dummyAuditService.assertTarget(accountOid);
+//        dummyAuditService.assertTarget(groupOid);
 //        dummyAuditService.assertExecutionSuccess();
 //
 //        // Check notifications
@@ -930,16 +860,16 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 //		display("User after change execution", userJack);
 //		assertUserJack(userJack);
-//        accountOid = getSingleUserAccountRef(userJack);
+//        groupOid = getSingleUserAccountRef(userJack);
 //        
 //		// Check shadow
-//        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-//        assertDummyShadowRepo(accountShadow, accountOid, "jack");
+//        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, groupOid, null, result);
+//        assertDummyAccountShadowRepo(accountShadow, groupOid, "jack");
 //        assertEnableTimestampShadow(accountShadow, startTime, endTime);
 //        
 //        // Check account
-//        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-//        assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
+//        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, groupOid, null, task, result);
+//        assertDummyAccountShadowModel(accountModel, groupOid, "jack", "Jack Sparrow");
 //        assertEnableTimestampShadow(accountModel, startTime, endTime);
 //        
 //        // Check account in dummy resource
@@ -987,7 +917,7 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //        
 //        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
 //        ObjectDelta<ShadowType> accountDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
-//        		accountOid, dummyResourceCtl.getAttributeFullnamePath(), prismContext, "Cpt. Jack Sparrow");
+//        		groupOid, dummyResourceCtl.getAttributeFullnamePath(), prismContext, "Cpt. Jack Sparrow");
 //        accountDelta.addModificationReplaceProperty(
 //        		dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
 //        		"Queen Anne's Revenge");
@@ -1009,16 +939,16 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //				userJack.asObjectable().getOrganizationalUnit().iterator().next().getOrig());
 //		assertEquals("Wrong user locality (norm)", "the crew of queen annes revenge", 
 //				userJack.asObjectable().getOrganizationalUnit().iterator().next().getNorm());
-//        accountOid = getSingleUserAccountRef(userJack);
+//        groupOid = getSingleUserAccountRef(userJack);
 //        
 //		// Check shadow
-//        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-//        assertDummyShadowRepo(accountShadow, accountOid, "jack");
+//        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, groupOid, null, result);
+//        assertDummyAccountShadowRepo(accountShadow, groupOid, "jack");
 //        
 //        // Check account
 //        // All the changes should be reflected to the account
-//        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-//        assertDummyShadowModel(accountModel, accountOid, "jack", "Cpt. Jack Sparrow");
+//        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, groupOid, null, task, result);
+//        assertDummyAccountShadowModel(accountModel, groupOid, "jack", "Cpt. Jack Sparrow");
 //        PrismAsserts.assertPropertyValue(accountModel, 
 //        		dummyResourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME),
 //        		"Queen Anne's Revenge");
@@ -1084,7 +1014,7 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //        assertUserNoAccountRefs(userJack);
 //        
 //        // Check is shadow is gone
-//        assertNoAccountShadow(accountOid);
+//        assertNoAccountShadow(groupOid);
 //        
 //        // Check if dummy resource account is gone
 //        assertNoDummyAccount("jack");
@@ -1151,16 +1081,16 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 //		display("User after change execution", userJack);
 //		assertUserJack(userJack);
-//        accountOid = getSingleUserAccountRef(userJack);
+//        groupOid = getSingleUserAccountRef(userJack);
 //        
 //		// Check shadow
-//        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-//        assertDummyShadowRepo(accountShadow, accountOid, "jack");
+//        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, groupOid, null, result);
+//        assertDummyAccountShadowRepo(accountShadow, groupOid, "jack");
 //        assertEnableTimestampShadow(accountShadow, startTime, endTime);
 //        
 //        // Check account
-//        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-//        assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
+//        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, groupOid, null, task, result);
+//        assertDummyAccountShadowModel(accountModel, groupOid, "jack", "Jack Sparrow");
 //        assertEnableTimestampShadow(accountModel, startTime, endTime);
 //        
 //        // Check account in dummy resource
@@ -1228,15 +1158,15 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 //		display("User after change execution", userJack);
 //		assertUserJack(userJack);
-//		assertLinked(userJack, accountOid);
+//		assertLinked(userJack, groupOid);
 //        
 //		// Check shadow
-//        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-//        assertDummyShadowRepo(accountShadow, accountOid, "jack");
+//        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, groupOid, null, result);
+//        assertDummyAccountShadowRepo(accountShadow, groupOid, "jack");
 //        
 //        // Check account
-//        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-//        assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
+//        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, groupOid, null, task, result);
+//        assertDummyAccountShadowModel(accountModel, groupOid, "jack", "Jack Sparrow");
 //        
 //        // Check account in dummy resource
 //        assertDummyAccount("jack", "Jack Sparrow", true);
@@ -1288,11 +1218,11 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //        
 //        ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
 //        PrismReferenceValue accountRefVal = new PrismReferenceValue();
-//		accountRefVal.setOid(accountOid);
-//		ReferenceDelta accountRefDelta = ReferenceDelta.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), accountOid);
+//		accountRefVal.setOid(groupOid);
+//		ReferenceDelta accountRefDelta = ReferenceDelta.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), groupOid);
 //		userDelta.addModification(accountRefDelta);
 //        
-//		ObjectDelta<ShadowType> accountDelta = ObjectDelta.createDeleteDelta(ShadowType.class, accountOid, prismContext);
+//		ObjectDelta<ShadowType> accountDelta = ObjectDelta.createDeleteDelta(ShadowType.class, groupOid, prismContext);
 //		
 //		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta);
 //                
@@ -1309,7 +1239,7 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //        assertUserNoAccountRefs(userJack);
 //        
 //        // Check is shadow is gone
-//        assertNoAccountShadow(accountOid);
+//        assertNoAccountShadow(groupOid);
 //        
 //        // Check if dummy resource account is gone
 //        assertNoDummyAccount("jack");
@@ -1376,16 +1306,16 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 //		display("User after change execution", userJack);
 //		assertUserJack(userJack);
-//        accountOid = getSingleUserAccountRef(userJack);
+//        groupOid = getSingleUserAccountRef(userJack);
 //        
 //		// Check shadow
-//        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-//        assertDummyShadowRepo(accountShadow, accountOid, "jack");
+//        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, groupOid, null, result);
+//        assertDummyAccountShadowRepo(accountShadow, groupOid, "jack");
 //        assertEnableTimestampShadow(accountShadow, startTime, endTime);
 //        
 //        // Check account
-//        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-//        assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
+//        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, groupOid, null, task, result);
+//        assertDummyAccountShadowModel(accountModel, groupOid, "jack", "Jack Sparrow");
 //        assertEnableTimestampShadow(accountModel, startTime, endTime);
 //        
 //        // Check account in dummy resource
@@ -1451,7 +1381,7 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //        assertUserNoAccountRefs(userJack);
 //        
 //        // Check is shadow is gone
-//        assertNoAccountShadow(accountOid);
+//        assertNoAccountShadow(groupOid);
 //        
 //        // Check if dummy resource account is gone
 //        assertNoDummyAccount("jack");
@@ -1518,7 +1448,7 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //        assertUserNoAccountRefs(userJack);
 //        
 //        // Check is shadow is gone
-//        assertNoAccountShadow(accountOid);
+//        assertNoAccountShadow(groupOid);
 //        
 //        // Check if dummy resource account is gone
 //        assertNoDummyAccount("jack");
@@ -1585,16 +1515,16 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 //		display("User after change execution", userJack);
 //		assertUserJack(userJack);
-//        accountOid = getSingleUserAccountRef(userJack);
+//        groupOid = getSingleUserAccountRef(userJack);
 //        
 //		// Check shadow
-//        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-//        assertDummyShadowRepo(accountShadow, accountOid, "jack");
+//        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, groupOid, null, result);
+//        assertDummyAccountShadowRepo(accountShadow, groupOid, "jack");
 //        assertEnableTimestampShadow(accountShadow, startTime, endTime);
 //        
 //        // Check account
-//        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-//        assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
+//        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, groupOid, null, task, result);
+//        assertDummyAccountShadowModel(accountModel, groupOid, "jack", "Jack Sparrow");
 //        assertEnableTimestampShadow(accountModel, startTime, endTime);
 //        
 //        // Check account in dummy resource
@@ -1657,15 +1587,15 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 //		display("User after change execution", userJack);
 //		assertUserJack(userJack);
-//        accountOid = getSingleUserAccountRef(userJack);
+//        groupOid = getSingleUserAccountRef(userJack);
 //        
 //		// Check shadow
-//        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-//        assertDummyShadowRepo(accountShadow, accountOid, "jack");
+//        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, groupOid, null, result);
+//        assertDummyAccountShadowRepo(accountShadow, groupOid, "jack");
 //        
 //        // Check account
-//        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-//        assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
+//        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, groupOid, null, task, result);
+//        assertDummyAccountShadowModel(accountModel, groupOid, "jack", "Jack Sparrow");
 //        
 //        // Check account in dummy resource
 //        assertDummyAccount("jack", "Jack Sparrow", true);
@@ -1710,11 +1640,11 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //        
 //        ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
 //        PrismReferenceValue accountRefVal = new PrismReferenceValue();
-//		accountRefVal.setOid(accountOid);
-//		ReferenceDelta accountRefDelta = ReferenceDelta.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), accountOid);
+//		accountRefVal.setOid(groupOid);
+//		ReferenceDelta accountRefDelta = ReferenceDelta.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), groupOid);
 //		userDelta.addModification(accountRefDelta);
 //        
-//		ObjectDelta<ShadowType> accountDelta = ObjectDelta.createDeleteDelta(ShadowType.class, accountOid, prismContext);
+//		ObjectDelta<ShadowType> accountDelta = ObjectDelta.createDeleteDelta(ShadowType.class, groupOid, prismContext);
 //		
 //		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta);
 //                
@@ -1731,7 +1661,7 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //        assertUserNoAccountRefs(userJack);
 //        
 //        // Check is shadow is gone
-//        assertNoAccountShadow(accountOid);
+//        assertNoAccountShadow(groupOid);
 //        
 //        // Check if dummy resource account is gone
 //        assertNoDummyAccount("jack");
@@ -1805,7 +1735,7 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //        assertUserNoAccountRefs(userJack);
 //        
 //        // Check that shadow was not created
-//        assertNoAccountShadow(accountOid);
+//        assertNoAccountShadow(groupOid);
 //        
 //        // Check that dummy resource account was not created
 //        assertNoDummyAccount("jack");
@@ -1857,20 +1787,20 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //        UserType userJackType = userJack.asObjectable();
 //        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
 //        ObjectReferenceType accountRefType = userJackType.getLinkRef().get(0);
-//        accountOid = accountRefType.getOid();
-//        assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
+//        groupOid = accountRefType.getOid();
+//        assertFalse("No accountRef oid", StringUtils.isBlank(groupOid));
 //        PrismReferenceValue accountRefValue = accountRefType.asReferenceValue();
-//        assertEquals("OID mismatch in accountRefValue", accountOid, accountRefValue.getOid());
+//        assertEquals("OID mismatch in accountRefValue", groupOid, accountRefValue.getOid());
 //        assertNull("Unexpected object in accountRefValue", accountRefValue.getObject());
 //        
 //		// Check shadow
-//        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-//        assertDummyShadowRepo(accountShadow, accountOid, "jack");
+//        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, groupOid, null, result);
+//        assertDummyAccountShadowRepo(accountShadow, groupOid, "jack");
 //        assertEnableTimestampShadow(accountShadow, startTime, endTime);
 //        
 //        // Check account
-//        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-//        assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
+//        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, groupOid, null, task, result);
+//        assertDummyAccountShadowModel(accountModel, groupOid, "jack", "Jack Sparrow");
 //        assertEnableTimestampShadow(accountModel, startTime, endTime);
 //        
 //        // Check account in dummy resource
@@ -1911,7 +1841,7 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //        ObjectDelta<UserType> userDelta = createAccountAssignmentUserDelta(USER_JACK_OID, RESOURCE_DUMMY_OID, null, false);
 //        // Explicit unlink is not needed here, it should work without it
 //        
-//		ObjectDelta<ShadowType> accountDelta = ObjectDelta.createDeleteDelta(ShadowType.class, accountOid, prismContext);
+//		ObjectDelta<ShadowType> accountDelta = ObjectDelta.createDeleteDelta(ShadowType.class, groupOid, prismContext);
 //		
 //		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta, accountDelta);
 //                
@@ -1928,7 +1858,7 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //        assertUserNoAccountRefs(userJack);
 //        
 //        // Check is shadow is gone
-//        assertNoAccountShadow(accountOid);
+//        assertNoAccountShadow(groupOid);
 //        
 //        // Check if dummy resource account is gone
 //        assertNoDummyAccount("jack");
@@ -1987,16 +1917,16 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 //		display("User after change execution", userJack);
 //		assertUserJack(userJack, "Jack Sparrow");
-//        accountOid = getSingleUserAccountRef(userJack);
+//        groupOid = getSingleUserAccountRef(userJack);
 //        
 //		// Check shadow
-//        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-//        assertDummyShadowRepo(accountShadow, accountOid, USER_JACK_USERNAME);
+//        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, groupOid, null, result);
+//        assertDummyAccountShadowRepo(accountShadow, groupOid, USER_JACK_USERNAME);
 //        assertEnableTimestampShadow(accountShadow, startTime, endTime);
 //        
 //        // Check account
-//        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-//        assertDummyShadowModel(accountModel, accountOid, USER_JACK_USERNAME, "Cpt. Jack Sparrow");
+//        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, groupOid, null, task, result);
+//        assertDummyAccountShadowModel(accountModel, groupOid, USER_JACK_USERNAME, "Cpt. Jack Sparrow");
 //        assertEnableTimestampShadow(accountModel, startTime, endTime);
 //        
 //        // Check account in dummy resource
@@ -2100,15 +2030,15 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //        PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 //        display("User after change execution", userJack);
 //        assertUserJack(userJack, "Jack Sparrow");
-//        accountOid = getSingleUserAccountRef(userJack);
+//        groupOid = getSingleUserAccountRef(userJack);
 //
 //        // Check shadow
-//        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-//        assertDummyShadowRepo(accountShadow, accountOid, USER_JACK_USERNAME);
+//        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, groupOid, null, result);
+//        assertDummyAccountShadowRepo(accountShadow, groupOid, USER_JACK_USERNAME);
 //
 //        // Check account
-//        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-//        assertDummyShadowModel(accountModel, accountOid, USER_JACK_USERNAME, "Cpt. Jack Sparrow");
+//        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, groupOid, null, task, result);
+//        assertDummyAccountShadowModel(accountModel, groupOid, USER_JACK_USERNAME, "Cpt. Jack Sparrow");
 //
 //        // Check account in dummy resource
 //        assertDummyAccount(USER_JACK_USERNAME, "Cpt. Jack Sparrow", true);
@@ -2155,15 +2085,15 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 //		display("User after change execution", userJack);
 //		assertUserJack(userJack, "Magnificent Captain Jack Sparrow");
-//        accountOid = getSingleUserAccountRef(userJack);
+//        groupOid = getSingleUserAccountRef(userJack);
 //        
 //		// Check shadow
-//        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-//        assertDummyShadowRepo(accountShadow, accountOid, "jack");
+//        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, groupOid, null, result);
+//        assertDummyAccountShadowRepo(accountShadow, groupOid, "jack");
 //        
 //        // Check account
-//        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-//        assertDummyShadowModel(accountModel, accountOid, "jack", "Magnificent Captain Jack Sparrow");
+//        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, groupOid, null, task, result);
+//        assertDummyAccountShadowModel(accountModel, groupOid, "jack", "Magnificent Captain Jack Sparrow");
 //        
 //        // Check account in dummy resource
 //        assertDummyAccount("jack", "Magnificent Captain Jack Sparrow", true);
@@ -2217,15 +2147,15 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 //		display("User after change execution", userJack);
 //		assertUserJack(userJack, "Magnificent Captain Jack Sparrow", "Jack", "Sparrow", null);
-//        accountOid = getSingleUserAccountRef(userJack);
+//        groupOid = getSingleUserAccountRef(userJack);
 //        
 //		// Check shadow
-//        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-//        assertDummyShadowRepo(accountShadow, accountOid, "jack");
+//        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, groupOid, null, result);
+//        assertDummyAccountShadowRepo(accountShadow, groupOid, "jack");
 //        
 //        // Check account
-//        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-//        assertDummyShadowModel(accountModel, accountOid, "jack", "Magnificent Captain Jack Sparrow");
+//        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, groupOid, null, task, result);
+//        assertDummyAccountShadowModel(accountModel, groupOid, "jack", "Magnificent Captain Jack Sparrow");
 //        IntegrationTestTools.assertNoAttribute(accountModel, dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOCATION_NAME));
 //        
 //        // Check account in dummy resource
@@ -2314,15 +2244,15 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 //		display("User after change execution", userJack);
 //		assertUserJack(userJack, "Marvelous Captain Jack Sparrow", "Jack", "Sparrow", null);
-//        accountOid = getSingleUserAccountRef(userJack);
+//        groupOid = getSingleUserAccountRef(userJack);
 //        
 //		// Check shadow
-//        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-//        assertDummyShadowRepo(accountShadow, accountOid, "jack");
+//        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, groupOid, null, result);
+//        assertDummyAccountShadowRepo(accountShadow, groupOid, "jack");
 //        
 //        // Check account - the original fullName should not be changed
-//        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-//        assertDummyShadowModel(accountModel, accountOid, "jack", "Magnificent Captain Jack Sparrow");
+//        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, groupOid, null, task, result);
+//        assertDummyAccountShadowModel(accountModel, groupOid, "jack", "Magnificent Captain Jack Sparrow");
 //        
 //        // Check account in dummy resource - the original fullName should not be changed
 //        assertDummyAccount("jack", "Magnificent Captain Jack Sparrow", true);
@@ -2371,7 +2301,7 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //		}
 //        
 //        // Check is shadow is gone
-//        assertNoAccountShadow(accountOid);
+//        assertNoAccountShadow(groupOid);
 //        
 //        // Check if dummy resource account is gone
 //        assertNoDummyAccount("jack");
@@ -2435,17 +2365,17 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //        UserType userBlackbeardType = userBlackbeard.asObjectable();
 //        assertEquals("Unexpected number of accountRefs", 1, userBlackbeardType.getLinkRef().size());
 //        ObjectReferenceType accountRefType = userBlackbeardType.getLinkRef().get(0);
-//        String accountOid = accountRefType.getOid();
-//        assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
+//        String groupOid = accountRefType.getOid();
+//        assertFalse("No accountRef oid", StringUtils.isBlank(groupOid));
 //        
 //		// Check shadow
-//        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-//        assertDummyShadowRepo(accountShadow, accountOid, "blackbeard");
+//        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, groupOid, null, result);
+//        assertDummyAccountShadowRepo(accountShadow, groupOid, "blackbeard");
 //        assertEnableTimestampShadow(accountShadow, startTime, endTime);
 //        
 //        // Check account
-//        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-//        assertDummyShadowModel(accountModel, accountOid, "blackbeard", "Edward Teach");
+//        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, groupOid, null, task, result);
+//        assertDummyAccountShadowModel(accountModel, groupOid, "blackbeard", "Edward Teach");
 //        assertEnableTimestampShadow(accountModel, startTime, endTime);
 //        
 //        // Check account in dummy resource
@@ -2515,17 +2445,17 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //        UserType userMorganType = userMorgan.asObjectable();
 //        assertEquals("Unexpected number of accountRefs", 1, userMorganType.getLinkRef().size());
 //        ObjectReferenceType accountRefType = userMorganType.getLinkRef().get(0);
-//        String accountOid = accountRefType.getOid();
-//        assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
+//        String groupOid = accountRefType.getOid();
+//        assertFalse("No accountRef oid", StringUtils.isBlank(groupOid));
 //        
 //		// Check shadow
-//        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-//        assertDummyShadowRepo(accountShadow, accountOid, "morgan");
+//        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, groupOid, null, result);
+//        assertDummyAccountShadowRepo(accountShadow, groupOid, "morgan");
 //        assertEnableTimestampShadow(accountShadow, startTime, endTime);
 //        
 //        // Check account
-//        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-//        assertDummyShadowModel(accountModel, accountOid, "morgan", "Sir Henry Morgan");
+//        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, groupOid, null, task, result);
+//        assertDummyAccountShadowModel(accountModel, groupOid, "morgan", "Sir Henry Morgan");
 //        assertEnableTimestampShadow(accountModel, startTime, endTime);
 //        
 //        // Check account in dummy resource
@@ -2584,16 +2514,16 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //        UserType userMorganType = userMorgan.asObjectable();
 //        assertEquals("Unexpected number of accountRefs", 1, userMorganType.getLinkRef().size());
 //        ObjectReferenceType accountRefType = userMorganType.getLinkRef().get(0);
-//        String accountOid = accountRefType.getOid();
-//        assertFalse("No accountRef oid", StringUtils.isBlank(accountOid));
+//        String groupOid = accountRefType.getOid();
+//        assertFalse("No accountRef oid", StringUtils.isBlank(groupOid));
 //        
 //		// Check shadow
-//        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-//        assertDummyShadowRepo(accountShadow, accountOid, "sirhenry");
+//        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, groupOid, null, result);
+//        assertDummyAccountShadowRepo(accountShadow, groupOid, "sirhenry");
 //        
 //        // Check account
-//        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-//        assertDummyShadowModel(accountModel, accountOid, "sirhenry", "Sir Henry Morgan");
+//        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, groupOid, null, task, result);
+//        assertDummyAccountShadowModel(accountModel, groupOid, "sirhenry", "Sir Henry Morgan");
 //        
 //        // Check account in dummy resource
 //        assertDummyAccount("sirhenry", "Sir Henry Morgan", true);

@@ -1300,14 +1300,20 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		}
 		return foundObjects.iterator().next();
 	}
-	
-    protected void assertShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType) {
-    	assertShadowModel(accountShadow, oid, username, resourceType, null);
+
+    protected void assertAccountShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType) {
+        assertShadowModel(accountShadow, oid, username, resourceType, getAccountObjectClass(resourceType), null);
+    }
+
+    protected void assertShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType,
+                                     QName objectClass) {
+    	assertShadowModel(accountShadow, oid, username, resourceType, objectClass, null);
     }
     
-	protected void assertShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType, MatchingRule<String> nameMatchingRule) {
-		assertShadowCommon(accountShadow, oid, username, resourceType, nameMatchingRule);
-		IntegrationTestTools.assertProvisioningAccountShadow(accountShadow, resourceType, RefinedAttributeDefinition.class);
+	protected void assertShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType,
+                                     QName objectClass, MatchingRule<String> nameMatchingRule) {
+		assertShadowCommon(accountShadow, oid, username, resourceType, objectClass, nameMatchingRule);
+		IntegrationTestTools.assertProvisioningShadow(accountShadow, resourceType, RefinedAttributeDefinition.class, objectClass);
 	}
 	
 	protected QName getAttributeQName(PrismObject<ResourceType> resource, String attributeLocalName) {

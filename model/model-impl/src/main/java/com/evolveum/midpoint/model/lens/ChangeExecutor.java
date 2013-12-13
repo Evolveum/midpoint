@@ -93,9 +93,9 @@ public class ChangeExecutor {
 	private static final String OPERATION_EXECUTE = ChangeExecutor.class.getName() + ".execute";
 	private static final String OPERATION_EXECUTE_FOCUS = OPERATION_EXECUTE + ".focus";
 	private static final String OPERATION_EXECUTE_PROJECTION = OPERATION_EXECUTE + ".projection";
-	private static final String OPERATION_LINK_ACCOUNT = ChangeExecutor.class.getName() + ".linkAccount";
-	private static final String OPERATION_UNLINK_ACCOUNT = ChangeExecutor.class.getName() + ".unlinkAccount";
-	private static final String OPERATION_UPDATE_SITUATION_ACCOUNT = ChangeExecutor.class.getName() + ".updateSituationInAccount";
+	private static final String OPERATION_LINK_ACCOUNT = ChangeExecutor.class.getName() + ".linkShadow";
+	private static final String OPERATION_UNLINK_ACCOUNT = ChangeExecutor.class.getName() + ".unlinkShadow";
+	private static final String OPERATION_UPDATE_SITUATION_ACCOUNT = ChangeExecutor.class.getName() + ".updateSituationInShadow";
 
     @Autowired(required = true)
     private transient TaskManager taskManager;
@@ -218,8 +218,8 @@ public class ChangeExecutor {
 									+ accCtx.getResourceShadowDiscriminator());
 						}
 						if (focusContext != null) {
-							updateAccountLinks(focusContext.getObjectNew(), focusContext, accCtx, task,
-									subResult);
+							updateLinks(focusContext.getObjectNew(), focusContext, accCtx, task,
+                                    subResult);
 						}
 						
 						// Make sure post-reconcile delta is always executed, even if there is no change
@@ -244,7 +244,7 @@ public class ChangeExecutor {
 				}
 
 				if (focusContext != null) {
-					updateAccountLinks(focusContext.getObjectNew(), focusContext, accCtx, task, subResult);
+					updateLinks(focusContext.getObjectNew(), focusContext, accCtx, task, subResult);
 				}
 				
 				executeReconciliationScript(accCtx, syncContext, ProvisioningScriptOrderType.AFTER, task, subResult);
@@ -313,91 +313,91 @@ public class ChangeExecutor {
 	/**
      * Make sure that the account is linked (or unlinked) as needed.
      */
-    private <F extends ObjectType> void updateAccountLinks(PrismObject<F> prismObject,
-    		LensFocusContext<F> focusContext, LensProjectionContext accCtx,
-    		Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
+    private <F extends ObjectType> void updateLinks(PrismObject<F> prismObject,
+                                                    LensFocusContext<F> focusContext, LensProjectionContext projCtx,
+                                                    Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
     	if (prismObject == null) {
     		return;
     	}
         F objectTypeNew = prismObject.asObjectable();
-        if (!(objectTypeNew instanceof UserType)) {
+        if (!(objectTypeNew instanceof FocusType)) {
         	return;
         }
-        UserType userTypeNew = (UserType) objectTypeNew;
-        
-        if (accCtx.getResourceShadowDiscriminator() != null && accCtx.getResourceShadowDiscriminator().getOrder() > 0) {
+        FocusType focusTypeNew = (FocusType) objectTypeNew;
+
+        if (projCtx.getResourceShadowDiscriminator() != null && projCtx.getResourceShadowDiscriminator().getOrder() > 0) {
         	// Don't mess with links for higher-order contexts. The link should be dealt with
         	// during processing of zero-order context.
         	return;
         }
         
-        String accountOid = accCtx.getOid();
-        if (accountOid == null) {
-        	if (accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
+        String projOid = projCtx.getOid();
+        if (projOid == null) {
+        	if (projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
         		// This seems to be OK. In quite a strange way, but still OK.
         		return;
         	}
-        	LOGGER.trace("Account has null OID, this should not happen, context:\n{}", accCtx.dump());
-            throw new IllegalStateException("Account has null OID, this should not happen");
+        	LOGGER.trace("Shadow has null OID, this should not happen, context:\n{}", projCtx.dump());
+            throw new IllegalStateException("Shadow has null OID, this should not happen");
         }
 
-        if (accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.UNLINK 
-        		|| accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.DELETE
-        		|| accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN
-        		|| accCtx.isDelete()) {
+        if (projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.UNLINK
+        		|| projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.DELETE
+        		|| projCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN
+        		|| projCtx.isDelete()) {
             // Link should NOT exist
         	
-        	PrismReference accountRef = userTypeNew.asPrismObject().findReference(UserType.F_LINK_REF);
+        	PrismReference accountRef = focusTypeNew.asPrismObject().findReference(UserType.F_LINK_REF);
         	if (accountRef != null) {
         		for (PrismReferenceValue accountRefVal: accountRef.getValues()) {
-        			if (accountRefVal.getOid().equals(accountOid)) {
+        			if (accountRefVal.getOid().equals(projOid)) {
                         // Linked, need to unlink
-                        unlinkAccount(userTypeNew.getOid(), accountRefVal, (LensFocusContext<UserType>) focusContext, task, result);
+                        unlinkShadow(focusTypeNew.getOid(), accountRefVal, (LensFocusContext<UserType>) focusContext, task, result);
                     }
         		}
         		
         	}
             
-    		if (accCtx.isDelete() || accCtx.isThombstone()) {
-    			LOGGER.trace("Account {} deleted, updating also situation in account.", accountOid);
+    		if (projCtx.isDelete() || projCtx.isThombstone()) {
+    			LOGGER.trace("Resource object {} deleted, updating also situation in shadow.", projOid);
     			// HACK HACK?
     			try {
-    				updateSituationInAccount(task, SynchronizationSituationType.DELETED, focusContext, accCtx, result);
+    				updateSituationInShadow(task, SynchronizationSituationType.DELETED, focusContext, projCtx, result);
     			} catch (ObjectNotFoundException e) {
     				// HACK HACK?
-    				LOGGER.trace("Account {} is gone, cannot update situation in account (this is probably harmless).", accountOid);
+    				LOGGER.trace("Resource object {} is gone, cannot update situation in shadow (this is probably harmless).", projOid);
     				result.getLastSubresult().setStatus(OperationResultStatus.HANDLED_ERROR);
     			}
     		} else {
     			// This should NOT be UNLINKED. We just do not know the situation here. Reflect that in the shadow.
-				LOGGER.trace("Account {} unlinked from the user, updating also situation in account.", accountOid);	
-				updateSituationInAccount(task, null, focusContext, accCtx, result);
+				LOGGER.trace("Resource object {} unlinked from the user, updating also situation in shadow.", projOid);
+				updateSituationInShadow(task, null, focusContext, projCtx, result);
     		}
             // Not linked, that's OK
 
         } else {
             // Link should exist
         	
-            for (ObjectReferenceType accountRef : userTypeNew.getLinkRef()) {
-                if (accountOid.equals(accountRef.getOid())) {
+            for (ObjectReferenceType accountRef : focusTypeNew.getLinkRef()) {
+                if (projOid.equals(accountRef.getOid())) {
                     // Already linked, nothing to do, only be sure, the situation is set with the good value
-                	LOGGER.trace("Updating situation in already linked account.");
-                	updateSituationInAccount(task, SynchronizationSituationType.LINKED, focusContext, accCtx, result);
+                	LOGGER.trace("Updating situation in already linked shadow.");
+                	updateSituationInShadow(task, SynchronizationSituationType.LINKED, focusContext, projCtx, result);
                 	return;
                 }
             }
             // Not linked, need to link
-            linkAccount(userTypeNew.getOid(), accountOid, (LensFocusContext<UserType>) focusContext, task, result);
+            linkShadow(focusTypeNew.getOid(), projOid, (LensFocusContext<UserType>) focusContext, task, result);
             //be sure, that the situation is set correctly
-            LOGGER.trace("Updating situation after account was linked.");
-            updateSituationInAccount(task, SynchronizationSituationType.LINKED, focusContext, accCtx, result);
+            LOGGER.trace("Updating situation after shadow was linked.");
+            updateSituationInShadow(task, SynchronizationSituationType.LINKED, focusContext, projCtx, result);
         }
     }
 
-    private void linkAccount(String userOid, String accountOid, LensElementContext<UserType> userContext, Task task, OperationResult parentResult) throws ObjectNotFoundException,
+    private <F extends FocusType> void linkShadow(String userOid, String accountOid, LensElementContext<F> focusContext, Task task, OperationResult parentResult) throws ObjectNotFoundException,
             SchemaException {
 
-        LOGGER.trace("Linking account " + accountOid + " to user " + userOid);
+        LOGGER.trace("Linking shadow " + accountOid + " to focus " + userOid);
         
         OperationResult result = parentResult.createSubresult(OPERATION_LINK_ACCOUNT);
         
@@ -405,19 +405,21 @@ public class ChangeExecutor {
         accountRef.setOid(accountOid);
         accountRef.setTargetType(ShadowType.COMPLEX_TYPE);
 
+        Class<F> typeClass = focusContext.getObjectTypeClass();
+
         Collection<? extends ItemDelta> accountRefDeltas = ReferenceDelta.createModificationAddCollection(
         		UserType.F_LINK_REF, getUserDefinition(), accountRef); 
 
         try {
-            cacheRepositoryService.modifyObject(UserType.class, userOid, accountRefDeltas, result);
+            cacheRepositoryService.modifyObject(typeClass, userOid, accountRefDeltas, result);
         } catch (ObjectAlreadyExistsException ex) {
             throw new SystemException(ex);
         } finally {
         	result.computeStatus();
-        	ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(userOid, accountRefDeltas, UserType.class, prismContext);
-        	LensObjectDeltaOperation<UserType> userDeltaOp = new LensObjectDeltaOperation<UserType>(userDelta);
+        	ObjectDelta<F> userDelta = ObjectDelta.createModifyDelta(userOid, accountRefDeltas, typeClass, prismContext);
+        	LensObjectDeltaOperation<F> userDeltaOp = new LensObjectDeltaOperation<F>(userDelta);
             userDeltaOp.setExecutionResult(result);
-    		userContext.addToExecutedDeltas(userDeltaOp);
+    		focusContext.addToExecutedDeltas(userDeltaOp);
         }
 
     }
@@ -426,10 +428,10 @@ public class ChangeExecutor {
 		return userDefinition;
 	}
 
-	private void unlinkAccount(String userOid, PrismReferenceValue accountRef, LensElementContext<UserType> userContext, Task task, OperationResult parentResult) throws
+	private void unlinkShadow(String userOid, PrismReferenceValue accountRef, LensElementContext<UserType> userContext, Task task, OperationResult parentResult) throws
             ObjectNotFoundException, SchemaException {
 
-        LOGGER.trace("Deleting accountRef " + accountRef + " from user " + userOid);
+        LOGGER.trace("Deleting linkRef " + accountRef + " from focus " + userOid);
         
         OperationResult result = parentResult.createSubresult(OPERATION_UNLINK_ACCOUNT);
 
@@ -451,9 +453,9 @@ public class ChangeExecutor {
  
     }
 	
-    private <F extends ObjectType> void updateSituationInAccount(Task task, 
-    		SynchronizationSituationType situation, LensFocusContext<F> focusContext, LensProjectionContext projectionCtx, 
-    		OperationResult parentResult) throws ObjectNotFoundException, SchemaException{
+    private <F extends ObjectType> void updateSituationInShadow(Task task,
+                                                                SynchronizationSituationType situation, LensFocusContext<F> focusContext, LensProjectionContext projectionCtx,
+                                                                OperationResult parentResult) throws ObjectNotFoundException, SchemaException{
 
     	String projectionOid = projectionCtx.getOid();
     	

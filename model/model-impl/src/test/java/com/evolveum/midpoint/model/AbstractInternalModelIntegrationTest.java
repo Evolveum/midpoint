@@ -199,9 +199,6 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 		
 		// Resources
 		
-		resourceDummy = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_FILENAME, RESOURCE_DUMMY_OID, initTask, initResult);
-		resourceDummyType = resourceDummy.asObjectable();
-		
 		dummyResourceCtl = DummyResourceContoller.create(null, resourceDummy);
 		dummyResourceCtl.extendSchemaPirate();
 		dummyResource = dummyResourceCtl.getDummyResource();

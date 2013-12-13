@@ -61,12 +61,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -338,7 +333,8 @@ public final class Utils {
 
     public static void setRequestee(Task task, LensContext context) {
         String oid;
-        if (context != null && context.getFocusContext() != null) {
+        if (context != null && context.getFocusContext() != null
+                && UserType.class.isAssignableFrom(context.getFocusContext().getObjectTypeClass())) {
             oid = context.getFocusContext().getOid();
         } else {
             oid = null;

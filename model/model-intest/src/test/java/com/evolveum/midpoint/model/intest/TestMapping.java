@@ -106,11 +106,11 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-        assertShadowRepo(accountShadow, accountOid, "jack", resourceDummyBlueType);
+        assertAccountShadowRepo(accountShadow, accountOid, "jack", resourceDummyBlueType);
         
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-        assertShadowModel(accountModel, accountOid, "jack", resourceDummyBlueType);
+        assertAccountShadowModel(accountModel, accountOid, "jack", resourceDummyBlueType);
         
         // Check account in dummy resource
         assertDummyAccount(RESOURCE_DUMMY_BLUE_NAME, "jack", "Jack Sparrow", true);
@@ -446,11 +446,11 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-        assertShadowRepo(accountShadow, accountOid, "jack", resourceDummyRedType);
+        assertAccountShadowRepo(accountShadow, accountOid, "jack", resourceDummyRedType);
         
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-        assertShadowModel(accountModel, accountOid, "jack", resourceDummyRedType);
+        assertAccountShadowModel(accountModel, accountOid, "jack", resourceDummyRedType);
         
         // Check account in dummy resource
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, "jack", "Jack Sparrow", true);
@@ -826,11 +826,11 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-        assertShadowRepo(accountShadow, accountOid, "jack", resourceDummyType);
+        assertAccountShadowRepo(accountShadow, accountOid, "jack", resourceDummyType);
         
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-        assertShadowModel(accountModel, accountOid, "jack", resourceDummyType);
+        assertAccountShadowModel(accountModel, accountOid, "jack", resourceDummyType);
         
         // Check account in dummy resource
         assertDummyAccount(null, "jack", "Jack Sparrow", true);
@@ -1170,13 +1170,13 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, task.getResult());
         display("Repo shadow", accountShadow);
-        assertShadowRepo(accountShadow, accountOid, name, resourceCtl.getResource().asObjectable());
+        assertAccountShadowRepo(accountShadow, accountOid, name, resourceCtl.getResource().asObjectable());
         
         // Check account
         // All the changes should be reflected to the account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, task.getResult());
         display("Model shadow", accountModel);
-        assertShadowModel(accountModel, accountOid, name, resourceCtl.getResource().asObjectable());
+        assertAccountShadowModel(accountModel, accountOid, name, resourceCtl.getResource().asObjectable());
         PrismAsserts.assertPropertyValue(accountModel, 
         		resourceCtl.getAttributePath(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME),
         		expectedFullName);
