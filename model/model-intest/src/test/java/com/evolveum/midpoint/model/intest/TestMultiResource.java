@@ -1177,7 +1177,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
     	assertUser(userAfter, userOid, name, USER_WORLD_FULL_NAME, null, null);
 		assertAccount(userAfter, RESOURCE_DUMMY_GOLIATH_OID);
 		assertAccount(userAfter, RESOURCE_DUMMY_DAVID_OID);
-		assertAccounts(userAfter, 2);
+		assertLinks(userAfter, 2);
 		if (userEnabled) {
 			assertAdministrativeStatusEnabled(userAfter);
 		} else {

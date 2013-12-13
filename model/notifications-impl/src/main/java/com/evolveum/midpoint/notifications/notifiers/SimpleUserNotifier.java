@@ -98,7 +98,7 @@ public class SimpleUserNotifier extends GeneralNotifier {
 
         boolean techInfo = Boolean.TRUE.equals(generalNotifierType.isShowTechnicalInformation());
 
-        ModelContext<UserType,? extends ObjectType> modelContext = (ModelContext) ((ModelEvent) event).getModelContext();
+        ModelContext<UserType> modelContext = (ModelContext) ((ModelEvent) event).getModelContext();
         ModelElementContext<UserType> focusContext = modelContext.getFocusContext();
         PrismObject<UserType> user = focusContext.getObjectNew() != null ? focusContext.getObjectNew() : focusContext.getObjectOld();
         UserType userType = user.asObjectable();

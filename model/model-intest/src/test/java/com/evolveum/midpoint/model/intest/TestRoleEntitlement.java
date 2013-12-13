@@ -31,8 +31,6 @@ import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.notifications.events.AccountEvent;
-import com.evolveum.midpoint.notifications.transports.Message;
 import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
 import com.evolveum.midpoint.prism.match.PolyStringStrictMatchingRule;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
@@ -54,7 +52,6 @@ import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelContext;
-import com.evolveum.midpoint.notifications.notifiers.DummyNotifier;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -161,7 +158,7 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(roleDelta);
 		
 		dummyAuditService.clear();
-        dummyNotifier.clearRecords();
+        prepareNotifications();
         dummyTransport.clearMessages();
         notificationManager.setDisabled(false);
         XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
@@ -205,11 +202,6 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 
         notificationManager.setDisabled(true);
 
-        // Check notifications
-        display("Notifier", dummyNotifier);
-        checkTest100NotificationRecords("newAccounts");
-        checkTest100NotificationRecords("newAccountsViaExpression");
-
         checkDummyTransportMessages("accountPasswordNotifier", 1);
         checkDummyTransportMessages("userPasswordNotifier", 0);
         checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
@@ -233,15 +225,6 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //        assertEquals("Invalid message body", "Body: Changed account for jack", message.getBody());
 
 	}
-
-    private void checkTest100NotificationRecords(String notifierName) {
-        assertEquals("Invalid number of notification records [" + notifierName + "]", 1, dummyNotifier.getRecords(notifierName).size());
-        DummyNotifier.NotificationRecord record = dummyNotifier.getRecords(notifierName).get(0);
-        assertEquals("Wrong user in notification record [" + notifierName + "]", USER_JACK_OID, ((AccountEvent) record.getEvent()).getRequestee().getOid());
-        assertEquals("Wrong number of account OIDs in notification record [" + notifierName + "]", 1, record.getAccountsOids().size());
-        assertEquals("Wrong account OID in notification record [" + notifierName + "]", accountOid, record.getAccountsOids().iterator().next());
-        assertEquals("Wrong change type in notification record [" + notifierName + "]", ChangeType.ADD, record.getFirstChangeType());
-    }
 
 //    @Test
 //    public void test101GetAccount() throws Exception {

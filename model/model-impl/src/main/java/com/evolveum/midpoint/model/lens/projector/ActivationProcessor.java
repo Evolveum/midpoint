@@ -155,7 +155,7 @@ public class ActivationProcessor {
     	
     	// Let's reconcile the existence intent (shadowShouldExist) and the synchronization intent in the context
 
-    	LensProjectionContext<ShadowType> lowerOrderContext = LensUtil.findLowerOrderContext(context, accCtx);
+    	LensProjectionContext lowerOrderContext = LensUtil.findLowerOrderContext(context, accCtx);
     	
     	if (synchronizationIntent == null || synchronizationIntent == SynchronizationIntent.SYNCHRONIZE) {
 	    	if (shadowShouldExist) {

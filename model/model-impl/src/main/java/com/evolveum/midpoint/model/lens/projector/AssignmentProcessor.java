@@ -610,14 +610,13 @@ public class AssignmentProcessor {
 		}
 	}
 
-	private void propagateLegalDecisionToHigherOrders(
-			LensContext<UserType, ShadowType> context,
-			LensProjectionContext<ShadowType> refProjCtx) {
+	private <F extends ObjectType> void propagateLegalDecisionToHigherOrders(
+			LensContext<F> context, LensProjectionContext refProjCtx) {
 		ResourceShadowDiscriminator refDiscr = refProjCtx.getResourceShadowDiscriminator();
 		if (refDiscr == null) {
 			return;
 		}
-		for (LensProjectionContext<ShadowType> aProjCtx: context.getProjectionContexts()) {
+		for (LensProjectionContext aProjCtx: context.getProjectionContexts()) {
 			ResourceShadowDiscriminator aDiscr = aProjCtx.getResourceShadowDiscriminator();
 			if (aDiscr != null && refDiscr.equivalent(aDiscr) && (refDiscr.getOrder() < aDiscr.getOrder())) {
 				aProjCtx.setLegal(refProjCtx.isLegal());

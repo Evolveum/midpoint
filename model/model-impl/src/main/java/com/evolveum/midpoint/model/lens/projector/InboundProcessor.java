@@ -109,10 +109,10 @@ public class InboundProcessor {
     		// We can do this only for focus types.
     		return;
     	}
-    	processInboundFocal((LensContext<? extends FocusType>)context, result);
+    	processInboundFocal((LensContext<? extends FocusType>)context, task, now, result);
     }
 
-    <F extends FocusType> void processInboundFocal(LensContext<F> context, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+    <F extends FocusType> void processInboundFocal(LensContext<F> context, Task task, XMLGregorianCalendar now, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
     	LensFocusContext<F> focusContext = context.getFocusContext();
     	if (focusContext == null) {
     		LOGGER.trace("Skipping inbound processing because focus is null");
@@ -176,8 +176,7 @@ public class InboundProcessor {
         }
     }
 
-    private boolean isDeleteAccountDelta(
-            LensProjectionContext<ShadowType> accountContext) throws SchemaException {
+    private boolean isDeleteAccountDelta(LensProjectionContext accountContext) throws SchemaException {
         if (accountContext.getSyncDelta() != null && ChangeType.DELETE == accountContext.getSyncDelta().getChangeType()){
             return true;
         }
@@ -526,7 +525,7 @@ public class InboundProcessor {
     private <F extends FocusType> void processSpecialPropertyInbound(ResourceBidirectionalMappingType biMappingType, ItemPath sourcePath,
             PrismObject<F> newUser, LensProjectionContext accContext, 
             RefinedObjectClassDefinition accountDefinition, LensContext<F> context,
-            Task task, XMLGregorianCalendar now, OperationResult opResult) throws SchemaException {
+            Task task, XMLGregorianCalendar now, OperationResult opResult) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
     	if (biMappingType == null) {
     		return;
     	}
@@ -550,9 +549,9 @@ public class InboundProcessor {
      * @throws ObjectNotFoundException 
      * @throws ExpressionEvaluationException 
      */
-    private <F extends FocusType> void processSpecialPropertyInbound(Collection<MappingType> inboundMappingTypes, ItemPath sourcePath,
-            PrismObject<F> newUser, LensProjectionContext accContext, 
-            RefinedObjectClassDefinition accountDefinition, LensContext<F> context,
+    private <F extends FocusType> void processSpecialPropertyInbound(Collection<MappingType> inboundMappingTypes, final ItemPath sourcePath,
+            final PrismObject<F> newUser, final LensProjectionContext accContext,
+            RefinedObjectClassDefinition accountDefinition, final LensContext<F> context,
             Task task, XMLGregorianCalendar now, OperationResult opResult) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 
         if (inboundMappingTypes == null || inboundMappingTypes.isEmpty() || newUser == null || !accContext.isFullShadow()) {
@@ -576,7 +575,7 @@ public class InboundProcessor {
         int strongMappings = 0;
         final PrismProperty<?> property = newUser.findOrCreateProperty(sourcePath);
         
-        ObjectDelta<UserType> userPrimaryDelta = context.getFocusContext().getPrimaryDelta();
+        ObjectDelta<F> userPrimaryDelta = context.getFocusContext().getPrimaryDelta();
         PropertyDelta primaryPropDelta = null;
         if (userPrimaryDelta != null) {
         	primaryPropDelta = userPrimaryDelta.findPropertyDelta(sourcePath);
@@ -646,7 +645,8 @@ public class InboundProcessor {
         };
         
         MutableBoolean strongMappingWasUsed = new MutableBoolean();
-        PrismValueDeltaSetTriple<PrismPropertyValue> outputTriple = mappingEvaluatorHelper.evaluateMappingSetProjection(inboundMappingTypes, "inbound mapping for "+sourcePath+" in "+accContext.getResource(), now, initializer, property, primaryPropDelta, newUser, true, strongMappingWasUsed, context, accContext, task, opResult);
+        PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> outputTriple = mappingEvaluatorHelper.evaluateMappingSetProjection(
+                inboundMappingTypes, "inbound mapping for " + sourcePath + " in " + accContext.getResource(), now, initializer, property, primaryPropDelta, newUser, true, strongMappingWasUsed, context, accContext, task, opResult);
 		
 //        for (Mapping mapping : mappings){
 //        

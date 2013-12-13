@@ -145,7 +145,7 @@ public class TestScriptHooks extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack);
-        String accountOid = getSingleUserAccountRef(userJack);
+        String accountOid = getSingleLinkOid(userJack);
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
@@ -200,7 +200,7 @@ public class TestScriptHooks extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack);
-        String accountOid = getSingleUserAccountRef(userJack);
+        String accountOid = getSingleLinkOid(userJack);
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);

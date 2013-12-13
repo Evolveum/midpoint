@@ -254,7 +254,7 @@ public class ContextLoader {
 		}
 		if (projectionContext.getOid() == null && rsd.getOrder() != 0) {
 			// Try to determine OID from lower-order contexts
-			for (LensProjectionContext<P> aProjCtx: context.getProjectionContexts()) {
+			for (LensProjectionContext aProjCtx: context.getProjectionContexts()) {
 				ResourceShadowDiscriminator aDiscr = aProjCtx.getResourceShadowDiscriminator();
 				if (rsd.equivalent(aDiscr) && aProjCtx.getOid() != null) {
 					projectionContext.setOid(aProjCtx.getOid());
@@ -927,7 +927,7 @@ public class ContextLoader {
 		return false;
 	}
 	
-	private <F extends ObjectType, P extends ObjectType> void fullCheckConsistence(LensContext<F,P> context) {
+	private <F extends ObjectType> void fullCheckConsistence(LensContext<F> context) {
 		context.checkConsistence();
 		for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
 			if (projectionContext.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {

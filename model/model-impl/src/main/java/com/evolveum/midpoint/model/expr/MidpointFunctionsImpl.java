@@ -429,7 +429,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     
     @Override
     public boolean isDirectlyAssigned(String targetOid) {
-    	LensContext<? extends FocusType, ShadowType> ctx = ModelExpressionThreadLocalHolder.getLensContext();
+    	LensContext<? extends FocusType> ctx = ModelExpressionThreadLocalHolder.getLensContext();
     	if (ctx == null) {
     		throw new IllegalStateException("No lens context");
     	}
