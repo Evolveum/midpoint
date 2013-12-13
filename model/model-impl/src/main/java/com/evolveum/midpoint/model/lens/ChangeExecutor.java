@@ -428,27 +428,29 @@ public class ChangeExecutor {
 		return userDefinition;
 	}
 
-	private void unlinkShadow(String userOid, PrismReferenceValue accountRef, LensElementContext<UserType> userContext, Task task, OperationResult parentResult) throws
+	private <F extends ObjectType> void unlinkShadow(String userOid, PrismReferenceValue accountRef, LensElementContext<F> focusContext,
+                                                     Task task, OperationResult parentResult) throws
             ObjectNotFoundException, SchemaException {
 
         LOGGER.trace("Deleting linkRef " + accountRef + " from focus " + userOid);
         
         OperationResult result = parentResult.createSubresult(OPERATION_UNLINK_ACCOUNT);
+        Class<F> typeClass = focusContext.getObjectTypeClass();
 
         Collection<? extends ItemDelta> accountRefDeltas = ReferenceDelta.createModificationDeleteCollection(
         		UserType.F_LINK_REF, getUserDefinition(), accountRef.clone()); 
         
         try {
-            cacheRepositoryService.modifyObject(UserType.class, userOid, accountRefDeltas, result);
+            cacheRepositoryService.modifyObject(typeClass, userOid, accountRefDeltas, result);
         } catch (ObjectAlreadyExistsException ex) {
         	result.recordFatalError(ex);
             throw new SystemException(ex);
         } finally {
         	result.computeStatus();
-        	ObjectDelta<UserType> userDelta = ObjectDelta.createModifyDelta(userOid, accountRefDeltas, UserType.class, prismContext);
-        	LensObjectDeltaOperation<UserType> userDeltaOp = new LensObjectDeltaOperation<UserType>(userDelta);
+        	ObjectDelta<F> userDelta = ObjectDelta.createModifyDelta(userOid, accountRefDeltas, typeClass, prismContext);
+        	LensObjectDeltaOperation<F> userDeltaOp = new LensObjectDeltaOperation<F>(userDelta);
             userDeltaOp.setExecutionResult(result);
-    		userContext.addToExecutedDeltas(userDeltaOp);
+    		focusContext.addToExecutedDeltas(userDeltaOp);
         }
  
     }

@@ -522,7 +522,8 @@ public class ContextLoader {
 						// the deltas match. It is an error otherwise.
 						ObjectDelta<ShadowType> primaryDelta = accountContext.getPrimaryDelta();
 						if (primaryDelta == null) {
-							throw new SchemaException("Attempt to add "+account+" to a user that already contains account of type '"+
+							throw new SchemaException("Attempt to add "+account+" to a user that already contains "+
+                                    accountContext.getHumanReadableKind()+" of type '"+
 									accountContext.getResourceShadowDiscriminator().getIntent()+"' on "+accountContext.getResource());
 						}
 						if (!primaryDelta.isAdd()) {

@@ -893,6 +893,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 
 	protected <F extends FocusType> String getSingleLinkOid(PrismObject<F> focus) {
+        PrismReferenceValue accountRefValue = getSingleLinkRef(focus);
+        assertNull("Unexpected object in linkRefValue", accountRefValue.getObject());
+        return accountRefValue.getOid();
+	}
+
+    protected <F extends FocusType> PrismReferenceValue getSingleLinkRef(PrismObject<F> focus) {
         F focusType = focus.asObjectable();
         assertEquals("Unexpected number of linkRefs", 1, focusType.getLinkRef().size());
         ObjectReferenceType linkRefType = focusType.getLinkRef().get(0);
@@ -900,9 +906,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         assertFalse("No linkRef oid", StringUtils.isBlank(accountOid));
         PrismReferenceValue accountRefValue = linkRefType.asReferenceValue();
         assertEquals("OID mismatch in linkRefValue", accountOid, accountRefValue.getOid());
-        assertNull("Unexpected object in linkRefValue", accountRefValue.getObject());
-        return accountOid;
-	}
+        return accountRefValue;
+    }
 	
 	protected String getAccountRef(String userOid, String resourceOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
 		return getAccountRef(getUser(userOid), resourceOid);

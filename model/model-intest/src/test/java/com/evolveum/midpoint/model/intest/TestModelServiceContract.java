@@ -678,8 +678,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertNotNull("Missing account object in accountRefValue", accountRefValue.getObject());
 
         assertEquals("Unexpected number of accounts", 1, userJackType.getLink().size());
-        ShadowType ResourceObjectShadowType = userJackType.getLink().get(0);
-        assertDummyAccountShadowModel(ResourceObjectShadowType.asPrismObject(), accountOid, "jack", "Jack Sparrow");
+        ShadowType shadow = userJackType.getLink().get(0);
+        assertDummyAccountShadowModel(shadow.asPrismObject(), accountOid, "jack", "Jack Sparrow");
         
         result.computeStatus();
         TestUtil.assertSuccess("getObject result", result);
@@ -720,10 +720,10 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertNotNull("Missing account object in accountRefValue", accountRefValue.getObject());
 
         assertEquals("Unexpected number of accounts", 1, userJackType.getLink().size());
-        ShadowType ResourceObjectShadowType = userJackType.getLink().get(0);
-        assertDummyAccountShadowModel(ResourceObjectShadowType.asPrismObject(), accountOid, "jack", "Jack Sparrow");
+        ShadowType shadow = userJackType.getLink().get(0);
+        assertDummyAccountShadowModel(shadow.asPrismObject(), accountOid, "jack", "Jack Sparrow");
         
-        assertNotNull("Resource in account was not resolved", ResourceObjectShadowType.getResource());
+        assertNotNull("Resource in account was not resolved", shadow.getResource());
         
         result.computeStatus();
         TestUtil.assertSuccess("getObject result", result);
@@ -765,8 +765,8 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertNotNull("Missing account object in accountRefValue", accountRefValue.getObject());
 
         assertEquals("Unexpected number of accounts", 1, userJackType.getLink().size());
-        ShadowType ResourceObjectShadowType = userJackType.getLink().get(0);
-        assertDummyAccountShadowRepo(ResourceObjectShadowType.asPrismObject(), accountOid, "jack");
+        ShadowType shadow = userJackType.getLink().get(0);
+        assertDummyAccountShadowRepo(shadow.asPrismObject(), accountOid, "jack");
         
         result.computeStatus();
         TestUtil.assertSuccess("getObject result", result);

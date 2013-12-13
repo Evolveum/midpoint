@@ -26,10 +26,24 @@ import java.util.Collection;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import com.evolveum.icf.dummy.resource.DummyGroup;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -43,11 +57,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
  * @author semancik
@@ -92,10 +101,11 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 	
 	@Test
     public void test100ModifyRoleAddEntitlement() throws Exception {
-        TestUtil.displayTestTile(this, "test100ModifyRoleAddEntitlement");
+        final String TEST_NAME = "test100ModifyRoleAddEntitlement";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
-        Task task = taskManager.createTaskInstance(TestRoleEntitlement.class.getName() + ".test100ModifyUserAddAccount");
+        Task task = taskManager.createTaskInstance(TestRoleEntitlement.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
         
@@ -156,450 +166,341 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 
 	}
 
-//    @Test
-//    public void test101GetAccount() throws Exception {
-//        TestUtil.displayTestTile(this, "test101GetAccount");
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestRoleEntitlement.class.getName() + ".test101GetAccount");
-//        OperationResult result = task.getResult();
-//        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
-//        
-//        // Let's do some evil things. Like changing some of the attribute on a resource and see if they will be
-//        // fetched after get.
-//        // Also set a value for ignored "water" attribute. The system should cope with that.
-//        DummyAccount jackDummyAccount = getDummyAccount(null, ACCOUNT_JACK_DUMMY_USERNAME);
-//        jackDummyAccount.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, "The best pirate captain ever");
-//        jackDummyAccount.replaceAttributeValue(DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WATER_NAME, "cold");
-//        
-//		// WHEN
-//		PrismObject<ShadowType> account = modelService.getObject(ShadowType.class, groupOid, null , task, result);
-//		
-//		// THEN
-//		display("Account", account);
-//		display("Account def", account.getDefinition());
-//		PrismContainer<Containerable> accountContainer = account.findContainer(ShadowType.F_ATTRIBUTES);
-//		display("Account attributes def", accountContainer.getDefinition());
-//		display("Account attributes def complex type def", accountContainer.getDefinition().getComplexTypeDefinition());
-//        assertDummyAccountShadowModel(account, groupOid, "jack", "Jack Sparrow");
-//        
-//        result.computeStatus();
-//        TestUtil.assertSuccess("getObject result", result);
-//        
-//        account.checkConsistence(true, true);
-//        
-//        IntegrationTestTools.assertAttribute(account, getAttributeQName(resourceDummy, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME), 
-//        		"The best pirate captain ever");
-//        // This one should still be here, even if ignored
-//        IntegrationTestTools.assertAttribute(account, getAttributeQName(resourceDummy, DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WATER_NAME), 
-//        		"cold");
-//	}
-//
-//	@Test
-//    public void test102GetAccountNoFetch() throws Exception {
-//        TestUtil.displayTestTile(this, "test102GetAccountNoFetch");
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestRoleEntitlement.class.getName() + ".test102GetAccountNoFetch");
-//        OperationResult result = task.getResult();
-//        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
-//        
-//        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
-//		
-//		// WHEN
-//		PrismObject<ShadowType> account = modelService.getObject(ShadowType.class, groupOid, options , task, result);
-//		
-//		display("Account", account);
-//		display("Account def", account.getDefinition());
-//		PrismContainer<Containerable> accountContainer = account.findContainer(ShadowType.F_ATTRIBUTES);
-//		display("Account attributes def", accountContainer.getDefinition());
-//		display("Account attributes def complex type def", accountContainer.getDefinition().getComplexTypeDefinition());
-//        assertDummyAccountShadowRepo(account, groupOid, "jack");
-//        
-//        result.computeStatus();
-//        TestUtil.assertSuccess("getObject result", result);
-//	}
-//	
-//	@Test
-//    public void test103GetAccountRaw() throws Exception {
-//        TestUtil.displayTestTile(this, "test103GetAccountRaw");
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestRoleEntitlement.class.getName() + ".test103GetAccountRaw");
-//        OperationResult result = task.getResult();
-//        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
-//        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
-//		
-//		// WHEN
-//		PrismObject<ShadowType> account = modelService.getObject(ShadowType.class, groupOid, options , task, result);
-//		
-//		display("Account", account);
-//		display("Account def", account.getDefinition());
-//		PrismContainer<Containerable> accountContainer = account.findContainer(ShadowType.F_ATTRIBUTES);
-//		display("Account attributes def", accountContainer.getDefinition());
-//		display("Account attributes def complex type def", accountContainer.getDefinition().getComplexTypeDefinition());
-//        assertDummyAccountShadowRepo(account, groupOid, "jack");
-//        
-//        result.computeStatus();
-//        TestUtil.assertSuccess("getObject result", result);
-//	}
-//
-//	@Test
-//    public void test108ModifyUserAddAccountAgain() throws Exception {
-//        TestUtil.displayTestTile(this, "test108ModifyUserAddAccountAgain");
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestRoleEntitlement.class.getName() + ".test108ModifyUserAddAccountAgain");
-//        OperationResult result = task.getResult();
-//        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
-//        
-//        PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
-//        
-//        ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
-//        PrismReferenceValue accountRefVal = new PrismReferenceValue();
-//		accountRefVal.setObject(account);
-//		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
-//		userDelta.addModification(accountDelta);
-//		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
-//		
-//		dummyAuditService.clear();
-//
-//		try {
-//			
-//			// WHEN
-//			modelService.executeChanges(deltas, null, task, result);
-//			
-//			// THEN
-//			assert false : "Expected executeChanges operation to fail but it has obviously succeeded";
-//		} catch (SchemaException e) {
-//			// This is expected
-//			e.printStackTrace();
-//			// THEN
-//			String message = e.getMessage();
-//			assertMessageContains(message, "already contains account");
-//			assertMessageContains(message, "default");
-//		}
-//		
-//		// Check audit
-//        display("Audit", dummyAuditService);
-//        dummyAuditService.assertSimpleRecordSanity();
-//        dummyAuditService.assertRecords(2);
-//        dummyAuditService.assertAnyRequestDeltas();
-//        dummyAuditService.assertTarget(USER_JACK_OID);
-//        dummyAuditService.assertExecutionOutcome(OperationResultStatus.FATAL_ERROR);
-//    }
-//	
-//	@Test
-//    public void test109ModifyUserAddAccountAgain() throws Exception {
-//        TestUtil.displayTestTile(this, "test109ModifyUserAddAccountAgain");
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestRoleEntitlement.class.getName() + ".test109ModifyUserAddAccountAgain");
-//        OperationResult result = task.getResult();
-//        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
-//        
-//        PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
-//        account.setOid(null);
-//        
-//        ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
-//        PrismReferenceValue accountRefVal = new PrismReferenceValue();
-//		accountRefVal.setObject(account);
-//		ReferenceDelta accountDelta = ReferenceDelta.createModificationAdd(UserType.F_LINK_REF, getUserDefinition(), accountRefVal);
-//		userDelta.addModification(accountDelta);
-//		Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(userDelta);
-//		
-//		purgeScriptHistory();
-//		dummyAuditService.clear();
-//        
-//		try {
-//			
-//			// WHEN
-//			modelService.executeChanges(deltas, null, task, result);
-//			
-//			// THEN
-//			assert false : "Expected executeChanges operation to fail but it has obviously succeeded";
-//		} catch (SchemaException e) {
-//			// This is expected
-//			// THEN
-//			String message = e.getMessage();
-//			assertMessageContains(message, "already contains account");
-//			assertMessageContains(message, "default");
-//		}
-//		
-//		assertNoProvisioningScripts();
-//		
-//		// Check audit
-//        display("Audit", dummyAuditService);
-//        dummyAuditService.assertRecords(2);
-//        dummyAuditService.assertSimpleRecordSanity();
-//        dummyAuditService.assertAnyRequestDeltas();
-//        dummyAuditService.assertTarget(USER_JACK_OID);
-//        dummyAuditService.assertExecutionOutcome(OperationResultStatus.FATAL_ERROR);
-//		
-//	}
-//
-//	@Test
-//    public void test110GetUserResolveAccount() throws Exception {
-//        TestUtil.displayTestTile(this, "test110GetUserResolveAccount");
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestRoleEntitlement.class.getName() + ".test110GetUserResolveAccount");
-//        OperationResult result = task.getResult();
-//        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
-//
-//        Collection<SelectorOptions<GetOperationOptions>> options = 
-//        	SelectorOptions.createCollection(UserType.F_LINK, GetOperationOptions.createResolve());
-//        
-//		// WHEN
-//		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, options , task, result);
-//		
-//        assertUserJack(userJack);
-//        UserType userJackType = userJack.asObjectable();
-//        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
-//        ObjectReferenceType accountRefType = userJackType.getLinkRef().get(0);
-//        String groupOid = accountRefType.getOid();
-//        assertFalse("No accountRef oid", StringUtils.isBlank(groupOid));
-//        
-//        PrismReferenceValue accountRefValue = accountRefType.asReferenceValue();
-//        assertEquals("OID mismatch in accountRefValue", groupOid, accountRefValue.getOid());
-//        assertNotNull("Missing account object in accountRefValue", accountRefValue.getObject());
-//
-//        assertEquals("Unexpected number of accounts", 1, userJackType.getLink().size());
-//        ShadowType ResourceObjectShadowType = userJackType.getLink().get(0);
-//        assertDummyAccountShadowModel(ResourceObjectShadowType.asPrismObject(), groupOid, "jack", "Jack Sparrow");
-//        
-//        result.computeStatus();
-//        TestUtil.assertSuccess("getObject result", result);
-//	}
-//
-//
-//	@Test
-//    public void test111GetUserResolveAccountResource() throws Exception {
-//        TestUtil.displayTestTile(this, "test111GetUserResolveAccountResource");
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestRoleEntitlement.class.getName() + ".test111GetUserResolveAccountResource");
-//        OperationResult result = task.getResult();
-//        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
-//
-//        Collection<SelectorOptions<GetOperationOptions>> options = 
-//            	SelectorOptions.createCollection(GetOperationOptions.createResolve(),
-//        			new ItemPath(UserType.F_LINK),
-//    				new ItemPath(UserType.F_LINK, ShadowType.F_RESOURCE)
-//        	);
-//        
-//		// WHEN
-//		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, options , task, result);
-//		
-//        assertUserJack(userJack);
-//        UserType userJackType = userJack.asObjectable();
-//        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
-//        ObjectReferenceType accountRefType = userJackType.getLinkRef().get(0);
-//        String groupOid = accountRefType.getOid();
-//        assertFalse("No accountRef oid", StringUtils.isBlank(groupOid));
-//        
-//        PrismReferenceValue accountRefValue = accountRefType.asReferenceValue();
-//        assertEquals("OID mismatch in accountRefValue", groupOid, accountRefValue.getOid());
-//        assertNotNull("Missing account object in accountRefValue", accountRefValue.getObject());
-//
-//        assertEquals("Unexpected number of accounts", 1, userJackType.getLink().size());
-//        ShadowType ResourceObjectShadowType = userJackType.getLink().get(0);
-//        assertDummyAccountShadowModel(ResourceObjectShadowType.asPrismObject(), groupOid, "jack", "Jack Sparrow");
-//        
-//        assertNotNull("Resource in account was not resolved", ResourceObjectShadowType.getResource());
-//        
-//        result.computeStatus();
-//        TestUtil.assertSuccess("getObject result", result);
-//        
-//        userJack.checkConsistence(true, true);
-//	}
-//
-//	@Test
-//    public void test112GetUserResolveAccountNoFetch() throws Exception {
-//        TestUtil.displayTestTile(this, "test112GetUserResolveAccountNoFetch");
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestRoleEntitlement.class.getName() + ".test112GetUserResolveAccountNoFetch");
-//        OperationResult result = task.getResult();
-//        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
-//
-//        GetOperationOptions getOpts = new GetOperationOptions();
-//        getOpts.setResolve(true);
-//        getOpts.setNoFetch(true);
-//		Collection<SelectorOptions<GetOperationOptions>> options = 
-//        	SelectorOptions.createCollection(UserType.F_LINK, getOpts);
-//        
-//		// WHEN
-//		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, options , task, result);
-//		
-//        assertUserJack(userJack);
-//        UserType userJackType = userJack.asObjectable();
-//        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
-//        ObjectReferenceType accountRefType = userJackType.getLinkRef().get(0);
-//        String groupOid = accountRefType.getOid();
-//        assertFalse("No accountRef oid", StringUtils.isBlank(groupOid));
-//        
-//        PrismReferenceValue accountRefValue = accountRefType.asReferenceValue();
-//        assertEquals("OID mismatch in accountRefValue", groupOid, accountRefValue.getOid());
-//        assertNotNull("Missing account object in accountRefValue", accountRefValue.getObject());
-//
-//        assertEquals("Unexpected number of accounts", 1, userJackType.getLink().size());
-//        ShadowType ResourceObjectShadowType = userJackType.getLink().get(0);
-//        assertDummyAccountShadowRepo(ResourceObjectShadowType.asPrismObject(), groupOid, "jack");
-//        
-//        result.computeStatus();
-//        TestUtil.assertSuccess("getObject result", result);
-//        
-//        userJack.checkConsistence(true, true);
-//	}
-//	
-//	@Test
-//    public void test119ModifyUserDeleteAccount() throws Exception {
-//		final String TEST_NAME = "test119ModifyUserDeleteAccount";
-//        TestUtil.displayTestTile(this, TEST_NAME);
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestRoleEntitlement.class.getName() + "." + TEST_NAME);
-//        OperationResult result = task.getResult();
-//        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
-//        dummyAuditService.clear();
-//        purgeScriptHistory();
-//
-//        PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
-//        account.setOid(groupOid);
-//        		
-//		ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, USER_JACK_OID, prismContext);
-//		ReferenceDelta accountDelta = ReferenceDelta.createModificationDelete(UserType.F_LINK_REF, getUserDefinition(), account);
-//		userDelta.addModification(accountDelta);
-//		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(userDelta);
-//
-//        prepareNotifications();
-//
-//        // WHEN
-//		TestUtil.displayWhen(TEST_NAME);
-//		modelService.executeChanges(deltas, null, task, result);
-//		
-//		// THEN
-//		TestUtil.displayThen(TEST_NAME);
-//		result.computeStatus();
-//        TestUtil.assertSuccess("executeChanges result", result, 2);
-//        
-//		// Check accountRef
-//		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-//        assertUserJack(userJack);
-//        UserType userJackType = userJack.asObjectable();
-//        assertEquals("Unexpected number of linkRefs", 0, userJackType.getLinkRef().size());
-//        
-//		// Check is shadow is gone
-//        try {
-//        	PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, groupOid, null, result);
-//        	AssertJUnit.fail("Shadow "+groupOid+" still exists");
-//        } catch (ObjectNotFoundException e) {
-//        	// This is OK
-//        }
-//        
-//        // Check if dummy resource account is gone
-//        assertNoDummyAccount("jack");
-//        
-//        assertDummyScriptsDelete();
-//        
-//     // Check audit
-//        display("Audit", dummyAuditService);
-//        dummyAuditService.assertRecords(2);
-//        dummyAuditService.assertSimpleRecordSanity();
-//        dummyAuditService.assertAnyRequestDeltas();
-//        dummyAuditService.assertExecutionDeltas(2);
-//        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
-//        dummyAuditService.asserHasDelta(ChangeType.DELETE, ShadowType.class);
-//        dummyAuditService.assertTarget(USER_JACK_OID);
-//        dummyAuditService.assertExecutionSuccess();
-//
-//        // Check notifications
-//        notificationManager.setDisabled(true);
-//        checkDummyTransportMessages("accountPasswordNotifier", 0);
-//        checkDummyTransportMessages("userPasswordNotifier", 0);
-//        checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
-//        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
-//        checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 0);
-//        checkDummyTransportMessages("simpleAccountNotifier-DELETE-SUCCESS", 1);
-//        checkDummyTransportMessages("simpleUserNotifier", 0);
-//        checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
-//    }
-//
-//    @Test
-//    public void test120AddAccount() throws Exception {
-//        TestUtil.displayTestTile(this, "test120AddAccount");
-//
-//        // GIVEN
-//        Task task = taskManager.createTaskInstance(TestRoleEntitlement.class.getName() + ".test120AddAccount");
-//        OperationResult result = task.getResult();
-//        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
-//        dummyAuditService.clear();
-//
-//        prepareNotifications();
-//
-//        purgeScriptHistory();
-//        
-//        PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
-//        ObjectDelta<ShadowType> accountDelta = ObjectDelta.createAddDelta(account);
-//        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta);
-//        
-//        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
-//        
-//		// WHEN
-//        modelService.executeChanges(deltas, null, task, result);
-//		
-//		// THEN
-//        result.computeStatus();
-//        TestUtil.assertSuccess("executeChanges result", result);
-//        XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
-//        
-//        groupOid = accountDelta.getOid();
-//        assertNotNull("No account OID in resulting delta", groupOid);
-//		// Check accountRef (should be none)
-//		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
-//        assertUserJack(userJack);
-//        UserType userJackType = userJack.asObjectable();
-//        assertEquals("Unexpected number of accountRefs", 0, userJackType.getLinkRef().size());
-//        
-//		// Check shadow
-//        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, groupOid, null, result);
-//        assertDummyAccountShadowRepo(accountShadow, groupOid, "jack");
-//        assertEnableTimestampShadow(accountShadow, startTime, endTime);
-//        
-//        // Check account
-//        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, groupOid, null, task, result);
-//        assertDummyAccountShadowModel(accountModel, groupOid, "jack", "Jack Sparrow");
+    @Test
+    public void test101GetGroup() throws Exception {
+        final String TEST_NAME = "test101GetGroup";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestRoleEntitlement.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
+
+        // Let's do some evil things. Like changing some of the attribute on a resource and see if they will be
+        // fetched after get.
+        DummyGroup dummyGroup = getDummyGroup(null, GROUP_PIRATE_DUMMY_NAME);
+        dummyGroup.replaceAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION, "Bloodthirsty Pirates");
+
+		// WHEN
+		PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, groupOid, null , task, result);
+
+		// THEN
+		display("Group shadow (model)", shadow);
+        assertDummyGroupShadowModel(shadow, groupOid, GROUP_PIRATE_DUMMY_NAME);
+
+        result.computeStatus();
+        TestUtil.assertSuccess("getObject result", result);
+
+        shadow.checkConsistence(true, true);
+
+        IntegrationTestTools.assertAttribute(shadow, getAttributeQName(resourceDummy, DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION),
+                "Bloodthirsty Pirates");
+	}
+
+	@Test
+    public void test102GetGroupNoFetch() throws Exception {
+        final String TEST_NAME = "test102GetGroupNoFetch";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestRoleEntitlement.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
+
+        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
+
+		// WHEN
+		PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, groupOid, options , task, result);
+
+		display("Account", shadow);
+		display("Account def", shadow.getDefinition());
+		PrismContainer<Containerable> accountContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
+		display("Account attributes def", accountContainer.getDefinition());
+		display("Account attributes def complex type def", accountContainer.getDefinition().getComplexTypeDefinition());
+        assertDummyGroupShadowRepo(shadow, groupOid, GROUP_PIRATE_DUMMY_NAME);
+
+        result.computeStatus();
+        TestUtil.assertSuccess("getObject result", result);
+	}
+
+	@Test
+    public void test103GetGroupRaw() throws Exception {
+        final String TEST_NAME = "test103GetGroupRaw";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestRoleEntitlement.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
+        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
+
+		// WHEN
+		PrismObject<ShadowType> shadow = modelService.getObject(ShadowType.class, groupOid, options , task, result);
+
+		display("Account", shadow);
+		display("Account def", shadow.getDefinition());
+		PrismContainer<Containerable> accountContainer = shadow.findContainer(ShadowType.F_ATTRIBUTES);
+		display("Account attributes def", accountContainer.getDefinition());
+		display("Account attributes def complex type def", accountContainer.getDefinition().getComplexTypeDefinition());
+        assertDummyGroupShadowRepo(shadow, groupOid, GROUP_PIRATE_DUMMY_NAME);
+
+        result.computeStatus();
+        TestUtil.assertSuccess("getObject result", result);
+	}
+
+	@Test
+    public void test108ModifyRoleAddEntitlementAgain() throws Exception {
+        final String TEST_NAME = "test108ModifyRoleAddEntitlementAgain";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestRoleEntitlement.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
+
+        PrismObject<ShadowType> group = PrismTestUtil.parseObject(GROUP_PIRATE_DUMMY_FILE);
+
+        ObjectDelta<RoleType> roleDelta = ObjectDelta.createEmptyModifyDelta(RoleType.class, ROLE_PIRATE_OID, prismContext);
+        PrismReferenceValue linkRefVal = new PrismReferenceValue();
+        linkRefVal.setObject(group);
+        ReferenceDelta groupDelta = ReferenceDelta.createModificationAdd(RoleType.F_LINK_REF, getRoleDefinition(), linkRefVal);
+        roleDelta.addModification(groupDelta);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(roleDelta);
+
+		dummyAuditService.clear();
+
+		try {
+
+			// WHEN
+			modelService.executeChanges(deltas, null, task, result);
+
+			// THEN
+			assert false : "Expected executeChanges operation to fail but it has obviously succeeded";
+		} catch (SchemaException e) {
+			// This is expected
+			e.printStackTrace();
+			// THEN
+			String message = e.getMessage();
+			assertMessageContains(message, "already contains entitlement");
+			assertMessageContains(message, "group");
+		}
+
+		// Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertTarget(ROLE_PIRATE_OID);
+        dummyAuditService.assertExecutionOutcome(OperationResultStatus.FATAL_ERROR);
+    }
+
+	@Test
+    public void test110GetRoleResolveEntitlement() throws Exception {
+        final String TEST_NAME = "test110GetRoleResolveEntitlement";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestRoleEntitlement.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
+
+        Collection<SelectorOptions<GetOperationOptions>> options =
+        	SelectorOptions.createCollection(UserType.F_LINK, GetOperationOptions.createResolve());
+
+		// WHEN
+		PrismObject<RoleType> role = modelService.getObject(RoleType.class, ROLE_PIRATE_OID, options , task, result);
+
+        RoleType roleType = role.asObjectable();
+        assertLinks(role, 1);
+        PrismReferenceValue linkRef = getSingleLinkRef(role);
+        assertEquals("OID mismatch in linkRefValue", groupOid, linkRef.getOid());
+        assertNotNull("Missing account object in linkRefValue", linkRef.getObject());
+        ShadowType shadow = roleType.getLink().get(0);
+        assertDummyGroupShadowModel(shadow.asPrismObject(), groupOid, GROUP_PIRATE_DUMMY_NAME);
+
+        result.computeStatus();
+        TestUtil.assertSuccess("getObject result", result);
+	}
+
+    @Test
+    public void test111GetRoleResolveEntitlement() throws Exception {
+        final String TEST_NAME = "test111GetRoleResolveEntitlement";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestRoleEntitlement.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
+
+        Collection<SelectorOptions<GetOperationOptions>> options =
+                SelectorOptions.createCollection(GetOperationOptions.createResolve(),
+                        new ItemPath(UserType.F_LINK),
+                        new ItemPath(UserType.F_LINK, ShadowType.F_RESOURCE)
+                );
+
+        // WHEN
+        PrismObject<RoleType> role = modelService.getObject(RoleType.class, ROLE_PIRATE_OID, options , task, result);
+
+        RoleType roleType = role.asObjectable();
+        assertLinks(role, 1);
+        PrismReferenceValue linkRef = getSingleLinkRef(role);
+        assertEquals("OID mismatch in linkRefValue", groupOid, linkRef.getOid());
+        assertNotNull("Missing account object in linkRefValue", linkRef.getObject());
+        ShadowType shadow = roleType.getLink().get(0);
+        assertDummyGroupShadowModel(shadow.asPrismObject(), groupOid, GROUP_PIRATE_DUMMY_NAME);
+
+        assertNotNull("Resource in account was not resolved", shadow.getResource());
+
+        result.computeStatus();
+        TestUtil.assertSuccess("getObject result", result);
+    }
+
+    @Test
+    public void test112GetRoleResolveEntitlementNoFetch() throws Exception {
+        final String TEST_NAME = "test112GetRoleResolveEntitlementNoFetch";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestRoleEntitlement.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
+
+        GetOperationOptions getOpts = new GetOperationOptions();
+        getOpts.setResolve(true);
+        getOpts.setNoFetch(true);
+        Collection<SelectorOptions<GetOperationOptions>> options =
+                SelectorOptions.createCollection(UserType.F_LINK, getOpts);
+
+        // WHEN
+        PrismObject<RoleType> role = modelService.getObject(RoleType.class, ROLE_PIRATE_OID, options , task, result);
+
+        RoleType roleType = role.asObjectable();
+        assertLinks(role, 1);
+        PrismReferenceValue linkRef = getSingleLinkRef(role);
+        assertEquals("OID mismatch in linkRefValue", groupOid, linkRef.getOid());
+        assertNotNull("Missing account object in linkRefValue", linkRef.getObject());
+        ShadowType shadow = roleType.getLink().get(0);
+        assertDummyGroupShadowRepo(shadow.asPrismObject(), groupOid, GROUP_PIRATE_DUMMY_NAME);
+
+        result.computeStatus();
+        TestUtil.assertSuccess("getObject result", result);
+    }
+
+
+	@Test
+    public void test119ModifyRoleDeleteEntitlement() throws Exception {
+		final String TEST_NAME = "test119ModifyRoleDeleteEntitlement";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestRoleEntitlement.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
+        dummyAuditService.clear();
+
+        PrismObject<ShadowType> group = PrismTestUtil.parseObject(GROUP_PIRATE_DUMMY_FILE);
+        group.setOid(groupOid);
+
+        ObjectDelta<RoleType> roleDelta = ObjectDelta.createEmptyModifyDelta(RoleType.class, ROLE_PIRATE_OID, prismContext);
+        ReferenceDelta linkDelta = ReferenceDelta.createModificationDelete(RoleType.F_LINK_REF, getUserDefinition(), group);
+        roleDelta.addModification(linkDelta);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = (Collection)MiscUtil.createCollection(roleDelta);
+
+        prepareNotifications();
+
+        // WHEN
+		TestUtil.displayWhen(TEST_NAME);
+		modelService.executeChanges(deltas, null, task, result);
+
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+        TestUtil.assertSuccess("executeChanges result", result, 2);
+
+		// Check accountRef
+		PrismObject<RoleType> role = modelService.getObject(RoleType.class, ROLE_PIRATE_OID, null, task, result);
+        assertLinks(role, 0);
+
+		// Check is shadow is gone
+        try {
+        	PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, groupOid, null, result);
+        	AssertJUnit.fail("Shadow " + groupOid + " still exists");
+        } catch (ObjectNotFoundException e) {
+        	// This is OK
+        }
+
+        // Check if dummy resource account is gone
+        assertNoDummyGroup(GROUP_PIRATE_DUMMY_NAME);
+
+     // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(2);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, RoleType.class);
+        dummyAuditService.asserHasDelta(ChangeType.DELETE, ShadowType.class);
+        dummyAuditService.assertTarget(ROLE_PIRATE_OID);
+        dummyAuditService.assertExecutionSuccess();
+
+    }
+
+    @Test
+    public void test120AddEntitlement() throws Exception {
+        final String TEST_NAME = "test120AddEntitlement";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestRoleEntitlement.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.POSITIVE);
+        dummyAuditService.clear();
+        prepareNotifications();
+
+        PrismObject<ShadowType> group = PrismTestUtil.parseObject(GROUP_PIRATE_DUMMY_FILE);
+        ObjectDelta<ShadowType> groupDelta = ObjectDelta.createAddDelta(group);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(groupDelta);
+
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
+
+		// WHEN
+        modelService.executeChanges(deltas, null, task, result);
+
+		// THEN
+        result.computeStatus();
+        TestUtil.assertSuccess("executeChanges result", result);
+        XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
+
+        groupOid = groupDelta.getOid();
+        assertNotNull("No account OID in resulting delta", groupOid);
+		// Check linkRef (should be none)
+		PrismObject<RoleType> role = modelService.getObject(RoleType.class, ROLE_PIRATE_OID, null, task, result);
+        assertLinks(role, 0);
+
+		// Check shadow
+        PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, groupOid, null, result);
+        assertDummyGroupShadowRepo(shadow, groupOid, GROUP_PIRATE_DUMMY_NAME);
+//        assertEnableTimestampShadow(shadow, startTime, endTime);
+
+        // Check account
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, groupOid, null, task, result);
+        assertDummyGroupShadowModel(accountModel, groupOid, GROUP_PIRATE_DUMMY_NAME);
 //        assertEnableTimestampShadow(accountModel, startTime, endTime);
-//        
-//        // Check account in dummy resource
-//        assertDummyAccount("jack", "Jack Sparrow", true);
-//        
-//        // The user is not associated with the account
-//        assertDummyScriptsAdd(null, accountModel, resourceDummyType);
-//        
-//        // Check audit
-//        display("Audit", dummyAuditService);
-//        dummyAuditService.assertRecords(2);
-//        dummyAuditService.assertSimpleRecordSanity();
-//        dummyAuditService.assertAnyRequestDeltas();
-//        dummyAuditService.assertExecutionDeltas(1);
-//        dummyAuditService.asserHasDelta(ChangeType.ADD, ShadowType.class);
-//        dummyAuditService.assertTarget(accountShadow.getOid());
-//        dummyAuditService.assertExecutionSuccess();
-//
-//        // Check notifications
-//        notificationManager.setDisabled(true);
-//        checkDummyTransportMessages("accountPasswordNotifier", 0);          // there's no password for that account
-//        checkDummyTransportMessages("userPasswordNotifier", 0);
-//        checkDummyTransportMessages("simpleAccountNotifier-SUCCESS", 1);
-//        checkDummyTransportMessages("simpleAccountNotifier-FAILURE", 0);
-//        checkDummyTransportMessages("simpleAccountNotifier-ADD-SUCCESS", 1);
-//        checkDummyTransportMessages("simpleUserNotifier", 0);               // account has no owner
-//        checkDummyTransportMessages("simpleUserNotifier-ADD", 0);
-//
-//    }
-//	
+
+        // Check account in dummy resource
+        assertDummyGroup(GROUP_PIRATE_DUMMY_NAME, "Scurvy pirates");
+
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(1);
+        dummyAuditService.asserHasDelta(ChangeType.ADD, ShadowType.class);
+        dummyAuditService.assertTarget(shadow.getOid());
+        dummyAuditService.assertExecutionSuccess();
+    }
+
 //	@Test
 //    public void test121ModifyUserAddAccountRef() throws Exception {
 //        TestUtil.displayTestTile(this, "test121ModifyUserAddAccountRef");
@@ -2641,9 +2542,9 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 //        dummyAuditService.assertExecutionSuccess();
 //	}
 //	
-//	private void assertMessageContains(String message, String string) {
-//		assert message.contains(string) : "Expected message to contain '"+string+"' but it does not; message: " + message;
-//	}
+	private void assertMessageContains(String message, String string) {
+		assert message.contains(string) : "Expected message to contain '"+string+"' but it does not; message: " + message;
+	}
 //	
 //	private void purgeScriptHistory() {
 //		dummyResource.purgeScriptHistory();

@@ -1070,6 +1070,13 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		}
 	}
 
+    public String getHumanReadableKind() {
+        if (resourceShadowDiscriminator == null) {
+            return "resource object";
+        }
+        return getKindValue(resourceShadowDiscriminator.getKind());
+    }
+
 	private String getKindValue(ShadowKindType kind) {
 		if (kind == null) {
 			return "null";
