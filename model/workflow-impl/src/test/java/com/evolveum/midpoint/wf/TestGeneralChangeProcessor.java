@@ -46,6 +46,8 @@ import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -188,12 +190,12 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
             String pid = wfTaskUtil.getProcessId(subtask);
             assertNotNull("Workflow process instance id not present in subtask " + subtask, pid);
 
-            ProcessInstance processInstance = workflowServiceImpl.getProcessInstanceById(pid, false, true, result);
+            WfProcessInstanceType processInstance = workflowServiceImpl.getProcessInstanceById(pid, false, true, result);
             assertNotNull("Process instance information cannot be retrieved", processInstance);
             assertEquals("Incorrect number of work items", 1, processInstance.getWorkItems().size());
 
-            String taskId = processInstance.getWorkItems().get(0).getTaskId();
-            WorkItemDetailed workItemDetailed = workflowServiceImpl.getWorkItemDetailsById(taskId, result);
+            String taskId = processInstance.getWorkItems().get(0).getWorkItemId();
+            WorkItemType workItem = workflowServiceImpl.getWorkItemDetailsById(taskId, result);
 
             org.activiti.engine.task.Task t = activitiEngine.getTaskService().createTaskQuery().taskId(taskId).singleResult();
             assertNotNull("activiti task not found", t);
@@ -203,7 +205,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 
             boolean approve = contextCreator.decideOnApproval(executionId);
 
-            PrismObject<? extends ObjectType> workItemObject = workItemDetailed.getRequestSpecificData();
+            PrismObject<? extends ObjectType> workItemObject = workItem.getRequestSpecificData().asPrismObject();
             LOGGER.trace("workItemObject = " + workItemObject.debugDump());
 
             // change role1 -> role2

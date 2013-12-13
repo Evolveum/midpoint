@@ -841,11 +841,11 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
             String pid = wfTaskUtil.getProcessId(subtask);
             assertNotNull("Workflow process instance id not present in subtask " + subtask, pid);
 
-            ProcessInstance processInstance = workflowServiceImpl.getProcessInstanceById(pid, false, true, result);
+            WfProcessInstanceType processInstance = workflowServiceImpl.getProcessInstanceById(pid, false, true, result);
             assertNotNull("Process instance information cannot be retrieved", processInstance);
             assertEquals("Incorrect number of work items", 1, processInstance.getWorkItems().size());
 
-            String taskId = processInstance.getWorkItems().get(0).getTaskId();
+            String taskId = processInstance.getWorkItems().get(0).getWorkItemId();
             //WorkItemDetailed workItemDetailed = wfDataAccessor.getWorkItemDetailsById(taskId, result);
 
             org.activiti.engine.task.Task t = activitiEngine.getTaskService().createTaskQuery().taskId(taskId).singleResult();
