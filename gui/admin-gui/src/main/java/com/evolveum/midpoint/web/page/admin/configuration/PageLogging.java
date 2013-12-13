@@ -16,11 +16,29 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
-import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.DiffUtil;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.accordion.Accordion;
+import com.evolveum.midpoint.web.component.accordion.AccordionItem;
+import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
+import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.column.*;
+import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
+import com.evolveum.midpoint.web.component.input.ListMultipleChoicePanel;
+import com.evolveum.midpoint.web.component.input.TextPanel;
+import com.evolveum.midpoint.web.component.prism.InputPanel;
+import com.evolveum.midpoint.web.component.util.Editable;
+import com.evolveum.midpoint.web.component.util.ListDataProvider;
+import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.*;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -31,46 +49,14 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.markup.html.form.*;
-import org.apache.wicket.model.*;
+import org.apache.wicket.model.AbstractReadOnlyModel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.DiffUtil;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.logging.Trace;
-import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.accordion.Accordion;
-import com.evolveum.midpoint.web.component.accordion.AccordionItem;
-import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
-import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
-import com.evolveum.midpoint.web.component.button.ButtonType;
-import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.EditableCheckboxColumn;
-import com.evolveum.midpoint.web.component.data.column.EditableLinkColumn;
-import com.evolveum.midpoint.web.component.data.column.EditablePropertyColumn;
-import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
-import com.evolveum.midpoint.web.component.input.ListMultipleChoicePanel;
-import com.evolveum.midpoint.web.component.input.TextPanel;
-import com.evolveum.midpoint.web.component.prism.InputPanel;
-import com.evolveum.midpoint.web.component.util.Editable;
-import com.evolveum.midpoint.web.component.util.ListDataProvider;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.AppenderConfiguration;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.ClassLogger;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.ComponentLogger;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.FileAppenderConfig;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.FilterConfiguration;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.FilterValidator;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.InputStringValidator;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.LevelValidator;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.LoggerConfiguration;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.LoggerValidator;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.LoggingDto;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.ProfilingLevel;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * @author lazyman
@@ -643,8 +629,8 @@ public class PageLogging extends PageAdminConfiguration {
 	}
 
 	private void initButtons(final Form mainForm) {
-		AjaxSubmitLinkButton saveButton = new AjaxSubmitLinkButton("saveButton", ButtonType.POSITIVE,
-				createStringResource("pageLogging.button.save")) {
+		AjaxSubmitButton saveButton = new AjaxSubmitButton("saveButton",
+                createStringResource("pageLogging.button.save")) {
 
 			@Override
 			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
@@ -658,7 +644,7 @@ public class PageLogging extends PageAdminConfiguration {
 		};
 		mainForm.add(saveButton);
 
-		AjaxLinkButton resetButton = new AjaxLinkButton("resetButton",
+		AjaxButton resetButton = new AjaxButton("resetButton",
 				createStringResource("pageLogging.button.reset")) {
 
 			@Override
@@ -668,7 +654,7 @@ public class PageLogging extends PageAdminConfiguration {
 		};
 		mainForm.add(resetButton);
 
-		AjaxLinkButton advancedButton = new AjaxLinkButton("advancedButton",
+        AjaxButton advancedButton = new AjaxButton("advancedButton",
 				createStringResource("pageLogging.button.advanced")) {
 
 			@Override

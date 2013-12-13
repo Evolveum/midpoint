@@ -26,8 +26,8 @@ import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
-import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
@@ -122,7 +122,7 @@ public class UserBrowserDialog extends ModalWindow {
         table.setOutputMarkupId(true);
         mainForm.add(table);
 
-        AjaxSubmitLinkButton searchButton = new AjaxSubmitLinkButton("searchButton",
+        AjaxSubmitButton searchButton = new AjaxSubmitButton("searchButton",
                 createStringResource("userBrowserDialog.button.searchButton")) {
 
             @Override
@@ -137,7 +137,7 @@ public class UserBrowserDialog extends ModalWindow {
         };
         mainForm.add(searchButton);
 
-        AjaxLinkButton cancelButton = new AjaxLinkButton("cancelButton",
+        AjaxButton cancelButton = new AjaxButton("cancelButton",
                 createStringResource("userBrowserDialog.button.cancelButton")) {
 
             @Override
@@ -234,41 +234,41 @@ public class UserBrowserDialog extends ModalWindow {
         }
 
         try {
-			List<ObjectFilter> filters = new ArrayList<ObjectFilter>();
+            List<ObjectFilter> filters = new ArrayList<ObjectFilter>();
 
             PrismContext prismContext = getPageBase().getPrismContext();
-			PolyStringNormalizer normalizer = prismContext.getDefaultPolyStringNormalizer();
-			if (normalizer == null) {
-				normalizer = new PrismDefaultPolyStringNormalizer();
-			}
+            PolyStringNormalizer normalizer = prismContext.getDefaultPolyStringNormalizer();
+            if (normalizer == null) {
+                normalizer = new PrismDefaultPolyStringNormalizer();
+            }
 
-			String normalizedString = normalizer.normalize(dto.getSearchText());
+            String normalizedString = normalizer.normalize(dto.getSearchText());
 
-			if (dto.isName()) {
-				filters.add(SubstringFilter.createSubstring(UserType.class, prismContext, UserType.F_NAME,
-						normalizedString));
-			}
+            if (dto.isName()) {
+                filters.add(SubstringFilter.createSubstring(UserType.class, prismContext, UserType.F_NAME,
+                        normalizedString));
+            }
 
-			if (dto.isFamilyName()) {
-				filters.add(SubstringFilter.createSubstring(UserType.class, prismContext,
-						UserType.F_FAMILY_NAME, normalizedString));
-			}
-			if (dto.isFullName()) {
-				filters.add(SubstringFilter.createSubstring(UserType.class, prismContext,
-						UserType.F_FULL_NAME, normalizedString));
-			}
-			if (dto.isGivenName()) {
-				filters.add(SubstringFilter.createSubstring(UserType.class, prismContext,
-						UserType.F_GIVEN_NAME, normalizedString));
-			}
+            if (dto.isFamilyName()) {
+                filters.add(SubstringFilter.createSubstring(UserType.class, prismContext,
+                        UserType.F_FAMILY_NAME, normalizedString));
+            }
+            if (dto.isFullName()) {
+                filters.add(SubstringFilter.createSubstring(UserType.class, prismContext,
+                        UserType.F_FULL_NAME, normalizedString));
+            }
+            if (dto.isGivenName()) {
+                filters.add(SubstringFilter.createSubstring(UserType.class, prismContext,
+                        UserType.F_GIVEN_NAME, normalizedString));
+            }
 
-			if (!filters.isEmpty()) {
-				query = new ObjectQuery().createObjectQuery(OrFilter.createOr(filters));
-			}
-		} catch (Exception ex) {
-			error(getString("userBrowserDialog.message.queryError") + " " + ex.getMessage());
-			LoggingUtils.logException(LOGGER, "Couldn't create query filter.", ex);
-		}
+            if (!filters.isEmpty()) {
+                query = new ObjectQuery().createObjectQuery(OrFilter.createOr(filters));
+            }
+        } catch (Exception ex) {
+            error(getString("userBrowserDialog.message.queryError") + " " + ex.getMessage());
+            LoggingUtils.logException(LOGGER, "Couldn't create query filter.", ex);
+        }
 
         return query;
     }
