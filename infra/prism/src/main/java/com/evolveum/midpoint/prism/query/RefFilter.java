@@ -31,49 +31,52 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-public class RefFilter extends PropertyValueFilter{
+public class RefFilter extends PropertyValueFilter<PrismReferenceValue>{
 	
-	RefFilter(ItemPath path, ItemDefinition definition, String matchingRule, List<PrismReferenceValue> values) {
+	RefFilter(ItemPath path, PrismReferenceDefinition definition, String matchingRule, List<PrismReferenceValue> values) {
 		super(path, definition, matchingRule, values);
 	}
 		
-	RefFilter(ItemPath path, ItemDefinition definition, PrismReferenceValue value) {
+	RefFilter(ItemPath path, PrismReferenceDefinition definition, PrismReferenceValue value) {
 		super(path, definition, value);
 	}
 	
-	RefFilter(ItemPath path, ItemDefinition definition, Element expression) {
+	RefFilter(ItemPath path, PrismReferenceDefinition definition, Element expression) {
 		super(path, definition, expression);
 	}
 	
 	
-	public static RefFilter createReferenceEqual(ItemPath path, Item item){
+	public static RefFilter createReferenceEqual(ItemPath path, PrismReference item){
 		return new RefFilter(path, item.getDefinition(), null, item.getValues());
 	}
 	
-	public static RefFilter createReferenceEqual(ItemPath path, Item item, Element expression){
+	public static RefFilter createReferenceEqual(ItemPath path, PrismReference item, Element expression){
 		return new RefFilter(path, item.getDefinition(), expression);
 	}
 	
-	public static RefFilter createReferenceEqual(ItemPath path, ItemDefinition definition, List<PrismReferenceValue> values){
+	public static RefFilter createReferenceEqual(ItemPath path, PrismReferenceDefinition definition, List<PrismReferenceValue> values){
 		return new RefFilter(path, definition, null, values);
 	}
 	
-	public static RefFilter createReferenceEqual(ItemPath path, ItemDefinition definition, Element expression){
+	public static RefFilter createReferenceEqual(ItemPath path, PrismReferenceDefinition definition, Element expression){
 		return new RefFilter(path, definition, expression);
 	}
 	
-	public static RefFilter createReferenceEqual(ItemPath path, ItemDefinition definition, PrismReferenceValue value){
+	public static RefFilter createReferenceEqual(ItemPath path, PrismReferenceDefinition definition, PrismReferenceValue value){
 		return new RefFilter(path, definition, value);
 	}
 	
-	public static RefFilter createReferenceEqual(ItemPath path, ItemDefinition item, String oid) {
+	public static RefFilter createReferenceEqual(ItemPath path, PrismReferenceDefinition item, String oid) {
 		PrismReferenceValue value = new PrismReferenceValue(oid);
 		return createReferenceEqual(path, item, value);
 	}
@@ -92,7 +95,12 @@ public class RefFilter extends PropertyValueFilter{
 			throw new SchemaException("No definition for item " + path + " in container definition "
 					+ containerDef);
 		}
-		return createReferenceEqual(path, itemDef, realValue);
+		
+		if (!(itemDef instanceof PrismReferenceDefinition)){
+			throw new SchemaException("Bad item definition. Expected that the definition will be instance of prism refenrence definition, but found " + itemDef);					
+		}
+		
+		return createReferenceEqual(path, (PrismReferenceDefinition) itemDef, realValue);
 	}
 	
 	public static RefFilter createReferenceEqual(Class type, QName propertyName, PrismObject<? extends Objectable> targetObject) throws SchemaException {
@@ -103,7 +111,7 @@ public class RefFilter extends PropertyValueFilter{
 
 	@Override
 	public RefFilter clone() {
-		RefFilter clone = new RefFilter(getFullPath(), getDefinition(), getMatchingRule(), (List<PrismReferenceValue>) getValues());
+		RefFilter clone = new RefFilter(getFullPath(), (PrismReferenceDefinition) getDefinition(), getMatchingRule(), (List<PrismReferenceValue>) getValues());
 		cloneValues(clone);
 		return clone;
 	}

@@ -60,7 +60,7 @@ public class TestObjectQuery {
 		PrismObject user = PrismTestUtil.parseObject(new File("src/test/resources/common/user-jack.xml"));
 		ObjectFilter filter = 
 				AndFilter.createAnd(
-						EqualsFilter.createEqual(user.findItem(UserType.F_GIVEN_NAME).getDefinition(), "stringIgnoreCase", "Jack"), 
+						EqualsFilter.createEqual(user.findProperty(UserType.F_GIVEN_NAME).getDefinition(), "stringIgnoreCase", "Jack"), 
 						SubstringFilter.createSubstring(user.findItem(UserType.F_FULL_NAME).getDefinition(), "arr"));
 		boolean match = ObjectQuery.match(user, filter, matchingRuleRegistry);
 		AssertJUnit.assertTrue("filter does not match object", match);
@@ -70,8 +70,9 @@ public class TestObjectQuery {
 	@Test
 	public void testMatchOrFilter() throws Exception{
 		PrismObject user = PrismTestUtil.parseObject(new File("src/test/resources/common/user-jack.xml"));
-		ObjectFilter filter = OrFilter.createOr(EqualsFilter.createEqual(user.findItem(UserType.F_GIVEN_NAME).getDefinition(), "Jack"), 
-				EqualsFilter.createEqual(user.findItem(UserType.F_GIVEN_NAME).getDefinition(), "Jackie"));
+		ObjectFilter filter = OrFilter.createOr(
+				EqualsFilter.createEqual(user.findProperty(UserType.F_GIVEN_NAME).getDefinition(), "Jack"), 
+				EqualsFilter.createEqual(user.findProperty(UserType.F_GIVEN_NAME).getDefinition(), "Jackie"));
 
 		boolean match = ObjectQuery.match(user, filter, matchingRuleRegistry);
 		AssertJUnit.assertTrue("filter does not match object", match);
@@ -80,7 +81,7 @@ public class TestObjectQuery {
 	@Test
 	public void testDontMatchEqualFilter() throws Exception{
 		PrismObject user = PrismTestUtil.parseObject(new File("src/test/resources/common/user-jack.xml"));
-		ObjectFilter filter = EqualsFilter.createEqual(user.findItem(UserType.F_GIVEN_NAME).getDefinition(), "Jackie");
+		ObjectFilter filter = EqualsFilter.createEqual(user.findProperty(UserType.F_GIVEN_NAME).getDefinition(), "Jackie");
 
 		boolean match = ObjectQuery.match(user, filter, matchingRuleRegistry);
 		AssertJUnit.assertFalse("filter matches object, but it should not", match);
@@ -93,11 +94,11 @@ public class TestObjectQuery {
 		System.out.println("definition: " +user.findItem(UserType.F_FAMILY_NAME).getDefinition().dump());
 		ObjectFilter filter = 
 				AndFilter.createAnd(
-						EqualsFilter.createEqual(user.findItem(UserType.F_FAMILY_NAME).getDefinition(), "Sparrow"), 
+						EqualsFilter.createEqual(user.findProperty(UserType.F_FAMILY_NAME).getDefinition(), "Sparrow"), 
 						SubstringFilter.createSubstring(user.findItem(UserType.F_FULL_NAME).getDefinition(), "arr"), 
 						OrFilter.createOr(
-								EqualsFilter.createEqual(user.findItem(UserType.F_GIVEN_NAME).getDefinition(), "Jack"), 
-								EqualsFilter.createEqual(user.findItem(UserType.F_GIVEN_NAME).getDefinition(), "Jackie")));
+								EqualsFilter.createEqual(user.findProperty(UserType.F_GIVEN_NAME).getDefinition(), "Jack"), 
+								EqualsFilter.createEqual(user.findProperty(UserType.F_GIVEN_NAME).getDefinition(), "Jackie")));
 
 		boolean match = ObjectQuery.match(user, filter, matchingRuleRegistry);
 		AssertJUnit.assertTrue("filter does not match object", match);
@@ -107,7 +108,7 @@ public class TestObjectQuery {
 	public void testPolystringMatchEqualFilter() throws Exception{
 		PrismObject user = PrismTestUtil.parseObject(new File("src/test/resources/common/user-jack.xml"));
 		PolyString name = new PolyString("jack", "jack");
-		ObjectFilter filter = EqualsFilter.createEqual(user.findItem(UserType.F_NAME).getDefinition(), name);
+		ObjectFilter filter = EqualsFilter.createEqual(user.findProperty(UserType.F_NAME).getDefinition(), name);
 
 		boolean match = ObjectQuery.match(user, filter, matchingRuleRegistry);
 		AssertJUnit.assertTrue("filter does not match object", match);

@@ -637,7 +637,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         AssertJUnit.assertNotNull(afterModifytimestamp);
         AssertJUnit.assertEquals(afterSecondModifyType.getSynchronizationTimestamp(), description.getTimestamp());
 
-        LessFilter filter = LessFilter.createLessFilter(afterSecondModify.findItem(
+        LessFilter filter = LessFilter.createLessFilter(afterSecondModify.findProperty(
                 ShadowType.F_SYNCHRONIZATION_TIMESTAMP).getDefinition(), afterModifytimestamp, true);
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 

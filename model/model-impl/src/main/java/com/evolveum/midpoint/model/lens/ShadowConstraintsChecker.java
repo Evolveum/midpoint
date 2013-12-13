@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -183,7 +184,7 @@ public class ShadowConstraintsChecker {
 				EqualsFilter.createEqual(ShadowType.class, prismContext, ShadowType.F_DEAD, false),
 				EqualsFilter.createEqual(ShadowType.class, prismContext, ShadowType.F_DEAD, null));
 		//TODO: set matching rule instead of null
-		ItemDefinition identifierDef = identifier.getDefinition();
+		PrismPropertyDefinition identifierDef = identifier.getDefinition();
 		ObjectQuery query = ObjectQuery.createObjectQuery(
 				AndFilter.createAnd(
 						RefFilter.createReferenceEqual(ShadowType.class, ShadowType.F_RESOURCE_REF, prismContext, resourceType.getOid()),

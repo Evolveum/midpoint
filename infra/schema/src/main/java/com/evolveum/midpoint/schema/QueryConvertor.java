@@ -40,6 +40,7 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -193,7 +194,7 @@ public class QueryConvertor {
 		return not;
 	}
 
-	private static Element createEqualsFilterType(EqualsFilter filter, Document doc , PrismContext prismContext) throws SchemaException{
+	private static <T> Element createEqualsFilterType(EqualsFilter<T> filter, Document doc , PrismContext prismContext) throws SchemaException{
 
 		Element equal = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_EQUAL);
 		Element value = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_VALUE);
@@ -207,11 +208,11 @@ public class QueryConvertor {
 		equal.appendChild(path);
 
 		QName propertyName = filter.getDefinition().getName();
-		for (PrismValue val : filter.getValues()) {
+		for (PrismPropertyValue<T> val : filter.getValues()) {
 			Element propValue = DOMUtil.createElement(doc, propertyName);
-			if (val instanceof PrismReferenceValue) {
-				throw new SchemaException("Prism refenrence value not allowed in the equal element");
-			} else {
+//			if (val instanceof PrismReferenceValue) {
+//				throw new SchemaException("Prism refenrence value not allowed in the equal element");
+//			} else {
 				if (val.getParent() == null){
 					val.setParent(filter);
 				}
@@ -234,7 +235,7 @@ public class QueryConvertor {
 //				propValue.setTextContent(String.valueOf(((PrismPropertyValue) val).getValue()));
 			}
 //			value.appendChild(propValue);
-		}
+//		}
 		return equal;
 	}
 	
@@ -410,7 +411,7 @@ public class QueryConvertor {
 		return NotFilter.createNot(objectFilter);
 	}
 
-	private static EqualsFilter createEqualFilter(PrismContainerDefinition pcd, Node filter) throws SchemaException {
+	private static <T> EqualsFilter<PrismPropertyDefinition<T>> createEqualFilter(PrismContainerDefinition pcd, Node filter) throws SchemaException {
 		
 		ItemPath path = getPath((Element) filter);
 
@@ -436,7 +437,7 @@ public class QueryConvertor {
 			if (expression == null){
 				expression = DOMUtil.findElementRecursive((Element) filter, SchemaConstantsGenerated.C_VALUE_EXPRESSION);
 			}
-			ItemDefinition itemDef = pcd.findItemDefinition(path);
+			PrismPropertyDefinition itemDef = pcd.findPropertyDefinition(path);
 			return EqualsFilter.createEqual(path, itemDef, matchingRule, expression);
 		}
 		
@@ -449,7 +450,7 @@ public class QueryConvertor {
 			parentPath = null;
 		}
 		
-		Item item = getItem(values, pcd, parentPath, propertyName, false);
+		PrismProperty item = getItem(values, pcd, parentPath, propertyName, false);
 		ItemDefinition itemDef = item.getDefinition();
 		if (itemDef == null) {
 			throw new SchemaException("Item definition for property " + item.getName() + " in container definition " + pcd
@@ -488,7 +489,7 @@ public class QueryConvertor {
 			parentPath = null;
 		}
 		
-		Item item = getItem(values, pcd, parentPath, propertyName, true);
+		PrismReference item = getItem(values, pcd, parentPath, propertyName, true);
 		ItemDefinition itemDef = item.getDefinition();
 		if (itemDef == null) {
 			throw new SchemaException("Item definition for property " + item.getName() + " in container definition " + pcd
@@ -507,7 +508,7 @@ public class QueryConvertor {
 		return RefFilter.createReferenceEqual(path, item);
 	}
 
-	private static Item getItem(List<Element> values, PrismContainerDefinition pcd,
+	private static <I extends Item> I getItem(List<Element> values, PrismContainerDefinition pcd,
 			ItemPath path, QName propertyName, boolean reference) throws SchemaException {
 		
 		if (propertyName ==  null){
@@ -517,7 +518,7 @@ public class QueryConvertor {
 		if (path != null) {
 			pcd = pcd.findContainerDefinition(path);
 		}
-		Collection<Item> items = pcd.getPrismContext().getPrismDomProcessor().parseContainerItems(pcd, values, propertyName, reference);
+		Collection<I> items = pcd.getPrismContext().getPrismDomProcessor().parseContainerItems(pcd, values, propertyName, reference);
 
 		if (items.size() > 1) {
 			throw new SchemaException("Expected presence of a single item (path " + path

@@ -35,6 +35,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -424,7 +425,7 @@ public class ShadowManager {
 			RefinedAttributeDefinition rAttrDef = rOcDef.findAttributeDefinition(identifier.getName());
 			Object normalizedIdentifierValue = getNormalizedAttributeValue(identifierValue, rAttrDef);
 			//new ItemPath(ShadowType.F_ATTRIBUTES)
-			ItemDefinition def = identifier.getDefinition();
+			PrismPropertyDefinition def = identifier.getDefinition();
 			EqualsFilter filter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, def.getName()), def, new PrismPropertyValue(normalizedIdentifierValue));
 			conditions.add(filter);
 		}
@@ -478,7 +479,7 @@ public class ShadowManager {
 		ObjectFilter filter = null;
 		try {
 			// TODO TODO TODO TODO: set matching rule instead of null
-			ItemDefinition def = identifier.getDefinition();
+			PrismPropertyDefinition def = identifier.getDefinition();
 			filter = AndFilter.createAnd(
 					RefFilter.createReferenceEqual(ShadowType.class,ShadowType.F_RESOURCE_REF, prismContext, resource.getOid()), 
 					EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, def.getName()), def, getNormalizedValue(identifier, rObjClassDef)));
@@ -530,7 +531,7 @@ public class ShadowManager {
 		if (!(filter instanceof EqualsFilter)) {
 			return;
 		}
-		EqualsFilter eqFilter = (EqualsFilter)filter;
+		EqualsFilter<T> eqFilter = (EqualsFilter)filter;
 		ItemPath parentPath = eqFilter.getParentPath2();
 		if (parentPath == null || !parentPath.equals(SchemaConstants.PATH_ATTRIBUTES)) {
 			return;
@@ -547,8 +548,7 @@ public class ShadowManager {
 			return;
 		}
 		List<PrismValue> newValues = new ArrayList<PrismValue>();
-		for (PrismValue pval: eqFilter.getValues()) {
-			PrismPropertyValue<T> ppval = (PrismPropertyValue<T>)pval;
+		for (PrismPropertyValue<T> ppval: eqFilter.getValues()) {
 			T normalizedRealValue = matchingRule.normalize(ppval.getValue());
 			PrismPropertyValue<T> newPPval = ppval.clone();
 			newPPval.setValue(normalizedRealValue);

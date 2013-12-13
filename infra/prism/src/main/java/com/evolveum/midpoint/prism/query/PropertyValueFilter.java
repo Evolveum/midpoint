@@ -34,6 +34,7 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.match.MatchingRule;
@@ -43,21 +44,21 @@ import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
-public abstract class PropertyValueFilter extends ValueFilter{
+public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFilter{
 
-	private List<? extends PrismValue> values;
+	private List<T> values;
 
 	PropertyValueFilter(){
 		
 	}
 	
-	PropertyValueFilter(ItemPath path, ItemDefinition definition, String matchingRule, List<? extends PrismValue> values) {
+	PropertyValueFilter(ItemPath path, ItemDefinition definition, String matchingRule, List<T> values) {
 		super(path, definition, matchingRule);
 		this.values = values;
 	}
 	
 	
-	PropertyValueFilter(ItemPath path, ItemDefinition definition, PrismValue value) {
+	PropertyValueFilter(ItemPath path, ItemDefinition definition, T value) { 
 		super(path, definition);
 		setValue(value);
 	}
@@ -70,25 +71,25 @@ public abstract class PropertyValueFilter extends ValueFilter{
 		super(path, definition, matchingRule, expression);
 	}
 	
-	static PropertyValueFilter create(Class filterClass, ItemPath path, ItemDefinition itemDef, String matchingRule, PrismValue value){
+	static <T extends PrismValue> PropertyValueFilter create(Class filterClass, ItemPath path, ItemDefinition itemDef, String matchingRule, T value) throws SchemaException{
 		if (filterClass.isAssignableFrom(EqualsFilter.class)){
-			return EqualsFilter.createEqual(path, itemDef, matchingRule, value);
+			return EqualsFilter.createEqual(path, (PrismPropertyDefinition) itemDef, matchingRule, value);
 		} else if (filterClass.isAssignableFrom(LessFilter.class)){
-			return LessFilter.createLessFilter(path, itemDef, value, false);
+			return LessFilter.createLessFilter(path, (PrismPropertyDefinition) itemDef, value, false);
 		} else if (filterClass.isAssignableFrom(GreaterFilter.class)){
-			return GreaterFilter.createGreaterFilter(path, itemDef, value, false);
+			return GreaterFilter.createGreaterFilter(path, (PrismPropertyDefinition) itemDef, value, false);
 		}
 		throw new IllegalArgumentException("Bad filter class");
 	}
 
-	static PropertyValueFilter create(Class filterClass, ItemPath path, ItemDefinition itemDef, String matchingRule, List<PrismValue> values) {
+	static <T extends PrismValue> PropertyValueFilter create(Class filterClass, ItemPath path, ItemDefinition itemDef, String matchingRule, List<T> values) throws SchemaException {
 		if (filterClass.isAssignableFrom(EqualsFilter.class)) {
-			return EqualsFilter.createEqual(path, itemDef, matchingRule, values);
+			return EqualsFilter.createEqual(path, (PrismPropertyDefinition) itemDef, matchingRule, values);
 		}
 		throw new IllegalArgumentException("Bad filter class");
 	}
 		
-	public static PropertyValueFilter createPropertyFilter(Class filterClass, ItemPath parentPath, ItemDefinition item, String matchingRule, Object realValue) {
+	public static <F extends ValueFilter, I extends ItemDefinition, V extends Object> PropertyValueFilter createPropertyFilter(Class<F> filterClass, ItemPath parentPath, I item, String matchingRule, V realValue) throws SchemaException {
 
 		if (realValue == null){
 			return create(filterClass, parentPath, item, matchingRule, (PrismPropertyValue)null);
@@ -112,7 +113,7 @@ public abstract class PropertyValueFilter extends ValueFilter{
 		//temporary hack to not allow polystring type to go to the filter..we want polyString
 		PrismPropertyValue value = null;
 		if (realValue instanceof PolyStringType){
-			realValue = ((PolyStringType) realValue).toPolyString();
+			realValue = (V) ((PolyStringType) realValue).toPolyString();
 		}
 		PrismUtil.recomputeRealValue(realValue, item.getPrismContext());
 		value = new PrismPropertyValue(realValue);
@@ -170,16 +171,16 @@ public abstract class PropertyValueFilter extends ValueFilter{
 		return createPropertyFilter(filterClass, propertyPath, itemDef, null, realValue);
 	}
 	
-	public List<? extends PrismValue> getValues() {
+	public List<T> getValues() {
 		return values;
 	}
 	
-	public void setValues(List<? extends PrismValue> values) {
+	public void setValues(List<T> values) {
 		this.values = values;
 	}
 	
-	public void setValue(PrismValue value) {
-		List<PrismValue> values = new ArrayList<PrismValue>();
+	public void setValue(T value) {
+		List<T> values = new ArrayList<T>();
 		if (value != null) {
 			values.add(value);
 		}
@@ -190,13 +191,13 @@ public abstract class PropertyValueFilter extends ValueFilter{
 		super.cloneValues(clone);
 		clone.values = getCloneValuesList();
 	}
-	private List<? extends PrismValue> getCloneValuesList() {
+	private List<T> getCloneValuesList() {
 		if (values == null) {
 			return null;
 		}
-		List<PrismValue> clonedValues = new ArrayList<PrismValue>(values.size());
-		for(PrismValue value: values) {
-			clonedValues.add(value.clone());
+		List<T> clonedValues = new ArrayList<T>(values.size());
+		for(T value: values) {
+			clonedValues.add((T) value.clone());
 		}
 		return clonedValues;
 	}

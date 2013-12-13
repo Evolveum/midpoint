@@ -25,13 +25,18 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-public abstract class ValueFilter extends ObjectFilter {
+public abstract class ValueFilter<T extends PrismValue> extends ObjectFilter {
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private ItemPath fullPath;
 	private ItemDefinition definition;
 	private String matchingRule;

@@ -46,7 +46,7 @@ public class ValueOperation extends Operation {
 	}
 
 	@Override
-	public Filter interpret(ObjectFilter objectFilter, IcfNameMapper icfNameMapper) throws SchemaException {
+	public <T> Filter interpret(ObjectFilter objectFilter, IcfNameMapper icfNameMapper) throws SchemaException {
 
 		OperationResult parentResult = new OperationResult("interpret");
 
@@ -59,7 +59,7 @@ public class ValueOperation extends Operation {
 						.getResourceSchemaNamespace());
 				
 				if (objectFilter instanceof EqualsFilter) {
-					EqualsFilter eq = (EqualsFilter) objectFilter;
+					EqualsFilter<T> eq = (EqualsFilter<T>) objectFilter;
 					
 					List<Object> convertedValues = new ArrayList<Object>();
 					for (PrismValue value : eq.getValues()) {

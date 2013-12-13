@@ -31,6 +31,7 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
@@ -38,42 +39,42 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-public class GreaterFilter extends ComparativeFilter{
+public class GreaterFilter<T> extends ComparativeFilter<T>{
 	
 
 	public GreaterFilter() {
 	}
 	
-	GreaterFilter(ItemPath parentPath, ItemDefinition definition, PrismValue value, boolean equals) {
+	GreaterFilter(ItemPath parentPath, PrismPropertyDefinition definition, PrismPropertyValue<T> value, boolean equals) {
 		super(parentPath, definition, value, equals);
 	}
 	
-	public static GreaterFilter createGreaterFilter(ItemPath parentPath, ItemDefinition definition, PrismValue value, boolean equals){
+	public static <T, O extends Objectable> GreaterFilter createGreaterFilter(ItemPath parentPath, PrismPropertyDefinition definition, PrismPropertyValue<T> value, boolean equals){
 		return new GreaterFilter(parentPath, definition, value, equals);
 	}
 	
-	public static GreaterFilter createGreaterFilter(ItemPath parentPath, PrismContainerDefinition<? extends Containerable> containerDef,
-			PrismValue value, boolean equals) throws SchemaException {
+	public static <T, O extends Objectable> GreaterFilter createGreaterFilter(ItemPath parentPath, PrismObjectDefinition<O> containerDef,
+			PrismPropertyValue<T> value, boolean equals) throws SchemaException {
 		return (GreaterFilter) createComparativeFilter(GreaterFilter.class, parentPath, containerDef, value, equals);
 	}
 
-	public static GreaterFilter createGreaterFilter(ItemPath parentPath, ItemDefinition item, Object realValue, boolean equals) throws SchemaException{
+	public static <T> GreaterFilter createGreaterFilter(ItemPath parentPath, PrismPropertyDefinition item, T realValue, boolean equals) throws SchemaException{
 		return (GreaterFilter) createComparativeFilter(GreaterFilter.class, parentPath, item, realValue, equals);
 	}
 
-	public static GreaterFilter createGreaterFilter(ItemPath parentPath, PrismContainerDefinition<? extends Containerable> containerDef,
-			Object realValue, boolean equals) throws SchemaException {
+	public static <T, O extends Objectable> GreaterFilter createGreaterFilter(ItemPath parentPath, PrismObjectDefinition<O> containerDef,
+			T realValue, boolean equals) throws SchemaException {
 		return (GreaterFilter) createComparativeFilter(GreaterFilter.class, parentPath, containerDef, realValue, equals);
 	}
 
-	public static GreaterFilter createGreaterFilter(Class<? extends Objectable> type, PrismContext prismContext, QName propertyName, Object realValue, boolean equals)
+	public static <T, O extends Objectable> GreaterFilter createGreaterFilter(Class<O> type, PrismContext prismContext, QName propertyName, T realValue, boolean equals)
 			throws SchemaException {
 		return (GreaterFilter) createComparativeFilter(GreaterFilter.class, type, prismContext, propertyName, realValue, equals);
 	}
 	
 	@Override
 	public GreaterFilter clone() {
-		return new GreaterFilter(getFullPath(), getDefinition(), getValues().get(0), isEquals());
+		return new GreaterFilter(getFullPath(), getDefinition(), (PrismPropertyValue<T>) getValues().get(0), isEquals());
 	}
 
 	@Override
@@ -124,6 +125,12 @@ public class GreaterFilter extends ComparativeFilter{
 	@Override
 	public <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry) {
 		throw new UnsupportedOperationException("Matching object and greater filter not supported yet");
+	}
+	
+	@Override
+	public PrismPropertyDefinition getDefinition() {
+		// TODO Auto-generated method stub
+		return (PrismPropertyDefinition) super.getDefinition();
 	}
 
 }

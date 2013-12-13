@@ -41,7 +41,7 @@ public class LogicalOperation extends Operation{
 	}
 
 	@Override
-	public Filter interpret(ObjectFilter objectFilter, IcfNameMapper icfNameMapper) throws SchemaException{
+	public <T> Filter interpret(ObjectFilter objectFilter, IcfNameMapper icfNameMapper) throws SchemaException{
 		
 		if (objectFilter instanceof NotFilter){
 			NotFilter not = (NotFilter) objectFilter;
