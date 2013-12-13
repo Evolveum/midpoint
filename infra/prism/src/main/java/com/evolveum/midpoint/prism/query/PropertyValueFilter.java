@@ -73,37 +73,37 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 	
 	static <T extends PrismValue> PropertyValueFilter create(Class filterClass, ItemPath path, ItemDefinition itemDef, String matchingRule, T value) throws SchemaException{
 		if (filterClass.isAssignableFrom(EqualsFilter.class)){
-			return EqualsFilter.createEqual(path, (PrismPropertyDefinition) itemDef, matchingRule, value);
+			return EqualsFilter.createEqual(path, (PrismPropertyDefinition) itemDef, matchingRule, (PrismPropertyValue) value);
 		} else if (filterClass.isAssignableFrom(LessFilter.class)){
-			return LessFilter.createLessFilter(path, (PrismPropertyDefinition) itemDef, value, false);
+			return LessFilter.createLessFilter(path, (PrismPropertyDefinition) itemDef, (PrismPropertyValue) value, false);
 		} else if (filterClass.isAssignableFrom(GreaterFilter.class)){
-			return GreaterFilter.createGreaterFilter(path, (PrismPropertyDefinition) itemDef, value, false);
+			return GreaterFilter.createGreaterFilter(path, (PrismPropertyDefinition) itemDef, (PrismPropertyValue) value, false);
 		}
 		throw new IllegalArgumentException("Bad filter class");
 	}
 
-	static <T extends PrismValue> PropertyValueFilter create(Class filterClass, ItemPath path, ItemDefinition itemDef, String matchingRule, List<T> values) throws SchemaException {
+	static <T> PropertyValueFilter create(Class filterClass, ItemPath path, ItemDefinition itemDef, String matchingRule, List<PrismPropertyValue<T>> values) throws SchemaException {
 		if (filterClass.isAssignableFrom(EqualsFilter.class)) {
 			return EqualsFilter.createEqual(path, (PrismPropertyDefinition) itemDef, matchingRule, values);
 		}
 		throw new IllegalArgumentException("Bad filter class");
 	}
 		
-	public static <F extends ValueFilter, I extends ItemDefinition, V extends Object> PropertyValueFilter createPropertyFilter(Class<F> filterClass, ItemPath parentPath, I item, String matchingRule, V realValue) throws SchemaException {
+	public static <F extends ValueFilter, I extends ItemDefinition, V> PropertyValueFilter createPropertyFilter(Class<F> filterClass, ItemPath parentPath, I item, String matchingRule, V realValue) throws SchemaException {
 
 		if (realValue == null){
 			return create(filterClass, parentPath, item, matchingRule, (PrismPropertyValue)null);
 		}
 		if (List.class.isAssignableFrom(realValue.getClass())) {
-			List<PrismValue> prismValues = new ArrayList<PrismValue>();
+			List<PrismPropertyValue<V>> prismValues = new ArrayList<PrismPropertyValue<V>>();
 			for (Object o : (List) realValue) {
 				if (o instanceof PrismPropertyValue) {
-					PrismPropertyValue pval = (PrismPropertyValue) o;
+					PrismPropertyValue<V> pval = (PrismPropertyValue<V>) o;
 					PrismUtil.recomputePrismPropertyValue(pval, item.getPrismContext());
 					prismValues.add(pval);
 				} else {
 					PrismUtil.recomputeRealValue(o, item.getPrismContext());
-					PrismPropertyValue val = new PrismPropertyValue(o);
+					PrismPropertyValue<V> val = new PrismPropertyValue(o);
 					prismValues.add(val);
 				}
 			}
@@ -111,18 +111,18 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 		}
 		
 		//temporary hack to not allow polystring type to go to the filter..we want polyString
-		PrismPropertyValue value = null;
+		PrismPropertyValue<V> value = null;
 		if (realValue instanceof PolyStringType){
 			realValue = (V) ((PolyStringType) realValue).toPolyString();
 		}
 		PrismUtil.recomputeRealValue(realValue, item.getPrismContext());
-		value = new PrismPropertyValue(realValue);
+		value = new PrismPropertyValue<V>(realValue);
 		return create(filterClass, parentPath, item, matchingRule, value);
 	}
 
 	
-	public static PropertyValueFilter createPropertyFilter(Class filterClass, ItemPath parentPath, PrismContainerDefinition<? extends Containerable> containerDef,
-			PrismValue... values) throws SchemaException {
+	public static <V> PropertyValueFilter createPropertyFilter(Class filterClass, ItemPath parentPath, PrismContainerDefinition<? extends Containerable> containerDef,
+			PrismPropertyValue<V>... values) throws SchemaException {
 //		ItemDefinition itemDef = containerDef.findItemDefinition(parentPath);
 //		if (itemDef == null) {
 //			throw new SchemaException("No definition for item " + parentPath + " in container definition "
