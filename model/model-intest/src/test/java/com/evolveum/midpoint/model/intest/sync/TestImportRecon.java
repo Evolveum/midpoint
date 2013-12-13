@@ -101,12 +101,13 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	protected static final String RESOURCE_DUMMY_LIME_OID = "10000000-0000-0000-0000-000000131404";
 	protected static final String RESOURCE_DUMMY_LIME_NAME = "lime";
 	protected static final String RESOURCE_DUMMY_LIME_NAMESPACE = MidPointConstants.NS_RI;
-	
+
+    protected static final File TASK_RECONCILE_DUMMY_SINGLE_FILE = new File(TEST_DIR, "task-reconcile-dummy-single.xml");
+    protected static final String TASK_RECONCILE_DUMMY_SINGLE_OID = "10000000-0000-0000-5656-565600000004";
+
 	protected static final File TASK_RECONCILE_DUMMY_AZURE_FILE = new File(TEST_DIR, "task-reconcile-dummy-azure.xml");
 	protected static final String TASK_RECONCILE_DUMMY_AZURE_OID = "10000000-0000-0000-5656-56560000a204";
 
-	private static final File TASK_RECONCILE_DUMMY_LONG_FRESHNESS_FILE = new File(TEST_DIR, "task-reconcile-dummy-long-freshness.xml");
-	
 	protected DummyResource dummyResourceAzure;
 	protected DummyResourceContoller dummyResourceCtlAzure;
 	protected ResourceType resourceDummyAzureType;
@@ -424,7 +425,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         
 		// WHEN
         TestUtil.displayWhen(TEST_NAME);
-        importObjectFromFile(TASK_RECONCILE_DUMMY_LONG_FRESHNESS_FILE);
+        importObjectFromFile(TASK_RECONCILE_DUMMY_SINGLE_FILE);
 		
         // THEN
         TestUtil.displayThen(TEST_NAME);
@@ -1020,13 +1021,18 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
     	for (; i < (auditRecords.size() - 1); i+=2) {
         	AuditEventRecord requestRecord = auditRecords.get(i);
         	assertNotNull("No request audit record ("+i+")", requestRecord);
+
+            if (requestRecord.getEventStage() == AuditEventStage.EXECUTION && requestRecord.getEventType() == AuditEventType.RECONCILIATION) {
+                // end of audit records;
+                break;
+            }
         	        	
         	assertEquals("Got this instead of request audit record ("+i+"): "+requestRecord, AuditEventStage.REQUEST, requestRecord.getEventStage());
         	// Request audit may or may not have a delta. Usual records will not have a delta. But e.g. disableAccount reactions will have.
 
         	AuditEventRecord executionRecord = auditRecords.get(i+1);
-        	assertNotNull("No execution audit record ("+i+")", executionRecord);
-        	assertEquals("Got this instead of execution audit record ("+i+"): "+executionRecord, AuditEventStage.EXECUTION, executionRecord.getEventStage());
+        	assertNotNull("No execution audit record (" + i + ")", executionRecord);
+        	assertEquals("Got this instead of execution audit record (" + i + "): " + executionRecord, AuditEventStage.EXECUTION, executionRecord.getEventStage());
         	
         	assertTrue("Empty deltas in execution audit record "+executionRecord, executionRecord.getDeltas() != null && ! executionRecord.getDeltas().isEmpty());
         	modifications++;
