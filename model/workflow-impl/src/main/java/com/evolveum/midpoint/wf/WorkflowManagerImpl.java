@@ -35,6 +35,7 @@ import com.evolveum.midpoint.wf.jobs.WfTaskUtil;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceVariableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -168,8 +169,15 @@ public class WorkflowManagerImpl implements WorkflowManager {
     }
 
     @Override
-    public String getProcessInstanceDetailsPanelName(ProcessInstance processInstance) {
-        String processor = (String) processInstance.getVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_CHANGE_PROCESSOR);
+    public String getProcessInstanceDetailsPanelName(WfProcessInstanceType processInstance) {
+
+        String processor = null;
+        for (WfProcessInstanceVariableType var : processInstance.getVariables()) {
+            if (CommonProcessVariableNames.VARIABLE_MIDPOINT_CHANGE_PROCESSOR.equals(var.getName())) {
+                processor = var.getValue();         // we assume it's not encoded
+                break;
+            }
+        }
         if (processor == null) {
             LOGGER.error("There's no change processor name among the process instance variables; variables = " + processInstance.getVariables());
             throw new IllegalStateException("There's no change processor name among the process instance variables");
@@ -193,7 +201,7 @@ public class WorkflowManagerImpl implements WorkflowManager {
     }
 
     @Override
-    public boolean isCurrentUserAuthorizedToSubmit(WorkItem workItem) {
+    public boolean isCurrentUserAuthorizedToSubmit(WorkItemType workItem) {
         return miscDataUtil.isCurrentUserAuthorizedToSubmit(workItem);
     }
 }

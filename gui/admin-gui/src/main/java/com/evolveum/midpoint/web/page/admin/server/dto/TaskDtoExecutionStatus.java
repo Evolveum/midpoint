@@ -38,12 +38,16 @@ public enum TaskDtoExecutionStatus {
         if (running) {
             return TaskDtoExecutionStatus.RUNNING;
         } else {
-            switch (executionStatus) {
-                case RUNNABLE: return RUNNABLE;
-                case WAITING: return WAITING;
-                case SUSPENDED: return SUSPENDED;
-                case CLOSED: return CLOSED;
-                default: throw new IllegalArgumentException("executionStatus = " + executionStatus);
+            if (executionStatus != null) {
+                switch (executionStatus) {
+                    case RUNNABLE: return RUNNABLE;
+                    case WAITING: return WAITING;
+                    case SUSPENDED: return SUSPENDED;
+                    case CLOSED: return CLOSED;
+                    default: throw new IllegalArgumentException("executionStatus = " + executionStatus);
+                }
+            } else {
+                return null;
             }
         }
     }

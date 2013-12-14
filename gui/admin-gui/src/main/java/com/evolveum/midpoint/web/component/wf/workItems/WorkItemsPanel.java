@@ -61,7 +61,7 @@ public class WorkItemsPanel extends SimplePanel<List<WorkItemDto>> {
             public void onClick(AjaxRequestTarget target, IModel<WorkItemDto> rowModel) {
                 WorkItemDto workItemDto = rowModel.getObject();
                 PageParameters parameters = new PageParameters();
-                parameters.add(PageWorkItem.PARAM_TASK_ID, workItemDto.getWorkItem().getTaskId());
+                parameters.add(PageWorkItem.PARAM_TASK_ID, workItemDto.getWorkItem().getWorkItemId());
                 setResponsePage(new PageWorkItem(parameters, (PageBase) WorkItemsPanel.this.getPage()));
             }
         });

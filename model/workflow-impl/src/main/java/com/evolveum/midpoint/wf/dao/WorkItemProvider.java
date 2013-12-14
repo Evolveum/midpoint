@@ -215,6 +215,7 @@ public class WorkItemProvider {
 
             MetadataType metadataType = new MetadataType();
             metadataType.setCreateTimestamp(XmlTypeConverter.createXMLGregorianCalendar(task.getCreateTime()));
+            wi.setMetadata(metadataType);
         } catch (ActivitiException e) {     // not sure if any of the above methods can throw this exception, but for safety we catch it here
             result.recordFatalError("Couldn't get information on activiti task " + task.getId(), e);
             throw new WorkflowException("Couldn't get information on activiti task " + task.getId(), e);

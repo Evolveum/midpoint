@@ -25,7 +25,7 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
-import com.evolveum.midpoint.wf.api.ProcessInstance;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
@@ -79,7 +79,7 @@ public class PageProcessInstance extends PageAdminWorkItems {
 		try {
             StringValue pid = parameters.get(PARAM_PROCESS_INSTANCE_ID);
             boolean finished = parameters.get(PARAM_PROCESS_INSTANCE_FINISHED).toBoolean();
-            ProcessInstance processInstance;
+            WfProcessInstanceType processInstance;
             try {
                 processInstance = getWorkflowManager().getProcessInstanceById(pid.toString(), finished, true, result);
             } catch (ObjectNotFoundException e) {

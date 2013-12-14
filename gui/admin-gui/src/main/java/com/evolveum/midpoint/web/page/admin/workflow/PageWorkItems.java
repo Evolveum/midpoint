@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow;
 
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -95,7 +96,7 @@ public class PageWorkItems extends PageAdminWorkItems {
             @Override
             public void onClick(AjaxRequestTarget target, IModel<WorkItemDto> rowModel) {
                 WorkItemDto workItemDto = rowModel.getObject();
-                itemDetailsPerformed(target, workItemDto.getWorkItem().getTaskId());
+                itemDetailsPerformed(target, workItemDto.getWorkItem().getWorkItemId());
             }
         };
         columns.add(column);
@@ -115,7 +116,7 @@ public class PageWorkItems extends PageAdminWorkItems {
             @Override
             public void onClick(AjaxRequestTarget target, IModel<WorkItemDto> rowModel) {
                 WorkItemDto workItemDto = rowModel.getObject();
-                itemDetailsPerformed(target, workItemDto.getWorkItem().getTaskId());
+                itemDetailsPerformed(target, workItemDto.getWorkItem().getWorkItemId());
             }
         };
         columns.add(column);
@@ -130,7 +131,7 @@ public class PageWorkItems extends PageAdminWorkItems {
                     @Override
                     public Object getObject() {
                         WorkItemDto pi = rowModel.getObject();
-                        Date started = pi.getWorkItem().getCreateTime();
+                        Date started = XmlTypeConverter.toDate(pi.getWorkItem().getMetadata().getCreateTimestamp());
                         if (started == null) {
                             return "?";
                         } else {
@@ -251,7 +252,7 @@ public class PageWorkItems extends PageAdminWorkItems {
             OperationResult result = mainResult.createSubresult(OPERATION_APPROVE_OR_REJECT_ITEM);
             try {
                 //wfDataAccessor.approveOrRejectWorkItem(workItemDto.getWorkItem().getTaskId(), WorkItemDtoProvider.currentUser(), approve, result);
-                workflowManagerImpl.approveOrRejectWorkItem(workItemDto.getWorkItem().getTaskId(), approve, result);
+                workflowManagerImpl.approveOrRejectWorkItem(workItemDto.getWorkItem().getWorkItemId(), approve, result);
                 result.computeStatus();
             } catch (Exception e) {
                 result.recordPartialError("Couldn't approve/reject work item due to an unexpected exception.", e);

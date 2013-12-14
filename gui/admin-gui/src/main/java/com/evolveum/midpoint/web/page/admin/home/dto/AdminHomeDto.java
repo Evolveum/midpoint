@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.web.page.admin.home.dto;
 
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
-import com.evolveum.midpoint.wf.api.WorkItem;
 
 import java.io.Serializable;
 import java.util.ArrayList;

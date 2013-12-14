@@ -39,12 +39,12 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.WfConfiguration;
 import com.evolveum.midpoint.wf.activiti.TestAuthenticationInfoHolder;
-import com.evolveum.midpoint.wf.api.WorkItem;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.processes.StringHolder;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import org.activiti.engine.form.FormProperty;
 import org.apache.commons.lang.Validate;
@@ -276,8 +276,8 @@ public class MiscDataUtil {
         }
     }
 
-    public boolean isCurrentUserAuthorizedToSubmit(WorkItem workItem) {
-        return isAuthorizedToSubmit(MiscDataUtil.getPrincipalUser(), workItem.getAssignee());
+    public boolean isCurrentUserAuthorizedToSubmit(WorkItemType workItem) {
+        return isAuthorizedToSubmit(MiscDataUtil.getPrincipalUser(), workItem.getAssigneeRef().getOid());
     }
 
     public boolean isAuthorizedToSubmit(MidPointPrincipal principal, String assigneeOid) {

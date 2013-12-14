@@ -133,7 +133,7 @@ public interface WorkflowManager {
     // TODO remove this
     PrismContext getPrismContext();
 
-    String getProcessInstanceDetailsPanelName(ProcessInstance processInstance);
+    String getProcessInstanceDetailsPanelName(WfProcessInstanceType processInstance);
 
     void registerProcessListener(ProcessListener processListener);
 
@@ -141,6 +141,6 @@ public interface WorkflowManager {
 
     List<? extends ObjectReferenceType> getApprovedBy(Task task, OperationResult result) throws SchemaException;
 
-    boolean isCurrentUserAuthorizedToSubmit(WorkItem workItem);
+    boolean isCurrentUserAuthorizedToSubmit(WorkItemType workItem);
 
 }
