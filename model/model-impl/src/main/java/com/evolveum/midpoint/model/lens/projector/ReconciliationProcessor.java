@@ -72,7 +72,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingStrengthType
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PropertyAccessType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
  * Processor that reconciles the computed account and the real account. There
@@ -108,8 +107,8 @@ public class ReconciliationProcessor {
 		if (focusContext == null) {
 			return;
 		}
-		if (focusContext.getObjectTypeClass() != UserType.class) {
-			// We can do this only for user.
+		if (FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
+			// We can do this only for focal types.
 			return;
 		}
 		processReconciliationUser(context, projectionContext, result);

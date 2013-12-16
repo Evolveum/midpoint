@@ -66,7 +66,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceAttributeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
  * 
@@ -410,10 +409,6 @@ public class AccountConstruction<F extends FocusType> implements DebugDumpable, 
 		
 		LOGGER.trace("Evaluated mapping for "+attrName+": "+mapping);
 		return mapping;
-	}
-
-	private PrismObjectDefinition<?> getUserDefinition() {
-		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
 	}
 
 	private ResourceAttributeDefinition findAttributeDefinition(QName attributeName) {

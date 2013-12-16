@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.Iterator;
 
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -57,18 +58,6 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProjectionPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectTemplateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
 
 /**
  * Context loader loads the missing parts of the context. The context enters the projector with just the minimum information.
@@ -421,7 +410,7 @@ public class ContextLoader {
 	private <F extends FocusType> void loadLinkRefsFromFocus(LensContext<F> context, PrismObject<F> focus,
 			OperationResult result) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
-		PrismReference linkRef = focus.findReference(UserType.F_LINK_REF);
+		PrismReference linkRef = focus.findReference(FocusType.F_LINK_REF);
 		if (linkRef == null) {
 			return;
 		}
@@ -482,19 +471,19 @@ public class ContextLoader {
 			return;
 		}
 		
-		ReferenceDelta accountRefDelta;
+		ReferenceDelta linkRefDelta;
 		if (focusPrimaryDelta.getChangeType() == ChangeType.ADD) {
-			PrismReference accountRef = focusPrimaryDelta.getObjectToAdd().findReference(
-					UserType.F_LINK_REF);
-			if (accountRef == null) {
-				// Adding new user with no accountRef -> nothing to do
+			PrismReference linkRef = focusPrimaryDelta.getObjectToAdd().findReference(
+					FocusType.F_LINK_REF);
+			if (linkRef == null) {
+				// Adding new focus with no linkRef -> nothing to do
 				return;
 			}
-			accountRefDelta = accountRef.createDelta(new ItemPath(UserType.F_LINK_REF));
-			accountRefDelta.addValuesToAdd(PrismValue.cloneValues(accountRef.getValues()));
+			linkRefDelta = linkRef.createDelta(new ItemPath(FocusType.F_LINK_REF));
+			linkRefDelta.addValuesToAdd(PrismValue.cloneValues(linkRef.getValues()));
 		} else if (focusPrimaryDelta.getChangeType() == ChangeType.MODIFY) {
-			accountRefDelta = focusPrimaryDelta.findReferenceModification(UserType.F_LINK_REF);
-			if (accountRefDelta == null) {
+			linkRefDelta = focusPrimaryDelta.findReferenceModification(FocusType.F_LINK_REF);
+			if (linkRefDelta == null) {
 				return;
 			}
 		} else {
@@ -502,15 +491,15 @@ public class ContextLoader {
 			return;
 		}
 		
-		if (accountRefDelta.isReplace()) {
+		if (linkRefDelta.isReplace()) {
 			// process "replace" by distributing values to delete and add
-			accountRefDelta = (ReferenceDelta) accountRefDelta.clone();
-			PrismReference accountRef = focus.findReference(UserType.F_LINK_REF);
-			accountRefDelta.distributeReplace(accountRef == null ? null : accountRef.getValues());
+			linkRefDelta = (ReferenceDelta) linkRefDelta.clone();
+			PrismReference linkRef = focus.findReference(FocusType.F_LINK_REF);
+			linkRefDelta.distributeReplace(linkRef == null ? null : linkRef.getValues());
 		}
 		
-		if (accountRefDelta.getValuesToAdd() != null) {
-			for (PrismReferenceValue refVal : accountRefDelta.getValuesToAdd()) {
+		if (linkRefDelta.getValuesToAdd() != null) {
+			for (PrismReferenceValue refVal : linkRefDelta.getValuesToAdd()) {
 				String oid = refVal.getOid();
 				LensProjectionContext accountContext = null;
 				PrismObject<ShadowType> account = null;
@@ -523,7 +512,7 @@ public class ContextLoader {
 								+ focus);
 					}
 					provisioningService.applyDefinition(account, result);
-					if (consistencyChecks) ShadowUtil.checkConsistence(account, "account from "+accountRefDelta);
+					if (consistencyChecks) ShadowUtil.checkConsistence(account, "account from "+linkRefDelta);
 					// Check for conflicting change
 					accountContext = LensUtil.getProjectionContext(context, account, provisioningService, prismContext, result);
 					if (accountContext != null) {
@@ -596,8 +585,8 @@ public class ContextLoader {
 			}
 		}
 		
-		if (accountRefDelta.getValuesToDelete() != null) {
-			for (PrismReferenceValue refVal : accountRefDelta.getValuesToDelete()) {
+		if (linkRefDelta.getValuesToDelete() != null) {
+			for (PrismReferenceValue refVal : linkRefDelta.getValuesToDelete()) {
 				String oid = refVal.getOid();
 				LensProjectionContext accountContext = null;
 				PrismObject<ShadowType> account = null;
@@ -654,9 +643,9 @@ public class ContextLoader {
 		// We need to make sure this happens on the real primary user delta
 
 		if (focusPrimaryDelta.getChangeType() == ChangeType.ADD) {
-			focusPrimaryDelta.getObjectToAdd().removeReference(UserType.F_LINK_REF);
+			focusPrimaryDelta.getObjectToAdd().removeReference(FocusType.F_LINK_REF);
 		} else if (focusPrimaryDelta.getChangeType() == ChangeType.MODIFY) {
-			focusPrimaryDelta.removeReferenceModification(UserType.F_LINK_REF);
+			focusPrimaryDelta.removeReferenceModification(FocusType.F_LINK_REF);
 		}
 
 	}

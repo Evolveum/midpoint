@@ -38,7 +38,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensFocusContextType;
 import org.apache.commons.lang.StringUtils;
 
@@ -225,7 +224,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     }
     
     private PrismContainerDefinition<AssignmentType> getAssignmentContainerDefinition() {
-		return getObjectDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
+		return getObjectDefinition().findContainerDefinition(FocusType.F_ASSIGNMENT);
 	}
     
     @Override

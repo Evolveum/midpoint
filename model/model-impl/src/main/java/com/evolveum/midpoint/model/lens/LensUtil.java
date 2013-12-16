@@ -73,7 +73,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
  * @author semancik
@@ -477,7 +476,7 @@ public class LensUtil {
 		
 		PrismPropertyDefinition<XMLGregorianCalendar> timestampDef = activationDefinition.findPropertyDefinition(timestampPropertyName);
 		PropertyDelta<XMLGregorianCalendar> timestampDelta 
-				= timestampDef.createEmptyDelta(new ItemPath(UserType.F_ACTIVATION, timestampPropertyName));
+				= timestampDef.createEmptyDelta(new ItemPath(FocusType.F_ACTIVATION, timestampPropertyName));
 		timestampDelta.setValueToReplace(new PrismPropertyValue<XMLGregorianCalendar>(now, origin, null));
 		return timestampDelta;
     }

@@ -160,7 +160,7 @@ public class AssignmentProcessor {
         
         Collection<PrismContainerValue<AssignmentType>> assignmentsCurrent = new ArrayList<PrismContainerValue<AssignmentType>>();
         if (focusContext.getObjectCurrent() != null) {
-            PrismContainer<AssignmentType> assignmentContainer = focusContext.getObjectCurrent().findContainer(UserType.F_ASSIGNMENT);
+            PrismContainer<AssignmentType> assignmentContainer = focusContext.getObjectCurrent().findContainer(FocusType.F_ASSIGNMENT);
             if (assignmentContainer != null) {
             	assignmentsCurrent.addAll(assignmentContainer.getValues());
             }
@@ -627,16 +627,17 @@ public class AssignmentProcessor {
 	}
 
 	private <F extends FocusType, T extends ObjectType> void createAssignmentDelta(LensContext<F> context, LensProjectionContext accountContext) throws SchemaException{
-        ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(UserType.F_ASSIGNMENT, UserType.class, prismContext);
-		AssignmentType assignmet = new AssignmentType();
+        Class<F> focusClass = context.getFocusClass();
+        ContainerDelta<AssignmentType> assignmentDelta = ContainerDelta.createDelta(FocusType.F_ASSIGNMENT, focusClass, prismContext);
+		AssignmentType assignment = new AssignmentType();
 		ConstructionType constructionType = new ConstructionType();
 		constructionType.setResourceRef(ObjectTypeUtil.createObjectRef(accountContext.getResource()));
-		assignmet.setConstruction(constructionType);
-		assignmentDelta.addValueToAdd(assignmet.asPrismContainerValue());
+		assignment.setConstruction(constructionType);
+		assignmentDelta.addValueToAdd(assignment.asPrismContainerValue());
 		assignmentDelta.applyDefinition(prismContext.getSchemaRegistry()
-				.findObjectDefinitionByCompileTimeClass(UserType.class)
-				.findContainerDefinition(UserType.F_ASSIGNMENT));
-		context.getFocusContext().swallowToProjectionWaveSecondaryDelta(assignmentDelta);//, context.getProjectionWave());//addSecondaryDelta(assignmentDelta);
+				.findObjectDefinitionByCompileTimeClass(focusClass)
+				.findContainerDefinition(FocusType.F_ASSIGNMENT));
+		context.getFocusContext().swallowToProjectionWaveSecondaryDelta(assignmentDelta);
 		
 	}
 
@@ -657,10 +658,11 @@ public class AssignmentProcessor {
 		if (focusContext == null || evaluatedAssignmentTriple == null) {
 			return;
 		}
-		
-		PrismObjectDefinition<UserType> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-		PrismReferenceDefinition orgRefDef = userDef.findReferenceDefinition(UserType.F_PARENT_ORG_REF);
-		ItemPath orgRefPath = new ItemPath(UserType.F_PARENT_ORG_REF);
+
+        Class<F> focusClass = focusContext.getObjectTypeClass();
+        PrismObjectDefinition<F> userDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(focusClass);
+		PrismReferenceDefinition orgRefDef = userDef.findReferenceDefinition(FocusType.F_PARENT_ORG_REF);
+		ItemPath orgRefPath = new ItemPath(FocusType.F_PARENT_ORG_REF);
 		
 		// Plus
 		for (Assignment assignment: evaluatedAssignmentTriple.getPlusSet()) {

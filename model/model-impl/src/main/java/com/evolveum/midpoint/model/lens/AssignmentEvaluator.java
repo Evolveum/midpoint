@@ -53,7 +53,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
  * @author semancik

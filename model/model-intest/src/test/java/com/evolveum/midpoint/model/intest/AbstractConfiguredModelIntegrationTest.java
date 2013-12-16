@@ -142,8 +142,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 
 	protected static final String ROLE_SUPERUSER_FILENAME = COMMON_DIR_NAME + "/role-superuser.xml";
 	protected static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
-	
-	// Assigns dummy resource, sets some attributes
+
 	protected static final File ROLE_PIRATE_FILE = new File(COMMON_DIR_NAME, "role-pirate.xml");
 	protected static final String ROLE_PIRATE_OID = "12345678-d34d-b33f-f00d-555555556666";
     protected static final String ROLE_PIRATE_NAME = "Pirate";

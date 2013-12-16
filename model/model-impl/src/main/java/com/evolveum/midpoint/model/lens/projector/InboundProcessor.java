@@ -750,9 +750,4 @@ public class InboundProcessor {
 		
 		return inboundMappings;
 	}
-
-	private PrismObjectDefinition<UserType> getUserDefinition() {
-		return prismContext.getSchemaRegistry().getObjectSchema()
-				.findObjectDefinitionByCompileTimeClass(UserType.class);
-	}
 }

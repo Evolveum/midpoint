@@ -67,12 +67,29 @@ import com.evolveum.midpoint.util.MiscUtil;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest {
 	
-	public static final File TEST_DIR = new File("src/test/resources/contract");
+	public static final File TEST_DIR = new File("src/test/resources/gensync");
+
+    protected static final File ROLE_SWASHBUCKLER_FILE = new File(TEST_DIR, "role-swashbuckler.xml");
+    protected static final String ROLE_SWASHBUCKLER_OID = "12345678-d34d-b33f-f00d-5b5b5b5b5b5b";
+    protected static final String ROLE_SWASHBUCKLER_NAME = "Swashbuckler";
+    protected static final String ROLE_SWASHBUCKLER_DESCRIPTION = "Pirate wannabes";
+
+    protected static final String GROUP_SWASHBUCKLER_DUMMY_NAME = "swashbuckler";
+
+    protected static final File ROLE_META_DUMMYGROUP_FILE = new File(TEST_DIR, "role-meta-dummygroup.xml");
+    protected static final String ROLE_META_DUMMYGROUP_OID = "12348888-d34d-8888-8888-555555556666";
 
 	private static String groupOid;
 	private static String userCharlesOid;
-	
-	@Test
+
+    @Override
+    public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+        super.initSystem(initTask, initResult);
+
+        repoAddObjectFromFile(ROLE_META_DUMMYGROUP_FILE, RoleType.class, initResult);
+    }
+
+    @Test
     public void test050GetRolePirate() throws Exception {
 		final String TEST_NAME = "test050GetRolePirate";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -1158,7 +1175,7 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
 
 		try {
 			PrismObject<RoleType> role = getRole(ROLE_PIRATE_OID);
-			AssertJUnit.fail("Pirates are still alive!");
+			AssertJUnit.fail("Privateers are still alive!");
 		} catch (ObjectNotFoundException ex) {
 			// This is OK
 		}
@@ -1182,6 +1199,72 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
         dummyAuditService.asserHasDelta(ChangeType.DELETE, RoleType.class);
         dummyAuditService.asserHasDelta(ChangeType.DELETE, ShadowType.class);
         dummyAuditService.assertTarget(ROLE_PIRATE_OID);
+        dummyAuditService.assertExecutionSuccess();
+    }
+
+    /**
+     * Swashbuckler role has an assignment of meta-role already. Adding the swashbuckler role should
+     * automatically create a group.
+     */
+    @Test
+    public void test200AddRoleSwashbuckler() throws Exception {
+        final String TEST_NAME = "test200AddRoleSwashbuckler";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestRoleEntitlement.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
+        dummyAuditService.clear();
+        prepareNotifications();
+
+        PrismObject<RoleType> role = PrismTestUtil.parseObject(ROLE_SWASHBUCKLER_FILE);
+        ObjectDelta<RoleType> roleDelta = ObjectDelta.createAddDelta(role);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(roleDelta);
+
+        XMLGregorianCalendar startTime = clock.currentTimeXMLGregorianCalendar();
+
+        // WHEN
+        modelService.executeChanges(deltas, null, task, result);
+
+        // THEN
+        result.computeStatus();
+        TestUtil.assertSuccess("executeChanges result", result);
+        XMLGregorianCalendar endTime = clock.currentTimeXMLGregorianCalendar();
+
+        assertNotNull("No account OID in resulting delta", groupOid);
+        // Check linkRef (should be none)
+        role = getRole(ROLE_SWASHBUCKLER_OID);
+        // reflected by inbound
+        PrismAsserts.assertPropertyValue(role,ROLE_EXTENSION_COST_CENTER_PATH, "META0000");
+        assertLinks(role, 1);
+        groupOid = getSingleLinkOid(role);
+
+        // Check shadow
+        PrismObject<ShadowType> shadow = repositoryService.getObject(ShadowType.class, groupOid, null, result);
+        assertDummyGroupShadowRepo(shadow, groupOid, GROUP_SWASHBUCKLER_DUMMY_NAME);
+//        assertEnableTimestampShadow(shadow, startTime, endTime);
+
+        // Check account
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, groupOid, null, task, result);
+        assertDummyGroupShadowModel(accountModel, groupOid, GROUP_SWASHBUCKLER_DUMMY_NAME);
+//        assertEnableTimestampShadow(accountModel, startTime, endTime);
+
+        // Check group in dummy resource
+        assertDummyGroup(GROUP_SWASHBUCKLER_DUMMY_NAME, ROLE_SWASHBUCKLER_DESCRIPTION);
+
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(3);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(0,3);
+        dummyAuditService.asserHasDelta(0, ChangeType.ADD, RoleType.class);
+        dummyAuditService.asserHasDelta(0, ChangeType.ADD, ShadowType.class);
+        dummyAuditService.asserHasDelta(0, ChangeType.MODIFY, RoleType.class); // link
+        dummyAuditService.assertExecutionDeltas(1,1);
+        dummyAuditService.asserHasDelta(1, ChangeType.MODIFY, RoleType.class); // inbound
+        dummyAuditService.assertTarget(ROLE_SWASHBUCKLER_OID);
         dummyAuditService.assertExecutionSuccess();
     }
 

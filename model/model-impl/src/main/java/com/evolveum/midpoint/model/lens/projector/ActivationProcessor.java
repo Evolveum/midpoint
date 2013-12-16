@@ -323,7 +323,7 @@ public class ActivationProcessor {
 					}
     				
     				PrismPropertyDefinition<String> disableReasonDef = activationDefinition.findPropertyDefinition(ActivationType.F_DISABLE_REASON);
-    				disableReasonDelta = disableReasonDef.createEmptyDelta(new ItemPath(UserType.F_ACTIVATION, ActivationType.F_DISABLE_REASON));
+    				disableReasonDelta = disableReasonDef.createEmptyDelta(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_DISABLE_REASON));
     				disableReasonDelta.setValueToReplace(new PrismPropertyValue<String>(disableReason, OriginType.OUTBOUND, null));
     				accCtx.swallowToSecondaryDelta(disableReasonDelta);
     			}

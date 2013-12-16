@@ -61,7 +61,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TriggerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
  * @author Radovan Semancik

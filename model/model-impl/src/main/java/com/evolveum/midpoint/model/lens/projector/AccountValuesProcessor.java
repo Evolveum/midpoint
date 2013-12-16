@@ -84,7 +84,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
  * Processor that determines values of account attributes. It does so by taking the pre-processed information left
@@ -145,13 +144,13 @@ public class AccountValuesProcessor {
 	}
 	
 	public <F extends FocusType> void processAccounts(LensContext<F> context, 
-			LensProjectionContext accountContext, String activityDescription, Task task, OperationResult result)
+			LensProjectionContext projContext, String activityDescription, Task task, OperationResult result)
 			throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException,
 			CommunicationException, ConfigurationException, SecurityViolationException, PolicyViolationException {
 		
-		checkSchemaAndPolicies(context, accountContext, activityDescription, result);
+		checkSchemaAndPolicies(context, projContext, activityDescription, result);
 		
-		SynchronizationPolicyDecision policyDecision = accountContext.getSynchronizationPolicyDecision();
+		SynchronizationPolicyDecision policyDecision = projContext.getSynchronizationPolicyDecision();
 		if (policyDecision != null && policyDecision == SynchronizationPolicyDecision.UNLINK) {
 			// We will not update accounts that are being unlinked.
 			// we cannot skip deleted accounts here as the delete delta will be skipped as well
@@ -160,16 +159,16 @@ public class AccountValuesProcessor {
 		
 		if (consistencyChecks) context.checkConsistence();
 		
-		if (!accountContext.hasFullShadow() && hasIterationExpression(accountContext)) {
-			LensUtil.loadFullAccount(context, accountContext, provisioningService, result);
+		if (!projContext.hasFullShadow() && hasIterationExpression(projContext)) {
+			LensUtil.loadFullAccount(context, projContext, provisioningService, result);
 		}
 		
-		int maxIterations = determineMaxIterations(accountContext);
+		int maxIterations = determineMaxIterations(projContext);
 		int iteration = 0;
 		String iterationToken = null;
 		boolean wasResetIterationCounter = false;
 		
-		PrismObject<ShadowType> shadowCurrent = accountContext.getObjectCurrent();
+		PrismObject<ShadowType> shadowCurrent = projContext.getObjectCurrent();
 		if (shadowCurrent != null) {
 			Integer shadowIteration = shadowCurrent.asObjectable().getIteration();
 			if (shadowIteration != null) {
@@ -181,35 +180,35 @@ public class AccountValuesProcessor {
 		boolean skipUniquenessCheck = false;
 		while (true) {
 			
-			accountContext.setIteration(iteration);
+			projContext.setIteration(iteration);
 			if (iterationToken == null) {
-				iterationToken = formatIterationToken(context, accountContext, iteration, result);
+				iterationToken = formatIterationToken(context, projContext, iteration, result);
 			}
-			accountContext.setIterationToken(iterationToken);
+			projContext.setIterationToken(iterationToken);
 			
 			String conflictMessage;
 			
 			// These are normally null. But there may be leftover from the previous iteration.
 			// While that should not affect the algorithm (it should overwrite it) it may confuse
 			// people during debugging and unecessarily clutter the debug output.
-			accountContext.setOutboundAccountConstruction(null);
-			accountContext.setSqueezedAttributes(null);
+			projContext.setOutboundAccountConstruction(null);
+			projContext.setSqueezedAttributes(null);
 			
-			LOGGER.trace("Projection values iteration {}, token '{}' for {}", new Object[]{iteration, iterationToken, accountContext.getHumanReadableName()});
+			LOGGER.trace("Projection values iteration {}, token '{}' for {}", new Object[]{iteration, iterationToken, projContext.getHumanReadableName()});
 			
 //			LensUtil.traceContext(LOGGER, activityDescription, "values (start)", false, context, true);
 			
-			if (!evaluateIterationCondition(context, accountContext, iteration, iterationToken, true, result)) {
+			if (!evaluateIterationCondition(context, projContext, iteration, iterationToken, true, result)) {
 				
 				conflictMessage = "pre-iteration condition was false";
 				LOGGER.debug("Skipping iteration {}, token '{}' for {} because the pre-iteration condition was false",
-						new Object[]{iteration, iterationToken, accountContext.getHumanReadableName()});
+						new Object[]{iteration, iterationToken, projContext.getHumanReadableName()});
 			} else {
 							
 				if (consistencyChecks) context.checkConsistence();
 				
 				// Re-evaluates the values in the account constructions (including roles)
-				assignmentProcessor.processAssignmentsAccountValues(accountContext, result);
+				assignmentProcessor.processAssignmentsAccountValues(projContext, result);
 				
 				context.recompute();
 				if (consistencyChecks) context.checkConsistence();
@@ -217,7 +216,7 @@ public class AccountValuesProcessor {
 //				LensUtil.traceContext(LOGGER, activityDescription, "values (assignment account values)", false, context, true);
 				
 				// Evaluates the values in outbound mappings
-				outboundProcessor.processOutbound(context, accountContext, task, result);
+				outboundProcessor.processOutbound(context, projContext, task, result);
 				
 				context.recompute();
 				if (consistencyChecks) context.checkConsistence();
@@ -225,7 +224,7 @@ public class AccountValuesProcessor {
 //				LensUtil.traceContext(LOGGER, activityDescription, "values (outbound)", false, context, true);
 				
 				// Merges the values together, processing exclusions and strong/weak mappings are needed
-				consolidationProcessor.consolidateValues(context, accountContext, result);
+				consolidationProcessor.consolidateValues(context, projContext, result);
 				
 				if (consistencyChecks) context.checkConsistence();
 		        context.recompute();
@@ -235,11 +234,11 @@ public class AccountValuesProcessor {
 		        // we cannot do that before because the mappings are not yet evaluated and the triples and not
 		        // consolidated to deltas. We can do it only now. It means that we will waste the first run
 		        // but I don't see any easier way to do it now.
-		        if (iteration != 0 && !wasResetIterationCounter && willResetIterationCounter(accountContext)) {
+		        if (iteration != 0 && !wasResetIterationCounter && willResetIterationCounter(projContext)) {
 		        	wasResetIterationCounter = true;
 		        	iteration = 0;
 		    		iterationToken = null;
-		    		cleanupContext(accountContext);
+		    		cleanupContext(projContext);
 		    		LOGGER.trace("Resetting iteration counter and token because we have rename");
 			        if (consistencyChecks) context.checkConsistence();
 		    		continue;
@@ -256,7 +255,7 @@ public class AccountValuesProcessor {
 		        
 		        // Check constraints
 		        boolean conflict = true;
-		        ShadowConstraintsChecker<F> checker = new ShadowConstraintsChecker<F>(accountContext);
+		        ShadowConstraintsChecker<F> checker = new ShadowConstraintsChecker<F>(projContext);
 		        
 		        if (skipUniquenessCheck) {
 		        	skipUniquenessCheck = false;
@@ -294,21 +293,21 @@ public class AccountValuesProcessor {
 		        			}
 			        		
 			        		if (conflict) {
-				        		PrismObject<UserType> user = repositoryService.listAccountShadowOwner(checker.getConflictingShadow().getOid(), result);
+                                PrismObject<F> focus = repositoryService.searchShadowOwner(checker.getConflictingShadow().getOid(), result);
 				        		
 				        		
 				        		//the owner of the shadow exist and it is a current user..so the shadow was successfully created, linked etc..no other recompute is needed..
-				        		if (user != null && user.getOid().equals(context.getFocusContext().getOid())) {
-				        			LOGGER.trace("Conflicting account already linked to the current user, no recompute needed, continue processing with conflicting account.");
+				        		if (focus != null && focus.getOid().equals(context.getFocusContext().getOid())) {
+				        			LOGGER.trace("Conflicting projection already linked to the current focus, no recompute needed, continue processing with conflicting projection.");
 			//	        			accountContext.setSecondaryDelta(null);
-				        			cleanupContext(accountContext);	        			
-				        			accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
-				        			accountContext.setObjectOld(fullConflictingShadow.clone());
-				        			accountContext.setObjectCurrent(fullConflictingShadow);
-				        			accountContext.setFullShadow(true);
-				        			ObjectDelta<ShadowType> secondaryDelta = accountContext.getSecondaryDelta();
-				        			if (secondaryDelta != null && accountContext.getOid() != null) {
-				        	        	secondaryDelta.setOid(accountContext.getOid());
+				        			cleanupContext(projContext);
+				        			projContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
+				        			projContext.setObjectOld(fullConflictingShadow.clone());
+				        			projContext.setObjectCurrent(fullConflictingShadow);
+				        			projContext.setFullShadow(true);
+				        			ObjectDelta<ShadowType> secondaryDelta = projContext.getSecondaryDelta();
+				        			if (secondaryDelta != null && projContext.getOid() != null) {
+				        	        	secondaryDelta.setOid(projContext.getOid());
 				        	        }
 //				        			result.computeStatus();
 //									// if the result is fatal error, it may mean that the
@@ -325,9 +324,9 @@ public class AccountValuesProcessor {
 				        			continue;
 				        		}
 				        		
-				        		if (user == null) {
-					        		LOGGER.trace("There is no owner linked with the conflicting account.");
-					        		ResourceType resourceType = accountContext.getResource();
+				        		if (focus == null) {
+					        		LOGGER.trace("There is no owner linked with the conflicting projection.");
+					        		ResourceType resourceType = projContext.getResource();
 					        		
 					        		if (ResourceTypeUtil.isSynchronizationOpportunistic(resourceType)) {
 					        			LOGGER.trace("Trying to find owner using correlation expression.");
@@ -339,44 +338,44 @@ public class AccountValuesProcessor {
 											//if it is add account, create new context for conflicting account..
 											//it ensures, that conflicting account is linked to the user
 											
-											if (accountContext.getPrimaryDelta() != null && accountContext.getPrimaryDelta().isAdd()){
+											if (projContext.getPrimaryDelta() != null && projContext.getPrimaryDelta().isAdd()){
 
-												PrismObject<ShadowType> shadow = accountContext.getPrimaryDelta().getObjectToAdd();
+												PrismObject<ShadowType> shadow = projContext.getPrimaryDelta().getObjectToAdd();
 												LOGGER.trace("Found primary ADD delta of shadow {}.", shadow);
 												
-												LensProjectionContext conflictingAccountContext = context.findProjectionContext(accountContext.getResourceShadowDiscriminator(), fullConflictingShadow.getOid());
+												LensProjectionContext conflictingAccountContext = context.findProjectionContext(projContext.getResourceShadowDiscriminator(), fullConflictingShadow.getOid());
 												if (conflictingAccountContext == null){
-													conflictingAccountContext = LensUtil.createAccountContext(context, accountContext.getResourceShadowDiscriminator());
+													conflictingAccountContext = LensUtil.createAccountContext(context, projContext.getResourceShadowDiscriminator());
 //													conflictingAccountContext = context.createProjectionContext(accountContext.getResourceShadowDiscriminator());
 													conflictingAccountContext.setOid(fullConflictingShadow.getOid());
 													conflictingAccountContext.setObjectOld(fullConflictingShadow.clone());
 													conflictingAccountContext.setObjectCurrent(fullConflictingShadow);
 													conflictingAccountContext.setFullShadow(true);
 													conflictingAccountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
-													conflictingAccountContext.setResource(accountContext.getResource());
+													conflictingAccountContext.setResource(projContext.getResource());
 													conflictingAccountContext.setDoReconciliation(true);
 													conflictingAccountContext.getDependencies().clear();
-													conflictingAccountContext.getDependencies().addAll(accountContext.getDependencies());
+													conflictingAccountContext.getDependencies().addAll(projContext.getDependencies());
 													conflictingAccountContexts.add(conflictingAccountContext);
 												}
 												
-												accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
-												result.recordFatalError("Could not add account " + accountContext.getObjectNew() + ", because the account with the same idenfitier already exists on the resource. ");
-												LOGGER.error("Could not add account {}, because the account with the same idenfitier already exists on the resource. ", accountContext.getObjectNew());
+												projContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.BROKEN);
+												result.recordFatalError("Could not add account " + projContext.getObjectNew() + ", because the account with the same idenfitier already exists on the resource. ");
+												LOGGER.error("Could not add account {}, because the account with the same idenfitier already exists on the resource. ", projContext.getObjectNew());
 												
 												skipUniquenessCheck = true; // to avoid endless loop
 							        			continue;
 											}
 											
 											//found shadow belongs to the current user..need to link it and replace current shadow with the found shadow..
-											cleanupContext(accountContext);
-											accountContext.setObjectOld(fullConflictingShadow.clone());
-											accountContext.setObjectCurrent(fullConflictingShadow);
-											accountContext.setFullShadow(true);
-											accountContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
-											ObjectDelta<ShadowType> secondaryDelta = accountContext.getSecondaryDelta();
-											if (secondaryDelta != null && accountContext.getOid() != null) {
-									        	secondaryDelta.setOid(accountContext.getOid());
+											cleanupContext(projContext);
+											projContext.setObjectOld(fullConflictingShadow.clone());
+											projContext.setObjectCurrent(fullConflictingShadow);
+											projContext.setFullShadow(true);
+											projContext.setSynchronizationPolicyDecision(SynchronizationPolicyDecision.KEEP);
+											ObjectDelta<ShadowType> secondaryDelta = projContext.getSecondaryDelta();
+											if (secondaryDelta != null && projContext.getOid() != null) {
+									        	secondaryDelta.setOid(projContext.getOid());
 									        }
 											LOGGER.trace("User {} satisfies correlation rules.", context.getFocusContext().getObjectNew());
 											
@@ -408,13 +407,13 @@ public class AccountValuesProcessor {
 		        }
 		        
 		        if (!conflict) {
-					if (evaluateIterationCondition(context, accountContext, iteration, iterationToken, false, result)) {
+					if (evaluateIterationCondition(context, projContext, iteration, iterationToken, false, result)) {
 	    				// stop the iterations
 	    				break;
 	    			} else {
 	    				conflictMessage = "post-iteration condition was false";
 	    				LOGGER.debug("Skipping iteration {}, token '{}' for {} because the post-iteration condition was false",
-	    						new Object[]{iteration, iterationToken, accountContext.getHumanReadableName()});
+	    						new Object[]{iteration, iterationToken, projContext.getHumanReadableName()});
 	    			}
 				} else {
 					conflictMessage = checker.getMessages();
@@ -430,7 +429,7 @@ public class AccountValuesProcessor {
 	        	} else {
 	        		sb.append("Too many iterations ("+iteration+") for ");
 	        	}
-	        	sb.append(accountContext.getHumanReadableName());
+	        	sb.append(projContext.getHumanReadableName());
 	        	if (iteration == 1) {
 	        		sb.append(": constraint violation: ");
 	        	} else {
@@ -442,12 +441,12 @@ public class AccountValuesProcessor {
 	        	throw new ObjectAlreadyExistsException(sb.toString());
 	        }
 	        
-	        cleanupContext(accountContext);
+	        cleanupContext(projContext);
 	        if (consistencyChecks) context.checkConsistence();
 	        
 		}
 		
-		addIterationTokenDeltas(accountContext);
+		addIterationTokenDeltas(projContext);
 		
 		if (consistencyChecks) context.checkConsistence();
 		
