@@ -9016,6 +9016,13 @@
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:attribute>
+                <xsd:attribute name="encoded" type="xsd:boolean">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            True if the value is encoded (base64 serialized), false if it's stored as a plain string.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
             </xsd:extension>
         </xsd:simpleContent>
     </xsd:complexType>

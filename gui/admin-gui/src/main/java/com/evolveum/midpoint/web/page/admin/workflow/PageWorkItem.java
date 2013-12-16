@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.page.admin.workflow;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -43,11 +44,11 @@ import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDetailedDto;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.wf.api.ProcessInstance;
-import com.evolveum.midpoint.wf.api.WorkItemDetailed;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -186,7 +187,7 @@ public class PageWorkItem extends PageAdminWorkItems {
     }
 
     private ObjectWrapper getRequesterWrapper() {
-        PrismObject<UserType> prism = workItemDtoModel.getObject().getWorkItem().getRequester();
+        PrismObject<UserType> prism = workItemDtoModel.getObject().getWorkItem().getRequester().asPrismObject();
 
         ContainerStatus status = ContainerStatus.MODIFYING;
         ObjectWrapper wrapper = new ObjectWrapper(
@@ -205,9 +206,12 @@ public class PageWorkItem extends PageAdminWorkItems {
     }
 
     private ObjectWrapper getObjectOldWrapper() {
-        PrismObject<? extends ObjectType> prism = workItemDtoModel.getObject().getWorkItem().getObjectOld();
+        ObjectType objectOld = workItemDtoModel.getObject().getWorkItem().getObjectOld();
 
-        if (prism == null) {
+        PrismObject<? extends ObjectType> prism;
+        if (objectOld != null) {
+            prism = objectOld.asPrismObject();
+        } else {
             prism = createEmptyUserObject();
         }
 
@@ -228,9 +232,12 @@ public class PageWorkItem extends PageAdminWorkItems {
     }
 
     private ObjectWrapper getObjectNewWrapper() {
-        PrismObject<? extends ObjectType> prism = workItemDtoModel.getObject().getWorkItem().getObjectNew();
+        ObjectType objectNew = workItemDtoModel.getObject().getWorkItem().getObjectNew();
 
-        if (prism == null) {
+        PrismObject<? extends ObjectType> prism;
+        if (objectNew != null) {
+            prism = objectNew.asPrismObject();
+        } else {
             prism = createEmptyUserObject();
         }
 
@@ -262,7 +269,7 @@ public class PageWorkItem extends PageAdminWorkItems {
     }
 
     private ObjectWrapper getRequestSpecificWrapper() {
-        PrismObject<?> prism = workItemDtoModel.getObject().getWorkItem().getRequestSpecificData();
+        PrismObject<?> prism = workItemDtoModel.getObject().getWorkItem().getRequestSpecificData().asPrismObject();
 
         ContainerStatus status = ContainerStatus.MODIFYING;
         ObjectWrapper wrapper = new ObjectWrapper(null, null, prism, status);
@@ -278,7 +285,13 @@ public class PageWorkItem extends PageAdminWorkItems {
 
 
     private ObjectWrapper getAdditionalDataWrapper() {
-        PrismObject<? extends ObjectType> prism = workItemDtoModel.getObject().getWorkItem().getAdditionalData();
+        ObjectType relatedObject = workItemDtoModel.getObject().getWorkItem().getRelatedObject();
+        PrismObject<? extends ObjectType> prism;
+        if (relatedObject != null) {
+            prism = relatedObject.asPrismObject();
+        } else {
+            prism = createEmptyUserObject();            // not quite correct, but ... ok
+        }
 
         ContainerStatus status = ContainerStatus.MODIFYING;
         ObjectWrapper wrapper = new ObjectWrapper(
@@ -296,7 +309,7 @@ public class PageWorkItem extends PageAdminWorkItems {
     }
 
     private ObjectWrapper getTrackingDataWrapper() {
-        PrismObject<? extends ObjectType> prism = workItemDtoModel.getObject().getWorkItem().getTrackingData();
+        PrismObject<? extends ObjectType> prism = workItemDtoModel.getObject().getWorkItem().getTrackingData().asPrismObject();
 
         ContainerStatus status = ContainerStatus.MODIFYING;
         ObjectWrapper wrapper = new ObjectWrapper(null, null, prism, status);
@@ -317,10 +330,12 @@ public class PageWorkItem extends PageAdminWorkItems {
         }
 
         OperationResult result = new OperationResult(OPERATION_LOAD_WORK_ITEM);
-        WorkItemDetailed workItem = null;
+        WorkItemDetailedDto workItemDetailedDto = null;
+        WorkItemType workItem = null;
         try {
             WorkflowManager wfm = getWorkflowManager();
-            workItem = wfm.getWorkItemDetailsByTaskId(parameters.get(PARAM_TASK_ID).toString(), result);
+            workItem = wfm.getWorkItemDetailsById(parameters.get(PARAM_TASK_ID).toString(), result);
+            workItemDetailedDto = new WorkItemDetailedDto(workItem, getPrismContext());
             result.recordSuccessIfUnknown();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't get work item.", ex);
@@ -332,17 +347,17 @@ public class PageWorkItem extends PageAdminWorkItems {
             throw getRestartResponseException(PageWorkItems.class);
         }
 
-        return new WorkItemDetailedDto(workItem);
+        return workItemDetailedDto;
     }
 
     private ProcessInstanceDto loadProcessInstanceDto() {
         OperationResult result = new OperationResult(OPERATION_LOAD_PROCESS_INSTANCE);
-        ProcessInstance processInstance;
+        WfProcessInstanceType processInstance;
         try {
             String taskId = parameters.get(PARAM_TASK_ID).toString();
             LOGGER.trace("Loading process instance for task {}", taskId);
             WorkflowManager wfm = getWorkflowManager();
-            processInstance = wfm.getProcessInstanceByTaskId(taskId, result);
+            processInstance = wfm.getProcessInstanceByWorkItemId(taskId, result);
             LOGGER.trace("Found process instance {}", processInstance);
             result.recordSuccess();
             return new ProcessInstanceDto(processInstance);
@@ -378,10 +393,10 @@ public class PageWorkItem extends PageAdminWorkItems {
             @Override
             public String getObject() {
                 ProcessInstanceDto dto = processInstanceDtoModel.getObject();
-                if (dto.getProcessInstance().getStartTime() == null) {
+                if (dto.getProcessInstance().getStartTimestamp() == null) {
                     return "";
                 }
-                return WebMiscUtil.formatDate(dto.getProcessInstance().getStartTime());
+                return WebMiscUtil.formatDate(XmlTypeConverter.toDate(dto.getProcessInstance().getStartTimestamp()));
             }
 
         });
@@ -392,10 +407,10 @@ public class PageWorkItem extends PageAdminWorkItems {
             @Override
             public String getObject() {
                 WorkItemDetailedDto dto = workItemDtoModel.getObject();
-                if (dto.getWorkItem().getCreateTime() == null) {
+                if (dto.getWorkItem().getMetadata() == null || dto.getWorkItem().getMetadata().getCreateTimestamp() == null) {
                     return "";
                 }
-                return WebMiscUtil.formatDate(dto.getWorkItem().getCreateTime());
+                return WebMiscUtil.formatDate(XmlTypeConverter.toDate(dto.getWorkItem().getMetadata().getCreateTimestamp()));
             }
 
         });
@@ -497,11 +512,11 @@ public class PageWorkItem extends PageAdminWorkItems {
         additionalInfoAccordionItem.getBodyContainer().add(createObjectAccordion(ID_REQUESTER_ACCORDION, ID_REQUESTER_ACCORDION_INFO, ID_REQUESTER_PANEL, "pageWorkItem.accordionLabel.requester", new PropertyModel(workItemDtoModel, WorkItemDetailedDto.F_REQUESTER), true));
         additionalInfoAccordionItem.getBodyContainer().add(createObjectAccordion(ID_OBJECT_OLD_ACCORDION, ID_OBJECT_OLD_ACCORDION_INFO, ID_OBJECT_OLD_PANEL, "pageWorkItem.accordionLabel.objectOld", new PropertyModel(workItemDtoModel, WorkItemDetailedDto.F_OBJECT_OLD), true));
         additionalInfoAccordionItem.getBodyContainer().add(createObjectAccordion(ID_OBJECT_NEW_ACCORDION, ID_OBJECT_NEW_ACCORDION_INFO, ID_OBJECT_NEW_PANEL, "pageWorkItem.accordionLabel.objectNew", new PropertyModel(workItemDtoModel, WorkItemDetailedDto.F_OBJECT_NEW), true));
-        additionalInfoAccordionItem.getBodyContainer().add(createObjectAccordion(ID_ADDITIONAL_DATA_ACCORDION, ID_ADDITIONAL_DATA_ACCORDION_INFO, ID_ADDITIONAL_DATA_PANEL, "pageWorkItem.accordionLabel.additionalData", new PropertyModel(workItemDtoModel, WorkItemDetailedDto.F_ADDITIONAL_DATA), true));
+        additionalInfoAccordionItem.getBodyContainer().add(createObjectAccordion(ID_ADDITIONAL_DATA_ACCORDION, ID_ADDITIONAL_DATA_ACCORDION_INFO, ID_ADDITIONAL_DATA_PANEL, "pageWorkItem.accordionLabel.additionalData", new PropertyModel(workItemDtoModel, WorkItemDetailedDto.F_RELATED_OBJECT), true));
 
         LOGGER.trace("processInstanceDtoModel = {}, loaded = {}", processInstanceDtoModel, processInstanceDtoModel.isLoaded());
         ProcessInstanceDto processInstanceDto = processInstanceDtoModel.getObject();
-        ProcessInstance processInstance = processInstanceDto.getProcessInstance();
+        WfProcessInstanceType processInstance = processInstanceDto.getProcessInstance();
         String detailsPageClassName = getWorkflowManager().getProcessInstanceDetailsPanelName(processInstance);
 
         additionalInfoAccordionItem.getBodyContainer().add(createAccordion(ID_PROCESS_INSTANCE_ACCORDION,
@@ -659,7 +674,7 @@ public class PageWorkItem extends PageAdminWorkItems {
             ObjectDelta delta = rsWrapper.getObjectDelta();
             delta.applyTo(object);
 
-            getWorkflowManager().approveOrRejectWorkItemWithDetails(workItemDtoModel.getObject().getWorkItem().getTaskId(), object, decision, result);
+            getWorkflowManager().approveOrRejectWorkItemWithDetails(workItemDtoModel.getObject().getWorkItem().getWorkItemId(), object, decision, result);
             setReinitializePreviousPages(true);
         } catch (Exception ex) {
             result.recordFatalError("Couldn't save work item.", ex);

@@ -174,8 +174,8 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	@Autowired(required = true)
 	private TaskManager taskManager;
 
-//    @Autowired(required = true)
-//    private WorkflowManager workflowManager;
+    @Autowired(required = false)                        // not required in all circumstances
+    private WorkflowManager workflowManager;
 	
 	@Autowired(required = true)
 	private ChangeExecutor changeExecutor;
@@ -1350,62 +1350,62 @@ public class ModelController implements ModelService, ModelInteractionService, T
     //region Workflow-related operations
     @Override
     public int countWorkItemsRelatedToUser(String userOid, boolean assigned, OperationResult parentResult) {
-        return 0;
+        return workflowManager.countWorkItemsRelatedToUser(userOid, assigned, parentResult);
     }
 
     @Override
     public List<WorkItemType> listWorkItemsRelatedToUser(String userOid, boolean assigned, int first, int count, OperationResult parentResult) {
-        return null;
+        return workflowManager.listWorkItemsRelatedToUser(userOid, assigned, first, count, parentResult);
     }
 
     @Override
     public WorkItemType getWorkItemDetailsById(String workItemId, OperationResult parentResult) throws ObjectNotFoundException {
-        return null;
+        return workflowManager.getWorkItemDetailsById(workItemId, parentResult);
     }
 
     @Override
     public int countProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, OperationResult parentResult) {
-        return 0;
+        return workflowManager.countProcessInstancesRelatedToUser(userOid, requestedBy, requestedFor, finished, parentResult);
     }
 
     @Override
     public List<WfProcessInstanceType> listProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, int first, int count, OperationResult parentResult) {
-        return null;
+        return workflowManager.listProcessInstancesRelatedToUser(userOid, requestedBy, requestedFor, finished, first, count, parentResult);
     }
 
     @Override
     public WfProcessInstanceType getProcessInstanceByWorkItemId(String workItemId, OperationResult parentResult) throws ObjectNotFoundException {
-        return null;
+        return workflowManager.getProcessInstanceByWorkItemId(workItemId, parentResult);
     }
 
     @Override
     public WfProcessInstanceType getProcessInstanceById(String instanceId, boolean historic, boolean getWorkItems, OperationResult parentResult) throws ObjectNotFoundException {
-        return null;
+        return workflowManager.getProcessInstanceById(instanceId, historic, getWorkItems, parentResult);
     }
 
     @Override
     public void approveOrRejectWorkItem(String workItemId, boolean decision, OperationResult parentResult) {
-
+        workflowManager.approveOrRejectWorkItem(workItemId, decision, parentResult);
     }
 
     @Override
     public void approveOrRejectWorkItemWithDetails(String workItemId, PrismObject specific, boolean decision, OperationResult result) {
-
+        workflowManager.approveOrRejectWorkItemWithDetails(workItemId, specific, decision, result);
     }
 
     @Override
     public void completeWorkItemWithDetails(String workItemId, PrismObject specific, String decision, OperationResult parentResult) {
-
+        workflowManager.completeWorkItemWithDetails(workItemId, specific, decision, parentResult);
     }
 
     @Override
     public void stopProcessInstance(String instanceId, String username, OperationResult parentResult) {
-
+        workflowManager.stopProcessInstance(instanceId, username, parentResult);
     }
 
     @Override
     public void deleteProcessInstance(String instanceId, OperationResult parentResult) {
-
+        workflowManager.deleteProcessInstance(instanceId, parentResult);
     }
     //endregion
 

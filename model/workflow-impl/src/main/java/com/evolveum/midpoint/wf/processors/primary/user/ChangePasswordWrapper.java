@@ -110,7 +110,7 @@ public class ChangePasswordWrapper extends BaseUserWrapper {
     }
 
     @Override
-    public PrismObject<? extends ObjectType> getAdditionalData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) {
+    public PrismObject<? extends ObjectType> getRelatedObject(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) {
         return null;        // todo implement this
     }
 
