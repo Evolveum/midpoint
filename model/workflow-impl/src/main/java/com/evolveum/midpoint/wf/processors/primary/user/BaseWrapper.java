@@ -33,7 +33,6 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.api.ProcessInstance;
 import com.evolveum.midpoint.wf.jobs.JobCreationInstruction;
 import com.evolveum.midpoint.wf.jobs.WfTaskUtil;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
@@ -51,6 +50,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.xml.bind.JAXBException;
@@ -213,7 +213,7 @@ public abstract class BaseWrapper implements PrimaryApprovalProcessWrapper {
     }
 
     @Override
-    public String getProcessInstanceDetailsPanelName(ProcessInstance processInstance) {
+    public String getProcessInstanceDetailsPanelName(WfProcessInstanceType processInstance) {
         return DEFAULT_PROCESS_INSTANCE_DETAILS_PANEL_NAME;
     }
 }

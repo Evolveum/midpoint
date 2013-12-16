@@ -50,7 +50,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.activiti.TestAuthenticationInfoHolder;
 import com.evolveum.midpoint.wf.api.Constants;
-import com.evolveum.midpoint.wf.api.ProcessInstance;
 import com.evolveum.midpoint.wf.processes.WorkflowResult;
 import com.evolveum.midpoint.wf.processes.itemApproval.ApprovalRequestImpl;
 import com.evolveum.midpoint.wf.processes.itemApproval.ProcessVariableNames;
@@ -841,12 +840,12 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
             String pid = wfTaskUtil.getProcessId(subtask);
             assertNotNull("Workflow process instance id not present in subtask " + subtask, pid);
 
-            ProcessInstance processInstance = workflowServiceImpl.getProcessInstanceByInstanceId(pid, false, true, result);
+            WfProcessInstanceType processInstance = workflowServiceImpl.getProcessInstanceById(pid, false, true, result);
             assertNotNull("Process instance information cannot be retrieved", processInstance);
             assertEquals("Incorrect number of work items", 1, processInstance.getWorkItems().size());
 
-            String taskId = processInstance.getWorkItems().get(0).getTaskId();
-            //WorkItemDetailed workItemDetailed = wfDataAccessor.getWorkItemDetailsByTaskId(taskId, result);
+            String taskId = processInstance.getWorkItems().get(0).getWorkItemId();
+            //WorkItemDetailed workItemDetailed = wfDataAccessor.getWorkItemDetailsById(taskId, result);
 
             org.activiti.engine.task.Task t = activitiEngine.getTaskService().createTaskQuery().taskId(taskId).singleResult();
             assertNotNull("activiti task not found", t);
