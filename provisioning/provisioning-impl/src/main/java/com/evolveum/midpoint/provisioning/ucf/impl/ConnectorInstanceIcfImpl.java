@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
@@ -2707,6 +2708,14 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 					new Object[] { propertyName, e.getMessage(), e });
 			throw new SystemException("Unable to dectypt value of element " + propertyName + ": "
 					+ e.getMessage(), e);
+		} catch (Exception ex){
+			LOGGER.error("Exception during decryption: {}", ex.getMessage(), ex);
+            try {
+                LOGGER.trace("The input was {}:\n{}", ps, prismContext.getPrismJaxbProcessor().marshalObjectToDom(ps, SchemaConstants.C_PROTECTED_STRING, DOMUtil.getDocument()));
+            } catch (JAXBException e) {
+                LOGGER.trace("Error marshalling the input {}: {}", ps, e.getMessage());
+            }
+            throw new SystemException(ex);
 		}
 	}
 
