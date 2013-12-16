@@ -20,6 +20,7 @@ import static com.evolveum.midpoint.common.InternalsConfig.consistencyChecks;
 import java.util.Collection;
 import java.util.Iterator;
 
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -105,7 +106,7 @@ public class ContextLoader {
 		
 		if (consistencyChecks) context.checkConsistence();
 		
-		determineFocusContext(context, result);
+		determineFocusContext((LensContext<? extends FocusType>)context, result);
 				
 		LensFocusContext<F> focusContext = context.getFocusContext();
     	if (focusContext != null) {
@@ -267,33 +268,41 @@ public class ContextLoader {
 	/** 
 	 * try to load focus context from the projections, e.g. by determining account owners
 	 */
-	public <F extends ObjectType> void determineFocusContext(LensContext<F> context, 
+	public <F extends FocusType> void determineFocusContext(LensContext<F> context,
 			OperationResult result) throws ObjectNotFoundException, SchemaException {
 		if (context.getFocusContext() != null) {
 			// already done
 			return;
 		}
 		String focusOid = null;
+        PrismObject<F> focusObject = null;
 		LensProjectionContext projectionContextThatYeildedFocusOid = null;
 		for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
 			String projectionOid = projectionContext.getOid();
 			if (projectionOid != null) {
-				PrismObject<UserType> accountOwner = cacheRepositoryService.listAccountShadowOwner(projectionOid, result);
-				if (accountOwner != null) {
-					if (focusOid == null || focusOid.equals(accountOwner.getOid())) {
-						focusOid = accountOwner.getOid();
+                PrismObject<F> shadowOwner = null;
+                try {
+				    shadowOwner = cacheRepositoryService.searchShadowOwner(projectionOid, result);
+                } catch (ObjectNotFoundException e) {
+                    // This may happen, e.g. if the shadow is already deleted
+                    // just ignore it. pretend that it has no owner
+                    result.getLastSubresult().setStatus(OperationResultStatus.HANDLED_ERROR);
+                }
+				if (shadowOwner != null) {
+					if (focusOid == null || focusOid.equals(shadowOwner.getOid())) {
+						focusOid = shadowOwner.getOid();
+                        focusObject = shadowOwner;
 						projectionContextThatYeildedFocusOid = projectionContext;
 					} else {
 						throw new IllegalArgumentException("The context does not have explicit focus. Attempt to determine focus failed because two " +
 								"projections points to different foci: "+projectionContextThatYeildedFocusOid+"->"+focusOid+"; "+
-								projectionContext+"->"+accountOwner);
+								projectionContext+"->"+shadowOwner);
 					}
 				}
 			}
 		}
 		if (focusOid != null) {
-			// FIXME: hardcoded to user right now
-			LensFocusContext<F> focusContext = context.getOrCreateFocusContext((Class<F>) UserType.class);
+			LensFocusContext<F> focusContext = context.getOrCreateFocusContext(focusObject.getCompileTimeClass());
 			PrismObject<F> object = cacheRepositoryService.getObject(focusContext.getObjectTypeClass(), focusOid, null, result);
 	        focusContext.setLoadedObject(object);
 		}

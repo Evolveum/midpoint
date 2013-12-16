@@ -781,6 +781,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return users.iterator().next();
 	}
 
+    protected PrismObject<RoleType> getRole(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+        Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".getRole");
+        OperationResult result = task.getResult();
+        PrismObject<RoleType> role = modelService.getObject(RoleType.class, oid, null, task, result);
+        result.computeStatus();
+        TestUtil.assertSuccess("getObject(Role) result not success", result);
+        return role;
+    }
+
 	protected PrismObject<ShadowType> findAccountByUsername(String username, PrismObject<ResourceType> resource) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
 		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".findAccountByUsername");
         OperationResult result = task.getResult();
@@ -933,12 +942,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         assertEquals("Unexpected number of accountRefs", 0, userJackType.getLinkRef().size());
 	}
 	
-	protected void assertNoAccountShadow(String accountOid) throws SchemaException {
-		OperationResult result = new OperationResult(AbstractModelIntegrationTest.class.getName() + ".assertNoAccountShadow");
+	protected void assertNoShadow(String shadowOid) throws SchemaException {
+		OperationResult result = new OperationResult(AbstractModelIntegrationTest.class.getName() + ".assertNoShadow");
 		// Check is shadow is gone
         try {
-        	PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-        	AssertJUnit.fail("Shadow "+accountOid+" still exists");
+        	PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, shadowOid, null, result);
+        	AssertJUnit.fail("Shadow "+shadowOid+" still exists");
         } catch (ObjectNotFoundException e) {
         	// This is OK
         }
@@ -1832,6 +1841,23 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected void assertNoDummyGroup(String dummyInstanceName, String groupname) {
 		DummyGroup group = getDummyGroup(dummyInstanceName, groupname);
 		assertNull("Dummy group '"+groupname+"' exists while not expecting it ("+dummyInstanceName+")", group);
+    }
+
+    protected void assertDummyGroupAttribute(String dummyInstanceName, String groupname, String attributeName, Object... expectedAttributeValues) {
+        DummyGroup group = getDummyGroup(dummyInstanceName, groupname);
+        assertNotNull("No dummy group for groupname "+groupname, group);
+        Set<Object> values = group.getAttributeValues(attributeName, Object.class);
+        if ((values == null || values.isEmpty()) && (expectedAttributeValues == null || expectedAttributeValues.length == 0)) {
+            return;
+        }
+        assertNotNull("No values for attribute "+attributeName+" of "+dummyInstanceName+" dummy group "+groupname, values);
+        assertEquals("Unexpected number of values for attribute "+attributeName+" of dummy group "+groupname+": "+values, expectedAttributeValues.length, values.size());
+        for (Object expectedValue: expectedAttributeValues) {
+            if (!values.contains(expectedValue)) {
+                AssertJUnit.fail("Value '"+expectedValue+"' expected in attribute "+attributeName+" of dummy group "+groupname+
+                        " but not found. Values found: "+values);
+            }
+        }
     }
 
 	protected void assertDummyAccountNoAttribute(String dummyInstanceName, String username, String attributeName) {

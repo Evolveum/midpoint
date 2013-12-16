@@ -1079,7 +1079,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertUserNoAccountRefs(userJack);
         
 		// Check is shadow is gone
-        assertNoAccountShadow(accountOid);
+        assertNoShadow(accountOid);
         
         // Check if dummy resource account is gone
         assertNoDummyAccount("jack");
@@ -1339,7 +1339,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertUserNoAccountRefs(userJack);
         
         // Check is shadow is gone
-        assertNoAccountShadow(accountOid);
+        assertNoShadow(accountOid);
         
         // Check if dummy resource account is gone
         assertNoDummyAccount("jack");
@@ -1581,7 +1581,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertUserNoAccountRefs(userJack);
         
         // Check is shadow is gone
-        assertNoAccountShadow(accountOid);
+        assertNoShadow(accountOid);
         
         // Check if dummy resource account is gone
         assertNoDummyAccount("jack");
@@ -1723,7 +1723,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertUserNoAccountRefs(userJack);
         
         // Check is shadow is gone
-        assertNoAccountShadow(accountOid);
+        assertNoShadow(accountOid);
         
         // Check if dummy resource account is gone
         assertNoDummyAccount("jack");
@@ -1790,7 +1790,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertUserNoAccountRefs(userJack);
         
         // Check is shadow is gone
-        assertNoAccountShadow(accountOid);
+        assertNoShadow(accountOid);
         
         // Check if dummy resource account is gone
         assertNoDummyAccount("jack");
@@ -2002,7 +2002,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertUserNoAccountRefs(userJack);
         
         // Check is shadow is gone
-        assertNoAccountShadow(accountOid);
+        assertNoShadow(accountOid);
         
         // Check if dummy resource account is gone
         assertNoDummyAccount("jack");
@@ -2076,7 +2076,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertUserNoAccountRefs(userJack);
         
         // Check that shadow was not created
-        assertNoAccountShadow(accountOid);
+        assertNoShadow(accountOid);
         
         // Check that dummy resource account was not created
         assertNoDummyAccount("jack");
@@ -2202,7 +2202,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         assertUserNoAccountRefs(userJack);
         
         // Check is shadow is gone
-        assertNoAccountShadow(accountOid);
+        assertNoShadow(accountOid);
         
         // Check if dummy resource account is gone
         assertNoDummyAccount("jack");
@@ -2663,7 +2663,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		}
         
         // Check is shadow is gone
-        assertNoAccountShadow(accountOid);
+        assertNoShadow(accountOid);
         
         // Check if dummy resource account is gone
         assertNoDummyAccount("jack");

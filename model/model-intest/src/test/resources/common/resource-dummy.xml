@@ -311,17 +311,33 @@
 				    <source>
 				    	<path>$focus/name</path>
 				    </source>
+                    <expression>
+                        <path>t:norm</path>
+                    </expression>
 				</outbound>
 			</attribute>
 			<attribute>
 				<ref>ri:description</ref>
 				<outbound>
-				    <strength>weak</strength>
 				    <source>
 				    	<path>$focus/description</path>
 				    </source>
 				</outbound>
 			</attribute>
+            <attribute>
+                <ref>ri:cc</ref>
+                <outbound>
+                    <strength>weak</strength>
+                    <source>
+                        <path>$focus/extension/piracy:costCenter</path>
+                    </source>
+                </outbound>
+                <inbound>
+                    <target>
+                        <path>$focus/extension/piracy:costCenter</path>
+                    </target>
+                </inbound>
+            </attribute>
         </objectType>
         
         <objectType>

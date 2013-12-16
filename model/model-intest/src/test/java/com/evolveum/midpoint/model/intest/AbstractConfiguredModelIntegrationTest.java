@@ -22,6 +22,7 @@ import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -145,6 +146,8 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	// Assigns dummy resource, sets some attributes
 	protected static final File ROLE_PIRATE_FILE = new File(COMMON_DIR_NAME, "role-pirate.xml");
 	protected static final String ROLE_PIRATE_OID = "12345678-d34d-b33f-f00d-555555556666";
+    protected static final String ROLE_PIRATE_NAME = "Pirate";
+    protected static final String ROLE_PIRATE_DESCRIPTION = "Scurvy Pirates";
 	
 	protected static final String ROLE_NICE_PIRATE_FILENAME = COMMON_DIR_NAME + "/role-nice-pirate.xml";
 	protected static final String ROLE_NICE_PIRATE_OID = "12345678-d34d-b33f-f00d-555555556677";
@@ -289,8 +292,10 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final QName PIRACY_FUNERAL_TIMESTAMP = new QName(NS_PIRACY, "funeralTimestamp");
 	protected static final QName PIRACY_SEA_QNAME = new QName(NS_PIRACY, "sea");
 	protected static final QName PIRACY_COLORS = new QName(NS_PIRACY, "colors");
-	
-	protected static final String DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME = "sea";
+
+    protected static final ItemPath ROLE_EXTENSION_COST_CENTER_PATH = new ItemPath(RoleType.F_EXTENSION, new QName(NS_PIRACY, "costCenter"));
+
+    protected static final String DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME = "sea";
 	
 	// Authorizations
 	

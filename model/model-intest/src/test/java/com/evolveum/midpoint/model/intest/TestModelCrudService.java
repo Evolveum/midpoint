@@ -331,7 +331,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         assertUserNoAccountRefs(userJack);
         
 		// Check is shadow is gone
-        assertNoAccountShadow(accountOid);
+        assertNoShadow(accountOid);
         
         // Check if dummy resource account is gone
         assertNoDummyAccount("jack");

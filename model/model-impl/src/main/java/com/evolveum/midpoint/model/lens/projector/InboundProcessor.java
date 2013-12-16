@@ -103,10 +103,12 @@ public class InboundProcessor {
     <O extends ObjectType> void processInbound(LensContext<O> context, XMLGregorianCalendar now, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
     	LensFocusContext<O> focusContext = context.getFocusContext();
     	if (focusContext == null) {
+            LOGGER.trace("Skipping inbound because there is no focus");
     		return;
     	}
     	if (!FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
     		// We can do this only for focus types.
+            LOGGER.trace("Skipping inbound because {} is not focal type", focusContext.getObjectTypeClass());
     		return;
     	}
     	processInboundFocal((LensContext<? extends FocusType>)context, task, now, result);
@@ -122,12 +124,7 @@ public class InboundProcessor {
     		LOGGER.trace("Skipping inbound processing because focus is being deleted");
     		return;
     	}
-    	if (focusContext.getObjectTypeClass() != UserType.class) {
-    		LOGGER.trace("Skipping inbound processing because focus is not user");
-    		// We can do this only for user.
-    		return;
-    	}
-    	
+
     	OperationResult subResult = result.createSubresult(PROCESS_INBOUND_HANDLING);
 
         ObjectDelta<F> userSecondaryDelta = focusContext.getProjectionWaveSecondaryDelta();
@@ -359,7 +356,7 @@ public class InboundProcessor {
     	Source<PrismPropertyValue<A>> defaultSource = new Source<PrismPropertyValue<A>>(oldAccountProperty, accountAttributeDelta, null, ExpressionConstants.VAR_INPUT);
     	defaultSource.recompute();
 		mapping.setDefaultSource(defaultSource);
-		mapping.setTargetContext(getUserDefinition());
+		mapping.setTargetContext(LensUtil.getFocusDefinition(context));
     	mapping.addVariableDefinition(ExpressionConstants.VAR_USER, newUser);
     	mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS, newUser);
     	mapping.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, account);
