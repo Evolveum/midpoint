@@ -165,7 +165,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
         //reportType.setReportTemplateJRXML(jrxmlFile);
         
         String jrtxFile = readFile(STYLE_TEMPLATE_DEFAULT, StandardCharsets.UTF_8);
-        reportType.setReportTemplateStyleJRTX(jrtxFile);
+        //reportType.setReportTemplateStyleJRTX(jrtxFile);
          
         //orientation
         reportType.setReportOrientation(OrientationType.LANDSCAPE);

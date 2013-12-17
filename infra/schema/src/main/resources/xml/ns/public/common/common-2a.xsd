@@ -8537,6 +8537,30 @@
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="reportParameterConfiguration" type="tns:ReportParameterConfigurationType"/>
+
+    <xsd:complexType name="ReportTemplateType">
+        <xsd:sequence>
+            <xsd:any namespace="##other" processContents="lax">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <!-- TODO description -->
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:any>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ReportTemplateStyleType">
+        <xsd:sequence>
+            <xsd:any namespace="##other" processContents="lax">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <!-- TODO description -->
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:any>
+        </xsd:sequence>
+    </xsd:complexType>
     
 	<xsd:complexType name="ReportType">
 	    <xsd:annotation>
@@ -8547,27 +8571,9 @@
         <xsd:complexContent>
             <xsd:extension base="c:ObjectType">
                 <xsd:sequence>
-                   	<xsd:element name="reportTemplateJRXML" minOccurs="0">
-                		<xsd:complexType>
-              				<xsd:sequence>
-               					<xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="strict">
-                   					<xsd:annotation>
-                       					<xsd:appinfo>
-                           					<jaxb:dom/>
-                       					</xsd:appinfo>
-                   					</xsd:annotation>
-               					</xsd:any>
-              				</xsd:sequence>
-            			</xsd:complexType>
-                    </xsd:element>
+                   	<xsd:element name="reportTemplateJRXML" type="tns:ReportTemplateType"/>
                     
-                	<xsd:element name="reportTemplateStyleJRTX" type="xsd:anyType" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                JRTX report style template with user definitions.                            
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
+                	<xsd:element name="reportTemplateStyleJRTX" type="tns:ReportTemplateStyleType"/>
                     
                     <xsd:element name="reportOrientation" type="tns:OrientationType" minOccurs="0" maxOccurs="1">
     				<xsd:annotation>
