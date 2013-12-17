@@ -16,9 +16,11 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.wf.api.WorkItem;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
 
 /**
  * @author lazyman
@@ -29,45 +31,39 @@ public class WorkItemDto extends Selectable {
     public static final String F_OWNER_OR_CANDIDATES = "ownerOrCandidates";
     public static final String F_CREATED = "created";
 
-    WorkItem workItem;
+    WorkItemType workItem;
 
-    public WorkItemDto(WorkItem workItem) {
+    public WorkItemDto(WorkItemType workItem) {
         this.workItem = workItem;
     }
 
     public String getName() {
-        return workItem.getName();
+        return PolyString.getOrig(workItem.getName());
     }
 
     public String getOwner() {
-        return workItem.getAssignee();
+        return workItem.getAssigneeRef() != null ? workItem.getAssigneeRef().getOid() : null;
     }
 
-    public WorkItem getWorkItem() {
+    public WorkItemType getWorkItem() {
         return workItem;
     }
 
-    public String getCandidates() {
-        return workItem.getCandidates();
-    }
-
     public String getCreated() {
-        if (workItem.getCreateTime() != null) {
-            return WebMiscUtil.formatDate(workItem.getCreateTime());
+        if (workItem.getMetadata() != null && workItem.getMetadata().getCreateTimestamp() != null) {
+            return WebMiscUtil.formatDate(XmlTypeConverter.toDate(workItem.getMetadata().getCreateTimestamp()));
         } else {
             return null;
         }
     }
 
     public String getOwnerOrCandidates() {
-        if (workItem.getAssigneeName() != null) {
-            return workItem.getAssigneeName();
-        } else if (workItem.getAssignee() != null) {
-            return workItem.getAssignee();      // todo ???
-        } else if (workItem.getCandidates() != null) {
-            return workItem.getCandidates();
+        if (workItem.getAssignee() != null && workItem.getAssignee().getName() != null) {
+            return workItem.getAssignee().getName().getOrig();
+        } else if (workItem.getAssigneeRef() != null) {
+            return workItem.getAssigneeRef().getOid();
         } else {
-            return null;
+            return null;            // TODO get candidates
         }
     }
 }

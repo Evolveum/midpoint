@@ -8540,6 +8540,30 @@
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="reportParameterConfiguration" type="tns:ReportParameterConfigurationType"/>
+
+    <xsd:complexType name="ReportTemplateType">
+        <xsd:sequence>
+            <xsd:any namespace="##other" processContents="lax">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <!-- TODO description -->
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:any>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ReportTemplateStyleType">
+        <xsd:sequence>
+            <xsd:any namespace="##other" processContents="lax">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <!-- TODO description -->
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:any>
+        </xsd:sequence>
+    </xsd:complexType>
     
 	<xsd:complexType name="ReportType">
 	    <xsd:annotation>
@@ -8550,22 +8574,9 @@
         <xsd:complexContent>
             <xsd:extension base="c:ObjectType">
                 <xsd:sequence>
-                
-                	<xsd:element name="reportTemplateJRXML" type="xsd:string" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                JRXML report template with user definitions.                            
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-
-                	<xsd:element name="reportTemplateStyleJRTX" type="xsd:string" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                JRTX report style template with user definitions.                            
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
+                   	<xsd:element name="reportTemplateJRXML" type="tns:ReportTemplateType"/>
+                    
+                	<xsd:element name="reportTemplateStyleJRTX" type="tns:ReportTemplateStyleType"/>
                     
                     <xsd:element name="reportOrientation" type="tns:OrientationType" minOccurs="0" maxOccurs="1">
     				<xsd:annotation>
@@ -8619,8 +8630,44 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="report" type="tns:ReportType" substitutionGroup="c:object"/>
+    <xsd:element name="report" type="tns:ReportType"/>
 
+	<xsd:complexType name="ReportOutputType">
+    	<xsd:annotation>
+            <xsd:documentation>
+            	Reports outputs.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:ObjectType">
+                <xsd:sequence>
+            		<xsd:element name="reportFilePath" type="xsd:string" minOccurs="0" maxOccurs="1"/>     
+            		<xsd:element name="report" type="tns:ReportType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Report which is assigned.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReference>tns:reportRef</a:objectReference>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="reportRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Report which is assigned.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:ReportType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+        		</xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="reportOutput" type="tns:ReportOutputType"/>
+	
     <xsd:complexType name="WorkItemType">
         <xsd:annotation>
             <xsd:documentation>
@@ -9016,6 +9063,13 @@
                     <xsd:annotation>
                         <xsd:documentation>
                             Name of the variable.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
+                <xsd:attribute name="encoded" type="xsd:boolean">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            True if the value is encoded (base64 serialized), false if it's stored as a plain string.
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:attribute>

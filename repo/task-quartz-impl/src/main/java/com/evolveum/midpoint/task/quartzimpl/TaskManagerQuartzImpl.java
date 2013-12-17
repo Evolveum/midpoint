@@ -30,8 +30,10 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.LightweightIdentifier;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
@@ -60,6 +62,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
+import com.evolveum.prism.xml.ns._public.types_2.ObjectReferenceType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.quartz.JobKey;
 import org.quartz.Scheduler;
@@ -788,7 +791,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
         try {
             if (TaskType.class.isAssignableFrom(type)) {
-                return (PrismObject<T>) getTask(oid, result).getTaskPrismObject();     // TODO fixme
+                return (PrismObject<T>) getTaskAsObject(oid, options, result);
             } else if (NodeType.class.isAssignableFrom(type)) {
                 return (PrismObject<T>) repositoryService.getObject(NodeType.class, oid, options, result);
             } else {
@@ -796,6 +799,25 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
             }
         } finally {
             result.computeStatusIfUnknown();
+        }
+    }
+
+    private PrismObject<TaskType> getTaskAsObject(String oid, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        Task task = getTask(oid, result);
+        if (options != null && !options.isEmpty() && SelectorOptions.hasToLoadPath(TaskType.F_SUBTASK, options)) {          // fixme this is ugly hack (by default, hasToLoadPath on empty options returns true, and we do not want to return subtasks by default
+            fillInSubtasks(task, options, result);
+        }
+        return task.getTaskPrismObject();
+    }
+
+    private void fillInSubtasks(Task task, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult result) throws SchemaException {
+        List<Task> subtasks = task.listSubtasks(result);
+        for (Task subtask : subtasks) {
+
+            fillInSubtasks(subtask, options, result);
+
+            TaskType subTaskType = subtask.getTaskPrismObject().asObjectable();
+            task.getTaskPrismObject().asObjectable().getSubtask().add(subTaskType);
         }
     }
 
@@ -1279,7 +1301,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     @Override
     public Task getTaskByIdentifier(String identifier, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
 
-        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "getTaskTypeByIdentifier");
+        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "getTaskByIdentifier");
         result.addParam("identifier", identifier);
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskManagerQuartzImpl.class);
 
@@ -1290,7 +1312,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
     @Override
     public PrismObject<TaskType> getTaskTypeByIdentifier(String identifier, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) throws SchemaException, ObjectNotFoundException {
-        OperationResult result = parentResult.createSubresult(DOT_INTERFACE + "getTaskTypeByIdentifier");
+        OperationResult result = parentResult.createSubresult(DOT_IMPL_CLASS + "getTaskTypeByIdentifier");
         result.addParam("identifier", identifier);
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskManagerQuartzImpl.class);
 
@@ -1308,6 +1330,7 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         } else if (list.size() > 1) {
             throw new IllegalStateException("Found more than one task with identifier " + identifier + " (" + list.size() + " of them)");
         }
+        result.computeStatusIfUnknown();
         return list.get(0);
     }
 

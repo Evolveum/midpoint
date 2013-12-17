@@ -34,7 +34,6 @@ import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
-import com.evolveum.midpoint.wf.api.WorkItem;
 import com.evolveum.midpoint.wf.api.WorkflowException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.apache.wicket.Component;
@@ -178,12 +177,12 @@ public class PageDashboard extends PageAdminHome {
         callableResult.setResult(result);
 
         try {
-            List<WorkItem> workItems = getWorkflowManager().listWorkItemsRelatedToUser(user.getOid(),
+            List<WorkItemType> workItems = getWorkflowManager().listWorkItemsRelatedToUser(user.getOid(),
                     true, 0, MAX_WORK_ITEMS, result);
-            for (WorkItem workItem : workItems) {
+            for (WorkItemType workItem : workItems) {
                 list.add(new WorkItemDto(workItem));
             }
-        } catch (WorkflowException e) {
+        } catch (Exception e) {
             result.recordFatalError("Couldn't get list of work items.", e);
         }
 

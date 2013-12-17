@@ -439,6 +439,9 @@ public class XmlTypeConverter {
     }
     
 	public static XMLGregorianCalendar createXMLGregorianCalendar(Date date) {
+        if (date == null) {
+            return null;
+        }
 		GregorianCalendar gregorianCalendar = new GregorianCalendar();
 		gregorianCalendar.setTime(date);
 		return createXMLGregorianCalendar(gregorianCalendar);
@@ -467,7 +470,7 @@ public class XmlTypeConverter {
     }
     
 	public static Date toDate(XMLGregorianCalendar xmlCal) {
-		return new Date(xmlCal.toGregorianCalendar().getTimeInMillis());
+		return xmlCal != null ? new Date(xmlCal.toGregorianCalendar().getTimeInMillis()) : null;
 	}
     
     public static Duration createDuration(long durationInMilliSeconds) {

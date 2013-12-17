@@ -24,8 +24,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.wf.api.ProcessInstance;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
 import org.apache.wicket.Component;
 
 import java.util.Iterator;
@@ -85,11 +85,11 @@ public class ProcessInstanceDtoProvider extends BaseSortableDataProvider<Process
 //            }
 
             WorkflowManager wfm = getWorkflowService();
-            List<ProcessInstance> items = wfm.listProcessInstancesRelatedToUser(currentUser(), requestedBy,
+            List<WfProcessInstanceType> items = wfm.listProcessInstancesRelatedToUser(currentUser(), requestedBy,
                     requestedFor, finished, WebMiscUtil.safeLongToInteger(first), WebMiscUtil.safeLongToInteger(count),
                     result);
 
-            for (ProcessInstance item : items) {
+            for (WfProcessInstanceType item : items) {
                 try {
                     getAvailableData().add(new ProcessInstanceDto(item));
                 } catch (Exception e) {

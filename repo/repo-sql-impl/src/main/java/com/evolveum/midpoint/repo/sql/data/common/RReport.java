@@ -2,7 +2,6 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -10,10 +9,10 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Lob;
 import javax.persistence.Table;
-import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.annotations.Columns;
 import org.hibernate.annotations.ForeignKey;
@@ -22,22 +21,13 @@ import org.hibernate.annotations.Type;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.RActivation;
-import com.evolveum.midpoint.repo.sql.data.common.embedded.RCredentials;
 import com.evolveum.midpoint.repo.sql.data.common.embedded.RPolyString;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RExportType;
 import com.evolveum.midpoint.repo.sql.data.common.enums.ROrientationType;
-import com.evolveum.midpoint.repo.sql.data.common.enums.RShadowKind;
 import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportFieldConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportParameterConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 
 @Entity
@@ -202,13 +192,13 @@ public class RReport extends RObject<ReportType> {
     	RObject.copyFromJAXB(jaxb, repo, prismContext);
 
     	repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
-    	repo.setReportTemplateJRXML(jaxb.getReportTemplateJRXML());
-    	repo.setReportTemplateStyleJRTX(jaxb.getReportTemplateStyleJRTX());
     	repo.setReportOrientation(RUtil.getRepoEnumValue(jaxb.getReportOrientation(), ROrientationType.class));
     	repo.setReportExport(RUtil.getRepoEnumValue(jaxb.getReportExport(), RExportType.class));
     	repo.setObjectClass(jaxb.getObjectClass());
     	try
     	{
+    		repo.setReportTemplateJRXML(RUtil.toRepo(jaxb.getReportTemplateJRXML(), prismContext));
+        	repo.setReportTemplateStyleJRTX(RUtil.toRepo(jaxb.getReportTemplateStyleJRTX(), prismContext));
     		repo.setReportFields(RUtil.toRepo(jaxb.getReportField(),prismContext));
     		repo.setReportParameters(RUtil.toRepo(jaxb.getReportParameter(), prismContext));
     		repo.setQuery(RUtil.toRepo(jaxb.getQuery(), prismContext));
@@ -224,8 +214,6 @@ public class RReport extends RObject<ReportType> {
     	RObject.copyToJAXB(repo, jaxb, prismContext, options);
 
     	jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
-    	jaxb.setReportTemplateJRXML(repo.getReportTemplateJRXML());
-    	jaxb.setReportTemplateStyleJRTX(repo.getReportTemplateStyleJRTX());
     	if (repo.getReportOrientation() != null) {
              jaxb.setReportOrientation(repo.getReportOrientation().getSchemaValue());
          }
@@ -236,6 +224,14 @@ public class RReport extends RObject<ReportType> {
     	jaxb.setObjectClass(repo.getObjectClass());
     	try
     	{
+    		if (StringUtils.isNotEmpty(repo.getReportTemplateJRXML())) {
+    			jaxb.setReportTemplateJRXML(RUtil.toJAXB(ReportType.class, new ItemPath(ReportType.F_REPORT_TEMPLATE_JRXML),
+    					repo.getReportTemplateJRXML(), ReportTemplateType.class, prismContext));
+    		}
+    		if (StringUtils.isNotEmpty(repo.getReportTemplateStyleJRTX())) {
+                jaxb.setReportTemplateStyleJRTX(RUtil.toJAXB(ReportType.class, new ItemPath(ReportType.F_REPORT_TEMPLATE_STYLE_JRTX),
+                        repo.getReportTemplateStyleJRTX(), ReportTemplateStyleType.class, prismContext));
+    		}
     		 if (StringUtils.isNotEmpty(repo.getReportFields())) {
     			 List<ReportFieldConfigurationType> reportField = RUtil.toJAXB(ReportType.class, null, repo.getReportFields(), List.class, null,
                          prismContext);

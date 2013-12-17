@@ -34,6 +34,9 @@ import com.evolveum.midpoint.wf.jobs.JobController;
 import com.evolveum.midpoint.wf.jobs.WfTaskUtil;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceVariableType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -86,18 +89,18 @@ public class WorkflowManagerImpl implements WorkflowManager {
      */
 
     @Override
-    public int countWorkItemsRelatedToUser(String userOid, boolean assigned, OperationResult parentResult) throws WorkflowException {
+    public int countWorkItemsRelatedToUser(String userOid, boolean assigned, OperationResult parentResult) {
         return workItemProvider.countWorkItemsRelatedToUser(userOid, assigned, parentResult);
     }
 
     @Override
-    public List<WorkItem> listWorkItemsRelatedToUser(String userOid, boolean assigned, int first, int count, OperationResult parentResult) throws WorkflowException {
+    public List<WorkItemType> listWorkItemsRelatedToUser(String userOid, boolean assigned, int first, int count, OperationResult parentResult) {
         return workItemProvider.listWorkItemsRelatedToUser(userOid, assigned, first, count, parentResult);
     }
 
     @Override
-    public WorkItemDetailed getWorkItemDetailsByTaskId(String taskId, OperationResult parentResult) throws ObjectNotFoundException, WorkflowException {
-        return workItemProvider.getWorkItemDetailsByTaskId(taskId, parentResult);
+    public WorkItemType getWorkItemDetailsById(String taskId, OperationResult parentResult) throws ObjectNotFoundException {
+        return workItemProvider.getWorkItemDetailsById(taskId, parentResult);
     }
 
     @Override
@@ -121,22 +124,22 @@ public class WorkflowManagerImpl implements WorkflowManager {
      */
 
     @Override
-    public int countProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, OperationResult parentResult) throws WorkflowException {
+    public int countProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, OperationResult parentResult) {
         return processInstanceProvider.countProcessInstancesRelatedToUser(userOid, requestedBy, requestedFor, finished, parentResult);
     }
 
     @Override
-    public List<ProcessInstance> listProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, int first, int count, OperationResult parentResult) throws WorkflowException {
+    public List<WfProcessInstanceType> listProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, int first, int count, OperationResult parentResult) {
         return processInstanceProvider.listProcessInstancesRelatedToUser(userOid, requestedBy, requestedFor, finished, first, count, parentResult);
     }
 
     @Override
-    public ProcessInstance getProcessInstanceByTaskId(String taskId, OperationResult parentResult) throws ObjectNotFoundException, WorkflowException {
+    public WfProcessInstanceType getProcessInstanceByWorkItemId(String taskId, OperationResult parentResult) throws ObjectNotFoundException {
         return processInstanceProvider.getProcessInstanceByTaskId(taskId, parentResult);
     }
 
     @Override
-    public ProcessInstance getProcessInstanceByInstanceId(String instanceId, boolean historic, boolean getWorkItems, OperationResult parentResult) throws ObjectNotFoundException, WorkflowException {
+    public WfProcessInstanceType getProcessInstanceById(String instanceId, boolean historic, boolean getWorkItems, OperationResult parentResult) throws ObjectNotFoundException {
         return processInstanceProvider.getProcessInstanceByInstanceId(instanceId, historic, getWorkItems, parentResult);
     }
 
@@ -166,8 +169,15 @@ public class WorkflowManagerImpl implements WorkflowManager {
     }
 
     @Override
-    public String getProcessInstanceDetailsPanelName(ProcessInstance processInstance) {
-        String processor = (String) processInstance.getVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_CHANGE_PROCESSOR);
+    public String getProcessInstanceDetailsPanelName(WfProcessInstanceType processInstance) {
+
+        String processor = null;
+        for (WfProcessInstanceVariableType var : processInstance.getVariables()) {
+            if (CommonProcessVariableNames.VARIABLE_MIDPOINT_CHANGE_PROCESSOR.equals(var.getName())) {
+                processor = var.getValue();         // we assume it's not encoded
+                break;
+            }
+        }
         if (processor == null) {
             LOGGER.error("There's no change processor name among the process instance variables; variables = " + processInstance.getVariables());
             throw new IllegalStateException("There's no change processor name among the process instance variables");
@@ -191,7 +201,7 @@ public class WorkflowManagerImpl implements WorkflowManager {
     }
 
     @Override
-    public boolean isCurrentUserAuthorizedToSubmit(WorkItem workItem) {
+    public boolean isCurrentUserAuthorizedToSubmit(WorkItemType workItem) {
         return miscDataUtil.isCurrentUserAuthorizedToSubmit(workItem);
     }
 }

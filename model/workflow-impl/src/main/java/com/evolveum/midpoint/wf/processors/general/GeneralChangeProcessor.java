@@ -31,7 +31,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.jobs.Job;
 import com.evolveum.midpoint.wf.jobs.JobCreationInstruction;
 import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
-import com.evolveum.midpoint.wf.api.ProcessInstance;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.processors.BaseChangeProcessor;
@@ -42,6 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.GeneralChangeProces
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.GeneralChangeProcessorScenarioType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.activiti.engine.form.FormProperty;
@@ -331,12 +331,12 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
     }
 
     @Override
-    public PrismObject<? extends ObjectType> getAdditionalData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public PrismObject<? extends ObjectType> getRelatedObject(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @Override
-    public String getProcessInstanceDetailsPanelName(ProcessInstance processInstance) {
+    public String getProcessInstanceDetailsPanelName(WfProcessInstanceType processInstance) {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 }

@@ -16,10 +16,14 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.web.component.model.delta.ContainerValueDto;
 import com.evolveum.midpoint.web.component.model.delta.DeltaDto;
 import com.evolveum.midpoint.web.component.util.Selectable;
-import com.evolveum.midpoint.wf.api.WorkItemDetailed;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
 
 /**
  * @author lazyman
@@ -30,47 +34,63 @@ public class WorkItemDetailedDto extends Selectable {
     public static final String F_REQUESTER = "requester";
     public static final String F_OBJECT_OLD = "objectOld";
     public static final String F_OBJECT_NEW = "objectNew";
-    public static final String F_ADDITIONAL_DATA = "additionalData";
+    public static final String F_RELATED_OBJECT = "relatedObject";
 
-    WorkItemDetailed workItem;
+    WorkItemType workItem;
+    DeltaDto deltaDto;
 
-    public WorkItemDetailedDto(WorkItemDetailed workItem) {
+    public WorkItemDetailedDto(WorkItemType workItem, PrismContext prismContext) throws SchemaException {
         this.workItem = workItem;
+        if (workItem.getObjectDelta() != null) {
+            deltaDto = new DeltaDto(DeltaConvertor.createObjectDelta(workItem.getObjectDelta(), prismContext));
+        }
     }
 
     public String getName() {
-        return workItem.getName();
+        return PolyString.getOrig(workItem.getName());
     }
 
     public String getOwner() {
-        return workItem.getAssignee();
+        return workItem.getAssigneeRef() != null ? workItem.getAssigneeRef().getOid() : null;
     }
 
-    public WorkItemDetailed getWorkItem() {
+    public WorkItemType getWorkItem() {
         return workItem;
     }
 
-    public String getCandidates() {
-        return workItem.getCandidates();
-    }
-
     public DeltaDto getDelta() {
-        return workItem.getObjectDelta() != null ? new DeltaDto(workItem.getObjectDelta()) : null;
+        return deltaDto;
     }
 
     public ContainerValueDto getRequester() {
-        return new ContainerValueDto(workItem.getRequester());
+        if (workItem.getRequester() != null) {
+            return new ContainerValueDto(workItem.getRequester().asPrismObject());
+        } else {
+            return null;
+        }
     }
 
     public ContainerValueDto getObjectOld() {
-        return new ContainerValueDto(workItem.getObjectOld());
+        if (workItem.getObjectOld() != null) {
+            return new ContainerValueDto(workItem.getObjectOld().asPrismObject());
+        } else {
+            return null;
+        }
     }
 
     public ContainerValueDto getObjectNew() {
-        return new ContainerValueDto(workItem.getObjectNew());
+        if (workItem.getObjectNew() != null) {
+            return new ContainerValueDto(workItem.getObjectNew().asPrismObject());
+        } else {
+            return null;
+        }
     }
 
-    public ContainerValueDto getAdditionalData() {
-        return new ContainerValueDto(workItem.getAdditionalData());
+    public ContainerValueDto getRelatedObject() {
+        if (workItem.getRelatedObject() != null) {
+            return new ContainerValueDto(workItem.getRelatedObject().asPrismObject());
+        } else {
+            return null;
+        }
     }
 }

@@ -23,6 +23,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
 
 import java.util.Collection;
 import java.util.List;
@@ -49,7 +51,7 @@ public interface WorkflowManager {
      * @return number of relevant work items
      * @throws WorkflowException
      */
-    int countWorkItemsRelatedToUser(String userOid, boolean assigned, OperationResult parentResult) throws WorkflowException;
+    int countWorkItemsRelatedToUser(String userOid, boolean assigned, OperationResult parentResult);
 
     /**
      * Lists work items related to a user.
@@ -62,7 +64,7 @@ public interface WorkflowManager {
      * @return list of work items
      * @throws WorkflowException
      */
-    List<WorkItem> listWorkItemsRelatedToUser(String userOid, boolean assigned, int first, int count, OperationResult parentResult) throws WorkflowException;
+    List<WorkItemType> listWorkItemsRelatedToUser(String userOid, boolean assigned, int first, int count, OperationResult parentResult);
 
     /**
      * Provides detailed information about a given work item (may be inefficient, so use with care).
@@ -73,18 +75,18 @@ public interface WorkflowManager {
      * @throws ObjectNotFoundException
      * @throws WorkflowException
      */
-    WorkItemDetailed getWorkItemDetailsByTaskId(String taskId, OperationResult parentResult) throws ObjectNotFoundException, WorkflowException;
+    WorkItemType getWorkItemDetailsById(String taskId, OperationResult parentResult) throws ObjectNotFoundException;
 
     /*
      * Process instances
      * =================
      */
 
-    int countProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, OperationResult parentResult) throws WorkflowException;
+    int countProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, OperationResult parentResult);
 
-    List<ProcessInstance> listProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, int first, int count, OperationResult parentResult) throws WorkflowException;
+    List<WfProcessInstanceType> listProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, int first, int count, OperationResult parentResult);
 
-    ProcessInstance getProcessInstanceByTaskId(String taskId, OperationResult parentResult) throws ObjectNotFoundException, WorkflowException;
+    WfProcessInstanceType getProcessInstanceByWorkItemId(String taskId, OperationResult parentResult) throws ObjectNotFoundException;
 
     /**
      * Returns information about a process instance. WorkItems attribute is filled-in only upon request! (see getWorkItems parameter)
@@ -97,7 +99,7 @@ public interface WorkflowManager {
      * @throws ObjectNotFoundException
      * @throws WorkflowException
      */
-    public ProcessInstance getProcessInstanceByInstanceId(String instanceId, boolean historic, boolean getWorkItems, OperationResult parentResult) throws ObjectNotFoundException, WorkflowException;
+    public WfProcessInstanceType getProcessInstanceById(String instanceId, boolean historic, boolean getWorkItems, OperationResult parentResult) throws ObjectNotFoundException;
 
     /*
      * CHANGING THINGS
@@ -131,7 +133,7 @@ public interface WorkflowManager {
     // TODO remove this
     PrismContext getPrismContext();
 
-    String getProcessInstanceDetailsPanelName(ProcessInstance processInstance);
+    String getProcessInstanceDetailsPanelName(WfProcessInstanceType processInstance);
 
     void registerProcessListener(ProcessListener processListener);
 
@@ -139,6 +141,6 @@ public interface WorkflowManager {
 
     List<? extends ObjectReferenceType> getApprovedBy(Task task, OperationResult result) throws SchemaException;
 
-    boolean isCurrentUserAuthorizedToSubmit(WorkItem workItem);
+    boolean isCurrentUserAuthorizedToSubmit(WorkItemType workItem);
 
 }
