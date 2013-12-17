@@ -18,7 +18,10 @@ package com.evolveum.midpoint.report;
 
 import java.awt.Color;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
@@ -65,6 +68,7 @@ import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -72,6 +76,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportFieldConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportParameterConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ThreadStopActionType;
 
 
 /**
@@ -89,6 +94,9 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
 	@Autowired
     private HookRegistry hookRegistry;
 
+	@Autowired
+    private TaskManager taskManager;
+	
     @PostConstruct
     public void init() {   	
         hookRegistry.registerChangeHook(HOOK_URI, this);
@@ -103,36 +111,14 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
      * @param parentResult describes report which has to be created
      */
     @Override
-    public void runReport(PrismObject<ReportType> object, Task task, OperationResult parentResult) {
-    	/*
-    	Map<String, Object> params = new HashMap<String, Object>();
-    	try
-    	{
-    		OperationResult subResult = parentResult.createSubresult(RUN_REPORT);
-    		ReportType reportType = object.asObjectable();
-    		
-    		subResult = parentResult.createSubresult("Load Datasource");
-            
-    		DataSourceReport reportDataSource = new DataSourceReport(object, subResult);
-    		
-    		params.putAll(getReportParams(object, parentResult));
-    		params.put(JRParameter.REPORT_DATA_SOURCE, reportDataSource);
-    		
-    		// Loading template
-    		InputStream inputStreamJRXML = new ByteArrayInputStream(reportType.getReportTemplateJRXML().getBytes("UTF-8"));
-    		JasperDesign jasperDesign = JRXmlLoader.load(inputStreamJRXML); 
+    public void runReport(PrismObject<ReportType> object, Task task, OperationResult parentResult) {    	
+        task.setHandlerUri(ReportCreateTaskHandler.REPORT_CREATE_TASK_URI);
+        task.setObjectRef(object.getOid(), ReportType.COMPLEX_TYPE);
 
-    		JasperReport jasperReport = JasperCompileManager.compileReport(jasperDesign);
-    		JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, params);
-
-    		generateReport(reportType, jasperPrint);
-     
-    		subResult.computeStatus();
-    	}
-    	catch (Exception ex)
-    	{
-    		ModelUtils.recordFatalError(parentResult, ex);
-    	}*/
+        task.setThreadStopAction(ThreadStopActionType.CLOSE);
+    	task.makeSingle();
+    	
+    	taskManager.switchToBackground(task, parentResult);
     }
     /**
      * Transforms change:
@@ -195,7 +181,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
              }
              
              ReportType reportType = (ReportType) object.asObjectable();
-             String reportTemplateJRXML =reportType.getReportTemplateJRXML();
+             Object reportTemplateJRXML = reportType.getReportTemplateJRXML();
              JasperDesign jasperDesign = null;
              if (reportTemplateJRXML == null)
              {
@@ -204,7 +190,13 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
              else
              {
             	 // Loading template
-            	 InputStream inputStreamJRXML = new ByteArrayInputStream(reportTemplateJRXML.getBytes("UTF-8"));
+            	 ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            	 ObjectOutputStream oos = new ObjectOutputStream(baos);
+            	 oos.writeObject(reportTemplateJRXML);
+            	 oos.flush();
+            	 oos.close();
+
+            	 InputStream inputStreamJRXML = new ByteArrayInputStream(baos.toByteArray());
             	 jasperDesign = JRXmlLoader.load(inputStreamJRXML);
              }
              // Compile template
@@ -213,9 +205,9 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
              result.computeStatus();
 
          }
-         catch (UnsupportedEncodingException ex)
+         catch (IOException ex)
          {
-        	 String message = "Unsupported encoding - jrxml file: " + ex.getMessage();
+        	 String message = "Input - Output convert jrxml file: " + ex.getMessage();
              LoggingUtils.logException(LOGGER, message, ex);
              result.recordFatalError(message, ex);
          }

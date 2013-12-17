@@ -38,8 +38,8 @@ import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -70,6 +70,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrientationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportFieldConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportParameterConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.prism.xml.ns._public.query_2.OrderDirectionType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
@@ -81,9 +82,8 @@ import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
  */
 @ContextConfiguration(locations = {"classpath:ctx-report-test-main.xml"})
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
-public class BasicReportTest extends AbstractTestNGSpringContextTests {
-
-	
+//extends AbstractTestNGSpringContextTests,
+public class BasicReportTest extends AbstractModelIntegrationTest {
 	
 	private static final String CLASS_NAME_WITH_DOT = BasicReportTest.class.getName() + ".";
 	private static final String CREATE_REPORT = CLASS_NAME_WITH_DOT + "test001CreateReport";
@@ -137,12 +137,18 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
 			  return encoding.decode(ByteBuffer.wrap(encoded)).toString();
 	}
  
+    @Override
+	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+		super.initSystem(initTask, initResult);
+    }
+    
 	@Test
     public void test001CreateReport() throws Exception {
     	
     	// vytvorit vstup xml file na report type
     	// import vo for cycle cez usertype zrusit vsetky RTable
-    	
+    	// xsd any - na jrtx a jrxml
+		// paging nastavovat v datasource len nie v xml
         ReportType reportType = new ReportType();
         prismContext.adopt(reportType);
          
@@ -155,28 +161,11 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
         reportType.setDescription("TEST Report with DataSource parameter.");
          
         //file templates
-        String jrxmlFile = null;
-        try 
-        {
-        	jrxmlFile = readFile(REPORT_DATASOURCE_TEST, StandardCharsets.UTF_8);
-        }
-        catch (Exception ex)
-        {
-        	LOGGER.error("Exception occurred. REPORT_DATASOURCE_TEST", ex);
-            
-        }
-        reportType.setReportTemplateJRXML(jrxmlFile);
-         
-        String jrtxFile = null;
-        try
-        {
-        	jrtxFile = readFile(STYLE_TEMPLATE_DEFAULT, StandardCharsets.UTF_8);
-        }
-        catch (Exception ex)
-        {
-        	LOGGER.error("Exception occurred. STYLE_TEMPLATE_DEFAULT", ex);
-        }
-        reportType.setReportTemplateStyleJRTX(jrtxFile);
+       	String jrxmlFile = readFile(REPORT_DATASOURCE_TEST, StandardCharsets.UTF_8);
+        //reportType.setReportTemplateJRXML(jrxmlFile);
+        
+        String jrtxFile = readFile(STYLE_TEMPLATE_DEFAULT, StandardCharsets.UTF_8);
+        //reportType.setReportTemplateStyleJRTX(jrtxFile);
          
         //orientation
         reportType.setReportOrientation(OrientationType.LANDSCAPE);
@@ -300,37 +289,21 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
         result.addParams(new String[] { "task" }, task.getResult());
         result.addParams(new String[] { "object" }, reportType);
 
-        try 
-        {
-        	ObjectDelta<ReportType> objectDelta = ObjectDelta.createAddDelta(reportType.asPrismObject());
-			Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
+        ObjectDelta<ReportType> objectDelta = ObjectDelta.createAddDelta(reportType.asPrismObject());
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
 			
-			modelService.executeChanges(deltas, null, task, result);
-			
-			AssertJUnit.assertEquals(REPORT_OID_001, objectDelta.getOid());
+		modelService.executeChanges(deltas, null, task, result);
+		result.computeStatus();	
+		
+		AssertJUnit.assertEquals(REPORT_OID_001, objectDelta.getOid());
 
-			result.computeStatus();
-		}
-        catch (Exception ex)
-        {
-        	LOGGER.error("Exception occurred. Create report", ex);
-        }       
-        
-        try
-        {
-        	Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
-        	OperationResult subResult = result.createSubresult("readReport");
+		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
+        OperationResult subResult = result.createSubresult("readReport");
         	
-            reportType = modelService.getObject(ReportType.class, REPORT_OID_001, options, null, subResult).asObjectable();
-     
-            subResult.computeStatus();
-        }
-        catch (Exception ex)
-        {
-        	LOGGER.error("Exception occurred. Create report - read", ex);
-        	reportType = null;
-        }
-         
+        reportType = modelService.getObject(ReportType.class, REPORT_OID_001, options, null, subResult).asObjectable();
+        subResult.computeStatus();
+        
+        //export xml structure of report type 
         String xmlReportType = prismContext.getPrismDomProcessor().serializeObjectToString(reportType.asPrismObject());
         LOGGER.warn(xmlReportType);
         
@@ -498,58 +471,30 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
 */
  
     @Test
-    public void test003CopyReportWithoutJRXML() throws Exception 
-    {
-    	
+    public void test003CopyReportWithoutJRXML() throws Exception {    	
         LOGGER.debug("Copy Test report without jrxml.");
         
-        try {
+        Task task = taskManager.createTaskInstance(COPY_REPORT_WITHOUT_JRXML);
+        OperationResult result = task.getResult();
             
-            Task task = taskManager.createTaskInstance(COPY_REPORT_WITHOUT_JRXML);
-            OperationResult result = task.getResult();
-            
-            ReportType reportType = null;
-            try
-            {
-            	Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
-            	OperationResult subResult = result.createSubresult("readReport");
+        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
+        OperationResult subResult = result.createSubresult("readReport");
             	
-                reportType = modelService.getObject(ReportType.class, REPORT_OID_001, options, null, subResult).asObjectable();
-         
-                subResult.computeStatus();
-            }
-            catch (Exception ex)
-            {
-            	LOGGER.error("Exception occurred. Copy report - read", ex);
-            }
-            reportType = reportType.clone();
-            reportType.setOid(REPORT_OID_002);
-            reportType.setReportTemplateJRXML(null);
-            reportType.setName(new PolyStringType("Test report - Datasource2"));
-            
-            try 
-            {
-            	ObjectDelta<ReportType> objectDelta = ObjectDelta.createAddDelta(reportType.asPrismObject());
-    			Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
-    			
-    			modelService.executeChanges(deltas, null, task, result);
-    			
-    			AssertJUnit.assertEquals(REPORT_OID_002, objectDelta.getOid());
-
-    			result.computeStatus();
-    		}
-            catch (Exception ex)
-            {
-            	LOGGER.error("Exception occurred. Copy report", ex);
-            }       
-            
-        }
-        catch (Exception ex) 
-        {
+        ReportType reportType = modelService.getObject(ReportType.class, REPORT_OID_001, options, null, subResult).asObjectable();
+        subResult.computeStatus();
         
-            LOGGER.error("Couldn't copy report.", ex);
-        	throw ex;
-        } 
+        reportType = reportType.clone();
+        reportType.setOid(REPORT_OID_002);
+        reportType.setReportTemplateJRXML(null);
+        reportType.setName(new PolyStringType("Test report - Datasource2"));
+            
+      	ObjectDelta<ReportType> objectDelta = ObjectDelta.createAddDelta(reportType.asPrismObject());
+    	Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
+    			
+    	modelService.executeChanges(deltas, null, task, result);
+    	result.computeStatus();
+    	
+    	AssertJUnit.assertEquals(REPORT_OID_002, objectDelta.getOid());
    }
    
     /*
@@ -1022,177 +967,87 @@ public class BasicReportTest extends AbstractTestNGSpringContextTests {
     }*/
     
     @Test
-    public void test006CountReport() throws Exception 
-    {
+    public void test006CountReport() throws Exception {
         LOGGER.debug("Count Test report..... ");
+    
+        Task task = taskManager.createTaskInstance(COUNT_REPORT);
+        OperationResult result = task.getResult();
         
-        try 
-        {
-            Task task = taskManager.createTaskInstance(COUNT_REPORT);
-            OperationResult result = task.getResult();
-            int count = 0;
-            try 
-    		{	 
-            	Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
+        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
             	
-    			count = modelService.countObjects(ReportType.class, null, options, task, result);
-
-    			result.computeStatus();
-    		}
-            catch (Exception ex)
-            {
-            	LOGGER.error("Exception occurred. Count report ", ex);
-            } 
-            AssertJUnit.assertEquals(2, count);
-        } 
-        catch (Exception ex) 
-        {	
-            LOGGER.error("Count test report type.", ex);
-        	throw ex;
-        }
+    	int count = modelService.countObjects(ReportType.class, null, options, task, result);
+    	result.computeStatus();
+    
+    	AssertJUnit.assertEquals(2, count);
     }
 
 
     @Test
-    public void test007SearchReport() throws Exception 
-    {
+    public void test007SearchReport() throws Exception {
         LOGGER.debug("Search Test report..... ");
         
-        try 
-        {
-            Task task = taskManager.createTaskInstance(SEARCH_REPORT);
-            OperationResult result = task.getResult();
-            List<PrismObject<ReportType>> listReportType = null;
-            try 
-    		{	 
-            	Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
-            	
-    			listReportType = modelService.searchObjects(ReportType.class, null, options, task, result);
-
-    			result.computeStatus();
-    		}
-            catch (Exception ex)
-            {
-            	LOGGER.error("Exception occurred. Search report ", ex);
-            }
-            
-            AssertJUnit.assertEquals(2, listReportType.size());
-            
-        } 
-        catch (Exception ex) 
-        {	
-            LOGGER.error("Couldn't search report type.", ex);
-        	throw ex;
-        }
+        Task task = taskManager.createTaskInstance(SEARCH_REPORT);
+        OperationResult result = task.getResult(); 
+        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
+                 	
+        List<PrismObject<ReportType>> listReportType = modelService.searchObjects(ReportType.class, null, options, task, result);
+        result.computeStatus();
+    	  
+        AssertJUnit.assertEquals(2, listReportType.size());
     }
 
     @Test
-    public void test008ModifyReport() throws Exception 
-    {
-    	
+    public void test008ModifyReport() throws Exception {	
         LOGGER.debug("Modify Test report..... ");
+        Task task = taskManager.createTaskInstance(MODIFY_REPORT);
+        OperationResult result = task.getResult();
+
+        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
+        OperationResult subResult = result.createSubresult("readReport");
+            	
+        ReportType reportType = modelService.getObject(ReportType.class, REPORT_OID_001, options, null, subResult).asObjectable();
+        subResult.computeStatus();
+
+        reportType.setReportExport(ExportType.CSV);
         
-        try 
-        {
-            Task task = taskManager.createTaskInstance(MODIFY_REPORT);
-            OperationResult result = task.getResult();
-
-            ReportType reportType = null;
-            try
-            {
-            	Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
-            	OperationResult subResult = result.createSubresult("readReport");
-            	
-                reportType = modelService.getObject(ReportType.class, REPORT_OID_001, options, null, subResult).asObjectable();
-                
-                subResult.computeStatus();
-            }
-            catch (Exception ex)
-            {
-            	LOGGER.error("Exception occurred. Modify report - read", ex);
-            }
-
-            reportType.setReportExport(ExportType.CSV);
-            
-            try 
-    		{	 
-    			Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-    			PrismObject<ReportType> reportTypeOld = modelService.getObject(ReportType.class, REPORT_OID_001, null, task, result);
-    			deltas.add(reportTypeOld.diff(reportType.asPrismObject()));
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+    	PrismObject<ReportType> reportTypeOld = modelService.getObject(ReportType.class, REPORT_OID_001, null, task, result);
+    	deltas.add(reportTypeOld.diff(reportType.asPrismObject()));
     			
-    			modelService.executeChanges(deltas, null, task, result);
-
-    			result.computeStatus();
-    		}
-            catch (Exception ex)
-            {
-            	LOGGER.error("Exception occurred. Modify report ", ex);
-            }
+    	modelService.executeChanges(deltas, null, task, result);
+		result.computeStatus();
             
-            try
-            {
-            	Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
-            	OperationResult subResult = result.createSubresult("readReport");
-            	
-                reportType = modelService.getObject(ReportType.class, REPORT_OID_001, options, null, subResult).asObjectable();
-                
-                AssertJUnit.assertEquals(ExportType.CSV, reportType.getReportExport());
-                
-                subResult.computeStatus();
-            }
-            catch (Exception ex)
-            {
-            	LOGGER.error("Exception occurred. Modify report - read", ex);
-            }            
-            
-        } 
-        catch (Exception ex) 
-        {	
-            LOGGER.error("Couldn't modify report type.", ex);
-        	throw ex;
-        }
+       	options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
+        subResult = result.createSubresult("readReport");
+    	
+        reportType = modelService.getObject(ReportType.class, REPORT_OID_001, options, null, subResult).asObjectable();
+        subResult.computeStatus();       
+        
+        AssertJUnit.assertEquals(ExportType.CSV, reportType.getReportExport());
     }
 
     @Test
-    public void test009DeleteReport() throws Exception
-    {	
+    public void test009DeleteReport() throws Exception {	
         LOGGER.debug("Delete Test report..... ");
         
-        try 
-        {       
-            Task task = taskManager.createTaskInstance(DELETE_REPORT);
-    		OperationResult result = task.getResult();		
+        Task task = taskManager.createTaskInstance(DELETE_REPORT);
+    	OperationResult result = task.getResult();		
 
-    		try {
-    			ObjectDelta<ReportType> delta = ObjectDelta.createDeleteDelta(ReportType.class, REPORT_OID_001, prismContext);
-    			Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
-    			
-    			modelService.executeChanges(deltas, null, task, result);
-    			
-    			result.computeStatus();
-    		}
-    		catch (Exception ex) 
-    		{
-    			LOGGER.error("Exception occurred. Delete report ", ex);
-    		}
-                        
-            try {
-            	OperationResult subResult = result.createSubresult("readReport");
-                Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
-                PrismObject<ReportType> reportTypePrism = modelService.getObject(ReportType.class, REPORT_OID_001, options, null, subResult);
-                subResult.computeStatus();	
-                display("Report type after", reportTypePrism);
-    			assert false : "Report type was not deleted: "+ reportTypePrism;
-    		} catch (ObjectNotFoundException e) {
-    			// This is expected
-    		}
-            
-        } 
-        catch (Exception ex) 
-        {
-            LOGGER.error("Couldn't delete report type.", ex);
-        	throw ex;
-        } 
+    	ObjectDelta<ReportType> delta = ObjectDelta.createDeleteDelta(ReportType.class, REPORT_OID_001, prismContext);
+    	Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);    			
+    	modelService.executeChanges(deltas, null, task, result);
+    	result.computeStatus();
+    	             
+        try {
+            OperationResult subResult = result.createSubresult("readReport");
+            Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
+            PrismObject<ReportType> reportTypePrism = modelService.getObject(ReportType.class, REPORT_OID_001, options, null, subResult);
+            subResult.computeStatus();	
+            display("Report type after", reportTypePrism);
+    		assert false : "Report type was not deleted: "+ reportTypePrism;
+    	} catch (ObjectNotFoundException e) {
+    		// This is expected
+    	}    
     }
 
 }

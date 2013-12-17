@@ -1159,8 +1159,14 @@
     <object xsi:type="ReportType" oid="111223355" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" xmlns:gen300="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd"  xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
         <name>report1</name>
         <description>report1decritpion</description>
-        <reportTemplateJRXML>jrxml, jrxml</reportTemplateJRXML>
-        <reportTemplateStyleJRTX>jrtx, jrtx</reportTemplateStyleJRTX>
+        <reportTemplateJRXML>
+        	<r:jasperReport xmlns:r="http://jasperreports.sourceforge.net/jasperreports">
+        	</r:jasperReport>
+        </reportTemplateJRXML>
+        <!--<reportTemplateStyleJRTX>-->
+        	<!--<template>-->
+        	<!--</template>-->
+        <!--</reportTemplateStyleJRTX>-->
         <reportOrientation>landscape</reportOrientation>
         <reportExport>pdf</reportExport>
         <query>

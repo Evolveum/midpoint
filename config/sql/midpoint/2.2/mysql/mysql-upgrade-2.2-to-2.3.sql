@@ -34,3 +34,28 @@ ALTER TABLE m_report
     REFERENCES m_object (id, oid);
 
 CREATE INDEX iAncestorDepth ON m_org_closure (ancestor_id, ancestor_oid, depthValue);
+
+CREATE TABLE m_report_output (
+    name_norm VARCHAR(255),
+    name_orig VARCHAR(255),
+    reportFilePath VARCHAR(255),
+    reportRef_description longtext,
+    reportRef_filter longtext,
+    reportRef_relationLocalPart VARCHAR(100),
+    reportRef_relationNamespace VARCHAR(255),
+    reportRef_targetOid VARCHAR(36),
+    reportRef_type INTEGER,
+    id BIGINT NOT NULL,
+    oid VARCHAR(36) NOT NULL,
+    PRIMARY KEY (id, oid),
+    UNIQUE (name_norm)
+) DEFAULT CHARACTER SET utf8 COLLATE utf8_bin ENGINE=InnoDB;
+	
+	
+CREATE INDEX iReportOutputName ON m_report_output (name_orig);
+
+ALTER TABLE m_report_output 
+    ADD INDEX fk_reportoutput (id, oid), 
+    ADD CONSTRAINT fk_reportoutput 
+    FOREIGN KEY (id, oid) 
+    REFERENCES m_object (id, oid);
