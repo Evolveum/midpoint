@@ -107,7 +107,7 @@ public class ReconciliationProcessor {
 		if (focusContext == null) {
 			return;
 		}
-		if (FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
+		if (!FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
 			// We can do this only for focal types.
 			return;
 		}
