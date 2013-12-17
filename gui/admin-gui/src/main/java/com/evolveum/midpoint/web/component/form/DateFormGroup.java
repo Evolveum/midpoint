@@ -21,7 +21,6 @@ import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.XmlGregorianCalendarModel;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.extensions.yui.calendar.DateField;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -60,7 +59,7 @@ public class DateFormGroup extends SimplePanel<XMLGregorianCalendar> {
         }
         add(dateWrapper);
 
-        DateField date = new DateInput(ID_DATE, new XmlGregorianCalendarModel(getModel()));
+        DateInput date = new DateInput(ID_DATE, new XmlGregorianCalendarModel(getModel()));
         date.setRequired(required);
         date.setLabel(label);
         dateWrapper.add(date);

@@ -19,7 +19,6 @@ package com.evolveum.midpoint.web.component.input;
 import com.evolveum.midpoint.web.component.DateInput;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import com.evolveum.midpoint.web.component.util.XmlGregorianCalendarModel;
-import org.apache.wicket.extensions.yui.calendar.DateField;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.model.IModel;
 
@@ -35,7 +34,7 @@ public class DatePanel extends InputPanel {
     public DatePanel(String id, IModel<XMLGregorianCalendar> model) {
         super(id);
 
-        DateField date = new DateInput(ID_INPUT, new XmlGregorianCalendarModel(model, true));
+        DateInput date = new DateInput(ID_INPUT, new XmlGregorianCalendarModel(model, true));
         add(date);
     }
 
