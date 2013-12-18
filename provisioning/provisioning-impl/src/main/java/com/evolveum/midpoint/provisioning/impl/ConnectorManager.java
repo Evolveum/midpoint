@@ -49,6 +49,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -486,6 +487,10 @@ public class ConnectorManager {
 		public String connectorOid;
 		public PrismContainer configuration;
 		public ConnectorInstance connectorInstance;
+	}
+
+	public void connectorFrameworkSelfTest(OperationResult parentTestResult, Task task) {
+		connectorFactory.selfTest(parentTestResult);
 	}
 
 }

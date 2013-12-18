@@ -73,8 +73,11 @@ public enum ObjectTypes {
 
     FOCUS_TYPE(FocusType.COMPLEX_TYPE, SchemaConstants.C_FOCUS, FocusType.class, ObjectManager.MODEL, "focus"),
 
-    REPORT(ReportType.COMPLEX_TYPE, SchemaConstants.C_REPORT, ReportType.class, ObjectManager.MODEL, "reports");
+    REPORT(ReportType.COMPLEX_TYPE, SchemaConstants.C_REPORT, ReportType.class, ObjectManager.MODEL, "reports"),
 
+    REPORT_OUTPUT(ReportOutputType.COMPLEX_TYPE, SchemaConstants.C_REPORT_OUTPUT, ReportOutputType.class,
+                  ObjectManager.MODEL, "reportOutputs");
+    
     public static enum ObjectManager {
         PROVISIONING, TASK_MANAGER, WORKFLOW, MODEL, REPOSITORY;
     }
