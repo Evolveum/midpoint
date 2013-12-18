@@ -559,6 +559,7 @@
         name_norm nvarchar(255),
         name_orig nvarchar(255),
         notificationConfiguration nvarchar(MAX),
+        objectTemplate nvarchar(MAX),
         profilingConfiguration nvarchar(MAX),
         id bigint not null,
         oid nvarchar(36) not null,

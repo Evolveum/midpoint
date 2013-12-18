@@ -561,6 +561,7 @@
         name_norm varchar2(255 char),
         name_orig varchar2(255 char),
         notificationConfiguration clob,
+        objectTemplate clob,
         profilingConfiguration clob,
         id number(19,0) not null,
         oid varchar2(36 char) not null,
