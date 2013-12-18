@@ -311,8 +311,8 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
         AssertJUnit.assertNotNull(reportType);
         AssertJUnit.assertEquals("Test report - Datasource1", reportType.getName().getOrig());
         AssertJUnit.assertEquals("TEST Report with DataSource parameter.", reportType.getDescription());
- 		AssertJUnit.assertEquals(jrxmlFile, reportType.getReportTemplateJRXML());
-        AssertJUnit.assertEquals(jrtxFile, reportType.getReportTemplateStyleJRTX());
+ 		AssertJUnit.assertEquals(jrxmlFile, reportType.getReportTemplate());
+        AssertJUnit.assertEquals(jrtxFile, reportType.getReportTemplateStyle());
         AssertJUnit.assertEquals(OrientationType.LANDSCAPE, reportType.getReportOrientation());
         AssertJUnit.assertEquals(ExportType.PDF, reportType.getReportExport());
         AssertJUnit.assertEquals(ObjectTypes.getObjectType(UserType.class).getTypeQName(), reportType.getObjectClass());      
@@ -485,7 +485,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
         
         reportType = reportType.clone();
         reportType.setOid(REPORT_OID_002);
-        reportType.setReportTemplateJRXML(null);
+        reportType.setReportTemplate(null);
         reportType.setName(new PolyStringType("Test report - Datasource2"));
             
       	ObjectDelta<ReportType> objectDelta = ObjectDelta.createAddDelta(reportType.asPrismObject());

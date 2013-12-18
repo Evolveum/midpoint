@@ -1159,10 +1159,10 @@
     <object xsi:type="ReportType" oid="111223355" xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" xmlns:gen300="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd"  xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
         <name>report1</name>
         <description>report1decritpion</description>
-        <reportTemplateJRXML>
+        <reportTemplate>
         	<r:jasperReport xmlns:r="http://jasperreports.sourceforge.net/jasperreports">
         	</r:jasperReport>
-        </reportTemplateJRXML>
+        </reportTemplate>
         <!--<reportTemplateStyleJRTX>-->
         	<!--<template>-->
         	<!--</template>-->
@@ -1193,8 +1193,15 @@
         </reportField>
         <reportParameter>
         	<nameParameter>Logo</nameParameter>
-        	<valueParameter>/logo.jopg</valueParameter>
+        	<valueParameter>/logo.jpg</valueParameter>
         	<classTypeParameter>xsd:any</classTypeParameter>
         </reportParameter>
+    </object>
+     
+	<object xsi:type="ReportOutputType" oid="1122334455"  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a" xmlns:gen300="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd"  xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:enc="http://www.w3.org/2001/04/xmlenc#">
+		<name>report1.pdf</name>
+        <reportFilePath>${midpointhome}/reports/report1.pdf</reportFilePath>
+        <reportRef oid="111223355"/>
      </object>
+     
 </objects>

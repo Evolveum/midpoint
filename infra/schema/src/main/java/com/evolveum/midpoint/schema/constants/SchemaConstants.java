@@ -101,6 +101,8 @@ public abstract class SchemaConstants {
 	
 	public static final QName C_REPORT = new QName(NS_C, "report");
 	public static final QName C_REPORT_TYPE = new QName(NS_C, "ReportType");
+	public static final QName C_REPORT_OUTPUT = new QName(NS_C, "reportOutput");
+	public static final QName C_REPORT_OUTPUT_TYPE = new QName(NS_C, "ReportOutputType");
 	public static final QName C_ITEM_PATH_FIELD = new QName(NS_C, "itemPathField");
 	public static final QName C_ACTIVATION_STATUS_TYPE = new QName(NS_C, "ActivationStatusType");
 

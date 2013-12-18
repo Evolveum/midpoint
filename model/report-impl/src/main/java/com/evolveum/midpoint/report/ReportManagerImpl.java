@@ -181,9 +181,9 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
              }
              
              ReportType reportType = (ReportType) object.asObjectable();
-             Object reportTemplateJRXML = reportType.getReportTemplateJRXML();
+             Object reportTemplate = reportType.getReportTemplate();
              JasperDesign jasperDesign = null;
-             if (reportTemplateJRXML == null)
+             if (reportTemplate == null)
              {
             	 jasperDesign = createJasperDesign(reportType);
              }
@@ -192,7 +192,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
             	 // Loading template
             	 ByteArrayOutputStream baos = new ByteArrayOutputStream();
             	 ObjectOutputStream oos = new ObjectOutputStream(baos);
-            	 oos.writeObject(reportTemplateJRXML);
+            	 oos.writeObject(reportTemplate);
             	 oos.flush();
             	 oos.close();
 
