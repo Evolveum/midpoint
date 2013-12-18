@@ -216,6 +216,69 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
     }
     
     @Test
+    public void test135ModifyUserJackFullName() throws Exception {
+		final String TEST_NAME="test135ModifyUserJackFullName";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        preTestCleanup(AssignmentPolicyEnforcementType.RELATIVE);
+                          
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+        modifyUserReplace(USER_JACK_OID, UserType.F_FULL_NAME, task, result, PrismTestUtil.createPolyString("cpt. Jack Sparrow"));
+		
+		// THEN
+		TestUtil.displayThen(TEST_NAME);
+		result.computeStatus();
+        TestUtil.assertSuccess("executeChanges result", result);
+        assertShadowFetchOperationCountIncrement(0);
+        
+		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
+		display("User after change execution", userJack);
+		assertUserJack(userJack, "cpt. Jack Sparrow", "Jack", "Sparrow");
+		assertLinks(userJack, 2);
+		String accountOidDefault = getLinkRef(userJack, RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
+		String accountOidTest = getLinkRef(userJack, RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, ACCOUNT_INTENT_TEST);
+        
+		// Check shadow: intent=default
+        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOidDefault, null, result);
+        assertDummyAccountShadowRepo(accountShadow, accountOidDefault, ACCOUNT_JACK_DUMMY_USERNAME);
+        
+        // Check account: intent=default
+        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOidDefault, null, task, result);
+        assertDummyAccountShadowModel(accountModel, accountOidDefault, ACCOUNT_JACK_DUMMY_USERNAME, "cpt. Jack Sparrow");
+        
+        // Check account in dummy resource: intent=default
+        assertDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME, "cpt. Jack Sparrow", true);
+        
+        // Check shadow: intent=test
+        PrismObject<ShadowType> accountShadowTest = repositoryService.getObject(ShadowType.class, accountOidTest, null, result);
+        assertDummyAccountShadowRepo(accountShadowTest, accountOidTest, "T"+ACCOUNT_JACK_DUMMY_USERNAME);
+        
+        // Check account: intent=test
+        PrismObject<ShadowType> accountModelTest = modelService.getObject(ShadowType.class, accountOidTest, null, task, result);
+        assertDummyAccountShadowModel(accountModelTest, accountOidTest, "T"+ACCOUNT_JACK_DUMMY_USERNAME, "cpt. Jack Sparrow (test)");
+        
+        // Check account in dummy resource: intent=test
+        assertDummyAccount("T"+ACCOUNT_JACK_DUMMY_USERNAME, "cpt. Jack Sparrow (test)", true);
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(3);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, ShadowType.class);
+        dummyAuditService.assertTarget(USER_JACK_OID);
+        dummyAuditService.assertExecutionSuccess();
+
+        assertSteadyResources();
+    }
+    
+    @Test
     public void test147ModifyUserJackUnAssignAccountDefault() throws Exception {
 		final String TEST_NAME="test147ModifyUserJackUnAssignAccountDefault";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -245,7 +308,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
-		assertUserJack(userJack);
+		assertUserJack(userJack, "cpt. Jack Sparrow", "Jack", "Sparrow");
 		assertLinks(userJack, 1);
 		String accountOidTest = getLinkRef(userJack, RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, ACCOUNT_INTENT_TEST);
         
@@ -255,10 +318,10 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         
         // Check account: intent=test
         PrismObject<ShadowType> accountModelTest = modelService.getObject(ShadowType.class, accountOidTest, null, task, result);
-        assertDummyAccountShadowModel(accountModelTest, accountOidTest, "T"+ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow (test)");
+        assertDummyAccountShadowModel(accountModelTest, accountOidTest, "T"+ACCOUNT_JACK_DUMMY_USERNAME, "cpt. Jack Sparrow (test)");
         
         // Check account in dummy resource: intent=test
-        assertDummyAccount("T"+ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow (test)", true);
+        assertDummyAccount("T"+ACCOUNT_JACK_DUMMY_USERNAME, "cpt. Jack Sparrow (test)", true);
         
         assertNoDummyAccount(ACCOUNT_JACK_DUMMY_USERNAME);
         
@@ -300,7 +363,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         assertShadowFetchOperationCountIncrement(0);
         
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-		assertUserJack(userJack, "Jack Sparrow", "Jack", "Sparrow");
+		assertUserJack(userJack, "cpt. Jack Sparrow", "Jack", "Sparrow");
 		assertLinks(userJack, 0);
         
         // Check is shadow is gone
