@@ -125,7 +125,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 		
 		assertLinked(context.getFocusContext().getObjectOld().getOid(), accountShadowJack.getOid());
 		
-		PrismObject<ShadowType> shadow = getAccountNoFetch(accountShadowJackDummyOid);
+		PrismObject<ShadowType> shadow = getShadowModelNoFetch(accountShadowJackDummyOid);
         assertIteration(shadow, 0, "");
         assertSituation(shadow, SynchronizationSituationType.LINKED);
         
@@ -182,7 +182,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 		PrismObject<UserType> user = getUser(USER_JACK_OID);
 		assertEquals("Unexpected used constCenter", "999", user.asObjectable().getCostCenter());
 		
-		PrismObject<ShadowType> shadow = getAccountNoFetch(accountShadowJackDummyOid);
+		PrismObject<ShadowType> shadow = getShadowModelNoFetch(accountShadowJackDummyOid);
         assertIteration(shadow, 0, "");
         assertSituation(shadow, SynchronizationSituationType.LINKED);
         
@@ -242,7 +242,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 		PrismObject<UserType> user = getUser(USER_JACK_OID);
 		assertEquals("Unexpected used constCenter", null, user.asObjectable().getCostCenter());
 		
-		PrismObject<ShadowType> shadow = getAccountNoFetch(accountShadowJackDummyOid);
+		PrismObject<ShadowType> shadow = getShadowModelNoFetch(accountShadowJackDummyOid);
         assertIteration(shadow, 0, "");
         assertSituation(shadow, SynchronizationSituationType.LINKED);
         
@@ -295,7 +295,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 		
 		assertLinked(context.getFocusContext().getObjectOld().getOid(), accountShadowJack.getOid());
 		
-		PrismObject<ShadowType> shadow = getAccountNoFetch(accountShadowJackDummyOid);
+		PrismObject<ShadowType> shadow = getShadowModelNoFetch(accountShadowJackDummyOid);
         assertIteration(shadow, 0, "");
         assertSituation(shadow, SynchronizationSituationType.LINKED);
         
@@ -317,7 +317,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         clockwork.setDebugListener(mockListener);
 
         dummyResource.deleteAccountByName(ACCOUNT_JACK_DUMMY_USERNAME);
-        PrismObject<ShadowType> shadow = getAccountNoFetch(accountShadowJackDummyOid);
+        PrismObject<ShadowType> shadow = getShadowModelNoFetch(accountShadowJackDummyOid);
         
         ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
         change.setCurrentShadow(shadow);
@@ -347,7 +347,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 		
 		assertNotLinked(context.getFocusContext().getObjectOld().getOid(), accountShadowJackDummyOid);
 		
-		shadow = getAccountNoFetch(accountShadowJackDummyOid);
+		shadow = getShadowModelNoFetch(accountShadowJackDummyOid);
         assertIteration(shadow, 0, "");
         assertSituation(shadow, SynchronizationSituationType.DELETED);
         
@@ -400,7 +400,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 		PrismObject<UserType> userCalypso = findUserByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
 		assertNull("Unexpected user "+userCalypso, userCalypso);
 		
-		PrismObject<ShadowType> shadow = getAccountNoFetch(accountShadowCalypsoDummyOid);
+		PrismObject<ShadowType> shadow = getShadowModelNoFetch(accountShadowCalypsoDummyOid);
         assertSituation(shadow, null);
         
         result.computeStatus();
@@ -427,7 +427,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         		resourceDummy, new ItemPath(ShadowType.F_SYNCHRONIZATION_SITUATION), SynchronizationSituationType.DISPUTED);
         repositoryService.modifyObject(ShadowType.class, accountShadowCalypsoDummyOid, objectDelta.getModifications(), result);
         
-        PrismObject<ShadowType> accountShadowCalypso = getAccountNoFetch(accountShadowCalypsoDummyOid);
+        PrismObject<ShadowType> accountShadowCalypso = getShadowModelNoFetch(accountShadowCalypsoDummyOid);
         // Make sure that it is properly marked as protected. This is what provisioning would normally do
         accountShadowCalypso.asObjectable().setProtectedObject(true);
         
@@ -451,7 +451,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 		PrismObject<UserType> userCalypso = findUserByUsername(ACCOUNT_CALYPSO_DUMMY_USERNAME);
 		assertNull("Unexpected user "+userCalypso, userCalypso);
 		
-		PrismObject<ShadowType> shadow = getAccountNoFetch(accountShadowCalypsoDummyOid);
+		PrismObject<ShadowType> shadow = getShadowModelNoFetch(accountShadowCalypsoDummyOid);
         assertSituation(shadow, null);
         
         result.computeStatus();

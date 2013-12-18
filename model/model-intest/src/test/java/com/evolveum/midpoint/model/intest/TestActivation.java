@@ -294,8 +294,8 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		assertDummyDisabled("jack");
 		assertDisableTimestampFocus(userJack, startTime, endTime);
 		
-		String accountOid = getAccountRef(userJack, RESOURCE_DUMMY_OID);
-		PrismObject<ShadowType> accountShadow = getAccount(accountOid);
+		String accountOid = getLinkRef(userJack, RESOURCE_DUMMY_OID);
+		PrismObject<ShadowType> accountShadow = getShadowModel(accountOid);
 		assertDisableTimestampShadow(accountShadow, startTime, endTime);
 		assertDisableReasonShadow(accountShadow, SchemaConstants.MODEL_DISABLE_REASON_MAPPED);
 	}
@@ -353,8 +353,8 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Jack Sparrow");
 		
-		String accountOid = getAccountRef(userJack, RESOURCE_DUMMY_OID);
-		PrismObject<ShadowType> accountShadow = getAccount(accountOid);
+		String accountOid = getLinkRef(userJack, RESOURCE_DUMMY_OID);
+		PrismObject<ShadowType> accountShadow = getShadowModel(accountOid);
 		assertAdministrativeStatusDisabled(accountShadow);
 		assertDisableTimestampShadow(accountShadow, startTime, endTime);
 		assertDisableReasonShadow(accountShadow, SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);
@@ -389,8 +389,8 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "Jack Sparrow");
 		
-		String accountOid = getAccountRef(userJack, RESOURCE_DUMMY_OID);
-		PrismObject<ShadowType> accountShadow = getAccount(accountOid);
+		String accountOid = getLinkRef(userJack, RESOURCE_DUMMY_OID);
+		PrismObject<ShadowType> accountShadow = getShadowModel(accountOid);
 		assertAdministrativeStatusDisabled(accountShadow);
 		assertDisableTimestampShadow(accountShadow, null, startTime);
 		assertDisableReasonShadow(accountShadow, SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);
@@ -439,7 +439,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		assertEnableTimestampFocus(userJack, startTime, endTime);
 		
 		assertAccounts(USER_JACK_OID, 1);
-        PrismObject<ShadowType> account = getAccount(accountOid);
+        PrismObject<ShadowType> account = getShadowModel(accountOid);
         assertAccountShadowModel(account, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyType);
         assertAdministrativeStatusEnabled(account);
         assertEnableTimestampShadow(account, startTime, endTime);
@@ -483,7 +483,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		
 		assertDummyDisabled("jack");
 		assertAccounts(USER_JACK_OID, 1);
-        PrismObject<ShadowType> account = getAccount(accountOid);
+        PrismObject<ShadowType> account = getShadowModel(accountOid);
         assertAccountShadowModel(account, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyType);
         assertAdministrativeStatusDisabled(account);
         assertDisableTimestampShadow(account, startTime, endTime);
@@ -519,13 +519,13 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack);
 		assertAccounts(USER_JACK_OID, 2);
-		accountRedOid = getAccountRef(userJack, RESOURCE_DUMMY_RED_OID);
+		accountRedOid = getLinkRef(userJack, RESOURCE_DUMMY_RED_OID);
  
 		PrismObject<ShadowType> accountRedRepo = repositoryService.getObject(ShadowType.class, accountRedOid, null, result);
 		display("Account red (repo)", accountRedRepo);
         assertEnableTimestampShadow(accountRedRepo, startTime, endTime);
 	 
-        PrismObject<ShadowType> accountRed = getAccount(accountRedOid);
+        PrismObject<ShadowType> accountRed = getShadowModel(accountRedOid);
         display("Account red (model)", accountRed);
         assertAccountShadowModel(accountRed, accountRedOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyRedType);
         assertAdministrativeStatusEnabled(accountRed);
@@ -580,8 +580,8 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		assertDummyDisabled(RESOURCE_DUMMY_RED_NAME, "jack");
 		
 		assertAccounts(USER_JACK_OID, 2);
-        accountRedOid = getAccountRef(userJack, RESOURCE_DUMMY_RED_OID);
-        PrismObject<ShadowType> accountRed = getAccount(accountRedOid);
+        accountRedOid = getLinkRef(userJack, RESOURCE_DUMMY_RED_OID);
+        PrismObject<ShadowType> accountRed = getShadowModel(accountRedOid);
         assertAccountShadowModel(accountRed, accountRedOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyRedType);
         assertAdministrativeStatusDisabled(accountRed);
         assertDisableTimestampShadow(accountRed, startTime, endTime);
@@ -681,8 +681,8 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack);
 		assertAccounts(USER_JACK_OID, 2);
-        accountRedOid = getAccountRef(userJack, RESOURCE_DUMMY_RED_OID);
-        PrismObject<ShadowType> accountRed = getAccount(accountRedOid);
+        accountRedOid = getLinkRef(userJack, RESOURCE_DUMMY_RED_OID);
+        PrismObject<ShadowType> accountRed = getShadowModel(accountRedOid);
         assertAccountShadowModel(accountRed, accountRedOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyRedType);
         assertAdministrativeStatusDisabled(accountRed);
         assertDisableReasonShadow(accountRed, SchemaConstants.MODEL_DISABLE_REASON_DEPROVISION);
@@ -725,13 +725,13 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
         display("User after change execution", userJack);
         assertUserJack(userJack);
-        accountYellowOid = getAccountRef(userJack, RESOURCE_DUMMY_YELLOW_OID);
+        accountYellowOid = getLinkRef(userJack, RESOURCE_DUMMY_YELLOW_OID);
 
         // Check account in dummy resource
         assertDummyAccount(RESOURCE_DUMMY_YELLOW_NAME, "jack", "Jack Sparrow", true);
 
         // Check shadow
-        PrismObject<ShadowType> accountShadowYellow = getAccount(accountYellowOid);
+        PrismObject<ShadowType> accountShadowYellow = getShadowModel(accountYellowOid);
         assertAccountShadowModel(accountShadowYellow, accountYellowOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyYellowType);
         assertAdministrativeStatusEnabled(accountShadowYellow);
         IntegrationTestTools.assertCreateTimestamp(accountShadowYellow, start, end);
@@ -832,8 +832,8 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
     }
 
     private void checkAdminStatusFor15x(PrismObject user, boolean userStatus, boolean accountStatus, boolean accountStatusYellow) throws Exception {
-        PrismObject<ShadowType> account = getAccount(accountOid);
-        PrismObject<ShadowType> accountYellow = getAccount(accountYellowOid);
+        PrismObject<ShadowType> account = getShadowModel(accountOid);
+        PrismObject<ShadowType> accountYellow = getShadowModel(accountYellowOid);
         
         assertAccountShadowModel(account, accountOid, ACCOUNT_JACK_DUMMY_USERNAME, resourceDummyType);
         assertAdministrativeStatus(account, accountStatus ? ActivationStatusType.ENABLED : ActivationStatusType.DISABLED);
@@ -885,7 +885,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack);
-		String accountOid = getAccountRef(userJack, RESOURCE_DUMMY_KHAKI_OID);
+		String accountOid = getLinkRef(userJack, RESOURCE_DUMMY_KHAKI_OID);
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);

@@ -80,7 +80,6 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
     protected static final String ROLE_META_DUMMYGROUP_OID = "12348888-d34d-8888-8888-555555556666";
 
 	private static String groupOid;
-	private static String userCharlesOid;
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {

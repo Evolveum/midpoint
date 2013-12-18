@@ -19,9 +19,14 @@ import static com.evolveum.midpoint.common.InternalsConfig.consistencyChecks;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -332,7 +337,7 @@ public class ContextLoader {
     }
 	
 	private <F extends ObjectType> void loadFromSystemConfig(LensContext<F> context, OperationResult result)
-			throws ObjectNotFoundException, SchemaException {
+			throws ObjectNotFoundException, SchemaException, ConfigurationException {
 		PrismObject<SystemConfigurationType> systemConfiguration = LensUtil.getSystemConfiguration(context, cacheRepositoryService, result);
 		if (systemConfiguration == null) {
 			// This happens in some tests. And also during first startup.
@@ -341,18 +346,9 @@ public class ContextLoader {
 		SystemConfigurationType systemConfigurationType = systemConfiguration.asObjectable();
 		
 		if (context.getFocusTemplate() == null) {
-			
-			// TODO: determine applicable object template 
-			
-			// Deprecated method to specify user template. For compatibility only
-			if (context.getFocusClass() == UserType.class) {
-				ObjectReferenceType defaultUserTemplateRef = systemConfigurationType.getDefaultUserTemplateRef();
-				if (defaultUserTemplateRef == null) {
-					LOGGER.trace("No default user template");
-				} else {
-					PrismObject<ObjectTemplateType> defaultUserTemplate = cacheRepositoryService.getObject(ObjectTemplateType.class, defaultUserTemplateRef.getOid(), null, result);
-				    context.setFocusTemplate(defaultUserTemplate.asObjectable());
-				}
+			PrismObject<ObjectTemplateType> focusTemplate = determineFocusTemplate(context, result);
+			if (focusTemplate != null) {
+				context.setFocusTemplate(focusTemplate.asObjectable());
 			}
 		}
 		
@@ -363,7 +359,6 @@ public class ContextLoader {
 		}
 		
 		if (context.getGlobalPasswordPolicy() == null){
-			
 			
 			ValuePolicyType globalPasswordPolicy = systemConfigurationType.getGlobalPasswordPolicy();
 			
@@ -380,6 +375,42 @@ public class ContextLoader {
 		}
 	}
 	
+	private <F extends ObjectType> PrismObject<ObjectTemplateType> determineFocusTemplate(LensContext<F> context, OperationResult result) throws ObjectNotFoundException, SchemaException, ConfigurationException {
+		SystemConfigurationType systemConfigurationType = context.getSystemConfiguration().asObjectable();
+		LensFocusContext<F> focusContext = context.getFocusContext();
+		if (focusContext == null) {
+			return null;
+		}
+		Class<F> focusType = focusContext.getObjectTypeClass();
+
+		ObjectReferenceType templateRef = null;
+		for (ObjectTypeTemplateType objectTemplate: systemConfigurationType.getObjectTemplate()) {
+			QName typeQName = objectTemplate.getType();
+			ObjectTypes objectType = ObjectTypes.getObjectTypeFromTypeQName(typeQName);
+			if (objectType == null) {
+				throw new ConfigurationException("Unknown type "+typeQName+" in object template definition in system configuration");
+			}
+			if (objectType.getClassDefinition() == focusType) {
+				templateRef = objectTemplate.getObjectTemplateRef();
+			}
+		}
+		
+		// Deprecated method to specify user template. For compatibility only
+		if (templateRef == null && context.getFocusClass() == UserType.class) {
+			templateRef = systemConfigurationType.getDefaultUserTemplateRef();
+		}
+		
+		if (templateRef == null) {
+			LOGGER.trace("No default object template");
+			return null;
+		} else {
+			PrismObject<ObjectTemplateType> template = cacheRepositoryService.getObject(ObjectTemplateType.class, templateRef.getOid(), null, result);
+		    return template;
+		}
+
+	}
+
+
 	private <F extends FocusType> void loadLinkRefs(LensContext<F> context, OperationResult result) throws ObjectNotFoundException,
 			SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
 		LensFocusContext<F> focusContext = context.getFocusContext();

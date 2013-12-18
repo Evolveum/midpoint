@@ -187,7 +187,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 		result.computeStatus();
         TestUtil.assertSuccess("executeChanges result", result);
         
-        PrismObject<ShadowType> accountShadow = getAccount(ACCOUNT_SHADOW_ELAINE_DUMMY_RED_OID);
+        PrismObject<ShadowType> accountShadow = getShadowModel(ACCOUNT_SHADOW_ELAINE_DUMMY_RED_OID);
 		assertDisableReasonShadow(accountShadow, SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);
 	}
 	
@@ -235,8 +235,8 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 		display("Jack", userJack);
 		assertUserJack(userJack, "Jack Sparrow", "Jack", "Sparrow");
 		
-		String accountRedOid = getAccountRef(userJack, RESOURCE_DUMMY_RED_OID);
-		PrismObject<ShadowType> accountRed = getAccount(accountRedOid);
+		String accountRedOid = getLinkRef(userJack, RESOURCE_DUMMY_RED_OID);
+		PrismObject<ShadowType> accountRed = getShadowModel(accountRedOid);
 		
 		XMLGregorianCalendar start = clock.currentTimeXMLGregorianCalendar();
         start.add(XmlTypeConverter.createDuration(true, 0, 0, 25, 0, 0, 0));
@@ -352,8 +352,8 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         display("Drake after", userDrakeAfter);
         assertEffectiveActivation(userDrakeAfter, ActivationStatusType.DISABLED);
         
-        String accountRedOid = getAccountRef(userDrakeAfter, RESOURCE_DUMMY_RED_OID);
-        PrismObject<ShadowType> accountRed = getAccount(accountRedOid);
+        String accountRedOid = getLinkRef(userDrakeAfter, RESOURCE_DUMMY_RED_OID);
+        PrismObject<ShadowType> accountRed = getShadowModel(accountRedOid);
         display("Drake account RED after", accountRed);
         
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, "drake", "Francis Drake", false);
@@ -379,8 +379,8 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         display("Drake after", userDrakeAfter);
         assertEffectiveActivation(userDrakeAfter, ActivationStatusType.ENABLED);
         
-        String accountRedOid = getAccountRef(userDrakeAfter, RESOURCE_DUMMY_RED_OID);
-        PrismObject<ShadowType> accountRed = getAccount(accountRedOid);
+        String accountRedOid = getLinkRef(userDrakeAfter, RESOURCE_DUMMY_RED_OID);
+        PrismObject<ShadowType> accountRed = getShadowModel(accountRedOid);
         display("Drake account RED after", accountRed);
         
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, "drake", "Francis Drake", true);
@@ -406,8 +406,8 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         display("Drake after", userDrakeAfter);
         assertEffectiveActivation(userDrakeAfter, ActivationStatusType.ENABLED);
         
-        String accountRedOid = getAccountRef(userDrakeAfter, RESOURCE_DUMMY_RED_OID);
-        PrismObject<ShadowType> accountRed = getAccount(accountRedOid);
+        String accountRedOid = getLinkRef(userDrakeAfter, RESOURCE_DUMMY_RED_OID);
+        PrismObject<ShadowType> accountRed = getShadowModel(accountRedOid);
         display("Drake account RED after", accountRed);
         
         assertDummyAccount(RESOURCE_DUMMY_RED_NAME, "drake", "Francis Drake", true);
@@ -433,8 +433,8 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         display("Drake after", userDrakeAfter);
         assertEffectiveActivation(userDrakeAfter, ActivationStatusType.DISABLED);
         
-        String accountRedOid = getAccountRef(userDrakeAfter, RESOURCE_DUMMY_RED_OID);
-        PrismObject<ShadowType> accountRed = getAccount(accountRedOid);
+        String accountRedOid = getLinkRef(userDrakeAfter, RESOURCE_DUMMY_RED_OID);
+        PrismObject<ShadowType> accountRed = getShadowModel(accountRedOid);
         display("Drake account RED after", accountRed);
         assertDisableReasonShadow(accountRed, SchemaConstants.MODEL_DISABLE_REASON_MAPPED);
         
@@ -461,8 +461,8 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
         display("Drake after", userDrakeAfter);
         assertEffectiveActivation(userDrakeAfter, ActivationStatusType.DISABLED);
         
-        String accountRedOid = getAccountRef(userDrakeAfter, RESOURCE_DUMMY_RED_OID);
-        PrismObject<ShadowType> accountRed = getAccount(accountRedOid);
+        String accountRedOid = getLinkRef(userDrakeAfter, RESOURCE_DUMMY_RED_OID);
+        PrismObject<ShadowType> accountRed = getShadowModel(accountRedOid);
         display("Drake account RED after", accountRed);
         assertDisableReasonShadow(accountRed, SchemaConstants.MODEL_DISABLE_REASON_MAPPED);
         
@@ -510,7 +510,7 @@ public class TestValidityRecomputeTask extends AbstractInitializedModelIntegrati
 		
 		// THEN
         
-        PrismObject<ShadowType> accountShadow = getAccount(ACCOUNT_SHADOW_ELAINE_DUMMY_RED_OID);
+        PrismObject<ShadowType> accountShadow = getShadowModel(ACCOUNT_SHADOW_ELAINE_DUMMY_RED_OID);
 		assertDisableReasonShadow(accountShadow, SchemaConstants.MODEL_DISABLE_REASON_EXPLICIT);
 	}
 

@@ -683,6 +683,14 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
 		assertConnectorSchemaParseIncrement(0);
 	}
 	
+	protected void rememberSteadyResources() {
+		rememberResourceSchemaFetchCount();
+		rememberResourceSchemaParseCount();
+		rememberConnectorCapabilitiesFetchCount();
+		rememberConnectorInitializationCount();
+		rememberConnectorSchemaParseCount();
+	}
+	
 	protected void rememberShadowFetchOperationCount() {
 		lastShadowFetchOperationCount  = InternalMonitor.getShadowFetchOperationCount();
 	}

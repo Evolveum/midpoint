@@ -268,7 +268,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-		String accountJackDummyOid = getAccountRef(userJack, RESOURCE_DUMMY_OID);
+		String accountJackDummyOid = getLinkRef(userJack, RESOURCE_DUMMY_OID);
 		
 		ObjectDelta<ShadowType> accountDelta = ObjectDelta.createDeleteDelta(ShadowType.class, accountJackDummyOid, prismContext);
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(accountDelta);
@@ -711,7 +711,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		assertAccount(userJack, RESOURCE_DUMMY_OID);
 		assertAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
 		assertLinks(userJack, 2);
-        String accountOid = getAccountRef(userJack, RESOURCE_DUMMY_BLUE_OID);
+        String accountOid = getLinkRef(userJack, RESOURCE_DUMMY_BLUE_OID);
         
         // Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
@@ -749,7 +749,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
 		assertUserJack(userJack);
 		assertAccount(userJack, RESOURCE_DUMMY_OID);
 		assertLinks(userJack, 1);
-        String accountOid = getAccountRef(userJack, RESOURCE_DUMMY_OID);
+        String accountOid = getLinkRef(userJack, RESOURCE_DUMMY_OID);
         
         // Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
@@ -1342,7 +1342,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         
         PrismObject<UserType> userBefore = findUserByUsername(USER_WORLD_NAME);
         assertAdministrativeStatusEnabled(userBefore);
-        String accountDavidOid = getAccountRef(userBefore, RESOURCE_DUMMY_DAVID_OID);
+        String accountDavidOid = getLinkRef(userBefore, RESOURCE_DUMMY_DAVID_OID);
         dummyAuditService.clear();
         
         // WHEN
@@ -1413,7 +1413,7 @@ public class TestMultiResource extends AbstractInitializedModelIntegrationTest {
         
         PrismObject<UserType> userBefore = findUserByUsername(USER_WORLD_NAME);
         assertAdministrativeStatusEnabled(userBefore);
-        String accountDavidOid = getAccountRef(userBefore, RESOURCE_DUMMY_DAVID_OID);
+        String accountDavidOid = getLinkRef(userBefore, RESOURCE_DUMMY_DAVID_OID);
         dummyAuditService.clear();
         
         // WHEN

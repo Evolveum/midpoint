@@ -376,7 +376,7 @@ public class TestClockwork extends AbstractLensTest {
         String accountOid = accContext.getOid();
         assertNotNull("No OID in account context "+accContext);
         
-        PrismObject<ShadowType> newAccount = getAccount(accountOid);
+        PrismObject<ShadowType> newAccount = getShadowModel(accountOid);
         assertEquals(DEFAULT_INTENT, newAccount.findProperty(ShadowType.F_INTENT).getRealValue());
         assertEquals(new QName(ResourceTypeUtil.getResourceNamespace(resourceDummyType), "AccountObjectClass"),
                 newAccount.findProperty(ShadowType.F_OBJECT_CLASS).getRealValue());
