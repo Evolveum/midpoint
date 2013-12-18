@@ -1032,6 +1032,7 @@
 
      <object xsi:type="SystemConfigurationType"
              xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
              xmlns:gen300="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd"
              xmlns:cap="http://midpoint.evolveum.com/xml/ns/public/resource/capabilities-2"
              xmlns:ds="http://www.w3.org/2000/09/xmldsig#"
@@ -1086,6 +1087,14 @@
                  <details>false</details>
              </auditing>
          </logging>
+         <objectTemplate>
+             <type>c:UserType</type>
+             <objectTemplateRef oid="1234" type="c:UserType"/>
+         </objectTemplate>
+         <objectTemplate>
+             <type>c:ResourceType</type>
+             <objectTemplateRef oid="5678" type="c:ResourceType"/>
+         </objectTemplate>
          <cleanupPolicy>
              <auditRecords>
                  <maxAge>P5Y2M10D</maxAge>
