@@ -25,34 +25,78 @@
 
 #parse("header-inc.vm")
 
-<h1>Schema $schema.Namespace</h1>
+<div class="header">
+    <h1>Schema $schema.Namespace</h1>
+</div>
 
-<h2>Object Type Definitions</h2>
-<table border="1">
-    <tr>
-        <th>Type</th>
-        <th>Description</th>
-    </tr>
-#foreach($definition in $schema.getObjectDefinitions())
-    <tr>
-        <td><a href="$path.objectDefinitionUrl($definition)">$definition.TypeName.LocalPart</a></td>
-        <td>$!definition.getDocumentationPreview()</td>
-    </tr>
-#end
-</table>
+<div class="contentContainer">
+    <table class="overviewSummary" border="0" cellpadding="3" cellspacing="0">
 
-<h2>Complex Type Definitions</h2>
-<table border="1">
-    <tr>
-        <th>Type</th>
-        <th>Description</th>
-    </tr>
-    #foreach($definition in $schema.getComplexTypeDefinitions())
+        <caption>
+            <span>Object Type Definitions</span>
+            <span class="tabEnd">&nbsp;</span>
+        </caption>
+
         <tr>
-            <td><a href="$path.typeDefinitionUrl($definition)">$definition.TypeName.LocalPart</a></td>
-            <td>$!definition.getDocumentationPreview()</td>
+            <th class="colFirst" scope="col">Type</th>
+            <th class="colLast" scope="col">Description</th>
         </tr>
-    #end
-</table>
+
+        <tbody>
+            #set($counter = 1)
+            #foreach($definition in $schema.getObjectDefinitions())
+                #set($modulo = $counter % 2)
+
+                #if($modulo == 0)
+                    <tr class="rowColor">
+                        <td class="colFirst"><a href="$path.objectDefinitionUrl($definition)">$definition.TypeName.LocalPart</a></td>
+                        <td class="colLast">$!definition.getDocumentationPreview()&nbsp;</td>
+                    </tr>
+                #else
+                    <tr class="altColor">
+                        <td class="colFirst"><a href="$path.objectDefinitionUrl($definition)">$definition.TypeName.LocalPart</a></td>
+                        <td class="colLast">$!definition.getDocumentationPreview()&nbsp;</td>
+                    </tr>
+                #end
+                #set($counter = $counter + 1)
+            #end
+        </tbody>
+    </table>
+</div>
+
+<div class="contentContainer">
+    <table class="overviewSummary" border="0" cellpadding="3" cellspacing="0">
+
+        <caption>
+            <span>Complex Type Definitions</span>
+            <span class="tabEnd">&nbsp;</span>
+        </caption>
+
+        <tr>
+            <th class="colFirst" scope="col">Type</th>
+            <th class="colLast" scope="col">Description</th>
+        </tr>
+
+        <tbody>
+            #set($counter = 1)
+            #foreach($definition in $schema.getComplexTypeDefinitions())
+                #set($modulo = $counter % 2)
+
+                #if($modulo == 0)
+                    <tr class="rowColor">
+                        <td class="colFirst"><a href="$path.typeDefinitionUrl($definition)">$definition.TypeName.LocalPart</a></td>
+                        <td class="colLast">$!definition.getDocumentationPreview()&nbsp;</td>
+                    </tr>
+                #else
+                    <tr class="altColor">
+                        <td class="colFirst"><a href="$path.typeDefinitionUrl($definition)">$definition.TypeName.LocalPart</a></td>
+                        <td class="colLast">$!definition.getDocumentationPreview()&nbsp;</td>
+                    </tr>
+                #end
+                #set($counter = $counter + 1)
+            #end
+        </tbody>
+    </table>
+</div>
 
 #parse("footer-inc.vm")
