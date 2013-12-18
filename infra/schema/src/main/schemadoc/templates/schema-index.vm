@@ -25,12 +25,51 @@
 
 #parse("header-inc.vm")
 
-<h1>Schema Index</h1>
+<div class="header">
+    <h1>Schema Index</h1>
+</div>
 
-<ul>
-#foreach($schema in $schemaRegistry.getSchemas())
-    <li><a href="$path.schemaUrl($schema)">$schema.Namespace</a></li>
-#end
-</ul>
+<div class="contentContainer">
+    <table class="overviewSummary" border="0" cellpadding="3" cellspacing="0">
+
+        <caption>
+            <span>Schema list</span>
+            <span class="tabEnd">&nbsp;</span>
+        </caption>
+
+        <tr>
+            <th class="colFirst" scope="col">Schema</th>
+            <th class="colLast" scope="col"></th>
+        </tr>
+
+        <tbody>
+
+            #set($counter = 1)
+            #foreach($schema in $schemaRegistry.getSchemas())
+                #set($modulo = $counter % 2)
+
+                #if($modulo == 0)
+                    <tr class="rowColor">
+                        <td class="colFirst">
+                            <a href="$path.schemaUrl($schema)">$schema.Namespace</a>
+                        </td>
+                        <td class="colLast">&nbsp;</td>
+                    </tr>
+                #else
+                    <tr class="altColor">
+                        <td class="colFirst">
+                            <a href="$path.schemaUrl($schema)">$schema.Namespace</a>
+                        </td>
+                        <td class="colLast">&nbsp;</td>
+                    </tr>
+                #end
+                #set($counter = $counter + 1)
+            #end
+
+
+        </tbody>
+
+    </table>
+</div>
 
 #parse("footer-inc.vm")

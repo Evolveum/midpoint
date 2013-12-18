@@ -26,26 +26,28 @@
 
 #parse("header-inc.vm")
 
-<h1>$definition.TypeName.LocalPart (Complex Type)</h1>
-<p>
-Namespace: $definition.TypeName.NamespaceURI
-</p>
-#if($definition.Abstract)
-<p>
-    ABSTRACT
-</p>
-#end
-#if($definition.SuperType)
-    #set( $typeUrl = $path.typeDefinitionUrl($definition.TypeName,$prefixToBase,$prismContext))
-<p>
-    Supertype: <a href="$!typeUrl">$definition.SuperType.LocalPart</a>
-</p>
-#end
+<div class="header">
+    <h1>$definition.TypeName.LocalPart (Complex Type)</h1>
+    <h3>Namespace: $definition.TypeName.NamespaceURI</h3>
+</div>
 
-<p>
-$!definition.Documentation
-</p>
+<div class="contentContainer">
+    #if($definition.Abstract)
+    <div class="block">
+        ABSTRACT
+    </div>
+    #end
+    #if($definition.SuperType)
+        #set( $typeUrl = $path.typeDefinitionUrl($definition.TypeName,$prefixToBase,$prismContext))
+    <div class="block">
+        Supertype: <a href="$!typeUrl">$definition.SuperType.LocalPart</a>
+    </div>
+    #end
+
+    <div class="block">
+    $!definition.Documentation
+    </div>
+</div>
 
 #parse("items-inc.vm")
-
 #parse("footer-inc.vm")

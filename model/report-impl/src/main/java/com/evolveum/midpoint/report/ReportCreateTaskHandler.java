@@ -288,10 +288,44 @@ public class ReportCreateTaskHandler implements TaskHandler {
     public TaskRunResult run(Task task) {
         //here a jasper magic should be done which creates PDF file (or something else) in midpoint directory
         //also as a result ReportOutputType should be created and stored to DB.
+    	
+        /*task.getExtensionReference(name);
+         * modelservice.getobject - reporttype
+         * reporttype.export        
+         */
+    	
+    	/*
+    	Map<String, Object> params = new HashMap<String, Object>();
+    	try
+    	{
+    		OperationResult subResult = parentResult.createSubresult(RUN_REPORT);
+    		ReportType reportType = object.asObjectable();
+    		
+    		subResult = parentResult.createSubresult("Load Datasource");
+            
+    		DataSourceReport reportDataSource = new DataSourceReport(object, subResult);
+    		
+    		params.putAll(getReportParams(object, parentResult));
+    		params.put(JRParameter.REPORT_DATA_SOURCE, reportDataSource);
+    		
+    		// Loading template
+    		InputStream inputStreamJRXML = new ByteArrayInputStream(reportType.getReportTemplateJRXML().getBytes("UTF-8"));
+    		JasperDesign jasperDesign = JRXmlLoader.load(inputStreamJRXML); 
 
+    		JasperReport jasperReport = JasperCompileManager.compileReport(jasperDesign);
+    		JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, params);
+
+    		generateReport(reportType, jasperPrint);
+     
+    		subResult.computeStatus();
+    	}
+    	catch (Exception ex)
+    	{
+    		ModelUtils.recordFatalError(parentResult, ex);
+    	}*/
         return null;
     }
-
+   
     @Override
     public Long heartbeat(Task task) {
         return null;
