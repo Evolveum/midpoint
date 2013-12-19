@@ -40,6 +40,7 @@ import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+
 import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -72,12 +73,16 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
     protected static final File ROLE_SWASHBUCKLER_FILE = new File(TEST_DIR, "role-swashbuckler.xml");
     protected static final String ROLE_SWASHBUCKLER_OID = "12345678-d34d-b33f-f00d-5b5b5b5b5b5b";
     protected static final String ROLE_SWASHBUCKLER_NAME = "Swashbuckler";
-    protected static final String ROLE_SWASHBUCKLER_DESCRIPTION = "Pirate wannabes";
+    protected static final String ROLE_SWASHBUCKLER_DESCRIPTION = "Requestable role Swashbuckler";
 
     protected static final String GROUP_SWASHBUCKLER_DUMMY_NAME = "swashbuckler";
 
     protected static final File ROLE_META_DUMMYGROUP_FILE = new File(TEST_DIR, "role-meta-dummygroup.xml");
     protected static final String ROLE_META_DUMMYGROUP_OID = "12348888-d34d-8888-8888-555555556666";
+
+	private static final File SYSTEM_CONFIGURATION_GENSYNC_FILE = new File(TEST_DIR, "system-configuration.xml");
+
+	private static final File OBJECT_TEMPLATE_ROLE_FILE = new File(TEST_DIR, "object-template-role.xml");
 
 	private static String groupOid;
 
@@ -85,8 +90,14 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
+        repoAddObjectFromFile(OBJECT_TEMPLATE_ROLE_FILE, ObjectTemplateType.class, initResult);
         repoAddObjectFromFile(ROLE_META_DUMMYGROUP_FILE, RoleType.class, initResult);
     }
+    
+    @Override
+	protected File getSystemConfigurationFile() {
+		return SYSTEM_CONFIGURATION_GENSYNC_FILE;
+	}
 
     @Test
     public void test050GetRolePirate() throws Exception {
@@ -1204,6 +1215,7 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
     /**
      * Swashbuckler role has an assignment of meta-role already. Adding the swashbuckler role should
      * automatically create a group.
+     * Also the object template should add description to this role.
      */
     @Test
     public void test200AddRoleSwashbuckler() throws Exception {
@@ -1234,6 +1246,9 @@ public class TestRoleEntitlement extends AbstractInitializedModelIntegrationTest
         assertNotNull("No account OID in resulting delta", groupOid);
         // Check linkRef (should be none)
         role = getRole(ROLE_SWASHBUCKLER_OID);
+        display("Role after", role);
+        // Set by object template
+        PrismAsserts.assertPropertyValue(role,RoleType.F_DESCRIPTION, ROLE_SWASHBUCKLER_DESCRIPTION);
         // reflected by inbound
         PrismAsserts.assertPropertyValue(role,ROLE_EXTENSION_COST_CENTER_PATH, "META0000");
         assertLinks(role, 1);
