@@ -38,6 +38,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizationType.Reaction;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizationType.Reaction.Action;
@@ -111,13 +112,21 @@ public class Migrator {
 		}
 		migratedSchemaHandling.getAccountType().clear();
 		
-		ObjectSynchronizationType sync = ResourceTypeUtil.determineSynchronization(origResourceType, UserType.class);
-	
-		if (sync == null || sync.getReaction() == null){
-			return migrated;
+		SynchronizationType synchronization = migratedResourceType.getSynchronization();
+		if (synchronization != null) {
+			for (ObjectSynchronizationType objectSynchronization: synchronization.getObjectSynchronization()) {
+				migrateObjectSynchronization(objectSynchronization);
+			}
 		}
 		
+		return migrated;
+	}
 	
+	private void migrateObjectSynchronization(ObjectSynchronizationType sync) {
+		if (sync == null || sync.getReaction() == null){
+			return;
+		}
+		
 		List<Reaction> migratedReactions = new ArrayList<Reaction>();
 		for (Reaction reaction : sync.getReaction()){
 			if (reaction.getAction() == null){
@@ -135,15 +144,8 @@ public class Migrator {
 		
 		sync.getReaction().clear();
 		sync.getReaction().addAll(migratedReactions);
-		
-		migratedResourceType.getSynchronization().getObjectSynchronization().clear();
-		migratedResourceType.getSynchronization().getObjectSynchronization().add(sync);
-		
-		
-		
-		return migrated;
 	}
-	
+
 	private Action migrateAction(Action action){
 		List<Object> migrated = new ArrayList<Object>();
 		if (action.getAny() == null){

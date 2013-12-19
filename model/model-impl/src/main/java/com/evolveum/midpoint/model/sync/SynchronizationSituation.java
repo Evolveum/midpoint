@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.sync;
 
 import org.apache.commons.lang.Validate;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
@@ -27,16 +28,16 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
  */
 public class SynchronizationSituation {
 
-	private UserType user;
+	private FocusType user;
 	private SynchronizationSituationType situation;
 
-	SynchronizationSituation(UserType user, SynchronizationSituationType situation) {
+	SynchronizationSituation(FocusType user, SynchronizationSituationType situation) {
 		Validate.notNull(situation, "Synchronization situation must not be null.");
 		this.user = user;
 		this.situation = situation;
 	}
 
-	public UserType getUser() {
+	public FocusType getUser() {
 		return user;
 	}
 

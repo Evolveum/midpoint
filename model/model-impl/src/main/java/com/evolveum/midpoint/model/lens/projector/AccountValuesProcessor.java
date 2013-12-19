@@ -45,6 +45,8 @@ import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.lens.LensUtil;
 import com.evolveum.midpoint.model.lens.ShadowConstraintsChecker;
 import com.evolveum.midpoint.model.sync.CorrelationConfirmationEvaluator;
+import com.evolveum.midpoint.model.sync.SynchronizationService;
+import com.evolveum.midpoint.model.util.Utils;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -80,6 +82,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.IterationSpecificationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
@@ -116,8 +119,11 @@ public class AccountValuesProcessor {
 	@Autowired(required = true)
 	private PrismContext prismContext;
 	
-	@Autowired
+	@Autowired(required = true)
 	private CorrelationConfirmationEvaluator correlationConfirmationEvaluator;
+	
+	@Autowired(required = true)
+	private SynchronizationService synchronizationService;
 
 	@Autowired(required = true)
 	private ProvisioningService provisioningService;
@@ -330,8 +336,8 @@ public class AccountValuesProcessor {
 					        		
 					        		if (ResourceTypeUtil.isSynchronizationOpportunistic(resourceType)) {
 					        			LOGGER.trace("Trying to find owner using correlation expression.");
-										boolean match = correlationConfirmationEvaluator.matchUserCorrelationRule(fullConflictingShadow, context
-												.getFocusContext().getObjectNew(), resourceType, result);
+										boolean match = synchronizationService.matchUserCorrelationRule(
+												fullConflictingShadow, context.getFocusContext().getObjectNew(), resourceType, result);
 										
 										if (match){
 											//check if it is add account (primary delta contains add shadow deltu)..
@@ -560,12 +566,8 @@ public class AccountValuesProcessor {
 		
 	private <F extends ObjectType> Map<QName, Object> createExpressionVariables(LensContext<F> context, 
 			LensProjectionContext accountContext) {
-		Map<QName, Object> variables = new HashMap<QName, Object>();
-		variables.put(ExpressionConstants.VAR_FOCUS, context.getFocusContext().getObjectNew());
-		variables.put(ExpressionConstants.VAR_USER, context.getFocusContext().getObjectNew());
-		variables.put(ExpressionConstants.VAR_SHADOW, accountContext.getObjectNew());
-		variables.put(ExpressionConstants.VAR_RESOURCE, accountContext.getResource());
-		return variables;
+		return Utils.getDefaultExpressionVariables(context.getFocusContext().getObjectNew(), accountContext.getObjectNew(),
+				accountContext.getResourceShadowDiscriminator(), accountContext.getResource().asPrismObject());
 	}
 
 	private String formatIterationTokenDefault(int iteration) {

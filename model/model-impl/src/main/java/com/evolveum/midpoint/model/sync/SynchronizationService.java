@@ -25,6 +25,7 @@ import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -56,12 +57,14 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.SynchronizationSituationUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -70,18 +73,25 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizationType.Reaction;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
+ * Synchronization service receives change notifications from provisioning. It decides which synchronization
+ * policy to use and evaluates it (correlation, confirmation, situations, reaction, ...)
+ * 
  * @author lazyman
+ * @author Radovan Semancik
  */
 @Service(value = "synchronizationService")
 public class SynchronizationService implements ResourceObjectChangeListener {
@@ -93,7 +103,6 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 	private ActionManager<Action> actionManager;
 	@Autowired
 	private CorrelationConfirmationEvaluator correlationConfirmationEvaluator;
-//	private ExpressionHandler expressionHandler;
 	@Autowired
 	private ChangeNotificationDispatcher notificationManager;
 	@Autowired(required = true)
@@ -129,17 +138,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 
 		OperationResult subResult = parentResult.createSubresult(NOTIFY_CHANGE);
 		try {
-			ResourceType resource = change.getResource().asObjectable();
-		
-			if (!isSynchronizationEnabled(ResourceTypeUtil.determineSynchronization(resource, UserType.class))) {
-				String message = "SYNCHRONIZATION is not enabled for " + ObjectTypeUtil.toShortString(resource)
-						+ " ignoring change from channel " + change.getSourceChannel();
-				LOGGER.debug(message);
-				subResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, message);
-				return;
-			}
-			LOGGER.trace("Synchronization is enabled.");
-
+			ResourceType resourceType = change.getResource().asObjectable();
 			PrismObject<? extends ShadowType> currentShadow = change.getCurrentShadow();
 			if (currentShadow != null) {
 				ShadowType currentShadowType = currentShadow.asObjectable();
@@ -157,7 +156,34 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 				}
 			}
 			
-			SynchronizationSituation situation = checkSituation(change, subResult);
+			PrismObject<? extends ShadowType> applicableShadow = currentShadow;
+			if (applicableShadow == null) {
+				// We need this e.g. in case of delete
+				applicableShadow = change.getOldShadow();
+			}
+			ObjectSynchronizationType synchronizationPolicy = determineSynchronizationPolicy(resourceType, 
+					applicableShadow);
+			
+			if (synchronizationPolicy == null) {
+				String message = "SYNCHRONIZATION no matching policy for " + resourceType
+						+ " ignoring change from channel " + change.getSourceChannel();
+				LOGGER.debug(message);
+				subResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, message);
+				return;
+			}
+			
+			if (!isSynchronizationEnabled(synchronizationPolicy)) {
+				String message = "SYNCHRONIZATION is not enabled for " + resourceType
+						+ " ignoring change from channel " + change.getSourceChannel();
+				LOGGER.debug(message);
+				subResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, message);
+				return;
+			}
+			LOGGER.trace("Synchronization is enabled, applicable policy found.");
+			
+			Class<? extends FocusType> focusType = determineFocusClass(synchronizationPolicy, resourceType);
+			
+			SynchronizationSituation situation = determineSituation(focusType, change, synchronizationPolicy, subResult);
 			if (logDebug) {
 				LOGGER.debug("SYNCHRONIZATION: SITUATION: '{}', {}", situation.getSituation().value(), situation.getUser());
 			} else {
@@ -181,7 +207,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 				return;
 			}
 			
-			notifyChange(change, situation, resource, logDebug, task, subResult);
+			reactToChange(change, synchronizationPolicy, situation, resourceType, logDebug, task, subResult);
 
 			subResult.computeStatus();
 		} catch (Exception ex) {
@@ -194,6 +220,66 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		}
 	}
 	
+	private <F extends FocusType> Class<F> determineFocusClass(ObjectSynchronizationType synchronizationPolicy, ResourceType resource) throws ConfigurationException {
+		QName focusTypeQName = synchronizationPolicy.getFocusType();
+		if (focusTypeQName == null) {
+			return (Class<F>) UserType.class;
+		}
+		ObjectTypes objectType = ObjectTypes.getObjectTypeFromTypeQName(focusTypeQName);
+		if (objectType == null) {
+			throw new ConfigurationException("Unknown focus type "+focusTypeQName+" in synchronization policy in "+resource);
+		}
+		return (Class<F>) objectType.getClassDefinition();
+	}
+
+	public ObjectSynchronizationType determineSynchronizationPolicy(ResourceType resourceType, PrismObject<? extends ShadowType> currentShadow) {
+		SynchronizationType synchronization = resourceType.getSynchronization();
+		if (synchronization == null) {
+			return null;
+		}
+		for (ObjectSynchronizationType objectSynchronization: synchronization.getObjectSynchronization()) {
+			if (isPolicyApplicable(currentShadow, objectSynchronization)) {
+				return objectSynchronization;
+			}
+		}
+		return null;
+	}
+
+	private boolean isPolicyApplicable(PrismObject<? extends ShadowType> currentShadow, 
+			ObjectSynchronizationType synchronizationPolicy) {
+		ShadowType currentShadowType = currentShadow.asObjectable();
+		
+		// objectClass
+		QName shadowObjectClass = currentShadowType.getObjectClass();
+		Validate.notNull(shadowObjectClass, "No objectClass in currentShadow");
+		List<QName> policyObjectClasses = synchronizationPolicy.getObjectClass();
+		if (policyObjectClasses != null && !policyObjectClasses.isEmpty()) {
+			if (!policyObjectClasses.contains(shadowObjectClass)) {
+				return false;
+			}
+		}
+		
+		// kind
+		ShadowKindType shadowKind = currentShadowType.getKind();
+		ShadowKindType policyKind = synchronizationPolicy.getKind();
+		if (policyKind != null && shadowKind != null && !policyKind.equals(shadowKind)) {
+			return false;
+		}
+		
+		// intent
+		String shadowIntent = currentShadowType.getIntent();
+		String policyIntent = synchronizationPolicy.getIntent();
+		if (policyIntent != null && shadowIntent != null && !MiscSchemaUtil.equalsIntent(shadowIntent, policyIntent)) {
+			return false;
+		}
+		
+		if (synchronizationPolicy.getCondition() != null) {
+			// TODO: evaluate condition
+		}
+		
+		return true;
+	}
+
 	private boolean isLogDebug(ResourceObjectShadowChangeDescription change) {
 		// Reconciliation changes are routine. Do not let it polute the logfiles.
 		return !SchemaConstants.CHANGE_CHANNEL_RECON_URI.equals(change.getSourceChannel());
@@ -246,12 +332,10 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 	 * {@link com.evolveum.midpoint.model.api.ModelService#listAccountShadowOwner(String, com.evolveum.midpoint.schema.result.OperationResult)}
 	 * ). It should be changed because otherwise we can't find
 	 * {@link SynchronizationSituationType#DISPUTED} situation
-	 * 
-	 * @param change
-	 * @param result
-	 * @return
 	 */
-	private SynchronizationSituation checkSituation(ResourceObjectShadowChangeDescription change, OperationResult result) {
+	private <F extends FocusType> SynchronizationSituation determineSituation(Class<F> focusType, 
+			ResourceObjectShadowChangeDescription change, 
+			ObjectSynchronizationType synchronizationPolicy, OperationResult result) {
 
 		OperationResult subResult = result.createSubresult(CHECK_SITUATION);
 		LOGGER.trace("Determining situation for resource object shadow.");
@@ -260,11 +344,18 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		try {
 			String shadowOid = getOidFromChange(change);
 			Validate.notEmpty(shadowOid, "Couldn't get resource object shadow oid from change.");
-			PrismObject<UserType> user = repositoryService.listAccountShadowOwner(shadowOid, subResult);
+			PrismObject<F> owner = null;
+			try {
+				owner = repositoryService.searchShadowOwner(shadowOid, subResult);
+			} catch (ObjectNotFoundException e) {
+				// Shadow is gone. This should not normally happen. But if it does then it is no
+				// tragedy. If the shadow is gone then it has no owner and the situation is quite clear.
+				subResult.getLastSubresult().setStatus(OperationResultStatus.NOT_APPLICABLE);
+			}
 
-			if (user != null) {
-				UserType userType = user.asObjectable();
-				LOGGER.trace("Shadow OID {} does have owner: {}", shadowOid, userType.getName());
+			if (owner != null) {
+				F ownerType = owner.asObjectable();
+				LOGGER.trace("Shadow OID {} does have owner: {}", shadowOid, ownerType.getName());
 				SynchronizationSituationType state = null;
 				switch (getModificationType(change)) {
 				case ADD:
@@ -276,10 +367,10 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 				case DELETE:
 					state = SynchronizationSituationType.DELETED;
 				}
-				situation = new SynchronizationSituation(userType, state);
+				situation = new SynchronizationSituation(ownerType, state);
 			} else {
 				LOGGER.trace("Resource object shadow doesn't have owner.");
-				situation = checkSituationWithCorrelation(change, result);
+				situation = determineSituationWithCorrelation(focusType, change, synchronizationPolicy, result);
 			}
 		} catch (Exception ex) {
 			LOGGER.error("Error occurred during resource object shadow owner lookup.");
@@ -311,6 +402,15 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 	}
 
 	/**
+	 * Tries to match specified focus and shadow. Return true if it matches, false otherwise.  
+	 */
+	public <F extends FocusType> boolean matchUserCorrelationRule(PrismObject<ShadowType> shadow, PrismObject<F> focus, ResourceType resourceType, OperationResult result) throws ConfigurationException{
+		ObjectSynchronizationType synchronizationPolicy = determineSynchronizationPolicy(resourceType, shadow);
+		Class<F> focusClass = determineFocusClass(synchronizationPolicy, resourceType);
+		return correlationConfirmationEvaluator.matchUserCorrelationRule(focusClass, shadow, focus, synchronizationPolicy, resourceType, result);
+	}
+	
+	/**
 	 * account is not linked to user. you have to use correlation and
 	 * confirmation rule to be sure user for this account doesn't exists
 	 * resourceShadow only contains the data that were in the repository before
@@ -318,8 +418,9 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 	 * data. Therefore let's apply the changes before running
 	 * correlation/confirmation
 	 */
-	private SynchronizationSituation checkSituationWithCorrelation(ResourceObjectShadowChangeDescription change,
-			OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+	private <F extends FocusType> SynchronizationSituation determineSituationWithCorrelation(
+			Class<F> focusType, ResourceObjectShadowChangeDescription change,
+			ObjectSynchronizationType synchronizationPolicy, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 
 		if (ChangeType.DELETE.equals(getModificationType(change))) {
 			// account was deleted and we know it didn't have owner
@@ -341,27 +442,26 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		ResourceType resource = change.getResource().asObjectable();
 		validateResourceInShadow(resourceShadow.asObjectable(), resource);
 
-		ObjectSynchronizationType synchronization = ResourceTypeUtil.determineSynchronization(resource, UserType.class);
-
 		SynchronizationSituationType state = null;
 		LOGGER.trace("SYNCHRONIZATION: CORRELATION: Looking for list of users based on correlation rule.");
-		List<PrismObject<UserType>> users = correlationConfirmationEvaluator.findUsersByCorrelationRule(resourceShadow.asObjectable(),
-				synchronization.getCorrelation(), resource, result);
+		List<PrismObject<F>> users = correlationConfirmationEvaluator.findFocusesByCorrelationRule(
+				focusType, resourceShadow.asObjectable(),
+				synchronizationPolicy.getCorrelation(), resource, result);
 		if (users == null) {
-			users = new ArrayList<PrismObject<UserType>>();
+			users = new ArrayList<PrismObject<F>>();
 		}
 
 		if (users.size() > 1) {
-			if (synchronization.getConfirmation() == null) {
+			if (synchronizationPolicy.getConfirmation() == null) {
 				LOGGER.trace("SYNCHRONIZATION: CONFIRMATION: no confirmation defined.");
 			} else {
 				LOGGER.debug("SYNCHRONIZATION: CONFIRMATION: Checking users from correlation with confirmation rule.");
-				users = correlationConfirmationEvaluator.findUserByConfirmationRule(users, resourceShadow.asObjectable(), resource, 
-						synchronization.getConfirmation(), result);
+				users = correlationConfirmationEvaluator.findUserByConfirmationRule(focusType, users, resourceShadow.asObjectable(), resource, 
+						synchronizationPolicy.getConfirmation(), result);
 			}
 		}
 
-		UserType user = null;
+		F user = null;
 		switch (users.size()) {
 		case 0:
 			state = SynchronizationSituationType.UNMATCHED;
@@ -411,7 +511,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		return ChangeType.ADD;
 	}
 
-	private void notifyChange(ResourceObjectShadowChangeDescription change, SynchronizationSituation situation,
+	private void reactToChange(ResourceObjectShadowChangeDescription change, ObjectSynchronizationType synchronizationPolicy, 
+			SynchronizationSituation situation,
 			ResourceType resource, boolean logDebug, Task task, OperationResult parentResult) {
 
 		PrismObject<? extends ObjectType> target = null;
@@ -421,8 +522,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			target = change.getOldShadow();
 		}
 
-		ObjectSynchronizationType synchronization = ResourceTypeUtil.determineSynchronization(resource, UserType.class);
-		List<Action> actions = findActionsForReaction(synchronization.getReaction(), situation.getSituation(), change.getSourceChannel());
+		List<Action> actions = findActionsForReaction(synchronizationPolicy.getReaction(), situation.getSituation(), change.getSourceChannel());
 		
 		//must be here, bacause when the reaction has no action, the situation will be not set.
 		saveExecutedSituationDescription(target, situation, change, parentResult);
@@ -445,8 +545,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			}
 			
 			ObjectTemplateType userTemplate = null;
-			if (synchronization != null){
-			ObjectReferenceType userTemplateRef = synchronization.getObjectTemplateRef();
+			if (synchronizationPolicy != null){
+			ObjectReferenceType userTemplateRef = synchronizationPolicy.getObjectTemplateRef();
 			if (userTemplateRef != null){
 				userTemplate = repositoryService.getObject(ObjectTemplateType.class, userTemplateRef.getOid(), null, parentResult).asObjectable();
 			}

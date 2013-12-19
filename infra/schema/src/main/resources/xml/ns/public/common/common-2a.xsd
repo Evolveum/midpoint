@@ -4873,48 +4873,97 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
+        	<xsd:element name="objectClass" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Object classes that will be processed by this definition.
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0" maxOccurs="1">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Shadow kind assumed by this definition. If not specified then the kind
+        				defined by schemaHandling part will be used. However this element can define
+        				a more specific kind in case that the schemaHandling part is ambiguous
+        				(e.g. the same objectclass is used for two kinds).
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="intent" type="xsd:string" minOccurs="0" maxOccurs="1">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Shadow intent assumed by this definition. If not specified then the intent
+        				defined by schemaHandling part will be used. However this element can define
+        				a more specific intent in case that the schemaHandling part is ambiguous
+        				(e.g. the same objectclass is used for two intents).
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="focusType" type="xsd:QName" minOccurs="0" maxOccurs="1">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Type of the focus that would be applied to this type.
+        				If not specified the User (c:UserType) is assumed.
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
         	<xsd:element name="type" type="xsd:QName" minOccurs="0" maxOccurs="1">
         		<xsd:annotation>
         			<xsd:documentation>
-        				Type of object that this synchronization definition applies to.
-        				If not specified it applies to User (c:UserType).
+        				DEPRECATED, not used, never been used
         			</xsd:documentation>
+        			<xsd:appinfo>
+        				<a:deprecated/>
+        			</xsd:appinfo>
         		</xsd:annotation>
         	</xsd:element>
             <xsd:element name="enabled" type="xsd:boolean" minOccurs="0" default="true">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Flag indicating if the synchronization is enabled. If it is not,
-                        the synchronization process will be suspended.
+                        <p>Flag indicating if this synchronization specification is enabled. If it is not,
+                        then the system will ignore this definition.
                         If enabled, the synchronization should start with most recent change
                         after enablinh synchronization. It will NOT pull in even the changes that
-                        were done during disabled synchronization.
+                        were done during disabled synchronization.</p>
 
-                        If this flag is not present, but a valid synchronization setup is found (which usually
-                        means valid "synchrnization" element), the synchronization is assumed to be enabled.
+                        <p>If this flag is not present the synchronization is assumed to be enabled.
                         This flag is meant to act as a tool to temprarily disable synchronizatoin without loosing the
-                        configuration and and state or for forcing the synchronization engine to "skip" some changes.
+                        configuration and and state or for forcing the synchronization engine to "skip" some changes.</p>
                         
-                        Note that this is different than disabling/deleting the synchronization task. If the task
+                        <p>Note that this is different than disabling/deleting the synchronization task. If the task
                         is stopped, midPont will not poll for changes at all. This means that the changes will
                         still be "pending" on the resource and once the task is enabled it will pull such changes.
                         On the other hand, disabling synchronization using this flag and leaving the task running will
-                        "acknowldge" all changes without doing anything.
+                        "acknowldge" all changes without doing anything.</p>
                         
-                        Also note that disabling synchronization using this flag will disable all the flavors, e.g.
-                        it will also disable import from resource.
+                        <p>Also note that disabling synchronization using this flag will disable all the flavors, e.g.
+                        it will also disable import from resource.</p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="condition" type="c:ExpressionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                    	<p>Expression that is evaluated to check whether this definition is applicable to
+                        a particular shadow. It is assumed to return a boolean value. If it returns 'true'
+                        then the shadow will be processed by this definition. If it returns 'false' it will
+                        not be processed.</p>
+                        
+                        <p>If no condition is present then all applicable shadows will be processed.</p>
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="correlation" type="q:QueryType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Correlation expression. It should return a list of candidate user entries that may be owners of a
-                        particular account.
+                    	<p>Correlation query expression. Running the query should return a list of candidate focus
+                    	entries that may be owners of a particular shadow.</p>
 
-                        Correlation is an rough but an efficient way how to relate the account to a user. The correlation
-                        expression is in fact just a search filter. If correlation search returns more that one entries,
-                        confirmation expression will be executed for each of them.
+                        <p>Correlation is an rough but an efficient way how to relate the shadow (e.g. an account)
+                        to a focus (e.g. an user). The correlation expression is in fact just a search query that can
+                        contain expressions inside it. If correlation search returns more that one entries,
+                        confirmation expression will be executed for each of them.</p>
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>

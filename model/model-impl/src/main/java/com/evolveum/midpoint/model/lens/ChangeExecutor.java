@@ -923,7 +923,7 @@ public class ChangeExecutor {
 
         ResourceShadowDiscriminator discr = ((LensProjectionContext) objectContext).getResourceShadowDiscriminator();
 
-        Map<QName, Object> variables = getDefaultExpressionVariables(user, resourceObject, discr, resource.asPrismObject());
+        Map<QName, Object> variables = Utils.getDefaultExpressionVariables(user, resourceObject, discr, resource.asPrismObject());
         return evaluateScript(resourceScripts, discr, operation, null, variables, result);
       
     }
@@ -996,24 +996,6 @@ public class ChangeExecutor {
 		}
 	}
     
-    private Map<QName, Object> getDefaultExpressionVariables(PrismObject<? extends ObjectType> focus,
-    		PrismObject<? extends ShadowType> projection, ResourceShadowDiscriminator discr, PrismObject<ResourceType> resource) {
-		Map<QName, Object> variables = new HashMap<QName, Object>();
-
-        // Legacy. And convenience/understandability.
-        if ((focus != null && focus.canRepresent(UserType.class))
-                || (discr != null && discr.getKind() == ShadowKindType.ACCOUNT)) {
-		    variables.put(ExpressionConstants.VAR_USER, focus);
-            variables.put(ExpressionConstants.VAR_ACCOUNT, projection);
-        }
-
-        variables.put(ExpressionConstants.VAR_FOCUS, focus);
-		variables.put(ExpressionConstants.VAR_SHADOW, projection);
-		variables.put(ExpressionConstants.VAR_RESOURCE, resource);
-
-        return variables;
-	}
-    
     private <T extends ObjectType, F extends ObjectType>
 	void executeReconciliationScript(LensProjectionContext projContext, LensContext<F> context,
 			ProvisioningScriptOrderType order, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException {
@@ -1059,7 +1041,7 @@ public class ChangeExecutor {
 			throw new IllegalArgumentException("Unknown order "+order);
 		}
         
-		Map<QName, Object> variables = getDefaultExpressionVariables(user, shadow,
+		Map<QName, Object> variables = Utils.getDefaultExpressionVariables(user, shadow,
                 projContext.getResourceShadowDiscriminator(), resource.asPrismObject());
         OperationProvisioningScriptsType evaluatedScript = evaluateScript(resourceScripts,
                 projContext.getResourceShadowDiscriminator(),
