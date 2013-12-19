@@ -22,6 +22,7 @@ import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.page.admin.home.dto.SimplePieChartDto;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
@@ -101,8 +102,14 @@ public class ChooseTypePanel<T extends ObjectType> extends SimplePanel<ObjectVie
         ModalWindow window = (ModalWindow) get(MODAL_ID_SHOW_CHOOSE_OPTIONS);
         window.close(target);
 
-        getModel().getObject().setName(object.getName().getOrig());
-        getModel().getObject().setOid(object.getOid());
+        ObjectViewDto o = getModel().getObject();
+
+        o.setName(WebMiscUtil.getName(object));
+        o.setOid(object.getOid());
+
+        if(LOGGER.isTraceEnabled()){
+            LOGGER.trace("Choose operation performed.");
+        }
 
         target.add(get(ID_OBJECT_NAME));
     }

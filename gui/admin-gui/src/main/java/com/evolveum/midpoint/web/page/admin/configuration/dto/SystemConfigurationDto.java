@@ -31,8 +31,6 @@ public class SystemConfigurationDto implements Serializable {
     private static final String DEFAULT_CHOOSE_VALUE_NAME = "None";
     private static final String DEFAULT_CHOOSE_VALUE_OID = "";
 
-    private PrismObject<SystemConfigurationType> oldConfig;
-
     private AEPlevel aepLevel;
 
     private String auditCleanupValue;
@@ -46,7 +44,6 @@ public class SystemConfigurationDto implements Serializable {
     }
 
     public SystemConfigurationDto(PrismObject<SystemConfigurationType> config) {
-        this.oldConfig = config;
         init(config.asObjectable());
     }
 
@@ -94,14 +91,6 @@ public class SystemConfigurationDto implements Serializable {
 
         objectTemplateDto.setType(ObjectTemplateType.class);
         return objectTemplateDto;
-    }
-
-    public PrismObject<SystemConfigurationType> getOldConfig() {
-        return oldConfig;
-    }
-
-    public void setOldConfig(PrismObject<SystemConfigurationType> oldConfig) {
-        this.oldConfig = oldConfig;
     }
 
     public String getAuditCleanupValue() {

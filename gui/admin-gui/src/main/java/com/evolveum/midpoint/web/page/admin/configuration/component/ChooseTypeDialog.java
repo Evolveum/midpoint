@@ -51,7 +51,6 @@ public class ChooseTypeDialog<T extends ObjectType> extends ModalWindow{
 
         objectType = type;
 
-        //TODO - when setting title, use type name to tell user, what he is choosing
         setTitle(createStringResource("chooseTypeDialog.title"));
         setCssClassName(ModalWindow.CSS_CLASS_GRAY);
         setCookieName(ChooseTypeDialog.class.getSimpleName() + ((int) (Math.random() * 100)));

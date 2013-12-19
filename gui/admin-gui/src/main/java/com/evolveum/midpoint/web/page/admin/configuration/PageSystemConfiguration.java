@@ -37,6 +37,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.dto.*;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.apache.commons.lang.StringUtils;
+import org.apache.poi.hpsf.Util;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
@@ -270,44 +271,22 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
         String oid = SystemObjectsType.SYSTEM_CONFIGURATION.value();
 
         try{
-            LoggingDto loggingDto = null;
-            LoggingConfigurationType loggingConfig = null;
-            ProfilingConfigurationType profilingConfig = null;
+            SystemConfigurationDto dto = model.getObject();
 
-            if(loggingConfigPanel != null){
-                loggingDto = loggingConfigPanel.getModel().getObject();
-                loggingConfig = createLoggingConfiguration(loggingDto);
-
-                if(loggingConfig == null){
-                    target.add(getFeedbackPanel());
-                    target.add(get(ID_MAIN_FORM));
-                    return;
-                }
-
-                profilingConfig = createProfilingConfiguration(loggingDto);
-                if(profilingConfig == null){
-                    target.add(getFeedbackPanel());
-                    target.add(get(ID_MAIN_FORM));
-                    return;
-                }
-            }
-
-            String globalPasswordPolicyOid = model.getObject().getPassPolicyDto().getOid();
+            String globalPasswordPolicyOid = dto.getPassPolicyDto().getOid();
             ObjectReferenceType globalPassPolicyRef = new ObjectReferenceType();
             globalPassPolicyRef.setOid(globalPasswordPolicyOid);
 
-            String globalObjectTemplateOid = model.getObject().getObjectTemplateDto().getOid();
+            String globalObjectTemplateOid = dto.getObjectTemplateDto().getOid();
             ObjectReferenceType globalObjectTemplateRef = new ObjectReferenceType();
             globalObjectTemplateRef.setOid(globalObjectTemplateOid);
 
-            AssignmentPolicyEnforcementType globalAEP = AEPlevel.toAEPValueType(model.getObject().getAepLevel());
+            AssignmentPolicyEnforcementType globalAEP = AEPlevel.toAEPValueType(dto.getAepLevel());
             ProjectionPolicyType projectionPolicy = new ProjectionPolicyType();
             projectionPolicy.setAssignmentPolicyEnforcement(globalAEP);
 
-            Duration auditCleanupDuration = DatatypeFactory.newInstance().newDuration(model.getObject().getAuditCleanupValue());
-            Duration cleanupTaskDuration = DatatypeFactory.newInstance().newDuration(model.getObject().getTaskCleanupValue());
-            //CleanupPolicyType auditCleanup = model.getObject().getAuditCleanup();
-            //CleanupPolicyType taskCleanup = model.getObject().getTaskCleanup();
+            Duration auditCleanupDuration = DatatypeFactory.newInstance().newDuration(dto.getAuditCleanupValue());
+            Duration cleanupTaskDuration = DatatypeFactory.newInstance().newDuration(dto.getTaskCleanupValue());
             CleanupPolicyType auditCleanup = new CleanupPolicyType();
             CleanupPolicyType taskCleanup = new CleanupPolicyType();
             auditCleanup.setMaxAge(auditCleanupDuration);
@@ -317,14 +296,14 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
             cleanupPolicies.setClosedTasks(taskCleanup);
 
             Task task = createSimpleTask(TASK_UPDATE_SYSTEM_CONFIG);
-            PrismObject<SystemConfigurationType> newObject = model.getObject().getOldConfig();
-
+            PrismObject<SystemConfigurationType> newObject = getModelService().getObject(SystemConfigurationType.class,
+                    oid, null, task, result);
             SystemConfigurationType s = newObject.asObjectable();
 
-            if(loggingConfigPanel != null){
-                s.setLogging(loggingConfig);
-                s.setProfilingConfiguration(profilingConfig);
-            }
+            s = saveLogging(target, s);
+
+            if(LOGGER.isTraceEnabled())
+                LOGGER.trace("Saving logging configuration.");
 
             if(StringUtils.isEmpty(globalPasswordPolicyOid)){
                 s.setGlobalPasswordPolicyRef(null);
@@ -348,22 +327,10 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 
             ObjectDelta<SystemConfigurationType> delta = DiffUtil.diff(oldObject, newObject);
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Logging configuration delta:\n{}", delta.dump());
+                LOGGER.trace("System configuration delta:\n{}", delta.dump());
             }
             if (delta != null && !delta.isEmpty()){
                 getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
-            }
-
-            if(loggingConfigPanel != null){
-                for (LoggerConfiguration logger : loggingDto.getLoggers()) {
-                    logger.setEditing(false);
-                }
-                for (FilterConfiguration filter : loggingDto.getFilters()) {
-                    filter.setEditing(false);
-                }
-                for (AppenderConfiguration appender : loggingDto.getAppenders()) {
-                    appender.setEditing(false);
-                }
             }
 
             result.computeStatusIfUnknown();
@@ -376,7 +343,49 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
         showResult(result);
         target.add(getFeedbackPanel());
         resetPerformed(target);
+    }
 
+    private SystemConfigurationType saveLogging(AjaxRequestTarget target, SystemConfigurationType config){
+        LoggingDto loggingDto = null;
+        LoggingConfigurationType loggingConfig = null;
+        ProfilingConfigurationType profilingConfig = null;
+
+        if(loggingConfigPanel != null){
+            loggingDto = loggingConfigPanel.getModel().getObject();
+            loggingConfig = createLoggingConfiguration(loggingDto);
+
+            if(loggingConfig == null){
+                target.add(getFeedbackPanel());
+                target.add(get(ID_MAIN_FORM));
+                return config;
+            }
+
+            profilingConfig = createProfilingConfiguration(loggingDto);
+            if(profilingConfig == null){
+                target.add(getFeedbackPanel());
+                target.add(get(ID_MAIN_FORM));
+                return config;
+            }
+        }
+
+        if(loggingConfigPanel != null){
+            config.setLogging(loggingConfig);
+            config.setProfilingConfiguration(profilingConfig);
+        }
+
+        if(loggingConfigPanel != null){
+            for (LoggerConfiguration logger : loggingDto.getLoggers()) {
+                logger.setEditing(false);
+            }
+            for (FilterConfiguration filter : loggingDto.getFilters()) {
+                filter.setEditing(false);
+            }
+            for (AppenderConfiguration appender : loggingDto.getAppenders()) {
+                appender.setEditing(false);
+            }
+        }
+
+        return config;
     }
 
     private void resetPerformed(AjaxRequestTarget target) {
