@@ -27,10 +27,6 @@ import java.io.Serializable;
  * @author lazyman
  */
 public class SystemConfigurationDto implements Serializable {
-
-    private static final String DEFAULT_CHOOSE_VALUE_NAME = "None";
-    private static final String DEFAULT_CHOOSE_VALUE_OID = "";
-
     private AEPlevel aepLevel;
 
     private String auditCleanupValue;
@@ -73,7 +69,7 @@ public class SystemConfigurationDto implements Serializable {
         if(passPolicy != null){
             passPolicyDto = new ObjectViewDto<ValuePolicyType>(passPolicy.getOid(), passPolicy.getName().getOrig());
         }else {
-            passPolicyDto = new ObjectViewDto<ValuePolicyType>(DEFAULT_CHOOSE_VALUE_OID, DEFAULT_CHOOSE_VALUE_NAME);
+            passPolicyDto = new ObjectViewDto<ValuePolicyType>();
         }
 
         passPolicyDto.setType(ValuePolicyType.class);
@@ -86,7 +82,7 @@ public class SystemConfigurationDto implements Serializable {
         if(objectTemplate != null){
             objectTemplateDto = new ObjectViewDto<ObjectTemplateType>(objectTemplate.getOid(), objectTemplate.getName().getOrig());
         }else {
-            objectTemplateDto = new ObjectViewDto<ObjectTemplateType>(DEFAULT_CHOOSE_VALUE_OID, DEFAULT_CHOOSE_VALUE_NAME);
+            objectTemplateDto = new ObjectViewDto<ObjectTemplateType>();
         }
 
         objectTemplateDto.setType(ObjectTemplateType.class);

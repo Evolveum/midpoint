@@ -37,6 +37,8 @@ public class ObjectViewDto<T extends ObjectType> implements Serializable {
     Class<T> type;
 
     public ObjectViewDto() {
+        this.name = null;
+        this.oid = null;
     }
 
     public ObjectViewDto(String oid, String name){

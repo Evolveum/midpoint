@@ -30,6 +30,7 @@ import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.StringResourceModel;
 
 /**
  *  @author shood
@@ -44,10 +45,6 @@ public class ChooseTypePanel<T extends ObjectType> extends SimplePanel<ObjectVie
 
     private static final String MODAL_ID_SHOW_CHOOSE_OPTIONS = "showOptionsPopup";
 
-    private static final String DEFAULT_CHOOSE_VALUE_NAME = "None";
-    private static final String DEFAULT_CHOOSE_VALUE_OID = "";
-
-
     public ChooseTypePanel(String id, IModel<ObjectViewDto> model){
         super(id, model);
     }
@@ -59,7 +56,12 @@ public class ChooseTypePanel<T extends ObjectType> extends SimplePanel<ObjectVie
 
             @Override
             public String getObject(){
-                return getModel().getObject().getName();
+                ObjectViewDto dto = getModel().getObject();
+
+                if(dto.getName() != null)
+                    return getModel().getObject().getName();
+                else
+                    return createStringResource("chooseTypePanel.ObjectNameValue.null").getString();
             }
         });
         name.setOutputMarkupId(true);
@@ -120,6 +122,10 @@ public class ChooseTypePanel<T extends ObjectType> extends SimplePanel<ObjectVie
     }
 
     private void setToDefault(){
-        getModel().setObject(new ObjectViewDto(DEFAULT_CHOOSE_VALUE_OID, DEFAULT_CHOOSE_VALUE_NAME));
+        getModel().setObject(new ObjectViewDto());
+    }
+
+    public StringResourceModel createStringResource(String resourceKey, Object... objects) {
+        return new StringResourceModel(resourceKey, this, null, resourceKey, objects);
     }
 }
