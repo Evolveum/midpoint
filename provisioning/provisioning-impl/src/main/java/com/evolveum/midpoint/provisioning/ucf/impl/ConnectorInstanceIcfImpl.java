@@ -143,7 +143,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptHostType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptOrderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.BeforeAfterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
@@ -1117,7 +1117,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			throw new IllegalStateException("Couldn't set attributes for icf.");
 		}
 
-		checkAndExecuteAdditionalOperation(additionalOperations, ProvisioningScriptOrderType.BEFORE, result);
+		checkAndExecuteAdditionalOperation(additionalOperations, BeforeAfterType.BEFORE, result);
 
 		OperationResult icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".create");
 		icfResult.addArbitraryObjectAsParam("objectClass", objectClass);
@@ -1158,7 +1158,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			}
 		}
 		
-		checkAndExecuteAdditionalOperation(additionalOperations, ProvisioningScriptOrderType.AFTER, result);
+		checkAndExecuteAdditionalOperation(additionalOperations, BeforeAfterType.AFTER, result);
 
 		if (uid == null || uid.getUidValue() == null || uid.getUidValue().isEmpty()) {
 			icfResult.recordFatalError("ICF did not returned UID after create");
@@ -1319,7 +1319,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		// icfResult for each operation
 		// and handle the faults individually
 
-		checkAndExecuteAdditionalOperation(additionalOperations, ProvisioningScriptOrderType.BEFORE, result);
+		checkAndExecuteAdditionalOperation(additionalOperations, BeforeAfterType.BEFORE, result);
 
 		OperationResult icfResult = null;
 		try {
@@ -1507,7 +1507,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				throw new SystemException("Got unexpected exception: " + ex.getClass().getName(), ex);
 			}
 		}
-		checkAndExecuteAdditionalOperation(additionalOperations, ProvisioningScriptOrderType.AFTER, result);
+		checkAndExecuteAdditionalOperation(additionalOperations, BeforeAfterType.AFTER, result);
 		
 		result.computeStatus();
 
@@ -1559,7 +1559,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		ObjectClass objClass = icfNameMapper.objectClassToIcf(objectClass, getSchemaNamespace(), connectorType);
 		Uid uid = getUid(identifiers);
 
-		checkAndExecuteAdditionalOperation(additionalOperations, ProvisioningScriptOrderType.BEFORE, result);
+		checkAndExecuteAdditionalOperation(additionalOperations, BeforeAfterType.BEFORE, result);
 		
 		OperationResult icfResult = result.createSubresult(ConnectorFacade.class.getName() + ".delete");
 		icfResult.addArbitraryObjectAsParam("uid", uid);
@@ -1596,7 +1596,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 			}
 		}
 		
-		checkAndExecuteAdditionalOperation(additionalOperations, ProvisioningScriptOrderType.AFTER, result);
+		checkAndExecuteAdditionalOperation(additionalOperations, BeforeAfterType.AFTER, result);
 
 		result.computeStatus();
 	}
@@ -2267,7 +2267,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 	 * check additional operation order, according to the order are script
 	 * executed before or after operation..
 	 */
-	private void checkAndExecuteAdditionalOperation(Collection<Operation> additionalOperations, ProvisioningScriptOrderType order, OperationResult result) throws CommunicationException, GenericFrameworkException {
+	private void checkAndExecuteAdditionalOperation(Collection<Operation> additionalOperations, BeforeAfterType order, OperationResult result) throws CommunicationException, GenericFrameworkException {
 
 		if (additionalOperations == null) {
 			// TODO: add warning to the result

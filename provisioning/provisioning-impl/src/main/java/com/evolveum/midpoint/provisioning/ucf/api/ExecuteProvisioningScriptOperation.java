@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProvisioningScriptOrderType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.BeforeAfterType;
 
 /**
  * 
@@ -37,7 +37,7 @@ public class ExecuteProvisioningScriptOperation extends Operation {
 	private String textCode;
 	private String language;
 
-	private ProvisioningScriptOrderType scriptOrder;
+	private BeforeAfterType scriptOrder;
 	
 	public ExecuteProvisioningScriptOperation() {
 
@@ -82,11 +82,11 @@ public class ExecuteProvisioningScriptOperation extends Operation {
 		this.language = language;
 	}
 
-	public ProvisioningScriptOrderType getScriptOrder() {
+	public BeforeAfterType getScriptOrder() {
 		return scriptOrder;
 	}
 
-	public void setScriptOrder(ProvisioningScriptOrderType scriptOrder) {
+	public void setScriptOrder(BeforeAfterType scriptOrder) {
 		this.scriptOrder = scriptOrder;
 	}
 

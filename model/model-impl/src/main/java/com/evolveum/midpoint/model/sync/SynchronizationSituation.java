@@ -26,19 +26,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
  * @author lazyman
  * 
  */
-public class SynchronizationSituation {
+public class SynchronizationSituation<F extends FocusType> {
 
-	private FocusType user;
+	private F focus;
 	private SynchronizationSituationType situation;
 
-	SynchronizationSituation(FocusType user, SynchronizationSituationType situation) {
+	SynchronizationSituation(F focus, SynchronizationSituationType situation) {
 		Validate.notNull(situation, "Synchronization situation must not be null.");
-		this.user = user;
+		this.focus = focus;
 		this.situation = situation;
 	}
 
-	public FocusType getUser() {
-		return user;
+	public F getFocus() {
+		return focus;
 	}
 
 	public SynchronizationSituationType getSituation() {

@@ -38,10 +38,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationReactionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizationType.Reaction;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizationType.Reaction.Action;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectTypeDefinitionType;
@@ -127,16 +127,16 @@ public class Migrator {
 			return;
 		}
 		
-		List<Reaction> migratedReactions = new ArrayList<Reaction>();
-		for (Reaction reaction : sync.getReaction()){
+		List<SynchronizationReactionType> migratedReactions = new ArrayList<SynchronizationReactionType>();
+		for (SynchronizationReactionType reaction : sync.getReaction()){
 			if (reaction.getAction() == null){
 				continue;
 			}
-			List<Action> migratedAction = new ArrayList<Action>();
-			for (Action action : reaction.getAction()){
+			List<SynchronizationActionType> migratedAction = new ArrayList<SynchronizationActionType>();
+			for (SynchronizationActionType action : reaction.getAction()){
 				migratedAction.add(migrateAction(action));
 			}
-			Reaction migratedReaction = reaction.clone();
+			SynchronizationReactionType migratedReaction = reaction.clone();
 			migratedReaction.getAction().clear();
 			migratedReaction.getAction().addAll(migratedAction);
 			migratedReactions.add(migratedReaction);
@@ -146,32 +146,13 @@ public class Migrator {
 		sync.getReaction().addAll(migratedReactions);
 	}
 
-	private Action migrateAction(Action action){
-		List<Object> migrated = new ArrayList<Object>();
-		if (action.getAny() == null){
+	private SynchronizationActionType migrateAction(SynchronizationActionType action){
+		if (action.getUserTemplateRef() == null){
 			return action;
 		}
 		
-		for (Object object : action.getAny()){
-			if (object == null){
-				continue;
-			}
-			if (!(object instanceof Element)) {
-				continue;
-			}
-			Element parameter = (Element) object;
-			if (QNameUtil.compareQName(new QName(SchemaConstants.NS_C, "userTemplateRef"), (Node) parameter)){
-				Element e = DOMUtil.createElement(parameter.getOwnerDocument(), ObjectSynchronizationType.F_OBJECT_TEMPLATE_REF);
-				Element source = (Element) parameter.cloneNode(true);
-				DOMUtil.copyContent(source, e);
-				migrated.add(e);
-			} else{
-				migrated.add(parameter);
-			}
-		}
+		action.setObjectTemplateRef(action.getUserTemplateRef());
 		
-		action.getAny().clear();
-		action.getAny().addAll(migrated);
 		return action;
 	}
 	

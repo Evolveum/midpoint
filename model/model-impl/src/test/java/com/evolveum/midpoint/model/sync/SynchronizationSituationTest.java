@@ -34,7 +34,7 @@ public class SynchronizationSituationTest {
 		SynchronizationSituation situation = new SynchronizationSituation(null,
 				SynchronizationSituationType.UNMATCHED);
 		AssertJUnit.assertNotNull(situation);
-		AssertJUnit.assertNull(situation.getUser());
+		AssertJUnit.assertNull(situation.getFocus());
 		AssertJUnit.assertEquals(SynchronizationSituationType.UNMATCHED, situation.getSituation());
 	}
 
@@ -49,7 +49,7 @@ public class SynchronizationSituationTest {
 		SynchronizationSituation situation = new SynchronizationSituation(user,
 				SynchronizationSituationType.UNMATCHED);
 		AssertJUnit.assertNotNull(situation);
-		AssertJUnit.assertEquals(user, situation.getUser());
+		AssertJUnit.assertEquals(user, situation.getFocus());
 		AssertJUnit.assertEquals(SynchronizationSituationType.UNMATCHED, situation.getSituation());
 	}
 }

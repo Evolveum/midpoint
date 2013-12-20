@@ -420,4 +420,14 @@ public final class Utils {
 
         return variables;
 	}
+
+	public static String getPolicyDesc(ObjectSynchronizationType synchronizationPolicy) {
+		if (synchronizationPolicy == null) {
+			return null;
+		}
+		if (synchronizationPolicy.getName() != null) {
+			return synchronizationPolicy.getName();
+		}
+		return synchronizationPolicy.toString();
+	}
 }

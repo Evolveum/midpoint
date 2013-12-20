@@ -21,6 +21,7 @@ import static com.evolveum.midpoint.common.InternalsConfig.consistencyChecks;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
@@ -36,7 +37,15 @@ import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.common.InternalsConfig;
+import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.controller.ModelController;
+import com.evolveum.midpoint.model.lens.Clockwork;
+import com.evolveum.midpoint.model.lens.ContextFactory;
+import com.evolveum.midpoint.model.lens.LensContext;
+import com.evolveum.midpoint.model.lens.LensFocusContext;
+import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.util.Utils;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -64,24 +73,28 @@ import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.SynchronizationSituationUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.BeforeAfterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizationType.Reaction;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationReactionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -113,6 +126,10 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 	private RepositoryService repositoryService;
 	@Autowired(required = true)
 	private ProvisioningService provisioningService;
+	@Autowired(required = true)
+	private ContextFactory contextFactory;
+	@Autowired(required = true)
+	private Clockwork clockwork;
 
 	@PostConstruct
 	public void registerForResourceObjectChangeNotifications() {
@@ -179,15 +196,18 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 				subResult.recordStatus(OperationResultStatus.NOT_APPLICABLE, message);
 				return;
 			}
-			LOGGER.trace("Synchronization is enabled, applicable policy found.");
 			
 			Class<? extends FocusType> focusType = determineFocusClass(synchronizationPolicy, resourceType);
 			
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Synchronization is enabled, focus class: {}, found applicable policy: {}", focusType, Utils.getPolicyDesc(synchronizationPolicy));
+			}
+			
 			SynchronizationSituation situation = determineSituation(focusType, change, synchronizationPolicy, subResult);
 			if (logDebug) {
-				LOGGER.debug("SYNCHRONIZATION: SITUATION: '{}', {}", situation.getSituation().value(), situation.getUser());
+				LOGGER.debug("SYNCHRONIZATION: SITUATION: '{}', {}", situation.getSituation().value(), situation.getFocus());
 			} else {
-				LOGGER.trace("SYNCHRONIZATION: SITUATION: '{}', {}", situation.getSituation().value(), situation.getUser());
+				LOGGER.trace("SYNCHRONIZATION: SITUATION: '{}', {}", situation.getSituation().value(), situation.getFocus());
 			}
 
 			if (Utils.isDryRun(task)){
@@ -206,6 +226,9 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 				subResult.recordSuccess();
 				return;
 			}
+			
+			//must be here, bacause when the reaction has no action, the situation will be not set.
+			saveExecutedSituationDescription(applicableShadow, situation, change, parentResult);
 			
 			reactToChange(change, synchronizationPolicy, situation, resourceType, logDebug, task, subResult);
 
@@ -381,7 +404,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		}
 
 		LOGGER.trace("checkSituation::end - {}, {}", new Object[] {
-				(situation.getUser() == null ? "null" : situation.getUser().getOid()), situation.getSituation() });
+				(situation.getFocus() == null ? "null" : situation.getFocus().getOid()), situation.getSituation() });
 
 		return situation;
 	}
@@ -443,7 +466,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		validateResourceInShadow(resourceShadow.asObjectable(), resource);
 
 		SynchronizationSituationType state = null;
-		LOGGER.trace("SYNCHRONIZATION: CORRELATION: Looking for list of users based on correlation rule.");
+		LOGGER.trace("SYNCHRONIZATION: CORRELATION: Looking for list of {} objects based on correlation rule.", focusType.getSimpleName());
 		List<PrismObject<F>> users = correlationConfirmationEvaluator.findFocusesByCorrelationRule(
 				focusType, resourceShadow.asObjectable(),
 				synchronizationPolicy.getCorrelation(), resource, result);
@@ -455,7 +478,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			if (synchronizationPolicy.getConfirmation() == null) {
 				LOGGER.trace("SYNCHRONIZATION: CONFIRMATION: no confirmation defined.");
 			} else {
-				LOGGER.debug("SYNCHRONIZATION: CONFIRMATION: Checking users from correlation with confirmation rule.");
+				LOGGER.debug("SYNCHRONIZATION: CONFIRMATION: Checking objects from correlation with confirmation rule.");
 				users = correlationConfirmationEvaluator.findUserByConfirmationRule(focusType, users, resourceShadow.asObjectable(), resource, 
 						synchronizationPolicy.getConfirmation(), result);
 			}
@@ -511,66 +534,235 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		return ChangeType.ADD;
 	}
 
-	private void reactToChange(ResourceObjectShadowChangeDescription change, ObjectSynchronizationType synchronizationPolicy, 
-			SynchronizationSituation situation,
-			ResourceType resource, boolean logDebug, Task task, OperationResult parentResult) {
+	private <F extends FocusType> void reactToChange(ResourceObjectShadowChangeDescription change, ObjectSynchronizationType synchronizationPolicy, 
+			SynchronizationSituation<F> situation,
+			ResourceType resource, boolean logDebug, Task task, OperationResult parentResult) throws ConfigurationException, ObjectNotFoundException, SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, CommunicationException, SecurityViolationException {
 
-		PrismObject<? extends ObjectType> target = null;
-		if (change.getCurrentShadow() != null) {
-			target = change.getCurrentShadow();
-		} else if (change.getOldShadow() != null) {
-			target = change.getOldShadow();
-		}
-
-		List<Action> actions = findActionsForReaction(synchronizationPolicy.getReaction(), situation.getSituation(), change.getSourceChannel());
-		
-		//must be here, bacause when the reaction has no action, the situation will be not set.
-		saveExecutedSituationDescription(target, situation, change, parentResult);
-		
-		if (actions.isEmpty()) {
-
-			LOGGER.warn("Skipping synchronization on resource: {}. No action(s) defined for situation {}.",
-					new Object[] { resource.getName(), situation.getSituation() });
+		SynchronizationReactionType reactionDefinition = findReactionDefinition(synchronizationPolicy, situation, 
+				change.getSourceChannel(), resource);
+		if (reactionDefinition == null) {
+			LOGGER.trace("No reaction is defined for situation {} in {}", situation.getSituation(), resource);
 			return;
 		}
+		
+		PrismObject<? extends ObjectType> shadow = null;
+		if (change.getCurrentShadow() != null) {
+			shadow = change.getCurrentShadow();
+		} else if (change.getOldShadow() != null) {
+			shadow = change.getOldShadow();
+		}
+		
+		Boolean doReconciliation = determineReconciliation(synchronizationPolicy, reactionDefinition);
+		if (doReconciliation == null) {
+			// We have to do reconciliation if we have got a full shadow and no delta.
+			// There is no other good way how to reflect the changes from the shadow.
+			if (change.getObjectDelta() == null) {
+				doReconciliation = true;
+			}
+		}
+		
+		boolean willSynchronize = isSynchronize(reactionDefinition);
+		LensContext<F> lensContext = null;
+		if (willSynchronize) {
+			lensContext = createLensContext(change, reactionDefinition, synchronizationPolicy, situation, 
+					doReconciliation, parentResult);
+		}
+		
+		executeActions(reactionDefinition, lensContext, situation, BeforeAfterType.BEFORE, resource, 
+				logDebug, task, parentResult);
+		
+				
+		if (willSynchronize) {
 
-		try {
-			LOGGER.trace("Updating user started.");
-			String userOid = situation.getUser() == null ? null : situation.getUser().getOid();
+			clockwork.run(lensContext, task, parentResult);
 			
-			if (userOid == null && situation.getSituation() == SynchronizationSituationType.DELETED){
-				LOGGER.trace("Detected DELETE change by synchronization, but the account does not have any owner in the midpoint.");
-				parentResult.recordSuccess();
-				return;
-			}
-			
-			ObjectTemplateType userTemplate = null;
-			if (synchronizationPolicy != null){
-			ObjectReferenceType userTemplateRef = synchronizationPolicy.getObjectTemplateRef();
-			if (userTemplateRef != null){
-				userTemplate = repositoryService.getObject(ObjectTemplateType.class, userTemplateRef.getOid(), null, parentResult).asObjectable();
-			}
-			} 
-			
-			for (Action action : actions) {
-				if (logDebug) {
-					LOGGER.debug("SYNCHRONIZATION: ACTION: Executing: {}.", new Object[] { action.getClass() });
-				} else {
-					LOGGER.trace("SYNCHRONIZATION: ACTION: Executing: {}.", new Object[] { action.getClass() });
-				}
-
-				userOid = action.executeChanges(userOid, change, userTemplate, situation.getSituation(), task,
-						parentResult);
-			}
-			parentResult.recordSuccess();
-			LOGGER.trace("Updating user finished.");
-		} catch (Exception ex) {
-			LoggingUtils.logException(LOGGER, "### SYNCHRONIZATION # notifyChange(..): Synchronization action failed",
-					ex);
-			parentResult.recordFatalError("Synchronization action failed.", ex);
-			throw new SystemException("Synchronization action failed, reason: " + ex.getMessage(), ex);
+		} else {
+			LOGGER.trace("Skipping clockwork run on {} for situation {}, sychronize is set to false.",
+					new Object[] { resource, situation.getSituation() });
 		}
 
+		executeActions(reactionDefinition, lensContext, situation, BeforeAfterType.AFTER, resource, 
+				logDebug, task, parentResult);
+
+	}
+
+	private Boolean determineReconciliation(ObjectSynchronizationType synchronizationPolicy,
+			SynchronizationReactionType reactionDefinition) {
+		if (reactionDefinition.isReconcile() != null) {
+			return reactionDefinition.isReconcile();
+		}
+		if (synchronizationPolicy.isReconcile() != null) {
+			return synchronizationPolicy.isReconcile();
+		}
+		if (synchronizationPolicy.isReconcileAttributes() != null) {
+			return synchronizationPolicy.isReconcileAttributes();
+		}
+		return null;
+	}
+
+	private <F extends FocusType> LensContext<F> createLensContext(ResourceObjectShadowChangeDescription change,
+			SynchronizationReactionType reactionDefinition, ObjectSynchronizationType synchronizationPolicy,
+			SynchronizationSituation<F> situation, Boolean doReconciliation, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
+		
+		LensContext<F> context = contextFactory.createSyncContext(change);
+		context.setLazyAuditRequest(true);
+
+        ResourceType resource = change.getResource().asObjectable();
+        context.rememberResource(resource);
+        PrismObject<ShadowType> shadow = getShadowFromChange(change);
+        if (InternalsConfig.consistencyChecks) shadow.checkConsistence();
+        
+        // Projection context
+        
+        ShadowKindType kind = getKind(shadow, synchronizationPolicy);
+        String intent = getIntent(shadow, synchronizationPolicy);
+        boolean thombstone = isThombstone(change);
+		ResourceShadowDiscriminator drscr = new ResourceShadowDiscriminator(resource.getOid(), kind, 
+				intent, thombstone);
+		LensProjectionContext accountContext = context.createProjectionContext(drscr);
+        accountContext.setResource(resource);
+        accountContext.setOid(getOidFromChange(change));
+        accountContext.setSynchronizationSituationDetected(situation.getSituation());
+
+        //insert object delta if available in change
+        ObjectDelta<? extends ShadowType> delta = change.getObjectDelta();
+        if (delta != null) {
+            accountContext.setSyncDelta((ObjectDelta<ShadowType>) delta);
+        } else {
+        	accountContext.setSyncAbsoluteTrigger(true);
+        }
+
+        //we insert account if available in change
+        PrismObject<ShadowType> currentAccount = shadow;
+        if (currentAccount != null) {
+        	accountContext.setLoadedObject(currentAccount);
+        	accountContext.setFullShadow(true);
+        	accountContext.setFresh(true);
+        }
+
+        if (delta != null && delta.isDelete()) {
+        	accountContext.setExists(false);
+        } else {
+        	accountContext.setExists(true);
+        }
+                
+        if (doReconciliation != null) {
+        	accountContext.setDoReconciliation(doReconciliation);
+		}
+        
+        // Focus context
+        if (situation.getSituation() == SynchronizationSituationType.LINKED) {
+        	F focusType = situation.getFocus();
+        	LensFocusContext<F> focusContext = context.createFocusContext();
+            PrismObject<F> focusOld = focusType.asPrismObject();
+            focusContext.setLoadedObject(focusOld);
+        }
+        
+        // Global stuff
+        ObjectReferenceType objectTemplateRef = null;
+        if (reactionDefinition.getObjectTemplateRef() != null) {
+        	objectTemplateRef = reactionDefinition.getObjectTemplateRef();
+        } else if (synchronizationPolicy.getObjectTemplateRef() != null) {
+        	objectTemplateRef = synchronizationPolicy.getObjectTemplateRef();
+        }
+        if (objectTemplateRef != null) {
+			ObjectTemplateType objectTemplate = repositoryService.getObject(ObjectTemplateType.class, objectTemplateRef.getOid(), null, parentResult).asObjectable();
+			context.setFocusTemplate(objectTemplate);
+		}
+
+        return context;
+	}
+	
+
+	
+
+	
+
+	protected PrismObject<ShadowType> getShadowFromChange(ResourceObjectShadowChangeDescription change) {
+        if (change.getCurrentShadow() != null) {
+            return (PrismObject<ShadowType>) change.getCurrentShadow();
+        }
+
+        if (change.getOldShadow() != null) {
+            return (PrismObject<ShadowType>) change.getOldShadow();
+        }
+
+        return null;
+    }
+	
+	private ShadowKindType getKind(PrismObject<ShadowType> shadow, ObjectSynchronizationType synchronizationPolicy) {
+		ShadowKindType shadowKind = shadow.asObjectable().getKind();
+		if (shadowKind != null) {
+			return shadowKind;
+		}
+		if (synchronizationPolicy.getKind() != null) {
+			return synchronizationPolicy.getKind();
+		}
+		return ShadowKindType.ACCOUNT;
+	}
+	
+	private String getIntent(PrismObject<ShadowType> shadow, ObjectSynchronizationType synchronizationPolicy) {
+		String shadowIntent = shadow.asObjectable().getIntent();
+		if (shadowIntent != null) {
+			return shadowIntent;
+		}
+		return synchronizationPolicy.getIntent();
+	}
+	
+	private boolean isThombstone(ResourceObjectShadowChangeDescription change) {
+		PrismObject<? extends ShadowType> shadow = null;
+		if (change.getOldShadow() != null){
+			shadow = change.getOldShadow();
+		} else if (change.getCurrentShadow() != null){
+			shadow = change.getCurrentShadow();
+		}
+		if (shadow != null){
+			if (shadow.asObjectable().isDead() != null){
+				return shadow.asObjectable().isDead().booleanValue();
+			}
+		}
+		ObjectDelta<? extends ShadowType> objectDelta = change.getObjectDelta();
+		if (objectDelta == null) {
+			return false;
+		}
+		return objectDelta.isDelete();
+	}
+
+
+	private boolean isSynchronize(SynchronizationReactionType reactionDefinition) {
+		if (reactionDefinition.isSynchronize() != null) {
+			return reactionDefinition.isSynchronize();
+		}
+		return !reactionDefinition.getAction().isEmpty();
+	}
+
+	private SynchronizationReactionType findReactionDefinition(ObjectSynchronizationType synchronizationPolicy, SynchronizationSituation situation,
+			String channel, ResourceType resource) throws ConfigurationException {
+		SynchronizationReactionType defaultReaction = null;
+		for (SynchronizationReactionType reaction: synchronizationPolicy.getReaction()) {
+			SynchronizationSituationType reactionSituation = reaction.getSituation();
+			if (reactionSituation == null) {
+				throw new ConfigurationException("No situation definined for a reaction in "+resource);
+			}
+			if (reactionSituation.equals(situation.getSituation())) {
+				if (reaction.getChannel() != null && !reaction.getChannel().isEmpty()) {
+					if (reaction.getChannel().contains("") || reaction.getChannel().contains(null)) {
+						defaultReaction = reaction;
+					}
+					if (reaction.getChannel().contains(channel)) {
+						return reaction;
+					} else {
+						LOGGER.trace("Skipping reaction {} because the channel does not match {}", reaction, channel);
+						continue;
+					}
+				} else {
+					defaultReaction = reaction;
+				}
+				return reaction;
+			}
+		}
+		LOGGER.trace("Using default reaction {}", defaultReaction);
+		return defaultReaction;
 	}
 
 	private <T extends ObjectType> void saveExecutedSituationDescription(PrismObject<T> object,
@@ -632,70 +824,47 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 
 	}
 
-	private List<Action> findActionsForReaction(List<Reaction> reactions, SynchronizationSituationType situation, String channel) {
-		List<Action> actions = new ArrayList<Action>();
-		if (reactions == null) {
-			return actions;
-		}
+	private <F extends FocusType> void executeActions(SynchronizationReactionType reactionDef, 
+			LensContext<F> context, SynchronizationSituation<F> situation, BeforeAfterType order, ResourceType resource, 
+			boolean logDebug, Task task, OperationResult parentResult) throws ConfigurationException {
 
-		Reaction reaction = null;
-		Reaction defaultReaction = null;
-		for (Reaction react : reactions) {
-			if (react.getSituation() == null) {
-				LOGGER.warn("Reaction ({}) doesn't contain situation element, skipping.", reactions.indexOf(react));
-				continue;
-			}
-			if (situation.equals(react.getSituation())) {
-				if (react.getChannel() != null && !react.getChannel().isEmpty()) {
-					if (react.getChannel().contains("") || react.getChannel().contains(null)) {
-						defaultReaction = react;
-					}
-					if (react.getChannel().contains(channel)) {
-						reaction = react;
-						break;
-					} else {
-						LOGGER.trace("Skipping reaction {} because the channel does not match {}", react, channel);
-						continue;
-					}
-				} else {
-					defaultReaction = react;
+		for (SynchronizationActionType actionDef : reactionDef.getAction()) {
+			if ((actionDef.getOrder() == null && order == BeforeAfterType.BEFORE) ||
+					(actionDef.getOrder() != null && actionDef.getOrder() == order)) {
+					
+				String handlerUri = actionDef.getHandlerUri();
+				if (handlerUri == null) {
+					handlerUri = actionDef.getRef();
 				}
+				if (handlerUri == null) {
+					LOGGER.error("Action definition in resource {} doesn't contain handler URI",resource);
+					throw new ConfigurationException("Action definition in resource "+resource+" doesn't contain handler URI");
+				}
+	
+				Action action = actionManager.getActionInstance(handlerUri);
+				if (action == null) {
+					LOGGER.warn("Couldn't create action with uri '{}' in resource {}, skipping action.", new Object[] {
+							handlerUri, resource });
+					continue;
+				}
+				
+				// TODO: legacy userTemplate
+				
+				Map<QName,Object> parameters = null;
+				if (actionDef.getParameters() != null) {
+					// TODO: process parameters
+	//				parameters = actionDef.getParameters().getAny();
+				}
+				
+				if (logDebug) {
+					LOGGER.debug("SYNCHRONIZATION: ACTION: Executing: {}.", new Object[] { action.getClass() });
+				} else {
+					LOGGER.trace("SYNCHRONIZATION: ACTION: Executing: {}.", new Object[] { action.getClass() });
+				}
+
+				action.handle(context, situation, parameters, task, parentResult);
 			}
 		}
-		
-		if (reaction == null) {
-			LOGGER.trace("Using default reaction {}", defaultReaction);
-			reaction = defaultReaction;
-		}
-
-		if (reaction == null) {
-			LOGGER.warn("Reaction on situation {} was not found.", situation);
-			return actions;
-		}
-
-		List<Reaction.Action> actionList = reaction.getAction();
-		for (Reaction.Action actionXml : actionList) {
-			if (actionXml == null) {
-				LOGGER.warn("Reaction ({}) doesn't contain action element, skipping.", reactions.indexOf(reaction));
-				return actions;
-			}
-			if (actionXml.getRef() == null) {
-				LOGGER.warn("Reaction ({}): Action element doesn't contain ref attribute, skipping.",
-						reactions.indexOf(reaction));
-				return actions;
-			}
-
-			Action action = actionManager.getActionInstance(actionXml.getRef());
-			if (action == null) {
-				LOGGER.warn("Couldn't create action with uri '{}' for reaction {}, skipping action.", new Object[] {
-						actionXml.getRef(), reactions.indexOf(reaction) });
-				continue;
-			}
-			action.setParameters(actionXml.getAny());
-			actions.add(action);
-		}
-
-		return actions;
 	}
 
 	/*

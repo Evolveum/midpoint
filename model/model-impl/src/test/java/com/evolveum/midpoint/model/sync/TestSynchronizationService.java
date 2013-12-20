@@ -20,6 +20,8 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 
+import java.io.File;
+
 import javax.xml.bind.JAXBException;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +31,7 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
+import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.model.lens.Clockwork;
@@ -58,6 +61,13 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 @ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestSynchronizationService extends AbstractInternalModelIntegrationTest {
+	
+	public static final File TEST_DIR = new File("src/test/resources/sync");
+	
+	public static final File SHADOW_PIRATES_DUMMY_FILE = new File(TEST_DIR, "shadow-pirates-dummy.xml");
+	public static final String GROUP_PIRATES_DUMMY_NAME = "pirates";
+
+	private static final String INTENT_GROUP = "group";
 		
 	@Autowired(required = true)
 	SynchronizationService synchronizationService;
@@ -165,6 +175,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         
         assertNull("Unexpected user primary delta", context.getFocusContext().getPrimaryDelta());
         ObjectDelta<UserType> userSecondaryDelta = context.getFocusContext().getSecondaryDelta();
+        assertNotNull("No user secondary delta", userSecondaryDelta);
         assertEquals("Unexpected number of modifications in user secondary delta", 3, userSecondaryDelta.getModifications().size());
         PrismAsserts.assertPropertyAdd(userSecondaryDelta, UserType.F_COST_CENTER, "999");
         
@@ -453,6 +464,65 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 		
 		PrismObject<ShadowType> shadow = getShadowModelNoFetch(accountShadowCalypsoDummyOid);
         assertSituation(shadow, null);
+        
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+	}
+	
+	@Test
+    public void test210AddedGroupPirates() throws Exception {
+		final String TEST_NAME = "test210AddedGroupPirates";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestSynchronizationService.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        MockLensDebugListener mockListener = new MockLensDebugListener();
+        clockwork.setDebugListener(mockListener);
+        
+        PrismObject<ShadowType> shadowPirates = repoAddObjectFromFile(SHADOW_PIRATES_DUMMY_FILE, ShadowType.class, result);
+        provisioningService.applyDefinition(shadowPirates, result);
+        assertNotNull("No oid in shadow", shadowPirates.getOid());
+        DummyGroup dummyGroup = new DummyGroup();
+        dummyGroup.setName(GROUP_PIRATES_DUMMY_NAME);
+        dummyGroup.setEnabled(true);
+        dummyGroup.addAttributeValues(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION, "Scurvy Pirates");
+		dummyResource.addGroup(dummyGroup);
+        
+        ResourceObjectShadowChangeDescription change = new ResourceObjectShadowChangeDescription();
+        change.setCurrentShadow(shadowPirates);
+        change.setResource(resourceDummy);
+        
+		// WHEN
+        synchronizationService.notifyChange(change, task, result);
+        
+        // THEN
+        LensContext<UserType> context = mockListener.getLastSyncContext();
+
+        display("Resulting context (as seen by debug listener)", context);
+        assertNotNull("No resulting context (as seen by debug listener)", context);
+        
+        assertNull("Unexpected focus primary delta", context.getFocusContext().getPrimaryDelta());
+        assertNotNull("No focus secondary delta", context.getFocusContext().getSecondaryDelta());
+        
+        ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceDummy.getOid(), 
+        		ShadowKindType.ENTITLEMENT, INTENT_GROUP);
+		LensProjectionContext projCtx = context.findProjectionContext(rat);
+		assertNotNull("No projection sync context for "+rat, projCtx);
+		assertEquals("Wrong detected situation in context", SynchronizationSituationType.UNLINKED, projCtx.getSynchronizationSituationDetected());
+		assertEquals("Wrong resolved situation in context", SynchronizationSituationType.LINKED, projCtx.getSynchronizationSituationResolved());
+		
+		PrismAsserts.assertNoDelta("Unexpected projection primary delta", projCtx.getPrimaryDelta());
+		//it this really expected?? delta was already executed, should we expect it in the secondary delta?
+//		assertNotNull("Missing account secondary delta", accCtx.getSecondaryDelta());
+//		assertIterationDelta(accCtx.getSecondaryDelta(), 0, "");
+		
+		assertLinked(context.getFocusContext().getObjectOld().getOid(), shadowPirates.getOid());
+		
+		PrismObject<ShadowType> shadow = getShadowModelNoFetch(shadowPirates.getOid());
+        assertIteration(shadow, 0, "");
+        assertSituation(shadow, SynchronizationSituationType.LINKED);
         
         result.computeStatus();
         TestUtil.assertSuccess(result);

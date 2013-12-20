@@ -193,7 +193,7 @@ public class ChangeExecutor {
 			}
 			try {
 				
-				executeReconciliationScript(accCtx, syncContext, ProvisioningScriptOrderType.BEFORE, task, subResult);
+				executeReconciliationScript(accCtx, syncContext, BeforeAfterType.BEFORE, task, subResult);
 				
 				ObjectDelta<ShadowType> accDelta = accCtx.getExecutableDelta();
 				if (accCtx.getSynchronizationPolicyDecision() == SynchronizationPolicyDecision.BROKEN) {
@@ -224,7 +224,7 @@ public class ChangeExecutor {
 						}
 						
 						// Make sure post-reconcile delta is always executed, even if there is no change
-						executeReconciliationScript(accCtx, syncContext, ProvisioningScriptOrderType.AFTER, task, subResult);
+						executeReconciliationScript(accCtx, syncContext, BeforeAfterType.AFTER, task, subResult);
 						
 						subResult.computeStatus();
 						subResult.recordNotApplicableIfUnknown();
@@ -248,7 +248,7 @@ public class ChangeExecutor {
 					updateLinks(focusContext.getObjectNew(), focusContext, accCtx, task, subResult);
 				}
 				
-				executeReconciliationScript(accCtx, syncContext, ProvisioningScriptOrderType.AFTER, task, subResult);
+				executeReconciliationScript(accCtx, syncContext, BeforeAfterType.AFTER, task, subResult);
 				
 				subResult.computeStatus();
 				subResult.recordNotApplicableIfUnknown();
@@ -930,7 +930,7 @@ public class ChangeExecutor {
 	
 	private OperationProvisioningScriptsType evaluateScript(OperationProvisioningScriptsType resourceScripts,
             ResourceShadowDiscriminator discr,
-			ProvisioningOperationTypeType operation, ProvisioningScriptOrderType order, Map<QName, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException{
+			ProvisioningOperationTypeType operation, BeforeAfterType order, Map<QName, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException{
 		  OperationProvisioningScriptsType outScripts = new OperationProvisioningScriptsType();
 	        if (resourceScripts != null) {
 	        	OperationProvisioningScriptsType scripts = resourceScripts.clone();
@@ -998,7 +998,7 @@ public class ChangeExecutor {
     
     private <T extends ObjectType, F extends ObjectType>
 	void executeReconciliationScript(LensProjectionContext projContext, LensContext<F> context,
-			ProvisioningScriptOrderType order, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException {
+			BeforeAfterType order, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException, CommunicationException, ConfigurationException, SecurityViolationException, ObjectAlreadyExistsException {
     	
     	if (!projContext.isDoReconciliation()) {
     		return;
@@ -1033,9 +1033,9 @@ public class ChangeExecutor {
 //			}	
 		}
 		
-		if (order == ProvisioningScriptOrderType.BEFORE) {
+		if (order == BeforeAfterType.BEFORE) {
 			shadow = (PrismObject<ShadowType>) projContext.getObjectOld();
-		} else if (order == ProvisioningScriptOrderType.AFTER) {
+		} else if (order == BeforeAfterType.AFTER) {
 			shadow = (PrismObject<ShadowType>) projContext.getObjectNew();
 		} else {
 			throw new IllegalArgumentException("Unknown order "+order);
