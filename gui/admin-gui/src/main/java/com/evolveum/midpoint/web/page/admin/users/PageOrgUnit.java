@@ -31,15 +31,13 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.MultiValueChoosePanel;
 import com.evolveum.midpoint.web.component.form.*;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.PrismPropertyModel;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -88,6 +86,7 @@ public class PageOrgUnit extends PageAdminUsers {
     private static final String ID_SAVE = "save";
 
     private IModel<PrismObject<OrgType>> orgModel;
+    private IModel<List<String>> parentOrgUnitsModel;
     private IModel<List<PrismPropertyValue>> orgTypeModel;
 
     public PageOrgUnit() {
@@ -118,6 +117,13 @@ public class PageOrgUnit extends PageAdminUsers {
                 }
 
                 return values;
+            }
+        };
+
+        parentOrgUnitsModel = new LoadableModel<List<String>>(false) {
+            @Override
+            protected List<String> load() {
+                return loadParentOrgUnits();
             }
         };
 
@@ -201,6 +207,22 @@ public class PageOrgUnit extends PageAdminUsers {
             }
         };
         form.add(orgType);
+
+        //todo not finished [shood]
+        MultiValueChoosePanel parentOrgType = new MultiValueChoosePanel(ID_PARENT_ORG_UNITS, parentOrgUnitsModel,
+                createStringResource("ObjectType.parentOrgRef"), ID_LABEL_SIZE, ID_INPUT_SIZE, false){
+
+            @Override
+            protected IModel<String> createTextModel(IModel model){
+                return new PropertyModel<String>(model, "value");
+            }
+
+            @Override
+            protected Serializable createNewEmptyItem(){
+                return "Value";
+            }
+        };
+        form.add(parentOrgType);
 
         initButtons(form);
     }
@@ -331,4 +353,17 @@ public class PageOrgUnit extends PageAdminUsers {
 
         return org;
     }
+
+    /*
+    *   TODO - perform proper load
+    * */
+    private List<String> loadParentOrgUnits(){
+        List<String> list = new ArrayList<String>();
+
+        if(list.isEmpty())
+            list.add("Value");
+
+        return list;
+    }
+
 }
