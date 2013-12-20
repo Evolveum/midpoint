@@ -230,7 +230,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			//must be here, bacause when the reaction has no action, the situation will be not set.
 			saveExecutedSituationDescription(applicableShadow, situation, change, parentResult);
 			
-			reactToChange(change, synchronizationPolicy, situation, resourceType, logDebug, task, subResult);
+			reactToChange(focusType, change, synchronizationPolicy, situation, resourceType, logDebug, task, subResult);
 
 			subResult.computeStatus();
 		} catch (Exception ex) {
@@ -534,8 +534,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		return ChangeType.ADD;
 	}
 
-	private <F extends FocusType> void reactToChange(ResourceObjectShadowChangeDescription change, ObjectSynchronizationType synchronizationPolicy, 
-			SynchronizationSituation<F> situation,
+	private <F extends FocusType> void reactToChange(Class<F> focusClass, ResourceObjectShadowChangeDescription change,
+			ObjectSynchronizationType synchronizationPolicy, SynchronizationSituation<F> situation,
 			ResourceType resource, boolean logDebug, Task task, OperationResult parentResult) throws ConfigurationException, ObjectNotFoundException, SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, CommunicationException, SecurityViolationException {
 
 		SynchronizationReactionType reactionDefinition = findReactionDefinition(synchronizationPolicy, situation, 
@@ -564,7 +564,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		boolean willSynchronize = isSynchronize(reactionDefinition);
 		LensContext<F> lensContext = null;
 		if (willSynchronize) {
-			lensContext = createLensContext(change, reactionDefinition, synchronizationPolicy, situation, 
+			lensContext = createLensContext(focusClass, change, reactionDefinition, synchronizationPolicy, situation, 
 					doReconciliation, parentResult);
 		}
 		
@@ -600,11 +600,11 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		return null;
 	}
 
-	private <F extends FocusType> LensContext<F> createLensContext(ResourceObjectShadowChangeDescription change,
+	private <F extends FocusType> LensContext<F> createLensContext(Class<F> focusClass, ResourceObjectShadowChangeDescription change,
 			SynchronizationReactionType reactionDefinition, ObjectSynchronizationType synchronizationPolicy,
 			SynchronizationSituation<F> situation, Boolean doReconciliation, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
 		
-		LensContext<F> context = contextFactory.createSyncContext(change);
+		LensContext<F> context = contextFactory.createSyncContext(focusClass, change);
 		context.setLazyAuditRequest(true);
 
         ResourceType resource = change.getResource().asObjectable();

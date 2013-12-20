@@ -165,9 +165,11 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         change.setSourceChannel(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC_URI);
         
 		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
         synchronizationService.notifyChange(change, task, result);
         
         // THEN
+        TestUtil.displayThen(TEST_NAME);
         LensContext<UserType> context = mockListener.getLastSyncContext();
 
         display("Resulting context (as seen by debug listener)", context);
@@ -495,9 +497,11 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         change.setResource(resourceDummy);
         
 		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
         synchronizationService.notifyChange(change, task, result);
         
         // THEN
+        TestUtil.displayWhen(TEST_NAME);
         LensContext<UserType> context = mockListener.getLastSyncContext();
 
         display("Resulting context (as seen by debug listener)", context);

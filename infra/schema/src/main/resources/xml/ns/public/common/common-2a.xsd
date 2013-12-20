@@ -5657,6 +5657,16 @@
        		</xsd:appinfo>
     	</xsd:annotation>
     </xsd:element>
+    <xsd:element name="account" type="tns:ShadowType" substitutionGroup="c:object">
+     	<xsd:annotation>
+     		<xsd:documentation>
+     			DEPRECATED. Used only for compatibility back when there was an AccountShadowType.
+     		</xsd:documentation>
+     		<xsd:appinfo>
+      			<a:deprecated>true</a:deprecated>
+      		</xsd:appinfo>
+     	</xsd:annotation>
+     </xsd:element>
     <xsd:element name="shadow" type="tns:ShadowType" substitutionGroup="c:object"/>
     
     <xsd:simpleType name="ShadowKindType">
@@ -5829,17 +5839,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-         
-     <xsd:element name="account" type="tns:ShadowType" substitutionGroup="c:object">
-     	<xsd:annotation>
-     		<xsd:documentation>
-     			DEPRECATED. Used only for compatibility back when there was an AccountShadowType.
-     		</xsd:documentation>
-     		<xsd:appinfo>
-         			<a:deprecated>true</a:deprecated>
-         		</xsd:appinfo>
-     	</xsd:annotation>
-     </xsd:element>
+
 
     <!-- CONVENIENCE ELEMENTS Following definitions are there to use in examples, 
 		import files, etc. These should not be used in the services -->

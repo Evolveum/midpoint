@@ -30,6 +30,8 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
@@ -39,6 +41,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
  */
 public class AddFocusAction implements Action {
 
+	private static final Trace LOGGER = TraceManager.getTrace(AddFocusAction.class);
+	
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.model.sync.Action#handle(com.evolveum.midpoint.model.lens.LensContext, com.evolveum.midpoint.model.sync.SynchronizationSituation, java.util.Map, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
@@ -50,6 +54,7 @@ public class AddFocusAction implements Action {
 		
 		LensFocusContext<F> focusContext = context.createFocusContext();
 		Class<F> focusClass = focusContext.getObjectTypeClass();
+		LOGGER.trace("addFocus action: add delta for {}", focusClass);
 		PrismObjectDefinition<F> focusDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(focusClass);
 		PrismObject<F> emptyFocus = focusDefinition.instantiate();
 		ObjectDelta<F> delta = emptyFocus.createAddDelta();

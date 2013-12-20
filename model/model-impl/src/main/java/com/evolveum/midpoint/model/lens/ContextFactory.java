@@ -202,10 +202,9 @@ public class ContextFactory {
 	 /**
      * Creates empty lens context for synchronization purposes, filling in only the very basic metadata (such as channel).
      */
-	public <F extends ObjectType> LensContext<F> createSyncContext(ResourceObjectShadowChangeDescription change) {
+	public <F extends ObjectType> LensContext<F> createSyncContext(Class<F> focusClass, ResourceObjectShadowChangeDescription change) {
 		
-		// TODO!!!! HACK!!!!!!!!!
-		LensContext<F> context = new LensContext<F>((Class<F>) UserType.class, prismContext, provisioningService);
+		LensContext<F> context = new LensContext<F>(focusClass, prismContext, provisioningService);
     	context.setChannel(change.getSourceChannel());
     	return context;
 	}
