@@ -301,6 +301,7 @@
 				    </source>
 				</outbound>
 				<inbound>
+					<strength>weak</strength>
 					<target>
 						<path>name</path>
 					</target>
