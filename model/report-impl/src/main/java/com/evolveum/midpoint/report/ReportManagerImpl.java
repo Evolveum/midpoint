@@ -55,8 +55,10 @@ import net.sf.jasperreports.engine.type.VerticalAlignEnum;
 import net.sf.jasperreports.engine.type.WhenNoDataTypeEnum;
 import net.sf.jasperreports.engine.xml.JRXmlLoader;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.model.api.context.ModelContext;
@@ -69,6 +71,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -181,39 +184,27 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
              }
              
              ReportType reportType = (ReportType) object.asObjectable();
-             Object reportTemplate = reportType.getReportTemplate();
              JasperDesign jasperDesign = null;
-             if (reportTemplate == null)
+             if (reportType.getReportTemplate() == null)
              {
             	 jasperDesign = createJasperDesign(reportType);
              }
              else
              {
-            	 // Loading template
-            	 ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            	 ObjectOutputStream oos = new ObjectOutputStream(baos);
-            	 oos.writeObject(reportTemplate);
-            	 oos.flush();
-            	 oos.close();
-
-            	 InputStream inputStreamJRXML = new ByteArrayInputStream(baos.toByteArray());
+            	 String reportTemplate = DOMUtil.serializeDOMToString((Node)reportType.getReportTemplate().getAny());
+            	 InputStream inputStreamJRXML = new ByteArrayInputStream(reportTemplate.getBytes());
             	 jasperDesign = JRXmlLoader.load(inputStreamJRXML);
              }
              // Compile template
              JasperCompileManager.compileReport(jasperDesign);
             
-             result.computeStatus();
+             //result.computeStatus();
+             result.recordSuccessIfUnknown();
 
-         }
-         catch (IOException ex)
-         {
-        	 String message = "Input - Output convert jrxml file: " + ex.getMessage();
-             LoggingUtils.logException(LOGGER, message, ex);
-             result.recordFatalError(message, ex);
          }
          catch (JRException ex) {
              String message = "Cannot load or compile jasper report: " + ex.getMessage();
-             LoggingUtils.logException(LOGGER, message, ex);
+             LOGGER.error(message);
              result.recordFatalError(message, ex);
          } 
         
