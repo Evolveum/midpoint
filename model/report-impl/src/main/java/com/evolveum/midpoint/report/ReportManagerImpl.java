@@ -174,15 +174,14 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
              LOGGER.trace("invoke() EXITING: Changes not related to report");
              return HookOperationMode.FOREGROUND;
          }
+         
+         if (isDeletion) {
+             LOGGER.trace("invoke() EXITING because operation is DELETION");
+             return HookOperationMode.FOREGROUND;
+         }
 
          OperationResult result = parentResult.createSubresult(DOT_CLASS + "invoke");
          try {
-             if (isDeletion) {
-                 LoggingConfigurationManager.resetCurrentlyUsedVersion();        
-                 LOGGER.trace("invoke() EXITING because operation is DELETION");
-                 return HookOperationMode.FOREGROUND;
-             }
-             
              ReportType reportType = (ReportType) object.asObjectable();
              JasperDesign jasperDesign = null;
              if (reportType.getReportTemplate() == null)
