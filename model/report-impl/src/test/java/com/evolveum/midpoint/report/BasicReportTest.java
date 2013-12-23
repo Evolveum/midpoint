@@ -19,10 +19,8 @@ package com.evolveum.midpoint.report;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -32,16 +30,12 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import net.sf.jasperreports.engine.design.JasperDesign;
-import net.sf.jasperreports.engine.xml.JRXmlLoader;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
@@ -55,7 +49,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.PagingConvertor;
 import com.evolveum.midpoint.schema.QueryConvertor;
@@ -66,7 +59,6 @@ import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -80,14 +72,15 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrientationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportFieldConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportParameterConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportTemplateStyleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.prism.xml.ns._public.query_2.OrderDirectionType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
@@ -110,6 +103,8 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 			+ "test002CreateReportFromFile";
 	private static final String COPY_REPORT_WITHOUT_JRXML = CLASS_NAME_WITH_DOT
 			+ "test003CopyReportWithoutJRXML";
+	private static final String RUN_REPORT = CLASS_NAME_WITH_DOT
+			+ "test004RunReport";
 	private static final String COUNT_REPORT = CLASS_NAME_WITH_DOT
 			+ "test006CountReport";
 	private static final String SEARCH_REPORT = CLASS_NAME_WITH_DOT
@@ -126,6 +121,10 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	private static final File COMMON_DIR = new File("src/test/resources/common");
 	
 	private static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR + "/system-configuration.xml");
+	
+	protected static final String USER_ADMINISTRATOR_FILENAME = COMMON_DIR + "/user-administrator.xml";
+	protected static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
+	protected static final String USER_ADMINISTRATOR_USERNAME = "administrator";
 	
 	private static final String TEST_REPORT_FILE = REPORTS_DIR + "/report-test.xml";
 	private static final String REPORT_DATASOURCE_TEST = REPORTS_DIR + "/reportDataSourceTest.jrxml";
@@ -145,18 +144,31 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	@Autowired
 	private PrismContext prismContext;
 
-	@Autowired
-	protected TaskManager taskManager;
+	//@Autowired
+	//protected TaskManager taskManager;
 
 	@Autowired
 	private ModelService modelService;
-
+	
+	@Autowired
+	private ReportManager reportManager;
+	
+	@Autowired
+	private ReportCreateTaskHandler reportHandler;
+	
+	protected PrismObject<UserType> userAdministrator;
+	
 	private static String readFile(String path, Charset encoding)
 			throws IOException {
 		byte[] encoded = Files.readAllBytes(Paths.get(path));
 		return encoding.decode(ByteBuffer.wrap(encoded)).toString();
 	}
 
+	public BasicReportTest() {
+		super();
+	}
+	
+	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult)
 			throws Exception {
@@ -171,12 +183,21 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 			throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
 					"looks like the previous test haven't cleaned it up", e);
 		}
+		
+		// Users
+		userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
+		//repoAddObjectFromFile(ROLE_SUPERUSER_FILENAME, RoleType.class, initResult);
 	}
     	
 	protected File getSystemConfigurationFile() {
 		return SYSTEM_CONFIGURATION_FILE;
 	}
-
+	
+	protected Task createTask(String operationName) {
+		Task task = taskManager.createTaskInstance(operationName);
+		task.setOwner(userAdministrator);
+		return task;
+	}
 	
 	private PrismObject<ReportType> getReport(String reportOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
 		Task task = taskManager.createTaskInstance(GET_REPORT);
@@ -499,6 +520,35 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		TestUtil.assertSuccess(result);
 		AssertJUnit.assertEquals(REPORT_OID_002, objectDelta.getOid());
 	}
+	
+	@Test
+	public void test004RunReport() throws Exception {
+		final String TEST_NAME = "test004RunReport";
+        TestUtil.displayTestTile(this, TEST_NAME);
+		
+		// GIVEN
+        Task task = createTask(RUN_REPORT);
+		OperationResult result = task.getResult();
+		
+		ReportType reportType = getReport(REPORT_OID_TEST).asObjectable();
+        
+		//WHEN 	
+		TestUtil.displayWhen(TEST_NAME);
+		reportManager.runReport(reportType.asPrismObject(), task, result);
+		
+		// THEN
+        TestUtil.displayThen(TEST_NAME);
+        OperationResult subresult = result.getLastSubresult();
+        //TestUtil.assertInProgress("create report result", subresult);
+        
+        waitForTaskFinish(task.getOid(), false);
+        
+     // Task result
+        PrismObject<TaskType> reportTaskAfter = getTask(task.getOid());
+        OperationResultType reportTaskResult = reportTaskAfter.asObjectable().getResult();
+        display("Report task result", reportTaskResult);
+        TestUtil.assertSuccess(reportTaskResult);
+	}
 
 	@Test
 	public void test006CountReport() throws Exception {
@@ -513,8 +563,8 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 
 		//WHEN 	
 		TestUtil.displayWhen(TEST_NAME);
-		int count = modelService.countObjects(ReportType.class, null, options,
-				task, result);
+		int count = modelService.countObjects(ReportType.class, null, options, task, result);
+		
 		//THEN
 		TestUtil.displayThen(TEST_NAME);
         result.computeStatus();

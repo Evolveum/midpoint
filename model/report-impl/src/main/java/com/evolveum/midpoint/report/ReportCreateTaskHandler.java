@@ -18,20 +18,35 @@ package com.evolveum.midpoint.report;
 
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskHandler;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskRunResult;
+import com.evolveum.midpoint.task.api.TaskRunResult.TaskRunResultStatus;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportParameterConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
 
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRExporterParameter;
+import net.sf.jasperreports.engine.JRParameter;
+import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperExportManager;
+import net.sf.jasperreports.engine.JasperFillManager;
 import net.sf.jasperreports.engine.JasperPrint;
+import net.sf.jasperreports.engine.JasperReport;
+import net.sf.jasperreports.engine.design.JasperDesign;
 import net.sf.jasperreports.engine.export.JRCsvExporter;
 import net.sf.jasperreports.engine.export.JRRtfExporter;
 import net.sf.jasperreports.engine.export.JRXhtmlExporter;
@@ -42,13 +57,17 @@ import net.sf.jasperreports.engine.export.oasis.JROdtExporter;
 import net.sf.jasperreports.engine.export.ooxml.JRDocxExporter;
 import net.sf.jasperreports.engine.export.ooxml.JRPptxExporter;
 import net.sf.jasperreports.engine.export.ooxml.JRXlsxExporter;
+import net.sf.jasperreports.engine.xml.JRXmlLoader;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.w3c.dom.Node;
 
 import javax.annotation.PostConstruct;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,11 +81,18 @@ public class ReportCreateTaskHandler implements TaskHandler {
     public static final String REPORT_CREATE_TASK_URI = "http://midpoint.evolveum.com/xml/ns/public/report/create/handler-1";
 
     private static final Trace LOGGER = TraceManager.getTrace(ReportCreateTaskHandler.class);
+    
+    private static String MIDPOINT_HOME = System.getProperty("midpoint.home"); 
+    private static final String CREATE_DATASOURCE = ReportCreateTaskHandler.class.getName() + ".createDatasource";
 
     @Autowired
     private TaskManager taskManager;
+    
     @Autowired
-    private ModelService model;
+    private ModelService modelService;
+    
+    @Autowired
+    private ReportManager reportManager;
 
     @PostConstruct
     private void initialize() {
@@ -76,14 +102,117 @@ public class ReportCreateTaskHandler implements TaskHandler {
         taskManager.registerHandler(REPORT_CREATE_TASK_URI, this);
     }
     
-    private Map<String, Object> getReportParams(PrismObject<ReportType> object, OperationResult parentResult)
+    @Override
+    public TaskRunResult run(Task task) {
+        //here a jasper magic should be done which creates PDF file (or something else) in midpoint directory
+        //also as a result ReportOutputType should be created and stored to DB.
+    	
+    	LOGGER.trace("ReportCreateTaskHandler.run starting");
+    	
+    	OperationResult opResult = new OperationResult(OperationConstants.CREATE_REPORT_FILE);
+		opResult.setStatus(OperationResultStatus.IN_PROGRESS);
+		
+		TaskRunResult runResult = new TaskRunResult();
+		runResult.setOperationResult(opResult);
+		
+		String reportOid = task.getObjectOid();
+		opResult.addContext("reportOid", reportOid);
+
+		if (reportOid == null) {
+			throw new IllegalArgumentException("Report OID is missing in task extension");
+		}
+
+        recordProgress(task, 0, opResult);
+        long progress = task.getProgress();
+        
+        PrismObject<ReportType> report = null;
+        try {
+    		report = modelService.getObject(ReportType.class, reportOid, null, task, opResult); 
+		} catch (ObjectNotFoundException ex) {
+			LOGGER.error("Report does not exist: {}",ex.getMessage(),ex);
+			opResult.recordFatalError("Report does not exist: "+ex.getMessage(),ex);
+			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+			runResult.setProgress(progress);
+			return runResult;
+		} catch (Exception ex) {
+			LOGGER.error("CreateReport: {}",ex.getMessage(),ex);
+			opResult.recordFatalError("Report: "+ex.getMessage(),ex);
+			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+			runResult.setProgress(progress);
+			return runResult;
+		}
+        
+        ReportType  reportType = report.asObjectable();
+        
+    	Map<String, Object> params = new HashMap<String, Object>();
+    	JasperDesign jasperDesign;
+    	try
+    	{    
+    		OperationResult subResult = opResult.createSubresult(CREATE_DATASOURCE);
+    		
+    		DataSourceReport reportDataSource = new DataSourceReport(reportType, subResult);
+    		
+    		params.putAll(getReportParams(reportType, opResult));
+    		params.put(JRParameter.REPORT_DATA_SOURCE, reportDataSource);
+    		
+    		if (reportType.getReportTemplate() == null)
+            {
+           	 	jasperDesign = reportManager.createJasperDesign(reportType);
+            }
+            else
+            {
+           	 String reportTemplate = DOMUtil.serializeDOMToString((Node)reportType.getReportTemplate().getAny());
+           	 InputStream inputStreamJRXML = new ByteArrayInputStream(reportTemplate.getBytes());
+           	 jasperDesign = JRXmlLoader.load(inputStreamJRXML);
+            }
+    		
+            // Compile template
+    		JasperReport jasperReport = JasperCompileManager.compileReport(jasperDesign);
+    		JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, params);
+
+    		generateReport(reportType, jasperPrint);
+     
+    		subResult.computeStatus();
+    		
+    	} catch (Exception ex) {
+    		LOGGER.error("CreateReport: {}", ex.getMessage(), ex);
+    		opResult.recordFatalError(ex.getMessage(), ex);
+    		runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+    		runResult.setProgress(progress);
+    	}
+    	
+    	opResult.computeStatus();
+		// This "run" is finished. But the task goes on ...
+		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
+		runResult.setProgress(progress);
+		LOGGER.trace("CreateReportTaskHandler.run stopping");
+    	return runResult;
+    }
+   
+    @Override
+    public Long heartbeat(Task task) {
+        return null;
+    }
+
+    @Override
+    public void refreshStatus(Task task) {
+    }
+
+    @Override
+    public List<String> getCategoryNames() {
+        return null;
+    }
+    
+    @Override
+    public String getCategoryName(Task task) {
+    	return TaskCategory.REPORT;
+    }
+    private Map<String, Object> getReportParams(ReportType reportType, OperationResult parentResult)
 	{
 	 	Map<String, Object> params = new HashMap<String, Object>();
 	 	
 	 	OperationResult subResult = parentResult.createSubresult("get report parameters");
-	 
-	 	ReportType reportType = object.asObjectable();
-	 	
+	  	
 	  	for(ReportParameterConfigurationType parameterRepo : reportType.getReportParameter())
 		{
     		params.put(parameterRepo.getNameParameter(), parameterRepo.getValueParameter());			
@@ -97,7 +226,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
     // generate report - export
     private void generateReport(ReportType reportType, JasperPrint jasperPrint) throws JRException
     {
-    	String output = reportType.getName().getOrig();
+    	String output = MIDPOINT_HOME + reportType.getName().getOrig();
     	switch (reportType.getReportExport())
         {
         	case PDF : pdf(jasperPrint, output);
@@ -279,64 +408,17 @@ public class ReportCreateTaskHandler implements TaskHandler {
 		exporter.exportReport();*/
     }
 
-    @Override
-    public String getCategoryName(Task task) {
-        return null;
-    }
-
-    @Override
-    public TaskRunResult run(Task task) {
-        //here a jasper magic should be done which creates PDF file (or something else) in midpoint directory
-        //also as a result ReportOutputType should be created and stored to DB.
-    	
-        /*task.getExtensionReference(name);
-         * modelservice.getobject - reporttype
-         * reporttype.export        
-         */
-    	
-    	/*
-    	Map<String, Object> params = new HashMap<String, Object>();
-    	try
-    	{
-    		OperationResult subResult = parentResult.createSubresult(RUN_REPORT);
-    		ReportType reportType = object.asObjectable();
-    		
-    		subResult = parentResult.createSubresult("Load Datasource");
-            
-    		DataSourceReport reportDataSource = new DataSourceReport(object, subResult);
-    		
-    		params.putAll(getReportParams(object, parentResult));
-    		params.put(JRParameter.REPORT_DATA_SOURCE, reportDataSource);
-    		
-    		// Loading template
-    		InputStream inputStreamJRXML = new ByteArrayInputStream(reportType.getReportTemplateJRXML().getBytes("UTF-8"));
-    		JasperDesign jasperDesign = JRXmlLoader.load(inputStreamJRXML); 
-
-    		JasperReport jasperReport = JasperCompileManager.compileReport(jasperDesign);
-    		JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, params);
-
-    		generateReport(reportType, jasperPrint);
-     
-    		subResult.computeStatus();
-    	}
-    	catch (Exception ex)
-    	{
-    		ModelUtils.recordFatalError(parentResult, ex);
-    	}*/
-        return null;
-    }
    
-    @Override
-    public Long heartbeat(Task task) {
-        return null;
+
+    private void recordProgress(Task task, long progress, OperationResult opResult) {
+        try {
+            task.setProgressImmediate(progress, opResult);
+        } catch (ObjectNotFoundException e) {             // these exceptions are of so little probability and harmless, so we just log them and do not report higher
+            LoggingUtils.logException(LOGGER, "Couldn't record progress to task {}, probably because the task does not exist anymore", e, task);
+        } catch (SchemaException e) {
+            LoggingUtils.logException(LOGGER, "Couldn't record progress to task {}, due to unexpected schema exception", e, task);
+        }
     }
 
-    @Override
-    public void refreshStatus(Task task) {
-    }
-
-    @Override
-    public List<String> getCategoryNames() {
-        return null;
-    }
 }
+

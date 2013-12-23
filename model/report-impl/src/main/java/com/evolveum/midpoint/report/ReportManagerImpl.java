@@ -217,7 +217,8 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
     	return java.lang.String.class;
     }
     
-    private JasperDesign createJasperDesign(ReportType reportType) throws JRException
+    @Override
+    public JasperDesign createJasperDesign(ReportType reportType) throws JRException
 	{
 		//JasperDesign
 		JasperDesign jasperDesign = new JasperDesign();

@@ -49,9 +49,9 @@ public class DataSourceReport implements JRDataSource
 	private int rowCount = 0;
 
 	
-	public DataSourceReport(PrismObject<ReportType> object, OperationResult result)
+	public DataSourceReport(ReportType reportType, OperationResult result)
 	{
-		this.reportType = object.asObjectable();
+		this.reportType = reportType;
 		this.result = result;
 		initialize();
 	}
