@@ -113,6 +113,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
      * @param task
      * @param parentResult describes report which has to be created
      */
+    
     @Override
     public void runReport(PrismObject<ReportType> object, Task task, OperationResult parentResult) {    	
         task.setHandlerUri(ReportCreateTaskHandler.REPORT_CREATE_TASK_URI);
@@ -563,33 +564,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
     public void invokeOnException(ModelContext context, Throwable throwable, Task task, OperationResult result) {
     	
     }
-    /*
-    @Override
-    public List<PrismObject<ReportType>> searchReports(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) 
-    		throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-			SecurityViolationException {
-    	return modelService.searchObjects(ReportType.class, query, options, null, parentResult);
-    }
-
-    @Override
-    public int countReports(ObjectQuery query, OperationResult parentResult) throws SchemaException 
-    {
-    	//LOGGER.trace("begin::countReport()");
-        int count = 0;
-        OperationResult result = parentResult.createSubresult(COUNT_REPORT);
-        try {
-        	count = modelService.countObjects(ReportType.class, query, null, null, result);
-            result.recordSuccess();
-        } 
-        catch (Exception ex) 
-        {
-            result.recordFatalError("Couldn't count objects.", ex);
-        }
-        //LOGGER.trace("end::countReport()");
-        return count;
-    }
-
-  */
+  
     @Override
     public void cleanupReports(CleanupPolicyType cleanupPolicy, OperationResult parentResult) {
         //To change body of implemented methods use File | Settings | File Templates.

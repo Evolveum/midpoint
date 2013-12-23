@@ -59,7 +59,10 @@ public class DataSourceReport implements JRDataSource
 	private void initialize()
 	{	
 		subResult = result.createSubresult("Initialize");	
-		paging = reportType.getQuery().getPaging();
+		paging = new PagingType();
+		paging.setOffset(0);
+		paging.setMaxSize(10);
+		reportType.getQuery().setPaging(paging);
 		rowCount = paging.getMaxSize();
 		rowCounter = rowCount - 1;
 		fieldsPair = getFieldsPair();
