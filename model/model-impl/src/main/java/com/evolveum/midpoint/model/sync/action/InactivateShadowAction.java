@@ -20,23 +20,25 @@ import java.util.Map;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.model.lens.LensContext;
-import com.evolveum.midpoint.model.lens.LensFocusContext;
+import com.evolveum.midpoint.model.lens.LensProjectionContext;
+import com.evolveum.midpoint.model.lens.SynchronizationIntent;
 import com.evolveum.midpoint.model.sync.Action;
 import com.evolveum.midpoint.model.sync.SynchronizationSituation;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ChangeType;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 
 /**
  * @author semancik
  *
  */
-public class DeleteFocusAction implements Action {
+public class InactivateShadowAction extends BaseAction {
 
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.model.sync.Action#handle(com.evolveum.midpoint.model.lens.LensContext, com.evolveum.midpoint.model.sync.SynchronizationSituation, java.util.Map, com.evolveum.midpoint.task.api.Task, com.evolveum.midpoint.schema.result.OperationResult)
@@ -44,14 +46,23 @@ public class DeleteFocusAction implements Action {
 	@Override
 	public <F extends FocusType> void handle(LensContext<F> context, SynchronizationSituation<F> situation,
 			Map<QName, Object> parameters, Task task, OperationResult parentResult) {
+		ActivationStatusType desiredStatus = ActivationStatusType.DISABLED;
 		
-		LensFocusContext<F> focusContext = context.getFocusContext();
-		if (focusContext != null) {
-			PrismObject<F> objectOld = focusContext.getObjectOld();
-			ObjectDelta<F> delta = objectOld.createDeleteDelta();
-	        focusContext.setPrimaryDelta(delta);
+		LensProjectionContext projectionContext = context.getProjectionContextsIterator().next();
+		PrismObject<ShadowType> objectCurrent = projectionContext.getObjectCurrent();
+		if (objectCurrent != null) {
+			PrismProperty<Object> administrativeStatusProp = objectCurrent.findProperty(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
+			if (administrativeStatusProp != null) {
+				if (desiredStatus.equals(administrativeStatusProp.getRealValue())) {
+					// Desired status already set, nothing to do
+					return;
+				}
+			}
 		}
-
+		ObjectDelta<ShadowType> activationDelta = ObjectDelta.createModificationReplaceProperty(ShadowType.class,
+				projectionContext.getOid(), SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, getPrismContext(), 
+				desiredStatus);
+		projectionContext.setPrimaryDelta(activationDelta);
 	}
 
 }

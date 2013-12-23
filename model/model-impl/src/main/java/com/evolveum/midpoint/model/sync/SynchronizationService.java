@@ -758,7 +758,6 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 				} else {
 					defaultReaction = reaction;
 				}
-				return reaction;
 			}
 		}
 		LOGGER.trace("Using default reaction {}", defaultReaction);
