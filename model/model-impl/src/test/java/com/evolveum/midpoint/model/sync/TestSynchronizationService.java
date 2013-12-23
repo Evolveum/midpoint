@@ -49,6 +49,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
@@ -502,8 +503,10 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         
         // THEN
         TestUtil.displayWhen(TEST_NAME);
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
         LensContext<UserType> context = mockListener.getLastSyncContext();
-
         display("Resulting context (as seen by debug listener)", context);
         assertNotNull("No resulting context (as seen by debug listener)", context);
         
@@ -514,7 +517,7 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
         		ShadowKindType.ENTITLEMENT, INTENT_GROUP);
 		LensProjectionContext projCtx = context.findProjectionContext(rat);
 		assertNotNull("No projection sync context for "+rat, projCtx);
-		assertEquals("Wrong detected situation in context", SynchronizationSituationType.UNLINKED, projCtx.getSynchronizationSituationDetected());
+		assertEquals("Wrong detected situation in context", SynchronizationSituationType.UNMATCHED, projCtx.getSynchronizationSituationDetected());
 		assertEquals("Wrong resolved situation in context", SynchronizationSituationType.LINKED, projCtx.getSynchronizationSituationResolved());
 		
 		PrismAsserts.assertNoDelta("Unexpected projection primary delta", projCtx.getPrimaryDelta());
@@ -522,14 +525,12 @@ public class TestSynchronizationService extends AbstractInternalModelIntegration
 //		assertNotNull("Missing account secondary delta", accCtx.getSecondaryDelta());
 //		assertIterationDelta(accCtx.getSecondaryDelta(), 0, "");
 		
-		assertLinked(context.getFocusContext().getObjectOld().getOid(), shadowPirates.getOid());
+		assertLinked(RoleType.class, context.getFocusContext().getOid(), shadowPirates.getOid());
 		
 		PrismObject<ShadowType> shadow = getShadowModelNoFetch(shadowPirates.getOid());
         assertIteration(shadow, 0, "");
         assertSituation(shadow, SynchronizationSituationType.LINKED);
         
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
 	}
 
 }

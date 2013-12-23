@@ -297,25 +297,29 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	protected void assertLinked(String userOid, String accountOid) throws ObjectNotFoundException, SchemaException {
+		assertLinked(UserType.class, userOid, accountOid);
+	}
+	
+	protected <F extends FocusType> void assertLinked(Class<F> type, String focusOid, String projectionOid) throws ObjectNotFoundException, SchemaException {
 		OperationResult result = new OperationResult("assertLinked");
-		PrismObject<UserType> user = repositoryService.getObject(UserType.class, userOid, null, result);
-		assertLinked(user, accountOid);
+		PrismObject<F> user = repositoryService.getObject(type, focusOid, null, result);
+		assertLinked(user, projectionOid);
 	}
 	
-	protected void assertLinked(PrismObject<UserType> user, PrismObject<ShadowType> account) throws ObjectNotFoundException, SchemaException {
-		assertLinked(user, account.getOid());
+	protected <F extends FocusType> void assertLinked(PrismObject<F> focus, PrismObject<ShadowType> projection) throws ObjectNotFoundException, SchemaException {
+		assertLinked(focus, projection.getOid());
 	}
 	
-	protected void assertLinked(PrismObject<UserType> user, String accountOid) throws ObjectNotFoundException, SchemaException {
-		PrismReference linkRef = user.findReference(UserType.F_LINK_REF);
-		assertNotNull("No linkRefs in "+user, linkRef);
+	protected <F extends FocusType> void assertLinked(PrismObject<F> focus, String projectionOid) throws ObjectNotFoundException, SchemaException {
+		PrismReference linkRef = focus.findReference(FocusType.F_LINK_REF);
+		assertNotNull("No linkRefs in "+focus, linkRef);
 		boolean found = false; 
 		for (PrismReferenceValue val: linkRef.getValues()) {
-			if (val.getOid().equals(accountOid)) {
+			if (val.getOid().equals(projectionOid)) {
 				found = true;
 			}
 		}
-		assertTrue("User " + user + " is not linked to account " + accountOid, found);
+		assertTrue("Focus " + focus + " is not linked to shadow " + projectionOid, found);
 	}
 	
 	protected void assertNotLinked(String userOid, String accountOid) throws ObjectNotFoundException, SchemaException {

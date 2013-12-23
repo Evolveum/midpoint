@@ -31,6 +31,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensProjectionContextType;
+
 import org.apache.commons.lang.StringUtils;
 import org.jvnet.jaxb2_commons.lang.Validate;
 
@@ -1082,6 +1083,14 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 			return "null";
 		}
 		return kind.value();
+	}
+
+	@Override
+	protected String getElementDesc() {
+		if (resourceShadowDiscriminator == null) {
+            return "shadow";
+        }
+        return getKindValue(resourceShadowDiscriminator.getKind());
 	}
 
 	public void addToPrismContainer(PrismContainer<LensProjectionContextType> lensProjectionContextTypeContainer) throws SchemaException {

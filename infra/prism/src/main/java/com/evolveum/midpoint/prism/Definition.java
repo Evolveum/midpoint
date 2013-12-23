@@ -65,6 +65,7 @@ public abstract class Definition implements Serializable, Dumpable, DebugDumpabl
 	protected Integer displayOrder;
 	protected String help;
     protected String documentation;
+    protected boolean deprecated = false;
 	
 	/**
      * This means that the property container is not defined by fixed (compile-time) schema.
@@ -140,7 +141,15 @@ public abstract class Definition implements Serializable, Dumpable, DebugDumpabl
         this.isAbstract = isAbstract;
     }
 
-    /**
+    public boolean isDeprecated() {
+		return deprecated;
+	}
+
+	public void setDeprecated(boolean deprecated) {
+		this.deprecated = deprecated;
+	}
+
+	/**
 	 * Returns display name.
 	 * 
 	 * Specifies the printable name of the object class or attribute. It must

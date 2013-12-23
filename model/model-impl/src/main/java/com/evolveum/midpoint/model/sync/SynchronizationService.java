@@ -617,9 +617,9 @@ public class SynchronizationService implements ResourceObjectChangeListener {
         ShadowKindType kind = getKind(shadow, synchronizationPolicy);
         String intent = getIntent(shadow, synchronizationPolicy);
         boolean thombstone = isThombstone(change);
-		ResourceShadowDiscriminator drscr = new ResourceShadowDiscriminator(resource.getOid(), kind, 
+		ResourceShadowDiscriminator descr = new ResourceShadowDiscriminator(resource.getOid(), kind, 
 				intent, thombstone);
-		LensProjectionContext accountContext = context.createProjectionContext(drscr);
+		LensProjectionContext accountContext = context.createProjectionContext(descr);
         accountContext.setResource(resource);
         accountContext.setOid(getOidFromChange(change));
         accountContext.setSynchronizationSituationDetected(situation.getSituation());

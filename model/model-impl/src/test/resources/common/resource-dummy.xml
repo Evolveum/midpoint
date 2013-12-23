@@ -385,6 +385,7 @@ return tmpSuffix
 			
 <!-- 			<operation>add</operation> -->
 			<operation>reconcile</operation>
+			<kind>account</kind>
 			<order>before</order>
 		</script>
 	</scripts>
@@ -433,6 +434,8 @@ return tmpSuffix
 		<objectSynchronization>
 			<name>Group sync policy</name>
 			<objectClass>ri:GroupObjectClass</objectClass>
+			<kind>entitlement</kind>
+			<intent>group</intent>
 			<focusType>c:RoleType</focusType>
 			<enabled>true</enabled>
 			<correlation>
