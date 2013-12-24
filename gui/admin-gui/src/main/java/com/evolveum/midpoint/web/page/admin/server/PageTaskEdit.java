@@ -33,6 +33,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.DateInput;
 import com.evolveum.midpoint.web.component.button.ButtonType;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.LinkPanel;
@@ -63,7 +64,6 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.datetime.markup.html.form.DateTextField;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
@@ -560,13 +560,7 @@ public class PageTaskEdit extends PageAdminTasks {
 		});
 		cronContainer.add(cronHelp);
 
-		final DateTimeField notStartBefore = new DateTimeField("notStartBeforeField",
-				new PropertyModel<Date>(model, "notStartBefore")) {
-			@Override
-			protected DateTextField newDateTextField(String id, PropertyModel dateFieldModel) {
-				return DateTextField.forDatePattern(id, dateFieldModel, "dd/MMM/yyyy");
-			}
-		};
+        DateInput notStartBefore = new DateInput("notStartBeforeField", new PropertyModel<Date>(model, "notStartBefore"));
 		notStartBefore.setOutputMarkupId(true);
 		notStartBefore.add(new VisibleEnableBehaviour() {
 			@Override
@@ -576,13 +570,7 @@ public class PageTaskEdit extends PageAdminTasks {
 		});
 		mainForm.add(notStartBefore);
 
-		final DateTimeField notStartAfter = new DateTimeField("notStartAfterField", new PropertyModel<Date>(
-				model, "notStartAfter")) {
-			@Override
-			protected DateTextField newDateTextField(String id, PropertyModel dateFieldModel) {
-				return DateTextField.forDatePattern(id, dateFieldModel, "dd/MMM/yyyy");
-			}
-		};
+        DateInput notStartAfter = new DateInput("notStartAfterField", new PropertyModel<Date>(model, "notStartAfter"));
 		notStartAfter.setOutputMarkupId(true);
 		notStartAfter.add(new VisibleEnableBehaviour() {
 			@Override
