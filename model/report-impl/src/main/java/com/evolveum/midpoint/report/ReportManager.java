@@ -16,6 +16,9 @@
 
 package com.evolveum.midpoint.report;
 
+import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.design.JasperDesign;
+
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -46,4 +49,8 @@ public interface ReportManager {
      * @param parentResult
      */
     void cleanupReports(CleanupPolicyType cleanupPolicy, OperationResult parentResult);
+    
+    
+    public JasperDesign createJasperDesign(ReportType reportType) throws JRException;
+	
 }

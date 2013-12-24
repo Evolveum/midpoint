@@ -42,5 +42,7 @@ public class OperationConstants {
 
 	public static final String FOCUS_VALIDITY_SCAN = PREFIX + ".focusValidityScan";
 	public static final String TRIGGER_SCAN = PREFIX + ".triggerScan";
+	
+	public static final String CREATE_REPORT_FILE = PREFIX + ".createReportFile";
 
 }

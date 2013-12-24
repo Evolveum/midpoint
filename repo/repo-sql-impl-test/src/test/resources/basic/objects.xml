@@ -1163,10 +1163,10 @@
         	<r:jasperReport xmlns:r="http://jasperreports.sourceforge.net/jasperreports">
         	</r:jasperReport>
         </reportTemplate>
-        <!--<reportTemplateStyleJRTX>-->
-        	<!--<template>-->
-        	<!--</template>-->
-        <!--</reportTemplateStyleJRTX>-->
+        <reportTemplateStyle>
+			<jasperTemplate>
+        	</jasperTemplate>
+        </reportTemplateStyle>
         <reportOrientation>landscape</reportOrientation>
         <reportExport>pdf</reportExport>
         <query>
