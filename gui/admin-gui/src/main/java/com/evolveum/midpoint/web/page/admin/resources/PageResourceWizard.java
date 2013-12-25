@@ -57,7 +57,13 @@ public class PageResourceWizard extends PageAdminResources {
                         return resource.asPrismObject();
                     }
 
-                    return WebModelUtils.loadObject(ResourceType.class, getResourceOid(), null, PageResourceWizard.this);
+                    PrismObject<ResourceType> resource = WebModelUtils.loadObject(ResourceType.class, getResourceOid(),
+                            null, PageResourceWizard.this);
+                    if (resource == null) {
+                        throw new RestartResponseException(PageError.class);
+                    }
+
+                    return resource;
                 } catch (Exception ex) {
                     LoggingUtils.logException(LOGGER, "Couldn't load resource", ex);
                     throw new RestartResponseException(PageError.class);

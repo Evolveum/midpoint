@@ -131,14 +131,14 @@ public class ConfigurationStep extends WizardStep {
 
     @Override
     public void applyState() {
-        PageBase page = getPageBase();
-        OperationResult result = new OperationResult(OPERATION_SAVE);
-
-        PrismObject<ResourceType> newResource = resourceModel.getObject();
-        PrismObject<ResourceType> oldResource = WebModelUtils.loadObject(ResourceType.class, newResource.getOid(),
-                result, page);
-
-        ObjectDelta delta = DiffUtil.diff(oldResource, newResource);
-        WebModelUtils.save(delta, result, page);
+//        PageBase page = getPageBase();
+//        OperationResult result = new OperationResult(OPERATION_SAVE);
+//
+//        PrismObject<ResourceType> newResource = resourceModel.getObject();
+//        PrismObject<ResourceType> oldResource = WebModelUtils.loadObject(ResourceType.class, newResource.getOid(),
+//                result, page);
+//
+//        ObjectDelta delta = DiffUtil.diff(oldResource, newResource);
+//        WebModelUtils.save(delta, result, page);
     }
 }

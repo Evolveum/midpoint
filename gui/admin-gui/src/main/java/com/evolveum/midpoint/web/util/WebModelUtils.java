@@ -89,13 +89,17 @@ public class WebModelUtils {
         }
         PrismObject<T> object = null;
         try {
-            Task task = page.createSimpleTask(result.getOperation(), principal);
+            Task task = page.createSimpleTask(subResult.getOperation(), principal);
             object = page.getModelService().getObject(type, oid, options, task, subResult);
         } catch (Exception ex) {
             subResult.recordFatalError("WebModelUtils.couldntLoadObject", ex);
             LoggingUtils.logException(LOGGER, "Couldn't load object", ex);
         } finally {
             subResult.computeStatus();
+        }
+
+        if (result == null && WebMiscUtil.showResultInPage(subResult)) {
+            page.showResultInSession(subResult);
         }
 
         LOGGER.debug("Loaded with result {}", new Object[]{subResult});
