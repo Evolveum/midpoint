@@ -31,8 +31,10 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import org.apache.poi.hssf.record.formula.functions.T;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -49,6 +51,7 @@ public class WebModelUtils {
     private static final String OPERATION_LOAD_OBJECT = DOT_CLASS + "loadObject";
     private static final String OPERATION_DELETE_OBJECT = DOT_CLASS + "deleteObject";
     private static final String OPERATION_SEARCH_OBJECTS = DOT_CLASS + "searchObjects";
+    private static final String OPERATION_SAVE_OBJECT = DOT_CLASS + "saveObject";
 
     public static <T extends ObjectType> PrismObject<T> loadObjectAsync(Class<T> type, String oid, OperationResult result,
                                                                         PageBase page, PrismObject<UserType> principal) {
@@ -78,7 +81,12 @@ public class WebModelUtils {
                                                                     OperationResult result, PageBase page, PrismObject<UserType> principal) {
         LOGGER.debug("Loading {} with oid {}, options {}", new Object[]{type.getSimpleName(), oid, options});
 
-        OperationResult subResult = result.createMinorSubresult(OPERATION_LOAD_OBJECT);
+        OperationResult subResult;
+        if (result != null) {
+            subResult = result.createMinorSubresult(OPERATION_LOAD_OBJECT);
+        } else {
+            subResult = new OperationResult(OPERATION_LOAD_OBJECT);
+        }
         PrismObject<T> object = null;
         try {
             Task task = page.createSimpleTask(result.getOperation(), principal);
@@ -96,16 +104,29 @@ public class WebModelUtils {
     }
 
     public static <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
+                                                                            OperationResult result, PageBase page) {
+        return searchObjects(type, query, null, result, page, null);
+    }
+
+    public static <T extends ObjectType> List<PrismObject<T>> searchObjects(Class<T> type, ObjectQuery query,
                                                                             Collection<SelectorOptions<GetOperationOptions>> options,
                                                                             OperationResult result, PageBase page,
                                                                             PrismObject<UserType> principal) {
         LOGGER.debug("Searching {} with oid {}, options {}", new Object[]{type.getSimpleName(), query, options});
 
-        OperationResult subResult = result.createMinorSubresult(OPERATION_SEARCH_OBJECTS);
-        List<PrismObject<T>> objects = null;
+        OperationResult subResult;
+        if (result != null) {
+            subResult = result.createMinorSubresult(OPERATION_SEARCH_OBJECTS);
+        } else {
+            subResult = new OperationResult(OPERATION_SEARCH_OBJECTS);
+        }
+        List<PrismObject<T>> objects = new ArrayList<PrismObject<T>>();
         try {
-            Task task = page.createSimpleTask(result.getOperation(), principal);
-            objects = page.getModelService().searchObjects(type, query, options, task, subResult);
+            Task task = page.createSimpleTask(subResult.getOperation(), principal);
+            List<PrismObject<T>> list = page.getModelService().searchObjects(type, query, options, task, subResult);
+            if (list != null) {
+                objects.addAll(list);
+            }
         } catch (Exception ex) {
             subResult.recordFatalError("WebModelUtils.couldntSearchObjects", ex);
             LoggingUtils.logException(LOGGER, "Couldn't search objects", ex);
@@ -113,7 +134,11 @@ public class WebModelUtils {
             subResult.computeStatus();
         }
 
-        LOGGER.debug("Loaded with result {}", new Object[]{subResult});
+        if (result == null && WebMiscUtil.showResultInPage(subResult)) {
+            page.showResultInSession(subResult);
+        }
+
+        LOGGER.debug("Loaded ({}) with result {}", new Object[]{objects.size(), subResult});
 
         return objects;
     }
@@ -156,5 +181,37 @@ public class WebModelUtils {
         options.add(SelectorOptions.create(ItemPath.EMPTY_PATH,
                 GetOperationOptions.createRetrieve(RetrieveOption.DEFAULT)));
         return options;
+    }
+
+    public static void save(ObjectDelta delta, OperationResult result, PageBase page) {
+        save(WebMiscUtil.createDeltaCollection(delta), null, result, page);
+    }
+
+    public static void save(Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options,
+                            OperationResult result, PageBase page) {
+        LOGGER.debug("Saving deltas {}, options {}", new Object[]{deltas, options});
+
+        OperationResult subResult;
+        if (result != null) {
+            subResult = result.createMinorSubresult(OPERATION_SAVE_OBJECT);
+        } else {
+            subResult = new OperationResult(OPERATION_SAVE_OBJECT);
+        }
+
+        try {
+            Task task = page.createSimpleTask(result.getOperation());
+            page.getModelService().executeChanges(deltas, options, task, result);
+        } catch (Exception ex) {
+            subResult.recordFatalError("WebModelUtils.couldntSearchObjects", ex);
+            LoggingUtils.logException(LOGGER, "Couldn't search objects", ex);
+        } finally {
+            subResult.computeStatus();
+        }
+
+        if (result == null && WebMiscUtil.showResultInPage(subResult)) {
+            page.showResultInSession(subResult);
+        }
+
+        LOGGER.debug("Saved with result {}", new Object[]{subResult});
     }
 }
