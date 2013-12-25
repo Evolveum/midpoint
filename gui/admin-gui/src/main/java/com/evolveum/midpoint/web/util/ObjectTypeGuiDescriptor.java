@@ -58,7 +58,9 @@ public enum ObjectTypeGuiDescriptor {
 
     FOCUS(ObjectTypes.FOCUS_TYPE, "ObjectTypeGuiDescriptor.focus", ""),
 
-    REPORT(ObjectTypes.REPORT, "ObjectTypeGuiDescriptor.report", "");
+    REPORT(ObjectTypes.REPORT, "ObjectTypeGuiDescriptor.report", ""),
+
+    REPORT_OUTPUT(ObjectTypes.REPORT_OUTPUT, "ObjectTypeGuiDescriptor.reportOutput", "");
 
     public static final String ERROR_ICON = "silk-error";
     public static final String ERROR_LOCALIZATION_KEY = "ObjectTypeGuiDescriptor.unknown";
