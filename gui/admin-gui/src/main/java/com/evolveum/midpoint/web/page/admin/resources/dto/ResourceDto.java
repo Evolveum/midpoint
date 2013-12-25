@@ -83,7 +83,7 @@ public class ResourceDto extends Selectable implements InlineMenuable {
 
         PrismReference ref = resource.findReference(ResourceType.F_CONNECTOR_REF);
         ConnectorType connector = null;
-        if (ref != null) {
+        if (ref != null && ref.getValue().getObject() != null) {
             connector = (ConnectorType) ref.getValue().getObject().asObjectable();
         }
         bundle = connector != null ? connector.getConnectorBundle() : null;
