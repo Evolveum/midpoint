@@ -541,7 +541,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
         OperationResult subresult = result.getLastSubresult();
         //TestUtil.assertInProgress("create report result", subresult);
         
-        waitForTaskFinish(task.getOid(), false);
+        waitForTaskFinish(task.getOid(), false, 40000);
         
      // Task result
         PrismObject<TaskType> reportTaskAfter = getTask(task.getOid());
