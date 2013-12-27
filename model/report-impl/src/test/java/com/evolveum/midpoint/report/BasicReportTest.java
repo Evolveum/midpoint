@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -106,13 +107,13 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	private static final String RUN_REPORT = CLASS_NAME_WITH_DOT
 			+ "test004RunReport";
 	private static final String COUNT_REPORT = CLASS_NAME_WITH_DOT
-			+ "test006CountReport";
+			+ "test005CountReport";
 	private static final String SEARCH_REPORT = CLASS_NAME_WITH_DOT
-			+ "test007SearchReport";
+			+ "test006SearchReport";
 	private static final String MODIFY_REPORT = CLASS_NAME_WITH_DOT
-			+ "test008ModifyReport";
+			+ "test007ModifyReport";
 	private static final String DELETE_REPORT = CLASS_NAME_WITH_DOT
-			+ "test009DeleteReport";
+			+ "test008DeleteReport";
 	private static final Trace LOGGER = TraceManager
 			.getTrace(BasicReportTest.class);
 
@@ -126,9 +127,9 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	protected static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
 	protected static final String USER_ADMINISTRATOR_USERNAME = "administrator";
 	
-	private static final String TEST_REPORT_FILE = REPORTS_DIR + "/report-test.xml";
-	private static final String REPORT_DATASOURCE_TEST = REPORTS_DIR + "/reportDataSourceTest.jrxml";
-	private static final String STYLE_TEMPLATE_DEFAULT = STYLES_DIR	+ "/midpoint_base_styles.jrtx";
+	private static final File TEST_REPORT_FILE = new File(REPORTS_DIR + "/report-test.xml");
+	private static final File REPORT_DATASOURCE_TEST = new File(REPORTS_DIR + "/reportDataSourceTest.jrxml");
+	private static final File STYLE_TEMPLATE_DEFAULT = new File(STYLES_DIR	+ "/midpoint_base_styles.jrtx");
 	
 	private static final String REPORT_OID_001 = "00000000-3333-3333-0000-100000000001";
 	private static final String REPORT_OID_002 = "00000000-3333-3333-0000-100000000002";
@@ -225,12 +226,12 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		reportType.setDescription("TEST Report with DataSource parameter.");
 
 		// file templates
-		String jrxmlFile = readFile(REPORT_DATASOURCE_TEST, StandardCharsets.UTF_8);
+		String jrxmlFile = FileUtils.readFileToString(REPORT_DATASOURCE_TEST, "UTF-8");// readFile(REPORT_DATASOURCE_TEST, StandardCharsets.UTF_8);
 		ReportTemplateType reportTemplate = new ReportTemplateType();
 		reportTemplate.setAny(DOMUtil.parseDocument(jrxmlFile).getDocumentElement());
 		reportType.setReportTemplate(reportTemplate);
 
-		String jrtxFile = readFile(STYLE_TEMPLATE_DEFAULT, StandardCharsets.UTF_8);
+		String jrtxFile = FileUtils.readFileToString(STYLE_TEMPLATE_DEFAULT, "UTF-8"); //readFile(STYLE_TEMPLATE_DEFAULT, StandardCharsets.UTF_8);
 		ReportTemplateStyleType reportTemplateStyle = new ReportTemplateStyleType();
 		reportTemplateStyle.setAny(DOMUtil.parseDocument(jrtxFile).getDocumentElement());
 		reportType.setReportTemplateStyle(reportTemplateStyle);
@@ -349,7 +350,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 
 		parameter = new ReportParameterConfigurationType();
 		parameter.setNameParameter("BaseTemplateStyles");
-		parameter.setValueParameter(STYLE_TEMPLATE_DEFAULT);
+		parameter.setValueParameter(STYLE_TEMPLATE_DEFAULT.getPath());
 		parameter.setClassTypeParameter(DOMUtil.XSD_STRING);
 		reportParameters.add(parameter);
 
@@ -470,7 +471,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		Task task = taskManager.createTaskInstance(CREATE_REPORT_FROM_FILE);
 		OperationResult result = task.getResult();
 		 
-		PrismObject<? extends Objectable> reportType=  prismContext.getPrismDomProcessor().parseObject(new File(TEST_REPORT_FILE));
+		PrismObject<? extends Objectable> reportType=  prismContext.getPrismDomProcessor().parseObject(TEST_REPORT_FILE);
 			 
 		ObjectDelta<ReportType> objectDelta =
 		ObjectDelta.createAddDelta((PrismObject<ReportType>) reportType);
@@ -551,8 +552,8 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	}
 
 	@Test
-	public void test006CountReport() throws Exception {
-		final String TEST_NAME = "test006CountReport";
+	public void test005CountReport() throws Exception {
+		final String TEST_NAME = "test005CountReport";
         TestUtil.displayTestTile(this, TEST_NAME);
 
 		Task task = taskManager.createTaskInstance(COUNT_REPORT);
@@ -574,8 +575,8 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	}
 
 	@Test
-	public void test007SearchReport() throws Exception {
-		final String TEST_NAME = "test007SearchReport";
+	public void test006SearchReport() throws Exception {
+		final String TEST_NAME = "test006SearchReport";
         TestUtil.displayTestTile(this, TEST_NAME);
 
 		Task task = taskManager.createTaskInstance(SEARCH_REPORT);
@@ -597,8 +598,8 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	}
 
 	@Test
-	public void test008ModifyReport() throws Exception {
-		final String TEST_NAME = "test008ModifyReport";
+	public void test007ModifyReport() throws Exception {
+		final String TEST_NAME = "test007ModifyReport";
         TestUtil.displayTestTile(this, TEST_NAME);
 		
 		Task task = taskManager.createTaskInstance(MODIFY_REPORT);
@@ -631,9 +632,9 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	 * Delete report type.
 	 */
 	@Test
-	public void test009DeleteReport() throws Exception {
+	public void test008DeleteReport() throws Exception {
 		
-		final String TEST_NAME = "test009DeleteReport";
+		final String TEST_NAME = "test008DeleteReport";
         TestUtil.displayTestTile(this, TEST_NAME);
 
 		Task task = taskManager.createTaskInstance(DELETE_REPORT);

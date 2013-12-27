@@ -51,6 +51,6 @@ public interface ReportManager {
     void cleanupReports(CleanupPolicyType cleanupPolicy, OperationResult parentResult);
     
     
-    public JasperDesign createJasperDesign(ReportType reportType) throws JRException;
+    JasperDesign createJasperDesign(ReportType reportType) throws JRException;
 	
 }
