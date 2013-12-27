@@ -20,6 +20,7 @@ import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -488,12 +489,19 @@ public class NameStep extends WizardStep {
             PrismObject<ResourceType> resource = resourceModel.getObject();
             page.getPrismContext().adopt(resource);
 
-            ModelService model = page.getModelService();
-            ObjectDelta addDelta = ObjectDelta.createAddDelta(resource);
-            model.executeChanges(WebMiscUtil.createDeltaCollection(addDelta), null,
-                    page.createSimpleTask(OPERATION_SAVE_RESOURCE), result);
+            ObjectDelta delta;
+            if (StringUtils.isNotEmpty(resource.getOid())) {
+                PrismObject<ResourceType> oldResource = WebModelUtils.loadObject(ResourceType.class, resource.getOid(),
+                        result, page);
 
-            resource = WebModelUtils.loadObject(ResourceType.class, addDelta.getOid(), result, page);
+                delta = DiffUtil.diff(oldResource, resource);
+            } else {
+                delta = ObjectDelta.createAddDelta(resource);
+            }
+
+            WebModelUtils.save(delta, result, page);
+
+            resource = WebModelUtils.loadObject(ResourceType.class, delta.getOid(), result, page);
             resourceModel.setObject(resource);
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't save resource", ex);
