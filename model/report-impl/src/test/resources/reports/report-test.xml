@@ -248,12 +248,12 @@
 	</reportField>
 	<reportParameter>
 		<nameParameter>LOGO_PATH</nameParameter>
-		<valueParameter>src\test\resources\reports\logo.jpg</valueParameter>
+		<valueParameter>src/test/resources/reports/logo.jpg</valueParameter>
 		<classTypeParameter>xsd:string</classTypeParameter>
 	</reportParameter>
 	<reportParameter>
 		<nameParameter>BaseTemplateStyles</nameParameter>
-		<valueParameter>src\test\resources\styles\midpoint_base_styles.jrtx</valueParameter>
+		<valueParameter>src/test/resources/styles/midpoint_base_styles.jrtx</valueParameter>
 		<classTypeParameter>xsd:string</classTypeParameter>
 	</reportParameter>
 </report>
