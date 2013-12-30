@@ -18,10 +18,7 @@ package com.evolveum.midpoint.report;
 
 import java.awt.Color;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
@@ -57,8 +54,8 @@ import net.sf.jasperreports.engine.xml.JRXmlLoader;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.w3c.dom.Node;
 
-import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
@@ -69,7 +66,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
@@ -89,15 +86,16 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
     
     private static final Trace LOGGER = TraceManager.getTrace(ReportManagerImpl.class);
     
-    private static final String DOT_CLASS = ReportManagerImpl.class + ".";
+    private static final String CLASS_NAME_WITH_DOT = ReportManagerImpl.class + ".";
     
+
 	@Autowired
     private HookRegistry hookRegistry;
 
 	@Autowired
     private TaskManager taskManager;
-	
-    @PostConstruct
+
+	@PostConstruct
     public void init() {   	
         hookRegistry.registerChangeHook(HOOK_URI, this);
     }
@@ -110,6 +108,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
      * @param task
      * @param parentResult describes report which has to be created
      */
+    
     @Override
     public void runReport(PrismObject<ReportType> object, Task task, OperationResult parentResult) {    	
         task.setHandlerUri(ReportCreateTaskHandler.REPORT_CREATE_TASK_URI);
@@ -171,49 +170,36 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
              LOGGER.trace("invoke() EXITING: Changes not related to report");
              return HookOperationMode.FOREGROUND;
          }
+         
+         if (isDeletion) {
+             LOGGER.trace("invoke() EXITING because operation is DELETION");
+             return HookOperationMode.FOREGROUND;
+         }
 
-         OperationResult result = parentResult.createSubresult(DOT_CLASS + "invoke");
+         OperationResult result = parentResult.createSubresult(CLASS_NAME_WITH_DOT + "invoke");
          try {
-             if (isDeletion) {
-                 LoggingConfigurationManager.resetCurrentlyUsedVersion();        
-                 LOGGER.trace("invoke() EXITING because operation is DELETION");
-                 return HookOperationMode.FOREGROUND;
-             }
-             
              ReportType reportType = (ReportType) object.asObjectable();
-             Object reportTemplateJRXML = reportType.getReportTemplateJRXML();
              JasperDesign jasperDesign = null;
-             if (reportTemplateJRXML == null)
+             if (reportType.getReportTemplate() == null)
              {
             	 jasperDesign = createJasperDesign(reportType);
              }
              else
              {
-            	 // Loading template
-            	 ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            	 ObjectOutputStream oos = new ObjectOutputStream(baos);
-            	 oos.writeObject(reportTemplateJRXML);
-            	 oos.flush();
-            	 oos.close();
-
-            	 InputStream inputStreamJRXML = new ByteArrayInputStream(baos.toByteArray());
+            	 String reportTemplate = DOMUtil.serializeDOMToString((Node)reportType.getReportTemplate().getAny());
+            	 InputStream inputStreamJRXML = new ByteArrayInputStream(reportTemplate.getBytes());
             	 jasperDesign = JRXmlLoader.load(inputStreamJRXML);
              }
              // Compile template
              JasperCompileManager.compileReport(jasperDesign);
             
-             result.computeStatus();
+             //result.computeStatus();
+             result.recordSuccessIfUnknown();
 
-         }
-         catch (IOException ex)
-         {
-        	 String message = "Input - Output convert jrxml file: " + ex.getMessage();
-             LoggingUtils.logException(LOGGER, message, ex);
-             result.recordFatalError(message, ex);
          }
          catch (JRException ex) {
              String message = "Cannot load or compile jasper report: " + ex.getMessage();
-             LoggingUtils.logException(LOGGER, message, ex);
+             LOGGER.error(message);
              result.recordFatalError(message, ex);
          } 
         
@@ -226,7 +212,8 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
     	return java.lang.String.class;
     }
     
-    private JasperDesign createJasperDesign(ReportType reportType) throws JRException
+    @Override
+    public JasperDesign createJasperDesign(ReportType reportType) throws JRException
 	{
 		//JasperDesign
 		JasperDesign jasperDesign = new JasperDesign();
@@ -573,33 +560,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
     public void invokeOnException(ModelContext context, Throwable throwable, Task task, OperationResult result) {
     	
     }
-    /*
-    @Override
-    public List<PrismObject<ReportType>> searchReports(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) 
-    		throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-			SecurityViolationException {
-    	return modelService.searchObjects(ReportType.class, query, options, null, parentResult);
-    }
-
-    @Override
-    public int countReports(ObjectQuery query, OperationResult parentResult) throws SchemaException 
-    {
-    	//LOGGER.trace("begin::countReport()");
-        int count = 0;
-        OperationResult result = parentResult.createSubresult(COUNT_REPORT);
-        try {
-        	count = modelService.countObjects(ReportType.class, query, null, null, result);
-            result.recordSuccess();
-        } 
-        catch (Exception ex) 
-        {
-            result.recordFatalError("Couldn't count objects.", ex);
-        }
-        //LOGGER.trace("end::countReport()");
-        return count;
-    }
-
-  */
+  
     @Override
     public void cleanupReports(CleanupPolicyType cleanupPolicy, OperationResult parentResult) {
         //To change body of implemented methods use File | Settings | File Templates.

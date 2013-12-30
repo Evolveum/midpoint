@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.intest;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertNotNull;
 
+import com.evolveum.midpoint.model.ModelWebService;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -43,6 +44,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfiguration
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.IHookCallBack;
 import org.testng.ITestResult;
 import org.testng.annotations.AfterClass;
@@ -51,7 +53,9 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -358,7 +362,47 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
         long time = System.currentTimeMillis();
         LOGGER.info("###>>> springTestContextAfterTestClass start");
         super.springTestContextAfterTestClass();
+
+        nullAllFields(this, getClass());
+
         LOGGER.info("###>>> springTestContextAfterTestClass end ({}ms)", new Object[]{(System.currentTimeMillis() - time)});
+    }
+
+    /**
+     * This method null all fields which are not static, final or primitive type.
+     *
+     * All this is just to make GC work during DirtiesContext after every test class,
+     * because memory consumption is too big. Test class instances can't be GCed
+     * immediately. If they holds autowired fields like sessionFactory (for example
+     * through SqlRepositoryService impl), their memory footprint is getting big.
+     *
+     * @param forClass
+     * @throws Exception
+     */
+    public static void nullAllFields(Object object, Class forClass) throws Exception{
+        if (forClass.getSuperclass() != null) {
+            nullAllFields(object, forClass.getSuperclass());
+        }
+
+        for (Field field : forClass.getDeclaredFields()) {
+            if (Modifier.isFinal(field.getModifiers())
+                    || Modifier.isStatic(field.getModifiers())
+                    || field.getType().isPrimitive()) {
+                continue;
+            }
+
+            nullField(object, field);
+        }
+    }
+
+    private static void nullField(Object obj, Field field) throws Exception {
+        LOGGER.info("Setting {} to null on {}.", new Object[]{field.getName(), obj.getClass().getSimpleName()});
+        boolean accessible = field.isAccessible();
+        if (!accessible) {
+            field.setAccessible(true);
+        }
+        field.set(obj, null);
+        field.setAccessible(accessible);
     }
 
     @AfterMethod

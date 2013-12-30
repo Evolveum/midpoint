@@ -8704,9 +8704,9 @@
         <xsd:complexContent>
             <xsd:extension base="c:ObjectType">
                 <xsd:sequence>
-                   	<xsd:element name="reportTemplateJRXML" type="tns:ReportTemplateType"/>
+                   	<xsd:element name="reportTemplate" type="tns:ReportTemplateType"/>
                     
-                	<xsd:element name="reportTemplateStyleJRTX" type="tns:ReportTemplateStyleType"/>
+                	<xsd:element name="reportTemplateStyle" type="tns:ReportTemplateStyleType"/>
                     
                     <xsd:element name="reportOrientation" type="tns:OrientationType" minOccurs="0" maxOccurs="1">
     				<xsd:annotation>

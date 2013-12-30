@@ -50,6 +50,9 @@ public enum ObjectTypes {
     REPORT("schema.objectTypes.report", SchemaConstants.C_REPORT_TYPE, SchemaConstants.C_REPORT, ReportType.class,
                     ObjectManager.MODEL, "reports"),
                     
+    REPORT_OUTPUT("schema.objectTypes.reportOutput", SchemaConstants.C_REPORT_OUTPUT_TYPE, SchemaConstants.C_REPORT_OUTPUT, ReportOutputType.class,
+                            ObjectManager.MODEL, "reportOutputs"),
+                            
     OBJECT_TEMPLATE("schema.objectTypes.objectTemplate", SchemaConstants.C_OBJECT_TEMPLATE_TYPE,
             SchemaConstants.C_OBJECT_TEMPLATE, ObjectTemplateType.class, ObjectManager.MODEL, "objectTemplates"),
 

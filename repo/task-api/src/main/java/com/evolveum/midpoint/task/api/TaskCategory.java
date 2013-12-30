@@ -34,4 +34,5 @@ public class TaskCategory {
     public static final String RECONCILIATION = "Reconciliation";
     public static final String WORKFLOW = "Workflow";
     public static final String SYSTEM = "System";
+    public static final String REPORT = "Report";
 }
