@@ -426,7 +426,7 @@
         reportOrientation number(10,0),
         reportParameters clob,
         reportTemplate clob,
-        reportTemplateStyleJ clob,
+        reportTemplateStyle clob,
         id number(19,0) not null,
         oid varchar2(36 char) not null,
         primary key (id, oid),
