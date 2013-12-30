@@ -34,13 +34,14 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  *  @author shood
  * */
-public class ChooseTypeDialog<T extends ObjectType> extends ModalWindow{
+public class ChooseTypeDialog<T extends Serializable> extends ModalWindow{
 
     private static final Trace LOGGER = TraceManager.getTrace(ChooseTypeDialog.class);
     Class<T> objectType;

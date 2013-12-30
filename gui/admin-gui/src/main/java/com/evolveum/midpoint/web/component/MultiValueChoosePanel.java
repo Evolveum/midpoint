@@ -16,13 +16,18 @@
 
 package com.evolveum.midpoint.web.component;
 
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.component.ChooseTypeDialog;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -40,10 +45,11 @@ import java.util.List;
 
 /**
  *  TODO - not finished, work in progress
- *  TODO - add ChooseTypeDialog to this component to "edit button"
  *  @author shood
  * */
 public class MultiValueChoosePanel <T extends Serializable> extends SimplePanel<List<T>>{
+
+    private static final Trace LOGGER = TraceManager.getTrace(MultiValueChoosePanel.class);
 
     private static final String ID_LABEL = "label";
     private static final String ID_REPEATER = "repeater";
@@ -55,17 +61,20 @@ public class MultiValueChoosePanel <T extends Serializable> extends SimplePanel<
     private static final String ID_BUTTON_GROUP = "buttonGroup";
     private static final String ID_EDIT = "edit";
 
+    private static final String MODAL_ID_CHOOSE_PANEL = "showPopup";
+
     private static final String CLASS_MULTI_VALUE = "multivalue-form";
 
     public MultiValueChoosePanel(String id, IModel<List<T>> value, IModel<String> label, String labelSize,
-                                 String textSize, boolean required){
+                                 String textSize, boolean required, Class<T> type){
         super(id, value);
         setOutputMarkupId(true);
 
-        initLayout(label, labelSize, textSize, required);
+        initLayout(label, labelSize, textSize, required, type);
     }
 
-    private void initLayout(final IModel<String> label, final String labelSize, final String textSize, final boolean required){
+    private void initLayout(final IModel<String> label, final String labelSize, final String textSize,
+                            final boolean required, Class<T> type){
 
         Label l = new Label(ID_LABEL, label);
 
@@ -126,7 +135,20 @@ public class MultiValueChoosePanel <T extends Serializable> extends SimplePanel<
                 initButtons(buttonGroup, listItem);
             }
         };
+
+        initDialog(type);
         add(repeater);
+    }
+
+    private void initDialog(Class<T> type){
+        ModalWindow dialog = new ChooseTypeDialog<T>(MODAL_ID_CHOOSE_PANEL, type){
+
+            @Override
+            protected void chooseOperationPerformed(AjaxRequestTarget target, ObjectType object){
+                choosePerformed(target, (T)object);
+            }
+        };
+        add(dialog);
     }
 
     /**
@@ -188,7 +210,14 @@ public class MultiValueChoosePanel <T extends Serializable> extends SimplePanel<
         });
         buttonGroup.add(remove);
 
-        //TODO - add button for ModalWindowChooser opening here
+        AjaxLink edit = new AjaxLink(ID_EDIT) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                editValuePerformed(target, item);
+            }
+        };
+        buttonGroup.add(edit);
     }
 
     protected boolean isAddButtonVisible(ListItem<T> item) {
@@ -201,6 +230,11 @@ public class MultiValueChoosePanel <T extends Serializable> extends SimplePanel<
         }
 
         return false;
+    }
+
+    protected void editValuePerformed(AjaxRequestTarget target, ListItem<T> item){
+        ModalWindow window = (ModalWindow) get(MODAL_ID_CHOOSE_PANEL);
+        window.show(target);
     }
 
     protected boolean isRemoveButtonVisible(ListItem<T> item) {
@@ -221,6 +255,41 @@ public class MultiValueChoosePanel <T extends Serializable> extends SimplePanel<
 
     protected T createNewEmptyItem() {
         return null;
+    }
+
+    /*
+     * TODO - this method contains check, if chosen object already is not in selected values array
+     *  This is a temporary solution until we well be able to create "already-chosen" query
+     *
+     */
+    protected void choosePerformed(AjaxRequestTarget target, T object){
+        ModalWindow window = (ModalWindow)get(MODAL_ID_CHOOSE_PANEL);
+        window.close(target);
+
+        if(isObjectUnique(object)){
+            replaceIfEmpty(object);
+        }
+
+        if(LOGGER.isTraceEnabled()){
+            LOGGER.trace("New object instance has been added to the model.");
+        }
+
+        target.add(this);
+    }
+
+    protected void replaceIfEmpty(Object object){
+        List<T> objects = getModelObject();
+        objects.add((T)object);
+    }
+
+    protected boolean isObjectUnique(Object object){
+
+        for(T o: getModelObject()){
+            if(o.equals(object)){
+                return false;
+            }
+        }
+        return true;
     }
 
     protected void removeValuePerformed(AjaxRequestTarget target, ListItem<T> item) {

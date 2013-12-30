@@ -86,7 +86,7 @@ public class PageOrgUnit extends PageAdminUsers {
     private static final String ID_SAVE = "save";
 
     private IModel<PrismObject<OrgType>> orgModel;
-    private IModel<List<String>> parentOrgUnitsModel;
+    private IModel<List<OrgType>> parentOrgUnitsModel;
     private IModel<List<PrismPropertyValue>> orgTypeModel;
 
     public PageOrgUnit() {
@@ -120,9 +120,10 @@ public class PageOrgUnit extends PageAdminUsers {
             }
         };
 
-        parentOrgUnitsModel = new LoadableModel<List<String>>(false) {
+        parentOrgUnitsModel = new LoadableModel<List<OrgType>>(false) {
+
             @Override
-            protected List<String> load() {
+            protected List<OrgType> load() {
                 return loadParentOrgUnits();
             }
         };
@@ -210,16 +211,35 @@ public class PageOrgUnit extends PageAdminUsers {
 
         //todo not finished [shood]
         MultiValueChoosePanel parentOrgType = new MultiValueChoosePanel(ID_PARENT_ORG_UNITS, parentOrgUnitsModel,
-                createStringResource("ObjectType.parentOrgRef"), ID_LABEL_SIZE, ID_INPUT_SIZE, false){
+                createStringResource("ObjectType.parentOrgRef"), ID_LABEL_SIZE, ID_INPUT_SIZE, false, OrgType.class){
 
             @Override
             protected IModel<String> createTextModel(IModel model){
-                return new PropertyModel<String>(model, "value");
+                return new PropertyModel<String>(model, "name");
             }
 
             @Override
             protected Serializable createNewEmptyItem(){
-                return "Value";
+                return new OrgType();
+            }
+
+            @Override
+            protected void replaceIfEmpty(Object object){
+
+                boolean added = false;
+
+                for(OrgType org: parentOrgUnitsModel.getObject()){
+                    if(WebMiscUtil.getName(org) == null || WebMiscUtil.getName(org).isEmpty()){
+                        parentOrgUnitsModel.getObject().remove(org);
+                        parentOrgUnitsModel.getObject().add((OrgType)object);
+                        added = true;
+                        break;
+                    }
+                }
+
+                if(!added){
+                    parentOrgUnitsModel.getObject().add((OrgType)object);
+                }
             }
         };
         form.add(parentOrgType);
@@ -277,6 +297,13 @@ public class PageOrgUnit extends PageAdminUsers {
         }
 
         //todo update parentOrgRefs
+        //if(parentOrgUnitsModel != null && parentOrgUnitsModel.getObject() != null){
+        //    for(OrgType parent: parentOrgUnitsModel.getObject()){
+        //        if(parent != null && WebMiscUtil.getName(parent) != null && !WebMiscUtil.getName(parent).isEmpty()){
+        //            org.asObjectable().getParentOrg().add(parent);
+        //        }
+        //    }
+        //}
 
         return org;
     }
@@ -354,14 +381,17 @@ public class PageOrgUnit extends PageAdminUsers {
         return org;
     }
 
-    /*
-    *   TODO - perform proper load
-    * */
-    private List<String> loadParentOrgUnits(){
-        List<String> list = new ArrayList<String>();
+    private List<OrgType> loadParentOrgUnits(){
+        List<OrgType> list = new ArrayList<OrgType>();
+
+        OrgType actOrg = orgModel.getObject().asObjectable();
+
+        if(actOrg != null && actOrg.getParentOrg() != null){
+            list.addAll(actOrg.getParentOrg());
+        }
 
         if(list.isEmpty())
-            list.add("Value");
+            list.add(new OrgType());
 
         return list;
     }
