@@ -159,7 +159,6 @@ public class CorrelationConfirmationEvaluator {
 		ExpressionType condition = createExpression((Element) query.getCondition());
 		Map<QName, Object> variables = getDefaultXPathVariables(null,currentShadow, resourceType);
 		ItemDefinition outputDefinition = new PrismPropertyDefinition(
-				ExpressionConstants.OUTPUT_ELMENT_NAME,
 				ExpressionConstants.OUTPUT_ELMENT_NAME, DOMUtil.XSD_BOOLEAN,
 				prismContext);
 		PrismPropertyValue<Boolean> satisfy = evaluate(variables,
@@ -482,7 +481,7 @@ private boolean matchUserCorrelationRule(PrismObject<ShadowType> currentShadow, 
 		}
 		
 		if (outputDefinition == null){
-			outputDefinition =  new PrismPropertyDefinition(ExpressionConstants.OUTPUT_ELMENT_NAME, ExpressionConstants.OUTPUT_ELMENT_NAME, 
+			outputDefinition =  new PrismPropertyDefinition(ExpressionConstants.OUTPUT_ELMENT_NAME, 
 					DOMUtil.XSD_STRING, prismContext);
 		}
 		
@@ -529,7 +528,7 @@ private boolean matchUserCorrelationRule(PrismObject<ShadowType> currentShadow, 
 		Map<QName, Object> variables = getDefaultXPathVariables(user, shadow, resource);
 		String shortDesc = "confirmation expression for "+resource.asPrismObject();
 		
-		PrismPropertyDefinition outputDefinition = new PrismPropertyDefinition(ExpressionConstants.OUTPUT_ELMENT_NAME, ExpressionConstants.OUTPUT_ELMENT_NAME, 
+		PrismPropertyDefinition outputDefinition = new PrismPropertyDefinition(ExpressionConstants.OUTPUT_ELMENT_NAME, 
 				DOMUtil.XSD_BOOLEAN, prismContext);
 		Expression<PrismPropertyValue<Boolean>> expression = expressionFactory.makeExpression(expressionType, 
 				outputDefinition, shortDesc, result);

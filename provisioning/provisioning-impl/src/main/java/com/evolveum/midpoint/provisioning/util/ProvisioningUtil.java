@@ -238,7 +238,7 @@ public class ProvisioningUtil {
 		ExecuteProvisioningScriptOperation scriptOperation = new ExecuteProvisioningScriptOperation();
 
 		PrismPropertyDefinition scriptArgumentDefinition = new PrismPropertyDefinition(FAKE_SCRIPT_ARGUMENT_NAME,
-				FAKE_SCRIPT_ARGUMENT_NAME, DOMUtil.XSD_STRING, prismContext);
+				DOMUtil.XSD_STRING, prismContext);
 		
 		for (ProvisioningScriptArgumentType argument : scriptType.getArgument()) {
 			ExecuteScriptArgument arg = new ExecuteScriptArgument(argument.getName(),

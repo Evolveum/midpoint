@@ -69,9 +69,9 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 	 * @param defaultName default element name
 	 * @param typeName type name (XSD complex or simple type)
 	 */
-	ItemDefinition(QName name, QName defaultName, QName typeName, PrismContext prismContext) {
-		super(defaultName, typeName, prismContext);
-		this.name = name;
+	ItemDefinition(QName elementName, QName typeName, PrismContext prismContext) {
+		super(typeName, prismContext);
+		this.name = elementName;
 	}
 
 	/**
@@ -97,27 +97,8 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 		this.name = name;
 	}
 	
-	@Override
-	public QName getDefaultName() {
-		return getName();
-	}
-
-	/**
-	 * Returns either name (if specified) or default name.
-	 * 
-	 * Convenience method.
-	 * 
-	 * @return name or default name
-	 */
-	public QName getNameOrDefaultName() {
-		if (name != null) {
-			return name;
-		}
-		return defaultName;
-	}
-	
     public String getNamespace() {
-    	return getNameOrDefaultName().getNamespaceURI();
+    	return getName().getNamespaceURI();
     }
 	
     /**

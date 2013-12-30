@@ -66,7 +66,7 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
 
     public PrismContainerDefinition(QName name, ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext, 
     		Class<V> compileTimeClass) {
-        super(name, determineDefaultName(complexTypeDefinition), determineTypeName(complexTypeDefinition), prismContext);
+        super(name, determineTypeName(complexTypeDefinition), prismContext);
         this.complexTypeDefinition = complexTypeDefinition;
         if (complexTypeDefinition == null) {
             isRuntimeSchema = true;
@@ -87,13 +87,6 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
         return complexTypeDefinition.getTypeName();
     }
 
-    private static QName determineDefaultName(ComplexTypeDefinition complexTypeDefinition) {
-        if (complexTypeDefinition == null) {
-            return null;
-        }
-        return complexTypeDefinition.getDefaultName();
-    }
-
     public Class<V> getCompileTimeClass() {
 		if (compileTimeClass != null) {
 			return compileTimeClass;
@@ -109,7 +102,7 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
 	}
     
     protected String getSchemaNamespace() {
-        return getNameOrDefaultName().getNamespaceURI();
+        return getName().getNamespaceURI();
     }
 
     public ComplexTypeDefinition getComplexTypeDefinition() {
@@ -291,7 +284,7 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
      */
     @Override
     public PrismContainer<V> instantiate() {
-        return instantiate(getNameOrDefaultName());
+        return instantiate(getName());
     }
 
     /**
@@ -300,8 +293,8 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
      * This is a preferred way how to create property container.
      */
     @Override
-    public PrismContainer<V> instantiate(QName name) {
-        return new PrismContainer<V>(name, this, prismContext);
+    public PrismContainer<V> instantiate(QName elementName) {
+        return new PrismContainer<V>(elementName, this, prismContext);
     }
 
     @Override
@@ -345,7 +338,7 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
      * @return created property definition
      */
     public PrismPropertyDefinition createPropertyDefinition(QName name, QName typeName) {
-        PrismPropertyDefinition propDef = new PrismPropertyDefinition(name, name, typeName, prismContext);
+        PrismPropertyDefinition propDef = new PrismPropertyDefinition(name, typeName, prismContext);
         addDefinition(propDef);
         return propDef;
     }
@@ -367,7 +360,7 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
      */
     public PrismPropertyDefinition createPropertyDefinition(QName name, QName typeName,
             int minOccurs, int maxOccurs) {
-        PrismPropertyDefinition propDef = new PrismPropertyDefinition(name, name, typeName, prismContext);
+        PrismPropertyDefinition propDef = new PrismPropertyDefinition(name, typeName, prismContext);
         propDef.setMinOccurs(minOccurs);
         propDef.setMaxOccurs(maxOccurs);
         addDefinition(propDef);
@@ -378,7 +371,7 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
     // TODO: maybe check if the name is in different namespace
     // TODO: maybe create entirely new concept of property reference?
     public PrismPropertyDefinition createPropertyDefinition(QName name) {
-        PrismPropertyDefinition propDef = new PrismPropertyDefinition(name, name, null, prismContext);
+        PrismPropertyDefinition propDef = new PrismPropertyDefinition(name, null, prismContext);
         addDefinition(propDef);
         return propDef;
     }

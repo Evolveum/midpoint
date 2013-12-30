@@ -182,7 +182,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 
                 // hack... we want to create a definition for Name
                 //PrismPropertyDefinition def = ((PrismContainerValue) pcv.getContainer().getParent()).getContainer().findProperty(ObjectType.F_NAME).getDefinition();
-                PrismPropertyDefinition def = new PrismPropertyDefinition(ObjectType.F_NAME, ObjectType.F_NAME, DOMUtil.XSD_STRING, pcv.getPrismContext());
+                PrismPropertyDefinition def = new PrismPropertyDefinition(ObjectType.F_NAME, DOMUtil.XSD_STRING, pcv.getPrismContext());
 
                 if (OrgType.COMPLEX_TYPE.equals(assignmentType.getTargetRef().getType())) {
                     def.setDisplayName("Org.Unit");

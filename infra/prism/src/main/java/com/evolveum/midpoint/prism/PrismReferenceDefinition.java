@@ -47,8 +47,8 @@ public class PrismReferenceDefinition extends ItemDefinition {
 	private QName compositeObjectElementName;
 	private boolean isComposite = false;
 
-	public PrismReferenceDefinition(QName name, QName defaultName, QName typeName, PrismContext prismContext) {
-		super(name, defaultName, typeName, prismContext);
+	public PrismReferenceDefinition(QName elementName, QName typeName, PrismContext prismContext) {
+		super(elementName, typeName, prismContext);
 	}
 
 	/**
@@ -100,7 +100,7 @@ public class PrismReferenceDefinition extends ItemDefinition {
 	
     @Override
     public PrismReference instantiate() {
-        return instantiate(getNameOrDefaultName());
+        return instantiate(getName());
     }
 
     @Override
@@ -115,7 +115,7 @@ public class PrismReferenceDefinition extends ItemDefinition {
 
 	@Override
 	public PrismReferenceDefinition clone() {
-    	PrismReferenceDefinition clone = new PrismReferenceDefinition(getName(), getDefaultName(), getTypeName(), getPrismContext());
+    	PrismReferenceDefinition clone = new PrismReferenceDefinition(getName(), getTypeName(), getPrismContext());
     	copyDefinitionData(clone);
     	return clone;
 	}

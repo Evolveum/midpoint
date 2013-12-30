@@ -529,12 +529,12 @@ public class AccountValuesProcessor {
 			return formatIterationTokenDefault(iteration);
 		}
 		PrismPropertyDefinition<String> outputDefinition = new PrismPropertyDefinition<String>(ExpressionConstants.VAR_ITERATION_TOKEN,
-				ExpressionConstants.VAR_ITERATION_TOKEN, DOMUtil.XSD_STRING, prismContext);
+				DOMUtil.XSD_STRING, prismContext);
 		Expression<PrismPropertyValue<String>> expression = expressionFactory.makeExpression(tokenExpressionType, outputDefinition , "iteration token expression in "+accountContext.getHumanReadableName(), result);
 		
 		Collection<Source<?>> sources = new ArrayList<Source<?>>();
 		PrismPropertyDefinition<Integer> inputDefinition = new PrismPropertyDefinition<Integer>(ExpressionConstants.VAR_ITERATION,
-				ExpressionConstants.VAR_ITERATION, DOMUtil.XSD_INT, prismContext);
+				DOMUtil.XSD_INT, prismContext);
 		inputDefinition.setMaxOccurs(1);
 		PrismProperty<Integer> input = inputDefinition.instantiate();
 		input.add(new PrismPropertyValue<Integer>(iteration));
@@ -600,7 +600,7 @@ public class AccountValuesProcessor {
 			return true;
 		}
 		PrismPropertyDefinition<Boolean> outputDefinition = new PrismPropertyDefinition<Boolean>(ExpressionConstants.OUTPUT_ELMENT_NAME,
-				ExpressionConstants.OUTPUT_ELMENT_NAME, DOMUtil.XSD_BOOLEAN, prismContext);
+				DOMUtil.XSD_BOOLEAN, prismContext);
 		Expression<PrismPropertyValue<Boolean>> expression = expressionFactory.makeExpression(expressionType, outputDefinition , desc, result);
 		
 		Map<QName, Object> variables = createExpressionVariables(context, accountContext);

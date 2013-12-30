@@ -594,7 +594,7 @@ public class LensUtil {
 			return accCtx.getIteration();
 		}
 		PrismPropertyDefinition<Integer> propDef = new PrismPropertyDefinition<Integer>(ExpressionConstants.VAR_ITERATION,
-				ExpressionConstants.VAR_ITERATION, DOMUtil.XSD_INT, accCtx.getPrismContext());
+				DOMUtil.XSD_INT, accCtx.getPrismContext());
 		PrismProperty<Integer> propOld = propDef.instantiate();
 		propOld.setRealValue(iterationOld);
 		PropertyDelta<Integer> propDelta = propDef.createEmptyDelta(new ItemPath(ExpressionConstants.VAR_ITERATION));
@@ -615,8 +615,7 @@ public class LensUtil {
 			return accCtx.getIterationToken();
 		}
 		PrismPropertyDefinition<String> propDef = new PrismPropertyDefinition<String>(
-				ExpressionConstants.VAR_ITERATION_TOKEN, ExpressionConstants.VAR_ITERATION_TOKEN,
-				DOMUtil.XSD_STRING, accCtx.getPrismContext());
+				ExpressionConstants.VAR_ITERATION_TOKEN, DOMUtil.XSD_STRING, accCtx.getPrismContext());
 		PrismProperty<String> propOld = propDef.instantiate();
 		propOld.setRealValue(iterationTokenOld);
 		PropertyDelta<String> propDelta = propDef.createEmptyDelta(new ItemPath(ExpressionConstants.VAR_ITERATION_TOKEN));
