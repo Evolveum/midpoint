@@ -19,7 +19,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
@@ -43,7 +42,6 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -54,7 +52,6 @@ import com.evolveum.prism.xml.ns._public.types_2.ChangeTypeType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.ModificationTypeType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
-import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType.ObjectToAdd;
 
 /**
  * @author semancik
@@ -279,7 +276,7 @@ public class DeltaConvertor {
         	}
         }
         Item<V> item = items.iterator().next();
-        ItemDelta<V> itemDelta = item.createDelta(parentPath.subPath(item.getName()));
+        ItemDelta<V> itemDelta = item.createDelta(parentPath.subPath(item.getElementName()));
         if (propMod.getModificationType() == ModificationTypeType.ADD) {
         	itemDelta.addValuesToAdd(PrismValue.resetParentCollection(item.getValues()));
         } else if (propMod.getModificationType() == ModificationTypeType.DELETE) {
@@ -307,7 +304,7 @@ public class DeltaConvertor {
             try {
                 addModValues(delta, mod, delta.getValuesToReplace(), document);
             } catch (SchemaException e) {
-                throw new SchemaException(e.getMessage() + " while converting property " + delta.getName(), e);
+                throw new SchemaException(e.getMessage() + " while converting property " + delta.getElementName(), e);
             }
             mods.add(mod);
         }
@@ -318,7 +315,7 @@ public class DeltaConvertor {
             try {
                 addModValues(delta, mod, delta.getValuesToAdd(), document);
             } catch (SchemaException e) {
-                throw new SchemaException(e.getMessage() + " while converting property " + delta.getName(), e);
+                throw new SchemaException(e.getMessage() + " while converting property " + delta.getElementName(), e);
             }
             mods.add(mod);
         }
@@ -329,7 +326,7 @@ public class DeltaConvertor {
             try {
                 addModValues(delta, mod, delta.getValuesToDelete(), document);
             } catch (SchemaException e) {
-                throw new SchemaException(e.getMessage() + " while converting property " + delta.getName(), e);
+                throw new SchemaException(e.getMessage() + " while converting property " + delta.getElementName(), e);
             }
             mods.add(mod);
         }
@@ -338,7 +335,7 @@ public class DeltaConvertor {
 
     private static void addModValues(ItemDelta delta, ItemDeltaType mod, Collection<PrismValue> values,
             Document document) throws SchemaException {
-    	QName elementName = delta.getName();
+    	QName elementName = delta.getElementName();
     	ItemDeltaType.Value modValue = new ItemDeltaType.Value();
         mod.setValue(modValue);
         if (values == null || values.isEmpty()) {

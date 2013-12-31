@@ -280,7 +280,7 @@ public class TextFormatter {
                     toBeDisplayed.add(itemDelta);
                 }
             } else {
-                LOGGER.error("ItemDelta " + itemDelta.getName() + " without definition - WILL NOT BE INCLUDED IN NOTIFICATION. In " + objectDelta);
+                LOGGER.error("ItemDelta " + itemDelta.getElementName() + " without definition - WILL NOT BE INCLUDED IN NOTIFICATION. In " + objectDelta);
             }
         }
         Collections.sort(toBeDisplayed, new Comparator<ItemDelta>() {
@@ -305,7 +305,7 @@ public class TextFormatter {
     // we call this on filtered list of items - all of they have definition set
     private String getItemLabel(Item item) {
         return item.getDefinition().getDisplayName() != null ?
-                item.getDefinition().getDisplayName() : item.getName().getLocalPart();
+                item.getDefinition().getDisplayName() : item.getElementName().getLocalPart();
     }
 
     private List<Item> filterAndOrderItems(List<Item> items, List<ItemPath> hiddenPaths, boolean showOperationalAttributes) {
@@ -317,7 +317,7 @@ public class TextFormatter {
                     toBeDisplayed.add(item);
                 }
             } else {
-                LOGGER.error("Item " + item.getName() + " without definition - WILL NOT BE INCLUDED IN NOTIFICATION.");
+                LOGGER.error("Item " + item.getElementName() + " without definition - WILL NOT BE INCLUDED IN NOTIFICATION.");
             }
         }
         Collections.sort(toBeDisplayed, new Comparator<Item>() {

@@ -258,7 +258,7 @@ public class TestParseGenericObject {
 					"but it was of type "+locationsItem.getClass());
 		}
 		PrismProperty<?> locationsProperty = (PrismProperty<?>)locationsItem;
-		assertEquals("Wrong name of <locations>", SchemaTestConstants.EXTENSION_LOCATIONS_ELEMENT, locationsProperty.getName());
+		assertEquals("Wrong name of <locations>", SchemaTestConstants.EXTENSION_LOCATIONS_ELEMENT, locationsProperty.getElementName());
 		PrismPropertyDefinition locationsDefinition = locationsProperty.getDefinition();
 		assertNotNull("No definition for <locations>", locationsDefinition);
 		PrismAsserts.assertDefinition(locationsDefinition, SchemaTestConstants.EXTENSION_LOCATIONS_ELEMENT, 

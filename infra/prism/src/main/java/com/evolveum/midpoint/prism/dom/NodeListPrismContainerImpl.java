@@ -15,15 +15,11 @@
  */
 package com.evolveum.midpoint.prism.dom;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 
 /**
@@ -91,8 +87,8 @@ public class NodeListPrismContainerImpl<T extends Containerable> implements Node
 		if (selectionLocalName == null) {
 			return true;
 		} else {
-			if (selectionLocalName.equals(item.getName().getLocalPart())) {
-				if (selectionNamespace == null || selectionNamespace.equals(item.getName().getNamespaceURI())) {
+			if (selectionLocalName.equals(item.getElementName().getLocalPart())) {
+				if (selectionNamespace == null || selectionNamespace.equals(item.getElementName().getNamespaceURI())) {
 					return true;	
 				}
 			}

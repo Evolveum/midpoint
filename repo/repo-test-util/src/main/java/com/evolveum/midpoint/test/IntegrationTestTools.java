@@ -238,7 +238,7 @@ public class IntegrationTestTools {
 	public static void assertAttributeDefinition(ResourceAttribute<?> attr, QName expectedType, int minOccurs, int maxOccurs,
 			boolean canRead, boolean canCreate, boolean canUpdate, Class<?> expetcedAttributeDefinitionClass) {
 		ResourceAttributeDefinition definition = attr.getDefinition();
-		QName attrName = attr.getName();
+		QName attrName = attr.getElementName();
 		assertNotNull("No definition for attribute "+attrName, definition);
 		assertEquals("Wrong class of definition for attribute"+attrName, expetcedAttributeDefinitionClass, definition.getClass());
 		assertEquals("Wrong type in definition for attribute"+attrName, expectedType, definition.getTypeName());

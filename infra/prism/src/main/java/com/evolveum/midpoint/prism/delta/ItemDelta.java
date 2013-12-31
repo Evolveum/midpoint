@@ -19,9 +19,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 
 import javax.xml.namespace.QName;
 
@@ -36,7 +34,6 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
@@ -59,7 +56,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 	/**
 	 * Name of the property
 	 */
-	protected QName name;
+	protected QName elementName;
 	/**
 	 * Parent path of the property (path to the property container)
 	 */
@@ -74,19 +71,19 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		if (itemDefinition == null) {
 			throw new IllegalArgumentException("Attempt to create item delta wihout a definition");
 		}
-		this.name = itemDefinition.getName();
+		this.elementName = itemDefinition.getName();
 		this.parentPath = new ItemPath();
 		this.definition = itemDefinition;
 	}
 
-	public ItemDelta(QName name, ItemDefinition itemDefinition) {
-		this.name = name;
+	public ItemDelta(QName elementName, ItemDefinition itemDefinition) {
+		this.elementName = elementName;
 		this.parentPath = new ItemPath();
 		this.definition = itemDefinition;
 	}
 
-	public ItemDelta(ItemPath parentPath, QName name, ItemDefinition itemDefinition) {
-		this.name = name;
+	public ItemDelta(ItemPath parentPath, QName elementName, ItemDefinition itemDefinition) {
+		this.elementName = elementName;
 		this.parentPath = parentPath;
 		this.definition = itemDefinition;
 	}
@@ -96,20 +93,20 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 			throw new IllegalArgumentException("Null path specified while creating item delta");
 		}
 		if (path.isEmpty()) {
-			this.name = null;
+			this.elementName = null;
 		} else {
-			this.name = ((NameItemPathSegment)path.last()).getName();
+			this.elementName = ((NameItemPathSegment)path.last()).getName();
 			this.parentPath = path.allExceptLast();
 		}
 		this.definition = itemDefinition;
 	}
 
-	public QName getName() {
-		return name;
+	public QName getElementName() {
+		return elementName;
 	}
 
-	public void setName(QName name) {
-		this.name = name;
+	public void setElementName(QName elementName) {
+		this.elementName = elementName;
 	}
 
 	public ItemPath getParentPath() {
@@ -122,7 +119,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 
 	@Override
 	public ItemPath getPath() {
-		return getParentPath().subPath(name);
+		return getParentPath().subPath(elementName);
 	}
 
 	public ItemDefinition getDefinition() {
@@ -997,7 +994,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 			if (isEmpty()) {
 				return null;
 			}
-			itemOld = definition.instantiate(getName());
+			itemOld = definition.instantiate(getElementName());
 		}
 		Item<V> itemNew = itemOld.clone();
 		applyTo(itemNew);
@@ -1043,7 +1040,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 
 	protected void copyValues(ItemDelta<V> clone) {
 		clone.definition = this.definition;
-		clone.name = this.name;
+		clone.elementName = this.elementName;
 		clone.parentPath = this.parentPath;
 		clone.valuesToAdd = cloneSet(clone, this.valuesToAdd);
 		clone.valuesToDelete = cloneSet(clone, this.valuesToDelete);
@@ -1219,7 +1216,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((definition == null) ? 0 : definition.hashCode());
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result + ((elementName == null) ? 0 : elementName.hashCode());
 		result = prime * result + ((parentPath == null) ? 0 : parentPath.hashCode());
 		return result;
 	}
@@ -1238,10 +1235,10 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 				return false;
 		} else if (!definition.equals(other.definition))
 			return false;
-		if (name == null) {
-			if (other.name != null)
+		if (elementName == null) {
+			if (other.elementName != null)
 				return false;
-		} else if (!name.equals(other.name))
+		} else if (!elementName.equals(other.elementName))
 			return false;
 		if (parentPath == null) {
 			if (other.parentPath != null)
@@ -1277,7 +1274,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append(getClass().getSimpleName()).append("(");
-		sb.append(parentPath).append(" / ").append(PrettyPrinter.prettyPrint(name));
+		sb.append(parentPath).append(" / ").append(PrettyPrinter.prettyPrint(elementName));
 		if (valuesToReplace != null) {
 			sb.append(", REPLACE");
 		}
@@ -1305,7 +1302,7 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 			sb.append(INDENT_STRING);
 		}
 		sb.append(getClass().getSimpleName()).append("(");
-		sb.append(parentPath).append(" / ").append(PrettyPrinter.prettyPrint(name)).append(")");
+		sb.append(parentPath).append(" / ").append(PrettyPrinter.prettyPrint(elementName)).append(")");
 		
 		if (definition != null) {
 			sb.append(" def");

@@ -646,9 +646,9 @@ public class AccountValuesProcessor {
 			ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(accountToAdd);
 			if (attributesContainer != null) {
 				for (ResourceAttribute<?> attribute: attributesContainer.getAttributes()) {
-					RefinedAttributeDefinition rAttrDef = rAccountDef.findAttributeDefinition(attribute.getName());
+					RefinedAttributeDefinition rAttrDef = rAccountDef.findAttributeDefinition(attribute.getElementName());
 					if (!rAttrDef.isTolerant()) {
-						throw new PolicyViolationException("Attempt to add object with non-tolerant attribute "+attribute.getName()+" in "+
+						throw new PolicyViolationException("Attempt to add object with non-tolerant attribute "+attribute.getElementName()+" in "+
 								"account "+accountContext.getResourceShadowDiscriminator()+" during "+activityDescription);
 					}
 				}
@@ -657,9 +657,9 @@ public class AccountValuesProcessor {
 			for(ItemDelta<?> modification: primaryDelta.getModifications()) {
 				if (modification.getParentPath().equals(SchemaConstants.PATH_ATTRIBUTES)) {
 					PropertyDelta<?> attrDelta = (PropertyDelta<?>) modification;
-					RefinedAttributeDefinition rAttrDef = rAccountDef.findAttributeDefinition(attrDelta.getName());
+					RefinedAttributeDefinition rAttrDef = rAccountDef.findAttributeDefinition(attrDelta.getElementName());
 					if (!rAttrDef.isTolerant()) {
-						throw new PolicyViolationException("Attempt to modify non-tolerant attribute "+attrDelta.getName()+" in "+
+						throw new PolicyViolationException("Attempt to modify non-tolerant attribute "+attrDelta.getElementName()+" in "+
 								"account "+accountContext.getResourceShadowDiscriminator()+" during "+activityDescription);
 					}
 				}

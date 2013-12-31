@@ -21,12 +21,10 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
-import com.evolveum.midpoint.model.lens.SynchronizationIntent;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -114,8 +112,8 @@ public class AddUserAction extends BaseAction {
             PrismObject<ShadowType> shadowAfterChange = getAccountShadowFromChange(change);
 
             LoggingUtils.logException(LOGGER, "Couldn't perform Add User Action for shadow '{}', oid '{}'.",
-                    ex, shadowAfterChange.getName(), shadowAfterChange.getOid());
-            subResult.recordFatalError("Couldn't perform Add User Action for shadow '" + shadowAfterChange.getName()
+                    ex, shadowAfterChange.getElementName(), shadowAfterChange.getOid());
+            subResult.recordFatalError("Couldn't perform Add User Action for shadow '" + shadowAfterChange.getElementName()
                     + "', oid '" + shadowAfterChange.getOid() + "'.", ex);
 
             throw ex;

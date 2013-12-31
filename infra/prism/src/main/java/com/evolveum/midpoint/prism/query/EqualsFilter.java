@@ -225,7 +225,7 @@ public class EqualsFilter extends PropertyValueFilter implements Itemable{
 	}
 
 	@Override
-	public QName getName() {
+	public QName getElementName() {
 		return getDefinition().getName();
 	}
 

@@ -17,11 +17,8 @@
 package com.evolveum.midpoint.common.expression.script.xpath;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import javax.xml.xpath.XPathVariableResolver;
 
@@ -30,7 +27,6 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.evolveum.midpoint.common.expression.ExpressionSyntaxException;
-import com.evolveum.midpoint.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.common.expression.script.ScriptVariables;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Itemable;
@@ -42,17 +38,10 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
-import com.evolveum.midpoint.util.JAXBUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.TunnelException;
@@ -157,7 +146,7 @@ public class LazyXPathVariableResolver implements XPathVariableResolver {
 	        	PrismDomProcessor domProcessor = prismProperty.getPrismContext().getPrismDomProcessor();
 	        	final List<Element> elementList = new ArrayList<Element>();
 	        	for (PrismPropertyValue<?> value: prismProperty.getValues()) {
-	        		Element valueElement = domProcessor.serializeValueToDom(value, prismProperty.getName());
+	        		Element valueElement = domProcessor.serializeValueToDom(value, prismProperty.getElementName());
 	        		elementList.add(valueElement);
 	        	}
 	        	NodeList nodeList = new NodeList() {
@@ -189,7 +178,7 @@ public class LazyXPathVariableResolver implements XPathVariableResolver {
 						}
 						
 						@Override
-						public QName getName() {
+						public QName getElementName() {
 							return FAKE_VARIABLE_QNAME;
 						}
 						

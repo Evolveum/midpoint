@@ -23,9 +23,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
-import java.util.Set;
 
-import javax.naming.InvalidNameException;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
@@ -33,7 +31,6 @@ import javax.naming.directory.Attributes;
 import javax.naming.ldap.LdapName;
 import javax.naming.ldap.Rdn;
 import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -43,11 +40,8 @@ import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
-import com.evolveum.midpoint.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.common.expression.script.ScriptExpressionEvaluationContext;
-import com.evolveum.midpoint.common.expression.script.ScriptExpressionEvaluator;
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -374,7 +368,7 @@ public class BasicExpressionFunctions {
 			return null;
 		}
 		for (PrismProperty<?> property: configurationProperties.getValue().getProperties()) {
-			if (propertyLocalPart.equals(property.getName().getLocalPart())) {
+			if (propertyLocalPart.equals(property.getElementName().getLocalPart())) {
 				return (T) property.getRealValue();
 			}
 		}
