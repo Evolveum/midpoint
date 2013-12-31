@@ -28,6 +28,7 @@ import javax.xml.namespace.QName;
 
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperCompileManager;
+import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.base.JRBasePen;
 import net.sf.jasperreports.engine.design.JRDesignBand;
 import net.sf.jasperreports.engine.design.JRDesignExpression;
@@ -72,6 +73,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportFieldConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportParameterConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ThreadStopActionType;
 
@@ -180,19 +182,22 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
          try {
              ReportType reportType = (ReportType) object.asObjectable();
              JasperDesign jasperDesign = null;
-             if (reportType.getReportTemplate() == null)
+             if (reportType.getReportTemplate() == null || reportType.getReportTemplate().getAny() == null)
              {
             	 jasperDesign = createJasperDesign(reportType);
+            	 LOGGER.trace("create jasper design : {}", jasperDesign);
              }
              else
              {
             	 String reportTemplate = DOMUtil.serializeDOMToString((Node)reportType.getReportTemplate().getAny());
             	 InputStream inputStreamJRXML = new ByteArrayInputStream(reportTemplate.getBytes());
             	 jasperDesign = JRXmlLoader.load(inputStreamJRXML);
+            	 LOGGER.trace("load jasper design : {}", jasperDesign);
              }
              // Compile template
-             JasperCompileManager.compileReport(jasperDesign);
-            
+             JasperReport jasperReport = JasperCompileManager.compileReport(jasperDesign);
+             LOGGER.trace("compile jasper design, create jasper report : {}", jasperReport);
+             
              //result.computeStatus();
              result.recordSuccessIfUnknown();
 
@@ -209,6 +214,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
     
     private Class getClassType(QName clazz)
     {
+    	//TODO
     	return java.lang.String.class;
     }
     
@@ -217,7 +223,8 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
 	{
 		//JasperDesign
 		JasperDesign jasperDesign = new JasperDesign();
-		jasperDesign.setName("reportDataSource");
+		String reportName = reportType.getName().getOrig(); 
+		jasperDesign.setName(reportName.replace("\\s", ""));
 		
 		switch (reportType.getReportOrientation())
 		{
@@ -246,15 +253,12 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
 		jasperDesign.setTopMargin(20);
 		jasperDesign.setBottomMargin(20);
 		
-	
-		//Templates
-		JRDesignReportTemplate templateStyle = new JRDesignReportTemplate(new JRDesignExpression("$P{BaseTemplateStyles}"));
-		jasperDesign.addTemplate(templateStyle);
 		
 		//Parameters
 		//two parameters are there every time - template styles and logo image and will be excluded
 		List<ReportParameterConfigurationType> parameters = new ArrayList<ReportParameterConfigurationType>();
 		parameters.addAll(reportType.getReportParameter());
+		boolean isTemplateStyle = false;
 		
 		for(ReportParameterConfigurationType parameterRepo : parameters)
 		{
@@ -262,13 +266,68 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
 			parameter.setName(parameterRepo.getNameParameter());
 			parameter.setValueClass(getClassType(parameterRepo.getClassTypeParameter()));
 			jasperDesign.addParameter(parameter);
-			/*if(parameterRepo.getNameParameter().equals("LOGO_PATH") || parameterRepo.getNameParameter().equals("BaseTemplateStyles")) 
-			{
-				parameters.remove(parameterRepo);
-			}
-			*/
+			isTemplateStyle = isTemplateStyle || parameter.getName().equals("BaseTemplateStyles");			
 		}
 				
+		//Template Style or Styles
+		if (isTemplateStyle)
+		{
+			JRDesignReportTemplate templateStyle = new JRDesignReportTemplate(new JRDesignExpression("$P{BaseTemplateStyles}"));
+			jasperDesign.addTemplate(templateStyle);
+		}
+		else
+		{
+			JRDesignStyle baseStyle = new JRDesignStyle();
+			baseStyle.setName("Base");
+			baseStyle.setDefault(true);
+			baseStyle.setHorizontalAlignment(HorizontalAlignEnum.LEFT);
+			baseStyle.setVerticalAlignment(VerticalAlignEnum.MIDDLE);
+			baseStyle.setFontSize(10);
+			baseStyle.setPdfFontName("Helvetica");
+			baseStyle.setPdfEncoding("Cp1252");
+			baseStyle.setPdfEmbedded(false);
+			jasperDesign.addStyle(baseStyle);
+			
+			JRDesignStyle titleStyle = new JRDesignStyle();
+			titleStyle.setName("Title");
+			titleStyle.setParentStyle(baseStyle);
+			titleStyle.setMode(ModeEnum.OPAQUE);
+			titleStyle.setBackcolor(Color.decode("#267994"));
+			titleStyle.setForecolor(Color.decode("#FFFFFF"));
+			titleStyle.setFontSize(26);
+			jasperDesign.addStyle(titleStyle);
+			
+			JRDesignStyle pageHeaderStyle = new JRDesignStyle();
+			pageHeaderStyle.setName("Page header");
+			pageHeaderStyle.setParentStyle(baseStyle);
+			pageHeaderStyle.setForecolor(Color.decode("#000000"));
+			pageHeaderStyle.setFontSize(12);
+			jasperDesign.addStyle(pageHeaderStyle);
+			
+			JRDesignStyle columnHeaderStyle = new JRDesignStyle();
+			columnHeaderStyle.setName("Column header");
+			columnHeaderStyle.setParentStyle(baseStyle);
+			columnHeaderStyle.setHorizontalAlignment(HorizontalAlignEnum.CENTER);
+			columnHeaderStyle.setMode(ModeEnum.OPAQUE);
+			columnHeaderStyle.setBackcolor(Color.decode("#333333"));
+			columnHeaderStyle.setForecolor(Color.decode("#FFFFFF"));
+			columnHeaderStyle.setFontSize(12);
+			jasperDesign.addStyle(columnHeaderStyle);
+			
+			JRDesignStyle detailStyle = new JRDesignStyle();
+			detailStyle.setName("Detail");
+			detailStyle.setParentStyle(baseStyle);
+			detailStyle.setBold(false);
+			jasperDesign.addStyle(detailStyle);
+			
+			JRDesignStyle pageFooterStyle = new JRDesignStyle();
+			pageFooterStyle.setName("Page footer");
+			pageFooterStyle.setParentStyle(baseStyle);
+			pageFooterStyle.setForecolor(Color.decode("#000000"));
+			pageFooterStyle.setFontSize(9);
+			jasperDesign.addStyle(pageFooterStyle);
+		}
+		
 		//Fields
 		for(ReportFieldConfigurationType fieldRepo : reportType.getReportField())
 		{
