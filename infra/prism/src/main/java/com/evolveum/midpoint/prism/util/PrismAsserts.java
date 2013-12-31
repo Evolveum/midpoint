@@ -113,7 +113,7 @@ public class PrismAsserts {
 		
 	public static <T> void assertPropertyValueDesc(PrismProperty<T> property, String contextDescrition, T... expectedPropValues) {
 		Collection<PrismPropertyValue<T>> pvals = property.getValues();
-		QName propQName = property.getName();
+		QName propQName = property.getElementName();
 		assert pvals != null && !pvals.isEmpty() : "Empty property "+propQName;
 		assertSet("property "+propQName + (contextDescrition == null ? "" : " in " + contextDescrition), 
 				"value", pvals, expectedPropValues);
@@ -186,7 +186,7 @@ public class PrismAsserts {
 	
 	public static void assertDefinition(Item item, QName type, int minOccurs, int maxOccurs) {
 		ItemDefinition definition = item.getDefinition();
-		assertDefinition(definition, item.getName(), type, minOccurs, maxOccurs);
+		assertDefinition(definition, item.getElementName(), type, minOccurs, maxOccurs);
 	}
 		
 	public static void assertPropertyDefinition(PrismContainer<?> container, QName propertyName, QName type, int minOccurs, int maxOccurs) {
@@ -286,7 +286,7 @@ public class PrismAsserts {
 
 	public static void assertParentConsistency(Item<?> item) {
 		for (PrismValue pval: item.getValues()) {
-			assert pval.getParent() == item : "Wrong parent of "+pval+" in "+PrettyPrinter.prettyPrint(item.getName());
+			assert pval.getParent() == item : "Wrong parent of "+pval+" in "+PrettyPrinter.prettyPrint(item.getElementName());
 			if (pval instanceof PrismContainerValue) {
 				assertParentConsistency((PrismContainerValue)pval);
 			}
@@ -327,7 +327,7 @@ public class PrismAsserts {
 	}
 		
 	public static <T> void assertReplace(PropertyDelta<T> propertyDelta, T... expectedValues) {
-		assertSet("delta "+propertyDelta+" for "+propertyDelta.getName(), "replace", propertyDelta.getValuesToReplace(), expectedValues);
+		assertSet("delta "+propertyDelta+" for "+propertyDelta.getElementName(), "replace", propertyDelta.getValuesToReplace(), expectedValues);
 	}
 
 	public static void assertPropertyAdd(ObjectDelta<?> objectDelta, QName propertyName, Object... expectedValues) {
@@ -355,11 +355,11 @@ public class PrismAsserts {
 	}
 		
 	public static <T> void assertAdd(PropertyDelta<T> propertyDelta, T... expectedValues) {
-		assertSet("delta "+propertyDelta+" for "+propertyDelta.getName(), "add", propertyDelta.getValuesToAdd(), expectedValues);
+		assertSet("delta "+propertyDelta+" for "+propertyDelta.getElementName(), "add", propertyDelta.getValuesToAdd(), expectedValues);
 	}
 	
 	public static <T> void assertDelete(PropertyDelta<T> propertyDelta, T... expectedValues) {
-		assertSet("delta "+propertyDelta+" for "+propertyDelta.getName(), "delete", propertyDelta.getValuesToDelete(), expectedValues);
+		assertSet("delta "+propertyDelta+" for "+propertyDelta.getElementName(), "delete", propertyDelta.getValuesToDelete(), expectedValues);
 	}
 
 	public static void assertPropertyDelete(ObjectDelta<?> userDelta, ItemPath propertyPath, Object... expectedValues) {

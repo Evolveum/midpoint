@@ -213,7 +213,7 @@
        </jasperTemplate>
    </reportTemplateStyle>
    <reportOrientation>landscape</reportOrientation>
-   <reportExport>pdf</reportExport>
+   <reportExport>csv</reportExport>
    <query></query>
    <objectClass>UserType</objectClass>
    <reportField>

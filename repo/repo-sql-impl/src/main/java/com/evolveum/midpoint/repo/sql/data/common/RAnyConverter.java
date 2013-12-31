@@ -76,7 +76,7 @@ public class RAnyConverter {
 
     Set<RAnyValue> convertToRValue(Item item) throws DtoTranslationException {
         Validate.notNull(item, "Object for converting must not be null.");
-        Validate.notNull(item.getDefinition(), "Item '" + item.getName() + "' without definition can't be saved.");
+        Validate.notNull(item.getDefinition(), "Item '" + item.getElementName() + "' without definition can't be saved.");
 
         Set<RAnyValue> rValues = new HashSet<RAnyValue>();
         try {

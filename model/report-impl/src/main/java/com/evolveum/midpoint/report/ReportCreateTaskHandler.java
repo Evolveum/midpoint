@@ -148,16 +148,17 @@ public class ReportCreateTaskHandler implements TaskHandler {
         
         PrismObject<ReportType> report = null;
         try {
+        	LOGGER.trace("get report : {}", reportOid);
     		report = modelService.getObject(ReportType.class, reportOid, null, task, opResult); 
 		} catch (ObjectNotFoundException ex) {
-			LOGGER.error("Report does not exist: {}",ex.getMessage(),ex);
-			opResult.recordFatalError("Report does not exist: "+ex.getMessage(),ex);
+			LOGGER.error("Report does not exist: {}", ex.getMessage(), ex);
+			opResult.recordFatalError("Report does not exist: " + ex.getMessage(), ex);
 			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
 			runResult.setProgress(progress);
 			return runResult;
 		} catch (Exception ex) {
-			LOGGER.error("CreateReport: {}",ex.getMessage(),ex);
-			opResult.recordFatalError("Report: "+ex.getMessage(),ex);
+			LOGGER.error("CreateReport: {}", ex.getMessage(), ex);
+			opResult.recordFatalError("Report: " + ex.getMessage(), ex);
 			runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
 			runResult.setProgress(progress);
 			return runResult;
@@ -171,28 +172,39 @@ public class ReportCreateTaskHandler implements TaskHandler {
     	{    
     		OperationResult subResult = opResult.createSubresult(CREATE_DATASOURCE);
     		
+    		LOGGER.trace("create report datasource : {}", reportOid);
     		DataSourceReport reportDataSource = new DataSourceReport(reportType, subResult);
     		
     		params.putAll(getReportParams(reportType, opResult));
     		params.put(JRParameter.REPORT_DATA_SOURCE, reportDataSource);
     		
-    		if (reportType.getReportTemplate() == null)
+    		LOGGER.trace("create report params : {}", params);
+    		if (reportType.getReportTemplate() == null || reportType.getReportTemplate().getAny() == null)
             {
            	 	jasperDesign = reportManager.createJasperDesign(reportType);
+           	 	LOGGER.trace("create jasper design : {}", jasperDesign);
             }
             else
             {
-           	 String reportTemplate = DOMUtil.serializeDOMToString((Node)reportType.getReportTemplate().getAny());
-           	 InputStream inputStreamJRXML = new ByteArrayInputStream(reportTemplate.getBytes());
-           	 jasperDesign = JRXmlLoader.load(inputStreamJRXML);
+           	 	String reportTemplate = DOMUtil.serializeDOMToString((Node)reportType.getReportTemplate().getAny());
+           	 	InputStream inputStreamJRXML = new ByteArrayInputStream(reportTemplate.getBytes());
+           	 	jasperDesign = JRXmlLoader.load(inputStreamJRXML);
+           	 	LOGGER.trace("load jasper design : {}", jasperDesign);
             }
     		
             // Compile template
     		JasperReport jasperReport = JasperCompileManager.compileReport(jasperDesign);
+    		LOGGER.trace("compile jasper design, create jasper report : {}", jasperReport);
+    		
     		JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, params);
+    		LOGGER.trace("fill report : {}", jasperPrint);
 
     		String reportFilePath = generateReport(reportType, jasperPrint);
+    		LOGGER.trace("generate report : {}", reportFilePath);
+    		
     		saveReportOutputType(reportFilePath, reportType, task, subResult);
+    		LOGGER.trace("create report output type : {}", reportFilePath);
+    		
     		subResult.computeStatus();
     			
     	} catch (Exception ex) {

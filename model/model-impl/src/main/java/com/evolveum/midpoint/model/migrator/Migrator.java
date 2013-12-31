@@ -79,12 +79,12 @@ public class Migrator {
 	}
 	
 	private PrismObject<ObjectTemplateType> migrateObjectTemplate(PrismObject<ObjectTemplateType> orig) {
-		QName elementName = orig.getName();
+		QName elementName = orig.getElementName();
 		if (elementName.equals(SchemaConstants.C_OBJECT_TEMPLATE)) {
 			return orig;
 		}
 		PrismObject<ObjectTemplateType> migrated = orig.clone();
-		migrated.setName(SchemaConstants.C_OBJECT_TEMPLATE);
+		migrated.setElementName(SchemaConstants.C_OBJECT_TEMPLATE);
 		return migrated;
 	}
 

@@ -32,7 +32,6 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -117,9 +116,9 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
     public <P extends PrismProperty> P instantiateEmptyProperty() {
     	PrismPropertyDefinition propertyDefinition = getPropertyDefinition();
     	if (propertyDefinition == null) {
-    		throw new IllegalArgumentException("Cannot instantiate property "+getName()+" from delta "+this+": no definition");
+    		throw new IllegalArgumentException("Cannot instantiate property "+ getElementName()+" from delta "+this+": no definition");
     	}
-    	return (P) propertyDefinition.instantiate(getName());
+    	return (P) propertyDefinition.instantiate(getElementName());
     }
     
     @Override
@@ -141,7 +140,7 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
     
 	@Override
 	public PropertyDelta<T> clone() {
-		PropertyDelta<T> clone = new PropertyDelta<T>(getName(), getPropertyDefinition());
+		PropertyDelta<T> clone = new PropertyDelta<T>(getElementName(), getPropertyDefinition());
 		copyValues(clone);
 		return clone;
 	}
@@ -379,7 +378,7 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
     public static PropertyDelta findPropertyDelta(Collection<? extends ItemDelta> modifications, QName propertyName) {
     	for (ItemDelta delta: modifications) {
     		if (delta instanceof PropertyDelta && delta.getParentPath().isEmpty() &&
-    			delta.getName().equals(propertyName)) {
+    			delta.getElementName().equals(propertyName)) {
     			return (PropertyDelta) delta;
     		}
     	}

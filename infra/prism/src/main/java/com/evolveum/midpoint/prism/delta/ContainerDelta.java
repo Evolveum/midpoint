@@ -32,10 +32,6 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContainerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -185,7 +181,7 @@ public class ContainerDelta<V extends Containerable> extends ItemDelta<PrismCont
 
 	@Override
 	public ContainerDelta<V> clone() {
-		ContainerDelta<V> clone = new ContainerDelta<V>(getName(), getDefinition());
+		ContainerDelta<V> clone = new ContainerDelta<V>(getElementName(), getDefinition());
 		copyValues(clone);
 		return clone;
 	}

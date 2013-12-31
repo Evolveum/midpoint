@@ -18,7 +18,6 @@ package com.evolveum.midpoint.schema.processor;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
@@ -183,7 +182,7 @@ public final class ResourceAttributeContainer extends PrismContainer {
 		Collection<ResourceAttribute<?>> attributes = new ArrayList<ResourceAttribute<?>>(definitions.size());
 		for (ResourceAttributeDefinition attrDef : definitions) {
 			for (ResourceAttribute<?> property : getAttributes()){
-				if (attrDef.getName().equals(property.getName())){
+				if (attrDef.getName().equals(property.getElementName())){
 					property.setDefinition(attrDef);
 					attributes.add(property);
 				}
@@ -357,12 +356,12 @@ public final class ResourceAttributeContainer extends PrismContainer {
 		if (origAttrContainer == null) {
 			return null;
 		}
-		QName elementName = origAttrContainer.getName();
+		QName elementName = origAttrContainer.getElementName();
 		ResourceAttributeContainer attributesContainer = createEmptyContainer(elementName, objectClassDefinition);
 		for (Item item: origAttrContainer.getValue().getItems()) {
 			if (item instanceof PrismProperty) {
 				PrismProperty<?> property = (PrismProperty)item;
-				QName attributeName = property.getName();
+				QName attributeName = property.getElementName();
 				ResourceAttributeDefinition attributeDefinition = objectClassDefinition.findAttributeDefinition(attributeName);
 				if (attributeDefinition == null) {
 					throw new SchemaException("No definition for attribute "+attributeName+" in object class "+objectClassDefinition);
@@ -388,7 +387,7 @@ public final class ResourceAttributeContainer extends PrismContainer {
 	
 	@Override
 	public ResourceAttributeContainer clone() {
-		ResourceAttributeContainer clone = new ResourceAttributeContainer(getName(), getDefinition(), getPrismContext());
+		ResourceAttributeContainer clone = new ResourceAttributeContainer(getElementName(), getDefinition(), getPrismContext());
 		copyValues(clone);
 		return clone;
 	}

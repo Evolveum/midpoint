@@ -22,7 +22,6 @@ import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 import java.io.IOException;
 import java.util.List;
-import java.util.Set;
 
 import javax.xml.namespace.QName;
 import javax.xml.transform.dom.DOMSource;
@@ -36,7 +35,6 @@ import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.foo.ActivationType;
 import com.evolveum.midpoint.prism.foo.AssignmentType;
-import com.evolveum.midpoint.prism.foo.ObjectFactory;
 import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -182,7 +180,7 @@ public class TestPrismObjectConstruction {
 		
 		// fullName
 		PrismProperty<String> fullNameProperty = user.findOrCreateProperty(USER_FULLNAME_QNAME);
-		assertEquals(USER_FULLNAME_QNAME, fullNameProperty.getName());
+		assertEquals(USER_FULLNAME_QNAME, fullNameProperty.getElementName());
 		PrismAsserts.assertParentConsistency(user);
 		if (assertDefinitions) PrismAsserts.assertDefinition(fullNameProperty, DOMUtil.XSD_STRING, 1, 1);
 		fullNameProperty.setValue(new PrismPropertyValue<String>("Sir Fancis Drake"));
@@ -192,7 +190,7 @@ public class TestPrismObjectConstruction {
 		
 		// activation
 		PrismContainer<ActivationType> activationContainer = user.findOrCreateContainer(USER_ACTIVATION_QNAME);
-		assertEquals(USER_ACTIVATION_QNAME, activationContainer.getName());
+		assertEquals(USER_ACTIVATION_QNAME, activationContainer.getElementName());
 		PrismAsserts.assertParentConsistency(user);
 		if (assertDefinitions) PrismAsserts.assertDefinition(activationContainer, ACTIVATION_TYPE_QNAME, 0, 1);
 		PrismContainer<ActivationType> activationContainerAgain = user.findOrCreateContainer(USER_ACTIVATION_QNAME);
@@ -201,7 +199,7 @@ public class TestPrismObjectConstruction {
 		
 		// activation/enabled
 		PrismProperty<Boolean> enabledProperty = user.findOrCreateProperty(USER_ENABLED_PATH);
-		assertEquals(USER_ENABLED_QNAME, enabledProperty.getName());
+		assertEquals(USER_ENABLED_QNAME, enabledProperty.getElementName());
 		PrismAsserts.assertParentConsistency(user);
 		if (assertDefinitions) PrismAsserts.assertDefinition(enabledProperty, DOMUtil.XSD_BOOLEAN, 1, 1);
 		enabledProperty.setValue(new PrismPropertyValue<Boolean>(true));
@@ -212,7 +210,7 @@ public class TestPrismObjectConstruction {
 		// assignment
 		// Try to create this one from the value. It should work the same, but let's test a different code path
 		PrismContainer<AssignmentType> assignmentContainer = user.getValue().findOrCreateContainer(USER_ASSIGNMENT_QNAME);
-		assertEquals(USER_ASSIGNMENT_QNAME, assignmentContainer.getName());
+		assertEquals(USER_ASSIGNMENT_QNAME, assignmentContainer.getElementName());
 		PrismAsserts.assertParentConsistency(user);
 		if (assertDefinitions) PrismAsserts.assertDefinition(assignmentContainer, ASSIGNMENT_TYPE_QNAME, 0, -1);
 		PrismContainer<AssignmentType> assignmentContainerAgain = user.findOrCreateContainer(USER_ASSIGNMENT_QNAME);
@@ -246,7 +244,7 @@ public class TestPrismObjectConstruction {
 		
 		// accountRef
 		PrismReference accountRef = user.findOrCreateReference(USER_ACCOUNTREF_QNAME);
-		assertEquals(USER_ACCOUNTREF_QNAME, accountRef.getName());
+		assertEquals(USER_ACCOUNTREF_QNAME, accountRef.getElementName());
 		if (assertDefinitions) PrismAsserts.assertDefinition(accountRef, OBJECT_REFERENCE_TYPE_QNAME, 0, -1);
 		accountRef.add(new PrismReferenceValue(ACCOUNT1_OID));
 		accountRef.add(new PrismReferenceValue(ACCOUNT2_OID));
@@ -258,7 +256,7 @@ public class TestPrismObjectConstruction {
 		
 		// extension
 		PrismContainer<?> extensionContainer = user.findOrCreateContainer(USER_EXTENSION_QNAME);
-		assertEquals(USER_EXTENSION_QNAME, extensionContainer.getName());
+		assertEquals(USER_EXTENSION_QNAME, extensionContainer.getElementName());
 		PrismAsserts.assertParentConsistency(user);
 		if (assertDefinitions) PrismAsserts.assertDefinition(extensionContainer, DOMUtil.XSD_ANY, 0, 1);
 		PrismContainer<AssignmentType> extensionContainerAgain = user.findOrCreateContainer(USER_EXTENSION_QNAME);
@@ -268,7 +266,7 @@ public class TestPrismObjectConstruction {
 		
 		// extension / stringType
 		PrismProperty<String> stringTypeProperty = extensionContainer.findOrCreateProperty(EXTENSION_STRING_TYPE_ELEMENT);
-		assertEquals(EXTENSION_STRING_TYPE_ELEMENT, stringTypeProperty.getName());
+		assertEquals(EXTENSION_STRING_TYPE_ELEMENT, stringTypeProperty.getElementName());
 		PrismAsserts.assertParentConsistency(user);
 		if (assertDefinitions) PrismAsserts.assertDefinition(stringTypeProperty, DOMUtil.XSD_STRING, 0, -1);
 		
@@ -294,16 +292,16 @@ public class TestPrismObjectConstruction {
 		assertEquals("Wrong fullname", "Sir Fancis Drake", fullNameProperty.getValue().getValue());
 		// activation
 		PrismContainer activationContainer = user.findContainer(USER_ACTIVATION_QNAME);
-		assertEquals(USER_ACTIVATION_QNAME, activationContainer.getName());
+		assertEquals(USER_ACTIVATION_QNAME, activationContainer.getElementName());
 		if (assertDefinitions) PrismAsserts.assertDefinition(activationContainer, ACTIVATION_TYPE_QNAME, 0, 1);
 		// activation/enabled
 		PrismProperty enabledProperty = user.findProperty(USER_ENABLED_PATH);
-		assertEquals(USER_ENABLED_QNAME, enabledProperty.getName());
+		assertEquals(USER_ENABLED_QNAME, enabledProperty.getElementName());
 		if (assertDefinitions) PrismAsserts.assertDefinition(enabledProperty, DOMUtil.XSD_BOOLEAN, 1, 1);
 		assertEquals("Wrong enabled", true, enabledProperty.getValue().getValue());
 		// assignment
 		PrismContainer assignmentContainer = user.findContainer(USER_ASSIGNMENT_QNAME);
-		assertEquals(USER_ASSIGNMENT_QNAME, assignmentContainer.getName());
+		assertEquals(USER_ASSIGNMENT_QNAME, assignmentContainer.getElementName());
 		if (assertDefinitions) PrismAsserts.assertDefinition(assignmentContainer, ASSIGNMENT_TYPE_QNAME, 0, -1);
 		// assignment values
 		List<PrismContainerValue> assValues = assignmentContainer.getValues();

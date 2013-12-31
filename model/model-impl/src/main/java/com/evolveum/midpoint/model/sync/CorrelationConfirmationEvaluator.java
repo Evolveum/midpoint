@@ -25,8 +25,6 @@ import java.util.Map;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
-import org.apache.camel.spi.Required;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -35,7 +33,6 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.common.expression.Expression;
 import com.evolveum.midpoint.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.model.expr.ExpressionHandler;
 import com.evolveum.midpoint.model.util.Utils;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -46,21 +43,17 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.LogicalFilter;
-import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
-import com.evolveum.midpoint.prism.query.UnaryLogicalFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -337,17 +330,17 @@ private <F extends FocusType> boolean matchUserCorrelationRule(Class<F> focusTyp
 					list.add(user);
 				}
 			} catch (RuntimeException ex) {
-				LoggingUtils.logException(LOGGER, "Couldn't confirm user {}", ex, user.getName());
-				throw new SystemException("Couldn't confirm user " + user.getName(), ex);
+				LoggingUtils.logException(LOGGER, "Couldn't confirm user {}", ex, user.getElementName());
+				throw new SystemException("Couldn't confirm user " + user.getElementName(), ex);
 			} catch (ExpressionEvaluationException ex) {
-				LoggingUtils.logException(LOGGER, "Couldn't confirm user {}", ex, user.getName());
-				throw new ExpressionEvaluationException("Couldn't confirm user " + user.getName(), ex);
+				LoggingUtils.logException(LOGGER, "Couldn't confirm user {}", ex, user.getElementName());
+				throw new ExpressionEvaluationException("Couldn't confirm user " + user.getElementName(), ex);
 			} catch (ObjectNotFoundException ex) {
-				LoggingUtils.logException(LOGGER, "Couldn't confirm user {}", ex, user.getName());
-				throw new ObjectNotFoundException("Couldn't confirm user " + user.getName(), ex);
+				LoggingUtils.logException(LOGGER, "Couldn't confirm user {}", ex, user.getElementName());
+				throw new ObjectNotFoundException("Couldn't confirm user " + user.getElementName(), ex);
 			} catch (SchemaException ex) {
-				LoggingUtils.logException(LOGGER, "Couldn't confirm user {}", ex, user.getName());
-				throw new SchemaException("Couldn't confirm user " + user.getName(), ex);
+				LoggingUtils.logException(LOGGER, "Couldn't confirm user {}", ex, user.getElementName());
+				throw new SchemaException("Couldn't confirm user " + user.getElementName(), ex);
 			}
 		}
 

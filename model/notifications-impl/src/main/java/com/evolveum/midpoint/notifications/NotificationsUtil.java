@@ -126,7 +126,7 @@ public class NotificationsUtil {
             LOGGER.trace("secondary identifiers: {}", secondaryIdentifiers);
             // first phase = looking for "name" identifier
             for (ResourceAttribute ra : secondaryIdentifiers) {
-                if (ra.getName() != null && ra.getName().getLocalPart().contains("name")) {
+                if (ra.getElementName() != null && ra.getElementName().getLocalPart().contains("name")) {
                     LOGGER.trace("Considering {} as a name", ra);
                     return String.valueOf(ra.getAnyRealValue());
                 }

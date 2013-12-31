@@ -149,7 +149,7 @@ public final class Utils {
 	    private static void resolveRef(PrismReferenceValue refVal, RepositoryService repository,
 	    				boolean enforceReferentialIntegrity, PrismContext prismContext, String contextDesc, OperationResult parentResult) {
 	    	PrismReference reference = (PrismReference) refVal.getParent();
-	    	QName refName = reference.getName();
+	    	QName refName = reference.getElementName();
 	        OperationResult result = parentResult.createSubresult(OPERATION_RESOLVE_REFERENCE);
 	        result.addContext(OperationResult.CONTEXT_ITEM, refName);
 

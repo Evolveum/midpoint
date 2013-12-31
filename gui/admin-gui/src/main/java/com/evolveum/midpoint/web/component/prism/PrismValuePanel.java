@@ -267,10 +267,10 @@ public class PrismValuePanel extends Panel {
 
         //adding valid from/to date range validator, if necessary
         ItemPath activation = new ItemPath(UserType.F_ACTIVATION);
-        if (ActivationType.F_VALID_FROM.equals(property.getName())) {
+        if (ActivationType.F_VALID_FROM.equals(property.getElementName())) {
             DateValidator validator = getActivationRangeValidator(form, activation);
             validator.setDateFrom((DateTimeField) component.getBaseFormComponent());
-        } else if (ActivationType.F_VALID_TO.equals(property.getName())) {
+        } else if (ActivationType.F_VALID_TO.equals(property.getElementName())) {
             DateValidator validator = getActivationRangeValidator(form, activation);
             validator.setDateTo((DateTimeField) component.getBaseFormComponent());
         }

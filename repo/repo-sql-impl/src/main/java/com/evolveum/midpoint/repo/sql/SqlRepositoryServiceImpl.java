@@ -1115,7 +1115,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             throws SchemaException, DtoTranslationException {
 
         for (ItemDelta delta : modifications) {
-            if (!delta.getName().equals(OrgType.F_PARENT_ORG_REF)) continue;
+            if (!delta.getElementName().equals(OrgType.F_PARENT_ORG_REF)) continue;
 
             // if modification is one of the modify or delete, delete old
             // record in org closure table and in the next step fill the
