@@ -1047,7 +1047,7 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
         List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, null, null, task, result);
         display("Users after reconcile", users);
         
-        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_LIME_OID, 0, 4, 0, 0);
+        reconciliationTaskResultListener.assertResult(RESOURCE_DUMMY_LIME_OID, 0, 3, 0, 1);
         
         assertImportedUserByOid(USER_ADMINISTRATOR_OID);
         assertImportedUserByOid(USER_JACK_OID);

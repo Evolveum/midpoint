@@ -31,25 +31,25 @@ public class SynchronizationSituationTest {
 
 	@Test
 	public void nullUser() {
-		SynchronizationSituation situation = new SynchronizationSituation(null,
+		SynchronizationSituation situation = new SynchronizationSituation(null, null,
 				SynchronizationSituationType.UNMATCHED);
 		AssertJUnit.assertNotNull(situation);
-		AssertJUnit.assertNull(situation.getFocus());
+		AssertJUnit.assertNull(situation.getCorrelatedOwner());
 		AssertJUnit.assertEquals(SynchronizationSituationType.UNMATCHED, situation.getSituation());
 	}
 
 	@Test(expectedExceptions = IllegalArgumentException.class)
 	public void nullSituation() {
-		new SynchronizationSituation(new UserType(), null);
+		new SynchronizationSituation(new UserType(), null, null);
 	}
 
 	@Test
 	public void correct() {
 		UserType user = new UserType();
-		SynchronizationSituation situation = new SynchronizationSituation(user,
+		SynchronizationSituation situation = new SynchronizationSituation(null, user,
 				SynchronizationSituationType.UNMATCHED);
 		AssertJUnit.assertNotNull(situation);
-		AssertJUnit.assertEquals(user, situation.getFocus());
+		AssertJUnit.assertEquals(user, situation.getCorrelatedOwner());
 		AssertJUnit.assertEquals(SynchronizationSituationType.UNMATCHED, situation.getSituation());
 	}
 }

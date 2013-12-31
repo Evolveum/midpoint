@@ -37,8 +37,8 @@
 	
     <!-- "TRACE" is just too much info, "DEBUG" should be enough for the following talkative components ... 
          if any of the following is set to "TRACE" then it was changed by mistake and should be changed back -->
-	<logger name="com.evolveum.midpoint.model.lens.projector" level="TRACE" />
-	<logger name="com.evolveum.midpoint.model.lens.projector.Projector" level="TRACE" />
+	<logger name="com.evolveum.midpoint.model.lens.projector" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.model.lens.projector.Projector" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.lens" level="TRACE" />
 	<logger name="com.evolveum.midpoint.model.lens.Clockwork" level="TRACE" />
 	<logger name="com.evolveum.midpoint.model.lens.ChangeExecutor" level="TRACE" />
@@ -46,7 +46,7 @@
 	<logger name="com.evolveum.midpoint.model.lens.LensUtil" level="TRACE" />
 	<logger name="com.evolveum.midpoint.model.expr" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.util" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.model.sync" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.model.sync" level="TRACE" />
 	<logger name="com.evolveum.midpoint.model.sync.CorrelationConfirmationEvaluator" level="DEBUG" />
     <logger name="com.evolveum.midpoint.provisioning" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.expression" level="DEBUG" />

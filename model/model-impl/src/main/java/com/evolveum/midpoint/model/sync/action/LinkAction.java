@@ -41,7 +41,7 @@ public class LinkAction implements Action {
 		// Just add the candidate focus to the context. It will be linked in
 		// synchronization.
 		
-		F focusType = situation.getFocus();
+		F focusType = situation.getCorrelatedOwner();
     	LensFocusContext<F> focusContext = context.createFocusContext();
         PrismObject<F> focusOld = focusType.asPrismObject();
         focusContext.setLoadedObject(focusOld);

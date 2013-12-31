@@ -205,9 +205,9 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			
 			SynchronizationSituation situation = determineSituation(focusType, change, synchronizationPolicy, subResult);
 			if (logDebug) {
-				LOGGER.debug("SYNCHRONIZATION: SITUATION: '{}', {}", situation.getSituation().value(), situation.getFocus());
+				LOGGER.debug("SYNCHRONIZATION: SITUATION: '{}', {}", situation.getSituation().value(), situation.getCorrelatedOwner());
 			} else {
-				LOGGER.trace("SYNCHRONIZATION: SITUATION: '{}', {}", situation.getSituation().value(), situation.getFocus());
+				LOGGER.trace("SYNCHRONIZATION: SITUATION: '{}', {}", situation.getSituation().value(), situation.getCorrelatedOwner());
 			}
 
 			if (Utils.isDryRun(task)){
@@ -390,10 +390,10 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 				case DELETE:
 					state = SynchronizationSituationType.DELETED;
 				}
-				situation = new SynchronizationSituation(ownerType, state);
+				situation = new SynchronizationSituation<F>(ownerType, null, state);
 			} else {
 				LOGGER.trace("Resource object shadow doesn't have owner.");
-				situation = determineSituationWithCorrelation(focusType, change, synchronizationPolicy, result);
+				situation = determineSituationWithCorrelation(focusType, change, synchronizationPolicy, owner, result);
 			}
 		} catch (Exception ex) {
 			LOGGER.error("Error occurred during resource object shadow owner lookup.");
@@ -404,7 +404,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		}
 
 		LOGGER.trace("checkSituation::end - {}, {}", new Object[] {
-				(situation.getFocus() == null ? "null" : situation.getFocus().getOid()), situation.getSituation() });
+				(situation.getCorrelatedOwner() == null ? "null" : situation.getCorrelatedOwner().getOid()), situation.getSituation() });
 
 		return situation;
 	}
@@ -443,11 +443,12 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 	 */
 	private <F extends FocusType> SynchronizationSituation determineSituationWithCorrelation(
 			Class<F> focusType, ResourceObjectShadowChangeDescription change,
-			ObjectSynchronizationType synchronizationPolicy, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			ObjectSynchronizationType synchronizationPolicy, PrismObject<F> owner, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 
 		if (ChangeType.DELETE.equals(getModificationType(change))) {
 			// account was deleted and we know it didn't have owner
-			return new SynchronizationSituation(null, SynchronizationSituationType.DELETED);
+			return new SynchronizationSituation<F>(owner == null ? null : owner.asObjectable(), 
+					null, SynchronizationSituationType.DELETED);
 		}
 
 		PrismObject<? extends ShadowType> resourceShadow = change.getCurrentShadow();
@@ -506,7 +507,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 			state = SynchronizationSituationType.DISPUTED;
 		}
 
-		return new SynchronizationSituation(user, state);
+		return new SynchronizationSituation(null, user, state);
 	}
 
 	private void validateResourceInShadow(ShadowType shadow, ResourceType resource) {
@@ -566,6 +567,12 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		if (willSynchronize) {
 			lensContext = createLensContext(focusClass, change, reactionDefinition, synchronizationPolicy, situation, 
 					doReconciliation, parentResult);
+		}
+		
+		if (LOGGER.isTraceEnabled() && lensContext != null) {
+			LOGGER.trace("---[ SYNCHRONIZATION context before action execution ]-------------------------\n"
+					+ "{}\n------------------------------------------",
+					lensContext.dump());
 		}
 		
 		executeActions(reactionDefinition, lensContext, situation, BeforeAfterType.BEFORE, resource, 
@@ -651,8 +658,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		}
         
         // Focus context
-        if (situation.getSituation() == SynchronizationSituationType.LINKED) {
-        	F focusType = situation.getFocus();
+        if (situation.getCurrentOwner() != null) {
+        	F focusType = situation.getCurrentOwner();
         	LensFocusContext<F> focusContext = context.createFocusContext();
             PrismObject<F> focusOld = focusType.asPrismObject();
             focusContext.setLoadedObject(focusOld);
