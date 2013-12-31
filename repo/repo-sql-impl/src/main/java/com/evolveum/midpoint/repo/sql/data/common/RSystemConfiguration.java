@@ -322,7 +322,7 @@ public class RSystemConfiguration extends RObject<SystemConfigurationType> {
                 PrismObject holderPrism = holder.asPrismObject();
                 PrismObject jaxbPrism = jaxb.asPrismObject();
 
-                holderPrism.setName(SchemaConstantsGenerated.C_SYSTEM_CONFIGURATION);
+                holderPrism.setElementName(SchemaConstantsGenerated.C_SYSTEM_CONFIGURATION);
 
                 PrismContainer container = jaxbPrism.findContainer(SystemConfigurationType.F_OBJECT_TEMPLATE);
                 PrismContainer newContainer = container.clone();
