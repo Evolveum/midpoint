@@ -255,7 +255,7 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
 
         PrismContext prismContext = expressionFactory.getPrismContext();
         QName resultName = new QName(SchemaConstants.NS_C, "result");
-        PrismPropertyDefinition resultDef = new PrismPropertyDefinition(resultName, resultName, DOMUtil.XSD_BOOLEAN, prismContext);
+        PrismPropertyDefinition resultDef = new PrismPropertyDefinition(resultName, DOMUtil.XSD_BOOLEAN, prismContext);
         Expression<PrismPropertyValue<Boolean>> expression = expressionFactory.makeExpression(expressionType, resultDef, opContext, result);
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, opContext, result);
         PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> exprResultTriple = expression.evaluate(params);
@@ -316,7 +316,7 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
                 LOGGER.trace("- processing property {} having value {}", formProperty.getId(), formProperty.getValue());
                 if (formProperty.getValue() != null) {
                     QName propertyName = new QName(SchemaConstants.NS_WFCF, formProperty.getId());
-                    PrismPropertyDefinition<String> prismPropertyDefinition = new PrismPropertyDefinition<String>(propertyName, propertyName, DOMUtil.XSD_STRING, prismContext);
+                    PrismPropertyDefinition<String> prismPropertyDefinition = new PrismPropertyDefinition<String>(propertyName, DOMUtil.XSD_STRING, prismContext);
                     PrismProperty<String> prismProperty = prismPropertyDefinition.instantiate();
                     prismProperty.addRealValue(formProperty.getValue());
                     prism.add(prismProperty);

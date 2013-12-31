@@ -429,7 +429,7 @@ public class ActivationProcessor {
 			public void initialize(Mapping<PrismPropertyValue<Boolean>> existenceMapping) throws SchemaException {
 		        // Target
 		        PrismPropertyDefinition<Boolean> shadowExistsDef = new PrismPropertyDefinition<Boolean>(SHADOW_EXISTS_PROPERTY_NAME,
-		        		SHADOW_EXISTS_PROPERTY_NAME, DOMUtil.XSD_BOOLEAN, prismContext);
+		        		DOMUtil.XSD_BOOLEAN, prismContext);
 		        shadowExistsDef.setMinOccurs(1);
 		        shadowExistsDef.setMaxOccurs(1);
 				existenceMapping.setDefaultTargetDefinition(shadowExistsDef);
@@ -653,7 +653,7 @@ public class ActivationProcessor {
 		Boolean legalOld = accCtx.isLegalOld();
 		
 		PrismPropertyDefinition<Boolean> legalDef = new PrismPropertyDefinition<Boolean>(LEGAL_PROPERTY_NAME,
-        		LEGAL_PROPERTY_NAME, DOMUtil.XSD_BOOLEAN, prismContext);
+        		DOMUtil.XSD_BOOLEAN, prismContext);
 		legalDef.setMinOccurs(1);
 		legalDef.setMaxOccurs(1);
 		PrismProperty<Boolean> legalProp = legalDef.instantiate();
@@ -689,7 +689,7 @@ public class ActivationProcessor {
 		}
 		
 		PrismPropertyDefinition<Boolean> existsDef = new PrismPropertyDefinition<Boolean>(FOCUS_EXISTS_PROPERTY_NAME,
-				FOCUS_EXISTS_PROPERTY_NAME, DOMUtil.XSD_BOOLEAN, prismContext);
+				DOMUtil.XSD_BOOLEAN, prismContext);
 		existsDef.setMinOccurs(1);
 		existsDef.setMaxOccurs(1);
 		PrismProperty<Boolean> existsProp = existsDef.instantiate();

@@ -2256,7 +2256,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		Set<PrismPropertyValue<T>> syncTokenValues = new HashSet<PrismPropertyValue<T>>();
 		syncTokenValues.add(new PrismPropertyValue<T>(object));
 		PrismPropertyDefinition propDef = new PrismPropertyDefinition(SchemaConstants.SYNC_TOKEN,
-				SchemaConstants.SYNC_TOKEN, type, prismContext);
+				type, prismContext);
 		propDef.setDynamic(true);
 		PrismProperty<T> property = propDef.instantiate();
 		property.addValues(syncTokenValues);

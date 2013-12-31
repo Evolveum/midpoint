@@ -377,7 +377,7 @@ public class PrismDomProcessor {
 			if (selection != null) {
 				boolean selected = false;
 				for (ItemDefinition selProdDef : selection) {
-					if (selProdDef.getNameOrDefaultName().equals(elementQName)) {
+					if (selProdDef.getName().equals(elementQName)) {
 						selected = true;
 					}
 				}
@@ -441,7 +441,7 @@ public class PrismDomProcessor {
 		if (typeName == null) {
 			return null;
 		}
-		PrismPropertyDefinition propDef = new PrismPropertyDefinition(elementName, elementName, typeName, prismContext);
+		PrismPropertyDefinition propDef = new PrismPropertyDefinition(elementName, typeName, prismContext);
 		propDef.setMaxOccurs(maxOccurs);
 		propDef.setDynamic(true);
 		return propDef;
@@ -479,7 +479,7 @@ public class PrismDomProcessor {
 		if (typeName == null) {
 			return null;
 		}
-		PrismPropertyDefinition propDef = new PrismPropertyDefinition(elementName, elementName, typeName, prismContext);
+		PrismPropertyDefinition propDef = new PrismPropertyDefinition(elementName, typeName, prismContext);
 		propDef.setMaxOccurs(maxOccurs);
 		propDef.setDynamic(true);
 		return propDef;

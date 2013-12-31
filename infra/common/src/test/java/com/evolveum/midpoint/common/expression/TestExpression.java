@@ -103,7 +103,7 @@ public class TestExpression {
     	ExpressionType expressionType = expressionTypeElement.getValue();
     	
     	PrismPropertyDefinition<Boolean> outputDefinition = new PrismPropertyDefinition<Boolean>(ExpressionConstants.OUTPUT_ELMENT_NAME,
-				ExpressionConstants.OUTPUT_ELMENT_NAME, DOMUtil.XSD_BOOLEAN, prismContext);
+				DOMUtil.XSD_BOOLEAN, prismContext);
 		Expression<PrismPropertyValue<Boolean>> expression = expressionFactory.makeExpression(expressionType, outputDefinition , TEST_NAME, result);
 		
 		Map<QName, Object> variables = new HashMap<QName, Object>();

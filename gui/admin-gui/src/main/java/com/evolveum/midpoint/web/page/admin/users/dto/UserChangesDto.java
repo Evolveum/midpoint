@@ -131,7 +131,7 @@ public class UserChangesDto implements Serializable {
 							PrismContainerDefinition def = property.getDefinition();
 
 							PrismPropertyDefinition propertyDef = new PrismPropertyDefinition(def.getName(),
-									def.getDefaultName(), def.getTypeName(), def.getPrismContext());
+									def.getTypeName(), def.getPrismContext());
 							PropertyDelta propertyDelta = new PropertyDelta(propertyDef);
 							propertyDelta.addValuesToAdd(PrismContainerValue.cloneCollection(property
 									.getValues()));

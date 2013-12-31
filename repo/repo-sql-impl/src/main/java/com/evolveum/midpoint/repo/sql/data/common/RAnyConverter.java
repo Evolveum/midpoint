@@ -256,7 +256,7 @@ public class RAnyConverter {
         ItemDefinition def;
         switch (value.getValueType()) {
             case PROPERTY:
-                def = new PrismPropertyDefinition(value.getName(), value.getName(),
+                def = new PrismPropertyDefinition(value.getName(),
                         value.getType(), prismContext);
                 break;
             case CONTAINER:
@@ -266,7 +266,7 @@ public class RAnyConverter {
                 //todo implement
                 throw new UnsupportedOperationException("Not implemented yet.");
             case REFERENCE:
-                def = new PrismReferenceDefinition(value.getName(), value.getName(),
+                def = new PrismReferenceDefinition(value.getName(),
                         value.getType(), prismContext);
                 break;
             default:

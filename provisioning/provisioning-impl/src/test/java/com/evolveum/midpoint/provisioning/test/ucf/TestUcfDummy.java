@@ -337,8 +337,6 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		
 		assertEquals("Unexpected number of object class definitions", 1, resourceSchema.getObjectClassDefinitions().size());
 		
-		assertEquals("Unexpected object class ", new QName(resource.asObjectable().getNamespace(), "accountObjectClass"), resourceSchema.getObjectClassDefinitions().iterator().next().getDefaultName());
-		
 		display("RESOURCE SCHEMA DEFINITION" + resourceSchema.getDefinitions().iterator().next().getTypeName());
 //		dummyResourceCtl.assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType);
 //		

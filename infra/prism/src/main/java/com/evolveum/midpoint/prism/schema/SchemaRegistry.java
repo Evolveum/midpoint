@@ -859,7 +859,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 	}
 
 	public static ItemDefinition createDefaultItemDefinition(QName itemName, PrismContext prismContext) {
-		PrismPropertyDefinition propDef = new PrismPropertyDefinition(itemName, itemName, DEFAULT_XSD_TYPE, prismContext);
+		PrismPropertyDefinition propDef = new PrismPropertyDefinition(itemName, DEFAULT_XSD_TYPE, prismContext);
 		// Set it to multi-value to be on the safe side
 		propDef.setMaxOccurs(-1);
 		propDef.setDynamic(true);

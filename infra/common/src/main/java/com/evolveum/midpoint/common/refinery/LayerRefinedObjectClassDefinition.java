@@ -81,10 +81,6 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 		return refinedObjectClassDefinition.getTypeName();
 	}
 
-	public QName getDefaultName() {
-		return refinedObjectClassDefinition.getDefaultName();
-	}
-
 	public void setTypeName(QName typeName) {
 		refinedObjectClassDefinition.setTypeName(typeName);
 	}
