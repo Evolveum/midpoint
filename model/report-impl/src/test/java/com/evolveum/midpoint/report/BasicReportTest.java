@@ -29,6 +29,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Scanner;
 
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +39,7 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -47,8 +49,11 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.PagingConvertor;
@@ -57,8 +62,12 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
+import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
+import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -76,10 +85,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrientationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportFieldConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportParameterConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportTemplateStyleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -98,22 +109,28 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 			.getName() + ".";
 	private static final String GET_REPORT = CLASS_NAME_WITH_DOT
 			+ "getReport";
+	private static final String GET_REPORT_OUTPUT = CLASS_NAME_WITH_DOT
+			+ "getReportOutput";
 	private static final String CREATE_REPORT = CLASS_NAME_WITH_DOT
 			+ "test001CreateReport";
 	private static final String CREATE_REPORT_FROM_FILE = CLASS_NAME_WITH_DOT
 			+ "test002CreateReportFromFile";
-	private static final String COPY_REPORT_WITHOUT_JRXML = CLASS_NAME_WITH_DOT
-			+ "test003CopyReportWithoutJRXML";
+	private static final String COPY_REPORT_WITHOUT_DESIGN = CLASS_NAME_WITH_DOT
+			+ "test003CopyReportWithoutDesign";
 	private static final String RUN_REPORT = CLASS_NAME_WITH_DOT
 			+ "test004RunReport";
+	private static final String PARSE_REPORT = CLASS_NAME_WITH_DOT
+			+ "test005ParseReport";
+	private static final String RUN_TASK = CLASS_NAME_WITH_DOT
+			+ "test006RunTask";
 	private static final String COUNT_REPORT = CLASS_NAME_WITH_DOT
-			+ "test005CountReport";
+			+ "test007CountReport";
 	private static final String SEARCH_REPORT = CLASS_NAME_WITH_DOT
-			+ "test006SearchReport";
+			+ "test008SearchReport";
 	private static final String MODIFY_REPORT = CLASS_NAME_WITH_DOT
-			+ "test007ModifyReport";
+			+ "test009ModifyReport";
 	private static final String DELETE_REPORT = CLASS_NAME_WITH_DOT
-			+ "test008DeleteReport";
+			+ "test010DeleteReport";
 	private static final Trace LOGGER = TraceManager
 			.getTrace(BasicReportTest.class);
 
@@ -122,11 +139,9 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	private static final File COMMON_DIR = new File("src/test/resources/common");
 	
 	private static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR + "/system-configuration.xml");
-	
-	protected static final String USER_ADMINISTRATOR_FILENAME = COMMON_DIR + "/user-administrator.xml";
-	protected static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
-	protected static final String USER_ADMINISTRATOR_USERNAME = "administrator";
-	
+	private static final File USER_ADMINISTRATOR_FILE = new File(COMMON_DIR + "/user-administrator.xml");
+	private static final File TASK_REPORT_FILE = new File(COMMON_DIR + "/task-report.xml");  
+	private static final File TEST_REPORT_WITHOUT_DESIGN_FILE = new File(REPORTS_DIR + "/report-test-without-design.xml");
 	private static final File TEST_REPORT_FILE = new File(REPORTS_DIR + "/report-test.xml");
 	private static final File REPORT_DATASOURCE_TEST = new File(REPORTS_DIR + "/reportDataSourceTest.jrxml");
 	private static final File STYLE_TEMPLATE_DEFAULT = new File(STYLES_DIR	+ "/midpoint_base_styles.jrtx");
@@ -134,14 +149,8 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	private static final String REPORT_OID_001 = "00000000-3333-3333-0000-100000000001";
 	private static final String REPORT_OID_002 = "00000000-3333-3333-0000-100000000002";
 	private static final String REPORT_OID_TEST = "00000000-3333-3333-TEST-10000000000";
-	/*
-	 * private static final String REPORT_OID_RECONCILIATION =
-	 * "00000000-3333-3333-0000-100000000003"; private static final String
-	 * RESOURCE_OID = "10000000-0000-0000-0000-000000000003"; private static
-	 * final String RESOURCE_NAME = "Localhost OpenDJ"; private static final
-	 * String INTENT = "default";
-	 */
-
+	private static final String TASK_REPORT_OID = "00000000-3333-3333-TASK-10000000000";
+	
 	@Autowired
 	private PrismContext prismContext;
 
@@ -186,7 +195,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		}
 		
 		// Users
-		userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
+		userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, UserType.class, initResult);
 		//repoAddObjectFromFile(ROLE_SUPERUSER_FILENAME, RoleType.class, initResult);
 	}
     	
@@ -207,6 +216,18 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		result.computeStatus();
 		TestUtil.assertSuccess("getObject(Report) result not success", result);
 		return report;
+	}
+	
+	private List<PrismObject<ReportOutputType>> searchReportOutput(String reportOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+		Task task = taskManager.createTaskInstance(GET_REPORT_OUTPUT);
+        OperationResult result = task.getResult();
+        Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
+        ObjectFilter filter = RefFilter.createReferenceEqual(ReportOutputType.class, ReportOutputType.F_REPORT_REF, prismContext, reportOid);
+        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+		List<PrismObject<ReportOutputType>> reportOutputList = modelService.searchObjects(ReportOutputType.class, query, options, task, result);
+		result.computeStatus();
+		TestUtil.assertSuccess("getObject(Report) result not success", result);
+		return reportOutputList;
 	}
 
 	@Test
@@ -492,11 +513,11 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		
 	}
 	@Test
-	public void test003CopyReportWithoutJRXML() throws Exception {
-		final String TEST_NAME = "test003CopyReportWithoutJRXML";
+	public void test003CopyReportWithoutDesign() throws Exception {
+		final String TEST_NAME = "test003CopyReportWithoutDesign";
         TestUtil.displayTestTile(this, TEST_NAME);
 
-		Task task = taskManager.createTaskInstance(COPY_REPORT_WITHOUT_JRXML);
+		Task task = taskManager.createTaskInstance(COPY_REPORT_WITHOUT_DESIGN);
 		OperationResult result = task.getResult();
 
 		ReportType reportType = getReport(REPORT_OID_001).asObjectable();
@@ -504,6 +525,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		reportType = reportType.clone();
 		reportType.setOid(REPORT_OID_002);
 		reportType.setReportTemplate(null);
+		reportType.setReportTemplateStyle(null);
 		reportType.setName(new PolyStringType("Test report - Datasource2"));
 
 		ObjectDelta<ReportType> objectDelta = ObjectDelta
@@ -532,7 +554,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		OperationResult result = task.getResult();
 		
 		ReportType reportType = getReport(REPORT_OID_TEST).asObjectable();
-        
+		
 		//WHEN 	
 		TestUtil.displayWhen(TEST_NAME);
 		reportManager.runReport(reportType.asPrismObject(), task, result);
@@ -552,111 +574,169 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	}
 
 	@Test
-	public void test005CountReport() throws Exception {
-		final String TEST_NAME = "test005CountReport";
-        TestUtil.displayTestTile(this, TEST_NAME);
-
-		Task task = taskManager.createTaskInstance(COUNT_REPORT);
-		OperationResult result = task.getResult();
-
-		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions
-				.createCollection(GetOperationOptions.createRaw());
-
-		//WHEN 	
-		TestUtil.displayWhen(TEST_NAME);
-		int count = modelService.countObjects(ReportType.class, null, options, task, result);
-		
-		//THEN
-		TestUtil.displayThen(TEST_NAME);
-        result.computeStatus();
-        display(result);
-        TestUtil.assertSuccess(result);
-        assertEquals("Unexpected number of reports", 3, count);
-	}
-
-	@Test
-	public void test006SearchReport() throws Exception {
-		final String TEST_NAME = "test006SearchReport";
-        TestUtil.displayTestTile(this, TEST_NAME);
-
-		Task task = taskManager.createTaskInstance(SEARCH_REPORT);
-		OperationResult result = task.getResult();
-		
-		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions
-				.createCollection(GetOperationOptions.createRaw());
-
-		//WHEN 	
-		TestUtil.displayWhen(TEST_NAME);
-		List<PrismObject<ReportType>> listReportType = modelService.searchObjects(ReportType.class, null, options, task, result);
-		
-		//THEN
-		TestUtil.displayThen(TEST_NAME);
-		result.computeStatus();
-		display(result);
-		TestUtil.assertSuccess(result);		
-		assertEquals("Unexpected number of searching reports", 3, listReportType.size());
-	}
-
-	@Test
-	public void test007ModifyReport() throws Exception {
-		final String TEST_NAME = "test007ModifyReport";
+	public void test005ParseReport() throws Exception {
+		final String TEST_NAME = "test005ParseReport";
         TestUtil.displayTestTile(this, TEST_NAME);
 		
-		Task task = taskManager.createTaskInstance(MODIFY_REPORT);
+		// GIVEN
+        Task task = createTask(PARSE_REPORT);
 		OperationResult result = task.getResult();
-
-		ReportType reportType = getReport(REPORT_OID_001).asObjectable();
-
-		reportType.setReportExport(ExportType.CSV);
-
-		Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-		PrismObject<ReportType> reportTypeOld = modelService.getObject(
-				ReportType.class, REPORT_OID_001, null, task, result);
-		deltas.add(reportTypeOld.diff(reportType.asPrismObject()));
-
-		//WHEN 	
-		TestUtil.displayWhen(TEST_NAME);
-		modelService.executeChanges(deltas, null, task, result);
 		
-		//THEN
-		TestUtil.displayThen(TEST_NAME);
-		result.computeStatus();
-		display(result);
-		TestUtil.assertSuccess(result);	
-		
-		reportType = getReport(REPORT_OID_001).asObjectable();
-		assertEquals("Unexpected export type", ExportType.CSV, reportType.getReportExport());
+        ReportOutputType reportOutputType = searchReportOutput(REPORT_OID_TEST).get(0).asObjectable();
+        LOGGER.trace("read report output {}", reportOutputType);
+        
+        Scanner scanner = new Scanner(new File(reportOutputType.getReportFilePath()));
+        LOGGER.trace("read report file {}", reportOutputType);
+        scanner.useDelimiter(",");
+        while(scanner.hasNext()){
+            LOGGER.trace(scanner.next()+"|");
+        }
+        scanner.close();
 	}
 	
-	/**
-	 * Delete report type.
-	 */
+	
 	@Test
-	public void test008DeleteReport() throws Exception {
-		
-		final String TEST_NAME = "test008DeleteReport";
+	public void test006RunTask() throws Exception {
+		final String TEST_NAME = "test006RunTask";
         TestUtil.displayTestTile(this, TEST_NAME);
-
-		Task task = taskManager.createTaskInstance(DELETE_REPORT);
+       
+        Task task = taskManager.createTaskInstance(RUN_TASK);
 		OperationResult result = task.getResult();
-
-		ObjectDelta<ReportType> delta = ObjectDelta.createDeleteDelta(ReportType.class, REPORT_OID_001, prismContext);
-		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
+		 
+        PrismObject<? extends Objectable> reportType=  prismContext.getPrismDomProcessor().parseObject(TEST_REPORT_WITHOUT_DESIGN_FILE);
+		 
+		ObjectDelta<ReportType> objectDelta =
+		ObjectDelta.createAddDelta((PrismObject<ReportType>) reportType);
+		Collection<ObjectDelta<? extends ObjectType>> deltas =
+		MiscSchemaUtil.createCollection(objectDelta);
 		
-		// WHEN
+		//WHEN 	
+		TestUtil.displayWhen(TEST_NAME);
 		modelService.executeChanges(deltas, null, task, result);
 		
-		// THEN
-        result.computeStatus();
-        TestUtil.assertSuccess(result);
+		LOGGER.trace("import report task {}", TASK_REPORT_FILE.getPath());
+        importObjectFromFile(TASK_REPORT_FILE);
 		
-		try {
-        	PrismObject<ReportType> report = getReport(REPORT_OID_001);
-        	AssertJUnit.fail("Report type was not deleted");
-        } catch (ObjectNotFoundException e) {
-        	// This is expected
-        }	
-		
+        // THEN
+        TestUtil.displayThen(TEST_NAME);
+        LOGGER.trace("run report task {}", TASK_REPORT_OID);
+        waitForTaskFinish(TASK_REPORT_OID, false);
+        
+        // Task result
+        PrismObject<TaskType> reportTaskAfter = getTask(TASK_REPORT_OID);
+        OperationResultType reportTaskResult = reportTaskAfter.asObjectable().getResult();
+        display("Report task result", reportTaskResult);
+        TestUtil.assertSuccess(reportTaskResult);
 	}
+
+
+		@Test
+		public void test007CountReport() throws Exception {
+			final String TEST_NAME = "test007CountReport";
+	        TestUtil.displayTestTile(this, TEST_NAME);
+
+			Task task = taskManager.createTaskInstance(COUNT_REPORT);
+			OperationResult result = task.getResult();
+
+			Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions
+					.createCollection(GetOperationOptions.createRaw());
+
+			//WHEN 	
+			TestUtil.displayWhen(TEST_NAME);
+			int count = modelService.countObjects(ReportType.class, null, options, task, result);
+			
+			//THEN
+			TestUtil.displayThen(TEST_NAME);
+	        result.computeStatus();
+	        display(result);
+	        TestUtil.assertSuccess(result);
+	        assertEquals("Unexpected number of reports", 4, count);
+		}
+
+		@Test
+		public void test008SearchReport() throws Exception {
+			final String TEST_NAME = "test008SearchReport";
+	        TestUtil.displayTestTile(this, TEST_NAME);
+
+			Task task = taskManager.createTaskInstance(SEARCH_REPORT);
+			OperationResult result = task.getResult();
+			
+			Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions
+					.createCollection(GetOperationOptions.createRaw());
+
+			//WHEN 	
+			TestUtil.displayWhen(TEST_NAME);
+			List<PrismObject<ReportType>> listReportType = modelService.searchObjects(ReportType.class, null, options, task, result);
+			
+			//THEN
+			TestUtil.displayThen(TEST_NAME);
+			result.computeStatus();
+			display(result);
+			TestUtil.assertSuccess(result);		
+			assertEquals("Unexpected number of searching reports", 4, listReportType.size());
+		}
+
+		@Test
+		public void test009ModifyReport() throws Exception {
+			final String TEST_NAME = "test009ModifyReport";
+	        TestUtil.displayTestTile(this, TEST_NAME);
+			
+			Task task = taskManager.createTaskInstance(MODIFY_REPORT);
+			OperationResult result = task.getResult();
+
+			ReportType reportType = getReport(REPORT_OID_001).asObjectable();
+
+			reportType.setReportExport(ExportType.CSV);
+
+			Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+			PrismObject<ReportType> reportTypeOld = modelService.getObject(
+					ReportType.class, REPORT_OID_001, null, task, result);
+			deltas.add(reportTypeOld.diff(reportType.asPrismObject()));
+
+			//WHEN 	
+			TestUtil.displayWhen(TEST_NAME);
+			modelService.executeChanges(deltas, null, task, result);
+			
+			//THEN
+			TestUtil.displayThen(TEST_NAME);
+			result.computeStatus();
+			display(result);
+			TestUtil.assertSuccess(result);	
+			
+			reportType = getReport(REPORT_OID_001).asObjectable();
+			assertEquals("Unexpected export type", ExportType.CSV, reportType.getReportExport());
+		}
+		
+		/**
+		 * Delete report type.
+		 */
+		@Test
+		public void test010DeleteReport() throws Exception {
+			
+			final String TEST_NAME = "test010DeleteReport";
+	        TestUtil.displayTestTile(this, TEST_NAME);
+
+			Task task = taskManager.createTaskInstance(DELETE_REPORT);
+			OperationResult result = task.getResult();
+
+			ObjectDelta<ReportType> delta = ObjectDelta.createDeleteDelta(ReportType.class, REPORT_OID_001, prismContext);
+			Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
+			
+			// WHEN
+			modelService.executeChanges(deltas, null, task, result);
+			
+			// THEN
+	        result.computeStatus();
+	        TestUtil.assertSuccess(result);
+			
+			try {
+	        	PrismObject<ReportType> report = getReport(REPORT_OID_001);
+	        	AssertJUnit.fail("Report type was not deleted");
+	        } catch (ObjectNotFoundException e) {
+	        	// This is expected
+	        }	
+			
+		}
+		
 
 }

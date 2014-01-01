@@ -394,10 +394,10 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 		    for (ItemDelta itemMod : userPrimaryDelta.getModifications()) {
 		        if (itemMod.getValuesToDelete() != null) {
 		            Item property = userOld.findItem(itemMod.getPath());
-		            assertNotNull("Deleted item " + itemMod.getParentPath() + "/" + itemMod.getName() + " not found in user", property);
+		            assertNotNull("Deleted item " + itemMod.getParentPath() + "/" + itemMod.getElementName() + " not found in user", property);
 		            for (Object valueToDelete : itemMod.getValuesToDelete()) {
 		                if (!property.containsRealValue((PrismValue) valueToDelete)) {
-		                    display("Deleted value " + valueToDelete + " is not in user item " + itemMod.getParentPath() + "/" + itemMod.getName());
+		                    display("Deleted value " + valueToDelete + " is not in user item " + itemMod.getParentPath() + "/" + itemMod.getElementName());
 		                    display("Deleted value", valueToDelete);
 		                    display("HASHCODE: " + valueToDelete.hashCode());
 		                    for (Object value : property.getValues()) {
@@ -405,7 +405,7 @@ public class AbstractInternalModelIntegrationTest extends AbstractModelIntegrati
 		                        display("EQUALS: " + valueToDelete.equals(value));
 		                        display("HASHCODE: " + value.hashCode());
 		                    }
-		                    AssertJUnit.fail("Deleted value " + valueToDelete + " is not in user item " + itemMod.getParentPath() + "/" + itemMod.getName());
+		                    AssertJUnit.fail("Deleted value " + valueToDelete + " is not in user item " + itemMod.getParentPath() + "/" + itemMod.getElementName());
 		                }
 		            }
 		        }

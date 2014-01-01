@@ -529,12 +529,12 @@ public class AccountValuesProcessor {
 			return formatIterationTokenDefault(iteration);
 		}
 		PrismPropertyDefinition<String> outputDefinition = new PrismPropertyDefinition<String>(ExpressionConstants.VAR_ITERATION_TOKEN,
-				ExpressionConstants.VAR_ITERATION_TOKEN, DOMUtil.XSD_STRING, prismContext);
+				DOMUtil.XSD_STRING, prismContext);
 		Expression<PrismPropertyValue<String>> expression = expressionFactory.makeExpression(tokenExpressionType, outputDefinition , "iteration token expression in "+accountContext.getHumanReadableName(), result);
 		
 		Collection<Source<?>> sources = new ArrayList<Source<?>>();
 		PrismPropertyDefinition<Integer> inputDefinition = new PrismPropertyDefinition<Integer>(ExpressionConstants.VAR_ITERATION,
-				ExpressionConstants.VAR_ITERATION, DOMUtil.XSD_INT, prismContext);
+				DOMUtil.XSD_INT, prismContext);
 		inputDefinition.setMaxOccurs(1);
 		PrismProperty<Integer> input = inputDefinition.instantiate();
 		input.add(new PrismPropertyValue<Integer>(iteration));
@@ -600,7 +600,7 @@ public class AccountValuesProcessor {
 			return true;
 		}
 		PrismPropertyDefinition<Boolean> outputDefinition = new PrismPropertyDefinition<Boolean>(ExpressionConstants.OUTPUT_ELMENT_NAME,
-				ExpressionConstants.OUTPUT_ELMENT_NAME, DOMUtil.XSD_BOOLEAN, prismContext);
+				DOMUtil.XSD_BOOLEAN, prismContext);
 		Expression<PrismPropertyValue<Boolean>> expression = expressionFactory.makeExpression(expressionType, outputDefinition , desc, result);
 		
 		Map<QName, Object> variables = createExpressionVariables(context, accountContext);
@@ -646,9 +646,9 @@ public class AccountValuesProcessor {
 			ResourceAttributeContainer attributesContainer = ShadowUtil.getAttributesContainer(accountToAdd);
 			if (attributesContainer != null) {
 				for (ResourceAttribute<?> attribute: attributesContainer.getAttributes()) {
-					RefinedAttributeDefinition rAttrDef = rAccountDef.findAttributeDefinition(attribute.getName());
+					RefinedAttributeDefinition rAttrDef = rAccountDef.findAttributeDefinition(attribute.getElementName());
 					if (!rAttrDef.isTolerant()) {
-						throw new PolicyViolationException("Attempt to add object with non-tolerant attribute "+attribute.getName()+" in "+
+						throw new PolicyViolationException("Attempt to add object with non-tolerant attribute "+attribute.getElementName()+" in "+
 								"account "+accountContext.getResourceShadowDiscriminator()+" during "+activityDescription);
 					}
 				}
@@ -657,9 +657,9 @@ public class AccountValuesProcessor {
 			for(ItemDelta<?> modification: primaryDelta.getModifications()) {
 				if (modification.getParentPath().equals(SchemaConstants.PATH_ATTRIBUTES)) {
 					PropertyDelta<?> attrDelta = (PropertyDelta<?>) modification;
-					RefinedAttributeDefinition rAttrDef = rAccountDef.findAttributeDefinition(attrDelta.getName());
+					RefinedAttributeDefinition rAttrDef = rAccountDef.findAttributeDefinition(attrDelta.getElementName());
 					if (!rAttrDef.isTolerant()) {
-						throw new PolicyViolationException("Attempt to modify non-tolerant attribute "+attrDelta.getName()+" in "+
+						throw new PolicyViolationException("Attempt to modify non-tolerant attribute "+attrDelta.getElementName()+" in "+
 								"account "+accountContext.getResourceShadowDiscriminator()+" during "+activityDescription);
 					}
 				}

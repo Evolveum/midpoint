@@ -19,21 +19,10 @@ package com.evolveum.midpoint.prism;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
 import java.lang.reflect.Array;
@@ -111,7 +100,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
     
     public PrismPropertyValue<T> getValue() {
     	if (!isSingleValue()) {
-    		throw new IllegalStateException("Attempt to get single value from property " + getName()
+    		throw new IllegalStateException("Attempt to get single value from property " + getElementName()
                     + " with multiple values");
     	}
         List<PrismPropertyValue<T>> values = getValues();
@@ -177,7 +166,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
 		if (type.isAssignableFrom(value.getClass())) {
 			return (X)value;
 		} else {
-			throw new ClassCastException("Cannot cast value of property "+getName()+" which is of type "+value.getClass()+" to "+type);
+			throw new ClassCastException("Cannot cast value of property "+ getElementName()+" which is of type "+value.getClass()+" to "+type);
 		}
 	}
 
@@ -199,12 +188,12 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
     public <X> PrismPropertyValue<X> getValue(Class<X> type) {
     	if (getDefinition() != null) {
     		if (getDefinition().isMultiValue()) {
-    			throw new IllegalStateException("Attempt to get single value from property " + name
+    			throw new IllegalStateException("Attempt to get single value from property " + elementName
                         + " with multiple values");
     		}
     	}
         if (getValues().size() > 1) {
-            throw new IllegalStateException("Attempt to get single value from property " + name
+            throw new IllegalStateException("Attempt to get single value from property " + elementName
                     + " with multiple values");
         }
         if (getValues().isEmpty()) {
@@ -244,7 +233,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
     	while (iterator.hasNext()) {
     		PrismPropertyValue<T> pValue = iterator.next();
     		if (pValue.equalsRealValue(pValueToAdd)) {
-    			LOGGER.warn("Adding value to property "+getName()+" that already exists (overwriting), value: "+pValueToAdd);
+    			LOGGER.warn("Adding value to property "+ getElementName()+" that already exists (overwriting), value: "+pValueToAdd);
     			iterator.remove();
     		}
     	}
@@ -282,7 +271,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
     		}
     	}
     	if (!found) {
-    		LOGGER.warn("Deleting value of property "+getName()+" that does not exist (skipping), value: "+pValueToDelete);
+    		LOGGER.warn("Deleting value of property "+ getElementName()+" that does not exist (skipping), value: "+pValueToDelete);
     	}
 
         return found;
@@ -350,7 +339,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
 			return this;
 		}
 		if (!isSingleValue()) {
-    		throw new IllegalStateException("Attempt to resolve sub-path '"+path+"' on multi-value property " + getName());
+    		throw new IllegalStateException("Attempt to resolve sub-path '"+path+"' on multi-value property " + getElementName());
     	}
 		PrismPropertyValue<T> value = getValue();
 		return value.find(path);
@@ -362,7 +351,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
 			return new PartiallyResolvedValue<X>((Item<X>)this, null);
 		}
 		if (!isSingleValue()) {
-    		throw new IllegalStateException("Attempt to resolve sub-path '"+path+"' on multi-value property " + getName());
+    		throw new IllegalStateException("Attempt to resolve sub-path '"+path+"' on multi-value property " + getElementName());
     	}
 		PrismPropertyValue<T> value = getValue();
 		return value.findPartial(path);
@@ -393,7 +382,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
 
 	@Override
     public PrismProperty<T> clone() {
-        PrismProperty<T> clone = new PrismProperty<T>(getName(), getDefinition(), prismContext);
+        PrismProperty<T> clone = new PrismProperty<T>(getElementName(), getDefinition(), prismContext);
         copyValues(clone);
         return clone;
     }
@@ -445,7 +434,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
 
 	@Override
     public String toString() {
-        return getDebugDumpClassName() + "(" + PrettyPrinter.prettyPrint(getName()) + "):" + getValues();
+        return getDebugDumpClassName() + "(" + PrettyPrinter.prettyPrint(getElementName()) + "):" + getValues();
     }
 
     @Override
@@ -454,7 +443,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
         for (int i = 0; i < indent; i++) {
             sb.append(INDENT_STRING);
         }
-        sb.append(getDebugDumpClassName()).append(": ").append(PrettyPrinter.prettyPrint(getName())).append(" = ");
+        sb.append(getDebugDumpClassName()).append(": ").append(PrettyPrinter.prettyPrint(getElementName())).append(" = ");
         if (getValues() == null) {
             sb.append("null");
         } else {
@@ -483,7 +472,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
     
     public String toHumanReadableString() {
     	StringBuilder sb = new StringBuilder();
-    	sb.append(PrettyPrinter.prettyPrint(getName())).append(" = ");
+    	sb.append(PrettyPrinter.prettyPrint(getElementName())).append(" = ");
     	if (getValues() == null) {
             sb.append("null");
         } else {

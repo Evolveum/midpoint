@@ -42,13 +42,13 @@ public class ComplexTypeDefinition extends Definition {
 	private QName extensionForType;
 	private Class<?> compileTimeClass;
 
-	public ComplexTypeDefinition(QName defaultName, QName typeName, PrismContext prismContext) {
-		super(defaultName, typeName, prismContext);
+	public ComplexTypeDefinition(QName typeName, PrismContext prismContext) {
+		super(typeName, prismContext);
 		itemDefinitions = new ArrayList<ItemDefinition>();
 	}
 	
-	public ComplexTypeDefinition(QName defaultName, QName typeName, PrismContext prismContext, Class<?> compileTimeClass) {
-		super(defaultName, typeName, prismContext);
+	public ComplexTypeDefinition(QName typeName, PrismContext prismContext, Class<?> compileTimeClass) {
+		super(typeName, prismContext);
 		itemDefinitions = new ArrayList<ItemDefinition>();
 		this.compileTimeClass = compileTimeClass;
 	}
@@ -143,7 +143,7 @@ public class ComplexTypeDefinition extends Definition {
 	}
 		
 	public PrismPropertyDefinition createPropertyDefinifion(QName name, QName typeName) {
-		PrismPropertyDefinition propDef = new PrismPropertyDefinition(name, name, typeName, prismContext);
+		PrismPropertyDefinition propDef = new PrismPropertyDefinition(name, typeName, prismContext);
 		itemDefinitions.add(propDef);
 		return propDef;
 	}
@@ -152,7 +152,7 @@ public class ComplexTypeDefinition extends Definition {
 	// TODO: maybe check if the name is in different namespace
 	// TODO: maybe create entirely new concept of property reference?
 	public PrismPropertyDefinition createPropertyDefinifion(QName name) {
-		PrismPropertyDefinition propDef = new PrismPropertyDefinition(name, name, null, prismContext);
+		PrismPropertyDefinition propDef = new PrismPropertyDefinition(name, null, prismContext);
 		itemDefinitions.add(propDef);
 		return propDef;
 	}
@@ -236,7 +236,7 @@ public class ComplexTypeDefinition extends Definition {
 	 * Shallow clone.
 	 */
 	public ComplexTypeDefinition clone() {
-		ComplexTypeDefinition clone = new ComplexTypeDefinition(this.defaultName, this.typeName, prismContext);
+		ComplexTypeDefinition clone = new ComplexTypeDefinition(this.typeName, prismContext);
 		copyDefinitionData(clone);
 		return clone;
 	}

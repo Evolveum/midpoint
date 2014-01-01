@@ -131,7 +131,7 @@ public class TestMigrator {
 		IntegrationTestTools.display("XML textual diff", StringUtils.join(diffLines, '\n'));
 
 		PrismAsserts.assertEquivalent("Unexpected migration result for "+fileOld.getName(), expectedObject, objectNew);
-		assertEquals("Unexpected element name for "+fileOld.getName(), expectedObject.getName(), objectNew.getName());
+		assertEquals("Unexpected element name for "+fileOld.getName(), expectedObject.getElementName(), objectNew.getElementName());
 	}
 	
 	private Migrator createMigrator() {

@@ -583,7 +583,7 @@ public class LensProjectionContext<O extends ObjectType> extends LensElementCont
             if (objectToAdd != null) {
                 PrismObjectDefinition<O> objectDefinition = objectToAdd.getDefinition();
                 // TODO: remove constructor, use some factory method instead
-                base = new PrismObject<O>(objectToAdd.getName(), objectDefinition, getNotNullPrismContext());
+                base = new PrismObject<O>(objectToAdd.getElementName(), objectDefinition, getNotNullPrismContext());
                 base = syncDelta.computeChangedObject(base);
             }
         }

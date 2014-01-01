@@ -91,11 +91,11 @@ public class NodeRegistrar {
         }
 
         for (PrismObject<NodeType> n : nodes) {
-            LOGGER.trace("Removing existing NodeType with oid = {}, name = {}", n.getOid(), n.getName());
+            LOGGER.trace("Removing existing NodeType with oid = {}, name = {}", n.getOid(), n.getElementName());
             try {
                 getRepositoryService().deleteObject(NodeType.class, n.getOid(), result);
             } catch (ObjectNotFoundException e) {
-                LoggingUtils.logException(LOGGER, "Cannot remove NodeType with oid = {}, name = {}, because it does not exist.", e, n.getOid(), n.getName());
+                LoggingUtils.logException(LOGGER, "Cannot remove NodeType with oid = {}, name = {}, because it does not exist.", e, n.getOid(), n.getElementName());
                 // continue, because the error is not that severe (we hope so)
             }
         }

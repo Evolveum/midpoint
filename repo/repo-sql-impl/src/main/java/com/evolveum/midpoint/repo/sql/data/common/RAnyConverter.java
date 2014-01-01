@@ -76,7 +76,7 @@ public class RAnyConverter {
 
     Set<RAnyValue> convertToRValue(Item item) throws DtoTranslationException {
         Validate.notNull(item, "Object for converting must not be null.");
-        Validate.notNull(item.getDefinition(), "Item '" + item.getName() + "' without definition can't be saved.");
+        Validate.notNull(item.getDefinition(), "Item '" + item.getElementName() + "' without definition can't be saved.");
 
         Set<RAnyValue> rValues = new HashSet<RAnyValue>();
         try {
@@ -256,7 +256,7 @@ public class RAnyConverter {
         ItemDefinition def;
         switch (value.getValueType()) {
             case PROPERTY:
-                def = new PrismPropertyDefinition(value.getName(), value.getName(),
+                def = new PrismPropertyDefinition(value.getName(),
                         value.getType(), prismContext);
                 break;
             case CONTAINER:
@@ -266,7 +266,7 @@ public class RAnyConverter {
                 //todo implement
                 throw new UnsupportedOperationException("Not implemented yet.");
             case REFERENCE:
-                def = new PrismReferenceDefinition(value.getName(), value.getName(),
+                def = new PrismReferenceDefinition(value.getName(),
                         value.getType(), prismContext);
                 break;
             default:

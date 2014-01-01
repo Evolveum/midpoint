@@ -57,7 +57,7 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
     private QName matchingRuleQName = null;
 
     protected RefinedAttributeDefinition(ResourceAttributeDefinition attrDef, PrismContext prismContext) {
-        super(attrDef.getName(), attrDef.getDefaultName(), attrDef.getTypeName(), prismContext);
+        super(attrDef.getName(), attrDef.getTypeName(), prismContext);
         this.attributeDefinition = attrDef;
     }
 
@@ -134,11 +134,6 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
     @Override
     public void setCreate(boolean create) {
         throw new UnsupportedOperationException("Parts of refined attribute are immutable");
-    }
-
-    @Override
-    public QName getDefaultName() {
-        return attributeDefinition.getDefaultName();
     }
 
     @Override

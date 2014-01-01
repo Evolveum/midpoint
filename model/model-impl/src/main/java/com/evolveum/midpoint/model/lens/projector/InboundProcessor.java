@@ -47,11 +47,9 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -428,7 +426,7 @@ public class InboundProcessor {
 		            //simple property comparing if user property exists
 		            PropertyDelta<U> diffDelta = targetUserProperty.diff(sourceProperty);
 		            if (diffDelta != null) {
-		            	diffDelta.setName(ItemPath.getName(targetUserPropertyPath.last()));
+		            	diffDelta.setElementName(ItemPath.getName(targetUserPropertyPath.last()));
 		            	diffDelta.setParentPath(targetUserPropertyPath.allExceptLast());
 		            	outputUserPropertydelta.merge(diffDelta);
 		            }

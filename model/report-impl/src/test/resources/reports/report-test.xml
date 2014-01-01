@@ -213,7 +213,7 @@
        </jasperTemplate>
    </reportTemplateStyle>
    <reportOrientation>landscape</reportOrientation>
-   <reportExport>pdf</reportExport>
+   <reportExport>csv</reportExport>
    <query></query>
    <objectClass>UserType</objectClass>
    <reportField>
@@ -248,12 +248,12 @@
 	</reportField>
 	<reportParameter>
 		<nameParameter>LOGO_PATH</nameParameter>
-		<valueParameter>src\test\resources\reports/logo.jpg</valueParameter>
-		<classTypeParameter>xsd:any</classTypeParameter>
+		<valueParameter>src/test/resources/reports/logo.jpg</valueParameter>
+		<classTypeParameter>xsd:string</classTypeParameter>
 	</reportParameter>
 	<reportParameter>
 		<nameParameter>BaseTemplateStyles</nameParameter>
-		<valueParameter>src\test\resources\styles/midpoint_base_styles.jrtx</valueParameter>
+		<valueParameter>src/test/resources/styles/midpoint_base_styles.jrtx</valueParameter>
 		<classTypeParameter>xsd:string</classTypeParameter>
 	</reportParameter>
 </report>
