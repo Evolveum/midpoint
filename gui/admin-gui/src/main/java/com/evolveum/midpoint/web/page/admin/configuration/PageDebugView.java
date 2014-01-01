@@ -119,10 +119,6 @@ public class PageDebugView extends PageAdminConfiguration {
             String xml = context.getPrismDomProcessor().serializeObjectToString(object);
             dto = new ObjectViewDto(object.getOid(), WebMiscUtil.getName(object), object, xml);
 
-            //save object type category to session storage, used by back button
-            ConfigurationStorage storage = getSessionStorage().getConfiguration();
-            storage.setDebugListCategory(ObjectTypes.getObjectType(object.getCompileTimeClass()));
-
             result.recomputeStatus();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't load object.", ex);

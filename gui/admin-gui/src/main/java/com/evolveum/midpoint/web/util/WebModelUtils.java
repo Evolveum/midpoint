@@ -149,25 +149,41 @@ public class WebModelUtils {
 
     public static <T extends ObjectType> void deleteObject(Class<T> type, String oid, OperationResult result,
                                                            PageBase page) {
-        deleteObject(type, oid, result, null, page, null);
+        deleteObject(type, oid, null, result, page, null);
     }
 
-    public static <T extends ObjectType> void deleteObject(Class<T> type, String oid, OperationResult result,
-                                                           ModelExecuteOptions options,
-                                                           PageBase page, PrismObject<UserType> principal) {
+    public static <T extends ObjectType> void deleteObject(Class<T> type, String oid, ModelExecuteOptions options,
+                                                           OperationResult result, PageBase page) {
+        deleteObject(type, oid, options, result, page, null);
+    }
+
+    public static <T extends ObjectType> void deleteObject(Class<T> type, String oid, ModelExecuteOptions options,
+                                                           OperationResult result, PageBase page,
+                                                           PrismObject<UserType> principal) {
         LOGGER.debug("Deleting {} with oid {}, options {}", new Object[]{type.getSimpleName(), oid, options});
+
+        OperationResult subResult;
+        if (result != null) {
+            subResult = result.createMinorSubresult(OPERATION_DELETE_OBJECT);
+        } else {
+            subResult = new OperationResult(OPERATION_DELETE_OBJECT);
+        }
         try {
             Task task = page.createSimpleTask(result.getOperation(), principal);
 
             ObjectDelta delta = new ObjectDelta(type, ChangeType.DELETE, page.getPrismContext());
             delta.setOid(oid);
 
-            page.getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), options, task, result);
+            page.getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), options, task, subResult);
         } catch (Exception ex) {
-            result.recordFatalError("WebModelUtils.couldntDeleteObject", ex);
+            subResult.recordFatalError("WebModelUtils.couldntDeleteObject", ex);
             LoggingUtils.logException(LOGGER, "Couldn't delete object", ex);
         } finally {
-            result.computeStatus();
+            subResult.computeStatus();
+        }
+
+        if (result == null && WebMiscUtil.showResultInPage(subResult)) {
+            page.showResultInSession(subResult);
         }
 
         LOGGER.debug("Deleted with result {}", new Object[]{result});

@@ -35,22 +35,25 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
-import com.evolveum.midpoint.web.component.button.ButtonType;
 import com.evolveum.midpoint.web.component.data.RepositoryObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.data.column.*;
+import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.InlineMenuHeaderColumn;
+import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
+import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.DebugButtonPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.configuration.component.PageDebugDownloadBehaviour;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugConfDialogDto;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugObjectItem;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugSearchDto;
 import com.evolveum.midpoint.web.session.ConfigurationStorage;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
@@ -78,31 +81,22 @@ import java.util.*;
 
 /**
  * @author lazyman
- * @author mserbak
  */
 
 public class PageDebugList extends PageAdminConfiguration {
 
-    private static final long serialVersionUID = 532615968316031794L;
-
     private static final Trace LOGGER = TraceManager.getTrace(PageDebugList.class);
     private static final String DOT_CLASS = PageDebugList.class.getName() + ".";
-    private static final String OPERATION_DELETE_OBJECT = DOT_CLASS + "deleteObject";
     private static final String OPERATION_DELETE_OBJECTS = DOT_CLASS + "deleteObjects";
 
     private static final String OPERATION_SEARCH_ITERATIVE_TASK = DOT_CLASS + "searchIterativeTask";
     private static final String OPERATION_LAXATIVE_DELETE = DOT_CLASS + "laxativeDelete";
 
     private static final String ID_CONFIRM_DELETE_POPUP = "confirmDeletePopup";
-    private static final String ID_CONFIRM_LAXATIVE_OPERATION = "confirmLaxativeOperation";
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_ZIP_CHECK = "zipCheck";
-    private static final String ID_SEARCH = "search";
-    private static final String ID_CATEGORY = "category";
     private static final String ID_TABLE = "table";
     private static final String ID_CHOICE = "choice";
-    private static final String ID_DELETE_SELECTED = "deleteSelected";
-    private static final String ID_LAXATIVE_BUTTON = "laxativeButton";
     private static final String ID_EXPORT = "export";
     private static final String ID_EXPORT_ALL = "exportAll";
     private static final String ID_SEARCH_FORM = "searchForm";
@@ -116,11 +110,10 @@ public class PageDebugList extends PageAdminConfiguration {
     private static final String PRINT_LABEL_HTML_NEWLINE = "<br>";
     private static final String PRINT_LABEL_ADMINISTRATOR_NOT_DELETED = "(User 'Administrator' will not be deleted)";
 
+    // search form model;
     private IModel<DebugSearchDto> searchModel;
-
-    private boolean deleteSelected; //todo what is this used for?
-    private IModel<ObjectTypes> choice = null;
-    private DebugObjectItem object = null; //todo what is this used for?
+    // confirmation dialog model
+    private IModel<DebugConfDialogDto> confDialogModel = new Model<DebugConfDialogDto>();
 
     private int objectsToDelete = 0;
     private int objectsDeleted = 0;
@@ -130,11 +123,8 @@ public class PageDebugList extends PageAdminConfiguration {
 
             @Override
             protected DebugSearchDto load() {
-                DebugSearchDto dto = new DebugSearchDto();
                 ConfigurationStorage storage = getSessionStorage().getConfiguration();
-                dto.setType(storage.getDebugListCategory());
-
-                return dto;
+                return storage.getDebugSearchDto();
             }
         };
 
@@ -149,94 +139,32 @@ public class PageDebugList extends PageAdminConfiguration {
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
                 close(target);
-                //todo wtf
-                if (deleteSelected) {
-                    deleteSelected = false;
-                    deleteSelectedConfirmedPerformed(target);
-                } else {
-                    deleteObjectConfirmedPerformed(target);
+
+                DebugConfDialogDto dto = confDialogModel.getObject();
+                switch (dto.getOperation()) {
+                    case DELETE_ALL_IDENTITIES:
+                        deleteAllIdentitiesConfirmed(target);
+                        break;
+                    case DELETE_ALL_TYPE:
+                        deleteAllTypeConfirmed(target);
+                        break;
+                    case DELETE_SELECTED:
+                        deleteSelectedConfirmed(target, dto.getObjects());
+                        break;
                 }
             }
         });
-
-        //Confirm laxative function
-        ConfirmationDialog laxativeConfirmationDialog = prepareLaxativeConfirmationDialog();
-        laxativeConfirmationDialog.setEscapeModelStringsByCaller(false);
-        laxativeConfirmationDialog.setInitialWidth(500);
-        add(laxativeConfirmationDialog);
 
         Form searchForm = new Form(ID_SEARCH_FORM);
         add(searchForm);
         initSearchForm(searchForm);
 
-        final Form main = new Form(ID_MAIN_FORM);
+        Form main = new Form(ID_MAIN_FORM);
         add(main);
 
-        choice = new Model<ObjectTypes>() {
-
-            @Override
-            public ObjectTypes getObject() {
-                ObjectTypes types = super.getObject();
-                if (types == null) {
-                    ConfigurationStorage storage = getSessionStorage().getConfiguration();
-                    types = storage.getDebugListCategory();
-                }
-
-                return types;
-            }
-        };
-
-        ConfigurationStorage storage = getSessionStorage().getConfiguration();
-        Class type = storage.getDebugListCategory().getClassDefinition();
+        DebugSearchDto dto = searchModel.getObject();
+        Class type = dto.getType().getClassDefinition();
         addOrReplaceTable(new RepositoryObjectDataProvider(this, type));
-
-        initButtonBar(main);
-    }
-
-    private void initButtonBar(Form main) {
-        AjaxLinkButton delete = new AjaxLinkButton(ID_DELETE_SELECTED, ButtonType.NEGATIVE,
-                createStringResource("pageDebugList.button.deleteSelected")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                deleteSelectedPerformed(target, choice);
-            }
-        };
-        main.add(delete);
-
-        AjaxLinkButton laxativeButton = new AjaxLinkButton(ID_LAXATIVE_BUTTON, ButtonType.NEGATIVE,
-                createStringResource("pageDebugList.button.laxativeButton")) {
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                laxativeActionPerformed(target);
-            }
-        };
-        main.add(laxativeButton);
-
-
-        final PageDebugDownloadBehaviour ajaxDownloadBehavior = new PageDebugDownloadBehaviour();
-        main.add(ajaxDownloadBehavior);
-
-
-        AjaxLinkButton export = new AjaxLinkButton(ID_EXPORT,
-                createStringResource("pageDebugList.button.export")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                initDownload(ajaxDownloadBehavior, target, false);
-            }
-        };
-        main.add(export);
-
-        AjaxLinkButton exportAll = new AjaxLinkButton(ID_EXPORT_ALL,
-                createStringResource("pageDebugList.button.exportAll")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                initDownload(ajaxDownloadBehavior, target, true);
-            }
-        };
-        main.add(exportAll);
 
         AjaxCheckBox zipCheck = new AjaxCheckBox(ID_ZIP_CHECK, new Model<Boolean>(false)) {
 
@@ -245,6 +173,9 @@ public class PageDebugList extends PageAdminConfiguration {
             }
         };
         main.add(zipCheck);
+
+        PageDebugDownloadBehaviour ajaxDownloadBehavior = new PageDebugDownloadBehaviour();
+        main.add(ajaxDownloadBehavior);
     }
 
     private void initDownload(PageDebugDownloadBehaviour downloadBehaviour, AjaxRequestTarget target, boolean all) {
@@ -322,13 +253,12 @@ public class PageDebugList extends PageAdminConfiguration {
 
                     @Override
                     public void deletePerformed(AjaxRequestTarget target, IModel<DebugObjectItem> model) {
-                        DebugObjectItem object = model.getObject();
-                        deleteObjectPerformed(target, choice, object);
+                        deleteSelected(target, model.getObject());
                     }
 
                     @Override
                     public void exportPerformed(AjaxRequestTarget target, IModel<DebugObjectItem> model) {
-                        //todo implement
+                        exportSelected(target, model.getObject());
                     }
                 });
             }
@@ -356,7 +286,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                        //todo implement
+                        exportSelected(target, null);
                     }
                 }));
 
@@ -365,7 +295,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                        //todo implement
+                        exportAllSelected(target);
                     }
                 }));
 
@@ -374,7 +304,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                        //todo implement
+                        exportAll(target);
                     }
                 }));
 
@@ -385,7 +315,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                        //todo implement
+                        deleteSelected(target, null);
                     }
                 }));
 
@@ -394,7 +324,18 @@ public class PageDebugList extends PageAdminConfiguration {
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                        //todo implement
+                        deleteAllType(target);
+                    }
+                }));
+
+        headerMenuItems.add(new InlineMenuItem());
+
+        headerMenuItems.add(new InlineMenuItem(createStringResource("pageDebugList.menu.deleteAllIdentities"), true,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                        deleteAllIdentities(target);
                     }
                 }));
 
@@ -512,6 +453,10 @@ public class PageDebugList extends PageAdminConfiguration {
             addOrReplaceTable(provider);
         }
 
+        //save object type category to session storage, used by back button
+        ConfigurationStorage storage = getSessionStorage().getConfiguration();
+        storage.setDebugSearchDto(dto);
+
         TablePanel table = getListTable();
         target.add(table);
     }
@@ -534,183 +479,91 @@ public class PageDebugList extends PageAdminConfiguration {
 
             @Override
             public String getObject() {
-                if (deleteSelected) {
-                    List<DebugObjectItem> selectedList = WebMiscUtil
-                            .getSelectedData(getListTable());
+                DebugConfDialogDto dto = confDialogModel.getObject();
 
-                    if (selectedList.size() > 1) {
-                        return createStringResource("pageDebugList.message.deleteSelectedConfirm",
-                                selectedList.size()).getString();
-                    }
+                switch (dto.getOperation()) {
+                    case DELETE_ALL_IDENTITIES:
+                        return createLaxativeString();
+                    case DELETE_ALL_TYPE:
+                        String key = ObjectTypeGuiDescriptor.getDescriptor(dto.getType()).getLocalizationKey();
+                        String type = createStringResource(key).getString();
+                        return createStringResource("pageDebugList.message.deleteAllType", type).getString();
+                    case DELETE_SELECTED:
+                        List<DebugObjectItem> selectedList = dto.getObjects();
 
-                    DebugObjectItem selectedItem = selectedList.get(0);
-                    return createStringResource("pageDebugList.message.deleteObjectConfirm",
-                            selectedItem.getName()).getString();
-                }
-
-                return createStringResource("pageDebugList.message.deleteObjectConfirm", object.getName())
-                        .getString();
-            }
-        };
-    }
-
-    private IModel<String> createLaxativeString() {
-        return new AbstractReadOnlyModel<String>() {
-            @Override
-            public String getObject() {
-                int userCount = 0;
-                int shadowCount = 0;
-                final StringBuilder sb = new StringBuilder();
-                sb.append(createStringResource("pageDebugList.dialog.title.confirmLaxativeMessage").getString() + "<br><br>");
-
-                Task task = createSimpleTask(OPERATION_SEARCH_ITERATIVE_TASK);
-                OperationResult result = new OperationResult(OPERATION_SEARCH_ITERATIVE_TASK);
-
-                Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<SelectorOptions<GetOperationOptions>>();
-                GetOperationOptions opt = GetOperationOptions.createRaw();
-                options.add(SelectorOptions.create(ItemPath.EMPTY_PATH, opt));
-
-                ResultHandler<UserType> userHandler = new ResultHandler<UserType>() {
-                    @Override
-                    public boolean handle(PrismObject object, OperationResult parentResult) {
-                        if (!SystemObjectsType.USER_ADMINISTRATOR.value().equals(object.asObjectable().getOid())) {
-                            sb.append(PRINT_LABEL_USER).append(WebMiscUtil.getName(object)).append(PRINT_LABEL_HTML_NEWLINE);
+                        if (selectedList.size() > 1) {
+                            return createStringResource("pageDebugList.message.deleteSelectedConfirm",
+                                    selectedList.size()).getString();
                         }
-                        return true;
-                    }
-                };
 
-                ResultHandler<ShadowType> shadowHandler = new ResultHandler<ShadowType>() {
-                    @Override
-                    public boolean handle(PrismObject object, OperationResult parentResult) {
-                        sb.append(PRINT_LABEL_SHADOW).append(WebMiscUtil.getName(object)).append(PRINT_LABEL_HTML_NEWLINE);
-                        return true;
-                    }
-                };
-
-                try {
-                    userCount = getModelService().countObjects(UserType.class, null, options, task, result);
-
-                    //We need to substract 1, because we are not deleting user 'Administrator'
-                    userCount--;
-
-                    shadowCount = getModelService().countObjects(ShadowType.class, null, options, task, result);
-
-                    objectsToDelete = userCount + shadowCount;
-
-                    if (userCount >= 10 || shadowCount >= 10) {
-                        sb.append(PRINT_LABEL_USER_DELETE).append(userCount).append(PRINT_LABEL_HTML_NEWLINE).append(PRINT_LABEL_SHADOW_DELETE).append(shadowCount).append(PRINT_LABEL_HTML_NEWLINE);
-                        sb.append(PRINT_LABEL_ADMINISTRATOR_NOT_DELETED).append(PRINT_LABEL_HTML_NEWLINE);
-                    } else {
-                        sb.append(PRINT_LABEL_USER_DELETE).append(userCount).append(PRINT_LABEL_HTML_NEWLINE);
-                        sb.append(PRINT_LABEL_ADMINISTRATOR_NOT_DELETED).append(PRINT_LABEL_HTML_NEWLINE);
-                        getModelService().searchObjectsIterative(UserType.class, null, userHandler, options, task, result);
-                        sb.append(PRINT_LABEL_HTML_NEWLINE);
-                        sb.append(PRINT_LABEL_SHADOW_DELETE).append(shadowCount).append(PRINT_LABEL_HTML_NEWLINE);
-                        getModelService().searchObjectsIterative(ShadowType.class, null, shadowHandler, options, task, result);
-                    }
-                } catch (Exception ex) {
-                    result.computeStatus(getString("pageDebugList.message.countSearchProblem"));
-                    LoggingUtils.logException(LOGGER, getString("pageDebugList.message.countSearchProblem"), ex);
+                        DebugObjectItem selectedItem = selectedList.get(0);
+                        return createStringResource("pageDebugList.message.deleteObjectConfirm",
+                                selectedItem.getName()).getString();
                 }
 
-                return sb.toString();
+                return "";
             }
         };
     }
 
-    private void deleteSelectedConfirmedPerformed(AjaxRequestTarget target) {
-        ObjectTypes type = choice.getObject();
+    private String createLaxativeString() {
+        int userCount = 0;
+        int shadowCount = 0;
+        final StringBuilder sb = new StringBuilder();
+        sb.append(createStringResource("pageDebugList.dialog.title.confirmLaxativeMessage").getString() + "<br><br>");
 
-        OperationResult result = new OperationResult(OPERATION_DELETE_OBJECTS);
-        List<DebugObjectItem> beans = WebMiscUtil.getSelectedData(getListTable());
-        for (DebugObjectItem bean : beans) {
-            OperationResult subResult = result.createSubresult(OPERATION_DELETE_OBJECT);
-            try {
-                ObjectDelta delta = ObjectDelta.createDeleteDelta(type.getClassDefinition(), bean.getOid(), getPrismContext());
+        Task task = createSimpleTask(OPERATION_SEARCH_ITERATIVE_TASK);
+        OperationResult result = new OperationResult(OPERATION_SEARCH_ITERATIVE_TASK);
 
-                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta),
-                        ModelExecuteOptions.createRaw(),
-                        createSimpleTask(OPERATION_DELETE_OBJECT), subResult);
-                subResult.recordSuccess();
-            } catch (Exception ex) {
-                subResult.recordFatalError("Couldn't delete objects.", ex);
-                LoggingUtils.logException(LOGGER, "Couldn't delete objects", ex);
-            }
-        }
-        result.recomputeStatus();
+        Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<SelectorOptions<GetOperationOptions>>();
+        GetOperationOptions opt = GetOperationOptions.createRaw();
+        options.add(SelectorOptions.create(ItemPath.EMPTY_PATH, opt));
 
-        RepositoryObjectDataProvider provider = getTableDataProvider();
-        provider.clearCache();
-
-        showResult(result);
-        target.add(getListTable());
-        target.add(getFeedbackPanel());
-    }
-
-    private void deleteObjectConfirmedPerformed(AjaxRequestTarget target) {
-        OperationResult result = new OperationResult(OPERATION_DELETE_OBJECT);
-        try {
-            ObjectTypes type = choice.getObject();
-            ObjectDelta delta = ObjectDelta.createDeleteDelta(type.getClassDefinition(), object.getOid(), getPrismContext());
-
-            getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta),
-                    ModelExecuteOptions.createRaw(),
-                    createSimpleTask(OPERATION_DELETE_OBJECT), result);
-
-            result.recordSuccess();
-        } catch (Exception ex) {
-            result.recordFatalError("Couldn't delete object '" + object.getName() + "'.", ex);
-        }
-
-        RepositoryObjectDataProvider provider = getTableDataProvider();
-        provider.clearCache();
-
-        showResult(result);
-        target.add(getListTable());
-        target.add(getFeedbackPanel());
-    }
-
-    private void deleteSelectedPerformed(AjaxRequestTarget target, IModel<ObjectTypes> choice) {
-        List<DebugObjectItem> selected = WebMiscUtil.getSelectedData(getListTable());
-        if (selected.isEmpty()) {
-            warn(getString("pageDebugList.message.nothingSelected"));
-            target.add(getFeedbackPanel());
-            return;
-        }
-
-        ModalWindow dialog = (ModalWindow) get(ID_CONFIRM_DELETE_POPUP);
-        deleteSelected = true;
-        this.choice = choice;
-        dialog.show(target);
-    }
-
-    private void deleteObjectPerformed(AjaxRequestTarget target, IModel<ObjectTypes> choice, DebugObjectItem object) {
-        ModalWindow dialog = (ModalWindow) get(ID_CONFIRM_DELETE_POPUP);
-        this.choice = choice;
-        this.object = object;
-        dialog.show(target);
-    }
-
-    private void laxativeActionPerformed(AjaxRequestTarget target) {
-        ModalWindow dialog = (ModalWindow) get(ID_CONFIRM_LAXATIVE_OPERATION);
-        dialog.show(target);
-        //dialog.close(target);
-    }
-
-    private ConfirmationDialog prepareLaxativeConfirmationDialog() {
-        return new ConfirmationDialog(ID_CONFIRM_LAXATIVE_OPERATION, createStringResource("pageDebugList.dialog.title.confirmLaxative"),
-                createLaxativeString()) {
-
+        ResultHandler<UserType> userHandler = new ResultHandler<UserType>() {
             @Override
-            public void yesPerformed(AjaxRequestTarget target) {
-                deleteAllIdentities();
-                LOGGER.info("Deleted {} out of {} objects.", objectsDeleted, objectsToDelete);
-                target.add(getListTable());
-                target.add(getFeedbackPanel());
-                close(target);
+            public boolean handle(PrismObject object, OperationResult parentResult) {
+                if (!SystemObjectsType.USER_ADMINISTRATOR.value().equals(object.asObjectable().getOid())) {
+                    sb.append(PRINT_LABEL_USER).append(WebMiscUtil.getName(object)).append(PRINT_LABEL_HTML_NEWLINE);
+                }
+                return true;
             }
         };
+
+        ResultHandler<ShadowType> shadowHandler = new ResultHandler<ShadowType>() {
+            @Override
+            public boolean handle(PrismObject object, OperationResult parentResult) {
+                sb.append(PRINT_LABEL_SHADOW).append(WebMiscUtil.getName(object)).append(PRINT_LABEL_HTML_NEWLINE);
+                return true;
+            }
+        };
+
+        try {
+            userCount = getModelService().countObjects(UserType.class, null, options, task, result);
+
+            //We need to substract 1, because we are not deleting user 'Administrator'
+            userCount--;
+
+            shadowCount = getModelService().countObjects(ShadowType.class, null, options, task, result);
+
+            objectsToDelete = userCount + shadowCount;
+
+            if (userCount >= 10 || shadowCount >= 10) {
+                sb.append(PRINT_LABEL_USER_DELETE).append(userCount).append(PRINT_LABEL_HTML_NEWLINE).append(PRINT_LABEL_SHADOW_DELETE).append(shadowCount).append(PRINT_LABEL_HTML_NEWLINE);
+                sb.append(PRINT_LABEL_ADMINISTRATOR_NOT_DELETED).append(PRINT_LABEL_HTML_NEWLINE);
+            } else {
+                sb.append(PRINT_LABEL_USER_DELETE).append(userCount).append(PRINT_LABEL_HTML_NEWLINE);
+                sb.append(PRINT_LABEL_ADMINISTRATOR_NOT_DELETED).append(PRINT_LABEL_HTML_NEWLINE);
+                getModelService().searchObjectsIterative(UserType.class, null, userHandler, options, task, result);
+                sb.append(PRINT_LABEL_HTML_NEWLINE);
+                sb.append(PRINT_LABEL_SHADOW_DELETE).append(shadowCount).append(PRINT_LABEL_HTML_NEWLINE);
+                getModelService().searchObjectsIterative(ShadowType.class, null, shadowHandler, options, task, result);
+            }
+        } catch (Exception ex) {
+            result.computeStatus(getString("pageDebugList.message.countSearchProblem"));
+            LoggingUtils.logException(LOGGER, getString("pageDebugList.message.countSearchProblem"), ex);
+        }
+
+        return sb.toString();
     }
 
     private void deleteAllIdentities() {
@@ -722,6 +575,7 @@ public class PageDebugList extends PageAdminConfiguration {
         OperationResult result = new OperationResult(OPERATION_LAXATIVE_DELETE);
 
         ResultHandler<UserType> userHandler = new ResultHandler<UserType>() {
+
             @Override
             public boolean handle(PrismObject object, OperationResult parentResult) {
                 if (!SystemObjectsType.USER_ADMINISTRATOR.value().equals(object.asObjectable().getOid())) {
@@ -782,5 +636,105 @@ public class PageDebugList extends PageAdminConfiguration {
 
         result.recomputeStatus();
         showResult(result);
+    }
+
+    private void exportSelected(AjaxRequestTarget target, DebugObjectItem item) {
+        //todo implement [lazyman]
+        List<PageDebugDownloadBehaviour> list = get(ID_MAIN_FORM).getBehaviors(PageDebugDownloadBehaviour.class);
+        initDownload(list.get(0), target, false);
+    }
+
+    private void exportAll(AjaxRequestTarget target) {
+        //todo implement [lazyman]
+        List<PageDebugDownloadBehaviour> list = get(ID_MAIN_FORM).getBehaviors(PageDebugDownloadBehaviour.class);
+        initDownload(list.get(0), target, true);
+    }
+
+    private void exportAllSelected(AjaxRequestTarget target) {
+        //todo implement [lazyman]
+        warn("Not implemented yet, will be implemented as background task.");
+        target.add(getFeedbackPanel());
+    }
+
+    private void deleteAllType(AjaxRequestTarget target) {
+        DebugSearchDto searchDto = searchModel.getObject();
+        DebugConfDialogDto dto = new DebugConfDialogDto(DebugConfDialogDto.Operation.DELETE_ALL_TYPE, null,
+                searchDto.getType().getClassDefinition());
+        confDialogModel.setObject(dto);
+
+        ModalWindow dialog = (ModalWindow) get(ID_CONFIRM_DELETE_POPUP);
+        dialog.show(target);
+    }
+
+    private List<DebugObjectItem> getSelectedData(AjaxRequestTarget target, DebugObjectItem item) {
+        List<DebugObjectItem> items;
+        if (item != null) {
+            items = new ArrayList<DebugObjectItem>();
+            items.add(item);
+            return items;
+        }
+
+        items = WebMiscUtil.getSelectedData(getListTable());
+        if (items.isEmpty()) {
+            warn(getString("pageDebugList.message.nothingSelected"));
+            target.add(getFeedbackPanel());
+        }
+
+        return items;
+    }
+
+    private void deleteSelected(AjaxRequestTarget target, DebugObjectItem item) {
+        List<DebugObjectItem> selected = getSelectedData(target, item);
+        if (selected.isEmpty()) {
+            return;
+        }
+
+        DebugSearchDto searchDto = searchModel.getObject();
+        DebugConfDialogDto dto = new DebugConfDialogDto(DebugConfDialogDto.Operation.DELETE_SELECTED, selected,
+                searchDto.getType().getClassDefinition());
+        confDialogModel.setObject(dto);
+
+        ModalWindow dialog = (ModalWindow) get(ID_CONFIRM_DELETE_POPUP);
+        dialog.show(target);
+    }
+
+    private void deleteAllIdentities(AjaxRequestTarget target) {
+        DebugConfDialogDto dto = new DebugConfDialogDto(DebugConfDialogDto.Operation.DELETE_ALL_IDENTITIES, null, null);
+        confDialogModel.setObject(dto);
+
+        ModalWindow dialog = (ModalWindow) get(ID_CONFIRM_DELETE_POPUP);
+        dialog.show(target);
+    }
+
+    private void deleteAllTypeConfirmed(AjaxRequestTarget target) {
+        //todo implement [lazyman] as background task...
+        warn("Not implemented yet, will be implemented as background task.");
+        target.add(getFeedbackPanel());
+    }
+
+    private void deleteSelectedConfirmed(AjaxRequestTarget target, List<DebugObjectItem> items) {
+        DebugConfDialogDto dto = confDialogModel.getObject();
+
+        OperationResult result = new OperationResult(OPERATION_DELETE_OBJECTS);
+        for (DebugObjectItem bean : items) {
+            WebModelUtils.deleteObject(dto.getType(), bean.getOid(), ModelExecuteOptions.createRaw(), result, this);
+        }
+        result.computeStatusIfUnknown();
+
+        RepositoryObjectDataProvider provider = getTableDataProvider();
+        provider.clearCache();
+
+        showResult(result);
+        target.add(getListTable());
+        target.add(getFeedbackPanel());
+    }
+
+    private void deleteAllIdentitiesConfirmed(AjaxRequestTarget target) {
+        //todo implement [lazyman]
+        deleteAllIdentities();
+        LOGGER.info("Deleted {} out of {} objects.", objectsDeleted, objectsToDelete);
+
+        target.add(getListTable());
+        target.add(getFeedbackPanel());
     }
 }
