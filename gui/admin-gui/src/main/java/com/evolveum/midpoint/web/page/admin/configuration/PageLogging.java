@@ -27,7 +27,6 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.accordion.Accordion;
 import com.evolveum.midpoint.web.component.accordion.AccordionItem;
-import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
@@ -409,7 +408,7 @@ public class PageLogging extends PageAdminConfiguration {
 		table.setTableCssClass("autowidth");
 		loggers.getBodyContainer().add(table);
 
-		AjaxLinkButton addComponentLogger = new AjaxLinkButton("addComponentLogger",
+		AjaxButton addComponentLogger = new AjaxButton("addComponentLogger",
 				createStringResource("pageLogging.button.addComponentLogger")) {
 
 			@Override
@@ -419,7 +418,7 @@ public class PageLogging extends PageAdminConfiguration {
 		};
 		loggers.getBodyContainer().add(addComponentLogger);
 
-		AjaxLinkButton addClassLogger = new AjaxLinkButton("addClassLogger",
+        AjaxButton addClassLogger = new AjaxButton("addClassLogger",
 				createStringResource("pageLogging.button.addClassLogger")) {
 
 			@Override
@@ -429,11 +428,11 @@ public class PageLogging extends PageAdminConfiguration {
 		};
 		loggers.getBodyContainer().add(addClassLogger);
 
-		AjaxLinkButton deleteLogger = new AjaxLinkButton("deleteLogger",
-				createStringResource("pageLogging.button.deleteLogger")) {
+        AjaxButton deleteLogger = new AjaxButton("deleteLogger",
+                createStringResource("pageLogging.button.deleteLogger")) {
 
-			@Override
-			public void onClick(AjaxRequestTarget target) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
 				deleteLoggerPerformed(target);
 			}
 		};
@@ -452,7 +451,7 @@ public class PageLogging extends PageAdminConfiguration {
 		table.setTableCssClass("autowidth");
 		loggers.getBodyContainer().add(table);
 
-		AjaxLinkButton addComponentLogger = new AjaxLinkButton("addFilter",
+        AjaxButton addComponentLogger = new AjaxButton("addFilter",
 				createStringResource("pageLogging.button.addFilter")) {
 
 			@Override
@@ -462,7 +461,7 @@ public class PageLogging extends PageAdminConfiguration {
 		};
 		loggers.getBodyContainer().add(addComponentLogger);
 
-		AjaxLinkButton deleteLogger = new AjaxLinkButton("deleteFilter",
+        AjaxButton deleteLogger = new AjaxButton("deleteFilter",
 				createStringResource("pageLogging.button.deleteFilter")) {
 
 			@Override
@@ -584,7 +583,7 @@ public class PageLogging extends PageAdminConfiguration {
 		table.setShowPaging(false);
 		appenders.getBodyContainer().add(table);
 
-		AjaxLinkButton addConsoleAppender = new AjaxLinkButton("addConsoleAppender",
+		AjaxButton addConsoleAppender = new AjaxButton("addConsoleAppender",
 				createStringResource("pageLogging.button.addConsoleAppender")) {
 
 			@Override
@@ -594,7 +593,7 @@ public class PageLogging extends PageAdminConfiguration {
 		};
 		appenders.getBodyContainer().add(addConsoleAppender);
 
-		AjaxLinkButton addFileAppender = new AjaxLinkButton("addFileAppender",
+        AjaxButton addFileAppender = new AjaxButton("addFileAppender",
 				createStringResource("pageLogging.button.addFileAppender")) {
 
 			@Override
@@ -604,7 +603,7 @@ public class PageLogging extends PageAdminConfiguration {
 		};
 		appenders.getBodyContainer().add(addFileAppender);
 
-		AjaxLinkButton deleteAppender = new AjaxLinkButton("deleteAppender",
+        AjaxButton deleteAppender = new AjaxButton("deleteAppender",
 				createStringResource("pageLogging.button.deleteAppender")) {
 
 			@Override

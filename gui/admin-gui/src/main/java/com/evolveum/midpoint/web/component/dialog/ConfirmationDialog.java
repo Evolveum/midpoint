@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.dialog;
 
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
@@ -84,7 +85,7 @@ public class ConfirmationDialog extends ModalWindow {
     private void initLayout(WebMarkupContainer content, IModel<String> message) {
         content.add(new Label("confirmText", message));
 
-        AjaxLinkButton yesButton = new AjaxLinkButton("yes", new StringResourceModel("confirmationDialog.yes",
+        AjaxButton yesButton = new AjaxButton("yes", new StringResourceModel("confirmationDialog.yes",
                 this, null)) {
 
             @Override
@@ -94,7 +95,7 @@ public class ConfirmationDialog extends ModalWindow {
         };
         content.add(yesButton);
 
-        AjaxLinkButton noButton = new AjaxLinkButton("no", new StringResourceModel("confirmationDialog.no",
+        AjaxButton noButton = new AjaxButton("no", new StringResourceModel("confirmationDialog.no",
                 this, null)) {
 
             @Override

@@ -21,7 +21,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.wizard.WizardStep;
 import com.evolveum.midpoint.web.component.wizard.resource.component.SchemaListPanel;
 import com.evolveum.midpoint.web.component.wizard.resource.component.XmlEditorPanel;
@@ -63,7 +63,7 @@ public class SchemaStep extends WizardStep {
         tabpanel.setOutputMarkupId(true);
         add(tabpanel);
 
-        AjaxLinkButton reload = new AjaxLinkButton(ID_RELOAD, createStringModel("SchemaStep.button.reload")) {
+        AjaxButton reload = new AjaxButton(ID_RELOAD, createStringModel("SchemaStep.button.reload")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
