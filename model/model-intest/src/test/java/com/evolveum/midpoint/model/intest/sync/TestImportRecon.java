@@ -96,11 +96,13 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 	private static final String ACCOUNT_CAPSIZE_FULLNAME = "Kata Capsize";
 	
 	protected static final File RESOURCE_DUMMY_AZURE_FILE = new File(TEST_DIR, "resource-dummy-azure.xml");
+	protected static final File RESOURCE_DUMMY_AZURE_DEPRECATED_FILE = new File(TEST_DIR, "resource-dummy-azure-deprecated.xml");
 	protected static final String RESOURCE_DUMMY_AZURE_OID = "10000000-0000-0000-0000-00000000a204";
 	protected static final String RESOURCE_DUMMY_AZURE_NAME = "azure";
 	protected static final String RESOURCE_DUMMY_AZURE_NAMESPACE = MidPointConstants.NS_RI;
 	
 	protected static final File RESOURCE_DUMMY_LIME_FILE = new File(TEST_DIR, "resource-dummy-lime.xml");
+	protected static final File RESOURCE_DUMMY_LIME_DEPRECATED_FILE = new File(TEST_DIR, "resource-dummy-lime-deprecated.xml");
 	protected static final String RESOURCE_DUMMY_LIME_OID = "10000000-0000-0000-0000-000000131404";
 	protected static final String RESOURCE_DUMMY_LIME_NAME = "lime";
 	protected static final String RESOURCE_DUMMY_LIME_NAMESPACE = MidPointConstants.NS_RI;
@@ -139,14 +141,14 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 		dummyResourceCtlAzure = DummyResourceContoller.create(RESOURCE_DUMMY_AZURE_NAME, resourceDummyAzure);
 		dummyResourceCtlAzure.extendSchemaPirate();
 		dummyResourceAzure = dummyResourceCtlAzure.getDummyResource();
-		resourceDummyAzure = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_AZURE_FILE, RESOURCE_DUMMY_AZURE_OID, initTask, initResult); 
+		resourceDummyAzure = importAndGetObjectFromFile(ResourceType.class, getDummyResourceAzureFile(), RESOURCE_DUMMY_AZURE_OID, initTask, initResult); 
 		resourceDummyAzureType = resourceDummyAzure.asObjectable();
 		dummyResourceCtlAzure.setResource(resourceDummyAzure);	
 		
 		dummyResourceCtlLime = DummyResourceContoller.create(RESOURCE_DUMMY_LIME_NAME, resourceDummyLime);
 		dummyResourceCtlLime.extendSchemaPirate();
 		dummyResourceLime = dummyResourceCtlLime.getDummyResource();
-		resourceDummyLime = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_LIME_FILE, RESOURCE_DUMMY_LIME_OID, initTask, initResult); 
+		resourceDummyLime = importAndGetObjectFromFile(ResourceType.class, getDummyResourceLimeFile(), RESOURCE_DUMMY_LIME_OID, initTask, initResult); 
 		resourceDummyLimeType = resourceDummyLime.asObjectable();
 		dummyResourceCtlLime.setResource(resourceDummyLime);
 		
@@ -168,6 +170,14 @@ public class TestImportRecon extends AbstractInitializedModelIntegrationTest {
 		InternalMonitor.setTraceShadowFetchOperation(true);
 	}
 	
+	protected File getDummyResourceLimeFile() {
+		return RESOURCE_DUMMY_LIME_FILE;
+	}
+
+	protected File getDummyResourceAzureFile() {
+		return RESOURCE_DUMMY_AZURE_FILE;
+	}
+
 	@Test
     public void test100ImportStanFromResourceDummy() throws Exception {
 		final String TEST_NAME = "test100ImportStanFromResourceDummy";

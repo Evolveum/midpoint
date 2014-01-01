@@ -236,28 +236,24 @@
 			</correlation>
 			<reaction>
 	            <situation>linked</situation>
-	            <synchronize>true</synchronize>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#modifyUser"/>
 	        </reaction>
 	        <reaction>
 	            <situation>deleted</situation>
-	            <synchronize>true</synchronize>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlink"/>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlinkAccount"/>
 	        </reaction>
 	        <reaction>
 	            <situation>unlinked</situation>
-	            <synchronize>true</synchronize>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#link"/>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>
 	        </reaction>
 	        <reaction>
 	            <situation>unmatched</situation>
-	            <synchronize>true</synchronize>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addFocus"/>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addUser"/>
 	        </reaction>
 	        <reaction>
 	            <situation>unmatched</situation>
 	            <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-2#reconciliation</channel>
-	            <synchronize>true</synchronize>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#inactivateShadow"/>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#disableAccount"/>
 	        </reaction>
         </objectSynchronization>
 	</synchronization>
