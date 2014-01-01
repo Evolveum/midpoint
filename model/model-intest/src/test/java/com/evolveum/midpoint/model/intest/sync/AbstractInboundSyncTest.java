@@ -249,7 +249,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         
         PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         display("User mancomb", userMancomb);
-        assertNotNull("User mancomb was not created", userMancomb);
+        assertNotNull("User mancomb is gone", userMancomb);
         assertLinks(userMancomb, 0);
         // Disabled by sync reaction
         assertAdministrativeStatusDisabled(userMancomb);

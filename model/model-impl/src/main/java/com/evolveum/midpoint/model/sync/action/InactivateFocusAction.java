@@ -68,8 +68,6 @@ public class InactivateFocusAction extends BaseAction {
 					focusContext.getOid(), SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, getPrismContext(), 
 					desiredStatus);
 			focusContext.setPrimaryDelta(activationDelta);
-			ObjectDelta<F> delta = objectOld.createDeleteDelta();
-	        focusContext.setPrimaryDelta(delta);
 		}
 
 	}
