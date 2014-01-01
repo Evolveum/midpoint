@@ -21,6 +21,7 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.query.LessFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
@@ -505,6 +506,23 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         	LOGGER.error("Exception occurred", ex);
             throw ex;
         }
+    }
+
+    /**
+     * Just a test with dom and jaxb processor and namespaces polution.
+     * JAXB processor is much better.
+     *
+     * @throws Exception
+     */
+    @Test
+    public void domVsJaxbProcessor() throws Exception {
+        PrismDomProcessor domProcessor =prismContext.getPrismDomProcessor();
+        List<PrismObject<? extends Objectable>> elements = domProcessor.parseObjects(new File(FOLDER_BASIC, "objects.xml"));
+
+        PrismObject obj = elements.get(0);
+        System.out.println(domProcessor.serializeObjectToString(obj));
+
+        System.out.println(prismContext.getPrismJaxbProcessor().marshalToString(obj.asObjectable()));
     }
 }
 
