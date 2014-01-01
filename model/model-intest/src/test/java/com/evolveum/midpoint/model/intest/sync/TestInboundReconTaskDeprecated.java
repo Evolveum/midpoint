@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.intest.sync;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 
 import javax.xml.bind.JAXBException;
@@ -35,31 +36,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestInboundReconTask extends AbstractInboundSyncTest {
-		
-	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);
-		
-		dummyResourceEmerald.setSyncStyle(DummySyncStyle.DUMB);		
-	}
-	
-	@Override
-	protected void importSyncTask(PrismObject<ResourceType> resource) throws FileNotFoundException {
-		if (resource == resourceDummyEmerald) {
-			importObjectFromFile(TASK_RECON_DUMMY_EMERALD_FILE);
-		} else {
-			throw new IllegalArgumentException("Unknown resource "+resource);
-		}
-	}
+public class TestInboundReconTaskDeprecated extends TestInboundReconTask {
 
 	@Override
-	protected String getSyncTaskOid(PrismObject<ResourceType> resource) {
-		if (resource == resourceDummyEmerald) {
-			return TASK_RECON_DUMMY_EMERALD_OID;
-		} else {
-			throw new IllegalArgumentException("Unknown resource "+resource);
-		}
+	protected File getResourceDummyEmeraldFile() {
+		return RESOURCE_DUMMY_EMERALD_DEPRECATED_FILE;
 	}
 
 }

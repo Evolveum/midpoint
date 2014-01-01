@@ -56,6 +56,8 @@
             <class name="com.evolveum.midpoint.model.intest.sync.TestValidityRecomputeTask"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestInboundLiveSyncTask"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestInboundReconTask"/>
+            <class name="com.evolveum.midpoint.model.intest.sync.TestInboundLiveSyncTaskDeprecated"/>
+            <class name="com.evolveum.midpoint.model.intest.sync.TestInboundReconTaskDeprecated"/>
         </classes>
     </test>
     <test name="Importer" preserve-order="true" parallel="false" verbose="10">

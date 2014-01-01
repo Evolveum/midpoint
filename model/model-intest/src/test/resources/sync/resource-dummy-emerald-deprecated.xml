@@ -128,22 +128,19 @@
 			</correlation>
 			<reaction>
 	            <situation>linked</situation>
-	            <synchronize>true</synchronize>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#modifyUser"/>
 	        </reaction>
 	        <reaction>
 	            <situation>deleted</situation>
-	            <synchronize>true</synchronize>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#inactivateFocus"/>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#disableUser"/>
 	        </reaction>
 	        <reaction>
 	            <situation>unlinked</situation>
-	            <synchronize>true</synchronize>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#link"/>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>
 	        </reaction>
 	        <reaction>
 	            <situation>unmatched</situation>
-	            <synchronize>true</synchronize>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addFocus"/>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addUser"/>
 	        </reaction>
         </objectSynchronization>
 	</synchronization>
