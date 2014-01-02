@@ -42,6 +42,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
 
 
@@ -74,6 +75,11 @@ public class PasswordPolicyProcessor {
 	<F extends FocusType> void processPasswordPolicy(LensFocusContext<F> focusContext, 
 			LensContext<F> context, OperationResult result)
 			throws PolicyViolationException, SchemaException {
+		
+		if (!UserType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
+			LOGGER.trace("Skipping processing password policies because focus is not user");
+			return;
+		}
 		
 //		PrismProperty<PasswordType> password = getPassword(focusContext);
 		ObjectDelta userDelta = focusContext.getDelta();
