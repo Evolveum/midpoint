@@ -43,6 +43,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.util.string.StringValue;
@@ -109,10 +110,6 @@ public class PageAccount extends PageAdminResources {
     }
 
     private void initLayout() {
-        Label subtitle = new Label("subtitle", createSubtitle());
-        subtitle.setRenderBodyOnly(true);
-        add(subtitle);
-
         Form mainForm = new Form("mainForm");
         add(mainForm);
 
@@ -154,7 +151,8 @@ public class PageAccount extends PageAdminResources {
         mainForm.add(back);
     }
 
-    private IModel<String> createSubtitle() {
+    @Override
+    protected IModel<String> createPageSubTitleModel() {
         return new LoadableModel<String>(false) {
 
             @Override
@@ -162,9 +160,9 @@ public class PageAccount extends PageAdminResources {
                 PrismObject<ShadowType> account = accountModel.getObject().getObject();
 
                 ResourceType resource = account.asObjectable().getResource();
-                String resourceName = WebMiscUtil.getName(resource);
+                String name = WebMiscUtil.getName(resource);
 
-                return createStringResource("pageAccount.subtitle", resourceName).getString();
+                return new StringResourceModel("page.subTitle", PageAccount.this, null, null, name).getString();
             }
         };
     }

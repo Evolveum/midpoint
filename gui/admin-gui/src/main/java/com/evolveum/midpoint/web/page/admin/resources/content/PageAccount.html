@@ -18,9 +18,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <h3><span wicket:id="subtitle" /></h3>
     <form wicket:id="mainForm" autocomplete="off">
-        <div wicket:id="account"/>
+        <div class="row">
+            <div class="col-md-6">
+                <div wicket:id="account"/>
+            </div>
+        </div>
 
         <div class="main-button-bar">
             <span class="button-group">

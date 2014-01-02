@@ -38,16 +38,13 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.data.column.ButtonColumn;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxColumn;
-import com.evolveum.midpoint.web.component.data.column.EnumPropertyColumn;
-import com.evolveum.midpoint.web.component.data.column.LinkColumn;
+import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.dialog.UserBrowserDialog;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.option.OptionContent;
-import com.evolveum.midpoint.web.component.option.OptionItem;
-import com.evolveum.midpoint.web.component.option.OptionPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
+import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.resources.PageAdminResources;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.page.admin.resources.content.dto.AccountContentDataProvider;
@@ -92,6 +89,14 @@ public class PageContentAccounts extends PageAdminResources {
     private static final String OPERATION_CHANGE_OWNER = DOT_CLASS + "changeOwner";
     private static final String OPERATION_CREATE_USER_FROM_ACCOUNT = DOT_CLASS + "createUserFromAccount";
     private static final String MODAL_ID_OWNER_CHANGE = "ownerChangePopup";
+
+    private static final String ID_MAIN_FORM = "mainForm";
+    private static final String ID_SEARCH_FORM = "searchForm";
+    private static final String ID_SEARCH_TEXT = "searchText";
+    private static final String ID_NAME_CHECK = "nameCheck";
+    private static final String ID_IDENTIFIERS_CHECK = "identifiersCheck";
+    private static final String ID_SEARCH_BUTTON = "searchButton";
+    private static final String ID_TABLE = "table";
 
     private IModel<PrismObject<ResourceType>> resourceModel;
     private LoadableModel<AccountContentSearchDto> model;
@@ -142,83 +147,38 @@ public class PageContentAccounts extends PageAdminResources {
     }
 
     private void initLayout() {
-        Form mainForm = new Form("mainForm");
-        add(mainForm);
+        Form searchForm = new Form(ID_SEARCH_FORM);
+        add(searchForm);
 
-        OptionPanel option = new OptionPanel("option", createStringResource("pageContentAccounts.optionsTitle"), false);
-        option.setOutputMarkupId(true);
-        mainForm.add(option);
+        TextField searchText = new TextField(ID_SEARCH_TEXT);
+        searchForm.add(searchText);
 
-        OptionItem item = new OptionItem("search", createStringResource("pageContentAccounts.search"));
-        option.getBodyContainer().add(item);
-        initSearch(item);
+        CheckBox nameCheck = new CheckBox(ID_NAME_CHECK);
+        searchForm.add(nameCheck);
 
-        OptionContent content = new OptionContent("optionContent");
-        mainForm.add(content);
-        initTable(content);
+        CheckBox identifiersCheck = new CheckBox(ID_IDENTIFIERS_CHECK);
+        searchForm.add(identifiersCheck);
 
-        initDialog();
-        initButtons(mainForm);
-    }
-
-    private void initButtons(Form mainForm) {
-        AjaxButton removeOwner = new AjaxButton("removeOwner",
-                createStringResource("pageContentAccounts.button.removeOwner")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                removeOwnerPerformed(target);
-            }
-        };
-        mainForm.add(removeOwner);
-    }
-
-    private void initSearch(OptionItem item) {
-        TextField<String> search = new TextField<String>("searchText", new PropertyModel<String>(model, "searchText"));
-        item.add(search);
-
-        CheckBox nameCheck = new CheckBox("nameCheck", new PropertyModel<Boolean>(model, "name"));
-        item.add(nameCheck);
-        CheckBox fullNameCheck = new CheckBox("identifiersCheck", new PropertyModel<Boolean>(model, "identifiers"));
-        item.add(fullNameCheck);
-
-        AjaxSubmitButton clearButton = new AjaxSubmitButton("clearButton",
-                createStringResource("pageContentAccounts.button.clearButton")) {
-
-            @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
-                target.add(getFeedbackPanel());
-            }
-
-            @Override
-            public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                clearButtonPerformed(target);
-            }
-        };
-        item.add(clearButton);
-
-        AjaxSubmitButton searchButton = new AjaxSubmitButton("searchButton",
-                createStringResource("pageContentAccounts.button.searchButton")) {
-
-            @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
-                target.add(getFeedbackPanel());
-            }
+        AjaxSubmitButton searchButton = new AjaxSubmitButton(ID_SEARCH_BUTTON,
+                createStringResource("pageContentAccounts.search")) {
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 searchPerformed(target);
             }
         };
-        item.add(searchButton);
-    }
+        searchForm.add(searchButton);
 
-    private void initTable(OptionContent content) {
+        Form mainForm = new Form(ID_MAIN_FORM);
+        add(mainForm);
+
         List<IColumn> columns = initColumns();
-        TablePanel table = new TablePanel("table", new AccountContentDataProvider(this,
+        TablePanel table = new TablePanel(ID_TABLE, new AccountContentDataProvider(this,
                 new PropertyModel<String>(resourceModel, "oid"), createObjectClassModel()), columns);
         table.setOutputMarkupId(true);
-        content.getBodyContainer().add(table);
+        mainForm.add(table);
+
+        initDialog();
     }
 
     private List<IColumn> initColumns() {
@@ -301,28 +261,44 @@ public class PageContentAccounts extends PageAdminResources {
         };
         columns.add(column);
 
-        column = new ButtonColumn<SelectableBean<AccountContentDto>>(new Model<String>(),
-                createStringResource("pageContentAccounts.button.importAccount")){
-
-            @Override
-            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<AccountContentDto>> rowModel){
-                importSingleAccount(target, rowModel);
-            }
-        };
-
+        column = new InlineMenuHeaderColumn(createHeaderMenuItems());
         columns.add(column);
 
         return columns;
     }
 
+    private List<InlineMenuItem> createHeaderMenuItems() {
+        List<InlineMenuItem> items = new ArrayList<InlineMenuItem>();
+
+        items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.importAccount"), true,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                        importAccount(target, null);
+                    }
+                }));
+        items.add(new InlineMenuItem());
+        items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.removeOwner"), true,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                        removeOwnerPerformed(target);
+                    }
+                }));
+
+        return items;
+    }
+
     @Override
-    protected IModel<String> createPageTitleModel() {
+    protected IModel<String> createPageSubTitleModel() {
         return new LoadableModel<String>(false) {
 
             @Override
             protected String load() {
                 String name = WebMiscUtil.getName(resourceModel.getObject());
-                return new StringResourceModel("page.title", PageContentAccounts.this, null, null, name).getString();
+                return new StringResourceModel("page.subTitle", PageContentAccounts.this, null, null, name).getString();
             }
         };
     }
@@ -357,7 +333,7 @@ public class PageContentAccounts extends PageAdminResources {
         changeDto.setOldOwnerOid(ownerOid);
     }
 
-    private void importSingleAccount(AjaxRequestTarget target, IModel<SelectableBean<AccountContentDto>> rowModel){
+    private void importSingleAccount(AjaxRequestTarget target, IModel<SelectableBean<AccountContentDto>> rowModel) {
         AccountContentDto contentDto = rowModel.getObject().getValue();
 
         Task task = createSimpleTask(OPERATION_CREATE_USER_FROM_ACCOUNT);
@@ -374,13 +350,6 @@ public class PageContentAccounts extends PageAdminResources {
         showResult(result);
         target.add(getFeedbackPanel());
         target.add(getTable());
-    }
-
-    private void clearButtonPerformed(AjaxRequestTarget target) {
-        model.reset();
-        target.appendJavaScript("init()");
-        target.add(get("mainForm:option"));
-        searchPerformed(target);
     }
 
     private TablePanel getTable() {
@@ -570,5 +539,9 @@ public class PageContentAccounts extends PageAdminResources {
 
         showResult(result);
         target.add(getFeedbackPanel());
+    }
+
+    private void importAccount(AjaxRequestTarget target, Object row) {
+
     }
 }
