@@ -111,6 +111,7 @@ public class MultiValueChoosePanel <T extends Serializable> extends SimplePanel<
                     protected void onUpdate(AjaxRequestTarget ajaxRequestTarget) {}
                 });
                 text.setRequired(required);
+                text.setEnabled(false);
                 text.add(AttributeAppender.replace("placeholder", label));
                 text.setLabel(label);
                 textWrapper.add(text);
@@ -130,6 +131,16 @@ public class MultiValueChoosePanel <T extends Serializable> extends SimplePanel<
                         return null;
                     }
                 }));
+
+                AjaxLink edit = new AjaxLink(ID_EDIT) {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        editValuePerformed(target, listItem);
+                    }
+                };
+                textWrapper.add(edit);
+
                 listItem.add(buttonGroup);
 
                 initButtons(buttonGroup, listItem);
@@ -209,15 +220,6 @@ public class MultiValueChoosePanel <T extends Serializable> extends SimplePanel<
             }
         });
         buttonGroup.add(remove);
-
-        AjaxLink edit = new AjaxLink(ID_EDIT) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target) {
-                editValuePerformed(target, item);
-            }
-        };
-        buttonGroup.add(edit);
     }
 
     protected boolean isAddButtonVisible(ListItem<T> item) {

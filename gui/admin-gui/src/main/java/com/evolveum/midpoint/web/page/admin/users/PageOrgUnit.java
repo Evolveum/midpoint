@@ -25,6 +25,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -44,6 +45,7 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
@@ -65,6 +67,7 @@ public class PageOrgUnit extends PageAdminUsers {
     private static final String DOT_CLASS = PageOrgUnit.class.getName() + ".";
     private static final String LOAD_UNIT = DOT_CLASS + "loadOrgUnit";
     private static final String SAVE_UNIT = DOT_CLASS + "saveOrgUnit";
+    private static final String LOAD_PARENT_UNITS = DOT_CLASS + "loadParentOrgUnits";
 
     private static final String ID_LABEL_SIZE = "col-md-4";
     private static final String ID_INPUT_SIZE = "col-md-6";
@@ -209,13 +212,20 @@ public class PageOrgUnit extends PageAdminUsers {
         };
         form.add(orgType);
 
-        //todo not finished [shood]
         MultiValueChoosePanel parentOrgType = new MultiValueChoosePanel(ID_PARENT_ORG_UNITS, parentOrgUnitsModel,
                 createStringResource("ObjectType.parentOrgRef"), ID_LABEL_SIZE, ID_INPUT_SIZE, false, OrgType.class){
 
             @Override
-            protected IModel<String> createTextModel(IModel model){
-                return new PropertyModel<String>(model, "name");
+            protected IModel<String> createTextModel(final IModel model){
+                return new AbstractReadOnlyModel<String>() {
+
+                    @Override
+                    public String getObject() {
+                        OrgType org = (OrgType) model.getObject();
+
+                        return org == null ? null:WebMiscUtil.getOrigStringFromPoly(org.getName());
+                    }
+                };
             }
 
             @Override
@@ -228,17 +238,18 @@ public class PageOrgUnit extends PageAdminUsers {
 
                 boolean added = false;
 
-                for(OrgType org: parentOrgUnitsModel.getObject()){
+                List<OrgType> parents = parentOrgUnitsModel.getObject();
+                for(OrgType org: parents){
                     if(WebMiscUtil.getName(org) == null || WebMiscUtil.getName(org).isEmpty()){
-                        parentOrgUnitsModel.getObject().remove(org);
-                        parentOrgUnitsModel.getObject().add((OrgType)object);
+                        parents.remove(org);
+                        parents.add((OrgType) object);
                         added = true;
                         break;
                     }
                 }
 
                 if(!added){
-                    parentOrgUnitsModel.getObject().add((OrgType)object);
+                    parents.add((OrgType) object);
                 }
             }
         };
@@ -296,14 +307,15 @@ public class PageOrgUnit extends PageAdminUsers {
             }
         }
 
-        //todo update parentOrgRefs
-        //if(parentOrgUnitsModel != null && parentOrgUnitsModel.getObject() != null){
-        //    for(OrgType parent: parentOrgUnitsModel.getObject()){
-        //        if(parent != null && WebMiscUtil.getName(parent) != null && !WebMiscUtil.getName(parent).isEmpty()){
-        //            org.asObjectable().getParentOrg().add(parent);
-        //        }
-        //    }
-        //}
+        if(parentOrgUnitsModel != null && parentOrgUnitsModel.getObject() != null){
+            for(OrgType parent: parentOrgUnitsModel.getObject()){
+                if(parent != null && WebMiscUtil.getName(parent) != null && !WebMiscUtil.getName(parent).isEmpty()){
+                    ObjectReferenceType ref = new ObjectReferenceType();
+                    ref.setOid(parent.getOid());
+                    org.asObjectable().getParentOrgRef().add(ref);
+                }
+            }
+        }
 
         return org;
     }
@@ -382,18 +394,37 @@ public class PageOrgUnit extends PageAdminUsers {
     }
 
     private List<OrgType> loadParentOrgUnits(){
-        List<OrgType> list = new ArrayList<OrgType>();
+        List<OrgType> parentList = new ArrayList<OrgType>();
+        List<ObjectReferenceType> refList = new ArrayList<ObjectReferenceType>();
+        OrgType orgHelper;
+        Task loadTask = createSimpleTask(LOAD_PARENT_UNITS);
+        OperationResult result = new OperationResult(LOAD_PARENT_UNITS);
 
         OrgType actOrg = orgModel.getObject().asObjectable();
 
-        if(actOrg != null && actOrg.getParentOrg() != null){
-            list.addAll(actOrg.getParentOrg());
+        if(actOrg != null){
+            refList.addAll(actOrg.getParentOrgRef());
         }
 
-        if(list.isEmpty())
-            list.add(new OrgType());
+        try{
+            if(!refList.isEmpty()){
+                for(ObjectReferenceType ref: refList){
+                    String oid = ref.getOid();
+                    orgHelper = getModelService().getObject(OrgType.class, oid, null, loadTask, result).asObjectable();
+                    parentList.add(orgHelper);
+                }
+            }
+        }catch(Exception e){
+            LoggingUtils.logException(LOGGER, "Couldn't load parent org. unit refs.", e);
+            result.recordFatalError("Couldn't load parent org. unit refs.", e);
+        }finally{
+            result.computeStatus();
+        }
 
-        return list;
+        if(parentList.isEmpty())
+            parentList.add(new OrgType());
+
+        return parentList;
     }
 
 }
