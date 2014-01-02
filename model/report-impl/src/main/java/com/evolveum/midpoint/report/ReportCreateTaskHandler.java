@@ -59,9 +59,11 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
@@ -91,8 +93,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
 
     private static final Trace LOGGER = TraceManager.getTrace(ReportCreateTaskHandler.class);
     
-    private static String MIDPOINT_HOME = System.getProperty("midpoint.home"); 
-    private static String EXPORT_DIR = MIDPOINT_HOME + "export/";
+    
     private static final String CLASS_NAME_WITH_DOT = ReportCreateTaskHandler.class
 			.getName() + ".";
     
@@ -173,7 +174,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
     		OperationResult subResult = opResult.createSubresult(CREATE_DATASOURCE);
     		
     		LOGGER.trace("create report datasource : {}", reportOid);
-    		DataSourceReport reportDataSource = new DataSourceReport(reportType, subResult);
+    		DataSourceReport reportDataSource = new DataSourceReport(reportType, subResult, prismContext, modelService);
     		
     		params.putAll(getReportParams(reportType, opResult));
     		params.put(JRParameter.REPORT_DATA_SOURCE, reportDataSource);
@@ -260,92 +261,36 @@ public class ReportCreateTaskHandler implements TaskHandler {
     // generate report - export
     private String generateReport(ReportType reportType, JasperPrint jasperPrint) throws JRException
     {
-    	String output = EXPORT_DIR + reportType.getName().getOrig();
+    	String output = reportManager.getReportOutputFilePath(reportType);
     	switch (reportType.getReportExport())
         {
-        	case PDF : 
-        		{
-        			output = output + ".pdf";
-        			pdf(jasperPrint, output);
-        		}
+        	case PDF : pdf(jasperPrint, output);
           		break;
-          	case CSV : 
-          		{
-          			output = output + ".csv";
-          			csv(jasperPrint, output);
-          		} 
-      			break;
-          	case XML :
-          		{
-          			output = output + ".xml";
-          			xml(jasperPrint, output);
-          		}
-      			break;
-          	case XML_EMBED :
-          		{
-          			output = output + "_embed.xml";
-          			xmlEmbed(jasperPrint, output);
-          		}
+          	case CSV : csv(jasperPrint, output);
           		break;
-          	case HTML :
-          		{
-          			output = output + ".html";
-          			html(jasperPrint, output);
-          		}
+          	case XML : xml(jasperPrint, output);
+          		break;
+          	case XML_EMBED : xmlEmbed(jasperPrint, output);
+          		break;
+          	case HTML :	html(jasperPrint, output);
+          		break;
+          	case RTF :	rtf(jasperPrint, output);
+          		break;
+          	case XLS :	xls(jasperPrint, output);
   				break;
-          	case RTF : 
-          		{
-          			output = output + ".rtf";
-          			rtf(jasperPrint, output);
-          		}
+          	case ODT : 	odt(jasperPrint, output);
   				break;
-          	case XLS : 
-          		{
-          			output = output + ".xls";
-          			xls(jasperPrint, output);
-          		}
+          	case ODS : 	ods(jasperPrint, output);
+          		break;
+          	case DOCX : docx(jasperPrint, output);
+          		break;
+          	case XLSX :	xlsx(jasperPrint, output);
   				break;
-          	case ODT : 
-          		{
-          			output = output + ".odt";
-          			odt(jasperPrint, output);
-          		}
+          	case PPTX : pptx(jasperPrint, output);
   				break;
-          	case ODS : 
-          		{
-          			output = output + ".ods";
-          			ods(jasperPrint, output);
-          		}
+          	case XHTML : xhtml(jasperPrint, output);
   				break;
-          	case DOCX : 
-          		{
-          			output = output + ".docx";
-          			docx(jasperPrint, output);
-          		}
-  				break;
-          	case XLSX : 
-          		{          			
-          			output = output + ".xlsx";
-          			xlsx(jasperPrint, output);
-          		}
-  				break;
-          	case PPTX : 
-          		{
-          			output = output + ".pptx";
-          			pptx(jasperPrint, output);
-          		}
-  				break;
-          	case XHTML : 
-          		{
-          			output = output + ".x.html";
-          			xhtml(jasperPrint, output);
-          		}
-  				break;
-          	case JXL : 
-          		{
-          			output = output + ".jxl.xls";
-          			jxl(jasperPrint, output);
-          		}
+          	case JXL : jxl(jasperPrint, output);
           		break; 	
 			default:
 				break;
@@ -521,7 +466,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
     	ReportOutputType reportOutputType = new ReportOutputType();
     	prismContext.adopt(reportOutputType);
     	reportOutputType.setReportFilePath(reportFilePath);
-    	reportOutputType.setReport(reportType);
+    	reportOutputType.setReportRef(MiscSchemaUtil.createObjectReference(reportType.getOid(), SchemaConstants.C_REPORT_TYPE));
     	reportOutputType.setName(new PolyStringType(reportOutputName));
     	reportOutputType.setDescription(reportType.getDescription() + " - " + reportType.getReportExport().value());
     	
