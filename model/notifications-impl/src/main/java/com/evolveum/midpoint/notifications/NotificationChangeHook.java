@@ -132,7 +132,7 @@ public class NotificationChangeHook implements ChangeHook {
     }
 
     private Event createRequest(PrismObject<? extends ObjectType> object, Task task,
-                                ModelContext<UserType, ShadowType> modelContext) {
+                                ModelContext<UserType> modelContext) {
 
         ModelEvent event = new ModelEvent(lightweightIdentifierGenerator);
         event.setModelContext(modelContext);

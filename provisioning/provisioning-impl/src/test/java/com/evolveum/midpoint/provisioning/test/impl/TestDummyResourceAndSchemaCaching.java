@@ -563,7 +563,7 @@ public class TestDummyResourceAndSchemaCaching extends AbstractDummyTest {
 				new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION, 
 							 ConnectorFactoryIcfImpl.CONNECTOR_SCHEMA_CONFIGURATION_PROPERTIES_ELEMENT_QNAME,
 							 DummyResourceContoller.CONNECTOR_DUMMY_USELESS_STRING_QNAME),
-							 new PrismPropertyDefinition(DummyResourceContoller.CONNECTOR_DUMMY_USELESS_STRING_QNAME, DummyResourceContoller.CONNECTOR_DUMMY_USELESS_STRING_QNAME, DOMUtil.XSD_STRING, prismContext),
+							 new PrismPropertyDefinition(DummyResourceContoller.CONNECTOR_DUMMY_USELESS_STRING_QNAME, DOMUtil.XSD_STRING, prismContext),
 							 newVal);
 		return uselessStringDelta;
 	}

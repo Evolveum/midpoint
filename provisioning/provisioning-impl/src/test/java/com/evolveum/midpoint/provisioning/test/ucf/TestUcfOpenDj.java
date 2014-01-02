@@ -15,12 +15,8 @@
  */
 package com.evolveum.midpoint.provisioning.test.ucf;
 
-import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.prism.Definition;
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -57,7 +53,6 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.CredentialsC
 import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.ModificationTypeType;
 
-import org.opends.server.types.DirectoryException;
 import org.opends.server.types.SearchResultEntry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
@@ -69,10 +64,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.FileInputStream;
@@ -274,7 +266,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 	private String getEntryUuid(Collection<ResourceAttribute<?>> identifiers) {
 		for (ResourceAttribute<?> identifier : identifiers) {
-			if (identifier.getName().equals(ConnectorFactoryIcfImpl.ICFS_UID)) {
+			if (identifier.getElementName().equals(ConnectorFactoryIcfImpl.ICFS_UID)) {
 				return identifier.getValue(String.class).getValue();
 			}
 		}
@@ -291,7 +283,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 		String uid = null;
 		for (ResourceAttribute<?> resourceAttribute : identifiers) {
-			if (ConnectorFactoryIcfImpl.ICFS_UID.equals(resourceAttribute.getName())) {
+			if (ConnectorFactoryIcfImpl.ICFS_UID.equals(resourceAttribute.getElementName())) {
 				uid = resourceAttribute.getValue(String.class).getValue();
 				System.out.println("uuuuid:" + uid);
 				assertNotNull(uid);
@@ -784,7 +776,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 	private <T extends ShadowType> PrismObject<T> wrapInShadow(Class<T> type, ResourceAttributeContainer resourceObject) throws SchemaException {
 		PrismObjectDefinition<T> shadowDefinition = getShadowDefinition(type);
 		PrismObject<T> shadow = shadowDefinition.instantiate();
-		resourceObject.setName(ShadowType.F_ATTRIBUTES);
+		resourceObject.setElementName(ShadowType.F_ATTRIBUTES);
 		shadow.getValue().add(resourceObject);
 		return shadow;
 	}

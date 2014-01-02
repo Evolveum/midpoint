@@ -77,8 +77,7 @@ public class ResourceSchema extends PrismSchema {
 	 * @return new resource object definition
 	 */
 	public ObjectClassComplexTypeDefinition createObjectClassDefinition(QName typeName) {
-		QName name = new QName(getNamespace(), toElementName(typeName.getLocalPart()));
-		ObjectClassComplexTypeDefinition cTypeDef = new ObjectClassComplexTypeDefinition(name, typeName, getPrismContext());
+		ObjectClassComplexTypeDefinition cTypeDef = new ObjectClassComplexTypeDefinition(typeName, getPrismContext());
 		add(cTypeDef);
 		return cTypeDef;
 	}

@@ -523,7 +523,7 @@ public class ObjectWrapper implements Serializable {
 					PrismContainer parent = object.findOrCreateContainer(parentPath);
 					parent.add(container);
 				} else {
-					PrismContainer existing = object.findContainer(container.getName());
+					PrismContainer existing = object.findContainer(container.getElementName());
 					if (existing == null) {
 						object.add(container);
 					} else {
@@ -540,7 +540,7 @@ public class ObjectWrapper implements Serializable {
 				}
 
 				PrismProperty property = propertyWrapper.getItem().clone();
-				if (container.findProperty(property.getName()) != null) {
+				if (container.findProperty(property.getElementName()) != null) {
 					continue;
 				}
 				for (ValueWrapper valueWrapper : propertyWrapper.getValues()) {

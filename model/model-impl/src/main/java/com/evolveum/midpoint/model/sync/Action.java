@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.sync;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -28,10 +29,15 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
 
 import java.util.List;
+import java.util.Map;
+
+import javax.xml.namespace.QName;
 
 /**
  * @author Vilo Repan
@@ -51,11 +57,12 @@ public interface Action {
     String ACTION_MODIFY_PASSWORD = Action.class.getName() + ".modifyPassword";
 
 
-    String executeChanges(String userOid, ResourceObjectShadowChangeDescription change, ObjectTemplateType userTemplate,
-            SynchronizationSituationType situation, Task task, OperationResult result) 
-    		throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException;
+//    String executeChanges(String userOid, ResourceObjectShadowChangeDescription change,
+//    		ObjectSynchronizationType synchronizationPolicy,
+//    		ObjectTemplateType userTemplate,
+//            SynchronizationSituationType situation, Task task, OperationResult result) 
+//    		throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException;
 
-    void setParameters(List<Object> parameters);
-
-    List<Object> getParameters();
+    <F extends FocusType> void handle(LensContext<F> context, SynchronizationSituation<F> situation, Map<QName,Object> parameters, 
+    		Task task, OperationResult parentResult);
 }

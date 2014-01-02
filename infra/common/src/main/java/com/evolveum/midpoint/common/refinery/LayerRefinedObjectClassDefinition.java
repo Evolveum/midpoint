@@ -59,6 +59,9 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 	}
 	
 	static LayerRefinedObjectClassDefinition wrap(RefinedObjectClassDefinition rAccountDef, LayerType layer) {
+		if (rAccountDef == null) {
+			return null;
+		}
 		return new LayerRefinedObjectClassDefinition(rAccountDef, layer);
 	}
 	
@@ -76,10 +79,6 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 
 	public QName getTypeName() {
 		return refinedObjectClassDefinition.getTypeName();
-	}
-
-	public QName getDefaultName() {
-		return refinedObjectClassDefinition.getDefaultName();
 	}
 
 	public void setTypeName(QName typeName) {

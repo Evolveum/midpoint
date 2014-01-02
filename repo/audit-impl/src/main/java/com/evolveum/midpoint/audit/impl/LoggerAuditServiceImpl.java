@@ -23,15 +23,12 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
-import com.evolveum.midpoint.task.api.LightweightIdentifier;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -126,7 +123,7 @@ public class LoggerAuditServiceImpl implements AuditService {
 		if (object == null) {
 			return "null";
 		}
-		return object.asObjectable().toDebugType()+":"+object.getOid()+"("+object.getName()+")";
+		return object.asObjectable().toDebugType()+":"+object.getOid()+"("+object.getElementName()+")";
 	}
 
 	private static String formatUser(UserType user) {

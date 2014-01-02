@@ -115,7 +115,7 @@ public class TestUtil {
     public static void setAttribute(PrismObject<ShadowType> account, QName attrName, QName typeName, 
 			PrismContext prismContext, String value) throws SchemaException {
 		PrismContainer<Containerable> attributesContainer = account.findContainer(ShadowType.F_ATTRIBUTES);
-		ResourceAttributeDefinition attrDef = new ResourceAttributeDefinition(attrName, attrName, typeName, prismContext);
+		ResourceAttributeDefinition attrDef = new ResourceAttributeDefinition(attrName, typeName, prismContext);
 		ResourceAttribute attribute = attrDef.instantiate();
 		attribute.setRealValue(value);
 		attributesContainer.add(attribute);

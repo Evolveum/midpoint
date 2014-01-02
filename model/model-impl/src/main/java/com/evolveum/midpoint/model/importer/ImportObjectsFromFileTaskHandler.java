@@ -75,7 +75,7 @@ public class ImportObjectsFromFileTaskHandler implements TaskHandler {
         super();
         //handlers = new HashMap<Task, ImportAccountsFromResourceResultHandler>();
         filenamePropertyDefinition = new PrismPropertyDefinition(ImportConstants.FILENAME_PROPERTY_NAME, 
-        		ImportConstants.FILENAME_PROPERTY_NAME, DOMUtil.XSD_STRING, prismContext);
+        		DOMUtil.XSD_STRING, prismContext);
     }
 
     @PostConstruct

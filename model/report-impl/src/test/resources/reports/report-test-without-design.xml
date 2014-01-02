@@ -1,0 +1,71 @@
+<!--
+  ~ Copyright (c) 2010-2013 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!-- Test report. It specifies creation of simple report, user in midpoint. -->
+<report xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+        oid="00000000-3333-3333-TEST-20000000000"
+        version="0">
+	<name>Test report - task</name>
+	<description>TEST Report without design.</description>
+	<reportTemplate>
+	</reportTemplate>
+	<reportTemplateStyle>
+    </reportTemplateStyle>
+   <reportOrientation>landscape</reportOrientation>
+   <reportExport>csv</reportExport>
+   <query></query>
+   <objectClass>UserType</objectClass>
+   <reportField>
+		<nameReportField>Name</nameReportField>
+		<nameHeaderField>Name</nameHeaderField>
+		<itemPathField>c:name</itemPathField>
+		<sortOrderNumber>1</sortOrderNumber>
+		<sortOrder>ascending</sortOrder>
+		<widthField>25</widthField>
+		<classTypeField>t:PolyStringType</classTypeField>
+   </reportField>
+   <reportField>
+		<nameReportField>FirstName</nameReportField>
+		<nameHeaderField>First Name</nameHeaderField>
+		<itemPathField>c:givenName</itemPathField>
+		<widthField>25</widthField>
+		<classTypeField>t:PolyStringType</classTypeField>
+	</reportField>
+	<reportField>
+		<nameReportField>LastName</nameReportField>
+		<nameHeaderField>Last Name</nameHeaderField>
+		<itemPathField>c:familyName</itemPathField>
+		<widthField>25</widthField>
+		<classTypeField>t:PolyStringType</classTypeField>
+	</reportField>
+	<reportField>
+		<nameReportField>Activation</nameReportField>
+		<nameHeaderField>Activation</nameHeaderField>
+		<itemPathField>c:activation/c:administrativeStatus</itemPathField>
+		<widthField>25</widthField>
+		<classTypeField>c:ActivationStatusType</classTypeField>
+	</reportField>
+	<reportParameter>
+		<nameParameter>LOGO_PATH</nameParameter>
+		<valueParameter>src/test/resources/reports/logo.jpg</valueParameter>
+		<classTypeParameter>xsd:string</classTypeParameter>
+	</reportParameter>
+	<reportParameter>
+		<nameParameter>BaseTemplateStyles</nameParameter>
+		<valueParameter>src/test/resources/styles/midpoint_base_styles.jrtx</valueParameter>
+		<classTypeParameter>xsd:string</classTypeParameter>
+	</reportParameter>
+</report>

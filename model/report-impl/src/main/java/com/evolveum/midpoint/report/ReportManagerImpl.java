@@ -18,10 +18,7 @@ package com.evolveum.midpoint.report;
 
 import java.awt.Color;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +28,7 @@ import javax.xml.namespace.QName;
 
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperCompileManager;
+import net.sf.jasperreports.engine.JasperReport;
 import net.sf.jasperreports.engine.base.JRBasePen;
 import net.sf.jasperreports.engine.design.JRDesignBand;
 import net.sf.jasperreports.engine.design.JRDesignExpression;
@@ -57,8 +55,8 @@ import net.sf.jasperreports.engine.xml.JRXmlLoader;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.w3c.dom.Node;
 
-import com.evolveum.midpoint.common.LoggingConfigurationManager;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
@@ -69,12 +67,13 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
-import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportFieldConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportParameterConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ThreadStopActionType;
 
@@ -89,15 +88,16 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
     
     private static final Trace LOGGER = TraceManager.getTrace(ReportManagerImpl.class);
     
-    private static final String DOT_CLASS = ReportManagerImpl.class + ".";
+    private static final String CLASS_NAME_WITH_DOT = ReportManagerImpl.class + ".";
     
+
 	@Autowired
     private HookRegistry hookRegistry;
 
 	@Autowired
     private TaskManager taskManager;
-	
-    @PostConstruct
+
+	@PostConstruct
     public void init() {   	
         hookRegistry.registerChangeHook(HOOK_URI, this);
     }
@@ -110,6 +110,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
      * @param task
      * @param parentResult describes report which has to be created
      */
+    
     @Override
     public void runReport(PrismObject<ReportType> object, Task task, OperationResult parentResult) {    	
         task.setHandlerUri(ReportCreateTaskHandler.REPORT_CREATE_TASK_URI);
@@ -171,49 +172,39 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
              LOGGER.trace("invoke() EXITING: Changes not related to report");
              return HookOperationMode.FOREGROUND;
          }
+         
+         if (isDeletion) {
+             LOGGER.trace("invoke() EXITING because operation is DELETION");
+             return HookOperationMode.FOREGROUND;
+         }
 
-         OperationResult result = parentResult.createSubresult(DOT_CLASS + "invoke");
+         OperationResult result = parentResult.createSubresult(CLASS_NAME_WITH_DOT + "invoke");
          try {
-             if (isDeletion) {
-                 LoggingConfigurationManager.resetCurrentlyUsedVersion();        
-                 LOGGER.trace("invoke() EXITING because operation is DELETION");
-                 return HookOperationMode.FOREGROUND;
-             }
-             
              ReportType reportType = (ReportType) object.asObjectable();
-             Object reportTemplate = reportType.getReportTemplate();
              JasperDesign jasperDesign = null;
-             if (reportTemplate == null)
+             if (reportType.getReportTemplate() == null || reportType.getReportTemplate().getAny() == null)
              {
             	 jasperDesign = createJasperDesign(reportType);
+            	 LOGGER.trace("create jasper design : {}", jasperDesign);
              }
              else
              {
-            	 // Loading template
-            	 ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            	 ObjectOutputStream oos = new ObjectOutputStream(baos);
-            	 oos.writeObject(reportTemplate);
-            	 oos.flush();
-            	 oos.close();
-
-            	 InputStream inputStreamJRXML = new ByteArrayInputStream(baos.toByteArray());
+            	 String reportTemplate = DOMUtil.serializeDOMToString((Node)reportType.getReportTemplate().getAny());
+            	 InputStream inputStreamJRXML = new ByteArrayInputStream(reportTemplate.getBytes());
             	 jasperDesign = JRXmlLoader.load(inputStreamJRXML);
+            	 LOGGER.trace("load jasper design : {}", jasperDesign);
              }
              // Compile template
-             JasperCompileManager.compileReport(jasperDesign);
-            
-             result.computeStatus();
+             JasperReport jasperReport = JasperCompileManager.compileReport(jasperDesign);
+             LOGGER.trace("compile jasper design, create jasper report : {}", jasperReport);
+             
+             //result.computeStatus();
+             result.recordSuccessIfUnknown();
 
-         }
-         catch (IOException ex)
-         {
-        	 String message = "Input - Output convert jrxml file: " + ex.getMessage();
-             LoggingUtils.logException(LOGGER, message, ex);
-             result.recordFatalError(message, ex);
          }
          catch (JRException ex) {
              String message = "Cannot load or compile jasper report: " + ex.getMessage();
-             LoggingUtils.logException(LOGGER, message, ex);
+             LOGGER.error(message);
              result.recordFatalError(message, ex);
          } 
         
@@ -223,14 +214,17 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
     
     private Class getClassType(QName clazz)
     {
+    	//TODO
     	return java.lang.String.class;
     }
     
-    private JasperDesign createJasperDesign(ReportType reportType) throws JRException
+    @Override
+    public JasperDesign createJasperDesign(ReportType reportType) throws JRException
 	{
 		//JasperDesign
 		JasperDesign jasperDesign = new JasperDesign();
-		jasperDesign.setName("reportDataSource");
+		String reportName = reportType.getName().getOrig(); 
+		jasperDesign.setName(reportName.replace("\\s", ""));
 		
 		switch (reportType.getReportOrientation())
 		{
@@ -259,15 +253,12 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
 		jasperDesign.setTopMargin(20);
 		jasperDesign.setBottomMargin(20);
 		
-	
-		//Templates
-		JRDesignReportTemplate templateStyle = new JRDesignReportTemplate(new JRDesignExpression("$P{BaseTemplateStyles}"));
-		jasperDesign.addTemplate(templateStyle);
 		
 		//Parameters
 		//two parameters are there every time - template styles and logo image and will be excluded
 		List<ReportParameterConfigurationType> parameters = new ArrayList<ReportParameterConfigurationType>();
 		parameters.addAll(reportType.getReportParameter());
+		boolean isTemplateStyle = false;
 		
 		for(ReportParameterConfigurationType parameterRepo : parameters)
 		{
@@ -275,13 +266,68 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
 			parameter.setName(parameterRepo.getNameParameter());
 			parameter.setValueClass(getClassType(parameterRepo.getClassTypeParameter()));
 			jasperDesign.addParameter(parameter);
-			/*if(parameterRepo.getNameParameter().equals("LOGO_PATH") || parameterRepo.getNameParameter().equals("BaseTemplateStyles")) 
-			{
-				parameters.remove(parameterRepo);
-			}
-			*/
+			isTemplateStyle = isTemplateStyle || parameter.getName().equals("BaseTemplateStyles");			
 		}
 				
+		//Template Style or Styles
+		if (isTemplateStyle)
+		{
+			JRDesignReportTemplate templateStyle = new JRDesignReportTemplate(new JRDesignExpression("$P{BaseTemplateStyles}"));
+			jasperDesign.addTemplate(templateStyle);
+		}
+		else
+		{
+			JRDesignStyle baseStyle = new JRDesignStyle();
+			baseStyle.setName("Base");
+			baseStyle.setDefault(true);
+			baseStyle.setHorizontalAlignment(HorizontalAlignEnum.LEFT);
+			baseStyle.setVerticalAlignment(VerticalAlignEnum.MIDDLE);
+			baseStyle.setFontSize(10);
+			baseStyle.setPdfFontName("Helvetica");
+			baseStyle.setPdfEncoding("Cp1252");
+			baseStyle.setPdfEmbedded(false);
+			jasperDesign.addStyle(baseStyle);
+			
+			JRDesignStyle titleStyle = new JRDesignStyle();
+			titleStyle.setName("Title");
+			titleStyle.setParentStyle(baseStyle);
+			titleStyle.setMode(ModeEnum.OPAQUE);
+			titleStyle.setBackcolor(Color.decode("#267994"));
+			titleStyle.setForecolor(Color.decode("#FFFFFF"));
+			titleStyle.setFontSize(26);
+			jasperDesign.addStyle(titleStyle);
+			
+			JRDesignStyle pageHeaderStyle = new JRDesignStyle();
+			pageHeaderStyle.setName("Page header");
+			pageHeaderStyle.setParentStyle(baseStyle);
+			pageHeaderStyle.setForecolor(Color.decode("#000000"));
+			pageHeaderStyle.setFontSize(12);
+			jasperDesign.addStyle(pageHeaderStyle);
+			
+			JRDesignStyle columnHeaderStyle = new JRDesignStyle();
+			columnHeaderStyle.setName("Column header");
+			columnHeaderStyle.setParentStyle(baseStyle);
+			columnHeaderStyle.setHorizontalAlignment(HorizontalAlignEnum.CENTER);
+			columnHeaderStyle.setMode(ModeEnum.OPAQUE);
+			columnHeaderStyle.setBackcolor(Color.decode("#333333"));
+			columnHeaderStyle.setForecolor(Color.decode("#FFFFFF"));
+			columnHeaderStyle.setFontSize(12);
+			jasperDesign.addStyle(columnHeaderStyle);
+			
+			JRDesignStyle detailStyle = new JRDesignStyle();
+			detailStyle.setName("Detail");
+			detailStyle.setParentStyle(baseStyle);
+			detailStyle.setBold(false);
+			jasperDesign.addStyle(detailStyle);
+			
+			JRDesignStyle pageFooterStyle = new JRDesignStyle();
+			pageFooterStyle.setName("Page footer");
+			pageFooterStyle.setParentStyle(baseStyle);
+			pageFooterStyle.setForecolor(Color.decode("#000000"));
+			pageFooterStyle.setFontSize(9);
+			jasperDesign.addStyle(pageFooterStyle);
+		}
+		
 		//Fields
 		for(ReportFieldConfigurationType fieldRepo : reportType.getReportField())
 		{
@@ -573,33 +619,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
     public void invokeOnException(ModelContext context, Throwable throwable, Task task, OperationResult result) {
     	
     }
-    /*
-    @Override
-    public List<PrismObject<ReportType>> searchReports(ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, OperationResult parentResult) 
-    		throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-			SecurityViolationException {
-    	return modelService.searchObjects(ReportType.class, query, options, null, parentResult);
-    }
-
-    @Override
-    public int countReports(ObjectQuery query, OperationResult parentResult) throws SchemaException 
-    {
-    	//LOGGER.trace("begin::countReport()");
-        int count = 0;
-        OperationResult result = parentResult.createSubresult(COUNT_REPORT);
-        try {
-        	count = modelService.countObjects(ReportType.class, query, null, null, result);
-            result.recordSuccess();
-        } 
-        catch (Exception ex) 
-        {
-            result.recordFatalError("Couldn't count objects.", ex);
-        }
-        //LOGGER.trace("end::countReport()");
-        return count;
-    }
-
-  */
+  
     @Override
     public void cleanupReports(CleanupPolicyType cleanupPolicy, OperationResult parentResult) {
         //To change body of implemented methods use File | Settings | File Templates.

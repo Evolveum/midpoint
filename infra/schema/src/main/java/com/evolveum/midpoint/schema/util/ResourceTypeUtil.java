@@ -378,6 +378,7 @@ public class ResourceTypeUtil {
 	 * Returns appropriate object synchronization settings for the class.
 	 * Assumes single sync setting for now.
 	 */
+	@Deprecated
 	public static ObjectSynchronizationType determineSynchronization(ResourceType resource, Class<UserType> type) {
 		SynchronizationType synchronization = resource.getSynchronization();
 		if (synchronization == null) {

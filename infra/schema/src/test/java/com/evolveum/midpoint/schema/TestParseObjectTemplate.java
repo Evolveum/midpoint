@@ -16,14 +16,9 @@
 package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -41,20 +36,15 @@ import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
-import static com.evolveum.midpoint.schema.TestConstants.*;
 
 /**
  * @author semancik
@@ -132,7 +122,7 @@ public class TestParseObjectTemplate {
 		PrismAsserts.assertObjectDefinition(objectDefinition, elementName,
 				ObjectTemplateType.COMPLEX_TYPE, ObjectTemplateType.class);
 		assertEquals("Wrong class", ObjectTemplateType.class, object.getCompileTimeClass());
-		assertEquals("Wrong object item name", elementName, object.getName());
+		assertEquals("Wrong object item name", elementName, object.getElementName());
 		ObjectTemplateType objectType = object.asObjectable();
 		assertNotNull("asObjectable resulted in null", objectType);
 		

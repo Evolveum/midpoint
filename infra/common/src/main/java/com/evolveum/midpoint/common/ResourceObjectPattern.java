@@ -81,10 +81,10 @@ public class ResourceObjectPattern implements Serializable {
 	}
 
 	private boolean matches(ResourceAttribute<?> identifier, ResourceAttribute<?> attributeToMatch, MatchingRuleRegistry matchingRuleRegistry) throws SchemaException {
-		if (!identifier.getName().equals(attributeToMatch.getName())) {
+		if (!identifier.getElementName().equals(attributeToMatch.getElementName())) {
 			return false;
 		}
-		RefinedAttributeDefinition rAttrDef = rOcDef.findAttributeDefinition(identifier.getName());
+		RefinedAttributeDefinition rAttrDef = rOcDef.findAttributeDefinition(identifier.getElementName());
 		QName matchingRuleQName = rAttrDef.getMatchingRuleQName();
 		if (matchingRuleQName == null || matchingRuleRegistry == null) {
 			return identifier.equalsRealValue(attributeToMatch);

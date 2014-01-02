@@ -57,7 +57,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 public abstract class Definition implements Serializable, Dumpable, DebugDumpable {
 
 	private static final long serialVersionUID = -2643332934312107274L;
-	protected QName defaultName;
 	protected QName typeName;
 	protected boolean ignored = false;
     protected boolean isAbstract = false;
@@ -65,6 +64,7 @@ public abstract class Definition implements Serializable, Dumpable, DebugDumpabl
 	protected Integer displayOrder;
 	protected String help;
     protected String documentation;
+    protected boolean deprecated = false;
 	
 	/**
      * This means that the property container is not defined by fixed (compile-time) schema.
@@ -75,36 +75,12 @@ public abstract class Definition implements Serializable, Dumpable, DebugDumpabl
     
 	protected transient PrismContext prismContext;
 
-	// TODO: annotations
-	
-	Definition(QName defaultName, QName typeName, PrismContext prismContext) {
+	Definition(QName typeName, PrismContext prismContext) {
 		if (typeName == null) {
 			throw new IllegalArgumentException("Type name can't be null.");
 		}
-		this.defaultName = defaultName;
 		this.typeName = typeName;
 		this.prismContext = prismContext;
-	}
-
-	/**
-	 * Returns default name for the defined entity.
-	 * 
-	 * The default name is the name that the entity usually takes, but a name
-	 * that is not fixed by the schema.
-	 * 
-	 * The name corresponds to the XML element name in the XML representation of
-	 * the schema. It does NOT correspond to a XSD type name.
-	 * 
-	 * For example the default name may be the element name that is usually used
-	 * for a specific object (e.g. "user"), while the same object may be
-	 * represented using other names that resolve to the same type.
-	 * 
-	 * In XML representation it corresponds to "defaultElement" XSD annotation.
-	 * 
-	 * @return the defaultName
-	 */
-	public QName getDefaultName() {
-		return defaultName;
 	}
 
 	/**
@@ -140,7 +116,15 @@ public abstract class Definition implements Serializable, Dumpable, DebugDumpabl
         this.isAbstract = isAbstract;
     }
 
-    /**
+    public boolean isDeprecated() {
+		return deprecated;
+	}
+
+	public void setDeprecated(boolean deprecated) {
+		this.deprecated = deprecated;
+	}
+
+	/**
 	 * Returns display name.
 	 * 
 	 * Specifies the printable name of the object class or attribute. It must
@@ -244,7 +228,6 @@ public abstract class Definition implements Serializable, Dumpable, DebugDumpabl
 	public abstract Definition clone(); 
 	
 	protected void copyDefinitionData(Definition clone) {
-		clone.defaultName = this.defaultName;
 		clone.ignored = this.ignored;
 		clone.typeName = this.typeName;
 		clone.displayName = this.displayName;

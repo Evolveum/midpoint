@@ -17,12 +17,13 @@ package com.evolveum.midpoint.model.api.context;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 
 /**
  * @author semancik
  *
  */
-public interface ModelProjectionContext<O extends ObjectType> extends ModelElementContext<O> {
+public interface ModelProjectionContext extends ModelElementContext<ShadowType> {
 
 	/**
 	 * Returns synchronization delta.
@@ -30,8 +31,9 @@ public interface ModelProjectionContext<O extends ObjectType> extends ModelEleme
 	 * Synchronization delta describes changes that have recently happened. MidPoint reacts to these
 	 * changes by "pulling them in" (e.g. using them in inbound mappings).
 	 */
-	public ObjectDelta<O> getSyncDelta();
-	public void setSyncDelta(ObjectDelta<O> syncDelta);
+	public ObjectDelta<ShadowType> getSyncDelta();
+	
+	public void setSyncDelta(ObjectDelta<ShadowType> syncDelta);
 	
 	/**
 	 * Decision regarding the account. It describes the overall situation of the account e.g. whether account

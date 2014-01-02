@@ -339,14 +339,14 @@
             </dependency>
             <!--  Identity conectors  -->
             <dependency>
-                <groupId>org.forgerock.openicf.framework</groupId>
+                <groupId>org.connid</groupId>
                 <artifactId>connector-framework</artifactId>
-                <version>1.1.2.em82</version>
+                <version>1.4.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
-                <groupId>org.forgerock.openicf.framework</groupId>
+                <groupId>org.connid</groupId>
                 <artifactId>connector-framework-internal</artifactId>
-                <version>1.1.2.em82</version>
+                <version>1.4.0.0-SNAPSHOT</version>
             </dependency>
             <dependency>
                 <groupId>org.forgerock.openicf.connectors</groupId>
@@ -533,10 +533,12 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
+
     <organization>
         <name>Evolveum</name>
         <url>http://www.evolveum.com</url>
     </organization>
+
     <licenses>
         <license>
             <name>Apache License v2.0</name>
@@ -544,10 +546,25 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
+
+    <distributionManagement>
+      <repository>
+        <id>evolveum-nexus</id>
+        <name>Internal Releases</name>
+        <url>http://nexus.evolveum.com/nexus/content/repositories/releases/</url>
+      </repository>
+      <snapshotRepository>
+        <id>evolveum-nexus</id>
+        <name>Internal Releases</name>
+        <url>http://nexus.evolveum.com/nexus/content/repositories/snapshots/</url>
+      </snapshotRepository>
+    </distributionManagement>
+
     <issueManagement>
         <system>Atlassian JIRA</system>
         <url>http://jira.evolveum.com/</url>
     </issueManagement>
+
     <scm>
         <connection>scm:git:git://git.evolveum.com/midpoint.gittrunk/build-system</connection>
         <developerConnection>scm:git:git://git.evolveum.com/midpoint.gittrunk/build-system</developerConnection>

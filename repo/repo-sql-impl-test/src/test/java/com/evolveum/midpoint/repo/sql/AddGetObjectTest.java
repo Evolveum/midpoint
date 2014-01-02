@@ -21,8 +21,6 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.query.LessFilter;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -43,7 +41,6 @@ import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
-import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 import java.io.File;
 import java.util.ArrayList;
@@ -163,7 +160,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
                     if (delta.getModifications().size() == 1) {
                         ItemDelta d = (ItemDelta) delta.getModifications().iterator().next();
 
-                        if (ShadowType.F_DEAD.equals(d.getName())) {
+                        if (ShadowType.F_DEAD.equals(d.getElementName())) {
                             count -= delta.getModifications().size();
                             continue;
                         }
@@ -201,20 +198,20 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
             }
 
             PrismContainer newContainer = (PrismContainer) item;
-            PrismContainer oldContainer = oldValue.findContainer(newContainer.getName());
-            AssertJUnit.assertNotNull("Container '" + newContainer.getName() + "' doesn't exist.", oldContainer);
+            PrismContainer oldContainer = oldValue.findContainer(newContainer.getElementName());
+            AssertJUnit.assertNotNull("Container '" + newContainer.getElementName() + "' doesn't exist.", oldContainer);
 
             checkContainersSize(newContainer, oldContainer);
-            checked.add(oldContainer.getName());
+            checked.add(oldContainer.getElementName());
         }
 
         for (Item item : (List<Item>) oldValue.getItems()) {
-            if (!(item instanceof PrismContainer) || checked.contains(item.getName())) {
+            if (!(item instanceof PrismContainer) || checked.contains(item.getElementName())) {
                 continue;
             }
 
             PrismContainer oldContainer = (PrismContainer) item;
-            PrismContainer newContainer = newValue.findContainer(oldContainer.getName());
+            PrismContainer newContainer = newValue.findContainer(oldContainer.getElementName());
             checkContainersSize(newContainer, oldContainer);
         }
     }
@@ -222,7 +219,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
     private void checkContainersSize(PrismContainer newContainer, PrismContainer oldContainer) {
         LOGGER.info("checkContainersSize {} new {}  old {}",
 
-                new Object[]{newContainer.getName(), newContainer.size(), oldContainer.size()});
+                new Object[]{newContainer.getElementName(), newContainer.size(), oldContainer.size()});
         AssertJUnit.assertEquals(newContainer.size(), oldContainer.size());
 
         List<Long> checked = new ArrayList<Long>();
@@ -230,7 +227,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         for (PrismContainerValue value : newValues) {
             PrismContainerValue oldValue = oldContainer.getValue(value.getId());
 
-            checkContainerValuesSize(newContainer.getName(), value, oldValue);
+            checkContainerValuesSize(newContainer.getElementName(), value, oldValue);
             checked.add(value.getId());
         }
 
@@ -241,7 +238,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
             }
 
             PrismContainerValue newValue = newContainer.getValue(value.getId());
-            checkContainerValuesSize(newContainer.getName(), newValue, value);
+            checkContainerValuesSize(newContainer.getElementName(), newValue, value);
         }
     }
 

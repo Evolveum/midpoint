@@ -18,7 +18,6 @@ package com.evolveum.midpoint.prism.dom;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectInputStream.GetField;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -28,7 +27,6 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.prism.schema.SchemaProcessorUtil;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
@@ -61,7 +59,6 @@ import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.ReflectionUtil;
@@ -281,7 +278,7 @@ public class PrismDomProcessor {
 	private <T extends Containerable> void addValuesToContainerValue(PrismContainerValue<T> containerValue,
 			Collection<? extends Item> newContainerItems) throws SchemaException {
 		for (Item<?> newItem : newContainerItems) {
-			Item existingItem = containerValue.findItem(newItem.getName());
+			Item existingItem = containerValue.findItem(newItem.getElementName());
 			if (existingItem == null) {
 				containerValue.add(newItem);
 			} else {
@@ -377,7 +374,7 @@ public class PrismDomProcessor {
 			if (selection != null) {
 				boolean selected = false;
 				for (ItemDefinition selProdDef : selection) {
-					if (selProdDef.getNameOrDefaultName().equals(elementQName)) {
+					if (selProdDef.getName().equals(elementQName)) {
 						selected = true;
 					}
 				}
@@ -441,7 +438,7 @@ public class PrismDomProcessor {
 		if (typeName == null) {
 			return null;
 		}
-		PrismPropertyDefinition propDef = new PrismPropertyDefinition(elementName, elementName, typeName, prismContext);
+		PrismPropertyDefinition propDef = new PrismPropertyDefinition(elementName, typeName, prismContext);
 		propDef.setMaxOccurs(maxOccurs);
 		propDef.setDynamic(true);
 		return propDef;
@@ -479,7 +476,7 @@ public class PrismDomProcessor {
 		if (typeName == null) {
 			return null;
 		}
-		PrismPropertyDefinition propDef = new PrismPropertyDefinition(elementName, elementName, typeName, prismContext);
+		PrismPropertyDefinition propDef = new PrismPropertyDefinition(elementName, typeName, prismContext);
 		propDef.setMaxOccurs(maxOccurs);
 		propDef.setDynamic(true);
 		return propDef;
@@ -1021,7 +1018,7 @@ public class PrismDomProcessor {
 		List<Object> itemValueElements = new ArrayList<Object>();
 		itemValueElements.add(element);
 		if (itemDefinition == null) {
-			itemDefinition = locateItemDefinition(container.getDefinition(), item.getName(), itemValueElements);
+			itemDefinition = locateItemDefinition(container.getDefinition(), item.getElementName(), itemValueElements);
 		}
 		if (itemDefinition == null) {
 			if (container.getDefinition() != null && container.getDefinition().isRuntimeSchema()) {
@@ -1031,7 +1028,7 @@ public class PrismDomProcessor {
 			}
 		}
 		// Kind of hack now. Just to reuse existing code.
-		Item<?> fauxItem = parseItem(itemValueElements, item.getName(), itemDefinition);
+		Item<?> fauxItem = parseItem(itemValueElements, item.getElementName(), itemDefinition);
 		PrismValue itemValue = fauxItem.getValues().get(0);
 		return item.add(itemValue);
 	}
@@ -1046,7 +1043,7 @@ public class PrismDomProcessor {
 		List<Object> itemValueElements = new ArrayList<Object>();
 		itemValueElements.add(element);
 		if (itemDefinition == null) {
-			itemDefinition = locateItemDefinition(container.getDefinition(), item.getName(), itemValueElements);
+			itemDefinition = locateItemDefinition(container.getDefinition(), item.getElementName(), itemValueElements);
 		}
 		if (itemDefinition == null) {
 			if (container.getDefinition() != null && container.getDefinition().isRuntimeSchema()) {
@@ -1056,7 +1053,7 @@ public class PrismDomProcessor {
 			}
 		}
 		// Kind of hack now. Just to reuse existing code.
-		Item<?> fauxItem = parseItem(itemValueElements, item.getName(), itemDefinition);
+		Item<?> fauxItem = parseItem(itemValueElements, item.getElementName(), itemDefinition);
 		PrismValue itemValue = fauxItem.getValues().get(0);
 		return item.remove(itemValue);
 	}
@@ -1143,7 +1140,7 @@ public class PrismDomProcessor {
 
     public List<Element> serializeItemToDom(Item<?> item, Document document, boolean serializeCompositeObjects) throws SchemaException {
 
-		QName elementName = item.getName();
+		QName elementName = item.getElementName();
 		// This is kind of a hack. The serializeValueToDom method will place the
 		// element that we want below the
 		// "parent" element that we need to provide. So we create fake element
@@ -1170,7 +1167,7 @@ public class PrismDomProcessor {
 	public String determineElementNamespace(Itemable parent, String elementDescriptionLocalName) {
 		ItemDefinition definition = parent.getDefinition();
 		if (definition == null) {
-			return parent.getName().getNamespaceURI();
+			return parent.getElementName().getNamespaceURI();
 		}
 		// This is very simplistic now, it assumes that all elements are in the
 		// "tns" namespace.

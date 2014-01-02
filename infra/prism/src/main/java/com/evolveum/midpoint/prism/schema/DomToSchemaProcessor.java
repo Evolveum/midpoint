@@ -537,6 +537,11 @@ class DomToSchemaProcessor {
 		Iterator<XSElementDecl> iterator = set.iterateElementDecls();
 		while (iterator.hasNext()) {
 			XSElementDecl xsElementDecl = iterator.next();
+			if (isDeprecated(xsElementDecl)) {
+				// Safe to ignore. We want it in the XSD schema only. The real definition will be
+				// parsed from the non-deprecated variant
+			}
+			
 			if (xsElementDecl.getTargetNamespace().equals(schema.getNamespace())) {
 				
 				QName elementName = new QName(xsElementDecl.getTargetNamespace(),xsElementDecl.getName());
@@ -835,6 +840,12 @@ class DomToSchemaProcessor {
 		if (ignore != null) {
 			itemDef.setIgnored(ignore);
 		}
+		
+		// deprecated
+		Boolean deprecated = SchemaProcessorUtil.getAnnotationBooleanMarker(annotation, A_DEPRECATED);
+		if (deprecated != null) {
+			itemDef.setDeprecated(deprecated);
+		}
 
 		// operational
 		Boolean operational = SchemaProcessorUtil.getAnnotationBooleanMarker(annotation, A_OPERATIONAL);
@@ -865,6 +876,11 @@ class DomToSchemaProcessor {
         extractDocumentation(itemDef, annotation);
 	}
 
+	private boolean isDeprecated(XSElementDecl xsElementDecl) throws SchemaException {
+		XSAnnotation annotation = xsElementDecl.getAnnotation();
+		Boolean deprecated = SchemaProcessorUtil.getAnnotationBooleanMarker(annotation, A_DEPRECATED);
+		return (deprecated != null && deprecated);
+	}
 
 	private boolean containsAccessFlag(String flag, List<Element> accessList) {
 		for (Element element : accessList) {

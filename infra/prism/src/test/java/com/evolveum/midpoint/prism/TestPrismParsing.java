@@ -26,12 +26,8 @@ import static org.testng.AssertJUnit.assertNotNull;
 import java.io.File;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
-import java.util.Set;
 
-import javax.xml.bind.JAXBException;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -43,22 +39,16 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.foo.ActivationType;
 import com.evolveum.midpoint.prism.foo.AssignmentType;
-import com.evolveum.midpoint.prism.foo.ObjectFactory;
 import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -275,7 +265,7 @@ public class TestPrismParsing {
 		PrismReference opponentRef = meleeContextContainer.findOrCreateReference(EXTENSION_MELEE_CONTEXT_OPPONENT_REF_ELEMENT);
 		PrismObject<UserType> userBarbossa = prismContext.parseObject(USER_BARBOSSA_FILE);
 		// Cosmetics to make sure the equivalence assert below works
-		userBarbossa.setName(EXTENSION_MELEE_CONTEXT_OPPONENT_ELEMENT);
+		userBarbossa.setElementName(EXTENSION_MELEE_CONTEXT_OPPONENT_ELEMENT);
 		PrismReferenceValue opponentRefValue = new PrismReferenceValue();
 		opponentRefValue.setObject(userBarbossa);
 		opponentRef.add(opponentRefValue);
@@ -448,11 +438,11 @@ public class TestPrismParsing {
 		PrismContainer<ActivationType> actContainer1 = user.findContainer(actPath);
 		assertContainerDefinition(actContainer1, "activation", ACTIVATION_TYPE_QNAME, 0, 1);
 		assertNotNull("Property "+actPath+" not found", actContainer1);
-		assertEquals("Wrong activation name",actName,actContainer1.getName());
+		assertEquals("Wrong activation name",actName,actContainer1.getElementName());
 		// Use name
 		PrismContainer<ActivationType> actContainer2 = user.findContainer(actName);
 		assertNotNull("Property "+actName+" not found", actContainer2);
-		assertEquals("Wrong activation name",actName,actContainer2.getName());
+		assertEquals("Wrong activation name",actName,actContainer2.getElementName());
 		// Compare
 		assertEquals("Eh?",actContainer1,actContainer2);
 		

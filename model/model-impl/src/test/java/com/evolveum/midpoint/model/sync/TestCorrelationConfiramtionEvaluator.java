@@ -18,6 +18,7 @@ package com.evolveum.midpoint.model.sync;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -46,6 +47,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -92,14 +94,15 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 		//assert jack
 		assertNotNull(userType);
 			
-		ShadowType shadow = parseObjectType(new File(ACCOUNT_SHADOW_JACK_DUMMY_FILENAME), ShadowType.class);
+		ShadowType shadow = parseObjectType(ACCOUNT_SHADOW_JACK_DUMMY_FILE, ShadowType.class);
 		
 		QueryType query = PrismTestUtil.unmarshalObject(new File(CORRELATION_OR_FILTER), QueryType.class);
 		List<QueryType> queries = new ArrayList<QueryType>();
 		queries.add(query);
 		
 		ResourceType resourceType = parseObjectType(new File(RESOURCE_DUMMY_FILENAME), ResourceType.class);
-		List<PrismObject<UserType>> matchedUsers = evaluator.findUsersByCorrelationRule(shadow, queries, resourceType, result);
+		List<PrismObject<UserType>> matchedUsers = evaluator.findFocusesByCorrelationRule(UserType.class,
+				shadow, queries, resourceType, result);
 		
 		assertNotNull("Correlation evaluator returned null collection of matched users.", matchedUsers);
 		assertEquals("Found more than one user.", 1, matchedUsers.size());
@@ -123,7 +126,7 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 		//assert jack
 		assertNotNull(userType);
 			
-		ShadowType shadow = parseObjectType(new File(ACCOUNT_SHADOW_JACK_DUMMY_FILENAME), ShadowType.class);
+		ShadowType shadow = parseObjectType(ACCOUNT_SHADOW_JACK_DUMMY_FILE, ShadowType.class);
 		
 		List<QueryType> queries = new ArrayList<QueryType>();
 		QueryType query = PrismTestUtil.unmarshalObject(new File(CORRELATION_FIRST_FILTER), QueryType.class);		
@@ -133,7 +136,8 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 		queries.add(query);
 		
 		ResourceType resourceType = parseObjectType(new File(RESOURCE_DUMMY_FILENAME), ResourceType.class);
-		List<PrismObject<UserType>> matchedUsers = evaluator.findUsersByCorrelationRule(shadow, queries, resourceType, result);
+		List<PrismObject<UserType>> matchedUsers = evaluator.findFocusesByCorrelationRule(UserType.class,
+				shadow, queries, resourceType, result);
 		
 		assertNotNull("Correlation evaluator returned null collection of matched users.", matchedUsers);
 		assertEquals("Found more than one user.", 1, matchedUsers.size());
@@ -157,7 +161,7 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 		//assert jack
 		assertNotNull(userType);
 			
-		ShadowType shadow = parseObjectType(new File(ACCOUNT_SHADOW_JACK_DUMMY_FILENAME), ShadowType.class);
+		ShadowType shadow = parseObjectType(ACCOUNT_SHADOW_JACK_DUMMY_FILE, ShadowType.class);
 		
 		List<QueryType> queries = new ArrayList<QueryType>();
 		QueryType query = PrismTestUtil.unmarshalObject(new File(CORRELATION_WITH_CONDITION), QueryType.class);		
@@ -167,7 +171,8 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 		queries.add(query);
 		
 		ResourceType resourceType = parseObjectType(new File(RESOURCE_DUMMY_FILENAME), ResourceType.class);
-		List<PrismObject<UserType>> matchedUsers = evaluator.findUsersByCorrelationRule(shadow, queries, resourceType, result);
+		List<PrismObject<UserType>> matchedUsers = evaluator.findFocusesByCorrelationRule(UserType.class,
+				shadow, queries, resourceType, result);
 		
 		assertNotNull("Correlation evaluator returned null collection of matched users.", matchedUsers);
 		assertEquals("Found more than one user.", 1, matchedUsers.size());
@@ -191,7 +196,7 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 		//assert jack
 		assertNotNull(userType);
 			
-		ShadowType shadow = parseObjectType(new File(ACCOUNT_SHADOW_JACK_DUMMY_FILENAME), ShadowType.class);
+		ShadowType shadow = parseObjectType(ACCOUNT_SHADOW_JACK_DUMMY_FILE, ShadowType.class);
 		
 		QueryType query = PrismTestUtil.unmarshalObject(new File(CORRELATION_CASE_INSENSITIVE), QueryType.class);
 //		List<QueryType> queries = new ArrayList<QueryType>();
@@ -201,8 +206,10 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 		resourceType.getSynchronization().getObjectSynchronization().get(0).getCorrelation().clear();
 		resourceType.getSynchronization().getObjectSynchronization().get(0).getCorrelation().add(query);
 		userType.asObjectable().setName(new PolyStringType("JACK"));
+		ObjectSynchronizationType objectSynchronizationType = resourceType.getSynchronization().getObjectSynchronization().get(0);
 		try{
-		boolean matchedUsers = evaluator.matchUserCorrelationRule(shadow.asPrismObject(), userType, resourceType, result);
+		boolean matchedUsers = evaluator.matchUserCorrelationRule(UserType.class,
+				shadow.asPrismObject(), userType, objectSynchronizationType, resourceType, result);
 		
 		System.out.println("matched users " + matchedUsers);
 		
@@ -233,7 +240,7 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 		//assert jack
 		assertNotNull(userType);
 			
-		ShadowType shadow = parseObjectType(new File(ACCOUNT_SHADOW_JACK_DUMMY_FILENAME), ShadowType.class);
+		ShadowType shadow = parseObjectType(ACCOUNT_SHADOW_JACK_DUMMY_FILE, ShadowType.class);
 		
 		QueryType query = PrismTestUtil.unmarshalObject(new File(CORRELATION_CASE_INSENSITIVE_EMPL_NUMBER), QueryType.class);
 //		ObjectQuery query = ObjectQuery.createObjectQuery(EqualsFilter.createEqual(null, userType.getDefinition().findItemDefinition(UserType.F_EMPLOYEE_NUMBER), "stringIgnoreCase", "ps1234"));
@@ -245,12 +252,15 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 		resourceType.getSynchronization().getObjectSynchronization().get(0).getCorrelation().add(query);
 		
 		userType.asObjectable().setEmployeeNumber("JaCk");
+		ObjectSynchronizationType objectSynchronizationType = resourceType.getSynchronization().getObjectSynchronization().get(0);
+
 		try{
-		boolean matchedUsers = evaluator.matchUserCorrelationRule(shadow.asPrismObject(), userType, resourceType, result);
+			boolean matchedUsers = evaluator.matchUserCorrelationRule(UserType.class,
+					shadow.asPrismObject(), userType, objectSynchronizationType, resourceType, result);
 		
-		System.out.println("matched users " + matchedUsers);
+			System.out.println("matched users " + matchedUsers);
 		
-		AssertJUnit.assertTrue(matchedUsers);
+			AssertJUnit.assertTrue(matchedUsers);
 		} catch (Exception ex){
 			LOGGER.error("exception occured: {}", ex.getMessage(), ex);
 			throw ex;
@@ -278,7 +288,7 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 		//assert jack
 		assertNotNull(userType);
 			
-		ShadowType shadow = parseObjectType(new File(ACCOUNT_SHADOW_JACK_DUMMY_FILENAME), ShadowType.class);
+		ShadowType shadow = parseObjectType(ACCOUNT_SHADOW_JACK_DUMMY_FILE, ShadowType.class);
 		
 		QueryType query = PrismTestUtil.unmarshalObject(new File(CORRELATION_CASE_INSENSITIVE), QueryType.class);
 		List<QueryType> queries = new ArrayList<QueryType>();
@@ -290,7 +300,8 @@ public class TestCorrelationConfiramtionEvaluator extends AbstractInternalModelI
 		Collection<? extends ItemDelta> modifications = PropertyDelta.createModificationReplacePropertyCollection(UserType.F_NAME, userType.getDefinition(), new PolyString("JACK", "jack"));
 		repositoryService.modifyObject(UserType.class, USER_JACK_OID, modifications, result);
 		
-		List<PrismObject<UserType>> matchedUsers = evaluator.findUsersByCorrelationRule(shadow, queries, resourceType, result);
+		List<PrismObject<UserType>> matchedUsers = evaluator.findFocusesByCorrelationRule(UserType.class,
+				shadow, queries, resourceType, result);
 		
 		System.out.println("matched users " + matchedUsers);
 	

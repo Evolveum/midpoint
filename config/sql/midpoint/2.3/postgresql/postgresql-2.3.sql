@@ -559,6 +559,7 @@
         name_norm varchar(255),
         name_orig varchar(255),
         notificationConfiguration text,
+        objectTemplate text,
         profilingConfiguration text,
         id int8 not null,
         oid varchar(36) not null,

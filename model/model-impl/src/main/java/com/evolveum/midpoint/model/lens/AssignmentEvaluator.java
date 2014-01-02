@@ -48,23 +48,23 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AuthorizationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConstructionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
  * @author semancik
  *
  */
-public class AssignmentEvaluator {
+public class AssignmentEvaluator<F extends FocusType> {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AssignmentEvaluator.class);
 
 	private RepositoryService repository;
-	private ObjectDeltaObject<UserType> userOdo;
-	private LensContext<?, ?> lensContext;
+	private ObjectDeltaObject<F> userOdo;
+	private LensContext<F> lensContext;
 	private String channel;
 	private ObjectResolver objectResolver;
 	private PrismContext prismContext;
@@ -79,19 +79,19 @@ public class AssignmentEvaluator {
 		this.repository = repository;
 	}
 	
-	public ObjectDeltaObject<UserType> getUserOdo() {
+	public ObjectDeltaObject<F> getUserOdo() {
 		return userOdo;
 	}
 
-	public void setUserOdo(ObjectDeltaObject<UserType> userOdo) {
+	public void setUserOdo(ObjectDeltaObject<F> userOdo) {
 		this.userOdo = userOdo;
 	}
 
-	public LensContext<?, ?> getLensContext() {
+	public LensContext<F> getLensContext() {
 		return lensContext;
 	}
 
-	public void setLensContext(LensContext<?, ?> lensContext) {
+	public void setLensContext(LensContext<F> lensContext) {
 		this.lensContext = lensContext;
 	}
 
@@ -202,9 +202,11 @@ public class AssignmentEvaluator {
 		ConstructionType constructionType = assignmentType.getConstruction();
 		if (constructionType == null) {
 			constructionType = assignmentType.getAccountConstruction();
-			constructionType.setKind(ShadowKindType.ACCOUNT);
+			if (constructionType.getKind() == null) {
+				constructionType.setKind(ShadowKindType.ACCOUNT);
+			}
 		}
-		AccountConstruction accContruction = new AccountConstruction(constructionType, source);
+		AccountConstruction<F> accContruction = new AccountConstruction<F>(constructionType, source);
 		// We have to clone here as the path is constantly changing during evaluation
 		accContruction.setAssignmentPath(assignmentPath.clone());
 		accContruction.setUserOdo(userOdo);
