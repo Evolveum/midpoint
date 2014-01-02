@@ -29,10 +29,6 @@ import java.io.Serializable;
  */
 public class ButtonPanel<T extends Serializable> extends Panel {
 
-    public ButtonPanel(String id, IModel<String> label) {
-        this(id, label, ButtonType.SIMPLE);
-    }
-
     public ButtonPanel(String id, IModel<String> label, ButtonType type) {
         super(id);
         AjaxLinkButton link = new AjaxLinkButton("link", type, label) {
