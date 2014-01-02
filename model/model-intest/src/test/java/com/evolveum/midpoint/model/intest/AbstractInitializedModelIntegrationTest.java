@@ -21,6 +21,7 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.List;
 
@@ -152,7 +153,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		dummyResource = dummyResourceCtl.getDummyResource();
 		dummyResourceCtl.addAttrDef(dummyResource.getAccountObjectClass(),
 				DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME, String.class, false, false);
-		resourceDummy = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_FILENAME, RESOURCE_DUMMY_OID, initTask, initResult);
+		resourceDummy = importAndGetObjectFromFile(ResourceType.class, getResourceDummyFile(), RESOURCE_DUMMY_OID, initTask, initResult);
 		resourceDummyType = resourceDummy.asObjectable();
 		dummyResourceCtl.setResource(resourceDummy);
 		
@@ -166,7 +167,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		dummyResourceCtlBlue = DummyResourceContoller.create(RESOURCE_DUMMY_BLUE_NAME, resourceDummyBlue);
 		dummyResourceCtlBlue.extendSchemaPirate();
 		dummyResourceBlue = dummyResourceCtlBlue.getDummyResource();
-		resourceDummyBlue = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_BLUE_FILENAME, RESOURCE_DUMMY_BLUE_OID, initTask, initResult); 
+		resourceDummyBlue = importAndGetObjectFromFile(ResourceType.class, getResourceDummyBlueFile(), RESOURCE_DUMMY_BLUE_OID, initTask, initResult); 
 		resourceDummyBlueType = resourceDummyBlue.asObjectable();
 		dummyResourceCtlBlue.setResource(resourceDummyBlue);		
 		
@@ -187,7 +188,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
         dummyResourceCtlGreen = DummyResourceContoller.create(RESOURCE_DUMMY_GREEN_NAME, resourceDummyGreen);
 		dummyResourceCtlGreen.extendSchemaPirate();
 		dummyResourceGreen = dummyResourceCtlGreen.getDummyResource();
-		resourceDummyGreen = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_GREEN_FILENAME, RESOURCE_DUMMY_GREEN_OID, initTask, initResult);
+		resourceDummyGreen = importAndGetObjectFromFile(ResourceType.class, getResourceDummyGreenFile(), RESOURCE_DUMMY_GREEN_OID, initTask, initResult);
 		resourceDummyGreenType = resourceDummyGreen.asObjectable();
 		dummyResourceCtlGreen.setResource(resourceDummyGreen);
 		
@@ -241,6 +242,18 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 
 	}
 	
+	protected File getResourceDummyFile() {
+		return RESOURCE_DUMMY_FILE;
+	}
+
+	protected File getResourceDummyBlueFile() {
+		return RESOURCE_DUMMY_BLUE_FILE;
+	}
+
+	protected File getResourceDummyGreenFile() {
+		return RESOURCE_DUMMY_GREEN_FILE;
+	}
+
 	protected void postInitDummyResouce() {
 		// Do nothing be default. Concrete tests may override this.
 	}

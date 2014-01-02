@@ -91,10 +91,6 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
 	protected boolean allwaysCheckTimestamp = false;
 	protected long timeBeforeSync;
 
-	public AbstractSynchronizationStoryTest() throws JAXBException {
-		super();
-	}
-	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);

@@ -39,8 +39,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 public class TestInboundReconTaskDeprecated extends TestInboundReconTask {
 
 	@Override
+	protected File getResourceDummyFile() {
+		return RESOURCE_DUMMY_DEPRECATED_FILE;
+	}
+
+	@Override
 	protected File getResourceDummyEmeraldFile() {
 		return RESOURCE_DUMMY_EMERALD_DEPRECATED_FILE;
+	}
+	
+	@Override
+	protected File getResourceDummyBlueFile() {
+		return RESOURCE_DUMMY_BLUE_DEPRECATED_FILE;
 	}
 
 }

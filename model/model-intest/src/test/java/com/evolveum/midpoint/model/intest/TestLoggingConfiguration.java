@@ -337,7 +337,7 @@ public class TestLoggingConfiguration extends AbstractConfiguredModelIntegration
 		Task task = taskManager.createTaskInstance(TestLoggingConfiguration.class.getName()+"."+TEST_NAME);
 		OperationResult result = task.getResult();
 		
-		importObjectFromFile(RESOURCE_DUMMY_FILENAME, result);
+		importObjectFromFile(RESOURCE_DUMMY_FILE, result);
 		
 		// Setup
 		PrismObject<SystemConfigurationType> systemConfiguration = 

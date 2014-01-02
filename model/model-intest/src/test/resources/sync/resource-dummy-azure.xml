@@ -241,23 +241,31 @@
 	        <reaction>
 	            <situation>deleted</situation>
 	            <synchronize>true</synchronize>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlink"/>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlink</handlerUri>
+	            </action>
 	        </reaction>
 	        <reaction>
 	            <situation>unlinked</situation>
 	            <synchronize>true</synchronize>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#link"/>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#link</handlerUri>
+	            </action>
 	        </reaction>
 	        <reaction>
 	            <situation>unmatched</situation>
 	            <synchronize>true</synchronize>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addFocus"/>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#addFocus</handlerUri>
+	            </action>
 	        </reaction>
 	        <reaction>
 	            <situation>unmatched</situation>
 	            <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-2#reconciliation</channel>
 	            <synchronize>true</synchronize>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#inactivateShadow"/>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#inactivateShadow</handlerUri>
+	            </action>
 	        </reaction>
         </objectSynchronization>
 	</synchronization>

@@ -15,19 +15,19 @@
   ~ limitations under the License.
   -->
 
-<!-- GREEN dummy resource. This is authoritative resource. -->
+<!-- BLUE dummy resource for testing. It is used in multi-resource tests. It also
+     has mostly WEAK mappings, therefore it is used in weak mapping tests. -->
 
-<resource oid="10000000-0000-0000-0000-000000000404"
+<resource oid="10000000-0000-0000-0000-000000000204"
 		  xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
           xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
-          xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy"
           xmlns:xsd="http://www.w3.org/2001/XMLSchema"
           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
-	<name>Dummy Resource Green</name>
+	<name>Dummy Resource Blue</name>
 	<connectorRef type="c:ConnectorType">
 		<filter>
 			<q:and>
@@ -46,7 +46,7 @@
 	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2">
 					   
 		<icfc:configurationProperties>
-			<icfi:instanceId>green</icfi:instanceId> <!-- Default instance. -->
+			<icfi:instanceId>blue</icfi:instanceId>
 			<icfi:supportValidity>true</icfi:supportValidity>
 		</icfc:configurationProperties>
 
@@ -104,6 +104,8 @@
                   <xsd:element name="weapon" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
                   <xsd:element name="drink" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
                   <xsd:element name="quote" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+                  <xsd:element name="gossip" type="xsd:string" minOccurs="0" maxOccurs="unbounded"/>
+                  <xsd:element name="water" type="xsd:string" minOccurs="0" maxOccurs="1"/>
                </xsd:sequence>
             </xsd:complexType>
          </xsd:schema>
@@ -111,8 +113,9 @@
 	</schema>
 
 	<schemaHandling>
-		<accountType>
-			<name>default</name>
+		<objectType>
+			<kind>account</kind>
+			<intent>default</intent>
 			<displayName>Default Account</displayName>
 			<default>true</default>
 			<objectClass>ri:AccountObjectClass</objectClass>
@@ -122,19 +125,15 @@
 				<outbound>
 				    <strength>weak</strength>
 				    <source>
-				    	<path>$user/name</path>
+				    	<path>name</path>
 				    </source>
 					<expression>
 						<script>
-							<code>
-								name + iterationToken
-							</code>
+							<code>name + iterationToken</code>
 						</script>
 					</expression>
 				</outbound>
 				<inbound>
-					<!-- This avoids "kickback" of a name from account to a user. -->
-					<strength>weak</strength>
 					<target>
 						<path>$c:user/c:name</path>
 					</target>
@@ -152,41 +151,15 @@
 				<access>read</access>
 				<access>update</access>
 				<outbound>
+					<strength>weak</strength>
 					<source>
 						<path>$user/fullName</path>
 					</source>
 				</outbound>
 				<inbound>
-					<strength>strong</strength>
+					<strength>weak</strength>
 					<target>
-						<path>$user/fullName</path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<ref>ri:location</ref>
-				<displayName>Location</displayName>
-				<access>create</access>
-				<access>read</access>
-				<access>update</access>
-				<outbound>
-					<strength>strong</strength>
-					<source>
-						<path>
-							$c:user/c:locality
-						</path>
-					</source>
-				</outbound>
-				<inbound>
-					<strength>strong</strength>
-					<channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-2#import</channel>
-					<expression>
-						<script>
-							<code>'Came from ' + input</code>
-						</script>
-					</expression>
-					<target>
-						<path>description</path>
+						<path>$c:user/c:fullName</path>
 					</target>
 				</inbound>
 			</attribute>
@@ -196,49 +169,11 @@
 				<access>create</access>
 				<access>read</access>
 				<access>update</access>
-				<inbound>
-					<strength>strong</strength>
-					<expression>
-						<script>
-							<code>'The crew of ' + input</code>
-						</script>
-					</expression>
-					<target>
-						<path>organizationalUnit</path>
-					</target>
-				</inbound>
-			</attribute>
-			<attribute>
-				<ref>ri:loot</ref>
-				<displayName>Loot</displayName>
-				<outbound>
-					<channel>http://pirates.net/avast</channel>
-					<expression>
-						<value>10000</value>
-					</expression>
-				</outbound>
-			</attribute>
-			<attribute>
-				<ref>ri:weapon</ref>
-				<displayName>Weapon</displayName>
 				<outbound>
 					<strength>weak</strength>
 					<source>
-						<path>
-							$user/extension/piracy:weapon
-						</path>
+						<path>$c:user/c:organizationalUnit</path>
 					</source>
-				</outbound>
-			</attribute>
-			<attribute>
-				<ref>ri:drink</ref>
-				<displayName>Drink</displayName>
-				<tolerant>false</tolerant>
-				<outbound>
-					<strength>strong</strength>
-					<expression>
-						<value>rum</value>
-					</expression>
 				</outbound>
 			</attribute>
 			<attribute>
@@ -246,24 +181,15 @@
 				<displayName>Quote</displayName>
 				<tolerant>true</tolerant>
 				<outbound>
-					<strength>strong</strength>
-					<expression>
-						<value>Arr!</value>
-					</expression>
+					<strength>weak</strength>
+					<source>
+						<path>$user/description</path>
+					</source>
 				</outbound>
 			</attribute>
-			
 			<iteration>
 				<maxIterations>5</maxIterations>
 			</iteration>
-            
-            <protected>
-            	<icfs:name>daviejones</icfs:name>
-            </protected>
-            <protected>
-            	<icfs:name>calypso</icfs:name>
-            </protected>
-			
 			<activation>
             	<administrativeStatus>
             		<outbound>
@@ -272,7 +198,6 @@
                         	<asIs/>
                         </expression>
             		</outbound>
-            		<inbound/>
             	</administrativeStatus>
             	<validFrom>
             		<outbound>
@@ -281,7 +206,6 @@
                         	<asIs/>
                         </expression>
             		</outbound>
-            		<inbound/>
             	</validFrom>
             	<validTo>
             		<outbound>
@@ -290,38 +214,10 @@
                         	<asIs/>
                         </expression>
             		</outbound>
-            		<inbound/>
             	</validTo>
             </activation>
-			
-			<credentials>
-                <password>
-                    <outbound>
-                    	<strength>weak</strength>
-                    	<expression>
-                        	<asIs/>
-                        </expression>
-                    </outbound>
-                    <inbound>
-                    	<strength>weak</strength>
-                        <expression>
-                            <generate/>
-                        </expression>
-                    </inbound>
-                </password>
-            </credentials>
-            
-		</accountType>
-		
+		</objectType>
 	</schemaHandling>
-	
-	<projection>
-		<assignmentPolicyEnforcement>none</assignmentPolicyEnforcement>
-	</projection>
-	
-	<consistency>
-		<avoidDuplicateValues>true</avoidDuplicateValues>
-	</consistency>
 	
 	<synchronization>
 		<objectSynchronization>
@@ -330,36 +226,37 @@
 				<q:equal>
 					<q:path>c:name</q:path>
 					<valueExpression>
-						<path>$account/attributes/icfs:name</path>
+						<script>
+							<code>
+								basic.getAttributeValue(account, 
+									'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2', 'name')
+							</code>
+						</script>
 					</valueExpression>
 				</q:equal>
 			</correlation>
 			<reaction>
 	            <situation>linked</situation>
-	            <synchronize>true</synchronize>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#modifyUser"/>
 	        </reaction>
 	        <reaction>
 	            <situation>deleted</situation>
-	            <synchronize>true</synchronize>
-	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#deleteFocus</handlerUri>
-	            </action>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlinkAccount"/>
 	        </reaction>
 	        <reaction>
 	            <situation>unlinked</situation>
-	            <synchronize>true</synchronize>
-	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#link</handlerUri>
-	            </action>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>
 	        </reaction>
 	        <reaction>
 	            <situation>unmatched</situation>
-	            <synchronize>true</synchronize>
-	            <action>
-	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#addFocus</handlerUri>
-	            </action>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addUser"/>
+	        </reaction>
+	        <reaction>
+	            <situation>unmatched</situation>
+	            <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-2#NoNsEnSe</channel>
+	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#disableAccount"/>
 	        </reaction>
         </objectSynchronization>
 	</synchronization>
-
+	
 </resource>

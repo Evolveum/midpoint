@@ -79,6 +79,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 public class TestImportReconDeprecated extends TestImportRecon {
 
 	@Override
+	protected File getResourceDummyFile() {
+		return RESOURCE_DUMMY_DEPRECATED_FILE;
+	}
+
+	@Override
 	protected File getDummyResourceLimeFile() {
 		return RESOURCE_DUMMY_LIME_DEPRECATED_FILE;
 	}

@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.model.intest.sync;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 
 import javax.xml.bind.JAXBException;
@@ -35,42 +36,21 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestLiveSyncTask extends AbstractSynchronizationStoryTest {
-		
+public class TestReconTaskDeprecated extends TestReconTask {
+
 	@Override
-	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
-		super.initSystem(initTask, initResult);
-		
-		dummyResourceGreen.setSyncStyle(DummySyncStyle.SMART);
-		dummyResource.setSyncStyle(DummySyncStyle.DUMB);
-		dummyResourceBlue.setSyncStyle(DummySyncStyle.SMART);
-		
-	}
-	
-	@Override
-	protected void importSyncTask(PrismObject<ResourceType> resource) throws FileNotFoundException {
-		if (resource == resourceDummyGreen) {
-			importObjectFromFile(TASK_LIVE_SYNC_DUMMY_GREEN_FILENAME);
-		} else if (resource == resourceDummyBlue) {
-			importObjectFromFile(TASK_LIVE_SYNC_DUMMY_BLUE_FILENAME);
-		} else if (resource == resourceDummy) {
-			importObjectFromFile(TASK_LIVE_SYNC_DUMMY_FILENAME);
-		} else {
-			throw new IllegalArgumentException("Unknown resource "+resource);
-		}
+	protected File getResourceDummyFile() {
+		return RESOURCE_DUMMY_DEPRECATED_FILE;
 	}
 
 	@Override
-	protected String getSyncTaskOid(PrismObject<ResourceType> resource) {
-		if (resource == resourceDummyGreen) {
-			return TASK_LIVE_SYNC_DUMMY_GREEN_OID;
-		} else if (resource == resourceDummyBlue) {
-			return TASK_LIVE_SYNC_DUMMY_BLUE_OID;
-		} else if (resource == resourceDummy) {
-			return TASK_LIVE_SYNC_DUMMY_OID;
-		} else {
-			throw new IllegalArgumentException("Unknown resource "+resource);
-		}
+	protected File getResourceDummyBlueFile() {
+		return RESOURCE_DUMMY_BLUE_DEPRECATED_FILE;
+	}
+
+	@Override
+	protected File getResourceDummyGreenFile() {
+		return RESOURCE_DUMMY_GREEN_DEPRECATED_FILE;
 	}
 
 }

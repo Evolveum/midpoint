@@ -39,6 +39,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 public class TestInboundLiveSyncTaskDeprecated extends TestInboundLiveSyncTask {
 
 	@Override
+	protected File getResourceDummyFile() {
+		return RESOURCE_DUMMY_DEPRECATED_FILE;
+	}
+
+	@Override
 	protected File getResourceDummyEmeraldFile() {
 		return RESOURCE_DUMMY_EMERALD_DEPRECATED_FILE;
 	}

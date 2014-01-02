@@ -22,6 +22,7 @@
     <test name="Model Integration" preserve-order="true" parallel="false" verbose="10">
         <classes>
         	<class name="com.evolveum.midpoint.model.intest.TestModelServiceContract"/>
+        	<class name="com.evolveum.midpoint.model.intest.TestModelServiceContractDeprecated"/>
         	<class name="com.evolveum.midpoint.model.intest.TestModelCrudService"/>
         	<class name="com.evolveum.midpoint.model.intest.TestPreviewChanges"/>
         	<class name="com.evolveum.midpoint.model.intest.TestRbac"/>
@@ -51,6 +52,8 @@
         <classes>
             <class name="com.evolveum.midpoint.model.intest.sync.TestLiveSyncTask"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestReconTask"/>
+            <class name="com.evolveum.midpoint.model.intest.sync.TestLiveSyncTaskDeprecated"/>
+            <class name="com.evolveum.midpoint.model.intest.sync.TestReconTaskDeprecated"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestRecomputeTask"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestImportRecon"/>
             <class name="com.evolveum.midpoint.model.intest.sync.TestImportReconDeprecated"/>

@@ -93,10 +93,6 @@ public class TestPreviewChanges extends AbstractInitializedModelIntegrationTest 
 	
 	private static String accountOid;
 	
-	public TestPreviewChanges() throws JAXBException {
-		super();
-	}
-	
 	@Test
     public void test100ModifyUserAddAccountBundle() throws Exception {
 		final String TEST_NAME = "test100ModifyUserAddAccountBundle";
