@@ -380,9 +380,9 @@ public class ModelController implements ModelService, ModelInteractionService, T
 				auditRecord.setEventStage(AuditEventStage.EXECUTION);
 				auditService.audit(auditRecord, task);
 				
-			} else {
-				
-				LensContext<?, ?> context = contextFactory.createContext(deltas, options, task, result);
+			} else {				
+					
+				LensContext<? extends ObjectType> context = contextFactory.createContext(deltas, options, task, result);
 
 				clockwork.run(context, task, result);
 						
@@ -431,7 +431,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	}
 	
 	@Override
-	public <F extends FocusType> void recompute(Class<F> type, String oid, Task task, OperationResult parentResult) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+	public <F extends ObjectType> void recompute(Class<F> type, String oid, Task task, OperationResult parentResult) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 			
 		OperationResult result = parentResult.createMinorSubresult(RECOMPUTE);
 		result.addParams(new String[] { "oid", "type" }, oid, type);
@@ -445,7 +445,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			
 			LOGGER.trace("Recomputing {}", focus);
 
-			LensContext<F, ShadowType> syncContext = contextFactory.createRecomputeContext(focus, task, result); 
+			LensContext<F> syncContext = contextFactory.createRecomputeContext(focus, task, result); 
 			LOGGER.trace("Recomputing {}, context:\n{}", focus, syncContext.dump());
 			clockwork.run(syncContext, task, result);
 			
@@ -556,7 +556,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	 * @see com.evolveum.midpoint.model.api.ModelInteractionService#previewChanges(com.evolveum.midpoint.prism.delta.ObjectDelta, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
 	@Override
-	public <F extends ObjectType, P extends ObjectType> ModelContext<F, P> previewChanges(
+	public <F extends ObjectType> ModelContext<F> previewChanges(
 			Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, OperationResult parentResult)
 			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 		
@@ -570,19 +570,19 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		}
 		
 		OperationResult result = parentResult.createSubresult(PREVIEW_CHANGES);
-		LensContext<F, P> context = null;
+		LensContext<F> context = null;
 		
 		try {
 			
 			//used cloned deltas instead of origin deltas, because some of the values should be lost later..
-			context = (LensContext<F, P>) contextFactory.createContext(clonedDeltas, options, task, result);
+			context = contextFactory.createContext(clonedDeltas, options, task, result);
 //			context.setOptions(options);
 			if (LOGGER.isDebugEnabled()) {
 				LOGGER.trace("Preview changes context:\n{}", context.debugDump());
 			}
 		
 			
-			projector.project((LensContext<F, ShadowType>) context, "preview", task, result);
+			projector.project(context, "preview", task, result);
 			context.distributeResource();
 			
 		} catch (ConfigurationException e) {
@@ -1270,7 +1270,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	}
 
     @Override
-    public <F extends ObjectType, P extends ObjectType> ModelContext<F, P> unwrapModelContext(LensContextType wrappedContext, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
+    public <F extends ObjectType> ModelContext<F> unwrapModelContext(LensContextType wrappedContext, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
         return LensContext.fromLensContextType(wrappedContext, prismContext, provisioning, result);
     }
 

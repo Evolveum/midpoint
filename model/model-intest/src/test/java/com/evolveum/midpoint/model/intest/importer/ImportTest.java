@@ -436,7 +436,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		// GIVEN
 		Task task = taskManager.createTaskInstance(ImportTest.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
-		FileInputStream stream = new FileInputStream(new File(RESOURCE_DUMMY_FILENAME));
+		FileInputStream stream = new FileInputStream(RESOURCE_DUMMY_FILE);
 		
 		IntegrationTestTools.assertNoRepoCache();
 		dummyAuditService.clear();
@@ -447,7 +447,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		// THEN
 		result.computeStatus();
 		display("Result after import", result);
-		TestUtil.assertSuccess("Import of "+RESOURCE_DUMMY_FILENAME+" has failed (result)", result, 2);
+		TestUtil.assertSuccess("Import of "+RESOURCE_DUMMY_FILE+" has failed (result)", result, 2);
 
 		IntegrationTestTools.assertNoRepoCache();
 		

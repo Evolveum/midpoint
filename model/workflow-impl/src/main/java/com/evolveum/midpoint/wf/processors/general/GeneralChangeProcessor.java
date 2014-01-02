@@ -184,7 +184,7 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
             instruction.setRequesterOidInProcess(taskFromModel.getOwner());
             instruction.setTaskName(new PolyStringType("Workflow-monitoring task"));
 
-            LensContextType lensContextType = ((LensContext<?,?>) context).toPrismContainer().getValue().asContainerable();
+            LensContextType lensContextType = ((LensContext<?>) context).toPrismContainer().getValue().asContainerable();
             instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MODEL_CONTEXT, new JaxbValueContainer<LensContextType>(lensContextType, prismContext));
 
             jobController.createJob(instruction, rootJob, result);

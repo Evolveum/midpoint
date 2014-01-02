@@ -1394,7 +1394,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
         PrismAsserts.assertEqualsPolyString("wrong repo locality", "somewhere", repoUserType.getLocality());
 
         // Check if appropriate accountRef is still there
-        assertAccounts(repoUser, 2);
+        assertLinks(repoUser, 2);
         assertLinked(repoUser, accountShadowOidOpendj);
         assertLinked(repoUser, accountShadowOidDerby);
         

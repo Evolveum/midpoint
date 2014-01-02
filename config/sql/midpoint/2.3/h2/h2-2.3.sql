@@ -559,6 +559,7 @@
         name_norm varchar(255),
         name_orig varchar(255),
         notificationConfiguration clob,
+        objectTemplate clob,
         profilingConfiguration clob,
         id bigint not null,
         oid varchar(36) not null,

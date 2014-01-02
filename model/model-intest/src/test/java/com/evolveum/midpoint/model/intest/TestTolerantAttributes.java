@@ -102,12 +102,12 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-        assertShadowRepo(accountShadow, accountOid, "jack", resourceDummyBlackType);
+        assertAccountShadowRepo(accountShadow, accountOid, "jack", resourceDummyBlackType);
         assertEnableTimestampShadow(accountShadow, startTime, endTime);
         
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-        assertShadowModel(accountModel, accountOid, "jack", resourceDummyBlackType);
+        assertAccountShadowModel(accountModel, accountOid, "jack", resourceDummyBlackType);
         
         accountDefinition = accountModel.getDefinition();
         
@@ -149,11 +149,11 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
 	        
 			// Check shadow
 	        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-	        assertShadowRepo(accountShadow, accountOid, "jack", resourceDummyBlackType);
+	        assertAccountShadowRepo(accountShadow, accountOid, "jack", resourceDummyBlackType);
 	        
 	        // Check account
 	        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-	        assertShadowModel(accountModel, accountOid, "jack", resourceDummyBlackType);
+	        assertAccountShadowModel(accountModel, accountOid, "jack", resourceDummyBlackType);
 	        
 	        // Check account in dummy resource
 	        assertAccount(userJack, RESOURCE_DUMMY_BLACK_OID);
@@ -197,11 +197,11 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
 	        
 			// Check shadow
 	        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-	        assertShadowRepo(accountShadow, accountOid, "jack", resourceDummyBlackType);
+	        assertAccountShadowRepo(accountShadow, accountOid, "jack", resourceDummyBlackType);
 	        
 	        // Check account
 	        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-	        assertShadowModel(accountModel, accountOid, "jack", resourceDummyBlackType);
+	        assertAccountShadowModel(accountModel, accountOid, "jack", resourceDummyBlackType);
 	        
 	        // Check account in dummy resource
 	        assertAccount(userJack, RESOURCE_DUMMY_BLACK_OID);
@@ -245,11 +245,11 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
 	        
 			// Check shadow
 	        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-	        assertShadowRepo(accountShadow, accountOid, "jack", resourceDummyBlackType);
+	        assertAccountShadowRepo(accountShadow, accountOid, "jack", resourceDummyBlackType);
 	        
 	        // Check account
 	        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-	        assertShadowModel(accountModel, accountOid, "jack", resourceDummyBlackType);
+	        assertAccountShadowModel(accountModel, accountOid, "jack", resourceDummyBlackType);
 	        
 	        // Check account in dummy resource
 	        assertAccount(userJack, RESOURCE_DUMMY_BLACK_OID);
@@ -293,11 +293,11 @@ public class TestTolerantAttributes extends AbstractInitializedModelIntegrationT
 	        
 			// Check shadow
 	        PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-	        assertShadowRepo(accountShadow, accountOid, "jack", resourceDummyBlackType);
+	        assertAccountShadowRepo(accountShadow, accountOid, "jack", resourceDummyBlackType);
 	        
 	        // Check account
 	        PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-	        assertShadowModel(accountModel, accountOid, "jack", resourceDummyBlackType);
+	        assertAccountShadowModel(accountModel, accountOid, "jack", resourceDummyBlackType);
 	        
 	        // Check account in dummy resource
 	        assertAccount(userJack, RESOURCE_DUMMY_BLACK_OID);

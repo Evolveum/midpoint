@@ -69,6 +69,7 @@ public class PrismConstants {
 	public static final QName A_OBJECT_REFERENCE = new QName(NS_ANNOTATION, "objectReference");
 	public static final QName A_OBJECT_REFERENCE_TARGET_TYPE = new QName(NS_ANNOTATION, "objectReferenceTargetType");
 	public static final QName A_COMPOSITE = new QName(NS_ANNOTATION, "composite");
+	public static final QName A_DEPRECATED = new QName(NS_ANNOTATION, "deprecated");
 	
 	public static final QName A_MAX_OCCURS = new QName(NS_ANNOTATION, "maxOccurs");
 	public static final String MULTIPLICITY_UNBONUNDED = "unbounded";

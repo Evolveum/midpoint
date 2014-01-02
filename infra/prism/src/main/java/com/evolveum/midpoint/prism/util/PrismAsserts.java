@@ -199,7 +199,7 @@ public class PrismAsserts {
 		PrismPropertyDefinition<?> definition = container.findPropertyDefinition(propertyName);
 		assertDefinition(definition, propertyName, type, minOccurs, maxOccurs);
 	}
-
+	
     public static void assertPropertyDefinition(PrismProperty property, QName type, int minOccurs, int maxOccurs, Boolean indexed) {
         assertDefinition(property, type, minOccurs, maxOccurs);
 
@@ -224,9 +224,21 @@ public class PrismAsserts {
 		assert equals(expectedDisplayName, definition.getDisplayName()) : "Wrong display name for item "+propertyName+", expected " +
 			expectedDisplayName + ", was " + definition.getDisplayName();
 	}
+	
+	public static void assertItemDefinitionDisplayName(ComplexTypeDefinition containerDef, QName propertyName, String expectedDisplayName) {
+		ItemDefinition definition = containerDef.findItemDefinition(propertyName, ItemDefinition.class);
+		assert equals(expectedDisplayName, definition.getDisplayName()) : "Wrong display name for item "+propertyName+", expected " +
+			expectedDisplayName + ", was " + definition.getDisplayName();
+	}
 
 	public static void assertItemDefinitionDisplayOrder(PrismContainerDefinition<?> containerDef, QName propertyName, Integer expectedDisplayOrder) {
 		ItemDefinition definition = containerDef.findItemDefinition(propertyName);
+		assert equals(expectedDisplayOrder, definition.getDisplayOrder()) : "Wrong display order for item "+propertyName+", expected " +
+		expectedDisplayOrder + ", was " + definition.getDisplayOrder();
+	}
+	
+	public static void assertItemDefinitionDisplayOrder(ComplexTypeDefinition containerDef, QName propertyName, Integer expectedDisplayOrder) {
+		ItemDefinition definition = containerDef.findItemDefinition(propertyName, ItemDefinition.class);
 		assert equals(expectedDisplayOrder, definition.getDisplayOrder()) : "Wrong display order for item "+propertyName+", expected " +
 		expectedDisplayOrder + ", was " + definition.getDisplayOrder();
 	}

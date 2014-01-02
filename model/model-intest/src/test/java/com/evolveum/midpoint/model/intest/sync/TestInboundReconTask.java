@@ -37,10 +37,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestInboundReconTask extends AbstractInboundSyncTest {
 		
-	public TestInboundReconTask() throws JAXBException {
-		super();
-	}
-	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);

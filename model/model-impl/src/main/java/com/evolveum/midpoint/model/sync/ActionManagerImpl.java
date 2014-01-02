@@ -20,6 +20,7 @@ import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.model.lens.ChangeExecutor;
 import com.evolveum.midpoint.model.lens.Clockwork;
+import com.evolveum.midpoint.model.lens.ContextFactory;
 import com.evolveum.midpoint.model.sync.action.BaseAction;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -44,6 +45,7 @@ public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
     private ChangeExecutor changeExecutor;
     private PrismContext prismContext;
     private ProvisioningService provisioningService;
+    private ContextFactory contextFactory;
     private AuditService auditService;
     
     @Deprecated
@@ -73,6 +75,7 @@ public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
                 baseAction.setPrismContext(prismContext);
                 baseAction.setAuditService(auditService);
                 baseAction.setProvisioningService(provisioningService);
+                baseAction.setContextFactory(contextFactory);
                 baseAction.setModel(model);
             }
         } catch (Exception ex) {
@@ -116,4 +119,12 @@ public class ActionManagerImpl<T extends Action> implements ActionManager<T> {
     public void setProvisioningService(ProvisioningService provisioningService) {
         this.provisioningService = provisioningService;
     }
+
+	public ContextFactory getContextFactory() {
+		return contextFactory;
+	}
+
+	public void setContextFactory(ContextFactory contextFactory) {
+		this.contextFactory = contextFactory;
+	}
 }

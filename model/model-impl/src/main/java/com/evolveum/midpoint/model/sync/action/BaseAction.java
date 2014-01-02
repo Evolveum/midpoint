@@ -34,6 +34,7 @@ import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.model.lens.ChangeExecutor;
 import com.evolveum.midpoint.model.lens.Clockwork;
+import com.evolveum.midpoint.model.lens.ContextFactory;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.lens.SynchronizationIntent;
@@ -62,7 +63,9 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
@@ -79,10 +82,10 @@ public abstract class BaseAction implements Action {
     private Clockwork clockwork;
     private ChangeExecutor executor;
     private ModelController model;
-    private List<Object> parameters;
     private ProvisioningService provisioningService;
     private PrismContext prismContext;
     private AuditService auditService;
+    private ContextFactory contextFactory;
     
 	public AuditService getAuditService() {
     	return auditService;
@@ -108,38 +111,13 @@ public abstract class BaseAction implements Action {
         this.provisioningService = provisioningService;
     }
 
-    @Override
-    public List<Object> getParameters() {
-        if (parameters == null) {
-            parameters = new ArrayList<Object>();
-        }
-        return parameters;
-    }
+    public ContextFactory getContextFactory() {
+		return contextFactory;
+	}
 
-    @Override
-    public void setParameters(List<Object> parameters) {
-        this.parameters = parameters;
-    }
-
-    protected Element getParameterElement(QName qname) {
-        Validate.notNull(qname, "QName must not be null.");
-
-        List<Object> parameters = getParameters();
-        Element element = null;
-        for (Object object : parameters) {
-            if (!(object instanceof Element)) {
-                continue;
-            }
-            Element parameter = (Element) object;
-            if (parameter.getLocalName().equals(qname.getLocalPart())
-                    && qname.getNamespaceURI().equals(parameter.getNamespaceURI())) {
-                element = parameter;
-                break;
-            }
-        }
-
-        return element;
-    }
+	public void setContextFactory(ContextFactory contextFactory) {
+		this.contextFactory = contextFactory;
+	}
 
     protected UserType getUser(String oid, OperationResult result) {
         if (StringUtils.isEmpty(oid)) {
@@ -152,17 +130,6 @@ public abstract class BaseAction implements Action {
             // user was not found, we return null
         	return null;
         }
-    }
-
-    @Override
-    public String executeChanges(String userOid, ResourceObjectShadowChangeDescription change, ObjectTemplateType userTemplate, 
-            SynchronizationSituationType situation, Task task, OperationResult result) 
-    		throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
-        Validate.notNull(change, "Resource object change description must not be null.");
-        Validate.notNull(situation, "Synchronization situation must not be null.");
-        Validate.notNull(result, "Operation result must not be null.");
-
-        return null;
     }
 
     public void setModel(ModelController model) {
@@ -185,283 +152,4 @@ public abstract class BaseAction implements Action {
         this.executor = executor;
     }
     
-    /**
-     * Creates empty lens context, filling in only the very basic metadata (such as channel).
-     */
-    protected LensContext<UserType, ShadowType> createEmptyLensContext(ResourceObjectShadowChangeDescription change) {
-    	LensContext<UserType, ShadowType> context = new LensContext<UserType, ShadowType>(UserType.class, ShadowType.class, getPrismContext(), getProvisioningService());
-    	context.setChannel(change.getSourceChannel());
-    	return context;
-    }
-
-    protected LensProjectionContext<ShadowType> createAccountLensContext(LensContext<UserType, ShadowType> context,
-            ResourceObjectShadowChangeDescription change, SynchronizationSituationType situation, SynchronizationIntent syncIntent,
-            ActivationDecision activationDecision) throws SchemaException {
-        LOGGER.trace("Creating account context for sync change.");
-
-        ResourceType resource = change.getResource().asObjectable();
-
-        String accountType = getAccountTypeFromChange(change);
-        boolean thombstone = isThombstone(change);
-		ResourceShadowDiscriminator resourceAccountType = new ResourceShadowDiscriminator(resource.getOid(), accountType, thombstone);
-		LensProjectionContext<ShadowType> accountContext = context.createProjectionContext(resourceAccountType);
-        accountContext.setResource(resource);
-        accountContext.setOid(getOidFromChange(change));
-        accountContext.setSynchronizationSituationDetected(situation);
-
-        //insert object delta if available in change
-        ObjectDelta<? extends ShadowType> delta = change.getObjectDelta();
-        if (delta != null) {
-            accountContext.setSyncDelta((ObjectDelta<ShadowType>) delta);
-        } else {
-        	accountContext.setSyncAbsoluteTrigger(true);
-        }
-
-        //we insert account if available in change
-        PrismObject<ShadowType> currentAccount = getAccountObject(change);
-        if (currentAccount != null) {
-        	accountContext.setLoadedObject(currentAccount);
-        	accountContext.setFullShadow(true);
-        	accountContext.setFresh(true);
-        }
-
-        if (delta != null && delta.isDelete()) {
-        	accountContext.setExists(false);
-        } else {
-        	accountContext.setExists(true);
-        }
-        
-        accountContext.setSynchronizationIntent(syncIntent);
-        if (activationDecision != null) {
-            updateAccountActivation(accountContext, activationDecision);
-        }
-        
-        boolean doReconciliation = determineAttributeReconciliation(change);
-        accountContext.setDoReconciliation(doReconciliation);
-
-        LOGGER.trace("Setting account context sync intent ({}), activation decision ({}), do reconciliation ({})",
-                new Object[]{syncIntent, activationDecision, doReconciliation});
-
-        return accountContext;
-    }
-
-	private boolean isThombstone(ResourceObjectShadowChangeDescription change) {
-		PrismObject<? extends ShadowType> shadow = null;
-		if (change.getOldShadow() != null){
-			shadow = change.getOldShadow();
-		} else if (change.getCurrentShadow() != null){
-			shadow = change.getCurrentShadow();
-		}
-		if (shadow != null){
-			if (shadow.asObjectable().isDead() != null){
-				return shadow.asObjectable().isDead().booleanValue();
-			}
-		}
-		ObjectDelta<? extends ShadowType> objectDelta = change.getObjectDelta();
-		if (objectDelta == null) {
-			return false;
-		}
-		return objectDelta.isDelete();
-	}
-
-	private void updateAccountActivation(LensProjectionContext<ShadowType> accContext, ActivationDecision activationDecision) throws SchemaException {
-        PrismObject<ShadowType> object = accContext.getObjectOld();
-        if (object == null) {
-            LOGGER.trace("Account object is null, skipping activation property check/update.");
-            return;
-        }
-
-        PrismProperty enable = object.findOrCreateProperty(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
-        LOGGER.trace("Account activation defined, activation property found {}", enable);
-
-        ObjectDelta<ShadowType> accDelta = accContext.getSecondaryDelta();
-        if (accDelta == null) {
-            accDelta = new ObjectDelta<ShadowType>(ShadowType.class, ChangeType.MODIFY, prismContext);
-            accDelta.setOid(accContext.getOid());
-            accContext.setSecondaryDelta(accDelta);
-        }
-
-        PrismPropertyValue<ActivationStatusType> value = enable.getValue(ActivationStatusType.class);
-        if (value != null) {
-            ActivationStatusType status = value.getValue();
-            if (status == null) {
-                createActivationPropertyDelta(accDelta, activationDecision, null);
-            }
-            
-            Boolean isEnabled = ActivationStatusType.ENABLED == status ? Boolean.TRUE : Boolean.FALSE;
-
-            if ((isEnabled && ActivationDecision.DISABLE.equals(activationDecision))
-                    || (!isEnabled && ActivationDecision.ENABLE.equals(activationDecision))) {
-
-                createActivationPropertyDelta(accDelta, activationDecision, status);
-            }
-        } else {
-            createActivationPropertyDelta(accDelta, activationDecision, null);
-        }
-    }
-
-    private boolean determineAttributeReconciliation(ResourceObjectShadowChangeDescription change) {
-    	ObjectSynchronizationType synchronization = ResourceTypeUtil.determineSynchronization(change.getResource().asObjectable(), UserType.class);
-        Boolean reconcileAttributes = synchronization.isReconcileAttributes();
-        if (reconcileAttributes == null) {
-            // "Automatic mode", do reconciliation only if the complete current shadow was provided
-            reconcileAttributes = change.getCurrentShadow() != null;
-            LOGGER.trace("Attribute reconciliation automatic mode: {}", reconcileAttributes);
-        } else {
-            LOGGER.trace("Attribute reconciliation manual mode: {}", reconcileAttributes);
-        }
-        return reconcileAttributes;
-    }
-
-    private PrismObject<ShadowType> getAccountObject(ResourceObjectShadowChangeDescription change)
-            throws SchemaException {
-
-    	PrismObject<ShadowType> account = getAccountShadowFromChange(change);
-        if (account == null) {
-            return null;
-        }
-        
-        if (InternalsConfig.consistencyChecks) account.checkConsistence();
-        return account;
-    }
-
-    protected PrismObject<ShadowType> getAccountShadowFromChange(ResourceObjectShadowChangeDescription change) {
-        if (change.getCurrentShadow() != null) {
-            return (PrismObject<ShadowType>) change.getCurrentShadow();
-        }
-
-        if (change.getOldShadow() != null) {
-            return (PrismObject<ShadowType>) change.getOldShadow();
-        }
-
-        return null;
-    }
-
-    private String getAccountTypeFromChange(ResourceObjectShadowChangeDescription change) {
-    	PrismObject<ShadowType> account = getAccountShadowFromChange(change);
-        if (account != null) {
-            return ShadowUtil.getIntent(account.asObjectable());
-        }
-
-        LOGGER.warn("Can't get account type from change (resource {}), because current and old shadow are null. " +
-                "Therefore we can't create account sync context.", change.getResource().getElementName());
-
-        return null;
-    }
-
-    private String getOidFromChange(ResourceObjectShadowChangeDescription change) {
-        if (change.getObjectDelta() != null) {
-            return change.getObjectDelta().getOid();
-        }
-
-        return change.getCurrentShadow().getOid();
-    }
-
-    protected void synchronizeUser(LensContext<UserType, ShadowType> context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
-    	Validate.notNull(context, "Sync context must not be null.");
-        Validate.notNull(result, "Operation result must not be null.");
-        try {
-        	context.setLazyAuditRequest(true);
-            clockwork.run(context, task, result);
-        } catch (SchemaException e) {
-        	logSynchronizationError(e, context);
-            throw e;
-		} catch (PolicyViolationException e) {
-			logSynchronizationError(e, context);
-            throw e;
-		} catch (ExpressionEvaluationException e) {
-			logSynchronizationError(e, context);
-            throw e;
-		} catch (ObjectNotFoundException e) {
-			logSynchronizationError(e, context);
-            throw e;
-		} catch (ObjectAlreadyExistsException e) {
-			logSynchronizationError(e, context);
-            throw e;
-		} catch (CommunicationException e) {
-			logSynchronizationError(e, context);
-            throw e;
-		} catch (ConfigurationException e) {
-			logSynchronizationError(e, context);
-            throw e;
-		} catch (SecurityViolationException e) {
-			logSynchronizationError(e, context);
-            throw e;
-		} catch (RuntimeException ex) {
-        	logSynchronizationError(ex, context);
-            throw ex;
-		}
-    }
-
-	private void logSynchronizationError(Throwable ex, LensContext<UserType,ShadowType> context) {
-		if (LOGGER.isTraceEnabled()) {
-    		LOGGER.trace("Synchronization error: {}\n{})", ex.getMessage(), context.dump());
-    	}
-	}
-
-	protected void executeChanges(LensContext<UserType, ShadowType> context, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
-		Validate.notNull(context, "Sync context must not be null.");
-        try {
-            getExecutor().executeChanges(context, task, result);
-        } catch (RuntimeException ex) {
-        	logExecutionError(ex, context);
-            throw ex;
-        } catch (ObjectAlreadyExistsException e) {
-        	logExecutionError(e, context);
-            throw e;
-		} catch (ObjectNotFoundException e) {
-			logExecutionError(e, context);
-            throw e;
-		} catch (SchemaException e) {
-			logExecutionError(e, context);
-            throw e;
-		} catch (CommunicationException e) {
-			logExecutionError(e, context);
-            throw e;
-		} catch (ConfigurationException e) {
-			logExecutionError(e, context);
-            throw e;
-		} catch (SecurityViolationException e) {
-			logExecutionError(e, context);
-            throw e;
-		} catch (ExpressionEvaluationException e) {
-			logExecutionError(e, context);
-            throw e;
-		} 
-    }
-	
-	private void logExecutionError(Throwable ex, LensContext<UserType,ShadowType> context) {
-		if (LOGGER.isTraceEnabled()) {
-    		LOGGER.trace("Execution error: {}\n{})", ex.getMessage(), context.dump());
-    	}
-	}
-
-    protected void createActivationPropertyDelta(ObjectDelta<?> objectDelta, ActivationDecision activationDecision,
-            ActivationStatusType oldValue) {
-        LOGGER.trace("Updating activation for {}, activation decision {}, old value was {}",
-                new Object[]{objectDelta.getClass().getSimpleName(), activationDecision, oldValue});
-
-        PropertyDelta delta = objectDelta.findPropertyDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS);
-        if (delta == null) {
-            delta = PropertyDelta.createDelta(SchemaConstants.PATH_ACTIVATION_ADMINISTRATIVE_STATUS, ShadowType.class,
-            		getPrismContext());
-            objectDelta.addModification(delta);
-        }
-        delta.clear();
-
-        ActivationStatusType newValue = ActivationDecision.ENABLE.equals(activationDecision) ? ActivationStatusType.ENABLED : ActivationStatusType.DISABLED;
-        PrismPropertyValue value = new PrismPropertyValue<Object>(newValue, OriginType.SYNC_ACTION, null);
-        if (oldValue == null) {
-            delta.addValueToAdd(value);
-        } else {
-            Collection<PrismPropertyValue<Object>> values = new ArrayList<PrismPropertyValue<Object>>();
-            values.add(value);
-            delta.setValuesToReplace(values);
-        }
-
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.trace("{} activation property delta: {}", new Object[]{objectDelta.getClass().getSimpleName(),
-                    delta.debugDump()});
-        }
-    }
 }
