@@ -19,17 +19,12 @@ package com.evolveum.midpoint.report;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 
+import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Scanner;
 
 import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +34,6 @@ import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -49,7 +43,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -62,12 +55,8 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
-import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -90,27 +79,29 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportParameterConf
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportTemplateStyleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.prism.xml.ns._public.query_2.OrderDirectionType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
-
+import com.evolveum.midpoint.report.ReportCreateTaskHandler;
+import com.evolveum.midpoint.report.ReportManager;
 /**
  * @author garbika
  */
 @ContextConfiguration(locations = { "classpath:ctx-report-test-main.xml" })
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class BasicReportTest extends AbstractModelIntegrationTest {
-
+    
 	private static final String CLASS_NAME_WITH_DOT = BasicReportTest.class
 			.getName() + ".";
 	private static final String GET_REPORT = CLASS_NAME_WITH_DOT
 			+ "getReport";
 	private static final String GET_REPORT_OUTPUT = CLASS_NAME_WITH_DOT
 			+ "getReportOutput";
+	private static final String IMPORT_USERS = CLASS_NAME_WITH_DOT
+			+ "importUsers";
 	private static final String CREATE_REPORT = CLASS_NAME_WITH_DOT
 			+ "test001CreateReport";
 	private static final String CREATE_REPORT_FROM_FILE = CLASS_NAME_WITH_DOT
@@ -119,8 +110,8 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 			+ "test003CopyReportWithoutDesign";
 	private static final String RUN_REPORT = CLASS_NAME_WITH_DOT
 			+ "test004RunReport";
-	private static final String PARSE_REPORT = CLASS_NAME_WITH_DOT
-			+ "test005ParseReport";
+	private static final String PARSE_OUTPUT_REPORT = CLASS_NAME_WITH_DOT
+			+ "test005ParseOutputReport";
 	private static final String RUN_TASK = CLASS_NAME_WITH_DOT
 			+ "test006RunTask";
 	private static final String COUNT_REPORT = CLASS_NAME_WITH_DOT
@@ -168,12 +159,6 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	
 	protected PrismObject<UserType> userAdministrator;
 	
-	private static String readFile(String path, Charset encoding)
-			throws IOException {
-		byte[] encoded = Files.readAllBytes(Paths.get(path));
-		return encoding.decode(ByteBuffer.wrap(encoded)).toString();
-	}
-
 	public BasicReportTest() {
 		super();
 	}
@@ -188,7 +173,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		
 		// System Configuration
 		try {
-			repoAddObjectFromFile(getSystemConfigurationFile(), SystemConfigurationType.class, initResult);
+			repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, SystemConfigurationType.class, initResult);
 		} catch (ObjectAlreadyExistsException e) {
 			throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
 					"looks like the previous test haven't cleaned it up", e);
@@ -196,11 +181,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		
 		// Users
 		userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, UserType.class, initResult);
-		//repoAddObjectFromFile(ROLE_SUPERUSER_FILENAME, RoleType.class, initResult);
-	}
-    	
-	protected File getSystemConfigurationFile() {
-		return SYSTEM_CONFIGURATION_FILE;
+		importUsers(10);
 	}
 	
 	protected Task createTask(String operationName) {
@@ -230,6 +211,32 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		return reportOutputList;
 	}
 
+	private void importUsers(int count) throws Exception {
+		Task task = taskManager.createTaskInstance(IMPORT_USERS);
+        OperationResult result = task.getResult();
+        OperationResult subResult = null;
+		for (int i=1; i<=count; i++)
+		{
+			UserType user = new UserType();
+			prismContext.adopt(user);
+			user.setName(new PolyStringType("User_" + Integer.toString(i)));
+			ObjectDelta<UserType> objectDelta = ObjectDelta.createAddDelta((PrismObject<UserType>) user.asPrismObject());
+			Collection<ObjectDelta<? extends ObjectType>> deltas =	MiscSchemaUtil.createCollection(objectDelta);
+			LOGGER.trace("insert user {}", user);
+			subResult = result.createSubresult("User : " + user.getName().getOrig());
+			modelService.executeChanges(deltas, null, task, subResult);
+			subResult.computeStatus();
+			TestUtil.assertSuccess("import user result not success", subResult);
+		}
+		
+		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
+		subResult = result.createSubresult("count users");
+		int countUsers = modelService.countObjects(UserType.class, null, options, task, subResult);
+		LOGGER.trace("count users {}: ", countUsers);
+		assertEquals("Unexpected number of count users", 11, countUsers);
+		result.computeStatus();
+	}
+	
 	@Test
 	public void test001CreateReport() throws Exception {
 		// import vo for cycle cez usertype zrusit vsetky RTable
@@ -492,9 +499,9 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		Task task = taskManager.createTaskInstance(CREATE_REPORT_FROM_FILE);
 		OperationResult result = task.getResult();
 		 
-		PrismObject<? extends Objectable> reportType=  prismContext.getPrismDomProcessor().parseObject(TEST_REPORT_FILE);
+		PrismObject<? extends Objectable> reportType =  prismContext.getPrismDomProcessor().parseObject(TEST_REPORT_FILE);
 			 
-		ObjectDelta<ReportType> objectDelta =
+		ObjectDelta<ReportType> objectDelta = 
 		ObjectDelta.createAddDelta((PrismObject<ReportType>) reportType);
 		Collection<ObjectDelta<? extends ObjectType>> deltas =
 		MiscSchemaUtil.createCollection(objectDelta);
@@ -561,7 +568,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		
 		// THEN
         TestUtil.displayThen(TEST_NAME);
-        OperationResult subresult = result.getLastSubresult();
+        //OperationResult subresult = result.getLastSubresult();
         //TestUtil.assertInProgress("create report result", subresult);
         
         waitForTaskFinish(task.getOid(), false, 40000);
@@ -574,26 +581,97 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	}
 
 	@Test
-	public void test005ParseReport() throws Exception {
-		final String TEST_NAME = "test005ParseReport";
+	public void test005ParseOutputReport() throws Exception {
+		final String TEST_NAME = "test005ParseOutputReport";
         TestUtil.displayTestTile(this, TEST_NAME);
 		
 		// GIVEN
-        Task task = createTask(PARSE_REPORT);
+        Task task = createTask(PARSE_OUTPUT_REPORT);
 		OperationResult result = task.getResult();
 		
         ReportOutputType reportOutputType = searchReportOutput(REPORT_OID_TEST).get(0).asObjectable();
         LOGGER.trace("read report output {}", reportOutputType);
         
+        ReportType reportType = getReport(REPORT_OID_TEST).asObjectable();
+        LOGGER.trace("read report {}", reportType);
+        
+        String output = reportManager.getReportOutputFilePath(reportType);
+        
+        AssertJUnit.assertNotNull(reportOutputType);
+        assertEquals("Unexpected report reference", MiscSchemaUtil.createObjectReference(reportType.getOid(), SchemaConstants.C_REPORT_TYPE), reportOutputType.getReportRef());
+        assertEquals("Unexpected report file path", output, reportOutputType.getReportFilePath());
+        /*        
         Scanner scanner = new Scanner(new File(reportOutputType.getReportFilePath()));
         LOGGER.trace("read report file {}", reportOutputType);
         scanner.useDelimiter(",");
         while(scanner.hasNext()){
             LOGGER.trace(scanner.next()+"|");
         }
-        scanner.close();
+         scanner.close();
+        */  
+        BufferedReader br = null;  
+        String line = "";  
+        String splitBy = ",";  
+        
+        br = new BufferedReader(new FileReader(reportOutputType.getReportFilePath()));  
+        int count = 0;
+        while ((line = br.readLine()) != null) {  
+        	count++;
+        	String[] lineDetails = line.split(splitBy); 
+        	switch (count)
+        	{
+        		case 1:  assertEquals("Unexpected name of report", "User Report", lineDetails[3]);
+        			break;
+        		case 2:  assertEquals("Unexpected second line of report", "Report generated on:", lineDetails[7]);
+    				break;
+        		case 3:  {
+        			assertEquals("Unexpected third line of report", "Number of records:", lineDetails[7]);
+        			assertEquals("Unexpected number of records", 11, Integer.parseInt(lineDetails[8]));
+        			}
+    				break;
+        		case 4: {
+        			assertEquals("Unexpected column header of report - name", "Name", lineDetails[1]);
+        			assertEquals("Unexpected column header of report - first name", "First name", lineDetails[4]);
+        			assertEquals("Unexpected column header of report - last name", "Last name", lineDetails[5]);
+        			assertEquals("Unexpected column header of report - activation", "Activation", lineDetails[6]);
+        			}
+    				break;
+        		case 5:	LOGGER.trace("USERS [name= " + lineDetails[0] + " , first name=" + lineDetails[4] + " , last name=" + lineDetails[5] + " , activation=" + lineDetails[6] + "]");
+        			break;
+        		case 6:
+        		case 7:
+        		case 8:
+        		case 9:
+        		case 10:
+        		case 11:
+        		case 12:
+        		case 13:
+        		case 14:
+        		case 15:
+        			LOGGER.trace("USERS [name= " + lineDetails[0] + "]");
+        			break;
+        		case 16: {
+        			assertEquals("Unexpected text", "Page 1 of", lineDetails[9]);
+        			String pages = lineDetails[10].trim();
+        			assertEquals("Unexpected count pages", 1, Integer.parseInt(pages));
+        			}
+        			break;
+        		default: LOGGER.trace("incorrect]");
+        			break;
+        	}	
+        }  
+        if (br != null) br.close();  
+        
+        LOGGER.trace("Done with reading CSV");  
+        assertEquals("Unexpected number of users", 11, count-5);
 	}
 	
+	/*
+	 * import report from xml file without design
+	 * import task from xml file
+	 * run task
+	 * parse output file
+	 */
 	
 	@Test
 	public void test006RunTask() throws Exception {
@@ -627,6 +705,73 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
         OperationResultType reportTaskResult = reportTaskAfter.asObjectable().getResult();
         display("Report task result", reportTaskResult);
         TestUtil.assertSuccess(reportTaskResult);
+        
+        ReportOutputType reportOutputType = searchReportOutput(reportType.getOid()).get(0).asObjectable();
+        LOGGER.trace("read report output {}", reportOutputType);
+        
+        ReportType report = getReport(reportType.getOid()).asObjectable();
+        LOGGER.trace("read report {}", report);
+        
+        String output = reportManager.getReportOutputFilePath(report);
+        
+        AssertJUnit.assertNotNull(reportOutputType);
+        assertEquals("Unexpected report reference", MiscSchemaUtil.createObjectReference(reportType.getOid(), SchemaConstants.C_REPORT_TYPE), reportOutputType.getReportRef());
+        assertEquals("Unexpected report file path", output, reportOutputType.getReportFilePath());
+           
+        BufferedReader br = null;  
+        String line = "";  
+        String splitBy = ",";  
+        
+        br = new BufferedReader(new FileReader(reportOutputType.getReportFilePath()));  
+        int count = 0;
+        while ((line = br.readLine()) != null) {  
+        	count++;
+        	String[] lineDetails = line.split(splitBy); 
+        	switch (count)
+        	{
+        		case 1:  assertEquals("Unexpected name of report", "DataSource Report", lineDetails[2]);
+        			break;
+        		case 2:  assertEquals("Unexpected second line of report", "Report generated on:", lineDetails[4]);
+    				break;
+        		case 3:  {
+        			assertEquals("Unexpected third line of report", "Number of records:", lineDetails[4]);
+        			assertEquals("Unexpected number of records", 11, Integer.parseInt(lineDetails[5]));
+        			}
+    				break;
+        		case 4: {
+        			assertEquals("Unexpected column header of report - name", "Name", lineDetails[0]);
+        			assertEquals("Unexpected column header of report - first name", "First Name", lineDetails[3]);
+        			assertEquals("Unexpected column header of report - last name", "Last Name", lineDetails[4]);
+        			assertEquals("Unexpected column header of report - activation", "Activation", lineDetails[6]);
+        			}
+    				break;
+        		case 5:	LOGGER.trace("USERS [name= " + lineDetails[0] + " , first name=" + lineDetails[3] + " , last name=" + lineDetails[4] + " , activation=" + lineDetails[6] + "]");
+        			break;
+        		case 6:
+        		case 7:
+        		case 8:
+        		case 9:
+        		case 10:
+        		case 11:
+        		case 12:
+        		case 13:
+        		case 14:
+        		case 15:
+        			LOGGER.trace("USERS [name= " + lineDetails[0] + "]");
+        			break;
+        		case 16: {
+        			assertEquals("Unexpected text", "Page 1 of", lineDetails[7]);
+        			assertEquals("Unexpected count pages", 1, Integer.parseInt(lineDetails[8].replace("\\s", "")));
+        			}
+        			break;
+        		default: LOGGER.trace("incorrect]");
+        			break;
+        	}	
+        }  
+        if (br != null) br.close();  
+        
+        LOGGER.trace("Done with reading CSV");  
+        assertEquals("Unexpected number of users", 11, count-5);
 	}
 
 

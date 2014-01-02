@@ -10,6 +10,7 @@ import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRField;
 
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -21,6 +22,8 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportFieldConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
@@ -28,11 +31,11 @@ import com.evolveum.prism.xml.ns._public.query_2.PagingType;
 
 
 public class DataSourceReport implements JRDataSource
-{	
-	@Autowired
+{
+	private static final Trace LOGGER = TraceManager.getTrace(DataSourceReport.class);
+	
 	private ModelService modelService;
 	
-	@Autowired
     private PrismContext prismContext;
 	
 	private ReportType reportType;
@@ -49,10 +52,12 @@ public class DataSourceReport implements JRDataSource
 	private int rowCount = 0;
 
 	
-	public DataSourceReport(ReportType reportType, OperationResult result)
+	public DataSourceReport(ReportType reportType, OperationResult result, PrismContext prismContext, ModelService modelService)
 	{
 		this.reportType = reportType;
 		this.result = result;
+		this.prismContext = prismContext;
+		this.modelService = modelService;
 		initialize();
 	}
 	
@@ -80,19 +85,21 @@ public class DataSourceReport implements JRDataSource
 	   	return fieldsPair;
 	}
 
-	private <T extends ObjectType> List<PrismObject<T>> searchReportObjects() 
+	private <T extends ObjectType> List<PrismObject<T>> searchReportObjects() throws Exception
 	{
 		List<PrismObject<T>> listReportObjects = null;
 		try
 		{
 			Class<T> clazz = (Class<T>) ObjectTypes.getObjectTypeFromTypeQName(reportType.getObjectClass()).getClassDefinition();
 			ObjectQuery objectQuery = QueryConvertor.createObjectQuery(clazz, reportType.getQuery(), prismContext);
+			LOGGER.trace("Search report objects {}:", reportType);
 			listReportObjects = modelService.searchObjects(clazz, objectQuery, SelectorOptions.createCollection(GetOperationOptions.createRaw()), null, result);
 			return listReportObjects;
 		}
 		catch (Exception ex) 
 		{
-			return null;
+			LOGGER.error("Search report objects {}:", ex);
+			throw ex;
         }
 		
 	}
@@ -105,7 +112,7 @@ public class DataSourceReport implements JRDataSource
 				subResult = result.createSubresult("Paging");				
 				data = searchReportObjects();
 				subResult.computeStatus();
-				
+				LOGGER.trace("next {}:", paging);
 				pageOffset += paging.getMaxSize();
 				paging.setOffset(pageOffset);
 				reportType.getQuery().setPaging(paging);
@@ -116,9 +123,15 @@ public class DataSourceReport implements JRDataSource
 				
 			return !data.isEmpty();
 		}
+		catch (JRException ex)
+		{
+			LOGGER.error("next {}:", ex);
+			throw ex;
+		}
 		catch (Exception ex)
 		{
-			return false;
+			LOGGER.error("next {}:", ex);
+			throw new JRException(ex.getMessage());
 		}
 	}
 
