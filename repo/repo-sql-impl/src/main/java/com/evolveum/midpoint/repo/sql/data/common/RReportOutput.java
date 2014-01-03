@@ -96,10 +96,6 @@ public class RReportOutput extends RObject<ReportOutputType> {
 
     	repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
     	repo.setReportFilePath(jaxb.getReportFilePath());
-    	/*if (jaxb.getReportRef() != null) {
-            LOGGER.warn("Report from report output type won't be saved.");
-        }
-*/
         repo.setReportRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getReportRef(), prismContext));
     }
 

@@ -52,5 +52,7 @@ public interface ReportManager {
     
     
     JasperDesign createJasperDesign(ReportType reportType) throws JRException;
+    
+    String getReportOutputFilePath(ReportType reportType);
 	
 }

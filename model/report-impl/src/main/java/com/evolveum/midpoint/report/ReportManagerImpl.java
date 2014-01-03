@@ -90,6 +90,9 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
     
     private static final String CLASS_NAME_WITH_DOT = ReportManagerImpl.class + ".";
     
+    private static String MIDPOINT_HOME = System.getProperty("midpoint.home"); 
+    private static String EXPORT_DIR = MIDPOINT_HOME + "export/";
+    
 
 	@Autowired
     private HookRegistry hookRegistry;
@@ -421,6 +424,8 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
 		textField.setVerticalAlignment(VerticalAlignEnum.MIDDLE);
 		textField.setStyleNameReference("Page header");
 		textField.setBold(false);
+		textField.setEvaluationTime(EvaluationTimeEnum.REPORT);
+		textField.setBlankWhenNull(true);
 		textField.setExpression(new JRDesignExpression("$V{REPORT_COUNT}"));
 		titleBand.addElement(textField);
 		
@@ -578,7 +583,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
 		textField.setY(1);
 		textField.setWidth(197);
 		textField.setHeight(20);
-		textField.setPattern("EEEEE dd MMMMM yyyy");
+		//textField.setPattern("EEEEE dd MMMMM yyyy");
 		textField.setVerticalAlignment(VerticalAlignEnum.MIDDLE);
 		textField.setStyleNameReference("Page footer");
 		textField.setExpression(new JRDesignExpression("new java.util.Date()"));
@@ -592,8 +597,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
 		textField.setHorizontalAlignment(HorizontalAlignEnum.RIGHT);
 		textField.setVerticalAlignment(VerticalAlignEnum.MIDDLE);
 		textField.setStyleNameReference("Page footer");
-		//textField.setExpression(new JRDesignExpression("''Page '' + $V{PAGE_NUMBER} + '' of''"));
-		textField.setExpression(new JRDesignExpression("$V{PAGE_NUMBER}"));
+		textField.setExpression(new JRDesignExpression("\"Page \" + String.valueOf($V{PAGE_NUMBER}) + \" of\""));
 		frame.addElement(textField);
 		
 		textField = new JRDesignTextField();
@@ -603,8 +607,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
 		textField.setHeight(20);
 		textField.setEvaluationTime(EvaluationTimeEnum.REPORT);
 		textField.setVerticalAlignment(VerticalAlignEnum.MIDDLE);
-		textField.setStyleNameReference("Page footer");
-		//textField.setExpression(new JRDesignExpression("'' '' + $V{PAGE_NUMBER}"));
+		textField.setStyleNameReference("Page footer");	
 		textField.setExpression(new JRDesignExpression("$V{PAGE_NUMBER}"));
 		frame.addElement(textField);
 		
@@ -624,4 +627,46 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
     public void cleanupReports(CleanupPolicyType cleanupPolicy, OperationResult parentResult) {
         //To change body of implemented methods use File | Settings | File Templates.
     }
+    
+    @Override
+    public String getReportOutputFilePath(ReportType reportType){
+    	
+    	String output =  EXPORT_DIR + reportType.getName().getOrig();
+    	switch (reportType.getReportExport())
+        {
+        	case PDF : output = output + ".pdf";
+        		break;
+          	case CSV : output = output + ".csv";
+      			break;
+          	case XML : output = output + ".xml";
+          		break;
+          	case XML_EMBED : output = output + "_embed.xml";
+          		break;
+          	case HTML : output = output + ".html";
+          		break;
+          	case RTF : output = output + ".rtf";
+          		break;
+          	case XLS : output = output + ".xls";
+  				break;
+          	case ODT : output = output + ".odt";
+          		break;
+          	case ODS : output = output + ".ods";
+  				break;
+          	case DOCX : output = output + ".docx";
+  				break;
+          	case XLSX : output = output + ".xlsx";
+  				break;
+          	case PPTX : output = output + ".pptx";
+          		break;
+          	case XHTML : output = output + ".x.html";
+  				break;
+          	case JXL : output = output + ".jxl.xls";
+          		break; 	
+			default:
+				break;
+        }
+    	
+    	return output;
+    }
+    
 }
