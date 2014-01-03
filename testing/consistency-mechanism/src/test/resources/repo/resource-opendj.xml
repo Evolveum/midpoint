@@ -585,6 +585,8 @@ This is now the only account type that midPoint can work with. -->
         <!-- Confirmation rule may be here, but as the search above will
 always return at most one match, the confirmation rule is not needed. -->
 
+		<objectTemplateRef oid="c0c010c0-d34d-b33f-f00d-777111111111"/>
+
         <!-- Following section describes reactions to a situations.
             The setting here assumes that this resource is authoritative,
             therefore all accounts created on the resource should be
@@ -593,24 +595,28 @@ always return at most one match, the confirmation rule is not needed. -->
         -->
         <c:reaction>
             <c:situation>linked</c:situation>
-            <c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#nodifyUser"/>
+            <synchronize>true</synchronize>
         </c:reaction>
         <c:reaction>
             <c:situation>deleted</c:situation>
-            <c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlinkAccount"/>
+            <synchronize>true</synchronize>
+            <action>
+            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlink</handlerUri>
+            </action>
         </c:reaction>
         <c:reaction>
             <c:situation>unlinked</c:situation>
-            <c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>
+            <synchronize>true</synchronize>
+            <action>
+            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#link</handlerUri>
+            </action>
         </c:reaction>
         <c:reaction>
             <c:situation>unmatched</c:situation>
-            <c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addUser">
-                <!-- Reference to the User Template is here. If the user would be
-             created as a result of this action, it will be created according
-             to this template. -->
-                <c:userTemplateRef oid="c0c010c0-d34d-b33f-f00d-777111111111"/>
-            </c:action>
+            <synchronize>true</synchronize>
+            <action>
+            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#addFocus</handlerUri>
+            </action>
         </c:reaction>
 </objectSynchronization>
     </c:synchronization>
