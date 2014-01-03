@@ -595,7 +595,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
         ReportType reportType = getReport(REPORT_OID_TEST).asObjectable();
         LOGGER.trace("read report {}", reportType);
         
-        String output = reportManager.getReportOutputFilePath(reportType);
+        String output = ReportUtils.getReportOutputFilePath(reportType);
         
         AssertJUnit.assertNotNull(reportOutputType);
         assertEquals("Unexpected report reference", MiscSchemaUtil.createObjectReference(reportType.getOid(), SchemaConstants.C_REPORT_TYPE), reportOutputType.getReportRef());
@@ -712,7 +712,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
         ReportType report = getReport(reportType.getOid()).asObjectable();
         LOGGER.trace("read report {}", report);
         
-        String output = reportManager.getReportOutputFilePath(report);
+        String output = ReportUtils.getReportOutputFilePath(report);
         
         AssertJUnit.assertNotNull(reportOutputType);
         assertEquals("Unexpected report reference", MiscSchemaUtil.createObjectReference(reportType.getOid(), SchemaConstants.C_REPORT_TYPE), reportOutputType.getReportRef());

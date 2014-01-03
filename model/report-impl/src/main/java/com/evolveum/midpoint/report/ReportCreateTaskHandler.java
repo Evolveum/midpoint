@@ -182,7 +182,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
     		LOGGER.trace("create report params : {}", params);
     		if (reportType.getReportTemplate() == null || reportType.getReportTemplate().getAny() == null)
             {
-           	 	jasperDesign = reportManager.createJasperDesign(reportType);
+           	 	jasperDesign = ReportUtils.createJasperDesign(reportType);
            	 	LOGGER.trace("create jasper design : {}", jasperDesign);
             }
             else
@@ -261,7 +261,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
     // generate report - export
     private String generateReport(ReportType reportType, JasperPrint jasperPrint) throws JRException
     {
-    	String output = reportManager.getReportOutputFilePath(reportType);
+    	String output = ReportUtils.getReportOutputFilePath(reportType);
     	switch (reportType.getReportExport())
         {
         	case PDF : pdf(jasperPrint, output);

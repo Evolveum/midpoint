@@ -112,12 +112,13 @@ public class DataSourceReport implements JRDataSource
 				subResult = result.createSubresult("Paging");				
 				data = searchReportObjects();
 				subResult.computeStatus();
-				LOGGER.trace("next {}:", paging);
+				LOGGER.trace("Select next report objects {}:", data);
 				pageOffset += paging.getMaxSize();
 				paging.setOffset(pageOffset);
 				reportType.getQuery().setPaging(paging);
 				rowCounter = 0;
 				rowCount  = Math.min(paging.getMaxSize(), data.size());
+				LOGGER.trace("Set next select paging {}:", paging);
 			}
 			else rowCounter++; 
 				
@@ -125,12 +126,12 @@ public class DataSourceReport implements JRDataSource
 		}
 		catch (JRException ex)
 		{
-			LOGGER.error("next {}:", ex);
+			LOGGER.error("An error has occurred while loading the records into a report - {}:", ex);
 			throw ex;
 		}
 		catch (Exception ex)
 		{
-			LOGGER.error("next {}:", ex);
+			LOGGER.error("An error has occurred while loading the records into a report - {}:", ex);
 			throw new JRException(ex.getMessage());
 		}
 	}
@@ -145,6 +146,7 @@ public class DataSourceReport implements JRDataSource
 		{
 			PrismObject<ObjectType> record = data.get(rowCounter);
 			PrismProperty<?> fieldValue = record.findProperty(fieldPath);
+			LOGGER.trace("Select next field value:", fieldValue);
 			return  fieldValue != null ? fieldValue.getRealValue().toString() : "";
 		}
 		else return "";
