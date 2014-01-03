@@ -792,40 +792,29 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 //		syncSituationDeltas.add(SynchronizationSituationUtil.createSynchronizationTimestampDelta(object, timestamp));
 //		
 		try {
-
 			repositoryService.modifyObject(objectType.getClass(), object.getOid(), syncSituationDeltas, parentResult);
 		} catch (ObjectNotFoundException ex) {
-			if (change.getObjectDelta() != null && change.getObjectDelta().isDelete()){
-				LOGGER.warn("Could not update situation in account, because account does not exist. {}", ex);
-				parentResult.recordPartialError("Could not update situation in account, because account does not exist. ", ex);
-				return;
-			}
-			LoggingUtils.logException(LOGGER,
-					"### SYNCHRONIZATION # notifyChange(..): Synchronization action failed. Could not modify object "
-							+ ObjectTypeUtil.toShortString(objectType), ex);
-			parentResult.recordFatalError(
-					"Synchronization action failed, Could not modify object "
-							+ ObjectTypeUtil.toShortString(objectType), ex);
-			throw new SystemException("Synchronization action failed, Could not modify object "
-					+ ObjectTypeUtil.toShortString(objectType) + " reason: " + ex.getMessage(), ex);
+			// This may happen e.g. during some recon-livesync interactions.
+			// If the shadow is gone then it is gone. No point in recording the situation any more.
+			LOGGER.debug("Could not update situation in account, because shadow {} does not exist any more (this may be harmless)", object.getOid());
+			parentResult.getLastSubresult().setStatus(OperationResultStatus.HANDLED_ERROR);
 		} catch (ObjectAlreadyExistsException ex) {
 			LoggingUtils.logException(LOGGER,
-					"### SYNCHRONIZATION # notifyChange(..): Synchronization action failed. Could not modify object "
-							+ ObjectTypeUtil.toShortString(objectType), ex);
+					"### SYNCHRONIZATION # notifyChange(..): Save of synchronization situation failed: could not modify shadow "
+							+ object.getOid() + ": "+ex.getMessage(), ex);
 			parentResult.recordFatalError(
-					"Synchronization action failed, Could not modify object "
-							+ ObjectTypeUtil.toShortString(objectType), ex);
-			throw new SystemException("Synchronization action failed, Could not modify object "
-					+ ObjectTypeUtil.toShortString(objectType) + " reason: " + ex.getMessage(), ex);
+					"Save of synchronization situation failed: could not modify shadow "
+							+ object.getOid() + ": "+ex.getMessage(), ex);
+			throw new SystemException("Save of synchronization situation failed: could not modify shadow "
+					+ object.getOid() + ": "+ex.getMessage(), ex);
 		} catch (SchemaException ex) {
 			LoggingUtils.logException(LOGGER,
-					"### SYNCHRONIZATION # notifyChange(..): Synchronization action failed. Could not modify object "
-							+ ObjectTypeUtil.toShortString(objectType), ex);
-			parentResult.recordFatalError(
-					"Synchronization action failed, Could not modify object "
-							+ ObjectTypeUtil.toShortString(objectType), ex);
-			throw new SystemException("Synchronization action failed, Could not modify object "
-					+ ObjectTypeUtil.toShortString(objectType) + " reason: " + ex.getMessage(), ex);
+					"### SYNCHRONIZATION # notifyChange(..): Save of synchronization situation failed: could not modify shadow "
+							+ object.getOid() + ": "+ex.getMessage(), ex);
+			parentResult.recordFatalError("Save of synchronization situation failed: could not modify shadow "
+					+ object.getOid() + ": "+ex.getMessage(), ex);
+			throw new SystemException("Save of synchronization situation failed: could not modify shadow "
+							+ object.getOid() + ": "+ex.getMessage(), ex);
 		}
 
 	}
