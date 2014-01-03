@@ -4841,13 +4841,33 @@
         </xsd:restriction>
     </xsd:simpleType>
 
+	<xsd:complexType name="AssignmentExpressionEvaluatorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Create an AssignmentType expression based on several criteria and situations.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="targetType" type="xsd:QName" minOccurs="1" maxOccurs="1">
+        	</xsd:element>
+        	<xsd:element name="query" type="q:QueryType" minOccurs="0" maxOccurs="1">
+        	</xsd:element>
+        	<xsd:element name="createOnDemand" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+        	</xsd:element>
+        	<xsd:element name="objectTemplateRef" type="tns:ObjectReferenceType" minOccurs="0">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Object template used in case the objects are created on demand.
+            		</xsd:documentation>
+            		<xsd:appinfo>
+                    	<a:objectReferenceTargetType>tns:ObjetcTemplateType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+            	</xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
 
-
-
-
-
-
-
+	<xsd:element name="assignmentExpression" type="tns:AssignmentExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
 
 
     <xsd:element name="synchronization" type="tns:SynchronizationType"/>
