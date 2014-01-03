@@ -19,6 +19,7 @@
    xmlns='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
    xmlns:t='http://prism.evolveum.com/xml/ns/public/types-2'
+   xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
    xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
     <name>Complex User Template</name>
     
@@ -97,6 +98,34 @@
             </script>
 		</condition>
     </mapping>
+
+	<!-- WORK IN PROGRESS  -->
+
+    <mapping>
+    	<name>Org mapping</name>
+    	<authoritative>true</authoritative>
+    	<source>
+    		<path>organizationalUnit</path>
+    	</source>
+    	<expression>
+            <assignmentExpression>
+            	<targetType>c:OrgType</targetType>
+        		<query>
+					<q:equal>
+						<q:path>c:name</q:path>
+						<valueExpression>
+							<path>$organizationalUnit</path>
+						</valueExpression>
+					</q:equal>
+				</query>
+            </assignmentExpression>    	
+    	</expression>
+    	<target>
+    		<path>assignment</path>
+    	</target>
+    </mapping>
+
+	<!-- END -->
     
     <mapping>
     	<strength>weak</strength>
