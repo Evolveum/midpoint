@@ -49,10 +49,5 @@ public interface ReportManager {
      * @param parentResult
      */
     void cleanupReports(CleanupPolicyType cleanupPolicy, OperationResult parentResult);
-    
-    
-    JasperDesign createJasperDesign(ReportType reportType) throws JRException;
-    
-    String getReportOutputFilePath(ReportType reportType);
 	
 }

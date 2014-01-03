@@ -7760,6 +7760,7 @@
         <xsd:sequence>
             <xsd:element name="auditRecords" type="tns:CleanupPolicyType" minOccurs="0"/>
             <xsd:element name="closedTasks" type="tns:CleanupPolicyType" minOccurs="0" />
+            <xsd:element name="outputReports" type="tns:CleanupPolicyType" minOccurs="0" />
         </xsd:sequence>
     </xsd:complexType>
     
@@ -8771,7 +8772,17 @@
         <xsd:complexContent>
             <xsd:extension base="c:ObjectType">
                 <xsd:sequence>
-            		<xsd:element name="reportFilePath" type="xsd:string" minOccurs="0" maxOccurs="1"/>     
+            		<xsd:element name="reportFilePath" type="xsd:string" minOccurs="0" maxOccurs="1"/>  
+            		<xsd:element name="report" type="tns:ReportType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Report which is assigned. 
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReference>tns:reportRef</a:objectReference>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>   
                     <xsd:element name="reportRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
