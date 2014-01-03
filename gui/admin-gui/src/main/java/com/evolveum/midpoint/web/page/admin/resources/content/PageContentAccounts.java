@@ -184,7 +184,7 @@ public class PageContentAccounts extends PageAdminResources {
     private List<IColumn> initColumns() {
         List<IColumn> columns = new ArrayList<IColumn>();
 
-        IColumn column = new CheckBoxColumn(new Model<String>(), "selected");
+        IColumn column = new CheckBoxColumn(new Model<String>(), AccountContentDto.F_SELECTED);
         columns.add(column);
 
         column = new LinkColumn<SelectableBean<AccountContentDto>>(
@@ -291,6 +291,10 @@ public class PageContentAccounts extends PageAdminResources {
         return items;
     }
 
+    private AccountContentDto createRowDto() {
+        return null;//todo finish
+    }
+
     @Override
     protected IModel<String> createPageSubTitleModel() {
         return new LoadableModel<String>(false) {
@@ -377,23 +381,17 @@ public class PageContentAccounts extends PageAdminResources {
         }
 
         try {
-            ObjectQuery query = null;//new ObjectQuery();
-//            Document document = DOMUtil.getDocument();
+            ObjectQuery query = null;
 
             List<ObjectFilter> conditions = new ArrayList<ObjectFilter>();
             ObjectClassComplexTypeDefinition def = getAccountDefinition();
-            PrismObject<ResourceType> resource = resourceModel.getObject();
-//            query = ObjectQueryUtil.createResourceAndAccountQuery(resource.getOid(), def.getTypeName(), getPrismContext());
             if (dto.isIdentifiers()) {
 
                 List<ResourceAttributeDefinition> identifiers = new ArrayList<ResourceAttributeDefinition>();
                 if (def.getIdentifiers() != null) {
                     identifiers.addAll(def.getIdentifiers());
                 }
-//                if (def.getSecondaryIdentifiers() != null) {
-//                    identifiers.addAll(def.getIdentifiers());
-//                }
-//                XPathHolder attributes = new XPathHolder(Arrays.asList(new XPathSegment(SchemaConstants.I_ATTRIBUTES)));
+
                 //TODO set matching rule instead fo null
                 for (ResourceAttributeDefinition attrDef : identifiers) {
                     conditions.add(EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), attrDef, null, dto.getSearchText()));
@@ -502,11 +500,8 @@ public class PageContentAccounts extends PageAdminResources {
         OperationResult result = new OperationResult(OPERATION_CHANGE_OWNER);
         try {
             Task task = createSimpleTask(OPERATION_CHANGE_OWNER);
-//            Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
-
             if (StringUtils.isNotEmpty(dto.getOldOwnerOid())) {
                 ObjectDelta delta = new ObjectDelta(UserType.class, ChangeType.MODIFY, getPrismContext());
-//                deltas.add(delta);
                 delta.setOid(dto.getOldOwnerOid());
                 PrismReferenceValue refValue = new PrismReferenceValue(dto.getAccountOid());
                 refValue.setTargetType(dto.getAccountType());
@@ -517,7 +512,6 @@ public class PageContentAccounts extends PageAdminResources {
 
             if (user != null) {
                 ObjectDelta delta = new ObjectDelta(UserType.class, ChangeType.MODIFY, getPrismContext());
-//                deltas.add(delta);
                 delta.setOid(user.getOid());
                 PrismReferenceValue refValue = new PrismReferenceValue(dto.getAccountOid());
                 refValue.setTargetType(dto.getAccountType());
@@ -527,10 +521,6 @@ public class PageContentAccounts extends PageAdminResources {
                 getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
 
             }
-
-//            if (!deltas.isEmpty()) {
-//                getModelService().executeChanges(deltas, null, task, result);
-//            }
             result.recomputeStatus();
         } catch (Exception ex) {
             result.recordFatalError("Couldn't submit user.", ex);

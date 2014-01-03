@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.resources.content.dto;
 
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
 
 import java.io.Serializable;
@@ -26,7 +27,7 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class AccountContentDto implements Serializable {
+public class AccountContentDto extends Selectable {
 
     private String accountOid;
     private String accountName;
