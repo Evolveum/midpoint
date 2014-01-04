@@ -598,7 +598,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
         String output = ReportUtils.getReportOutputFilePath(reportType);
         
         AssertJUnit.assertNotNull(reportOutputType);
-        assertEquals("Unexpected report reference", MiscSchemaUtil.createObjectReference(reportType.getOid(), SchemaConstants.C_REPORT_TYPE), reportOutputType.getReportRef());
+        assertEquals("Unexpected report reference", MiscSchemaUtil.createObjectReference(reportType.getOid(), ReportType.COMPLEX_TYPE), reportOutputType.getReportRef());
         assertEquals("Unexpected report file path", output, reportOutputType.getReportFilePath());
         /*        
         Scanner scanner = new Scanner(new File(reportOutputType.getReportFilePath()));
@@ -715,7 +715,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
         String output = ReportUtils.getReportOutputFilePath(report);
         
         AssertJUnit.assertNotNull(reportOutputType);
-        assertEquals("Unexpected report reference", MiscSchemaUtil.createObjectReference(reportType.getOid(), SchemaConstants.C_REPORT_TYPE), reportOutputType.getReportRef());
+        assertEquals("Unexpected report reference", MiscSchemaUtil.createObjectReference(reportType.getOid(), ReportType.COMPLEX_TYPE), reportOutputType.getReportRef());
         assertEquals("Unexpected report file path", output, reportOutputType.getReportFilePath());
            
         BufferedReader br = null;  

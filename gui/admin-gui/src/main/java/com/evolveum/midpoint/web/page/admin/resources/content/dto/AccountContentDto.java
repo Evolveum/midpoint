@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.web.page.admin.resources.content.dto;
 
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
+import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
 
@@ -27,7 +29,7 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class AccountContentDto extends Selectable {
+public class AccountContentDto extends Selectable implements InlineMenuable {
 
     private String accountOid;
     private String accountName;
@@ -37,6 +39,8 @@ public class AccountContentDto extends Selectable {
 
     private String ownerOid;
     private String ownerName;
+
+    private List<InlineMenuItem> menu = new ArrayList<InlineMenuItem>();
 
     public String getAccountName() {
         return accountName;
@@ -87,5 +91,10 @@ public class AccountContentDto extends Selectable {
 
     public void setSituation(SynchronizationSituationType situation) {
         this.situation = situation;
+    }
+
+    @Override
+    public List<InlineMenuItem> getMenuItems() {
+        return menu;
     }
 }

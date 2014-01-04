@@ -35,7 +35,6 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.*;
@@ -43,7 +42,6 @@ import com.evolveum.midpoint.web.component.dialog.UserBrowserDialog;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.option.OptionContent;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.resources.PageAdminResources;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
@@ -52,6 +50,7 @@ import com.evolveum.midpoint.web.page.admin.resources.content.dto.AccountContent
 import com.evolveum.midpoint.web.page.admin.resources.content.dto.AccountContentSearchDto;
 import com.evolveum.midpoint.web.page.admin.resources.content.dto.AccountOwnerChangeDto;
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
+import com.evolveum.midpoint.web.page.admin.users.dto.UserListItemDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
@@ -174,7 +173,13 @@ public class PageContentAccounts extends PageAdminResources {
 
         List<IColumn> columns = initColumns();
         TablePanel table = new TablePanel(ID_TABLE, new AccountContentDataProvider(this,
-                new PropertyModel<String>(resourceModel, "oid"), createObjectClassModel()), columns);
+                new PropertyModel<String>(resourceModel, "oid"), createObjectClassModel()) {
+
+            @Override
+            protected void addInlineMenuToDto(AccountContentDto dto) {
+                addRowMenuToTable(dto);
+            }
+        }, columns);
         table.setOutputMarkupId(true);
         mainForm.add(table);
 
@@ -187,25 +192,25 @@ public class PageContentAccounts extends PageAdminResources {
         IColumn column = new CheckBoxColumn(new Model<String>(), AccountContentDto.F_SELECTED);
         columns.add(column);
 
-        column = new LinkColumn<SelectableBean<AccountContentDto>>(
-                createStringResource("pageContentAccounts.name"), "value.accountName") {
+        column = new LinkColumn<AccountContentDto>(
+                createStringResource("pageContentAccounts.name"), "accountName") {
 
             @Override
-            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<AccountContentDto>> rowModel) {
-                AccountContentDto dto = rowModel.getObject().getValue();
+            public void onClick(AjaxRequestTarget target, IModel<AccountContentDto> rowModel) {
+                AccountContentDto dto = rowModel.getObject();
                 accountDetailsPerformed(target, dto.getAccountName(), dto.getAccountOid());
             }
         };
         columns.add(column);
 
-        column = new AbstractColumn<SelectableBean<AccountContentDto>, String>(
+        column = new AbstractColumn<AccountContentDto, String>(
                 createStringResource("pageContentAccounts.identifiers")) {
 
             @Override
-            public void populateItem(Item<ICellPopulator<SelectableBean<AccountContentDto>>> cellItem,
-                                     String componentId, IModel<SelectableBean<AccountContentDto>> rowModel) {
+            public void populateItem(Item<ICellPopulator<AccountContentDto>> cellItem,
+                                     String componentId, IModel<AccountContentDto> rowModel) {
 
-                AccountContentDto dto = rowModel.getObject().getValue();
+                AccountContentDto dto = rowModel.getObject();
                 List values = new ArrayList();
                 for (ResourceAttribute<?> attr : dto.getIdentifiers()) {
                     values.add(attr.getElementName().getLocalPart() + ": " + attr.getRealValue());
@@ -215,7 +220,7 @@ public class PageContentAccounts extends PageAdminResources {
         };
         columns.add(column);
 
-        column = new EnumPropertyColumn(createStringResource("pageContentAccounts.situation"), "value.situation") {
+        column = new EnumPropertyColumn(createStringResource("pageContentAccounts.situation"), "situation") {
 
             @Override
             protected String translate(Enum en) {
@@ -224,15 +229,15 @@ public class PageContentAccounts extends PageAdminResources {
         };
         columns.add(column);
 
-        column = new LinkColumn<SelectableBean<AccountContentDto>>(createStringResource("pageContentAccounts.owner")) {
+        column = new LinkColumn<AccountContentDto>(createStringResource("pageContentAccounts.owner")) {
 
             @Override
-            protected IModel<String> createLinkModel(final IModel<SelectableBean<AccountContentDto>> rowModel) {
+            protected IModel<String> createLinkModel(final IModel<AccountContentDto> rowModel) {
                 return new AbstractReadOnlyModel<String>() {
 
                     @Override
                     public String getObject() {
-                        AccountContentDto dto = rowModel.getObject().getValue();
+                        AccountContentDto dto = rowModel.getObject();
                         if (StringUtils.isNotBlank(dto.getOwnerName())) {
                             return dto.getOwnerName();
                         }
@@ -243,20 +248,10 @@ public class PageContentAccounts extends PageAdminResources {
             }
 
             @Override
-            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<AccountContentDto>> rowModel) {
-                AccountContentDto dto = rowModel.getObject().getValue();
+            public void onClick(AjaxRequestTarget target, IModel<AccountContentDto> rowModel) {
+                AccountContentDto dto = rowModel.getObject();
 
                 ownerDetailsPerformed(target, dto.getOwnerName(), dto.getOwnerOid());
-            }
-        };
-        columns.add(column);
-
-        column = new ButtonColumn<SelectableBean<AccountContentDto>>(new Model<String>(),
-                createStringResource("pageContentAccounts.button.changeOwner")) {
-
-            @Override
-            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<AccountContentDto>> rowModel) {
-                changeOwnerPerformed(target, rowModel);
             }
         };
         columns.add(column);
@@ -291,8 +286,32 @@ public class PageContentAccounts extends PageAdminResources {
         return items;
     }
 
-    private AccountContentDto createRowDto() {
-        return null;//todo finish
+    private void addRowMenuToTable(final AccountContentDto dto) {
+        dto.getMenuItems().add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.importAccount"),
+                new ColumnMenuAction<UserListItemDto>() {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        importAccount(target, dto);
+                    }
+                }));
+        dto.getMenuItems().add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.changeOwner"),
+                new ColumnMenuAction<UserListItemDto>() {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        changeOwnerPerformed(target, dto);
+                    }
+                }));
+        dto.getMenuItems().add(new InlineMenuItem());
+        dto.getMenuItems().add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.removeOwner"), true,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                        removeOwnerPerformed(target);
+                    }
+                }));
     }
 
     @Override
@@ -319,9 +338,8 @@ public class PageContentAccounts extends PageAdminResources {
         setResponsePage(PageUser.class, parameters);
     }
 
-    private void changeOwnerPerformed(AjaxRequestTarget target, IModel<SelectableBean<AccountContentDto>> rowModel) {
-        AccountContentDto contentDto = rowModel.getObject().getValue();
-        reloadOwnerChangeModel(contentDto.getAccountOid(), contentDto.getOwnerOid());
+    private void changeOwnerPerformed(AjaxRequestTarget target, AccountContentDto dto) {
+        reloadOwnerChangeModel(dto.getAccountOid(), dto.getOwnerOid());
 
         showModalWindow(MODAL_ID_OWNER_CHANGE, target);
     }
@@ -337,9 +355,7 @@ public class PageContentAccounts extends PageAdminResources {
         changeDto.setOldOwnerOid(ownerOid);
     }
 
-    private void importSingleAccount(AjaxRequestTarget target, IModel<SelectableBean<AccountContentDto>> rowModel) {
-        AccountContentDto contentDto = rowModel.getObject().getValue();
-
+    private void importSingleAccount(AjaxRequestTarget target, AccountContentDto contentDto) {
         Task task = createSimpleTask(OPERATION_CREATE_USER_FROM_ACCOUNT);
         OperationResult result = new OperationResult(OPERATION_CREATE_USER_FROM_ACCOUNT);
 
@@ -479,15 +495,14 @@ public class PageContentAccounts extends PageAdminResources {
     }
 
     private void removeOwnerPerformed(AjaxRequestTarget target) {
-        List<SelectableBean<AccountContentDto>> selected = WebMiscUtil.getSelectedData(getTable());
+        List<AccountContentDto> selected = WebMiscUtil.getSelectedData(getTable());
         target.add(getFeedbackPanel());
         if (selected.isEmpty()) {
             warn(getString("pageContentAccounts.message.noAccountSelected"));
             return;
         }
 
-        for (SelectableBean<AccountContentDto> bean : selected) {
-            AccountContentDto dto = bean.getValue();
+        for (AccountContentDto dto : selected) {
             reloadOwnerChangeModel(dto.getAccountOid(), dto.getOwnerOid());
             ownerChangePerformed(target, null);
         }
