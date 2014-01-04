@@ -47,10 +47,10 @@ public enum ObjectTypes {
     USER("schema.objectTypes.user", SchemaConstants.C_USER_TYPE, SchemaConstants.C_USER, UserType.class,
             ObjectManager.MODEL, "users"),
             
-    REPORT("schema.objectTypes.report", SchemaConstants.C_REPORT_TYPE, SchemaConstants.C_REPORT_TYPE, ReportType.class,
+    REPORT("schema.objectTypes.report", SchemaConstants.C_REPORT, SchemaConstants.C_REPORT, ReportType.class,
                     ObjectManager.MODEL, "reports"),
                     
-    REPORT_OUTPUT("schema.objectTypes.reportOutput", SchemaConstants.C_REPORT_OUTPUT_TYPE, SchemaConstants.C_REPORT_OUTPUT_TYPE, ReportOutputType.class,
+    REPORT_OUTPUT("schema.objectTypes.reportOutput", SchemaConstants.C_REPORT_OUTPUT, SchemaConstants.C_REPORT_OUTPUT, ReportOutputType.class,
                             ObjectManager.MODEL, "reportOutputs"),
                             
     OBJECT_TEMPLATE("schema.objectTypes.objectTemplate", SchemaConstants.C_OBJECT_TEMPLATE_TYPE,
