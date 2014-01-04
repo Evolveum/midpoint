@@ -86,6 +86,7 @@ public class PageContentAccounts extends PageAdminResources {
 
     private static final String DOT_CLASS = PageContentAccounts.class.getName() + ".";
     private static final String OPERATION_CHANGE_OWNER = DOT_CLASS + "changeOwner";
+    private static final String OPERATION_CREATE_USER_FROM_ACCOUNTS = DOT_CLASS + "createUserFromAccounts";
     private static final String OPERATION_CREATE_USER_FROM_ACCOUNT = DOT_CLASS + "createUserFromAccount";
     private static final String MODAL_ID_OWNER_CHANGE = "ownerChangePopup";
 
@@ -279,7 +280,7 @@ public class PageContentAccounts extends PageAdminResources {
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                        removeOwnerPerformed(target);
+                        removeOwnerPerformed(target, null);
                     }
                 }));
 
@@ -309,7 +310,7 @@ public class PageContentAccounts extends PageAdminResources {
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                        removeOwnerPerformed(target);
+                        removeOwnerPerformed(target, dto);
                     }
                 }));
     }
@@ -355,19 +356,27 @@ public class PageContentAccounts extends PageAdminResources {
         changeDto.setOldOwnerOid(ownerOid);
     }
 
-    private void importSingleAccount(AjaxRequestTarget target, AccountContentDto contentDto) {
-        Task task = createSimpleTask(OPERATION_CREATE_USER_FROM_ACCOUNT);
-        OperationResult result = new OperationResult(OPERATION_CREATE_USER_FROM_ACCOUNT);
+    private void importAccount(AjaxRequestTarget target, AccountContentDto row) {
+        List<AccountContentDto> accounts = isAnythingSelected(target, row);
+        if (accounts.isEmpty()) {
+            return;
+        }
 
-        try {
-            getModelService().importFromResource(contentDto.getAccountOid(), task, result);
-        } catch (Exception ex) {
-            result.computeStatus(getString("pageContentAccounts.message.cantImportAccount", contentDto.getAccountOid()));
-            LoggingUtils.logException(LOGGER, getString("pageContentAccounts.message.cantImportAccount", contentDto.getAccountName()), ex);
+        OperationResult result = new OperationResult(OPERATION_CREATE_USER_FROM_ACCOUNTS);
+        for (AccountContentDto dto : accounts) {
+            try {
+                OperationResult subResult = result.createMinorSubresult(OPERATION_CREATE_USER_FROM_ACCOUNT);
+                getModelService().importFromResource(dto.getAccountOid(),
+                        createSimpleTask(OPERATION_CREATE_USER_FROM_ACCOUNT), subResult);
+            } catch (Exception ex) {
+                result.computeStatus(getString("pageContentAccounts.message.cantImportAccount", dto.getAccountOid()));
+                LoggingUtils.logException(LOGGER, getString("pageContentAccounts.message.cantImportAccount", dto.getAccountName()), ex);
+            }
         }
 
         result.computeStatus();
         showResult(result);
+
         target.add(getFeedbackPanel());
         target.add(getTable());
     }
@@ -494,20 +503,35 @@ public class PageContentAccounts extends PageAdminResources {
         setResponsePage(PageAccount.class, parameters);
     }
 
-    private void removeOwnerPerformed(AjaxRequestTarget target) {
-        List<AccountContentDto> selected = WebMiscUtil.getSelectedData(getTable());
-        target.add(getFeedbackPanel());
-        if (selected.isEmpty()) {
-            warn(getString("pageContentAccounts.message.noAccountSelected"));
+    private List<AccountContentDto> isAnythingSelected(AjaxRequestTarget target, AccountContentDto dto) {
+        List<AccountContentDto> accounts;
+        if (dto != null) {
+            accounts = new ArrayList<AccountContentDto>();
+            accounts.add(dto);
+        } else {
+            accounts = WebMiscUtil.getSelectedData(getTable());
+            if (accounts.isEmpty()) {
+                warn(getString("pageContentAccounts.message.noAccountSelected"));
+                target.add(getFeedbackPanel());
+            }
+        }
+
+        return accounts;
+    }
+
+    private void removeOwnerPerformed(AjaxRequestTarget target, AccountContentDto row) {
+        List<AccountContentDto> accounts = isAnythingSelected(target, row);
+        if (accounts.isEmpty()) {
             return;
         }
 
-        for (AccountContentDto dto : selected) {
+        for (AccountContentDto dto : accounts) {
             reloadOwnerChangeModel(dto.getAccountOid(), dto.getOwnerOid());
             ownerChangePerformed(target, null);
         }
 
         target.add(getTable());
+        target.add(getFeedbackPanel());
     }
 
     private void ownerChangePerformed(AjaxRequestTarget target, UserType user) {
@@ -544,9 +568,5 @@ public class PageContentAccounts extends PageAdminResources {
 
         showResult(result);
         target.add(getFeedbackPanel());
-    }
-
-    private void importAccount(AjaxRequestTarget target, Object row) {
-
     }
 }
