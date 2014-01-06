@@ -17,10 +17,12 @@
 package com.evolveum.midpoint.prism.query;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.Item;
@@ -29,27 +31,29 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class RefFilter extends PropertyValueFilter<PrismReferenceValue>{
 	
-	RefFilter(ItemPath path, PrismReferenceDefinition definition, String matchingRule, List<PrismReferenceValue> values) {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	RefFilter(ItemPath path, PrismReferenceDefinition definition, QName matchingRule, List<PrismReferenceValue> values) {
 		super(path, definition, matchingRule, values);
 	}
 		
-	RefFilter(ItemPath path, PrismReferenceDefinition definition, PrismReferenceValue value) {
-		super(path, definition, value);
-	}
+//	RefFilter(ItemPath path, PrismReferenceDefinition definition, PrismReferenceValue value) {
+//		super(path, definition, value);
+//	}
 	
 	RefFilter(ItemPath path, PrismReferenceDefinition definition, Element expression) {
 		super(path, definition, expression);
@@ -59,54 +63,83 @@ public class RefFilter extends PropertyValueFilter<PrismReferenceValue>{
 	public static RefFilter createReferenceEqual(ItemPath path, PrismReference item){
 		return new RefFilter(path, item.getDefinition(), null, item.getValues());
 	}
+		
+	public static RefFilter createReferenceEqual(ItemPath path, PrismReferenceDefinition definition, PrismReferenceValue... values){
+		if (values == null){
+			createNullRefFilter(path, definition);
+		}		
+		return new RefFilter(path, definition, null, Arrays.asList(values));
+	}
 	
 	public static RefFilter createReferenceEqual(ItemPath path, PrismReference item, Element expression){
 		return new RefFilter(path, item.getDefinition(), expression);
-	}
-	
-	public static RefFilter createReferenceEqual(ItemPath path, PrismReferenceDefinition definition, List<PrismReferenceValue> values){
-		return new RefFilter(path, definition, null, values);
 	}
 	
 	public static RefFilter createReferenceEqual(ItemPath path, PrismReferenceDefinition definition, Element expression){
 		return new RefFilter(path, definition, expression);
 	}
 	
-	public static RefFilter createReferenceEqual(ItemPath path, PrismReferenceDefinition definition, PrismReferenceValue value){
-		return new RefFilter(path, definition, value);
-	}
+//	public static RefFilter createReferenceEqual(ItemPath path, PrismReferenceDefinition definition, PrismReferenceValue value){
+//		List<PrismReferenceValue> values = new ArrayList<PrismReferenceValue>();
+//		values.add(value);
+//		return new RefFilter(path, definition, null, values);
+//	}
 	
-	public static RefFilter createReferenceEqual(ItemPath path, PrismReferenceDefinition item, String oid) {
-		PrismReferenceValue value = new PrismReferenceValue(oid);
-		return createReferenceEqual(path, item, value);
-	}
-
-	public static RefFilter createReferenceEqual(Class type, QName propertyName, PrismContext prismContext,
-			String oid) throws SchemaException {
-		PrismObjectDefinition objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
-		return createReferenceEqual(new ItemPath(propertyName), objDef,oid);
-
-	}
-
-	public static RefFilter createReferenceEqual(ItemPath path, PrismContainerDefinition containerDef,
-			String realValue) throws SchemaException {
-		ItemDefinition itemDef = containerDef.findItemDefinition(path);
-		if (itemDef == null) {
-			throw new SchemaException("No definition for item " + path + " in container definition "
-					+ containerDef);
+	public static RefFilter createReferenceEqual(ItemPath path, PrismReferenceDefinition referenceDefinition, String... oids) {
+		Validate.notNull(referenceDefinition, "Reference definition must not be null.");
+		Validate.notNull(path, "Path must not be null.");
+		if (oids == null){
+			createNullRefFilter(path, referenceDefinition);
 		}
+		
+		List<PrismReferenceValue> refValues = new ArrayList<PrismReferenceValue>(oids.length);
+		for (String oid : oids){
+			refValues.add(new PrismReferenceValue(oid));
+		}
+		
+	
+		return new RefFilter(path, referenceDefinition, null, refValues);
+	}
+
+	public static <O extends Objectable> RefFilter createReferenceEqual(QName propertyName, Class<O> type, PrismContext prismContext,
+			String... oids) throws SchemaException {
+		ItemPath path = new ItemPath(propertyName);
+		PrismReferenceDefinition refDefinition = (PrismReferenceDefinition) findItemDefinition(path, type, prismContext);
+		return createReferenceEqual(path, refDefinition, oids);
+
+	}
+
+	public static RefFilter createReferenceEqual(ItemPath path, PrismContainerDefinition containerDef, String... oids) {
+		ItemDefinition itemDef = findItemDefinition(path, containerDef);
 		
 		if (!(itemDef instanceof PrismReferenceDefinition)){
-			throw new SchemaException("Bad item definition. Expected that the definition will be instance of prism refenrence definition, but found " + itemDef);					
+			throw new IllegalStateException("Bad item definition. Expected that the definition will be instance of prism refenrence definition, but found " + itemDef);					
 		}
 		
-		return createReferenceEqual(path, (PrismReferenceDefinition) itemDef, realValue);
+		return createReferenceEqual(path, (PrismReferenceDefinition) itemDef, oids);
 	}
 	
-	public static RefFilter createReferenceEqual(Class type, QName propertyName, PrismObject<? extends Objectable> targetObject) throws SchemaException {
-		PrismObjectDefinition objDef = targetObject.getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
-		return createReferenceEqual(new ItemPath(propertyName), objDef, targetObject.getOid());
+	public  static <O extends Objectable> RefFilter createReferenceEqual(QName propertyName, Class type, O targetObject) {
+		return createReferenceEqual(propertyName, type, targetObject.asPrismObject());
+	}
+	
+	public static <O extends Objectable> RefFilter createReferenceEqual(QName propertyName, Class type, PrismObject<O> targetObject) {
+		Validate.notNull(targetObject, "Target object must not be null");
 
+		ItemPath path = new ItemPath(propertyName);
+		
+		ItemDefinition itemDef = findItemDefinition(path, type, targetObject.getPrismContext());
+		
+		if (!(itemDef instanceof PrismReferenceDefinition)){
+			throw new IllegalStateException("Bad item definition. Expected that the definition will be instance of prism refenrence definition, but found " + itemDef);					
+		}
+		
+		return createReferenceEqual(new ItemPath(propertyName), (PrismReferenceDefinition) itemDef, targetObject.getOid());
+
+	}
+	
+	private static RefFilter createNullRefFilter(ItemPath path, PrismReferenceDefinition refDef){
+		return new RefFilter(path, refDef, null, null);
 	}
 
 	@Override
@@ -216,6 +249,24 @@ public class RefFilter extends PropertyValueFilter<PrismReferenceValue>{
 		return item.match(filterItem);
 		
 //		return super.match(object, matchingRuleRegistry);
+	}
+
+	@Override
+	public QName getName() {
+		// TODO Auto-generated method stub
+		return getDefinition().getName();
+	}
+
+	@Override
+	public PrismContext getPrismContext() {
+		// TODO Auto-generated method stub
+		return getDefinition().getPrismContext();
+	}
+
+	@Override
+	public ItemPath getPath() {
+		// TODO Auto-generated method stub
+		return getFullPath();
 	}
 
 

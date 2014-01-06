@@ -451,8 +451,8 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
                      
         // Simple query
-        ObjectFilter filter = EqualsFilter.createEqual(UserType.class, prismContext, 
-        		new ItemPath(UserType.F_EXTENSION, propName), propValue);
+        ObjectFilter filter = EqualsFilter.createEqual(new ItemPath(UserType.F_EXTENSION, propName), UserType.class, prismContext, 
+        		propValue);
         ObjectQuery query = new ObjectQuery();
 		query.setFilter(filter);
 		// WHEN, THEN
@@ -460,8 +460,8 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		
 		// Complex query, combine with a name. This results in join down in the database
 		filter = AndFilter.createAnd(
-				EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_NAME, USER_DEGHOULASH_NAME),
-				EqualsFilter.createEqual(UserType.class, prismContext, new ItemPath(UserType.F_EXTENSION, propName), propValue)
+				EqualsFilter.createEqual(UserType.F_NAME, UserType.class, prismContext, null, USER_DEGHOULASH_NAME),
+				EqualsFilter.createEqual(new ItemPath(UserType.F_EXTENSION, propName), UserType.class, prismContext, propValue)
 			);
 		query.setFilter(filter);
 		// WHEN, THEN

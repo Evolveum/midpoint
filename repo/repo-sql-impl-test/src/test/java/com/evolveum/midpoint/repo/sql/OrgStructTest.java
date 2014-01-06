@@ -178,7 +178,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
 //		QueryType query = QueryUtil.createNameQuery(ELAINE_NAME);
         ObjectQuery query = new ObjectQuery();
         PrismObjectDefinition<UserType> userObjectDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-        query.setFilter(EqualsFilter.createEqual(userObjectDef.findPropertyDefinition(UserType.F_NAME), ELAINE_NAME));
+        query.setFilter(EqualsFilter.createEqual(UserType.F_NAME, userObjectDef.findPropertyDefinition(UserType.F_NAME), null, ELAINE_NAME));
 
         List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, opResult);
 
@@ -313,7 +313,7 @@ public class OrgStructTest extends BaseSQLRepoTest {
         
         ObjectQuery query = new ObjectQuery();
         PrismObjectDefinition<UserType> userObjectDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
-        query.setFilter(EqualsFilter.createEqual(userObjectDef.findPropertyDefinition(UserType.F_NAME), ELAINE_NAME1));
+        query.setFilter(EqualsFilter.createEqual(UserType.F_NAME, userObjectDef.findPropertyDefinition(UserType.F_NAME), null, ELAINE_NAME1));
 
         List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, opResult);
 

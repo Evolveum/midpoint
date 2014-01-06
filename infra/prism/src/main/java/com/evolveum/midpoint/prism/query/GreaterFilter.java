@@ -49,27 +49,43 @@ public class GreaterFilter<T> extends ComparativeFilter<T>{
 		super(parentPath, definition, value, equals);
 	}
 	
-	public static <T, O extends Objectable> GreaterFilter createGreaterFilter(ItemPath parentPath, PrismPropertyDefinition definition, PrismPropertyValue<T> value, boolean equals){
+	public static <T, O extends Objectable> GreaterFilter createGreater(ItemPath parentPath, PrismPropertyDefinition definition, PrismPropertyValue<T> value, boolean equals){
 		return new GreaterFilter(parentPath, definition, value, equals);
 	}
 	
-	public static <T, O extends Objectable> GreaterFilter createGreaterFilter(ItemPath parentPath, PrismObjectDefinition<O> containerDef,
+	public static <T, O extends Objectable> GreaterFilter createGreater(ItemPath parentPath, PrismObjectDefinition<O> containerDef,
 			PrismPropertyValue<T> value, boolean equals) throws SchemaException {
-		return (GreaterFilter) createComparativeFilter(GreaterFilter.class, parentPath, containerDef, value, equals);
+		PrismPropertyDefinition def = (PrismPropertyDefinition) findItemDefinition(parentPath, containerDef);
+		return createGreater(parentPath, def, value, equals);
 	}
 
-	public static <T> GreaterFilter createGreaterFilter(ItemPath parentPath, PrismPropertyDefinition item, T realValue, boolean equals) throws SchemaException{
-		return (GreaterFilter) createComparativeFilter(GreaterFilter.class, parentPath, item, realValue, equals);
+	public static <T> GreaterFilter createGreater(ItemPath parentPath, PrismPropertyDefinition itemDefinition, T realValue, boolean equals) throws SchemaException{
+		PrismPropertyValue<T> value = createPropertyValue(itemDefinition, realValue);
+		
+		if (value == null){
+			// create null filter
+		}
+		
+		return createGreater(parentPath, itemDefinition, value, equals);
 	}
 
-	public static <T, O extends Objectable> GreaterFilter createGreaterFilter(ItemPath parentPath, PrismObjectDefinition<O> containerDef,
+	public static <T, O extends Objectable> GreaterFilter createGreater(ItemPath parentPath, PrismObjectDefinition<O> containerDef,
 			T realValue, boolean equals) throws SchemaException {
-		return (GreaterFilter) createComparativeFilter(GreaterFilter.class, parentPath, containerDef, realValue, equals);
+		PrismPropertyDefinition def = (PrismPropertyDefinition) findItemDefinition(parentPath, containerDef);
+		return createGreater(parentPath, def, realValue, equals);
 	}
 
-	public static <T, O extends Objectable> GreaterFilter createGreaterFilter(Class<O> type, PrismContext prismContext, QName propertyName, T realValue, boolean equals)
+	public static <T, O extends Objectable> GreaterFilter createGreater(QName propertyName, Class<O> type, PrismContext prismContext, T realValue, boolean equals)
 			throws SchemaException {
-		return (GreaterFilter) createComparativeFilter(GreaterFilter.class, type, prismContext, propertyName, realValue, equals);
+		return createGreater(new ItemPath(propertyName), type, prismContext, realValue, equals);
+	}
+	
+	public static <T, O extends Objectable> GreaterFilter createGreater(ItemPath path, Class<O> type, PrismContext prismContext, T realValue, boolean equals)
+			throws SchemaException {
+	
+		PrismPropertyDefinition def = (PrismPropertyDefinition) findItemDefinition(path, type, prismContext);
+		
+		return createGreater(path, def, realValue, equals);
 	}
 	
 	@Override
@@ -131,6 +147,24 @@ public class GreaterFilter<T> extends ComparativeFilter<T>{
 	public PrismPropertyDefinition getDefinition() {
 		// TODO Auto-generated method stub
 		return (PrismPropertyDefinition) super.getDefinition();
+	}
+
+	@Override
+	public QName getName() {
+		// TODO Auto-generated method stub
+		return getDefinition().getName();
+	}
+
+	@Override
+	public PrismContext getPrismContext() {
+		// TODO Auto-generated method stub
+		return getDefinition().getPrismContext();
+	}
+
+	@Override
+	public ItemPath getPath() {
+		// TODO Auto-generated method stub
+		return getFullPath();
 	}
 
 }

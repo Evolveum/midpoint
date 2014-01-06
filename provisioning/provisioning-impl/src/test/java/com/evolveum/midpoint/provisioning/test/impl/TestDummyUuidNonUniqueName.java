@@ -197,12 +197,11 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
 				+ ".searchFettucini");
 		
 		ObjectFilter filter = AndFilter.createAnd(
-					RefFilter.createReferenceEqual(ShadowType.class, ShadowType.F_RESOURCE_REF, 
-							prismContext, resource.getOid()), 
-					EqualsFilter.createEqual(ShadowType.class, prismContext, ShadowType.F_OBJECT_CLASS, 
+					RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, resource), 
+					EqualsFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, null,
 							new QName(dummyResourceCtl.getNamespace(), "AccountObjectClass")),
 					EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, getIcfNameDefinition().getName()), 
-							getIcfNameDefinition(), null, new PrismPropertyValue(ACCOUNT_FETTUCINI_NAME)));
+							getIcfNameDefinition(), new PrismPropertyValue(ACCOUNT_FETTUCINI_NAME)));
 		ObjectQuery query = new ObjectQuery();
 		query.setFilter(filter);
 		// WHEN

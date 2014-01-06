@@ -22,9 +22,13 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
@@ -39,7 +43,7 @@ public abstract class ValueFilter<T extends PrismValue> extends ObjectFilter {
 	private static final long serialVersionUID = 1L;
 	private ItemPath fullPath;
 	private ItemDefinition definition;
-	private String matchingRule;
+	private QName matchingRule;
 	
 	public ValueFilter() {
 		// TODO Auto-generated constructor stub
@@ -50,13 +54,13 @@ public abstract class ValueFilter<T extends PrismValue> extends ObjectFilter {
 		this.definition = definition;
 	}
 	
-	public ValueFilter(ItemPath parentPath, ItemDefinition definition, String matchingRule){
+	public ValueFilter(ItemPath parentPath, ItemDefinition definition, QName matchingRule){
 		this.fullPath = parentPath;
 		this.definition = definition;
 		this.matchingRule = matchingRule;
 	}
 	
-	public ValueFilter(ItemPath parentPath, ItemDefinition definition, String matchingRule, Element expression){
+	public ValueFilter(ItemPath parentPath, ItemDefinition definition, QName matchingRule, Element expression){
 		super(expression);
 		this.fullPath = parentPath;
 		this.definition = definition;
@@ -85,11 +89,11 @@ public abstract class ValueFilter<T extends PrismValue> extends ObjectFilter {
 		this.fullPath = path;
 	}
 	
-	public String getMatchingRule() {
+	public QName getMatchingRule() {
 		return matchingRule;
 	}
 	
-	public void setMatchingRule(String matchingRule) {
+	public void setMatchingRule(QName matchingRule) {
 		this.matchingRule = matchingRule;
 	}
 	
@@ -107,14 +111,14 @@ public abstract class ValueFilter<T extends PrismValue> extends ObjectFilter {
 	}
 	
 	public MatchingRule getMatchingRuleFromRegistry(MatchingRuleRegistry matchingRuleRegistry, Item filterItem){
-		QName matchingRule = null;
-		if (StringUtils.isNotBlank(getMatchingRule())){
-			matchingRule = new QName(PrismConstants.NS_MATCHING_RULE, getMatchingRule());
-		} 
+//		QName matchingRule = null;
+//		if (StringUtils.isNotBlank(getMatchingRule())){
+//			matchingRule = new QName(PrismConstants.NS_MATCHING_RULE, getMatchingRule());
+//		} 
 //		Item filterItem = getFilterItem();
 		MatchingRule matching = null;
 		try{
-		matching = matchingRuleRegistry.getMatchingRule( matchingRule, filterItem.getDefinition().getTypeName());
+		matching = matchingRuleRegistry.getMatchingRule(matchingRule, filterItem.getDefinition().getTypeName());
 		} catch (SchemaException ex){
 			throw new IllegalArgumentException(ex.getMessage(), ex);
 		}
@@ -122,6 +126,29 @@ public abstract class ValueFilter<T extends PrismValue> extends ObjectFilter {
 		return matching;
 
 	}
+	
+	static ItemDefinition findItemDefinition(ItemPath parentPath, PrismContainerDefinition<? extends Containerable> containerDef) {
+		ItemDefinition itemDef = containerDef.findItemDefinition(parentPath);
+		if (itemDef == null) {
+			throw new IllegalStateException("No definition for item " + parentPath + " in container definition "
+					+ containerDef);
+		}
+
+		return itemDef;
+	}
+	
+	static ItemDefinition findItemDefinition(ItemPath parentPath, Class type, PrismContext prismContext){
+		PrismObjectDefinition<?> objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
+		return findItemDefinition(parentPath, objDef);
+//		ItemDefinition itemDef = objDef.findItemDefinition(parentPath);
+//		if (itemDef == null) {
+//			throw new IllegalStateException("No definition for item " + parentPath + " in container definition "
+//					+ objDef);
+//		}
+//
+//		return itemDef;
+	}
+
 	
 	protected void cloneValues(ValueFilter clone) {
 		super.cloneValues(clone);

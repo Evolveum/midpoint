@@ -55,31 +55,44 @@ public abstract class ComparativeFilter<T extends Object> extends PropertyValueF
 		this.equals = equals;
 	}
 	
-	
-	public static <F extends PropertyValueFilter, T> ComparativeFilter createComparativeFilter(Class<F> filterClass, ItemPath parentPath, PrismPropertyDefinition item, T realValue, boolean equals) throws SchemaException {
-		ComparativeFilter comparativeFilter = (ComparativeFilter) createPropertyFilter(filterClass, parentPath, item, null, realValue);
-		comparativeFilter.setEquals(equals);
-		return comparativeFilter;
+	static <T> PrismPropertyValue<T> createPropertyValue(PrismPropertyDefinition itemDefinition, T realValue){
+		List<PrismPropertyValue<T>> values = createPropertyList(itemDefinition, realValue);
+		if (values == null || values.isEmpty()){
+			return null;
+		}
+		
+		if (values.size() > 1 ){
+			throw new UnsupportedOperationException("Greater filter with more than one value is not supported");
+		}
+		
+		return values.iterator().next();
+		
 	}
 	
-	public static <F extends PropertyValueFilter, O extends Objectable, T> ComparativeFilter createComparativeFilter(Class<F> filterClass, ItemPath parentPath, PrismObjectDefinition<O> containerDef,
-			PrismPropertyValue<T> value, boolean equals) throws SchemaException {
-		ComparativeFilter comparativeFilter = (ComparativeFilter) createPropertyFilter(filterClass, parentPath, containerDef, value);
-		comparativeFilter.setEquals(equals);
-		return comparativeFilter;
-	}
-	
-	public static <F extends PropertyValueFilter, O extends Objectable, T> ComparativeFilter createComparativeFilter(Class<F> filterClass, ItemPath parentPath, PrismObjectDefinition<O> containerDef,
-			T realValue, boolean equals) throws SchemaException {
-		ComparativeFilter comparativeFilter = (ComparativeFilter) createPropertyFilter(filterClass, parentPath, containerDef, realValue);
-		comparativeFilter.setEquals(equals);
-		return comparativeFilter;
-	}
-
-	public static <F extends PropertyValueFilter, O extends Objectable, T> ComparativeFilter createComparativeFilter(Class<F> filterClass, Class<O> type, PrismContext prismContext, QName propertyName, T realValue, boolean equals)
-			throws SchemaException {
-		ComparativeFilter comparativeFilter = (ComparativeFilter) createPropertyFilter(filterClass, type, prismContext, propertyName, realValue);
-		comparativeFilter.setEquals(equals);
-		return comparativeFilter;
-	}
+//	public static <F extends PropertyValueFilter, T> ComparativeFilter createComparativeFilter(Class<F> filterClass, ItemPath parentPath, PrismPropertyDefinition item, T realValue, boolean equals) throws SchemaException {
+//		ComparativeFilter comparativeFilter = (ComparativeFilter) createPropertyFilter(filterClass, parentPath, item, null, realValue);
+//		comparativeFilter.setEquals(equals);
+//		return comparativeFilter;
+//	}
+//	
+//	public static <F extends PropertyValueFilter, O extends Objectable, T> ComparativeFilter createComparativeFilter(Class<F> filterClass, ItemPath parentPath, PrismObjectDefinition<O> containerDef,
+//			PrismPropertyValue<T> value, boolean equals) throws SchemaException {
+//		ComparativeFilter comparativeFilter = (ComparativeFilter) createPropertyFilter(filterClass, parentPath, containerDef, value);
+//		comparativeFilter.setEquals(equals);
+//		return comparativeFilter;
+//	}
+//	
+//	public static <F extends PropertyValueFilter, O extends Objectable, T> ComparativeFilter createComparativeFilter(Class<F> filterClass, ItemPath parentPath, PrismObjectDefinition<O> containerDef,
+//			T realValue, boolean equals) throws SchemaException {
+//		ComparativeFilter comparativeFilter = (ComparativeFilter) createPropertyFilter(filterClass, parentPath, containerDef, realValue);
+//		comparativeFilter.setEquals(equals);
+//		return comparativeFilter;
+//	}
+//
+//	public static <F extends PropertyValueFilter, O extends Objectable, T> ComparativeFilter createComparativeFilter(Class<F> filterClass, Class<O> type, PrismContext prismContext, QName propertyName, T realValue, boolean equals)
+//			throws SchemaException {
+//		ComparativeFilter comparativeFilter = (ComparativeFilter) createPropertyFilter(filterClass, type, prismContext, propertyName, realValue);
+//		comparativeFilter.setEquals(equals);
+//		return comparativeFilter;
+//	}
 }

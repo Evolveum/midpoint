@@ -181,15 +181,15 @@ public class ShadowConstraintsChecker {
 		}
 
 		OrFilter isNotDead = OrFilter.createOr(
-				EqualsFilter.createEqual(ShadowType.class, prismContext, ShadowType.F_DEAD, false),
-				EqualsFilter.createEqual(ShadowType.class, prismContext, ShadowType.F_DEAD, null));
+				EqualsFilter.createEqual(ShadowType.F_DEAD, ShadowType.class, prismContext, null, false),
+				EqualsFilter.createEqual(ShadowType.F_DEAD, ShadowType.class, prismContext, null));
 		//TODO: set matching rule instead of null
 		PrismPropertyDefinition identifierDef = identifier.getDefinition();
 		ObjectQuery query = ObjectQuery.createObjectQuery(
 				AndFilter.createAnd(
-						RefFilter.createReferenceEqual(ShadowType.class, ShadowType.F_RESOURCE_REF, prismContext, resourceType.getOid()),
-						EqualsFilter.createEqual(ShadowType.class, prismContext, ShadowType.F_OBJECT_CLASS, accountDefinition.getTypeName()),
-						EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, identifierDef.getName()), identifierDef, identifierValues),
+						RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, resourceType),
+						EqualsFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, null, accountDefinition.getTypeName()),
+						EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, identifierDef.getName()), identifier),
 						isNotDead));
 		
 		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());

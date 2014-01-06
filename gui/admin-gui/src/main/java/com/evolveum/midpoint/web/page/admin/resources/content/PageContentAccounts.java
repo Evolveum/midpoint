@@ -428,7 +428,7 @@ public class PageContentAccounts extends PageAdminResources {
 //                XPathHolder attributes = new XPathHolder(Arrays.asList(new XPathSegment(SchemaConstants.I_ATTRIBUTES)));
                 //TODO set matching rule instead fo null
                 for (ResourceAttributeDefinition attrDef : identifiers) {
-                    conditions.add(EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), attrDef, null, dto.getSearchText()));
+                    conditions.add(EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), attrDef, dto.getSearchText()));
                 }
             }
 

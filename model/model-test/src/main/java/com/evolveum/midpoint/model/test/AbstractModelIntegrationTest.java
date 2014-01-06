@@ -790,10 +790,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         Collection<? extends ResourceAttributeDefinition> identifierDefs = rAccount.getIdentifiers();
         assert identifierDefs.size() == 1 : "Unexpected identifier set in "+resource+" refined schema: "+identifierDefs;
         ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();
-        EqualsFilter ocFilter = EqualsFilter.createEqual(ShadowType.class, prismContext, ShadowType.F_OBJECT_CLASS, 
+        EqualsFilter ocFilter = EqualsFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, null, 
         		rAccount.getObjectClassDefinition().getTypeName());
-        RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.class, 
-        		ShadowType.F_RESOURCE_REF, resource);
+        RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, resource);
         AndFilter filter = AndFilter.createAnd(ocFilter, resourceRefFilter);
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
         

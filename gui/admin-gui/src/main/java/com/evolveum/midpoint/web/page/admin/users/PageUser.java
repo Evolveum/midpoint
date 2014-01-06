@@ -826,9 +826,9 @@ public class PageUser extends PageAdminUsers {
             oid = "non-existent";      // TODO !!!!!!!!!!!!!!!!!!!!
         }
         try {
-            filters.add(RefFilter.createReferenceEqual(TaskType.class, TaskType.F_OBJECT_REF, getPrismContext(), oid));
-            filters.add(NotFilter.createNot(EqualsFilter.createEqual(TaskType.class, getPrismContext(), TaskType.F_EXECUTION_STATUS, TaskExecutionStatusType.CLOSED)));
-            filters.add(EqualsFilter.createEqual(TaskType.class, getPrismContext(), TaskType.F_PARENT, null));
+            filters.add(RefFilter.createReferenceEqual(TaskType.F_OBJECT_REF, TaskType.class, getPrismContext(), oid));
+            filters.add(NotFilter.createNot(EqualsFilter.createEqual(TaskType.F_EXECUTION_STATUS, TaskType.class, getPrismContext(), null, TaskExecutionStatusType.CLOSED)));
+            filters.add(EqualsFilter.createEqual(TaskType.F_PARENT, TaskType.class, getPrismContext(), null));
         } catch (SchemaException e) {
             throw new SystemException("Unexpected SchemaException when creating task filter", e);
         }

@@ -33,6 +33,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -941,12 +942,12 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
     }
 
     private List<PrismObject<UserType>> findUserInRepoUnchecked(String name, OperationResult result) throws SchemaException {
-        ObjectQuery q = ObjectQuery.createObjectQuery(EqualsFilter.createPolyStringOrigEqual(UserType.class, prismContext, UserType.F_NAME, new PolyStringType(name)));
+        ObjectQuery q = ObjectQuery.createObjectQuery(EqualsFilter.createEqual(UserType.F_NAME, UserType.class, prismContext, PolyStringOrigMatchingRule.NAME, new PolyString(name)));
         return repositoryService.searchObjects(UserType.class, q, null, result);
     }
 
     private List<PrismObject<RoleType>> findRoleInRepoUnchecked(String name, OperationResult result) throws SchemaException {
-        ObjectQuery q = ObjectQuery.createObjectQuery(EqualsFilter.createPolyStringOrigEqual(UserType.class, prismContext, RoleType.F_NAME, new PolyStringType(name)));
+        ObjectQuery q = ObjectQuery.createObjectQuery(EqualsFilter.createEqual(RoleType.F_NAME, UserType.class, prismContext, PolyStringOrigMatchingRule.NAME, new PolyString(name)));
         return repositoryService.searchObjects(RoleType.class, q, null, result);
     }
 

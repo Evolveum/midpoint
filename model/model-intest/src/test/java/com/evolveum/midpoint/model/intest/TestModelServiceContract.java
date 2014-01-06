@@ -163,7 +163,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // opendj is not started, so we do not want to list it (it returns partial_error)
         ObjectQuery query = ObjectQuery.createObjectQuery(
                 new NotFilter(
-                        EqualsFilter.createEqual(ResourceType.class, prismContext, ResourceType.F_NAME, new PolyString(RESOURCE_OPENDJ_NAME), PolyStringOrigMatchingRule.NAME.getLocalPart())));
+                        EqualsFilter.createEqual(ResourceType.F_NAME, ResourceType.class, prismContext, PolyStringOrigMatchingRule.NAME, new PolyString(RESOURCE_OPENDJ_NAME))));
         List<PrismObject<ResourceType>> resources = modelService.searchObjects(ResourceType.class, query, null, task, result);
 
 		// THEN
@@ -194,7 +194,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         // opendj is not started, so we do not want to list it (it returns partial_error)
         ObjectQuery query = ObjectQuery.createObjectQuery(
                 new NotFilter(
-                        EqualsFilter.createEqual(ResourceType.class, prismContext, ResourceType.F_NAME, new PolyString(RESOURCE_OPENDJ_NAME), PolyStringOrigMatchingRule.NAME.getLocalPart())));
+                        EqualsFilter.createEqual(ResourceType.F_NAME, ResourceType.class, prismContext, PolyStringOrigMatchingRule.NAME, new PolyString(RESOURCE_OPENDJ_NAME))));
         
 
         final List<PrismObject<ResourceType>> resources = new ArrayList<PrismObject<ResourceType>>();

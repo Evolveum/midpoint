@@ -452,10 +452,10 @@ public class ReconciliationTaskHandler implements TaskHandler {
 		LOGGER.trace("Shadow reconciliation starting for {}, {} -> {}", new Object[]{resource, startTimestamp, endTimestamp});
 		OperationResult opResult = result.createSubresult(OperationConstants.RECONCILIATION+".shadowReconciliation");
 		
-		LessFilter timestampFilter = LessFilter.createLessFilter(ShadowType.class, prismContext, 
-				ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP, XmlTypeConverter.createXMLGregorianCalendar(startTimestamp) , true);
-		ObjectFilter filter = AndFilter.createAnd(timestampFilter, RefFilter.createReferenceEqual(ShadowType.class,
-				ShadowType.F_RESOURCE_REF, prismContext, resource.getOid()));
+		LessFilter timestampFilter = LessFilter.createLess(ShadowType.F_FULL_SYNCHRONIZATION_TIMESTAMP, ShadowType.class, prismContext, 
+				XmlTypeConverter.createXMLGregorianCalendar(startTimestamp) , true);
+		ObjectFilter filter = AndFilter.createAnd(timestampFilter, RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class,
+				prismContext, resource.getOid()));
 		
 		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 		if (LOGGER.isTraceEnabled()) {
@@ -559,8 +559,8 @@ public class ReconciliationTaskHandler implements TaskHandler {
 
 
 		NotFilter notNull = NotFilter.createNot(createFailedOpFilter(null));
-		AndFilter andFilter = AndFilter.createAnd(notNull, RefFilter.createReferenceEqual(ShadowType.class,
-				ShadowType.F_RESOURCE_REF, prismContext, resourceOid));
+		AndFilter andFilter = AndFilter.createAnd(notNull, RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class,
+				prismContext, resourceOid));
 		ObjectQuery query = ObjectQuery.createObjectQuery(andFilter);
 
 		List<PrismObject<ShadowType>> shadows = repositoryService.searchObjects(
@@ -606,7 +606,7 @@ public class ReconciliationTaskHandler implements TaskHandler {
 	}
 
 	private ObjectFilter createFailedOpFilter(FailedOperationTypeType failedOp) throws SchemaException{
-		return EqualsFilter.createEqual(ShadowType.class, prismContext, ShadowType.F_FAILED_OPERATION_TYPE, failedOp);
+		return EqualsFilter.createEqual(ShadowType.F_FAILED_OPERATION_TYPE, ShadowType.class, prismContext, null, failedOp);
 	}
 	
 	private ObjectQuery createAccountSearchQuery(PrismObject<ResourceType> resource,

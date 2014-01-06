@@ -139,21 +139,21 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 		XMLGregorianCalendar thisScanTimestamp = handler.getThisScanTimestamp();
 		if (lastScanTimestamp == null) {
 			filter = OrFilter.createOr(
-						LessFilter.createLessFilter(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM), focusObjectDef, 
+						LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM), focusObjectDef, 
 								thisScanTimestamp, true),
-						LessFilter.createLessFilter(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), focusObjectDef, 
+						LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), focusObjectDef, 
 								thisScanTimestamp, true));
 		} else {
 			filter = OrFilter.createOr(
 						AndFilter.createAnd(
-							GreaterFilter.createGreaterFilter(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM), focusObjectDef, 
+							GreaterFilter.createGreater(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM), focusObjectDef, 
 									lastScanTimestamp, false),
-							LessFilter.createLessFilter(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM), focusObjectDef, 
+							LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM), focusObjectDef, 
 									thisScanTimestamp, true)),
 						AndFilter.createAnd(
-							GreaterFilter.createGreaterFilter(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), focusObjectDef, 
+							GreaterFilter.createGreater(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), focusObjectDef, 
 									lastScanTimestamp, false),
-							LessFilter.createLessFilter(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), focusObjectDef, 
+							LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), focusObjectDef, 
 									thisScanTimestamp, true)));			
 		}
 		

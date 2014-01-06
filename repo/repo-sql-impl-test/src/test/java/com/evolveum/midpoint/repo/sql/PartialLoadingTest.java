@@ -51,8 +51,8 @@ public class PartialLoadingTest extends BaseSQLRepoTest {
 
     @Test
     public void searchUserNullOptions() throws Exception {
-        ObjectFilter filter = SubstringFilter.createSubstring(UserType.class, prismContext,
-                UserType.F_NAME, PolyStringOrigMatchingRule.NAME.getLocalPart(), "jhenry");
+        ObjectFilter filter = SubstringFilter.createSubstring(UserType.F_NAME, UserType.class, prismContext,
+                PolyStringOrigMatchingRule.NAME, "jhenry");
 
         Collection<SelectorOptions<GetOperationOptions>> options = null;
 
@@ -71,8 +71,8 @@ public class PartialLoadingTest extends BaseSQLRepoTest {
 
     @Test
     public void searchUser() throws Exception {
-        ObjectFilter filter = SubstringFilter.createSubstring(UserType.class, prismContext,
-                UserType.F_NAME, PolyStringOrigMatchingRule.NAME.getLocalPart(), "jhenry");
+        ObjectFilter filter = SubstringFilter.createSubstring(UserType.F_NAME, UserType.class, prismContext,
+                PolyStringOrigMatchingRule.NAME, "jhenry");
 
         Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<SelectorOptions<GetOperationOptions>>();
         options.add(SelectorOptions.create(ItemPath.EMPTY_PATH,
@@ -93,8 +93,8 @@ public class PartialLoadingTest extends BaseSQLRepoTest {
 
     @Test
     public void searchUserDefaultPath() throws Exception {
-        ObjectFilter filter = SubstringFilter.createSubstring(UserType.class, prismContext,
-                UserType.F_NAME, PolyStringOrigMatchingRule.NAME.getLocalPart(), "jhenry");
+        ObjectFilter filter = SubstringFilter.createSubstring(UserType.F_NAME, UserType.class, prismContext,
+                PolyStringOrigMatchingRule.NAME, "jhenry");
 
         Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<SelectorOptions<GetOperationOptions>>();
         options.add(SelectorOptions.create(ItemPath.EMPTY_PATH,
@@ -115,8 +115,8 @@ public class PartialLoadingTest extends BaseSQLRepoTest {
 
     @Test
     public void searchUserWithLinkRefs() throws Exception {
-        ObjectFilter filter = SubstringFilter.createSubstring(UserType.class, prismContext,
-                UserType.F_NAME, PolyStringOrigMatchingRule.NAME.getLocalPart(), "jhenry");
+        ObjectFilter filter = SubstringFilter.createSubstring(UserType.F_NAME, UserType.class, prismContext,
+                PolyStringOrigMatchingRule.NAME, "jhenry");
 
         Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<SelectorOptions<GetOperationOptions>>();
         options.add(SelectorOptions.create(UserType.F_LINK_REF,
@@ -138,8 +138,8 @@ public class PartialLoadingTest extends BaseSQLRepoTest {
 
     @Test
     public void searchUserResult() throws Exception {
-        ObjectFilter filter = SubstringFilter.createSubstring(UserType.class, prismContext,
-                UserType.F_NAME, PolyStringOrigMatchingRule.NAME.getLocalPart(), "jhenry");
+        ObjectFilter filter = SubstringFilter.createSubstring(UserType.F_NAME, UserType.class, prismContext,
+                PolyStringOrigMatchingRule.NAME, "jhenry");
 
         Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<SelectorOptions<GetOperationOptions>>();
         options.add(SelectorOptions.create(UserType.F_RESULT,
@@ -160,8 +160,8 @@ public class PartialLoadingTest extends BaseSQLRepoTest {
 
     @Test
     public void searchUserMetadata() throws Exception {
-        ObjectFilter filter = SubstringFilter.createSubstring(UserType.class, prismContext,
-                UserType.F_NAME, PolyStringOrigMatchingRule.NAME.getLocalPart(), "jhenry");
+        ObjectFilter filter = SubstringFilter.createSubstring(UserType.F_NAME, UserType.class, prismContext,
+                PolyStringOrigMatchingRule.NAME, "jhenry");
 
         Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<SelectorOptions<GetOperationOptions>>();
         options.add(SelectorOptions.create(UserType.F_METADATA,
@@ -182,8 +182,8 @@ public class PartialLoadingTest extends BaseSQLRepoTest {
 
     @Test
     public void searchUserMetadataAndResult() throws Exception {
-        ObjectFilter filter = SubstringFilter.createSubstring(UserType.class, prismContext,
-                UserType.F_NAME, PolyStringOrigMatchingRule.NAME.getLocalPart(), "jhenry");
+        ObjectFilter filter = SubstringFilter.createSubstring(UserType.F_NAME, UserType.class, prismContext,
+                PolyStringOrigMatchingRule.NAME, "jhenry");
 
         Collection<SelectorOptions<GetOperationOptions>> options = new ArrayList<SelectorOptions<GetOperationOptions>>();
         options.add(SelectorOptions.create(UserType.F_RESULT,

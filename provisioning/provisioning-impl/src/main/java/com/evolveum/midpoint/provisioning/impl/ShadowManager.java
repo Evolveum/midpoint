@@ -222,7 +222,7 @@ public class ShadowManager {
 		LOGGER.trace("Shadow secondary identifier {}", secondaryIdentifier);
 		
 		AndFilter filter = AndFilter.createAnd(
-				RefFilter.createReferenceEqual(ShadowType.class, ShadowType.F_RESOURCE_REF, prismContext, resource.getOid()), 
+				RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, resource), 
 				EqualsFilter.createEqual(secondaryIdentifier.getPath(), secondaryIdentifier.getDefinition(),
 				getNormalizedValue(secondaryIdentifier, rObjClassDef)));
 		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
@@ -434,8 +434,7 @@ public class ShadowManager {
 			throw new SchemaException("Identifier not specifier. Cannot create search query by identifier.");
 		}
 		
-		RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.class, 
-				ShadowType.F_RESOURCE_REF, resource.asPrismObject());
+		RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, resource);
 		conditions.add(resourceRefFilter);
 
 		ObjectFilter filter = null;
@@ -481,7 +480,7 @@ public class ShadowManager {
 			// TODO TODO TODO TODO: set matching rule instead of null
 			PrismPropertyDefinition def = identifier.getDefinition();
 			filter = AndFilter.createAnd(
-					RefFilter.createReferenceEqual(ShadowType.class,ShadowType.F_RESOURCE_REF, prismContext, resource.getOid()), 
+					RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, resource), 
 					EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, def.getName()), def, getNormalizedValue(identifier, rObjClassDef)));
 		} catch (SchemaException e) {
 			// LOGGER.error("Schema error while creating search filter: {}",

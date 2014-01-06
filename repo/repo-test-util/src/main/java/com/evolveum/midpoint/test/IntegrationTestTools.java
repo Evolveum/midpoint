@@ -470,15 +470,15 @@ public class IntegrationTestTools {
 	}
 	
 	public static ObjectQuery createAllShadowsQuery(ResourceType resourceType, PrismContext prismContext) throws SchemaException {
-		RefFilter equal = RefFilter.createReferenceEqual(ShadowType.class, ShadowType.F_RESOURCE_REF, prismContext, resourceType.getOid());
+		RefFilter equal = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, prismContext, resourceType.getOid());
 		ObjectQuery query = ObjectQuery.createObjectQuery(equal);
 		return query;
 	}
 	
 	public static ObjectQuery createAllShadowsQuery(ResourceType resourceType, QName objectClass, PrismContext prismContext) throws SchemaException {
 		AndFilter and = AndFilter.createAnd(
-				RefFilter.createReferenceEqual(ShadowType.class, ShadowType.F_RESOURCE_REF, prismContext, resourceType.getOid()),
-				EqualsFilter.createEqual(ShadowType.class, prismContext, ShadowType.F_OBJECT_CLASS, objectClass));
+				RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, prismContext, resourceType.getOid()),
+				EqualsFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, null, objectClass));
 		ObjectQuery query = ObjectQuery.createObjectQuery(and);
 		return query;
 	}
@@ -604,7 +604,7 @@ public class IntegrationTestTools {
 		PrismPropertyDefinition identifierDef = identifier.getDefinition();
 		PrismReferenceDefinition itemDef = resourceShadow.asPrismObject().getDefinition().findReferenceDefinition(ShadowType.F_RESOURCE_REF);
 		filter = AndFilter.createAnd(
-					RefFilter.createReferenceEqual(ShadowType.class, ShadowType.F_RESOURCE_REF, prismContext, ShadowUtil.getResourceOid(resourceShadow)),
+					RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, prismContext, ShadowUtil.getResourceOid(resourceShadow)),
 					EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, identifierDef.getName()), identifierDef, new PrismPropertyValue(uidValue)));
 			
 		ObjectQuery query = ObjectQuery.createObjectQuery(filter);

@@ -257,21 +257,21 @@ public class UserBrowserDialog extends ModalWindow {
 			String normalizedString = normalizer.normalize(dto.getSearchText());
 
 			if (dto.isName()) {
-				filters.add(SubstringFilter.createSubstring(UserType.class, prismContext, UserType.F_NAME,
+				filters.add(SubstringFilter.createSubstring(UserType.F_NAME, UserType.class, prismContext, 
 						normalizedString));
 			}
 
 			if (dto.isFamilyName()) {
-				filters.add(SubstringFilter.createSubstring(UserType.class, prismContext,
-						UserType.F_FAMILY_NAME, normalizedString));
+				filters.add(SubstringFilter.createSubstring(UserType.F_FAMILY_NAME, UserType.class, prismContext,
+						normalizedString));
 			}
 			if (dto.isFullName()) {
-				filters.add(SubstringFilter.createSubstring(UserType.class, prismContext,
-						UserType.F_FULL_NAME, normalizedString));
+				filters.add(SubstringFilter.createSubstring(UserType.F_FULL_NAME, UserType.class, prismContext,
+						normalizedString));
 			}
 			if (dto.isGivenName()) {
-				filters.add(SubstringFilter.createSubstring(UserType.class, prismContext,
-						UserType.F_GIVEN_NAME, normalizedString));
+				filters.add(SubstringFilter.createSubstring(UserType.F_GIVEN_NAME, UserType.class, prismContext,
+						normalizedString));
 			}
 
 			if (!filters.isEmpty()) {

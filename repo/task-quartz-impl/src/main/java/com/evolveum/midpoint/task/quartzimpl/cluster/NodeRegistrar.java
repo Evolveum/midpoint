@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.TaskManagerInitializationException;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerConfiguration;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
@@ -359,8 +360,8 @@ public class NodeRegistrar {
 
     private List<PrismObject<NodeType>> findNodesWithGivenName(OperationResult result, PolyStringType name) throws SchemaException {
 
-//        QueryType q = QueryUtil.createNameQuery(name);
-    	ObjectQuery q = ObjectQuery.createObjectQuery(EqualsFilter.createEqual(NodeType.class, getPrismContext(), NodeType.F_NAME, name));
+        ObjectQuery q = ObjectQueryUtil.createNameQuery(name, getPrismContext());
+//    	ObjectQuery q = ObjectQuery.createObjectQuery(EqualsFilter.createEqual(NodeType.F_NAME, NodeType.class, getPrismContext(), null, name));
         return getRepositoryService().searchObjects(NodeType.class, q, null, result);
     }
 

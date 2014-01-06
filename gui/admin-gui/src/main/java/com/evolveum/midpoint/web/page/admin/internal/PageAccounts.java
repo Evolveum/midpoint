@@ -271,8 +271,8 @@ public class PageAccounts extends PageAdmin {
                 Task task = createSimpleTask(OPERATION_GET_TOTALS);
                 OperationResult result = new OperationResult(OPERATION_GET_TOTALS);
                 try {
-                    EqualsFilter situationFilter = EqualsFilter.createEqual(ShadowType.class,
-                            getPrismContext(), ShadowType.F_SYNCHRONIZATION_SITUATION, situation);
+                    EqualsFilter situationFilter = EqualsFilter.createEqual(ShadowType.F_SYNCHRONIZATION_SITUATION, ShadowType.class,
+                            getPrismContext(), null, situation);
 
                     AndFilter andFilter = AndFilter.createAnd(resourceFilter, situationFilter);
                     ObjectQuery query = ObjectQuery.createObjectQuery(andFilter);
@@ -388,8 +388,8 @@ public class PageAccounts extends PageAdmin {
         OperationResult result = new OperationResult(OPERATION_LOAD_ACCOUNTS);
         String oid = dto.getOid();
         try {
-            RefFilter resourceRef = RefFilter.createReferenceEqual(ShadowType.class,
-                    ShadowType.F_RESOURCE_REF, getPrismContext(), oid);
+            RefFilter resourceRef = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class,
+                    getPrismContext(), oid);
 
             PrismObject<ResourceType> resource = getModelService().getObject(ResourceType.class, oid, null,
                     createSimpleTask(OPERATION_LOAD_ACCOUNTS), result);
@@ -407,8 +407,8 @@ public class PageAccounts extends PageAdmin {
                 return null;
             }
 
-            EqualsFilter objectClass = EqualsFilter.createEqual(ShadowType.class, getPrismContext(),
-                    ShadowType.F_OBJECT_CLASS, qname);
+            EqualsFilter objectClass = EqualsFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, getPrismContext(),
+                    null, qname);
 
             return AndFilter.createAnd(resourceRef, objectClass);
         } catch (Exception ex) {

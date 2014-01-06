@@ -28,6 +28,7 @@ import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.test.util.TestUtil;
@@ -110,8 +111,9 @@ public class ImportRefTest extends AbstractTestNGSpringContextTests {
 		display("Result after good import", result);
 		TestUtil.assertSuccessOrWarning("Import has failed (result)", result, 2);
 
-		EqualsFilter equal = EqualsFilter.createEqual(UserType.class, PrismTestUtil.getPrismContext(), UserType.F_NAME, "jack");
-		ObjectQuery query = ObjectQuery.createObjectQuery(equal);
+//		EqualsFilter equal = EqualsFilter.createEqual(UserType.F_NAME, UserType.class, PrismTestUtil.getPrismContext(), null, "jack");
+//		ObjectQuery query = ObjectQuery.createObjectQuery(equal);
+		ObjectQuery query = ObjectQueryUtil.createNameQuery("jack", PrismTestUtil.getPrismContext());
 
 		List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
 

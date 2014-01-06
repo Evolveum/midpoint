@@ -2,8 +2,13 @@ package com.evolveum.midpoint.common.crypto;
 
 import java.io.IOException;
 
+import org.apache.xml.security.encryption.EncryptedData;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
+import org.w3._2000._09.xmldsig.KeyInfoType;
+import org.w3._2001._04.xmlenc.CipherDataType;
+import org.w3._2001._04.xmlenc.EncryptedDataType;
+import org.w3._2001._04.xmlenc.EncryptionMethodType;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.common.CommonTestConstants;
@@ -59,6 +64,27 @@ public class TestProtector {
 	  Protector protector128 = createProtector(prismContext, null);
 	  protector128.decrypt(encrypted);
 	  
+	  EncryptedDataType encryptedData = new EncryptedDataType();
+	  CipherDataType cipherData = new CipherDataType();
+	  byte[] cipherValue = new byte[]{-58,-49,-36,72,1,-5,60,58,-42,10,94,10,-46,111,83,-123,56,85,-107,54,46,103,-48,-83,108,-81,-8,-15,-88,75,-56,-80,-3,-95,-127,-55,16,-108,72,40,107,62,-25,-112,-105,-31,-20,55};
+	  cipherData.setCipherValue(cipherValue);
+	  encryptedData.setCipherData(cipherData);
+	  EncryptionMethodType method = new EncryptionMethodType();
+	  method.setAlgorithm("http://www.w3.org/2001/04/xmlenc#aes256-cbc");
+//	  method.
+	  encryptedData.setEncryptionMethod(method);
+	  KeyInfoType key = new KeyInfoType();
+//	  
+//	  ((AESProteCctor)protector128).
+//	  
+//	  key.setId(value);
+//	  encryptedData.setKeyInfo()
+	  
+	  ProtectedStringType manualy = new ProtectedStringType();
+	  manualy.setEncryptedData(encryptedData);
+	  
+//	  String aaa = protector128.decryptString(manualy);
+//	  System.out.println("aaa");
 	  
   }
 }

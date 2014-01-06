@@ -450,8 +450,8 @@ public class PageDebugList extends PageAdminConfiguration {
                 PolyStringNormalizer normalizer = getPrismContext().getDefaultPolyStringNormalizer();
                 String normalizedString = normalizer.normalize(nameText);
 
-                ObjectFilter substring = SubstringFilter.createSubstring(ObjectType.class, getPrismContext(),
-                        ObjectType.F_NAME, PolyStringNormMatchingRule.NAME.getLocalPart(), normalizedString);
+                ObjectFilter substring = SubstringFilter.createSubstring(ObjectType.F_NAME, ObjectType.class, getPrismContext(),
+                        PolyStringNormMatchingRule.NAME, normalizedString);
                 ObjectQuery query = new ObjectQuery();
                 query.setFilter(substring);
                 provider.setQuery(query);

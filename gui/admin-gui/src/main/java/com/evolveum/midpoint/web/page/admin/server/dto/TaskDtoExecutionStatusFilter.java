@@ -47,13 +47,17 @@ public enum TaskDtoExecutionStatusFilter {
     public ObjectFilter createFilter(Class clazz, PrismContext prismContext) throws SchemaException {
         switch(this) {
             case ALL: return null;
-            case RUNNING_OR_RUNNABLE: return EqualsFilter.createEqual(clazz, prismContext, TaskType.F_EXECUTION_STATUS, TaskExecutionStatusType.RUNNABLE);
-            case WAITING: return EqualsFilter.createEqual(clazz, prismContext, TaskType.F_EXECUTION_STATUS, TaskExecutionStatusType.WAITING);
-            case SUSPENDED: return EqualsFilter.createEqual(clazz, prismContext, TaskType.F_EXECUTION_STATUS, TaskExecutionStatusType.SUSPENDED);
-            case CLOSED: return EqualsFilter.createEqual(clazz, prismContext, TaskType.F_EXECUTION_STATUS, TaskExecutionStatusType.CLOSED);
-            case NOT_CLOSED: return NotFilter.createNot(EqualsFilter.createEqual(clazz, prismContext, TaskType.F_EXECUTION_STATUS, TaskExecutionStatusType.CLOSED));
+            case RUNNING_OR_RUNNABLE: return createExecutionStatusFilter(clazz, prismContext, TaskExecutionStatusType.RUNNABLE);
+            case WAITING: return createExecutionStatusFilter(clazz, prismContext, TaskExecutionStatusType.WAITING);
+            case SUSPENDED: return createExecutionStatusFilter(clazz, prismContext, TaskExecutionStatusType.SUSPENDED);
+            case CLOSED: return createExecutionStatusFilter(clazz, prismContext, TaskExecutionStatusType.CLOSED);
+            case NOT_CLOSED: return NotFilter.createNot(createExecutionStatusFilter(clazz, prismContext, TaskExecutionStatusType.CLOSED));
             default: throw new SystemException("Unknown value for TaskDtoExecutionStatusFilter: " + this);
         }
+    }
+    
+    private EqualsFilter createExecutionStatusFilter(Class clazz, PrismContext prismContext, TaskExecutionStatusType value){
+    	return EqualsFilter.createEqual(TaskType.F_EXECUTION_STATUS, clazz, prismContext, null, value);
     }
 
 
