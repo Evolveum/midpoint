@@ -200,7 +200,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		Task task = taskManager.createTaskInstance(GET_REPORT_OUTPUT);
         OperationResult result = task.getResult();
         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
-        ObjectFilter filter = RefFilter.createReferenceEqual(ReportOutputType.class, ReportOutputType.F_REPORT_REF, prismContext, reportOid);
+        ObjectFilter filter = RefFilter.createReferenceEqual(ReportOutputType.F_REPORT_REF, ReportOutputType.class, prismContext, reportOid);
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 		List<PrismObject<ReportOutputType>> reportOutputList = modelService.searchObjects(ReportOutputType.class, query, options, task, result);
 		result.computeStatus();
