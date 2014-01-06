@@ -261,7 +261,7 @@ public class SubstringFilter<T> extends PropertyValueFilter<PrismPropertyValue<T
 	}
 
 	@Override
-	public QName getName() {
+	public QName getElementName() {
 		// TODO Auto-generated method stub
 		return getDefinition().getName();
 	}

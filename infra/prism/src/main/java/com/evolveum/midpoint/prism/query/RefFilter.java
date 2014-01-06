@@ -252,7 +252,7 @@ public class RefFilter extends PropertyValueFilter<PrismReferenceValue>{
 	}
 
 	@Override
-	public QName getName() {
+	public QName getElementName() {
 		// TODO Auto-generated method stub
 		return getDefinition().getName();
 	}

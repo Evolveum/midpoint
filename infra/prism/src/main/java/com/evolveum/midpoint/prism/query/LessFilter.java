@@ -157,7 +157,7 @@ public class LessFilter<T> extends ComparativeFilter<T>{
 	}
 
 	@Override
-	public QName getName() {
+	public QName getElementName() {
 		// TODO Auto-generated method stub
 		return getDefinition().getName();
 	}
