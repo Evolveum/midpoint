@@ -16,10 +16,10 @@
 package com.evolveum.midpoint.common.expression.script.xpath;
 
 import com.evolveum.midpoint.common.expression.ExpressionSyntaxException;
+import com.evolveum.midpoint.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.common.expression.script.ScriptEvaluator;
-import com.evolveum.midpoint.common.expression.script.ScriptVariables;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -47,6 +47,7 @@ import org.w3c.dom.NodeList;
 
 import javax.xml.namespace.QName;
 import javax.xml.xpath.*;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -69,7 +70,7 @@ public class XPathScriptEvaluator implements ScriptEvaluator {
 
     @Override
 	public <T> List<PrismPropertyValue<T>> evaluate(ScriptExpressionEvaluatorType expressionType,
-			ScriptVariables variables, ItemDefinition outputDefinition, ScriptExpressionReturnTypeType suggestedReturnType, 
+			ExpressionVariables variables, ItemDefinition outputDefinition, ScriptExpressionReturnTypeType suggestedReturnType, 
 			ObjectResolver objectResolver, Collection<FunctionLibrary> functions,
 			String contextDescription, OperationResult result) throws ExpressionEvaluationException,
 			ObjectNotFoundException, ExpressionSyntaxException {
@@ -134,7 +135,7 @@ public class XPathScriptEvaluator implements ScriptEvaluator {
     	}
 	}
 
-	private Object evaluate(QName returnType, Element code, ScriptVariables variables, ObjectResolver objectResolver,
+	private Object evaluate(QName returnType, Element code, ExpressionVariables variables, ObjectResolver objectResolver,
 			Collection<FunctionLibrary> functions, 
     		String contextDescription, OperationResult result)
             throws ExpressionEvaluationException, ObjectNotFoundException, ExpressionSyntaxException {

@@ -18,6 +18,7 @@ package com.evolveum.midpoint.common.expression.script;
 import com.evolveum.midpoint.common.crypto.AESProtector;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.common.expression.script.jsr223.Jsr223ScriptEvaluator;
@@ -154,7 +155,7 @@ public class TestScriptCaching {
     	
     	ScriptExpression scriptExpression = scriptExpressionfactory.createScriptExpression(scriptType, outputDefinition, desc);
 
-        ScriptVariables variables = ScriptVariables.create(
+        ExpressionVariables variables = ExpressionVariables.create(
 				new QName(NS_WHATEVER, "foo"), "FOO",
 				new QName(NS_WHATEVER, "bar"), "BAR"
 		);

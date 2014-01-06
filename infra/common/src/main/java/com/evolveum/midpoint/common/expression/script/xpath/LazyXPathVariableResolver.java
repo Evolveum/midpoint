@@ -27,7 +27,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.evolveum.midpoint.common.expression.ExpressionSyntaxException;
-import com.evolveum.midpoint.common.expression.script.ScriptVariables;
+import com.evolveum.midpoint.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Itemable;
 import com.evolveum.midpoint.prism.Objectable;
@@ -61,7 +61,7 @@ public class LazyXPathVariableResolver implements XPathVariableResolver {
 
 	private static final QName FAKE_VARIABLE_QNAME = new QName(SchemaConstants.NS_C, "fakeVar");
 	
-    private ScriptVariables variables;
+    private ExpressionVariables variables;
     private ObjectResolver objectResolver;
     private String contextDescription;
     private OperationResult result;
@@ -69,7 +69,7 @@ public class LazyXPathVariableResolver implements XPathVariableResolver {
     
     private static final Trace LOGGER = TraceManager.getTrace(LazyXPathVariableResolver.class);
 
-    public LazyXPathVariableResolver(ScriptVariables variables, ObjectResolver objectResolver, 
+    public LazyXPathVariableResolver(ExpressionVariables variables, ObjectResolver objectResolver, 
     		String contextDescription, PrismContext prismContext, OperationResult result) {
     	this.variables = variables;
     	this.objectResolver = objectResolver;

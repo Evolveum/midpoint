@@ -37,10 +37,10 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.expression.ExpressionSyntaxException;
 import com.evolveum.midpoint.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.common.expression.script.ScriptEvaluator;
-import com.evolveum.midpoint.common.expression.script.ScriptVariables;
 import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -97,7 +97,7 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 	
 	@Override
 	public <T> List<PrismPropertyValue<T>> evaluate(ScriptExpressionEvaluatorType expressionType,
-			ScriptVariables variables, ItemDefinition outputDefinition, ScriptExpressionReturnTypeType suggestedReturnType, 
+			ExpressionVariables variables, ItemDefinition outputDefinition, ScriptExpressionReturnTypeType suggestedReturnType, 
 			ObjectResolver objectResolver, Collection<FunctionLibrary> functions,
 			String contextDescription, OperationResult result) throws ExpressionEvaluationException,
 			ObjectNotFoundException, ExpressionSyntaxException {
@@ -202,7 +202,7 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
 		return false;
 	}
 	
-	private Bindings convertToBindings(ScriptVariables variables, ObjectResolver objectResolver, 
+	private Bindings convertToBindings(ExpressionVariables variables, ObjectResolver objectResolver, 
 			Collection<FunctionLibrary> functions,
 			String contextDescription, OperationResult result) throws ExpressionSyntaxException, ObjectNotFoundException {
 		Bindings bindings = scriptEngine.createBindings();

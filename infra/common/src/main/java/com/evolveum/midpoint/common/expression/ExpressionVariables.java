@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.common.expression.script;
+package com.evolveum.midpoint.common.expression;
 
-import com.evolveum.midpoint.common.expression.ItemDeltaItem;
-import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
@@ -30,17 +28,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
+
 import java.util.*;
 import java.util.Map.Entry;
 
 /**
  * @author Radovan Semancik
  */
-public class ScriptVariables {
+public class ExpressionVariables {
 
     private Map<QName, Object> variables = new HashMap<QName, Object>();
 
-    private static final Trace LOGGER = TraceManager.getTrace(ScriptVariables.class);
+    private static final Trace LOGGER = TraceManager.getTrace(ExpressionVariables.class);
 
     /**
      * Adds map of extra variables to the expression.
@@ -155,14 +154,18 @@ public class ScriptVariables {
      * 
      * Mostly for testing. Use at your own risk.
      */
-    public static ScriptVariables create(Object... parameters) {
-    	ScriptVariables vars = new ScriptVariables();
+    public static ExpressionVariables create(Object... parameters) {
+    	ExpressionVariables vars = new ExpressionVariables();
     	for (int i = 0; i < parameters.length; i += 2) {
     		vars.addVariableDefinition((QName)parameters[i], parameters[i+1]);
     	}
     	return vars;
     }
 
+    public Map<QName, Object> getMap() {
+    	return variables;
+    }
+    
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -179,7 +182,7 @@ public class ScriptVariables {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		ScriptVariables other = (ScriptVariables) obj;
+		ExpressionVariables other = (ExpressionVariables) obj;
 		if (variables == null) {
 			if (other.variables != null)
 				return false;
@@ -190,7 +193,7 @@ public class ScriptVariables {
 
 	@Override
 	public String toString() {
-		return "ScriptVariables(" + variables + ")";
+		return "variables(" + variables + ")";
 	}
     
 }

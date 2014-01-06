@@ -27,8 +27,8 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.expression.ItemDeltaItem;
+import com.evolveum.midpoint.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.common.expression.script.ScriptExpression;
-import com.evolveum.midpoint.common.expression.script.ScriptVariables;
 import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
@@ -516,7 +516,7 @@ public class LensUtil {
 	}
 
     public static <V extends PrismValue, F extends ObjectType> void evaluateScript(
-            ScriptExpression scriptExpression, LensContext<F> lensContext, ScriptVariables variables, String shortDesc, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+            ScriptExpression scriptExpression, LensContext<F> lensContext, ExpressionVariables variables, String shortDesc, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         ModelExpressionThreadLocalHolder.pushLensContext(lensContext);
         ModelExpressionThreadLocalHolder.pushCurrentResult(parentResult);
         ModelExpressionThreadLocalHolder.pushCurrentTask(task);
