@@ -916,6 +916,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 				conditionOutput, "condition in "+getMappingContextDescription(), result);
 		ExpressionEvaluationContext params = new ExpressionEvaluationContext(sources, variables, "condition in "+getMappingContextDescription(), result);
 		params.setStringPolicyResolver(stringPolicyResolver);
+		params.setExpressionFactory(expressionFactory);
 		params.setDefaultSource(defaultSource);
 		conditionOutputTriple = expression.evaluate(params);
 	}
@@ -933,6 +934,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		params.setSkipEvaluationMinus(!conditionResultOld);
 		params.setSkipEvaluationPlus(!conditionResultNew);
 		params.setStringPolicyResolver(stringPolicyResolver);
+		params.setExpressionFactory(expressionFactory);
 		outputTriple = expression.evaluate(params);
 		
 		if (outputTriple == null) {

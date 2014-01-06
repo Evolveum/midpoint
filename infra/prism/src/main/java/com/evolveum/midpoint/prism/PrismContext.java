@@ -182,6 +182,11 @@ public class PrismContext {
 		prismContainerValue.revive(this);
 		getSchemaRegistry().applyDefinition(prismContainerValue, type, path, false);
 	}
+	
+	public <C extends Containerable, O extends Objectable> void adopt(PrismContainerValue<C> prismContainerValue, QName typeName, ItemPath path) throws SchemaException {
+		prismContainerValue.revive(this);
+		getSchemaRegistry().applyDefinition(prismContainerValue, typeName, path, false);
+	}
 
     /**
      * Method used to marshal objects to xml in debug messages.

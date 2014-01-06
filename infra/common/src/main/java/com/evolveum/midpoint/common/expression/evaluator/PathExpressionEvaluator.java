@@ -99,20 +99,8 @@ public class PathExpressionEvaluator<V extends PrismValue> implements Expression
 			resolveContext = source;
 		}
 		        
-        Map<QName, Object> variablesAndSources = new HashMap<QName, Object>();
-        
-        if (params.getVariables() != null) {
-	        for (Entry<QName, Object> entry: params.getVariables().entrySet()) {
-	        	variablesAndSources.put(entry.getKey(), entry.getValue());
-	        }
-        }
-	        
-        if (params.getSources() != null) {
-	        for (Source<?> source: params.getSources()) {
-	        	variablesAndSources.put(source.getName(), source);
-	        }
-        }
-        
+        Map<QName, Object> variablesAndSources = ExpressionUtil.compileVariablesAndSources(params);
+
         ItemPath resolvePath = path;
         ItemPathSegment first = path.first();
         if (first instanceof NameItemPathSegment && ((NameItemPathSegment)first).isVariable()) {
