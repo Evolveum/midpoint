@@ -23,7 +23,7 @@
 	<!-- NOTE: no parent. We want this to be completely stand-alone. -->
 	<version>2.3-SNAPSHOT</version>
 	<properties>
-		<project.source.version>1.6</project.source.version>
+		<project.source.version>1.7</project.source.version>
 	</properties>
 	<organization>
 		<name>Evolveum</name>

@@ -87,6 +87,7 @@ import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import com.evolveum.midpoint.report.ReportCreateTaskHandler;
 import com.evolveum.midpoint.report.ReportManager;
+
 /**
  * @author garbika
  */
@@ -145,9 +146,6 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	@Autowired
 	private PrismContext prismContext;
 
-	//@Autowired
-	//protected TaskManager taskManager;
-
 	@Autowired
 	private ModelService modelService;
 	
@@ -181,7 +179,6 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		
 		// Users
 		userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, UserType.class, initResult);
-		importUsers(10);
 	}
 	
 	protected Task createTask(String operationName) {
@@ -211,11 +208,11 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		return reportOutputList;
 	}
 
-	private void importUsers(int count) throws Exception {
+	private void importUsers(int from, int to) throws Exception {
 		Task task = taskManager.createTaskInstance(IMPORT_USERS);
         OperationResult result = task.getResult();
         OperationResult subResult = null;
-		for (int i=1; i<=count; i++)
+		for (int i=from; i<=to; i++)
 		{
 			UserType user = new UserType();
 			prismContext.adopt(user);
@@ -233,7 +230,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		subResult = result.createSubresult("count users");
 		int countUsers = modelService.countObjects(UserType.class, null, options, task, subResult);
 		LOGGER.trace("count users {}: ", countUsers);
-		assertEquals("Unexpected number of count users", 11, countUsers);
+		assertEquals("Unexpected number of count users", to + 1, countUsers);
 		result.computeStatus();
 	}
 	
@@ -559,7 +556,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		// GIVEN
         Task task = createTask(RUN_REPORT);
 		OperationResult result = task.getResult();
-		
+		importUsers(1,10);
 		ReportType reportType = getReport(REPORT_OID_TEST).asObjectable();
 		
 		//WHEN 	
@@ -571,7 +568,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
         //OperationResult subresult = result.getLastSubresult();
         //TestUtil.assertInProgress("create report result", subresult);
         
-        waitForTaskFinish(task.getOid(), false, 40000);
+        waitForTaskFinish(task.getOid(), false);
         
      // Task result
         PrismObject<TaskType> reportTaskAfter = getTask(task.getOid());
@@ -598,17 +595,9 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
         String output = ReportUtils.getReportOutputFilePath(reportType);
         
         AssertJUnit.assertNotNull(reportOutputType);
-        assertEquals("Unexpected report reference", MiscSchemaUtil.createObjectReference(reportType.getOid(), ReportType.COMPLEX_TYPE), reportOutputType.getReportRef());
+        assertEquals("Unexpected report reference", MiscSchemaUtil.createObjectReference(reportType.getOid(), SchemaConstants.C_REPORT), reportOutputType.getReportRef());
         assertEquals("Unexpected report file path", output, reportOutputType.getReportFilePath());
-        /*        
-        Scanner scanner = new Scanner(new File(reportOutputType.getReportFilePath()));
-        LOGGER.trace("read report file {}", reportOutputType);
-        scanner.useDelimiter(",");
-        while(scanner.hasNext()){
-            LOGGER.trace(scanner.next()+"|");
-        }
-         scanner.close();
-        */  
+       
         BufferedReader br = null;  
         String line = "";  
         String splitBy = ",";  
@@ -677,7 +666,13 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	public void test006RunTask() throws Exception {
 		final String TEST_NAME = "test006RunTask";
         TestUtil.displayTestTile(this, TEST_NAME);
-       
+        boolean import10000 = false;
+        int countUsers = 11;
+        if (import10000){ 
+        	importUsers(11, 10000);
+        	countUsers = 10001;
+        }
+        	
         Task task = taskManager.createTaskInstance(RUN_TASK);
 		OperationResult result = task.getResult();
 		 
@@ -715,7 +710,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
         String output = ReportUtils.getReportOutputFilePath(report);
         
         AssertJUnit.assertNotNull(reportOutputType);
-        assertEquals("Unexpected report reference", MiscSchemaUtil.createObjectReference(reportType.getOid(), ReportType.COMPLEX_TYPE), reportOutputType.getReportRef());
+        assertEquals("Unexpected report reference", MiscSchemaUtil.createObjectReference(reportType.getOid(), SchemaConstants.C_REPORT), reportOutputType.getReportRef());
         assertEquals("Unexpected report file path", output, reportOutputType.getReportFilePath());
            
         BufferedReader br = null;  
@@ -735,7 +730,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
     				break;
         		case 3:  {
         			assertEquals("Unexpected third line of report", "Number of records:", lineDetails[4]);
-        			assertEquals("Unexpected number of records", 11, Integer.parseInt(lineDetails[5]));
+        			assertEquals("Unexpected number of records", countUsers, Integer.parseInt(lineDetails[5]));
         			}
     				break;
         		case 4: {
@@ -747,7 +742,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
     				break;
         		case 5:	LOGGER.trace("USERS [name= " + lineDetails[0] + " , first name=" + lineDetails[3] + " , last name=" + lineDetails[4] + " , activation=" + lineDetails[6] + "]");
         			break;
-        		case 6:
+        		/*case 6:
         		case 7:
         		case 8:
         		case 9:
@@ -758,20 +753,20 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
         		case 14:
         		case 15:
         			LOGGER.trace("USERS [name= " + lineDetails[0] + "]");
-        			break;
+        			break;*/
         		case 16: {
         			assertEquals("Unexpected text", "Page 1 of", lineDetails[7]);
         			assertEquals("Unexpected count pages", 1, Integer.parseInt(lineDetails[8].replace("\\s", "")));
         			}
         			break;
-        		default: LOGGER.trace("incorrect]");
+        		default: LOGGER.trace("USERS [name= " + lineDetails[0] + "]");//LOGGER.trace("incorrect]");
         			break;
         	}	
         }  
         if (br != null) br.close();  
         
         LOGGER.trace("Done with reading CSV");  
-        assertEquals("Unexpected number of users", 11, count-5);
+        assertEquals("Unexpected number of users", countUsers, count-4);
 	}
 
 

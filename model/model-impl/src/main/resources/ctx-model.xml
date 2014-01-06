@@ -80,15 +80,6 @@
         </property>
     </bean>
     
-    <bean id="midpointFunctionLibrary" class="com.evolveum.midpoint.common.expression.functions.FunctionLibrary"
-          scope="singleton">
-        <property name="variableName" value="midpoint"/>
-        <property name="namespace" value="http://midpoint.evolveum.com/xml/ns/public/function/midpoint-2"/>
-        <property name="genericFunctions">
-            <ref bean="midpointFunctionsImpl"/>
-        </property>
-    </bean>
-
     <bean id="xpathScriptEvaluator" class="com.evolveum.midpoint.common.expression.script.xpath.XPathScriptEvaluator"
           scope="singleton">
           <constructor-arg name="prismContext" ref="prismContext"/>
@@ -153,12 +144,20 @@
           <constructor-arg name="prismContext" ref="prismContext"/>
     </bean>
     
-    <bean id="asisExpressionEvaluatorFactory" class="com.evolveum.midpoint.common.expression.evaluator.AsIsExpressionEvaluatorFactory"
+    <bean id="asisExpressionEvaluatorFactory" 
+          class="com.evolveum.midpoint.common.expression.evaluator.AsIsExpressionEvaluatorFactory"
           scope="singleton">
           <constructor-arg name="prismContext" ref="prismContext"/>
           <constructor-arg name="protector" ref="protector"/>
     </bean>
 
+	<bean id="assignmentExpressionEvaluatorFactory" 
+	      class="com.evolveum.midpoint.common.expression.evaluator.AssignmentExpressionEvaluatorFactory"
+          scope="singleton">
+          <constructor-arg name="prismContext" ref="prismContext"/>
+          <constructor-arg name="protector" ref="protector"/>
+    </bean>
+    
     <bean id="expressionFactory" class="com.evolveum.midpoint.common.expression.ExpressionFactory" 
     		scope="singleton">
         <constructor-arg>
@@ -174,6 +173,7 @@
         		<ref bean="pathExpressionEvaluatorFactory"/>
         		<ref bean="literalExpressionEvaluatorFactory"/>
         		<ref bean="asisExpressionEvaluatorFactory"/>
+        		<ref bean="assignmentExpressionEvaluatorFactory"/>
         	</list>
         </constructor-arg>
         <property name="defaultEvaluatorFactory">
@@ -197,6 +197,15 @@
         </property>
         <property name="filterManager">
             <ref bean="filterManager"/>
+        </property>
+    </bean>
+    
+    <bean id="midpointFunctionLibrary" class="com.evolveum.midpoint.common.expression.functions.FunctionLibrary"
+          scope="singleton">
+        <property name="variableName" value="midpoint"/>
+        <property name="namespace" value="http://midpoint.evolveum.com/xml/ns/public/function/midpoint-2"/>
+        <property name="genericFunctions">
+            <ref bean="midpointFunctionsImpl"/>
         </property>
     </bean>
 

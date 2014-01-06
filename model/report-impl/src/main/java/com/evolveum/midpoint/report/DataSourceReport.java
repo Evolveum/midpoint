@@ -1,16 +1,14 @@
 package com.evolveum.midpoint.report;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
 
 import net.sf.jasperreports.engine.JRDataSource;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRField;
 
 import com.evolveum.midpoint.model.api.ModelService;
-import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
@@ -18,10 +16,11 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.QueryConvertor;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
@@ -85,15 +84,27 @@ public class DataSourceReport implements JRDataSource
 	   	return fieldsPair;
 	}
 
+	
 	private <T extends ObjectType> List<PrismObject<T>> searchReportObjects() throws Exception
 	{
-		List<PrismObject<T>> listReportObjects = null;
+		final List<PrismObject<T>> listReportObjects =  new ArrayList<PrismObject<T>>();;
 		try
 		{
 			Class<T> clazz = (Class<T>) ObjectTypes.getObjectTypeFromTypeQName(reportType.getObjectClass()).getClassDefinition();
 			ObjectQuery objectQuery = QueryConvertor.createObjectQuery(clazz, reportType.getQuery(), prismContext);
 			LOGGER.trace("Search report objects {}:", reportType);
-			listReportObjects = modelService.searchObjects(clazz, objectQuery, SelectorOptions.createCollection(GetOperationOptions.createRaw()), null, result);
+			
+			ResultHandler<T> objectHandler = new ResultHandler<T>() {
+	        @Override
+	        public boolean handle(PrismObject<T> object, OperationResult parentResult) {
+	                
+	        	listReportObjects .add(object);
+	                return true;
+	            }
+	        };
+
+	        //listReportObjects = modelService.searchObjects(clazz, objectQuery, SelectorOptions.createCollection(GetOperationOptions.createRaw()), null, result);
+	        modelService.searchObjectsIterative(clazz, objectQuery, objectHandler, SelectorOptions.createCollection(GetOperationOptions.createRaw()), null, result);
 			return listReportObjects;
 		}
 		catch (Exception ex) 
