@@ -231,7 +231,7 @@ public interface ModelService {
 	 * 			  Task instance. It gives context to the execution (e.g. security context)
 	 * @param parentResult parent OperationResult (in/out)
 	 */
-	<F extends FocusType> void recompute(Class<F> type, String oid, Task task, OperationResult parentResult)
+	<F extends ObjectType> void recompute(Class<F> type, String oid, Task task, OperationResult parentResult)
 			 throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException;
 	
 	/**

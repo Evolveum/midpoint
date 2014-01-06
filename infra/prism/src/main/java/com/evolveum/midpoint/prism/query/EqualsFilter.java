@@ -276,7 +276,7 @@ public class EqualsFilter<T extends Object> extends PropertyValueFilter<PrismPro
 	}
 
 	@Override
-	public QName getName() {
+	public QName getElementName() {
 		return getDefinition().getName();
 	}
 

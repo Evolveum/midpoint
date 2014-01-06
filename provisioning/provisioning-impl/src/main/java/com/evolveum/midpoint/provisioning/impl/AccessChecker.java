@@ -26,11 +26,9 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.common.refinery.PropertyLimitations;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
@@ -60,7 +58,7 @@ public class AccessChecker {
 		ResourceAttributeContainer attributeCont = ShadowUtil.getAttributesContainer(shadow);
 		
 		for (ResourceAttribute<?> attribute: attributeCont.getAttributes()) {
-			RefinedAttributeDefinition attrDef = objectClassDefinition.findAttributeDefinition(attribute.getName());
+			RefinedAttributeDefinition attrDef = objectClassDefinition.findAttributeDefinition(attribute.getElementName());
 			// Need to check model layer, not schema. Model means IDM logic which can be overridden in schemaHandling,
 			// schema layer is the original one. 
 			PropertyLimitations limitations = attrDef.getLimitations(LayerType.MODEL);
@@ -81,7 +79,7 @@ public class AccessChecker {
 				continue;
 			}
 			if (access.isCreate() == null || !access.isCreate()) {
-				String message = "Attempt to add shadow with non-createable attribute "+attribute.getName();
+				String message = "Attempt to add shadow with non-createable attribute "+attribute.getElementName();
 				LOGGER.error(message);
 				result.recordFatalError(message);
 				throw new SecurityViolationException(message);
@@ -104,7 +102,7 @@ public class AccessChecker {
 				// Not an attribute
 				continue;
 			}
-			QName attrName = attrDelta.getName();
+			QName attrName = attrDelta.getElementName();
 			RefinedAttributeDefinition attrDef = objectClassDefinition.findAttributeDefinition(attrName);
 			PropertyLimitations limitations = attrDef.getLimitations(LayerType.MODEL);
 			if (limitations == null) {
@@ -139,7 +137,7 @@ public class AccessChecker {
 		
 		
 		for (ResourceAttribute<?> attribute: attributeContainer.getAttributes()) {
-			QName attrName = attribute.getName();
+			QName attrName = attribute.getElementName();
 			RefinedAttributeDefinition attrDef = objectClassDefinition.findAttributeDefinition(attrName);
 			// Need to check model layer, not schema. Model means IDM logic which can be overridden in schemaHandling,
 			// schema layer is the original one. 

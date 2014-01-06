@@ -50,6 +50,7 @@ DETERMINISTIC
     DELETE FROM m_generic_object;
 	DELETE FROM m_trigger;
 	DELETE FROM m_report;
+	DELETE FROM m_report_output;
 	
     DELETE FROM m_org_closure;
     DELETE FROM m_org_incorrect;

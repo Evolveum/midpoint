@@ -403,6 +403,14 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		return parsedSchemas.get(namespace).getSchema();
 	}
 	
+	public Collection<PrismSchema> getSchemas() {
+		Collection<PrismSchema> schemas = new ArrayList<PrismSchema>();
+		for (Entry<String,SchemaDescription> entry: parsedSchemas.entrySet()) {
+			schemas.add(entry.getValue().getSchema());
+		}
+		return schemas;
+	}
+	
 	/**
 	 * Returns a schema that contains all the object definitions augmented with
 	 * extension definitions as appropriate. This is the method intended for common
@@ -741,7 +749,30 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		PrismContainerDefinition<C> containerDefinition = objectDefinition.findContainerDefinition(path);
 		prismContainerValue.applyDefinition(containerDefinition, force);
 	}
-		
+
+	public <C extends Containerable> void applyDefinition(PrismContainerValue<C> prismContainerValue, QName typeName, 
+			ItemPath path, boolean force) throws SchemaException {
+		PrismObjectDefinition objectDefinition = findObjectDefinitionByType(typeName);
+		if (objectDefinition != null) {
+			PrismContainerDefinition<C> containerDefinition = objectDefinition.findContainerDefinition(path);
+			prismContainerValue.applyDefinition(containerDefinition, force);
+			return;
+		}
+		PrismContainerDefinition typeDefinition = findContainerDefinitionByType(typeName);
+		if (typeDefinition != null) {
+			PrismContainerDefinition<C> containerDefinition = typeDefinition.findContainerDefinition(path);
+			prismContainerValue.applyDefinition(containerDefinition, force);
+			return;
+		}
+		ComplexTypeDefinition complexTypeDefinition = findComplexTypeDefinition(typeName);
+		if (complexTypeDefinition != null) {
+			PrismContainerDefinition<C> containerDefinition = complexTypeDefinition.findContainerDefinition(path);
+			prismContainerValue.applyDefinition(containerDefinition, force);
+			return;
+		}
+		throw new SchemaException("No definition for container "+path+" in type "+typeName);
+	}
+	
 	public <T extends Objectable> PrismObjectDefinition<T> findObjectDefinitionByType(QName typeName) {
 		PrismSchema schema = findSchemaByNamespace(typeName.getNamespaceURI());
 		if (schema == null) {
@@ -851,7 +882,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 	}
 
 	public static ItemDefinition createDefaultItemDefinition(QName itemName, PrismContext prismContext) {
-		PrismPropertyDefinition propDef = new PrismPropertyDefinition(itemName, itemName, DEFAULT_XSD_TYPE, prismContext);
+		PrismPropertyDefinition propDef = new PrismPropertyDefinition(itemName, DEFAULT_XSD_TYPE, prismContext);
 		// Set it to multi-value to be on the safe side
 		propDef.setMaxOccurs(-1);
 		propDef.setDynamic(true);
@@ -884,6 +915,5 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		}
 		return objDef.instantiate();
 	}
-
 
 }

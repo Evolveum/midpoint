@@ -62,8 +62,8 @@ public class PrismPropertyDefinition<T> extends ItemDefinition {
     private boolean update = true;
     private Boolean indexed = null;
 
-    public PrismPropertyDefinition(QName name, QName defaultName, QName typeName, PrismContext prismContext) {
-        super(name, defaultName, typeName, prismContext);
+    public PrismPropertyDefinition(QName elementName, QName typeName, PrismContext prismContext) {
+        super(elementName, typeName, prismContext);
     }
 
     /**
@@ -142,7 +142,7 @@ public class PrismPropertyDefinition<T> extends ItemDefinition {
 
 	@Override
     public PrismProperty<T> instantiate() {
-        return instantiate(getNameOrDefaultName());
+        return instantiate(getName());
     }
 
     @Override
@@ -157,7 +157,7 @@ public class PrismPropertyDefinition<T> extends ItemDefinition {
 
 	@Override
 	public PrismPropertyDefinition<T> clone() {
-        	PrismPropertyDefinition<T> clone = new PrismPropertyDefinition<T>(getName(), getDefaultName(), getTypeName(), getPrismContext());
+        	PrismPropertyDefinition<T> clone = new PrismPropertyDefinition<T>(getName(), getTypeName(), getPrismContext());
         	copyDefinitionData(clone);
         	return clone;
 	}
@@ -256,5 +256,8 @@ public class PrismPropertyDefinition<T> extends ItemDefinition {
         return "PPD";
     }
 
-
+    @Override
+    public String getDocClassName() {
+        return "property";
+    }
 }

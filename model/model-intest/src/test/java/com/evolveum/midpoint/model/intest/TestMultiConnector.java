@@ -200,7 +200,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
         OperationResult result = task.getResult();
         
 		// WHEN
-        importObjectFromFile(RESOURCE_DUMMY_FILENAME, result);
+        importObjectFromFile(RESOURCE_DUMMY_FILE, result);
 		
 		// THEN
         result.computeStatus();

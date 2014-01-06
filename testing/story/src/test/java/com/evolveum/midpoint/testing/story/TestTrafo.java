@@ -706,8 +706,8 @@ public class TestTrafo extends AbstractModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack);
 		assertAccounts(userJack, 2);
-		String accountAdOid = getAccountRef(userJack, RESOURCE_DUMMY_AD_OID);
-		String accountMailOid = getAccountRef(userJack, RESOURCE_DUMMY_MAIL_OID);
+		String accountAdOid = getLinkRef(userJack, RESOURCE_DUMMY_AD_OID);
+		String accountMailOid = getLinkRef(userJack, RESOURCE_DUMMY_MAIL_OID);
         
 		// AD ACCOUNT
 		
@@ -822,8 +822,8 @@ public class TestTrafo extends AbstractModelIntegrationTest {
 		display("User angelica after change execution", userAngelica);
 		assertUser(userAngelica, USER_ANGELICA_OID, USER_ANGELICA_USERNAME, "Jack Sparrow", "Jack", "Sparrow");
 		assertAccounts(userAngelica, 2);
-		String accountAdOid = getAccountRef(userAngelica, RESOURCE_DUMMY_AD_OID);
-		String accountMailOid = getAccountRef(userAngelica, RESOURCE_DUMMY_MAIL_OID);
+		String accountAdOid = getLinkRef(userAngelica, RESOURCE_DUMMY_AD_OID);
+		String accountMailOid = getLinkRef(userAngelica, RESOURCE_DUMMY_MAIL_OID);
         
 		// AD ACCOUNT
 		
@@ -939,8 +939,8 @@ public class TestTrafo extends AbstractModelIntegrationTest {
 		display("User smith111 after change execution", userSmith);
 		assertUser(userSmith, USER_SMITH111_OID, USER_SMITH111_USERNAME, "John Smith", "John", "Smith");
 		assertAccounts(userSmith, 2);
-		String accountAdOid = getAccountRef(userSmith, RESOURCE_DUMMY_AD_OID);
-		String accountMailOid = getAccountRef(userSmith, RESOURCE_DUMMY_MAIL_OID);
+		String accountAdOid = getLinkRef(userSmith, RESOURCE_DUMMY_AD_OID);
+		String accountMailOid = getLinkRef(userSmith, RESOURCE_DUMMY_MAIL_OID);
         
 		// AD ACCOUNT
 		
@@ -1060,8 +1060,8 @@ public class TestTrafo extends AbstractModelIntegrationTest {
 		display("User smith222 after change execution", userSmith);
 		assertUser(userSmith, USER_SMITH222_OID, USER_SMITH222_USERNAME, "John Smith", "John", "Smith");
 		assertAccounts(userSmith, 2);
-		String accountAdOid = getAccountRef(userSmith, RESOURCE_DUMMY_AD_OID);
-		String accountMailOid = getAccountRef(userSmith, RESOURCE_DUMMY_MAIL_OID);
+		String accountAdOid = getLinkRef(userSmith, RESOURCE_DUMMY_AD_OID);
+		String accountMailOid = getLinkRef(userSmith, RESOURCE_DUMMY_MAIL_OID);
         
 		// AD ACCOUNT
 		
@@ -1181,8 +1181,8 @@ public class TestTrafo extends AbstractModelIntegrationTest {
 		display("User smith111 before change execution", userSmith);
 		assertUser(userSmith, USER_SMITH111_OID, USER_SMITH111_USERNAME, "John Smith", "John", "Smith");
 		assertAccounts(userSmith, 2);
-		String accountAdOid = getAccountRef(userSmith, RESOURCE_DUMMY_AD_OID);
-		String accountMailOid = getAccountRef(userSmith, RESOURCE_DUMMY_MAIL_OID);
+		String accountAdOid = getLinkRef(userSmith, RESOURCE_DUMMY_AD_OID);
+		String accountMailOid = getLinkRef(userSmith, RESOURCE_DUMMY_MAIL_OID);
         
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -1310,8 +1310,8 @@ public class TestTrafo extends AbstractModelIntegrationTest {
 		display("User smith222 before change execution", userSmith);
 		assertUser(userSmith, USER_SMITH222_OID, USER_SMITH222_USERNAME, "John Smith", "John", "Smith");
 		assertAccounts(userSmith, 2);
-		String accountAdOid = getAccountRef(userSmith, RESOURCE_DUMMY_AD_OID);
-		String accountMailOid = getAccountRef(userSmith, RESOURCE_DUMMY_MAIL_OID);
+		String accountAdOid = getLinkRef(userSmith, RESOURCE_DUMMY_AD_OID);
+		String accountMailOid = getLinkRef(userSmith, RESOURCE_DUMMY_MAIL_OID);
         
 		// THEN
 		TestUtil.displayThen(TEST_NAME);

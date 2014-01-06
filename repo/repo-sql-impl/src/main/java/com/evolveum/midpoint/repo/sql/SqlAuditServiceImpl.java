@@ -45,19 +45,9 @@ import java.util.Date;
 public class SqlAuditServiceImpl extends SqlBaseService implements AuditService {
 
     private static final Trace LOGGER = TraceManager.getTrace(SqlAuditServiceImpl.class);
-    @Autowired(required = true)
-    private SessionFactory sessionFactory;
 
     public SqlAuditServiceImpl(SqlRepositoryFactory repositoryFactory) {
         super(repositoryFactory);
-    }
-
-    public SessionFactory getSessionFactory() {
-        return sessionFactory;
-    }
-
-    public void setSessionFactory(SessionFactory sessionFactory) {
-        this.sessionFactory = sessionFactory;
     }
 
     @Override

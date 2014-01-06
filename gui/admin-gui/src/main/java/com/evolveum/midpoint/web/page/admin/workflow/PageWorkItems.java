@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow;
 
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -26,7 +27,7 @@ import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.*;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.wf.api.WorkflowService;
+import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -95,7 +96,7 @@ public class PageWorkItems extends PageAdminWorkItems {
             @Override
             public void onClick(AjaxRequestTarget target, IModel<WorkItemDto> rowModel) {
                 WorkItemDto workItemDto = rowModel.getObject();
-                itemDetailsPerformed(target, workItemDto.getWorkItem().getTaskId());
+                itemDetailsPerformed(target, workItemDto.getWorkItem().getWorkItemId());
             }
         };
         columns.add(column);
@@ -115,7 +116,7 @@ public class PageWorkItems extends PageAdminWorkItems {
             @Override
             public void onClick(AjaxRequestTarget target, IModel<WorkItemDto> rowModel) {
                 WorkItemDto workItemDto = rowModel.getObject();
-                itemDetailsPerformed(target, workItemDto.getWorkItem().getTaskId());
+                itemDetailsPerformed(target, workItemDto.getWorkItem().getWorkItemId());
             }
         };
         columns.add(column);
@@ -130,7 +131,7 @@ public class PageWorkItems extends PageAdminWorkItems {
                     @Override
                     public Object getObject() {
                         WorkItemDto pi = rowModel.getObject();
-                        Date started = pi.getWorkItem().getCreateTime();
+                        Date started = XmlTypeConverter.toDate(pi.getWorkItem().getMetadata().getCreateTimestamp());
                         if (started == null) {
                             return "?";
                         } else {
@@ -246,12 +247,12 @@ public class PageWorkItems extends PageAdminWorkItems {
         }
 
         OperationResult mainResult = new OperationResult(OPERATION_APPROVE_OR_REJECT_ITEMS);
-        WorkflowService workflowServiceImpl = getWorkflowService();
+        WorkflowManager workflowManagerImpl = getWorkflowManager();
         for (WorkItemDto workItemDto : workItemDtoList) {
             OperationResult result = mainResult.createSubresult(OPERATION_APPROVE_OR_REJECT_ITEM);
             try {
                 //wfDataAccessor.approveOrRejectWorkItem(workItemDto.getWorkItem().getTaskId(), WorkItemDtoProvider.currentUser(), approve, result);
-                workflowServiceImpl.approveOrRejectWorkItem(workItemDto.getWorkItem().getTaskId(), approve, result);
+                workflowManagerImpl.approveOrRejectWorkItem(workItemDto.getWorkItem().getWorkItemId(), approve, result);
                 result.computeStatus();
             } catch (Exception e) {
                 result.recordPartialError("Couldn't approve/reject work item due to an unexpected exception.", e);
@@ -280,7 +281,7 @@ public class PageWorkItems extends PageAdminWorkItems {
 //        }
 //
 //        OperationResult mainResult = new OperationResult(OPERATION_CLAIM_ITEMS);
-//        WfDataAccessor wfDataAccessor = getWorkflowService();
+//        WfDataAccessor wfDataAccessor = getWorkflowManager();
 //        for (WorkItemDto workItemDto : workItemDtoList) {
 //            OperationResult result = mainResult.createSubresult(OPERATION_CLAIM_ITEM);
 //            try {
@@ -312,7 +313,7 @@ public class PageWorkItems extends PageAdminWorkItems {
 //        }
 //
 //        OperationResult mainResult = new OperationResult(OPERATION_RELEASE_ITEMS);
-//        WfDataAccessor wfDataAccessor = getWorkflowService();
+//        WfDataAccessor wfDataAccessor = getWorkflowManager();
 //        for (WorkItemDto workItemDto : workItemDtoList) {
 //            OperationResult result = mainResult.createSubresult(OPERATION_RELEASE_ITEM);
 //            try {

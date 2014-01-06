@@ -88,7 +88,7 @@ public class ContainerItemDto implements Serializable, Comparable {
 
     public static String getItemName(Item item) {
         return item.getDisplayName() != null ? item.getDisplayName() :
-                (item.getName() != null ? item.getName().getLocalPart() : "?");
+                (item.getElementName() != null ? item.getElementName().getLocalPart() : "?");
     }
 
     @Override

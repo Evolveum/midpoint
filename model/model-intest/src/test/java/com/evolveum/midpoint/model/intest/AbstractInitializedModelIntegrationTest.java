@@ -21,16 +21,13 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.testng.AssertJUnit;
 
-import com.evolveum.icf.dummy.resource.DummyAccount;
 import com.evolveum.icf.dummy.resource.DummyResource;
-import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.intest.util.ProfilingLensDebugListener;
 import com.evolveum.midpoint.model.lens.Clockwork;
@@ -42,7 +39,6 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
@@ -58,7 +54,6 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
@@ -158,7 +153,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		dummyResource = dummyResourceCtl.getDummyResource();
 		dummyResourceCtl.addAttrDef(dummyResource.getAccountObjectClass(),
 				DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME, String.class, false, false);
-		resourceDummy = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_FILENAME, RESOURCE_DUMMY_OID, initTask, initResult);
+		resourceDummy = importAndGetObjectFromFile(ResourceType.class, getResourceDummyFile(), RESOURCE_DUMMY_OID, initTask, initResult);
 		resourceDummyType = resourceDummy.asObjectable();
 		dummyResourceCtl.setResource(resourceDummy);
 		
@@ -172,7 +167,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		dummyResourceCtlBlue = DummyResourceContoller.create(RESOURCE_DUMMY_BLUE_NAME, resourceDummyBlue);
 		dummyResourceCtlBlue.extendSchemaPirate();
 		dummyResourceBlue = dummyResourceCtlBlue.getDummyResource();
-		resourceDummyBlue = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_BLUE_FILENAME, RESOURCE_DUMMY_BLUE_OID, initTask, initResult); 
+		resourceDummyBlue = importAndGetObjectFromFile(ResourceType.class, getResourceDummyBlueFile(), RESOURCE_DUMMY_BLUE_OID, initTask, initResult); 
 		resourceDummyBlueType = resourceDummyBlue.asObjectable();
 		dummyResourceCtlBlue.setResource(resourceDummyBlue);		
 		
@@ -193,7 +188,7 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
         dummyResourceCtlGreen = DummyResourceContoller.create(RESOURCE_DUMMY_GREEN_NAME, resourceDummyGreen);
 		dummyResourceCtlGreen.extendSchemaPirate();
 		dummyResourceGreen = dummyResourceCtlGreen.getDummyResource();
-		resourceDummyGreen = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_GREEN_FILENAME, RESOURCE_DUMMY_GREEN_OID, initTask, initResult);
+		resourceDummyGreen = importAndGetObjectFromFile(ResourceType.class, getResourceDummyGreenFile(), RESOURCE_DUMMY_GREEN_OID, initTask, initResult);
 		resourceDummyGreenType = resourceDummyGreen.asObjectable();
 		dummyResourceCtlGreen.setResource(resourceDummyGreen);
 		
@@ -247,12 +242,22 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 
 	}
 	
+	protected File getResourceDummyFile() {
+		return RESOURCE_DUMMY_FILE;
+	}
+
+	protected File getResourceDummyBlueFile() {
+		return RESOURCE_DUMMY_BLUE_FILE;
+	}
+
+	protected File getResourceDummyGreenFile() {
+		return RESOURCE_DUMMY_GREEN_FILE;
+	}
+
 	protected void postInitDummyResouce() {
 		// Do nothing be default. Concrete tests may override this.
 	}
 
-	
-		
 	protected void assertUserJack(PrismObject<UserType> user) {
 		assertUserJack(user, "Jack Sparrow", "Jack", "Sparrow");
 	}
@@ -284,12 +289,24 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
 		assertUserJack(user, "jack", fullName, givenName, familyName, locality);
 	}
 	
-	protected void assertDummyShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username) {
-		assertShadowRepo(accountShadow, oid, username, resourceDummyType);
+	protected void assertDummyAccountShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username) {
+		assertAccountShadowRepo(accountShadow, oid, username, resourceDummyType);
 	}
+
+    protected void assertDummyGroupShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username) {
+        assertShadowRepo(accountShadow, oid, username, resourceDummyType, getGroupObjectClass(resourceDummyType));
+    }
 	
-	protected void assertDummyShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, String fullname) {
-		assertShadowModel(accountShadow, oid, username, resourceDummyType);
+	protected void assertDummyAccountShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username) {
+		assertShadowModel(accountShadow, oid, username, resourceDummyType, getAccountObjectClass(resourceDummyType));
+	}
+
+    protected void assertDummyGroupShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username) {
+        assertShadowModel(accountShadow, oid, username, resourceDummyType, getGroupObjectClass(resourceDummyType));
+    }
+	
+	protected void assertDummyAccountShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, String fullname) {
+		assertDummyAccountShadowModel(accountShadow, oid, username);
 		IntegrationTestTools.assertAttribute(accountShadow, dummyResourceCtl.getAttributeFullnameQName(), fullname);
 	}
 		

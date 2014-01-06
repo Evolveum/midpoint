@@ -22,6 +22,7 @@ import java.util.Set;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.MiscUtil;
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 
@@ -56,12 +57,14 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 public abstract class Definition implements Serializable, Dumpable, DebugDumpable {
 
 	private static final long serialVersionUID = -2643332934312107274L;
-	protected QName defaultName;
 	protected QName typeName;
 	protected boolean ignored = false;
+    protected boolean isAbstract = false;
 	protected String displayName;
 	protected Integer displayOrder;
 	protected String help;
+    protected String documentation;
+    protected boolean deprecated = false;
 	
 	/**
      * This means that the property container is not defined by fixed (compile-time) schema.
@@ -72,36 +75,12 @@ public abstract class Definition implements Serializable, Dumpable, DebugDumpabl
     
 	protected transient PrismContext prismContext;
 
-	// TODO: annotations
-	
-	Definition(QName defaultName, QName typeName, PrismContext prismContext) {
+	Definition(QName typeName, PrismContext prismContext) {
 		if (typeName == null) {
 			throw new IllegalArgumentException("Type name can't be null.");
 		}
-		this.defaultName = defaultName;
 		this.typeName = typeName;
 		this.prismContext = prismContext;
-	}
-
-	/**
-	 * Returns default name for the defined entity.
-	 * 
-	 * The default name is the name that the entity usually takes, but a name
-	 * that is not fixed by the schema.
-	 * 
-	 * The name corresponds to the XML element name in the XML representation of
-	 * the schema. It does NOT correspond to a XSD type name.
-	 * 
-	 * For example the default name may be the element name that is usually used
-	 * for a specific object (e.g. "user"), while the same object may be
-	 * represented using other names that resolve to the same type.
-	 * 
-	 * In XML representation it corresponds to "defaultElement" XSD annotation.
-	 * 
-	 * @return the defaultName
-	 */
-	public QName getDefaultName() {
-		return defaultName;
 	}
 
 	/**
@@ -127,6 +106,22 @@ public abstract class Definition implements Serializable, Dumpable, DebugDumpabl
 
 	public void setIgnored(boolean ignored) {
 		this.ignored = ignored;
+	}
+
+    public boolean isAbstract() {
+        return isAbstract;
+    }
+
+    public void setAbstract(boolean isAbstract) {
+        this.isAbstract = isAbstract;
+    }
+
+    public boolean isDeprecated() {
+		return deprecated;
+	}
+
+	public void setDeprecated(boolean deprecated) {
+		this.deprecated = deprecated;
 	}
 
 	/**
@@ -184,8 +179,31 @@ public abstract class Definition implements Serializable, Dumpable, DebugDumpabl
 	public void setHelp(String help) {
 		this.help = help;
 	}
-	
-	public boolean isRuntimeSchema() {
+
+    public String getDocumentation() {
+        return documentation;
+    }
+
+    public void setDocumentation(String documentation) {
+        this.documentation = documentation;
+    }
+
+    /**
+     * Returns only a first sentence of documentation.
+     */
+    public String getDocumentationPreview() {
+        if (documentation == null || documentation.isEmpty()) {
+            return documentation;
+        }
+        String plainDoc = MiscUtil.stripHtmlMarkup(documentation);
+        int i = plainDoc.indexOf('.');
+        if (i<0) {
+            return plainDoc;
+        }
+        return plainDoc.substring(0,i+1);
+    }
+
+    public boolean isRuntimeSchema() {
         return isRuntimeSchema;
     }
 
@@ -210,7 +228,6 @@ public abstract class Definition implements Serializable, Dumpable, DebugDumpabl
 	public abstract Definition clone(); 
 	
 	protected void copyDefinitionData(Definition clone) {
-		clone.defaultName = this.defaultName;
 		clone.ignored = this.ignored;
 		clone.typeName = this.typeName;
 		clone.displayName = this.displayName;
@@ -272,7 +289,12 @@ public abstract class Definition implements Serializable, Dumpable, DebugDumpabl
 	}
 	
 	/**
-     * Return a human readable name of this class suitable for logs.
+     * Return a human readable name of this class suitable for logs. (e.g. "PPD")
      */
     protected abstract String getDebugDumpClassName();
+
+    /**
+     * Returns human-readable name of this class suitable for documentation. (e.g. "property")
+     */
+    public abstract String getDocClassName();
 }

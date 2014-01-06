@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.prism;
 
-import com.evolveum.midpoint.prism.dom.ElementPrismContainerImpl;
 import com.evolveum.midpoint.prism.dom.ElementPrismReferenceImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
@@ -124,7 +123,7 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
 		if (targetType != null) {
 			// But non-empty is not ..
 			Itemable item = getParent();
-			DOMUtil.validateNonEmptyQName(targetType, " in target type in reference "+ (item == null ? "(unknown)" : item.getName()));
+			DOMUtil.validateNonEmptyQName(targetType, " in target type in reference "+ (item == null ? "(unknown)" : item.getElementName()));
 		}
 		this.targetType = targetType;
 	}

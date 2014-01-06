@@ -26,19 +26,13 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.util.exception.SystemException;
 
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
@@ -108,7 +102,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 		}
 		Class<T> clazz = getCompileTimeClass();
         if (clazz == null) {
-            throw new SystemException("Unknown compile time class of this prism object '" + getName() + "'.");
+            throw new SystemException("Unknown compile time class of this prism object '" + getElementName() + "'.");
         }
         if (Modifier.isAbstract(clazz.getModifiers())) {
             throw new SystemException("Can't create instance of class '" + clazz.getSimpleName() + "', it's abstract.");
@@ -125,7 +119,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 	}
 
 	public PrismContainer<?> getExtension() {
-		return (PrismContainer<?>) getValue().findItem(new QName(getName().getNamespaceURI(), PrismConstants.EXTENSION_LOCAL_NAME), PrismContainer.class);
+		return (PrismContainer<?>) getValue().findItem(new QName(getElementName().getNamespaceURI(), PrismConstants.EXTENSION_LOCAL_NAME), PrismContainer.class);
 	}
 
 	@Override
@@ -169,7 +163,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 
 	@Override
 	public PrismObject<T> clone() {
-		PrismObject<T> clone = new PrismObject<T>(getName(), getDefinition(), prismContext);
+		PrismObject<T> clone = new PrismObject<T>(getElementName(), getDefinition(), prismContext);
 		copyValues(clone);
 		return clone;
 	}
@@ -325,7 +319,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 	}
 	
 	private PrismProperty<PolyString> getNameProperty() {
-		QName elementName = getName();
+		QName elementName = getElementName();
 		String myNamespace = elementName.getNamespaceURI();
 		return findProperty(new QName(myNamespace, PrismConstants.NAME_LOCAL_NAME));
 	}
@@ -350,7 +344,7 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 	 * @return
 	 */
 	public String toDebugType() {
-		QName elementName = getName();
+		QName elementName = getElementName();
 		if (elementName == null) {
 			return "(unknown)";
 		}

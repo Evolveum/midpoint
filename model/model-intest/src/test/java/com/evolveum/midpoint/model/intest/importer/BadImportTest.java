@@ -23,12 +23,16 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.List;
 
+import com.evolveum.midpoint.model.intest.AbstractConfiguredModelIntegrationTest;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
 import org.testng.AssertJUnit;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.api.ModelService;
@@ -51,7 +55,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})
 @DirtiesContext(classMode=ClassMode.AFTER_CLASS)
 public class BadImportTest extends AbstractTestNGSpringContextTests {
-	
+
+    private static final Trace LOGGER = TraceManager.getTrace(BadImportTest.class);
 	private static final File BAD_IMPORT_FILE_NAME = new File("src/test/resources/importer/import-bad.xml");
 	private static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
 
@@ -61,6 +66,18 @@ public class BadImportTest extends AbstractTestNGSpringContextTests {
 	private RepositoryService repositoryService;
 	@Autowired(required = true)
 	private TaskManager taskManager;
+
+    @AfterClass
+    @Override
+    protected void springTestContextAfterTestClass() throws Exception {
+        long time = System.currentTimeMillis();
+        LOGGER.info("###>>> springTestContextAfterTestClass start");
+        super.springTestContextAfterTestClass();
+
+        AbstractConfiguredModelIntegrationTest.nullAllFields(this, getClass());
+
+        LOGGER.info("###>>> springTestContextAfterTestClass end ({}ms)", new Object[]{(System.currentTimeMillis() - time)});
+    }
 
 	/**
 	 * Test integrity of the test setup.

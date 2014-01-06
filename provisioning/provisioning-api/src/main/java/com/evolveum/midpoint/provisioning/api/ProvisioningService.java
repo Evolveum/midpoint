@@ -444,6 +444,12 @@ public interface ProvisioningService {
 		throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException;
 	
 	/**
+	 * Runs a short, non-destructive internal provisioning test. It tests provisioning framework and
+	 * general setup. Use ModelService.testResource for testing individual resource configurations.
+	 */
+	public void provisioningSelfTest(OperationResult parentTestResult, Task task);
+	
+	/**
 	 * Finish initialization of provisioning system.
 	 * 
 	 * The implementation may execute resource-intensive tasks in this method. All the dependencies should be already

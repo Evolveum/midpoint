@@ -150,7 +150,7 @@ public class TestScriptCaching {
         // GIVEN
     	OperationResult result = new OperationResult(desc);
     	ScriptExpressionEvaluatorType scriptType = parseScriptType(filname);
-    	ItemDefinition outputDefinition = new PrismPropertyDefinition(PROPERTY_NAME, PROPERTY_NAME, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
+    	ItemDefinition outputDefinition = new PrismPropertyDefinition(PROPERTY_NAME, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
     	
     	ScriptExpression scriptExpression = scriptExpressionfactory.createScriptExpression(scriptType, outputDefinition, desc);
 

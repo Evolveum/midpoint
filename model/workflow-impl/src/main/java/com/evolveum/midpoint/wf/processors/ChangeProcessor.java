@@ -24,10 +24,10 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.wf.api.ProcessInstance;
 import com.evolveum.midpoint.wf.jobs.Job;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
 
 import java.util.Map;
 
@@ -76,9 +76,9 @@ public interface ChangeProcessor {
     void onProcessEnd(ProcessEvent event, Job job, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException;
 
     PrismObject<? extends ObjectType> getRequestSpecificData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException;
-    PrismObject<? extends ObjectType> getAdditionalData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException;
+    PrismObject<? extends ObjectType> getRelatedObject(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException;
 
-    String getProcessInstanceDetailsPanelName(ProcessInstance processInstance);
+    String getProcessInstanceDetailsPanelName(WfProcessInstanceType processInstance);
 
     /**
      * Checks whether this change processor is enabled (typically, using the midpoint configuration file).

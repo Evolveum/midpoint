@@ -36,8 +36,8 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensFocusContextType;
 import org.apache.commons.lang.StringUtils;
 
@@ -55,7 +55,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
 		return getLensContext().getProjectionWave();
 	}
 
-	public LensFocusContext(Class<O> objectTypeClass, LensContext<O, ? extends ObjectType> lensContext) {
+	public LensFocusContext(Class<O> objectTypeClass, LensContext<O> lensContext) {
 		super(objectTypeClass, lensContext);
 	}
 
@@ -193,14 +193,14 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
      * This is relative to execution wave to avoid re-processing of already executed assignments.
      */
     public ContainerDelta<AssignmentType> getExecutionWaveAssignmentDelta() throws SchemaException {
-    	if (getObjectTypeClass() != UserType.class) {
+    	if (!FocusType.class.isAssignableFrom(getObjectTypeClass())) {
     		throw new UnsupportedOperationException("Attempt to get assignment deltas from "+getObjectTypeClass());
     	}
-        ObjectDelta<UserType> userDelta = (ObjectDelta<UserType>) getWaveDelta(getLensContext().getExecutionWave());
+        ObjectDelta<? extends FocusType> userDelta = (ObjectDelta<? extends FocusType>) getWaveDelta(getLensContext().getExecutionWave());
         if (userDelta == null) {
             return createEmptyAssignmentDelta();
         }
-        ContainerDelta<AssignmentType> assignmentDelta = userDelta.findContainerDelta(new ItemPath(UserType.F_ASSIGNMENT));
+        ContainerDelta<AssignmentType> assignmentDelta = userDelta.findContainerDelta(new ItemPath(FocusType.F_ASSIGNMENT));
         if (assignmentDelta == null) { 
             return createEmptyAssignmentDelta();
         }
@@ -208,14 +208,14 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     }
     
 	public Collection<? extends ItemDelta<?>> getExecutionWaveAssignmentItemDeltas(Long id) throws SchemaException {
-		if (getObjectTypeClass() != UserType.class) {
+		if (!FocusType.class.isAssignableFrom(getObjectTypeClass())) {
     		throw new UnsupportedOperationException("Attempt to get assignment deltas from "+getObjectTypeClass());
     	}
-        ObjectDelta<UserType> userDelta = (ObjectDelta<UserType>) getWaveDelta(getLensContext().getExecutionWave());
+        ObjectDelta<? extends FocusType> userDelta = (ObjectDelta<? extends FocusType>) getWaveDelta(getLensContext().getExecutionWave());
         if (userDelta == null) {
             return null;
         }
-        return userDelta.findItemDeltasSubPath(new ItemPath(new NameItemPathSegment(UserType.F_ASSIGNMENT),
+        return userDelta.findItemDeltasSubPath(new ItemPath(new NameItemPathSegment(FocusType.F_ASSIGNMENT),
         									  new IdItemPathSegment(id)));
 	}
 
@@ -224,7 +224,7 @@ public class LensFocusContext<O extends ObjectType> extends LensElementContext<O
     }
     
     private PrismContainerDefinition<AssignmentType> getAssignmentContainerDefinition() {
-		return getObjectDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
+		return getObjectDefinition().findContainerDefinition(FocusType.F_ASSIGNMENT);
 	}
     
     @Override

@@ -3041,7 +3041,7 @@ public class TestDummy extends AbstractDummyTest {
 				DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Captain Morgan");
 		
 		PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, ACCOUNT_MORGAN_OID, null, result);
-		assertShadowRepo(repoShadow, ACCOUNT_MORGAN_OID, "cptmorgan", resourceType);
+		assertAccountShadowRepo(repoShadow, ACCOUNT_MORGAN_OID, "cptmorgan", resourceType);
 		
 		if (!isIcfNameUidSame()) {
 			shadowUuid = (String) identifier.getRealValue();

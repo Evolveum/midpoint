@@ -250,7 +250,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         // property definition
         QName bigStringQName = new QName("http://midpoint.evolveum.com/repo/test", "bigString");
-        PrismPropertyDefinition bigStringDefinition = new PrismPropertyDefinition(bigStringQName, bigStringQName, DOMUtil.XSD_STRING, taskManager.getPrismContext());
+        PrismPropertyDefinition bigStringDefinition = new PrismPropertyDefinition(bigStringQName, DOMUtil.XSD_STRING, taskManager.getPrismContext());
         bigStringDefinition.setIndexed(false);
         bigStringDefinition.setMinOccurs(0);
         bigStringDefinition.setMaxOccurs(1);
@@ -383,13 +383,13 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         System.out.println("Task extension = " + task.getExtension());
 
-        PrismPropertyDefinition delayDefinition = new PrismPropertyDefinition(NoOpTaskHandler.DELAY_QNAME, NoOpTaskHandler.DELAY_QNAME, DOMUtil.XSD_INT, taskManager.getPrismContext());
+        PrismPropertyDefinition delayDefinition = new PrismPropertyDefinition(NoOpTaskHandler.DELAY_QNAME, DOMUtil.XSD_INT, taskManager.getPrismContext());
         System.out.println("property definition = " + delayDefinition);
 
         PrismProperty<Integer> property = (PrismProperty<Integer>) delayDefinition.instantiate();
         property.setRealValue(100);
 
-        PropertyDelta delta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, property.getName()), property.getDefinition());
+        PropertyDelta delta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, property.getElementName()), property.getDefinition());
         //delta.addV(property.getValues());
         delta.setValuesToReplace(PrismValue.cloneCollection(property.getValues()));
 
@@ -1630,7 +1630,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
     private PrismObject<? extends ObjectType> addObjectFromFile(String filePath, boolean deleteIfExists) throws Exception {
         PrismObject<ObjectType> object = unmarshallJaxbFromFile(filePath, ObjectType.class);
-        System.out.println("obj: " + object.getName());
+        System.out.println("obj: " + object.getElementName());
         OperationResult result = new OperationResult(TestQuartzTaskManagerContract.class.getName() + ".addObjectFromFile");
         try {
         	add(object, result);

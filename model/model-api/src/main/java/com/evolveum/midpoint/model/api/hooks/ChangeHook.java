@@ -21,6 +21,7 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 
 /**
@@ -51,7 +52,7 @@ public interface ChangeHook {
      *   - ERROR, if the hook encountered an error which prevents model operation from continuing
      *     (this case is currently not defined very well)
      */
-    HookOperationMode invoke(ModelContext context, Task task, OperationResult result);
+    <O extends ObjectType> HookOperationMode invoke(ModelContext<O> context, Task task, OperationResult result);
 
     /**
      * This method is invoked by the clockwork when an exception occurs.

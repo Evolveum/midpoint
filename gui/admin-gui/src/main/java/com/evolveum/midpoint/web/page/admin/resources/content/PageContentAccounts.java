@@ -249,7 +249,7 @@ public class PageContentAccounts extends PageAdminResources {
                 AccountContentDto dto = rowModel.getObject().getValue();
                 List values = new ArrayList();
                 for (ResourceAttribute<?> attr : dto.getIdentifiers()) {
-                    values.add(attr.getName().getLocalPart() + ": " + attr.getRealValue());
+                    values.add(attr.getElementName().getLocalPart() + ": " + attr.getRealValue());
                 }
                 cellItem.add(new Label(componentId, new Model<String>(StringUtils.join(values, ", "))));
             }

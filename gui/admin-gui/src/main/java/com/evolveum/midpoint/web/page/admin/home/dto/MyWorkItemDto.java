@@ -16,7 +16,9 @@
 
 package com.evolveum.midpoint.web.page.admin.home.dto;
 
-import com.evolveum.midpoint.wf.api.WorkItem;
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -32,9 +34,9 @@ public class MyWorkItemDto implements Serializable {
     private String name;
     private Date createdDate;
 
-    public MyWorkItemDto(WorkItem workItem) {
-        this.name = workItem.getName();
-        this.createdDate = workItem.getCreateTime();
+    public MyWorkItemDto(WorkItemType workItem) {
+        this.name = PolyString.getOrig(workItem.getName());
+        this.createdDate = XmlTypeConverter.toDate(workItem.getMetadata().getCreateTimestamp());
     }
 
     public Date getCreatedDate() {

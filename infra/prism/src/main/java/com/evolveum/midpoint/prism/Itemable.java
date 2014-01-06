@@ -30,7 +30,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
  */
 public interface Itemable {
 	
-	public QName getName();
+	public QName getElementName();
 	
 	public ItemDefinition getDefinition();
 	

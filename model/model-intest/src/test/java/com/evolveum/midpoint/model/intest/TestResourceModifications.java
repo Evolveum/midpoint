@@ -80,7 +80,7 @@ public class TestResourceModifications extends AbstractInitializedModelIntegrati
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
-		ResourceCarefulAntUtil.initAnts(ants, new File(RESOURCE_DUMMY_FILENAME), prismContext);
+		ResourceCarefulAntUtil.initAnts(ants, RESOURCE_DUMMY_FILE, prismContext);
 		descriptionAnt = ants.get(0);
 		// get resource to make sure it has generated schema
 		modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, initTask, initResult);

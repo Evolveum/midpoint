@@ -24,11 +24,11 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.wf.api.ProcessInstance;
 import com.evolveum.midpoint.wf.jobs.JobCreationInstruction;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
 
 import java.util.List;
 import java.util.Map;
@@ -67,13 +67,13 @@ public interface PrimaryApprovalProcessWrapper {
      * @param result Operation result - the method should report any errors here (TODO what about creating subresults?)
      * @return list of start process instructions
      */
-    List<JobCreationInstruction> prepareJobCreationInstructions(ModelContext<?, ?> modelContext, ObjectDelta<? extends ObjectType> change, Task taskFromModel, OperationResult result) throws SchemaException;
+    List<JobCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext, ObjectDelta<? extends ObjectType> change, Task taskFromModel, OperationResult result) throws SchemaException;
 
     /**
      * Returns the name of process instance details GUI panel. (Currently not used.)
      * @return
      */
-    String getProcessInstanceDetailsPanelName(ProcessInstance processInstance);
+    String getProcessInstanceDetailsPanelName(WfProcessInstanceType processInstance);
 
     // TODO (after this mark)
     //-------------------------------------------------------------------------------------
@@ -86,7 +86,7 @@ public interface PrimaryApprovalProcessWrapper {
 
     PrismObject<? extends ObjectType> getRequestSpecificData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException;
 
-    PrismObject<? extends ObjectType> getAdditionalData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException;
+    PrismObject<? extends ObjectType> getRelatedObject(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException;
 
     List<ObjectReferenceType> getApprovedBy(ProcessEvent event);
 }

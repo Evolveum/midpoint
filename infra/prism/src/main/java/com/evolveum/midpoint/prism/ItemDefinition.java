@@ -69,9 +69,9 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 	 * @param defaultName default element name
 	 * @param typeName type name (XSD complex or simple type)
 	 */
-	ItemDefinition(QName name, QName defaultName, QName typeName, PrismContext prismContext) {
-		super(defaultName, typeName, prismContext);
-		this.name = name;
+	ItemDefinition(QName elementName, QName typeName, PrismContext prismContext) {
+		super(typeName, prismContext);
+		this.name = elementName;
 	}
 
 	/**
@@ -97,27 +97,8 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 		this.name = name;
 	}
 	
-	@Override
-	public QName getDefaultName() {
-		return getName();
-	}
-
-	/**
-	 * Returns either name (if specified) or default name.
-	 * 
-	 * Convenience method.
-	 * 
-	 * @return name or default name
-	 */
-	public QName getNameOrDefaultName() {
-		if (name != null) {
-			return name;
-		}
-		return defaultName;
-	}
-	
     public String getNamespace() {
-    	return getNameOrDefaultName().getNamespaceURI();
+    	return getName().getNamespaceURI();
     }
 	
     /**
@@ -313,19 +294,43 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 	 */
 	void debugDumpShortToString(StringBuilder sb) {
 		sb.append(PrettyPrinter.prettyPrint(getTypeName()));
-		sb.append("[");
-		sb.append(getMinOccurs());
-		sb.append(",");
-		sb.append(getMaxOccurs());
-		sb.append("]");
-		if (isIgnored()) {
-			sb.append(",ignored");
-		}
-		if (isDynamic()) {
-			sb.append(",dyn");
-		}
-		extendToString(sb);
+        debugMultiplicity(sb);
+        debugFlags(sb);
 	}
+
+    private void debugMultiplicity(StringBuilder sb) {
+        sb.append("[");
+        sb.append(getMinOccurs());
+        sb.append(",");
+        sb.append(getMaxOccurs());
+        sb.append("]");
+    }
+
+    public String debugMultiplicity() {
+        StringBuilder sb = new StringBuilder();
+        debugMultiplicity(sb);
+        return sb.toString();
+    }
+
+    private void debugFlags(StringBuilder sb) {
+        if (isIgnored()) {
+            sb.append(",ignored");
+        }
+        if (isDynamic()) {
+            sb.append(",dyn");
+        }
+        extendToString(sb);
+    }
+
+    public String debugFlags() {
+        StringBuilder sb = new StringBuilder();
+        debugFlags(sb);
+        // This starts with a collon, we do not want it here
+        if (sb.length() > 0) {
+            sb.deleteCharAt(0);
+        }
+        return sb.toString();
+    }
 	
 	protected void extendToString(StringBuilder sb) {
 		// Nothing to do here

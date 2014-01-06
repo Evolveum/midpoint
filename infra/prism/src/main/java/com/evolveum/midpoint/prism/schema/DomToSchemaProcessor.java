@@ -143,7 +143,6 @@ class DomToSchemaProcessor {
 	 * 
 	 * 
 	 * @param xsdSchema DOM-represented XSD schema
-	 * @param isResourceSchema true if this is "resource schema"
 	 * @return parsed midPoint schema
 	 * @throws SchemaException in case of any error
 	 */
@@ -320,6 +319,10 @@ class DomToSchemaProcessor {
 		}
 		
 		markRuntime(ctd);
+
+        if (complexType.isAbstract()) {
+            ctd.setAbstract(true);
+        }
 		
 		QName superType = determineSupertype(complexType);
 		if (superType != null) {
@@ -336,6 +339,8 @@ class DomToSchemaProcessor {
 		if (isAny(complexType)) {
 			ctd.setXsdAnyMarker(true);
 		}
+
+        extractDocumentation(ctd, complexType.getAnnotation());
 		
 		if (getSchemaRegistry() != null) {
 			Class<?> compileTimeClass = getSchemaRegistry().determineCompileTimeClass(ctd);
@@ -348,7 +353,19 @@ class DomToSchemaProcessor {
 
 	}
 
-	/**
+    private void extractDocumentation(Definition definition, XSAnnotation annotation) {
+        if (annotation == null) {
+            return;
+        }
+        Element documentationElement = SchemaProcessorUtil.getAnnotationElement(annotation, DOMUtil.XSD_DOCUMENTATION_ELEMENT);
+        if (documentationElement != null) {
+            // The documentation may be HTML-formatted. Therefore we want to keep the formatting and tag names
+            String documentationText = DOMUtil.serializeElementContent(documentationElement);
+            definition.setDocumentation(documentationText);
+        }
+    }
+
+    /**
 	 * Creates ComplexTypeDefinition object from a XSModelGroup inside XSD complexType definition.
 	 * This is a recursive method. It can create "anonymous" internal PropertyContainerDefinitions.
 	 * The definitions will be added to the ComplexTypeDefinition provided as parameter.
@@ -483,6 +500,7 @@ class DomToSchemaProcessor {
 		if (composite != null) {
 			definition.setComposite(composite);
 		}
+        extractDocumentation(definition, annotation);
 		return definition;
 	}
 
@@ -519,6 +537,11 @@ class DomToSchemaProcessor {
 		Iterator<XSElementDecl> iterator = set.iterateElementDecls();
 		while (iterator.hasNext()) {
 			XSElementDecl xsElementDecl = iterator.next();
+			if (isDeprecated(xsElementDecl)) {
+				// Safe to ignore. We want it in the XSD schema only. The real definition will be
+				// parsed from the non-deprecated variant
+			}
+			
 			if (xsElementDecl.getTargetNamespace().equals(schema.getNamespace())) {
 				
 				QName elementName = new QName(xsElementDecl.getTargetNamespace(),xsElementDecl.getName());
@@ -704,13 +727,6 @@ class DomToSchemaProcessor {
 	 * 
 	 * We need to pass createResourceObject flag explicitly here. Because even if we are in resource schema, we want PropertyContainers inside
 	 * ResourceObjects, not ResourceObjects inside ResouceObjects.
-	 * 
-	 * @param xsType
-	 * @param elementName name of the created definition
-	 * @param complexTypeDefinition complex type to use for the definition.
-	 * @param annotation XS annotation to apply.
-	 * @param createResourceObject true if ResourceObjectDefinition should be created
-	 * @return appropriate PropertyContainerDefinition instance
 	 */
 	private PrismContainerDefinition<?> createPropertyContainerDefinition(XSType xsType, XSParticle elementParticle, 
 			ComplexTypeDefinition complexTypeDefinition, XSAnnotation annotation, boolean topLevel) throws SchemaException {	
@@ -824,6 +840,12 @@ class DomToSchemaProcessor {
 		if (ignore != null) {
 			itemDef.setIgnored(ignore);
 		}
+		
+		// deprecated
+		Boolean deprecated = SchemaProcessorUtil.getAnnotationBooleanMarker(annotation, A_DEPRECATED);
+		if (deprecated != null) {
+			itemDef.setDeprecated(deprecated);
+		}
 
 		// operational
 		Boolean operational = SchemaProcessorUtil.getAnnotationBooleanMarker(annotation, A_OPERATIONAL);
@@ -849,8 +871,16 @@ class DomToSchemaProcessor {
 		if (help != null) {
 			itemDef.setHelp(help.getTextContent());
 		}
+
+        // documentation
+        extractDocumentation(itemDef, annotation);
 	}
 
+	private boolean isDeprecated(XSElementDecl xsElementDecl) throws SchemaException {
+		XSAnnotation annotation = xsElementDecl.getAnnotation();
+		Boolean deprecated = SchemaProcessorUtil.getAnnotationBooleanMarker(annotation, A_DEPRECATED);
+		return (deprecated != null && deprecated);
+	}
 
 	private boolean containsAccessFlag(String flag, List<Element> accessList) {
 		for (Element element : accessList) {

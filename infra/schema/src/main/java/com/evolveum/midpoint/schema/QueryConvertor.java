@@ -20,20 +20,16 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
-import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -44,7 +40,6 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AndFilter;
@@ -59,12 +54,9 @@ import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
@@ -487,7 +479,7 @@ public class QueryConvertor {
 		PrismProperty item = getItem(values, pcd, parentPath, propertyName, false);
 		ItemDefinition itemDef = item.getDefinition();
 		if (itemDef == null) {
-			throw new SchemaException("Item definition for property " + item.getName() + " in container definition " + pcd
+			throw new SchemaException("Item definition for property " + item.getElementName() + " in container definition " + pcd
 					+ " not found.");
 		}
 
@@ -543,7 +535,7 @@ public class QueryConvertor {
 		PrismReference item = getItem(values, pcd, parentPath, propertyName, true);
 		ItemDefinition itemDef = item.getDefinition();
 		if (itemDef == null) {
-			throw new SchemaException("Item definition for property " + item.getName() + " in container definition " + pcd
+			throw new SchemaException("Item definition for property " + item.getElementName() + " in container definition " + pcd
 					+ " not found.");
 		}
 

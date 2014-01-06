@@ -16,27 +16,14 @@
 
 package com.evolveum.midpoint.report;
 
-import com.evolveum.midpoint.model.api.PolicyViolationException;
+import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.design.JasperDesign;
+
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.CommunicationException;
-import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ConsistencyViolationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
-import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
-import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
-
-import java.util.Collection;
-import java.util.List;
 
 /**
  * todo comments [lazyman]
@@ -46,95 +33,13 @@ import java.util.List;
  * @author lazyman
  */
 public interface ReportManager {
-
-    /**
-     * todo comments [lazyman]
-     *
-     * @param oid
-     * @param options
-     * @param parentResult
-     * @return
-     * @throws ObjectNotFoundException
-     * @throws SchemaException
-     */
-    PrismObject<ReportType> getReport(String oid, Collection<SelectorOptions<GetOperationOptions>> options,
-                                      OperationResult parentResult) 
-                            throws ObjectNotFoundException, SchemaException, ConfigurationException, 
-                            CommunicationException, SecurityViolationException;
-
-    /**
-     * todo comments [lazyman]
-     *
-     * @param object
-     * @param parentResult
-     * @return
-     * @throws ObjectAlreadyExistsException
-     * @throws SchemaException
-     */
-    String addReport(PrismObject<ReportType> object, OperationResult parentResult)
-            throws ObjectAlreadyExistsException, SchemaException, SecurityViolationException, 
-            PolicyViolationException, ConfigurationException, CommunicationException,
-            ExpressionEvaluationException, ObjectNotFoundException;
-
-    /**
-     * todo comments [lazyman]
-     *
-     * @param query
-     * @param options
-     * @param parentResult
-     * @return
-     * @throws SchemaException
-     */
-    List<PrismObject<ReportType>> searchReports(ObjectQuery query,
-                                                Collection<SelectorOptions<GetOperationOptions>> options,
-                                                OperationResult parentResult)
-                                  throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException,
-                                  SecurityViolationException;
-
-    /**
-     * todo comments [lazyman]
-     *
-     * @param query
-     * @param parentResult
-     * @return
-     * @throws SchemaException
-     */
-    int countReports(ObjectQuery query, OperationResult parentResult) throws SchemaException;
-
-    /**
-     * todo comments [lazyman]
-     *
-     * @param oid
-     * @param modifications
-     * @param parentResult
-     * @throws ObjectNotFoundException
-     * @throws SchemaException
-     * @throws ObjectAlreadyExistsException
-     */
-    void modifyReport(String oid, Collection<? extends ItemDelta> modifications, OperationResult parentResult)
-    		throws ObjectAlreadyExistsException, SchemaException, SecurityViolationException, 
-    		PolicyViolationException, ConfigurationException, CommunicationException,
-    		ExpressionEvaluationException, ObjectNotFoundException;
-
-    /**
-     * todo comments [lazyman]
-     *
-     * @param oid
-     * @param parentResult
-     * @throws ObjectNotFoundException
-     */
-    void deleteReport(String oid, OperationResult parentResult) 
-    		throws ObjectNotFoundException, ConsistencyViolationException,
-			CommunicationException, SchemaException, ConfigurationException, PolicyViolationException,
-			SecurityViolationException;
-
     /**
      * todo comments [lazyman]
      *
      * @param report
      * @param parentResult describes report which has to be created
      */
-    void runReport(PrismObject<ReportType> report, Task task, OperationResult parentResult);
+    void runReport(PrismObject<ReportType> object, Task task, OperationResult parentResult);
 
     /**
      * todo comments [lazyman]
@@ -144,4 +49,5 @@ public interface ReportManager {
      * @param parentResult
      */
     void cleanupReports(CleanupPolicyType cleanupPolicy, OperationResult parentResult);
+	
 }

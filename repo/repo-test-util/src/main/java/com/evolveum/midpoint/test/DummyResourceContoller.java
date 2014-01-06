@@ -86,6 +86,7 @@ public class DummyResourceContoller extends AbstractResourceController {
     
     public static final String DUMMY_GROUP_MEMBERS_ATTRIBUTE_NAME = "members";
 	public static final String DUMMY_GROUP_ATTRIBUTE_DESCRIPTION = "description";
+    public static final String DUMMY_GROUP_ATTRIBUTE_CC = "cc";
 	
 	public static final String DUMMY_ENTITLEMENT_GROUP_NAME = "group";
 	public static final String DUMMY_ENTITLEMENT_PRIVILEGE_NAME = "priv";
@@ -148,6 +149,7 @@ public class DummyResourceContoller extends AbstractResourceController {
 		
 		DummyObjectClass groupObjectClass = dummyResource.getGroupObjectClass();		
 		addAttrDef(groupObjectClass, DUMMY_GROUP_ATTRIBUTE_DESCRIPTION, String.class, false, false);
+        addAttrDef(groupObjectClass, DUMMY_GROUP_ATTRIBUTE_CC, String.class, false, false);
 		
 		isExtendedSchema = true;
 	}

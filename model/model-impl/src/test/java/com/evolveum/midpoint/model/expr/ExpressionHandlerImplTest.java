@@ -113,7 +113,7 @@ public class ExpressionHandlerImplTest extends AbstractTestNGSpringContextTests 
 		ResourceType resourceType = resource.asObjectable();
 		accountType.setResource(resourceType);
 
-		ObjectSynchronizationType synchronization = ResourceTypeUtil.determineSynchronization(resourceType, UserType.class);
+		ObjectSynchronizationType synchronization = resourceType.getSynchronization().getObjectSynchronization().get(0);
 		for (QueryType query : synchronization.getCorrelation()){
 		Element valueExpressionElement = findChildElement(query.getFilter(), SchemaConstants.NS_C, "valueExpression");
 		ExpressionType expression = PrismTestUtil.getPrismContext().getPrismJaxbProcessor()

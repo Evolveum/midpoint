@@ -1,0 +1,53 @@
+#*
+ * Copyright (c) 2013 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *#
+
+## This template defines the structure of complex type definition description.
+## It contains a type definition documentation and a list of items in the definition.
+## Output file: <schemadir>/type/<type>.html
+## Variables:
+##   $definition: instance of ComplexTypeDefinition
+##   $prismContext: initilaized instance of PrismContext
+##   $path: PathGenerator, simple utility class that creates paths and URLs
+##   $prefixToBase: string that represents path prefix to base of the HTML files (e.g. "." or "../..")
+
+
+#parse("header-inc.vm")
+
+<div class="header">
+    <h1>$definition.TypeName.LocalPart (Complex Type)</h1>
+    <h3>Namespace: $definition.TypeName.NamespaceURI</h3>
+</div>
+
+<div class="contentContainer">
+    #if($definition.Abstract)
+    <div class="block">
+        ABSTRACT
+    </div>
+    #end
+    #if($definition.SuperType)
+        #set( $typeUrl = $path.typeDefinitionUrl($definition.TypeName,$prefixToBase,$prismContext))
+    <div class="block">
+        Supertype: <a href="$!typeUrl">$definition.SuperType.LocalPart</a>
+    </div>
+    #end
+
+    <div class="block">
+    $!definition.Documentation
+    </div>
+</div>
+
+#parse("items-inc.vm")
+#parse("footer-inc.vm")

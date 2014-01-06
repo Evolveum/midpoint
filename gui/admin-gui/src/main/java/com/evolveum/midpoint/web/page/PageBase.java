@@ -42,13 +42,11 @@ import com.evolveum.midpoint.web.component.menu.top.TopMenuItem;
 import com.evolveum.midpoint.web.component.message.MainFeedback;
 import com.evolveum.midpoint.web.component.message.OpResult;
 import com.evolveum.midpoint.web.component.message.TempFeedback;
-import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItems;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.session.SessionStorage;
-import com.evolveum.midpoint.wf.api.WorkflowService;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -105,8 +103,8 @@ public abstract class PageBase extends WebPage {
     private ModelDiagnosticService modelDiagnosticService;
     @SpringBean(name = "taskManager")
     private TaskManager taskManager;
-    @SpringBean(name = "workflowService")
-    private WorkflowService workflowService;
+    @SpringBean(name = "workflowManager")
+    private WorkflowManager workflowManager;
     @SpringBean(name = "midpointConfiguration")
     private MidpointConfiguration midpointConfiguration;
 
@@ -210,8 +208,8 @@ public abstract class PageBase extends WebPage {
         return taskManager;
     }
 
-    protected WorkflowService getWorkflowService() {
-        return workflowService;
+    protected WorkflowManager getWorkflowManager() {
+        return workflowManager;
     }
 
     protected IModel<String> createPageTitleModel() {

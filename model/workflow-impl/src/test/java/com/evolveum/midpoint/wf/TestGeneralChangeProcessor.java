@@ -39,13 +39,13 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.activiti.TestAuthenticationInfoHolder;
-import com.evolveum.midpoint.wf.api.ProcessInstance;
-import com.evolveum.midpoint.wf.api.WorkItemDetailed;
 import com.evolveum.midpoint.wf.jobs.WfTaskUtil;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -54,6 +54,8 @@ import org.testng.annotations.Test;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
+
+import java.io.File;
 import java.util.List;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
@@ -75,7 +77,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
     protected static final Trace LOGGER = TraceManager.getTrace(TestGeneralChangeProcessor.class);
 
     private static final String TEST_RESOURCE_DIR_NAME = "src/test/resources";
-    private static final String REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE1 = TEST_RESOURCE_DIR_NAME + "/user-jack-modify-add-assignment-role1.xml";
+    private static final File REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE1 = new File(TEST_RESOURCE_DIR_NAME, "user-jack-modify-add-assignment-role1.xml");
     private static final String REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE2_CHANGE_GN = TEST_RESOURCE_DIR_NAME + "/user-jack-modify-add-assignment-role2-change-gn.xml";
     private static final String REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE3_CHANGE_GN2 = TEST_RESOURCE_DIR_NAME + "/user-jack-modify-add-assignment-role3-change-gn2.xml";
     private static final String REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLES2_3_4 = TEST_RESOURCE_DIR_NAME + "/user-jack-modify-add-assignment-roles2-3-4.xml";
@@ -93,7 +95,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 	private TaskManager taskManager;
 
     @Autowired(required = true)
-    private WorkflowServiceImpl workflowServiceImpl;
+    private WorkflowManagerImpl workflowServiceImpl;
 
     @Autowired
     private WfTaskUtil wfTaskUtil;
@@ -122,9 +124,9 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
        	executeTest("test010UserModifyAddRole", USER_JACK_OID, 1, false, true, new ContextCreator() {
                @Override
                public LensContext createModelContext(OperationResult result) throws Exception {
-                   LensContext<UserType, ShadowType> context = createUserAccountContext();
+                   LensContext<UserType> context = createUserAccountContext();
                    fillContextWithUser(context, USER_JACK_OID, result);
-                   addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE1);
+                   addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE1);
                    return context;
                }
            });
@@ -153,11 +155,11 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 
         rootTask.setOwner(repositoryService.getObject(UserType.class, USER_ADMINISTRATOR_OID, null, result));
 
-        LensContext<UserType, ShadowType> context = (LensContext<UserType, ShadowType>) contextCreator.createModelContext(result);
+        LensContext<UserType> context = (LensContext<UserType>) contextCreator.createModelContext(result);
 
         display("Input context", context);
 
-        assertUserModificationSanity(context);
+        assertFocusModificationSanity(context);
 
         // WHEN
 
@@ -188,12 +190,12 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
             String pid = wfTaskUtil.getProcessId(subtask);
             assertNotNull("Workflow process instance id not present in subtask " + subtask, pid);
 
-            ProcessInstance processInstance = workflowServiceImpl.getProcessInstanceByInstanceId(pid, false, true, result);
+            WfProcessInstanceType processInstance = workflowServiceImpl.getProcessInstanceById(pid, false, true, result);
             assertNotNull("Process instance information cannot be retrieved", processInstance);
             assertEquals("Incorrect number of work items", 1, processInstance.getWorkItems().size());
 
-            String taskId = processInstance.getWorkItems().get(0).getTaskId();
-            WorkItemDetailed workItemDetailed = workflowServiceImpl.getWorkItemDetailsByTaskId(taskId, result);
+            String taskId = processInstance.getWorkItems().get(0).getWorkItemId();
+            WorkItemType workItem = workflowServiceImpl.getWorkItemDetailsById(taskId, result);
 
             org.activiti.engine.task.Task t = activitiEngine.getTaskService().createTaskQuery().taskId(taskId).singleResult();
             assertNotNull("activiti task not found", t);
@@ -203,7 +205,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 
             boolean approve = contextCreator.decideOnApproval(executionId);
 
-            PrismObject<? extends ObjectType> workItemObject = workItemDetailed.getRequestSpecificData();
+            PrismObject<? extends ObjectType> workItemObject = workItem.getRequestSpecificData().asPrismObject();
             LOGGER.trace("workItemObject = " + workItemObject.debugDump());
 
             // change role1 -> role2

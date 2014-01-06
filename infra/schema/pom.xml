@@ -338,6 +338,27 @@
                        </execution>
                    </executions>
                </plugin> -->
+               <plugin>
+		<groupId>com.evolveum.midpoint.infra</groupId>
+                <artifactId>prism-maven-plugin</artifactId>
+                <version>2.3-SNAPSHOT</version>
+                <configuration>
+                    <schemaFiles>
+                        <schemaFile>src/main/resources/xml/ns/public/common/common-2a.xsd</schemaFile>
+                        <schemaFile>src/main/resources/xml/ns/public/common/api-types-2.xsd</schemaFile>
+                    </schemaFiles>
+                    <templateDir>src/main/schemadoc/templates</templateDir>
+                </configuration>
+                <executions>
+                  <execution>
+                    <id>schemadoc</id>
+                    <phase>package</phase>
+                    <goals>  
+                      <goal>schemadoc</goal>  
+                    </goals>
+                  </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 </project>

@@ -39,12 +39,12 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.WfConfiguration;
 import com.evolveum.midpoint.wf.activiti.TestAuthenticationInfoHolder;
-import com.evolveum.midpoint.wf.api.WorkItem;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.processes.StringHolder;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import org.activiti.engine.form.FormProperty;
 import org.apache.commons.lang.Validate;
@@ -102,6 +102,24 @@ public class MiscDataUtil {
         }
     }
 
+    public PrismObject<UserType> getUserByOid(String oid, OperationResult result) {
+        if (oid == null) {
+            return null;
+        }
+        try {
+            return repositoryService.getObject(UserType.class, oid, null, result);
+        } catch (ObjectNotFoundException e) {
+            // there should be a note in result by now
+            LoggingUtils.logException(LOGGER, "Couldn't get user {} details because it couldn't be found", e, oid);
+            return null;
+        } catch (SchemaException e) {
+            // there should be a note in result by now
+            LoggingUtils.logException(LOGGER, "Couldn't get user {} details due to schema exception", e, oid);
+            return null;
+        }
+    }
+
+
     // returns oid when user cannot be retrieved
     public String getUserNameByOid(String oid, OperationResult result) {
         try {
@@ -145,6 +163,11 @@ public class MiscDataUtil {
     }
 
     public ObjectDelta getObjectDelta(Map<String, Object> variables, OperationResult result, boolean mayBeNull) throws JAXBException, SchemaException {
+        ObjectDeltaType objectDeltaType = getObjectDeltaType(variables, result, mayBeNull);
+        return DeltaConvertor.createObjectDelta(objectDeltaType, prismContext);
+    }
+
+    public ObjectDeltaType getObjectDeltaType(Map<String, Object> variables, OperationResult result, boolean mayBeNull) throws JAXBException, SchemaException {
         StringHolder deltaXml = (StringHolder) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_DELTA);
         if (deltaXml == null) {
             if (mayBeNull) {
@@ -153,12 +176,15 @@ public class MiscDataUtil {
                 throw new IllegalStateException("There's no delta in process variables");
             }
         }
-        ObjectDeltaType objectDeltaType = prismContext.getPrismJaxbProcessor().unmarshalObject(deltaXml.getValue(), ObjectDeltaType.class);
-        return DeltaConvertor.createObjectDelta(objectDeltaType, prismContext);
+        return prismContext.getPrismJaxbProcessor().unmarshalObject(deltaXml.getValue(), ObjectDeltaType.class);
     }
 
-    public PrismObject<? extends ObjectType> getObjectAfter(Map<String, Object> variables, ObjectDelta delta, PrismObject<? extends ObjectType> objectBefore, PrismContext prismContext, OperationResult result) throws JAXBException, SchemaException {
-        if (delta == null) {
+    public PrismObject<? extends ObjectType> getObjectAfter(Map<String, Object> variables, ObjectDeltaType deltaType, PrismObject<? extends ObjectType> objectBefore, PrismContext prismContext, OperationResult result) throws JAXBException, SchemaException {
+
+        ObjectDelta delta;
+        if (deltaType != null) {
+            delta = DeltaConvertor.createObjectDelta(deltaType, prismContext);
+        } else {
             delta = getObjectDelta(variables, result, true);
         }
 
@@ -231,7 +257,7 @@ public class MiscDataUtil {
         }
     }
 
-    public static String getObjectName(ModelContext<? extends ObjectType,?> modelContext) {
+    public static String getObjectName(ModelContext<? extends ObjectType> modelContext) {
         ModelElementContext<? extends ObjectType> fc = modelContext.getFocusContext();
         PrismObject<? extends ObjectType> prism = fc.getObjectNew() != null ? fc.getObjectNew() : fc.getObjectOld();
         if (prism == null) {
@@ -250,8 +276,8 @@ public class MiscDataUtil {
         }
     }
 
-    public boolean isCurrentUserAuthorizedToSubmit(WorkItem workItem) {
-        return isAuthorizedToSubmit(MiscDataUtil.getPrincipalUser(), workItem.getAssignee());
+    public boolean isCurrentUserAuthorizedToSubmit(WorkItemType workItem) {
+        return isAuthorizedToSubmit(MiscDataUtil.getPrincipalUser(), workItem.getAssigneeRef().getOid());
     }
 
     public boolean isAuthorizedToSubmit(MidPointPrincipal principal, String assigneeOid) {

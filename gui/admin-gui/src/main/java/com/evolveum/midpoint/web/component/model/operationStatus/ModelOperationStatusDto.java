@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.web.component.model.operationStatus;
 
-import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -51,7 +50,7 @@ public class ModelOperationStatusDto implements Serializable {
                 object = modelContext.getFocusContext().getObjectOld();
             }
             if (object != null) {
-                focusType = object.getName() != null ? object.getName().toString() : null;
+                focusType = object.getElementName() != null ? object.getElementName().toString() : null;
                 focusName = object.asObjectable().getName() != null ? object.asObjectable().getName().getOrig() : null;
             }
 

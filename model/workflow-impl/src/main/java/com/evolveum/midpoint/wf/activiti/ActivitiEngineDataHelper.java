@@ -20,7 +20,6 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.WorkflowServiceImpl;
 import com.evolveum.midpoint.wf.api.WorkflowException;
 import org.activiti.engine.ActivitiException;
 import org.activiti.engine.HistoryService;

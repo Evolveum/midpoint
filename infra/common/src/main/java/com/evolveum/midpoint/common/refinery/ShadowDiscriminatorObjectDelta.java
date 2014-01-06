@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 
 /**
  * @author semancik
@@ -61,9 +62,9 @@ public class ShadowDiscriminatorObjectDelta<T extends Objectable> extends Object
      * to justify a separate method. 
      */
     public static <O extends Objectable, X> ShadowDiscriminatorObjectDelta<O> createModificationReplaceProperty(Class<O> type, 
-    		String resourceOid, String intent, ItemPath propertyPath, PrismContext prismContext, X... propertyValues) {
+    		String resourceOid, ShadowKindType kind, String intent, ItemPath propertyPath, PrismContext prismContext, X... propertyValues) {
     	ShadowDiscriminatorObjectDelta<O> objectDelta = new ShadowDiscriminatorObjectDelta<O>(type, ChangeType.MODIFY, prismContext);
-    	objectDelta.setDiscriminator(new ResourceShadowDiscriminator(resourceOid, intent));
+    	objectDelta.setDiscriminator(new ResourceShadowDiscriminator(resourceOid, kind, intent));
     	fillInModificationReplaceProperty(objectDelta, propertyPath, propertyValues);
     	return objectDelta;
     }

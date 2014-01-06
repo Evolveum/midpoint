@@ -114,6 +114,14 @@ public class PrismSchema implements Dumpable, DebugDumpable {
 		}
 		return defs;
 	}
+
+    public Collection<PrismObjectDefinition> getObjectDefinitions() {
+        return getDefinitions(PrismObjectDefinition.class);
+    }
+
+    public Collection<ComplexTypeDefinition> getComplexTypeDefinitions() {
+        return getDefinitions(ComplexTypeDefinition.class);
+    }
 	
 	public void add(Definition def) {
 		definitions.add(def);
@@ -222,7 +230,7 @@ public class PrismSchema implements Dumpable, DebugDumpable {
 		// TODO: check for multiple definition with the same type
 		for (Definition definition : definitions) {
 			if (type.isAssignableFrom(definition.getClass())
-					&& elementName.equals(definition.getDefaultName())) {
+					&& elementName.equals(((PrismContainerDefinition)definition).getName())) {
 				return (T) definition;
 			}
 		}
@@ -244,7 +252,7 @@ public class PrismSchema implements Dumpable, DebugDumpable {
 		// TODO: check for multiple definition with the same type
 		for (Definition definition : definitions) {
 			if (type.isAssignableFrom(definition.getClass())
-					&& elementName.equals(definition.getDefaultName())) {
+					&& elementName.equals(((PrismPropertyDefinition)definition).getName())) {
 				return (T) definition;
 			}
 		}
@@ -258,7 +266,7 @@ public class PrismSchema implements Dumpable, DebugDumpable {
         // TODO: check for multiple definition with the same type
         for (Definition definition : definitions) {
             if (type.isAssignableFrom(definition.getClass())
-                    && elementName.equals(definition.getDefaultName())) {
+                    && elementName.equals(((PrismReferenceDefinition)definition).getName())) {
                 return (T) definition;
             }
         }
@@ -358,7 +366,7 @@ public class PrismSchema implements Dumpable, DebugDumpable {
 	public PrismContainerDefinition createPropertyContainerDefinition(String localTypeName) {
 		QName typeName = new QName(getNamespace(), localTypeName);
 		QName name = new QName(getNamespace(), toElementName(localTypeName));
-		ComplexTypeDefinition cTypeDef = new ComplexTypeDefinition(name, typeName, prismContext);
+		ComplexTypeDefinition cTypeDef = new ComplexTypeDefinition(typeName, prismContext);
 		PrismContainerDefinition def = new PrismContainerDefinition(name, cTypeDef, prismContext);
 		definitions.add(cTypeDef);
 		definitions.add(def);
@@ -370,7 +378,7 @@ public class PrismSchema implements Dumpable, DebugDumpable {
 		QName name = new QName(getNamespace(), localElementName);
 		ComplexTypeDefinition cTypeDef = findComplexTypeDefinition(typeName);
 		if (cTypeDef == null) {
-			cTypeDef = new ComplexTypeDefinition(name, typeName, prismContext);
+			cTypeDef = new ComplexTypeDefinition(typeName, prismContext);
 			definitions.add(cTypeDef);
 		}
 		PrismContainerDefinition def = new PrismContainerDefinition(name, cTypeDef, prismContext);		
@@ -379,7 +387,7 @@ public class PrismSchema implements Dumpable, DebugDumpable {
 	}
 	
 	public ComplexTypeDefinition createComplexTypeDefinition(QName typeName) {
-		ComplexTypeDefinition cTypeDef = new ComplexTypeDefinition(toElementQName(typeName), typeName, prismContext);
+		ComplexTypeDefinition cTypeDef = new ComplexTypeDefinition(typeName, prismContext);
 		definitions.add(cTypeDef);
 		return cTypeDef;
 	}
@@ -429,7 +437,7 @@ public class PrismSchema implements Dumpable, DebugDumpable {
 	 * @return new property definition
 	 */
 	public PrismPropertyDefinition createPropertyDefinition(QName name, QName typeName) {
-		PrismPropertyDefinition def = new PrismPropertyDefinition(name, name, typeName, prismContext);
+		PrismPropertyDefinition def = new PrismPropertyDefinition(name, typeName, prismContext);
 		definitions.add(def);
 		return def;
 	}

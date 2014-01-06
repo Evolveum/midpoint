@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.intest.importer;
 
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.intest.AbstractConfiguredModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
@@ -36,6 +37,8 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,6 +46,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.testng.AbstractTestNGSpringContextTests;
+import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
@@ -68,6 +72,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 @DirtiesContext(classMode=ClassMode.AFTER_CLASS)
 public class ImportRefTest extends AbstractTestNGSpringContextTests {
 
+    private static final Trace LOGGER = TraceManager.getTrace(ImportRefTest.class);
 	private static final File IMPORT_FILE_NAME = new File("src/test/resources/importer/import-ref.xml");
 
 	@Autowired(required = true)
@@ -76,7 +81,19 @@ public class ImportRefTest extends AbstractTestNGSpringContextTests {
 	private RepositoryService repositoryService;
 	@Autowired(required = true)
 	private TaskManager taskManager;
-	
+
+    @AfterClass
+    @Override
+    protected void springTestContextAfterTestClass() throws Exception {
+        long time = System.currentTimeMillis();
+        LOGGER.info("###>>> springTestContextAfterTestClass start");
+        super.springTestContextAfterTestClass();
+
+        AbstractConfiguredModelIntegrationTest.nullAllFields(this, getClass());
+
+        LOGGER.info("###>>> springTestContextAfterTestClass end ({}ms)", new Object[]{(System.currentTimeMillis() - time)});
+    }
+
 	@BeforeSuite
 	public void setup() throws SchemaException, SAXException, IOException {
 		PrettyPrinter.setDefaultNamespacePrefix(MidPointConstants.NS_MIDPOINT_PUBLIC_PREFIX);

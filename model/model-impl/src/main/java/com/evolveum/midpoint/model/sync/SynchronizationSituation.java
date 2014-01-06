@@ -17,6 +17,7 @@ package com.evolveum.midpoint.model.sync;
 
 import org.apache.commons.lang.Validate;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
@@ -25,19 +26,25 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
  * @author lazyman
  * 
  */
-public class SynchronizationSituation {
+public class SynchronizationSituation<F extends FocusType> {
 
-	private UserType user;
+	private F currentOwner;
+	private F correlatedOwner;
 	private SynchronizationSituationType situation;
 
-	SynchronizationSituation(UserType user, SynchronizationSituationType situation) {
+	SynchronizationSituation(F currentOwner, F correlatedOwner, SynchronizationSituationType situation) {
 		Validate.notNull(situation, "Synchronization situation must not be null.");
-		this.user = user;
+		this.currentOwner = currentOwner;
+		this.correlatedOwner = correlatedOwner;
 		this.situation = situation;
 	}
 
-	public UserType getUser() {
-		return user;
+	public F getCurrentOwner() {
+		return currentOwner;
+	}
+
+	public F getCorrelatedOwner() {
+		return correlatedOwner;
 	}
 
 	public SynchronizationSituationType getSituation() {

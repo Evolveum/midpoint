@@ -211,7 +211,7 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
 
 	private PrismPropertyDefinition<String> getIcfNameDefinition() {
 		return new PrismPropertyDefinition<String>(ConnectorFactoryIcfImpl.ICFS_NAME, 
-				ConnectorFactoryIcfImpl.ICFS_NAME, DOMUtil.XSD_STRING, prismContext);
+				DOMUtil.XSD_STRING, prismContext);
 	}
 		
 }

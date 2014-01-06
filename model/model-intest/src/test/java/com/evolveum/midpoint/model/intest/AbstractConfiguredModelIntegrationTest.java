@@ -18,10 +18,12 @@ package com.evolveum.midpoint.model.intest;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertNotNull;
 
+import com.evolveum.midpoint.model.ModelWebService;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -42,6 +44,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfiguration
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.IHookCallBack;
 import org.testng.ITestResult;
 import org.testng.annotations.AfterClass;
@@ -50,7 +53,9 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
@@ -91,7 +96,8 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
 	protected static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
 	
-	protected static final String RESOURCE_DUMMY_FILENAME = COMMON_DIR_NAME + "/resource-dummy.xml";
+	protected static final File RESOURCE_DUMMY_FILE = new File(COMMON_DIR, "resource-dummy.xml");
+	protected static final File RESOURCE_DUMMY_DEPRECATED_FILE = new File(COMMON_DIR, "resource-dummy-deprecated.xml");
 	protected static final String RESOURCE_DUMMY_OID = "10000000-0000-0000-0000-000000000004";
 	protected static final String RESOURCE_DUMMY_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004";
 	
@@ -102,7 +108,8 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String RESOURCE_DUMMY_RED_NAMESPACE = MidPointConstants.NS_RI;
 	
 	// BLUE resource has WEAK mappings
-	protected static final String RESOURCE_DUMMY_BLUE_FILENAME = COMMON_DIR_NAME + "/resource-dummy-blue.xml";
+	protected static final File RESOURCE_DUMMY_BLUE_FILE = new File(COMMON_DIR, "resource-dummy-blue.xml");
+	protected static final File RESOURCE_DUMMY_BLUE_DEPRECATED_FILE = new File(COMMON_DIR, "resource-dummy-blue-deprecated.xml");
 	protected static final String RESOURCE_DUMMY_BLUE_OID = "10000000-0000-0000-0000-000000000204";
 	protected static final String RESOURCE_DUMMY_BLUE_NAME = "blue";
 	protected static final String RESOURCE_DUMMY_BLUE_NAMESPACE = MidPointConstants.NS_RI;
@@ -120,7 +127,8 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
     protected static final String RESOURCE_DUMMY_YELLOW_NAMESPACE = MidPointConstants.NS_RI;
 
     // Green dummy resource is authoritative
-	protected static final String RESOURCE_DUMMY_GREEN_FILENAME = COMMON_DIR_NAME + "/resource-dummy-green.xml";
+	protected static final File RESOURCE_DUMMY_GREEN_FILE = new File(COMMON_DIR, "resource-dummy-green.xml");
+	protected static final File RESOURCE_DUMMY_GREEN_DEPRECATED_FILE = new File(COMMON_DIR, "resource-dummy-green-deprecated.xml");
 	protected static final String RESOURCE_DUMMY_GREEN_OID = "10000000-0000-0000-0000-000000000404";
 	protected static final String RESOURCE_DUMMY_GREEN_NAME = "green";
 	protected static final String RESOURCE_DUMMY_GREEN_NAMESPACE = MidPointConstants.NS_RI;
@@ -141,10 +149,11 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 
 	protected static final String ROLE_SUPERUSER_FILENAME = COMMON_DIR_NAME + "/role-superuser.xml";
 	protected static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
-	
-	// Assigns dummy resource, sets some attributes
+
 	protected static final File ROLE_PIRATE_FILE = new File(COMMON_DIR_NAME, "role-pirate.xml");
 	protected static final String ROLE_PIRATE_OID = "12345678-d34d-b33f-f00d-555555556666";
+    protected static final String ROLE_PIRATE_NAME = "Pirate";
+    protected static final String ROLE_PIRATE_DESCRIPTION = "Scurvy Pirates";
 	
 	protected static final String ROLE_NICE_PIRATE_FILENAME = COMMON_DIR_NAME + "/role-nice-pirate.xml";
 	protected static final String ROLE_NICE_PIRATE_OID = "12345678-d34d-b33f-f00d-555555556677";
@@ -204,7 +213,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String USER_DRAKE_OID = "c0c010c0-d34d-b33f-f00d-11d1d1d1d1d1";
 	protected static final String USER_DRAKE_USERNAME = "drake";
 	
-	public static final String ACCOUNT_JACK_DUMMY_FILENAME = COMMON_DIR_NAME + "/account-jack-dummy.xml";
+	public static final File ACCOUNT_JACK_DUMMY_FILE = new File(COMMON_DIR, "account-jack-dummy.xml");
 	public static final String ACCOUNT_JACK_DUMMY_RED_FILENAME = COMMON_DIR_NAME + "/account-jack-dummy-red.xml";
 	public static final String ACCOUNT_JACK_DUMMY_USERNAME = "jack";
 	public static final String ACCOUNT_JACK_DUMMY_FULLNAME = "Jack Sparrow";
@@ -239,6 +248,10 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	public static final String ACCOUNT_SHADOW_ELAINE_DUMMY_BLUE_OID = "c0c010c0-d34d-b33f-f00d-22220204000e";
 	public static final String ACCOUNT_ELAINE_DUMMY_BLUE_USERNAME = USER_ELAINE_USERNAME;
 	
+	public static final File GROUP_PIRATE_DUMMY_FILE = new File(COMMON_DIR, "group-pirate-dummy.xml");
+	public static final String GROUP_PIRATE_DUMMY_NAME = "pirate";
+	public static final String GROUP_PIRATE_DUMMY_DESCRIPTION = "Scurvy pirates";
+	
 	protected static final String PASSWORD_POLICY_GLOBAL_FILENAME = COMMON_DIR_NAME + "/password-policy-global.xml";
 	protected static final String PASSWORD_POLICY_GLOBAL_OID = "12344321-0000-0000-0000-000000000003";
 	
@@ -246,6 +259,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String ORG_GOVERNOR_OFFICE_OID = "00000000-8888-6666-0000-100000000001";
 	protected static final String ORG_SCUMM_BAR_OID = "00000000-8888-6666-0000-100000000006";
 	protected static final String ORG_MINISTRY_OF_OFFENSE_OID = "00000000-8888-6666-0000-100000000003";
+	protected static final String ORG_MINISTRY_OF_RUM_OID = "00000000-8888-6666-0000-100000000004";
 	protected static final String ORG_PROJECT_ROOT_OID = "00000000-8888-6666-0000-200000000000";
 	protected static final String ORG_SAVE_ELAINE_OID = "00000000-8888-6666-0000-200000000001";
 	
@@ -285,8 +299,10 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final QName PIRACY_FUNERAL_TIMESTAMP = new QName(NS_PIRACY, "funeralTimestamp");
 	protected static final QName PIRACY_SEA_QNAME = new QName(NS_PIRACY, "sea");
 	protected static final QName PIRACY_COLORS = new QName(NS_PIRACY, "colors");
-	
-	protected static final String DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME = "sea";
+
+    protected static final ItemPath ROLE_EXTENSION_COST_CENTER_PATH = new ItemPath(RoleType.F_EXTENSION, new QName(NS_PIRACY, "costCenter"));
+
+    protected static final String DUMMY_ACCOUNT_ATTRIBUTE_SEA_NAME = "sea";
 	
 	// Authorizations
 	
@@ -350,7 +366,47 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
         long time = System.currentTimeMillis();
         LOGGER.info("###>>> springTestContextAfterTestClass start");
         super.springTestContextAfterTestClass();
+
+        nullAllFields(this, getClass());
+
         LOGGER.info("###>>> springTestContextAfterTestClass end ({}ms)", new Object[]{(System.currentTimeMillis() - time)});
+    }
+
+    /**
+     * This method null all fields which are not static, final or primitive type.
+     *
+     * All this is just to make GC work during DirtiesContext after every test class,
+     * because memory consumption is too big. Test class instances can't be GCed
+     * immediately. If they holds autowired fields like sessionFactory (for example
+     * through SqlRepositoryService impl), their memory footprint is getting big.
+     *
+     * @param forClass
+     * @throws Exception
+     */
+    public static void nullAllFields(Object object, Class forClass) throws Exception{
+        if (forClass.getSuperclass() != null) {
+            nullAllFields(object, forClass.getSuperclass());
+        }
+
+        for (Field field : forClass.getDeclaredFields()) {
+            if (Modifier.isFinal(field.getModifiers())
+                    || Modifier.isStatic(field.getModifiers())
+                    || field.getType().isPrimitive()) {
+                continue;
+            }
+
+            nullField(object, field);
+        }
+    }
+
+    private static void nullField(Object obj, Field field) throws Exception {
+        LOGGER.info("Setting {} to null on {}.", new Object[]{field.getName(), obj.getClass().getSimpleName()});
+        boolean accessible = field.isAccessible();
+        if (!accessible) {
+            field.setAccessible(true);
+        }
+        field.set(obj, null);
+        field.setAccessible(accessible);
     }
 
     @AfterMethod

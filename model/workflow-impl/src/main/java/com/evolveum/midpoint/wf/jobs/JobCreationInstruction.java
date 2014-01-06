@@ -341,7 +341,7 @@ public class JobCreationInstruction implements DebugDumpable {
     public void addTaskModelContext(ModelContext modelContext) throws SchemaException {
         Validate.notNull(modelContext, "model context cannot be null");
         PrismContainer<LensContextType> modelContextPrism = ((LensContext) modelContext).toPrismContainer();
-        taskVariables.put(modelContextPrism.getName(), modelContextPrism);
+        taskVariables.put(modelContextPrism.getElementName(), modelContextPrism);
     }
     //endregion
 

@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.workflow;
 
 import com.evolveum.midpoint.common.security.MidPointPrincipal;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -30,7 +31,7 @@ import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDtoProvider;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.wf.api.WorkflowService;
+import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import org.apache.commons.lang.time.DurationFormatUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -100,7 +101,7 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
             @Override
             public void onClick(AjaxRequestTarget target, IModel<ProcessInstanceDto> rowModel) {
                 ProcessInstanceDto piDto = rowModel.getObject();
-                itemDetailsPerformed(target, false, piDto.getProcessInstance().getProcessId());
+                itemDetailsPerformed(target, false, piDto.getProcessInstance().getProcessInstanceId());
             }
         };
         columns.add(column);
@@ -115,7 +116,7 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
                     @Override
                     public Object getObject() {
                         ProcessInstanceDto pi = rowModel.getObject();
-                        Date started = pi.getProcessInstance().getStartTime();
+                        Date started = XmlTypeConverter.toDate(pi.getProcessInstance().getStartTimestamp());
                         if (started == null) {
                             return "?";
                         } else {
@@ -141,7 +142,7 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
             @Override
             public void onClick(AjaxRequestTarget target, IModel<ProcessInstanceDto> rowModel) {
                 ProcessInstanceDto piDto = rowModel.getObject();
-                itemDetailsPerformed(target, true, piDto.getProcessInstance().getProcessId());
+                itemDetailsPerformed(target, true, piDto.getProcessInstance().getProcessInstanceId());
             }
         };
         columns.add(column);
@@ -177,7 +178,7 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
                     @Override
                     public Object getObject() {
                         ProcessInstanceDto pi = rowModel.getObject();
-                        Date started = pi.getProcessInstance().getStartTime();
+                        Date started = XmlTypeConverter.toDate(pi.getProcessInstance().getStartTimestamp());
                         if (started == null) {
                             return "?";
                         } else {
@@ -198,7 +199,7 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
                     @Override
                     public Object getObject() {
                         ProcessInstanceDto pi = rowModel.getObject();
-                        Date finished = pi.getProcessInstance().getEndTime();
+                        Date finished = XmlTypeConverter.toDate(pi.getProcessInstance().getEndTimestamp());
                         if (finished == null) {
                             return getString("pageProcessInstances.notYet");
                         } else {
@@ -293,10 +294,10 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
 
         OperationResult result = new OperationResult(OPERATION_STOP_PROCESS_INSTANCES);
 
-        WorkflowService workflowServiceImpl = getWorkflowService();
+        WorkflowManager workflowManagerImpl = getWorkflowManager();
         for (ProcessInstanceDto processInstanceDto : processInstanceDtoList) {
             try {
-                workflowServiceImpl.stopProcessInstance(processInstanceDto.getInstanceId(),
+                workflowManagerImpl.stopProcessInstance(processInstanceDto.getInstanceId(),
                         WebMiscUtil.getOrigStringFromPoly(user.getName()), result);
             } catch (Exception ex) {    // todo
                 result.createSubresult("stopProcessInstance").recordPartialError("Couldn't stop process instance " + processInstanceDto.getName(), ex);
@@ -304,7 +305,7 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
         }
         for (ProcessInstanceDto processInstanceDto : finishedProcessInstanceDtoList) {
             try {
-                workflowServiceImpl.deleteProcessInstance(processInstanceDto.getInstanceId(), result);
+                workflowManagerImpl.deleteProcessInstance(processInstanceDto.getInstanceId(), result);
             } catch (Exception ex) {    // todo
                 result.createSubresult("deleteProcessInstance").recordPartialError("Couldn't delete process instance " + processInstanceDto.getName(), ex);
             }

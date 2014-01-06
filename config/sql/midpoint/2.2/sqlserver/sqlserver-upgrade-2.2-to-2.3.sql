@@ -17,8 +17,8 @@ CREATE TABLE m_report (
     reportFields NVARCHAR(MAX),
     reportOrientation INT,
     reportParameters NVARCHAR(MAX),
-    reportTemplateJRXML NVARCHAR(MAX),
-    reportTemplateStyleJRTX NVARCHAR(MAX),
+    reportTemplate NVARCHAR(MAX),
+    reportTemplateStyle NVARCHAR(MAX),
     id BIGINT NOT NULL,
     oid NVARCHAR(36) NOT NULL,
     PRIMARY KEY (id, oid),
@@ -34,3 +34,26 @@ ALTER TABLE m_report
     REFERENCES m_object;
 
 CREATE INDEX iAncestorDepth ON m_org_closure (ancestor_id, ancestor_oid, depthValue);
+
+CREATE TABLE m_report_output (
+    name_norm NVARCHAR(255),
+    name_orig NVARCHAR(255),
+    reportFilePath NVARCHAR(255),
+    reportRef_description NVARCHAR(MAX),
+    reportRef_filter NVARCHAR(MAX),
+    reportRef_relationLocalPart NVARCHAR(100),
+    reportRef_relationNamespace NVARCHAR(255),
+    reportRef_targetOid NVARCHAR(36),
+    reportRef_type INT,
+    id BIGINT NOT NULL,
+    oid NVARCHAR(36) NOT NULL,
+    PRIMARY KEY (id, oid),
+    UNIQUE (name_norm)
+);
+	
+CREATE INDEX iReportOutputName ON m_report_output (name_orig);
+
+ALTER TABLE m_report_output 
+    ADD CONSTRAINT fk_reportoutput 
+    FOREIGN KEY (id, oid) 
+    REFERENCES m_object;

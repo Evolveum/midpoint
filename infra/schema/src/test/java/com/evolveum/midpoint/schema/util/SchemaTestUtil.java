@@ -22,6 +22,7 @@ import static org.testng.AssertJUnit.assertTrue;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -40,6 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExtensionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
@@ -54,37 +56,44 @@ import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 public class SchemaTestUtil {
 	
 	public static void assertUserDefinition(PrismObjectDefinition<UserType> userDefinition) {
-		assertNotNull("No user definition", userDefinition);
 		assertEquals("Wrong compile-time class in user definition", UserType.class, userDefinition.getCompileTimeClass());
-		PrismAsserts.assertPropertyDefinition(userDefinition, ObjectType.F_NAME, PolyStringType.COMPLEX_TYPE, 0, 1);
-		PrismAsserts.assertItemDefinitionDisplayName(userDefinition, ObjectType.F_NAME, "Name");
-		PrismAsserts.assertItemDefinitionDisplayOrder(userDefinition, ObjectType.F_NAME, 0);
-		PrismAsserts.assertPropertyDefinition(userDefinition, ObjectType.F_DESCRIPTION, DOMUtil.XSD_STRING, 0, 1);
-		PrismAsserts.assertItemDefinitionDisplayName(userDefinition, ObjectType.F_DESCRIPTION, "Description");
-		PrismAsserts.assertItemDefinitionDisplayOrder(userDefinition, ObjectType.F_DESCRIPTION, 10);
+		
+		assertFocusDefinition(userDefinition.getComplexTypeDefinition(), "user");
+
 		PrismAsserts.assertPropertyDefinition(userDefinition, UserType.F_FULL_NAME, SchemaConstants.T_POLY_STRING_TYPE, 0, 1);
 		PrismAsserts.assertItemDefinitionDisplayName(userDefinition, UserType.F_FULL_NAME, "Full Name");
 		PrismAsserts.assertItemDefinitionDisplayOrder(userDefinition, UserType.F_FULL_NAME, 100);
 		PrismAsserts.assertPropertyDefinition(userDefinition, UserType.F_GIVEN_NAME, PrismConstants.POLYSTRING_TYPE_QNAME, 0, 1);
 		PrismAsserts.assertPropertyDefinition(userDefinition, UserType.F_FAMILY_NAME, PrismConstants.POLYSTRING_TYPE_QNAME, 0, 1);
 		PrismAsserts.assertPropertyDefinition(userDefinition, UserType.F_ADDITIONAL_NAME, PrismConstants.POLYSTRING_TYPE_QNAME, 0, 1);
-		assertFalse("User definition is marked as runtime", userDefinition.isRuntimeSchema());
+	}
+	
+	public static void assertFocusDefinition(ComplexTypeDefinition complexTypeDefinition, String defDesc) {
+		assertNotNull("No "+defDesc+" definition", complexTypeDefinition);
 		
-		PrismContainerDefinition extensionContainer = userDefinition.findContainerDefinition(UserType.F_EXTENSION);
+		PrismAsserts.assertPropertyDefinition(complexTypeDefinition, ObjectType.F_NAME, PolyStringType.COMPLEX_TYPE, 0, 1);
+		PrismAsserts.assertItemDefinitionDisplayName(complexTypeDefinition, ObjectType.F_NAME, "Name");
+		PrismAsserts.assertItemDefinitionDisplayOrder(complexTypeDefinition, ObjectType.F_NAME, 0);
+		PrismAsserts.assertPropertyDefinition(complexTypeDefinition, ObjectType.F_DESCRIPTION, DOMUtil.XSD_STRING, 0, 1);
+		PrismAsserts.assertItemDefinitionDisplayName(complexTypeDefinition, ObjectType.F_DESCRIPTION, "Description");
+		PrismAsserts.assertItemDefinitionDisplayOrder(complexTypeDefinition, ObjectType.F_DESCRIPTION, 10);
+		assertFalse(""+defDesc+" definition is marked as runtime", complexTypeDefinition.isRuntimeSchema());
+		
+		PrismContainerDefinition extensionContainer = complexTypeDefinition.findContainerDefinition(UserType.F_EXTENSION);
 		PrismAsserts.assertDefinition(extensionContainer, UserType.F_EXTENSION, ExtensionType.COMPLEX_TYPE, 0, 1);
 		assertTrue("Extension is NOT runtime", extensionContainer.isRuntimeSchema());
 		assertTrue("Extension is NOT dynamic", extensionContainer.isDynamic());
 		assertEquals("Extension size", 0, extensionContainer.getDefinitions().size());
-		PrismAsserts.assertItemDefinitionDisplayName(userDefinition, UserType.F_EXTENSION, "Extension");
-		PrismAsserts.assertItemDefinitionDisplayOrder(userDefinition, UserType.F_EXTENSION, 1000);
+		PrismAsserts.assertItemDefinitionDisplayName(complexTypeDefinition, UserType.F_EXTENSION, "Extension");
+		PrismAsserts.assertItemDefinitionDisplayOrder(complexTypeDefinition, UserType.F_EXTENSION, 1000);
 
-		PrismContainerDefinition activationContainer = userDefinition.findContainerDefinition(UserType.F_ACTIVATION);
+		PrismContainerDefinition activationContainer = complexTypeDefinition.findContainerDefinition(UserType.F_ACTIVATION);
 		PrismAsserts.assertDefinition(activationContainer, UserType.F_ACTIVATION, ActivationType.COMPLEX_TYPE, 0, 1);
 		assertFalse("Activation is runtime", activationContainer.isRuntimeSchema());
 		assertEquals("Activation size", 11, activationContainer.getDefinitions().size());
 		PrismAsserts.assertPropertyDefinition(activationContainer, ActivationType.F_ADMINISTRATIVE_STATUS, SchemaConstants.C_ACTIVATION_STATUS_TYPE, 0, 1);
 		
-		PrismContainerDefinition assignmentContainer = userDefinition.findContainerDefinition(UserType.F_ASSIGNMENT);
+		PrismContainerDefinition assignmentContainer = complexTypeDefinition.findContainerDefinition(UserType.F_ASSIGNMENT);
 		PrismAsserts.assertDefinition(assignmentContainer, UserType.F_ASSIGNMENT, AssignmentType.COMPLEX_TYPE, 0, -1);
 		assertFalse("Assignment is runtime", assignmentContainer.isRuntimeSchema());
 		assertEquals("Assignment size", 7, assignmentContainer.getDefinitions().size());
@@ -93,12 +102,12 @@ public class SchemaTestUtil {
 		PrismAsserts.assertDefinition(constructionContainer, AssignmentType.F_CONSTRUCTION, ConstructionType.COMPLEX_TYPE, 0, 1);
 		assertFalse("Construction is runtime", constructionContainer.isRuntimeSchema());
 		
-		PrismReferenceDefinition accountRefDef = userDefinition.findItemDefinition(UserType.F_LINK_REF, PrismReferenceDefinition.class);
+		PrismReferenceDefinition accountRefDef = complexTypeDefinition.findItemDefinition(UserType.F_LINK_REF, PrismReferenceDefinition.class);
 		PrismAsserts.assertDefinition(accountRefDef, UserType.F_LINK_REF, ObjectReferenceType.COMPLEX_TYPE, 0, -1);
 		assertEquals("Wrong target type in accountRef", ShadowType.COMPLEX_TYPE, accountRefDef.getTargetTypeName());
 		assertEquals("Wrong composite object element name in accountRef", UserType.F_LINK, accountRefDef.getCompositeObjectElementName());
 		
-		PrismContainerDefinition<MetadataType> metadataContainer = userDefinition.findContainerDefinition(UserType.F_METADATA);PrismAsserts.assertDefinition(extensionContainer, UserType.F_EXTENSION, ExtensionType.COMPLEX_TYPE, 0, 1);
+		PrismContainerDefinition<MetadataType> metadataContainer = complexTypeDefinition.findContainerDefinition(UserType.F_METADATA);PrismAsserts.assertDefinition(extensionContainer, UserType.F_EXTENSION, ExtensionType.COMPLEX_TYPE, 0, 1);
 		assertFalse("Metadata is runtime", metadataContainer.isRuntimeSchema());
 		assertFalse("Metadata is dynamic", metadataContainer.isDynamic());
 		assertTrue("Metadata is NOT operational", metadataContainer.isOperational());

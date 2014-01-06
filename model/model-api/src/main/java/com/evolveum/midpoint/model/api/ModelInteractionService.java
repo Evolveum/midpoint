@@ -28,6 +28,7 @@ import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
 
@@ -61,10 +62,10 @@ public interface ModelInteractionService {
 	 * by the resource are not taken into account while recomputing the values. This may also cause errors if some expressions depend
 	 * on the generated values. 
 	 */
-	public <F extends ObjectType, P extends ObjectType> ModelContext<F, P> previewChanges(
+	public <F extends ObjectType> ModelContext<F> previewChanges(
 			Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, OperationResult result) 
 			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException;
 
-    public <F extends ObjectType, P extends ObjectType> ModelContext<F, P> unwrapModelContext(LensContextType wrappedContext, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException;
+    public <F extends ObjectType> ModelContext<F> unwrapModelContext(LensContextType wrappedContext, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException;
 
 }
