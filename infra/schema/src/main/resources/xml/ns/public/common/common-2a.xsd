@@ -4694,38 +4694,15 @@
 
 	<xsd:element name="path" type="xsd:anyType" substitutionGroup="tns:expressionEvaluator"/>
 
-    <xsd:complexType name="ScriptExpressionEvaluatorType">
+    <xsd:complexType name="TransformExpressionEvaluatorType" abstract="true">
         <xsd:annotation>
             <xsd:documentation>
-                Generic script expression. The purpose of the expression is to return
-                a value. The expression must produce something that is a piece
-                of XML, which means that it may produce either string value,
-                XML node or a list of XML nodes.
-
-                The expression may use variables or arguments. However, such
-                variables or arguments passed to the expression will be different
-                for each invocation. It should be documented in each case this type is used.
+                TODO
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element ref="tns:description" minOccurs="0"/>
-            <xsd:element name="language" type="xsd:anyURI" minOccurs="0" default="http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Language of the expression. Groovy is the default language if other language is not specified.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="returnType" type="tns:ScriptExpressionReturnTypeType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        The type of the expression result, either "list" or "scalar". If not set it will be
-                        determined automatically from the target data type for the expression. This setting
-                        should be used only if the automatic mechanism does not work as expected.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="relativityMode" type="tns:ScriptExpressionRelativityModeType" minOccurs="0">
+            <xsd:element name="relativityMode" type="tns:TransformExpressionRelativityModeType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         TODO
@@ -4748,14 +4725,85 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="code" type="tns:ScriptExpressionCodeType">
+        </xsd:sequence>
+    </xsd:complexType>
+    
+        <xsd:simpleType name="TransformExpressionRelativityModeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Relativity mode of an expression.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="relative">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        Relative expression. Works on (partial) individual values transforming each of them one by one.
+                        This is the default.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="RELATIVE"/>
+                    </xsd:appinfo>
                 </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
+            </xsd:enumeration>
+            <xsd:enumeration value="absolute">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Absolute expression. Works on all the values at once. May not be entirely reliable.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ABSOLUTE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+    
+    <xsd:complexType name="ScriptExpressionEvaluatorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Generic script expression. The purpose of the expression is to return
+                a value. The expression must produce something that is a piece
+                of XML, which means that it may produce either string value,
+                XML node or a list of XML nodes.
+
+                The expression may use variables or arguments. However, such
+                variables or arguments passed to the expression will be different
+                for each invocation. It should be documented in each case this type is used.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+        	<xsd:extension base="tns:TransformExpressionEvaluatorType">
+		        <xsd:sequence>
+		            <xsd:element name="language" type="xsd:anyURI" minOccurs="0" default="http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy">
+		                <xsd:annotation>
+		                    <xsd:documentation>
+		                        Language of the expression. Groovy is the default language if other language is not specified.
+		                    </xsd:documentation>
+		                </xsd:annotation>
+		            </xsd:element>
+		            <xsd:element name="returnType" type="tns:ScriptExpressionReturnTypeType" minOccurs="0">
+		                <xsd:annotation>
+		                    <xsd:documentation>
+		                        The type of the expression result, either "list" or "scalar". If not set it will be
+		                        determined automatically from the target data type for the expression. This setting
+		                        should be used only if the automatic mechanism does not work as expected.
+		                    </xsd:documentation>
+		                </xsd:annotation>
+		            </xsd:element>
+		            <xsd:element name="code" type="tns:ScriptExpressionCodeType">
+		                <xsd:annotation>
+		                    <xsd:documentation>
+		                        TODO
+		                    </xsd:documentation>
+		                </xsd:annotation>
+		            </xsd:element>
+		        </xsd:sequence>
+        	</xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="ScriptExpressionCodeType" mixed="true">
@@ -4805,41 +4853,7 @@
                 </xsd:annotation>
             </xsd:enumeration>
         </xsd:restriction>
-    </xsd:simpleType>
-    
-    <xsd:simpleType name="ScriptExpressionRelativityModeType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Relativity mode of an expression.
-            </xsd:documentation>
-            <xsd:appinfo>
-                <jaxb:typesafeEnumClass/>
-            </xsd:appinfo>
-        </xsd:annotation>
-        <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="relative">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Relative expression. Works on (partial) individual values transforming each of them one by one.
-                        This is the default.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="RELATIVE"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="absolute">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Absolute expression. Works on all the values at once. May not be entirely reliable.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ABSOLUTE"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-        </xsd:restriction>
-    </xsd:simpleType>
+    </xsd:simpleType>    
 
 	<xsd:complexType name="AssignmentExpressionEvaluatorType">
         <xsd:annotation>
@@ -4847,24 +4861,28 @@
                 Create an AssignmentType expression based on several criteria and situations.
             </xsd:documentation>
         </xsd:annotation>
-        <xsd:sequence>
-        	<xsd:element name="targetType" type="xsd:QName" minOccurs="1" maxOccurs="1">
-        	</xsd:element>
-        	<xsd:element name="query" type="q:QueryType" minOccurs="0" maxOccurs="1">
-        	</xsd:element>
-        	<xsd:element name="createOnDemand" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
-        	</xsd:element>
-        	<xsd:element name="objectTemplateRef" type="tns:ObjectReferenceType" minOccurs="0">
-            	<xsd:annotation>
-            		<xsd:documentation>
-            			Object template used in case the objects are created on demand.
-            		</xsd:documentation>
-            		<xsd:appinfo>
-                    	<a:objectReferenceTargetType>tns:ObjetcTemplateType</a:objectReferenceTargetType>
-                    </xsd:appinfo>
-            	</xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
+        <xsd:complexContent>
+        	<xsd:extension base="tns:TransformExpressionEvaluatorType">
+		        <xsd:sequence>
+		        	<xsd:element name="targetType" type="xsd:QName" minOccurs="1" maxOccurs="1">
+		        	</xsd:element>
+		        	<xsd:element name="query" type="q:QueryType" minOccurs="0" maxOccurs="1">
+		        	</xsd:element>
+		        	<xsd:element name="createOnDemand" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+		        	</xsd:element>
+		        	<xsd:element name="objectTemplateRef" type="tns:ObjectReferenceType" minOccurs="0">
+		            	<xsd:annotation>
+		            		<xsd:documentation>
+		            			Object template used in case the objects are created on demand.
+		            		</xsd:documentation>
+		            		<xsd:appinfo>
+		                    	<a:objectReferenceTargetType>tns:ObjetcTemplateType</a:objectReferenceTargetType>
+		                    </xsd:appinfo>
+		            	</xsd:annotation>
+		            </xsd:element>
+		        </xsd:sequence>
+	        </xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
 	<xsd:element name="assignmentExpression" type="tns:AssignmentExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>

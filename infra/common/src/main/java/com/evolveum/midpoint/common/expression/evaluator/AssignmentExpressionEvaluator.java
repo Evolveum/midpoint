@@ -15,7 +15,9 @@
  */
 package com.evolveum.midpoint.common.expression.evaluator;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 import javax.xml.bind.JAXBElement;
@@ -28,6 +30,7 @@ import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.common.expression.Source;
 import com.evolveum.midpoint.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.prism.Item;
@@ -75,58 +78,53 @@ import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 /**
  * @author Radovan Semancik
  */
-public class AssignmentExpressionEvaluator<V extends PrismValue> implements ExpressionEvaluator<V> {
+public class AssignmentExpressionEvaluator<V extends PrismValue> 
+			extends AbstractValueTransformationExpressionEvaluator<V,AssignmentExpressionEvaluatorType> {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AssignmentExpressionEvaluator.class);
 	
 	private PrismContext prismContext;
 	private ItemDefinition outputDefinition;
-	private AssignmentExpressionEvaluatorType expressionEvaluatorType;
 	private Protector protector;
 	private ObjectResolver objectResolver;
 
 	public AssignmentExpressionEvaluator(AssignmentExpressionEvaluatorType expressionEvaluatorType, 
 			ItemDefinition outputDefinition, Protector protector, ObjectResolver objectResolver, 
 			PrismContext prismContext) {
-		this.expressionEvaluatorType = expressionEvaluatorType;
+		super(expressionEvaluatorType);
 		this.outputDefinition = outputDefinition;
 		this.prismContext = prismContext;
 		this.protector = protector;
 		this.objectResolver = objectResolver;
 	}
-
+	
 	@Override
-	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext params) throws SchemaException,
-			ExpressionEvaluationException, ObjectNotFoundException {
+	protected List<V> transformSingleValue(ExpressionVariables variables, boolean useNew,
+			ExpressionEvaluationContext params, String contextDescription, OperationResult result) 
+					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		
-		final QName targetTypeQName = expressionEvaluatorType.getTargetType();
+		final QName targetTypeQName = getExpressionEvaluatorType().getTargetType();
 		ObjectTypes targetType = ObjectTypes.getObjectTypeFromTypeQName(targetTypeQName);
 		if (targetType == null) {
 			throw new SchemaException("Unknown target type "+targetTypeQName+" in assignment expression");
 		}
 		Class<? extends ObjectType> targetTypeClass = targetType.getClassDefinition();
 		
-		QueryType queryType = expressionEvaluatorType.getQuery();
+		QueryType queryType = getExpressionEvaluatorType().getQuery();
 		if (queryType == null) {
 			throw new SchemaException("No query in assignment expression");
 		}
 		ObjectQuery query = QueryConvertor.createObjectQuery(targetTypeClass, queryType, prismContext);
-		
-		Map<QName, Object> variables = ExpressionUtil.compileVariablesAndSources(params);
-		ExpressionUtil.evaluateFilterExpressions(query.getFilter(), variables, params.getExpressionFactory(), 
+
+		ExpressionUtil.evaluateFilterExpressions(query.getFilter(), variables.getMap(), params.getExpressionFactory(), 
 				prismContext, params.getContextDescription(), params.getResult());
 		
-		PrismValueDeltaSetTriple<PrismContainerValue<AssignmentType>> triple = constructTriple(targetTypeClass, targetTypeQName, query, 
-				params.getContextDescription(), params.getResult());
-		
-		return (PrismValueDeltaSetTriple<V>) triple;
-    }
-	
-	private <O extends ObjectType> PrismValueDeltaSetTriple<PrismContainerValue<AssignmentType>> constructTriple(Class<O> targetTypeClass,
+		return (List<V>) constructTriple(targetTypeClass, targetTypeQName, query, params.getContextDescription(), params.getResult());		
+	}
+
+	private <O extends ObjectType> List<PrismContainerValue<AssignmentType>> constructTriple(Class<O> targetTypeClass,
 			final QName targetTypeQName, ObjectQuery query, final String shortDesc, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException {
-		final PrismValueDeltaSetTriple<PrismContainerValue<AssignmentType>> triple = new PrismValueDeltaSetTriple<PrismContainerValue<AssignmentType>>();
-		
-		final MutableInt counter = new MutableInt(0);
+		final List<PrismContainerValue<AssignmentType>> list = new ArrayList<PrismContainerValue<AssignmentType>>();
 		
 		ResultHandler<O> handler = new ResultHandler<O>() {
 			@Override
@@ -139,7 +137,7 @@ public class AssignmentExpressionEvaluator<V extends PrismValue> implements Expr
 				targetRef.setType(targetTypeQName);
 				assignmentType.setTargetRef(targetRef);
 				
-				triple.addToZeroSet(assignmentCVal);
+				list.add(assignmentCVal);
 				
 				try {
 					prismContext.adopt(assignmentCVal, FocusType.COMPLEX_TYPE, new ItemPath(FocusType.F_ASSIGNMENT));
@@ -151,8 +149,6 @@ public class AssignmentExpressionEvaluator<V extends PrismValue> implements Expr
 					throw new SystemException(e);
 				}
 					
-				counter.increment();
-				
 				// TODO: we should count results and stop after some reasonably high number?
 				
 				return true;
@@ -170,10 +166,10 @@ public class AssignmentExpressionEvaluator<V extends PrismValue> implements Expr
 		
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Assignment expression resulted in {} objects, using query:\n{}",
-					counter.getValue(), query.dump());
+					list.size(), query.dump());
 		}
 		
-		return triple;
+		return list;
 	}
 
 	/* (non-Javadoc)

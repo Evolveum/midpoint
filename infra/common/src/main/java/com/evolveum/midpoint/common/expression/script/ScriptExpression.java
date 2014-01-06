@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.common.expression.script;
 
 import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
+import com.evolveum.midpoint.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.common.expression.functions.BasicExpressionFunctions;
 import com.evolveum.midpoint.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.common.monitor.InternalMonitor;
@@ -44,6 +45,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScriptExpressionRet
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
+
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -92,7 +94,7 @@ public class ScriptExpression {
 		this.functions = functions;
 	}
 
-	public <T> List<PrismPropertyValue<T>> evaluate(ScriptVariables variables, ScriptExpressionReturnTypeType suggestedReturnType, 
+	public <T> List<PrismPropertyValue<T>> evaluate(ExpressionVariables variables, ScriptExpressionReturnTypeType suggestedReturnType, 
 			boolean useNew, String contextDescription, OperationResult result) 
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
@@ -124,7 +126,7 @@ public class ScriptExpression {
 		}
 	}
 
-    private void traceExpressionSuccess(ScriptVariables variables, String shortDesc, Object returnValue) {
+    private void traceExpressionSuccess(ExpressionVariables variables, String shortDesc, Object returnValue) {
         if (LOGGER.isTraceEnabled()) {
         	LOGGER.trace("Script expression trace:\n"+
             		"---[ SCRIPT expression {}]---------------------------\n"+
@@ -139,7 +141,7 @@ public class ScriptExpression {
         }
     }
 
-    private void traceExpressionFailure(ScriptVariables variables, String shortDesc, Exception exception) {
+    private void traceExpressionFailure(ExpressionVariables variables, String shortDesc, Exception exception) {
         LOGGER.error("Expression error: {}", exception.getMessage(), exception);
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Script expression failure:\n"+
@@ -155,7 +157,7 @@ public class ScriptExpression {
         }
     }
 
-	private String formatVariables(ScriptVariables variables) {
+	private String formatVariables(ExpressionVariables variables) {
 		if (variables == null) {
 			return "null";
 		}

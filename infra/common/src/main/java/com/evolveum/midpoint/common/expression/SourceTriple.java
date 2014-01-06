@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.common.expression.script;
+package com.evolveum.midpoint.common.expression;
 
 import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.expression.Source;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
