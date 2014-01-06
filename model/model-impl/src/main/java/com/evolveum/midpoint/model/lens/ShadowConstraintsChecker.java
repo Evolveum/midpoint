@@ -18,34 +18,23 @@ package com.evolveum.midpoint.model.lens;
 import java.util.Collection;
 import java.util.List;
 
-import javax.xml.namespace.QName;
-
-import org.apache.commons.lang.Validate;
-
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
-import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
-import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -55,36 +44,36 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 
 /**
  * @author semancik
  *
  */
-public class ShadowConstraintsChecker {
+public class ShadowConstraintsChecker<F extends FocusType> {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(ShadowConstraintsChecker.class);
 	
-	private LensProjectionContext<ShadowType> accountContext;
-	private LensContext<UserType, ShadowType> context;
+	private LensProjectionContext accountContext;
+	private LensContext<F> context;
 	private PrismContext prismContext;
 	private ProvisioningService provisioningService;
 	private boolean satisfiesConstraints;
 	private StringBuilder messageBuilder = new StringBuilder();
 	private PrismObject conflictingShadow;
 
-	public ShadowConstraintsChecker(LensProjectionContext<ShadowType> accountContext) {
+	public ShadowConstraintsChecker(LensProjectionContext accountContext) {
 		this.accountContext = accountContext;
 	}
 	
-	public LensProjectionContext<ShadowType> getAccountContext() {
+	public LensProjectionContext getAccountContext() {
 		return accountContext;
 	}
 
-	public void setAccountContext(LensProjectionContext<ShadowType> accountContext) {
+	public void setAccountContext(LensProjectionContext accountContext) {
 		this.accountContext = accountContext;
 	}
 
@@ -104,11 +93,11 @@ public class ShadowConstraintsChecker {
 		this.provisioningService = provisioningService;
 	}
 
-	public LensContext<UserType, ShadowType> getContext() {
+	public LensContext<F> getContext() {
 		return context;
 	}
 	
-	public void setContext(LensContext<UserType, ShadowType> context) {
+	public void setContext(LensContext<F> context) {
 		this.context = context;
 	}
 	
@@ -171,25 +160,24 @@ public class ShadowConstraintsChecker {
 	}
 	
 	private boolean checkAttributeUniqueness(PrismProperty<?> identifier, RefinedObjectClassDefinition accountDefinition,
-			ResourceType resourceType, String oid, LensContext<UserType, ShadowType> context, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+			ResourceType resourceType, String oid, LensContext<F> context, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 //		QueryType query = QueryUtil.createAttributeQuery(identifier, accountDefinition.getObjectClassDefinition().getTypeName(),
 //				resourceType, prismContext);
 		
-		List identifierValues = identifier.getValues();
+		List<?> identifierValues = identifier.getValues();
 		if (identifierValues.isEmpty()) {
 			throw new SchemaException("Empty identifier "+identifier+" while checking uniqueness of "+oid+" ("+resourceType+")");
 		}
 
 		OrFilter isNotDead = OrFilter.createOr(
-				EqualsFilter.createEqual(ShadowType.F_DEAD, ShadowType.class, prismContext, null, false),
+				EqualsFilter.createEqual(ShadowType.F_DEAD, ShadowType.class, prismContext, false),
 				EqualsFilter.createEqual(ShadowType.F_DEAD, ShadowType.class, prismContext, null));
 		//TODO: set matching rule instead of null
-		PrismPropertyDefinition identifierDef = identifier.getDefinition();
 		ObjectQuery query = ObjectQuery.createObjectQuery(
 				AndFilter.createAnd(
-						RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, resourceType),
-						EqualsFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, null, accountDefinition.getTypeName()),
-						EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, identifierDef.getName()), identifier),
+						RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, prismContext, resourceType.getOid()),
+						EqualsFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, accountDefinition.getTypeName()),
+						EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), identifier.getDefinition(), null, identifierValues),
 						isNotDead));
 		
 		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
@@ -221,7 +209,7 @@ public class ShadowConstraintsChecker {
 			message("Found conflicting existing object with attribute " + identifier.toHumanReadableString() + ": "
 					+ foundObjects.get(0));
 
-			LensProjectionContext<ShadowType> foundContext = context.findProjectionContextByOid(foundObjects
+			LensProjectionContext foundContext = context.findProjectionContextByOid(foundObjects
 					.get(0).getOid());
 			if (foundContext != null) {
 				if (foundContext.getResourceShadowDiscriminator() != null) {
@@ -239,7 +227,7 @@ public class ShadowConstraintsChecker {
 		if (delta == null) {
 			return false;
 		}
-		return delta.hasItemDelta(new ItemPath(ShadowType.F_ATTRIBUTES, attr.getName()));
+		return delta.hasItemDelta(new ItemPath(ShadowType.F_ATTRIBUTES, attr.getElementName()));
 	}
 
 	private void message(String message) {
