@@ -46,6 +46,29 @@ public class ReportUtils {
     	return java.lang.String.class;
     }
     
+	private static JRDesignParameter createParameter(ReportParameterConfigurationType parameterRepo)
+	{
+		JRDesignParameter parameter = new JRDesignParameter();
+		parameter.setName(parameterRepo.getNameParameter());
+		parameter.setValueClass(getClassType(parameterRepo.getClassTypeParameter()));
+		return parameter;
+	}
+    
+	private static JRDesignTextField createField(ReportFieldConfigurationType fieldRepo, int x, int width, int frameWidth)
+	{
+		JRDesignTextField textField = new JRDesignTextField();
+		textField.setX(x);
+		textField.setY(1);
+		width = Math.round((float) ((frameWidth/100) * fieldRepo.getWidthField())); 
+		textField.setWidth(width);
+		textField.setHeight(18);
+		textField.setStretchWithOverflow(true);
+		textField.setBlankWhenNull(true);
+		textField.setVerticalAlignment(VerticalAlignEnum.MIDDLE);
+		textField.setStyleNameReference("Detail");
+		textField.setExpression(new JRDesignExpression("$F{" + fieldRepo.getNameReportField() + "}"));
+		return textField;
+	}
     
     public static JasperDesign createJasperDesign(ReportType reportType) throws JRException
 	{
@@ -90,9 +113,7 @@ public class ReportUtils {
 		
 		for(ReportParameterConfigurationType parameterRepo : parameters)
 		{
-			JRDesignParameter parameter = new JRDesignParameter();
-			parameter.setName(parameterRepo.getNameParameter());
-			parameter.setValueClass(getClassType(parameterRepo.getClassTypeParameter()));
+			JRDesignParameter parameter = createParameter(parameterRepo);
 			jasperDesign.addParameter(parameter);
 			isTemplateStyle = isTemplateStyle || parameter.getName().equals("BaseTemplateStyles");			
 		}
@@ -340,19 +361,10 @@ public class ReportUtils {
 		
 		x = 0;
 		width = 0;
+		int frameWidth = frame.getWidth();
 		for(ReportFieldConfigurationType fieldRepo : reportType.getReportField())
 		{
-			textField = new JRDesignTextField();
-			textField.setX(x);
-			textField.setY(1);
-			width = Math.round((float) ((frame.getWidth()/100) * fieldRepo.getWidthField())); 
-			textField.setWidth(width);
-			textField.setHeight(18);
-			textField.setStretchWithOverflow(true);
-			textField.setBlankWhenNull(true);
-			textField.setVerticalAlignment(VerticalAlignEnum.MIDDLE);
-			textField.setStyleNameReference("Detail");
-			textField.setExpression(new JRDesignExpression("$F{" + fieldRepo.getNameReportField() + "}"));
+			textField = createField(fieldRepo, x, width, frameWidth);
 			frame.addElement(textField);
 			x = x + width;
 		}
