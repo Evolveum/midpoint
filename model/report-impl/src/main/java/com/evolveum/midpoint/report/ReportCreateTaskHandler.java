@@ -466,7 +466,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
     	ReportOutputType reportOutputType = new ReportOutputType();
     	prismContext.adopt(reportOutputType);
     	reportOutputType.setReportFilePath(reportFilePath);
-    	reportOutputType.setReportRef(MiscSchemaUtil.createObjectReference(reportType.getOid(), SchemaConstants.C_REPORT));
+    	reportOutputType.setReportRef(MiscSchemaUtil.createObjectReference(reportType.getOid(), ReportType.COMPLEX_TYPE));
     	reportOutputType.setName(new PolyStringType(reportOutputName));
     	reportOutputType.setDescription(reportType.getDescription() + " - " + reportType.getReportExport().value());
     	
