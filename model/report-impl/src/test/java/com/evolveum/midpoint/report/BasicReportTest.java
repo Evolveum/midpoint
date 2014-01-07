@@ -712,7 +712,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
         AssertJUnit.assertNotNull(reportOutputType);
         assertEquals("Unexpected report reference", MiscSchemaUtil.createObjectReference(reportType.getOid(), ReportType.COMPLEX_TYPE), reportOutputType.getReportRef());
         assertEquals("Unexpected report file path", output, reportOutputType.getReportFilePath());
-    /*       
+           
         BufferedReader br = null;  
         String line = "";  
         String splitBy = ",";  
@@ -754,7 +754,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
         if (br != null) br.close();  
         
         LOGGER.trace("Done with reading CSV");  
-        assertEquals("Unexpected number of users", countUsers, count-4);*/
+        assertEquals("Unexpected number of users", countUsers, count-5);
 	}
 
 
