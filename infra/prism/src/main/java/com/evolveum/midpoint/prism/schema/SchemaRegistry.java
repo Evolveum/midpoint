@@ -749,7 +749,30 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		PrismContainerDefinition<C> containerDefinition = objectDefinition.findContainerDefinition(path);
 		prismContainerValue.applyDefinition(containerDefinition, force);
 	}
-		
+
+	public <C extends Containerable> void applyDefinition(PrismContainerValue<C> prismContainerValue, QName typeName, 
+			ItemPath path, boolean force) throws SchemaException {
+		PrismObjectDefinition objectDefinition = findObjectDefinitionByType(typeName);
+		if (objectDefinition != null) {
+			PrismContainerDefinition<C> containerDefinition = objectDefinition.findContainerDefinition(path);
+			prismContainerValue.applyDefinition(containerDefinition, force);
+			return;
+		}
+		PrismContainerDefinition typeDefinition = findContainerDefinitionByType(typeName);
+		if (typeDefinition != null) {
+			PrismContainerDefinition<C> containerDefinition = typeDefinition.findContainerDefinition(path);
+			prismContainerValue.applyDefinition(containerDefinition, force);
+			return;
+		}
+		ComplexTypeDefinition complexTypeDefinition = findComplexTypeDefinition(typeName);
+		if (complexTypeDefinition != null) {
+			PrismContainerDefinition<C> containerDefinition = complexTypeDefinition.findContainerDefinition(path);
+			prismContainerValue.applyDefinition(containerDefinition, force);
+			return;
+		}
+		throw new SchemaException("No definition for container "+path+" in type "+typeName);
+	}
+	
 	public <T extends Objectable> PrismObjectDefinition<T> findObjectDefinitionByType(QName typeName) {
 		PrismSchema schema = findSchemaByNamespace(typeName.getNamespaceURI());
 		if (schema == null) {

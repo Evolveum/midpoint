@@ -22,10 +22,12 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.expression.ExpressionEvaluatorFactory;
+import com.evolveum.midpoint.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectFactory;
@@ -38,11 +40,13 @@ public class AssignmentExpressionEvaluatorFactory implements ExpressionEvaluator
 	
 	private PrismContext prismContext;
 	private Protector protector;
+	private ObjectResolver objectResolver;
 
-	public AssignmentExpressionEvaluatorFactory(PrismContext prismContext, Protector protector) {
+	public AssignmentExpressionEvaluatorFactory(PrismContext prismContext, Protector protector, ObjectResolver objectResolver) {
 		super();
 		this.prismContext = prismContext;
 		this.protector = protector;
+		this.objectResolver = objectResolver;
 	}
 
 	/* (non-Javadoc)
@@ -76,7 +80,7 @@ public class AssignmentExpressionEvaluatorFactory implements ExpressionEvaluator
             throw new SchemaException("AsIs value constructor cannot handle elements of type " + evaluatorTypeObject.getClass().getName()+" in "+contextDescription);
         }
         return new AssignmentExpressionEvaluator<V>((AssignmentExpressionEvaluatorType)evaluatorTypeObject, 
-        		outputDefinition, protector, prismContext);
+        		outputDefinition, protector, objectResolver, prismContext);
 	}
 
 }

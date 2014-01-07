@@ -595,7 +595,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
         String output = ReportUtils.getReportOutputFilePath(reportType);
         
         AssertJUnit.assertNotNull(reportOutputType);
-        assertEquals("Unexpected report reference", MiscSchemaUtil.createObjectReference(reportType.getOid(), SchemaConstants.C_REPORT), reportOutputType.getReportRef());
+        assertEquals("Unexpected report reference", MiscSchemaUtil.createObjectReference(reportType.getOid(), ReportType.COMPLEX_TYPE), reportOutputType.getReportRef());
         assertEquals("Unexpected report file path", output, reportOutputType.getReportFilePath());
        
         BufferedReader br = null;  
@@ -710,7 +710,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
         String output = ReportUtils.getReportOutputFilePath(report);
         
         AssertJUnit.assertNotNull(reportOutputType);
-        assertEquals("Unexpected report reference", MiscSchemaUtil.createObjectReference(reportType.getOid(), SchemaConstants.C_REPORT), reportOutputType.getReportRef());
+        assertEquals("Unexpected report reference", MiscSchemaUtil.createObjectReference(reportType.getOid(), ReportType.COMPLEX_TYPE), reportOutputType.getReportRef());
         assertEquals("Unexpected report file path", output, reportOutputType.getReportFilePath());
            
         BufferedReader br = null;  
@@ -742,18 +742,6 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
     				break;
         		case 5:	LOGGER.trace("USERS [name= " + lineDetails[0] + " , first name=" + lineDetails[3] + " , last name=" + lineDetails[4] + " , activation=" + lineDetails[6] + "]");
         			break;
-        		/*case 6:
-        		case 7:
-        		case 8:
-        		case 9:
-        		case 10:
-        		case 11:
-        		case 12:
-        		case 13:
-        		case 14:
-        		case 15:
-        			LOGGER.trace("USERS [name= " + lineDetails[0] + "]");
-        			break;*/
         		case 16: {
         			assertEquals("Unexpected text", "Page 1 of", lineDetails[7]);
         			assertEquals("Unexpected count pages", 1, Integer.parseInt(lineDetails[8].replace("\\s", "")));
@@ -766,7 +754,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
         if (br != null) br.close();  
         
         LOGGER.trace("Done with reading CSV");  
-        assertEquals("Unexpected number of users", countUsers, count-4);
+        assertEquals("Unexpected number of users", countUsers, count-5);
 	}
 
 

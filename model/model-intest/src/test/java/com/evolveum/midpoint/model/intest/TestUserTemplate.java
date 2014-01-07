@@ -66,12 +66,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	
 	public static final File TEST_DIR = new File("src/test/resources/contract");
 
-	private static String accountOid;
 	private static String jackEmployeeNumber;
-	
-	public TestUserTemplate() throws JAXBException {
-		super();
-	}
 	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -460,6 +455,79 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertNull("Unexpected title: "+userJackType.getTitle(), userJackType.getTitle());
         IntegrationTestTools.assertNoExtensionProperty(userJack, PIRACY_COLORS);
 	}
+
+	@Test
+    public void test150ModifyJackOrganizationalUnitRum() throws Exception {
+		final String TEST_NAME = "test150ModifyJackOrganizationalUnitRum";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+                    
+		// WHEN
+        modifyUserReplace(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, PrismTestUtil.createPolyString("F0004"));
+
+		// THEN
+		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+		display("User after", userJack);
+        
+		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
+        assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
+        assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
+        assertAssignedOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
+        assertHasOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
+        assertAssignments(userJack, 2);
+        
+        UserType userJackType = userJack.asObjectable();
+        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
+        
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertEquals("Wrong costCenter", "X000", userJackType.getCostCenter());
+        assertEquals("Wrong employee number", jackEmployeeNumber, userJackType.getEmployeeNumber());
+        assertEquals("Wrong telephone number", "1 222 3456789", userJackType.getTelephoneNumber());
+        assertNull("Unexpected title: "+userJackType.getTitle(), userJackType.getTitle());
+        IntegrationTestTools.assertNoExtensionProperty(userJack, PIRACY_COLORS);
+	}
+
+	@Test
+    public void test151ModifyJackOrganizationalUnitOffense() throws Exception {
+		final String TEST_NAME = "test151ModifyJackOrganizationalUnitOffense";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+                    
+		// WHEN
+        modifyUserReplace(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, PrismTestUtil.createPolyString("F0003"));
+
+		// THEN
+		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+		display("User after", userJack);
+        
+		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
+        assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
+        assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
+        assertAssignedOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertHasOrg(userJack, ORG_MINISTRY_OF_OFFENSE_OID);
+        assertAssignments(userJack, 2);
+        
+        UserType userJackType = userJack.asObjectable();
+        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
+        
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertEquals("Wrong costCenter", "X000", userJackType.getCostCenter());
+        assertEquals("Wrong employee number", jackEmployeeNumber, userJackType.getEmployeeNumber());
+        assertEquals("Wrong telephone number", "1 222 3456789", userJackType.getTelephoneNumber());
+        assertNull("Unexpected title: "+userJackType.getTitle(), userJackType.getTitle());
+        IntegrationTestTools.assertNoExtensionProperty(userJack, PIRACY_COLORS);
+	}
+
 	
 	@Test
     public void test200AddUserRapp() throws Exception {

@@ -1,6 +1,6 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2014 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -17,14 +17,14 @@
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<name>midPoint Model</name>
-	<artifactId>model</artifactId>
-	<packaging>pom</packaging>
+	<name>midPoint Report - api</name>
+	<groupId>com.evolveum.midpoint.model</groupId>
+	<artifactId>report-api</artifactId>
+	<packaging>jar</packaging>
 	<parent>
-		<artifactId>parent</artifactId>
+		<artifactId>model</artifactId>
 		<groupId>com.evolveum.midpoint</groupId>
 		<version>2.3-SNAPSHOT</version>
-		<relativePath>../build-system/pom.xml</relativePath>
 	</parent>
 	<organization>
 		<name>Evolveum</name>
@@ -46,17 +46,50 @@
 		<developerConnection>scm:git:git://git.evolveum.com/midpoint.git</developerConnection>
 		<url>https://fisheye.evolveum.com/midpoint/</url>
 	</scm>
-	<modules>
-		<module>model-api</module>
-		<module>model-test</module>
-		<module>model-impl</module>
-		<module>model-intest</module>
-		<module>model-client</module>
-        <module>workflow-api</module>
-        <module>workflow-impl</module>
-        <module>notifications-api</module>
-        <module>notifications-impl</module>
-        <module>report-api</module>
-        <module>report-impl</module>
-    </modules>
+	<dependencies>
+		<dependency>
+			<groupId>com.evolveum.midpoint.model</groupId>
+			<artifactId>model-api</artifactId>
+			<version>2.3-SNAPSHOT</version>
+		</dependency>
+    </dependencies>
+	<profiles>
+		<profile>
+			<id>aspectj</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>aspectj-maven-plugin</artifactId>
+						<configuration>
+							<aspectLibraries>
+								<aspectLibrary>
+									<groupId>com.evolveum.midpoint.infra</groupId>
+									<artifactId>util</artifactId>
+								</aspectLibrary>
+							</aspectLibraries>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>test-jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
 </project>

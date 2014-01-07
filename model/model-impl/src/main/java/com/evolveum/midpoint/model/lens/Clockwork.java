@@ -30,14 +30,14 @@ import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.common.expression.ExpressionSyntaxException;
+import com.evolveum.midpoint.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.common.expression.script.ScriptExpressionFactory;
-import com.evolveum.midpoint.common.expression.script.ScriptVariables;
 import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
-
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -351,7 +351,7 @@ public class Clockwork {
 		// null output definition: this script has no output
 		ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptExpressionEvaluatorType, null, shortDesc);
 		
-		ScriptVariables variables = new ScriptVariables();
+		ExpressionVariables variables = new ExpressionVariables();
 		variables.addVariableDefinition(ExpressionConstants.VAR_PRISM_CONTEXT, prismContext);
 		variables.addVariableDefinition(ExpressionConstants.VAR_MODEL_CONTEXT, context);
 		LensFocusContext focusContext = context.getFocusContext();

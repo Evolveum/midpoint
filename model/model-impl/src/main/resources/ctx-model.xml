@@ -156,6 +156,7 @@
           scope="singleton">
           <constructor-arg name="prismContext" ref="prismContext"/>
           <constructor-arg name="protector" ref="protector"/>
+          <constructor-arg ref="modelObjectResolver"/>
     </bean>
     
     <bean id="expressionFactory" class="com.evolveum.midpoint.common.expression.ExpressionFactory" 

@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.prism;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.PrettyPrinter;
 
@@ -177,12 +179,20 @@ public class ComplexTypeDefinition extends Definition {
      * @param name property definition name
      * @return found property definition or null
      */
-    public PrismPropertyDefinition findPropertyDefinition(QName name) {
+    public <C extends Containerable> PrismPropertyDefinition<C> findPropertyDefinition(QName name) {
         return findItemDefinition(name, PrismPropertyDefinition.class);
     }
+    
+    public <C extends Containerable> PrismPropertyDefinition<C> findPropertyDefinition(ItemPath path) {
+        return findItemDefinition(path, PrismPropertyDefinition.class);
+    }
 	
-    public PrismContainerDefinition findContainerDefinition(QName name) {
+    public <C extends Containerable> PrismContainerDefinition<C> findContainerDefinition(QName name) {
     	return findItemDefinition(name, PrismContainerDefinition.class);
+    }
+    
+    public <C extends Containerable> PrismContainerDefinition<C> findContainerDefinition(ItemPath path) {
+    	return findItemDefinition(path, PrismContainerDefinition.class);
     }
     
 	public <T extends ItemDefinition> T findItemDefinition(QName name, Class<T> clazz) {
@@ -196,6 +206,22 @@ public class ComplexTypeDefinition extends Definition {
         for (ItemDefinition def : getDefinitions()) {
             if (isItemValid(def, name, clazz)) {
                 return (T) def;
+            }
+        }
+        return null;
+    }
+
+	public <T extends ItemDefinition> T findItemDefinition(ItemPath path, Class<T> clazz) {
+    	while (!path.isEmpty() && !(path.first() instanceof NameItemPathSegment)) {
+    		path = path.rest();
+    	}
+        if (path.isEmpty()) {
+            throw new IllegalArgumentException("Cannot resolve empty path on complex type definition "+this);
+        }
+        QName firstName = ((NameItemPathSegment)path.first()).getName();
+        for (ItemDefinition def : getDefinitions()) {
+            if (firstName.equals(def.getName())) {
+                return def.findItemDefinition(path.rest(), clazz);
             }
         }
         return null;

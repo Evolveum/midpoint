@@ -58,8 +58,7 @@ public class ReportUtils {
 	{
 		JRDesignTextField textField = new JRDesignTextField();
 		textField.setX(x);
-		textField.setY(1);
-		width = Math.round((float) ((frameWidth/100) * fieldRepo.getWidthField())); 
+		textField.setY(1);		
 		textField.setWidth(width);
 		textField.setHeight(18);
 		textField.setStretchWithOverflow(true);
@@ -364,6 +363,7 @@ public class ReportUtils {
 		int frameWidth = frame.getWidth();
 		for(ReportFieldConfigurationType fieldRepo : reportType.getReportField())
 		{
+			width = Math.round((float) ((frameWidth/100) * fieldRepo.getWidthField())); 
 			textField = createField(fieldRepo, x, width, frameWidth);
 			frame.addElement(textField);
 			x = x + width;
