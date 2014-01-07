@@ -149,20 +149,12 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 	@Test(enabled = false)
     public void test010AddRole1() throws Exception {
         TestUtil.displayTestTile(this, "test010UserModifyAddRole");
-       	executeTest("test010UserModifyAddRole", USER_JACK_OID, 1, false, true, new ContextCreator() {
-               @Override
-               public LensContext createModelContext(OperationResult result) throws Exception {
-                   LensContext<UserType> context = createUserAccountContext();
-                   fillContextWithUser(context, USER_JACK_OID, result);
-                   addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE1);
-                   return context;
-               }
-           });
+        executeTest("test010UserModifyAddRole", USER_JACK_OID, 1, false, true, new ContextCreator() {
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType, ShadowType> context = createUserAccountContext();
+                LensContext<UserType> context = createUserAccountContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
-                addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE1);
+                addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE1);
                 return context;
             }
 
@@ -208,7 +200,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
         });
 	}
 
-    @Test(enabled = true)
+    @Test(enabled = false)
     public void test020AddAccountRejected() throws Exception {
         TestUtil.displayTestTile(this, "test020AddAccountRejected");
 
@@ -220,9 +212,9 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
         executeTest("test020AddAccountRejected", USER_JACK_OID, 1, false, true, new ContextCreator() {
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType, ShadowType> context = createUserAccountContext();
+                LensContext<UserType> context = createUserAccountContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
-                addModificationToContextAddAccountFromFile(context, ACCOUNT_SHADOW_JACK_DUMMY_FILENAME);
+                addModificationToContextAddAccountFromFile(context, ACCOUNT_SHADOW_JACK_DUMMY_FILE);
                 return context;
             }
 
@@ -243,7 +235,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
                 display("greenDelta", DeltaConvertor.createObjectDelta(deltaType, prismContext));
 
                 PrismPropertyDefinition ppd = new PrismPropertyDefinition(new QName(SchemaConstants.NS_WFCF, "[Button]rejectAll"),
-                        new QName(SchemaConstants.NS_WFCF, "[Button]rejectAll"), DOMUtil.XSD_BOOLEAN, prismContext);
+                        DOMUtil.XSD_BOOLEAN, prismContext);
                 PrismProperty<Boolean> rejectAll = ppd.instantiate();
                 rejectAll.setRealValue(Boolean.TRUE);
                 workItemObject.addReplaceExisting(rejectAll);
@@ -293,11 +285,8 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
         LensContext<UserType> context = (LensContext<UserType>) contextCreator.createModelContext(result);
         modelTask.setOwner(repositoryService.getObject(UserType.class, USER_ADMINISTRATOR_OID, null, result));
 
-        LensContext<UserType, ShadowType> context = (LensContext<UserType, ShadowType>) contextCreator.createModelContext(result);
         display("Input context", context);
-
         assertFocusModificationSanity(context);
-        assertUserModificationSanity(context);
 
         // WHEN
 
