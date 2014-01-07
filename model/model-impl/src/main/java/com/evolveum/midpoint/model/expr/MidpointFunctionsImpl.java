@@ -62,6 +62,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
 
+import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -880,4 +881,9 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			throws ObjectNotFoundException {
 		return modelService.testResource(resourceOid, getCurrentTask());
 	}
+
+    @Override
+    public ObjectDeltaType getResourceDelta(ModelContext context, String resourceOid) {
+        return null;
+    }
 }

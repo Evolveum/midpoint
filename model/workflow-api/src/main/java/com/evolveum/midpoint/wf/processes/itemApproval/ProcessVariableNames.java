@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.wf.processes.itemApproval;
 
 /**
- * @author Pavol
+ * @author mederly
  */
 public class ProcessVariableNames {
 

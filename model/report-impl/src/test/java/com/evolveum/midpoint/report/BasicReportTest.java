@@ -86,7 +86,7 @@ import com.evolveum.prism.xml.ns._public.query_2.OrderDirectionType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import com.evolveum.midpoint.report.ReportCreateTaskHandler;
-import com.evolveum.midpoint.report.ReportManager;
+import com.evolveum.midpoint.report.api.ReportManager;
 
 /**
  * @author garbika

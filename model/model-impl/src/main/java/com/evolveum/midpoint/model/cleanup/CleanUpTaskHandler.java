@@ -143,6 +143,20 @@ public class CleanUpTaskHandler implements TaskHandler{
 		} else{
 			LOGGER.trace("Cleanup: No clean up policy for closed tasks specified. Finishing clean up task.");
 		}
+		
+		CleanupPolicyType reportCleanupPolicy = cleanupPolicies.getOutputReports();
+		if (reportCleanupPolicy != null) {
+			try {
+				reportManager.cleanupReports(reportCleanupPolicy, opResult);
+			} catch (Exception ex) {
+				LOGGER.error("Cleanup: {}", ex.getMessage(), ex);
+				opResult.recordFatalError(ex.getMessage(), ex);
+				runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+				runResult.setProgress(progress);
+			}
+		} else{
+			LOGGER.trace("Cleanup: No clean up policy for report specified. Finishing clean up task.");
+		}
 		opResult.computeStatus();
 		// This "run" is finished. But the task goes on ...
 		runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
