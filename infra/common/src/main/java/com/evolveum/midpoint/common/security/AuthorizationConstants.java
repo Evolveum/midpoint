@@ -43,6 +43,9 @@ public class AuthorizationConstants {
 	
 	public static final QName AUTZ_UI_USERS_QNAME = new QName(NS_AUTHORIZATION, "users");
 	public static final String AUTZ_UI_USERS_URL = QNameUtil.qNameToUri(AUTZ_UI_USERS_QNAME);
+
+    public static final QName AUTZ_UI_FIND_USERS_QNAME = new QName(NS_AUTHORIZATION, "findUsers");
+    public static final String AUTZ_UI_FIND_USERS_URL = QNameUtil.qNameToUri(AUTZ_UI_FIND_USERS_QNAME);
 	
 	public static final QName AUTZ_UI_USER_QNAME = new QName(NS_AUTHORIZATION, "user");
 	public static final String AUTZ_UI_USER_URL = QNameUtil.qNameToUri(AUTZ_UI_USER_QNAME);
@@ -98,6 +101,9 @@ public class AuthorizationConstants {
 	
 	public static final QName AUTZ_UI_CONFIGURATION_LOGGING_QNAME = new QName(NS_AUTHORIZATION, "configLogging");
 	public static final String AUTZ_UI_CONFIGURATION_LOGGING_URL = QNameUtil.qNameToUri(AUTZ_UI_CONFIGURATION_LOGGING_QNAME);
+
+    public static final QName AUTZ_UI_CONFIGURATION_SYSTEM_CONFIG_QNAME = new QName(NS_AUTHORIZATION, "configSystemConfiguration");
+    public static final String AUTZ_UI_CONFIGURATION_SYSTEM_CONFIG_URL = QNameUtil.qNameToUri(AUTZ_UI_CONFIGURATION_SYSTEM_CONFIG_QNAME);
 	
 	//Roles
 	public static final QName AUTZ_UI_ROLES_ALL_QNAME = new QName(NS_AUTHORIZATION, "rolesAll");

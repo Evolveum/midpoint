@@ -211,25 +211,33 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
         RFocus.copyToJAXB(repo, jaxb, prismContext, options);
 
         jaxb.setRequestable(repo.getRequestable());
-        if (repo.getInducement() != null) {
-            for (RAssignment inducement : repo.getInducement()) {
-                jaxb.getInducement().add(inducement.toJAXB(prismContext));
+        if (SelectorOptions.hasToLoadPath(AbstractRoleType.F_INDUCEMENT, options)) {
+            if (repo.getInducement() != null) {
+                for (RAssignment inducement : repo.getInducement()) {
+                    jaxb.getInducement().add(inducement.toJAXB(prismContext));
+                }
             }
         }
-        if (repo.getExclusion() != null) {
-            for (RExclusion rExclusion : repo.getExclusion()) {
-                jaxb.getExclusion().add(rExclusion.toJAXB(prismContext));
+        if (SelectorOptions.hasToLoadPath(AbstractRoleType.F_EXCLUSION, options)) {
+            if (repo.getExclusion() != null) {
+                for (RExclusion rExclusion : repo.getExclusion()) {
+                    jaxb.getExclusion().add(rExclusion.toJAXB(prismContext));
+                }
             }
         }
-        if (repo.getAuthorization() != null) {
-            for (RAuthorization rAuth : repo.getAuthorization()) {
-                jaxb.getAuthorization().add(rAuth.toJAXB(prismContext));
+        if (SelectorOptions.hasToLoadPath(AbstractRoleType.F_AUTHORIZATION, options)) {
+            if (repo.getAuthorization() != null) {
+                for (RAuthorization rAuth : repo.getAuthorization()) {
+                    jaxb.getAuthorization().add(rAuth.toJAXB(prismContext));
+                }
             }
         }
 
-        if (repo.getApproverRef() != null) {
-            for (RObjectReference repoRef : repo.getApproverRef()) {
-                jaxb.getApproverRef().add(repoRef.toJAXB(prismContext));
+        if (SelectorOptions.hasToLoadPath(AbstractRoleType.F_APPROVER_REF, options)) {
+            if (repo.getApproverRef() != null) {
+                for (RObjectReference repoRef : repo.getApproverRef()) {
+                    jaxb.getApproverRef().add(repoRef.toJAXB(prismContext));
+                }
             }
         }
 
@@ -238,10 +246,12 @@ public abstract class RAbstractRole<T extends AbstractRoleType> extends RFocus<T
             jaxb.setApprovalSchema(RUtil.toJAXB(RoleType.class, new ItemPath(RoleType.F_APPROVAL_SCHEMA),
                     repo.getApprovalSchema(), ApprovalSchemaType.class, prismContext));
 
-            if (StringUtils.isNotEmpty(repo.getApprovalExpression())) {
-                List expressions = RUtil.toJAXB(RoleType.class, new ItemPath(RoleType.F_APPROVER_EXPRESSION),
-                        repo.getApprovalExpression(), List.class, prismContext);
-                jaxb.getApproverExpression().addAll(expressions);
+            if (SelectorOptions.hasToLoadPath(AbstractRoleType.F_APPROVER_EXPRESSION, options)) {
+                if (StringUtils.isNotEmpty(repo.getApprovalExpression())) {
+                    List expressions = RUtil.toJAXB(RoleType.class, new ItemPath(RoleType.F_APPROVER_EXPRESSION),
+                            repo.getApprovalExpression(), List.class, prismContext);
+                    jaxb.getApproverExpression().addAll(expressions);
+                }
             }
 
             if (StringUtils.isNotEmpty(repo.getAutomaticallyApproved())) {

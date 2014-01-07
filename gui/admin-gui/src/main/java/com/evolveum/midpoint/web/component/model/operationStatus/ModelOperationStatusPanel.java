@@ -17,13 +17,11 @@
 package com.evolveum.midpoint.web.component.model.operationStatus;
 
 import com.evolveum.midpoint.model.api.context.ModelState;
-import com.evolveum.midpoint.web.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.component.model.delta.DeltaDto;
 import com.evolveum.midpoint.web.component.model.delta.DeltaPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.CheckBox;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;

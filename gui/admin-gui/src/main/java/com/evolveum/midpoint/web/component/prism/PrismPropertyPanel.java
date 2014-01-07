@@ -30,6 +30,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -56,19 +57,12 @@ public class PrismPropertyPanel extends Panel {
         super(id);
 
         setOutputMarkupId(true);
-        add(new AttributeAppender("class", new Model<String>("objectFormPanel objectFormAttribute"), " "));
         add(new VisibleEnableBehaviour() {
 
             @Override
             public boolean isVisible() {
                 PropertyWrapper property = model.getObject();
-                PrismProperty prismProperty = property.getItem();
-                if (prismProperty.getDefinition().isOperational()) {
-                    return false;
-                }
-
-                ContainerWrapper container = property.getContainer();
-                return container.isPropertyVisible(property);
+                return property.isVisible();
             }
 
             @Override
@@ -129,6 +123,8 @@ public class PrismPropertyPanel extends Panel {
             @Override
             protected void populateItem(final ListItem<ValueWrapper> item) {
                 item.add(new PrismValuePanel("value", item.getModel(), label, form));
+                item.add(AttributeModifier.append("class", createStyleClassModel(item.getModel())));
+
                 item.add(new VisibleEnableBehaviour() {
 
                     @Override
@@ -139,6 +135,32 @@ public class PrismPropertyPanel extends Panel {
             }
         };
         add(values);
+    }
+
+    private IModel<String> createStyleClassModel(final IModel<ValueWrapper> value) {
+        return new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                if (getIndexOfValue(value.getObject()) > 0) {
+                    return "col-md-offset-4 prism-value";
+                }
+
+                return null;
+            }
+        };
+    }
+
+    private int getIndexOfValue(ValueWrapper value) {
+        PropertyWrapper property = value.getProperty();
+        List<ValueWrapper> values = property.getValues();
+        for (int i = 0; i < values.size(); i++) {
+            if (values.get(i).equals(value)) {
+                return i;
+            }
+        }
+
+        return -1;
     }
 
     private boolean hasOutbound(IModel<PropertyWrapper> model) {

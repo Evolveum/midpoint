@@ -26,8 +26,8 @@ import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
-import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
@@ -35,8 +35,7 @@ import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.resource.img.ImgResources;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -53,8 +52,6 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.*;
-import org.apache.wicket.request.resource.ResourceReference;
-import org.apache.wicket.request.resource.SharedResourceReference;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -125,7 +122,7 @@ public class UserBrowserDialog extends ModalWindow {
         table.setOutputMarkupId(true);
         mainForm.add(table);
 
-        AjaxSubmitLinkButton searchButton = new AjaxSubmitLinkButton("searchButton",
+        AjaxSubmitButton searchButton = new AjaxSubmitButton("searchButton",
                 createStringResource("userBrowserDialog.button.searchButton")) {
 
             @Override
@@ -140,7 +137,7 @@ public class UserBrowserDialog extends ModalWindow {
         };
         mainForm.add(searchButton);
 
-        AjaxLinkButton cancelButton = new AjaxLinkButton("cancelButton",
+        AjaxButton cancelButton = new AjaxButton("cancelButton",
                 createStringResource("userBrowserDialog.button.cancelButton")) {
 
             @Override
@@ -165,22 +162,13 @@ public class UserBrowserDialog extends ModalWindow {
         columns.add(new IconColumn<SelectableBean<UserType>>(createStringResource("userBrowserDialog.type")) {
 
             @Override
-            protected IModel<ResourceReference> createIconModel(final IModel<SelectableBean<UserType>> rowModel) {
-                return new AbstractReadOnlyModel<ResourceReference>() {
+            protected IModel<String> createIconModel(final IModel<SelectableBean<UserType>> rowModel) {
+                return new AbstractReadOnlyModel<String>() {
 
                     @Override
-                    public ResourceReference getObject() {
+                    public String getObject() {
                         UserType user = rowModel.getObject().getValue();
-                        CredentialsType credentials = user.getCredentials();
-
-                        if (credentials != null) {
-                            Boolean allowedAdmin = credentials.isAllowedIdmAdminGuiAccess();
-                            if (allowedAdmin != null && allowedAdmin) {
-                                return new SharedResourceReference(ImgResources.class, "user_red.png");
-                            }
-                        }
-
-                        return new SharedResourceReference(ImgResources.class, "user.png");
+                        return WebMiscUtil.createUserIcon(user.asPrismContainer());
                     }
                 };
             }
@@ -246,41 +234,41 @@ public class UserBrowserDialog extends ModalWindow {
         }
 
         try {
-			List<ObjectFilter> filters = new ArrayList<ObjectFilter>();
+            List<ObjectFilter> filters = new ArrayList<ObjectFilter>();
 
             PrismContext prismContext = getPageBase().getPrismContext();
-			PolyStringNormalizer normalizer = prismContext.getDefaultPolyStringNormalizer();
-			if (normalizer == null) {
-				normalizer = new PrismDefaultPolyStringNormalizer();
-			}
+            PolyStringNormalizer normalizer = prismContext.getDefaultPolyStringNormalizer();
+            if (normalizer == null) {
+                normalizer = new PrismDefaultPolyStringNormalizer();
+            }
 
-			String normalizedString = normalizer.normalize(dto.getSearchText());
+            String normalizedString = normalizer.normalize(dto.getSearchText());
 
-			if (dto.isName()) {
-				filters.add(SubstringFilter.createSubstring(UserType.class, prismContext, UserType.F_NAME,
-						normalizedString));
-			}
+            if (dto.isName()) {
+                filters.add(SubstringFilter.createSubstring(UserType.class, prismContext, UserType.F_NAME,
+                        normalizedString));
+            }
 
-			if (dto.isFamilyName()) {
-				filters.add(SubstringFilter.createSubstring(UserType.class, prismContext,
-						UserType.F_FAMILY_NAME, normalizedString));
-			}
-			if (dto.isFullName()) {
-				filters.add(SubstringFilter.createSubstring(UserType.class, prismContext,
-						UserType.F_FULL_NAME, normalizedString));
-			}
-			if (dto.isGivenName()) {
-				filters.add(SubstringFilter.createSubstring(UserType.class, prismContext,
-						UserType.F_GIVEN_NAME, normalizedString));
-			}
+            if (dto.isFamilyName()) {
+                filters.add(SubstringFilter.createSubstring(UserType.class, prismContext,
+                        UserType.F_FAMILY_NAME, normalizedString));
+            }
+            if (dto.isFullName()) {
+                filters.add(SubstringFilter.createSubstring(UserType.class, prismContext,
+                        UserType.F_FULL_NAME, normalizedString));
+            }
+            if (dto.isGivenName()) {
+                filters.add(SubstringFilter.createSubstring(UserType.class, prismContext,
+                        UserType.F_GIVEN_NAME, normalizedString));
+            }
 
-			if (!filters.isEmpty()) {
-				query = new ObjectQuery().createObjectQuery(OrFilter.createOr(filters));
-			}
-		} catch (Exception ex) {
-			error(getString("userBrowserDialog.message.queryError") + " " + ex.getMessage());
-			LoggingUtils.logException(LOGGER, "Couldn't create query filter.", ex);
-		}
+            if (!filters.isEmpty()) {
+                query = new ObjectQuery().createObjectQuery(OrFilter.createOr(filters));
+            }
+        } catch (Exception ex) {
+            error(getString("userBrowserDialog.message.queryError") + " " + ex.getMessage());
+            LoggingUtils.logException(LOGGER, "Couldn't create query filter.", ex);
+        }
 
         return query;
     }

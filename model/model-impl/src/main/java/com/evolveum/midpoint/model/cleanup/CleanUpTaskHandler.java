@@ -64,7 +64,7 @@ public class CleanUpTaskHandler implements TaskHandler{
     @Autowired(required=true)
     private AuditService auditService;
 
-    @Autowired
+    @Autowired(required = false)
     private ReportManager reportManager;
 	
 	@Autowired(required=true)
@@ -147,7 +147,12 @@ public class CleanUpTaskHandler implements TaskHandler{
 		CleanupPolicyType reportCleanupPolicy = cleanupPolicies.getOutputReports();
 		if (reportCleanupPolicy != null) {
 			try {
-				reportManager.cleanupReports(reportCleanupPolicy, opResult);
+                if (reportManager == null) {
+                    //TODO improve dependencies for report-impl (probably for tests) and set autowire to required
+                    LOGGER.error("Report manager was not autowired, reports cleanup will be skipped.");
+                } else {
+				    reportManager.cleanupReports(reportCleanupPolicy, opResult);
+                }
 			} catch (Exception ex) {
 				LOGGER.error("Cleanup: {}", ex.getMessage(), ex);
 				opResult.recordFatalError(ex.getMessage(), ex);

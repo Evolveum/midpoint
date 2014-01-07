@@ -17,31 +17,11 @@
 package com.evolveum.midpoint.web.page.admin.workflow;
 
 
-import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
- * Marker page class for {@link com.evolveum.midpoint.web.component.menu.top.TopMenu}
- *
  * @author lazyman
  */
 public class PageAdminWorkItems extends PageAdmin {
-
-    @Override
-    public List<BottomMenuItem> getBottomMenuItems() {
-        List<BottomMenuItem> items = new ArrayList<BottomMenuItem>();
-
-        items.add(new BottomMenuItem(createStringResource("pageAdminWorkItems.listWorkItems"), PageWorkItems.class));
-        items.add(new BottomMenuItem(createStringResource("pageAdminWorkItems.listProcessInstancesAll"),
-                PageProcessInstancesAll.class));
-        items.add(new BottomMenuItem(createStringResource("pageAdminWorkItems.listProcessInstancesRequestedBy"),
-                PageProcessInstancesRequestedBy.class));
-        items.add(new BottomMenuItem(createStringResource("pageAdminWorkItems.listProcessInstancesRequestedFor"),
-                PageProcessInstancesRequestedFor.class));
-        return items;
-    }
 
 }

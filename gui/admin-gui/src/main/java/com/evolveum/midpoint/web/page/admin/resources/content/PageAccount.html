@@ -18,15 +18,18 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <h2><span wicket:id="subtitle" /></h2>
     <form wicket:id="mainForm" autocomplete="off">
-        <div wicket:id="account"/>
-
-        <div class="operatingFormButtons">
-            <div class="operatingFormBlock">
-                <a wicket:id="back"/>
-                <a wicket:id="save"/>
+        <div class="row">
+            <div class="col-md-6">
+                <div wicket:id="account"/>
             </div>
+        </div>
+
+        <div class="main-button-bar">
+            <span class="button-group">
+                <a class="btn btn-default" wicket:id="back" />
+            </span>
+            <a class="btn btn-primary" wicket:id="save"/>
         </div>
     </form>
 </wicket:extend>

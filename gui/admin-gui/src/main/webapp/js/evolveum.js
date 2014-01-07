@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+/**
+ * DEPRECATED [lazyman]
+ */
+
 var objectFormHelpContainer = null;
 var interval = 0;
 var ajaxError = 0;
@@ -27,9 +31,21 @@ $(document).ready(function(){
 	}*/
 });
 
+function isIE9OrNewer() {
+    //todo not working with jquery > 1.9 [lazyman]
+//    return $.browser.msie && $.browser.version >= 9.0;
+    return true;
+}
+
+function isIE() {
+    //todo not working with jquery > 1.9 [lazyman]
+//    return $.browser.msie;
+    return false;
+}
+
 function init() {
 	//loadScript("js/less.js");
-	setMenuPositionWhileScroll();
+
 	$(document).unbind("mousedown");
 	$("#blackWindow").css("opacity", .8);
 	$("#blackWindow").hide();
@@ -44,39 +60,13 @@ function init() {
 	$(".left-menu .selected-left").parent().css("opacity", 1);
 	$(".left-menu .selected-left").parent().css("background", "#333333");
 	
-	if ($.browser.msie && $.browser.version < 9.0){
+	if (!isIE9OrNewer()){
 		$(".acc .acc-section").css("height", "1px");
 		$(".acc-content .sortedTable table").css("width", $(".acc-content").width());
 	}
 	
 	$(".optionPanel").css("height",$(".optionRightBar").height());
 	$(".optionLeftBar").css("height",$(".optionRightBar").height());
-	
-	//$(".sortedTable table thead").find(".sortable").find("a").find("div").append("<span class='sortableArrowIcon'></span>");
-	
-	$(".left-menu ul").mouseenter(function(){
-		$(".left-menu ul").stop();
-		$(".left-menu ul").animate({left: 0}, {duration: 500, easing: "easeOutQuart"});
-	}).mouseleave(function(){
-		$(".left-menu ul").stop();
-		$(".left-menu ul").animate({left: -252}, {duration: 500, easing: "easeOutQuart"});
-	});
-	
-	$(".left-menu ul li").mouseenter(function(){
-		$(this).stop();
-		$(this).find("a").stop();
-		if($(this).attr("class") != "leftMenuTopClear" && $(this).attr("class") != "leftMenuBottomClear"){
-			$(this).animate({opacity : 1}, 200);
-			$(this).find("a").animate({opacity : 1}, 250);
-		}
-	}).mouseleave(function(){
-		$(this).stop();
-		$(this).find("a").stop();
-		if($(this).find("a").attr("class") != "selected-left"){
-			$(this).animate({opacity : .8}, 200);
-			$(this).find("a").animate({opacity : .5}, 250);
-		}
-	});
 	
 	$(".objectFormAttribute").mouseenter(function(){
 		objectFormHelpContainer = $(this).find(".objectFormHelpContainer");
@@ -86,26 +76,6 @@ function init() {
 		hideFormHelpContainer();
 	});
 
-    /*
-    // not very good solution, css in javascript.
-    // also what if there are more checkboxes in row.
-	$(".submitTable tbody tr").mouseenter(function(){
-		if($(this).find("input[type='checkbox']").is(":checked")){
-			$(this).find("td").css("background", "#c6e9c6");
-		} else {
-			$(this).find("td").css("background", "#f2f2f2");
-		}
-	}).mouseleave(function(){
-		if($(this).find("input[type='checkbox']").is(":checked")){
-			$(this).find("td").css("background", "#d8f4d8");
-			$(this).find("td").css("border-color","#FFFFFF");
-		} else {
-			$(this).find("td").css("background", "#FFFFFF");
-			$(this).find("td").css("border-color","#F2F2F2");
-		}
-	});
-	*/
-	
 	var el = $('.searchPanel');
     el.focus(function(e) {
         if (e.target.value == e.target.defaultValue)
@@ -128,14 +98,6 @@ function init() {
 			$("#xmlExport").hide();
 		}
 	});
-
-    $(".operatingFormButtons .button, .top-menu a").click(function(){
-    	showDisableOperationFormButtons();
-    });
-
-    $(".pager a").click(function() {
-    	showDisablePaging();
-	});
 }
 
 
@@ -144,7 +106,7 @@ function clickFuncWicket6(eventData) {
     if ((clickedElement.tagName.toUpperCase() == 'BUTTON' || clickedElement.tagName.toUpperCase() == 'A' || clickedElement.parentNode.tagName.toUpperCase() == 'A'
         || (clickedElement.tagName.toUpperCase() == 'INPUT' && (clickedElement.type.toUpperCase() == 'BUTTON' || clickedElement.type.toUpperCase() == 'SUBMIT')))
         && clickedElement.parentNode.id.toUpperCase() != 'NOBUSY' ) {
-        showBusysign();
+        showAjaxStatusSign();
     }
 }
 
@@ -152,26 +114,19 @@ function initAjaxStatusSigns() {
     document.getElementsByTagName('body')[0].onclick = clickFuncWicket6;
     hideAjaxStatusSign();
     Wicket.Event.subscribe('/ajax/call/beforeSend', function( attributes, jqXHR, settings ) {
-        showAjaxStatusSign('busy');
+        showAjaxStatusSign();
     });
     Wicket.Event.subscribe('/ajax/call/complete', function( attributes, jqXHR, textStatus) {
         hideAjaxStatusSign();
     });
 }
 
-function showAjaxStatusSign(sign) {
-    hideAjaxStatusSign();
-
-    if (sign == 'error') {
-        document.getElementById('error_indicator').style.display = 'inline';
-    } else if (sign == 'busy') {
-        document.getElementById('bysy_indicator').style.display = 'inline';
-    }
+function showAjaxStatusSign() {
+    document.getElementById('ajax_busy').style.display = 'inline';
 }
 
 function hideAjaxStatusSign() {
-    document.getElementById('bysy_indicator').style.display = 'none';
-    document.getElementById('error_indicator').style.display = 'none';
+    document.getElementById('ajax_busy').style.display = 'none';
 }
 
 function showLeftMenu() {
@@ -196,27 +151,6 @@ function hideFormHelpContainer(){
     }
 	clearTimeout(interval);
 	objectFormHelpContainer.hide();
-}
-
-function setMenuPositionWhileScroll() {
-	if (($.browser.msie && $.browser.version >= 9.0) || (!$.browser.msie)) {
-		$(window).scroll(function() {
-			var scroll = $(window).scrollTop();
-			if (scroll >= 60) {
-				$(".top-menu").css("position", "fixed");
-				$(".top-menu").css("top", "0px");
-			} else {
-				$(".top-menu").css("position", "absolute");
-				$(".top-menu").css("top", "60px");
-			}
-		}); 
-	}
-	
-	if ($.browser.msie && $.browser.version < 9.0){
-		window.onresize = function() {
-			$(".acc-content .sortedTable table").css("width", $(".acc-content").width());
-		};
-	}
 }
 
 function setFooterPos(){
@@ -309,25 +243,25 @@ function setupFunc() {
 }
 
 function hideBusysign() {
-	document.getElementById('bysy_indicator').style.display = 'none';
-	document.getElementById('error_indicator').style.display = 'none';
-	hideDisableOperationFormButtons();
-	hideDisablePaging();
+//	document.getElementById('bysy_indicator').style.display = 'none';
+//	document.getElementById('error_indicator').style.display = 'none';
+//	hideDisableOperationFormButtons();
+//	hideDisablePaging();
 	ajaxError = 0;
 }
 
 function showError() {
-	document.getElementById('bysy_indicator').style.display = 'none';
-	document.getElementById('error_indicator').style.display = 'inline';
-	showDisableOperationFormButtons();
+//	document.getElementById('bysy_indicator').style.display = 'none';
+//	document.getElementById('error_indicator').style.display = 'inline';
+//	showDisableOperationFormButtons();
 	ajaxError = 1;
 }
 
 function showBusysign() {
-	if(ajaxError != 1) {
-		document.getElementById('bysy_indicator').style.display = 'inline';
-		document.getElementById('error_indicator').style.display = 'none';
-	}
+//	if(ajaxError != 1) {
+//		document.getElementById('bysy_indicator').style.display = 'inline';
+//		document.getElementById('error_indicator').style.display = 'none';
+//	}
 }
 
 var clickedElement = null;
@@ -374,39 +308,6 @@ if(clickedElement != null) {
 				.toUpperCase() == 'IMAGE')))) {
 	showBusysign();
 	}
-}
-
-
-// disabled this s...stuff  MID-1633
-function showDisableOperationFormButtons() {
-//	var operationFormBlock = $(".operatingFormButtons");
-//	var disablePanel = '<div class="disableOperationBlock" style="height: 100%; width: 100%; position: absolute; z-index: 4;"></div>';
-//	operationFormBlock.append(disablePanel);
-//	if(operationFormBlock.find(".operatingFormBlock").size() == 0) {
-//		$(".disableOperationBlock").insertBefore($(".operatingFormButtons").find(".button:first"));
-//	}
-//	//$(".operatingFormButtons").find(".button").css("opacity", .5);
-//	$(".operatingFormButtons").css("opacity", .5);
-}
-
-// disabled this s...stuff  MID-1633
-function hideDisableOperationFormButtons() {
-//	var disableOperationBlock = $(".disableOperationBlock");
-//	$(".operatingFormButtons").css("opacity", 1);
-//	//$(".operatingFormButtons").find(".button").css("opacity", 1);
-//	disableOperationBlock.remove();
-}
-
-// disabled this s...stuff  MID-1633
-function showDisablePaging() {
-//	$(".disablePaging").show();
-//	$(".pager").css("opacity", .5);
-}
-
-// disabled this s...stuff  MID-1633
-function hideDisablePaging() {
-//	$(".disablePaging").hide();
-//	$(".pager").css("opacity", 1);
 }
 
 /**

@@ -5674,6 +5674,9 @@
                                 For more details see the ActivationType
                                 documentation.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>Activation</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="credentials" type="tns:CredentialsType" minOccurs="0" maxOccurs="1">

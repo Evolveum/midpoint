@@ -22,28 +22,11 @@
     <div wicket:id="deleteHostsPopup" />
 
     <form wicket:id="mainForm">
+        <h3><wicket:message key="pageResources.resources"/></h3>
         <div wicket:id="table"/>
-        <h2>
-            <wicket:message key="pageResources.connector.title"/>
-        </h2>
+
+        <h3><wicket:message key="pageResources.connectorHosts"/></h3>
         <div wicket:id="connectorTable"/>
-
-        <div class="operatingFormButtons">
-            <div class="operatingFormBlock">
-                <span class="operatingFormText">
-                    <wicket:message key="pageResources.button.label.resource"/>
-                </span>
-                <a wicket:id="deleteResource"/>
-            </div>
-
-            <div class="operatingFormBlock">
-                <span class="operatingFormText">
-                    <wicket:message key="pageResources.button.label.connector"/>
-                </span>
-                <a wicket:id="deleteHost"/>
-                <a wicket:id="discoveryRemote"/>
-            </div>
-        </div>
     </form>
 </wicket:extend>
 </body>

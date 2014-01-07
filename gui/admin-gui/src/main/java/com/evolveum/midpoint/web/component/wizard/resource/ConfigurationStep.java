@@ -16,21 +16,28 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource;
 
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.DiffUtil;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
+import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.wizard.WizardStep;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.wizard.WizardStep;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.StringResourceModel;
 
 /**
  * @author lazyman
@@ -38,23 +45,25 @@ import org.apache.wicket.model.StringResourceModel;
 public class ConfigurationStep extends WizardStep {
 
     private static final Trace LOGGER = TraceManager.getTrace(ConfigurationStep.class);
+
+    private static final String DOT_CLASS = ConfigurationStep.class.getName() + ".";
+    private static final String TEST_CONNECTION = DOT_CLASS + "testConnection";
+    private static final String OPERATION_SAVE = DOT_CLASS + "saveResource";
+
     private static final String ID_CONFIGURATION = "configuration";
+    private static final String ID_TIMEOUTS = "timeouts";
     private static final String ID_TEST_CONNECTION = "testConnection";
 
-    private IModel<ResourceType> resourceModel;
+    private IModel<PrismObject<ResourceType>> resourceModel;
+    private IModel<ObjectWrapper> configurationProperties;
 
-    public ConfigurationStep(IModel<ResourceType> resourceModel) {
+    public ConfigurationStep(IModel<PrismObject<ResourceType>> resourceModel) {
         this.resourceModel = resourceModel;
-
-        initLayout(resourceModel);
-    }
-
-    private void initLayout(final IModel<ResourceType> resourceModel) {
-        IModel<ObjectWrapper> wrapperModel = new LoadableModel<ObjectWrapper>(false) {
+        this.configurationProperties = new LoadableModel<ObjectWrapper>(false) {
 
             @Override
             protected ObjectWrapper load() {
-                ObjectWrapper wrapper = new ObjectWrapper(null, null, resourceModel.getObject().asPrismObject(),
+                ObjectWrapper wrapper = new ObjectWrapper(null, null, ConfigurationStep.this.resourceModel.getObject(),
                         ContainerStatus.MODIFYING);
                 wrapper.setMinimalized(false);
                 wrapper.setShowEmpty(true);
@@ -67,11 +76,15 @@ public class ConfigurationStep extends WizardStep {
             }
         };
 
-        PrismObjectPanel configuration = new PrismObjectPanel(ID_CONFIGURATION, wrapperModel, null, null);
+        initLayout();
+    }
+
+    private void initLayout() {
+        PrismObjectPanel configuration = new PrismObjectPanel(ID_CONFIGURATION, configurationProperties, null, null);
         add(configuration);
 
-        AjaxLinkButton testConnection = new AjaxLinkButton(ID_TEST_CONNECTION,
-                new StringResourceModel("ConfigurationStep.button.testConnection", this, null, "Test connection")) {
+        AjaxButton testConnection = new AjaxButton(ID_TEST_CONNECTION,
+                createStringResource("ConfigurationStep.button.testConnection")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -82,14 +95,50 @@ public class ConfigurationStep extends WizardStep {
     }
 
     private void testConnectionPerformed(AjaxRequestTarget target) {
-        //todo implement
+        PageBase page = getPageBase();
+        ModelService model = page.getModelService();
+
+        OperationResult result = new OperationResult(TEST_CONNECTION);
+        try {
+            PrismObject<ResourceType> newResource = resourceModel.getObject();
+            //apply configuration to old resource
+            ObjectWrapper wrapper = configurationProperties.getObject();
+            ObjectDelta delta = wrapper.getObjectDelta();
+            delta.applyTo(newResource);
+
+            PrismObject<ResourceType> oldResource = WebModelUtils.loadObject(ResourceType.class, newResource.getOid(),
+                    result, page);
+
+            delta = DiffUtil.diff(oldResource, newResource);
+            WebModelUtils.save(delta, result, page);
+
+            newResource = WebModelUtils.loadObject(ResourceType.class, newResource.getOid(), result, page);
+            resourceModel.setObject(newResource);
+
+            Task task = page.createSimpleTask(TEST_CONNECTION);
+            String oid = resourceModel.getObject().getOid();
+            result = model.testResource(oid, task);
+
+            page.showResult(result);
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "Error occurred during resource test connection", ex);
+        }
+
+        target.add(page.getFeedbackPanel());
+
+        //todo show more precise information about test connection operation [lazyman]
     }
 
     @Override
     public void applyState() {
-        super.applyState();
-
-        PrismObjectPanel configuration = (PrismObjectPanel) get(ID_CONFIGURATION);
-
+//        PageBase page = getPageBase();
+//        OperationResult result = new OperationResult(OPERATION_SAVE);
+//
+//        PrismObject<ResourceType> newResource = resourceModel.getObject();
+//        PrismObject<ResourceType> oldResource = WebModelUtils.loadObject(ResourceType.class, newResource.getOid(),
+//                result, page);
+//
+//        ObjectDelta delta = DiffUtil.diff(oldResource, newResource);
+//        WebModelUtils.save(delta, result, page);
     }
 }

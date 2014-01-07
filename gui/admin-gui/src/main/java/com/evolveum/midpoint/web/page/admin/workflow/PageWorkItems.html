@@ -19,22 +19,13 @@
 <body>
 <wicket:extend>
     <form wicket:id="mainForm">
-        <!--
-        <div wicket:id="unassignedItemTable"/>
-        <h2>
-            <wicket:message key="pageWorkItems.assignedToMe"/>
-        </h2> -->
         <div wicket:id="assignedItemTable"/>
 
-        <div class="operatingFormButtons">
-        	<div class="operatingFormBlock">
-                	            <span class="operatingFormText"><wicket:message key="pageWorkItems.button.label.item"/></span>
-                    <!--<a wicket:id="claim"/>-->
-                    <!--<a wicket:id="release"/>-->
-                    <a wicket:id="approve"/>
-                    <a wicket:id="reject"/>
-			</div>
-			
+        <div class="main-button-bar">
+            <span class="button-group">
+                <a class="btn btn-danger" wicket:id="reject" />
+            </span>
+            <a class="btn btn-primary" wicket:id="approve"/>
         </div>
     </form>
 </wicket:extend>

@@ -18,16 +18,15 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <div class="colmask doublepage">
-        <div class="colleft">
-            <div class="col1">
-                <div wicket:id="personalInfo" class="dashboard-panel"/>
-                <div wicket:id="assignments" class="dashboard-panel"/>
-            </div>
-            <div class="col2">
-                <div wicket:id="workItems" class="dashboard-panel"/>
-                <div wicket:id="accounts" class="dashboard-panel"/>
-            </div>
+    <div class="row">
+        <div class="col-md-6">
+            <div wicket:id="personalInfo"/>
+            <div wicket:id="assignments"/>
+        </div>
+        <div class="col-md-6">
+            <div wicket:id="systemInfo"/>
+            <div wicket:id="workItems"/>
+            <div wicket:id="accounts"/>
         </div>
     </div>
 </wicket:extend>

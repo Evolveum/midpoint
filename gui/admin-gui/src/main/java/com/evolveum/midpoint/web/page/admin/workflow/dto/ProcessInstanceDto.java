@@ -29,6 +29,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceVa
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -94,5 +95,10 @@ public class ProcessInstanceDto extends Selectable {
 
     public String getWatchingTaskOid() {
         return WfVariablesUtil.getWatchingTaskOid(processInstance);
+    }
+
+    // fixme (parametrize)
+    public Object getVariable(String name) {
+        return WfVariablesUtil.getVariable(processInstance, name, Serializable.class);
     }
 }

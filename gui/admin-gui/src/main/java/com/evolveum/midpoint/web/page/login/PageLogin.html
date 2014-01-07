@@ -20,67 +20,43 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <form wicket:id="loginForm" name="loginForm">
-        <div class="objectForm" style="padding-top: 80px;">
-            <table align="center" class="tableForm" cellspacing="0" border="0">
-                <thead>
-                <tr>
-                    <td class="objectFormHeader" colspan="2">
-                        <img wicket:id="image" class="objectFormHeaderIcon" alt="" />
 
-                        <div class="objectFormHeaderText">
-                            <span class="objectFormHeaderName">
-                                <wicket:message key="pageLogin.title"/>
-                            </span> <br>
-                            <span class="objectFormHeaderDescription">
-                                <wicket:message key="pageLogin.description"/>
-                            </span>
-                        </div>
-                    </td>
-                </tr>
-                </thead>
-                <tbody>
-                <tr>
-                    <td class="objectFormLabel">
-                        <div class="objectFormLabelName">
-                            <span><wicket:message key="pageLogin.userLabel"/></span>
-                        </div>
-                    </td>
-                    <td class="objectFormValues">
-                        <div class="objectFormValue">
-                            <div class="objectFormInput">
-                                <input wicket:id="username" id="userName" type="text" size="42"/>
+    <div class="row">
+        <div class="col-md-offset-2 col-md-8 col-lg-offset-4 col-lg-4">
+            <div class="panel panel-default" style="margin-top: 120px;">
+                <div class="panel-body">
+                    <form wicket:id="loginForm" class="form-horizontal">
+                        <div class="form-group">
+                            <label class="col-md-4 col-lg-4 control-label">
+                                <wicket:message key="PageLogin.username"/>
+                            </label>
+
+                            <div class="col-md-8 col-lg-8">
+                                <input wicket:id="username" type="text" class="form-control input-sm focus-username"
+                                       wicket:message="placeholder:PageLogin.username">
                             </div>
                         </div>
-                    </td>
-                </tr>
-                <tr>
-                    <td class="objectFormLabel">
-                        <div class="objectFormLabelName">
-                            <span><wicket:message key="pageLogin.passwordLabel"/></span>
-                        </div>
-                    </td>
-                    <td class="objectFormValues">
-                        <div class="objectFormValue">
-                            <div class="objectFormInput">
-                                <input wicket:id="password" id="userPass" type="password" size="42"/>
+                        <div class="form-group">
+                            <label class="col-md-4 col-lg-4 control-label">
+                                <wicket:message key="PageLogin.password"/>
+                            </label>
+
+                            <div class="col-md-8 col-lg-8">
+                                <input wicket:id="password" type="password" class="form-control input-sm"
+                                       wicket:message="placeholder:PageLogin.password">
                             </div>
                         </div>
-                    </td>
-                </tr>
-                </tbody>
-                <tfoot>
-                <tr>
-                    <td colspan="2" align="center" style="padding: 5px 0;">
-                        <input type="submit" class="button" wicket:message="value:pageLogin.submit"/>
-                    </td>
-                </tr>
-                </tfoot>
-            </table>
+
+                        <input type="submit" class="btn btn-primary pull-right" wicket:message="value:PageLogin.signIn"/>
+                    </form>
+                </div>
+            </div>
         </div>
-    </form>
+    </div>
+
+
     <script type="text/javascript">
-        $("#userName").focus();
+        $(".focus-username").focus();
     </script>
 </wicket:extend>
 
