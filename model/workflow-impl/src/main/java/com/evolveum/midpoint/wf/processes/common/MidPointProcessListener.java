@@ -19,23 +19,40 @@ package com.evolveum.midpoint.wf.processes.common;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.activiti.SpringApplicationContextHolder;
+import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.ExecutionListener;
 
 /**
+ * A listener that informs midPoint about process instance end for "smart" processes.
+ * A process must register this listener in order for it to be invoked using a construction like this (at the level of process):
+ *
+ * <extensionElements>
+ *   <activiti:executionListener event="end" class="com.evolveum.midpoint.wf.processes.common.MidPointProcessListener" />
+ * </extensionElements>
+ *
  * @author mederly
  */
 public class MidPointProcessListener implements ExecutionListener {
 
     private static final Trace LOGGER = TraceManager.getTrace(MidPointProcessListener.class);
-    private static final String DOT_CLASS = MidPointProcessListener.class.getName() + ".";
+    //private static final String DOT_CLASS = MidPointProcessListener.class.getName() + ".";
 
     @Override
     public void notify(DelegateExecution execution) throws Exception {
         if (ExecutionListener.EVENTNAME_END.equals(execution.getEventName())) {
             LOGGER.trace("Signalling process end; execution id = {}, current activity id = {}, current activity name = {}, instance id = {}",
                     new Object[] { execution.getId(), execution.getCurrentActivityId(), execution.getCurrentActivityName(), execution.getProcessInstanceId() });
-            SpringApplicationContextHolder.getActivitiInterface().notifyMidpointFinal(execution);
+            try {
+                SpringApplicationContextHolder.getActivitiInterface().notifyMidpointFinal(execution);
+            } catch (Exception e) {
+                LOGGER.trace("Got exception while processing process end event in midpoint", e);
+                if (Boolean.TRUE.equals(execution.getVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_IS_PROCESS_INSTANCE_STOPPING))) {
+                    LOGGER.trace("... the process is ending anyway, so we just ignore this exception");
+                } else {
+                    throw e;
+                }
+            }
         }
     }
 }

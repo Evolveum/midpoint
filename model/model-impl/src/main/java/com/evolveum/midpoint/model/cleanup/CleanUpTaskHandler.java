@@ -64,7 +64,7 @@ public class CleanUpTaskHandler implements TaskHandler{
     @Autowired(required=true)
     private AuditService auditService;
 
-    @Autowired
+    @Autowired(required = false)
     private ReportManager reportManager;
 	
 	@Autowired(required=true)
@@ -142,6 +142,25 @@ public class CleanUpTaskHandler implements TaskHandler{
 			}
 		} else{
 			LOGGER.trace("Cleanup: No clean up policy for closed tasks specified. Finishing clean up task.");
+		}
+		
+		CleanupPolicyType reportCleanupPolicy = cleanupPolicies.getOutputReports();
+		if (reportCleanupPolicy != null) {
+			try {
+                if (reportManager == null) {
+                    //TODO improve dependencies for report-impl (probably for tests) and set autowire to required
+                    LOGGER.error("Report manager was not autowired, reports cleanup will be skipped.");
+                } else {
+				    reportManager.cleanupReports(reportCleanupPolicy, opResult);
+                }
+			} catch (Exception ex) {
+				LOGGER.error("Cleanup: {}", ex.getMessage(), ex);
+				opResult.recordFatalError(ex.getMessage(), ex);
+				runResult.setRunResultStatus(TaskRunResultStatus.PERMANENT_ERROR);
+				runResult.setProgress(progress);
+			}
+		} else{
+			LOGGER.trace("Cleanup: No clean up policy for report specified. Finishing clean up task.");
 		}
 		opResult.computeStatus();
 		// This "run" is finished. But the task goes on ...

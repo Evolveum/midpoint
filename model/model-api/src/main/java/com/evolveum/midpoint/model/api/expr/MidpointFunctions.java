@@ -43,6 +43,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
+import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 import java.util.Collection;
@@ -891,4 +892,12 @@ public interface MidpointFunctions {
     boolean isDirectlyAssigned(ObjectType target);
 
     <F extends FocusType> boolean isDirectlyAssigned(F focusType, ObjectType target);
+
+    /**
+     * Returns aggregated delta that is to be executed on a given resource.
+     * @param context model context
+     * @param resourceOid OID of the resource in question
+     * @return
+     */
+    ObjectDeltaType getResourceDelta(ModelContext context, String resourceOid);
 }

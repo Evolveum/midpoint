@@ -35,7 +35,6 @@
 	default-lazy-init="false" default-autowire="byName">
 
     <import resource="ctx-model.xml"/>
-    <import resource="ctx-workflow.xml"/>
     <import resource="classpath*:ctx-repository.xml"/>
     <import resource="ctx-repo-cache.xml"/>
     <import resource="ctx-configuration-test.xml"/>
