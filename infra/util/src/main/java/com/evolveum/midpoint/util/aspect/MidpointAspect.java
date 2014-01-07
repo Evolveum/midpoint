@@ -67,37 +67,37 @@ public class MidpointAspect {
 	public static final String[] SUBSYSTEMS = { SUBSYSTEM_REPOSITORY, SUBSYSTEM_TASKMANAGER, SUBSYSTEM_PROVISIONING, 
 		SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER, SUBSYSTEM_MODEL, SUBSYSTEM_UCF };
 
-//	@Around("entriesIntoRepository()")
+	@Around("entriesIntoRepository()")
 	public Object processRepositoryNdc(ProceedingJoinPoint pjp) throws Throwable {
 		return wrapSubsystem(pjp, SUBSYSTEM_REPOSITORY);
 	}
 
-//    @Around("entriesIntoModel()")
+    @Around("entriesIntoModel()")
     public Object processModelNdc(ProceedingJoinPoint pjp) throws Throwable {
         return wrapSubsystem(pjp, SUBSYSTEM_MODEL);
     }
 
-//    @Around("entriesIntoProvisioning()")
+    @Around("entriesIntoProvisioning()")
     public Object processProvisioningNdc(ProceedingJoinPoint pjp) throws Throwable {
         return wrapSubsystem(pjp, SUBSYSTEM_PROVISIONING);
     }
 
-//    @Around("entriesIntoTaskManager()")
+    @Around("entriesIntoTaskManager()")
 	public Object processTaskManagerNdc(ProceedingJoinPoint pjp) throws Throwable {
 		return wrapSubsystem(pjp, SUBSYSTEM_TASKMANAGER);
 	}
 
-//    @Around("entriesIntoUcf()")
+    @Around("entriesIntoUcf()")
     public Object processUcfNdc(ProceedingJoinPoint pjp) throws Throwable {
         return wrapSubsystem(pjp, SUBSYSTEM_UCF);
     }
 
-//    @Around("entriesIntoResourceObjectChangeListener()")
+    @Around("entriesIntoResourceObjectChangeListener()")
 	public Object processResourceObjectChangeListenerNdc(ProceedingJoinPoint pjp) throws Throwable {
 		return wrapSubsystem(pjp, SUBSYSTEM_RESOURCEOBJECTCHANGELISTENER);
 	}
 
-//    @Around("entriesIntoWorkflow()")
+    @Around("entriesIntoWorkflow()")
     public Object proccessWorkflowNdc(ProceedingJoinPoint pjp) throws Throwable {
         return wrapSubsystem(pjp, SUBSYSTEM_WORKFLOW);
     }
@@ -286,32 +286,32 @@ public class MidpointAspect {
     }
 
 
-//	@Pointcut("execution(* com.evolveum.midpoint.repo.api.RepositoryService.*(..))")
+	@Pointcut("execution(* com.evolveum.midpoint.repo.api.RepositoryService.*(..))")
 	public void entriesIntoRepository() {
 	}
 
-//    @Pointcut("execution(* com.evolveum.midpoint.model.api.ModelService.*(..))")
+    @Pointcut("execution(* com.evolveum.midpoint.model.api.ModelService.*(..))")
     public void entriesIntoModel() {
     }
 
-//    @Pointcut("execution(* com.evolveum.midpoint.provisioning.api.ProvisioningService.*(..))")
+    @Pointcut("execution(* com.evolveum.midpoint.provisioning.api.ProvisioningService.*(..))")
     public void entriesIntoProvisioning() {
     }
 
-//	@Pointcut("execution(* com.evolveum.midpoint.task.api.TaskManager.*(..))")
+	@Pointcut("execution(* com.evolveum.midpoint.task.api.TaskManager.*(..))")
 	public void entriesIntoTaskManager() {
 	}
 
-//    @Pointcut("execution(* com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance.*(..)) " +
-//            "|| execution(* com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory.*(..))")
+    @Pointcut("execution(* com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance.*(..)) " +
+            "|| execution(* com.evolveum.midpoint.provisioning.ucf.api.ConnectorFactory.*(..))")
     public void entriesIntoUcf() {
     }
 
-//	@Pointcut("execution(* com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener.*(..))")
+	@Pointcut("execution(* com.evolveum.midpoint.provisioning.api.ResourceObjectChangeListener.*(..))")
 	public void entriesIntoResourceObjectChangeListener() {
 	}
 
-//    @Pointcut("execution(* com.evolveum.midpoint.wf.api.WorkflowService.*(..))")
+    @Pointcut("execution(* com.evolveum.midpoint.wf.api.WorkflowService.*(..))")
     public void entriesIntoWorkflow(){
 
     }
