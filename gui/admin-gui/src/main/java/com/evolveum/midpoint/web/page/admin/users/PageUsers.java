@@ -432,21 +432,21 @@ public class PageUsers extends PageAdminUsers {
             String normalizedString = normalizer.normalize(dto.getText());
 
             if (dto.hasType(UsersDto.SearchType.NAME)) {
-                filters.add(SubstringFilter.createSubstring(UserType.class, getPrismContext(),
-                        UserType.F_NAME, PolyStringNormMatchingRule.NAME.getLocalPart(), normalizedString));
+                filters.add(SubstringFilter.createSubstring(UserType.F_NAME, UserType.class, getPrismContext(),
+                        PolyStringNormMatchingRule.NAME, normalizedString));
             }
 
             if (dto.hasType(UsersDto.SearchType.FAMILY_NAME)) {
-                filters.add(SubstringFilter.createSubstring(UserType.class, getPrismContext(),
-                        UserType.F_FAMILY_NAME, PolyStringNormMatchingRule.NAME.getLocalPart(), normalizedString));
+                filters.add(SubstringFilter.createSubstring(UserType.F_FAMILY_NAME, UserType.class, getPrismContext(),
+                        PolyStringNormMatchingRule.NAME, normalizedString));
             }
             if (dto.hasType(UsersDto.SearchType.FULL_NAME)) {
-                filters.add(SubstringFilter.createSubstring(UserType.class, getPrismContext(),
-                        UserType.F_FULL_NAME, PolyStringNormMatchingRule.NAME.getLocalPart(), normalizedString));
+                filters.add(SubstringFilter.createSubstring(UserType.F_FULL_NAME, UserType.class, getPrismContext(),
+                        PolyStringNormMatchingRule.NAME, normalizedString));
             }
             if (dto.hasType(UsersDto.SearchType.GIVEN_NAME)) {
-                filters.add(SubstringFilter.createSubstring(UserType.class, getPrismContext(),
-                        UserType.F_GIVEN_NAME, PolyStringNormMatchingRule.NAME.getLocalPart(), normalizedString));
+                filters.add(SubstringFilter.createSubstring(UserType.F_GIVEN_NAME, UserType.class, getPrismContext(),
+                       PolyStringNormMatchingRule.NAME, normalizedString));
             }
 
             if (filters.size() == 1) {
