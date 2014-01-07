@@ -22,6 +22,7 @@ import javax.annotation.PostConstruct;
 import javax.xml.datatype.Duration;
 
 import com.evolveum.midpoint.audit.api.AuditService;
+import com.evolveum.midpoint.report.api.ReportManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -62,6 +63,9 @@ public class CleanUpTaskHandler implements TaskHandler{
 
     @Autowired(required=true)
     private AuditService auditService;
+
+    @Autowired
+    private ReportManager reportManager;
 	
 	@Autowired(required=true)
 	private PrismContext prismContext;
