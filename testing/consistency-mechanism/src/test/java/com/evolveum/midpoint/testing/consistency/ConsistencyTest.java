@@ -1747,11 +1747,11 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-        assertShadowRepo(accountShadow, accountOid, "uid=morgan,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo);
+        assertAccountShadowRepo(accountShadow, accountOid, "uid=morgan,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo);
         
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-        assertShadowModel(accountModel, accountOid, "uid=morgan,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo);
+        assertAccountShadowModel(accountModel, accountOid, "uid=morgan,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo);
         
         // TODO: check OpenDJ Account        
 	}
@@ -1801,11 +1801,11 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-        assertShadowRepo(accountShadow, accountOid, "uid=chuck,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo);
+        assertAccountShadowRepo(accountShadow, accountOid, "uid=chuck,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo);
         
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-        assertShadowModel(accountModel, accountOid, "uid=chuck,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo);
+        assertAccountShadowModel(accountModel, accountOid, "uid=chuck,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo);
         ShadowType accountTypeModel = accountModel.asObjectable();
         
         assertAttribute(accountTypeModel, resourceTypeOpenDjrepo, "uid", "chuck");
@@ -1868,11 +1868,11 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-        assertShadowRepo(accountShadow, accountOid, "uid=ht,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo);
+        assertAccountShadowRepo(accountShadow, accountOid, "uid=ht,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo);
         
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-        assertShadowModel(accountModel, accountOid, "uid=ht,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo);
+        assertAccountShadowModel(accountModel, accountOid, "uid=ht,ou=people,dc=example,dc=com", resourceTypeOpenDjrepo);
         ShadowType accountTypeModel = accountModel.asObjectable();
         
         // Check account's attributes

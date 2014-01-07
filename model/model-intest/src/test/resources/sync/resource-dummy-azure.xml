@@ -236,24 +236,36 @@
 			</correlation>
 			<reaction>
 	            <situation>linked</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#modifyUser"/>
+	            <synchronize>true</synchronize>
 	        </reaction>
 	        <reaction>
 	            <situation>deleted</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlinkAccount"/>
+	            <synchronize>true</synchronize>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlink</handlerUri>
+	            </action>
 	        </reaction>
 	        <reaction>
 	            <situation>unlinked</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>
+	            <synchronize>true</synchronize>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#link</handlerUri>
+	            </action>
 	        </reaction>
 	        <reaction>
 	            <situation>unmatched</situation>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addUser"/>
+	            <synchronize>true</synchronize>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#addFocus</handlerUri>
+	            </action>
 	        </reaction>
 	        <reaction>
 	            <situation>unmatched</situation>
 	            <channel>http://midpoint.evolveum.com/xml/ns/public/provisioning/channels-2#reconciliation</channel>
-	            <action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#disableAccount"/>
+	            <synchronize>true</synchronize>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#inactivateShadow</handlerUri>
+	            </action>
 	        </reaction>
         </objectSynchronization>
 	</synchronization>

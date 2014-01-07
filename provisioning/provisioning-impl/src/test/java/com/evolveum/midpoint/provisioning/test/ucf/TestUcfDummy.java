@@ -81,6 +81,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -336,8 +337,6 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		
 		assertEquals("Unexpected number of object class definitions", 1, resourceSchema.getObjectClassDefinitions().size());
 		
-		assertEquals("Unexpected object class ", new QName(resource.asObjectable().getNamespace(), "accountObjectClass"), resourceSchema.getObjectClassDefinitions().iterator().next().getDefaultName());
-		
 		display("RESOURCE SCHEMA DEFINITION" + resourceSchema.getDefinitions().iterator().next().getTypeName());
 //		dummyResourceCtl.assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType);
 //		
@@ -480,7 +479,22 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		
 	}
 	
-	
+	@Test
+	public void test500SelfTest() throws Exception {
+		final String TEST_NAME = "test500SelfTest";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		
+		// GIVEN
+		OperationResult testResult = new OperationResult(TestUcfDummy.class + "." + TEST_NAME);
+		
+		// WHEN
+		connectorFactoryIcfImpl.selfTest(testResult);
+		
+		// THEN
+		testResult.computeStatus();
+		IntegrationTestTools.display(testResult);
+		TestUtil.assertSuccess(testResult);
+	}
 
 
 	private void assertPropertyDefinition(PrismContainer<?> container, String propName, QName xsdType, int minOccurs,

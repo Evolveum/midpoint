@@ -83,7 +83,7 @@ public abstract class AbstractScannerTaskHandler<O extends ObjectType, H extends
 		super.finish(handler, runResult, task, opResult);
 		
 		PrismPropertyDefinition<XMLGregorianCalendar> lastScanTimestampDef = new PrismPropertyDefinition<XMLGregorianCalendar>(
-				SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME, SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME,
+				SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME,
 				DOMUtil.XSD_DATETIME, prismContext);
 		PropertyDelta<XMLGregorianCalendar> lastScanTimestampDelta = new PropertyDelta<XMLGregorianCalendar>(
 				new ItemPath(TaskType.F_EXTENSION, SchemaConstants.MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME), lastScanTimestampDef);

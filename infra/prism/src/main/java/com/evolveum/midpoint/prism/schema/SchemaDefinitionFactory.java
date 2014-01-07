@@ -41,17 +41,17 @@ public class SchemaDefinitionFactory {
 			PrismContext prismContext, XSAnnotation annotation) throws SchemaException {
 		
 		QName typeName = new QName(complexType.getTargetNamespace(),complexType.getName());
-		return new ComplexTypeDefinition(null, typeName, prismContext);
+		return new ComplexTypeDefinition(typeName, prismContext);
 	}
 	
 	public PrismPropertyDefinition createPropertyDefinition(QName elementName, QName typeName, ComplexTypeDefinition complexTypeDefinition,
 			PrismContext prismContext, XSAnnotation annotation, XSParticle elementParticle) throws SchemaException {
-		return new PrismPropertyDefinition(elementName, elementName, typeName, prismContext);
+		return new PrismPropertyDefinition(elementName, typeName, prismContext);
 	}
 	
 	public PrismReferenceDefinition createReferenceDefinition(QName primaryElementName, QName typeName, ComplexTypeDefinition complexTypeDefinition,
 			PrismContext prismContext, XSAnnotation annotation, XSParticle elementParticle) throws SchemaException {
-		return new PrismReferenceDefinition(primaryElementName, primaryElementName, typeName, prismContext);
+		return new PrismReferenceDefinition(primaryElementName, typeName, prismContext);
 	}
 	
 	public PrismContainerDefinition createContainerDefinition(QName elementName, ComplexTypeDefinition complexTypeDefinition,

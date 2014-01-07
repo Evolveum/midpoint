@@ -279,6 +279,18 @@ public class ShadowUtil {
 		}
 		return null;
 	}
+	
+	public static ShadowKindType getKind(ShadowType shadow) {
+		if (shadow == null) {
+			return null;
+		}
+		ShadowKindType kind = shadow.getKind();
+		if (kind != null) {
+			return kind;
+		}
+		return ShadowKindType.ACCOUNT;
+	}
+
 
 	public static <T> Collection<T> getAttributeValues(ShadowType shadow, QName attributeQname, Class<T> type) {
 		ResourceAttributeContainer attributesContainer = getAttributesContainer(shadow);

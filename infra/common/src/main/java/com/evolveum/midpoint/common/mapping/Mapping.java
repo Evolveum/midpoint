@@ -911,11 +911,12 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 			conditionOutputTriple.addToZeroSet(new PrismPropertyValue<Boolean>(Boolean.TRUE));
 			return;
 		}
-		ItemDefinition conditionOutput = new PrismPropertyDefinition(CONDITION_OUTPUT_NAME, null, DOMUtil.XSD_BOOLEAN, expressionFactory.getPrismContext());
+		ItemDefinition conditionOutput = new PrismPropertyDefinition(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN, expressionFactory.getPrismContext());
 		Expression<PrismPropertyValue<Boolean>> expression = expressionFactory.makeExpression(conditionExpressionType, 
 				conditionOutput, "condition in "+getMappingContextDescription(), result);
 		ExpressionEvaluationContext params = new ExpressionEvaluationContext(sources, variables, "condition in "+getMappingContextDescription(), result);
 		params.setStringPolicyResolver(stringPolicyResolver);
+		params.setExpressionFactory(expressionFactory);
 		params.setDefaultSource(defaultSource);
 		conditionOutputTriple = expression.evaluate(params);
 	}
@@ -933,6 +934,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		params.setSkipEvaluationMinus(!conditionResultOld);
 		params.setSkipEvaluationPlus(!conditionResultNew);
 		params.setStringPolicyResolver(stringPolicyResolver);
+		params.setExpressionFactory(expressionFactory);
 		outputTriple = expression.evaluate(params);
 		
 		if (outputTriple == null) {

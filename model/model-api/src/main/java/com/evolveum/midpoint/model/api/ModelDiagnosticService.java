@@ -46,6 +46,7 @@ public interface ModelDiagnosticService {
 	
 	String CLASS_NAME_WITH_DOT = ModelDiagnosticService.class.getName() + ".";
 	String REPOSITORY_SELF_TEST = CLASS_NAME_WITH_DOT + "repositorySelfTest";
+	String PROVISIONING_SELF_TEST = CLASS_NAME_WITH_DOT + "provisioningSelfTest";
 	
 	/**
 	 * Provide repository run-time configuration and diagnostic information.
@@ -53,10 +54,16 @@ public interface ModelDiagnosticService {
 	public RepositoryDiag getRepositoryDiag(Task task, OperationResult parentResult);
 	
 	/**
-	 * Runs a short, non-descructive repository self test.
+	 * Runs a short, non-destructive repository self test.
 	 * This methods should never throw a (checked) exception. All the results
 	 * should be in the returned result structure (including fatal errors).
 	 */
 	public OperationResult repositorySelfTest(Task task);
+	
+	/**
+	 * Runs a short, non-destructive internal provisioning test. It tests provisioning framework and
+	 * general setup. Use ModelService.testResource for testing individual resource configurations.
+	 */
+	public OperationResult provisioningSelfTest(Task task);
 
 }

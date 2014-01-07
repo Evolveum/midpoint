@@ -47,12 +47,12 @@ public class ResourceAttributeDefinition extends PrismPropertyDefinition {
 	private String nativeAttributeName;
 	private Boolean returnedByDefault;
 
-	public ResourceAttributeDefinition(QName name, QName defaultName, QName typeName, PrismContext prismContext) {
-		super(name, defaultName, typeName, prismContext);
+	public ResourceAttributeDefinition(QName elementName, QName typeName, PrismContext prismContext) {
+		super(elementName, typeName, prismContext);
 	}
 
 	public ResourceAttribute instantiate() {
-		return instantiate(getNameOrDefaultName());
+		return instantiate(getName());
 	}
 
 	public ResourceAttribute instantiate(QName name) {
@@ -135,7 +135,7 @@ public class ResourceAttributeDefinition extends PrismPropertyDefinition {
 	
 	@Override
 	public ResourceAttributeDefinition clone() {
-		ResourceAttributeDefinition clone = new ResourceAttributeDefinition(getName(), getDefaultName(), getTypeName(), getPrismContext());
+		ResourceAttributeDefinition clone = new ResourceAttributeDefinition(getName(), getTypeName(), getPrismContext());
 		copyDefinitionData(clone);
 		return clone;
 	}

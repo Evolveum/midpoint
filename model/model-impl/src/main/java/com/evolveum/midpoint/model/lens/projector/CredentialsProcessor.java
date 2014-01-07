@@ -80,11 +80,11 @@ public class CredentialsProcessor {
     @Autowired(required = true)
     private PasswordPolicyProcessor passwordPolicyProcessor;
 
-    public <F extends ObjectType, P extends ObjectType> void processCredentials(LensContext<F,P> context, LensProjectionContext<P> projectionContext, Task task, OperationResult result) 
+    public <F extends ObjectType> void processCredentials(LensContext<F> context, LensProjectionContext projectionContext, Task task, OperationResult result)
     		throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {	
     	LensFocusContext<F> focusContext = context.getFocusContext();
-    	if (focusContext != null && focusContext.getObjectTypeClass() == UserType.class) {
-    		processCredentialsUser((LensContext<UserType,ShadowType>) context, (LensProjectionContext<ShadowType>)projectionContext, task, result);
+    	if (focusContext != null && FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
+    		processCredentialsFocal((LensContext<? extends FocusType>)context, projectionContext, task, result);
 //    		return;
     	}
 //    	if (focusContext.getObjectTypeClass() != UserType.class) {
@@ -92,20 +92,21 @@ public class CredentialsProcessor {
 //    		return;
 //    	} 	
     	
-    	passwordPolicyProcessor.processPasswordPolicy((LensProjectionContext<ShadowType>)projectionContext, context, result);
+    	passwordPolicyProcessor.processPasswordPolicy(projectionContext, context, result);
     }
     
     
-    public void processCredentialsUser(LensContext<UserType,ShadowType> context, final LensProjectionContext<ShadowType> accCtx, Task task, OperationResult result) 
+    public <F extends FocusType> void processCredentialsFocal(LensContext<F> context,
+    		final LensProjectionContext accCtx, Task task, OperationResult result)
 		throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-    	LensFocusContext<UserType> focusContext = context.getFocusContext();
-        ObjectDelta<UserType> userDelta = focusContext.getDelta();
+    	LensFocusContext<F> focusContext = context.getFocusContext();
+        ObjectDelta<F> userDelta = focusContext.getDelta();
         PropertyDelta<PasswordType> userPasswordValueDelta = null;
         if (userDelta != null) {
         	userPasswordValueDelta = userDelta.findPropertyDelta(SchemaConstants.PATH_PASSWORD_VALUE);
         }
 
-        PrismObject<UserType> userNew = focusContext.getObjectNew();
+        PrismObject<F> userNew = focusContext.getObjectNew();
         if (userNew == null) {
             // This must be a user delete or something similar. No point in proceeding
             LOGGER.trace("userNew is null, skipping credentials processing");

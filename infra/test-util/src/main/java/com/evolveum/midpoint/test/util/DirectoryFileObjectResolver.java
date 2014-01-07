@@ -23,12 +23,17 @@ import javax.xml.bind.JAXBException;
 
 import org.opends.server.types.ObjectClass;
 
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.JAXBUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 
@@ -58,6 +63,14 @@ public class DirectoryFileObjectResolver implements ObjectResolver {
 	
 	private String oidToFilename(String oid) {
 		return oid+".xml";
+	}
+
+	@Override
+	public <O extends ObjectType> void searchIterative(Class<O> type, ObjectQuery query,
+			ResultHandler<O> handler, OperationResult parentResult) throws SchemaException,
+			ObjectNotFoundException, CommunicationException, ConfigurationException,
+			SecurityViolationException {
+		throw new UnsupportedOperationException();
 	}
 
 }

@@ -57,7 +57,7 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
 			PrismContext prismContext, XSAnnotation annotation) throws SchemaException {
 		QName typeName = new QName(complexType.getTargetNamespace(),complexType.getName());
 		
-		ObjectClassComplexTypeDefinition ocDef = new ObjectClassComplexTypeDefinition(null, typeName, prismContext);
+		ObjectClassComplexTypeDefinition ocDef = new ObjectClassComplexTypeDefinition(typeName, prismContext);
 		
 		// nativeObjectClass
 		Element nativeAttrElement = SchemaProcessorUtil.getAnnotationElement(annotation, MidPointConstants.RA_NATIVE_OBJECT_CLASS);
@@ -241,7 +241,7 @@ public class MidPointSchemaDefinitionFactory extends SchemaDefinitionFactory {
 				
 	private PrismPropertyDefinition createResourceAttributeDefinition(QName elementName, QName typeName,
 			PrismContext prismContext, XSAnnotation annotation) throws SchemaException {
-		ResourceAttributeDefinition attrDef = new ResourceAttributeDefinition(elementName, elementName, typeName, prismContext);
+		ResourceAttributeDefinition attrDef = new ResourceAttributeDefinition(elementName, typeName, prismContext);
 		
 		// nativeAttributeName
 		Element nativeAttrElement = SchemaProcessorUtil.getAnnotationElement(annotation, MidPointConstants.RA_NATIVE_ATTRIBUTE_NAME);

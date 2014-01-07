@@ -15,9 +15,20 @@
  */
 package com.evolveum.midpoint.schema.util;
 
+import java.util.Collection;
+import java.util.List;
+
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 
@@ -47,6 +58,10 @@ public interface ObjectResolver {
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, etc.
 	 */
-	public <T extends ObjectType> T resolve(ObjectReferenceType ref, Class<T> expectedType, String contextDescription, OperationResult result) throws ObjectNotFoundException, SchemaException;
+	<T extends ObjectType> T resolve(ObjectReferenceType ref, Class<T> expectedType, String contextDescription, OperationResult result) 
+			throws ObjectNotFoundException, SchemaException;
+	
+	<O extends ObjectType> void searchIterative(Class<O> type, ObjectQuery query, ResultHandler<O> handler, OperationResult parentResult) 
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException;
 	
 }

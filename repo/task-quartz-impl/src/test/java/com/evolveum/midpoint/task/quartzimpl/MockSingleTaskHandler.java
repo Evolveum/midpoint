@@ -57,8 +57,8 @@ public class MockSingleTaskHandler implements TaskHandler {
 	public TaskRunResult run(Task task) {
 		LOGGER.info("MockSingle.run starting (id = " + id + ")");
 
-        PrismPropertyDefinition l1FlagDefinition = new PrismPropertyDefinition(L1_FLAG_QNAME, L1_FLAG_QNAME, DOMUtil.XSD_BOOLEAN, taskManager.getPrismContext());
-        PrismPropertyDefinition wfsFlagDefinition = new PrismPropertyDefinition(WFS_FLAG_QNAME, WFS_FLAG_QNAME, DOMUtil.XSD_BOOLEAN, taskManager.getPrismContext());
+        PrismPropertyDefinition l1FlagDefinition = new PrismPropertyDefinition(L1_FLAG_QNAME, DOMUtil.XSD_BOOLEAN, taskManager.getPrismContext());
+        PrismPropertyDefinition wfsFlagDefinition = new PrismPropertyDefinition(WFS_FLAG_QNAME, DOMUtil.XSD_BOOLEAN, taskManager.getPrismContext());
 
 		long progress = task.getProgress();
 		OperationResult opResult = new OperationResult(MockSingleTaskHandler.class.getName()+".run");

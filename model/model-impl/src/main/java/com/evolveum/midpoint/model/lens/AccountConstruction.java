@@ -19,7 +19,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.List;
 
 import javax.xml.namespace.QName;
 
@@ -33,7 +32,6 @@ import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
-import com.evolveum.midpoint.prism.PrismContainerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -53,19 +51,18 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConstructionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceAttributeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
  * 
@@ -74,15 +71,15 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
  * This class is Serializable but it is not in fact serializable. It implements Serializable interface only
  * to be storable in the PrismPropertyValue.
  */
-public class AccountConstruction implements DebugDumpable, Dumpable, Serializable {
+public class AccountConstruction<F extends FocusType> implements DebugDumpable, Dumpable, Serializable {
 
 	private AssignmentPath assignmentPath;
 	private ConstructionType accountConstructionType;
 	private ObjectType source;
 	private OriginType originType;
 	private String channel;
-	private LensContext<?, ?> lensContext;
-	private ObjectDeltaObject<UserType> userOdo;
+	private LensContext<F> lensContext;
+	private ObjectDeltaObject<F> userOdo;
 	private ResourceType resource;
 	private ObjectResolver objectResolver;
 	private MappingFactory valueConstructionFactory;
@@ -127,15 +124,15 @@ public class AccountConstruction implements DebugDumpable, Dumpable, Serializabl
 		this.channel = channel;
 	}
 	
-	public LensContext<?, ?> getLensContext() {
+	public LensContext<F> getLensContext() {
 		return lensContext;
 	}
 
-	public void setLensContext(LensContext<?, ?> lensContext) {
+	public void setLensContext(LensContext<F> lensContext) {
 		this.lensContext = lensContext;
 	}
 
-	public void setUserOdo(ObjectDeltaObject<UserType> userOdo) {
+	public void setUserOdo(ObjectDeltaObject<F> userOdo) {
 		this.userOdo = userOdo;
 	}
 
@@ -163,13 +160,20 @@ public class AccountConstruction implements DebugDumpable, Dumpable, Serializabl
 		this.valueConstructionFactory = valueConstructionFactory;
 	}
 
-	public String getAccountType() {
+	public ShadowKindType getKind() {
 		if (refinedAccountDefinition == null) {
-			throw new IllegalStateException("Account type can only be fetched from evaluated AccountConstruction");
+			throw new IllegalStateException("Kind can only be fetched from evaluated Construction");
+		}
+		return refinedAccountDefinition.getKind();
+	}
+
+	public String getIntent() {
+		if (refinedAccountDefinition == null) {
+			throw new IllegalStateException("Intent can only be fetched from evaluated Construction");
 		}
 		return refinedAccountDefinition.getIntent();
 	}
-	
+
 	public Object getDescription() {
 		return accountConstructionType.getDescription();
 	}
@@ -255,7 +259,11 @@ public class AccountConstruction implements DebugDumpable, Dumpable, Serializabl
 			throw new SchemaException("No (refined) schema for "+resource);
 		}
 		
-		refinedAccountDefinition = refinedSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, accountConstructionType.getIntent());
+		ShadowKindType kind = accountConstructionType.getKind();
+		if (kind == null) {
+			kind = ShadowKindType.ACCOUNT;
+		}
+		refinedAccountDefinition = refinedSchema.getRefinedDefinition(kind, accountConstructionType.getIntent());
 		
 		if (refinedAccountDefinition == null) {
 			if (accountConstructionType.getIntent() != null) {
@@ -311,7 +319,7 @@ public class AccountConstruction implements DebugDumpable, Dumpable, Serializabl
 	private void mergeExtension(PrismContainer<Containerable> magicExtension, PrismContainer<Containerable> segmentExtension) throws SchemaException {
 		if (segmentExtension != null) {
 			for (Item<?> segmentItem: segmentExtension.getValue().getItems()) {
-				Item<?> magicItem = magicExtension.findItem(segmentItem.getName());
+				Item<?> magicItem = magicExtension.findItem(segmentItem.getElementName());
 				if (magicItem == null) {
 					magicExtension.add(segmentItem.clone());
 				}
@@ -358,7 +366,7 @@ public class AccountConstruction implements DebugDumpable, Dumpable, Serializabl
 		}
 		PrismPropertyDefinition outputDefinition = findAttributeDefinition(attrName);
 		if (outputDefinition == null) {
-			throw new SchemaException("Attribute "+attrName+" not found in schema for account type "+getAccountType()+", "+ObjectTypeUtil.toShortString(getResource(result))+" as definied in "+ObjectTypeUtil.toShortString(source), attrName);
+			throw new SchemaException("Attribute "+attrName+" not found in schema for account type "+getIntent()+", "+ObjectTypeUtil.toShortString(getResource(result))+" as definied in "+ObjectTypeUtil.toShortString(source), attrName);
 		}
 		Mapping<? extends PrismPropertyValue<?>> mapping = valueConstructionFactory.createMapping(outboundMappingType,
 				"for attribute " + PrettyPrinter.prettyPrint(attrName)  + " in "+source);
@@ -398,10 +406,6 @@ public class AccountConstruction implements DebugDumpable, Dumpable, Serializabl
 		
 		LOGGER.trace("Evaluated mapping for "+attrName+": "+mapping);
 		return mapping;
-	}
-
-	private PrismObjectDefinition<?> getUserDefinition() {
-		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
 	}
 
 	private ResourceAttributeDefinition findAttributeDefinition(QName attributeName) {

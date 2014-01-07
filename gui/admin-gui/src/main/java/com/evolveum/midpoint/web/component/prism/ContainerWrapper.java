@@ -115,7 +115,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
     public PropertyWrapper findPropertyWrapper(QName name) {
         Validate.notNull(name, "QName must not be null.");
         for (PropertyWrapper wrapper : getProperties()) {
-            if (name.equals(wrapper.getItem().getName())) {
+            if (name.equals(wrapper.getItem().getElementName())) {
                 return wrapper;
             }
         }
@@ -163,7 +163,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
         }
 
         if (definition == null) {
-            LOGGER.error("Couldn't get property list from null definition {}", new Object[]{container.getName()});
+            LOGGER.error("Couldn't get property list from null definition {}", new Object[]{container.getElementName()});
             return properties;
         }
 
@@ -182,7 +182,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 
                 // hack... we want to create a definition for Name
                 //PrismPropertyDefinition def = ((PrismContainerValue) pcv.getContainer().getParent()).getContainer().findProperty(ObjectType.F_NAME).getDefinition();
-                PrismPropertyDefinition def = new PrismPropertyDefinition(ObjectType.F_NAME, ObjectType.F_NAME, DOMUtil.XSD_STRING, pcv.getPrismContext());
+                PrismPropertyDefinition def = new PrismPropertyDefinition(ObjectType.F_NAME, DOMUtil.XSD_STRING, pcv.getPrismContext());
 
                 if (OrgType.COMPLEX_TYPE.equals(assignmentType.getTargetRef().getType())) {
                     def.setDisplayName("Org.Unit");
@@ -252,7 +252,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
             return false;
         }
 
-        if (!ShadowType.F_ACTIVATION.equals(container.getName())) {
+        if (!ShadowType.F_ACTIVATION.equals(container.getElementName())) {
             return false;
         }
 
@@ -373,7 +373,7 @@ public class ContainerWrapper<T extends PrismContainer> implements ItemWrapper, 
 
         String displayName = item.getDisplayName();
         if (StringUtils.isEmpty(displayName)) {
-            QName name = item.getName();
+            QName name = item.getElementName();
             if (name != null) {
                 displayName = name.getLocalPart();
             } else {

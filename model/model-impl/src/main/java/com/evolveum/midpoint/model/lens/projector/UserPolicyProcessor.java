@@ -42,6 +42,7 @@ import com.evolveum.midpoint.model.lens.ItemValueWithOrigin;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensUtil;
+import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.model.trigger.RecomputeTriggerHandler;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -101,7 +102,6 @@ public class UserPolicyProcessor {
 
 	private static final Trace LOGGER = TraceManager.getTrace(UserPolicyProcessor.class);
 
-	private PrismObjectDefinition<UserType> userDefinition;
 	private PrismContainerDefinition<ActivationType> activationDefinition;
 	
 	@Autowired(required = true)
@@ -126,41 +126,37 @@ public class UserPolicyProcessor {
 	@Autowired(required = true)
     private MappingEvaluationHelper mappingHelper;
 
-	<F extends ObjectType, P extends ObjectType> void processUserPolicy(LensContext<F,P> context, XMLGregorianCalendar now, 
-			Task task, OperationResult result) throws ObjectNotFoundException,
+	<O extends ObjectType, F extends FocusType> void processUserPolicy(LensContext<O> context, XMLGregorianCalendar now,
+            Task task, OperationResult result) throws ObjectNotFoundException,
             SchemaException, ExpressionEvaluationException, PolicyViolationException {
 
-		LensFocusContext<F> focusContext = context.getFocusContext();
+		LensFocusContext<O> focusContext = context.getFocusContext();
     	if (focusContext == null) {
     		return;
     	}
     	
-    	if (focusContext.getObjectTypeClass() != UserType.class) {
-    		// We can do this only for user.
+    	if (!FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
+    		// We can do this only for FocusType objects.
     		return;
     	}
     	
-    	ObjectDelta<F> focusDelta = focusContext.getDelta();
+    	LensContext<F> fContext = (LensContext<F>) context;
+    	LensFocusContext<F> fFocusContext = fContext.getFocusContext();
+    	
+    	ObjectDelta<F> focusDelta = fFocusContext.getDelta();
     	if (focusDelta != null && focusDelta.isDelete()) {
     		return;
     	}
     	
-		LensContext<UserType, ShadowType> usContext = (LensContext<UserType, ShadowType>) context;
-    	//check user password if satisfies policies
+		passwordPolicyProcessor.processPasswordPolicy(fFocusContext, fContext, result);
 		
-//		PrismProperty<PasswordType> password = getPasswordValue((LensFocusContext<UserType>)focusContext);
-		
-//		if (password != null) {
-			passwordPolicyProcessor.processPasswordPolicy((LensFocusContext<UserType>) focusContext, usContext, result);
-//		}
-			
-		processActivation(usContext, now, result);
+		processActivation(fContext, now, result);
 
-		applyUserTemplate(usContext, now, task, result);
-				
+		applyUserTemplate(fContext, now, task, result);
+
 	}
 
-	private <F extends UserType> void processActivation(LensContext<F, ShadowType> context, XMLGregorianCalendar now, 
+	private <F extends FocusType> void processActivation(LensContext<F> context, XMLGregorianCalendar now, 
 			OperationResult result) 
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
@@ -230,7 +226,7 @@ public class UserPolicyProcessor {
 		}
 	}
 	
-	private <F extends UserType> void recordValidityDelta(LensFocusContext<F> focusContext, TimeIntervalStatusType validityStatusNew,
+	private <F extends ObjectType> void recordValidityDelta(LensFocusContext<F> focusContext, TimeIntervalStatusType validityStatusNew,
 			XMLGregorianCalendar now) throws SchemaException {
 		PrismContainerDefinition<ActivationType> activationDefinition = getActivationDefinition();
 		
@@ -251,7 +247,7 @@ public class UserPolicyProcessor {
 		focusContext.swallowToProjectionWaveSecondaryDelta(validityChangeTimestampDelta);
 	}
 	
-	private <F extends UserType> void recordEffectiveStatusDelta(LensFocusContext<F> focusContext, 
+	private <F extends ObjectType> void recordEffectiveStatusDelta(LensFocusContext<F> focusContext, 
 			ActivationStatusType effectiveStatusNew, XMLGregorianCalendar now)
 			throws SchemaException {
 		PrismContainerDefinition<ActivationType> activationDefinition = getActivationDefinition();
@@ -266,11 +262,11 @@ public class UserPolicyProcessor {
 		focusContext.swallowToProjectionWaveSecondaryDelta(timestampDelta);
 	}
 	
-	private void applyUserTemplate(LensContext<UserType, ShadowType> context, XMLGregorianCalendar now, Task task, OperationResult result) 
+	private <F extends FocusType> void applyUserTemplate(LensContext<F> context, XMLGregorianCalendar now, Task task, OperationResult result)
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException, PolicyViolationException {
-		LensFocusContext<UserType> focusContext = context.getFocusContext();
+		LensFocusContext<F> focusContext = context.getFocusContext();
 
-		ObjectTemplateType userTemplate = context.getUserTemplate();
+		ObjectTemplateType userTemplate = context.getFocusTemplate();
 
 		if (userTemplate == null) {
 			// No applicable template
@@ -280,10 +276,10 @@ public class UserPolicyProcessor {
 		
 		LOGGER.trace("Applying " + userTemplate + " to " + focusContext.getObjectNew());
 
-		ObjectDelta<UserType> userSecondaryDelta = focusContext.getProjectionWaveSecondaryDelta();
-		ObjectDelta<UserType> userPrimaryDelta = focusContext.getProjectionWavePrimaryDelta();
-		ObjectDeltaObject<UserType> userOdo = focusContext.getObjectDeltaObject();
-		PrismObjectDefinition<UserType> userDefinition = getUserDefinition();
+		ObjectDelta<F> userSecondaryDelta = focusContext.getProjectionWaveSecondaryDelta();
+		ObjectDelta<F> userPrimaryDelta = focusContext.getProjectionWavePrimaryDelta();
+		ObjectDeltaObject<F> userOdo = focusContext.getObjectDeltaObject();
+		PrismObjectDefinition<F> userDefinition = getFocusDefinition(focusContext.getObjectTypeClass());
 		
 		Map<ItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> outputTripleMap 
 			= new HashMap<ItemPath,DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>>();
@@ -307,7 +303,7 @@ public class UserPolicyProcessor {
 			if (itemDelta != null && !itemDelta.isEmpty()) {
 				if (userPrimaryDelta == null || !userPrimaryDelta.containsModification(itemDelta)) {
 					if (userSecondaryDelta == null) {
-						userSecondaryDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.MODIFY, prismContext);
+						userSecondaryDelta = new ObjectDelta<F>(focusContext.getObjectTypeClass(), ChangeType.MODIFY, prismContext);
 						if (focusContext.getObjectNew() != null && focusContext.getObjectNew().getOid() != null){
 							userSecondaryDelta.setOid(focusContext.getObjectNew().getOid());
 						}
@@ -321,7 +317,7 @@ public class UserPolicyProcessor {
 		if (nextRecomputeTime != null) {
 			
 			boolean alreadyHasTrigger = false;
-			PrismObject<UserType> objectCurrent = focusContext.getObjectCurrent();
+			PrismObject<F> objectCurrent = focusContext.getObjectCurrent();
 			if (objectCurrent != null) {
 				for (TriggerType trigger: objectCurrent.asObjectable().getTrigger()) {
 					if (RecomputeTriggerHandler.HANDLER_URI.equals(trigger.getHandlerUri()) &&
@@ -333,7 +329,7 @@ public class UserPolicyProcessor {
 			}
 			
 			if (!alreadyHasTrigger) {
-				PrismObjectDefinition<UserType> objectDefinition = focusContext.getObjectDefinition();
+				PrismObjectDefinition<F> objectDefinition = focusContext.getObjectDefinition();
 				PrismContainerDefinition<TriggerType> triggerContDef = objectDefinition.findContainerDefinition(ObjectType.F_TRIGGER);
 				ContainerDelta<TriggerType> triggerDelta = triggerContDef.createEmptyDelta(new ItemPath(ObjectType.F_TRIGGER));
 				PrismContainerValue<TriggerType> triggerCVal = triggerContDef.createValue();
@@ -348,8 +344,8 @@ public class UserPolicyProcessor {
 
 	}
 
-	private XMLGregorianCalendar collectTripleFromTemplate(LensContext<UserType, ShadowType> context,
-			ObjectTemplateType objectTemplateType, ObjectDeltaObject<UserType> userOdo,
+	private <F extends FocusType> XMLGregorianCalendar collectTripleFromTemplate(LensContext<F> context,
+			ObjectTemplateType objectTemplateType, ObjectDeltaObject<F> userOdo,
 			Map<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> outputTripleMap,
 			XMLGregorianCalendar now, String contextDesc, Task task, OperationResult result)
 					throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
@@ -390,8 +386,8 @@ public class UserPolicyProcessor {
 	}
 	
 	
-	private <V extends PrismValue> XMLGregorianCalendar collectTripleFromMappings(Collection<MappingType> mappings, LensContext<UserType, ShadowType> context,
-			ObjectTemplateType objectTemplateType, ObjectDeltaObject<UserType> userOdo,
+	private <V extends PrismValue, F extends FocusType> XMLGregorianCalendar collectTripleFromMappings(Collection<MappingType> mappings, LensContext<F> context,
+			ObjectTemplateType objectTemplateType, ObjectDeltaObject<F> userOdo,
 			Map<ItemPath, DeltaSetTriple<? extends ItemValueWithOrigin<? extends PrismValue>>> outputTripleMap,
 			XMLGregorianCalendar now, String contextDesc, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		
@@ -435,8 +431,8 @@ public class UserPolicyProcessor {
 		return nextRecomputeTime;
 	}
 	
-	private <V extends PrismValue> Mapping<V> createMapping(final LensContext<UserType, ShadowType> context, final MappingType mappingType, ObjectTemplateType userTemplate, 
-			ObjectDeltaObject<UserType> userOdo, XMLGregorianCalendar now, String contextDesc, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+	private <V extends PrismValue, F extends FocusType> Mapping<V> createMapping(final LensContext<F> context, final MappingType mappingType, ObjectTemplateType userTemplate, 
+			ObjectDeltaObject<F> userOdo, XMLGregorianCalendar now, String contextDesc, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		Mapping<V> mapping = mappingFactory.createMapping(mappingType,
 				"object template mapping in " + contextDesc
 				+ " while processing user " + userOdo.getAnyObject());
@@ -446,7 +442,7 @@ public class UserPolicyProcessor {
 		}
 		
 		mapping.setSourceContext(userOdo);
-		mapping.setTargetContext(getUserDefinition());
+		mapping.setTargetContext(getFocusDefinition(context.getFocusClass()));
 		mapping.setRootNode(userOdo);
 		mapping.addVariableDefinition(ExpressionConstants.VAR_USER, userOdo);
 		mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS, userOdo);
@@ -524,18 +520,14 @@ public class UserPolicyProcessor {
 	}
 
 
-	private PrismObjectDefinition<UserType> getUserDefinition() {
-		if (userDefinition == null) {
-			userDefinition = prismContext.getSchemaRegistry().getObjectSchema()
-				.findObjectDefinitionByCompileTimeClass(UserType.class);
-		}
-		return userDefinition;
+	private <F extends ObjectType> PrismObjectDefinition<F> getFocusDefinition(Class<F> focusClass) {
+		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(focusClass);
 	}
 	
 	private PrismContainerDefinition<ActivationType> getActivationDefinition() {
 		if (activationDefinition == null) {
-			PrismObjectDefinition<UserType> userDefinition = getUserDefinition();
-			activationDefinition = userDefinition.findContainerDefinition(UserType.F_ACTIVATION);
+			ComplexTypeDefinition focusDefinition = prismContext.getSchemaRegistry().findComplexTypeDefinition(FocusType.COMPLEX_TYPE);
+			activationDefinition = focusDefinition.findContainerDefinition(FocusType.F_ACTIVATION);
 		}
 		return activationDefinition;
 	}

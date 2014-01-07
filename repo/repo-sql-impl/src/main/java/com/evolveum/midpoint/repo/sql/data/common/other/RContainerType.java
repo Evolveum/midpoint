@@ -38,6 +38,7 @@ public enum RContainerType {
     TASK(RTask.class),
     USER(RUser.class),
     REPORT(RReport.class),
+    REPORT_OUTPUT(RReportOutput.class),
     OBJECT_TEMPLATE(RObjectTemplate.class),
     NODE(RNode.class),
     ORG(ROrg.class),

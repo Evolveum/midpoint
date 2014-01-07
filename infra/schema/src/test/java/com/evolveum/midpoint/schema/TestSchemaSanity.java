@@ -33,6 +33,7 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -53,6 +54,7 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CachingMetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAttributesType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
@@ -259,6 +261,25 @@ public class TestSchemaSanity {
 		PrismAsserts.assertItemDefinitionDisplayName(roleDefinition, ObjectType.F_DESCRIPTION, "Description");
 		PrismAsserts.assertItemDefinitionDisplayOrder(roleDefinition, ObjectType.F_DESCRIPTION, 10);
 		PrismAsserts.assertPropertyDefinition(roleDefinition, RoleType.F_REQUESTABLE, DOMUtil.XSD_BOOLEAN, 0, 1);
+	}
+	
+	@Test
+	public void testFocusDefinition() {
+		System.out.println("===[ testFocusDefinition ]===");
+
+		// GIVEN
+		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		SchemaRegistry schemaRegistry = prismContext.getSchemaRegistry();
+				
+		// WHEN
+		ComplexTypeDefinition focusDefinition = schemaRegistry.findComplexTypeDefinition(FocusType.COMPLEX_TYPE);
+		
+		// THEN
+		assertNotNull("No focus definition", focusDefinition);
+		System.out.println("Focus definition:");
+		System.out.println(focusDefinition.dump());
+		
+		SchemaTestUtil.assertFocusDefinition(focusDefinition, "focus");
 	}
 	
 	@Test

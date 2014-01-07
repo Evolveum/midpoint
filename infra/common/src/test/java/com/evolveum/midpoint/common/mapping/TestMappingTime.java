@@ -198,7 +198,7 @@ public class TestMappingTime {
 		mapping.setNow(TIME_PAST);
 		
 		PrismPropertyDefinition<Boolean> existenceDef = new PrismPropertyDefinition<Boolean>(
-				ExpressionConstants.OUTPUT_ELMENT_NAME, ExpressionConstants.OUTPUT_ELMENT_NAME, 
+				ExpressionConstants.OUTPUT_ELMENT_NAME, 
 				DOMUtil.XSD_BOOLEAN, evaluator.getPrismContext());
 		mapping.setDefaultTargetDefinition(existenceDef);
 		
@@ -227,7 +227,7 @@ public class TestMappingTime {
 		mapping.setNow(TIME_FUTURE);
 		
 		PrismPropertyDefinition<Boolean> existenceDef = new PrismPropertyDefinition<Boolean>(
-				ExpressionConstants.OUTPUT_ELMENT_NAME, ExpressionConstants.OUTPUT_ELMENT_NAME, 
+				ExpressionConstants.OUTPUT_ELMENT_NAME, 
 				DOMUtil.XSD_BOOLEAN, evaluator.getPrismContext());
 		mapping.setDefaultTargetDefinition(existenceDef);
 		
@@ -262,7 +262,7 @@ public class TestMappingTime {
 		mapping.setNow(TIME_PAST);
 		
 		PrismPropertyDefinition<Boolean> existenceDef = new PrismPropertyDefinition<Boolean>(
-				ExpressionConstants.OUTPUT_ELMENT_NAME, ExpressionConstants.OUTPUT_ELMENT_NAME, 
+				ExpressionConstants.OUTPUT_ELMENT_NAME, 
 				DOMUtil.XSD_BOOLEAN, evaluator.getPrismContext());
 		mapping.setDefaultTargetDefinition(existenceDef);
 		
@@ -300,7 +300,7 @@ public class TestMappingTime {
 		mapping.setNow(TIME_PAST);
 		
 		PrismPropertyDefinition<Boolean> existenceDef = new PrismPropertyDefinition<Boolean>(
-				ExpressionConstants.OUTPUT_ELMENT_NAME, ExpressionConstants.OUTPUT_ELMENT_NAME, 
+				ExpressionConstants.OUTPUT_ELMENT_NAME, 
 				DOMUtil.XSD_BOOLEAN, evaluator.getPrismContext());
 		mapping.setDefaultTargetDefinition(existenceDef);
 		
@@ -337,7 +337,7 @@ public class TestMappingTime {
 		mapping.setNow(TIME_FUTURE);
 		
 		PrismPropertyDefinition<Boolean> existenceDef = new PrismPropertyDefinition<Boolean>(
-				ExpressionConstants.OUTPUT_ELMENT_NAME, ExpressionConstants.OUTPUT_ELMENT_NAME, 
+				ExpressionConstants.OUTPUT_ELMENT_NAME, 
 				DOMUtil.XSD_BOOLEAN, evaluator.getPrismContext());
 		mapping.setDefaultTargetDefinition(existenceDef);
 		

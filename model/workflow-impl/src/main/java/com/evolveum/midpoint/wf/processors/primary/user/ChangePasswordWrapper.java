@@ -74,7 +74,7 @@ public class ChangePasswordWrapper extends BaseUserWrapper {
     private PrismContext prismContext;
 
     @Override
-    public List<JobCreationInstruction> prepareJobCreationInstructions(ModelContext<?, ?> modelContext, ObjectDelta<? extends ObjectType> change, Task taskFromModel, OperationResult result) throws SchemaException {
+    public List<JobCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext, ObjectDelta<? extends ObjectType> change, Task taskFromModel, OperationResult result) throws SchemaException {
 
         List<ApprovalRequest<String>> approvalRequestList = new ArrayList<ApprovalRequest<String>>();
         List<JobCreationInstruction> instructions = new ArrayList<JobCreationInstruction>();
@@ -126,7 +126,7 @@ public class ChangePasswordWrapper extends BaseUserWrapper {
         return new ApprovalRequestImpl("Password change", null, approvers, null, null, prismContext);
     }
 
-    private JobCreationInstruction createStartProcessInstruction(ModelContext<?, ?> modelContext, ItemDelta delta, ApprovalRequest approvalRequest, Task taskFromModel, OperationResult result) throws SchemaException {
+    private JobCreationInstruction createStartProcessInstruction(ModelContext<?> modelContext, ItemDelta delta, ApprovalRequest approvalRequest, Task taskFromModel, OperationResult result) throws SchemaException {
 
         String userName = MiscDataUtil.getObjectName(modelContext);
         String objectOid = getObjectOid(modelContext);

@@ -42,6 +42,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
@@ -99,27 +100,27 @@ public class PathExpressionEvaluator<V extends PrismValue> implements Expression
 			resolveContext = source;
 		}
 		        
-        Map<QName, Object> variablesAndSources = new HashMap<QName, Object>();
-        
-        if (params.getVariables() != null) {
-	        for (Entry<QName, Object> entry: params.getVariables().entrySet()) {
-	        	variablesAndSources.put(entry.getKey(), entry.getValue());
-	        }
-        }
-	        
-        if (params.getSources() != null) {
-	        for (Source<?> source: params.getSources()) {
-	        	variablesAndSources.put(source.getName(), source);
-	        }
-        }
-        
+        Map<QName, Object> variablesAndSources = ExpressionUtil.compileVariablesAndSources(params);
+
         ItemPath resolvePath = path;
         ItemPathSegment first = path.first();
         if (first instanceof NameItemPathSegment && ((NameItemPathSegment)first).isVariable()) {
 			QName variableName = ((NameItemPathSegment)first).getName();
         	if (variablesAndSources.containsKey(variableName)) {
-        		resolveContext = ExpressionUtil.toItemDeltaItem(variablesAndSources.get(variableName), objectResolver, 
-        				"path expression in "+params.getContextDescription(), params.getResult());
+        		Object variableValue = variablesAndSources.get(variableName);
+        		if (variableValue == null) {
+        			return null;
+        		}
+        		if (variableValue instanceof Item || variableValue instanceof ItemDeltaItem<?>) {
+	        		resolveContext = ExpressionUtil.toItemDeltaItem(variableValue, objectResolver, 
+	        				"path expression in "+params.getContextDescription(), params.getResult());
+        		} else if (variableValue instanceof PrismPropertyValue<?>){
+        			PrismValueDeltaSetTriple<V> outputTriple = new PrismValueDeltaSetTriple<>();
+        			outputTriple.addToZeroSet((V) variableValue);
+        			return ExpressionUtil.toOutputTriple(outputTriple, outputDefinition, null, protector, prismContext);
+        		} else {
+        			throw new ExpressionEvaluationException("Unexpected variable value "+variableValue+" ("+variableValue.getClass()+")");
+        		}
 			} else {
 				throw new ExpressionEvaluationException("No variable with name "+variableName+" in "+params.getContextDescription());
 			}
@@ -139,7 +140,9 @@ public class PathExpressionEvaluator<V extends PrismValue> implements Expression
         		}
         	} else if (resolveContext.isStructuredProperty()) {
         		// The output path does not really matter. The delta will be converted to triple anyway
-        		resolveContext = resolveContext.resolveStructuredProperty(resolvePath, (PrismPropertyDefinition) outputDefinition, null);
+                // But the path cannot be null, oherwise the code will die
+        		resolveContext = resolveContext.resolveStructuredProperty(resolvePath, (PrismPropertyDefinition) outputDefinition,
+                        new ItemPath());
         		break;
         	} else if (resolveContext.isNull()){
         		break;

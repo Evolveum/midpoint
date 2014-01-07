@@ -309,8 +309,8 @@ This is now the only account type that midPoint can work with. -->
                 	<strength>weak</strength>
                 	<expression>                		
                 		<script>
-                			<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
                 			<relativityMode>absolute</relativityMode>
+                			<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
                 			<code>
                 			basic.determineLdapSingleAttributeValue(
                 					basic.getAttributeStringValues(account, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2', 'name'),
@@ -429,13 +429,13 @@ This is now the only account type that midPoint can work with. -->
                             <value>middle of nowhere</value>
                         </variable>
                     	<script>
+                    		<relativityMode>absolute</relativityMode>
                     		<language>http://www.w3.org/TR/xpath/</language>
 	                        <returnType>scalar</returnType>
 	                        <!-- The expression itself. It translates the value of
 	                             user's attribute "locality" (expressed as $i:user/i:locality)
 	                             using a lookup table defined in the configuration object
 	                             in the $my:config variable specified above. -->
-	                        <c:relativityMode>absolute</c:relativityMode>
 	                        <c:code>
 	                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
 	                            declare namespace t="http://prism.evolveum.com/xml/ns/public/types-2";
@@ -585,6 +585,8 @@ This is now the only account type that midPoint can work with. -->
         <!-- Confirmation rule may be here, but as the search above will
 always return at most one match, the confirmation rule is not needed. -->
 
+		<objectTemplateRef oid="c0c010c0-d34d-b33f-f00d-777111111111"/>
+
         <!-- Following section describes reactions to a situations.
             The setting here assumes that this resource is authoritative,
             therefore all accounts created on the resource should be
@@ -593,24 +595,28 @@ always return at most one match, the confirmation rule is not needed. -->
         -->
         <c:reaction>
             <c:situation>linked</c:situation>
-            <c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#nodifyUser"/>
+            <synchronize>true</synchronize>
         </c:reaction>
         <c:reaction>
             <c:situation>deleted</c:situation>
-            <c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlinkAccount"/>
+            <synchronize>true</synchronize>
+            <action>
+            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlink</handlerUri>
+            </action>
         </c:reaction>
         <c:reaction>
             <c:situation>unlinked</c:situation>
-            <c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount"/>
+            <synchronize>true</synchronize>
+            <action>
+            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#link</handlerUri>
+            </action>
         </c:reaction>
         <c:reaction>
             <c:situation>unmatched</c:situation>
-            <c:action ref="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addUser">
-                <!-- Reference to the User Template is here. If the user would be
-             created as a result of this action, it will be created according
-             to this template. -->
-                <c:userTemplateRef oid="c0c010c0-d34d-b33f-f00d-777111111111"/>
-            </c:action>
+            <synchronize>true</synchronize>
+            <action>
+            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#addFocus</handlerUri>
+            </action>
         </c:reaction>
 </objectSynchronization>
     </c:synchronization>

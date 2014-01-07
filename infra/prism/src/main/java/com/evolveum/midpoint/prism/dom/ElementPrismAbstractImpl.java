@@ -33,8 +33,6 @@ import org.w3c.dom.UserDataHandler;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 
 /**
@@ -63,7 +61,7 @@ public abstract class ElementPrismAbstractImpl implements Element {
 	}
 	
 	protected QName getElementName() {
-		return getItem().getName();
+		return getItem().getElementName();
 	}
 	// NAME
 	

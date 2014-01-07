@@ -85,7 +85,6 @@ import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -481,7 +480,7 @@ public abstract class ShadowCache {
 		Collection<PropertyDelta<?>> deltas = new ArrayList<PropertyDelta<?>>();
 		
 		// $shadow/attributes/icfs:name
-		String normalizedNewName = shadowManager.getNormalizedAttributeValue(name.getValue(), objectClassDefinition.findAttributeDefinition(name.getName()));
+		String normalizedNewName = shadowManager.getNormalizedAttributeValue(name.getValue(), objectClassDefinition.findAttributeDefinition(name.getElementName()));
 		PropertyDelta<String> cloneNameDelta = nameDelta.clone();
 		cloneNameDelta.clearValuesToReplace();
 		cloneNameDelta.setValueToReplace(new PrismPropertyValue<String>(normalizedNewName));
@@ -1324,7 +1323,7 @@ public abstract class ShadowCache {
 			ItemPath attributesPath = new ItemPath(ShadowType.F_ATTRIBUTES);
 			for(ItemDelta<?> modification: delta.getModifications()) {
 				if (modification.getDefinition() == null && attributesPath.equals(modification.getParentPath())) {
-					QName attributeName = modification.getName();
+					QName attributeName = modification.getElementName();
 					ResourceAttributeDefinition attributeDefinition = objectClassDefinition.findAttributeDefinition(attributeName);
 					if (attributeDefinition == null) {
 						throw new SchemaException("No definition for attribute "+attributeName+" in object delta "+delta);

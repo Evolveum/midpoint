@@ -149,11 +149,6 @@ public class LayerRefinedAttributeDefinition extends RefinedAttributeDefinition 
 	}
 
 	@Override
-	public QName getNameOrDefaultName() {
-		return refinedAttributeDefinition.getNameOrDefaultName();
-	}
-
-	@Override
 	public void setReadOnly() {
 		refinedAttributeDefinition.setReadOnly();
 	}
@@ -216,11 +211,6 @@ public class LayerRefinedAttributeDefinition extends RefinedAttributeDefinition 
 	@Override
 	public void setCreate(boolean create) {
 		refinedAttributeDefinition.setCreate(create);
-	}
-
-	@Override
-	public QName getDefaultName() {
-		return refinedAttributeDefinition.getDefaultName();
 	}
 
 	@Override

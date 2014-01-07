@@ -79,7 +79,7 @@ public abstract class BaseWrapper implements PrimaryApprovalProcessWrapper {
     @Autowired
     PrimaryChangeProcessor changeProcessor;
 
-    String getObjectOid(ModelContext<?,?> modelContext) {
+    String getObjectOid(ModelContext<?> modelContext) {
         ModelElementContext<UserType> fc = (ModelElementContext<UserType>) modelContext.getFocusContext();
         String objectOid = null;
         if (fc.getObjectNew() != null && fc.getObjectNew().getOid() != null) {
@@ -133,7 +133,7 @@ public abstract class BaseWrapper implements PrimaryApprovalProcessWrapper {
         }
     }
 
-    void prepareCommonInstructionAttributes(JobCreationInstruction instruction, ModelContext<?,?> modelContext, String objectOid, PrismObject<UserType> requester) throws SchemaException {
+    void prepareCommonInstructionAttributes(JobCreationInstruction instruction, ModelContext<?> modelContext, String objectOid, PrismObject<UserType> requester) throws SchemaException {
 
         instruction.setRequesterOidInProcess(requester);
         instruction.setObjectOidInProcess(objectOid);

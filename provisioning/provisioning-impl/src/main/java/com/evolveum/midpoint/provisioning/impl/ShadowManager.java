@@ -19,12 +19,10 @@ package com.evolveum.midpoint.provisioning.impl;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -49,29 +47,19 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.Visitor;
-import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
-import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.api.ResourceOperationDescription;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
-import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
-import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
-import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
-import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
-import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
-import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -279,7 +267,7 @@ public class ShadowManager {
 	}
 
 	private <T> PrismPropertyValue<T> getNormalizedValue(PrismProperty<T> attr, RefinedObjectClassDefinition rObjClassDef) throws SchemaException {
-		RefinedAttributeDefinition refinedAttributeDefinition = rObjClassDef.findAttributeDefinition(attr.getName());
+		RefinedAttributeDefinition refinedAttributeDefinition = rObjClassDef.findAttributeDefinition(attr.getElementName());
 		QName matchingRuleQName = refinedAttributeDefinition.getMatchingRuleQName();
 		MatchingRule<T> matchingRule = matchingRuleRegistry.getMatchingRule(matchingRuleQName, refinedAttributeDefinition.getTypeName());
 		PrismPropertyValue<T> origPValue = attr.getValue();
@@ -420,7 +408,7 @@ public class ShadowManager {
 		List<ObjectFilter> conditions = new ArrayList<ObjectFilter>();
 		for (PrismProperty<?> identifier : identifiers) {
 			PrismPropertyValue<?> identifierValue = identifier.getValue();
-			RefinedAttributeDefinition rAttrDef = rOcDef.findAttributeDefinition(identifier.getName());
+			RefinedAttributeDefinition rAttrDef = rOcDef.findAttributeDefinition(identifier.getElementName());
 			Object normalizedIdentifierValue = getNormalizedAttributeValue(identifierValue, rAttrDef);
 			EqualsFilter filter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES),
 					identifier.getDefinition(), new PrismPropertyValue(normalizedIdentifierValue));
@@ -533,7 +521,7 @@ public class ShadowManager {
 		if (parentPath == null || !parentPath.equals(SchemaConstants.PATH_ATTRIBUTES)) {
 			return;
 		}
-		QName attrName = eqFilter.getName();
+		QName attrName = eqFilter.getElementName();
 		RefinedAttributeDefinition rAttrDef = objectClassDef.findAttributeDefinition(attrName);
 		QName matchingRuleQName = rAttrDef.getMatchingRuleQName();
 		if (matchingRuleQName == null) {
@@ -621,7 +609,7 @@ public class ShadowManager {
 	
 	private void normalizeAttributes(PrismObject<ShadowType> shadow, RefinedObjectClassDefinition objectClassDefinition) throws SchemaException {
 		for (ResourceAttribute<?> attribute: ShadowUtil.getAttributes(shadow)) {
-			RefinedAttributeDefinition rAttrDef = objectClassDefinition.findAttributeDefinition(attribute.getName());
+			RefinedAttributeDefinition rAttrDef = objectClassDefinition.findAttributeDefinition(attribute.getElementName());
 			normalizeAttribute(attribute, rAttrDef);			
 		}
 	}
@@ -662,7 +650,7 @@ public class ShadowManager {
 
 	public <T> boolean compareAttribute(RefinedObjectClassDefinition refinedObjectClassDefinition,
 			ResourceAttribute<T> attributeA, T... valuesB) throws SchemaException {
-		RefinedAttributeDefinition refinedAttributeDefinition = refinedObjectClassDefinition.findAttributeDefinition(attributeA.getName());
+		RefinedAttributeDefinition refinedAttributeDefinition = refinedObjectClassDefinition.findAttributeDefinition(attributeA.getElementName());
 		Collection<T> valuesA = getNormalizedAttributeValues(attributeA, refinedAttributeDefinition);
 		return MiscUtil.unorderedCollectionEquals(valuesA, Arrays.asList(valuesB));
 	}

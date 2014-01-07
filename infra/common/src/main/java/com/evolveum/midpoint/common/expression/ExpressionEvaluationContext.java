@@ -38,6 +38,7 @@ public class ExpressionEvaluationContext {
 	private boolean skipEvaluationPlus = false;
 	private boolean skipEvaluationMinus = false;
 	private StringPolicyResolver stringPolicyResolver;
+	private ExpressionFactory expressionFactory;
 	private String contextDescription;
 	private OperationResult result;
 	
@@ -99,6 +100,14 @@ public class ExpressionEvaluationContext {
 		this.stringPolicyResolver = stringPolicyResolver;
 	}
 	
+	public ExpressionFactory getExpressionFactory() {
+		return expressionFactory;
+	}
+
+	public void setExpressionFactory(ExpressionFactory expressionFactory) {
+		this.expressionFactory = expressionFactory;
+	}
+
 	public String getContextDescription() {
 		return contextDescription;
 	}
@@ -120,6 +129,7 @@ public class ExpressionEvaluationContext {
 		clone.skipEvaluationMinus = this.skipEvaluationMinus;
 		clone.skipEvaluationPlus = this.skipEvaluationPlus;
 		clone.stringPolicyResolver = this.stringPolicyResolver;
+		clone.expressionFactory = this.expressionFactory;
 		clone.defaultSource = this.defaultSource;
 		return clone;
 	}

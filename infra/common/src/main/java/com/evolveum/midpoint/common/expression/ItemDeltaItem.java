@@ -24,7 +24,6 @@ import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PartiallyResolvedValue;
 import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -32,7 +31,6 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Structured;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -130,10 +128,10 @@ public class ItemDeltaItem<V extends PrismValue> {
 	public QName getElementName() {
 		Item<V> anyItem = getAnyItem();
 		if (anyItem != null) {
-			return anyItem.getName();
+			return anyItem.getElementName();
 		}
 		if (delta != null) {
-			return delta.getName();
+			return delta.getElementName();
 		}
 		return null;
 	}

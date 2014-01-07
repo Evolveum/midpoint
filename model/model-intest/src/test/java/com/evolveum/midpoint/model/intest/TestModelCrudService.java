@@ -119,7 +119,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
-        PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
+        PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_FILE);
         
         Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
         PrismReferenceValue accountRefVal = new PrismReferenceValue();
@@ -145,11 +145,11 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-        assertDummyShadowRepo(accountShadow, accountOid, "jack");
+        assertDummyAccountShadowRepo(accountShadow, accountOid, "jack");
         
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-        assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
+        assertDummyAccountShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
         
         // Check account in dummy resource
         assertDummyAccount("jack", "Jack Sparrow", true);
@@ -166,7 +166,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-        PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
+        PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_FILE);
         account.setOid(accountOid);
         
         Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
@@ -208,7 +208,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
         
-        PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
+        PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_FILE);
         
 		// WHEN
         accountOid = modelCrudService.addObject(account, null, task, result);
@@ -222,11 +222,11 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-        assertDummyShadowRepo(accountShadow, accountOid, "jack");
+        assertDummyAccountShadowRepo(accountShadow, accountOid, "jack");
         
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-        assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
+        assertDummyAccountShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
         
         // Check account in dummy resource
         assertDummyAccount("jack", "Jack Sparrow", true);
@@ -254,15 +254,15 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 		// Check accountRef
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		assertUserJack(userJack);
-        accountOid = getSingleUserAccountRef(userJack);
+        accountOid = getSingleLinkOid(userJack);
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-        assertDummyShadowRepo(accountShadow, accountOid, "jack");
+        assertDummyAccountShadowRepo(accountShadow, accountOid, "jack");
         
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-        assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
+        assertDummyAccountShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
         
         // Check account in dummy resource
         assertDummyAccount("jack", "Jack Sparrow", true);
@@ -281,7 +281,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 
-        PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_DUMMY_FILENAME));
+        PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_JACK_DUMMY_FILE);
         
         Collection<ItemDelta<?>> modifications = new ArrayList<ItemDelta<?>>();
         PrismReferenceValue accountRefVal = new PrismReferenceValue();
@@ -300,11 +300,11 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
 		        
 		// Check shadow (if it is unchanged)
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-        assertDummyShadowRepo(accountShadow, accountOid, "jack");
+        assertDummyAccountShadowRepo(accountShadow, accountOid, "jack");
         
         // Check account (if it is unchanged)
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-        assertDummyShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
+        assertDummyAccountShadowModel(accountModel, accountOid, "jack", "Jack Sparrow");
         
         // Check account in dummy resource (if it is unchanged)
         assertDummyAccount("jack", "Jack Sparrow", true);
@@ -331,7 +331,7 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         assertUserNoAccountRefs(userJack);
         
 		// Check is shadow is gone
-        assertNoAccountShadow(accountOid);
+        assertNoShadow(accountOid);
         
         // Check if dummy resource account is gone
         assertNoDummyAccount("jack");
@@ -362,11 +362,11 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-        assertDummyShadowRepo(accountShadow, accountOid, "blackbeard");
+        assertDummyAccountShadowRepo(accountShadow, accountOid, "blackbeard");
         
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-        assertDummyShadowModel(accountModel, accountOid, "blackbeard", "Edward Teach");
+        assertDummyAccountShadowModel(accountModel, accountOid, "blackbeard", "Edward Teach");
         
         // Check account in dummy resource
         assertDummyAccount("blackbeard", "Edward Teach", true);
@@ -398,11 +398,11 @@ public class TestModelCrudService extends AbstractInitializedModelIntegrationTes
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-        assertDummyShadowRepo(accountShadow, accountOid, "morgan");
+        assertDummyAccountShadowRepo(accountShadow, accountOid, "morgan");
         
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-        assertDummyShadowModel(accountModel, accountOid, "morgan", "Sir Henry Morgan");
+        assertDummyAccountShadowModel(accountModel, accountOid, "morgan", "Sir Henry Morgan");
         
         // Check account in dummy resource
         assertDummyAccount("morgan", "Sir Henry Morgan", true);

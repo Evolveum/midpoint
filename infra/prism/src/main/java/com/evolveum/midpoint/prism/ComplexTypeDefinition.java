@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.prism;
 
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.PrettyPrinter;
 
@@ -42,13 +44,13 @@ public class ComplexTypeDefinition extends Definition {
 	private QName extensionForType;
 	private Class<?> compileTimeClass;
 
-	public ComplexTypeDefinition(QName defaultName, QName typeName, PrismContext prismContext) {
-		super(defaultName, typeName, prismContext);
+	public ComplexTypeDefinition(QName typeName, PrismContext prismContext) {
+		super(typeName, prismContext);
 		itemDefinitions = new ArrayList<ItemDefinition>();
 	}
 	
-	public ComplexTypeDefinition(QName defaultName, QName typeName, PrismContext prismContext, Class<?> compileTimeClass) {
-		super(defaultName, typeName, prismContext);
+	public ComplexTypeDefinition(QName typeName, PrismContext prismContext, Class<?> compileTimeClass) {
+		super(typeName, prismContext);
 		itemDefinitions = new ArrayList<ItemDefinition>();
 		this.compileTimeClass = compileTimeClass;
 	}
@@ -143,7 +145,7 @@ public class ComplexTypeDefinition extends Definition {
 	}
 		
 	public PrismPropertyDefinition createPropertyDefinifion(QName name, QName typeName) {
-		PrismPropertyDefinition propDef = new PrismPropertyDefinition(name, name, typeName, prismContext);
+		PrismPropertyDefinition propDef = new PrismPropertyDefinition(name, typeName, prismContext);
 		itemDefinitions.add(propDef);
 		return propDef;
 	}
@@ -152,7 +154,7 @@ public class ComplexTypeDefinition extends Definition {
 	// TODO: maybe check if the name is in different namespace
 	// TODO: maybe create entirely new concept of property reference?
 	public PrismPropertyDefinition createPropertyDefinifion(QName name) {
-		PrismPropertyDefinition propDef = new PrismPropertyDefinition(name, name, null, prismContext);
+		PrismPropertyDefinition propDef = new PrismPropertyDefinition(name, null, prismContext);
 		itemDefinitions.add(propDef);
 		return propDef;
 	}
@@ -177,12 +179,20 @@ public class ComplexTypeDefinition extends Definition {
      * @param name property definition name
      * @return found property definition or null
      */
-    public PrismPropertyDefinition findPropertyDefinition(QName name) {
+    public <C extends Containerable> PrismPropertyDefinition<C> findPropertyDefinition(QName name) {
         return findItemDefinition(name, PrismPropertyDefinition.class);
     }
+    
+    public <C extends Containerable> PrismPropertyDefinition<C> findPropertyDefinition(ItemPath path) {
+        return findItemDefinition(path, PrismPropertyDefinition.class);
+    }
 	
-    public PrismContainerDefinition findContainerDefinition(QName name) {
+    public <C extends Containerable> PrismContainerDefinition<C> findContainerDefinition(QName name) {
     	return findItemDefinition(name, PrismContainerDefinition.class);
+    }
+    
+    public <C extends Containerable> PrismContainerDefinition<C> findContainerDefinition(ItemPath path) {
+    	return findItemDefinition(path, PrismContainerDefinition.class);
     }
     
 	public <T extends ItemDefinition> T findItemDefinition(QName name, Class<T> clazz) {
@@ -196,6 +206,22 @@ public class ComplexTypeDefinition extends Definition {
         for (ItemDefinition def : getDefinitions()) {
             if (isItemValid(def, name, clazz)) {
                 return (T) def;
+            }
+        }
+        return null;
+    }
+
+	public <T extends ItemDefinition> T findItemDefinition(ItemPath path, Class<T> clazz) {
+    	while (!path.isEmpty() && !(path.first() instanceof NameItemPathSegment)) {
+    		path = path.rest();
+    	}
+        if (path.isEmpty()) {
+            throw new IllegalArgumentException("Cannot resolve empty path on complex type definition "+this);
+        }
+        QName firstName = ((NameItemPathSegment)path.first()).getName();
+        for (ItemDefinition def : getDefinitions()) {
+            if (firstName.equals(def.getName())) {
+                return def.findItemDefinition(path.rest(), clazz);
             }
         }
         return null;
@@ -236,7 +262,7 @@ public class ComplexTypeDefinition extends Definition {
 	 * Shallow clone.
 	 */
 	public ComplexTypeDefinition clone() {
-		ComplexTypeDefinition clone = new ComplexTypeDefinition(this.defaultName, this.typeName, prismContext);
+		ComplexTypeDefinition clone = new ComplexTypeDefinition(this.typeName, prismContext);
 		copyDefinitionData(clone);
 		return clone;
 	}

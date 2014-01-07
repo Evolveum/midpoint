@@ -18,7 +18,6 @@ package com.evolveum.midpoint.provisioning.impl;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.xml.namespace.QName;
@@ -29,7 +28,6 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ModificationType;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -367,7 +365,7 @@ class EntitlementConverter {
 					for(Operation operation: operations) {
 						if (operation instanceof PropertyModificationOperation) {
 							PropertyModificationOperation propOp = (PropertyModificationOperation)operation;
-							if (propOp.getPropertyDelta().getName().equals(assocAttrName)) {
+							if (propOp.getPropertyDelta().getElementName().equals(assocAttrName)) {
 								attributeDelta = propOp.getPropertyDelta();
 							}
 						}
@@ -548,7 +546,7 @@ class EntitlementConverter {
 		for(Operation operation: operations) {
 			if (operation instanceof PropertyModificationOperation) {
 				PropertyModificationOperation propOp = (PropertyModificationOperation)operation;
-				if (propOp.getPropertyDelta().getName().equals(assocAttrName)) {
+				if (propOp.getPropertyDelta().getElementName().equals(assocAttrName)) {
 					attributeDelta = propOp.getPropertyDelta();
 				}
 			}

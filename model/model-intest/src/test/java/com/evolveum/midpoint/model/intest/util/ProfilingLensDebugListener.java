@@ -13,6 +13,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 
 public class ProfilingLensDebugListener implements LensDebugListener {
 	
@@ -25,30 +26,26 @@ public class ProfilingLensDebugListener implements LensDebugListener {
 	private long projectorMappingTotalCount = 0;
 	
 	@Override
-	public <F extends ObjectType, P extends ObjectType> void beforeSync(
-			LensContext<F, P> context) {
+	public <F extends ObjectType> void beforeSync(LensContext<F> context) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public <F extends ObjectType, P extends ObjectType> void afterSync(
-			LensContext<F, P> context) {
+	public <F extends ObjectType> void afterSync(LensContext<F> context) {
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public <F extends ObjectType, P extends ObjectType> void beforeProjection(
-			LensContext<F, P> context) {
+	public <F extends ObjectType> void beforeProjection(LensContext<F> context) {
 		projectorStartTime = System.currentTimeMillis();
 		projectorMappingTotalMillis = 0;
 		projectorMappingTotalCount = 0;
 	}
 
 	@Override
-	public <F extends ObjectType, P extends ObjectType> void afterProjection(
-			LensContext<F, P> context) {
+	public <F extends ObjectType> void afterProjection(LensContext<F> context) {
 		projectorEndTime = System.currentTimeMillis();
 		String desc = null;
 		if (context.getFocusContext() != null) {
@@ -60,8 +57,8 @@ public class ProfilingLensDebugListener implements LensDebugListener {
 				desc = focusObject.toString();
 			}
 		} else {
-			for (LensProjectionContext<P> projectionContext: context.getProjectionContexts()) {
-				PrismObject<P> projObj = projectionContext.getObjectNew();
+			for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
+				PrismObject<ShadowType> projObj = projectionContext.getObjectNew();
 				if (projObj == null) {
 					projObj = projectionContext.getObjectOld();
 				}
@@ -87,8 +84,7 @@ public class ProfilingLensDebugListener implements LensDebugListener {
 	}
 
 	@Override
-	public <F extends ObjectType, P extends ObjectType> void afterMappingEvaluation(
-			LensContext<F, P> context, Mapping<?> evaluatedMapping) {
+	public <F extends ObjectType> void afterMappingEvaluation(LensContext<F> context, Mapping<?> evaluatedMapping) {
 		mappingTotalMillis += evaluatedMapping.getEtime();
 		projectorMappingTotalMillis += evaluatedMapping.getEtime();
 		projectorMappingTotalCount++;

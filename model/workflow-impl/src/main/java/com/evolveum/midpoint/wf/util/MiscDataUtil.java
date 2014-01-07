@@ -260,7 +260,7 @@ public class MiscDataUtil {
         }
     }
 
-    public static String getObjectName(ModelContext<? extends ObjectType,?> modelContext) {
+    public static String getObjectName(ModelContext<? extends ObjectType> modelContext) {
         ModelElementContext<? extends ObjectType> fc = modelContext.getFocusContext();
         PrismObject<? extends ObjectType> prism = fc.getObjectNew() != null ? fc.getObjectNew() : fc.getObjectOld();
         if (prism == null) {

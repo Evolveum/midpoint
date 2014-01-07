@@ -80,15 +80,6 @@
         </property>
     </bean>
     
-    <bean id="midpointFunctionLibrary" class="com.evolveum.midpoint.common.expression.functions.FunctionLibrary"
-          scope="singleton">
-        <property name="variableName" value="midpoint"/>
-        <property name="namespace" value="http://midpoint.evolveum.com/xml/ns/public/function/midpoint-2"/>
-        <property name="genericFunctions">
-            <ref bean="midpointFunctionsImpl"/>
-        </property>
-    </bean>
-
     <bean id="xpathScriptEvaluator" class="com.evolveum.midpoint.common.expression.script.xpath.XPathScriptEvaluator"
           scope="singleton">
           <constructor-arg name="prismContext" ref="prismContext"/>
@@ -153,12 +144,21 @@
           <constructor-arg name="prismContext" ref="prismContext"/>
     </bean>
     
-    <bean id="asisExpressionEvaluatorFactory" class="com.evolveum.midpoint.common.expression.evaluator.AsIsExpressionEvaluatorFactory"
+    <bean id="asisExpressionEvaluatorFactory" 
+          class="com.evolveum.midpoint.common.expression.evaluator.AsIsExpressionEvaluatorFactory"
           scope="singleton">
           <constructor-arg name="prismContext" ref="prismContext"/>
           <constructor-arg name="protector" ref="protector"/>
     </bean>
 
+	<bean id="assignmentExpressionEvaluatorFactory" 
+	      class="com.evolveum.midpoint.common.expression.evaluator.AssignmentExpressionEvaluatorFactory"
+          scope="singleton">
+          <constructor-arg name="prismContext" ref="prismContext"/>
+          <constructor-arg name="protector" ref="protector"/>
+          <constructor-arg ref="modelObjectResolver"/>
+    </bean>
+    
     <bean id="expressionFactory" class="com.evolveum.midpoint.common.expression.ExpressionFactory" 
     		scope="singleton">
         <constructor-arg>
@@ -174,6 +174,7 @@
         		<ref bean="pathExpressionEvaluatorFactory"/>
         		<ref bean="literalExpressionEvaluatorFactory"/>
         		<ref bean="asisExpressionEvaluatorFactory"/>
+        		<ref bean="assignmentExpressionEvaluatorFactory"/>
         	</list>
         </constructor-arg>
         <property name="defaultEvaluatorFactory">
@@ -199,46 +200,80 @@
             <ref bean="filterManager"/>
         </property>
     </bean>
+    
+    <bean id="midpointFunctionLibrary" class="com.evolveum.midpoint.common.expression.functions.FunctionLibrary"
+          scope="singleton">
+        <property name="variableName" value="midpoint"/>
+        <property name="namespace" value="http://midpoint.evolveum.com/xml/ns/public/function/midpoint-2"/>
+        <property name="genericFunctions">
+            <ref bean="midpointFunctionsImpl"/>
+        </property>
+    </bean>
 
     <bean id="actionManager" class="com.evolveum.midpoint.model.sync.ActionManagerImpl">
         <property name="actionMapping">
             <map>
-                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addUser">
-                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.AddUserAction</value>
+            	<entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#link">
+                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.LinkAction</value>
                 </entry>
-                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#modifyUser">
-                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.ModifyUserAction</value>
+                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addFocus">
+                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.AddFocusAction</value>
                 </entry>
-                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#disableUser">
-                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.DisableUserAction</value>
+                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#deleteFocus">
+                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.DeleteFocusAction</value>
                 </entry>
-                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#enableUser">
-                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.EnableUserAction</value>
+                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlink">
+                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.UnlinkAction</value>
                 </entry>
+                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#deleteShadow">
+                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.DeleteShadowAction</value>
+                </entry>
+                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#inactivateShadow">
+                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.InactivateShadowAction</value>
+                </entry>
+                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#inactivateFocus">
+                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.InactivateFocusAction</value>
+                </entry>
+                
+
+				<!-- DEPRECATED. for compatibility only. -->
                 <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount">
-                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.LinkAccountAction</value>
+                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.LinkAction</value>
+                </entry>
+            	<entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#modifyUser">
+                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.EmptyAction</value>
+                </entry>
+            	<entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#synchronize">
+                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.EmptyAction</value>
+                </entry>
+                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addUser">
+                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.AddFocusAction</value>
+                </entry>
+                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#deleteUser">
+                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.DeleteFocusAction</value>
                 </entry>
                 <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlinkAccount">
-                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.UnlinkAccountAction</value>
+                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.UnlinkAction</value>
                 </entry>
                 <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#deleteAccount">
-                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.DeleteAccountAction</value>
+                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.DeleteShadowAction</value>
                 </entry>
                 <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#disableAccount">
-                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.DisableAccountAction</value>
+                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.InactivateShadowAction</value>
+                </entry>
+                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#disableUser">
+                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.InactivateFocusAction</value>
+                </entry>
+                
+                <!-- TODO -->
+                <!-- 
+                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#enableUser">
+                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.EnableUserAction</value>
                 </entry>
                 <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addAccount">
                     <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.AddAccountAction</value>
                 </entry>
-                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#deleteUser">
-                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.DeleteUserAction</value>
-                </entry>
-                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#modifyPassword">
-                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.ModifyPasswordAction</value>
-                </entry>
-                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#synchronize">
-                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.SynchronizeAction</value>
-                </entry>
+                 -->
             </map>
         </property>
         <property name="model">
@@ -259,7 +294,9 @@
         <property name="provisioningService">
             <ref bean="provisioningService"/>
         </property>
-
+        <property name="contextFactory">
+            <ref bean="contextFactory"/>
+        </property>
     </bean>
 
     <bean id="filterManager" class="com.evolveum.midpoint.common.filter.FilterManagerImpl">

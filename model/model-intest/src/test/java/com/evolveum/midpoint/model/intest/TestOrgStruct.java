@@ -53,10 +53,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class TestOrgStruct extends AbstractInitializedModelIntegrationTest {
 	
-	public TestOrgStruct() throws JAXBException {
-		super();
-	}
-	
 	@Test
     public void test001OrgStructSanity() throws Exception {
 		final String TEST_NAME = "test001OrgStructSanity";

@@ -70,11 +70,11 @@
 			<artifactId>scannotation</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.forgerock.openicf.framework</groupId>
+			<groupId>org.connid</groupId>
 			<artifactId>connector-framework</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.forgerock.openicf.framework</groupId>
+			<groupId>org.connid</groupId>
 			<artifactId>connector-framework-internal</artifactId>
 		</dependency>
 		<dependency>

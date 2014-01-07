@@ -101,7 +101,7 @@ public class CryptoUtil {
     	if (!itemDef.getTypeName().equals(ProtectedStringType.COMPLEX_TYPE)) {
     		return;
     	}
-    	QName propName = item.getName();
+    	QName propName = item.getElementName();
     	PrismPropertyValue<ProtectedStringType> psPval = (PrismPropertyValue<ProtectedStringType>)pval;
     	ProtectedStringType ps = psPval.getValue();
     	if (ps.getClearValue() != null) {
@@ -171,7 +171,7 @@ public class CryptoUtil {
     	if (!itemDef.getTypeName().equals(ProtectedStringType.COMPLEX_TYPE)) {
     		return;
     	}
-    	QName propName = item.getName();
+    	QName propName = item.getElementName();
     	PrismPropertyValue<ProtectedStringType> psPval = (PrismPropertyValue<ProtectedStringType>)pval;
     	ProtectedStringType ps = psPval.getValue();
     	if (ps.getClearValue() != null) {

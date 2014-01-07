@@ -67,7 +67,7 @@ public interface PrimaryApprovalProcessWrapper {
      * @return list of start process instructions
      * @see com.evolveum.midpoint.wf.jobs.JobCreationInstruction
      */
-    List<JobCreationInstruction> prepareJobCreationInstructions(ModelContext<?, ?> modelContext, ObjectDelta<? extends ObjectType> change, Task taskFromModel, OperationResult result) throws SchemaException;
+    List<JobCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext, ObjectDelta<? extends ObjectType> change, Task taskFromModel, OperationResult result) throws SchemaException;
 
     /**
      * On process instance end, prepares deltaOut based in deltaIn and information gathered during approval process.

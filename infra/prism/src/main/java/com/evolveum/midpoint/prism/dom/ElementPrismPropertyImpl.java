@@ -16,8 +16,6 @@
 
 package com.evolveum.midpoint.prism.dom;
 
-import java.util.List;
-
 import javax.xml.bind.JAXBException;
 
 import org.w3c.dom.Attr;
@@ -28,11 +26,9 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 
@@ -65,7 +61,7 @@ public class ElementPrismPropertyImpl<T> extends ElementPrismAbstractImpl {
 			PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
 			if (jaxbProcessor.canConvert(type)) {
 				try {
-					delegateElement = jaxbProcessor.marshalObjectToDom(value.getValue(), getItem().getName(), (Document)null);
+					delegateElement = jaxbProcessor.marshalObjectToDom(value.getValue(), getItem().getElementName(), (Document)null);
 				} catch (JAXBException e) {
 					DOMException domException = new DOMException(DOMException.INVALID_STATE_ERR, "Error converting the value of type "+type+": "+e.getMessage());
 					domException.initCause(e);

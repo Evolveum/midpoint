@@ -276,7 +276,7 @@ public class ResourceAttributeContainerDefinition extends PrismContainerDefiniti
 	}
 
 	public ResourceAttributeContainer instantiate() {
-		return instantiate(getNameOrDefaultName());
+		return instantiate(getName());
 	}
 	
 	public ResourceAttributeContainer instantiate(QName name) {
@@ -321,7 +321,7 @@ public class ResourceAttributeContainerDefinition extends PrismContainerDefiniti
 	}
 	
 	public ResourceAttributeDefinition findAttributeDefinition(String elementLocalname) {
-		QName elementQName = new QName(getNameOrDefaultName().getNamespaceURI(),elementLocalname);
+		QName elementQName = new QName(getName().getNamespaceURI(),elementLocalname);
 		return findAttributeDefinition(elementQName);
 	}
 	

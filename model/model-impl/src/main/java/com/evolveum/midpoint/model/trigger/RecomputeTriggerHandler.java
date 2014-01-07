@@ -90,7 +90,7 @@ public class RecomputeTriggerHandler implements TriggerHandler {
 		try {
 			
 			LOGGER.trace("Recomputing {}", object);
-			LensContext<UserType, ShadowType> syncContext = contextFactory.createRecomputeContext(object, task, result);
+			LensContext<UserType> syncContext = contextFactory.createRecomputeContext(object, task, result);
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Recomputing of {}: context:\n{}", object, syncContext.dump());
 			}

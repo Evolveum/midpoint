@@ -272,7 +272,7 @@ public class TaskQuartzImpl implements Task {
             return;
         }
         for (ItemDelta<?> delta : deltas) {
-			if (delta.getParentPath().isEmpty() && quartzRelatedProperties.contains(delta.getName())) {
+			if (delta.getParentPath().isEmpty() && quartzRelatedProperties.contains(delta.getElementName())) {
 				synchronizeWithQuartz(parentResult);
 				return;
 			}
@@ -640,7 +640,7 @@ public class TaskQuartzImpl implements Task {
     public ItemDelta<?> createExtensionDelta(PrismPropertyDefinition definition, Object realValue) {
         PrismProperty<?> property = (PrismProperty<?>) definition.instantiate();
         property.setRealValue(realValue);
-        PropertyDelta propertyDelta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, property.getName()), definition);
+        PropertyDelta propertyDelta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, property.getElementName()), definition);
         propertyDelta.setValuesToReplace(PrismValue.cloneCollection(property.getValues()));
         return propertyDelta;
     }
@@ -1641,22 +1641,22 @@ public class TaskQuartzImpl implements Task {
 
     @Override
 	public void setExtensionProperty(PrismProperty<?> property) throws SchemaException {
-		processModificationBatched(setExtensionPropertyAndPrepareDelta(property.getName(), property.getDefinition(), PrismValue.cloneCollection(property.getValues())));
+		processModificationBatched(setExtensionPropertyAndPrepareDelta(property.getElementName(), property.getDefinition(), PrismValue.cloneCollection(property.getValues())));
 	}
 
     @Override
     public void setExtensionReference(PrismReference reference) throws SchemaException {
-        processModificationBatched(setExtensionReferenceAndPrepareDelta(reference.getName(), reference.getDefinition(), PrismValue.cloneCollection(reference.getValues())));
+        processModificationBatched(setExtensionReferenceAndPrepareDelta(reference.getElementName(), reference.getDefinition(), PrismValue.cloneCollection(reference.getValues())));
     }
 
     @Override
     public void addExtensionReference(PrismReference reference) throws SchemaException {
-        processModificationBatched(addExtensionReferenceAndPrepareDelta(reference.getName(), reference.getDefinition(), PrismValue.cloneCollection(reference.getValues())));
+        processModificationBatched(addExtensionReferenceAndPrepareDelta(reference.getElementName(), reference.getDefinition(), PrismValue.cloneCollection(reference.getValues())));
     }
 
     @Override
     public <C extends Containerable> void setExtensionContainer(PrismContainer<C> container) throws SchemaException {
-        processModificationBatched(setExtensionContainerAndPrepareDelta(container.getName(), container.getDefinition(), PrismValue.cloneCollection(container.getValues())));
+        processModificationBatched(setExtensionContainerAndPrepareDelta(container.getElementName(), container.getDefinition(), PrismValue.cloneCollection(container.getValues())));
     }
 
     // use this method to avoid cloning the value
@@ -1687,12 +1687,12 @@ public class TaskQuartzImpl implements Task {
 
     @Override
     public void addExtensionProperty(PrismProperty<?> property) throws SchemaException {
-        processModificationBatched(addExtensionPropertyAndPrepareDelta(property.getName(), property.getDefinition(), PrismValue.cloneCollection(property.getValues())));
+        processModificationBatched(addExtensionPropertyAndPrepareDelta(property.getElementName(), property.getDefinition(), PrismValue.cloneCollection(property.getValues())));
     }
 
     @Override
     public void deleteExtensionProperty(PrismProperty<?> property) throws SchemaException {
-        processModificationBatched(deleteExtensionPropertyAndPrepareDelta(property.getName(), property.getDefinition(), PrismValue.cloneCollection(property.getValues())));
+        processModificationBatched(deleteExtensionPropertyAndPrepareDelta(property.getElementName(), property.getDefinition(), PrismValue.cloneCollection(property.getValues())));
     }
 
     @Override
@@ -1709,7 +1709,7 @@ public class TaskQuartzImpl implements Task {
 	public void setExtensionPropertyImmediate(PrismProperty<?> property, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException {
         try {
-		    processModificationNow(setExtensionPropertyAndPrepareDelta(property.getName(), property.getDefinition(), PrismValue.cloneCollection(property.getValues())), parentResult);
+		    processModificationNow(setExtensionPropertyAndPrepareDelta(property.getElementName(), property.getDefinition(), PrismValue.cloneCollection(property.getValues())), parentResult);
         } catch (ObjectAlreadyExistsException ex) {
             throw new SystemException(ex);
         }

@@ -19,8 +19,6 @@ import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 import static com.evolveum.midpoint.test.IntegrationTestTools.*;
 
-import static com.evolveum.midpoint.model.lens.LensTestConstants.*;
-
 import java.io.FileNotFoundException;
 
 import javax.xml.bind.JAXBException;
@@ -56,7 +54,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestAssignmentEvaluator extends AbstractInternalModelIntegrationTest {
+public class TestAssignmentEvaluator extends AbstractLensTest {
 
 	@Autowired(required=true)
 	private RepositoryService repositoryService;
@@ -79,7 +77,7 @@ public class TestAssignmentEvaluator extends AbstractInternalModelIntegrationTes
 		AssignmentEvaluator assignmentEvaluator = createAssignmentEvaluator();
 		PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 		
-		AssignmentType assignmentType = unmarshallJaxbFromFile(ASSIGNMENT_DIRECT_FILENAME, AssignmentType.class);
+		AssignmentType assignmentType = unmarshallJaxbFromFile(ASSIGNMENT_DIRECT_FILE, AssignmentType.class);
 		
 		// We need to make sure that the assignment has a parent
 		PrismContainerDefinition assignmentContainerDefinition = userTypeJack.asPrismObject().getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
