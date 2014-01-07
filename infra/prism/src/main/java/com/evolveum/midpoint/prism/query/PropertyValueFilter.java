@@ -91,11 +91,34 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 		return pValues;
 	}
 	
+	static <T> List<PrismPropertyValue<T>> createPropertyList(PrismPropertyDefinition itemDefinition, PrismPropertyValue<T>[] values) {
+		Validate.notNull(itemDefinition, "Item definition in substring filter must not be null.");
+		
+		List<PrismPropertyValue<T>> pValues = new ArrayList<PrismPropertyValue<T>>();
+		
+		for (PrismPropertyValue<T> val : values){
+			PrismUtil.recomputePrismPropertyValue(val, itemDefinition.getPrismContext());
+			pValues.add(val);
+		}
+		
+		return pValues;
+	}
+	
+	
 	 static <T> List<PrismPropertyValue<T>> createPropertyList(PrismPropertyDefinition itemDefinition, T realValue){
 		List<PrismPropertyValue<T>> pVals = new ArrayList<PrismPropertyValue<T>>();
 
 		if (realValue.getClass() != null && Collection.class.isAssignableFrom(realValue.getClass())) {
-			pVals.addAll(PrismPropertyValue.createCollection((Collection<T>) realValue));
+			for (Object o : (Iterable)realValue){
+				if (o instanceof PrismPropertyValue){
+					PrismPropertyValue pVal = (PrismPropertyValue) o;
+					PrismUtil.recomputePrismPropertyValue(pVal, itemDefinition.getPrismContext());
+					pVals.add(pVal);
+				}else{
+					pVals.addAll(PrismPropertyValue.createCollection((Collection<T>) realValue));
+				}
+			}
+			
 		} else {
 			PrismUtil.recomputeRealValue(realValue, itemDefinition.getPrismContext());
 			pVals.add(new PrismPropertyValue<T>(realValue));

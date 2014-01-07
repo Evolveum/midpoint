@@ -95,7 +95,7 @@ public class EqualsFilter<T extends Object> extends PropertyValueFilter<PrismPro
 	public static <T> EqualsFilter createEqual(ItemPath path, PrismPropertyDefinition itemDefinition, T realValues){
 		return createEqual(path, itemDefinition, null, realValues);
 	}
-
+	
 	public static <T> EqualsFilter createEqual(ItemPath path, PrismPropertyDefinition itemDefinition, QName matchingRule, T realValue){
 		Validate.notNull(itemDefinition, "Item definition in the filter must not be null");
 		Validate.notNull(path, "Path in the filter must not be null");
