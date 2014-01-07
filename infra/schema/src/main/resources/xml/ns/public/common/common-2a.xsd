@@ -4919,6 +4919,7 @@
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
+        	<xsd:element ref="tns:description" minOccurs="0"/>
         	<xsd:element name="objectClass" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
         		<xsd:annotation>
         			<xsd:documentation>
