@@ -22,8 +22,16 @@ import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.controller.ModelOperationTaskHandler;
 import com.evolveum.midpoint.model.lens.Clockwork;
 import com.evolveum.midpoint.model.lens.LensContext;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.ReferenceDelta;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -33,19 +41,28 @@ import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.Checker;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
+import com.evolveum.midpoint.wf.activiti.ActivitiUtil;
 import com.evolveum.midpoint.wf.activiti.TestAuthenticationInfoHolder;
 import com.evolveum.midpoint.wf.jobs.WfTaskUtil;
+import com.evolveum.midpoint.wf.processes.WorkflowResult;
+import com.evolveum.midpoint.wf.processors.general.GeneralChangeProcessor;
+import com.evolveum.midpoint.wf.processors.primary.PrimaryChangeProcessor;
+import com.evolveum.midpoint.wf.util.JaxbValueContainer;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
+import com.evolveum.midpoint.wf.util.WfVariablesUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
+import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -54,6 +71,9 @@ import org.testng.annotations.Test;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
+import java.io.File;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
@@ -104,6 +124,14 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
     @Autowired
     private MiscDataUtil miscDataUtil;
 
+    @Autowired
+    private PrimaryChangeProcessor primaryChangeProcessor;
+
+    @Autowired
+    private GeneralChangeProcessor generalChangeProcessor;
+
+    private ActivitiUtil activitiUtil = new ActivitiUtil();                 // this is not a spring bean
+
     public TestGeneralChangeProcessor() throws JAXBException {
 		super();
 	}
@@ -116,27 +144,127 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 
 	}
 
-	@Test(enabled = true)
-    public void test010() throws Exception {
+	@Test(enabled = false)
+    public void test010AddRole1() throws Exception {
         TestUtil.displayTestTile(this, "test010UserModifyAddRole");
        	executeTest("test010UserModifyAddRole", USER_JACK_OID, 1, false, true, new ContextCreator() {
-               @Override
-               public LensContext createModelContext(OperationResult result) throws Exception {
-                   LensContext<UserType, ShadowType> context = createUserAccountContext();
-                   fillContextWithUser(context, USER_JACK_OID, result);
-                   addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE1);
-                   return context;
-               }
-           });
+            @Override
+            public LensContext createModelContext(OperationResult result) throws Exception {
+                LensContext<UserType, ShadowType> context = createUserAccountContext();
+                fillContextWithUser(context, USER_JACK_OID, result);
+                addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE1);
+                return context;
+            }
+
+            @Override
+            void assertsAfterClockworkRun(ModelContext context, Task task, OperationResult result) throws Exception {
+                assertEquals("Unexpected state of the context", ModelState.PRIMARY, context.getState());
+            }
+
+            @Override
+            void completeWorkItem(WorkItemType workItem, String taskId, OperationResult result) throws Exception {
+                PrismObject<? extends ObjectType> workItemObject = workItem.getRequestSpecificData().asPrismObject();
+                LOGGER.trace("workItemObject = " + workItemObject.debugDump());
+
+                // change role1 -> role2
+                final int N = 6;
+                StringBuilder ctx = new StringBuilder();
+
+                for (int ctxIndex = 0; ctxIndex < N; ctxIndex++) {
+                    QName contextQName = new QName(SchemaConstants.NS_WFCF, "modelContextToBeEdited" + ctxIndex);
+                    PrismProperty<String> contextProperty = workItemObject.findProperty(contextQName);
+                    assertNotNull(contextQName + " not found among workItem specific properties", contextProperty);
+                    ctx.append(contextProperty.getRealValue());
+                }
+
+                String newCtx = ctx.toString().replaceAll("00000001-d34d-b33f-f00d-000000000001", "00000001-d34d-b33f-f00d-000000000002");
+                for (int ctxIndex = 0; ctxIndex < N; ctxIndex++) {
+                    QName contextQName = new QName(SchemaConstants.NS_WFCF, "modelContextToBeEdited" + ctxIndex);
+                    PrismProperty<String> contextProperty = workItemObject.findProperty(contextQName);
+                    contextProperty.replace(new PrismPropertyValue<String>(JaxbValueContainer.getChunk(newCtx, ctxIndex)));
+                }
+
+                TestAuthenticationInfoHolder.setUserType(getUser(USER_ADMINISTRATOR_OID).asObjectable());
+                workflowServiceImpl.completeWorkItemWithDetails(taskId, workItemObject, "approve", result);
+            }
+
+            @Override
+            void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
+                assertAssignedRole(USER_JACK_OID, TestConstants.ROLE_R2_OID, task, result);
+                checkDummyTransportMessages("simpleUserNotifier", 1);
+                //checkWorkItemAuditRecords(createResultMap(TestConstants.ROLE_R1_OID, WorkflowResult.APPROVED));
+                //checkUserApprovers(USER_JACK_OID, Arrays.asList(TestConstants.R1BOSS_OID), result);
+            }
+        });
 	}
+
+    @Test(enabled = true)
+    public void test020AddAccountRejected() throws Exception {
+        TestUtil.displayTestTile(this, "test020AddAccountRejected");
+
+        primaryChangeProcessor.setEnabled(false);
+        generalChangeProcessor.setEnabled(true);
+        generalChangeProcessor.disableScenario("primaryScenario");
+        generalChangeProcessor.enableScenario("secondaryScenario");
+
+        executeTest("test020AddAccountRejected", USER_JACK_OID, 1, false, true, new ContextCreator() {
+            @Override
+            public LensContext createModelContext(OperationResult result) throws Exception {
+                LensContext<UserType, ShadowType> context = createUserAccountContext();
+                fillContextWithUser(context, USER_JACK_OID, result);
+                addModificationToContextAddAccountFromFile(context, ACCOUNT_SHADOW_JACK_DUMMY_FILENAME);
+                return context;
+            }
+
+            @Override
+            void assertsAfterClockworkRun(ModelContext context, Task task, OperationResult result) throws Exception {
+                assertEquals("Unexpected state of the context", ModelState.SECONDARY, context.getState());
+            }
+
+            @Override
+            void completeWorkItem(WorkItemType workItem, String taskId, OperationResult result) throws Exception {
+                PrismObject<? extends ObjectType> workItemObject = workItem.getRequestSpecificData().asPrismObject();
+                display("workItemObject", workItemObject);
+
+                WfProcessInstanceType instance = workflowServiceImpl.getProcessInstanceById(workItem.getProcessInstanceId(), false, true, result);
+                JaxbValueContainer<ObjectDeltaType> deltaTypeWrapped = WfVariablesUtil.getVariable(instance, "greenDelta", JaxbValueContainer.class);
+                activitiUtil.revive(deltaTypeWrapped);
+                ObjectDeltaType deltaType = deltaTypeWrapped.getValue();
+                display("greenDelta", DeltaConvertor.createObjectDelta(deltaType, prismContext));
+
+                PrismPropertyDefinition ppd = new PrismPropertyDefinition(new QName(SchemaConstants.NS_WFCF, "[Button]rejectAll"),
+                        new QName(SchemaConstants.NS_WFCF, "[Button]rejectAll"), DOMUtil.XSD_BOOLEAN, prismContext);
+                PrismProperty<Boolean> rejectAll = ppd.instantiate();
+                rejectAll.setRealValue(Boolean.TRUE);
+                workItemObject.addReplaceExisting(rejectAll);
+
+                TestAuthenticationInfoHolder.setUserType(getUser(USER_ADMINISTRATOR_OID).asObjectable());
+                workflowServiceImpl.completeWorkItemWithDetails(taskId, workItemObject, "approve", result);
+            }
+
+            @Override
+            void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
+                PrismObject<UserType> jack = getUser(USER_JACK_OID);
+                assertAssignedRole(USER_JACK_OID, TestConstants.ROLE_R2_OID, task, result);
+                assertNoLinkedAccount(jack);
+                //checkDummyTransportMessages("simpleUserNotifier", 1);
+                //checkWorkItemAuditRecords(createResultMap(TestConstants.ROLE_R1_OID, WorkflowResult.APPROVED));
+                //checkUserApprovers(USER_JACK_OID, Arrays.asList(TestConstants.R1BOSS_OID), result);
+            }
+
+
+        });
+    }
+
 
     private abstract class ContextCreator {
         LensContext createModelContext(OperationResult result) throws Exception { return null; }
-        void assertsAfterClockworkRun(Task task, OperationResult result) throws Exception { }
+        void assertsAfterClockworkRun(ModelContext context, Task task, OperationResult result) throws Exception { }
         void assertsAfterImmediateExecutionFinished(Task task, OperationResult result) throws Exception { }
         void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception { }
-        boolean decideOnApproval(String executionId) throws Exception { return true; }
         String getObjectOid(Task task, OperationResult result) throws SchemaException { return null; };
+
+        abstract void completeWorkItem(WorkItemType workItem, String taskId, OperationResult result) throws Exception;
     }
 
 	private void executeTest(String testName, String oid, int subtaskCount, boolean immediate, boolean checkObjectOnSubtasks, ContextCreator contextCreator) throws Exception {
@@ -147,42 +275,42 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
         prepareNotifications();
         dummyAuditService.clear();
 
-        Task rootTask = taskManager.createTaskInstance(TestGeneralChangeProcessor.class.getName() + "."+testName);
-
         OperationResult result = new OperationResult("execution");
 
-        rootTask.setOwner(repositoryService.getObject(UserType.class, USER_ADMINISTRATOR_OID, null, result));
+        Task modelTask = taskManager.createTaskInstance(TestGeneralChangeProcessor.class.getName() + "."+testName);
+        display("Model task after creation", modelTask);
+
+        modelTask.setOwner(repositoryService.getObject(UserType.class, USER_ADMINISTRATOR_OID, null, result));
 
         LensContext<UserType, ShadowType> context = (LensContext<UserType, ShadowType>) contextCreator.createModelContext(result);
-
         display("Input context", context);
-
         assertUserModificationSanity(context);
 
         // WHEN
 
-       	HookOperationMode mode = clockwork.run(context, rootTask, result);
+       	HookOperationMode mode = clockwork.run(context, modelTask, result);
 
         // THEN
 
-        assertEquals("Unexpected state of the context", ModelState.PRIMARY, context.getState());
-        assertEquals("Wrong mode after clockwork.run in "+context.getState(), HookOperationMode.BACKGROUND, mode);
-        rootTask.refresh(result);
+        contextCreator.assertsAfterClockworkRun(context, modelTask, result);
+        assertEquals("Wrong mode after clockwork.run in " + context.getState(), HookOperationMode.BACKGROUND, mode);
+        modelTask.refresh(result);
+        display("Model task after clockwork runs", modelTask);
 
-        assertTrue("Task is not persistent", rootTask.isPersistent());
+        Task rootTask = taskManager.getTask(wfTaskUtil.getRootTaskOid(modelTask), result);
+        display("Workflow root task created by clockwork run", rootTask);
 
+        assertTrue("Workflow root task is not persistent", rootTask.isPersistent());
         assertEquals("Invalid current handler", ModelOperationTaskHandler.MODEL_OPERATION_TASK_URI, rootTask.getHandlerUri());
 
         ModelContext taskModelContext = immediate ? null : wfTaskUtil.retrieveModelContext(rootTask, result);
         assertNotNull("Model context is not present in root task", taskModelContext);
 
-        //assertEquals("Invalid current task handler", Wait, uriStack.getUriStackEntry().get(1).getHandlerUri());
-
         List<Task> subtasks = rootTask.listSubtasks(result);
         assertEquals("Incorrect number of subtasks", subtaskCount, subtasks.size());
 
-        for (int i = 0; i < subtasks.size(); i++) {
-            Task subtask = subtasks.get(i);
+        for (int subtaskIndex = 0; subtaskIndex < subtasks.size(); subtaskIndex++) {
+            Task subtask = subtasks.get(subtaskIndex);
 
             // now check the workflow state
             String pid = wfTaskUtil.getProcessId(subtask);
@@ -201,21 +329,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
             String executionId = t.getExecutionId();
             LOGGER.trace("Task id = " + taskId + ", execution id = " + executionId);
 
-            boolean approve = contextCreator.decideOnApproval(executionId);
-
-            PrismObject<? extends ObjectType> workItemObject = workItem.getRequestSpecificData().asPrismObject();
-            LOGGER.trace("workItemObject = " + workItemObject.debugDump());
-
-            // change role1 -> role2
-            QName contextQName = new QName(SchemaConstants.NS_WFCF, "modelContext");
-            PrismProperty<String> contextProperty = workItemObject.findProperty(contextQName);
-            assertNotNull(contextQName + " not found among workItem specific properties", contextProperty);
-            String xml = contextProperty.getRealValue();
-            xml = xml.replaceAll("00000001-d34d-b33f-f00d-000000000001", "00000001-d34d-b33f-f00d-000000000002");
-            contextProperty.setRealValue(xml);
-
-            TestAuthenticationInfoHolder.setUserType(getUser(USER_ADMINISTRATOR_OID).asObjectable());
-            workflowServiceImpl.completeWorkItemWithDetails(taskId, workItemObject, "approve", result);
+            contextCreator.completeWorkItem(workItem, taskId, result);
         }
 
         waitForTaskClose(rootTask, 60000);

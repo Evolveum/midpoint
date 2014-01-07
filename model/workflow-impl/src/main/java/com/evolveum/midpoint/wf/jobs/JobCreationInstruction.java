@@ -173,6 +173,10 @@ public class JobCreationInstruction implements DebugDumpable {
         this.taskName = taskName;
     }
 
+    public void setTaskName(String taskName) {
+        this.taskName = new PolyStringType(taskName);
+    }
+
     public boolean isExecuteApprovedChangeImmediately() {
         return executeApprovedChangeImmediately;
     }
@@ -362,6 +366,10 @@ public class JobCreationInstruction implements DebugDumpable {
         } else {
             removeProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_OID);
         }
+    }
+
+    public void setProcessInstanceName(String name) {
+        addProcessVariable(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME, name);
     }
     //endregion
 

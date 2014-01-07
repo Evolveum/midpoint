@@ -148,7 +148,10 @@ public class MiscDataUtil {
             object = prismContext.getPrismJaxbProcessor().unmarshalObject(objectXml, ObjectType.class).asPrismObject();
         } else {
             String oid = (String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_OID);
-            Validate.notNull(oid, "Object OID in process variables is null");
+            if (oid == null) {
+                return null;
+            }
+            //Validate.notNull(oid, "Object OID in process variables is null");
             object = repositoryService.getObject(ObjectType.class, oid, null, result);
         }
 
@@ -164,7 +167,7 @@ public class MiscDataUtil {
 
     public ObjectDelta getObjectDelta(Map<String, Object> variables, OperationResult result, boolean mayBeNull) throws JAXBException, SchemaException {
         ObjectDeltaType objectDeltaType = getObjectDeltaType(variables, result, mayBeNull);
-        return DeltaConvertor.createObjectDelta(objectDeltaType, prismContext);
+        return objectDeltaType != null ? DeltaConvertor.createObjectDelta(objectDeltaType, prismContext) : null;
     }
 
     public ObjectDeltaType getObjectDeltaType(Map<String, Object> variables, OperationResult result, boolean mayBeNull) throws JAXBException, SchemaException {

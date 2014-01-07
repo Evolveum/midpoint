@@ -16,12 +16,10 @@
   -->
 
 <definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:activiti="http://activiti.org/bpmn"
-             xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
-             xmlns:omgdc="http://www.omg.org/spec/DD/20100524/DC" xmlns:omgdi="http://www.omg.org/spec/DD/20100524/DI"
              typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath"
-             targetNamespace="http://evolveum.com/midpoint" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+             targetNamespace="http://evolveum.com/midpoint">
 
-    <process id="MyGreatPrimaryProcess" isExecutable="true">
+    <process id="ApprovingDummyGreenResourceChangesProcess" isExecutable="true">
 
         <!-- This is necessary for midPoint to know when the process ends (because this is a "smart" process that informs midPoint about its state). -->
         <extensionElements>
@@ -34,7 +32,6 @@
 
            Output variables:
              - modelContext - reflects changes directed by the process
-             - status - textual representation of the process instance status (to be shown in midpoint GUI)
         -->
 
         <startEvent id="start" name="Start" />
@@ -49,31 +46,25 @@
             modelContextType = modelContext.getValue()
             modelContextUnwrapped = util.midpoint().unwrapModelContext(modelContextType)
             
-            println "state = " + modelContextUnwrapped.getState()
-            execution.setVariable("status", "abcdefgh")
-            execution.setVariable("modelContextToBeEdited0", modelContext.getXmlValue(0))
-            execution.setVariable("modelContextToBeEdited1", modelContext.getXmlValue(1))
-            execution.setVariable("modelContextToBeEdited2", modelContext.getXmlValue(2))
-            execution.setVariable("modelContextToBeEdited3", modelContext.getXmlValue(3))
-            execution.setVariable("modelContextToBeEdited4", modelContext.getXmlValue(4))
-            execution.setVariable("modelContextToBeEdited5", modelContext.getXmlValue(5))
+            greenDelta = util.midpoint().getResourceDelta(modelContextUnwrapped, "10000000-0000-0000-0000-000000000004")
+            if (greenDelta != null) {
+                println "greenDelta = " + com.evolveum.midpoint.schema.DeltaConvertor.createObjectDelta(greenDelta, util.getPrismContext()).dump()
+                execution.setVariable("greenDelta", new com.evolveum.midpoint.wf.util.JaxbValueContainer(greenDelta, util.getPrismContext()))
+            } else {
+                println "WARNING! GreenDelta is null"
+            }
           </script>
         </scriptTask>
         <sequenceFlow sourceRef="theScriptTask" targetRef="approve" />
         
-        <userTask id="approve" name="Approve this!" activiti:assignee="00000000-0000-0000-0000-000000000002" activiti:formKey="abc">
+        <userTask id="approve" name="Approve an operation on Dummy Green resource" activiti:assignee="00000000-0000-0000-0000-000000000002" activiti:formKey="abc">
           <extensionElements>
-            <activiti:formProperty id="modelContextToBeEdited0" name="Model context, part 0" type="string" required="true" readable="true" writable="true"></activiti:formProperty>
-            <activiti:formProperty id="modelContextToBeEdited1" name="Model context, part 1" type="string" required="true" readable="true" writable="true"></activiti:formProperty>
-            <activiti:formProperty id="modelContextToBeEdited2" name="Model context, part 2" type="string" required="true" readable="true" writable="true"></activiti:formProperty>
-            <activiti:formProperty id="modelContextToBeEdited3" name="Model context, part 3" type="string" required="true" readable="true" writable="true"></activiti:formProperty>
-            <activiti:formProperty id="modelContextToBeEdited4" name="Model context, part 4" type="string" required="true" readable="true" writable="true"></activiti:formProperty>
-            <activiti:formProperty id="modelContextToBeEdited5" name="Model context, part 5" type="string" required="true" readable="true" writable="true"></activiti:formProperty>
             <activiti:formProperty id="comment" name="Your comment" type="string" required="false" readable="true" writable="true"></activiti:formProperty>
             <activiti:formProperty id="[H]decision" name="decision to be filled-in automatically" type="string" required="false" readable="false" writable="true"></activiti:formProperty>
-            <activiti:formProperty id="[B]approve" name="Approve" type="boolean" required="false" readable="true" writable="true" />
-            <activiti:formProperty id="[B]stop" name="Stop the processing" type="boolean" required="false" readable="true" writable="true" />
-            <activiti:formProperty id="[B]somethingElse" name="Something else..." type="boolean" required="false" readable="true" writable="true" />
+            <activiti:formProperty id="[Button]approve" name="Approve" type="boolean" required="false" readable="true" writable="true" />
+            <activiti:formProperty id="[Button]rejectGreen" name="Reject the operation on Green resource" type="boolean" required="false" readable="true" writable="true" />
+            <activiti:formProperty id="[Button]rejectAll" name="Reject whole operation" type="boolean" required="false" readable="true" writable="true" />
+            <activiti:formProperty id="[Delta]greenDelta" name="Attempted operation on Dummy Green resource" type="boolean" required="false" />
             <activiti:taskListener event="create" class="com.evolveum.midpoint.wf.processes.common.MidPointTaskListener" />
             <activiti:taskListener event="complete" class="com.evolveum.midpoint.wf.processes.common.MidPointTaskListener" />
           </extensionElements>
@@ -82,14 +73,12 @@
         <sequenceFlow sourceRef="approve" targetRef="importContext" />        
         <scriptTask id="importContext" scriptFormat="groovy">
           <script>
-            approved = execution.getVariable("[B]approve")
+            approved = execution.getVariable("[Button]approve")
             if (approved) {
-              println "Approved!"
-              newXmlValue = modelContextToBeEdited0 + modelContextToBeEdited1 + modelContextToBeEdited2 + modelContextToBeEdited3 + modelContextToBeEdited4 + modelContextToBeEdited5
-              modelContext.setXmlValue(newXmlValue)
-              println "New value in modelContext = " + modelContext.getXmlValue()
-              
-              execution.setVariable("modelContext", modelContext)
+                println "Approved!"
+            } else {
+                println "Rejected, eliminating whole modelContext"
+                execution.setVariable("modelContext", null)
             }
           </script>
         </scriptTask>

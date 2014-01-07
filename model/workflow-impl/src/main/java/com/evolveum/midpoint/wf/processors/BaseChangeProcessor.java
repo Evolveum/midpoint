@@ -118,6 +118,10 @@ public abstract class BaseChangeProcessor implements ChangeProcessor, BeanNameAw
         return enabled;
     }
 
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
     @Override
     public void setBeanName(String name) {
         LOGGER.trace("Setting bean name to {}", name);

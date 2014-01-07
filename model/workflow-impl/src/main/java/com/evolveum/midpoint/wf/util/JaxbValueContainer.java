@@ -16,6 +16,8 @@ public class JaxbValueContainer<T> extends SerializationSafeContainer<T> {
 
     private static final long serialVersionUID = 1233214324324368L;
 
+    public static final int TEXT_CHUNK_SIZE = 3500;             // experimental
+
     public JaxbValueContainer(T value, PrismContext prismContext) {
         super(value, prismContext);
     }
@@ -30,6 +32,24 @@ public class JaxbValueContainer<T> extends SerializationSafeContainer<T> {
         }
 
         return valueForStorageWhenEncoded;
+    }
+
+    // experimental
+    public String getXmlValue(int chunkNumber) {
+        return getChunk(getXmlValue(), chunkNumber);
+    }
+
+    public static String getChunk(String wholeData, int chunkNumber) {
+        int startPosition = chunkNumber * TEXT_CHUNK_SIZE;
+        if (wholeData.length() < startPosition) {
+            return "";
+        } else {
+            int endPosition = startPosition + TEXT_CHUNK_SIZE;
+            if (endPosition > wholeData.length()) {
+                endPosition = wholeData.length();
+            }
+            return wholeData.substring(startPosition, endPosition);
+        }
     }
 
     // prerequisite: the object already contained a value, so the encoding scheme is known

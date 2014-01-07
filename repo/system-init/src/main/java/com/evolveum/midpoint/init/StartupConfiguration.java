@@ -23,6 +23,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.configuration.*;
 import org.apache.commons.lang.NotImplementedException;
+import org.w3c.dom.Document;
 
 import javax.xml.parsers.DocumentBuilder;
 import java.io.File;
@@ -37,7 +38,7 @@ public class StartupConfiguration implements MidpointConfiguration {
     private static final String MIDPOINT_HOME = "midpoint.home";
 
     private CompositeConfiguration config = null;
-    private XMLConfiguration xmlConfig = null;          // just in case when we need to access original XML document
+    private Document xmlConfigAsDocument = null;        // just in case when we need to access original XML document
     private String configFilename = null;
 
     /**
@@ -109,11 +110,6 @@ public class StartupConfiguration implements MidpointConfiguration {
             }
         }
         return sub;
-    }
-
-    @Override
-    public XMLConfiguration getXmlConfiguration() {
-        return xmlConfig;
     }
 
     /**
@@ -225,11 +221,18 @@ public class StartupConfiguration implements MidpointConfiguration {
     }
 
     private void createXmlConfiguration(DocumentBuilder documentBuilder) throws ConfigurationException {
-        xmlConfig = new XMLConfiguration();
+        XMLConfiguration xmlConfig = new XMLConfiguration();
         xmlConfig.setDocumentBuilder(documentBuilder);
         xmlConfig.setFileName(this.getConfigFilename());
         xmlConfig.load();
         config.addConfiguration(xmlConfig);
+
+        xmlConfigAsDocument = DOMUtil.parseFile(this.getConfigFilename());
+    }
+
+    @Override
+    public Document getXmlConfigAsDocument() {
+        return xmlConfigAsDocument;
     }
 
     @Override

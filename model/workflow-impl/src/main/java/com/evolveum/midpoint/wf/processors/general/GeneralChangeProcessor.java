@@ -110,15 +110,17 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
         String path = determineConfigurationPath();
         LOGGER.info("Configuration path: " + path);
 
-        XMLConfiguration xmlConfiguration = midpointConfiguration.getXmlConfiguration();
-        Validate.notNull(xmlConfiguration, "XML version of midPoint configuration couldn't be found");
+        Document midpointConfig = midpointConfiguration.getXmlConfigAsDocument();
+        Validate.notNull(midpointConfig, "XML version of midPoint configuration couldn't be found");
 
         XPath xpath = XPathFactory.newInstance().newXPath();
         try {
-            Document midpointConfig = xmlConfiguration.getDocument();
             Element processorConfig = (Element) xpath.evaluate(path + "/*[local-name()='" + KEY_GENERAL_CHANGE_PROCESSOR_CONFIGURATION + "']", midpointConfig, XPathConstants.NODE);
             if (processorConfig == null) {
                 throw new SystemException("There's no " + KEY_GENERAL_CHANGE_PROCESSOR_CONFIGURATION + " element in " + getBeanName() + " configuration.");
+            }
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("processor configuration = {}", DOMUtil.printDom(processorConfig));
             }
             try {
                 validateElement(processorConfig);
@@ -127,9 +129,9 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
             }
             processorConfigurationType = prismContext.getPrismJaxbProcessor().toJavaValue(processorConfig, GeneralChangeProcessorConfigurationType.class);
         } catch (XPathExpressionException e) {
-            throw new SystemException("Couldn't find activation condition in " + getBeanName() + " configuration due to an XPath problem", e);
+            throw new SystemException("Couldn't read general workflow processor configuration in " + getBeanName() + " due to an XPath problem", e);
         } catch (JAXBException e) {
-            throw new SystemException("Couldn't find activation condition in " + getBeanName() + " configuration due to a JAXB problem", e);
+            throw new SystemException("Couldn't read general workflow processor configuration in " + getBeanName() + " due to a JAXB problem", e);
         }
     }
 
@@ -155,7 +157,9 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
         warnIfNoScenarios();
 
         for (GeneralChangeProcessorScenarioType scenarioType : processorConfigurationType.getScenario()) {
-            if (!evaluateActivationCondition(scenarioType, context, result)) {
+            if (!scenarioType.isEnabled()) {
+                LOGGER.trace("scenario {} is disabled, skipping", scenarioType.getName());
+            } else if (!evaluateActivationCondition(scenarioType, context, result)) {
                 LOGGER.trace("activationCondition was evaluated to FALSE for scenario named {}", scenarioType.getName());
             } else {
                 LOGGER.trace("Applying scenario {} (process name {})", scenarioType.getName(), scenarioType.getProcessName());
@@ -339,4 +343,22 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
     public String getProcessInstanceDetailsPanelName(WfProcessInstanceType processInstance) {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
+
+    private GeneralChangeProcessorScenarioType findScenario(String scenarioName) {
+        for (GeneralChangeProcessorScenarioType scenario : processorConfigurationType.getScenario()) {
+            if (scenarioName.equals(scenario.getName())) {
+                return scenario;
+            }
+        }
+        throw new SystemException("Scenario named " + scenarioName + " couldn't be found");
+    }
+
+    public void disableScenario(String scenarioName) {
+        findScenario(scenarioName).setEnabled(false);
+    }
+
+    public void enableScenario(String scenarioName) {
+        findScenario(scenarioName).setEnabled(true);
+    }
+
 }

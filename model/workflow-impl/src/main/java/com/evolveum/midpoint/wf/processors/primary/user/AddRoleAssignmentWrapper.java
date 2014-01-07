@@ -223,8 +223,8 @@ public class AddRoleAssignmentWrapper extends BaseUserWrapper {
             instruction.setSimple(false);
 
             String andExecuting = instruction.isExecuteApprovedChangeImmediately() ? "and executing " : "";
-            instruction.setTaskName(new PolyStringType("Workflow for approving " + andExecuting + "adding " + roleName + " to " + userName));
-            instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME, "Adding " + roleName + " to " + userName);
+            instruction.setTaskName("Workflow for approving " + andExecuting + "adding " + roleName + " to " + userName);
+            instruction.setProcessInstanceName("Adding " + roleName + " to " + userName);
 
             instruction.addProcessVariable(ProcessVariableNames.APPROVAL_REQUEST, approvalRequest);
             instruction.addProcessVariable(ProcessVariableNames.APPROVAL_TASK_NAME, "Approve adding " + roleName + " to " + userName);
