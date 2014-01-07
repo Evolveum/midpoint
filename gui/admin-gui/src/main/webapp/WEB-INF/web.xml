@@ -31,6 +31,7 @@
             classpath:ctx-task.xml,
             classpath:ctx-provisioning.xml,
             classpath:ctx-audit.xml,
+            classpath:ctx-report.xml 
             classpath:ctx-model.xml,
             classpath*:ctx-workflow.xml,
             classpath*:ctx-notifications.xml,
