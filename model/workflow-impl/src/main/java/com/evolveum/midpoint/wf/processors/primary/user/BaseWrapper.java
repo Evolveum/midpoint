@@ -25,7 +25,9 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -74,6 +76,7 @@ public abstract class BaseWrapper implements PrimaryApprovalProcessWrapper {
     @Autowired
     WfTaskUtil wfTaskUtil;
 
+    @Autowired
     PrimaryChangeProcessor changeProcessor;
 
     String getObjectOid(ModelContext<?> modelContext) {
@@ -165,7 +168,7 @@ public abstract class BaseWrapper implements PrimaryApprovalProcessWrapper {
 
 
     /*
-     * In this case, mapping deltaIn -> deltaOut is extremely simple.
+     * In the default case, mapping deltaIn -> deltaOut is extremely simple.
      * DeltaIn contains a delta that has to be approved. Workflow answers simply yes/no.
      * Therefore, we either copy DeltaIn to DeltaOut, or generate an empty list of modifications.
      */
@@ -193,23 +196,15 @@ public abstract class BaseWrapper implements PrimaryApprovalProcessWrapper {
         List<Decision> allDecisions = (List<Decision>) event.getVariable(ProcessVariableNames.ALL_DECISIONS);
         for (Decision decision : allDecisions) {
             if (decision.isApproved()) {
-                ObjectReferenceType approverRef = new ObjectReferenceType();
-                approverRef.setOid(decision.getApproverOid());
-                retval.add(approverRef);
+                retval.add(MiscSchemaUtil.createObjectReference(decision.getApproverOid(), SchemaConstants.C_USER_TYPE));
             }
         }
 
         return retval;
     }
 
-    @Override
     public PrimaryChangeProcessor getChangeProcessor() {
         return changeProcessor;
-    }
-
-    @Override
-    public void setChangeProcessor(PrimaryChangeProcessor changeProcessor) {
-        this.changeProcessor = changeProcessor;
     }
 
     @Override

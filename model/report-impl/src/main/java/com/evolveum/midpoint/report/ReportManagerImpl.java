@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.report;
 
-import java.awt.Color;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -27,66 +26,47 @@ import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
 
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperCompileManager;
 import net.sf.jasperreports.engine.JasperReport;
-import net.sf.jasperreports.engine.base.JRBasePen;
-import net.sf.jasperreports.engine.design.JRDesignBand;
-import net.sf.jasperreports.engine.design.JRDesignExpression;
-import net.sf.jasperreports.engine.design.JRDesignField;
-import net.sf.jasperreports.engine.design.JRDesignFrame;
-import net.sf.jasperreports.engine.design.JRDesignImage;
-import net.sf.jasperreports.engine.design.JRDesignLine;
-import net.sf.jasperreports.engine.design.JRDesignParameter;
-import net.sf.jasperreports.engine.design.JRDesignReportTemplate;
-import net.sf.jasperreports.engine.design.JRDesignSection;
-import net.sf.jasperreports.engine.design.JRDesignStaticText;
-import net.sf.jasperreports.engine.design.JRDesignStyle;
-import net.sf.jasperreports.engine.design.JRDesignTextField;
 import net.sf.jasperreports.engine.design.JasperDesign;
-import net.sf.jasperreports.engine.type.EvaluationTimeEnum;
-import net.sf.jasperreports.engine.type.HorizontalAlignEnum;
-import net.sf.jasperreports.engine.type.ModeEnum;
-import net.sf.jasperreports.engine.type.OrientationEnum;
-import net.sf.jasperreports.engine.type.PositionTypeEnum;
-import net.sf.jasperreports.engine.type.SplitTypeEnum;
-import net.sf.jasperreports.engine.type.VerticalAlignEnum;
-import net.sf.jasperreports.engine.type.WhenNoDataTypeEnum;
 import net.sf.jasperreports.engine.xml.JRXmlLoader;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Node;
 
+import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.LessFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.report.api.ReportManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportFieldConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportOutputType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportParameterConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ThreadStopActionType;
@@ -103,19 +83,30 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
     private static final Trace LOGGER = TraceManager.getTrace(ReportManagerImpl.class);
     
     private static final String CLASS_NAME_WITH_DOT = ReportManagerImpl.class + ".";
+    private static final String CLEANUP_REPORT_OUTPUTS = CLASS_NAME_WITH_DOT + "cleanupReportOutputs";
     
-    
-
 	@Autowired
     private HookRegistry hookRegistry;
 
 	@Autowired
     private TaskManager taskManager;
-
+	
+	@Autowired
+	private PrismContext prismContext;
+	
+	@Autowired
+	private ModelService modelService;
+	
+	
 	@PostConstruct
     public void init() {   	
         hookRegistry.registerChangeHook(HOOK_URI, this);
     }
+	
+	public PrismContext getPrismContext() {
+        return prismContext;
+    }
+
     
     /**
      * Creates and starts task with proper handler, also adds necessary information to task
@@ -234,8 +225,137 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
     }
   
     @Override
-    public void cleanupReports(CleanupPolicyType cleanupPolicy, OperationResult parentResult) {
+    public void cleanupReports(CleanupPolicyType cleanupPolicy, OperationResult parentResult) {//throws ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+    	OperationResult result = parentResult.createSubresult(CLEANUP_REPORT_OUTPUTS);
+
+        if (cleanupPolicy.getMaxAge() == null) {
+            return;
+        }
+
+        Duration duration = cleanupPolicy.getMaxAge();
+        if (duration.getSign() > 0) {
+            duration = duration.negate();
+        }
+        Date deleteReportOutputsTo = new Date();
+        duration.addTo(deleteReportOutputsTo);
+
+        LOGGER.info("Starting cleanup for report outputs deleting up to {} (duration '{}').",
+                new Object[]{deleteReportOutputsTo, duration});
+
+        XMLGregorianCalendar timeXml = XmlTypeConverter.createXMLGregorianCalendar(deleteReportOutputsTo.getTime());
+
+        List<PrismObject<ReportOutputType>> obsoleteReportOutputs = new ArrayList<PrismObject<ReportOutputType>>();
+        try {
+            ObjectQuery obsoleteReportOutputsQuery = ObjectQuery.createObjectQuery(AndFilter.createAnd(
+                    LessFilter.createLessFilter(ReportOutputType.class, getPrismContext(), ReportOutputType.F_METADATA, timeXml, true),
+                    EqualsFilter.createEqual(TaskType.class, getPrismContext(), TaskType.F_PARENT, null)));
+
+            obsoleteReportOutputs = modelService.searchObjects(ReportOutputType.class, obsoleteReportOutputsQuery, null, null, result);
+        } catch (Exception e) {
+            //throw new SchemaException("Couldn't get the list of obsolete report outputs: " + e.getMessage(), e);
+        }
+
+        LOGGER.debug("Found {} report output tree(s) to be cleaned up", obsoleteReportOutputs.size());
+
+        boolean interrupted = false;
+        int deleted = 0;
+        int problems = 0;
+        int bigProblems = 0;
+        
+        for (PrismObject<ReportOutputType> reportOutputPrism : obsoleteReportOutputs){
+        	ReportOutputType reportOutput = reportOutputPrism.asObjectable();
+        	
+        	LOGGER.trace("Removing report output {} along with {} file.", reportOutput.getName().getOrig(), reportOutput.getReportFilePath());
+        	boolean problem = false;
+        	try {
+                    deleteReportOutput(reportOutput.getOid(), result);
+                } catch (SchemaException e) {
+                    LoggingUtils.logException(LOGGER, "Couldn't delete obsolete report output {} due to schema exception", e, reportOutput);
+                    problem = true;
+                } catch (ObjectNotFoundException e) {
+                    LoggingUtils.logException(LOGGER, "Couldn't delete obsolete report output {} due to object not found exception", e, reportOutput);
+                    problem = true;
+                } catch (RuntimeException e) {
+                    LoggingUtils.logException(LOGGER, "Couldn't delete obsolete report output {} due to a runtime exception", e, reportOutput);
+                    problem = true;
+                } catch (Exception e) {
+                	LoggingUtils.logException(LOGGER, "Couldn't delete obsolete report output {} due to a exception", e, reportOutput);
+                    problem = true;
+                }
+
+                if (problem) {
+                    problems++;
+                } else {
+                    deleted++;
+            }
+        }
+        result.computeStatusIfUnknown();
+
+        LOGGER.info("Report cleanup procedure " + (interrupted ? "was interrupted" : "finished") + ". Successfully deleted {} report outputs; there were problems with deleting {} report ouptuts.", deleted, problems);
+        String suffix = interrupted ? " Interrupted." : "";
+        if (problems == 0) {
+            parentResult.createSubresult(CLEANUP_REPORT_OUTPUTS + ".statistics").recordStatus(OperationResultStatus.SUCCESS, "Successfully deleted " + deleted + " report output(s)." + suffix);
+        } else {
+            parentResult.createSubresult(CLEANUP_REPORT_OUTPUTS + ".statistics").recordPartialError("Successfully deleted " + deleted + " report output(s), "
+                    + "there was problems with deleting " + problems + " report outputs.");
+        }
     }
     
-   
+    private ReportOutputType getReportOutput(String reportOutputOid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+  
+		OperationResult result = parentResult.createMinorSubresult(CLASS_NAME_WITH_DOT + "getReportOutput"); 
+		result.addParam(OperationResult.PARAM_OID, reportOutputOid);
+		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, CLASS_NAME_WITH_DOT);
+		
+		ReportOutputType reportOutput;
+		try {
+			reportOutput = modelService.getObject(ReportOutputType.class, reportOutputOid, null, null, result).asObjectable();
+        } catch (ObjectNotFoundException e) {
+			result.recordFatalError("Report output not found", e);
+			throw e;
+		} catch (SchemaException e) {
+			result.recordFatalError("Report output schema error: "+e.getMessage(), e);
+			throw e;
+		} catch (SecurityViolationException e) {
+			result.recordFatalError("Report output security violation error: "+e.getMessage(), e);
+			throw e;
+		} catch (CommunicationException e) {
+			result.recordFatalError("Report output communication error: "+e.getMessage(), e);
+			throw e;
+		} catch (ConfigurationException e) {
+			result.recordFatalError("Report output configuration error: "+e.getMessage(), e);
+			throw e;
+		}
+		result.recordSuccess();
+		return reportOutput;
+	}
+    
+    private void deleteReportOutput(String oid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+        OperationResult result = parentResult.createSubresult(CLASS_NAME_WITH_DOT + "deleteReportOutput");
+        result.addParam("oid", oid);
+        try {
+            ReportOutputType reportOutput = getReportOutput(oid, result);
+            
+            //modelService.executeChanges(deltas, options, task, parentResult)repositoryService.deleteObject(TaskType.class, oid, result);
+            result.recordSuccessIfUnknown();
+        } catch (ObjectNotFoundException e) {
+            result.recordFatalError("Cannot delete the report output because it does not exist.", e);
+            throw e;
+        } catch (SchemaException e) {
+            result.recordFatalError("Cannot delete the report output because of schema exception.", e);
+            throw e;
+        } catch (SecurityViolationException e) {
+        	result.recordFatalError("Cannot delete the report output because of security violation exception: ", e);
+        	throw e;
+        } catch (CommunicationException e) {
+        	result.recordFatalError("Cannot delete the report output because of communication exception: ", e);
+        	throw e;
+        } catch (ConfigurationException e) {
+        	result.recordFatalError("Cannot delete the report output because of configuration exception: ", e);
+        	throw e;
+        } catch (RuntimeException e) {
+        	result.recordFatalError("Cannot delete the report output because of a runtime exception.", e);
+            throw e;
+        }
+    }
 }

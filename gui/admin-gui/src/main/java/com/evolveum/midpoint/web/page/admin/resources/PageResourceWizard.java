@@ -18,11 +18,17 @@ package com.evolveum.midpoint.web.page.admin.resources;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
-import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.wizard.Wizard;
 import com.evolveum.midpoint.web.component.wizard.resource.*;
 import com.evolveum.midpoint.web.component.xml.ace.AceEditor;
+import com.evolveum.midpoint.web.page.error.PageError;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.wizard.WizardModel;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -36,33 +42,51 @@ import org.apache.wicket.model.StringResourceModel;
 public class PageResourceWizard extends PageAdminResources {
 
     private static final String ID_WIZARD = "wizard";
-    private IModel<ResourceType> model;
+    private IModel<PrismObject<ResourceType>> model;
 
     public PageResourceWizard() {
-        model = new LoadableModel<ResourceType>(false) {
+        model = new LoadableModel<PrismObject<ResourceType>>(false) {
 
             @Override
-            protected ResourceType load() {
+            protected PrismObject<ResourceType> load() {
                 try {
                     if (!isResourceOidAvailable()) {
                         ResourceType resource = new ResourceType();
                         PageResourceWizard.this.getPrismContext().adopt(resource);
 
-                        return resource;
+                        return resource.asPrismObject();
                     }
 
-                    PrismObject<ResourceType> resource = loadResource(null);
-                    return resource.asObjectable();
-                } catch (Exception ex) {
-                    //todo error handling
-                    ex.printStackTrace();
-                }
+                    PrismObject<ResourceType> resource = WebModelUtils.loadObject(ResourceType.class, getResourceOid(),
+                            null, PageResourceWizard.this);
+                    if (resource == null) {
+                        throw new RestartResponseException(PageError.class);
+                    }
 
-                return null;
+                    return resource;
+                } catch (Exception ex) {
+                    LoggingUtils.logException(LOGGER, "Couldn't load resource", ex);
+                    throw new RestartResponseException(PageError.class);
+                }
             }
         };
 
         initLayout();
+    }
+
+    @Override
+    protected IModel<String> createPageSubTitleModel() {
+        return new LoadableModel<String>(false) {
+
+            @Override
+            protected String load() {
+                if (!isResourceOidAvailable()) {
+                    return null;
+                }
+
+                return WebMiscUtil.getName(model.getObject());
+            }
+        };
     }
 
     @Override
@@ -89,17 +113,17 @@ public class PageResourceWizard extends PageAdminResources {
         wizardModel.add(new CapabilityStep());
         wizardModel.add(new SynchronizationStep());
 
-        ResourceWizard wizard = new ResourceWizard(ID_WIZARD, wizardModel);
+        Wizard wizard = new Wizard(ID_WIZARD, new Model(wizardModel));
         add(wizard);
 
         //todo remove
-        final AceEditor editor = new AceEditor("editor", new AbstractReadOnlyModel<Object>() {
+        final AceEditor editor = new AceEditor("editor", new AbstractReadOnlyModel<String>() {
 
             @Override
-            public Object getObject() {
+            public String getObject() {
                 try {
                     PrismDomProcessor domProcessor = PageResourceWizard.this.getPrismContext().getPrismDomProcessor();
-                    return domProcessor.serializeObjectToString(model.getObject().asPrismObject());
+                    return domProcessor.serializeObjectToString(model.getObject());
                 } catch (Exception ex) {
                     ex.printStackTrace();
                 }
@@ -109,12 +133,12 @@ public class PageResourceWizard extends PageAdminResources {
         editor.setReadonly(true);
         editor.setOutputMarkupId(true);
         add(editor);
-        AjaxLinkButton reload = new AjaxLinkButton("reload", new Model<String>("reload")) {
+        AjaxButton reload = new AjaxButton("reload", new Model<String>("reload")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
                 target.add(editor);
-                target.appendJavaScript(editor.createJavascriptEditableRefresh());
+                editor.refreshReadonly(target);
             }
         };
         add(reload);

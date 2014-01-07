@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.wf.activiti;
 
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.util.SerializationSafeContainer;
@@ -53,6 +54,10 @@ public class ActivitiUtil implements Serializable {
             LOGGER.debug("Approver for role " + r + " determined to be " + approver);
         }
         return approver;
+    }
+
+    public PrismContext getPrismContext() {
+        return SpringApplicationContextHolder.getPrismContext();
     }
 
     public void revive(SerializationSafeContainer<?> container) {

@@ -23,11 +23,13 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
+import com.evolveum.midpoint.wf.util.WfVariablesUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceVariableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -74,45 +76,17 @@ public class ProcessInstanceDto extends Selectable {
         return retval;
     }
 
-    private WfProcessInstanceVariableType getVariableRawValue(String name) {
-        for (WfProcessInstanceVariableType var : processInstance.getVariables()) {
-            if (name.equals(var.getName())) {
-                return var;
-            }
-        }
-        return null;
-    }
-
-    public Object getVariable(String name) {
-        WfProcessInstanceVariableType var = getVariableRawValue(name);
-        if (var != null) {
-            if (var.isEncoded()) {
-                try {
-                    return SerializationUtil.fromString(var.getValue());
-                } catch (IOException e) {
-                    throw new SystemException("Couldn't decode value of variable " + name, e);
-                } catch (ClassNotFoundException e) {
-                    throw new SystemException("Couldn't decode value of variable " + name, e);
-                }
-            } else {
-                return var.getValue();
-            }
-        } else {
-            return null;
-        }
-    }
-
     public String getAnswer() {
-        return (String) getVariable(CommonProcessVariableNames.VARIABLE_WF_ANSWER);
+        return WfVariablesUtil.getAnswer(processInstance);
     }
 
     public boolean isAnswered() {
-        return getAnswer() != null;
+        return WfVariablesUtil.isAnswered(processInstance);
     }
 
     // null if not answered or answer is not true/false
     public Boolean getAnswerAsBoolean() {
-        return CommonProcessVariableNames.approvalBooleanValue(getAnswer());
+        return WfVariablesUtil.getAnswerAsBoolean(processInstance);
     }
 
     public boolean isFinished() {
@@ -120,6 +94,11 @@ public class ProcessInstanceDto extends Selectable {
     }
 
     public String getWatchingTaskOid() {
-        return (String) getVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_TASK_OID);
+        return WfVariablesUtil.getWatchingTaskOid(processInstance);
+    }
+
+    // fixme (parametrize)
+    public Object getVariable(String name) {
+        return WfVariablesUtil.getVariable(processInstance, name, Serializable.class);
     }
 }

@@ -17,57 +17,11 @@
 package com.evolveum.midpoint.web.page.admin.roles;
 
 
-import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.util.string.StringValue;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
- * Marker page class for {@link com.evolveum.midpoint.web.component.menu.top.TopMenu}
- *
  * @author lazyman
  */
 public class PageAdminRoles extends PageAdmin {
 
-    @Override
-    public List<BottomMenuItem> getBottomMenuItems() {
-        List<BottomMenuItem> items = new ArrayList<BottomMenuItem>();
-
-        items.add(new BottomMenuItem(createStringResource("pageAdminRoles.listRoles"), PageRoles.class));
-        items.add(new BottomMenuItem(createRoleLabel(), PageRole.class, createRoleVisibleBehaviour()));
-
-        return items;
-    }
-
-    private IModel<String> createRoleLabel() {
-        return new AbstractReadOnlyModel<String>() {
-
-            @Override
-            public String getObject() {
-                String key = isEditingRole() ? "pageAdminRoles.editRole" : "pageAdminRoles.newRole";
-                return PageAdminRoles.this.getString(key);
-            }
-        };
-    }
-
-    private VisibleEnableBehaviour createRoleVisibleBehaviour() {
-        return new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isEnabled() {
-                return !isEditingRole() && !(getPage() instanceof PageRole);
-            }
-        };
-    }
-
-    private boolean isEditingRole() {
-        StringValue roleOid = getPageParameters().get(PageRole.PARAM_ROLE_ID);
-        return roleOid != null && StringUtils.isNotEmpty(roleOid.toString());
-    }
 }

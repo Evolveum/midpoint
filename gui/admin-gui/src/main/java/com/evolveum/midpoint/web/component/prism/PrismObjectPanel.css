@@ -83,7 +83,8 @@ div.objectForm .tableForm .tableFormHead .objectFormHeaderOptionButtons .objectF
 	float: left;
 }
 
-div.objectForm .tableForm .tableFormHead .objectFormHeaderOptionButtons .objectFormHeaderButtonShowEmptyFields, div.objectForm .tableForm .tableFormHead .objectFormHeaderOptionButtons .objectFormHeaderButtonMinMax {
+div.objectForm .tableForm .tableFormHead .objectFormHeaderOptionButtons .objectFormHeaderButtonShowEmptyFields,
+div.objectForm .tableForm .tableFormHead .objectFormHeaderOptionButtons .objectFormHeaderButtonMinMax {
 	margin: 1px;
 }
 
@@ -94,15 +95,18 @@ div.objectForm .tableForm .tableFormHead .objectFormHeaderOperationButtons {
 	float: right;
 }
 
-div.objectForm .tableForm .tableFormHead .objectFormHeaderOptionButtons .objectFormHeaderButtonLink, div.objectForm .tableForm .tableFormHead .objectFormHeaderOptionButtons .objectFormHeaderButtonDelete {
+div.objectForm .tableForm .tableFormHead .objectFormHeaderOptionButtons .objectFormHeaderButtonLink,
+div.objectForm .tableForm .tableFormHead .objectFormHeaderOptionButtons .objectFormHeaderButtonDelete {
 	margin: 1px;
 }
 
-div.objectForm .tableForm .tableFormHead .objectFormHeaderOptionButtons a, div.objectForm .tableForm .tableFormHead .objectFormHeaderOptionButtons a:hover {
+div.objectForm .tableForm .tableFormHead .objectFormHeaderOptionButtons a,
+div.objectForm .tableForm .tableFormHead .objectFormHeaderOptionButtons a:hover {
 	text-decoration: none;
 }
 
-div.objectForm .tableForm .tableFormHead .objectFormHeaderOperationButtons a, div.objectForm .tableForm .tableFormHead .objectFormHeaderOperationButtons a:hover {
+div.objectForm .tableForm .tableFormHead .objectFormHeaderOperationButtons a,
+div.objectForm .tableForm .tableFormHead .objectFormHeaderOperationButtons a:hover {
 	text-decoration: none;
 }
 
@@ -126,157 +130,11 @@ div.objectForm .tableForm .tableFormHead .objectFormHeaderDescription {
 	font-size: 11px;
 }
 
-div.objectForm .tableForm .tableFormBody .objectFormPanel .objectFormValues {
-	margin-left: 200px;
-}
-
-div.objectForm .tableForm .tableFormBody .objectFormPanel {
-	border-top: 1px solid #DBF2F7;
-	border-bottom: 1px solid #8FA6AB;
-	position: relative;
-}
-
-div.objectForm .tableForm .tableFormBody .objectFormLabel, div.objectForm .tableForm .tableFormBody .objectFormValue {
-	position: relative;
-	min-height: 40px;
-	display: inline-block;
-}
-
-div.objectForm .tableForm .tableFormBody .feedbackPanel {
-	text-align: left;	
-}
-
-div.objectForm .tableForm .tableFormBody .objectFormLabel {
-	width: 200px;
-	text-align: right;
-	text-shadow: 0 1px 0 #DBF2F7;
-	color: #333;
-	font-weight: bold;
-	font-size: 13px;
-	padding: 0px;
-	/*text-transform: capitalize;*/
-	position: relative;
-	float: left;
-}
-
-div.objectForm .tableForm .tableFormBody .objectFormLabel .objectFormLabelName {
-	float: right;
-    margin-top: 11px;
-}
-
-div.objectForm .tableForm .tableFormBody input[type='text'], div.objectForm .tableForm .tableFormBody input[type='password'] {
-	width: 323px;
-	height: 20px;
-	position: relative;
-	float: left;
-	display: inline-block;
-}
-
-div.objectForm .tableForm .tableFormBody input[type='checkbox'] { 
-	margin-top: 13px;
-	margin-bottom: 14px;
-}
-
-div.objectForm .tableForm .tableFormBody .objectFormSeparator {
-	background: #F0F0F6;
-	border-top: 1px solid #DBF2F7;
-	border-bottom: 1px solid #8FA6AB;
-	padding: 5px 0px;
-}
-
-div.objectForm .tableForm .tableFormBody .objectFormSeparatorText {
-	text-shadow: 0 1px 0 #fff;
-	color: #164FA4;
-	font-weight: bold;
-	font-size: 15px;
-	margin-left: 10px;
-	text-align: left;
-}
-
-div.objectForm .tableForm .tableFormBody .objectFormButtons {
-	padding: 11px 6px 10px 6px;
-	position: relative;
-	display: inline-block;
-	width: 43px;
-}
-
-div.objectForm .tableForm .tableFormBody .objectFormAddButton:hover, 
-div.objectForm .tableForm .tableFormBody .objectFormAddButton:focus, 
-div.objectForm .tableForm .tableFormBody .objectFormDeleteButton:hover,
-div.objectForm .tableForm .tableFormBody .objectFormDeleteButton:focus {
-	-webkit-box-shadow: 0px 0px 4px rgba(22, 79, 164, 1);
-	-moz-box-shadow: 0px 0px 4px rgba(22, 79, 164, 1);
-	box-shadow: 0px 0px 4px rgba(22, 79, 164, 1);
-}
-
-div.objectForm .tableForm .tableFormBody .objectFormInput {
-	display: inline-block;
-	width: 345px;
-	position: relative;
-	float: left;
-	text-align: left;
-}
-
-div.objectForm .tableForm .tableFormBody .objectFormValue div.feedbackPanel ul {
-	list-style: none;
-	margin: 0px 0 10px 10px;
-	padding: 0px;
-	width: 325px;
-	font-weight: bold;
-	color: #DB0000;
-	font-size: 12px;
-	text-shadow: 0 1px 0 #FECBCB;
-}
-
-div.objectForm .tableForm .tableFormBody .objectFormInput .yui-skin-sam {
-	position: absolute;
-	right: 9px;
-	top: 11px;
-}
-
 div.objectForm .tableForm .tableFormHead .objectFormHeaderControllButton:hover {
 	cursor: pointer;
 	-webkit-box-shadow: 0px 0px 2px rgba(0, 0, 0, 1);
 	-moz-box-shadow: 0px 0px 2px rgba(0, 0, 0, 1);
 	box-shadow: 0px 0px 2px rgba(0, 0, 0, 1);
-}
-
-div.objectForm .tableForm .tableFormBody .objectFormValue .objectFormHelpContent {
-	position: absolute;
-	left: 23px;
-	top: 0px;
-	padding: 3px 10px;
-	height: auto;
-	width: auto;
-	border: 1px solid #DBF2F7;
-	background: #dedee4;
-	-webkit-box-shadow: 0px 0px 3px rgba(0, 0, 0, 1);
-	-moz-box-shadow: 0px 0px 3px rgba(0, 0, 0, 1);
-	box-shadow: 0px 0px 3px rgba(0, 0, 0, 1);
-	color: #333333;
-    font-size: 13px;
-    font-weight: bold;
-    text-align: left;
-}
-
-div.objectForm .tableForm .tableFormBody .objectFormValue .objectFormHelpButton {
-	position: absolute;
-	left: 0px;
-	top: 0px;
-	-webkit-box-shadow: 0px 0px 5px rgba(0, 0, 0, 1);
-	-moz-box-shadow: 0px 0px 5px rgba(0, 0, 0, 1);
-	box-shadow: 0px 0px 5px rgba(0, 0, 0, 1);
-	z-index: 5;
-}
-
-div.objectForm .tableForm .tableFormBody .objectFormValue .objectFormHelpContainer {
-	position: absolute;
-	margin-left: 405px;
-	top: 8px;
-	display: none;
-	z-index: 5;
-	height: auto;
-	width: 100%;
 }
 
 div.objectForm .tableForm .tableFormFoot .objectFormFooter {

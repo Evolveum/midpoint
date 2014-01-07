@@ -46,6 +46,8 @@ public class ImgResources {
 
     public static final String SHIELD = "shield.png";
 
+    public static final String AJAX_LOADER = "ajax-loader.gif";
+
     public static PackageResourceReference createReference(String value) {
         return new PackageResourceReference(ImgResources.class, value);
     }

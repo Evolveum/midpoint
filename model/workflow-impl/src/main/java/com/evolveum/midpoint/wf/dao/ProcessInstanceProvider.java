@@ -250,7 +250,7 @@ public class ProcessInstanceProvider {
             pi.setStartTimestamp(XmlTypeConverter.createXMLGregorianCalendar((Date) vars.get(CommonProcessVariableNames.VARIABLE_START_TIME)));
         } catch (ActivitiException e) {
             result.recordFatalError("Couldn't get process instance variables for instance " + instance.getProcessInstanceId(), e);
-
+            LoggingUtils.logException(LOGGER, "Couldn't get process instance variables for instance {}", e, instance.getProcessInstanceId());
             pi.setName(new PolyStringType("(unreadable process instance with id = " + instance.getId() + ")"));
             pi.setStartTimestamp(null);
 

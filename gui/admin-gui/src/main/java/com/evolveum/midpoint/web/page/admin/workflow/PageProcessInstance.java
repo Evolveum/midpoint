@@ -20,7 +20,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
@@ -38,10 +38,9 @@ import org.apache.wicket.util.string.StringValue;
  * @author mederly
  */
 public class PageProcessInstance extends PageAdminWorkItems {
-	private static final long serialVersionUID = -5933030498922903813L;
 
-	private static final Trace LOGGER = TraceManager.getTrace(PageProcessInstance.class);
-	private static final String DOT_CLASS = PageTaskAdd.class.getName() + ".";
+    private static final Trace LOGGER = TraceManager.getTrace(PageProcessInstance.class);
+    private static final String DOT_CLASS = PageTaskAdd.class.getName() + ".";
     public static final String PARAM_PROCESS_INSTANCE_ID = "processInstanceId";
     public static final String PARAM_PROCESS_INSTANCE_FINISHED = "processInstanceFinished";     // boolean value
     private static final String OPERATION_LOAD_TASK = DOT_CLASS + "loadProcessInstance";
@@ -63,20 +62,21 @@ public class PageProcessInstance extends PageAdminWorkItems {
 
         model = new LoadableModel<ProcessInstanceDto>(false) {
 
-			@Override
-			protected ProcessInstanceDto load() {
-				return loadProcessInstance();
-			}
-		};
+            @Override
+            protected ProcessInstanceDto load() {
+                return loadProcessInstance();
+            }
+        };
 
+        // TODO catch RuntimeException (when process instance variables couldn't be retrieved) and do something meaninful with it
         String detailsPageClassName = getWorkflowManager().getProcessInstanceDetailsPanelName(model.getObject().getProcessInstance());
         initLayout(detailsPageClassName);
-	}
+    }
 
     private ProcessInstanceDto loadProcessInstance() {
-		OperationResult result = new OperationResult(OPERATION_LOAD_TASK);
+        OperationResult result = new OperationResult(OPERATION_LOAD_TASK);
 
-		try {
+        try {
             StringValue pid = parameters.get(PARAM_PROCESS_INSTANCE_ID);
             boolean finished = parameters.get(PARAM_PROCESS_INSTANCE_FINISHED).toBoolean();
             WfProcessInstanceType processInstance;
@@ -91,8 +91,8 @@ public class PageProcessInstance extends PageAdminWorkItems {
                 }
             }
             return new ProcessInstanceDto(processInstance);
-		} catch (Exception ex) {
-			result.recordFatalError("Couldn't get process instance information.", ex);
+        } catch (Exception ex) {
+            result.recordFatalError("Couldn't get process instance information.", ex);
             showResult(result);
             getSession().error(getString("pageProcessInstance.message.cantGetDetails"));
 
@@ -101,30 +101,30 @@ public class PageProcessInstance extends PageAdminWorkItems {
             }
             throw getRestartResponseException(PageProcessInstancesAll.class);
         }
-	}
+    }
 
     private void initLayout(String detailsPanelClassName) {
-		Form mainForm = new Form("mainForm");
-		add(mainForm);
+        Form mainForm = new Form("mainForm");
+        add(mainForm);
 
-        ProcessInstancePanel processInstancePanel = new ProcessInstancePanel(ID_PROCESS_INSTANCE_PANEL, model, detailsPanelClassName);
+        ProcessInstancePanel processInstancePanel = new ProcessInstancePanel(ID_PROCESS_INSTANCE_PANEL, model,
+                detailsPanelClassName);
         mainForm.add(processInstancePanel);
 
-		initButtons(mainForm);
-	}
+        initButtons(mainForm);
+    }
 
 
-	private void initButtons(final Form mainForm) {
-		AjaxLinkButton backButton = new AjaxLinkButton("backButton",
-				createStringResource("pageProcessInstance.button.back")) {
+    private void initButtons(final Form mainForm) {
+        AjaxButton backButton = new AjaxButton("backButton", createStringResource("pageProcessInstance.button.back")) {
 
-			@Override
-			public void onClick(AjaxRequestTarget target) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
                 goBack(PageProcessInstancesAll.class);
-			}
-		};
-		mainForm.add(backButton);
-	}
+            }
+        };
+        mainForm.add(backButton);
+    }
 
     @Override
     public PageBase reinitialize() {

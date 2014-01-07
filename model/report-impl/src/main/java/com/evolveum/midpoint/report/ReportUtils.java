@@ -58,8 +58,7 @@ public class ReportUtils {
 	{
 		JRDesignTextField textField = new JRDesignTextField();
 		textField.setX(x);
-		textField.setY(1);
-		width = Math.round((float) ((frameWidth/100) * fieldRepo.getWidthField())); 
+		textField.setY(1);		
 		textField.setWidth(width);
 		textField.setHeight(18);
 		textField.setStretchWithOverflow(true);
@@ -68,6 +67,15 @@ public class ReportUtils {
 		textField.setStyleNameReference("Detail");
 		textField.setExpression(new JRDesignExpression("$F{" + fieldRepo.getNameReportField() + "}"));
 		return textField;
+	}
+	
+	private static JasperDesign setOrientation(JasperDesign jasperDesign, OrientationEnum orientation, int pageWidth, int pageHeight, int columnWidth)
+	{
+		jasperDesign.setOrientation(orientation);
+		jasperDesign.setPageWidth(pageWidth);
+		jasperDesign.setPageHeight(pageHeight);
+		jasperDesign.setColumnWidth(columnWidth);
+		return jasperDesign;
 	}
     
     public static JasperDesign createJasperDesign(ReportType reportType) throws JRException
@@ -81,19 +89,23 @@ public class ReportUtils {
 		{
 			case LANDSCAPE :
 			default:
-			{
+			{/*
 				jasperDesign.setOrientation(OrientationEnum.LANDSCAPE);
 				jasperDesign.setPageWidth(842);
 				jasperDesign.setPageHeight(595);
 				jasperDesign.setColumnWidth(802);
+			*/
+				jasperDesign = setOrientation(jasperDesign, OrientationEnum.LANDSCAPE, 842, 595, 802);
 			}
 			break;
 			case PORTRAIT :
-			{
-				jasperDesign.setOrientation(OrientationEnum.LANDSCAPE);
+			{/*
+				jasperDesign.setOrientation(OrientationEnum.PORTRAIT);
 				jasperDesign.setPageWidth(595);
 				jasperDesign.setPageHeight(842);
 				jasperDesign.setColumnWidth(555);
+			*/
+				jasperDesign = setOrientation(jasperDesign, OrientationEnum.PORTRAIT, 595, 842, 555);
 			}
 			break;
 		}
@@ -364,6 +376,7 @@ public class ReportUtils {
 		int frameWidth = frame.getWidth();
 		for(ReportFieldConfigurationType fieldRepo : reportType.getReportField())
 		{
+			width = Math.round((float) ((frameWidth/100) * fieldRepo.getWidthField())); 
 			textField = createField(fieldRepo, x, width, frameWidth);
 			frame.addElement(textField);
 			x = x + width;

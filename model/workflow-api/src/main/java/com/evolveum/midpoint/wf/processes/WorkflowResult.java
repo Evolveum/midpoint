@@ -16,8 +16,6 @@
 
 package com.evolveum.midpoint.wf.processes;
 
-import org.omg.CORBA.UNKNOWN;
-
 /**
  * @author mederly
  */

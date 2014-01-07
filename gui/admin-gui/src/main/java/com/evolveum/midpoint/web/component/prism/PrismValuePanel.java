@@ -53,6 +53,7 @@ import org.apache.wicket.request.resource.PackageResourceReference;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -67,8 +68,6 @@ public class PrismValuePanel extends Panel {
         Validate.notNull(model, "Property value model must not be null.");
         this.model = model;
 
-        add(new AttributeAppender("class", new Model<String>("objectFormValue"), " "));
-
         initLayout(label, form);
     }
 
@@ -78,15 +77,15 @@ public class PrismValuePanel extends Panel {
         feedback.setOutputMarkupId(true);
         add(feedback);
 
-        //helpButton
-        Image helpButtonImage = new Image("helpButton", new Model<String>("InfoSmall.png"));
-        helpButtonImage.setOutputMarkupId(true);
-        add(helpButtonImage);
-
-        //helpContent
-        Label labelHelpContent = new Label("helpContent", createHelpModel());
-        labelHelpContent.setMarkupId("content_" + helpButtonImage.getMarkupId());
-        add(labelHelpContent);
+//        //helpButton
+//        Image helpButtonImage = new Image("helpButton", new Model<String>("InfoSmall.png"));
+//        helpButtonImage.setOutputMarkupId(true);
+//        add(helpButtonImage);
+//
+//        //helpContent
+//        Label labelHelpContent = new Label("helpContent", createHelpModel());
+//        labelHelpContent.setMarkupId("content_" + helpButtonImage.getMarkupId());
+//        add(labelHelpContent);
 
         //input
         InputPanel input = createInputComponent("input", label, form);
@@ -103,7 +102,6 @@ public class PrismValuePanel extends Panel {
                 addValue(target);
             }
         };
-        addButton.add(new Image("addIcon", new PackageResourceReference(PrismValuePanel.class, "AddSmall.png")));
         addButton.add(new VisibleEnableBehaviour() {
 
             @Override
@@ -120,7 +118,6 @@ public class PrismValuePanel extends Panel {
                 removeValue(target);
             }
         };
-        removeButton.add(new Image("removeIcon", new PackageResourceReference(PrismValuePanel.class, "DeleteSmall.png")));
         removeButton.add(new VisibleEnableBehaviour() {
 
             @Override
@@ -143,9 +140,6 @@ public class PrismValuePanel extends Panel {
     }
 
     private boolean isAccessible(PrismPropertyDefinition def, ContainerStatus status) {
-        //todo remove sysout !!!
-//        System.out.println(def.getName() + " " + status + " c: " + def.canCreate()
-//                + ", u: " + def.canUpdate());
         switch (status) {
             case ADDING:
                 if (!def.canCreate()) {
@@ -198,6 +192,19 @@ public class PrismValuePanel extends Panel {
         return count;
     }
 
+    private List<ValueWrapper> getUsableValues(PropertyWrapper property) {
+        List<ValueWrapper> values = new ArrayList<ValueWrapper>();
+        for (ValueWrapper value : property.getValues()) {
+            value.normalize();
+            if (ValueStatus.DELETED.equals(value.getStatus())) {
+                continue;
+            }
+            values.add(value);
+        }
+
+        return values;
+    }
+
     private int countNonDeletedValues(PropertyWrapper property) {
         int count = 0;
         for (ValueWrapper value : property.getValues()) {
@@ -242,6 +249,11 @@ public class PrismValuePanel extends Panel {
 
         PrismPropertyDefinition definition = property.getDefinition();
         int max = definition.getMaxOccurs();
+        List<ValueWrapper> usableValues = getUsableValues(propertyWrapper);
+        if (usableValues.indexOf(valueWrapper) != usableValues.size() - 1) {
+            return false;
+        }
+
         if (max == -1) {
             return true;
         }
@@ -404,20 +416,4 @@ public class PrismValuePanel extends Panel {
         ListView parent = findParent(ListView.class);
         target.add(parent.getParent());
     }
-
-//    public class StaticImage extends WebComponent {
-//        private static final long serialVersionUID = 1L;
-//
-//        public StaticImage(String id, IModel<String> model) {
-//            super(id, model);
-//        }
-//
-//        protected void onComponentTag(ComponentTag tag) {
-//            super.onComponentTag(tag);
-//            checkComponentTag(tag, "img");
-//            tag.put("src", getDefaultModelObjectAsString());
-//            tag.put("alt", "");
-//        }
-//
-//    }
 }

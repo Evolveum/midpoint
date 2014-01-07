@@ -33,9 +33,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
-import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SynchronizationSituationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
@@ -52,7 +50,7 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class AccountContentDataProvider extends BaseSortableDataProvider<SelectableBean<AccountContentDto>> {
+public class AccountContentDataProvider extends BaseSortableDataProvider<AccountContentDto> {
 
     private static final Trace LOGGER = TraceManager.getTrace(AccountContentDataProvider.class);
     private static final String DOT_CLASS = AccountContentDataProvider.class.getName() + ".";
@@ -72,7 +70,7 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Selecta
     }
 
     @Override
-    public Iterator<? extends SelectableBean<AccountContentDto>> internalIterator(long first, long count) {
+    public Iterator<AccountContentDto> internalIterator(long first, long count) {
         LOGGER.trace("begin::iterator() from {} count {}.", new Object[]{first, count});
         getAvailableData().clear();
 
@@ -102,7 +100,7 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Selecta
             AccountContentDto dto;
             for (PrismObject<ShadowType> object : list) {
                 dto = createAccountContentDto(object, result);
-                getAvailableData().add(new SelectableBean<AccountContentDto>(dto));
+                getAvailableData().add(dto);
             }
 
             result.recordSuccess();
@@ -147,7 +145,12 @@ public class AccountContentDataProvider extends BaseSortableDataProvider<Selecta
         dto.setSituation(WebMiscUtil.getValue(object, ShadowType.F_SYNCHRONIZATION_SITUATION,
                 SynchronizationSituationType.class));
 
+        addInlineMenuToDto(dto);
+
         return dto;
+    }
+
+    protected void addInlineMenuToDto(AccountContentDto dto) {
     }
 
     private PrismObject<UserType> loadOwner(String accountOid, OperationResult result) {

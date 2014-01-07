@@ -74,9 +74,9 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
     public void init() {
         initializeBaseProcessor(LOCALLY_KNOWN_KEYS);
         processWrappers = getPrimaryChangeProcessorWrappers();
-        for (PrimaryApprovalProcessWrapper processWrapper : processWrappers) {
-            processWrapper.setChangeProcessor(this);
-        }
+//        for (PrimaryApprovalProcessWrapper processWrapper : processWrappers) {
+//            processWrapper.setChangeProcessor(this);
+//        }
     }
 
     private List<PrimaryApprovalProcessWrapper> getPrimaryChangeProcessorWrappers() {

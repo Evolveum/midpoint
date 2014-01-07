@@ -33,15 +33,16 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.Holder;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.login.LoginPanel;
-import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
-import com.evolveum.midpoint.web.component.menu.top.TopMenu;
-import com.evolveum.midpoint.web.component.menu.top.TopMenuItem;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.menu.top.MenuBarItem;
+import com.evolveum.midpoint.web.component.menu.top.TopMenuBar;
 import com.evolveum.midpoint.web.component.message.MainFeedback;
 import com.evolveum.midpoint.web.component.message.OpResult;
 import com.evolveum.midpoint.web.component.message.TempFeedback;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
 import com.evolveum.midpoint.web.security.SecurityUtils;
@@ -53,6 +54,7 @@ import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
 import org.apache.wicket.Page;
 import org.apache.wicket.RestartResponseException;
+import org.apache.wicket.RuntimeConfigurationType;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.devutils.debugbar.DebugBar;
@@ -74,6 +76,10 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import javax.management.MBeanServer;
+import javax.management.MBeanServerFactory;
+import javax.management.ObjectName;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -85,13 +91,18 @@ public abstract class PageBase extends WebPage {
     private static final Trace LOGGER = TraceManager.getTrace(PageBase.class);
 
     private static final String ID_TITLE = "title";
+    private static final String ID_PAGE_TITLE_CONTAINER = "pageTitleContainer";
+    private static final String ID_PAGE_TITLE_REAL = "pageTitleReal";
+    private static final String ID_PAGE_TITLE = "pageTitle";
+    private static final String ID_PAGE_SUBTITLE = "pageSubtitle";
     private static final String ID_DEBUG_PANEL = "debugPanel";
     private static final String ID_TOP_MENU = "topMenu";
-    private static final String ID_LOGIN_PANEL = "loginPanel";
-    private static final String ID_PAGE_TITLE = "pageTitle";
+    private static final String ID_VERSION = "version";
     private static final String ID_FEEDBACK_CONTAINER = "feedbackContainer";
     private static final String ID_FEEDBACK = "feedback";
     private static final String ID_TEMP_FEEDBACK = "tempFeedback";
+    private static final String ID_DEBUG_BAR = "debugBar";
+    private static final String ID_CLEAR_CACHE = "clearCssCache";
 
     @SpringBean(name = "modelController")
     private ModelService modelService;
@@ -124,7 +135,8 @@ public abstract class PageBase extends WebPage {
 
         //this attaches jquery.js as first header item, which is used in our scripts.
         CoreLibrariesContributor.contribute(getApplication(), response);
-//        Bootstrap.renderHeadPlain(response);
+
+        response.render(OnDomReadyHeaderItem.forScript("updateBodyTopPadding()"));
     }
 
     @Override
@@ -157,14 +169,41 @@ public abstract class PageBase extends WebPage {
         DebugBar debugPanel = new DebugBar(ID_DEBUG_PANEL);
         add(debugPanel);
 
-        List<TopMenuItem> topMenuItems = getTopMenuItems();
-        List<BottomMenuItem> bottomMenuItems = getBottomMenuItems();
-        add(new TopMenu(ID_TOP_MENU, topMenuItems, bottomMenuItems));
+        TopMenuBar topMenu = new TopMenuBar(ID_TOP_MENU, createMenuItems());
+        add(topMenu);
 
-        LoginPanel loginPanel = new LoginPanel(ID_LOGIN_PANEL);
-        add(loginPanel);
+        WebMarkupContainer version = new WebMarkupContainer(ID_VERSION) {
 
-        add(new Label(ID_PAGE_TITLE, createPageTitleModel()));
+            @Deprecated
+            public String getDescribe() {
+                return PageBase.this.getDescribe();
+            }
+        };
+        version.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return RuntimeConfigurationType.DEVELOPMENT.equals(getApplication().getConfigurationType());
+            }
+        });
+        add(version);
+
+        WebMarkupContainer pageTitleContainer = new WebMarkupContainer(ID_PAGE_TITLE_CONTAINER);
+        pageTitleContainer.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return StringUtils.isNotEmpty(createPageTitleModel().getObject());
+            }
+        });
+        add(pageTitleContainer);
+
+        WebMarkupContainer pageTitle = new WebMarkupContainer(ID_PAGE_TITLE);
+        pageTitleContainer.add(pageTitle);
+        Label pageTitleReal = new Label(ID_PAGE_TITLE_REAL, createPageTitleModel());
+        pageTitleReal.setRenderBodyOnly(true);
+        pageTitle.add(pageTitleReal);
+        pageTitle.add(new Label(ID_PAGE_SUBTITLE, createPageSubTitleModel()));
 
         WebMarkupContainer feedbackContainer = new WebMarkupContainer(ID_FEEDBACK_CONTAINER);
         feedbackContainer.setOutputMarkupId(true);
@@ -175,6 +214,63 @@ public abstract class PageBase extends WebPage {
 
         TempFeedback tempFeedback = new TempFeedback(ID_TEMP_FEEDBACK);
         feedbackContainer.add(tempFeedback);
+
+        initDebugBar();
+    }
+
+    private void initDebugBar() {
+        WebMarkupContainer debugBar = new WebMarkupContainer(ID_DEBUG_BAR);
+        debugBar.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                RuntimeConfigurationType runtime = getApplication().getConfigurationType();
+                return RuntimeConfigurationType.DEVELOPMENT.equals(runtime);
+            }
+        });
+        add(debugBar);
+
+        AjaxButton clearCache = new AjaxButton(ID_CLEAR_CACHE, createStringResource("PageBase.clearCssCache")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                clearLessJsCache(target);
+            }
+        };
+        debugBar.add(clearCache);
+    }
+
+    protected void clearLessJsCache(AjaxRequestTarget target) {
+        try {
+            ArrayList<MBeanServer> servers = MBeanServerFactory.findMBeanServer(null);
+            if (servers.size() > 1) {
+                LOGGER.info("Too many mbean servers, cache won't be cleared.");
+                for (MBeanServer server : servers) {
+                    LOGGER.info(server.getDefaultDomain());
+                }
+                return;
+            }
+            MBeanServer server = servers.get(0);
+            ObjectName objectName = ObjectName.getInstance("wro4j-idm:type=WroConfiguration");
+            server.invoke(objectName, "reloadCache", new Object[]{}, new String[]{});
+            if (target != null) {
+                target.add(PageBase.this);
+            }
+        } catch (Exception ex) {
+            LoggingUtils.logException(LOGGER, "Couldn't clear less/js cache", ex);
+            error("Error occurred, reason: " + ex.getMessage());
+            if (target != null) {
+                target.add(getFeedbackPanel());
+            }
+        }
+    }
+
+    protected TopMenuBar getTopMenuBar() {
+        return (TopMenuBar) get(ID_TOP_MENU);
+    }
+
+    protected List<MenuBarItem> createMenuItems() {
+        return new ArrayList<MenuBarItem>();
     }
 
     public WebMarkupContainer getFeedbackPanel() {
@@ -196,10 +292,6 @@ public abstract class PageBase extends WebPage {
         return (MidPointApplication) getApplication();
     }
 
-    public abstract List<TopMenuItem> getTopMenuItems();
-
-    public abstract List<BottomMenuItem> getBottomMenuItems();
-
     public PrismContext getPrismContext() {
         return getMidpointApplication().getPrismContext();
     }
@@ -210,6 +302,10 @@ public abstract class PageBase extends WebPage {
 
     protected WorkflowManager getWorkflowManager() {
         return workflowManager;
+    }
+
+    protected IModel<String> createPageSubTitleModel() {
+        return new StringResourceModel("page.subTitle", this, new Model<String>(), "");
     }
 
     protected IModel<String> createPageTitleModel() {

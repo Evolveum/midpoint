@@ -16,44 +16,52 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorHostType;
 
 import org.apache.commons.lang.StringUtils;
 
+import javax.xml.namespace.QName;
 import java.util.Comparator;
 
 /**
  * @author lazyman
  */
-public class ConnectorHostTypeComparator implements Comparator<ConnectorHostType> {
+public class ConnectorHostTypeComparator implements Comparator<PrismObject<ConnectorHostType>> {
 
     @Override
-    public int compare(ConnectorHostType host1, ConnectorHostType host2) {
+    public int compare(PrismObject<ConnectorHostType> host1, PrismObject<ConnectorHostType> host2) {
         return String.CASE_INSENSITIVE_ORDER.compare(getUserFriendlyName(host1), getUserFriendlyName(host2));
     }
 
-    public static String getUserFriendlyName(ConnectorHostType host) {
+    public static String getUserFriendlyName(PrismObject<ConnectorHostType> host) {
         if (host == null) {
             return null;
         }
 
-        String name = WebMiscUtil.getOrigStringFromPoly(host.getName());
+        String name = WebMiscUtil.getName(host);
 
         StringBuilder builder = new StringBuilder();
         if (StringUtils.isNotEmpty(name)) {
             builder.append(name);
             builder.append('(');
         }
-        builder.append(host.getHostname());
-        if (StringUtils.isNotEmpty(host.getPort())) {
+        builder.append(getStringProperty(host, ConnectorHostType.F_HOSTNAME));
+
+        String port = getStringProperty(host, ConnectorHostType.F_PORT);
+        if (StringUtils.isNotEmpty(port)) {
             builder.append(':');
-            builder.append(host.getPort());
+            builder.append(port);
         }
         if (StringUtils.isNotEmpty(name)) {
             builder.append(')');
         }
 
         return builder.toString();
+    }
+
+    private static String getStringProperty(PrismObject obj, QName qname) {
+        return (String) obj.getPropertyRealValue(qname, String.class);
     }
 }

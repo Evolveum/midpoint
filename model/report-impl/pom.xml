@@ -47,6 +47,11 @@
 		<url>https://fisheye.evolveum.com/midpoint/</url>
 	</scm>
 	<dependencies>
+        <dependency>
+            <groupId>com.evolveum.midpoint.model</groupId>
+            <artifactId>report-api</artifactId>
+            <version>2.3-SNAPSHOT</version>
+        </dependency>
 		<dependency>
 			<groupId>com.evolveum.midpoint.model</groupId>
 			<artifactId>model-api</artifactId>
@@ -70,15 +75,11 @@
             <groupId>com.evolveum.midpoint.repo</groupId>
             <artifactId>repo-cache</artifactId>
             <version>2.3-SNAPSHOT</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.evolveum.midpoint.model</groupId>
             <artifactId>model-impl</artifactId>
-            <version>2.3-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>com.evolveum.midpoint.model</groupId>
-            <artifactId>workflow-impl</artifactId>
             <version>2.3-SNAPSHOT</version>
             <scope>test</scope>
         </dependency>

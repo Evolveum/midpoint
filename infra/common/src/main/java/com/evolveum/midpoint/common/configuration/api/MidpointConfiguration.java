@@ -20,6 +20,7 @@ package com.evolveum.midpoint.common.configuration.api;
  */
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.configuration.XMLConfiguration;
+import org.w3c.dom.Document;
 
 public interface MidpointConfiguration {
 	
@@ -52,9 +53,12 @@ public interface MidpointConfiguration {
 	public Configuration getConfiguration(String componetID);
 
     /**
-     * A bit of hack - if there's a need to retrieve original midpoint config as XML.
+     * If there's a need to retrieve original midpoint config as XML.
+     *
+     * XMLConfiguration does not work well - sometimes it omits values from the document.
+     * So it's best to parse the config ourselves.
      *
      * @return
      */
-    public XMLConfiguration getXmlConfiguration();
+    Document getXmlConfigAsDocument();
 }

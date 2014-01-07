@@ -29,9 +29,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wf.workItems.WorkItemsPanel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.home.component.*;
-import com.evolveum.midpoint.web.page.admin.home.dto.AccountCallableResult;
-import com.evolveum.midpoint.web.page.admin.home.dto.AssignmentItemDto;
-import com.evolveum.midpoint.web.page.admin.home.dto.SimpleAccountDto;
+import com.evolveum.midpoint.web.page.admin.home.dto.*;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
@@ -40,12 +38,9 @@ import com.evolveum.midpoint.wf.api.WorkflowException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.head.CssHeaderItem;
-import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
-import org.apache.wicket.request.resource.PackageResourceReference;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -63,15 +58,14 @@ public class PageDashboard extends PageAdminHome {
     private static final String DOT_CLASS = PageDashboard.class.getName() + ".";
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
     private static final String OPERATION_LOAD_ACCOUNTS = DOT_CLASS + "loadAccounts";
-    private static final String OPERATION_LOAD_ACCOUNT = DOT_CLASS + "loadAccount";
     private static final String OPERATION_LOAD_ASSIGNMENTS = DOT_CLASS + "loadAssignments";
-    private static final String OPERATION_LOAD_ASSIGNMENT = DOT_CLASS + "loadAssignment";
     private static final String OPERATION_LOAD_WORK_ITEMS = DOT_CLASS + "loadWorkItems";
 
     private static final String ID_PERSONAL_INFO = "personalInfo";
     private static final String ID_WORK_ITEMS = "workItems";
     private static final String ID_ACCOUNTS = "accounts";
     private static final String ID_ASSIGNMENTS = "assignments";
+    private static final String ID_SYSTEM_INFO = "systemInfo";
 
     private static final int MAX_WORK_ITEMS = 1000;
 
@@ -84,11 +78,12 @@ public class PageDashboard extends PageAdminHome {
     }
 
     private PrismObject<UserType> loadUser() {
-    	MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
+        MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
 
         OperationResult result = new OperationResult(OPERATION_LOAD_USER);
         PrismObject<UserType> user = WebModelUtils.loadObject(UserType.class,
                 principal.getOid(), result, PageDashboard.this);
+        result.computeStatus();
 
         if (!WebMiscUtil.isSuccessOrHandledError(result)) {
             showResult(result);
@@ -97,18 +92,12 @@ public class PageDashboard extends PageAdminHome {
         return user;
     }
 
-    @Override
-    public void renderHead(IHeaderResponse response) {
-        super.renderHead(response);
-        response.render(CssHeaderItem.forReference(
-                new PackageResourceReference(PageDashboard.class, "PageDashboard.css")));
-    }
-
     private void initLayout() {
         initPersonalInfo();
         initMyWorkItems();
         initMyAccounts();
         initAssignments();
+        initSystemInfo();
     }
 
     private AccountCallableResult<List<SimpleAccountDto>> loadAccounts() throws Exception {
@@ -129,10 +118,8 @@ public class PageDashboard extends PageAdminHome {
 
         List<ObjectReferenceType> references = user.asObjectable().getLinkRef();
         for (ObjectReferenceType reference : references) {
-            OperationResult subResult = result.createSubresult(OPERATION_LOAD_ACCOUNT);
-
             PrismObject<ShadowType> account = WebModelUtils.loadObjectAsync(ShadowType.class, reference.getOid(),
-                    options, subResult, this, user);
+                    options, result, this, user);
             if (account == null) {
                 continue;
             }
@@ -159,7 +146,7 @@ public class PageDashboard extends PageAdminHome {
 
     private void initPersonalInfo() {
         DashboardPanel personalInfo = new DashboardPanel(ID_PERSONAL_INFO, null,
-                createStringResource("PageDashboard.personalInfo")) {
+                createStringResource("PageDashboard.personalInfo"), "silk-user", DashboardColor.GRAY) {
 
             @Override
             protected Component getMainComponent(String componentId) {
@@ -207,10 +194,46 @@ public class PageDashboard extends PageAdminHome {
         return callableResult;
     }
 
+    private void initSystemInfo() {
+        AsyncDashboardPanel<Object, SystemInfoDto> systemInfo =
+                new AsyncDashboardPanel<Object, SystemInfoDto>(ID_SYSTEM_INFO, createStringResource("PageDashboard.systemInfo"),
+                        "silk-application_osx_terminal", DashboardColor.GREEN) {
+
+                    @Override
+                    protected Callable<CallableResult<SystemInfoDto>> createCallable(IModel callableParameterModel) {
+                        return new Callable<CallableResult<SystemInfoDto>>() {
+
+                            @Override
+                            public CallableResult<SystemInfoDto> call() throws Exception {
+                                CallableResult callableResult = new CallableResult();
+
+                                //TODO - fill correct data in users and tasks graphs[shood]
+                                SimplePieChartDto usersDto = new SimplePieChartDto("PageDashboard.activeUsers", 100, 25);
+                                SimplePieChartDto tasksDto = new SimplePieChartDto("PageDashboard.activeTasks", 100, 35);
+                                SimplePieChartDto loadDto = new SimplePieChartDto("PageDashboard.serverLoad", 100, WebMiscUtil.getSystemLoad(), "%");
+                                SimplePieChartDto memDto = new SimplePieChartDto("PageDashboard.usedRam",
+                                        WebMiscUtil.getMaxRam(), WebMiscUtil.getRamUsage(), "%");
+
+                                SystemInfoDto sysInfoDto = new SystemInfoDto(usersDto, tasksDto, loadDto, memDto);
+
+                                callableResult.setValue(sysInfoDto);
+                                return callableResult;
+                            }
+                        };
+                    }
+
+                    @Override
+                    protected Component getMainComponent(String markupId) {
+                        return new SystemInfoPanel(markupId, new PropertyModel<SystemInfoDto>(getModel(), CallableResult.F_VALUE));
+                    }
+                };
+        add(systemInfo);
+    }
+
     private void initMyWorkItems() {
         AsyncDashboardPanel<Object, List<WorkItemDto>> workItems =
-                new AsyncDashboardPanel<Object, List<WorkItemDto>>(ID_WORK_ITEMS,
-                        createStringResource("PageDashboard.workItems")) {
+                new AsyncDashboardPanel<Object, List<WorkItemDto>>(ID_WORK_ITEMS, createStringResource("PageDashboard.workItems"),
+                        "silk-script", DashboardColor.RED) {
 
                     @Override
                     protected Callable<CallableResult<List<WorkItemDto>>> createCallable(IModel callableParameterModel) {
@@ -240,8 +263,8 @@ public class PageDashboard extends PageAdminHome {
 
     private void initMyAccounts() {
         AsyncDashboardPanel<Object, List<SimpleAccountDto>> accounts =
-                new AsyncDashboardPanel<Object, List<SimpleAccountDto>>(ID_ACCOUNTS,
-                        createStringResource("PageDashboard.accounts")) {
+                new AsyncDashboardPanel<Object, List<SimpleAccountDto>>(ID_ACCOUNTS, createStringResource("PageDashboard.accounts"),
+                        "silk-user_suit", DashboardColor.BLUE) {
 
                     @Override
                     protected Callable<CallableResult<List<SimpleAccountDto>>> createCallable(
@@ -291,8 +314,8 @@ public class PageDashboard extends PageAdminHome {
 
     private void initAssignments() {
         AsyncDashboardPanel<Object, List<AssignmentItemDto>> assignedOrgUnits =
-                new AsyncDashboardPanel<Object, List<AssignmentItemDto>>(ID_ASSIGNMENTS,
-                        createStringResource("PageDashboard.assignments")) {
+                new AsyncDashboardPanel<Object, List<AssignmentItemDto>>(ID_ASSIGNMENTS, createStringResource("PageDashboard.assignments"),
+                        "silk-medal_silver_1", DashboardColor.YELLOW) {
 
                     @Override
                     protected Callable<CallableResult<List<AssignmentItemDto>>> createCallable(IModel callableParameterModel) {
@@ -361,11 +384,9 @@ public class PageDashboard extends PageAdminHome {
 
                 if (constr.getResourceRef() != null) {
                     ObjectReferenceType resourceRef = constr.getResourceRef();
-                    OperationResult subResult = result.createSubresult(OPERATION_LOAD_ASSIGNMENT);
-                    subResult.addParam("targetRef", resourceRef.getOid());
 
                     PrismObject resource = WebModelUtils.loadObjectAsync(
-                            ResourceType.class, resourceRef.getOid(), subResult, this, user);
+                            ResourceType.class, resourceRef.getOid(), result, this, user);
                     name = WebMiscUtil.getName(resource);
                 }
             }
@@ -377,9 +398,7 @@ public class PageDashboard extends PageAdminHome {
         PrismObject value = refValue.getObject();
         if (value == null) {
             //resolve reference
-            OperationResult subResult = result.createSubresult(OPERATION_LOAD_ASSIGNMENT);
-            subResult.addParam("targetRef", refValue.getOid());
-            value = WebModelUtils.loadObjectAsync(ObjectType.class, refValue.getOid(), subResult, this, user);
+            value = WebModelUtils.loadObjectAsync(ObjectType.class, refValue.getOid(), result, this, user);
         }
 
         if (value == null) {

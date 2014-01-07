@@ -222,8 +222,8 @@ This is now the only account type that midPoint can work with. -->
                 <inbound>
 					<expression>
 						<script>
-							<language>http://www.w3.org/TR/xpath/</language>
 							<relativityMode>absolute</relativityMode>
+							<language>http://www.w3.org/TR/xpath/</language>
 							<code>func:determineLdapSingleAttributeValue($c:account/c:attributes/icfs:name, 'cn', $c:input)</code>
 						</script>
 					</expression>
@@ -267,8 +267,8 @@ This is now the only account type that midPoint can work with. -->
                 <inbound>
                 	<expression>
 						<script>
-							<language>http://www.w3.org/TR/xpath/</language>
 							<relativityMode>absolute</relativityMode>
+							<language>http://www.w3.org/TR/xpath/</language>
 							<code>func:determineLdapSingleAttributeValue($c:account/c:attributes/icfs:name, 'sn', $c:input)</code>
 						</script>
 					</expression>
@@ -302,8 +302,8 @@ This is now the only account type that midPoint can work with. -->
                 <inbound>
                 	<expression>
 						<script>
-							<language>http://www.w3.org/TR/xpath/</language>
 							<relativityMode>absolute</relativityMode>
+							<language>http://www.w3.org/TR/xpath/</language>
  							<code>func:determineLdapSingleAttributeValue($c:account/c:attributes/icfs:name, 'givenName', $c:input)</code>  
 <!--							<code>func:logDebug($c:account/c:attributes/icfs:name, 'givenName', $c:input)</code> -->
 						</script>
@@ -354,8 +354,8 @@ This is now the only account type that midPoint can work with. -->
                 	<strength>weak</strength>
                 	<expression>                		
                 		<script>
-                			<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
                 			<relativityMode>absolute</relativityMode>
+                			<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
                 			<code>
                 				basic.determineLdapSingleAttributeValue(
                 					basic.getAttributeStringValues(account, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2', 'name'),
@@ -531,13 +531,13 @@ This is now the only account type that midPoint can work with. -->
                             <value>middle of nowhere</value>
                         </variable>
                     	<script>
+                    		<c:relativityMode>absolute</c:relativityMode>
                     		<language>http://www.w3.org/TR/xpath/</language>
 	                        <returnType>scalar</returnType>
 	                        <!-- The expression itself. It translates the value of
 	                             user's attribute "locality" (expressed as $i:user/i:locality)
 	                             using a lookup table defined in the configuration object
 	                             in the $my:config variable specified above. -->
-	                        <c:relativityMode>absolute</c:relativityMode>
 	                        <c:code>
 	                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
 	                            declare namespace t="http://prism.evolveum.com/xml/ns/public/types-2";

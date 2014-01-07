@@ -17,15 +17,13 @@
 package com.evolveum.midpoint.web.page.admin.roles;
 
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Holder;
-import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
-import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
-import com.evolveum.midpoint.web.component.button.ButtonType;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.xml.ace.AceEditor;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
@@ -50,6 +48,9 @@ public class PageRole extends PageAdminRoles {
     private static final String DOT_CLASS = PageRole.class.getName() + ".";
     private static final String OPERATION_LOAD_ROLE = DOT_CLASS + "loadRole";
     private static final String OPERATION_SAVE_ROLE = DOT_CLASS + "saveRole";
+
+    private static final String ID_MAIN_FORM = "mainForm";
+
     private IModel<ObjectViewDto> model;
 
     public PageRole() {
@@ -109,7 +110,7 @@ public class PageRole extends PageAdminRoles {
     }
 
     private void initLayout() {
-        Form mainForm = new Form("mainForm");
+        Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
         final IModel<Boolean> editable = new LoadableModel<Boolean>(false) {
@@ -126,7 +127,7 @@ public class PageRole extends PageAdminRoles {
                 editPerformed(target, editable.getObject());
             }
         });
-        AceEditor<String> editor = new AceEditor<String>("aceEditor", new PropertyModel<String>(model, ObjectViewDto.F_XML));
+        AceEditor editor = new AceEditor("aceEditor", new PropertyModel<String>(model, ObjectViewDto.F_XML));
         editor.setReadonly(new LoadableModel<Boolean>(false) {
 
             @Override
@@ -140,8 +141,7 @@ public class PageRole extends PageAdminRoles {
     }
 
     private void initButtons(final Form mainForm) {
-        AjaxSubmitLinkButton saveButton = new AjaxSubmitLinkButton("saveButton", ButtonType.POSITIVE, 
-                createStringResource("pageRole.button.save")) {
+        AjaxSubmitButton saveButton = new AjaxSubmitButton("saveButton", createStringResource("pageRole.button.save")) {
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
@@ -155,8 +155,7 @@ public class PageRole extends PageAdminRoles {
         };
         mainForm.add(saveButton);
 
-        AjaxLinkButton backButton = new AjaxLinkButton("backButton",
-                createStringResource("pageRole.button.back")) {
+        AjaxButton backButton = new AjaxButton("backButton", createStringResource("pageRole.button.back")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -179,7 +178,7 @@ public class PageRole extends PageAdminRoles {
         AceEditor editor = (AceEditor) get("mainForm:aceEditor");
 
         editor.setReadonly(!editable);
-        target.appendJavaScript(editor.createJavascriptEditableRefresh());
+        editor.refreshReadonly(target);
     }
 
     private void savePerformed(AjaxRequestTarget target) {

@@ -18,15 +18,12 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <form wicket:id="mainForm">
-        <div wicket:id="tabPanel" class="tabPanel"/>
+    <form wicket:id="mainForm" class="form-horizontal">
+        <div wicket:id="tabPanel" class="tabbable"/>
 
-        <div class="operatingFormButtons">
-
-            <div class="operatingFormBlock">
-                <a wicket:id="back"/>
-                <a wicket:id="save"/>
-            </div>
+        <div class="main-button-bar">
+            <a class="btn btn-default" wicket:id="cancel"/>
+            <a class="btn btn-primary" wicket:id="save" />
         </div>
     </form>
 </wicket:extend>

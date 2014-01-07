@@ -16,41 +16,40 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.io.input.ReaderInputStream;
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
-import org.apache.wicket.markup.html.WebMarkupContainer;
-import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.RadioChoice;
-import org.apache.wicket.markup.html.form.upload.FileUpload;
-import org.apache.wicket.markup.html.form.upload.FileUploadField;
-import org.apache.wicket.model.IModel;
-import org.apache.wicket.model.Model;
-import org.apache.wicket.util.file.File;
-
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.xml.ace.AceEditor;
+import com.evolveum.midpoint.web.page.admin.configuration.component.ImportOptionsPanel;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ImportOptionsType;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.io.input.ReaderInputStream;
+import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.Component;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.form.AjaxFormChoiceComponentUpdatingBehavior;
+import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.Radio;
+import org.apache.wicket.markup.html.form.RadioGroup;
+import org.apache.wicket.markup.html.form.upload.FileUpload;
+import org.apache.wicket.markup.html.form.upload.FileUploadField;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
+import org.apache.wicket.util.file.File;
+
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 /**
  * @author lazyman
@@ -58,234 +57,231 @@ import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ImportOptionsType
  */
 public class PageImportObject extends PageAdminConfiguration {
 
-	private static final Trace LOGGER = TraceManager.getTrace(PageImportObject.class);
-	private static final String DOT_CLASS = PageImportObject.class.getName() + ".";
-	private static final String OPERATION_IMPORT_FILE = DOT_CLASS + "importFile";
-	private static final String OPERATION_IMPORT_XML = DOT_CLASS + "importXml";
+    private static final Trace LOGGER = TraceManager.getTrace(PageImportObject.class);
+    private static final String DOT_CLASS = PageImportObject.class.getName() + ".";
+    private static final String OPERATION_IMPORT_FILE = DOT_CLASS + "importFile";
+    private static final String OPERATION_IMPORT_XML = DOT_CLASS + "importXml";
 
-	private IModel<String> xmlEditorModel;
-	private LoadableModel<ImportOptionsType> model;
-	private boolean isImportFromFile = true;
-	private final List<String> importTypesList = new ArrayList<String>();
-	private Model<String> selected = new Model<String>(getString("pageImportObject.importFromFile"));
+    private static final String ID_MAIN_FORM = "mainForm";
+    private static final String ID_BUTTON_BAR = "buttonBar";
+    private static final String ID_IMPORT_OPTIONS = "importOptions";
+    private static final String ID_IMPORT_RADIO_GROUP = "importRadioGroup";
+    private static final String ID_FILE_RADIO = "fileRadio";
+    private static final String ID_XML_RADIO = "xmlRadio";
+    private static final String ID_IMPORT_FILE_BUTTON = "importFileButton";
+    private static final String ID_IMPORT_XML_BUTTON = "importXmlButton";
+    private static final String ID_INPUT = "input";
+    private static final String ID_INPUT_ACE = "inputAce";
+    private static final String ID_ACE_EDITOR = "aceEditor";
+    private static final String ID_INPUT_FILE_LABEL = "inputFileLabel";
+    private static final String ID_INPUT_FILE = "inputFile";
+    private static final String ID_FILE_INPUT = "fileInput";
 
-	public PageImportObject() {
-		model = new LoadableModel<ImportOptionsType>(false) {
+    private static final Integer INPUT_FILE = 1;
+    private static final Integer INPUT_XML = 2;
 
-			@Override
-			protected ImportOptionsType load() {
-				return MiscSchemaUtil.getDefaultImportOptions();
-			}
-		};
-		xmlEditorModel = new Model<String>(null);
+    private LoadableModel<ImportOptionsType> model;
+    private IModel<String> xmlEditorModel;
 
-		initLayout();
-	}
+    public PageImportObject() {
+        model = new LoadableModel<ImportOptionsType>(false) {
 
-	private void initLayout() {
-		importTypesList.add(getString("pageImportObject.importFromFile"));
-		importTypesList.add(getString("pageImportObject.useEmbeddedEditor"));
+            @Override
+            protected ImportOptionsType load() {
+                return MiscSchemaUtil.getDefaultImportOptions();
+            }
+        };
+        xmlEditorModel = new Model<String>(null);
 
-		final Form mainForm = new Form("mainForm");
-		add(mainForm);
+        initLayout();
+    }
 
-		final WebMarkupContainer container = new WebMarkupContainer("container");
-		container.setOutputMarkupId(true);
-		mainForm.add(container);
+    private void initLayout() {
+        Form mainForm = new Form(ID_MAIN_FORM);
+        add(mainForm);
 
-		RadioChoice<String> importTypes = new RadioChoice<String>("importTypes", selected, importTypesList);
-		importTypes.add(new AjaxFormChoiceComponentUpdatingBehavior() {
+        ImportOptionsPanel importOptions = new ImportOptionsPanel(ID_IMPORT_OPTIONS, model);
+        mainForm.add(importOptions);
 
-			@Override
-			protected void onUpdate(AjaxRequestTarget target) {
-				PageImportObject.this.isImportFromFile = selected.getObject().equals(importTypesList.get(0));
-				target.add(container);
-			}
-		});
-		mainForm.add(importTypes);
+        final WebMarkupContainer input = new WebMarkupContainer(ID_INPUT);
+        input.setOutputMarkupId(true);
+        mainForm.add(input);
 
-		Label chooseFileText = new Label("chooseFile", getString("pageImportObject.chooseFile"));
-		chooseFileText.add(new VisibleEnableBehaviour() {
+        final WebMarkupContainer buttonBar = new WebMarkupContainer(ID_BUTTON_BAR);
+        buttonBar.setOutputMarkupId(true);
+        mainForm.add(buttonBar);
 
-			@Override
-			public boolean isVisible() {
-				return isImportFromFile;
-			}
-		});
-		container.add(chooseFileText);
+        final IModel<Integer> groupModel = new Model<Integer>(INPUT_FILE);
+        RadioGroup importRadioGroup = new RadioGroup(ID_IMPORT_RADIO_GROUP, groupModel);
+        importRadioGroup.add(new AjaxFormChoiceComponentUpdatingBehavior() {
 
-		ImportOptionsPanel importOptions = new ImportOptionsPanel("importOptions", model);
-		container.add(importOptions);
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                target.add(input);
+                target.add(buttonBar);
+            }
+        });
+        mainForm.add(importRadioGroup);
 
-		FileUploadField fileInput = new FileUploadField("fileInput");
-		fileInput.setOutputMarkupId(true);
-		fileInput.add(new VisibleEnableBehaviour() {
+        Radio fileRadio = new Radio(ID_FILE_RADIO, new Model(INPUT_FILE), importRadioGroup);
+        importRadioGroup.add(fileRadio);
 
-			@Override
-			public boolean isVisible() {
-				return isImportFromFile;
-			}
+        Radio xmlRadio = new Radio(ID_XML_RADIO, new Model(INPUT_XML), importRadioGroup);
+        importRadioGroup.add(xmlRadio);
 
-		});
-		container.add(fileInput);
+        WebMarkupContainer inputAce = new WebMarkupContainer(ID_INPUT_ACE);
+        addVisibileForInputType(inputAce, INPUT_XML, groupModel);
+        input.add(inputAce);
 
-		WebMarkupContainer aceContainer = new WebMarkupContainer("aceContainer");
-		aceContainer.add(new VisibleEnableBehaviour() {
+        AceEditor aceEditor = new AceEditor(ID_ACE_EDITOR, xmlEditorModel);
+        aceEditor.setOutputMarkupId(true);
+        inputAce.add(aceEditor);
 
-			@Override
-			public boolean isVisible() {
-				return !isImportFromFile;
-			}
+        WebMarkupContainer inputFileLabel = new WebMarkupContainer(ID_INPUT_FILE_LABEL);
+        addVisibileForInputType(inputFileLabel, INPUT_FILE, groupModel);
+        input.add(inputFileLabel);
 
-		});
-		container.add(aceContainer);
+        WebMarkupContainer inputFile = new WebMarkupContainer(ID_INPUT_FILE);
+        addVisibileForInputType(inputFile, INPUT_FILE, groupModel);
+        input.add(inputFile);
 
-		AceEditor<String> xmlEditor = new AceEditor<String>("aceEditor", xmlEditorModel);
-		xmlEditor.setOutputMarkupId(true);
-		aceContainer.add(xmlEditor);
+        FileUploadField fileInput = new FileUploadField(ID_FILE_INPUT);
+        inputFile.add(fileInput);
 
-		// from example
-		// mainForm.setMultiPart(true);
-		// mainForm.setMaxSize(Bytes.kilobytes(100));
-		initButtons(container);
-	}
+        initButtons(buttonBar, groupModel);
+    }
 
-	private void initButtons(final WebMarkupContainer container) {
-		AjaxSubmitLinkButton saveFileButton = new AjaxSubmitLinkButton("importFileButton",
-				createStringResource("pageImportObject.button.import")) {
+    private void addVisibileForInputType(Component comp, final Integer type, final IModel<Integer> groupModel) {
+        comp.add(new VisibleEnableBehaviour() {
 
-			@Override
-			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-				saveFilePerformed(target);
-			}
+            @Override
+            public boolean isVisible() {
+                return type.equals(groupModel.getObject());
+            }
 
-			@Override
-			protected void onError(AjaxRequestTarget target, Form<?> form) {
-				target.add(getFeedbackPanel());
-			}
-		};
+        });
+    }
 
-		saveFileButton.add(new VisibleEnableBehaviour() {
+    private void initButtons(WebMarkupContainer buttonBar, IModel<Integer> inputType) {
+        AjaxSubmitButton saveFileButton = new AjaxSubmitButton(ID_IMPORT_FILE_BUTTON,
+                createStringResource("PageImportObject.button.import")) {
 
-			@Override
-			public boolean isVisible() {
-				return isImportFromFile;
-			}
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                saveFilePerformed(target);
+            }
 
-		});
-		container.add(saveFileButton);
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(getFeedbackPanel());
+            }
+        };
+        addVisibileForInputType(saveFileButton, INPUT_FILE, inputType);
+        buttonBar.add(saveFileButton);
 
-		AjaxSubmitLinkButton saveXmlButton = new AjaxSubmitLinkButton("importXmlButton",
-				createStringResource("pageImportObject.button.import")) {
+        AjaxSubmitButton saveXmlButton = new AjaxSubmitButton(ID_IMPORT_XML_BUTTON,
+                createStringResource("PageImportObject.button.import")) {
 
-			@Override
-			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-				saveXmlPerformed(target);
-			}
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                saveXmlPerformed(target);
+            }
 
-			@Override
-			protected void onError(AjaxRequestTarget target, Form<?> form) {
-				target.add(getFeedbackPanel());
-			}
-		};
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(getFeedbackPanel());
+            }
+        };
+        addVisibileForInputType(saveXmlButton, INPUT_XML, inputType);
+        buttonBar.add(saveXmlButton);
+    }
 
-		saveXmlButton.add(new VisibleEnableBehaviour() {
+    private void saveFilePerformed(AjaxRequestTarget target) {
+        OperationResult result = new OperationResult(OPERATION_IMPORT_FILE);
 
-			@Override
-			public boolean isVisible() {
-				return !isImportFromFile;
-			}
+        FileUploadField file = (FileUploadField) get(createComponentPath(ID_MAIN_FORM, ID_INPUT, ID_INPUT_FILE, ID_FILE_INPUT));
+        final FileUpload uploadedFile = file.getFileUpload();
+        if (uploadedFile == null) {
+            error(getString("pageImportObject.message.nullFile"));
+            target.add(getFeedbackPanel());
 
-		});
-		container.add(saveXmlButton);
-	}
+            return;
+        }
 
-	private void saveFilePerformed(AjaxRequestTarget target) {
-		OperationResult result = new OperationResult(OPERATION_IMPORT_FILE);
+        InputStream stream = null;
+        File newFile = null;
+        try {
+            // Create new file
+            MidPointApplication application = getMidpointApplication();
+            WebApplicationConfiguration config = application.getWebApplicationConfiguration();
+            File folder = new File(config.getImportFolder());
+            if (!folder.exists() || !folder.isDirectory()) {
+                folder.mkdir();
+            }
 
-		FileUploadField file = (FileUploadField) get("mainForm:container:fileInput");
-		final FileUpload uploadedFile = file.getFileUpload();
-		if (uploadedFile == null) {
-			error(getString("pageImportObject.message.nullFile"));
-			target.add(getFeedbackPanel());
+            newFile = new File(folder, uploadedFile.getClientFileName());
+            // Check new file, delete if it already exists
+            if (newFile.exists()) {
+                newFile.delete();
+            }
+            // Save file
+            Task task = createSimpleTask(OPERATION_IMPORT_FILE);
+            newFile.createNewFile();
+            uploadedFile.writeTo(newFile);
 
-			return;
-		}
+            InputStreamReader reader = new InputStreamReader(new FileInputStream(newFile), "utf-8");
+            stream = new ReaderInputStream(reader, reader.getEncoding());
+            getModelService().importObjectsFromStream(stream, model.getObject(), task, result);
 
-		InputStream stream = null;
-		File newFile = null;
-		try {
-			// Create new file
-			MidPointApplication application = getMidpointApplication();
-			WebApplicationConfiguration config = application.getWebApplicationConfiguration();
-			File folder = new File(config.getImportFolder());
-			if (!folder.exists() || !folder.isDirectory()) {
-				folder.mkdir();
-			}
+            result.recomputeStatus();
+        } catch (Exception ex) {
+            result.recordFatalError("Couldn't import file.", ex);
+            LoggingUtils.logException(LOGGER, "Couldn't import file", ex);
+        } finally {
+            if (stream != null) {
+                IOUtils.closeQuietly(stream);
+            }
+            if (newFile != null) {
+                FileUtils.deleteQuietly(newFile);
+            }
+        }
 
-			newFile = new File(folder, uploadedFile.getClientFileName());
-			// Check new file, delete if it already exists
-			if (newFile.exists()) {
-				newFile.delete();
-			}
-			// Save file
-			Task task = createSimpleTask(OPERATION_IMPORT_FILE);
-			newFile.createNewFile();
-			uploadedFile.writeTo(newFile);
+        showResult(result);
+        target.add(getFeedbackPanel());
+    }
 
-			InputStreamReader reader = new InputStreamReader(new FileInputStream(newFile), "utf-8");
-			stream = new ReaderInputStream(reader, reader.getEncoding());
-			getModelService().importObjectsFromStream(stream, model.getObject(), task, result);
+    private void saveXmlPerformed(AjaxRequestTarget target) {
+        String xml = xmlEditorModel.getObject();
+        if (StringUtils.isEmpty(xml)) {
+            error(getString("pageImportObject.message.emptyXml"));
+            target.add(getFeedbackPanel());
 
-			result.recomputeStatus();
-		} catch (Exception ex) {
-			result.recordFatalError("Couldn't import file.", ex);
-			LoggingUtils.logException(LOGGER, "Couldn't import file", ex);
-		} finally {
-			if (stream != null) {
-				IOUtils.closeQuietly(stream);
-			}
-			if (newFile != null) {
-				FileUtils.deleteQuietly(newFile);
-			}
-		}
+            return;
+        }
 
-		showResult(result);
-		target.add(getFeedbackPanel());
-	}
+        OperationResult result = new OperationResult(OPERATION_IMPORT_XML);
+        InputStream stream = null;
+        try {
+            Task task = createSimpleTask(OPERATION_IMPORT_XML);
 
-	private void saveXmlPerformed(AjaxRequestTarget target) {
-		String xml = xmlEditorModel.getObject();
-		if (StringUtils.isEmpty(xml)) {
-			error(getString("pageImportObject.message.emptyXml"));
-			target.add(getFeedbackPanel());
+            stream = IOUtils.toInputStream(xml, "utf-8");
+            getModelService().importObjectsFromStream(stream, model.getObject(), task, result);
 
-			return;
-		}
+            result.recomputeStatus();
+        } catch (Exception ex) {
+            result.recordFatalError("Couldn't import object.", ex);
+            LoggingUtils.logException(LOGGER, "Error occured during xml import", ex);
+        } finally {
+            if (stream != null) {
+                IOUtils.closeQuietly(stream);
+            }
+        }
 
-		OperationResult result = new OperationResult(OPERATION_IMPORT_XML);
-		InputStream stream = null;
-		try {
-			Task task = createSimpleTask(OPERATION_IMPORT_XML);
+        if (result.isSuccess()) {
+            xmlEditorModel.setObject(null);
+        }
 
-			stream = IOUtils.toInputStream(xml, "utf-8");
-			getModelService().importObjectsFromStream(stream, model.getObject(), task, result);
-
-			result.recomputeStatus();
-		} catch (Exception ex) {
-			result.recordFatalError("Couldn't import object.", ex);
-			LoggingUtils.logException(LOGGER, "Error occured during xml import", ex);
-		} finally {
-			if (stream != null) {
-				IOUtils.closeQuietly(stream);
-			}
-		}
-
-		if (result.isSuccess()) {
-			xmlEditorModel.setObject(null);
-		}
-
-		showResult(result);
-		target.add(getFeedbackPanel());
-	}
+        showResult(result);
+        target.add(getFeedbackPanel());
+    }
 }

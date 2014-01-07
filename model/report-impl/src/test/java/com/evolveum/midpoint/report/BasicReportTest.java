@@ -86,7 +86,7 @@ import com.evolveum.prism.xml.ns._public.query_2.OrderDirectionType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import com.evolveum.midpoint.report.ReportCreateTaskHandler;
-import com.evolveum.midpoint.report.ReportManager;
+import com.evolveum.midpoint.report.api.ReportManager;
 
 /**
  * @author garbika
@@ -712,7 +712,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
         AssertJUnit.assertNotNull(reportOutputType);
         assertEquals("Unexpected report reference", MiscSchemaUtil.createObjectReference(reportType.getOid(), ReportType.COMPLEX_TYPE), reportOutputType.getReportRef());
         assertEquals("Unexpected report file path", output, reportOutputType.getReportFilePath());
-    /*       
+           
         BufferedReader br = null;  
         String line = "";  
         String splitBy = ",";  
@@ -754,7 +754,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
         if (br != null) br.close();  
         
         LOGGER.trace("Done with reading CSV");  
-        assertEquals("Unexpected number of users", countUsers, count-4);*/
+        assertEquals("Unexpected number of users", countUsers, count-5);
 	}
 
 

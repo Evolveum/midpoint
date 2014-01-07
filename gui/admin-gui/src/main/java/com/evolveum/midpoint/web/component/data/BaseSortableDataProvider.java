@@ -184,7 +184,7 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
             return internalSize();
         }
 
-        long size = 0L;
+        long size;
         CachedSize cachedSize = getCachedSize(cache);
         if (cachedSize != null) {
             long timestamp = cachedSize.getTimestamp();

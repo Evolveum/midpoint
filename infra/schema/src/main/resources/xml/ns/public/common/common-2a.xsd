@@ -4919,6 +4919,7 @@
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
+        	<xsd:element ref="tns:description" minOccurs="0"/>
         	<xsd:element name="objectClass" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
         		<xsd:annotation>
         			<xsd:documentation>
@@ -5152,6 +5153,7 @@
 	        </xsd:documentation>
 	    </xsd:annotation>
         <xsd:sequence>
+        	<xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="situation" type="tns:SynchronizationSituationType">
                 <xsd:annotation>
@@ -5190,6 +5192,7 @@
 	        </xsd:documentation>
 	    </xsd:annotation>
         <xsd:sequence>
+        	<xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="1"/>
         	<xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
         	<xsd:element name="handlerUri" type="xsd:anyURI" minOccurs="0" maxOccurs="1"/>
         	<xsd:element name="order" type="tns:BeforeAfterType" minOccurs="0" default="before"/>
@@ -5671,6 +5674,9 @@
                                 For more details see the ActivationType
                                 documentation.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>Activation</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="credentials" type="tns:CredentialsType" minOccurs="0" maxOccurs="1">
@@ -8532,9 +8538,35 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="name" minOccurs="0" type="xsd:string" />
-            <xsd:element name="activationCondition" minOccurs="0" maxOccurs="1" type="tns:ExpressionType" />
-            <xsd:element name="processName" minOccurs="1" type="xsd:string" />
+            <xsd:element name="enabled" minOccurs="0" type="xsd:boolean" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Is this scenario enabled?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="name" minOccurs="0" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A human-readable name of the scenario (e.g. "Approving assignments of roles R1001-R1999 to users in XYZ organization").
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="activationCondition" minOccurs="0" type="tns:ExpressionType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A condition controlling whether this scenario applies, i.e. whether a defined approval process should be started.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="processName" minOccurs="1" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A name of the approval process. When the above condition is met, this process is started. It has to evaluate the situation,
+                        seek user's (or users') approval(s), modifying the situation if necessary.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
     

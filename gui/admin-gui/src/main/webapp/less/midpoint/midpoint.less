@@ -1,0 +1,173 @@
+@import "../bootstrap/variables.less";
+@import "../custom/variables.less";
+@import "../bootstrap/mixins.less";
+@import "midpoint-variables.less";
+@import "../custom/midpoint-variables.less";
+@import "top-menu.less";
+@import "prism-container.less";
+@import "wizard.less";
+@import "tree.less";
+@import "page-login.less";
+@import "page-user-details.less";
+@import "page-dashboard.less";
+@import "page-debugs.less";
+
+div.wicket-debug-buttons {
+  border: 1px solid #000000;
+  background-color: #ffffff;
+  opacity: 0.7;
+  bottom: 50px;
+  display: block;
+  position: fixed;
+  right: 10px;
+  z-index: 1000000;
+
+  a {
+    color: #0000ff;
+    display: block;
+    padding: 5px;
+  }
+}
+
+span.button-group {
+  display: inline-block;
+  margin-right: 30px;
+}
+
+.version-info {
+  padding-right: 20px;
+  font-size: 0.8em;
+}
+
+form.search-form {
+  margin-top: 10px;
+}
+
+/* table panel sorting */
+th.sortable {
+
+  span.sortableArrowIcon {
+    position: relative;
+    top: 1px;
+    display: inline-block;
+    font-family: 'Glyphicons Halflings';
+    font-style: normal;
+    font-weight: normal;
+    line-height: 1;
+    -webkit-font-smoothing: antialiased;
+
+    float: right;
+    padding-top: 3px;
+    color: @text-color;
+    font-size: 0.7em;
+  }
+
+  &.asc span.sortableArrowIcon:before {
+    content: "\e113";
+  }
+
+  &.desc span.sortableArrowIcon:before {
+    content: "\e114";
+  }
+}
+
+/*
+ * editor
+ */
+div.aceEditor {
+  border: 1px solid #ccc;
+  width: auto;
+  height: 0px;
+
+  &.disabled .ace_scroller {
+    background: #f4f4f4;
+  }
+}
+
+th h3 {
+  margin-bottom: 0px;
+}
+
+div.mainContainer {
+  margin: 0 20px;
+}
+
+div.main-button-bar {
+  padding-top: 10px;
+  padding-bottom: 20px;
+}
+
+/*
+ * select picker
+ */
+.select-picker-sm {
+
+  &> button {
+    border-radius: 3px 3px 3px 3px !important;;
+    font-size: 12px !important;;
+    height: 30px !important;;
+    line-height: 1.5 !important;;
+    padding: 5px 0px !important;
+  }
+
+  i.glyphicon {
+    top: -1px;
+  }
+}
+
+/*
+ * feedback messages for form groups
+ * - removing bullet and paddings
+ */
+div.form-group > div > span.text-danger {
+
+  ul.feedbackPanel {
+    margin: 0;
+    list-style: none;
+    padding: 0 0 0 @padding-base-horizontal;
+  }
+}
+
+/*
+ * fix for yui calendar
+ */
+span.yui-skin-sam {
+//  position: absolute;
+//  right: 24px;
+//  top: 3px;
+
+  position: relative;
+  right: 35px;
+  top: -1px;
+}
+
+.form-control-sized {
+  display: inline-block;
+  width: auto;
+}
+
+//div.org-tree-header {
+//  padding: 8px @padding-small-vertical @padding-small-vertical;
+//  font-weight: bold;
+//  border-bottom: 1px solid @table-border-color;
+//}
+
+div.org-tree-container {
+  overflow-y: auto;
+  margin-bottom: 20px;
+}
+
+/*
+ * fix for wicket dialog
+ */
+h3.w_captionText {
+   font-size: 18px;
+}
+
+/*
+ * Org. unit editor, orgType (MultiValueTextFormGroup)
+ * todo this must be unified with user details for example (prism form) [lazyman]
+ */
+div.multivalue-form {
+  margin-top: @padding-base-vertical;
+}

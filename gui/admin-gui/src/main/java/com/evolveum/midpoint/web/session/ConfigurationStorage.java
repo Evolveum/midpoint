@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.session;
 
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugSearchDto;
 
 import java.io.Serializable;
 
@@ -25,16 +26,17 @@ import java.io.Serializable;
  */
 public class ConfigurationStorage implements Serializable {
 
-    private ObjectTypes debugListCategory;
+    private DebugSearchDto debugSearchDto;
 
-    public ObjectTypes getDebugListCategory() {
-        if (debugListCategory == null) {
-            debugListCategory = ObjectTypes.SYSTEM_CONFIGURATION;
+    public DebugSearchDto getDebugSearchDto() {
+        if (debugSearchDto == null) {
+            debugSearchDto = new DebugSearchDto();
+            debugSearchDto.setType(ObjectTypes.SYSTEM_CONFIGURATION);
         }
-        return debugListCategory;
+        return debugSearchDto;
     }
 
-    public void setDebugListCategory(ObjectTypes debugListCategory) {
-        this.debugListCategory = debugListCategory;
+    public void setDebugSearchDto(DebugSearchDto debugSearchDto) {
+        this.debugSearchDto = debugSearchDto;
     }
 }

@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.users.component;
 
-import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
+import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
@@ -47,7 +47,7 @@ public class ResourcesPopup extends Panel {
         resources.setOutputMarkupId(true);
         add(resources);
 
-        AjaxLinkButton addButton = new AjaxLinkButton("add",
+        AjaxButton addButton = new AjaxButton("add",
                 new StringResourceModel("resourcePopup.button.add", this, null)) {
 
             @Override

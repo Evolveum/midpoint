@@ -16,30 +16,27 @@
 
 package com.evolveum.midpoint.web.component.data.column;
 
-import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
-import org.apache.wicket.markup.html.image.Image;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.request.resource.ResourceReference;
 
 /**
  * @author lazyman
  */
 public class ImagePanel extends Panel {
 
-    //todo AttributeModifier in IModel??? why? not a good idea, it's wicket component AttributeModifier has already IModel parameter....
-    public ImagePanel(String id, IModel<ResourceReference> model, IModel<String> titleModel, IModel<AttributeModifier> attribute) {
+    private static final String ID_IMAGE = "image";
+
+    public ImagePanel(String id, IModel<String> model, IModel<String> titleModel) {
         super(id);
-        Validate.notNull(model, "Resource reference model must not be null.");
-        
-        Image image = new Image("image", model);
-        if (titleModel != null) {
-            image.add(new AttributeModifier("title", titleModel));
-        }
-        if (attribute != null) {
-        	image.add(attribute.getObject());
-        }
+
+        Label image = new Label(ID_IMAGE);
         add(image);
+
+        image.add(AttributeModifier.replace("class", model));
+        if (titleModel != null) {
+            image.add(AttributeModifier.replace("title", titleModel));
+        }
     }
 }
