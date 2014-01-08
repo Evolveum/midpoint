@@ -28,7 +28,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.icf.dummy.resource.DummyResource;
-import com.evolveum.midpoint.common.mapping.MappingFactory;
+import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.intest.util.ProfilingLensDebugListener;
 import com.evolveum.midpoint.model.lens.Clockwork;
 import com.evolveum.midpoint.model.lens.LensDebugListener;

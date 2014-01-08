@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.web.component.assignment;
 
-import com.evolveum.midpoint.common.expression.evaluator.LiteralExpressionEvaluatorFactory;
+import com.evolveum.midpoint.common.StaticExpressionUtil;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -31,6 +31,7 @@ import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
 
 import javax.xml.bind.JAXBElement;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -106,7 +107,7 @@ public class ACAttributeDto implements Serializable {
             return null;
         }
 
-        Item item = LiteralExpressionEvaluatorFactory.parseValueElements(elements, definition, "gui", context);
+        Item item = StaticExpressionUtil.parseValueElements(elements, definition, "gui", context);
         return item.getValues();
     }
 
@@ -158,7 +159,7 @@ public class ACAttributeDto implements Serializable {
         }
 
         List evaluators = expression.getExpressionEvaluator();
-        Collection<?> collection = LiteralExpressionEvaluatorFactory.serializeValueElements(property, null);
+        Collection<?> collection = StaticExpressionUtil.serializeValueElements(property, null);
         ObjectFactory of = new ObjectFactory();
         for (Object obj : collection) {
             evaluators.add(of.createValue(obj));

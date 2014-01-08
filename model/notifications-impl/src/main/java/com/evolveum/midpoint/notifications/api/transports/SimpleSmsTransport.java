@@ -16,9 +16,9 @@
 
 package com.evolveum.midpoint.notifications.api.transports;
 
-import com.evolveum.midpoint.common.expression.Expression;
-import com.evolveum.midpoint.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.model.common.expression.Expression;
+import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
+import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.NotificationsUtil;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -38,6 +38,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpMethod;
@@ -49,6 +50,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
+
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;

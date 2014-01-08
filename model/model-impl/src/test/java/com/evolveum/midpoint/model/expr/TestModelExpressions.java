@@ -37,9 +37,9 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.common.expression.script.ScriptExpression;
-import com.evolveum.midpoint.common.expression.script.ScriptExpressionFactory;
+import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
+import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory;
 import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.ItemDefinition;

@@ -20,9 +20,9 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
-import com.evolveum.midpoint.common.mapping.MappingFactory;
 import com.evolveum.midpoint.common.security.Authorization;
+import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
+import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;

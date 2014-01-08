@@ -2,7 +2,7 @@ package com.evolveum.midpoint.model.intest.util;
 
 import java.util.Collection;
 
-import com.evolveum.midpoint.common.mapping.Mapping;
+import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensDebugListener;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;

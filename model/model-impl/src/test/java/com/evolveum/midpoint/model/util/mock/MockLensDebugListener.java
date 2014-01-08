@@ -15,7 +15,7 @@
  */
 package com.evolveum.midpoint.model.util.mock;
 
-import com.evolveum.midpoint.common.mapping.Mapping;
+import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensDebugListener;
 import com.evolveum.midpoint.util.logging.Trace;

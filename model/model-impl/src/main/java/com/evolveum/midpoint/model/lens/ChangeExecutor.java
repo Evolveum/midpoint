@@ -18,12 +18,12 @@ package com.evolveum.midpoint.model.lens;
 
 import static com.evolveum.midpoint.common.InternalsConfig.consistencyChecks;
 
-import com.evolveum.midpoint.common.expression.Expression;
-import com.evolveum.midpoint.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
+import com.evolveum.midpoint.model.common.expression.Expression;
+import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
+import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.model.util.Utils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;

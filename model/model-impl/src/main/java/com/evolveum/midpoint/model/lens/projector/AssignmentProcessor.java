@@ -18,12 +18,12 @@ package com.evolveum.midpoint.model.lens.projector;
 
 import ch.qos.logback.classic.Logger;
 
-import com.evolveum.midpoint.common.mapping.Mapping;
-import com.evolveum.midpoint.common.mapping.MappingFactory;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
+import com.evolveum.midpoint.model.common.mapping.Mapping;
+import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.controller.ModelUtils;
 import com.evolveum.midpoint.model.lens.AccountConstruction;
 import com.evolveum.midpoint.model.lens.AccountConstructionPack;
@@ -83,6 +83,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.xml.namespace.QName;
+
 import java.util.*;
 import java.util.Map.Entry;
 

@@ -23,13 +23,13 @@ import javax.xml.namespace.QName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
-import com.evolveum.midpoint.common.expression.StringPolicyResolver;
-import com.evolveum.midpoint.common.mapping.Mapping;
-import com.evolveum.midpoint.common.mapping.MappingFactory;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
+import com.evolveum.midpoint.model.common.expression.StringPolicyResolver;
+import com.evolveum.midpoint.model.common.mapping.Mapping;
+import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.lens.AccountConstruction;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;

@@ -30,10 +30,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.common.expression.Expression;
-import com.evolveum.midpoint.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.model.common.expression.Expression;
+import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
+import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.model.util.Utils;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;

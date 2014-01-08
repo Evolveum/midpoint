@@ -15,11 +15,11 @@
  */
 package com.evolveum.midpoint.model.lens;
 
-import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.AbstractInternalModelIntegrationTest;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
+import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.lens.AccountConstruction;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
@@ -58,6 +58,7 @@ import org.testng.annotations.Test;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
+
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
