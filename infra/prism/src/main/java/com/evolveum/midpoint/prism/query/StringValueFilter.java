@@ -21,6 +21,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
+@Deprecated
 public abstract class StringValueFilter extends ValueFilter{
 
 	private String value;

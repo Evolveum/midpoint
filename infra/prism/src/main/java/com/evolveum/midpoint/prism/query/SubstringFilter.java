@@ -16,13 +16,12 @@
 
 package com.evolveum.midpoint.prism.query;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.prism.Item;
@@ -30,18 +29,13 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 public class SubstringFilter<T> extends PropertyValueFilter<PrismPropertyValue<T>> {
 
@@ -104,9 +98,7 @@ public class SubstringFilter<T> extends PropertyValueFilter<PrismPropertyValue<T
 	}
 	
 	public static <O extends Objectable, T> SubstringFilter createSubstring(ItemPath path, Class<O> clazz, PrismContext prismContext, T value) {
-		
 		return createSubstring(path, clazz, prismContext, null, value);
-//		return createSubstring(clazz, prismContext, propertyName, null, value);
 	}
 	
 	public static <O extends Objectable, T> SubstringFilter createSubstring(ItemPath path, Class<O> clazz, PrismContext prismContext, QName matchingRule, T realValue) {
@@ -118,7 +110,6 @@ public class SubstringFilter<T> extends PropertyValueFilter<PrismPropertyValue<T
 		}
 		
 		if (realValue == null){
-			//TODO: create null filter
 			return createNullSubstring(path, (PrismPropertyDefinition) itemDefinition, matchingRule);
 		}
 		
@@ -128,9 +119,6 @@ public class SubstringFilter<T> extends PropertyValueFilter<PrismPropertyValue<T
 	}
 	
 	public static <O extends Objectable> SubstringFilter createSubstring(QName propertyName, Class<O> clazz, PrismContext prismContext, String value) {
-//        PrismObjectDefinition objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(clazz);
-//        ItemDefinition itemDef = objDef.findItemDefinition(propertyName);
-////        return new SubstringFilter(null, itemDef, matchingRule, value);
 		return createSubstring(propertyName, clazz, prismContext, null, value);
     }
 
@@ -164,92 +152,31 @@ public class SubstringFilter<T> extends PropertyValueFilter<PrismPropertyValue<T
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, indent);
 		sb.append("SUBSTRING: \n");
-		if (getFullPath() != null){
-			DebugUtil.indentDebugDump(sb, indent+1);
-			sb.append("PATH: ");
-			sb.append(getFullPath().toString());
-			sb.append("\n");
-		}
-		DebugUtil.indentDebugDump(sb, indent+1);
-		sb.append("DEF: ");
-		if (getDefinition() != null) {
-			sb.append(getDefinition().debugDump(indent));
-			sb.append("\n");
-		} else {
-			DebugUtil.indentDebugDump(sb, indent);
-			sb.append("null\n");
-		}
-
-		DebugUtil.indentDebugDump(sb, indent+1);
-		sb.append("VALUE: ");
-		if (getValues() != null) {
-			DebugUtil.indentDebugDump(sb, indent);
-			sb.append(getValues());
-			sb.append("\n");
-		} else {
-			DebugUtil.indentDebugDump(sb, indent);
-			sb.append("null\n");
-		}
-		DebugUtil.indentDebugDump(sb, indent+1);
-		sb.append("MATCHING: ");
-		if (getMatchingRule() != null) {
-			indent += 1;
-				sb.append(getMatchingRule());
-		} else {
-			DebugUtil.indentDebugDump(sb, indent);
-			sb.append("default\n");
-		}
-		return sb.toString();
+		return debugDump(indent, sb);
 	}
 
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("SUBSTRING: ");
-		if (getFullPath() != null){
-			sb.append(getFullPath().toString());
-			sb.append(", ");
-		}
-		if (getDefinition() != null){
-			sb.append(getDefinition().getName().getLocalPart());
-			sb.append(", ");
-		}
-		if (getValues() != null){
-			sb.append(getValues());
-		}
-		return sb.toString();
+		return toString(sb);
 	}
 
 	@Override
 	public <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry) {
-		ItemPath path = null;
-		if (getFullPath() != null){
-			path = new ItemPath(getFullPath(), getDefinition().getName());
-		} else{
-			path = new ItemPath(getDefinition().getName());
-		}
-		
-		Item item = object.findItem(path);
+		Item item = getObjectItem(object);
 		
 		MatchingRule matching = getMatchingRuleFromRegistry(matchingRuleRegistry, item);
 		
 		for (Object val : item.getValues()){
 			if (val instanceof PrismPropertyValue){
 				Object value = ((PrismPropertyValue) val).getValue();
-				return matching.matches(value, ".*"+getValues()+".*");
-//				if (value instanceof PolyStringType){
-//					if (StringUtils.contains(((PolyStringType) value).getNorm(), getValue())){
-//						return true;
-//					}
-//				} else if (value instanceof PolyString){
-//					if (StringUtils.contains(((PolyString) value).getNorm(), getValue())){
-//						return true;
-//					}
-//				} else if (value instanceof String){
-//					if (StringUtils.contains((String)value, getValue())){
-//						return true;
-//					}
-//				}
+				Iterator iterator = toRealValues().iterator();
+				while(iterator.hasNext()){
+					if (matching.matches(value, ".*"+iterator.next()+".*")){
+						return true;
+					}
+				}
 			}
 			if (val instanceof PrismReferenceValue) {
 				throw new UnsupportedOperationException(
@@ -260,21 +187,22 @@ public class SubstringFilter<T> extends PropertyValueFilter<PrismPropertyValue<T
 		return false;
 	}
 
+	private Set<T> toRealValues(){
+		 return PrismPropertyValue.getRealValuesOfCollection(getValues());
+	}
+	
 	@Override
 	public QName getElementName() {
-		// TODO Auto-generated method stub
 		return getDefinition().getName();
 	}
 
 	@Override
 	public PrismContext getPrismContext() {
-		// TODO Auto-generated method stub
 		return getDefinition().getPrismContext();
 	}
 
 	@Override
 	public ItemPath getPath() {
-		// TODO Auto-generated method stub
 		return getFullPath();
 	}
 

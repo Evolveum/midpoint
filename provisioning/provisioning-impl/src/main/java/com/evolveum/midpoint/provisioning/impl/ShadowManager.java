@@ -519,7 +519,7 @@ public class ShadowManager {
 			return;
 		}
 		EqualsFilter<T> eqFilter = (EqualsFilter)filter;
-		ItemPath parentPath = eqFilter.getParentPath2();
+		ItemPath parentPath = eqFilter.getParentPath();
 		if (parentPath == null || !parentPath.equals(SchemaConstants.PATH_ATTRIBUTES)) {
 			return;
 		}

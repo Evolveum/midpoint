@@ -16,24 +16,14 @@
 
 package com.evolveum.midpoint.prism.query;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.Validate;
-import org.w3c.dom.Element;
-
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -116,33 +106,14 @@ public class LessFilter<T> extends ComparativeFilter<T>{
 		DebugUtil.indentDebugDump(sb, indent);
 		sb.append("LESS: \n");
 		
-		if (getFullPath() != null){
-			DebugUtil.indentDebugDump(sb, indent+1);
-			sb.append("PATH: ");
-			sb.append(getFullPath().toString());
-			sb.append("\n");
-		} 
-		DebugUtil.indentDebugDump(sb, indent+1);
-		sb.append("DEF: ");
-		if (getDefinition() != null) {
-			sb.append(getDefinition().debugDump(indent));
-			sb.append("\n");
-		} else {
-			DebugUtil.indentDebugDump(sb, indent);
-			sb.append("null\n");
-		}
-		DebugUtil.indentDebugDump(sb, indent+1);
-		sb.append("VALUE: ");
-		if (getValues() != null) {
-			indent += 1;
-			for (PrismValue val : getValues()) {
-				sb.append(val.debugDump(indent));
-			}
-		} else {
-			DebugUtil.indentDebugDump(sb, indent);
-			sb.append("null\n");
-		}
-		return sb.toString();
+		return debugDump(indent, sb);
+	}
+	
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("LESS: ");
+		return toString(sb);
 	}
 
 	@Override
@@ -152,25 +123,21 @@ public class LessFilter<T> extends ComparativeFilter<T>{
 	
 	@Override
 	public PrismPropertyDefinition getDefinition() {
-		// TODO Auto-generated method stub
 		return (PrismPropertyDefinition) super.getDefinition();
 	}
 
 	@Override
 	public QName getElementName() {
-		// TODO Auto-generated method stub
 		return getDefinition().getName();
 	}
 
 	@Override
 	public PrismContext getPrismContext() {
-		// TODO Auto-generated method stub
 		return getDefinition().getPrismContext();
 	}
 
 	@Override
 	public ItemPath getPath() {
-		// TODO Auto-generated method stub
 		return getFullPath();
 	}
 
