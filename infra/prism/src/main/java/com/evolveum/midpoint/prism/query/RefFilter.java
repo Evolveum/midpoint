@@ -34,7 +34,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -51,10 +50,6 @@ public class RefFilter extends PropertyValueFilter<PrismReferenceValue>{
 		super(path, definition, matchingRule, values);
 	}
 		
-//	RefFilter(ItemPath path, PrismReferenceDefinition definition, PrismReferenceValue value) {
-//		super(path, definition, value);
-//	}
-	
 	RefFilter(ItemPath path, PrismReferenceDefinition definition, Element expression) {
 		super(path, definition, expression);
 	}
@@ -78,13 +73,7 @@ public class RefFilter extends PropertyValueFilter<PrismReferenceValue>{
 	public static RefFilter createReferenceEqual(ItemPath path, PrismReferenceDefinition definition, Element expression){
 		return new RefFilter(path, definition, expression);
 	}
-	
-//	public static RefFilter createReferenceEqual(ItemPath path, PrismReferenceDefinition definition, PrismReferenceValue value){
-//		List<PrismReferenceValue> values = new ArrayList<PrismReferenceValue>();
-//		values.add(value);
-//		return new RefFilter(path, definition, null, values);
-//	}
-	
+		
 	public static RefFilter createReferenceEqual(ItemPath path, PrismReferenceDefinition referenceDefinition, String... oids) {
 		Validate.notNull(referenceDefinition, "Reference definition must not be null.");
 		Validate.notNull(path, "Path must not be null.");
@@ -165,107 +154,35 @@ public class RefFilter extends PropertyValueFilter<PrismReferenceValue>{
 		DebugUtil.indentDebugDump(sb, indent);
 		sb.append("REF:");
 		
-		if (getFullPath() != null){
-			sb.append("\n");
-			DebugUtil.indentDebugDump(sb, indent+1);
-			sb.append("PATH: ");
-			sb.append(getFullPath().toString());
-		} 
-		sb.append("\n");
-		DebugUtil.indentDebugDump(sb, indent+1);
-		sb.append("DEF: ");
-		if (getDefinition() != null) {
-			sb.append(getDefinition().debugDump(0));
-		} else {
-			DebugUtil.indentDebugDump(sb, indent);
-			sb.append("null");
-		}
-		sb.append("\n");
-		DebugUtil.indentDebugDump(sb, indent+1);
-		sb.append("VALUE: ");
-		if (getValues() != null) {
-			for (PrismValue val : getValues()) {
-				sb.append("\n");
-				sb.append(val.debugDump(indent + 2));
-			}
-		} else {
-			DebugUtil.indentDebugDump(sb, indent);
-			sb.append("null");
-		}
-		return sb.toString();
-
+		return debugDump(indent, sb);
 	}
 	
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("REF: ");
-		if (getFullPath() != null){
-			sb.append(getFullPath().toString());
-			sb.append(", ");
-		}
-		if (getDefinition() != null){
-			sb.append(getDefinition().getName().getLocalPart());
-			sb.append(", ");
-		}
-		if (getValues() != null){
-			for (int i = 0; i< getValues().size(); i++){
-				sb.append(getValues().get(i).toString());
-				if ( i != getValues().size() -1){
-					sb.append(", ");
-				}
-			}
-		}
-		return sb.toString();
+		return toString(sb);
 	}
 
 	@Override
 	public <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry) {
-//		ItemPath path = null;
-//		if (getParentPath() != null) {
-//			path = new ItemPath(getParentPath(), getDefinition().getName());
-//		} else {
-//			path = new ItemPath(getDefinition().getName());
-//		}
-//
-//		Item<?> item = object.findItem(path);
-//
-//		if (!(item.getValue(0) instanceof PrismReferenceValue)) {
-//			throw new IllegalStateException(
-//					"Could not match object for ref filter. Values are not a prism reference values");
-//		}
-//
-//		Item filterItem = getDefinition().instantiate();
-//		try {
-//			filterItem.addAll(getValues());
-//		} catch (SchemaException e) {
-//			throw new IllegalArgumentException(e.getMessage(), e);
-//		}
-//
-//		
 		Item item = getObjectItem(object);
-		Item filterItem = getFilterItem();
-		
+		Item filterItem = getFilterItem();		
 		return item.match(filterItem);
-		
-//		return super.match(object, matchingRuleRegistry);
 	}
 
 	@Override
 	public QName getElementName() {
-		// TODO Auto-generated method stub
 		return getDefinition().getName();
 	}
 
 	@Override
 	public PrismContext getPrismContext() {
-		// TODO Auto-generated method stub
 		return getDefinition().getPrismContext();
 	}
 
 	@Override
 	public ItemPath getPath() {
-		// TODO Auto-generated method stub
 		return getFullPath();
 	}
 

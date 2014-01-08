@@ -208,71 +208,14 @@ public class EqualsFilter<T extends Object> extends PropertyValueFilter<PrismPro
 		DebugUtil.indentDebugDump(sb, indent);
 		sb.append("EQUALS:");
 		
-		if (getFullPath() != null){
-			sb.append("\n");
-			DebugUtil.indentDebugDump(sb, indent+1);
-			sb.append("PATH: ");
-			sb.append(getFullPath().toString());
-		} 
-		
-		sb.append("\n");
-		DebugUtil.indentDebugDump(sb, indent+1);
-		sb.append("DEF: ");
-		if (getDefinition() != null) {
-			sb.append(getDefinition().toString());
-		} else {
-			sb.append("null");
-		}
-		
-		sb.append("\n");
-		DebugUtil.indentDebugDump(sb, indent+1);
-		sb.append("VALUE:");
-		if (getValues() != null) {
-			sb.append("\n");
-			for (PrismValue val : getValues()) {
-				sb.append(DebugUtil.debugDump(val, indent + 2));
-			}
-		} else {
-			sb.append(" null");
-		}
-		
-		sb.append("\n");
-		DebugUtil.indentDebugDump(sb, indent+1);
-		sb.append("MATCHING: ");
-		if (getMatchingRule() != null) {
-			sb.append(getMatchingRule());
-		} else {
-			sb.append("default");
-		}
-		return sb.toString();
+		return debugDump(indent, sb);
 	}
 	
 	@Override
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("EQUALS: ");
-		if (getFullPath() != null){
-			sb.append(getFullPath().toString());
-			sb.append(", ");
-		}
-		if (getDefinition() != null){
-			sb.append(getDefinition().getName().getLocalPart());
-			sb.append(", ");
-		}
-		if (getValues() != null){
-			for (int i = 0; i< getValues().size() ; i++){
-				PrismValue value = getValues().get(i);
-				if (value == null) {
-					sb.append("null");
-				} else {
-					sb.append(value.toString());
-				}
-				if ( i != getValues().size() -1){
-					sb.append(", ");
-				}
-			}
-		}
-		return sb.toString();
+		return toString(sb);
 	}
 
 	@Override
@@ -294,51 +237,22 @@ public class EqualsFilter<T extends Object> extends PropertyValueFilter<PrismPro
 
 	@Override
 	public <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry) {
-		if (getObjectItem(object) == null && getValues() == null) {
-			return true;
-		}
-		
 		Item filterItem = getFilterItem();
-		MatchingRule matching = getMatchingRuleFromRegistry(matchingRuleRegistry, filterItem);
-		
-//		QName matchingRule = null;
-//		if (StringUtils.isNotBlank(getMatchingRule())){
-//			matchingRule = new QName(PrismConstants.NS_MATCHING_RULE, getMatchingRule());
-//		} else {
-//			matchingRule = new QName(PrismConstants.NS_MATCHING_RULE, "default");
-//		}
-//		
-//		MatchingRule matching = null;
-//		try{
-//		matching = matchingRuleRegistry.getMatchingRule( matchingRule, filterItem.getDefinition().getTypeName());
-//		} catch (SchemaException ex){
-//			throw new IllegalArgumentException(ex.getMessage(), ex);
-//		}
-		
-		Item item = getObjectItem(object);
-		
-		if (item == null && getValues() == null) {
-			return true;
-		}
-		
-		if (item != null && !item.isEmpty() && getValues() == null){
+		if (!super.match(object, matchingRuleRegistry)){
 			return false;
 		}
 		
-		for (Object v : item.getValues()){
+		for (Object v : getObjectItem(object).getValues()){
 			if (!(v instanceof PrismPropertyValue)){
 				throw new IllegalArgumentException("Not supported prism value for equals filter. It must be an instance of PrismPropertyValue but it is " + v.getClass());
 			}
 			
-			if (!isInFilterItem((PrismPropertyValue) v, filterItem, matching)){
+			if (!isInFilterItem((PrismPropertyValue) v, filterItem, getMatchingRuleFromRegistry(matchingRuleRegistry, filterItem))){
 				return false;
 			}
 		}
 	
 		return true;
-//		return item.match(filterItem);
-		
-//		return super.match(object, matchingRuleRegistry);
 	}
 
 	private boolean isInFilterItem(PrismPropertyValue v, Item filterItem, MatchingRule matchingRule) {
@@ -367,40 +281,6 @@ public class EqualsFilter<T extends Object> extends PropertyValueFilter<PrismPro
 		// TODO Auto-generated method stub
 		return super.getValues();
 	}
-	
-	
-	
-	
-//	public static <T> EqualsFilter createEqual(ItemPath parentPath, PrismPropertyDefinition itemDef, List<PrismPropertyValue<T>> value) {
-//		Validate.notNull(itemDef, "Item definition in the equals filter must not be null");
-//		return new EqualsFilter(parentPath, itemDef, null, value);
-//	}
-	
-//	public static <T> EqualsFilter createEqual(ItemPath parentPath, PrismPropertyDefinition itemDef, String matchingRule, PrismPropertyValue<T> value) {
-//		Validate.notNull(itemDef, "Item definition in the equals filter must not be null");
-//		Validate.notNull(itemDefinition, "Item path in the filter must not be null");
-//		return new EqualsFilter(parentPath, itemDef, matchingRule, value);
-//	}
-
-//	public static <T> EqualsFilter createEqual(ItemPath parentPath, PrismPropertyDefinition itemDef, String matchingRule, List<PrismPropertyValue<T>> values) {
-//		Validate.notNull(itemDef, "Item definition in the equals filter must not be null");
-//		return new EqualsFilter(parentPath, itemDef, matchingRule, values);
-//	}
-
-//	public static EqualsFilter createEqual(ItemPath parentPath, PrismPropertyDefinition itemDef, Element expression) {
-//		Validate.notNull(itemDef, "Item definition in the equals filter must not be null");
-//		return new EqualsFilter(parentPath, itemDef, expression);
-//	}
-	
-//	public static EqualsFilter createEqual(ItemPath parentPath, PrismPropertyDefinition itemDef, String matchingRule, Element expression) {
-//		Validate.notNull(itemDef, "Item definition in the equals filter must not be null");
-//		return new EqualsFilter(parentPath, itemDef, matchingRule, expression);
-//	}
-
-//	public static <T> EqualsFilter createEqual(ItemPath parentPath, PrismPropertyDefinition item, String matchingRule, T realValue) throws SchemaException {
-//		return (EqualsFilter) createPropertyFilter(EqualsFilter.class, parentPath, item, matchingRule, realValue);
-//	}	
-
-	
+		
 }
 

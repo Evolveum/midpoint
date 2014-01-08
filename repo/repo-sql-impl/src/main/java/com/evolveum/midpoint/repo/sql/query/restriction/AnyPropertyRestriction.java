@@ -84,7 +84,7 @@ public class AnyPropertyRestriction extends ItemRestriction<ValueFilter> {
             throw new QueryException("Couldn't get name or type for queried item '" + itemDefinition + "'");
         }
 
-        ItemPath anyItemPath = createAnyItemPath(filter.getParentPath2(), filter.getDefinition());
+        ItemPath anyItemPath = createAnyItemPath(filter.getParentPath(), filter.getDefinition());
         if (!getContext().hasAlias(anyItemPath)) {
             QName anyTypeName = ((NameItemPathSegment) anyItemPath.last()).getName();
             LOGGER.trace("Condition item is from 'any' container, adding new criteria based on any type '{}'",

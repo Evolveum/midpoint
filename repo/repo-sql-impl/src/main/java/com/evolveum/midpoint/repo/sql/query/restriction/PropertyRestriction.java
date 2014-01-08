@@ -78,7 +78,7 @@ public class PropertyRestriction extends ItemRestriction<ValueFilter> {
         }
 
         String propertyName = def.getJpaName();
-        String alias = context.getAlias(filter.getParentPath2());
+        String alias = context.getAlias(filter.getParentPath());
 
         StringBuilder sb = new StringBuilder();
         if (StringUtils.isNotEmpty(alias)) {

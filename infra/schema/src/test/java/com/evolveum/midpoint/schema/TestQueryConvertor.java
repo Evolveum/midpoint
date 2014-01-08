@@ -79,7 +79,7 @@ public class TestQueryConvertor {
 			QueryType queryType = prismContext.getPrismJaxbProcessor().unmarshalObject(file, QueryType.class);
 			LOGGER.info("===[ query type parsed ]===");
 			ObjectQuery query = null;
-//			try {
+			try {
 				query = QueryConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
 				LOGGER.info("query converted: ");
 
@@ -91,13 +91,13 @@ public class TestQueryConvertor {
 				QueryType convertedQueryType = QueryConvertor.createQueryType(query, prismContext);
 				LOGGER.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter()));
 
-//			} catch (SchemaException ex) {
-//				LOGGER.error("Error while converting query: {}", ex.getMessage(), ex);
-//			} catch (RuntimeException ex) {
-//				LOGGER.error("Error while converting query: {}", ex.getMessage(), ex);
-//			} catch (Exception ex) {
-//				LOGGER.error("Error while converting query: {}", ex.getMessage(), ex);
-//			}
+			} catch (SchemaException ex) {
+				LOGGER.error("Error while converting query: {}", ex.getMessage(), ex);
+			} catch (RuntimeException ex) {
+				LOGGER.error("Error while converting query: {}", ex.getMessage(), ex);
+			} catch (Exception ex) {
+				LOGGER.error("Error while converting query: {}", ex.getMessage(), ex);
+			}
 
 		}
 		// TODO: add some asserts

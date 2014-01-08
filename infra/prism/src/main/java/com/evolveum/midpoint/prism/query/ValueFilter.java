@@ -97,7 +97,7 @@ public abstract class ValueFilter<T extends PrismValue> extends ObjectFilter {
 		this.matchingRule = matchingRule;
 	}
 	
-	public ItemPath getParentPath2(){
+	public ItemPath getParentPath(){
 		if (fullPath == null){
 			return null;
 		}
@@ -111,11 +111,6 @@ public abstract class ValueFilter<T extends PrismValue> extends ObjectFilter {
 	}
 	
 	public MatchingRule getMatchingRuleFromRegistry(MatchingRuleRegistry matchingRuleRegistry, Item filterItem){
-//		QName matchingRule = null;
-//		if (StringUtils.isNotBlank(getMatchingRule())){
-//			matchingRule = new QName(PrismConstants.NS_MATCHING_RULE, getMatchingRule());
-//		} 
-//		Item filterItem = getFilterItem();
 		MatchingRule matching = null;
 		try{
 		matching = matchingRuleRegistry.getMatchingRule(matchingRule, filterItem.getDefinition().getTypeName());
@@ -140,13 +135,6 @@ public abstract class ValueFilter<T extends PrismValue> extends ObjectFilter {
 	static ItemDefinition findItemDefinition(ItemPath parentPath, Class type, PrismContext prismContext){
 		PrismObjectDefinition<?> objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
 		return findItemDefinition(parentPath, objDef);
-//		ItemDefinition itemDef = objDef.findItemDefinition(parentPath);
-//		if (itemDef == null) {
-//			throw new IllegalStateException("No definition for item " + parentPath + " in container definition "
-//					+ objDef);
-//		}
-//
-//		return itemDef;
 	}
 
 	

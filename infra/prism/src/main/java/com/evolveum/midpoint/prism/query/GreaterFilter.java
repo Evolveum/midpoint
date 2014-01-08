@@ -63,7 +63,7 @@ public class GreaterFilter<T> extends ComparativeFilter<T>{
 		PrismPropertyValue<T> value = createPropertyValue(itemDefinition, realValue);
 		
 		if (value == null){
-			// create null filter
+			//TODO: create null
 		}
 		
 		return createGreater(parentPath, itemDefinition, value, equals);
@@ -109,33 +109,14 @@ public class GreaterFilter<T> extends ComparativeFilter<T>{
 		DebugUtil.indentDebugDump(sb, indent);
 		sb.append("GREATER: \n");
 		
-		if (getFullPath() != null){
-			DebugUtil.indentDebugDump(sb, indent+1);
-			sb.append("PATH: ");
-			sb.append(getFullPath().toString());
-			sb.append("\n");
-		} 
-		DebugUtil.indentDebugDump(sb, indent+1);
-		sb.append("DEF: ");
-		if (getDefinition() != null) {
-			sb.append(getDefinition().debugDump(indent));
-			sb.append("\n");
-		} else {
-			DebugUtil.indentDebugDump(sb, indent);
-			sb.append("null\n");
-		}
-		DebugUtil.indentDebugDump(sb, indent+1);
-		sb.append("VALUE: ");
-		if (getValues() != null) {
-			indent += 1;
-			for (PrismValue val : getValues()) {
-				sb.append(val.debugDump(indent));
-			}
-		} else {
-			DebugUtil.indentDebugDump(sb, indent);
-			sb.append("null\n");
-		}
-		return sb.toString();
+		return debugDump(indent, sb);
+	}
+	
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("GREATER: ");
+		return toString(sb);
 	}
 
 	@Override
@@ -145,25 +126,21 @@ public class GreaterFilter<T> extends ComparativeFilter<T>{
 	
 	@Override
 	public PrismPropertyDefinition getDefinition() {
-		// TODO Auto-generated method stub
 		return (PrismPropertyDefinition) super.getDefinition();
 	}
 
 	@Override
 	public QName getElementName() {
-		// TODO Auto-generated method stub
 		return getDefinition().getName();
 	}
 
 	@Override
 	public PrismContext getPrismContext() {
-		// TODO Auto-generated method stub
 		return getDefinition().getPrismContext();
 	}
 
 	@Override
 	public ItemPath getPath() {
-		// TODO Auto-generated method stub
 		return getFullPath();
 	}
 
