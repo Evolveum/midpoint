@@ -119,6 +119,13 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
         return outputTriple;        
     }
 	
+	protected boolean isRelative() {
+		if (expressionEvaluatorType.getRelativityMode() == TransformExpressionRelativityModeType.ABSOLUTE) {
+			return false;
+		}
+		return true;
+	}
+	
 	private List<SourceTriple<? extends PrismValue>> processSources(Collection<Source<? extends PrismValue>> sources, Boolean includeNulls,
 			ExpressionEvaluationContext params) {
 		List<SourceTriple<? extends PrismValue>> sourceTriples = 

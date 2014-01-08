@@ -25,7 +25,6 @@
 		<script>
 			<relativityMode>relative</relativityMode>
 			<language>http://www.w3.org/TR/xpath/</language>
-			<returnType>scalar</returnType>
 			<code>
 				concat('The Guild of ',$c:organizationalUnit/t:orig)
 			</code>

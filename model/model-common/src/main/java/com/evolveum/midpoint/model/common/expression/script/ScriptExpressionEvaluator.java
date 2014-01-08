@@ -28,6 +28,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScriptExpressionEvaluatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScriptExpressionReturnTypeType;
 
 /**
  * @author Radovan Semancik
@@ -48,7 +49,11 @@ public class ScriptExpressionEvaluator<V extends PrismValue>
 	protected List<V> transformSingleValue(ExpressionVariables variables,
 			boolean useNew, ExpressionEvaluationContext params, String contextDescription, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
 			SchemaException {
-		return (List<V>) scriptExpression.evaluate(variables, getExpressionEvaluatorType().getReturnType(), 
+		ScriptExpressionReturnTypeType returnType = getExpressionEvaluatorType().getReturnType();
+		if (returnType == null && isRelative()) {
+			returnType = ScriptExpressionReturnTypeType.SCALAR;
+		}
+		return (List<V>) scriptExpression.evaluate(variables, returnType, 
 				useNew, contextDescription, result);
 	}
 	
