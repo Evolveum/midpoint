@@ -188,11 +188,15 @@ public final class PrismForJAXBUtil {
     	return fieldContainerValue.asContainerable(fieldClass);
     }
 
-    public static <T extends PrismContainer<?>> T getContainer(PrismContainerValue value, QName name) {
-        Validate.notNull(value, "Container must not be null.");
+    public static <T extends PrismContainer<?>> T getContainer(PrismContainerValue parentValue, QName name) {
+        Validate.notNull(parentValue, "Parent container value must not be null.");
         Validate.notNull(name, "QName must not be null.");
 
-        return getContainer(value.getContainer(), name);
+        try {
+            return (T) parentValue.findOrCreateContainer(name);
+        } catch (SchemaException ex) {
+            throw new SystemException(ex.getMessage(),  ex);
+        }
     }
 
     public static <T extends PrismContainer<?>> T getContainer(PrismContainer<?> parent, QName name) {
