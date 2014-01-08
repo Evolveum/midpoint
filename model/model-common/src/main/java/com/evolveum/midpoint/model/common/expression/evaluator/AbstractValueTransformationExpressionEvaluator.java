@@ -31,6 +31,7 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
+import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -106,9 +107,9 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
         				context.getContextDescription(), context.getResult());
         	} else {
         		List<SourceTriple<? extends PrismValue>> sourceTriples = processSources(context.getSources(), 
-        				expressionEvaluatorType.isIncludeNullInputs(), context);
+        				isIncludeNullInputs(), context);
         		outputTriple = evaluateRelativeExpression(sourceTriples, context.getVariables(), context.isSkipEvaluationMinus(), context.isSkipEvaluationPlus(), 
-        				expressionEvaluatorType.isIncludeNullInputs(), context, context.getContextDescription(), context.getResult());
+        				isIncludeNullInputs(), context, context.getContextDescription(), context.getResult());
         	}
         	
         } else {
@@ -119,6 +120,10 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
         return outputTriple;        
     }
 	
+	protected Boolean isIncludeNullInputs() {
+		return expressionEvaluatorType.isIncludeNullInputs();
+	}
+
 	protected boolean isRelative() {
 		if (expressionEvaluatorType.getRelativityMode() == TransformExpressionRelativityModeType.ABSOLUTE) {
 			return false;
@@ -258,7 +263,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 			}
 		}
 		
-		List<V> scriptResults = transformSingleValue(scriptVariables, useNew, params,
+		List<V> scriptResults = transformSingleValue(scriptVariables, null, useNew, params,
 				(useNew ? "(new) " : "(old) " ) + contextDescription, result);
 		
 		if (scriptResults == null || scriptResults.isEmpty()) {
@@ -289,7 +294,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 		return outputSet;
 	}
 	
-	protected abstract List<V> transformSingleValue(ExpressionVariables variables,
+	protected abstract List<V> transformSingleValue(ExpressionVariables variables, PlusMinusZero valueDestination,
 			boolean useNew, ExpressionEvaluationContext params, String contextDescription, OperationResult result)
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException;
 
@@ -381,23 +386,27 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 				
 				ExpressionVariables scriptVariables = new ExpressionVariables();
 				scriptVariables.addVariableDefinitions(sourceVariables);
+				PlusMinusZero valueDestination = null;
 				boolean useNew = false;
 				if (hasPlus) {
 					// Pluses and zeroes: Result goes to plus set, use NEW values for variables
 					scriptVariables.addVariableDefinitionsNew(variables);
+					valueDestination = PlusMinusZero.PLUS;
 					useNew = true;
 				} else if (hasMinus) {
 					// Minuses and zeroes: Result goes to minus set, use OLD values for variables
 					scriptVariables.addVariableDefinitionsOld(variables);
+					valueDestination = PlusMinusZero.MINUS;
 				} else {
 					// All zeros: Result goes to zero set, use NEW values for variables
 					scriptVariables.addVariableDefinitionsNew(variables);
+					valueDestination = PlusMinusZero.ZERO;
 					useNew = true;
 				}
 				
 				List<V> scriptResults;
 				try {
-					scriptResults = (List<V>) transformSingleValue(scriptVariables, useNew, params, contextDescription, result);
+					scriptResults = (List<V>) transformSingleValue(scriptVariables, valueDestination, useNew, params, contextDescription, result);
 				} catch (ExpressionEvaluationException e) {
 					throw new TunnelException(new ExpressionEvaluationException(e.getMessage()+
 							"("+dumpSourceValues(sourceVariables)+") in "+contextDescription,e));
@@ -412,16 +421,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 							"("+dumpSourceValues(sourceVariables)+") in "+contextDescription,e));
 				}
 				
-				if (hasPlus) {
-					// Pluses and zeroes: Result goes to plus set
-					outputTriple.addAllToPlusSet(scriptResults);
-				} else if (hasMinus) {
-					// Minuses and zeroes: Result goes to minus set
-					outputTriple.addAllToMinusSet(scriptResults);
-				} else {
-					// All zeros: Result goes to zero set
-					outputTriple.addAllToZeroSet(scriptResults);
-				}
+				outputTriple.addAllToSet(valueDestination, scriptResults);
 			}			
 		};
 		try {

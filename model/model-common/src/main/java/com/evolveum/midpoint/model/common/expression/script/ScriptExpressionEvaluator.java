@@ -21,6 +21,7 @@ import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext
 import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.evaluator.AbstractValueTransformationExpressionEvaluator;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -46,15 +47,14 @@ public class ScriptExpressionEvaluator<V extends PrismValue>
     }
     
     @Override
-	protected List<V> transformSingleValue(ExpressionVariables variables,
-			boolean useNew, ExpressionEvaluationContext params, String contextDescription, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException,
-			SchemaException {
+	protected List<V> transformSingleValue(ExpressionVariables variables, PlusMinusZero valueDestination, boolean useNew, 
+			ExpressionEvaluationContext params, String contextDescription, OperationResult result) 
+					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		ScriptExpressionReturnTypeType returnType = getExpressionEvaluatorType().getReturnType();
 		if (returnType == null && isRelative()) {
 			returnType = ScriptExpressionReturnTypeType.SCALAR;
 		}
-		return (List<V>) scriptExpression.evaluate(variables, returnType, 
-				useNew, contextDescription, result);
+		return (List<V>) scriptExpression.evaluate(variables, returnType, useNew, contextDescription, result);
 	}
 	
 	/* (non-Javadoc)

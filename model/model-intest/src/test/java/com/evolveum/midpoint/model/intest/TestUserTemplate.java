@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.intest;
 
 import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.assertNotNull;
 import static com.evolveum.midpoint.test.util.TestUtil.assertFailure;
 import static com.evolveum.midpoint.test.util.TestUtil.assertSuccess;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
@@ -54,6 +55,7 @@ import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
@@ -602,6 +604,52 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         IntegrationTestTools.assertNoExtensionProperty(userJack, PIRACY_COLORS);
 	}
 
+	/**
+	 * Creates org on demand.
+	 */
+	@Test(enabled=false) // WORK IN PROGRESS
+    public void test155ModifyJackOrganizationalUnitFD001() throws Exception {
+		final String TEST_NAME = "test155ModifyJackOrganizationalUnitFD001";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+                    
+		// WHEN
+        modifyUserAdd(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, PrismTestUtil.createPolyString("FD001"));
+
+		// THEN
+		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+		display("User after", userJack);
+        
+		// TODO: lookup org
+		PrismObject<OrgType> orgFD001 = findObjectByName(OrgType.class, "FD001");
+		assertNotNull("The org was not created on demand", orgFD001);
+		
+		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
+        assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
+        assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
+        assertAssignedOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
+        assertAssignedOrg(userJack, orgFD001.getOid());
+        assertHasOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
+        assertHasOrg(userJack, orgFD001.getOid());
+        assertAssignments(userJack, 3);
+        
+        UserType userJackType = userJack.asObjectable();
+        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
+        
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertEquals("Wrong costCenter", "X000", userJackType.getCostCenter());
+        assertEquals("Wrong employee number", jackEmployeeNumber, userJackType.getEmployeeNumber());
+        assertEquals("Wrong telephone number", "1 222 3456789", userJackType.getTelephoneNumber());
+        assertNull("Unexpected title: "+userJackType.getTitle(), userJackType.getTitle());
+        IntegrationTestTools.assertNoExtensionProperty(userJack, PIRACY_COLORS);
+	}
+
+	
 	@Test
     public void test200AddUserRapp() throws Exception {
         TestUtil.displayTestTile(this, "test100ModifyUserGivenName");

@@ -118,6 +118,7 @@
 						</valueExpression>
 					</q:equal>
 				</query>
+				<createOnDemand>true</createOnDemand>
             </assignmentExpression>    	
     	</expression>
     	<target>

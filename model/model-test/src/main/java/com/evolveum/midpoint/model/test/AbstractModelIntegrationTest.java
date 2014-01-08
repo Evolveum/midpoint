@@ -779,16 +779,20 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return user;
 	}
 	
-	protected PrismObject<UserType> findUserByUsername(String username) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
-		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".findUserByUsername");
+	protected <O extends ObjectType> PrismObject<O> findObjectByName(Class<O> type, String name) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".findObjectByName");
         OperationResult result = task.getResult();
-        ObjectQuery query = ObjectQueryUtil.createNameQuery(PrismTestUtil.createPolyString(username), prismContext);
-		List<PrismObject<UserType>> users = modelService.searchObjects(UserType.class, query, null, task, result);
-		if (users.isEmpty()) {
+        ObjectQuery query = ObjectQueryUtil.createNameQuery(PrismTestUtil.createPolyString(name), prismContext);
+		List<PrismObject<O>> objects = modelService.searchObjects(type, query, null, task, result);
+		if (objects.isEmpty()) {
 			return null;
 		}
-		assert users.size() == 1 : "Too many users found for username "+username+": "+users;
-		return users.iterator().next();
+		assert objects.size() == 1 : "Too many objects found for name "+name+": "+objects;
+		return objects.iterator().next();
+	}
+	
+	protected PrismObject<UserType> findUserByUsername(String username) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+		return findObjectByName(UserType.class, username);
 	}
 
     protected PrismObject<RoleType> getRole(String oid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {

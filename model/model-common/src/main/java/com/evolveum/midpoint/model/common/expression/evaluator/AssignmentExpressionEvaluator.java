@@ -45,6 +45,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
+import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -99,7 +100,7 @@ public class AssignmentExpressionEvaluator<V extends PrismValue>
 	}
 	
 	@Override
-	protected List<V> transformSingleValue(ExpressionVariables variables, boolean useNew,
+	protected List<V> transformSingleValue(ExpressionVariables variables, PlusMinusZero valueDestination, boolean useNew,
 			ExpressionEvaluationContext params, String contextDescription, OperationResult result) 
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		
@@ -119,10 +120,20 @@ public class AssignmentExpressionEvaluator<V extends PrismValue>
 		ExpressionUtil.evaluateFilterExpressions(query.getFilter(), variables.getMap(), params.getExpressionFactory(), 
 				prismContext, params.getContextDescription(), params.getResult());
 		
-		return (List<V>) constructTriple(targetTypeClass, targetTypeQName, query, params.getContextDescription(), params.getResult());		
+		List<PrismContainerValue<AssignmentType>> searchResults = executeSearch(targetTypeClass, targetTypeQName, query, params.getContextDescription(), params.getResult());
+		
+		if (searchResults.isEmpty() && getExpressionEvaluatorType().isCreateOnDemand() == Boolean.TRUE &&
+				(valueDestination == PlusMinusZero.PLUS || valueDestination == PlusMinusZero.ZERO || useNew)) {
+			// Create the objects on demand. TODO
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("Going to create assignment targets on demand, variables:\n{}", variables.formatVariables());
+			}
+		}
+		
+		return (List<V>) searchResults;
 	}
 
-	private <O extends ObjectType> List<PrismContainerValue<AssignmentType>> constructTriple(Class<O> targetTypeClass,
+	private <O extends ObjectType> List<PrismContainerValue<AssignmentType>> executeSearch(Class<O> targetTypeClass,
 			final QName targetTypeQName, ObjectQuery query, final String shortDesc, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException {
 		final List<PrismContainerValue<AssignmentType>> list = new ArrayList<PrismContainerValue<AssignmentType>>();
 		
@@ -170,6 +181,16 @@ public class AssignmentExpressionEvaluator<V extends PrismValue>
 		}
 		
 		return list;
+	}
+	
+	// Override the default in this case. It makes more sense like this.
+	@Override
+	protected Boolean isIncludeNullInputs() {
+		Boolean superValue = super.isIncludeNullInputs();
+		if (superValue != null) {
+			return superValue;
+		}
+		return false;
 	}
 
 	/* (non-Javadoc)
