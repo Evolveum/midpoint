@@ -31,11 +31,22 @@ public class ReportDto implements Serializable {
     private Type type;
     private String name;
     private String description;
+    private String author;
+    private String timeString;
+
 
     public ReportDto(Type type, String name, String description) {
         this.type = type;
         this.description = description;
         this.name = name;
+    }
+
+    public ReportDto(Type type, String name, String description, String author, String timeString){
+        this.type = type;
+        this.name = name;
+        this.description = description;
+        this.author = author;
+        this.timeString = timeString;
     }
 
     public Type getType() {
@@ -48,5 +59,13 @@ public class ReportDto implements Serializable {
 
     public String getName() {
         return name;
+    }
+
+    public String getAuthor(){
+        return author;
+    }
+
+    public String getTimeString(){
+        return timeString;
     }
 }

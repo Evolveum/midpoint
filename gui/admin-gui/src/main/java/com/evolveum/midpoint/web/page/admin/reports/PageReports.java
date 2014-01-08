@@ -34,6 +34,7 @@ import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ResourceItemDto;
 import com.evolveum.midpoint.web.page.admin.reports.component.AuditPopupPanel;
 import com.evolveum.midpoint.web.page.admin.reports.component.ReconciliationPopupPanel;
+import com.evolveum.midpoint.web.page.admin.reports.component.ReportButtonPanel;
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditReportDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReconciliationReportDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
@@ -49,9 +50,13 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.repeater.Item;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.spring.injection.annot.SpringBean;
@@ -107,6 +112,17 @@ public class PageReports extends PageAdminReports {
             }
         };
         initLayout();
+    }
+
+    @Override
+    protected IModel<String> createPageSubTitleModel(){
+        return new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                return createStringResource("page.subTitle").getString();
+            }
+        };
     }
 
     private List<ResourceItemDto> loadResources() {
@@ -194,18 +210,14 @@ public class PageReports extends PageAdminReports {
     private List<IColumn<ReportDto, String>> initColumns(final AjaxDownloadBehaviorFromStream ajaxDownloadBehavior) {
         List<IColumn<ReportDto, String>> columns = new ArrayList<IColumn<ReportDto, String>>();
 
-        IColumn column = new LinkColumn<ReportDto>(createStringResource("PageReports.table.name")) {
+        IColumn column;
+        column = new PropertyColumn<ReportDto, String>(createStringResource("PageReports.table.name"), null){
 
             @Override
-            public void onClick(AjaxRequestTarget target, IModel<ReportDto> rowModel) {
-                reportClickPerformed(target, rowModel.getObject(), ajaxDownloadBehavior);
-            }
-
-            @Override
-            protected IModel<String> createLinkModel(IModel<ReportDto> rowModel) {
+            public IModel<Object> getDataModel(IModel<ReportDto> rowModel){
                 ReportDto dto = rowModel.getObject();
 
-                return createStringResource(dto.getName());
+                return (IModel)createStringResource(dto.getName());
             }
         };
         columns.add(column);
@@ -221,6 +233,32 @@ public class PageReports extends PageAdminReports {
         };
         columns.add(column);
 
+        column = new AbstractColumn<ReportDto, String>(new Model(), null) {
+
+            @Override
+            public String getCssClass(){
+                return "debug-list-buttons";
+            }
+
+            @Override
+            public void populateItem(Item<ICellPopulator<ReportDto>> cellItem, String componentId,
+                                     IModel<ReportDto> rowModel) {
+                cellItem.add(new ReportButtonPanel<ReportDto>(componentId, rowModel){
+
+                    @Override
+                    public void runPerformed(AjaxRequestTarget target, IModel<ReportDto> model){
+                        runClickPerformed(target, model.getObject(), ajaxDownloadBehavior);
+                    }
+
+                    @Override
+                    public void configurePerformed(AjaxRequestTarget target, IModel<ReportDto> model){
+                        //TODO - what to do here?
+                    }
+                });
+            }
+        };
+        columns.add(column);
+
         return columns;
     }
 
@@ -229,7 +267,7 @@ public class PageReports extends PageAdminReports {
         window.show(target);
     }
 
-    private void reportClickPerformed(AjaxRequestTarget target, ReportDto report,
+    private void runClickPerformed(AjaxRequestTarget target, ReportDto report,
                                       AjaxDownloadBehaviorFromStream ajaxDownloadBehavior) {
         switch (report.getType()) {
             case AUDIT:
