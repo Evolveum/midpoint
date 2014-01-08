@@ -469,8 +469,17 @@ public class PrismJaxbProcessor {
 	}
 
     // element name must correspond to the name that points to the container definition
+    public <T extends Containerable> PrismContainer<T> unmarshalSingleValueContainer(File file, Class<T> type) throws JAXBException, SchemaException, FileNotFoundException {
+        return unmarshalSingleValueContainer(unmarshalElement(file, type));
+    }
+
+    // element name must correspond to the name that points to the container definition
     public <T extends Containerable> PrismContainer<T> unmarshalSingleValueContainer(String stringXml, Class<T> type) throws JAXBException, SchemaException {
-        JAXBElement<T> element = unmarshalElement(stringXml, type);
+        return unmarshalSingleValueContainer(unmarshalElement(stringXml, type));
+    }
+
+    // element name must correspond to the name that points to the container definition
+    private <T extends Containerable> PrismContainer<T> unmarshalSingleValueContainer(JAXBElement<T> element) throws JAXBException, SchemaException {
         if (element == null) {
             return null;
         }
