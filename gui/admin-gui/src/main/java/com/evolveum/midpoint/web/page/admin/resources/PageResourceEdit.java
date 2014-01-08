@@ -32,15 +32,13 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
-import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
-import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
-import com.evolveum.midpoint.web.component.button.ButtonType;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.xml.ace.AceEditor;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
@@ -135,7 +133,7 @@ public class PageResourceEdit extends PageAdminResources {
                 editPerformed(target, editable.getObject());
             }
         });
-        AceEditor<String> editor = new AceEditor<String>(ID_ACE_EDITOR, new PropertyModel<String>(model, ObjectViewDto.F_XML));
+        AceEditor editor = new AceEditor(ID_ACE_EDITOR, new PropertyModel<String>(model, ObjectViewDto.F_XML));
         editor.setReadonly(new LoadableModel<Boolean>(false) {
 
             @Override
@@ -149,7 +147,7 @@ public class PageResourceEdit extends PageAdminResources {
     }
 
     private void initButtons(final Form mainForm) {
-        AjaxSubmitLinkButton saveButton = new AjaxSubmitLinkButton(ID_SAVE_BUTTON, ButtonType.POSITIVE,
+        AjaxSubmitButton saveButton = new AjaxSubmitButton(ID_SAVE_BUTTON,
                 createStringResource("PageBase.button.save")) {
 
             @Override
@@ -164,7 +162,7 @@ public class PageResourceEdit extends PageAdminResources {
         };
         mainForm.add(saveButton);
 
-        AjaxLinkButton backButton = new AjaxLinkButton(ID_BACK_BUTTON, createStringResource("PageBase.button.back")) {
+        AjaxButton backButton = new AjaxButton(ID_BACK_BUTTON, createStringResource("PageBase.button.back")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -187,7 +185,7 @@ public class PageResourceEdit extends PageAdminResources {
         AceEditor editor = (AceEditor) get(createComponentPath(ID_MAIN_FORM, ID_ACE_EDITOR));
 
         editor.setReadonly(!editable);
-        target.appendJavaScript(editor.createJavascriptEditableRefresh());
+        editor.refreshReadonly(target);
     }
 
     private void savePerformed(AjaxRequestTarget target) {

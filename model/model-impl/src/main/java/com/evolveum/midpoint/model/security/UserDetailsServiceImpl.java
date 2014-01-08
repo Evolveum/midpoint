@@ -33,6 +33,7 @@ import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -95,8 +96,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     private MidPointPrincipal findByUsername(String username) throws SchemaException, ObjectNotFoundException {
         PolyString usernamePoly = new PolyString(username);
-        ObjectQuery query = ObjectQuery.createObjectQuery(
-                EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_NAME, usernamePoly));
+        ObjectQuery query = ObjectQueryUtil.createNameQuery(usernamePoly, prismContext);
+//        ObjectQuery query = ObjectQuery.createObjectQuery(
+//                EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_NAME, usernamePoly));
         LOGGER.trace("Looking for user, query:\n" + query.dump());
 
         List<PrismObject<UserType>> list = repositoryService.searchObjects(UserType.class, query, null, 

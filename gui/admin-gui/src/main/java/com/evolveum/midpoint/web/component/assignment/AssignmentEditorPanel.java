@@ -37,6 +37,7 @@ import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
@@ -76,7 +77,7 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
     private static final String OPERATION_LOAD_ATTRIBUTES = DOT_CLASS + "loadAttributes";
 
     private static final String ID_MAIN = "main";
-    private static final String ID_HEADER = "headerPanel";
+    private static final String ID_HEADER_ROW = "headerRow";
     private static final String ID_SELECTED = "selected";
     private static final String ID_TYPE_IMAGE = "typeImage";
     private static final String ID_NAME_LABEL = "nameLabel";
@@ -114,10 +115,10 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
     }
 
     private void initPanelLayout() {
-        final WebMarkupContainer headerPanel = new WebMarkupContainer(ID_HEADER);
-        headerPanel.add(new AttributeAppender("class", createHeaderClassModel(getModel()), " "));
-        headerPanel.setOutputMarkupId(true);
-        add(headerPanel);
+        WebMarkupContainer headerRow = new WebMarkupContainer(ID_HEADER_ROW);
+        headerRow.add(AttributeModifier.append("class", createHeaderClassModel(getModel())));
+        headerRow.setOutputMarkupId(true);
+        add(headerRow);
 
         AjaxCheckBox selected = new AjaxCheckBox(ID_SELECTED,
                 new PropertyModel<Boolean>(getModel(), AssignmentEditorDto.F_SELECTED)) {
@@ -127,11 +128,12 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
                 //do we want to update something?
             }
         };
-        headerPanel.add(selected);
+        headerRow.add(selected);
 
-        Image typeImage = new Image(ID_TYPE_IMAGE,
-                createImageTypeModel(new PropertyModel<AssignmentEditorDtoType>(getModel(), AssignmentEditorDto.F_TYPE)));
-        headerPanel.add(typeImage);
+        WebMarkupContainer typeImage = new WebMarkupContainer(ID_TYPE_IMAGE);
+        typeImage.add(AttributeModifier.replace("class",
+                createImageTypeModel(new PropertyModel<AssignmentEditorDtoType>(getModel(), AssignmentEditorDto.F_TYPE))));
+        headerRow.add(typeImage);
 
         AjaxLink name = new AjaxLink(ID_NAME) {
 
@@ -140,13 +142,13 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
                 nameClickPerformed(target);
             }
         };
-        headerPanel.add(name);
+        headerRow.add(name);
 
         Label nameLabel = new Label(ID_NAME_LABEL, new PropertyModel<String>(getModel(), AssignmentEditorDto.F_NAME));
         name.add(nameLabel);
 
         Label activation = new Label(ID_ACTIVATION, createActivationModel());
-        headerPanel.add(activation);
+        headerRow.add(activation);
 
         WebMarkupContainer main = new WebMarkupContainer(ID_MAIN);
         main.setOutputMarkupId(true);
@@ -485,20 +487,20 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
         return construction;
     }
 
-    private IModel<ResourceReference> createImageTypeModel(final IModel<AssignmentEditorDtoType> model) {
-        return new AbstractReadOnlyModel<ResourceReference>() {
+    private IModel<String> createImageTypeModel(final IModel<AssignmentEditorDtoType> model) {
+        return new AbstractReadOnlyModel<String>() {
 
             @Override
-            public ResourceReference getObject() {
+            public String getObject() {
                 AssignmentEditorDtoType type = model.getObject();
                 switch (type) {
                     case ROLE:
-                        return new SharedResourceReference(ImgResources.class, ImgResources.USER_SUIT);
+                        return "silk-user_suit";
                     case ORG_UNIT:
-                        return new SharedResourceReference(ImgResources.class, ImgResources.BUILDING);
+                        return "silk-building";
                     case ACCOUNT_CONSTRUCTION:
                     default:
-                        return new SharedResourceReference(ImgResources.class, ImgResources.DRIVE);
+                        return "silk-drive";
                 }
             }
         };
@@ -514,7 +516,7 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
         dto.setMinimized(!minimized);
 
         target.add(get(ID_MAIN));
-        target.add(get(ID_HEADER));
+        target.add(get(ID_HEADER_ROW));
     }
 
     private IModel<String> createTargetModel() {

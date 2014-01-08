@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.provisioning.ucf.query;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import javax.xml.namespace.QName;
@@ -46,7 +47,7 @@ public class ValueOperation extends Operation {
 	}
 
 	@Override
-	public Filter interpret(ObjectFilter objectFilter, IcfNameMapper icfNameMapper) throws SchemaException {
+	public <T> Filter interpret(ObjectFilter objectFilter, IcfNameMapper icfNameMapper) throws SchemaException {
 
 		OperationResult parentResult = new OperationResult("interpret");
 
@@ -59,9 +60,9 @@ public class ValueOperation extends Operation {
 						.getResourceSchemaNamespace());
 				
 				if (objectFilter instanceof EqualsFilter) {
-					EqualsFilter eq = (EqualsFilter) objectFilter;
+					EqualsFilter<T> eq = (EqualsFilter<T>) objectFilter;
 					
-					List<Object> convertedValues = new ArrayList<Object>();
+					Collection<Object> convertedValues = new ArrayList<Object>();
 					for (PrismValue value : eq.getValues()) {
 						Object converted = UcfUtil.convertValueToIcf(value, null, propName);
 						convertedValues.add(converted);
@@ -81,7 +82,7 @@ public class ValueOperation extends Operation {
 				
 				} else if (objectFilter instanceof SubstringFilter) {
 					SubstringFilter substring = (SubstringFilter) objectFilter;
-					Object converted = UcfUtil.convertValueToIcf(substring.getValue(), null, propName);
+					Object converted = UcfUtil.convertValueToIcf(substring.getValues(), null, propName);
 					return FilterBuilder.contains(AttributeBuilder.build(icfName, converted));
 				} else {
 					throw new UnsupportedOperationException("Unsupported filter type: " + objectFilter.dump());

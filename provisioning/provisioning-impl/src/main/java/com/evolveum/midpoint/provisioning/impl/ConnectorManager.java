@@ -404,8 +404,8 @@ public class ConnectorManager {
 
 	private boolean isInRepo(ConnectorType connectorType, OperationResult result) throws SchemaException {
 		AndFilter filter = AndFilter.createAnd(
-				EqualsFilter.createEqual(ConnectorType.class, prismContext, SchemaConstants.C_CONNECTOR_FRAMEWORK, connectorType.getFramework()),
-				EqualsFilter.createEqual(ConnectorType.class, prismContext, SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE, connectorType.getConnectorType()));
+				EqualsFilter.createEqual(SchemaConstants.C_CONNECTOR_FRAMEWORK, ConnectorType.class, prismContext, null, connectorType.getFramework()),
+				EqualsFilter.createEqual(SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE, ConnectorType.class, prismContext, null, connectorType.getConnectorType()));
 	
 		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 		

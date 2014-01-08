@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.Itemable;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
 
@@ -31,6 +32,7 @@ import com.evolveum.midpoint.util.Dumpable;
 
 public abstract class ObjectFilter implements Dumpable, DebugDumpable, Serializable{
 
+//	private ItemPath fullPath;
 	private Element expression;
 
 	ObjectFilter(Element expression) {
@@ -59,5 +61,17 @@ public abstract class ObjectFilter implements Dumpable, DebugDumpable, Serializa
 	public void accept(Visitor visitor) {
 		visitor.visit(this);
 	}
+	
+//	public ItemPath getFullPath() {
+//		return fullPath;
+//	}
+//	
+//	public ItemPath getParentPath(){
+//		if (fullPath == null){
+//			return null;
+//		}
+//		
+//		return fullPath.allExceptLast();
+//	}
 	
 }

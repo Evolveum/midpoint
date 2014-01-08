@@ -20,38 +20,32 @@
 <wicket:extend>
     <div wicket:id="ownerChangePopup" />
 
-    <h2>
-        <wicket:message key="pageContentAccounts.accounts"/>
-    </h2>
-    <form wicket:id="mainForm">
-        <div wicket:id="option">
-            <div wicket:id="search">
-                <input class="searchText" type="text" wicket:id="searchText"/>
-                <table>
-                    <tr>
-                        <td>
-                            <input type="checkbox" wicket:id="nameCheck"/>
-                            <wicket:message key="pageContentAccounts.name"/>
-                        </td>
-                        <td><input type="checkbox" wicket:id="identifiersCheck"/>
-                            <wicket:message key="pageContentAccounts.identifiers"/>
-                        </td>
-                    </tr>
-                </table>
-                <a class="submitSearch" wicket:id="clearButton"/>
-                <a wicket:id="searchButton"/>
-            </div>
+    <form class="form-inline pull-right search-form" wicket:id="searchForm">
+        <div class="form-group">
+            <label class="sr-only"><wicket:message key="pageContentAccounts.name"/></label>
+            <input class="form-control input-sm" wicket:id="searchText"
+                   wicket:message="placeholder:pageContentAccounts.name">
         </div>
 
-        <div wicket:id="optionContent">
-            <div wicket:id="table"/>
+        <div class="checkbox">
+            <label>
+                <input type="checkbox" wicket:id="nameCheck"/>
+                <wicket:message key="pageContentAccounts.name"/>
+            </label>
         </div>
 
-        <div class="operatingFormButtons">
-            <div class="operatingFormBlock">
-                <a wicket:id="removeOwner"/>
-            </div>
+        <div class="checkbox">
+            <label>
+                <input type="checkbox" wicket:id="identifiersCheck"/>
+                <wicket:message key="pageContentAccounts.identifiers"/>
+            </label>
         </div>
+
+        <a class="btn btn-default btn-sm" wicket:id="searchButton"/>
+    </form>
+
+    <form class="clearfix form-horizontal" wicket:id="mainForm">
+        <div wicket:id="table"/>
     </form>
 </wicket:extend>
 </body>

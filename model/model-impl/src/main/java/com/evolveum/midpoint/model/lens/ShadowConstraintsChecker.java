@@ -23,6 +23,8 @@ import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
@@ -159,25 +161,25 @@ public class ShadowConstraintsChecker<F extends FocusType> {
 		satisfiesConstraints = true;
 	}
 	
-	private boolean checkAttributeUniqueness(PrismProperty<?> identifier, RefinedObjectClassDefinition accountDefinition,
+	private boolean checkAttributeUniqueness(PrismProperty identifier, RefinedObjectClassDefinition accountDefinition,
 			ResourceType resourceType, String oid, LensContext<F> context, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 //		QueryType query = QueryUtil.createAttributeQuery(identifier, accountDefinition.getObjectClassDefinition().getTypeName(),
 //				resourceType, prismContext);
 		
-		List<?> identifierValues = identifier.getValues();
+		List<PrismPropertyValue<?>> identifierValues = identifier.getValues();
 		if (identifierValues.isEmpty()) {
 			throw new SchemaException("Empty identifier "+identifier+" while checking uniqueness of "+oid+" ("+resourceType+")");
 		}
 
 		OrFilter isNotDead = OrFilter.createOr(
-				EqualsFilter.createEqual(ShadowType.class, prismContext, ShadowType.F_DEAD, false),
-				EqualsFilter.createEqual(ShadowType.class, prismContext, ShadowType.F_DEAD, null));
+				EqualsFilter.createEqual(ShadowType.F_DEAD, ShadowType.class, prismContext, false),
+				EqualsFilter.createEqual(ShadowType.F_DEAD, ShadowType.class, prismContext, null));
 		//TODO: set matching rule instead of null
 		ObjectQuery query = ObjectQuery.createObjectQuery(
 				AndFilter.createAnd(
-						RefFilter.createReferenceEqual(ShadowType.class, ShadowType.F_RESOURCE_REF, prismContext, resourceType.getOid()),
-						EqualsFilter.createEqual(ShadowType.class, prismContext, ShadowType.F_OBJECT_CLASS, accountDefinition.getTypeName()),
-						EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), identifier.getDefinition(), null, identifierValues),
+						RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, prismContext, resourceType.getOid()),
+						EqualsFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, accountDefinition.getTypeName()),
+						EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, identifier.getDefinition().getName()), identifier.getDefinition(), identifierValues),
 						isNotDead));
 		
 		Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());

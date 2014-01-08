@@ -1317,11 +1317,11 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskManagerQuartzImpl.class);
 
         ObjectFilter filter = null;
-        try {
-            filter = EqualsFilter.createEqual(TaskType.class, prismContext, TaskType.F_TASK_IDENTIFIER, identifier);
-        } catch (SchemaException e) {
-            throw new SystemException("Cannot create filter for identifier value due to schema exception", e);
-        }
+//        try {
+            filter = EqualsFilter.createEqual(TaskType.F_TASK_IDENTIFIER, TaskType.class, prismContext, null, identifier);
+//        } catch (SchemaException e) {
+//            throw new SystemException("Cannot create filter for identifier value due to schema exception", e);
+//        }
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 
         List<PrismObject<TaskType>> list = repositoryService.searchObjects(TaskType.class, query, options, result);
@@ -1367,8 +1367,8 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         List<PrismObject<TaskType>> obsoleteTasks;
         try {
             ObjectQuery obsoleteTasksQuery = ObjectQuery.createObjectQuery(AndFilter.createAnd(
-                    LessFilter.createLessFilter(TaskType.class, getPrismContext(), TaskType.F_COMPLETION_TIMESTAMP, timeXml, true),
-                    EqualsFilter.createEqual(TaskType.class, getPrismContext(), TaskType.F_PARENT, null)));
+                    LessFilter.createLess(TaskType.F_COMPLETION_TIMESTAMP, TaskType.class, getPrismContext(), timeXml, true),
+                    EqualsFilter.createEqual(TaskType.F_PARENT, TaskType.class, getPrismContext(), null)));
 
             obsoleteTasks = repositoryService.searchObjects(TaskType.class, obsoleteTasksQuery, null, result);
         } catch (SchemaException e) {
@@ -1495,19 +1495,17 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
     private List<Task> listWaitingTasks(TaskWaitingReason reason, OperationResult result) throws SchemaException {
 
         ObjectFilter filter, filter1 = null, filter2 = null;
-        try {
-            filter1 = EqualsFilter.createEqual(TaskType.class, prismContext, TaskType.F_EXECUTION_STATUS, TaskExecutionStatusType.WAITING);
+//        try {
+            filter1 = EqualsFilter.createEqual(TaskType.F_EXECUTION_STATUS, TaskType.class, prismContext, null, TaskExecutionStatusType.WAITING);
             if (reason != null) {
-                filter2 = EqualsFilter.createEqual(TaskType.class, prismContext, TaskType.F_WAITING_REASON, reason.toTaskType());
+                filter2 = EqualsFilter.createEqual(TaskType.F_WAITING_REASON, TaskType.class, prismContext, null, reason.toTaskType());
             }
-        } catch (SchemaException e) {
-            throw new SystemException("Cannot create filter for listing waiting tasks due to schema exception", e);
-        }
+//        } catch (SchemaException e) {
+//            throw new SystemException("Cannot create filter for listing waiting tasks due to schema exception", e);
+//        }
         filter = filter2 != null ? AndFilter.createAnd(filter1, filter2) : filter1;
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-
 //        query = new ObjectQuery();  // todo remove this hack when searching will work
-
         List<PrismObject<TaskType>> prisms = repositoryService.searchObjects(TaskType.class, query, null, result);
         List<Task> tasks = resolveTasksFromTaskTypes(prisms, result);
 

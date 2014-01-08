@@ -19,18 +19,27 @@
 	xmlns:wicket="http://wicket.apache.org">
 <body>
 	<wicket:extend>
-        <form wicket:id="mainForm">
-            <p>
-                <input type="checkbox" wicket:id="edit" /><wicket:message key="pageResourceEdit.edit"/>
-            </p>
+        <form wicket:id="mainForm" class="form-horizontal">
+            <div class="form-group">
+                <label class="col-lg-2 control-label"><wicket:message key="pageResourceEdit.options"/></label>
 
-            <div id="aceEditorContainer">
-                <textarea wicket:id="aceEditor"></textarea>
+                <div class="col-lg-8">
+                    <label class="col-lg-2 checkbox-inline">
+                        <input type="checkbox" class="form-control" wicket:id="edit" />
+                        <wicket:message key="pageResourceEdit.edit"/>
+                    </label>
+                </div>
             </div>
 
-            <div class="operatingFormButtons">
-                <a wicket:id="backButton" />
-                <a wicket:id="saveButton"/>
+            <div class="form-group">
+                <div class="col-lg-12">
+                    <textarea wicket:id="aceEditor"></textarea>
+                </div>
+            </div>
+
+            <div class="main-button-bar">
+                <a class="btn btn-default" wicket:id="backButton" />
+                <a class="btn btn-primary" wicket:id="saveButton"/>
             </div>
         </form>
 	</wicket:extend>

@@ -63,7 +63,8 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
     @Override
     public Criterion interpret(T filter) throws QueryException {
 
-        ItemPath path = RUtil.createFullPath(filter);
+//        ItemPath path = RUtil.createFullPath(filter);
+    	ItemPath path = filter.getFullPath();
         if (path != null) {
             // at first we build criterias with aliases
             updateQueryContext(path);
@@ -330,7 +331,12 @@ public abstract class ItemRestriction<T extends ValueFilter> extends Restriction
         QueryInterpreter interpreter = context.getInterpreter();
         Matcher matcher = interpreter.findMatcher(value);
 
-        return matcher.match(operation, propertyName, value, filter.getMatchingRule());
+        String matchingRule = null;
+        if (filter.getMatchingRule() != null){
+        	matchingRule = filter.getMatchingRule().getLocalPart();
+        }
+        
+        return matcher.match(operation, propertyName, value, matchingRule);
     }
 
     protected List<Definition> createDefinitionPath(ItemPath path, QueryContext context) throws QueryException {

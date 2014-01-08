@@ -107,7 +107,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        ObjectFilter filter = EqualsFilter.createEqual(RoleType.class, prismContext, RoleType.F_REQUESTABLE, true);
+        ObjectFilter filter = EqualsFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, prismContext, null, true);
         ObjectQuery query = new ObjectQuery();
 		query.setFilter(filter);
         
@@ -130,7 +130,7 @@ public class TestRbac extends AbstractInitializedModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestRbac.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        ObjectFilter filter = EqualsFilter.createEqual(RoleType.class, prismContext, RoleType.F_REQUESTABLE, true);
+        ObjectFilter filter = EqualsFilter.createEqual(RoleType.F_REQUESTABLE, RoleType.class, prismContext, null, true);
         ObjectQuery query = new ObjectQuery();
 		query.setFilter(filter);
         

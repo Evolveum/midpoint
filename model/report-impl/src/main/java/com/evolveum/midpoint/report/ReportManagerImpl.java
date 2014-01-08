@@ -247,8 +247,8 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
         List<PrismObject<ReportOutputType>> obsoleteReportOutputs = new ArrayList<PrismObject<ReportOutputType>>();
         try {
             ObjectQuery obsoleteReportOutputsQuery = ObjectQuery.createObjectQuery(AndFilter.createAnd(
-                    LessFilter.createLessFilter(ReportOutputType.class, getPrismContext(), ReportOutputType.F_METADATA, timeXml, true),
-                    EqualsFilter.createEqual(TaskType.class, getPrismContext(), TaskType.F_PARENT, null)));
+                    LessFilter.createLess(ReportOutputType.F_METADATA, ReportOutputType.class, getPrismContext(), timeXml, true),
+                    EqualsFilter.createEqual(TaskType.F_PARENT, TaskType.class, getPrismContext(), null)));
 
             obsoleteReportOutputs = modelService.searchObjects(ReportOutputType.class, obsoleteReportOutputsQuery, null, null, result);
         } catch (Exception e) {

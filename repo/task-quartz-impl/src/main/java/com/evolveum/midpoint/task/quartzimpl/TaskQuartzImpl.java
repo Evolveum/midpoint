@@ -2251,11 +2251,11 @@ public class TaskQuartzImpl implements Task {
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);
 
         ObjectFilter filter = null;
-        try {
-            filter = EqualsFilter.createEqual(TaskType.class, taskManager.getPrismContext(), TaskType.F_PARENT, getTaskIdentifier());
-        } catch (SchemaException e) {
-            throw new SystemException("Cannot create filter for 'parent equals task identifier' due to schema exception", e);
-        }
+//        try {
+            filter = EqualsFilter.createEqual(TaskType.F_PARENT, TaskType.class, taskManager.getPrismContext(), null, getTaskIdentifier());
+//        } catch (SchemaException e) {
+//            throw new SystemException("Cannot create filter for 'parent equals task identifier' due to schema exception", e);
+//        }
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 
         List<PrismObject<TaskType>> list = taskManager.getRepositoryService().searchObjects(TaskType.class, query, null, result);
@@ -2269,11 +2269,11 @@ public class TaskQuartzImpl implements Task {
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);
 
         ObjectFilter filter = null;
-        try {
-            filter = EqualsFilter.createEqual(TaskType.class, taskManager.getPrismContext(), TaskType.F_DEPENDENT, getTaskIdentifier());
-        } catch (SchemaException e) {
-            throw new SystemException("Cannot create filter for 'dependent contains task identifier' due to schema exception", e);
-        }
+//        try {
+            filter = EqualsFilter.createEqual(TaskType.F_DEPENDENT, TaskType.class, taskManager.getPrismContext(), null, getTaskIdentifier());
+//        } catch (SchemaException e) {
+//            throw new SystemException("Cannot create filter for 'dependent contains task identifier' due to schema exception", e);
+//        }
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 
         List<PrismObject<TaskType>> list = taskManager.getRepositoryService().searchObjects(TaskType.class, query, null, result);

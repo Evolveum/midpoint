@@ -450,8 +450,7 @@ public class ConcurrencyTest extends BaseSQLRepoTest {
 
         repositoryService.searchObjectsIterative(UserType.class,
                 ObjectQuery.createObjectQuery(
-                        EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_NAME,
-                            new PolyString(name), PolyStringOrigMatchingRule.NAME.getLocalPart())),
+                        EqualsFilter.createEqual(UserType.F_NAME, UserType.class, prismContext, PolyStringOrigMatchingRule.NAME, new PolyString(name))),
                 new ResultHandler<UserType>() {
                     @Override
                     public boolean handle(PrismObject<UserType> object, OperationResult parentResult) {

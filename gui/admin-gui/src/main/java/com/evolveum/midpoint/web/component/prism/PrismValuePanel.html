@@ -17,21 +17,23 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div wicket:id="input" class="objectFormInput"/>
+    <div class="row">
+        <div class="col-xs-9" wicket:id="input"/>
 
-    <div class="objectFormButtons">
-        <a wicket:id="addButton">
-            <img class="objectFormAddButton" wicket:id="addIcon" title="Add"/>
-        </a>
-        <a wicket:id="removeButton">
-            <img class="objectFormDeleteButton" wicket:id="removeIcon" title="Delete"/>
-        </a>
+        <div class="col-xs-3">
+            <span class="btn-group">
+                <a class="btn btn-danger btn-sm" wicket:id="removeButton"><i class="glyphicon glyphicon-minus"/></a>
+                <a class="btn btn-success btn-sm" wicket:id="addButton"><i class="glyphicon glyphicon-plus"/></a>
+            </span>
+        </div>
     </div>
-    <div class="objectFormHelpContainer">
-    <img wicket:id="helpButton" class="objectFormHelpButton"/>
+    <div class="row">
+        <!--<div>-->
+            <!--<img wicket:id="helpButton"/>-->
 
-    <div wicket:id="helpContent" class="objectFormHelpContent"/>
+            <!--<div wicket:id="helpContent"/>-->
+        <!--</div>-->
+        <div wicket:id="feedback" class="feedbackPanel"/>
     </div>
-    <div wicket:id="feedback" class="feedbackPanel"/>
 </wicket:panel>
 </html>

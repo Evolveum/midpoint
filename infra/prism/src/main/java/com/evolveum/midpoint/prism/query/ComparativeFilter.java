@@ -27,19 +27,21 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-public abstract class ComparativeFilter extends PropertyValueFilter{
+public abstract class ComparativeFilter<T extends Object> extends PropertyValueFilter<PrismPropertyValue<T>>{
 
 	private boolean equals;
 	
 	public ComparativeFilter() {
-		// TODO Auto-generated constructor stub
 	}
 	
-	ComparativeFilter(ItemPath path, ItemDefinition definition, PrismValue value, boolean equals) {
+	ComparativeFilter(ItemPath path, PrismPropertyDefinition definition, PrismPropertyValue<T> value, boolean equals) {
 		super(path, definition, value);
 		this.equals = equals;
 	}
@@ -52,31 +54,17 @@ public abstract class ComparativeFilter extends PropertyValueFilter{
 		this.equals = equals;
 	}
 	
-	
-	public static ComparativeFilter createComparativeFilter(Class filterClass, ItemPath parentPath, ItemDefinition item, Object realValue, boolean equals) throws SchemaException {
-		ComparativeFilter comparativeFilter = (ComparativeFilter) createPropertyFilter(filterClass, parentPath, item, null, realValue);
-		comparativeFilter.setEquals(equals);
-		return comparativeFilter;
-	}
-	
-	public static ComparativeFilter createComparativeFilter(Class filterClass, ItemPath parentPath, PrismContainerDefinition<? extends Containerable> containerDef,
-			QName propertyName, PrismValue value, boolean equals) throws SchemaException {
-		ComparativeFilter comparativeFilter = (ComparativeFilter) createPropertyFilter(filterClass, parentPath, containerDef, propertyName, value);
-		comparativeFilter.setEquals(equals);
-		return comparativeFilter;
-	}
-	
-	public static ComparativeFilter createComparativeFilter(Class filterClass, ItemPath parentPath, PrismContainerDefinition<? extends Containerable> containerDef,
-			QName propertyName, Object realValue, boolean equals) throws SchemaException {
-		ComparativeFilter comparativeFilter = (ComparativeFilter) createPropertyFilter(filterClass, parentPath, containerDef, propertyName, realValue);
-		comparativeFilter.setEquals(equals);
-		return comparativeFilter;
-	}
-
-	public static ComparativeFilter createComparativeFilter(Class filterClass, Class<? extends Objectable> type, PrismContext prismContext, QName propertyName, Object realValue, boolean equals)
-			throws SchemaException {
-		ComparativeFilter comparativeFilter = (ComparativeFilter) createPropertyFilter(filterClass, type, prismContext, propertyName, realValue);
-		comparativeFilter.setEquals(equals);
-		return comparativeFilter;
+	static <T> PrismPropertyValue<T> createPropertyValue(PrismPropertyDefinition itemDefinition, T realValue){
+		List<PrismPropertyValue<T>> values = createPropertyList(itemDefinition, realValue);
+		if (values == null || values.isEmpty()){
+			return null;
+		}
+		
+		if (values.size() > 1 ){
+			throw new UnsupportedOperationException("Greater filter with more than one value is not supported");
+		}
+		
+		return values.iterator().next();
+		
 	}
 }

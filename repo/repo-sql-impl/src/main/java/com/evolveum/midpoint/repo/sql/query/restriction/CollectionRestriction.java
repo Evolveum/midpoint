@@ -41,7 +41,8 @@ public class CollectionRestriction extends ItemRestriction<ValueFilter> {
 
         ValueFilter valFilter = (ValueFilter) filter;
         QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
-        ItemPath fullPath = RUtil.createFullPath(valFilter);
+//        ItemPath fullPath = RUtil.createFullPath(valFilter);
+        ItemPath fullPath = valFilter.getFullPath();
 
         CollectionDefinition def = registry.findDefinition(context.getType(), fullPath, CollectionDefinition.class);
         if (def == null) {
@@ -53,8 +54,9 @@ public class CollectionRestriction extends ItemRestriction<ValueFilter> {
 
     @Override
     public Criterion interpretInternal(ValueFilter filter) throws QueryException {
-        ItemPath fullPath = RUtil.createFullPath(filter);
-        QueryContext context = getContext();
+//        ItemPath fullPath = RUtil.createFullPath(filter);
+    	ItemPath fullPath = filter.getFullPath();
+    	QueryContext context = getContext();
         QueryDefinitionRegistry registry = QueryDefinitionRegistry.getInstance();
         CollectionDefinition def = registry.findDefinition(context.getType(), fullPath, CollectionDefinition.class);
 

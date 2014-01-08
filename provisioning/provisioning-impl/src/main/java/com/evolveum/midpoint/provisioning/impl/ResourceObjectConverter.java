@@ -191,9 +191,9 @@ public class ResourceObjectConverter {
 			
 			final ResourceAttribute<?> finalSecondaryIdentifier = secondaryIdentifier;
 			
-			ObjectFilter filter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), secondaryIdentifierDef, secondaryIdentifier.getValue());
-			ObjectQuery query = new ObjectQuery();
-			query.setFilter(filter);
+			ObjectFilter filter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, secondaryIdentifierDef.getName()), secondaryIdentifierDef, secondaryIdentifier.getValue());
+			ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+//			query.setFilter(filter);
 			final Holder<PrismObject<ShadowType>> shadowHolder = new Holder<PrismObject<ShadowType>>();
 			ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
 				@Override

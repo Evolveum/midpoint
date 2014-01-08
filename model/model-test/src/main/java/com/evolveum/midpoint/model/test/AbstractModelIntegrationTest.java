@@ -555,6 +555,12 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		modelService.executeChanges(deltas, null, task, result);	
 	}
 	
+	protected void modifyUserDelete(String userOid, QName propertyName, Task task, OperationResult result, Object... newRealValue) 
+			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, 
+			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
+		modifyUserDelete(userOid, new ItemPath(propertyName), task, result, newRealValue);
+	}
+	
 	protected void modifyUserDelete(String userOid, ItemPath propertyPath, Task task, OperationResult result, Object... newRealValue) 
 			throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, 
 			ConfigurationException, ObjectAlreadyExistsException, PolicyViolationException, SecurityViolationException {
@@ -819,10 +825,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         Collection<? extends ResourceAttributeDefinition> identifierDefs = rAccount.getIdentifiers();
         assert identifierDefs.size() == 1 : "Unexpected identifier set in "+resource+" refined schema: "+identifierDefs;
         ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();
-        EqualsFilter ocFilter = EqualsFilter.createEqual(ShadowType.class, prismContext, ShadowType.F_OBJECT_CLASS, 
+        EqualsFilter ocFilter = EqualsFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, null, 
         		rAccount.getObjectClassDefinition().getTypeName());
-        RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.class, 
-        		ShadowType.F_RESOURCE_REF, resource);
+        RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, resource);
         AndFilter filter = AndFilter.createAnd(ocFilter, resourceRefFilter);
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
         
@@ -896,11 +901,11 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         assert identifierDefs.size() == 1 : "Unexpected identifier set in "+resource+" refined schema: "+identifierDefs;
         ResourceAttributeDefinition identifierDef = identifierDefs.iterator().next();
         //TODO: set matching rule instead of null
-        EqualsFilter idFilter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), identifierDef, null,username);
-        EqualsFilter ocFilter = EqualsFilter.createEqual(ShadowType.class, prismContext, 
-        		ShadowType.F_OBJECT_CLASS, rAccount.getObjectClassDefinition().getTypeName());
-        RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.class, 
-        		ShadowType.F_RESOURCE_REF, resource);
+        EqualsFilter idFilter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, identifierDef.getName()), identifierDef, username);
+        EqualsFilter ocFilter = EqualsFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, 
+        		rAccount.getObjectClassDefinition().getTypeName());
+        RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, 
+        		resource);
         AndFilter filter = AndFilter.createAnd(idFilter, ocFilter, resourceRefFilter);
         return ObjectQuery.createObjectQuery(filter);
 	}

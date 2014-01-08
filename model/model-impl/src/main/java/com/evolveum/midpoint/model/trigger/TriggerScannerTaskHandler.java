@@ -105,14 +105,14 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 		PrismContainerDefinition<TriggerType> triggerContainerDef = focusObjectDef.findContainerDefinition(ObjectType.F_TRIGGER);
 		
 		if (handler.getLastScanTimestamp() == null) {
-			filter = LessFilter.createLessFilter(new ItemPath(ObjectType.F_TRIGGER), triggerContainerDef, 
-								TriggerType.F_TIMESTAMP, handler.getThisScanTimestamp(), true);
+			filter = LessFilter.createLess(new ItemPath(ObjectType.F_TRIGGER, TriggerType.F_TIMESTAMP), focusObjectDef, 
+								handler.getThisScanTimestamp(), true);
 		} else {
 			filter = AndFilter.createAnd(
-							GreaterFilter.createGreaterFilter(new ItemPath(ObjectType.F_TRIGGER), triggerContainerDef, 
-									TriggerType.F_TIMESTAMP, handler.getLastScanTimestamp(), false),
-							LessFilter.createLessFilter(new ItemPath(ObjectType.F_TRIGGER), triggerContainerDef, 
-									TriggerType.F_TIMESTAMP, handler.getThisScanTimestamp(), true));
+							GreaterFilter.createGreater(new ItemPath(ObjectType.F_TRIGGER, TriggerType.F_TIMESTAMP), focusObjectDef, 
+									handler.getLastScanTimestamp(), false),
+							LessFilter.createLess(new ItemPath(ObjectType.F_TRIGGER, TriggerType.F_TIMESTAMP), focusObjectDef, 
+									handler.getThisScanTimestamp(), true));
 		}
 		
 		query.setFilter(filter);

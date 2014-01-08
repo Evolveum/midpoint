@@ -4919,6 +4919,7 @@
         			</xsd:documentation>
         		</xsd:annotation>
         	</xsd:element>
+        	<xsd:element ref="tns:description" minOccurs="0"/>
         	<xsd:element name="objectClass" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
         		<xsd:annotation>
         			<xsd:documentation>
@@ -5152,6 +5153,7 @@
 	        </xsd:documentation>
 	    </xsd:annotation>
         <xsd:sequence>
+        	<xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="1"/>
             <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
             <xsd:element name="situation" type="tns:SynchronizationSituationType">
                 <xsd:annotation>
@@ -5190,6 +5192,7 @@
 	        </xsd:documentation>
 	    </xsd:annotation>
         <xsd:sequence>
+        	<xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="1"/>
         	<xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
         	<xsd:element name="handlerUri" type="xsd:anyURI" minOccurs="0" maxOccurs="1"/>
         	<xsd:element name="order" type="tns:BeforeAfterType" minOccurs="0" default="before"/>
@@ -5671,6 +5674,9 @@
                                 For more details see the ActivationType
                                 documentation.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>Activation</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="credentials" type="tns:CredentialsType" minOccurs="0" maxOccurs="1">

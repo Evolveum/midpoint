@@ -16,9 +16,12 @@
 
 package com.evolveum.midpoint.prism.query;
 
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.path.ItemPath;
 
+@Deprecated
 public abstract class StringValueFilter extends ValueFilter{
 
 	private String value;
@@ -28,7 +31,7 @@ public abstract class StringValueFilter extends ValueFilter{
 		this.value = value;
 	}
 	
-	public StringValueFilter(ItemPath parentPath, ItemDefinition definition, String matchingRule, String value) {
+	public StringValueFilter(ItemPath parentPath, ItemDefinition definition, QName matchingRule, String value) {
 		super(parentPath, definition, matchingRule);
 		this.value = value;
 	}

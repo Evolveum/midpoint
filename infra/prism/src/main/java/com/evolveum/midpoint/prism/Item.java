@@ -392,6 +392,7 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
 
     public void replace(V newValue) {
     	values.clear();
+        newValue.setParent(this);
     	values.add(newValue);
     }
     

@@ -83,8 +83,8 @@ public class SearchTest extends BaseSQLRepoTest {
             }
         };
 
-        EqualsFilter filter = EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_NAME,
-                new PolyString("asdf", "asdf"), PolyStringStrictMatchingRule.NAME.getLocalPart());
+        EqualsFilter filter = EqualsFilter.createEqual(UserType.F_NAME, UserType.class, prismContext, 
+        		PolyStringStrictMatchingRule.NAME, new PolyString("asdf", "asdf"));
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 
         repositoryService.searchObjectsIterative(UserType.class, query, handler, null, result);
@@ -163,8 +163,8 @@ public class SearchTest extends BaseSQLRepoTest {
         final String nonExistingNameOrig = "test UserX00003";
         final String nameNorm = "test userx00003";
 
-        EqualsFilter filter = EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_FULL_NAME,
-                new PolyString(existingNameOrig, nameNorm), PolyStringOrigMatchingRule.NAME.getLocalPart());
+        EqualsFilter filter = EqualsFilter.createEqual(UserType.F_FULL_NAME, UserType.class, prismContext, 
+        		PolyStringOrigMatchingRule.NAME, new PolyString(existingNameOrig, nameNorm));
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 
         OperationResult result = new OperationResult("search");
@@ -173,8 +173,8 @@ public class SearchTest extends BaseSQLRepoTest {
         AssertJUnit.assertTrue(result.isSuccess());
         AssertJUnit.assertEquals("Should find one user", 1, users.size());
 
-        filter = EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_FULL_NAME,
-                new PolyString(nonExistingNameOrig, nameNorm), PolyStringOrigMatchingRule.NAME.getLocalPart());
+        filter = EqualsFilter.createEqual(UserType.F_FULL_NAME, UserType.class, prismContext,
+        		PolyStringOrigMatchingRule.NAME, new PolyString(nonExistingNameOrig, nameNorm));
         query = ObjectQuery.createObjectQuery(filter);
 
         users = repositoryService.searchObjects(UserType.class, query, null, result);

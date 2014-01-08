@@ -23,7 +23,9 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -473,15 +475,15 @@ public class IntegrationTestTools {
 	}
 	
 	public static ObjectQuery createAllShadowsQuery(ResourceType resourceType, PrismContext prismContext) throws SchemaException {
-		RefFilter equal = RefFilter.createReferenceEqual(ShadowType.class, ShadowType.F_RESOURCE_REF, prismContext, resourceType.getOid());
+		RefFilter equal = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, prismContext, resourceType.getOid());
 		ObjectQuery query = ObjectQuery.createObjectQuery(equal);
 		return query;
 	}
 	
 	public static ObjectQuery createAllShadowsQuery(ResourceType resourceType, QName objectClass, PrismContext prismContext) throws SchemaException {
 		AndFilter and = AndFilter.createAnd(
-				RefFilter.createReferenceEqual(ShadowType.class, ShadowType.F_RESOURCE_REF, prismContext, resourceType.getOid()),
-				EqualsFilter.createEqual(ShadowType.class, prismContext, ShadowType.F_OBJECT_CLASS, objectClass));
+				RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, prismContext, resourceType.getOid()),
+				EqualsFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, null, objectClass));
 		ObjectQuery query = ObjectQuery.createObjectQuery(and);
 		return query;
 	}
@@ -593,7 +595,6 @@ public class IntegrationTestTools {
 
 	private static ObjectQuery createShadowQuery(ShadowType resourceShadow, MatchingRule<String> uidMatchingRule, PrismContext prismContext) throws SchemaException {
 		
-		XPathHolder xpath = new XPathHolder(ShadowType.F_ATTRIBUTES);
 		PrismContainer<?> attributesContainer = resourceShadow.asPrismObject().findContainer(ShadowType.F_ATTRIBUTES);
 		PrismProperty<String> identifier = attributesContainer.findProperty(SchemaTestConstants.ICFS_UID);
 		if (identifier == null) {
@@ -604,29 +605,13 @@ public class IntegrationTestTools {
 			uidValue = uidMatchingRule.normalize(uidValue);
 		}
 
-		Document doc = DOMUtil.getDocument();
-//		Element filter;
 		ObjectFilter filter;
-		List<Element> identifierElements = prismContext.getPrismDomProcessor().serializeItemToDom(identifier, doc);
-//		try {
-//			filter = QueryUtil.createAndFilter(doc, QueryUtil.createEqualRefFilter(doc, null,
-//					SchemaConstants.I_RESOURCE_REF, resourceShadow.getResourceRef().getOid()),
-//					QueryUtil.createEqualFilterFromElements(doc, xpath, identifierElements, 
-//							resourceShadow.asPrismObject().getPrismContext()));
-
-//			filter = QueryUtil.createEqualFilterFromElements(doc, xpath, identifierElements, 
-//					resourceShadow.asPrismObject().getPrismContext());
-			ItemDefinition itemDef = resourceShadow.asPrismObject().getDefinition().findItemDefinition(ShadowType.F_RESOURCE_REF);
-			filter = AndFilter.createAnd(
-					RefFilter.createReferenceEqual(null, itemDef, resourceShadow.getResourceRef().getOid()),
-					EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), identifier.getDefinition(), new PrismPropertyValue(uidValue)));
+		PrismPropertyDefinition identifierDef = identifier.getDefinition();
+		PrismReferenceDefinition itemDef = resourceShadow.asPrismObject().getDefinition().findReferenceDefinition(ShadowType.F_RESOURCE_REF);
+		filter = AndFilter.createAnd(
+					RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, prismContext, ShadowUtil.getResourceOid(resourceShadow)),
+					EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, identifierDef.getName()), identifierDef, new PrismPropertyValue(uidValue)));
 			
-//		} catch (SchemaException e) {
-//			throw new SchemaException("Schema error while creating search filter: " + e.getMessage(), e);
-//		}
-
-//		QueryType query = new QueryType();
-//		query.setFilter(filter);
 		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 
 		return query;

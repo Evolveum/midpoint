@@ -47,6 +47,10 @@ public class BaseSimplePanel<T> extends Panel {
         return model;
     }
 
+    public T getModelObject() {
+        return model != null ? model.getObject() : null;
+    }
+
     public String getString(String resourceKey, Object... objects) {
         return createStringResource(resourceKey, objects).getString();
     }

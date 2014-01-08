@@ -20,6 +20,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import org.apache.commons.lang.Validate;
 
@@ -40,7 +43,7 @@ import javax.xml.namespace.QName;
 /**
  * @author lazyman
  */
-public class ResourceDto extends Selectable {
+public class ResourceDto extends Selectable implements InlineMenuable {
 	
 	private static final String DOT_CLASS = ResourceDto.class.getName() + ".";
 	private static final String OPERATION_LOAD_RESOURCE_DEFINITION = DOT_CLASS + "ResourceDto - load resource attribute container definition";
@@ -58,13 +61,31 @@ public class ResourceDto extends Selectable {
     private ResourceSync sync;
     private ResourceImport resImport;
     private QName defaultAccountObjectClass;
+    private List<InlineMenuItem> menuItems;
 
     public ResourceDto() {
     }
-    
+
+    @Deprecated
     public ResourceDto(PrismObject<ResourceType> resource, ConnectorType connector) {
+        oid = resource.getOid();
+        name = WebMiscUtil.getName(resource);
+
+        bundle = connector != null ? connector.getConnectorBundle() : null;
+        version = connector != null ? connector.getConnectorVersion() : null;
+        type = connector != null ? connector.getConnectorType() : null;
+        lastAvailabilityStatus = resource.asObjectable().getOperationalState() != null ? resource.asObjectable().getOperationalState().getLastAvailabilityStatus() : null;
+    }
+    
+    public ResourceDto(PrismObject<ResourceType> resource) {
     	oid = resource.getOid();
         name = WebMiscUtil.getName(resource);
+
+        PrismReference ref = resource.findReference(ResourceType.F_CONNECTOR_REF);
+        ConnectorType connector = null;
+        if (ref != null && ref.getValue().getObject() != null) {
+            connector = (ConnectorType) ref.getValue().getObject().asObjectable();
+        }
         bundle = connector != null ? connector.getConnectorBundle() : null;
         version = connector != null ? connector.getConnectorVersion() : null;
         type = connector != null ? connector.getConnectorType() : null;
@@ -174,4 +195,12 @@ public class ResourceDto extends Selectable {
 		}
 		return ResourceImportStatus.ENABLE;
 	}
+
+    @Override
+    public List<InlineMenuItem> getMenuItems() {
+        if (menuItems == null) {
+            menuItems = new ArrayList<InlineMenuItem>();
+        }
+        return menuItems;
+    }
 }

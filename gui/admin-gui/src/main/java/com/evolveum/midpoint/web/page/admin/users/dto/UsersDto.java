@@ -17,55 +17,62 @@
 package com.evolveum.midpoint.web.page.admin.users.dto;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
 
 /**
  * @author lazyman
  */
 public class UsersDto implements Serializable {
 
-    private String searchText;
-    private boolean name = true;
-    private boolean fullName;
-    private boolean givenName;
-    private boolean familyName;
+    public static enum SearchType {
 
-    public boolean isFullName() {
-        return fullName;
+        NAME("SearchType.NAME"),
+        GIVEN_NAME("SearchType.GIVEN_NAME"),
+        FAMILY_NAME("SearchType.FAMILY_NAME"),
+        FULL_NAME("SearchType.FULL_NAME");
+
+        private String key;
+
+        private SearchType(String key) {
+            this.key = key;
+        }
+
+        public String getKey() {
+            return key;
+        }
     }
 
-    public void setFullName(boolean fullName) {
-        this.fullName = fullName;
+    public static final String F_TEXT = "text";
+    public static final String F_TYPE = "type";
+
+    private String text;
+    private Collection<SearchType> type;
+
+    public String getText() {
+        return text;
     }
 
-    public boolean isGivenName() {
-        return givenName;
+    public void setText(String text) {
+        this.text = text;
     }
 
-    public void setGivenName(boolean givenName) {
-        this.givenName = givenName;
+    public Collection<SearchType> getType() {
+        if (type == null) {
+            type = new ArrayList<SearchType>();
+            type.add(SearchType.NAME);
+        }
+        return type;
     }
 
-    public boolean isFamilyName() {
-        return familyName;
+    public void setType(Collection type) {
+        this.type = type;
     }
 
-    public void setFamilyName(boolean familyName) {
-        this.familyName = familyName;
-    }
-
-    public boolean isName() {
-        return name;
-    }
-
-    public void setName(boolean name) {
-        this.name = name;
-    }
-
-    public String getSearchText() {
-        return searchText;
-    }
-
-    public void setSearchText(String searchText) {
-        this.searchText = searchText;
+    public boolean hasType(SearchType type) {
+        if (getType().contains(type)) {
+            return true;
+        }
+        return false;
     }
 }

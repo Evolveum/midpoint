@@ -32,7 +32,7 @@ public abstract class Operation {
 	}
 	
 	// TODO: HACK: FIXME: this is wrong! it brings ICF concepts (Filter, IcfNameMapper) to non-ICF interface
-	public abstract Filter interpret(ObjectFilter objectFilter, IcfNameMapper icfNameMapper) throws SchemaException;
+	public abstract <T> Filter interpret(ObjectFilter objectFilter, IcfNameMapper icfNameMapper) throws SchemaException;
 	
 
 	public FilterInterpreter getInterpreter() {

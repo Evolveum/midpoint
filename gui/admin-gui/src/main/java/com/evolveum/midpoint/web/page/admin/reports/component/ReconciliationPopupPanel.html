@@ -18,19 +18,15 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <form wicket:id="form">
-        <table style="margin: 10px;" cellpadding="4" cellspacing="4">
+        <table class="table table-condensed table-striped">
             <tr>
-                <td>
-                    <wicket:message key="ReconciliationPopupPanel.resource"/>
-                </td>
-                <td>
-                    <select wicket:id="resource"/>
-                </td>
+                <td><wicket:message key="ReconciliationPopupPanel.resource"/></td>
+                <td><select class="form-control input-sm" wicket:id="resource"/></td>
             </tr>
         </table>
 
         <div style="text-align: center;">
-            <a wicket:id="run"/>
+            <a class="btn btn-primary" wicket:id="run"/>
         </div>
     </form>
 </wicket:panel>

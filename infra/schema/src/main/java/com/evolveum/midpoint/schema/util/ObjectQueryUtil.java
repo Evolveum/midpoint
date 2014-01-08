@@ -48,7 +48,7 @@ public class ObjectQueryUtil {
     }
 
 	public static ObjectQuery createNameQuery(PolyString name, PrismContext prismContext) throws SchemaException {
-        EqualsFilter filter = EqualsFilter.createEqual(ObjectType.class, prismContext, ObjectType.F_NAME, name);
+        EqualsFilter filter = EqualsFilter.createEqual(ObjectType.F_NAME, ObjectType.class, prismContext, null, name);
         return ObjectQuery.createObjectQuery(filter);
 	}
 	
@@ -65,15 +65,15 @@ public class ObjectQueryUtil {
 		Validate.notNull(objectClass, "Object class to search must not be null.");
 		Validate.notNull(prismContext, "Prism context must not be null.");
 		AndFilter and = AndFilter.createAnd(
-				RefFilter.createReferenceEqual(ShadowType.class, ShadowType.F_RESOURCE_REF, prismContext, resourceOid), 
-				EqualsFilter.createEqual(
-						ShadowType.class, prismContext, ShadowType.F_OBJECT_CLASS, objectClass));
+				RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, prismContext, resourceOid), 
+				EqualsFilter.createEqual(ShadowType.F_OBJECT_CLASS, 
+						ShadowType.class, prismContext, null, objectClass));
 		return ObjectQuery.createObjectQuery(and);
 	}
 	
 	public static <T extends ObjectType> ObjectQuery createNameQuery(Class<T> clazz, PrismContext prismContext, String name) throws SchemaException{
 		PolyString namePolyString = new PolyString(name);
-		EqualsFilter equal = EqualsFilter.createEqual(clazz, prismContext, ObjectType.F_NAME, namePolyString);
+		EqualsFilter equal = EqualsFilter.createEqual(ObjectType.F_NAME, clazz, prismContext, null, namePolyString);
 		return ObjectQuery.createObjectQuery(equal);
 	}
 	

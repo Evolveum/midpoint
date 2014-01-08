@@ -3402,7 +3402,8 @@ public class TestSanity extends AbstractModelIntegrationTest {
 
 
 //        QueryType query = QueryUtil.createNameQuery(ELAINE_NAME);
-        ObjectQuery query = ObjectQuery.createObjectQuery(EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_NAME, ELAINE_NAME));
+//        ObjectQuery query = ObjectQuery.createObjectQuery(EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_NAME, ELAINE_NAME));
+        ObjectQuery query = ObjectQueryUtil.createNameQuery(ELAINE_NAME, prismContext);
         List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, repoResult);
         assertEquals("Wrong number of Elaines", 1, users.size());
         repoUser = users.get(0).asObjectable();

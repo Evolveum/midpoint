@@ -29,6 +29,7 @@ import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
@@ -202,8 +203,9 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		assertNotNull("Er? The pirate sectrets were lost!",protectedString.getEncryptedData());
 
 		// Check import with generated OID
-		EqualsFilter equal = EqualsFilter.createEqual(UserType.class, PrismTestUtil.getPrismContext(), UserType.F_NAME, "guybrush");
-		ObjectQuery query = ObjectQuery.createObjectQuery(equal);
+//		EqualsFilter equal = EqualsFilter.createEqual(UserType.class, PrismTestUtil.getPrismContext(), UserType.F_NAME, "guybrush");
+//		ObjectQuery query = ObjectQuery.createObjectQuery(equal);
+		ObjectQuery query = ObjectQueryUtil.createNameQuery("guybrush", PrismTestUtil.getPrismContext());
 		
 		List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
 

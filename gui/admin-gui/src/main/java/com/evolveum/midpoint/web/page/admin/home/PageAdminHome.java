@@ -16,11 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.home;
 
-import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Marker page class for {@link com.evolveum.midpoint.web.component.menu.top.TopMenu}
@@ -29,13 +25,4 @@ import java.util.List;
  */
 public class PageAdminHome extends PageAdmin {
 
-    @Override
-    public List<BottomMenuItem> getBottomMenuItems() {
-        List<BottomMenuItem> items = new ArrayList<BottomMenuItem>();
-
-        items.add(new BottomMenuItem(createStringResource("PageAdminHome.dashboard"), PageDashboard.class));
-        items.add(new BottomMenuItem(createStringResource("PageAdminHome.myPasswords"), PageMyPasswords.class));
-
-        return items;
-    }
 }

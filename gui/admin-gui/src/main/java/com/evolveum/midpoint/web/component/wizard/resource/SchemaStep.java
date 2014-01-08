@@ -16,21 +16,21 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource;
 
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.wizard.WizardStep;
 import com.evolveum.midpoint.web.component.wizard.resource.component.SchemaListPanel;
 import com.evolveum.midpoint.web.component.wizard.resource.component.XmlEditorPanel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
-
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.ajax.markup.html.tabs.AjaxTabbedPanel;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
-import org.apache.wicket.extensions.wizard.WizardStep;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
@@ -46,9 +46,9 @@ public class SchemaStep extends WizardStep {
 
     private static final String ID_TABPANEL = "tabpanel";
     private static final String ID_RELOAD = "reload";
-    private IModel<ResourceType> model;
+    private IModel<PrismObject<ResourceType>> model;
 
-    public SchemaStep(IModel<ResourceType> model) {
+    public SchemaStep(IModel<PrismObject<ResourceType>> model) {
         this.model = model;
 
         initLayout();
@@ -63,7 +63,7 @@ public class SchemaStep extends WizardStep {
         tabpanel.setOutputMarkupId(true);
         add(tabpanel);
 
-        AjaxLinkButton reload = new AjaxLinkButton(ID_RELOAD, createStringModel("SchemaStep.button.reload")) {
+        AjaxButton reload = new AjaxButton(ID_RELOAD, createStringModel("SchemaStep.button.reload")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -82,8 +82,8 @@ public class SchemaStep extends WizardStep {
 
             @Override
             public String getObject() {
-                ResourceType resource = model.getObject();
-                XmlSchemaType xmlSchema = resource.getSchema();
+                PrismObject<ResourceType> resource = model.getObject();
+                PrismContainer xmlSchema = resource.findContainer(ResourceType.F_SCHEMA);
                 if (xmlSchema == null) {
                     return null;
                 }
@@ -92,7 +92,7 @@ public class SchemaStep extends WizardStep {
                 PrismDomProcessor domProcessor = page.getPrismContext().getPrismDomProcessor();
 
                 try {
-                    Element root = domProcessor.serializeToDom(xmlSchema.asPrismContainerValue(),
+                    Element root = domProcessor.serializeToDom(xmlSchema.getValue(),
                             DOMUtil.createElement(SchemaConstantsGenerated.C_SCHEMA));
 
                     Element schema = root != null ? DOMUtil.getFirstChildElement(root) : null;

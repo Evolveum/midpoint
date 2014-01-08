@@ -17,60 +17,11 @@
 package com.evolveum.midpoint.web.page.admin.server;
 
 
-import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
-import com.evolveum.midpoint.web.page.admin.roles.PageRole;
-import com.evolveum.midpoint.web.page.admin.users.PageUser;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.wicket.util.string.StringValue;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
- * Marker page class for {@link com.evolveum.midpoint.web.component.menu.top.TopMenu}
- *
  * @author lazyman
  */
 public class PageAdminTasks extends PageAdmin {
 
-    @Override
-    public List<BottomMenuItem> getBottomMenuItems() {
-        List<BottomMenuItem> items = new ArrayList<BottomMenuItem>();
-
-        items.add(new BottomMenuItem(createStringResource("pageAdminTasks.listTasks"), PageTasks.class));
-        items.add(new BottomMenuItem(createStringResource("pageAdminTasks.newTask"), PageTaskAdd.class, new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                return !isEditingTask();
-            }
-
-            @Override
-            public boolean isEnabled() {
-                return !(getPage() instanceof PageTaskAdd);
-            }
-        }));
-        items.add(new BottomMenuItem(createStringResource("pageAdminTasks.editTask"), PageTaskEdit.class, new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isVisible() {
-                return isEditingTask();
-            }
-
-            @Override
-            public boolean isEnabled() {
-                return false;
-            }
-        }));
-
-        return items;
-    }
-
-    private boolean isEditingTask() {
-        StringValue taskOid = getPageParameters().get(PageTaskEdit.PARAM_TASK_EDIT_ID);
-        return taskOid != null && StringUtils.isNotEmpty(taskOid.toString());
-    }
 }

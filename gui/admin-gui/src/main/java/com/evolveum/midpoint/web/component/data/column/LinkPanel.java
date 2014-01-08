@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.data.column;
 
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.markup.html.basic.Label;
@@ -41,9 +42,30 @@ public class LinkPanel<T extends Serializable> extends Panel {
             public void onClick(AjaxRequestTarget target) {
                 LinkPanel.this.onClick(target);
             }
+
+            @Override
+            public String getBeforeDisabledLink() {
+                return null;
+            }
+
+            @Override
+            public String getAfterDisabledLink() {
+                return null;
+            }
         };
         link.add(new Label(ID_LABEL, label));
+        link.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isEnabled() {
+                return LinkPanel.this.isEnabled();
+            }
+        });
         add(link);
+    }
+
+    public boolean isEnabled() {
+        return true;
     }
 
     public void onClick(AjaxRequestTarget target) {
