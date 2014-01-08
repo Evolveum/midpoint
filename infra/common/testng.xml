@@ -33,6 +33,7 @@
 		<classes>
 			<class name="com.evolveum.midpoint.common.test.UtilsTest" />
 			<class name="com.evolveum.midpoint.common.TestActivationComputer" />
+			<class name="com.evolveum.midpoint.common.TestStaticValues" />
 		</classes>
 	</test>
 	<test name="Schema" preserve-order="false">

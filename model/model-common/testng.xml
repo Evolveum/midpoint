@@ -27,13 +27,12 @@
 	</test> -->
 	<test name="ExpressionConstruction" preserve-order="false">
 		<classes>
-<!-- 			<class name="com.evolveum.midpoint.model.common.expression.script.TestXPathExpressions" />
+ 			<class name="com.evolveum.midpoint.model.common.expression.script.TestXPathExpressions" />
 			<class name="com.evolveum.midpoint.model.common.expression.script.TestJavaScriptExpressions" />
 			<class name="com.evolveum.midpoint.model.common.expression.script.TestGroovyExpressions" />
 			<class name="com.evolveum.midpoint.model.common.expression.script.TestExpressionFunctions" />
 			<class name="com.evolveum.midpoint.model.common.expression.script.TestScriptCaching" />
-			<class name="com.evolveum.midpoint.model.common.expression.TestStaticValues" />
-			<class name="com.evolveum.midpoint.model.common.expression.TestExpressionUtil" />  -->
+			<class name="com.evolveum.midpoint.model.common.expression.TestExpressionUtil" /> 
 			<class name="com.evolveum.midpoint.model.common.mapping.TestMappingDynamicSimple" />
 			<class name="com.evolveum.midpoint.model.common.mapping.TestMappingDynamicSysVar" />
 			<class name="com.evolveum.midpoint.model.common.mapping.TestMappingStatic" />
