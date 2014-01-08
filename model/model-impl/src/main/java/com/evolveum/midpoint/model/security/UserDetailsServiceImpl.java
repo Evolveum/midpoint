@@ -16,12 +16,12 @@
 
 package com.evolveum.midpoint.model.security;
 
-import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
-import com.evolveum.midpoint.common.mapping.MappingFactory;
 import com.evolveum.midpoint.common.security.Authorization;
 import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.model.UserComputer;
+import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
+import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.lens.Assignment;
 import com.evolveum.midpoint.model.lens.AssignmentEvaluator;
 import com.evolveum.midpoint.model.security.api.UserDetailsService;

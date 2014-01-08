@@ -16,9 +16,9 @@
 
 package com.evolveum.midpoint.wf.processes.itemApproval;
 
-import com.evolveum.midpoint.common.expression.Expression;
-import com.evolveum.midpoint.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.model.common.expression.Expression;
+import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
+import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -36,12 +36,14 @@ import com.evolveum.midpoint.wf.processes.common.LightweightObjectRefImpl;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.JavaDelegate;
 import org.apache.commons.lang.Validate;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
+
 import java.util.*;
 
 /**

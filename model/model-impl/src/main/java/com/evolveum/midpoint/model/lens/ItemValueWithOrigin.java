@@ -18,7 +18,7 @@ package com.evolveum.midpoint.model.lens;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import com.evolveum.midpoint.common.mapping.Mapping;
+import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;

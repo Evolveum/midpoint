@@ -17,9 +17,13 @@
 package com.evolveum.midpoint.report;
 
 import java.io.ByteArrayInputStream;
+
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -38,6 +42,7 @@ import org.springframework.stereotype.Component;
 import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
@@ -46,6 +51,7 @@ import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.LessFilter;
@@ -54,18 +60,24 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.report.api.ReportManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.MetadataType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
@@ -247,20 +259,19 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
         List<PrismObject<ReportOutputType>> obsoleteReportOutputs = new ArrayList<PrismObject<ReportOutputType>>();
         try {
             ObjectQuery obsoleteReportOutputsQuery = ObjectQuery.createObjectQuery(AndFilter.createAnd(
-                    LessFilter.createLess(ReportOutputType.F_METADATA, ReportOutputType.class, getPrismContext(), timeXml, true),
-                    EqualsFilter.createEqual(TaskType.F_PARENT, TaskType.class, getPrismContext(), null)));
+                    LessFilter.createLess(MetadataType.F_CREATE_TIMESTAMP, ReportOutputType.class, getPrismContext(), timeXml, true),
+                    EqualsFilter.createEqual(MetadataType.F_CREATOR_REF, ReportOutputType.class, getPrismContext(), null)));
 
             obsoleteReportOutputs = modelService.searchObjects(ReportOutputType.class, obsoleteReportOutputsQuery, null, null, result);
         } catch (Exception e) {
-            //throw new SchemaException("Couldn't get the list of obsolete report outputs: " + e.getMessage(), e);
+            throw new RuntimeException("Couldn't get the list of obsolete report outputs: " + e.getMessage(), e);
         }
 
-        LOGGER.debug("Found {} report output tree(s) to be cleaned up", obsoleteReportOutputs.size());
+        LOGGER.debug("Found {} report output(s) to be cleaned up", obsoleteReportOutputs.size());
 
         boolean interrupted = false;
         int deleted = 0;
         int problems = 0;
-        int bigProblems = 0;
         
         for (PrismObject<ReportOutputType> reportOutputPrism : obsoleteReportOutputs){
         	ReportOutputType reportOutput = reportOutputPrism.asObjectable();
@@ -330,15 +341,22 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
 		return reportOutput;
 	}
     
-    private void deleteReportOutput(String oid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+    private void deleteReportOutput(String oid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException {
         OperationResult result = parentResult.createSubresult(CLASS_NAME_WITH_DOT + "deleteReportOutput");
         result.addParam("oid", oid);
         try {
             ReportOutputType reportOutput = getReportOutput(oid, result);
+            File reportFile = new File(reportOutput.getReportFilePath());
+            reportFile.delete();
             
-            //modelService.executeChanges(deltas, options, task, parentResult)repositoryService.deleteObject(TaskType.class, oid, result);
+			ObjectDelta<ReportOutputType> delta = ObjectDelta.createDeleteDelta(ReportOutputType.class, oid, getPrismContext());
+			Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
+			
+			modelService.executeChanges(deltas, null, null, result);	
+            
             result.recordSuccessIfUnknown();
-        } catch (ObjectNotFoundException e) {
+        }
+        catch (ObjectNotFoundException e) {
             result.recordFatalError("Cannot delete the report output because it does not exist.", e);
             throw e;
         } catch (SchemaException e) {
@@ -353,9 +371,15 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
         } catch (ConfigurationException e) {
         	result.recordFatalError("Cannot delete the report output because of configuration exception: ", e);
         	throw e;
+        } catch (ExpressionEvaluationException e) {
+        	result.recordFatalError("Cannot delete the report output because of expression evalution exception: ", e);
+        	throw e;
+        } catch (PolicyViolationException e) {
+        	result.recordFatalError("Cannot delete the report output because of policy violation exception: ", e);
+        	throw e;
         } catch (RuntimeException e) {
         	result.recordFatalError("Cannot delete the report output because of a runtime exception.", e);
             throw e;
         }
-    }
+    } 
 }

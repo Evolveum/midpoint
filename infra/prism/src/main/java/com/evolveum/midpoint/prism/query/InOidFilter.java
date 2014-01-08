@@ -13,47 +13,23 @@ import com.evolveum.midpoint.util.DebugUtil;
 
 public class InOidFilter extends ObjectFilter{
 
-	private ItemPath fullPath;
 	private Collection<String> oids;
-	private QName matchingRule;
 	
-	InOidFilter(ItemPath path, QName matchingRule, Collection<String> oids) {
-		this.fullPath = path;
-		this.matchingRule = matchingRule;
+	InOidFilter(Collection<String> oids) {
 		this.oids = oids;
 	}
 	
-	public static InOidFilter createInOid(ItemPath path, QName matchingRule, Collection<String> oids){
-		return new InOidFilter(path, matchingRule, oids);
+	public static InOidFilter createInOid(Collection<String> oids){
+		return new InOidFilter(oids);
 	}
 	
-	public static InOidFilter createInOid(QName path, QName matchingRule, Collection<String> oids){
-		return new InOidFilter(new ItemPath(path), matchingRule, oids);
-	}
-	
-	
-	public QName getMatchingRule() {
-		return matchingRule;
-	}
-	
+		
 	public Collection<String> getOids() {
 		return oids;
 	}
 	
-	public ItemPath getFullPath() {
-		return fullPath;
-	}
-	
-	public void setPath(ItemPath path) {
-		this.fullPath = path;
-	}
-	
 	public void setOids(Collection<String> oids) {
 		this.oids = oids;
-	}
-	
-	public void setMatchingRule(QName matchingRule) {
-		this.matchingRule = matchingRule;
 	}
 	
 	@Override
@@ -71,12 +47,6 @@ public class InOidFilter extends ObjectFilter{
 		StringBuilder sb = new StringBuilder();
 		sb.append("IN OID: ");
 		
-		if (getFullPath() != null){
-			sb.append("\n");
-			DebugUtil.indentDebugDump(sb, indent+1);
-			sb.append("PATH: ");
-			sb.append(getFullPath().toString());
-		} 
 			
 		sb.append("\n");
 		DebugUtil.indentDebugDump(sb, indent+1);
@@ -91,14 +61,7 @@ public class InOidFilter extends ObjectFilter{
 			sb.append(" null");
 		}
 		
-		sb.append("\n");
-		DebugUtil.indentDebugDump(sb, indent+1);
-		sb.append("MATCHING: ");
-		if (getMatchingRule() != null) {
-			sb.append(getMatchingRule());
-		} else {
-			sb.append("default");
-		}
+		
 		return sb.toString();
 		
 	}
@@ -107,10 +70,6 @@ public class InOidFilter extends ObjectFilter{
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
 		sb.append("IN OID: ");
-		if (getFullPath() != null){
-			sb.append(getFullPath().toString());
-			sb.append(", ");
-		}
 		if (getOids() != null){
 			Iterator<String> itertor = getOids().iterator();
 			while (itertor.hasNext()){
@@ -129,7 +88,7 @@ public class InOidFilter extends ObjectFilter{
 
 	@Override
 	public InOidFilter clone() {
-		return new InOidFilter(getFullPath(), getMatchingRule(), getOids());
+		return new InOidFilter(getOids());
 	}
 
 	@Override

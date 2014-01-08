@@ -12,13 +12,13 @@ import org.w3._2001._04.xmlenc.EncryptionMethodType;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.common.CommonTestConstants;
-import com.evolveum.midpoint.common.expression.ExpressionTestUtil;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.test.util.DirectoryFileObjectResolver;
+import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -44,8 +44,8 @@ public class TestProtector {
 	private static Protector createProtector(PrismContext prismContext, String xmlCipher){
 		AESProtector protector = new AESProtector();
 		protector.setPrismContext(prismContext);
-		protector.setKeyStorePassword(CommonTestConstants.KEYSTORE_PASSWORD);
-		protector.setKeyStorePath(CommonTestConstants.KEYSTORE_PATH);
+		protector.setKeyStorePassword(MidPointTestConstants.KEYSTORE_PASSWORD);
+		protector.setKeyStorePath(MidPointTestConstants.KEYSTORE_PATH);
 		protector.init();
 		protector.setXmlCipher(xmlCipher);
 		return protector;

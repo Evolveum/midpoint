@@ -23,10 +23,17 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.Duration;
+import javax.xml.datatype.XMLGregorianCalendar;
+
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
@@ -69,6 +76,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
@@ -85,6 +93,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.prism.xml.ns._public.query_2.OrderDirectionType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
 import com.evolveum.midpoint.report.ReportCreateTaskHandler;
 import com.evolveum.midpoint.report.api.ReportManager;
 
@@ -865,6 +874,73 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	        }	
 			
 		}
-		
+/*		
+		public void test011CleanupReports() throws Exception {
+
+	        // GIVEN
+	        final File file = new File(FOLDER_REPO, "tasks-for-cleanup.xml");
+	        List<PrismObject<? extends Objectable>> elements = prismContext.getPrismDomProcessor().parseObjects(file);
+
+	        OperationResult result = new OperationResult("tasks cleanup");
+	        for (int i = 0; i < elements.size(); i++) {
+	            PrismObject object = elements.get(i);
+
+	            String oid = repositoryService.addObject(object, null, result);
+	            AssertJUnit.assertTrue(StringUtils.isNotEmpty(oid));
+	        }
+
+	        // WHEN
+	        // because now we can't move system time (we're not using DI for it) we create policy
+	        // which should always point to 2013-05-07T12:00:00.000+02:00
+	        final long NOW = System.currentTimeMillis();
+	        Calendar when = create_2013_07_12_12_00_Calendar();
+	        CleanupPolicyType policy = createPolicy(when, NOW);
+
+	        taskManager.cleanupTasks(policy, taskManager.createTaskInstance(), result);
+
+	        // THEN
+	        List<PrismObject<TaskType>> tasks = repositoryService.searchObjects(TaskType.class, null, null, result);
+	        AssertJUnit.assertNotNull(tasks);
+	        AssertJUnit.assertEquals(1, tasks.size());
+
+	        PrismObject<TaskType> task = tasks.get(0);
+	        XMLGregorianCalendar timestamp = task.getPropertyRealValue(TaskType.F_COMPLETION_TIMESTAMP,
+	                XMLGregorianCalendar.class);
+	        Date finished = XMLGregorianCalendarType.asDate(timestamp);
+
+	        Date mark = new Date(NOW);
+	        Duration duration = policy.getMaxAge();
+	        duration.addTo(mark);
+
+	        AssertJUnit.assertTrue("finished: " + finished + ", mark: " + mark, finished.after(mark));
+	    }
+
+	    private Calendar create_2013_07_12_12_00_Calendar() {
+	        Calendar calendar = Calendar.getInstance();
+	        calendar.set(Calendar.YEAR, 2013);
+	        calendar.set(Calendar.MONTH, Calendar.MAY);
+	        calendar.set(Calendar.DAY_OF_MONTH, 7);
+	        calendar.set(Calendar.HOUR_OF_DAY, 12);
+	        calendar.set(Calendar.MINUTE, 0);
+	        calendar.set(Calendar.SECOND, 0);
+	        calendar.set(Calendar.MILLISECOND, 0);
+
+	        return calendar;
+	    }
+
+	    private Duration createDuration(Calendar when, long now) throws Exception {
+	        long seconds = (now - when.getTimeInMillis()) / 1000;
+	        return DatatypeFactory.newInstance().newDuration("PT" + seconds + "S").negate();
+	    }
+
+	    private CleanupPolicyType createPolicy(Calendar when, long now) throws Exception {
+	        CleanupPolicyType policy = new CleanupPolicyType();
+
+	        Duration duration = createDuration(when, now);
+	        policy.setMaxAge(duration);
+
+	        return policy;
+	    }
+		*/
 
 }

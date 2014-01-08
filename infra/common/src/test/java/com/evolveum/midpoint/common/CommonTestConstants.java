@@ -17,17 +17,15 @@ package com.evolveum.midpoint.common;
 
 import java.io.File;
 
+import com.evolveum.midpoint.test.util.MidPointTestConstants;
+
 /**
  * @author semancik
  *
  */
 public class CommonTestConstants {
 	
-	public static final String KEYSTORE_PATH = "src/test/resources/crypto/test-keystore.jceks";
-	public static final String KEYSTORE_PASSWORD = "changeit";
-	public static File OBJECTS_DIR = new File("src/test/resources/objects");
-	
 	public static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
-	public static final File USER_JACK_FILE = new File(OBJECTS_DIR, USER_JACK_OID + ".xml");
+	public static final File USER_JACK_FILE = new File(MidPointTestConstants.OBJECTS_DIR, USER_JACK_OID + ".xml");
 
 }

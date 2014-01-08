@@ -1,0 +1,97 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright (c) 2010-2013 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<name>midPoint Model - common</name>
+	<groupId>com.evolveum.midpoint.model</groupId>
+	<artifactId>model-common</artifactId>
+	<packaging>jar</packaging>
+	<parent>
+		<artifactId>model</artifactId>
+		<groupId>com.evolveum.midpoint</groupId>
+		<version>2.3-SNAPSHOT</version>
+	</parent>
+	<organization>
+		<name>Evolveum</name>
+		<url>http://www.evolveum.com</url>
+	</organization>
+	<licenses>
+		<license>
+			<name>Apache License v2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+			<distribution>repo</distribution>
+		</license>
+	</licenses>
+	<issueManagement>
+		<system>Atlassian JIRA</system>
+		<url>http://jira.evolveum.com/</url>
+	</issueManagement>
+	<scm>
+		<connection>scm:git:git://git.evolveum.com/midpoint.git</connection>
+		<developerConnection>scm:git:git://git.evolveum.com/midpoint.git</developerConnection>
+		<url>https://fisheye.evolveum.com/midpoint/</url>
+	</scm>
+	<dependencies>
+		<dependency>
+			<groupId>com.evolveum.midpoint.infra</groupId>
+			<artifactId>util</artifactId>
+			<version>2.3-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.infra</groupId>
+			<artifactId>schema</artifactId>
+			<version>2.3-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.infra</groupId>
+			<artifactId>common</artifactId>
+			<version>2.3-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>commons-collections</groupId>
+			<artifactId>commons-collections</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>commons-configuration</groupId>
+			<artifactId>commons-configuration</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.codehaus.groovy</groupId>
+			<artifactId>groovy</artifactId>
+			<version>1.8.6</version>
+		</dependency>
+		<!-- Testing dependecies -->
+		<dependency>
+			<groupId>org.testng</groupId>
+			<artifactId>testng</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.infra</groupId>
+			<artifactId>test-util</artifactId>
+			<version>2.3-SNAPSHOT</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.evolveum.midpoint.tools</groupId>
+			<artifactId>test-ng</artifactId>
+			<version>2.3-SNAPSHOT</version>
+			<scope>test</scope>
+		</dependency>
+    </dependencies>
+</project>

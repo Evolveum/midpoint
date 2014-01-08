@@ -39,6 +39,7 @@ import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.NotFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+
 import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -48,7 +49,7 @@ import org.testng.annotations.Test;
 import org.w3c.dom.Element;
 
 import com.evolveum.icf.dummy.resource.DummyAccount;
-import com.evolveum.midpoint.common.expression.evaluator.LiteralExpressionEvaluatorFactory;
+import com.evolveum.midpoint.common.StaticExpressionUtil;
 import com.evolveum.midpoint.common.monitor.InternalMonitor;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
@@ -56,6 +57,7 @@ import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.common.expression.evaluator.LiteralExpressionEvaluatorFactory;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -2353,7 +2355,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
         property.add(new PrismPropertyValue<String>("q"));
 
         List evaluators = expression.getExpressionEvaluator();
-        Collection<?> collection = LiteralExpressionEvaluatorFactory.serializeValueElements(property, null);
+        Collection<?> collection = StaticExpressionUtil.serializeValueElements(property, null);
         ObjectFactory of = new ObjectFactory();
         for (Object obj : collection) {
             evaluators.add(of.createValue(obj));

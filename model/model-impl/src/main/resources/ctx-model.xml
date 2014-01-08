@@ -43,18 +43,18 @@
     <context:component-scan base-package="com.evolveum.midpoint.model"/>
     <context:spring-configured/>
     
-    <bean id="basicFunctionObject" class="com.evolveum.midpoint.common.expression.functions.BasicExpressionFunctions"
+    <bean id="basicFunctionObject" class="com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions"
           scope="singleton">
           <constructor-arg name="prismContext" ref="prismContext"/>
           <constructor-arg name="protector" ref="protector"/>
     </bean>
     
-    <bean id="basicFunctionObjectXml" class="com.evolveum.midpoint.common.expression.functions.BasicExpressionFunctionsXPath"
+    <bean id="basicFunctionObjectXml" class="com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctionsXPath"
           scope="singleton">
-          <constructor-arg type="com.evolveum.midpoint.common.expression.functions.BasicExpressionFunctions" ref="basicFunctionObject"/>
+          <constructor-arg type="com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions" ref="basicFunctionObject"/>
     </bean>
     
-    <bean id="basicFunctionLibrary" class="com.evolveum.midpoint.common.expression.functions.FunctionLibrary"
+    <bean id="basicFunctionLibrary" class="com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary"
           scope="singleton">
         <property name="variableName" value="basic"/>
         <property name="namespace" value="http://midpoint.evolveum.com/xml/ns/public/function/basic-2"/>
@@ -66,12 +66,12 @@
         </property>
     </bean>
 
-    <bean id="logFunctionObject" class="com.evolveum.midpoint.common.expression.functions.LogExpressionFunctions"
+    <bean id="logFunctionObject" class="com.evolveum.midpoint.model.common.expression.functions.LogExpressionFunctions"
           scope="singleton">
           <constructor-arg name="prismContext" ref="prismContext"/>
     </bean>
     
-    <bean id="logFunctionLibrary" class="com.evolveum.midpoint.common.expression.functions.FunctionLibrary"
+    <bean id="logFunctionLibrary" class="com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary"
           scope="singleton">
         <property name="variableName" value="log"/>
         <property name="namespace" value="http://midpoint.evolveum.com/xml/ns/public/function/log-2"/>
@@ -80,26 +80,26 @@
         </property>
     </bean>
     
-    <bean id="xpathScriptEvaluator" class="com.evolveum.midpoint.common.expression.script.xpath.XPathScriptEvaluator"
+    <bean id="xpathScriptEvaluator" class="com.evolveum.midpoint.model.common.expression.script.xpath.XPathScriptEvaluator"
           scope="singleton">
           <constructor-arg name="prismContext" ref="prismContext"/>
     </bean>
     
-    <bean id="javascriptScriptEvaluator" class="com.evolveum.midpoint.common.expression.script.jsr223.Jsr223ScriptEvaluator"
+    <bean id="javascriptScriptEvaluator" class="com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator"
           scope="singleton">
           <constructor-arg name="engineName" value="JavaScript"/>
           <constructor-arg name="prismContext" ref="prismContext"/>
           <constructor-arg name="protector" ref="protector"/>
     </bean>
 
-    <bean id="groovyScriptEvaluator" class="com.evolveum.midpoint.common.expression.script.jsr223.Jsr223ScriptEvaluator"
+    <bean id="groovyScriptEvaluator" class="com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator"
           scope="singleton">
           <constructor-arg name="engineName" value="groovy"/>
           <constructor-arg name="prismContext" ref="prismContext"/>
           <constructor-arg name="protector" ref="protector"/>
     </bean>
     
-    <bean id="scriptExpressionFactory" class="com.evolveum.midpoint.common.expression.script.ScriptExpressionFactory"
+    <bean id="scriptExpressionFactory" class="com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory"
           scope="singleton">
           <constructor-arg ref="modelObjectResolver"/>
           <constructor-arg name="prismContext" ref="prismContext"/>
@@ -120,46 +120,46 @@
         </constructor-arg>
     </bean>
 
-    <bean id="scriptExpressionEvaluatorFactory" class="com.evolveum.midpoint.common.expression.script.ScriptExpressionEvaluatorFactory"
+    <bean id="scriptExpressionEvaluatorFactory" class="com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluatorFactory"
           scope="singleton">
           <constructor-arg ref="scriptExpressionFactory"/>
     </bean>
     
-    <bean id="generateExpressionEvaluatorFactory" class="com.evolveum.midpoint.common.expression.evaluator.GenerateExpressionEvaluatorFactory"
+    <bean id="generateExpressionEvaluatorFactory" class="com.evolveum.midpoint.model.common.expression.evaluator.GenerateExpressionEvaluatorFactory"
           scope="singleton">
           <constructor-arg ref="protector"/>
           <constructor-arg ref="modelObjectResolver"/>
           <constructor-arg name="prismContext" ref="prismContext"/>
     </bean>
     
-    <bean id="pathExpressionEvaluatorFactory" class="com.evolveum.midpoint.common.expression.evaluator.PathExpressionEvaluatorFactory"
+    <bean id="pathExpressionEvaluatorFactory" class="com.evolveum.midpoint.model.common.expression.evaluator.PathExpressionEvaluatorFactory"
           scope="singleton">
           <constructor-arg name="prismContext" ref="prismContext"/>
           <constructor-arg ref="modelObjectResolver"/>
           <constructor-arg name="protector" ref="protector"/>
     </bean>
     
-    <bean id="literalExpressionEvaluatorFactory" class="com.evolveum.midpoint.common.expression.evaluator.LiteralExpressionEvaluatorFactory"
+    <bean id="literalExpressionEvaluatorFactory" class="com.evolveum.midpoint.model.common.expression.evaluator.LiteralExpressionEvaluatorFactory"
           scope="singleton">
           <constructor-arg name="prismContext" ref="prismContext"/>
     </bean>
     
     <bean id="asisExpressionEvaluatorFactory" 
-          class="com.evolveum.midpoint.common.expression.evaluator.AsIsExpressionEvaluatorFactory"
+          class="com.evolveum.midpoint.model.common.expression.evaluator.AsIsExpressionEvaluatorFactory"
           scope="singleton">
           <constructor-arg name="prismContext" ref="prismContext"/>
           <constructor-arg name="protector" ref="protector"/>
     </bean>
 
 	<bean id="assignmentExpressionEvaluatorFactory" 
-	      class="com.evolveum.midpoint.common.expression.evaluator.AssignmentExpressionEvaluatorFactory"
+	      class="com.evolveum.midpoint.model.common.expression.evaluator.AssignmentExpressionEvaluatorFactory"
           scope="singleton">
           <constructor-arg name="prismContext" ref="prismContext"/>
           <constructor-arg name="protector" ref="protector"/>
           <constructor-arg ref="modelObjectResolver"/>
     </bean>
     
-    <bean id="expressionFactory" class="com.evolveum.midpoint.common.expression.ExpressionFactory" 
+    <bean id="expressionFactory" class="com.evolveum.midpoint.model.common.expression.ExpressionFactory" 
     		scope="singleton">
         <constructor-arg>
         	<ref bean="modelObjectResolver"/>
@@ -182,7 +182,7 @@
         </property>
     </bean>
 
-    <bean id="mappingFactory" class="com.evolveum.midpoint.common.mapping.MappingFactory"
+    <bean id="mappingFactory" class="com.evolveum.midpoint.model.common.mapping.MappingFactory"
           scope="singleton">
         <property name="expressionFactory">
             <ref bean="expressionFactory"/>
@@ -201,7 +201,7 @@
         </property>
     </bean>
     
-    <bean id="midpointFunctionLibrary" class="com.evolveum.midpoint.common.expression.functions.FunctionLibrary"
+    <bean id="midpointFunctionLibrary" class="com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary"
           scope="singleton">
         <property name="variableName" value="midpoint"/>
         <property name="namespace" value="http://midpoint.evolveum.com/xml/ns/public/function/midpoint-2"/>

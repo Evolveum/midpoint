@@ -15,7 +15,7 @@
  */
 package com.evolveum.midpoint.model.lens.projector;
 
-import com.evolveum.midpoint.common.mapping.Mapping;
+import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;

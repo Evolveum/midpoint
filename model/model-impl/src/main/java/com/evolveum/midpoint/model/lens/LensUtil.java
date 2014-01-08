@@ -26,14 +26,14 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.expression.ItemDeltaItem;
-import com.evolveum.midpoint.common.expression.ExpressionVariables;
-import com.evolveum.midpoint.common.expression.script.ScriptExpression;
-import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
+import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
+import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.lens.projector.ValueMatcher;
 import com.evolveum.midpoint.prism.*;

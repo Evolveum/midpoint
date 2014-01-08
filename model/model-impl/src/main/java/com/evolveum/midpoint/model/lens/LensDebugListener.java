@@ -16,8 +16,8 @@
 package com.evolveum.midpoint.model.lens;
 
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
-import com.evolveum.midpoint.common.expression.script.ScriptExpression;
-import com.evolveum.midpoint.common.mapping.Mapping;
+import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
+import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 
 /**
