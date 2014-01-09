@@ -53,6 +53,7 @@ public class PageAbout extends PageAdminConfiguration {
     private static final String ID_VALUE = "value";
     private static final String ID_LIST_SYSTEM_ITEMS = "listSystemItems";
     private static final String ID_TEST_REPOSITORY = "testRepository";
+    private static final String ID_TEST_PROVISIONING = "testProvisioning";
     private static final String ID_IMPLEMENTATION_SHORT_NAME = "implementationShortName";
     private static final String ID_IMPLEMENTATION_DESCRIPTION = "implementationDescription";
     private static final String ID_IS_EMBEDDED = "isEmbedded";
@@ -146,6 +147,16 @@ public class PageAbout extends PageAdminConfiguration {
             }
         };
         add(testRepository);
+        
+        AjaxButton testProvisioning = new AjaxButton(ID_TEST_PROVISIONING,
+                createStringResource("PageAbout.button.testProvisioning")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                testProvisioningPerformed(target);
+            }
+        };
+        add(testProvisioning);
     }
 
     private RepositoryDiag loadRepoDiagModel() {
@@ -187,6 +198,15 @@ public class PageAbout extends PageAdminConfiguration {
         Task task = createSimpleTask(OPERATION_TEST_REPOSITORY);
 
         OperationResult result = getModelDiagnosticService().repositorySelfTest(task);
+        showResult(result);
+
+        target.add(getFeedbackPanel());
+    }
+    
+    private void testProvisioningPerformed(AjaxRequestTarget target) {
+        Task task = createSimpleTask(OPERATION_TEST_REPOSITORY);
+
+        OperationResult result = getModelDiagnosticService().provisioningSelfTest(task);
         showResult(result);
 
         target.add(getFeedbackPanel());
