@@ -2336,7 +2336,7 @@ public class TestDummy extends AbstractDummyTest {
 
 	@Test
 	public void test202GetGroup() throws Exception {
-		final String TEST_NAME = "test200AddGroup";
+		final String TEST_NAME = "test202GetGroup";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
