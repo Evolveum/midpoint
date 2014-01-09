@@ -52,15 +52,18 @@ import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.LessFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.report.api.ReportManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -113,10 +116,6 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
 	@PostConstruct
     public void init() {   	
         hookRegistry.registerChangeHook(HOOK_URI, this);
-    }
-	
-	public PrismContext getPrismContext() {
-        return prismContext;
     }
 
     
@@ -255,13 +254,10 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
                 new Object[]{deleteReportOutputsTo, duration});
 
         XMLGregorianCalendar timeXml = XmlTypeConverter.createXMLGregorianCalendar(deleteReportOutputsTo.getTime());
-
+        
         List<PrismObject<ReportOutputType>> obsoleteReportOutputs = new ArrayList<PrismObject<ReportOutputType>>();
         try {
-            ObjectQuery obsoleteReportOutputsQuery = ObjectQuery.createObjectQuery(AndFilter.createAnd(
-                    LessFilter.createLess(MetadataType.F_CREATE_TIMESTAMP, ReportOutputType.class, getPrismContext(), timeXml, true),
-                    EqualsFilter.createEqual(MetadataType.F_CREATOR_REF, ReportOutputType.class, getPrismContext(), null)));
-
+            ObjectQuery obsoleteReportOutputsQuery = ObjectQuery.createObjectQuery(LessFilter.createLess(new ItemPath(ReportOutputType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), ReportOutputType.class, prismContext, timeXml, true));
             obsoleteReportOutputs = modelService.searchObjects(ReportOutputType.class, obsoleteReportOutputsQuery, null, null, result);
         } catch (Exception e) {
             throw new RuntimeException("Couldn't get the list of obsolete report outputs: " + e.getMessage(), e);
@@ -279,7 +275,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
         	LOGGER.trace("Removing report output {} along with {} file.", reportOutput.getName().getOrig(), reportOutput.getReportFilePath());
         	boolean problem = false;
         	try {
-                    deleteReportOutput(reportOutput.getOid(), result);
+                    deleteReportOutput(reportOutput, result);
                 } catch (SchemaException e) {
                     LoggingUtils.logException(LOGGER, "Couldn't delete obsolete report output {} due to schema exception", e, reportOutput);
                     problem = true;
@@ -341,18 +337,22 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
 		return reportOutput;
 	}
     
-    private void deleteReportOutput(String oid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException {
-        OperationResult result = parentResult.createSubresult(CLASS_NAME_WITH_DOT + "deleteReportOutput");
+    private void deleteReportOutput(ReportOutputType reportOutput, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException {
+    	String oid = reportOutput.getOid();
+
+    	Task task = taskManager.createTaskInstance(CLASS_NAME_WITH_DOT + "deleteReportOutput");
+    	parentResult.addSubresult(task.getResult());
+    	OperationResult result = parentResult.createSubresult(CLASS_NAME_WITH_DOT + "deleteReportOutput");
+
         result.addParam("oid", oid);
         try {
-            ReportOutputType reportOutput = getReportOutput(oid, result);
             File reportFile = new File(reportOutput.getReportFilePath());
             reportFile.delete();
             
-			ObjectDelta<ReportOutputType> delta = ObjectDelta.createDeleteDelta(ReportOutputType.class, oid, getPrismContext());
+			ObjectDelta<ReportOutputType> delta = ObjectDelta.createDeleteDelta(ReportOutputType.class, oid, prismContext);
 			Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
-			
-			modelService.executeChanges(deltas, null, null, result);	
+
+			modelService.executeChanges(deltas, null, task, result);	
             
             result.recordSuccessIfUnknown();
         }

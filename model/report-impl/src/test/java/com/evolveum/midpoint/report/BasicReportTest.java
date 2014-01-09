@@ -22,6 +22,8 @@ import static org.testng.AssertJUnit.assertEquals;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
@@ -55,6 +57,7 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.PagingConvertor;
 import com.evolveum.midpoint.schema.QueryConvertor;
@@ -78,6 +81,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrientationType;
@@ -110,6 +114,8 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 			+ "getReport";
 	private static final String GET_REPORT_OUTPUT = CLASS_NAME_WITH_DOT
 			+ "getReportOutput";
+	private static final String SEARCH_REPORT_OUTPUT = CLASS_NAME_WITH_DOT
+			+ "searchReportOutput";
 	private static final String IMPORT_USERS = CLASS_NAME_WITH_DOT
 			+ "importUsers";
 	private static final String CREATE_REPORT = CLASS_NAME_WITH_DOT
@@ -132,16 +138,20 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 			+ "test009ModifyReport";
 	private static final String DELETE_REPORT = CLASS_NAME_WITH_DOT
 			+ "test010DeleteReport";
+	private static final String CLEANUP_REPORTS = CLASS_NAME_WITH_DOT
+			+ "test011CleanupReports";
 	private static final Trace LOGGER = TraceManager
 			.getTrace(BasicReportTest.class);
 
 	private static final File REPORTS_DIR = new File("src/test/resources/reports");
 	private static final File STYLES_DIR = new File("src/test/resources/styles");
 	private static final File COMMON_DIR = new File("src/test/resources/common");
+	private static final String MIDPOINT_HOME = System.getProperty("midpoint.home");
 	
 	private static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR + "/system-configuration.xml");
 	private static final File USER_ADMINISTRATOR_FILE = new File(COMMON_DIR + "/user-administrator.xml");
 	private static final File TASK_REPORT_FILE = new File(COMMON_DIR + "/task-report.xml");  
+	private static final File REPORTS_FOR_CLEANUP_FILE = new File(COMMON_DIR + "/report-outputs-for-cleanup.xml");
 	private static final File TEST_REPORT_WITHOUT_DESIGN_FILE = new File(REPORTS_DIR + "/report-test-without-design.xml");
 	private static final File TEST_REPORT_FILE = new File(REPORTS_DIR + "/report-test.xml");
 	private static final File REPORT_DATASOURCE_TEST = new File(REPORTS_DIR + "/reportDataSourceTest.jrxml");
@@ -205,8 +215,17 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		return report;
 	}
 	
-	private List<PrismObject<ReportOutputType>> searchReportOutput(String reportOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+	private PrismObject<ReportOutputType> getReportOutput(String reportOutputOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
 		Task task = taskManager.createTaskInstance(GET_REPORT_OUTPUT);
+        OperationResult result = task.getResult();
+		PrismObject<ReportOutputType> reportOutput = modelService.getObject(ReportOutputType.class, reportOutputOid, null, task, result);
+		result.computeStatus();
+		TestUtil.assertSuccess("getObject(ReportOutput) result not success", result);
+		return reportOutput;
+	}
+	
+	private List<PrismObject<ReportOutputType>> searchReportOutput(String reportOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+		Task task = taskManager.createTaskInstance(SEARCH_REPORT_OUTPUT);
         OperationResult result = task.getResult();
         Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(GetOperationOptions.createRaw());
         ObjectFilter filter = RefFilter.createReferenceEqual(ReportOutputType.F_REPORT_REF, ReportOutputType.class, prismContext, reportOid);
@@ -874,53 +893,142 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	        }	
 			
 		}
-/*		
+		
+		@Test
 		public void test011CleanupReports() throws Exception {
-
+			
+			final String TEST_NAME = "test011CleanupReports";
+	        TestUtil.displayTestTile(this, TEST_NAME);
+			
 	        // GIVEN
-	        final File file = new File(FOLDER_REPO, "tasks-for-cleanup.xml");
-	        List<PrismObject<? extends Objectable>> elements = prismContext.getPrismDomProcessor().parseObjects(file);
+	        List<PrismObject<? extends Objectable>> elements = prismContext.getPrismDomProcessor().parseObjects(REPORTS_FOR_CLEANUP_FILE);
 
-	        OperationResult result = new OperationResult("tasks cleanup");
+	        Task task = taskManager.createTaskInstance(CLEANUP_REPORTS);
+			OperationResult result = task.getResult();
+			
 	        for (int i = 0; i < elements.size(); i++) {
 	            PrismObject object = elements.get(i);
 
-	            String oid = repositoryService.addObject(object, null, result);
+	            ObjectDelta objectDelta = ObjectDelta.createAddDelta(object);
+	            Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(objectDelta);
+	            
+           		modelService.executeChanges(deltas, null, task, result);
+           		
+           		result.computeStatus();
+                display(result);
+                TestUtil.assertSuccess(result);
+                String oid = objectDelta.getOid();
+                
 	            AssertJUnit.assertTrue(StringUtils.isNotEmpty(oid));
+	            if (objectDelta.getObjectTypeClass() != ReportType.class)
+	            {
+	            	ReportOutputType reportOutput = getReportOutput(oid).asObjectable();
+	            	reportOutput.setReportFilePath(reportOutput.getReportFilePath().replace("${midpointhome}", MIDPOINT_HOME));
+	            	
+	            	MetadataType metadata = new MetadataType();
+	            	Date date = new Date();
+	            
+	            	if (reportOutput.getName().getOrig().contains("01")){
+	            		Calendar calendar = create_2013_06_01_00_00_Calendar();
+	            		date.setTime(calendar.getTimeInMillis());
+	            	}
+	            
+	            	if (reportOutput.getName().getOrig().contains("02")){
+	            		Calendar calendar = create_2013_07_01_00_00_Calendar();
+	            		date.setTime(calendar.getTimeInMillis());
+	            	}
+	            
+	            	if (reportOutput.getName().getOrig().contains("03")){
+	            		Calendar calendar = create_2013_08_01_00_00_Calendar();
+	            		date.setTime(calendar.getTimeInMillis());
+	            	}
+	            
+	            	metadata.setCreateTimestamp(XmlTypeConverter.createXMLGregorianCalendar(date));
+	            	reportOutput.setMetadata(metadata);
+	            
+	            	deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+	            	PrismObject<ReportOutputType> reportOutputOld = getReportOutput(oid);
+	            	deltas.add(reportOutputOld.diff(reportOutput.asPrismObject()));
+				
+	            	modelService.executeChanges(deltas, null, task, result);
+	            	
+	            	File file = new File(reportOutput.getReportFilePath());
+	            	boolean blnCreated = false;
+	                try
+	                {
+	                   blnCreated = file.createNewFile();
+	                }
+	                catch(IOException ex)
+	                {
+	                   LOGGER.error("Error while creating a new empty file : {}", ex);
+	                }
+	               
+	                LOGGER.trace("Was file " + file.getPath() + " created ? : " + blnCreated);
+	            	
+	            }
 	        }
 
 	        // WHEN
 	        // because now we can't move system time (we're not using DI for it) we create policy
 	        // which should always point to 2013-05-07T12:00:00.000+02:00
 	        final long NOW = System.currentTimeMillis();
-	        Calendar when = create_2013_07_12_12_00_Calendar();
+	        Calendar when = create_2014_01_01_12_00_Calendar();
 	        CleanupPolicyType policy = createPolicy(when, NOW);
 
-	        taskManager.cleanupTasks(policy, taskManager.createTaskInstance(), result);
+	        reportManager.cleanupReports(policy, result);
 
 	        // THEN
-	        List<PrismObject<TaskType>> tasks = repositoryService.searchObjects(TaskType.class, null, null, result);
-	        AssertJUnit.assertNotNull(tasks);
-	        AssertJUnit.assertEquals(1, tasks.size());
+	        List<PrismObject<ReportOutputType>> reportOutputs = modelService.searchObjects(ReportOutputType.class, null, null, task, result);
+	        AssertJUnit.assertNotNull(reportOutputs);
+	        AssertJUnit.assertEquals(2, reportOutputs.size());
 
-	        PrismObject<TaskType> task = tasks.get(0);
-	        XMLGregorianCalendar timestamp = task.getPropertyRealValue(TaskType.F_COMPLETION_TIMESTAMP,
-	                XMLGregorianCalendar.class);
-	        Date finished = XMLGregorianCalendarType.asDate(timestamp);
-
-	        Date mark = new Date(NOW);
-	        Duration duration = policy.getMaxAge();
-	        duration.addTo(mark);
-
-	        AssertJUnit.assertTrue("finished: " + finished + ", mark: " + mark, finished.after(mark));
 	    }
 
-	    private Calendar create_2013_07_12_12_00_Calendar() {
+	    private Calendar create_2014_01_01_12_00_Calendar() {
+	        Calendar calendar = Calendar.getInstance();
+	        calendar.set(Calendar.YEAR, 2014);
+	        calendar.set(Calendar.MONTH, Calendar.JANUARY);
+	        calendar.set(Calendar.DAY_OF_MONTH, 1);
+	        calendar.set(Calendar.HOUR_OF_DAY, 12);
+	        calendar.set(Calendar.MINUTE, 0);
+	        calendar.set(Calendar.SECOND, 0);
+	        calendar.set(Calendar.MILLISECOND, 0);
+
+	        return calendar;
+	    }
+
+	    private Calendar create_2013_06_01_00_00_Calendar() {
 	        Calendar calendar = Calendar.getInstance();
 	        calendar.set(Calendar.YEAR, 2013);
-	        calendar.set(Calendar.MONTH, Calendar.MAY);
-	        calendar.set(Calendar.DAY_OF_MONTH, 7);
-	        calendar.set(Calendar.HOUR_OF_DAY, 12);
+	        calendar.set(Calendar.MONTH, Calendar.JUNE);
+	        calendar.set(Calendar.DAY_OF_MONTH, 1);
+	        calendar.set(Calendar.HOUR_OF_DAY, 0);
+	        calendar.set(Calendar.MINUTE, 0);
+	        calendar.set(Calendar.SECOND, 0);
+	        calendar.set(Calendar.MILLISECOND, 0);
+
+	        return calendar;
+	    }
+
+	    private Calendar create_2013_07_01_00_00_Calendar() {
+	        Calendar calendar = Calendar.getInstance();
+	        calendar.set(Calendar.YEAR, 2013);
+	        calendar.set(Calendar.MONTH, Calendar.JULY);
+	        calendar.set(Calendar.DAY_OF_MONTH, 1);
+	        calendar.set(Calendar.HOUR_OF_DAY, 0);
+	        calendar.set(Calendar.MINUTE, 0);
+	        calendar.set(Calendar.SECOND, 0);
+	        calendar.set(Calendar.MILLISECOND, 0);
+
+	        return calendar;
+	    }
+
+	    private Calendar create_2013_08_01_00_00_Calendar() {
+	        Calendar calendar = Calendar.getInstance();
+	        calendar.set(Calendar.YEAR, 2013);
+	        calendar.set(Calendar.MONTH, Calendar.AUGUST);
+	        calendar.set(Calendar.DAY_OF_MONTH, 1);
+	        calendar.set(Calendar.HOUR_OF_DAY, 0);
 	        calendar.set(Calendar.MINUTE, 0);
 	        calendar.set(Calendar.SECOND, 0);
 	        calendar.set(Calendar.MILLISECOND, 0);
@@ -941,6 +1049,5 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 
 	        return policy;
 	    }
-		*/
-
+		
 }
