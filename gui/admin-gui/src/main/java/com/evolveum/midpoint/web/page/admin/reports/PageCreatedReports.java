@@ -22,16 +22,23 @@ import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromStream;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.page.admin.reports.component.SingleButtonRowPanel;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import com.sun.org.apache.xerces.internal.jaxp.datatype.XMLGregorianCalendarImpl;
+import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.Model;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,9 +52,10 @@ public class PageCreatedReports extends PageAdminReports {
 
     private static final String DOT_CLASS = PageCreatedReports.class.getName() + ".";
 
+    private static final String BUTTON_DOWNLOAD_TEXT = "Download";
+
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_CREATED_REPORTS_TABLE = "table";
-    private static final String ID_DOWNLOAD_BUTTON = "download";
 
     private IModel<List<ReportDto>> model;
 
@@ -83,6 +91,7 @@ public class PageCreatedReports extends PageAdminReports {
         for(int i = 1; i <= 5; i++){
             reportDto = new ReportDto(ReportDto.Type.USERS, "ReportName" + i, "Report description " + i,
                     "Author" + i, "January " + i + "., 2014");
+            reportDto.setFileType("PDF");
             reportList.add(reportDto);
         }
 
@@ -124,9 +133,74 @@ public class PageCreatedReports extends PageAdminReports {
             }
         };
         columns.add(column);
-        //TODO - continue here
+
+        column = new PropertyColumn<ReportDto, String>(createStringResource("pageCreatedReports.table.description"), null){
+
+            @Override
+            public IModel<Object> getDataModel(IModel<ReportDto> rowModel){
+                ReportDto dto = rowModel.getObject();
+
+                return (IModel)createStringResource(dto.getDescription());
+            }
+        };
+        columns.add(column);
+
+        column = new PropertyColumn<ReportDto, String>(createStringResource("pageCreatedReports.table.author"), null){
+
+            @Override
+            public IModel<Object> getDataModel(IModel<ReportDto> rowModel){
+                ReportDto dto = rowModel.getObject();
+
+                return (IModel)createStringResource(dto.getAuthor());
+            }
+        };
+        columns.add(column);
+
+        column = new PropertyColumn<ReportDto, String>(createStringResource("pageCreatedReports.table.time"), null){
+
+            @Override
+            public IModel<Object> getDataModel(IModel<ReportDto> rowModel){
+                ReportDto dto = rowModel.getObject();
+
+                return (IModel)createStringResource(dto.getTimeString());
+            }
+        };
+        columns.add(column);
+
+        column = new PropertyColumn<ReportDto, String>(createStringResource("pageCreatedReports.table.filetype"), null){
+
+            @Override
+            public IModel<Object> getDataModel(IModel<ReportDto> rowModel){
+                ReportDto dto = rowModel.getObject();
+
+                return (IModel)createStringResource(dto.getFileType());
+            }
+        };
+        columns.add(column);
+
+        column = new AbstractColumn<ReportDto, String>(new Model(), null) {
+
+            @Override
+            public void populateItem(Item<ICellPopulator<ReportDto>> cellItem,
+                                     String componentId, IModel<ReportDto> rowModel) {
+
+                cellItem.add(new SingleButtonRowPanel<ReportDto>(componentId, rowModel, BUTTON_DOWNLOAD_TEXT){
+
+                    @Override
+                    public void executePerformed(AjaxRequestTarget target, IModel<ReportDto> model){
+                        downloadPerformed(target, model.getObject(), ajaxDownloadBehavior);
+                    }
+                });
+            }
+        };
+        columns.add(column);
 
         return columns;
+    }
+
+    private void downloadPerformed(AjaxRequestTarget target, ReportDto report,
+                                   AjaxDownloadBehaviorFromStream ajaxDownloadBehavior){
+        //TODO - run download from file
     }
 
     private byte[] createReport(){

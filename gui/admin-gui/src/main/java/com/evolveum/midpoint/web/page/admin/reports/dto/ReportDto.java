@@ -33,6 +33,7 @@ public class ReportDto implements Serializable {
     private String description;
     private String author;
     private String timeString;
+    private String fileType;
 
 
     public ReportDto(Type type, String name, String description) {
@@ -67,5 +68,13 @@ public class ReportDto implements Serializable {
 
     public String getTimeString(){
         return timeString;
+    }
+
+    public String getFileType(){
+        return fileType;
+    }
+
+    public void setFileType(String fileType){
+        this.fileType = fileType;
     }
 }
