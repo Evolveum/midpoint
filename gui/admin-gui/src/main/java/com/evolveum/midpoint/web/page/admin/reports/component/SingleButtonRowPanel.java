@@ -37,15 +37,16 @@ public class SingleButtonRowPanel<T> extends SimplePanel<T> {
 
     public SingleButtonRowPanel(String id, IModel<T> model){
         super(id, model);
+        initializeLayout();
     }
 
     public SingleButtonRowPanel(String id, IModel<T> model, String buttonName){
         super(id, model);
         this.buttonName = buttonName;
+        initializeLayout();
     }
 
-    @Override
-    protected void initLayout(){
+    private void initializeLayout(){
         AjaxButton button = new AjaxButton(ID_BUTTON, createButtonStringResource()) {
 
             @Override

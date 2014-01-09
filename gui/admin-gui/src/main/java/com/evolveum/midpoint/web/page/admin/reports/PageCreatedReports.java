@@ -24,23 +24,25 @@ import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.reports.component.SingleButtonRowPanel;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.MetadataType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
-import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
-import com.sun.org.apache.xerces.internal.jaxp.datatype.XMLGregorianCalendarImpl;
+import com.evolveum.midpoint.web.page.admin.reports.dto.ReportFilterDto;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExportType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.attributes.AjaxRequestAttributes;
+import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.html.form.DropDownChoice;
+import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -56,11 +58,21 @@ public class PageCreatedReports extends PageAdminReports {
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_CREATED_REPORTS_TABLE = "table";
+    private static final String ID_SEARCH_FORM = "searchForm";
+    private static final String ID_FILTER_FORM = "filterForm";
+    private static final String ID_FILTER_FILE_TYPE = "filetype";
 
     private IModel<List<ReportDto>> model;
-
+    private IModel<ReportFilterDto> filterModel;
 
     public PageCreatedReports(){
+
+        filterModel = new LoadableModel<ReportFilterDto>() {
+            @Override
+            protected ReportFilterDto load() {
+                return loadReportFilterDto();
+            }
+        };
 
         model = new LoadableModel<List<ReportDto>>() {
 
@@ -70,6 +82,11 @@ public class PageCreatedReports extends PageAdminReports {
             }
         };
         initLayout();
+    }
+
+    private ReportFilterDto loadReportFilterDto(){
+        ReportFilterDto dto = new ReportFilterDto();
+        return dto;
     }
 
     @Override
@@ -99,6 +116,10 @@ public class PageCreatedReports extends PageAdminReports {
     }
 
     private void initLayout(){
+        Form filterForm = new Form(ID_FILTER_FORM);
+        add(filterForm);
+        initFilterForm(filterForm);
+
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
@@ -117,6 +138,43 @@ public class PageCreatedReports extends PageAdminReports {
         table.setShowPaging(true);
         table.setOutputMarkupId(true);
         mainForm.add(table);
+    }
+
+    private void initFilterForm(Form filterForm){
+        DropDownChoice filetypeSelect = new DropDownChoice(ID_FILTER_FILE_TYPE,
+                new PropertyModel(filterModel, ReportFilterDto.F_FILE_TYPE),
+                new AbstractReadOnlyModel<List<ExportType>>() {
+
+                    @Override
+                    public List<ExportType> getObject() {
+                        return createFileTypeList();
+                    }
+                },
+                new EnumChoiceRenderer(PageCreatedReports.this));
+        filetypeSelect.add(createFilterAjaxBehaviour());
+        filetypeSelect.setOutputMarkupId(true);
+        filetypeSelect.setNullValid(false);
+
+        if(filetypeSelect.getModel().getObject() == null){
+            filetypeSelect.getModel().setObject(null);
+        }
+        filterForm.add(filetypeSelect);
+    }
+
+    private List<ExportType> createFileTypeList(){
+        List<ExportType> list = new ArrayList<ExportType>();
+        Collections.addAll(list, ExportType.values());
+        return list;
+    }
+
+    private AjaxFormComponentUpdatingBehavior createFilterAjaxBehaviour(){
+        return new AjaxFormComponentUpdatingBehavior("onchange") {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                filterPerformed(target);
+            }
+        };
     }
 
     private List<IColumn<ReportDto, String>> initColumns(final AjaxDownloadBehaviorFromStream ajaxDownloadBehavior){
@@ -206,6 +264,10 @@ public class PageCreatedReports extends PageAdminReports {
     private byte[] createReport(){
         //TODO - create report from ReportType
         return null;
+    }
+
+    private void filterPerformed(AjaxRequestTarget target){
+        //TODO - perform some fancy search here
     }
 
 
