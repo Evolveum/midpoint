@@ -236,7 +236,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
     }
   
     @Override
-    public void cleanupReports(CleanupPolicyType cleanupPolicy, OperationResult parentResult) {//throws ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+    public void cleanupReports(CleanupPolicyType cleanupPolicy, OperationResult parentResult) {
     	OperationResult result = parentResult.createSubresult(CLEANUP_REPORT_OUTPUTS);
 
         if (cleanupPolicy.getMaxAge() == null) {
@@ -257,10 +257,12 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
         
         List<PrismObject<ReportOutputType>> obsoleteReportOutputs = new ArrayList<PrismObject<ReportOutputType>>();
         try {
-            ObjectQuery obsoleteReportOutputsQuery = ObjectQuery.createObjectQuery(LessFilter.createLess(new ItemPath(ReportOutputType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), ReportOutputType.class, prismContext, timeXml, true));
+            ObjectQuery obsoleteReportOutputsQuery = ObjectQuery.createObjectQuery(LessFilter.createLess(
+            		new ItemPath(ReportOutputType.F_METADATA, MetadataType.F_CREATE_TIMESTAMP), 
+            		ReportOutputType.class, prismContext, timeXml, true));
             obsoleteReportOutputs = modelService.searchObjects(ReportOutputType.class, obsoleteReportOutputsQuery, null, null, result);
         } catch (Exception e) {
-            throw new RuntimeException("Couldn't get the list of obsolete report outputs: " + e.getMessage(), e);
+            throw new SystemException("Couldn't get the list of obsolete report outputs: " + e.getMessage(), e);
         }
 
         LOGGER.debug("Found {} report output(s) to be cleaned up", obsoleteReportOutputs.size());
@@ -272,19 +274,11 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
         for (PrismObject<ReportOutputType> reportOutputPrism : obsoleteReportOutputs){
         	ReportOutputType reportOutput = reportOutputPrism.asObjectable();
         	
-        	LOGGER.trace("Removing report output {} along with {} file.", reportOutput.getName().getOrig(), reportOutput.getReportFilePath());
+        	LOGGER.trace("Removing report output {} along with {} file.", reportOutput.getName().getOrig(), 
+        			reportOutput.getReportFilePath());
         	boolean problem = false;
         	try {
                     deleteReportOutput(reportOutput, result);
-                } catch (SchemaException e) {
-                    LoggingUtils.logException(LOGGER, "Couldn't delete obsolete report output {} due to schema exception", e, reportOutput);
-                    problem = true;
-                } catch (ObjectNotFoundException e) {
-                    LoggingUtils.logException(LOGGER, "Couldn't delete obsolete report output {} due to object not found exception", e, reportOutput);
-                    problem = true;
-                } catch (RuntimeException e) {
-                    LoggingUtils.logException(LOGGER, "Couldn't delete obsolete report output {} due to a runtime exception", e, reportOutput);
-                    problem = true;
                 } catch (Exception e) {
                 	LoggingUtils.logException(LOGGER, "Couldn't delete obsolete report output {} due to a exception", e, reportOutput);
                     problem = true;
@@ -298,46 +292,21 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
         }
         result.computeStatusIfUnknown();
 
-        LOGGER.info("Report cleanup procedure " + (interrupted ? "was interrupted" : "finished") + ". Successfully deleted {} report outputs; there were problems with deleting {} report ouptuts.", deleted, problems);
+        LOGGER.info("Report cleanup procedure " + 
+        (interrupted ? "was interrupted" : "finished") + 
+        ". Successfully deleted {} report outputs; there were problems with deleting {} report ouptuts.", deleted, problems);
         String suffix = interrupted ? " Interrupted." : "";
         if (problems == 0) {
-            parentResult.createSubresult(CLEANUP_REPORT_OUTPUTS + ".statistics").recordStatus(OperationResultStatus.SUCCESS, "Successfully deleted " + deleted + " report output(s)." + suffix);
+            parentResult.createSubresult(CLEANUP_REPORT_OUTPUTS + ".statistics").recordStatus(OperationResultStatus.SUCCESS,
+            		"Successfully deleted " + deleted + " report output(s)." + suffix);
         } else {
-            parentResult.createSubresult(CLEANUP_REPORT_OUTPUTS + ".statistics").recordPartialError("Successfully deleted " + deleted + " report output(s), "
+            parentResult.createSubresult(CLEANUP_REPORT_OUTPUTS + ".statistics").recordPartialError("Successfully deleted " + 
+        deleted + " report output(s), "
                     + "there was problems with deleting " + problems + " report outputs.");
         }
     }
     
-    private ReportOutputType getReportOutput(String reportOutputOid, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
-  
-		OperationResult result = parentResult.createMinorSubresult(CLASS_NAME_WITH_DOT + "getReportOutput"); 
-		result.addParam(OperationResult.PARAM_OID, reportOutputOid);
-		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, CLASS_NAME_WITH_DOT);
-		
-		ReportOutputType reportOutput;
-		try {
-			reportOutput = modelService.getObject(ReportOutputType.class, reportOutputOid, null, null, result).asObjectable();
-        } catch (ObjectNotFoundException e) {
-			result.recordFatalError("Report output not found", e);
-			throw e;
-		} catch (SchemaException e) {
-			result.recordFatalError("Report output schema error: "+e.getMessage(), e);
-			throw e;
-		} catch (SecurityViolationException e) {
-			result.recordFatalError("Report output security violation error: "+e.getMessage(), e);
-			throw e;
-		} catch (CommunicationException e) {
-			result.recordFatalError("Report output communication error: "+e.getMessage(), e);
-			throw e;
-		} catch (ConfigurationException e) {
-			result.recordFatalError("Report output configuration error: "+e.getMessage(), e);
-			throw e;
-		}
-		result.recordSuccess();
-		return reportOutput;
-	}
-    
-    private void deleteReportOutput(ReportOutputType reportOutput, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ObjectAlreadyExistsException, ExpressionEvaluationException, PolicyViolationException {
+    private void deleteReportOutput(ReportOutputType reportOutput, OperationResult parentResult) throws Exception {
     	String oid = reportOutput.getOid();
 
     	Task task = taskManager.createTaskInstance(CLASS_NAME_WITH_DOT + "deleteReportOutput");
@@ -356,29 +325,8 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
             
             result.recordSuccessIfUnknown();
         }
-        catch (ObjectNotFoundException e) {
-            result.recordFatalError("Cannot delete the report output because it does not exist.", e);
-            throw e;
-        } catch (SchemaException e) {
-            result.recordFatalError("Cannot delete the report output because of schema exception.", e);
-            throw e;
-        } catch (SecurityViolationException e) {
-        	result.recordFatalError("Cannot delete the report output because of security violation exception: ", e);
-        	throw e;
-        } catch (CommunicationException e) {
-        	result.recordFatalError("Cannot delete the report output because of communication exception: ", e);
-        	throw e;
-        } catch (ConfigurationException e) {
-        	result.recordFatalError("Cannot delete the report output because of configuration exception: ", e);
-        	throw e;
-        } catch (ExpressionEvaluationException e) {
-        	result.recordFatalError("Cannot delete the report output because of expression evalution exception: ", e);
-        	throw e;
-        } catch (PolicyViolationException e) {
-        	result.recordFatalError("Cannot delete the report output because of policy violation exception: ", e);
-        	throw e;
-        } catch (RuntimeException e) {
-        	result.recordFatalError("Cannot delete the report output because of a runtime exception.", e);
+        catch (Exception e) {
+        	result.recordFatalError("Cannot delete the report output because of a exception.", e);
             throw e;
         }
     } 
