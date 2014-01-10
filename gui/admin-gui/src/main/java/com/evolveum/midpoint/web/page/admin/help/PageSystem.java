@@ -46,6 +46,7 @@ public class PageSystem extends PageAdminHelp {
 
     private static final String DOT_CLASS = PageSystem.class.getName() + ".";
     private static final String OPERATION_TEST_REPOSITORY = DOT_CLASS + "testRepository";
+    private static final String OPERATION_TEST_PROVISIONING = DOT_CLASS + "testProvisioning";
     private static final String OPERATION_GET_REPO_DIAG = DOT_CLASS + "getRepoDiag";
 
     private static final String ID_REVISION = "revision";
@@ -53,6 +54,7 @@ public class PageSystem extends PageAdminHelp {
     private static final String ID_VALUE = "value";
     private static final String ID_LIST_SYSTEM_ITEMS = "listSystemItems";
     private static final String ID_TEST_REPOSITORY = "testRepository";
+    private static final String ID_TEST_PROVISIONING = "testProvisioning";
     private static final String ID_IMPLEMENTATION_SHORT_NAME = "implementationShortName";
     private static final String ID_IMPLEMENTATION_DESCRIPTION = "implementationDescription";
     private static final String ID_IS_EMBEDDED = "isEmbedded";
@@ -125,6 +127,16 @@ public class PageSystem extends PageAdminHelp {
             }
         };
         add(testRepository);
+        
+        AjaxLinkButton testProvisioning = new AjaxLinkButton(ID_TEST_PROVISIONING,
+                createStringResource("pageSystem.button.testProvisioning")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                testProvisioningPerformed(target);
+            }
+        };
+        add(testProvisioning);
     }
 
     private RepositoryDiag loadRepoDiagModel() {
@@ -166,6 +178,15 @@ public class PageSystem extends PageAdminHelp {
         Task task = createSimpleTask(OPERATION_TEST_REPOSITORY);
 
         OperationResult result = getModelDiagnosticService().repositorySelfTest(task);
+        showResult(result);
+
+        target.add(getFeedbackPanel());
+    }
+    
+    private void testProvisioningPerformed(AjaxRequestTarget target) {
+        Task task = createSimpleTask(OPERATION_TEST_PROVISIONING);
+
+        OperationResult result = getModelDiagnosticService().provisioningSelfTest(task);
         showResult(result);
 
         target.add(getFeedbackPanel());

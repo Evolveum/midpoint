@@ -689,10 +689,12 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 		
 		OperationResult subresult = result.createSubresult(ConnectorFactoryIcfImpl.class + ".selfTestGuardedString.encryptorReflection");
 		EncryptorFactory encryptorFactory = EncryptorFactory.getInstance();
-		subresult.addReturn("encryptorFactoryImpl", encryptorFactory.getClass());
+//		subresult.addReturn("encryptorFactoryImpl", encryptorFactory.getClass());
+		subresult.addParam("encryptorFactoryImpl", encryptorFactory.getClass());
 		LOGGER.debug("Encryptor factory implementation class: {}", encryptorFactory.getClass());
 		Encryptor encryptor = EncryptorFactory.getInstance().newRandomEncryptor();
-		subresult.addReturn("encryptorImpl", encryptor.getClass());
+//		subresult.addReturn("encryptorImpl", encryptor.getClass());
+		subresult.addParam("encryptorImpl", encryptor.getClass());
 		LOGGER.debug("Encryptor implementation class: {}", encryptor.getClass());
 		if (encryptor.getClass().getName().equals("org.identityconnectors.common.security.impl.EncryptorImpl")) {
 			// let's do some reflection magic to have a look inside
@@ -701,9 +703,12 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 				Field keyField = encryptor.getClass().getDeclaredField("key");
 				keyField.setAccessible(true);
 				Key key = (Key) keyField.get(encryptor);
-				subresult.addReturn("keyAlgorithm", key.getAlgorithm());
-				subresult.addReturn("keyLength", key.getEncoded().length*8);
-				subresult.addReturn("keyFormat", key.getFormat());
+//				subresult.addReturn("keyAlgorithm", key.getAlgorithm());
+//				subresult.addReturn("keyLength", key.getEncoded().length*8);
+//				subresult.addReturn("keyFormat", key.getFormat());
+				subresult.addParam("keyAlgorithm", key.getAlgorithm());
+				subresult.addParam("keyLength", key.getEncoded().length*8);
+				subresult.addParam("keyFormat", key.getFormat());
 				subresult.recordSuccess();
 			} catch (IllegalArgumentException e) {
 				subresult.recordPartialError("Reflection introspection failed", e);
