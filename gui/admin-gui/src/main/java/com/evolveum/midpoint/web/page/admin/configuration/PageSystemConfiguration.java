@@ -34,6 +34,7 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.LoggingConfigPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.SystemConfigPanel;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.*;
+import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.apache.commons.lang.StringUtils;
@@ -94,27 +95,25 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
                 SelectorOptions.createCollection(GetOperationOptions.createResolve(),
                         SystemConfigurationType.F_DEFAULT_USER_TEMPLATE ,SystemConfigurationType.F_GLOBAL_PASSWORD_POLICY);
 
+        SystemConfigurationDto dto = null;
         try{
             PrismObject<SystemConfigurationType> systemConfig = getModelService().getObject(SystemConfigurationType.class,
                     SystemObjectsType.SYSTEM_CONFIGURATION.value(), options, task, result);
 
+            dto = new SystemConfigurationDto(systemConfig);
             result.recordSuccess();
-            return new SystemConfigurationDto(systemConfig);
-
         } catch(Exception ex){
             LoggingUtils.logException(LOGGER, "Couldn't load system configuration", ex);
             result.recordFatalError("Couldn't load system configuration.", ex);
         }
 
-        if (WebMiscUtil.showResultInPage(result)) {
+        //what do you do with null? many components depends on this not to be null :)
+        if(!WebMiscUtil.isSuccessOrHandledError(result) || dto == null) {
             showResultInSession(result);
+            throw getRestartResponseException(PageError.class);
         }
 
-        //what do you do with null? many components depends on this not to be null :)
-        if(!result.isSuccess())
-            throw getRestartResponseException(PageSystemConfiguration.class);
-
-        return new SystemConfigurationDto();
+        return dto;
     }
 
     private void initLayout() {
