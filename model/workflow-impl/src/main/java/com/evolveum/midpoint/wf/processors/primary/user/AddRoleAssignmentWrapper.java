@@ -34,12 +34,13 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.jobs.JobCreationInstruction;
 import com.evolveum.midpoint.wf.processes.addrole.AddRoleVariableNames;
 import com.evolveum.midpoint.wf.processes.itemApproval.ApprovalRequest;
 import com.evolveum.midpoint.wf.processes.itemApproval.ApprovalRequestImpl;
 import com.evolveum.midpoint.wf.processes.itemApproval.ProcessVariableNames;
+import com.evolveum.midpoint.wf.processors.primary.PcpChildJobCreationInstruction;
 import com.evolveum.midpoint.wf.processors.primary.PrimaryChangeProcessor;
+import com.evolveum.midpoint.wf.processors.primary.wrapper.BaseWrapper;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
@@ -85,7 +86,7 @@ public class AddRoleAssignmentWrapper extends BaseWrapper {
     // ------------------------------------------------------------ Things that execute on request arrival
 
     @Override
-    public List<JobCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext, ObjectDelta<? extends ObjectType> change, Task taskFromModel, OperationResult result) throws SchemaException {
+    public List<PcpChildJobCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext, ObjectDelta<? extends ObjectType> change, Task taskFromModel, OperationResult result) throws SchemaException {
 
         List<ApprovalRequest<AssignmentType>> approvalRequestList = getAssignmentToApproveList(change, result);
         if (approvalRequestList == null) {
@@ -186,10 +187,10 @@ public class AddRoleAssignmentWrapper extends BaseWrapper {
     }
 
     // approvalRequestList should contain de-referenced roles and approvalRequests that have prismContext set
-    private List<JobCreationInstruction> prepareJobCreateInstructions(ModelContext<?> modelContext, Task taskFromModel, OperationResult result, List<ApprovalRequest<AssignmentType>> approvalRequestList) throws SchemaException {
-        List<JobCreationInstruction> instructions = new ArrayList<JobCreationInstruction>();
+    private List<PcpChildJobCreationInstruction> prepareJobCreateInstructions(ModelContext<?> modelContext, Task taskFromModel, OperationResult result, List<ApprovalRequest<AssignmentType>> approvalRequestList) throws SchemaException {
+        List<PcpChildJobCreationInstruction> instructions = new ArrayList<>();
 
-        String userName = MiscDataUtil.getObjectName(modelContext);
+        String userName = MiscDataUtil.getFocusObjectName(modelContext);
 
         for (ApprovalRequest<AssignmentType> approvalRequest : approvalRequestList) {
 
@@ -212,9 +213,9 @@ public class AddRoleAssignmentWrapper extends BaseWrapper {
             String objectOid = wrapperHelper.getObjectOid(modelContext);
             PrismObject<UserType> requester = wrapperHelper.getRequester(taskFromModel, result);
 
-            JobCreationInstruction instruction = JobCreationInstruction.createWfProcessChildJob(getChangeProcessor());
+            PcpChildJobCreationInstruction instruction = PcpChildJobCreationInstruction.createInstruction(getChangeProcessor());
 
-            wrapperHelper.prepareCommonInstructionAttributes(changeProcessor, instruction, modelContext, objectOid, requester);
+            wrapperHelper.prepareCommonInstructionAttributes(changeProcessor, this, instruction, modelContext, objectOid, requester);
             instruction.addProcessVariable(AddRoleVariableNames.USER_NAME, userName);
 
             instruction.setProcessDefinitionKey(GENERAL_APPROVAL_PROCESS);

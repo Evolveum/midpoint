@@ -1,6 +1,5 @@
 package com.evolveum.midpoint.wf.processors.general;
 
-import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.common.expression.Expression;
@@ -36,7 +35,6 @@ import com.evolveum.midpoint.wf.jobs.WfTaskUtil;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.processors.BaseChangeProcessor;
-import com.evolveum.midpoint.wf.processors.BaseConfigurationHelper;
 import com.evolveum.midpoint.wf.processors.BaseModelInvocationProcessingHelper;
 import com.evolveum.midpoint.wf.util.JaxbValueContainer;
 import com.evolveum.midpoint.wf.util.SerializationSafeContainer;
@@ -47,7 +45,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
-import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 import org.activiti.engine.form.FormProperty;
 import org.activiti.engine.form.TaskFormData;
@@ -87,25 +84,45 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
     @Autowired
     private GeneralChangeProcessorConfigurationHelper myConfigurationHelper;
 
+    @Autowired
+    private GcpExpressionHelper gcpExpressionHelper;
+
     private GeneralChangeProcessorConfigurationType processorConfigurationType;
 
+    //region Initialization and Configuration
     @PostConstruct
     public void init() {
         processorConfigurationType = myConfigurationHelper.configure(this);
         if (isEnabled()) {
-            putStartupMessage();
+            // print startup message
+            int scenarios = processorConfigurationType.getScenario().size();
+            if (scenarios > 0) {
+                LOGGER.info(getBeanName() + " initialized correctly (number of scenarios: " + scenarios + ")");
+            } else {
+                LOGGER.warn(getBeanName() + " initialized correctly, but there are no scenarios - so it will never be invoked");
+            }
         }
     }
 
-    private void putStartupMessage() {
-        int scenarios = processorConfigurationType.getScenario().size();
-        if (scenarios > 0) {
-            LOGGER.info(getBeanName() + " initialized correctly (number of scenarios: " + scenarios + ")");
-        } else {
-            LOGGER.warn(getBeanName() + " initialized correctly, but there are no scenarios - so it will never be invoked");
+    private GeneralChangeProcessorScenarioType findScenario(String scenarioName) {
+        for (GeneralChangeProcessorScenarioType scenario : processorConfigurationType.getScenario()) {
+            if (scenarioName.equals(scenario.getName())) {
+                return scenario;
+            }
         }
+        throw new SystemException("Scenario named " + scenarioName + " couldn't be found");
     }
 
+    public void disableScenario(String scenarioName) {
+        findScenario(scenarioName).setEnabled(false);
+    }
+
+    public void enableScenario(String scenarioName) {
+        findScenario(scenarioName).setEnabled(true);
+    }
+    //endregion
+
+    //region Processing model invocation
     @Override
     public HookOperationMode processModelInvocation(ModelContext context, Task taskFromModel, OperationResult result) throws SchemaException {
 
@@ -116,7 +133,7 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
         for (GeneralChangeProcessorScenarioType scenarioType : processorConfigurationType.getScenario()) {
             if (Boolean.FALSE.equals(scenarioType.isEnabled())) {
                 LOGGER.trace("scenario {} is disabled, skipping", scenarioType.getName());
-            } else if (!evaluateActivationCondition(scenarioType, context, result)) {
+            } else if (!gcpExpressionHelper.evaluateActivationCondition(scenarioType, context, result)) {
                 LOGGER.trace("activationCondition was evaluated to FALSE for scenario named {}", scenarioType.getName());
             } else {
                 LOGGER.trace("Applying scenario {} (process name {})", scenarioType.getName(), scenarioType.getProcessName());
@@ -129,10 +146,7 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
 
     private HookOperationMode applyScenario(GeneralChangeProcessorScenarioType scenarioType, ModelContext context, Task taskFromModel, OperationResult result) {
 
-        Throwable failReason;
-
         try {
-
             // ========== preparing root task ===========
 
             JobCreationInstruction rootInstruction = baseModelInvocationProcessingHelper.createInstructionForRoot(this, context, taskFromModel);
@@ -146,92 +160,27 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
             instruction.setTaskName("Workflow-monitoring task");
 
             LensContextType lensContextType = ((LensContext<?>) context).toPrismContainer().getValue().asContainerable();
-            instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MODEL_CONTEXT, new JaxbValueContainer<LensContextType>(lensContextType, prismContext));
+            instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MODEL_CONTEXT, new JaxbValueContainer<>(lensContextType, prismContext));
 
             jobController.createJob(instruction, rootJob, result);
 
             // ========== complete the action ===========
 
-            baseModelInvocationProcessingHelper.logTasksBeforeStart(rootJob, result);
+            baseModelInvocationProcessingHelper.logJobsBeforeStart(rootJob, result);
             rootJob.startWaitingForSubtasks(result);
 
             return HookOperationMode.BACKGROUND;
 
-        } catch (SchemaException e) {
-            failReason = e;
-        } catch (ObjectNotFoundException e) {
-            failReason = e;
-        } catch (RuntimeException e) {
-            failReason = e;
-        } catch (CommunicationException e) {
-            failReason = e;
-        } catch (ConfigurationException e) {
-            failReason = e;
+        } catch (SchemaException|ObjectNotFoundException|CommunicationException|ConfigurationException|RuntimeException e) {
+            LoggingUtils.logException(LOGGER, "Workflow process(es) could not be started", e);
+            result.recordFatalError("Workflow process(es) could not be started: " + e, e);
+            return HookOperationMode.ERROR;
+            // todo rollback - at least close open tasks, maybe stop workflow process instances
         }
-
-        LoggingUtils.logException(LOGGER, "Workflow process(es) could not be started", failReason);
-        result.recordFatalError("Workflow process(es) could not be started: " + failReason, failReason);
-        return HookOperationMode.ERROR;
-
-        // todo rollback - at least close open tasks, maybe stop workflow process instances
     }
+    //endregion
 
-    private boolean evaluateActivationCondition(GeneralChangeProcessorScenarioType scenarioType, ModelContext context, OperationResult result) throws SchemaException {
-        ExpressionType conditionExpression = scenarioType.getActivationCondition();
-
-        if (conditionExpression == null) {
-            return true;
-        }
-
-        Map<QName,Object> variables = new HashMap<QName,Object>();
-        variables.put(new QName(SchemaConstants.NS_C, "context"), context);
-
-        boolean start;
-        try {
-            start = evaluateBooleanExpression(conditionExpression, variables, "workflow activation condition", result);
-        } catch (ObjectNotFoundException e) {
-            throw new SystemException("Couldn't evaluate generalChangeProcessor activation condition", e);
-        } catch (ExpressionEvaluationException e) {
-            throw new SystemException("Couldn't evaluate generalChangeProcessor activation condition", e);
-        }
-        return start;
-    }
-
-    private ExpressionFactory expressionFactory;
-
-    private ExpressionFactory getExpressionFactory() {
-        LOGGER.trace("Getting expressionFactory");
-        ExpressionFactory ef = getBeanFactory().getBean("expressionFactory", ExpressionFactory.class);
-        if (ef == null) {
-            throw new IllegalStateException("expressionFactory bean cannot be found");
-        }
-        return ef;
-    }
-
-    private boolean evaluateBooleanExpression(ExpressionType expressionType, Map<QName, Object> expressionVariables, String opContext, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
-
-        if (expressionFactory == null) {
-            expressionFactory = getExpressionFactory();
-        }
-
-        PrismContext prismContext = expressionFactory.getPrismContext();
-        QName resultName = new QName(SchemaConstants.NS_C, "result");
-        PrismPropertyDefinition resultDef = new PrismPropertyDefinition(resultName, DOMUtil.XSD_BOOLEAN, prismContext);
-        Expression<PrismPropertyValue<Boolean>> expression = expressionFactory.makeExpression(expressionType, resultDef, opContext, result);
-        ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, opContext, result);
-        PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> exprResultTriple = expression.evaluate(params);
-
-        Collection<PrismPropertyValue<Boolean>> exprResult = exprResultTriple.getZeroSet();
-        if (exprResult.size() == 0) {
-            return false;
-        } else if (exprResult.size() > 1) {
-            throw new IllegalStateException("Expression should return exactly one boolean value; it returned " + exprResult.size() + " ones");
-        }
-        Boolean boolResult = exprResult.iterator().next().getValue();
-        return boolResult != null ? boolResult : false;
-    }
-
-
+    //region Finalizing the processing
     @Override
     public void onProcessEnd(ProcessEvent event, Job job, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
 
@@ -243,7 +192,7 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
 
         Task rootTask = task.getParentTask(result);
 
-        SerializationSafeContainer <LensContextType> contextContainer = (SerializationSafeContainer<LensContextType>) event.getVariable(CommonProcessVariableNames.VARIABLE_MODEL_CONTEXT);
+        SerializationSafeContainer<LensContextType> contextContainer = (SerializationSafeContainer<LensContextType>) event.getVariable(CommonProcessVariableNames.VARIABLE_MODEL_CONTEXT);
         LensContextType lensContextType = null;
         if (contextContainer != null) {
             contextContainer.setPrismContext(prismContext);
@@ -254,13 +203,14 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
             LOGGER.debug(CommonProcessVariableNames.VARIABLE_MODEL_CONTEXT + " not present in process, this means we should stop processing. Task = {}", task);
             wfTaskUtil.setSkipModelContextProcessingProperty(rootTask, true, result);
         } else {
-            LOGGER.debug("Putting (changed or unchanged) value of " + CommonProcessVariableNames.VARIABLE_MODEL_CONTEXT + " into the task {}", task);
+            LOGGER.debug("Putting (changed or unchanged) value of {} into the task {}", CommonProcessVariableNames.VARIABLE_MODEL_CONTEXT, task);
             wfTaskUtil.storeModelContext(rootTask, lensContextType.asPrismContainerValue().getContainer());
         }
 
         rootTask.savePendingModifications(result);
         LOGGER.trace("onProcessEnd ending for task {}", task);
     }
+    //endregion
 
     @Override
     public PrismObject<? extends ObjectType> getRequestSpecificData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {
@@ -301,21 +251,5 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
-    private GeneralChangeProcessorScenarioType findScenario(String scenarioName) {
-        for (GeneralChangeProcessorScenarioType scenario : processorConfigurationType.getScenario()) {
-            if (scenarioName.equals(scenario.getName())) {
-                return scenario;
-            }
-        }
-        throw new SystemException("Scenario named " + scenarioName + " couldn't be found");
-    }
-
-    public void disableScenario(String scenarioName) {
-        findScenario(scenarioName).setEnabled(false);
-    }
-
-    public void enableScenario(String scenarioName) {
-        findScenario(scenarioName).setEnabled(true);
-    }
 
 }

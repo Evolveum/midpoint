@@ -45,6 +45,13 @@ public class Job {
         this.changeProcessor = changeProcessor;
     }
 
+    protected Job(Job original) {
+        this.jobController = original.jobController;
+        this.task = original.task;
+        this.activitiId = original.activitiId;
+        this.changeProcessor = original.changeProcessor;
+    }
+
     public String getActivitiId() {
         return activitiId;
     }

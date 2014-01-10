@@ -28,13 +28,15 @@ import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.task.api.TaskBinding;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.WfConfiguration;
 import com.evolveum.midpoint.wf.api.WfTaskExtensionItemsNames;
-import com.evolveum.midpoint.wf.processors.primary.PrimaryApprovalProcessWrapper;
+import com.evolveum.midpoint.wf.processors.primary.wrapper.PrimaryApprovalProcessWrapper;
 import com.evolveum.midpoint.wf.processors.ChangeProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.midpoint.xml.ns._public.communication.workflow_1.WfProcessInstanceEventType;
@@ -63,19 +65,21 @@ import java.util.*;
 
 public class WfTaskUtil {
 
-    @Autowired(required = true)
-    private RepositoryService repositoryService;
-
-    @Autowired(required = true)
-    private PrismContext prismContext;
-
-    @Autowired(required = true)
-    private ProvisioningService provisioningService;
-
     @Autowired
     private WfConfiguration wfConfiguration;
 
+    @Autowired
+    private RepositoryService repositoryService;
+
+    @Autowired
+    private PrismContext prismContext;
+
+    @Autowired
+    private ProvisioningService provisioningService;
+
 	private static final Trace LOGGER = TraceManager.getTrace(WfTaskUtil.class);
+
+    public static final String WAIT_FOR_TASKS_HANDLER_URI = "<<< marker for calling pushWaitForTasksHandlerUri >>>";
 
     // wfModelContext - records current model context (i.e. context of current model operation)
 
@@ -627,5 +631,61 @@ public class WfTaskUtil {
 
     public PrismReferenceDefinition getWfApprovedByReferenceDefinition() {
         return wfApprovedByReferenceDefinition;
+    }
+
+    void setTaskOwner(Task task, PrismObject<UserType> owner) {
+        if (owner == null) {
+            throw new IllegalStateException("Couldn't create a job task because the owner is not set.");
+        }
+        task.setOwner(owner);
+    }
+
+    // handlers are stored in the list in the order they should be executed; so the last one has to be pushed first
+    void pushHandlers(Task task, List<UriStackEntry> handlers) {
+        for (int i = handlers.size()-1; i >= 0; i--) {
+            UriStackEntry entry = handlers.get(i);
+            if (WAIT_FOR_TASKS_HANDLER_URI.equals(entry.getHandlerUri())) {
+                task.pushWaitForTasksHandlerUri();
+            } else {
+                if (!entry.getExtensionDelta().isEmpty()) {
+                    throw new UnsupportedOperationException("handlers with extension delta set are not supported yet");
+                }
+                task.pushHandlerUri(entry.getHandlerUri(), entry.getSchedule(), TaskBinding.fromTaskType(entry.getBinding()), (ItemDelta) null);
+            }
+        }
+    }
+
+    /**
+     * Makes a task active, i.e. a task that actively queries wf process instance about its status.
+     *
+     *          OR
+     *
+     * Creates a passive task, i.e. a task that stores information received from WfMS about a process instance.
+     *
+     * We expect task to be transient at this moment!
+     * @param active
+     * @param t
+     * @param result
+     */
+    void pushProcessShadowHandler(boolean active, Task t, long taskStartDelay, OperationResult result) throws SchemaException, ObjectNotFoundException {
+
+        if (active) {
+
+            ScheduleType schedule = new ScheduleType();
+            schedule.setInterval(wfConfiguration.getProcessCheckInterval());
+            schedule.setEarliestStartTime(MiscUtil.asXMLGregorianCalendar(new Date(System.currentTimeMillis() + taskStartDelay)));
+            t.pushHandlerUri(WfProcessInstanceShadowTaskHandler.HANDLER_URI, schedule, TaskBinding.LOOSE);
+
+        } else {
+
+            t.pushHandlerUri(WfProcessInstanceShadowTaskHandler.HANDLER_URI, new ScheduleType(), null);		// note that this handler will not be actively used (at least for now)
+            t.makeWaiting();
+        }
+    }
+
+    void setDefaultTaskOwnerIfEmpty(Task t, OperationResult result, JobController jobController) throws SchemaException, ObjectNotFoundException {
+        if (t.getOwner() == null) {
+            t.setOwner(repositoryService.getObject(UserType.class, SystemObjectsType.USER_ADMINISTRATOR.value(), null, result));
+        }
     }
 }

@@ -147,7 +147,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 
 	}
 
-	@Test(enabled = false)
+	@Test(enabled = true)
     public void test010AddRole1() throws Exception {
         TestUtil.displayTestTile(this, "test010UserModifyAddRole");
         executeTest("test010UserModifyAddRole", USER_JACK_OID, 1, false, true, new ContextCreator() {
@@ -201,7 +201,7 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
         });
 	}
 
-    @Test(enabled = false)
+    @Test(enabled = true)
     public void test020AddAccountRejected() throws Exception {
         TestUtil.displayTestTile(this, "test020AddAccountRejected");
 

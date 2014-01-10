@@ -9,6 +9,9 @@ import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanNameAware;
 
 /**
+ * Useful base class for creating change processors. Currently this class deals only with keeping the processor
+ * configuration and context; everything else has been moved to helpers in order to make the code relatively clean.
+ *
  * @author mederly
  */
 public abstract class BaseChangeProcessor implements ChangeProcessor, BeanNameAware, BeanFactoryAware {

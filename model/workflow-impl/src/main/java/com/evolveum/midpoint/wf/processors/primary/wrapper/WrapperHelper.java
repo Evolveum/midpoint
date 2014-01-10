@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.wf.processors.primary.user;
+package com.evolveum.midpoint.wf.processors.primary.wrapper;
 
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.context.ModelContext;
@@ -35,23 +35,21 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.jobs.JobCreationInstruction;
 import com.evolveum.midpoint.wf.jobs.WfTaskUtil;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.processes.StringHolder;
 import com.evolveum.midpoint.wf.processes.itemApproval.Decision;
 import com.evolveum.midpoint.wf.processes.itemApproval.ProcessVariableNames;
-import com.evolveum.midpoint.wf.processors.ChangeProcessor;
+import com.evolveum.midpoint.wf.processors.primary.PcpChildJobCreationInstruction;
+import com.evolveum.midpoint.wf.processors.primary.PcpJob;
 import com.evolveum.midpoint.wf.processors.primary.PrimaryChangeProcessor;
-import com.evolveum.midpoint.wf.processors.primary.PrimaryChangeProcessorJob;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -61,7 +59,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @author Pavol
+ * @author mederly
  */
 @Component
 public class WrapperHelper {
@@ -74,7 +72,80 @@ public class WrapperHelper {
     @Autowired
     private WfTaskUtil wfTaskUtil;
 
-    String getObjectOid(ModelContext<?> modelContext) {
+    //region ========================================================================== Jobs-related methods
+    public void prepareCommonInstructionAttributes(PrimaryChangeProcessor changeProcessor, PrimaryApprovalProcessWrapper wrapper, PcpChildJobCreationInstruction instruction, ModelContext<?> modelContext, String objectOid, PrismObject<UserType> requester) throws SchemaException {
+
+        instruction.setRequesterOidInProcess(requester);
+        instruction.setObjectOidInProcess(objectOid);
+
+        instruction.setExecuteApprovedChangeImmediately(ModelExecuteOptions.isExecuteImmediatelyAfterApproval(((LensContext) modelContext).getOptions()));
+
+        instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_PROCESS_WRAPPER, wrapper.getClass().getName());
+        instruction.addTaskVariable(wfTaskUtil.getWfProcessWrapperPropertyDefinition(), wrapper.getClass().getName());
+
+        if (instruction.isExecuteApprovedChangeImmediately()) {
+            // actually, context should be emptied anyway; but to be sure, let's do it here as well
+            instruction.addTaskModelContext(changeProcessor.contextCopyWithNoDelta((LensContext) modelContext));
+            instruction.setExecuteModelOperationHandler(true);
+        }
+    }
+
+    public void setDeltaProcessAndTaskVariables(PcpChildJobCreationInstruction instruction, ObjectDelta delta) {
+        try {
+            instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_DELTA, new StringHolder(DeltaConvertor.toObjectDeltaTypeXml(delta)));
+        } catch(JAXBException e) {
+            throw new SystemException("Couldn't store primary delta into the process variable due to JAXB exception", e);
+        } catch (SchemaException e) {
+            throw new SystemException("Couldn't store primary delta into the process variable due to schema exception", e);
+        }
+
+        try {
+            instruction.addTaskDeltasVariable(wfTaskUtil.getWfDeltaToProcessPropertyDefinition(), delta);
+        } catch (SchemaException e) {
+            throw new SystemException("Couldn't store primary delta into the task variable due to schema exception", e);
+        }
+    }
+    //endregion
+
+    //region ========================================================================== Default implementation of wrapper methods
+    /**
+     * Prepares deltaOut from deltaIn, based on process instance variables.
+     * (Default implementation of the method from PrimaryApprovalProcessWrapper.)
+     *
+     * In the default case, mapping deltaIn -> deltaOut is extremely simple.
+     * DeltaIn contains a delta that has to be approved. Workflow answers simply yes/no.
+     * Therefore, we either copy DeltaIn to DeltaOut, or generate an empty list of modifications.
+     */
+    public List<ObjectDelta<Objectable>> prepareDeltaOut(ProcessEvent event, PcpJob pcpJob, OperationResult result) throws SchemaException {
+        List<ObjectDelta<Objectable>> deltaIn = pcpJob.retrieveDeltasToProcess();
+        if (CommonProcessVariableNames.isApproved(event.getAnswer())) {
+            return new ArrayList<>(deltaIn);
+        } else {
+            return new ArrayList<>();
+        }
+    }
+
+    /**
+     * Default implementation of getApprovedBy; it expects that we are using general item approval process.
+     */
+    public List<ObjectReferenceType> getApprovedBy(ProcessEvent event) {
+        List<ObjectReferenceType> retval = new ArrayList<ObjectReferenceType>();
+        if (!CommonProcessVariableNames.isApproved(event.getAnswer())) {
+            return retval;
+        }
+        List<Decision> allDecisions = (List<Decision>) event.getVariable(ProcessVariableNames.ALL_DECISIONS);
+        for (Decision decision : allDecisions) {
+            if (decision.isApproved()) {
+                retval.add(MiscSchemaUtil.createObjectReference(decision.getApproverOid(), SchemaConstants.C_USER_TYPE));
+            }
+        }
+
+        return retval;
+    }
+    //endregion
+
+    //region ========================================================================== Miscellaneous
+    public String getObjectOid(ModelContext<?> modelContext) {
         ModelElementContext<UserType> fc = (ModelElementContext<UserType>) modelContext.getFocusContext();
         String objectOid = null;
         if (fc.getObjectNew() != null && fc.getObjectNew().getOid() != null) {
@@ -86,7 +157,7 @@ public class WrapperHelper {
         }
     }
 
-    PrismObject<UserType> getRequester(Task task, OperationResult result) {
+    public PrismObject<UserType> getRequester(Task task, OperationResult result) {
         // let's get fresh data (not the ones read on user login)
         PrismObject<UserType> requester = null;
         try {
@@ -106,7 +177,7 @@ public class WrapperHelper {
         return requester;
     }
 
-    protected ObjectType resolveObjectRef(AssignmentType a, OperationResult result) {
+    public ObjectType resolveObjectRef(AssignmentType a, OperationResult result) {
 
         if (a == null) {
             return null;
@@ -127,8 +198,7 @@ public class WrapperHelper {
         return object;
     }
 
-
-    void resolveRolesAndOrgUnits(PrismObject<UserType> user, OperationResult result) {
+    public void resolveRolesAndOrgUnits(PrismObject<UserType> user, OperationResult result) {
         for (AssignmentType assignmentType : user.asObjectable().getAssignment()) {
             if (assignmentType.getTargetRef() != null && assignmentType.getTarget() == null) {
                 QName type = assignmentType.getTargetRef().getType();
@@ -149,73 +219,6 @@ public class WrapperHelper {
             }
         }
     }
-
-    void prepareCommonInstructionAttributes(PrimaryChangeProcessor changeProcessor, JobCreationInstruction instruction, ModelContext<?> modelContext, String objectOid, PrismObject<UserType> requester) throws SchemaException {
-
-        instruction.setRequesterOidInProcess(requester);
-        instruction.setObjectOidInProcess(objectOid);
-
-        instruction.setExecuteApprovedChangeImmediately(ModelExecuteOptions.isExecuteImmediatelyAfterApproval(((LensContext) modelContext).getOptions()));
-
-        instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_PROCESS_WRAPPER, this.getClass().getName());
-        instruction.addTaskVariable(wfTaskUtil.getWfProcessWrapperPropertyDefinition(), this.getClass().getName());
-
-        if (instruction.isExecuteApprovedChangeImmediately()) {
-            // actually, context should be emptied anyway; but to be sure, let's do it here as well
-            instruction.addTaskModelContext(changeProcessor.contextCopyWithNoDelta((LensContext) modelContext));
-            instruction.setExecuteModelOperationHandler(true);
-        }
-    }
-
-    public void setDeltaProcessAndTaskVariables(JobCreationInstruction instruction, ObjectDelta delta) {
-        try {
-            instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_DELTA, new StringHolder(DeltaConvertor.toObjectDeltaTypeXml(delta)));
-        } catch(JAXBException e) {
-            throw new SystemException("Couldn't store primary delta into the process variable due to JAXB exception", e);
-        } catch (SchemaException e) {
-            throw new SystemException("Couldn't store primary delta into the process variable due to schema exception", e);
-        }
-
-        try {
-            instruction.addTaskDeltasVariable(wfTaskUtil.getWfDeltaToProcessPropertyDefinition(), delta);
-        } catch (SchemaException e) {
-            throw new SystemException("Couldn't store primary delta into the task variable due to schema exception", e);
-        }
-    }
-
-
-    /*
-     * In the default case, mapping deltaIn -> deltaOut is extremely simple.
-     * DeltaIn contains a delta that has to be approved. Workflow answers simply yes/no.
-     * Therefore, we either copy DeltaIn to DeltaOut, or generate an empty list of modifications.
-     */
-
-    public List<ObjectDelta<Objectable>> prepareDeltaOut(ProcessEvent event, PrimaryChangeProcessorJob pcpJob, OperationResult result) throws SchemaException {
-        List<ObjectDelta<Objectable>> deltaIn = pcpJob.retrieveDeltasToProcess();
-        if (CommonProcessVariableNames.isApproved(event.getAnswer())) {
-            return new ArrayList<ObjectDelta<Objectable>>(deltaIn);
-        } else {
-            return new ArrayList<ObjectDelta<Objectable>>();
-        }
-    }
-
-    /*
-     * Default implementation of getApprovedBy expects that we are using general item approval process.
-     */
-
-    public List<ObjectReferenceType> getApprovedBy(ProcessEvent event) {
-        List<ObjectReferenceType> retval = new ArrayList<ObjectReferenceType>();
-        if (!CommonProcessVariableNames.isApproved(event.getAnswer())) {
-            return retval;
-        }
-        List<Decision> allDecisions = (List<Decision>) event.getVariable(ProcessVariableNames.ALL_DECISIONS);
-        for (Decision decision : allDecisions) {
-            if (decision.isApproved()) {
-                retval.add(MiscSchemaUtil.createObjectReference(decision.getApproverOid(), SchemaConstants.C_USER_TYPE));
-            }
-        }
-
-        return retval;
-    }
+    //endregion
 
 }

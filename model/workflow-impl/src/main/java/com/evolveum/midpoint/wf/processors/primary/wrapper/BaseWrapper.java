@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.wf.processors.primary.user;
+package com.evolveum.midpoint.wf.processors.primary.wrapper;
 
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -26,9 +26,8 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.jobs.WfTaskUtil;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.processes.itemApproval.Constants;
-import com.evolveum.midpoint.wf.processors.primary.PrimaryApprovalProcessWrapper;
 import com.evolveum.midpoint.wf.processors.primary.PrimaryChangeProcessor;
-import com.evolveum.midpoint.wf.processors.primary.PrimaryChangeProcessorJob;
+import com.evolveum.midpoint.wf.processors.primary.PcpJob;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,19 +45,19 @@ public abstract class BaseWrapper implements PrimaryApprovalProcessWrapper {
     private static final String DEFAULT_PROCESS_INSTANCE_DETAILS_PANEL_NAME = Constants.DEFAULT_PANEL_NAME;
 
     @Autowired
-    RepositoryService repositoryService;
+    protected RepositoryService repositoryService;
 
     @Autowired
-    WfTaskUtil wfTaskUtil;
+    protected WfTaskUtil wfTaskUtil;
 
     @Autowired
-    PrimaryChangeProcessor changeProcessor;
+    protected PrimaryChangeProcessor changeProcessor;
 
     @Autowired
     protected WrapperHelper wrapperHelper;
 
     @Override
-    public List<ObjectDelta<Objectable>> prepareDeltaOut(ProcessEvent event, PrimaryChangeProcessorJob pcpJob, OperationResult result) throws SchemaException {
+    public List<ObjectDelta<Objectable>> prepareDeltaOut(ProcessEvent event, PcpJob pcpJob, OperationResult result) throws SchemaException {
         return wrapperHelper.prepareDeltaOut(event, pcpJob, result);
     }
 
