@@ -96,7 +96,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
         	    
         if (expressionEvaluatorType.getRelativityMode() == TransformExpressionRelativityModeType.ABSOLUTE) {
         	
-        	outputTriple = evaluateAbsoluteExpression((Collection<Source<? extends PrismValue>>) context.getSources(), context.getVariables(), context,
+        	outputTriple = evaluateAbsoluteExpression(context.getSources(), context.getVariables(), context,
         			context.getContextDescription(), context.getResult());
         
         } else if (expressionEvaluatorType.getRelativityMode() == null || expressionEvaluatorType.getRelativityMode() == TransformExpressionRelativityModeType.RELATIVE) {
@@ -106,7 +106,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
         		outputTriple = evaluateAbsoluteExpression(null, context.getVariables(), context, 
         				context.getContextDescription(), context.getResult());
         	} else {
-        		List<SourceTriple<? extends PrismValue>> sourceTriples = processSources((Collection<Source<? extends PrismValue>>) context.getSources(),
+        		List<SourceTriple<? extends PrismValue>> sourceTriples = processSources(context.getSources(),
         				isIncludeNullInputs(), context);
         		outputTriple = evaluateRelativeExpression(sourceTriples, context.getVariables(), context.isSkipEvaluationMinus(), context.isSkipEvaluationPlus(), 
         				isIncludeNullInputs(), context, context.getContextDescription(), context.getResult());

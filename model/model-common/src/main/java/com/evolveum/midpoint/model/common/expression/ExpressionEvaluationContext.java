@@ -20,6 +20,7 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 
 /**
@@ -32,7 +33,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
  */
 public class ExpressionEvaluationContext {
 
-	private Collection<Source<?>> sources;
+	private Collection<Source<? extends PrismValue>> sources;
 	private Source<?> defaultSource;
 	private Map<QName, Object> variables;
 	private boolean skipEvaluationPlus = false;
@@ -42,7 +43,7 @@ public class ExpressionEvaluationContext {
 	private String contextDescription;
 	private OperationResult result;
 	
-	public ExpressionEvaluationContext(Collection<Source<?>> sources,
+	public ExpressionEvaluationContext(Collection<Source<? extends PrismValue>> sources,
 			Map<QName, Object> variables, String contextDescription,
 			OperationResult result) {
 		super();
@@ -52,7 +53,7 @@ public class ExpressionEvaluationContext {
 		this.result = result;
 	}
 
-	public Collection<Source<?>> getSources() {
+	public Collection<Source<? extends PrismValue>> getSources() {
 		return sources;
 	}
 	
