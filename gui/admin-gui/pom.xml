@@ -117,12 +117,32 @@
             <version>${wro4j.version}</version>
             <exclusions>
                 <exclusion>
-                    <artifactId>slf4j-api</artifactId>
                     <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-api</artifactId>
                 </exclusion>
                 <exclusion>
-                    <artifactId>slf4j-log4j12</artifactId>
                     <groupId>org.slf4j</groupId>
+                    <artifactId>slf4j-log4j12</artifactId>
+                </exclusion>
+                <exclusion>
+                    <!-- unused library (13mb) -->
+                    <groupId>org.jruby</groupId>
+                    <artifactId>jruby-complete</artifactId>
+                </exclusion>
+                <exclusion>
+                    <!-- unused library (500kb) -->
+                    <groupId>me.n4u.sass</groupId>
+                    <artifactId>sass-gems</artifactId>
+                </exclusion>
+                <exclusion>
+                    <!-- unused library (200kb) -->
+                    <groupId>nz.co.edmi</groupId>
+                    <artifactId>bourbon-gem-jar</artifactId>
+                </exclusion>
+                <exclusion>
+                    <!-- unused library (3.5mb) -->
+                    <groupId>com.google.javascript</groupId>
+                    <artifactId>closure-compiler</artifactId>
                 </exclusion>
             </exclusions>
         </dependency>
@@ -291,16 +311,6 @@
         <dependency>
             <groupId>org.apache.wicket</groupId>
             <artifactId>wicket-datetime</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>wicket-tree</groupId>
-            <artifactId>wicket-tree</artifactId>
-            <version>0.5.0</version>
-        </dependency>
-        <dependency>
-            <groupId>wicket-dnd</groupId>
-            <artifactId>wicket-dnd</artifactId>
-            <version>0.5.0</version>
         </dependency>
 
         <!-- TEST -->
