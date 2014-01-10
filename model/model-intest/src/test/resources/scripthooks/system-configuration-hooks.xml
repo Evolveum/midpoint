@@ -62,7 +62,7 @@
                                 orgTarget.setType(OrgType.COMPLEX_TYPE);
                                 assignment.setTargetRef(orgTarget);
                                 assignmentDelta = ContainerDelta.createModificationAdd(UserType.F_ASSIGNMENT, UserType.class, prismContext, assignment);
-                                modelContext.getFocusContext().swallowToPrimaryDelta(assignmentDelta);
+                                modelContext.getFocusContext().swallowToSecondaryDelta(assignmentDelta);
                                 // This forces complete recompute of context in next stage
                                 //modelContext.rot();
                             }
