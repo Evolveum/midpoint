@@ -50,15 +50,16 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.activiti.TestAuthenticationInfoHolder;
-import com.evolveum.midpoint.wf.api.Constants;
+import com.evolveum.midpoint.wf.api.WfTaskExtensionItemsNames;
 import com.evolveum.midpoint.wf.processes.WorkflowResult;
 import com.evolveum.midpoint.wf.processes.itemApproval.ApprovalRequestImpl;
 import com.evolveum.midpoint.wf.processes.itemApproval.ProcessVariableNames;
 import com.evolveum.midpoint.wf.jobs.WfTaskUtil;
 import com.evolveum.midpoint.wf.jobs.WfProcessInstanceShadowTaskHandler;
+import com.evolveum.midpoint.wf.processors.general.GeneralChangeProcessor;
+import com.evolveum.midpoint.wf.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
-import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -113,6 +114,12 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
     @Autowired
     private MiscDataUtil miscDataUtil;
 
+    @Autowired
+    private PrimaryChangeProcessor primaryChangeProcessor;
+
+    @Autowired
+    private GeneralChangeProcessor generalChangeProcessor;
+
     public TestUserChangeApproval() throws JAXBException {
 		super();
 	}
@@ -133,6 +140,9 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
 
         ObjectReferenceType approver = role2.getApprovalSchema().getLevel().get(0).getApproverRef().get(0);
         assertEquals("Wrong OID of Role2's approver", TestConstants.R2BOSS_OID, approver.getOid());
+
+        primaryChangeProcessor.setEnabled(true);
+        generalChangeProcessor.setEnabled(false);
 	}
 
     /**
@@ -831,7 +841,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
             Task subtask = subtasks.get(i);
             //assertEquals("Subtask #" + i + " is not recurring: " + subtask, TaskRecurrence.RECURRING, subtask.getRecurrenceStatus());
             //assertEquals("Incorrect execution status of subtask #" + i + ": " + subtask, TaskExecutionStatus.RUNNABLE, subtask.getExecutionStatus());
-            PrismProperty<ObjectDelta> deltas = subtask.getExtensionProperty(Constants.WFDELTA_TO_PROCESS_PROPERTY_NAME);
+            PrismProperty<ObjectDelta> deltas = subtask.getExtensionProperty(WfTaskExtensionItemsNames.WFDELTA_TO_PROCESS_PROPERTY_NAME);
             assertNotNull("There are no modifications in subtask #" + i + ": " + subtask, deltas);
             assertEquals("Incorrect number of modifications in subtask #" + i + ": " + subtask, 1, deltas.getRealValues().size());
             // todo check correctness of the modification?

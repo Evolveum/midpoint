@@ -497,6 +497,7 @@ public class JobController {
         processInstanceObject.asObjectable().setOid(job.getActivitiId());
         auditEventRecord.setTarget(processInstanceObject);
 
+        // todo try to retrieve delta(s) only if applicable (e.g. not when using GeneralChangeProcessor)
         List<ObjectDelta<Objectable>> deltas = null;
         try {
             if (stage == AuditEventStage.REQUEST) {

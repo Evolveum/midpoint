@@ -32,7 +32,9 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.jobs.JobCreationInstruction;
 import com.evolveum.midpoint.wf.jobs.JobController;
 import com.evolveum.midpoint.wf.jobs.Job;
+import com.evolveum.midpoint.wf.jobs.WfTaskUtil;
 import com.evolveum.midpoint.wf.processors.BaseChangeProcessor;
+import com.evolveum.midpoint.wf.processors.BaseModelInvocationProcessingHelper;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
@@ -43,6 +45,7 @@ import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
@@ -57,11 +60,20 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
 
     private static final Trace LOGGER = TraceManager.getTrace(PrimaryChangeProcessor.class);
 
+    @Autowired
+    private PrimaryChangeProcessorConfigurationHelper primaryChangeProcessorConfigurationHelper;
+
+    @Autowired
+    private BaseModelInvocationProcessingHelper baseModelInvocationProcessingHelper;
+
+    @Autowired
+    private WfTaskUtil wfTaskUtil;
+
+    @Autowired
+    private JobController jobController;
+
     public static final String UNKNOWN_OID = "?";
 
-    // configuration
-    private static final String KEY_WRAPPER = "wrapper";
-    private static final List<String> LOCALLY_KNOWN_KEYS = Arrays.asList(KEY_WRAPPER);
     List<PrimaryApprovalProcessWrapper> processWrappers;
 
     public enum ExecutionMode {
@@ -72,38 +84,11 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
     // =================================================================================== Configuration
     @PostConstruct
     public void init() {
-        initializeBaseProcessor(LOCALLY_KNOWN_KEYS);
-        processWrappers = getPrimaryChangeProcessorWrappers();
-//        for (PrimaryApprovalProcessWrapper processWrapper : processWrappers) {
-//            processWrapper.setChangeProcessor(this);
-//        }
+        primaryChangeProcessorConfigurationHelper.configure(this);
     }
 
-    private List<PrimaryApprovalProcessWrapper> getPrimaryChangeProcessorWrappers() {
-
-        List<PrimaryApprovalProcessWrapper> retval = new ArrayList<PrimaryApprovalProcessWrapper>();
-
-        Configuration c = getProcessorConfiguration();
-        if (c == null) {
-            return retval;
-        }
-
-        String[] wrappers = c.getStringArray(KEY_WRAPPER);
-        if (wrappers == null || wrappers.length == 0) {
-            LOGGER.warn("No wrappers defined for primary change processor " + getBeanName());
-        } else {
-            for (String wrapperName : wrappers) {
-                LOGGER.trace("Searching for wrapper " + wrapperName);
-                try {
-                    PrimaryApprovalProcessWrapper wrapper = (PrimaryApprovalProcessWrapper) getBeanFactory().getBean(wrapperName);
-                    retval.add(wrapper);
-                } catch (BeansException e) {
-                    throw new SystemException("Process wrapper " + wrapperName + " could not be found.", e);
-                }
-            }
-            LOGGER.debug("Resolved " + retval.size() + " process wrappers for primary change processor " + getBeanName());
-        }
-        return retval;
+    public void setProcessWrappers(List<PrimaryApprovalProcessWrapper> processWrappers) {
+        this.processWrappers = processWrappers;
     }
     //endregion
 
@@ -212,7 +197,7 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
 
             // now start the tasks - and exit
 
-            logTasksBeforeStart(rootJob, result);
+            baseModelInvocationProcessingHelper.logTasksBeforeStart(rootJob, result);
             if (job0 != null) {
                 job0.resumeTask(result);
             }
@@ -242,12 +227,12 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
 
     private Job createRootJob(ModelContext context, ObjectDelta<? extends ObjectType> changeWithoutApproval, Task taskFromModel, OperationResult result, ExecutionMode executionMode) throws SchemaException, ObjectNotFoundException {
         LensContext contextForRootTask = determineContextForRootTask(context, changeWithoutApproval, executionMode);
-        JobCreationInstruction instructionForRoot = createInstructionForRoot(contextForRootTask, context, taskFromModel);
+        JobCreationInstruction instructionForRoot = baseModelInvocationProcessingHelper.createInstructionForRoot(this, contextForRootTask, context, taskFromModel);
         if (executionMode != ExecutionMode.ALL_IMMEDIATELY) {
             instructionForRoot.setHandlersBeforeModelOperation(WfPrepareRootOperationTaskHandler.HANDLER_URI);      // gather all deltas from child objects
             instructionForRoot.setExecuteModelOperationHandler(true);
         }
-        return super.createRootJob(instructionForRoot, taskFromModel, result);
+        return baseModelInvocationProcessingHelper.createRootJob(instructionForRoot, taskFromModel, result);
     }
 
     // Child job0 - in modes 2, 3 we have to prepare first child that executes all changes that do not require approval
@@ -383,6 +368,10 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
             }
         }
         throw new IllegalStateException("Wrapper " + name + " is not registered.");
+    }
+
+    WfTaskUtil getWfTaskUtil() {     // ugly hack - used in PrimaryChangeProcessorJob
+        return wfTaskUtil;
     }
     //endregion
 }

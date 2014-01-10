@@ -29,11 +29,15 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.jobs.Job;
+import com.evolveum.midpoint.wf.jobs.JobController;
 import com.evolveum.midpoint.wf.jobs.JobCreationInstruction;
 import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
+import com.evolveum.midpoint.wf.jobs.WfTaskUtil;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.processors.BaseChangeProcessor;
+import com.evolveum.midpoint.wf.processors.BaseConfigurationHelper;
+import com.evolveum.midpoint.wf.processors.BaseModelInvocationProcessingHelper;
 import com.evolveum.midpoint.wf.util.JaxbValueContainer;
 import com.evolveum.midpoint.wf.util.SerializationSafeContainer;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionType;
@@ -47,27 +51,14 @@ import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 import org.activiti.engine.form.FormProperty;
 import org.activiti.engine.form.TaskFormData;
-import org.apache.commons.configuration.Configuration;
-import org.apache.commons.configuration.SubsetConfiguration;
-import org.apache.commons.configuration.XMLConfiguration;
-import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 
 import javax.annotation.PostConstruct;
-import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -78,22 +69,30 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
 
     private static final Trace LOGGER = TraceManager.getTrace(GeneralChangeProcessor.class);
 
-    private static final String KEY_GENERAL_CHANGE_PROCESSOR_CONFIGURATION = "generalChangeProcessorConfiguration";
-    private static final List<String> LOCALLY_KNOWN_KEYS = Arrays.asList(KEY_GENERAL_CHANGE_PROCESSOR_CONFIGURATION);
+    @Autowired
+    private PrismContext prismContext;
 
     @Autowired
-    private MidpointConfiguration midpointConfiguration;
+    private WfTaskUtil wfTaskUtil;
+
+    @Autowired
+    private JobController jobController;
 
     @Autowired
     private ActivitiEngine activitiEngine;
+
+    @Autowired
+    private BaseModelInvocationProcessingHelper baseModelInvocationProcessingHelper;
+
+    @Autowired
+    private GeneralChangeProcessorConfigurationHelper myConfigurationHelper;
 
     private GeneralChangeProcessorConfigurationType processorConfigurationType;
 
     @PostConstruct
     public void init() {
-        initializeBaseProcessor(LOCALLY_KNOWN_KEYS);
+        processorConfigurationType = myConfigurationHelper.configure(this);
         if (isEnabled()) {
-            readConfiguration();
             putStartupMessage();
         }
     }
@@ -107,59 +106,15 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
         }
     }
 
-    private void readConfiguration() {
-
-        String path = determineConfigurationPath();
-        LOGGER.info("Configuration path: " + path);
-
-        Document midpointConfig = midpointConfiguration.getXmlConfigAsDocument();
-        Validate.notNull(midpointConfig, "XML version of midPoint configuration couldn't be found");
-
-        XPath xpath = XPathFactory.newInstance().newXPath();
-        try {
-            Element processorConfig = (Element) xpath.evaluate(path + "/*[local-name()='" + KEY_GENERAL_CHANGE_PROCESSOR_CONFIGURATION + "']", midpointConfig, XPathConstants.NODE);
-            if (processorConfig == null) {
-                throw new SystemException("There's no " + KEY_GENERAL_CHANGE_PROCESSOR_CONFIGURATION + " element in " + getBeanName() + " configuration.");
-            }
-            if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("processor configuration = {}", DOMUtil.printDom(processorConfig));
-            }
-            try {
-                validateElement(processorConfig);
-            } catch (SchemaException e) {
-                throw new SystemException("Schema validation failed for " + KEY_GENERAL_CHANGE_PROCESSOR_CONFIGURATION + " element in " + getBeanName() + " configuration: " + e.getMessage(), e);
-            }
-            processorConfigurationType = prismContext.getPrismJaxbProcessor().toJavaValue(processorConfig, GeneralChangeProcessorConfigurationType.class);
-        } catch (XPathExpressionException e) {
-            throw new SystemException("Couldn't read general workflow processor configuration in " + getBeanName() + " due to an XPath problem", e);
-        } catch (JAXBException e) {
-            throw new SystemException("Couldn't read general workflow processor configuration in " + getBeanName() + " due to a JAXB problem", e);
-        }
-    }
-
-    // if this would not work, use simply "/configuration/midpoint/workflow/changeProcessors/generalChangeProcessor/" :)
-    private String determineConfigurationPath() {
-        Configuration c = getProcessorConfiguration();
-        if (!(c instanceof SubsetConfiguration)) {
-            throw new IllegalStateException(getBeanName() + " configuration is not a subset configuration, it is " + c.getClass());
-        }
-        SubsetConfiguration sc = (SubsetConfiguration) c;
-        return "/*/" + sc.getPrefix().replace(".", "/");
-    }
-
-    private void warnIfNoScenarios() {
-        if (processorConfigurationType.getScenario().isEmpty()) {
-            LOGGER.warn("No scenarios for " + getBeanName());
-        }
-    }
-
     @Override
     public HookOperationMode processModelInvocation(ModelContext context, Task taskFromModel, OperationResult result) throws SchemaException {
 
-        warnIfNoScenarios();
+        if (processorConfigurationType.getScenario().isEmpty()) {
+            LOGGER.warn("No scenarios for " + getBeanName());
+        }
 
         for (GeneralChangeProcessorScenarioType scenarioType : processorConfigurationType.getScenario()) {
-            if (!scenarioType.isEnabled()) {
+            if (Boolean.FALSE.equals(scenarioType.isEnabled())) {
                 LOGGER.trace("scenario {} is disabled, skipping", scenarioType.getName());
             } else if (!evaluateActivationCondition(scenarioType, context, result)) {
                 LOGGER.trace("activationCondition was evaluated to FALSE for scenario named {}", scenarioType.getName());
@@ -180,15 +135,15 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
 
             // ========== preparing root task ===========
 
-            JobCreationInstruction rootInstruction = createInstructionForRoot(context, taskFromModel);
-            Job rootJob = createRootJob(rootInstruction, taskFromModel, result);
+            JobCreationInstruction rootInstruction = baseModelInvocationProcessingHelper.createInstructionForRoot(this, context, taskFromModel);
+            Job rootJob = baseModelInvocationProcessingHelper.createRootJob(rootInstruction, taskFromModel, result);
 
             // ========== preparing child task, starting WF process ===========
 
             JobCreationInstruction instruction = JobCreationInstruction.createWfProcessChildJob(rootJob);
             instruction.setProcessDefinitionKey(scenarioType.getProcessName());
             instruction.setRequesterOidInProcess(taskFromModel.getOwner());
-            instruction.setTaskName(new PolyStringType("Workflow-monitoring task"));
+            instruction.setTaskName("Workflow-monitoring task");
 
             LensContextType lensContextType = ((LensContext<?>) context).toPrismContainer().getValue().asContainerable();
             instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MODEL_CONTEXT, new JaxbValueContainer<LensContextType>(lensContextType, prismContext));
@@ -197,7 +152,7 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
 
             // ========== complete the action ===========
 
-            logTasksBeforeStart(rootJob, result);
+            baseModelInvocationProcessingHelper.logTasksBeforeStart(rootJob, result);
             rootJob.startWaitingForSubtasks(result);
 
             return HookOperationMode.BACKGROUND;

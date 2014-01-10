@@ -66,7 +66,7 @@ import java.util.Map;
  * @author mederly
  */
 @Component
-public class ChangePasswordWrapper extends BaseUserWrapper {
+public class ChangePasswordWrapper extends BaseWrapper {
 
     private static final Trace LOGGER = TraceManager.getTrace(ChangePasswordWrapper.class);
 
@@ -129,12 +129,12 @@ public class ChangePasswordWrapper extends BaseUserWrapper {
     private JobCreationInstruction createStartProcessInstruction(ModelContext<?> modelContext, ItemDelta delta, ApprovalRequest approvalRequest, Task taskFromModel, OperationResult result) throws SchemaException {
 
         String userName = MiscDataUtil.getObjectName(modelContext);
-        String objectOid = getObjectOid(modelContext);
-        PrismObject<UserType> requester = getRequester(taskFromModel, result);
+        String objectOid = wrapperHelper.getObjectOid(modelContext);
+        PrismObject<UserType> requester = wrapperHelper.getRequester(taskFromModel, result);
 
         JobCreationInstruction instruction = JobCreationInstruction.createWfProcessChildJob(getChangeProcessor());
 
-        prepareCommonInstructionAttributes(instruction, modelContext, objectOid, requester);
+        wrapperHelper.prepareCommonInstructionAttributes(changeProcessor, instruction, modelContext, objectOid, requester);
 
         instruction.setProcessDefinitionKey(GENERAL_APPROVAL_PROCESS);
         instruction.setSimple(false);
@@ -149,7 +149,7 @@ public class ChangePasswordWrapper extends BaseUserWrapper {
         instruction.setExecuteApprovedChangeImmediately(ModelExecuteOptions.isExecuteImmediatelyAfterApproval(((LensContext) modelContext).getOptions()));
 
         ObjectDelta objectDelta = itemDeltaToObjectDelta(objectOid, delta);
-        setDeltaProcessAndTaskVariables(instruction, objectDelta);
+        wrapperHelper.setDeltaProcessAndTaskVariables(instruction, objectDelta);
 
         return instruction;
     }

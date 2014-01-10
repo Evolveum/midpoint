@@ -899,5 +899,5 @@ public interface MidpointFunctions {
      * @param resourceOid OID of the resource in question
      * @return
      */
-    ObjectDeltaType getResourceDelta(ModelContext context, String resourceOid);
+    ObjectDeltaType getResourceDelta(ModelContext context, String resourceOid) throws SchemaException;
 }

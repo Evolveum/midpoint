@@ -394,21 +394,23 @@ public class JobCreationInstruction implements DebugDumpable {
                 (noProcess ? "no-process" : "with-process") +
                 "), task = " + taskName + "\n");
 
-        DebugUtil.indentDebugDump(sb, indent);
-        sb.append("Process variables:\n");
-
-        for (Map.Entry<String, Serializable> entry : processVariables.entrySet()) {
+        if (!noProcess) {
             DebugUtil.indentDebugDump(sb, indent);
-            sb.append(" - " + entry.getKey() + " = ");
-            Object value = entry.getValue();
-            if (value instanceof DebugDumpable) {
-                sb.append("\n" + ((DebugDumpable) value).debugDump(indent+1));
-            } else if (value instanceof Dumpable) {
-                sb.append("\n" + ((Dumpable) value).dump());
-            } else {
-                sb.append(value != null ? value.toString() : "null");
+            sb.append("Process variables:\n");
+
+            for (Map.Entry<String, Serializable> entry : processVariables.entrySet()) {
+                DebugUtil.indentDebugDump(sb, indent);
+                sb.append(" - " + entry.getKey() + " = ");
+                Object value = entry.getValue();
+                if (value instanceof DebugDumpable) {
+                    sb.append("\n" + ((DebugDumpable) value).debugDump(indent+1));
+                } else if (value instanceof Dumpable) {
+                    sb.append("\n" + ((Dumpable) value).dump());
+                } else {
+                    sb.append(value != null ? value.toString() : "null");
+                }
+                sb.append("\n");
             }
-            sb.append("\n");
         }
         return sb.toString();
 

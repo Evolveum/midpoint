@@ -62,6 +62,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
+import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
@@ -229,10 +230,10 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
                 display("workItemObject", workItemObject);
 
                 WfProcessInstanceType instance = workflowServiceImpl.getProcessInstanceById(workItem.getProcessInstanceId(), false, true, result);
-                JaxbValueContainer<ObjectDeltaType> deltaTypeWrapped = WfVariablesUtil.getVariable(instance, "greenDelta", JaxbValueContainer.class);
+                JaxbValueContainer<ObjectDeltaType> deltaTypeWrapped = WfVariablesUtil.getVariable(instance, "dummyResourceDelta", JaxbValueContainer.class);
                 activitiUtil.revive(deltaTypeWrapped);
                 ObjectDeltaType deltaType = deltaTypeWrapped.getValue();
-                display("greenDelta", DeltaConvertor.createObjectDelta(deltaType, prismContext));
+                display("dummyResourceDelta", DeltaConvertor.createObjectDelta(deltaType, prismContext));
 
                 PrismPropertyDefinition ppd = new PrismPropertyDefinition(new QName(SchemaConstants.NS_WFCF, "[Button]rejectAll"),
                         DOMUtil.XSD_BOOLEAN, prismContext);
@@ -241,13 +242,13 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
                 workItemObject.addReplaceExisting(rejectAll);
 
                 TestAuthenticationInfoHolder.setUserType(getUser(USER_ADMINISTRATOR_OID).asObjectable());
-                workflowServiceImpl.completeWorkItemWithDetails(taskId, workItemObject, "approve", result);
+                workflowServiceImpl.completeWorkItemWithDetails(taskId, workItemObject, "rejectAll", result);
             }
 
             @Override
             void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
                 PrismObject<UserType> jack = getUser(USER_JACK_OID);
-                assertAssignedRole(USER_JACK_OID, TestConstants.ROLE_R2_OID, task, result);
+//                assertAssignedRole(USER_JACK_OID, TestConstants.ROLE_R2_OID, task, result);
                 assertNoLinkedAccount(jack);
                 //checkDummyTransportMessages("simpleUserNotifier", 1);
                 //checkWorkItemAuditRecords(createResultMap(TestConstants.ROLE_R1_OID, WorkflowResult.APPROVED));
@@ -256,6 +257,78 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 
 
         });
+    }
+
+    @Test(enabled = false)
+    public void test030AddAccountApproved() throws Exception {
+        TestUtil.displayTestTile(this, "test030AddAccountApproved");
+
+        primaryChangeProcessor.setEnabled(false);
+        generalChangeProcessor.setEnabled(true);
+        generalChangeProcessor.disableScenario("primaryScenario");
+        generalChangeProcessor.enableScenario("secondaryScenario");
+
+        executeTest("test030AddAccountApproved", USER_JACK_OID, 1, false, true, new ContextCreator() {
+            @Override
+            public LensContext createModelContext(OperationResult result) throws Exception {
+                LensContext<UserType> context = createUserAccountContext();
+                fillContextWithUser(context, USER_JACK_OID, result);
+                addModificationToContextAddAccountFromFile(context, ACCOUNT_SHADOW_JACK_DUMMY_FILE);
+                return context;
+            }
+
+            @Override
+            void assertsAfterClockworkRun(ModelContext context, Task task, OperationResult result) throws Exception {
+                assertEquals("Unexpected state of the context", ModelState.SECONDARY, context.getState());
+            }
+
+            @Override
+            void completeWorkItem(WorkItemType workItem, String taskId, OperationResult result) throws Exception {
+                PrismObject<? extends ObjectType> workItemObject = workItem.getRequestSpecificData().asPrismObject();
+                display("workItemObject", workItemObject);
+
+                WfProcessInstanceType instance = workflowServiceImpl.getProcessInstanceById(workItem.getProcessInstanceId(), false, true, result);
+                JaxbValueContainer<ObjectDeltaType> deltaTypeWrapped = WfVariablesUtil.getVariable(instance, "dummyResourceDelta", JaxbValueContainer.class);
+                activitiUtil.revive(deltaTypeWrapped);
+                ObjectDeltaType deltaType = deltaTypeWrapped.getValue();
+                display("dummyResourceDelta", DeltaConvertor.createObjectDelta(deltaType, prismContext));
+
+                PrismPropertyDefinition ppd = new PrismPropertyDefinition(new QName(SchemaConstants.NS_WFCF, "[Button]approve"),
+                        DOMUtil.XSD_BOOLEAN, prismContext);
+                PrismProperty<Boolean> approve = ppd.instantiate();
+                approve.setRealValue(Boolean.TRUE);
+                workItemObject.addReplaceExisting(approve);
+
+                TestAuthenticationInfoHolder.setUserType(getUser(USER_ADMINISTRATOR_OID).asObjectable());
+                workflowServiceImpl.completeWorkItemWithDetails(taskId, workItemObject, "approve", result);
+            }
+
+            @Override
+            void assertsRootTaskFinishes(Task task, OperationResult result) throws Exception {
+                PrismObject<UserType> jack = getUser(USER_JACK_OID);
+//                assertAssignedRole(USER_JACK_OID, TestConstants.ROLE_R2_OID, task, result);
+                assertAccount(jack, RESOURCE_DUMMY_OID);
+                assertNoLinkedAccount(jack);
+                //checkDummyTransportMessages("simpleUserNotifier", 1);
+                //checkWorkItemAuditRecords(createResultMap(TestConstants.ROLE_R1_OID, WorkflowResult.APPROVED));
+                //checkUserApprovers(USER_JACK_OID, Arrays.asList(TestConstants.R1BOSS_OID), result);
+            }
+
+
+        });
+    }
+
+
+    @Test
+    public void test000LoadContext() throws Exception {
+        TestUtil.displayTestTile(this, "test000LoadContext");
+
+        OperationResult result = new OperationResult("test000LoadContext");
+
+        LensContextType lensContextType = prismContext.getPrismJaxbProcessor().unmarshalObject(new File("src/test/resources/model-contexts/context-dummy-resource.xml"), LensContextType.class);
+        display("LensContextType", lensContextType);
+        LensContext<?> lensContext = LensContext.fromLensContextType(lensContextType, prismContext, provisioningService, result);
+        display("LensContext", lensContext);
     }
 
 
