@@ -188,7 +188,7 @@ public class AccountValuesProcessor {
 			
 			projContext.setIteration(iteration);
 			if (iterationToken == null) {
-				iterationToken = formatIterationToken(context, projContext, iteration, result);
+				iterationToken = formatIterationToken(context, projContext, iteration, task, result);
 			}
 			projContext.setIterationToken(iterationToken);
 			
@@ -204,7 +204,7 @@ public class AccountValuesProcessor {
 			
 //			LensUtil.traceContext(LOGGER, activityDescription, "values (start)", false, context, true);
 			
-			if (!evaluateIterationCondition(context, projContext, iteration, iterationToken, true, result)) {
+			if (!evaluateIterationCondition(context, projContext, iteration, iterationToken, true, task, result)) {
 				
 				conflictMessage = "pre-iteration condition was false";
 				LOGGER.debug("Skipping iteration {}, token '{}' for {} because the pre-iteration condition was false",
@@ -336,8 +336,8 @@ public class AccountValuesProcessor {
 					        		
 					        		if (ResourceTypeUtil.isSynchronizationOpportunistic(resourceType)) {
 					        			LOGGER.trace("Trying to find owner using correlation expression.");
-										boolean match = synchronizationService.matchUserCorrelationRule(
-												fullConflictingShadow, context.getFocusContext().getObjectNew(), resourceType, result);
+										boolean match = synchronizationService.matchUserCorrelationRule(fullConflictingShadow, 
+												context.getFocusContext().getObjectNew(), resourceType, task, result);
 										
 										if (match){
 											//check if it is add account (primary delta contains add shadow deltu)..
@@ -413,7 +413,7 @@ public class AccountValuesProcessor {
 		        }
 		        
 		        if (!conflict) {
-					if (evaluateIterationCondition(context, projContext, iteration, iterationToken, false, result)) {
+					if (evaluateIterationCondition(context, projContext, iteration, iterationToken, false, task, result)) {
 	    				// stop the iterations
 	    				break;
 	    			} else {
@@ -520,7 +520,8 @@ public class AccountValuesProcessor {
 	}
 
 	private <F extends ObjectType> String formatIterationToken(LensContext<F> context, 
-			LensProjectionContext accountContext, int iteration, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			LensProjectionContext accountContext, int iteration, Task task, OperationResult result) 
+					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		ResourceObjectTypeDefinitionType accDef = accountContext.getResourceAccountTypeDefinitionType();
 		if (accDef == null) {
 			return formatIterationTokenDefault(iteration);
@@ -548,7 +549,8 @@ public class AccountValuesProcessor {
 		sources.add(iterationSource);
 		
 		Map<QName, Object> variables = createExpressionVariables(context, accountContext);
-		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources , variables, "iteration token expression in "+accountContext.getHumanReadableName(), result);
+		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources , variables, 
+				"iteration token expression in "+accountContext.getHumanReadableName(), task, result);
 		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = expression.evaluate(expressionContext);
 		Collection<PrismPropertyValue<String>> outputValues = outputTriple.getNonNegativeValues();
 		if (outputValues.isEmpty()) {
@@ -579,7 +581,8 @@ public class AccountValuesProcessor {
 
 	private <F extends ObjectType> boolean evaluateIterationCondition(LensContext<F> context, 
 			LensProjectionContext accountContext, int iteration, String iterationToken, 
-			boolean beforeIteration, OperationResult result) throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException {
+			boolean beforeIteration, Task task, OperationResult result) 
+					throws ExpressionEvaluationException, SchemaException, ObjectNotFoundException {
 		ResourceObjectTypeDefinitionType accDef = accountContext.getResourceAccountTypeDefinitionType();
 		if (accDef == null) {
 			return true;
@@ -608,7 +611,7 @@ public class AccountValuesProcessor {
 		variables.put(ExpressionConstants.VAR_ITERATION, iteration);
 		variables.put(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken);
 		
-		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(null , variables, desc, result);
+		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(null , variables, desc, task, result);
 		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = expression.evaluate(expressionContext);
 		Collection<PrismPropertyValue<Boolean>> outputValues = outputTriple.getNonNegativeValues();
 		if (outputValues.isEmpty()) {

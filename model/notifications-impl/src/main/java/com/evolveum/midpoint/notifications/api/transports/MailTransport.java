@@ -21,10 +21,12 @@ import com.evolveum.midpoint.notifications.NotificationsUtil;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -35,6 +37,7 @@ import javax.mail.MessagingException;
 import javax.mail.Session;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
+
 import java.io.IOException;
 import java.util.Date;
 import java.util.Properties;
@@ -64,7 +67,7 @@ public class MailTransport implements Transport {
     }
 
     @Override
-    public void send(Message mailMessage, String transportName, OperationResult parentResult) {
+    public void send(Message mailMessage, String transportName, Task task, OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "send");
         result.addCollectionOfSerializablesAsParam("mailMessage recipient(s)", mailMessage.getTo());

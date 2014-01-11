@@ -854,7 +854,7 @@ public class ChangeExecutor {
         }
 
         OperationProvisioningScriptsType scripts = prepareScripts(object, context, objectContext, ProvisioningOperationTypeType.ADD,
-                resource, result);
+                resource, task, result);
         Utils.setRequestee(task, context);
         String oid = provisioning.addObject(object, scripts, options, task, result);
         Utils.clearRequestee(task);
@@ -871,7 +871,7 @@ public class ChangeExecutor {
 			PrismObject<T> shadowToModify = provisioning.getObject(objectTypeClass, oid,
 					SelectorOptions.createCollection(GetOperationOptions.createNoFetch()), task, result);
 			scripts = prepareScripts(shadowToModify, context, objectContext, ProvisioningOperationTypeType.DELETE, resource,
-					result);
+					task, result);
 		} catch (ObjectNotFoundException ex) {
 			// this is almost OK, mute the error and try to delete account (it
 			// will fail if something is wrong)
@@ -889,7 +889,7 @@ public class ChangeExecutor {
     	PrismObject<T> shadowToModify = provisioning.getObject(objectTypeClass, oid,
     			SelectorOptions.createCollection(GetOperationOptions.createRaw()), task, result);
     	OperationProvisioningScriptsType scripts = prepareScripts(shadowToModify, context, objectContext,
-                ProvisioningOperationTypeType.MODIFY, resource, result);
+                ProvisioningOperationTypeType.MODIFY, resource, task, result);
         Utils.setRequestee(task, context);
         String changedOid = provisioning.modifyObject(objectTypeClass, oid, modifications, scripts, options, task, result);
         Utils.clearRequestee(task);
@@ -898,7 +898,7 @@ public class ChangeExecutor {
 
     private <F extends ObjectType, T extends ObjectType> OperationProvisioningScriptsType prepareScripts(
     		PrismObject<T> changedObject, LensContext<F> context, LensElementContext<T> objectContext,
-    		ProvisioningOperationTypeType operation, ResourceType resource, OperationResult result) throws ObjectNotFoundException,
+    		ProvisioningOperationTypeType operation, ResourceType resource, Task task, OperationResult result) throws ObjectNotFoundException,
             SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
     	
     	if (!changedObject.canRepresent(ShadowType.class)) {
@@ -924,13 +924,14 @@ public class ChangeExecutor {
         ResourceShadowDiscriminator discr = ((LensProjectionContext) objectContext).getResourceShadowDiscriminator();
 
         Map<QName, Object> variables = Utils.getDefaultExpressionVariables(user, resourceObject, discr, resource.asPrismObject());
-        return evaluateScript(resourceScripts, discr, operation, null, variables, result);
+        return evaluateScript(resourceScripts, discr, operation, null, variables, task, result);
       
     }
 	
 	private OperationProvisioningScriptsType evaluateScript(OperationProvisioningScriptsType resourceScripts,
-            ResourceShadowDiscriminator discr,
-			ProvisioningOperationTypeType operation, BeforeAfterType order, Map<QName, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException{
+            ResourceShadowDiscriminator discr, ProvisioningOperationTypeType operation, BeforeAfterType order, 
+            Map<QName, Object> variables, Task task, OperationResult result) 
+            		throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException{
 		  OperationProvisioningScriptsType outScripts = new OperationProvisioningScriptsType();
 	        if (resourceScripts != null) {
 	        	OperationProvisioningScriptsType scripts = resourceScripts.clone();
@@ -947,7 +948,7 @@ public class ChangeExecutor {
 	        		if (script.getOperation().contains(operation)) {
 	        			if (order == null || order == script.getOrder()) {
 		        			for (ProvisioningScriptArgumentType argument : script.getArgument()){
-		        				evaluateScriptArgument(argument, variables, result);
+		        				evaluateScriptArgument(argument, variables, task, result);
 		        			}
 		        			outScripts.getScript().add(script);
 	        			}
@@ -958,7 +959,7 @@ public class ChangeExecutor {
 	        return outScripts;
 	}
     
-    private void evaluateScriptArgument(ProvisioningScriptArgumentType argument, Map<QName, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException{
+    private void evaluateScriptArgument(ProvisioningScriptArgumentType argument, Map<QName, Object> variables, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException{
     	
     	QName FAKE_SCRIPT_ARGUMENT_NAME = new QName(SchemaConstants.NS_C, "arg");
     	
@@ -969,7 +970,7 @@ public class ChangeExecutor {
     	Expression<PrismPropertyValue<String>> expression = expressionFactory.makeExpression(argument, scriptArgumentDefinition, shortDesc, result);
     	
     	
-    	ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, result);
+    	ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, task, result);
 		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = expression.evaluate(params);
 		
 		Collection<PrismPropertyValue<String>> nonNegativeValues = null;
@@ -1045,7 +1046,7 @@ public class ChangeExecutor {
                 projContext.getResourceShadowDiscriminator(), resource.asPrismObject());
         OperationProvisioningScriptsType evaluatedScript = evaluateScript(resourceScripts,
                 projContext.getResourceShadowDiscriminator(),
-        		ProvisioningOperationTypeType.RECONCILE, order, variables, parentResult);
+        		ProvisioningOperationTypeType.RECONCILE, order, variables, task, parentResult);
 
         for (OperationProvisioningScriptType script: evaluatedScript.getScript()) {
             Utils.setRequestee(task, context);

@@ -20,13 +20,16 @@ import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.transports.Message;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -60,7 +63,7 @@ public class DummyTransport implements Transport {
     private Map<String,List<Message>> messages = new HashMap<String,List<Message>>();
 
     @Override
-    public void send(Message message, String name, OperationResult parentResult) {
+    public void send(Message message, String name, Task task, OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "send");
 

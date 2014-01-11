@@ -22,6 +22,7 @@ import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -29,11 +30,13 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventHandlerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.NotificationConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import javax.xml.bind.JAXBElement;
+
 import java.util.HashMap;
 
 /**
@@ -86,11 +89,11 @@ public class NotificationManagerImpl implements NotificationManager {
 
     // event may be null
     public void processEvent(Event event) {
-        processEvent(event, new OperationResult("dummy"));
+        processEvent(event, null, new OperationResult("dummy"));
     }
 
     // event may be null
-    public void processEvent(Event event, OperationResult result) {
+    public void processEvent(Event event, Task task, OperationResult result) {
         if (event == null) {
             return;
         }
@@ -110,7 +113,7 @@ public class NotificationManagerImpl implements NotificationManager {
         NotificationConfigurationType notificationConfigurationType = systemConfigurationType.getNotificationConfiguration();
 
         for (JAXBElement<? extends EventHandlerType> eventHandlerType : notificationConfigurationType.getHandler()) {
-            processEvent(event, eventHandlerType.getValue(), result);
+            processEvent(event, eventHandlerType.getValue(), task, result);
         }
 
         if (LOGGER.isTraceEnabled()) {
@@ -118,9 +121,9 @@ public class NotificationManagerImpl implements NotificationManager {
         }
     }
 
-    public boolean processEvent(Event event, EventHandlerType eventHandlerType, OperationResult result) {
+    public boolean processEvent(Event event, EventHandlerType eventHandlerType, Task task, OperationResult result) {
         try {
-            return getEventHandler(eventHandlerType).processEvent(event, eventHandlerType, this, result);
+            return getEventHandler(eventHandlerType).processEvent(event, eventHandlerType, this, task, result);
         } catch (SchemaException e) {
             LoggingUtils.logException(LOGGER, "Event couldn't be processed; event = {}", e, event);
             return true;        // continue if you can

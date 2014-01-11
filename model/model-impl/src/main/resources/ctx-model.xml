@@ -157,6 +157,7 @@
           <constructor-arg name="prismContext" ref="prismContext"/>
           <constructor-arg name="protector" ref="protector"/>
           <constructor-arg ref="modelObjectResolver"/>
+          <constructor-arg ref="modelController"/>
     </bean>
     
     <bean id="expressionFactory" class="com.evolveum.midpoint.model.common.expression.ExpressionFactory" 

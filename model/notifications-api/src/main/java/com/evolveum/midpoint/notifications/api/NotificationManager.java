@@ -19,6 +19,7 @@ package com.evolveum.midpoint.notifications.api;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventHandlerType;
 
 /**
@@ -36,10 +37,10 @@ public interface NotificationManager {
     void processEvent(Event event);
 
     // event may be null
-    void processEvent(Event event, OperationResult result);
+    void processEvent(Event event, Task task, OperationResult result);
 
 
-    boolean processEvent(Event event, EventHandlerType eventHandlerType, OperationResult result);
+    boolean processEvent(Event event, EventHandlerType eventHandlerType, Task task, OperationResult result);
 
     boolean isDisabled();
     void setDisabled(boolean disabled);

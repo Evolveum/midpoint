@@ -29,6 +29,7 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -90,7 +91,7 @@ public class SimpleSmsTransport implements Transport {
     }
 
     @Override
-    public void send(Message message, String transportName, OperationResult parentResult) {
+    public void send(Message message, String transportName, Task task, OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "send");
         result.addCollectionOfSerializablesAsParam("message recipient(s)", message.getTo());
@@ -155,7 +156,8 @@ public class SimpleSmsTransport implements Transport {
             resultForGateway.addContext("gateway name", smsGatewayConfigurationType.getName());
 
             try {
-                String url = evaluateExpressionChecked(smsGatewayConfigurationType.getUrl(), getDefaultVariables(from, to, message), "sms gateway url", result);
+                String url = evaluateExpressionChecked(smsGatewayConfigurationType.getUrl(), getDefaultVariables(from, to, message), 
+                		"sms gateway url", task, result);
                 LOGGER.debug("Sending SMS to URL " + url);
 
                 if (smsGatewayConfigurationType.getRedirectToFile() != null) {
@@ -200,11 +202,12 @@ public class SimpleSmsTransport implements Transport {
         return "================ " + new Date() + " ======= " + (url != null ? url : "") + "\n" + mailMessage.toString() + "\n\n";
     }
 
-    private String evaluateExpressionChecked(ExpressionType expressionType, Map<QName, Object> expressionVariables, String shortDesc, OperationResult result) {
+    private String evaluateExpressionChecked(ExpressionType expressionType, Map<QName, Object> expressionVariables, 
+    		String shortDesc, Task task, OperationResult result) {
 
         Throwable failReason;
         try {
-            return evaluateExpression(expressionType, expressionVariables, shortDesc, result);
+            return evaluateExpression(expressionType, expressionVariables, shortDesc, task, result);
         } catch (ObjectNotFoundException e) {
             failReason = e;
         } catch (SchemaException e) {
@@ -218,13 +221,14 @@ public class SimpleSmsTransport implements Transport {
         throw new SystemException(failReason);
     }
 
-    private String evaluateExpression(ExpressionType expressionType, Map<QName, Object> expressionVariables, String shortDesc, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+    private String evaluateExpression(ExpressionType expressionType, Map<QName, Object> expressionVariables, 
+    		String shortDesc, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
 
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         PrismPropertyDefinition resultDef = new PrismPropertyDefinition(resultName, DOMUtil.XSD_STRING, prismContext);
 
         Expression<PrismPropertyValue<String>> expression = expressionFactory.makeExpression(expressionType, resultDef, shortDesc, result);
-        ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, shortDesc, result);
+        ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, shortDesc, task, result);
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> exprResult = expression.evaluate(params);
 
         if (exprResult.getZeroSet().size() != 1) {

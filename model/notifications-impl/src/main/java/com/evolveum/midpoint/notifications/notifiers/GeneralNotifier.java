@@ -31,10 +31,12 @@ import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+
 import org.apache.cxf.common.util.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -42,6 +44,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -85,7 +88,8 @@ public class GeneralNotifier extends BaseHandler {
     }
 
     @Override
-    public boolean processEvent(Event event, EventHandlerType eventHandlerType, NotificationManager notificationManager, OperationResult result) throws SchemaException {
+    public boolean processEvent(Event event, EventHandlerType eventHandlerType, NotificationManager notificationManager, 
+    		Task task, OperationResult result) throws SchemaException {
 
         logStart(getLogger(), event, eventHandlerType);
 
@@ -102,7 +106,7 @@ public class GeneralNotifier extends BaseHandler {
             // executing embedded filters
             boolean filteredOut = false;
             for (JAXBElement<? extends EventHandlerType> handlerType : generalNotifierType.getHandler()) {
-                if (!notificationManager.processEvent(event, handlerType.getValue(), result)) {
+                if (!notificationManager.processEvent(event, handlerType.getValue(), task, result)) {
                     filteredOut = true;
                     break;
                 }
@@ -126,12 +130,13 @@ public class GeneralNotifier extends BaseHandler {
                     variables.put(SchemaConstants.C_TRANSPORT_NAME, transportName);
                     Transport transport = notificationManager.getTransport(transportName);
 
-                    List<String> recipientsAddresses = getRecipientsAddresses(event, generalNotifierType, variables, getDefaultRecipient(event, generalNotifierType, result), transportName, transport, result);
+                    List<String> recipientsAddresses = getRecipientsAddresses(event, generalNotifierType, variables, 
+                    		getDefaultRecipient(event, generalNotifierType, result), transportName, transport, task, result);
 
                     if (!recipientsAddresses.isEmpty()) {
 
-                        String body = getBodyFromExpression(event, generalNotifierType, variables, result);
-                        String subject = getSubjectFromExpression(event, generalNotifierType, variables, result);
+                        String body = getBodyFromExpression(event, generalNotifierType, variables, task, result);
+                        String subject = getSubjectFromExpression(event, generalNotifierType, variables, task, result);
 
                         if (body == null) {
                             body = getBody(event, generalNotifierType, transportName, result);
@@ -148,7 +153,7 @@ public class GeneralNotifier extends BaseHandler {
                         message.setTo(recipientsAddresses);                      // todo cc/bcc recipients
 
                         getLogger().trace("Sending notification via transport {}:\n{}", transportName, message);
-                        transport.send(message, transportName, result);
+                        transport.send(message, transportName, task, result);
                     } else {
                         getLogger().info("No recipients addresses for transport " + transportName + ", message corresponding to event " + event.getId() + " will not be send.");
                     }
@@ -190,11 +195,12 @@ public class GeneralNotifier extends BaseHandler {
         return DEFAULT_LOGGER;              // in case a subclass does not provide its own logger
     }
 
-    protected List<String> getRecipientsAddresses(Event event, GeneralNotifierType generalNotifierType, Map<QName, Object> variables, UserType defaultRecipient, String transportName, Transport transport, OperationResult result) {
+    protected List<String> getRecipientsAddresses(Event event, GeneralNotifierType generalNotifierType, Map<QName, Object> variables, 
+    		UserType defaultRecipient, String transportName, Transport transport, Task task, OperationResult result) {
         List<String> addresses = new ArrayList<String>();
         if (!generalNotifierType.getRecipientExpression().isEmpty()) {
             for (ExpressionType expressionType : generalNotifierType.getRecipientExpression()) {
-                List<String> r = evaluateExpressionChecked(expressionType, variables, "notification recipient", result);
+                List<String> r = evaluateExpressionChecked(expressionType, variables, "notification recipient", task, result);
                 if (r != null) {
                     addresses.addAll(r);
                 }
@@ -215,9 +221,11 @@ public class GeneralNotifier extends BaseHandler {
         return addresses;
     }
 
-    protected String getSubjectFromExpression(Event event, GeneralNotifierType generalNotifierType, Map<QName, Object> variables, OperationResult result) {
+    protected String getSubjectFromExpression(Event event, GeneralNotifierType generalNotifierType, Map<QName, Object> variables, 
+    		Task task, OperationResult result) {
         if (generalNotifierType.getSubjectExpression() != null) {
-            List<String> subjectList = evaluateExpressionChecked(generalNotifierType.getSubjectExpression(), variables, "subject expression", result);
+            List<String> subjectList = evaluateExpressionChecked(generalNotifierType.getSubjectExpression(), variables, "subject expression", 
+            		task, result);
             if (subjectList == null || subjectList.isEmpty()) {
                 getLogger().warn("Subject expression for event " + event.getId() + " returned nothing.");
                 return "";
@@ -231,9 +239,11 @@ public class GeneralNotifier extends BaseHandler {
         }
     }
 
-    protected String getBodyFromExpression(Event event, GeneralNotifierType generalNotifierType, Map<QName, Object> variables, OperationResult result) {
+    protected String getBodyFromExpression(Event event, GeneralNotifierType generalNotifierType, Map<QName, Object> variables, 
+    		Task task, OperationResult result) {
         if (generalNotifierType.getBodyExpression() != null) {
-            List<String> bodyList = evaluateExpressionChecked(generalNotifierType.getBodyExpression(), variables, "body expression", result);
+            List<String> bodyList = evaluateExpressionChecked(generalNotifierType.getBodyExpression(), variables, 
+            		"body expression", task, result);
             if (bodyList == null || bodyList.isEmpty()) {
                 getLogger().warn("Body expression for event " + event.getId() + " returned nothing.");
                 return "";

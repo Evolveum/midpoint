@@ -66,7 +66,7 @@ public class TestMappingComplex {
     	OperationResult opResult = new OperationResult(TEST_NAME);
     	    	
     	// WHEN
-		mapping.evaluate(opResult);
+		mapping.evaluate(null, opResult);
     	
     	// THEN
 		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
@@ -95,7 +95,7 @@ public class TestMappingComplex {
     	OperationResult opResult = new OperationResult(TEST_NAME);
     	    	
     	// WHEN
-		mapping.evaluate(opResult);
+		mapping.evaluate(null, opResult);
     	
     	// THEN
 		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
@@ -121,7 +121,7 @@ public class TestMappingComplex {
     	OperationResult opResult = new OperationResult(TEST_NAME);
     	    	
     	// WHEN
-		mapping.evaluate(opResult);
+		mapping.evaluate(null, opResult);
     	
     	// THEN
 		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
@@ -149,7 +149,7 @@ public class TestMappingComplex {
     	OperationResult opResult = new OperationResult(TEST_NAME);
     	    	
     	// WHEN
-		mapping.evaluate(opResult);
+		mapping.evaluate(null, opResult);
     	
     	// THEN
 		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
@@ -174,7 +174,7 @@ public class TestMappingComplex {
     	OperationResult opResult = new OperationResult(TEST_NAME);
     	    	
     	// WHEN
-		mapping.evaluate(opResult);
+		mapping.evaluate(null, opResult);
     	
     	// THEN
 		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
@@ -198,7 +198,7 @@ public class TestMappingComplex {
     	OperationResult opResult = new OperationResult(TEST_NAME);
     	    	
     	// WHEN
-		mapping.evaluate(opResult);
+		mapping.evaluate(null, opResult);
     	
     	// THEN
 		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();

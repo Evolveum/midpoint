@@ -19,10 +19,12 @@ package com.evolveum.midpoint.notifications.handlers;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventHandlerForkType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventHandlerType;
+
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -42,13 +44,14 @@ public class ForkHandler extends BaseHandler {
     }
 
     @Override
-    public boolean processEvent(Event event, EventHandlerType eventHandlerType, NotificationManager notificationManager, OperationResult result) {
+    public boolean processEvent(Event event, EventHandlerType eventHandlerType, NotificationManager notificationManager, 
+    		Task task, OperationResult result) {
 
         logStart(LOGGER, event, eventHandlerType);
 
         EventHandlerForkType eventHandlerForkType = (EventHandlerForkType) eventHandlerType;
         for (JAXBElement<? extends EventHandlerType> branchHandlerType : eventHandlerForkType.getHandler()) {
-            notificationManager.processEvent(event, branchHandlerType.getValue(), result);
+            notificationManager.processEvent(event, branchHandlerType.getValue(), task, result);
         }
 
         logEnd(LOGGER, event, eventHandlerType, true);

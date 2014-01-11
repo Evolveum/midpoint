@@ -23,6 +23,7 @@ import com.evolveum.midpoint.model.common.expression.evaluator.AbstractValueTran
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -48,7 +49,7 @@ public class ScriptExpressionEvaluator<V extends PrismValue>
     
     @Override
 	protected List<V> transformSingleValue(ExpressionVariables variables, PlusMinusZero valueDestination, boolean useNew, 
-			ExpressionEvaluationContext params, String contextDescription, OperationResult result) 
+			ExpressionEvaluationContext params, String contextDescription, Task task, OperationResult result) 
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		ScriptExpressionReturnTypeType returnType = getExpressionEvaluatorType().getReturnType();
 		if (returnType == null && isRelative()) {

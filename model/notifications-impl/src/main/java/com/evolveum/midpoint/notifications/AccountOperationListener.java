@@ -153,7 +153,7 @@ public class AccountOperationListener implements ResourceOperationListener {
         }
 
         AccountEvent request = createRequest(status, operationDescription, task, result);
-        notificationManager.processEvent(request, result);
+        notificationManager.processEvent(request, task, result);
     }
 
     private AccountEvent createRequest(OperationStatus status,
