@@ -504,7 +504,7 @@ public class LensUtil {
 		ModelExpressionThreadLocalHolder.pushCurrentResult(parentResult);
 		ModelExpressionThreadLocalHolder.pushCurrentTask(task);
 		try {
-			mapping.evaluate(parentResult);
+			mapping.evaluate(task, parentResult);
 		} finally {
 			ModelExpressionThreadLocalHolder.popLensContext();
 			ModelExpressionThreadLocalHolder.popCurrentResult();

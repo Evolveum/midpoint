@@ -273,7 +273,7 @@ public class MappingTestEvaluator {
 			throws SchemaException, FileNotFoundException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, EncryptionException {
 		Mapping<PrismPropertyValue<T>> mapping = createMapping(filename, testName, defaultTargetPropertyPath, null);
 		OperationResult opResult = new OperationResult(testName);
-		mapping.evaluate(opResult);
+		mapping.evaluate(null, opResult);
 		assertResult(opResult);
 		return mapping.getOutputTriple();
 	}
@@ -283,7 +283,7 @@ public class MappingTestEvaluator {
 			throws SchemaException, FileNotFoundException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, EncryptionException {
 		Mapping<PrismPropertyValue<T>> mapping = createMapping(filename, testName, defaultTargetPropertyName, null);
 		OperationResult opResult = new OperationResult(testName);
-		mapping.evaluate(opResult);
+		mapping.evaluate(null, opResult);
 		assertResult(opResult);
 		return mapping.getOutputTriple();
 	}
@@ -293,7 +293,7 @@ public class MappingTestEvaluator {
 			throws SchemaException, FileNotFoundException, JAXBException, ExpressionEvaluationException, ObjectNotFoundException, EncryptionException {
 		Mapping<PrismPropertyValue<T>> mapping = createMapping(filename, testName, defaultTargetPropertyName, null);
 		OperationResult opResult = new OperationResult(testName);
-		mapping.evaluate(opResult);
+		mapping.evaluate(null, opResult);
 		assertResult(opResult);
 		return mapping.getOutputTriple();
 	}
@@ -320,7 +320,7 @@ public class MappingTestEvaluator {
 				prismContext, valuesToAdd);
 		Mapping<PrismPropertyValue<T>> mapping = createMapping(filename, testName, defaultTargetPropertyPath, userDelta);
 		OperationResult opResult = new OperationResult(testName);
-		mapping.evaluate(opResult);
+		mapping.evaluate(null, opResult);
 		assertResult(opResult);
 		return mapping.getOutputTriple();
 	}
@@ -332,7 +332,7 @@ public class MappingTestEvaluator {
 				prismContext, valuesToAdd);
 		Mapping<PrismPropertyValue<T>> mapping = createMapping(filename, testName, defaultTargetPropertyName, userDelta);
 		OperationResult opResult = new OperationResult(testName);
-		mapping.evaluate(opResult);
+		mapping.evaluate(null, opResult);
 		assertResult(opResult);
 		return mapping.getOutputTriple();
 	}
@@ -344,7 +344,7 @@ public class MappingTestEvaluator {
 				prismContext, valuesToReplace);
 		Mapping<PrismPropertyValue<T>> mapping = createMapping(filename, testName, defaultTargetPropertyName, userDelta);
 		OperationResult opResult = new OperationResult(testName);
-		mapping.evaluate(opResult);
+		mapping.evaluate(null, opResult);
 		assertResult(opResult);
 		return mapping.getOutputTriple();
 	}
@@ -356,7 +356,7 @@ public class MappingTestEvaluator {
 				prismContext, valuesToReplace);
 		Mapping<PrismPropertyValue<T>> mapping = createMapping(filename, testName, defaultTargetPropertyName, userDelta);
 		OperationResult opResult = new OperationResult(testName);
-		mapping.evaluate(opResult);
+		mapping.evaluate(null, opResult);
 		assertResult(opResult);
 		return mapping.getOutputTriple();
 	}
@@ -368,7 +368,7 @@ public class MappingTestEvaluator {
 				prismContext, valuesToReplace);
 		Mapping<PrismPropertyValue<T>> mapping = createMapping(filename, testName, defaultTargetPropertyName, userDelta);
 		OperationResult opResult = new OperationResult(testName);
-		mapping.evaluate(opResult);
+		mapping.evaluate(null, opResult);
 		assertResult(opResult);
 		return mapping.getOutputTriple();
 	}
@@ -380,7 +380,7 @@ public class MappingTestEvaluator {
 				prismContext, valuesToReplace);
 		Mapping<PrismPropertyValue<T>> mapping = createMapping(filename, testName, defaultTargetPropertyName, userDelta);
 		OperationResult opResult = new OperationResult(testName);
-		mapping.evaluate(opResult);
+		mapping.evaluate(null, opResult);
 		assertResult(opResult);
 		return mapping.getOutputTriple();
 	}

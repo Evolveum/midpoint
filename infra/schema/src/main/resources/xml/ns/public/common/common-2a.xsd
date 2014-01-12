@@ -4870,23 +4870,37 @@
 		        	</xsd:element>
 		        	<xsd:element name="createOnDemand" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
 		        	</xsd:element>
-		        	<xsd:element name="objectTemplateRef" type="tns:ObjectReferenceType" minOccurs="0">
+		        	<xsd:element name="populateObject" type="tns:PopulateObjectType" minOccurs="0">
 		            	<xsd:annotation>
 		            		<xsd:documentation>
-		            			Object template used in case the objects are created on demand.
+		            			TODO
 		            		</xsd:documentation>
-		            		<xsd:appinfo>
-		                    	<a:objectReferenceTargetType>tns:ObjetcTemplateType</a:objectReferenceTargetType>
-		                    </xsd:appinfo>
 		            	</xsd:annotation>
 		            </xsd:element>
 		        </xsd:sequence>
 	        </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-
 	<xsd:element name="assignmentExpression" type="tns:AssignmentExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
 
+	<xsd:complexType name="PopulateObjectType">
+		<xsd:annotation>
+			<xsd:documentation>TODO</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="populateProperty" type="tns:PopulatePropertyType" minOccurs="0" maxOccurs="unbounded"/>
+		</xsd:sequence>
+	</xsd:complexType>
+
+	<xsd:complexType name="PopulatePropertyType">
+		<xsd:annotation>
+			<xsd:documentation>TODO</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element ref="tns:expression"/>
+			<xsd:element name="target" type="tns:MappingTargetDeclarationType"/>
+		</xsd:sequence>
+	</xsd:complexType>
 
     <xsd:element name="synchronization" type="tns:SynchronizationType"/>
 

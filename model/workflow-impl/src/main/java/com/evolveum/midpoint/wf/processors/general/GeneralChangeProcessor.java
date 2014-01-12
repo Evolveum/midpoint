@@ -161,7 +161,7 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
         for (GeneralChangeProcessorScenarioType scenarioType : processorConfigurationType.getScenario()) {
             if (!scenarioType.isEnabled()) {
                 LOGGER.trace("scenario {} is disabled, skipping", scenarioType.getName());
-            } else if (!evaluateActivationCondition(scenarioType, context, result)) {
+            } else if (!evaluateActivationCondition(scenarioType, context, taskFromModel, result)) {
                 LOGGER.trace("activationCondition was evaluated to FALSE for scenario named {}", scenarioType.getName());
             } else {
                 LOGGER.trace("Applying scenario {} (process name {})", scenarioType.getName(), scenarioType.getProcessName());
@@ -221,7 +221,7 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
         // todo rollback - at least close open tasks, maybe stop workflow process instances
     }
 
-    private boolean evaluateActivationCondition(GeneralChangeProcessorScenarioType scenarioType, ModelContext context, OperationResult result) throws SchemaException {
+    private boolean evaluateActivationCondition(GeneralChangeProcessorScenarioType scenarioType, ModelContext context, Task task, OperationResult result) throws SchemaException {
         ExpressionType conditionExpression = scenarioType.getActivationCondition();
 
         if (conditionExpression == null) {
@@ -233,7 +233,7 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
 
         boolean start;
         try {
-            start = evaluateBooleanExpression(conditionExpression, variables, "workflow activation condition", result);
+            start = evaluateBooleanExpression(conditionExpression, variables, "workflow activation condition", task, result);
         } catch (ObjectNotFoundException e) {
             throw new SystemException("Couldn't evaluate generalChangeProcessor activation condition", e);
         } catch (ExpressionEvaluationException e) {
@@ -253,7 +253,8 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
         return ef;
     }
 
-    private boolean evaluateBooleanExpression(ExpressionType expressionType, Map<QName, Object> expressionVariables, String opContext, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+    private boolean evaluateBooleanExpression(ExpressionType expressionType, Map<QName, Object> expressionVariables, 
+    		String opContext, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
 
         if (expressionFactory == null) {
             expressionFactory = getExpressionFactory();
@@ -263,7 +264,7 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         PrismPropertyDefinition resultDef = new PrismPropertyDefinition(resultName, DOMUtil.XSD_BOOLEAN, prismContext);
         Expression<PrismPropertyValue<Boolean>> expression = expressionFactory.makeExpression(expressionType, resultDef, opContext, result);
-        ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, opContext, result);
+        ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, opContext, task, result);
         PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> exprResultTriple = expression.evaluate(params);
 
         Collection<PrismPropertyValue<Boolean>> exprResult = exprResultTriple.getZeroSet();

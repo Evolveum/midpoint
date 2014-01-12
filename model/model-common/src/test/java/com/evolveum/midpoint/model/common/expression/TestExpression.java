@@ -103,7 +103,7 @@ public class TestExpression {
 		variables.put(ExpressionConstants.VAR_ITERATION, 1);
 		variables.put(ExpressionConstants.VAR_ITERATION_TOKEN, "001");
 		
-		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(null , variables, TEST_NAME, result);
+		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(null , variables, TEST_NAME, null, result);
 		
 		// WHEN
 		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = expression.evaluate(expressionContext);

@@ -70,6 +70,7 @@ import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
@@ -440,7 +441,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 	}
 	
 
-	public void evaluate(OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+	public void evaluate(Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		
 		OperationResult result = parentResult.createMinorSubresult(Mapping.class.getName()+".evaluate");
 		
@@ -463,7 +464,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 				throw new IllegalArgumentException("No output definition, cannot evaluate "+getMappingContextDescription());
 			}
 			
-			evaluateCondition(result);
+			evaluateCondition(task, result);
 			
 			boolean conditionOutputOld = computeConditionResult(conditionOutputTriple.getNonPositiveValues());
 			boolean conditionResultOld = conditionOutputOld && conditionMaskOld;
@@ -477,7 +478,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 				return;
 			}
 			// TODO: input filter
-			evaluateExpression(result, conditionResultOld, conditionResultNew);
+			evaluateExpression(task, result, conditionResultOld, conditionResultNew);
 			fixDefinition();
 			recomputeValues();
 			setOrigin();
@@ -903,7 +904,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		}
 	}
 	
-	private void evaluateCondition(OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+	private void evaluateCondition(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		ExpressionType conditionExpressionType = mappingType.getCondition();
 		if (conditionExpressionType == null) {
 			// True -> True
@@ -914,7 +915,8 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		ItemDefinition conditionOutput = new PrismPropertyDefinition(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN, expressionFactory.getPrismContext());
 		Expression<PrismPropertyValue<Boolean>> expression = expressionFactory.makeExpression(conditionExpressionType, 
 				conditionOutput, "condition in "+getMappingContextDescription(), result);
-		ExpressionEvaluationContext params = new ExpressionEvaluationContext(sources, variables, "condition in "+getMappingContextDescription(), result);
+		ExpressionEvaluationContext params = new ExpressionEvaluationContext(sources, variables, 
+				"condition in "+getMappingContextDescription(), task, result);
 		params.setStringPolicyResolver(stringPolicyResolver);
 		params.setExpressionFactory(expressionFactory);
 		params.setDefaultSource(defaultSource);
@@ -922,14 +924,15 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 	}
 
 	
-	private void evaluateExpression(OperationResult result, boolean conditionResultOld, boolean conditionResultNew) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+	private void evaluateExpression(Task task, OperationResult result, boolean conditionResultOld, boolean conditionResultNew) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		ExpressionType expressionType = null;
 		if (mappingType != null) {
 			expressionType = mappingType.getExpression();
 		}
 		expression = expressionFactory.makeExpression(expressionType, outputDefinition, 
 				"expression in "+getMappingContextDescription(), result);
-		ExpressionEvaluationContext params = new ExpressionEvaluationContext(sources, variables, "expression in "+getMappingContextDescription(), result);
+		ExpressionEvaluationContext params = new ExpressionEvaluationContext(sources, variables, 
+				"expression in "+getMappingContextDescription(), task, result);
 		params.setDefaultSource(defaultSource);
 		params.setSkipEvaluationMinus(!conditionResultOld);
 		params.setSkipEvaluationPlus(!conditionResultNew);

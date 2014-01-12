@@ -27,6 +27,8 @@ import org.apache.commons.lang.mutable.MutableInt;
 
 import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.crypto.Protector;
+import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
@@ -39,12 +41,14 @@ import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
@@ -56,11 +60,14 @@ import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
@@ -88,20 +95,22 @@ public class AssignmentExpressionEvaluator<V extends PrismValue>
 	private ItemDefinition outputDefinition;
 	private Protector protector;
 	private ObjectResolver objectResolver;
+	private ModelService modelService;
 
 	public AssignmentExpressionEvaluator(AssignmentExpressionEvaluatorType expressionEvaluatorType, 
 			ItemDefinition outputDefinition, Protector protector, ObjectResolver objectResolver, 
-			PrismContext prismContext) {
+			ModelService modelService, PrismContext prismContext) {
 		super(expressionEvaluatorType);
 		this.outputDefinition = outputDefinition;
 		this.prismContext = prismContext;
 		this.protector = protector;
 		this.objectResolver = objectResolver;
+		this.modelService = modelService;
 	}
 	
 	@Override
 	protected List<V> transformSingleValue(ExpressionVariables variables, PlusMinusZero valueDestination, boolean useNew,
-			ExpressionEvaluationContext params, String contextDescription, OperationResult result) 
+			ExpressionEvaluationContext params, String contextDescription, Task task, OperationResult result) 
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		
 		final QName targetTypeQName = getExpressionEvaluatorType().getTargetType();
@@ -118,16 +127,13 @@ public class AssignmentExpressionEvaluator<V extends PrismValue>
 		ObjectQuery query = QueryConvertor.createObjectQuery(targetTypeClass, queryType, prismContext);
 
 		ExpressionUtil.evaluateFilterExpressions(query.getFilter(), variables.getMap(), params.getExpressionFactory(), 
-				prismContext, params.getContextDescription(), params.getResult());
+				prismContext, params.getContextDescription(), task, result);
 		
 		List<PrismContainerValue<AssignmentType>> searchResults = executeSearch(targetTypeClass, targetTypeQName, query, params.getContextDescription(), params.getResult());
 		
 		if (searchResults.isEmpty() && getExpressionEvaluatorType().isCreateOnDemand() == Boolean.TRUE &&
 				(valueDestination == PlusMinusZero.PLUS || valueDestination == PlusMinusZero.ZERO || useNew)) {
-			// Create the objects on demand. TODO
-			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Going to create assignment targets on demand, variables:\n{}", variables.formatVariables());
-			}
+			createOnDemand(targetTypeClass, variables, params.getContextDescription(), task, params.getResult());
 		}
 		
 		return (List<V>) searchResults;
@@ -182,6 +188,29 @@ public class AssignmentExpressionEvaluator<V extends PrismValue>
 		
 		return list;
 	}
+	
+	private <O extends ObjectType> void createOnDemand(Class<O> targetTypeClass, ExpressionVariables variables, 
+			String contextDescription, Task task, OperationResult result) 
+					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Going to create assignment targets on demand, variables:\n{}", variables.formatVariables());
+		}
+		PrismObjectDefinition<O> objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(targetTypeClass);
+		PrismObject<O> newObject = objectDefinition.instantiate();
+		ObjectDelta<O> addDelta = newObject.createAddDelta();
+		
+		// TODO: populate
+		
+		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(addDelta);
+		try {
+			modelService.executeChanges(deltas, null, task, result);
+		} catch (ObjectAlreadyExistsException | CommunicationException | ConfigurationException
+				| PolicyViolationException | SecurityViolationException e) {
+			throw new ExpressionEvaluationException(e.getMessage(), e);
+		}
+		
+	}
+
 	
 	// Override the default in this case. It makes more sense like this.
 	@Override

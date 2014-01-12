@@ -66,6 +66,7 @@ import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -334,13 +335,13 @@ public class ExpressionUtil {
 	
 	public static void evaluateFilterExpressions(ObjectFilter filter, Map<QName, Object> variables, 
 			ExpressionFactory expressionFactory, PrismContext prismContext,
-			String shortDesc, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		
 		if (filter instanceof LogicalFilter){
 			List<ObjectFilter> conditions = ((LogicalFilter) filter).getCondition();
 			
 			for (ObjectFilter condition : conditions){
-				evaluateFilterExpressions(condition, variables, expressionFactory, prismContext, shortDesc, result);
+				evaluateFilterExpressions(condition, variables, expressionFactory, prismContext, shortDesc, task, result);
 			}
 			
 			return;
@@ -357,7 +358,7 @@ public class ExpressionUtil {
 		
 		try {
 			PrismPropertyValue expressionResult = evaluateExpression(variables, prismContext,
-					valueExpression, filter, expressionFactory, shortDesc, result);
+					valueExpression, filter, expressionFactory, shortDesc, task, result);
 
 			if (expressionResult == null || expressionResult.isEmpty()) {
 				LOGGER.debug("Result of search filter expression was null or empty. Expression: {}",
@@ -415,7 +416,7 @@ public class ExpressionUtil {
 
 	private static PrismPropertyValue evaluateExpression(Map<QName, Object> variables, PrismContext prismContext,
 			ExpressionType valueExpression, ObjectFilter filter, ExpressionFactory expressionFactory, 
-			String shortDesc, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			String shortDesc, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		
 		//TODO rafactor after new query engine is implemented
 		ItemDefinition outputDefinition = null;
@@ -428,7 +429,7 @@ public class ExpressionUtil {
 					DOMUtil.XSD_STRING, prismContext);
 		}
 		
-		return evaluateExpression(variables, outputDefinition, valueExpression, expressionFactory, shortDesc, parentResult);
+		return evaluateExpression(variables, outputDefinition, valueExpression, expressionFactory, shortDesc, task, parentResult);
 		
 		
 //		String expressionResult = expressionHandler.evaluateExpression(currentShadow, valueExpression,
@@ -438,12 +439,12 @@ public class ExpressionUtil {
 	public static PrismPropertyValue evaluateExpression(Map<QName, Object> variables,
 			ItemDefinition outputDefinition, ExpressionType valueExpression,
 			ExpressionFactory expressionFactory,
-			String shortDesc, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException{
+			String shortDesc, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException{
 		
 		Expression<PrismPropertyValue> expression = expressionFactory.makeExpression(valueExpression,
 				outputDefinition, shortDesc, parentResult);
 
-		ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, parentResult);
+		ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, task, parentResult);
 		PrismValueDeltaSetTriple<PrismPropertyValue> outputTriple = expression.evaluate(params);
 		
 		LOGGER.trace("Result of the expression evaluation: {}", outputTriple);
