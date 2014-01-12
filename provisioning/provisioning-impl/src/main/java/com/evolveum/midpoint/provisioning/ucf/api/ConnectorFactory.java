@@ -68,7 +68,7 @@ public interface ConnectorFactory {
 	 * @throws ObjectNotFoundException is the specified connector was not found
 	 * @throws SchemaException 
 	 */
-	public ConnectorInstance createConnectorInstance(ConnectorType connectorType, String namespace) throws ObjectNotFoundException, SchemaException;
+	public ConnectorInstance createConnectorInstance(ConnectorType connectorType, String namespace, String desc) throws ObjectNotFoundException, SchemaException;
 	
 	/**
 	 * Returns a list of all known connectors.
@@ -85,5 +85,10 @@ public interface ConnectorFactory {
 	 * @return list of all known connectors.
 	 */
 	public Set<ConnectorType> listConnectors(ConnectorHostType host, OperationResult parentRestul) throws CommunicationException;
+	
+	/**
+	 * Execute self-test for each connector framework that is capable of executing tests.
+	 */
+	public void selfTest(OperationResult parentTestResult);
 
 }

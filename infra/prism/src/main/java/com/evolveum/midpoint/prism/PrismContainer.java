@@ -17,25 +17,16 @@
 package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import org.apache.commons.lang.NotImplementedException;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
 import javax.xml.namespace.QName;
 
@@ -115,7 +106,7 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     		return getValues().get(0);
 		}
     	if (getValues().size() > 1) {
-    		throw new IllegalStateException("Attempt to get single value from a multivalued container "+getName());
+    		throw new IllegalStateException("Attempt to get single value from a multivalued container "+ getElementName());
     	}
     	// We are not sure about multiplicity if there is no definition or the definition is dynamic
     	if (getDefinition() != null && !getDefinition().isDynamic()) {
@@ -131,7 +122,7 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
 				}
 		        return pValue;
 			} else {
-				throw new IllegalStateException("Attempt to get single value from a multivalued container "+getName());
+				throw new IllegalStateException("Attempt to get single value from a multivalued container "+ getElementName());
 			}
 		} else {
 			// Insert first empty value. This simulates empty single-valued container. It the container exists
@@ -153,7 +144,7 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
 				clear();
 		        add(value);
 			} else {
-				throw new IllegalStateException("Attempt to set single value to a multivalued container "+getName());
+				throw new IllegalStateException("Attempt to set single value to a multivalued container "+ getElementName());
 			}
 		} else {
 			clear();
@@ -399,7 +390,7 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     			return (I) this;
     		} else {
     			if (create) {
-    				throw new IllegalStateException("The " + type.getSimpleName() + " " + getName() + " cannot be created because "
+    				throw new IllegalStateException("The " + type.getSimpleName() + " " + getElementName() + " cannot be created because "
     						+ this.getClass().getSimpleName() + " with the same name exists"); 
     			} else {
     				return null;
@@ -427,7 +418,7 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     		if (canAssumeSingleValue()) {
     			return getValue();
     		} else {
-    			throw new IllegalArgumentException("Attempt to get segment without an ID from a multi-valued container "+getName());
+    			throw new IllegalArgumentException("Attempt to get segment without an ID from a multi-valued container "+ getElementName());
     		}
     	} else {
 	        for (PrismContainerValue<V> pval : getValues()) {
@@ -559,9 +550,9 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     		ItemPath subpath = null;
     		ItemPathSegment segment = null;
     		if (addIds) {
-    			subpath = basePath.subPath(new IdItemPathSegment(pval.getId())).subPath(new NameItemPathSegment(getName()));
+    			subpath = basePath.subPath(new IdItemPathSegment(pval.getId())).subPath(new NameItemPathSegment(getElementName()));
     		} else {
-    			subpath = basePath.subPath(new NameItemPathSegment(getName()));
+    			subpath = basePath.subPath(new NameItemPathSegment(getElementName()));
     		}
     		pval.addItemPathsToList(subpath, list);
     	}
@@ -615,7 +606,7 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
 
 	@Override
     public PrismContainer<V> clone() {
-    	PrismContainer<V> clone = new PrismContainer<V>(getName(), getDefinition(), prismContext);
+    	PrismContainer<V> clone = new PrismContainer<V>(getElementName(), getDefinition(), prismContext);
         copyValues(clone);
         return clone;
     }
@@ -705,7 +696,7 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
 
 	@Override
     public String toString() {
-        return getDebugDumpClassName() + "(" + getName() + "):"
+        return getDebugDumpClassName() + "(" + getElementName() + "):"
                 + getValues();
     }
 
@@ -720,7 +711,7 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
         for (int i = 0; i < indent; i++) {
             sb.append(INDENT_STRING);
         }
-        sb.append(getDebugDumpClassName()).append(": ").append(PrettyPrinter.prettyPrint(getName()));
+        sb.append(getDebugDumpClassName()).append(": ").append(PrettyPrinter.prettyPrint(getElementName()));
         sb.append(additionalDumpDescription());
         PrismContainerDefinition<V> def = getDefinition();
         if (def != null) {

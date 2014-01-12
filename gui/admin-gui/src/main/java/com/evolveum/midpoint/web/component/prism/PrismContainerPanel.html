@@ -17,13 +17,11 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="objectFormSeparator" wicket:id="header">
-        <div class="objectFormSeparatorText">
-            <span wicket:id="label"/>
-        </div>
+    <div class="visible" wicket:id="header">
+        <div class="container-name" wicket:id="label"/>
     </div>
     <div wicket:id="properties">
-        <div wicket:id="property"/>
+        <div class="row" wicket:id="property"/>
     </div>
 </wicket:panel>
 </html>

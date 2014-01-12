@@ -34,7 +34,7 @@
              - approvalTaskName (String): name of the approval task (e.g. "Approve adding role R to user U")
 
            Output variables:
-             - wfAnswer (Boolean: true / false-or-null): whether the item was approved or not
+             - wfAnswer (Soolean: __APPROVED__ / __REJECTED__-or-null): whether the item was approved or not
              (in the future we may accept a set of deltas to be directly applied)
         -->
 

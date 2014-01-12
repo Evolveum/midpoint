@@ -29,11 +29,11 @@ import javax.xml.namespace.QName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.refinery.PropertyLimitations;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
+import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.lens.ItemValueWithOrigin;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
@@ -66,12 +66,12 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PropertyAccessType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
  * Processor that reconciles the computed account and the real account. There
@@ -99,24 +99,23 @@ public class ReconciliationProcessor {
 			+ ".processReconciliation";
 	private static final Trace LOGGER = TraceManager.getTrace(ReconciliationProcessor.class);
 
-	<F extends ObjectType, P extends ObjectType> void processReconciliation(LensContext<F, P> context,
-			LensProjectionContext<P> projectionContext, OperationResult result) throws SchemaException,
+	<F extends ObjectType> void processReconciliation(LensContext<F> context,
+			LensProjectionContext projectionContext, OperationResult result) throws SchemaException,
 			ObjectNotFoundException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
 		LensFocusContext<F> focusContext = context.getFocusContext();
 		if (focusContext == null) {
 			return;
 		}
-		if (focusContext.getObjectTypeClass() != UserType.class) {
-			// We can do this only for user.
+		if (!FocusType.class.isAssignableFrom(focusContext.getObjectTypeClass())) {
+			// We can do this only for focal types.
 			return;
 		}
-		processReconciliationUser((LensContext<UserType, ShadowType>) context,
-				(LensProjectionContext<ShadowType>) projectionContext, result);
+		processReconciliationUser(context, projectionContext, result);
 	}
 
-	void processReconciliationUser(LensContext<UserType, ShadowType> context,
-			LensProjectionContext<ShadowType> accContext, OperationResult result) throws SchemaException,
+	<F extends ObjectType> void processReconciliationUser(LensContext<F> context,
+			LensProjectionContext accContext, OperationResult result) throws SchemaException,
 			ObjectNotFoundException, CommunicationException, ConfigurationException,
 			SecurityViolationException {
 
@@ -178,7 +177,7 @@ public class ReconciliationProcessor {
 	}
 
 	private void reconcileAccount(
-			LensProjectionContext<ShadowType> accCtx,
+			LensProjectionContext accCtx,
 			Map<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> squeezedAttributes,
 			RefinedObjectClassDefinition accountDefinition) throws SchemaException {
 
@@ -320,7 +319,7 @@ public class ReconciliationProcessor {
 		}
 	}
 
-	private void decideIfTolerate(LensProjectionContext<ShadowType> accCtx,
+	private void decideIfTolerate(LensProjectionContext accCtx,
 			RefinedAttributeDefinition attributeDefinition,
 			Collection<PrismPropertyValue<Object>> arePValues,
 			Collection<ItemValueWithOrigin<? extends PrismPropertyValue<?>>> shouldBePValues,
@@ -365,7 +364,7 @@ public class ReconciliationProcessor {
 	}
 	
 
-	private <T> void recordDelta(ValueMatcher valueMatcher, LensProjectionContext<ShadowType> accCtx,
+	private <T> void recordDelta(ValueMatcher valueMatcher, LensProjectionContext accCtx,
 			ResourceAttributeDefinition attrDef, ModificationType changeType, T value, ObjectType originObject)
 			throws SchemaException {
 
@@ -394,7 +393,7 @@ public class ReconciliationProcessor {
 			throw new IllegalArgumentException("Unknown change type " + changeType);
 		}
 
-		accCtx.addToSecondaryDelta(attrDelta);
+		accCtx.swallowToSecondaryDelta(attrDelta);
 	}
 
 	private <T> boolean isInDelta(ItemDelta existingDelta, ValueMatcher valueMatcher, T value) {

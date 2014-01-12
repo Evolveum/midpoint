@@ -16,21 +16,14 @@
 
 package com.evolveum.midpoint.prism;
 
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.Validate;
-
-import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * Object Reference is a property that describes reference to an object. It is
@@ -78,12 +71,12 @@ public class PrismReference extends Item<PrismReferenceValue> {
     	// We are not sure about multiplicity if there is no definition or the definition is dynamic
     	if (getDefinition() != null && !getDefinition().isDynamic()) {
     		if (getDefinition().isMultiValue()) {
-    			throw new IllegalStateException("Attempt to get single value from property " + name
+    			throw new IllegalStateException("Attempt to get single value from property " + elementName
                         + " with multiple values");
     		}
     	}
         if (getValues().size() > 1) {
-            throw new IllegalStateException("Attempt to get single value from property " + name
+            throw new IllegalStateException("Attempt to get single value from property " + elementName
                     + " with multiple values");
         }
         if (getValues().isEmpty()) {
@@ -117,6 +110,14 @@ public class PrismReference extends Item<PrismReferenceValue> {
     	// We need to tolerate null OIDs here. Because of JAXB.
     	PrismReferenceValue existingValue = getValue(newOid);
 		if (existingValue == null) {
+			return add(value);
+		}
+		
+		// if there is newValue containing object (instead of oid only) and also
+		// old value containing object (instead of oid only) we need to compare
+		// these two object if they are equals..this can avoid of bad resolving
+		// (e.g. creating user and adding two or more accounts at the same time)
+		if (value.getObject() != null && existingValue.getObject() != null && !value.equalsComplex(existingValue, false, false)){
 			return add(value);
 		}
 
@@ -164,7 +165,7 @@ public class PrismReference extends Item<PrismReferenceValue> {
 			return this;
 		}
 		if (!isSingleValue()) {
-    		throw new IllegalStateException("Attempt to resolve sub-path '"+path+"' on multi-value reference " + getName());
+    		throw new IllegalStateException("Attempt to resolve sub-path '"+path+"' on multi-value reference " + getElementName());
     	}
 		PrismReferenceValue value = getValue();
 		return value.find(path);
@@ -178,7 +179,7 @@ public class PrismReference extends Item<PrismReferenceValue> {
 			return new PartiallyResolvedValue<X>((Item<X>)this, null);
 		}
 		if (!isSingleValue()) {
-    		throw new IllegalStateException("Attempt to resolve sub-path '"+path+"' on multi-value reference " + getName());
+    		throw new IllegalStateException("Attempt to resolve sub-path '"+path+"' on multi-value reference " + getElementName());
     	}
 		PrismReferenceValue value = getValue();
 		return value.findPartial(path);
@@ -203,7 +204,7 @@ public class PrismReference extends Item<PrismReferenceValue> {
 
 	@Override
     public PrismReference clone() {
-    	PrismReference clone = new PrismReference(getName(), getDefinition(), prismContext);
+    	PrismReference clone = new PrismReference(getElementName(), getDefinition(), prismContext);
         copyValues(clone);
         return clone;
     }
@@ -217,7 +218,7 @@ public class PrismReference extends Item<PrismReferenceValue> {
 			
 	@Override
     public String toString() {
-        return getClass().getSimpleName() + "(" + PrettyPrinter.prettyPrint(getName()) + "):" + getValues();
+        return getClass().getSimpleName() + "(" + PrettyPrinter.prettyPrint(getElementName()) + "):" + getValues();
     }
 
     @Override
@@ -231,7 +232,7 @@ public class PrismReference extends Item<PrismReferenceValue> {
         if (definition != null) {
         	isComposite = definition.isComposite();
         }
-        sb.append(getDebugDumpClassName()).append(": ").append(PrettyPrinter.prettyPrint(getName()));
+        sb.append(getDebugDumpClassName()).append(": ").append(PrettyPrinter.prettyPrint(getElementName()));
         if (getValues() == null) {
             sb.append(" = null");
         } else {

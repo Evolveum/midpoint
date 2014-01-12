@@ -36,6 +36,7 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.task.api.TaskBinding;
+import com.evolveum.midpoint.task.api.TaskRecurrence;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
@@ -172,6 +173,10 @@ public class JobCreationInstruction implements DebugDumpable {
         this.taskName = taskName;
     }
 
+    public void setTaskName(String taskName) {
+        this.taskName = new PolyStringType(taskName);
+    }
+
     public boolean isExecuteApprovedChangeImmediately() {
         return executeApprovedChangeImmediately;
     }
@@ -278,17 +283,18 @@ public class JobCreationInstruction implements DebugDumpable {
         return retval;
     }
 
-    private void addAtBeginningOfExecutionList(List<UriStackEntry> list, String handlerUri, ScheduleType scheduleType, TaskBinding taskBinding) {
-        list.add(0, createUriStackEntry(handlerUri, scheduleType, taskBinding));
+    private void addAtBeginningOfExecutionList(List<UriStackEntry> list, String handlerUri, TaskRecurrence recurrence, ScheduleType scheduleType, TaskBinding taskBinding) {
+        list.add(0, createUriStackEntry(handlerUri, recurrence, scheduleType, taskBinding));
     }
 
-    private void addAtEndOfExecutionList(List<UriStackEntry> list, String handlerUri, ScheduleType scheduleType, TaskBinding taskBinding) {
-        list.add(createUriStackEntry(handlerUri, scheduleType, taskBinding));
+    private void addAtEndOfExecutionList(List<UriStackEntry> list, String handlerUri, TaskRecurrence recurrence, ScheduleType scheduleType, TaskBinding taskBinding) {
+        list.add(createUriStackEntry(handlerUri, recurrence, scheduleType, taskBinding));
     }
 
-    private UriStackEntry createUriStackEntry(String handlerUri, ScheduleType scheduleType, TaskBinding taskBinding) {
+    private UriStackEntry createUriStackEntry(String handlerUri, TaskRecurrence recurrence, ScheduleType scheduleType, TaskBinding taskBinding) {
         UriStackEntry uriStackEntry = new UriStackEntry();
         uriStackEntry.setHandlerUri(handlerUri);
+        uriStackEntry.setRecurrence(recurrence != null ? recurrence.toTaskType() : null);
         uriStackEntry.setSchedule(scheduleType);
         uriStackEntry.setBinding(taskBinding != null ? taskBinding.toTaskType() : null);
         return uriStackEntry;
@@ -304,7 +310,7 @@ public class JobCreationInstruction implements DebugDumpable {
     }
 
     private UriStackEntry createUriStackEntry(String handlerUri) {
-        return createUriStackEntry(handlerUri, new ScheduleType(), null);
+        return createUriStackEntry(handlerUri, TaskRecurrence.SINGLE, new ScheduleType(), null);
     }
     //endregion
 
@@ -339,7 +345,7 @@ public class JobCreationInstruction implements DebugDumpable {
     public void addTaskModelContext(ModelContext modelContext) throws SchemaException {
         Validate.notNull(modelContext, "model context cannot be null");
         PrismContainer<LensContextType> modelContextPrism = ((LensContext) modelContext).toPrismContainer();
-        taskVariables.put(modelContextPrism.getName(), modelContextPrism);
+        taskVariables.put(modelContextPrism.getElementName(), modelContextPrism);
     }
     //endregion
 
@@ -360,6 +366,10 @@ public class JobCreationInstruction implements DebugDumpable {
         } else {
             removeProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_OID);
         }
+    }
+
+    public void setProcessInstanceName(String name) {
+        addProcessVariable(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME, name);
     }
     //endregion
 

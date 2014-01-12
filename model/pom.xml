@@ -48,12 +48,16 @@
 	</scm>
 	<modules>
 		<module>model-api</module>
+		<module>model-common</module>
 		<module>model-test</module>
 		<module>model-impl</module>
 		<module>model-intest</module>
 		<module>model-client</module>
         <module>workflow-api</module>
         <module>workflow-impl</module>
-        <module>notifications</module>
+        <module>notifications-api</module>
+        <module>notifications-impl</module>
+        <module>report-api</module>
+        <module>report-impl</module>
     </modules>
 </project>

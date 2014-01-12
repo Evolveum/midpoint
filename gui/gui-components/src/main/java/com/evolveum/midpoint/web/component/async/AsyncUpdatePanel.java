@@ -39,7 +39,7 @@ import java.util.concurrent.Future;
 public abstract class AsyncUpdatePanel<V, T> extends BaseSimplePanel {
 
     private static final ResourceReference PRELOADER =
-            new PackageResourceReference(ImgResources.class, "preloader-panel.gif");
+            new PackageResourceReference(ImgResources.class, "ajax-loader.gif");
 
     /**
      * Duration in seconds.

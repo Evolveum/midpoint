@@ -17,8 +17,10 @@ package com.evolveum.midpoint.model.lens;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
@@ -30,21 +32,31 @@ import com.evolveum.midpoint.common.crypto.CryptoUtil;
 import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.ModelState;
+import com.evolveum.midpoint.model.common.expression.ExpressionSyntaxException;
+import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
+import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory;
 import com.evolveum.midpoint.model.lens.projector.ContextLoader;
 import com.evolveum.midpoint.model.lens.projector.Projector;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -60,8 +72,16 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.HookListType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.HookType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ModelHooksType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScriptExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
 
 /**
  * @author semancik
@@ -93,6 +113,16 @@ public class Clockwork {
     
     @Autowired(required = true)
     private Clock clock;
+    
+    @Autowired(required = true)
+    @Qualifier("cacheRepositoryService")
+    private transient RepositoryService repositoryService;
+    
+    @Autowired(required = true)
+    private ScriptExpressionFactory scriptExpressionFactory;
+    
+    @Autowired(required = true)
+    private PrismContext prismContext;
 
     private LensDebugListener debugListener;
 	
@@ -104,7 +134,7 @@ public class Clockwork {
 		this.debugListener = debugListener;
 	}
 
-	public <F extends ObjectType, P extends ObjectType> HookOperationMode run(LensContext<F,P> context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+	public <F extends ObjectType> HookOperationMode run(LensContext<F> context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (InternalsConfig.consistencyChecks) {
 			context.checkConsistence();
 		}
@@ -123,7 +153,7 @@ public class Clockwork {
         return click(context, task, result);
 	}
 	
-	public <F extends ObjectType, P extends ObjectType> HookOperationMode click(LensContext<F,P> context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+	public <F extends ObjectType> HookOperationMode click(LensContext<F> context, Task task, OperationResult result) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 		
 		// DO NOT CHECK CONSISTENCY of the context here. The context may not be fresh and consistent yet. Project will fix
 		// that. Check consistency afterwards (and it is also checked inside projector several times).
@@ -137,7 +167,7 @@ public class Clockwork {
 			// We need to determine focus before auditing. Otherwise we will not know user
 			// for the accounts (unless there is a specific delta for it).
 			// This is ugly, but it is the easiest way now (TODO: cleanup).
-			contextLoader.determineFocusContext(context, result);
+			contextLoader.determineFocusContext((LensContext<? extends FocusType>) context, result);
 			
 			ModelState state = context.getState();
 			if (state == ModelState.INITIAL) {
@@ -153,7 +183,7 @@ public class Clockwork {
 			
 			if (!context.isFresh()) {
 				context.cleanup();
-				projector.project((LensContext<F, ShadowType>)context, "PROJECTOR ("+state+")", result);
+				projector.project(context, "PROJECTOR ("+state+")", task, result);
 			} else {
 				LOGGER.trace("Skipping projection because the context is fresh");
 			}
@@ -228,10 +258,73 @@ public class Clockwork {
      * @return
      *  - ERROR, if any hook reported error; otherwise returns
      *  - BACKGROUND, if any hook reported switching to background; otherwise
-     *  - FOREGROUND (if all hooks reported finishing on foreground)
+     *  - FOREGROUND (if all hooks reported finishing on foreground) 
      */
-    private HookOperationMode invokeHooks(LensContext context, Task task, OperationResult result) {
+    private HookOperationMode invokeHooks(LensContext context, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    	// TODO: following two parts should be merged together in later versions
+    	
+    	// Execute configured scripting hooks
+    	PrismObject<SystemConfigurationType> systemConfiguration = LensUtil.getSystemConfiguration(context, repositoryService, result);
+    	// systemConfiguration may be null in some tests
+    	if (systemConfiguration != null) {
+	    	ModelHooksType modelHooks = systemConfiguration.asObjectable().getModelHooks();
+	    	if (modelHooks != null) {
+	    		HookListType changeHooks = modelHooks.getChange();
+	    		if (changeHooks != null) {
+	    			for (HookType hookType: changeHooks.getHook()) {
+                        String shortDesc;
+                        if (hookType.getName() != null) {
+                            shortDesc = "hook '"+hookType.getName()+"'";
+                        } else {
+                            shortDesc = "scripting hook in system configuration";
+                        }
+	    				if (hookType.isEnabled() != null && !hookType.isEnabled()) {
+	    					// Disabled hook, skip
+	    					continue;
+	    				}
+                        if (hookType.getState() != null) {
+                            if (!context.getState().toModelStateType().equals(hookType.getState())) {
+                                continue;
+                            }
+                        }
+                        if (hookType.getFocusType() != null) {
+                            if (context.getFocusContext() == null) {
+                                continue;
+                            }
+                            QName hookFocusTypeQname = hookType.getFocusType();
+                            ObjectTypes hookFocusType = ObjectTypes.getObjectTypeFromTypeQName(hookFocusTypeQname);
+                            if (hookFocusType == null) {
+                                throw new SchemaException("Unknown focus type QName "+hookFocusTypeQname+" in "+shortDesc);
+                            }
+                            Class focusClass = context.getFocusClass();
+                            Class<? extends ObjectType> hookFocusClass = hookFocusType.getClassDefinition();
+                            if (!hookFocusClass.isAssignableFrom(focusClass)) {
+                                continue;
+                            }
+                        }
 
+	    				ScriptExpressionEvaluatorType scriptExpressionEvaluatorType = hookType.getScript();
+	    				if (scriptExpressionEvaluatorType == null) {
+	    					continue;
+	    				}
+	    				try {
+							evaluateScriptingHook(context, hookType, scriptExpressionEvaluatorType, shortDesc, task, result);
+						} catch (ExpressionEvaluationException e) {
+							LOGGER.error("Evaluation of {} failed: {}", new Object[]{shortDesc, e.getMessage(), e});
+							throw new ExpressionEvaluationException("Evaluation of "+shortDesc+" failed: "+e.getMessage(), e);
+						} catch (ObjectNotFoundException e) {
+							LOGGER.error("Evaluation of {} failed: {}", new Object[]{shortDesc, e.getMessage(), e});
+							throw new ObjectNotFoundException("Evaluation of "+shortDesc+" failed: "+e.getMessage(), e);
+						} catch (SchemaException e) {
+							LOGGER.error("Evaluation of {} failed: {}", new Object[]{shortDesc, e.getMessage(), e});
+							throw new SchemaException("Evaluation of "+shortDesc+" failed: "+e.getMessage(), e);
+						}
+	    			}
+	    		}
+	    	}
+    	}
+    	
+    	// Execute registered Java hooks
         HookOperationMode resultMode = HookOperationMode.FOREGROUND;
         if (hookRegistry != null) {
             for (ChangeHook hook : hookRegistry.getAllChangeHooks()) {
@@ -249,17 +342,39 @@ public class Clockwork {
     }
 
 
-    private <F extends ObjectType, P extends ObjectType> void processInitialToPrimary(LensContext<F,P> context, Task task, OperationResult result) {
+    private void evaluateScriptingHook(LensContext context, HookType hookType,
+    		ScriptExpressionEvaluatorType scriptExpressionEvaluatorType, String shortDesc, Task task, OperationResult result) 
+    				throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    	
+    	LOGGER.trace("Evaluating {}", shortDesc);
+		// TODO: it would be nice to cache this
+		// null output definition: this script has no output
+		ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptExpressionEvaluatorType, null, shortDesc);
+		
+		ExpressionVariables variables = new ExpressionVariables();
+		variables.addVariableDefinition(ExpressionConstants.VAR_PRISM_CONTEXT, prismContext);
+		variables.addVariableDefinition(ExpressionConstants.VAR_MODEL_CONTEXT, context);
+		LensFocusContext focusContext = context.getFocusContext();
+		PrismObject focus = null;
+		if (focusContext != null) {
+			focus = focusContext.getObjectAny();
+		}
+		variables.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focus);
+		
+		LensUtil.evaluateScript(scriptExpression, context, variables, shortDesc, task, result);
+	}
+
+    private <F extends ObjectType> void processInitialToPrimary(LensContext<F> context, Task task, OperationResult result) {
 		// Context loaded, nothing special do. Bump state to PRIMARY.
 		context.setState(ModelState.PRIMARY);		
 	}
 	
-	private <F extends ObjectType, P extends ObjectType> void processPrimaryToSecondary(LensContext<F,P> context, Task task, OperationResult result) {
+	private <F extends ObjectType> void processPrimaryToSecondary(LensContext<F> context, Task task, OperationResult result) {
 		// Nothing to do now. The context is already recomputed.
 		context.setState(ModelState.SECONDARY);
 	}
 	
-	private <F extends ObjectType, P extends ObjectType> void processSecondary(LensContext<F,P> context, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+	private <F extends ObjectType> void processSecondary(LensContext<F> context, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		if (context.getExecutionWave() > context.getMaxWave() + 1) {
 			context.setState(ModelState.FINAL);
 			return;
@@ -280,19 +395,24 @@ public class Clockwork {
 	 * Force recompute for the next wave. Recompute only those contexts that were changed.
 	 * This is more inteligent than context.rot()
 	 */
-	private <F extends ObjectType, P extends ObjectType> void rotContext(LensContext<F,P> context) throws SchemaException {
+	private <F extends ObjectType> void rotContext(LensContext<F> context) throws SchemaException {
 		boolean rot = false;
-    	for (LensProjectionContext<P> projectionContext: context.getProjectionContexts()) {
+    	for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
     		if (projectionContext.getWave() != context.getExecutionWave()) {
     			LOGGER.trace("Context rot: projection {} NOT rotten because of wrong wave number", projectionContext);
         		continue;
 			}
-    		ObjectDelta<P> execDelta = projectionContext.getExecutableDelta();
+    		ObjectDelta<ShadowType> execDelta = projectionContext.getExecutableDelta();
     		if (isSignificant(execDelta)) {
     			LOGGER.trace("Context rot: projection {} rotten because of delta {}", projectionContext, execDelta);
     			projectionContext.setFresh(false);
     			projectionContext.setFullShadow(false);
     			rot = true;
+    			// Propagate to higher-order projections
+    			for (LensProjectionContext relCtx: LensUtil.findRelatedContexts(context, projectionContext)) {
+    				relCtx.setFresh(false);
+    				relCtx.setFullShadow(false);
+    			}
 	        } else {
 	        	LOGGER.trace("Context rot: projection {} NOT rotten because no delta", projectionContext);
 	        }
@@ -327,12 +447,12 @@ public class Clockwork {
 		return false;
 	}
 	
-	private <F extends ObjectType, P extends ObjectType> void processFinal(LensContext<F,P> context, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
+	private <F extends ObjectType> void processFinal(LensContext<F> context, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException, ExpressionEvaluationException {
 		auditFinalExecution(context, task, result);
 		logFinalReadable(context, task, result);
 	}
-	
-	private <F extends ObjectType, P extends ObjectType> void audit(LensContext<F,P> context, AuditEventStage stage, Task task, OperationResult result) throws SchemaException {
+		
+	private <F extends ObjectType> void audit(LensContext<F> context, AuditEventStage stage, Task task, OperationResult result) throws SchemaException {
 		if (context.isLazyAuditRequest()) {
 			if (stage == AuditEventStage.REQUEST) {
 				// We skip auditing here, we will do it before execution
@@ -356,7 +476,7 @@ public class Clockwork {
 	 * Make sure that at least one execution is audited if a request was already audited. We don't want
 	 * request without execution in the audit logs.
 	 */
-	private <F extends ObjectType, P extends ObjectType> void auditFinalExecution(LensContext<F,P> context, Task task, OperationResult result) throws SchemaException {
+	private <F extends ObjectType> void auditFinalExecution(LensContext<F> context, Task task, OperationResult result) throws SchemaException {
 		if (!context.isRequestAudited()) {
 			return;
 		}
@@ -366,12 +486,12 @@ public class Clockwork {
 		auditEvent(context, AuditEventStage.EXECUTION, null, true, task, result);
 	}
 	
-	private <F extends ObjectType, P extends ObjectType> void processClockworkException(LensContext<F,P> context, Exception e, Task task, OperationResult result) throws SchemaException {
+	private <F extends ObjectType> void processClockworkException(LensContext<F> context, Exception e, Task task, OperationResult result) throws SchemaException {
 		result.recordFatalError(e);
 		auditEvent(context, AuditEventStage.EXECUTION, null, true, task, result);
 	}
 
-	private <F extends ObjectType, P extends ObjectType> void auditEvent(LensContext<F,P> context, AuditEventStage stage, 
+	private <F extends ObjectType> void auditEvent(LensContext<F> context, AuditEventStage stage, 
 			XMLGregorianCalendar timestamp, boolean alwaysAudit, Task task, OperationResult result) throws SchemaException {
 		
 		PrismObject<? extends ObjectType> primaryObject = null;
@@ -383,14 +503,14 @@ public class Clockwork {
 			}
 			primaryDelta = context.getFocusContext().getDelta();
 		} else {
-			Collection<LensProjectionContext<P>> projectionContexts = context.getProjectionContexts();
+			Collection<LensProjectionContext> projectionContexts = context.getProjectionContexts();
 			if (projectionContexts == null || projectionContexts.isEmpty()) {
 				throw new IllegalStateException("No focus and no projectstions in "+context);
 			}
 			if (projectionContexts.size() > 1) {
 				throw new IllegalStateException("No focus and more than one projection in "+context);
 			}
-			LensProjectionContext<P> projection = projectionContexts.iterator().next();
+			LensProjectionContext projection = projectionContexts.iterator().next();
 			primaryObject = projection.getObjectOld();
 			if (primaryObject == null) {
 				primaryObject = projection.getObjectNew();
@@ -501,7 +621,7 @@ public class Clockwork {
 	/**
 	 * Logs the entire operation in a human-readable fashion.
 	 */
-	private <F extends ObjectType, P extends ObjectType> void logFinalReadable(LensContext<F,P> context, Task task, OperationResult result) throws SchemaException {
+	private <F extends ObjectType> void logFinalReadable(LensContext<F> context, Task task, OperationResult result) throws SchemaException {
 		if (!LOGGER.isDebugEnabled()) {
 			return;
 		}
@@ -509,8 +629,8 @@ public class Clockwork {
 		
 		// a priori: sync delta
 		boolean hasSyncDelta = false;
-		for (LensProjectionContext<P> projectionContext: context.getProjectionContexts()) {
-			ObjectDelta<P> syncDelta = projectionContext.getSyncDelta();
+		for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
+			ObjectDelta<ShadowType> syncDelta = projectionContext.getSyncDelta();
 			if (syncDelta != null) {
 				hasSyncDelta = true;
 			}
@@ -531,8 +651,8 @@ public class Clockwork {
 		
 		if (hasSyncDelta) {
 			sb.append("Triggered by synchronization delta\n");
-			for (LensProjectionContext<P> projectionContext: context.getProjectionContexts()) {
-				ObjectDelta<P> syncDelta = projectionContext.getSyncDelta();
+			for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
+				ObjectDelta<ShadowType> syncDelta = projectionContext.getSyncDelta();
 				if (syncDelta != null) {
 					sb.append(syncDelta.debugDump(1));
 					sb.append(": ");
@@ -541,7 +661,7 @@ public class Clockwork {
 				}
 			}
 		}
-		for (LensProjectionContext<P> projectionContext: context.getProjectionContexts()) {
+		for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
 			if (projectionContext.isSyncAbsoluteTrigger()) {
 				sb.append("Triggered by absolute state of ").append(projectionContext.getHumanReadableName());
 				sb.append(": ");
@@ -563,16 +683,16 @@ public class Clockwork {
 		}
 		
 		// projection primary
-		Collection<ObjectDelta<P>> projPrimaryDeltas = new ArrayList<ObjectDelta<P>>();
-		for (LensProjectionContext<P> projectionContext: context.getProjectionContexts()) {
-			ObjectDelta<P> projPrimaryDelta = projectionContext.getPrimaryDelta();
+		Collection<ObjectDelta<ShadowType>> projPrimaryDeltas = new ArrayList<ObjectDelta<ShadowType>>();
+		for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
+			ObjectDelta<ShadowType> projPrimaryDelta = projectionContext.getPrimaryDelta();
 			if (projPrimaryDelta != null) {
 				projPrimaryDeltas.add(projPrimaryDelta);
 			}
 		}
 		if (!projPrimaryDeltas.isEmpty()) {
 			sb.append("Triggered by projection primary delta\n");
-			for (ObjectDelta<P> projDelta: projPrimaryDeltas) {
+			for (ObjectDelta<ShadowType> projDelta: projPrimaryDeltas) {
 				DebugUtil.indentDebugDump(sb, 1);
 				sb.append(projDelta.toString());
 				sb.append("\n");
@@ -580,13 +700,13 @@ public class Clockwork {
 		}
 				
 		if (focusContext != null) {
-			sb.append("Focus: ").append(focusContext.toString()).append("\n");
+			sb.append("Focus: ").append(focusContext.getHumanReadableName()).append("\n");
 		}
 		if (!context.getProjectionContexts().isEmpty()) {
 			sb.append("Projections (").append(context.getProjectionContexts().size()).append("):\n");
-			for (LensProjectionContext<P> projectionContext: context.getProjectionContexts()) {
+			for (LensProjectionContext projectionContext: context.getProjectionContexts()) {
 				DebugUtil.indentDebugDump(sb, 1);
-				sb.append(projectionContext.toString());
+				sb.append(projectionContext.getHumanReadableName());
 				sb.append(": ");
 				sb.append(projectionContext.getSynchronizationPolicyDecision());
 				sb.append("\n");

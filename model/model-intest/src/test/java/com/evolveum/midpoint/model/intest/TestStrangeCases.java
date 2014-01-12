@@ -27,13 +27,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterStatusInformation;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
@@ -118,7 +116,7 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		PrismObject<ShadowType> accountGuybrushDummyRed = repoAddObjectFromFile(ACCOUNT_GUYBRUSH_DUMMY_RED_FILENAME, ShadowType.class, initResult);
 		accountGuybrushDummyRedOid = accountGuybrushDummyRed.getOid();
 		
-		treasureIsland = IOUtils.toString(new FileInputStream(TREASURE_ISLAND_FILE));
+		treasureIsland = IOUtils.toString(new FileInputStream(TREASURE_ISLAND_FILE)).replace("\r\n", "\n");     // for Windows compatibility
 	}
 
 	@Test
@@ -168,11 +166,11 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-        assertDummyShadowRepo(accountShadow, accountOid, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+        assertDummyAccountShadowRepo(accountShadow, accountOid, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
-        assertDummyShadowModel(accountModel, accountOid, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood");
+        assertDummyAccountShadowModel(accountModel, accountOid, ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood");
         
         // Check account in dummy resource
         assertDummyAccount(ACCOUNT_GUYBRUSH_DUMMY_USERNAME, "Guybrush Threepwood", true);
@@ -451,8 +449,8 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
                      
         // Simple query
-        ObjectFilter filter = EqualsFilter.createEqual(UserType.class, prismContext, 
-        		new ItemPath(UserType.F_EXTENSION, propName), propValue);
+        ObjectFilter filter = EqualsFilter.createEqual(new ItemPath(UserType.F_EXTENSION, propName), UserType.class, prismContext, 
+        		propValue);
         ObjectQuery query = new ObjectQuery();
 		query.setFilter(filter);
 		// WHEN, THEN
@@ -460,8 +458,8 @@ public class TestStrangeCases extends AbstractInitializedModelIntegrationTest {
 		
 		// Complex query, combine with a name. This results in join down in the database
 		filter = AndFilter.createAnd(
-				EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_NAME, USER_DEGHOULASH_NAME),
-				EqualsFilter.createEqual(UserType.class, prismContext, new ItemPath(UserType.F_EXTENSION, propName), propValue)
+				EqualsFilter.createEqual(UserType.F_NAME, UserType.class, prismContext, null, USER_DEGHOULASH_NAME),
+				EqualsFilter.createEqual(new ItemPath(UserType.F_EXTENSION, propName), UserType.class, prismContext, propValue)
 			);
 		query.setFilter(filter);
 		// WHEN, THEN

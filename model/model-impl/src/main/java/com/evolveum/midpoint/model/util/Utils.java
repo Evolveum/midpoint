@@ -16,13 +16,20 @@
 
 package com.evolveum.midpoint.model.util;
 
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.namespace.QName;
 
-
+import com.evolveum.midpoint.common.crypto.CryptoUtil;
+import com.evolveum.midpoint.common.crypto.EncryptionException;
+import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.importer.ImportConstants;
 import com.evolveum.midpoint.model.importer.ObjectImporter;
 import com.evolveum.midpoint.model.lens.LensContext;
@@ -36,12 +43,14 @@ import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.QueryConvertor;
+import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -55,11 +64,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -116,7 +121,9 @@ public final class Utils {
 		while (cont) {
 			List<PrismObject<T>> objects = repositoryService.searchObjects(type, myQuery, null, opResult);
 			for (PrismObject<T> object: objects) {
-				handler.handle(object);
+				if (!handler.handle(object)) {
+                    return;
+                }
 			}
 			cont = objects.size() == blockSize;
 			myPaging.setOffset(myPaging.getOffset() + blockSize);
@@ -142,7 +149,7 @@ public final class Utils {
 	    private static void resolveRef(PrismReferenceValue refVal, RepositoryService repository,
 	    				boolean enforceReferentialIntegrity, PrismContext prismContext, String contextDesc, OperationResult parentResult) {
 	    	PrismReference reference = (PrismReference) refVal.getParent();
-	    	QName refName = reference.getName();
+	    	QName refName = reference.getElementName();
 	        OperationResult result = parentResult.createSubresult(OPERATION_RESOLVE_REFERENCE);
 	        result.addContext(OperationResult.CONTEXT_ITEM, refName);
 
@@ -312,10 +319,25 @@ public final class Utils {
 	        return refinedObjectClassDefinition;
 	    }
 
+	    public static void encrypt(Collection<ObjectDelta<? extends ObjectType>> deltas, Protector protector, ModelExecuteOptions options,
+				OperationResult result) {
+			// Encrypt values even before we log anything. We want to avoid showing unencrypted values in the logfiles
+			if (!ModelExecuteOptions.isNoCrypt(options)) {
+				for(ObjectDelta<? extends ObjectType> delta: deltas) {				
+					try {
+						CryptoUtil.encryptValues(protector, delta);
+					} catch (EncryptionException e) {
+						result.recordFatalError(e);
+						throw new SystemException(e.getMessage(), e);
+					}
+				}
+			}
+		}
 
     public static void setRequestee(Task task, LensContext context) {
         String oid;
-        if (context != null && context.getFocusContext() != null) {
+        if (context != null && context.getFocusContext() != null
+                && UserType.class.isAssignableFrom(context.getFocusContext().getObjectTypeClass())) {
             oid = context.getFocusContext().getOid();
         } else {
             oid = null;
@@ -363,4 +385,49 @@ public final class Utils {
     	
 		return dryRun.booleanValue(); 
     }
+    
+    public static Map<QName, Object> getDefaultExpressionVariables(ObjectType focusType,
+    		ShadowType shadowType, ResourceType resourceType) {
+    	PrismObject<? extends ObjectType> focus = null;
+    	if (focusType != null) {
+    		focus = focusType.asPrismObject();
+    	}
+    	PrismObject<? extends ShadowType> shadow = null;
+    	if (shadowType != null) {
+    		shadow = shadowType.asPrismObject();
+    	}
+    	PrismObject<ResourceType> resource = null;
+    	if (resourceType != null) {
+    		resource = resourceType.asPrismObject();
+    	}
+    	return getDefaultExpressionVariables(focus, shadow, null, resource);
+    }
+    
+    public static Map<QName, Object> getDefaultExpressionVariables(PrismObject<? extends ObjectType> focus,
+    		PrismObject<? extends ShadowType> shadow, ResourceShadowDiscriminator discr, PrismObject<ResourceType> resource) {
+		Map<QName, Object> variables = new HashMap<QName, Object>();
+
+        // Legacy. And convenience/understandability.
+        if (focus == null || (focus != null && focus.canRepresent(UserType.class))
+                || (discr != null && discr.getKind() == ShadowKindType.ACCOUNT)) {
+		    variables.put(ExpressionConstants.VAR_USER, focus);
+            variables.put(ExpressionConstants.VAR_ACCOUNT, shadow);
+        }
+
+        variables.put(ExpressionConstants.VAR_FOCUS, focus);
+		variables.put(ExpressionConstants.VAR_SHADOW, shadow);
+		variables.put(ExpressionConstants.VAR_RESOURCE, resource);
+
+        return variables;
+	}
+
+	public static String getPolicyDesc(ObjectSynchronizationType synchronizationPolicy) {
+		if (synchronizationPolicy == null) {
+			return null;
+		}
+		if (synchronizationPolicy.getName() != null) {
+			return synchronizationPolicy.getName();
+		}
+		return synchronizationPolicy.toString();
+	}
 }

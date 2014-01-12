@@ -104,7 +104,7 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 		}
 		
 		progress++;
-		
+
 		Long startTime = System.currentTimeMillis();
 
 		OperationResult result = parentResult.createSubresult(taskOperationPrefix + ".handle");
@@ -118,8 +118,10 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 		
 		boolean cont;
 		try {
-			
-			// The meat
+
+            task.setProgressImmediate(progress, parentResult);              // this is necessary for the progress to be immediately available in GUI
+
+            // The meat
 			cont = handleObject(object, result);
 			
 			if (logObjectProgress) {
@@ -136,18 +138,13 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 				result.computeStatus();
 			}
 			
+			if (result.isError()) {
+				// Alternative way how to indicate an error.
+				return processError(object, null, result);
+			}
+			
 		} catch (Exception ex) {
-			errors++;
-			if (LOGGER.isErrorEnabled()) {
-				LOGGER.error("{} of object {} {} failed: {}", new Object[] {
-						getProcessShortNameCapitalized(),
-						object, getContextDesc(), ex.getMessage(), ex });
-			}
-			// We do not want to override the result set by handler. This is just a fallback case
-			if (result.isUnknown()) {
-				result.recordFatalError("Failed to "+getProcessShortName()+": "+ex.getMessage(), ex);
-			}
-			return !isStopOnError();
+			return processError(object, ex, result);
 		} finally {
             // FIXME: hack. Hardcoded ugly summarization of successes. something like
             // AbstractSummarizingResultHandler [lazyman]
@@ -156,6 +153,8 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
             }
             result.summarize();
         }
+		
+		
 
 		if (!cont) {
 			// we assume that the handleObject really knows what he's doing and already set up result accordingly
@@ -181,6 +180,27 @@ public abstract class AbstractSearchIterativeResultHandler<O extends ObjectType>
 		}
 	}
 	
+	private boolean processError(PrismObject<O> object, Exception ex, OperationResult result) {
+		errors++;
+		String message;
+		if (ex != null) {
+			message = ex.getMessage();
+		} else {
+			message = result.getMessage();
+		}
+		if (LOGGER.isErrorEnabled()) {
+			LOGGER.error("{} of object {} {} failed: {}", new Object[] {
+					getProcessShortNameCapitalized(),
+					object, getContextDesc(), message, ex });
+		}
+		// We do not want to override the result set by handler. This is just a fallback case
+		if (result.isUnknown()) {
+			result.recordFatalError("Failed to "+getProcessShortName()+": "+ex.getMessage(), ex);
+		}
+		result.summarize();
+		return !isStopOnError();
+	}
+
 	public long heartbeat() {
 		// If we exist then we run. So just return the progress count.
 		return progress;

@@ -226,7 +226,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
     }
 
 
-    @Test(enabled = false)          // this is probably OK to fail, so do not enable it (at least for now)
+    @Test(enabled=false)          // this is probably OK to fail, so do not enable it (at least for now)
     public void test004aTaskBigProperty() throws Exception {
         String test = "004aTaskBigProperty";
         OperationResult result = createResult(test);
@@ -250,7 +250,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         // property definition
         QName bigStringQName = new QName("http://midpoint.evolveum.com/repo/test", "bigString");
-        PrismPropertyDefinition bigStringDefinition = new PrismPropertyDefinition(bigStringQName, bigStringQName, DOMUtil.XSD_STRING, taskManager.getPrismContext());
+        PrismPropertyDefinition bigStringDefinition = new PrismPropertyDefinition(bigStringQName, DOMUtil.XSD_STRING, taskManager.getPrismContext());
         bigStringDefinition.setIndexed(false);
         bigStringDefinition.setMinOccurs(0);
         bigStringDefinition.setMaxOccurs(1);
@@ -383,13 +383,13 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         System.out.println("Task extension = " + task.getExtension());
 
-        PrismPropertyDefinition delayDefinition = new PrismPropertyDefinition(NoOpTaskHandler.DELAY_QNAME, NoOpTaskHandler.DELAY_QNAME, DOMUtil.XSD_INT, taskManager.getPrismContext());
+        PrismPropertyDefinition delayDefinition = new PrismPropertyDefinition(NoOpTaskHandler.DELAY_QNAME, DOMUtil.XSD_INT, taskManager.getPrismContext());
         System.out.println("property definition = " + delayDefinition);
 
         PrismProperty<Integer> property = (PrismProperty<Integer>) delayDefinition.instantiate();
         property.setRealValue(100);
 
-        PropertyDelta delta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, property.getName()), property.getDefinition());
+        PropertyDelta delta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, property.getElementName()), property.getDefinition());
         //delta.addV(property.getValues());
         delta.setValuesToReplace(PrismValue.cloneCollection(property.getValues()));
 
@@ -523,7 +523,8 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         ((TaskQuartzImpl) task001).finishHandler(result);
         task001.refresh(result);
-        AssertJUnit.assertNull("Handler URI after third POP is not null", task001.getHandlerUri());
+        //AssertJUnit.assertNull("Handler URI after third POP is not null", task001.getHandlerUri());
+        AssertJUnit.assertEquals("Handler URI after third POP is not correct", "http://no-handler.org/", task001.getHandlerUri());
         AssertJUnit.assertEquals("Task state after third POP is not CLOSED", TaskExecutionStatus.CLOSED, task001.getExecutionStatus());
 
     }
@@ -601,7 +602,8 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertTrue("Task did not yield 'success' status", taskResult.isSuccess());
 
         // Test for no presence of handlers
-        AssertJUnit.assertNull("Handler is still present", task1.getHandlerUri());
+        //AssertJUnit.assertNull("Handler is still present", task1.getHandlerUri());
+        AssertJUnit.assertNotNull("Handler is gone", task1.getHandlerUri());
         AssertJUnit.assertTrue("Other handlers are still present",
         		task1.getOtherHandlersUriStack() == null || task1.getOtherHandlersUriStack().getUriStackEntry().isEmpty());
 
@@ -752,7 +754,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         // Test for no presence of handlers
 
-        AssertJUnit.assertNull("Handler is still present", task.getHandlerUri());
+        AssertJUnit.assertNotNull("Handler is gone", task.getHandlerUri());
         AssertJUnit.assertTrue("Other handlers are still present",
         		task.getOtherHandlersUriStack() == null || task.getOtherHandlersUriStack().getUriStackEntry().isEmpty());
 
@@ -938,7 +940,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         // Test for no presence of handlers
 
-        AssertJUnit.assertNull("Handler is still present", task.getHandlerUri());
+        AssertJUnit.assertNotNull("Handler is gone", task.getHandlerUri());
         AssertJUnit.assertTrue("Other handlers are still present",
                 task.getOtherHandlersUriStack() == null || task.getOtherHandlersUriStack().getUriStackEntry().isEmpty());
 
@@ -1125,7 +1127,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         AssertJUnit.assertNotNull(task.getLastRunStartTimestamp());
         assertFalse(task.getLastRunStartTimestamp().longValue() == 0);
         AssertJUnit.assertNull(task.getLastRunFinishTimestamp());
-        AssertJUnit.assertTrue("There should be no progress reported", task.getProgress() == 0);
+        AssertJUnit.assertEquals("There should be no progress reported", 0, task.getProgress());
 
         // now let us wait for the finish
 
@@ -1386,7 +1388,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
         // Test for no presence of handlers
 
-        AssertJUnit.assertNull("Handler is still present", task.getHandlerUri());
+        AssertJUnit.assertNotNull("Handler is gone", task.getHandlerUri());
         AssertJUnit.assertTrue("Other handlers are still present",
                 task.getOtherHandlersUriStack() == null || task.getOtherHandlersUriStack().getUriStackEntry().isEmpty());
 
@@ -1405,8 +1407,8 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         Task rootTask = taskManager.createTaskInstance((PrismObject<TaskType>) (PrismObject) addObjectFromFile(taskFilename(test)), result);
         String oid = rootTask.getOid();
 
-        ObjectFilter filter1 = EqualsFilter.createEqual(TaskType.class, prismContext, TaskType.F_EXECUTION_STATUS, TaskExecutionStatusType.WAITING);
-        ObjectFilter filter2 = EqualsFilter.createEqual(TaskType.class, prismContext, TaskType.F_WAITING_REASON, TaskWaitingReasonType.WORKFLOW);
+        ObjectFilter filter1 = EqualsFilter.createEqual(TaskType.F_EXECUTION_STATUS, TaskType.class, prismContext, null, TaskExecutionStatusType.WAITING);
+        ObjectFilter filter2 = EqualsFilter.createEqual(TaskType.F_WAITING_REASON, TaskType.class, prismContext, null, TaskWaitingReasonType.WORKFLOW);
         ObjectFilter filter3 = AndFilter.createAnd(filter1, filter2);
 
         List<PrismObject<TaskType>> prisms1 = repositoryService.searchObjects(TaskType.class, ObjectQuery.createObjectQuery(filter1), null, result);
@@ -1473,6 +1475,61 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
     }
 
+    @Test(enabled = true)
+    public void test022ExecuteRecurringOnDemand() throws Exception {
+
+        final String test = "022ExecuteRecurringOnDemand";
+        final OperationResult result = createResult(test);
+
+        addObjectFromFile(taskFilename(test));
+
+        Task task = taskManager.getTask(taskOid(test), result);
+        System.out.println("After setup: " + task.dump());
+
+        System.out.println("Waiting to see if the task would not start...");
+        Thread.sleep(5000L);
+
+        // check the task HAS NOT started
+        task.refresh(result);
+        System.out.println("After initial wait: " + task.dump());
+
+        assertEquals("task is not RUNNABLE", TaskExecutionStatus.RUNNABLE, task.getExecutionStatus());
+        assertNull("task was started", task.getLastRunStartTimestamp());
+        assertEquals("task was achieved some progress", 0L, task.getProgress());
+
+        // now let's start the task
+        taskManager.scheduleRunnableTaskNow(task, result);
+
+        // task is executing for 1000 ms, so we need to wait slightly longer, in order for the execution to be done
+        waitFor("Waiting for task manager to execute the task", new Checker() {
+            public boolean check() throws ObjectNotFoundException, SchemaException {
+                Task task = taskManager.getTask(taskOid(test), result);
+                IntegrationTestTools.display("Task while waiting for task manager to execute the task", task);
+                return task.getProgress() >= 1;
+            }
+
+            @Override
+            public void timeout() {
+            }
+        }, 10000, 2000);
+
+        task.refresh(result);
+        System.out.println("After refresh: " + task.dump());
+
+        AssertJUnit.assertEquals(TaskExecutionStatus.RUNNABLE, task.getExecutionStatus());
+        AssertJUnit.assertNotNull("LastRunStartTimestamp is null", task.getLastRunStartTimestamp());
+        assertFalse("LastRunStartTimestamp is 0", task.getLastRunStartTimestamp().longValue() == 0);
+        AssertJUnit.assertNotNull(task.getLastRunFinishTimestamp());
+        assertFalse(task.getLastRunFinishTimestamp().longValue() == 0);
+        AssertJUnit.assertTrue("no progress", task.getProgress() > 0);
+
+        // now let us suspend it (occurs during wait cycle, so we can put short timeout here)
+
+        boolean stopped = taskManager.suspendTask(task, 10000L, result);
+        task.refresh(result);
+        AssertJUnit.assertTrue("Task is not stopped", stopped);
+        AssertJUnit.assertEquals("Task is not suspended", TaskExecutionStatus.SUSPENDED, task.getExecutionStatus());
+    }
 
 
     @Test(enabled = true)
@@ -1498,6 +1555,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
         checkLeftover(leftovers, "021", result);
         checkLeftover(leftovers, "021", "1", result);
         checkLeftover(leftovers, "021", "2", result);
+        checkLeftover(leftovers, "022", result);
 
         String message = "Leftover task(s) found:";
         for (String leftover : leftovers) {
@@ -1572,7 +1630,7 @@ public class TestQuartzTaskManagerContract extends AbstractTestNGSpringContextTe
 
     private PrismObject<? extends ObjectType> addObjectFromFile(String filePath, boolean deleteIfExists) throws Exception {
         PrismObject<ObjectType> object = unmarshallJaxbFromFile(filePath, ObjectType.class);
-        System.out.println("obj: " + object.getName());
+        System.out.println("obj: " + object.getElementName());
         OperationResult result = new OperationResult(TestQuartzTaskManagerContract.class.getName() + ".addObjectFromFile");
         try {
         	add(object, result);

@@ -17,7 +17,6 @@
 package com.evolveum.midpoint.prism;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
@@ -27,7 +26,6 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
 import javax.xml.namespace.QName;
 import java.io.Serializable;
@@ -58,7 +56,7 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     // The object should basically work without definition and prismContext. This is the
 	// usual case when it is constructed "out of the blue", e.g. as a new JAXB object
 	// It may not work perfectly, but basic things should work
-    protected QName name;
+    protected QName elementName;
     protected PrismValue parent;
     protected ItemDefinition definition;
     private List<V> values = new ArrayList<V>();
@@ -72,9 +70,9 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
      * The constructors should be used only occasionally (if used at all).
      * Use the factory methods in the ResourceObjectDefintion instead.
      */
-    Item(QName name) {
+    Item(QName elementName) {
         super();
-        this.name = name;
+        this.elementName = elementName;
         this.userData = new HashMap<String, Object>();
     }
 
@@ -82,9 +80,9 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
      * The constructors should be used only occasionally (if used at all).
      * Use the factory methods in the ResourceObjectDefintion instead.
      */
-    Item(QName name, ItemDefinition definition, PrismContext prismContext) {
+    Item(QName elementName, ItemDefinition definition, PrismContext prismContext) {
         super();
-        this.name = name;
+        this.elementName = elementName;
         this.definition = definition;
         this.prismContext = prismContext;
         this.userData = new HashMap<String, Object>();
@@ -119,8 +117,8 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
      * @return property name
      */
     @Override
-    public QName getName() {
-        return name;
+    public QName getElementName() {
+        return elementName;
     }
 
     /**
@@ -134,8 +132,8 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
      *
      * @param name the name to set
      */
-    public void setName(QName name) {
-        this.name = name;
+    public void setElementName(QName elementName) {
+        this.elementName = elementName;
     }
 
     /**
@@ -198,9 +196,9 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     
     public ItemPath getPath() {
     	 if (parent == null) {
-    		 return new ItemPath(getName());
+    		 return new ItemPath(getElementName());
     	 }
-    	 return parent.getPath().subPath(getName());
+    	 return parent.getPath().subPath(getElementName());
     }
         
     public Map<String, Object> getUserData() {
@@ -394,6 +392,7 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
 
     public void replace(V newValue) {
     	values.clear();
+        newValue.setParent(this);
     	values.add(newValue);
     }
     
@@ -554,7 +553,7 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     public abstract Item clone();
 
     protected void copyValues(Item clone) {
-        clone.name = this.name;
+        clone.elementName = this.elementName;
         clone.definition = this.definition;
         clone.prismContext = this.prismContext;
         // Do not clone parent so the cloned item can be safely placed to
@@ -607,7 +606,7 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     
     public void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw) {
     	ItemPath path = getPath();
-    	if (name == null) {
+    	if (elementName == null) {
     		throw new IllegalStateException("Item "+this+" has no name ("+path+" in "+rootItem+")");
     	}
     	
@@ -687,7 +686,7 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result + ((elementName == null) ? 0 : elementName.hashCode());
 		result = prime * result + ((values == null) ? 0 : MiscUtil.unorderedCollectionHashcode(values));
 		return result;
 	}
@@ -700,10 +699,10 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
 		if (getClass() != obj.getClass())
 			return false;
 		Item<?> other = (Item<?>) obj;
-		if (name == null) {
-			if (other.name != null)
+		if (elementName == null) {
+			if (other.elementName != null)
 				return false;
-		} else if (!name.equals(other.name))
+		} else if (!elementName.equals(other.elementName))
 			return false;
 		// Do not compare parent at all. This is not relevant.
 		if (values == null) {
@@ -760,10 +759,10 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
 				return false;
 		} else if (!definition.equals(other.definition))
 			return false;
-		if (name == null) {
-			if (other.name != null)
+		if (elementName == null) {
+			if (other.elementName != null)
 				return false;
-		} else if (!name.equals(other.name))
+		} else if (!elementName.equals(other.elementName))
 			return false;
 		// Do not compare parent at all. This is not relevant.
 		if (values == null) {
@@ -787,10 +786,10 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
 				return false;
 		} else if (!definition.equals(other.definition))
 			return false;
-		if (name == null) {
-			if (other.name != null)
+		if (elementName == null) {
+			if (other.elementName != null)
 				return false;
-		} else if (!name.equals(other.name))
+		} else if (!elementName.equals(other.elementName))
 			return false;
 		// Do not compare parent at all. This is not relevant.
 		if (values == null) {
@@ -803,7 +802,7 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
 
 	@Override
     public String toString() {
-        return getClass().getSimpleName() + "(" + getName() + ")";
+        return getClass().getSimpleName() + "(" + getElementName() + ")";
     }
 
     @Override
@@ -823,7 +822,7 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
         for (int i = 0; i < indent; i++) {
             sb.append(INDENT_STRING);
         }
-        sb.append(getDebugDumpClassName()).append(": ").append(PrettyPrinter.prettyPrint(getName()));
+        sb.append(getDebugDumpClassName()).append(": ").append(PrettyPrinter.prettyPrint(getElementName()));
         return sb.toString();
     }
 

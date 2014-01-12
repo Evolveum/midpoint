@@ -64,6 +64,11 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
     	// Nothing to do
     }
     
+    public PrismContainerValue(T containerable) {
+		super();
+		this.containerable = containerable;
+	}
+    
     public PrismContainerValue(OriginType type, Objectable source, PrismContainerable container, Long id) {
 		super(type, source, container);
 		this.id = id;
@@ -203,7 +208,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 		}
         Class<T> clazz = parent.getCompileTimeClass();
         if (clazz == null) {
-            throw new SystemException("Unknown compile time class of container '" + parent.getName() + "'.");
+            throw new SystemException("Unknown compile time class of container '" + parent.getElementName() + "'.");
         }
         if (Modifier.isAbstract(clazz.getModifiers())) {
             throw new SystemException("Can't create instance of class '" + clazz.getSimpleName() + "', it's abstract.");
@@ -229,7 +234,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 	public Collection<QName> getPropertyNames() {
 		Collection<QName> names = new HashSet<QName>();
 		for (PrismProperty<?> prop: getProperties()) {
-			names.add(prop.getName());
+			names.add(prop.getElementName());
 		}
 		return names;
 	}
@@ -242,11 +247,11 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
      * @throws IllegalArgumentException an attempt to add value that already exists
      */
     public void add(Item<?> item) throws SchemaException {
-    	if (item.getName() == null) {
+    	if (item.getElementName() == null) {
     		throw new IllegalArgumentException("Cannot add item without a name to value of container "+getParent());
     	}
-        if (findItem(item.getName(), Item.class) != null) {
-            throw new IllegalArgumentException("Item " + item.getName() + " is already present in " + this.getClass().getSimpleName());
+        if (findItem(item.getElementName(), Item.class) != null) {
+            throw new IllegalArgumentException("Item " + item.getElementName() + " is already present in " + this.getClass().getSimpleName());
         }
         item.setParent(this);
         PrismContext prismContext = getPrismContext();
@@ -254,7 +259,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
         	item.setPrismContext(prismContext);
         }
         if (getParent() != null && getParent().getDefinition() != null && item.getDefinition() == null) {
-        	item.applyDefinition(determineItemDefinition(item.getName(), getParent().getDefinition()), false);
+        	item.applyDefinition(determineItemDefinition(item.getElementName(), getParent().getDefinition()), false);
         }
         items.add(item);
     }
@@ -265,7 +270,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
      * @param item item to add.
      */
     public void addReplaceExisting(Item<?> item) throws SchemaException {
-        Item<?> existingItem = findItem(item.getName(), Item.class);
+        Item<?> existingItem = findItem(item.getElementName(), Item.class);
         if (existingItem != null) {
             items.remove(existingItem);
             existingItem.setParent(null);
@@ -276,7 +281,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
     public void remove(Item<?> item) {
         Validate.notNull(item, "Item must not be null.");
 
-        Item<?> existingItem = findItem(item.getName(),  Item.class);
+        Item<?> existingItem = findItem(item.getElementName(),  Item.class);
         if (existingItem != null) {
             items.remove(existingItem);
             existingItem.setParent(null);
@@ -312,7 +317,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
     public void addAllReplaceExisting(Collection<? extends Item<?>> itemsToAdd) {
         // Check for conflicts, remove conflicting values
         for (Item<?> item : itemsToAdd) {
-            Item<?> existingItem = findItem(item.getName(), Item.class);
+            Item<?> existingItem = findItem(item.getElementName(), Item.class);
             if (existingItem != null) {
                 items.remove(existingItem);
             }
@@ -329,7 +334,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
     void addItemPathsToList(ItemPath basePath, Collection<ItemPath> list) {
     	for (Item<?> item: items) {
     		if (item instanceof PrismProperty) {
-    			list.add(basePath.subPath(item.getName()));
+    			list.add(basePath.subPath(item.getElementName()));
     		} else if (item instanceof PrismContainer) {
     			((PrismContainer<?>)item).addItemPathsToList(basePath, list);
     		}
@@ -458,13 +463,13 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
     @SuppressWarnings("unchecked")
 	<I extends Item<?>> I findCreateItem(QName itemName, Class<I> type, ItemDefinition itemDefinition, boolean create) throws SchemaException {
     	for (Item<?> item : items) {
-            if (itemName.equals(item.getName())) {
+            if (itemName.equals(item.getElementName())) {
             	if (type.isAssignableFrom(item.getClass())) {
             		return (I)item;
             	} else {
             		if (create) {
             			throw new IllegalStateException("The " + type.getSimpleName() + " cannot be created because "
-        						+ item.getClass().getSimpleName() + " with the same name exists ("+item.getName()+")");
+        						+ item.getClass().getSimpleName() + " with the same name exists ("+item.getElementName()+")");
             		} else {
             			return null;
             		}
@@ -496,14 +501,14 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
     	QName subName = ((NameItemPathSegment)first).getName();
     	ItemPath rest = propPath.rest();
     	for (Item<?> item : items) {
-            if (subName.equals(item.getName())) {
+            if (subName.equals(item.getElementName())) {
             	if (rest.isEmpty()) {
             		if (type.isAssignableFrom(item.getClass())) {
             			return (I)item;
             		} else {
             			if (create) {
             				throw new SchemaException("The " + type.getSimpleName() + " cannot be created because "
-            						+ item.getClass().getSimpleName() + " with the same name exists ("+item.getName()+")");
+            						+ item.getClass().getSimpleName() + " with the same name exists ("+item.getElementName()+")");
             			} else {
             				return null;
             			}
@@ -515,7 +520,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 	            	} else {
             			if (create) {
             				throw new SchemaException("The " + type.getSimpleName() + " cannot be created because "
-            						+ item.getClass().getSimpleName() + " with the same name exists ("+item.getName()+")");
+            						+ item.getClass().getSimpleName() + " with the same name exists ("+item.getElementName()+")");
             			} else {
             				// Return the item for non-container even if the path is non-empty
             				// FIXME: This is not the best solution but it is needed to be able to look inside properties
@@ -572,7 +577,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 			return (I)newItem;
     	} else {
 			throw new IllegalStateException("The " + type.getSimpleName() + " cannot be created because the item should be of type "
-					+ newItem.getClass().getSimpleName() + " ("+newItem.getName()+")");
+					+ newItem.getClass().getSimpleName() + " ("+newItem.getElementName()+")");
     	}
     }
 
@@ -692,7 +697,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
     	Iterator<Item<?>> itemsIterator = items.iterator();
     	while(itemsIterator.hasNext()) {
     		Item<?> item = itemsIterator.next();
-            if (subName.equals(item.getName())) {
+            if (subName.equals(item.getElementName())) {
             	if (!rest.isEmpty() && item instanceof PrismContainer) {
             		((PrismContainer<?>)item).removeItem(propPath, itemType);
             		return;
@@ -751,7 +756,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 	    	QName subName = ((NameItemPathSegment)first).getName();
 	    	ItemPath rest = path.rest();
 	    	for (Item<?> item : items) {
-	            if (first.isWildcard() || subName.equals(item.getName())) {
+	            if (first.isWildcard() || subName.equals(item.getElementName())) {
 	            	item.accept(visitor, rest, recursive);
 	            }
 	    	}
@@ -873,13 +878,13 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 			Collection<? extends ItemDelta> deltas, boolean ignoreMetadata, boolean isLiteral) {
 		
 		for (Item<?> thisItem: thisValue.getItems()) {
-			Item otherItem = other.findItem(thisItem.getName());
+			Item otherItem = other.findItem(thisItem.getElementName());
 			// The "delete" delta will also result from the following diff
 			thisItem.diffInternal(otherItem, deltas, ignoreMetadata, isLiteral);
 		}
 		
 		for (Item otherItem: other.getItems()) {
-			Item thisItem = thisValue.findItem(otherItem.getName());
+			Item thisItem = thisValue.findItem(otherItem.getElementName());
 			if (thisItem == null) {
 				// Other has an item that we don't have, this must be an add
 				ItemDelta itemDelta = otherItem.createDelta();
@@ -918,7 +923,7 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 				// Item has a definition already, no need to apply it
 				continue;
 			}
-			ItemDefinition itemDefinition = determineItemDefinition(item.getName(), definition); 
+			ItemDefinition itemDefinition = determineItemDefinition(item.getElementName(), definition);
 			if (itemDefinition == null && item.getDefinition() != null && item.getDefinition().isDynamic()) {
 				// We will not apply the null definition here. The item has a dynamic definition that we don't
 				// want to destroy as it cannot be reconstructed later.

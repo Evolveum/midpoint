@@ -46,6 +46,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
+import org.eclipse.core.internal.runtime.FindSupport;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
@@ -73,6 +74,7 @@ import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
@@ -152,8 +154,10 @@ import com.evolveum.midpoint.xml.ns._public.resource.capabilities_2.TestConnecti
 @DirtiesContext
 public class TestDummy extends AbstractDummyTest {
 
-	private static final String BLACKBEARD_USERNAME = "blackbeard";
-	private static final String DRAKE_USERNAME = "drake";
+	protected static final String BLACKBEARD_USERNAME = "BlackBeard";
+	protected static final String DRAKE_USERNAME = "Drake";
+	// Make this ugly by design. it check for some caseExact/caseIgnore cases
+	protected static final String ACCOUNT_MURRAY_USERNAME = "muRRay";
 
 	private static final Trace LOGGER = TraceManager.getTrace(TestDummy.class);
 	protected static final long VALID_FROM_MILLIS = 12322342345435L;
@@ -171,6 +175,22 @@ public class TestDummy extends AbstractDummyTest {
 	private String blackbeardIcfUid;
 	private String drakeIcfUid;
 
+	protected MatchingRule<String> getUidMatchingRule() {
+		return null;
+	}
+	
+	protected String getMurrayRepoIcfName() {
+		return ACCOUNT_MURRAY_USERNAME;
+	}
+	
+	protected String getBlackbeardRepoIcfName() {
+		return BLACKBEARD_USERNAME;
+	}
+	
+	protected String getDrakeRepoIcfName() {
+		return DRAKE_USERNAME;
+	}
+	
 	@Test
 	public void test000Integrity() throws ObjectNotFoundException, SchemaException {
 		TestUtil.displayTestTile("test000Integrity");
@@ -906,17 +926,10 @@ public class TestDummy extends AbstractDummyTest {
 		account.checkConsistence();
 
 		PrismObject<ShadowType> accountRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
-		display("Account repo", accountRepo);
-		ShadowType accountTypeRepo = accountRepo.asObjectable();
-		PrismAsserts.assertEqualsPolyString("Name not equal", ACCOUNT_WILL_USERNAME, accountTypeRepo.getName());
-		assertEquals("Wrong kind (repo)", ShadowKindType.ACCOUNT, accountTypeRepo.getKind());
-		assertAttribute(accountTypeRepo, ConnectorFactoryIcfImpl.ICFS_NAME, getWillRepoIcfName());
-		if (isIcfNameUidSame()) {
-			assertAttribute(accountTypeRepo, ConnectorFactoryIcfImpl.ICFS_UID, getWillRepoIcfName());
-		}
+		checkAccountShadowWill(accountRepo);
 		willIcfUid = getIcfUid(accountRepo);
 		
-		ActivationType activationRepo = accountTypeRepo.getActivation();
+		ActivationType activationRepo = accountRepo.asObjectable().getActivation();
 		if (supportsActivation()) {
 			assertNotNull("No activation in "+accountRepo+" (repo)", activationRepo);
 			assertEquals("Wrong activation enableTimestamp in "+accountRepo+" (repo)", ACCOUNT_WILL_ENABLE_TIMESTAMP, activationRepo.getEnableTimestamp());
@@ -933,8 +946,8 @@ public class TestDummy extends AbstractDummyTest {
 		display("account from provisioning", accountTypeProvisioning);
 		PrismAsserts.assertEqualsPolyString("Name not equal", ACCOUNT_WILL_USERNAME, accountTypeProvisioning.getName());
 		assertEquals("Wrong kind (provisioning)", ShadowKindType.ACCOUNT, accountTypeProvisioning.getKind());
-		assertAttribute(accountTypeProvisioning, ConnectorFactoryIcfImpl.ICFS_NAME, getWillRepoIcfName());
-		assertAttribute(accountTypeProvisioning, ConnectorFactoryIcfImpl.ICFS_UID, willIcfUid);
+		assertAttribute(accountTypeProvisioning, ConnectorFactoryIcfImpl.ICFS_NAME, ACCOUNT_WILL_USERNAME);
+		assertAttribute(accountTypeProvisioning, getUidMatchingRule(), ConnectorFactoryIcfImpl.ICFS_UID, willIcfUid);
 		
 		ActivationType activationProvisioning = accountTypeProvisioning.getActivation();
 		if (supportsActivation()) {
@@ -952,6 +965,7 @@ public class TestDummy extends AbstractDummyTest {
 
 		DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, willIcfUid);
 		assertNotNull("No dummy account", dummyAccount);
+		assertEquals("Username is wrong", ACCOUNT_WILL_USERNAME, dummyAccount.getName());
 		assertEquals("Fullname is wrong", "Will Turner", dummyAccount.getAttributeValue("fullname"));
 		assertTrue("The account is not enabled", dummyAccount.isEnabled());
 		assertEquals("Wrong password", "3lizab3th", dummyAccount.getPassword());
@@ -966,6 +980,17 @@ public class TestDummy extends AbstractDummyTest {
 
 		checkConsistency(accountProvisioning);
 		assertSteadyResource();
+	}
+
+	private void checkAccountShadowWill(PrismObject<ShadowType> accountRepo) {
+		display("Will account repo", accountRepo);
+		ShadowType accountTypeRepo = accountRepo.asObjectable();
+		PrismAsserts.assertEqualsPolyString("Will's name is wrong", ACCOUNT_WILL_USERNAME, accountTypeRepo.getName());
+		assertEquals("Wrong kind (repo)", ShadowKindType.ACCOUNT, accountTypeRepo.getKind());
+		assertAttribute(accountTypeRepo, ConnectorFactoryIcfImpl.ICFS_NAME, getWillRepoIcfName());
+		if (isIcfNameUidSame()) {
+			assertAttribute(accountTypeRepo, ConnectorFactoryIcfImpl.ICFS_UID, getWillRepoIcfName());
+		}
 	}
 
 	@Test
@@ -1051,6 +1076,8 @@ public class TestDummy extends AbstractDummyTest {
 		assertNotNull("No dummy account", shadow);
 
 		checkAccountWill(shadow, result);
+		PrismObject<ShadowType> shadowRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
+		checkAccountShadowWill(shadowRepo);
 
 		checkConsistency(shadow.asPrismObject());
 		
@@ -1094,6 +1121,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertNotNull("No dummy account", shadow);
 
 		checkAccountShadow(shadow, result, false);
+		checkAccountShadowWill(shadow.asPrismObject());
 
 		checkConsistency(shadow.asPrismObject());
 		
@@ -1191,6 +1219,9 @@ public class TestDummy extends AbstractDummyTest {
 		assertEquals(4, foundObjects.size());
 		checkConsistency(foundObjects);
 		assertProtected(foundObjects, 1);
+		
+		PrismObject<ShadowType> shadowWillRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
+		checkAccountShadowWill(shadowWillRepo);
 
 		// And again ...
 
@@ -1209,6 +1240,9 @@ public class TestDummy extends AbstractDummyTest {
 		assertEquals(4, foundObjects.size());
 		checkConsistency(foundObjects);
 		assertProtected(foundObjects, 1);
+		
+		shadowWillRepo = repositoryService.getObject(ShadowType.class, ACCOUNT_WILL_OID, null, result);
+		checkAccountShadowWill(shadowWillRepo);
 		
 		assertSteadyResource();
 	}
@@ -2126,21 +2160,39 @@ public class TestDummy extends AbstractDummyTest {
 	}
 
 	@Test
-	public void test167SearchIcfNameExact() throws Exception {
-		final String TEST_NAME = "test167SearchIcfNameExact";
+	public void test167SearchIcfNameRepoized() throws Exception {
+		final String TEST_NAME = "test167SearchIcfNameRepoized";
 		TestUtil.displayTestTile(TEST_NAME);
 		testSeachIterativeSingleAttrFilter(TEST_NAME,
 				ConnectorFactoryIcfImpl.ICFS_NAME, getWillRepoIcfName(), null, true,
-				"Will");
+				ACCOUNT_WILL_USERNAME);
 	}
 	
 	@Test
-	public void test168SearchIcfNameExactNoFetch() throws Exception {
-		final String TEST_NAME = "test168SearchIcfNameExactNoFetch";
+	public void test167aSearchIcfNameRepoizedNoFetch() throws Exception {
+		final String TEST_NAME = "test167aSearchIcfNameRepoizedNoFetch";
 		TestUtil.displayTestTile(TEST_NAME);
 		testSeachIterativeSingleAttrFilter(TEST_NAME, ConnectorFactoryIcfImpl.ICFS_NAME, getWillRepoIcfName(),
 				GetOperationOptions.createNoFetch(), false,
-				"Will");
+				ACCOUNT_WILL_USERNAME);
+	}
+
+	@Test
+	public void test168SearchIcfNameExact() throws Exception {
+		final String TEST_NAME = "test168SearchIcfNameExact";
+		TestUtil.displayTestTile(TEST_NAME);
+		testSeachIterativeSingleAttrFilter(TEST_NAME,
+				ConnectorFactoryIcfImpl.ICFS_NAME, ACCOUNT_WILL_USERNAME, null, true,
+				ACCOUNT_WILL_USERNAME);
+	}
+	
+	@Test
+	public void test168aSearchIcfNameExactNoFetch() throws Exception {
+		final String TEST_NAME = "test168aSearchIcfNameExactNoFetch";
+		TestUtil.displayTestTile(TEST_NAME);
+		testSeachIterativeSingleAttrFilter(TEST_NAME, ConnectorFactoryIcfImpl.ICFS_NAME, ACCOUNT_WILL_USERNAME,
+				GetOperationOptions.createNoFetch(), false,
+				ACCOUNT_WILL_USERNAME);
 	}
 
 	protected <T> void testSeachIterativeSingleAttrFilter(final String TEST_NAME, String attrName, T attrVal, 
@@ -2150,7 +2202,7 @@ public class TestDummy extends AbstractDummyTest {
 	}
 	
 	protected <T> void testSeachIterativeSingleAttrFilter(final String TEST_NAME, QName attrQName, T attrVal, 
-			GetOperationOptions rootOptions, boolean fullShadow, String... expectedAccountIds) throws Exception {
+			GetOperationOptions rootOptions, boolean fullShadow, String... expectedAccountNames) throws Exception {
 		PrismPropertyValue<T> attrPVal = null;
 		if (attrVal != null) {
 			attrPVal = new PrismPropertyValue<T>(attrVal);
@@ -2158,13 +2210,13 @@ public class TestDummy extends AbstractDummyTest {
 		ResourceSchema resourceSchema = RefinedResourceSchema.getResourceSchema(resource, prismContext);
 		ObjectClassComplexTypeDefinition objectClassDef = resourceSchema.findObjectClassDefinition(SchemaTestConstants.ACCOUNT_OBJECT_CLASS_LOCAL_NAME);
 		ResourceAttributeDefinition attrDef = objectClassDef.findAttributeDefinition(attrQName);
-		ObjectFilter filter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), attrDef, attrPVal);
+		ObjectFilter filter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, attrDef.getName()), attrDef, attrPVal);
 		
-		testSeachIterative(TEST_NAME, filter, rootOptions, fullShadow, expectedAccountIds);
+		testSeachIterative(TEST_NAME, filter, rootOptions, fullShadow, expectedAccountNames);
 	}
 	
 	private void testSeachIterative(final String TEST_NAME, ObjectFilter attrFilter, GetOperationOptions rootOptions, 
-			final boolean fullShadow, String... expectedAccountIds) throws Exception {
+			final boolean fullShadow, String... expectedAccountNames) throws Exception {
 		OperationResult result = new OperationResult(TestDummy.class.getName()
 				+ "." + TEST_NAME);
 
@@ -2205,7 +2257,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		display("found shadows", foundObjects);
 
-		for (String expectedAccountId: expectedAccountIds) {
+		for (String expectedAccountId: expectedAccountNames) {
 			boolean found = false;
 			for (PrismObject<ShadowType> foundObject: foundObjects) {
 				if (expectedAccountId.equals(foundObject.asObjectable().getName().getOrig())) {
@@ -2214,11 +2266,11 @@ public class TestDummy extends AbstractDummyTest {
 				}
 			}
 			if (!found) {
-				AssertJUnit.fail("Account "+expectedAccountId+" was expected to be found but it was not found (found "+foundObjects.size()+", expected "+expectedAccountIds.length+")");
+				AssertJUnit.fail("Account "+expectedAccountId+" was expected to be found but it was not found (found "+foundObjects.size()+", expected "+expectedAccountNames.length+")");
 			}
 		}
 		
-		assertEquals("Wrong number of found objects", expectedAccountIds.length, foundObjects.size());
+		assertEquals("Wrong number of found objects ("+foundObjects+"): "+foundObjects, expectedAccountNames.length, foundObjects.size());
 		checkConsistency(foundObjects);
 		
 		assertSteadyResource();
@@ -2976,12 +3028,25 @@ public class TestDummy extends AbstractDummyTest {
 		TestUtil.assertSuccess(result);
 		
 		delta.checkConsistence();
-		assertDummyAccountAttributeValues("cptmorgan", morganIcfUid,
+		PrismObject<ShadowType> account = provisioningService.getObject(ShadowType.class, ACCOUNT_MORGAN_OID, null, task, result);
+		Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getIdentifiers(account);
+		assertNotNull("Identifiers must not be null", identifiers);
+		assertEquals("Expected one identifier", 1, identifiers.size());
+		
+		ResourceAttribute<?> identifier = identifiers.iterator().next();
+		
+		String shadowUuid = "cptmorgan";
+		
+		assertDummyAccountAttributeValues(shadowUuid, morganIcfUid,
 				DUMMY_ACCOUNT_ATTRIBUTE_FULLNAME_NAME, "Captain Morgan");
 		
 		PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, ACCOUNT_MORGAN_OID, null, result);
-		assertShadowRepo(repoShadow, ACCOUNT_MORGAN_OID, "cptmorgan", resourceType);
-		PrismAsserts.assertPropertyValue(repoShadow, SchemaTestConstants.ICFS_UID_PATH, "cptmorgan");
+		assertAccountShadowRepo(repoShadow, ACCOUNT_MORGAN_OID, "cptmorgan", resourceType);
+		
+		if (!isIcfNameUidSame()) {
+			shadowUuid = (String) identifier.getRealValue();
+		}
+		PrismAsserts.assertPropertyValue(repoShadow, SchemaTestConstants.ICFS_UID_PATH, shadowUuid);
 		
 		syncServiceMock.assertNotifySuccessOnly();
 		
@@ -3159,6 +3224,49 @@ public class TestDummy extends AbstractDummyTest {
 		assertSteadyResource();
 	}
 
+	@Test
+	public void test600AddAccountAlreadyExist() throws Exception {
+		final String TEST_NAME = "test600AddAccountAlreadyExist";
+		TestUtil.displayTestTile(TEST_NAME);
+		// GIVEN
+		Task task = taskManager.createTaskInstance(TestDummy.class.getName() + "." + TEST_NAME);
+		OperationResult result = new OperationResult(TestDummy.class.getName() + "." + TEST_NAME);
+		syncServiceMock.reset();
+		
+		dummyResourceCtl.addAccount(ACCOUNT_MURRAY_USERNAME, ACCOUNT_MURRAY_USERNAME);
+
+		PrismObject<ShadowType> account = createShadowNameOnly(resource, ACCOUNT_MURRAY_USERNAME);
+		account.checkConsistence();
+
+		display("Adding shadow", account);
+
+		// WHEN
+		try {
+			provisioningService.addObject(account, null, null, task, result);
+			
+			AssertJUnit.fail("Unexpected success");
+		} catch (ObjectAlreadyExistsException e) {
+			// This is expected
+			display("Expected exception", e);
+		}
+
+		// THEN
+		result.computeStatus();
+		display("add object result", result);
+		TestUtil.assertFailure(result);
+
+		// Even though the operation failed a shadow should be created for the conflicting object
+		
+		PrismObject<ShadowType> accountRepo = findShadowByUsername(getMurrayRepoIcfName(), resource, result);		
+		assertNotNull("Shadow was not created in the repository", accountRepo);
+		display("Repository shadow", accountRepo);
+		ProvisioningTestUtil.checkRepoAccountShadow(accountRepo);
+		
+		assertEquals("Wrong ICF NAME in murray (repo) shadow", getMurrayRepoIcfName(),  getIcfName(accountRepo));
+
+		assertSteadyResource();
+	}
+	
 	static Task syncTokenTask = null;
 	
 	@Test
@@ -3246,6 +3354,11 @@ public class TestDummy extends AbstractDummyTest {
 		assertAttribute(currentShadowType, 
 				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 66666L);
 		assertEquals("Unexpected number of attributes", 4, attributes.size());
+		
+		PrismObject<ShadowType> accountRepo = findShadowByUsername(getBlackbeardRepoIcfName(), resource, result);		
+		assertNotNull("Shadow was not created in the repository", accountRepo);
+		display("Repository shadow", accountRepo);
+		ProvisioningTestUtil.checkRepoAccountShadow(accountRepo);
 
 		checkAllShadows();
 		
@@ -3293,7 +3406,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertEquals("Unexpected number of attributes", 2, attributes.size());
 		ResourceAttribute<?> icfsNameAttribute = attributesContainer.findAttribute(ConnectorFactoryIcfImpl.ICFS_NAME);
 		assertNotNull("No ICF name attribute in old  shadow", icfsNameAttribute);
-		assertEquals("Wrong value of ICF name attribute in old  shadow", BLACKBEARD_USERNAME,
+		assertEquals("Wrong value of ICF name attribute in old  shadow", getBlackbeardRepoIcfName(),
 				icfsNameAttribute.getRealValue());
 		
 		assertNull("Delta present when not expecting it", lastChange.getObjectDelta());
@@ -3313,9 +3426,10 @@ public class TestDummy extends AbstractDummyTest {
 				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_LOOT_NAME, 66666L);
 		assertEquals("Unexpected number of attributes", 4, attributes.size());
 
-		PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, currentShadowType.getOid(), null, result);
-		// TODO: check the shadow
-
+		PrismObject<ShadowType> accountRepo = findShadowByUsername(getBlackbeardRepoIcfName(), resource, result);		
+		assertNotNull("Shadow was not created in the repository", accountRepo);
+		display("Repository shadow", accountRepo);
+		ProvisioningTestUtil.checkRepoAccountShadow(accountRepo);
 		
 		checkAllShadows();
 		
@@ -3380,7 +3494,12 @@ public class TestDummy extends AbstractDummyTest {
 		
 		drakeAccountOid = currentShadowType.getOid();
 		PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, drakeAccountOid, null, result);
-		// TODO: check the shadow
+		display("Drake repo shadow", repoShadow);
+		
+		PrismObject<ShadowType> accountRepo = findShadowByUsername(getDrakeRepoIcfName(), resource, result);	
+		assertNotNull("Shadow was not created in the repository", accountRepo);
+		display("Repository shadow", accountRepo);
+		ProvisioningTestUtil.checkRepoAccountShadow(accountRepo);
 
 		checkAllShadows();
 		
@@ -3432,7 +3551,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertEquals("Unexpected number of attributes", 2, attributes.size());
 		ResourceAttribute<?> icfsNameAttribute = attributesContainer.findAttribute(ConnectorFactoryIcfImpl.ICFS_NAME);
 		assertNotNull("No ICF name attribute in old  shadow", icfsNameAttribute);
-		assertEquals("Wrong value of ICF name attribute in old  shadow", DRAKE_USERNAME,
+		assertEquals("Wrong value of ICF name attribute in old  shadow", getDrakeRepoIcfName(),
 				icfsNameAttribute.getRealValue());
 		
 		ObjectDelta<? extends ShadowType> objectDelta = lastChange.getObjectDelta();
@@ -3523,7 +3642,7 @@ public class TestDummy extends AbstractDummyTest {
 	private void checkAccountShadow(ShadowType shadowType, OperationResult parentResult, boolean fullShadow) {
 		ObjectChecker<ShadowType> checker = createShadowChecker(fullShadow);
 		ShadowUtil.checkConsistence(shadowType.asPrismObject(), parentResult.getOperation());
-		IntegrationTestTools.checkAccountShadow(shadowType, resourceType, repositoryService, checker, prismContext, parentResult);
+		IntegrationTestTools.checkAccountShadow(shadowType, resourceType, repositoryService, checker, getUidMatchingRule(), prismContext, parentResult);
 	}
 
 	private void checkGroupShadow(ShadowType shadow, OperationResult parentResult) {
@@ -3537,7 +3656,7 @@ public class TestDummy extends AbstractDummyTest {
 	private void checkEntitlementShadow(ShadowType shadowType, OperationResult parentResult, String objectClassLocalName, boolean fullShadow) {
 		ObjectChecker<ShadowType> checker = createShadowChecker(fullShadow);
 		ShadowUtil.checkConsistence(shadowType.asPrismObject(), parentResult.getOperation());
-		IntegrationTestTools.checkEntitlementShadow(shadowType, resourceType, repositoryService, checker, objectClassLocalName, prismContext, parentResult);
+		IntegrationTestTools.checkEntitlementShadow(shadowType, resourceType, repositoryService, checker, objectClassLocalName, getUidMatchingRule(), prismContext, parentResult);
 	}
 
 	private void checkAllShadows() throws SchemaException, ObjectNotFoundException, CommunicationException,

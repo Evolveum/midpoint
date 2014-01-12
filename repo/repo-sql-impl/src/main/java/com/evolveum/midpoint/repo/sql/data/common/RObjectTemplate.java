@@ -148,7 +148,7 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
         RObject.copyToJAXB(repo, jaxb, prismContext, options);
 
         //set name c:userTemplate or c:objectTemplate
-        jaxb.asPrismObject().setName(repo.getType().getSchemaValue());
+        jaxb.asPrismObject().setElementName(repo.getType().getSchemaValue());
 
         jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
 
@@ -176,7 +176,7 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
             DtoTranslationException {
         RObject.copyFromJAXB(jaxb, repo, prismContext);
 
-        repo.setType(RUtil.getRepoEnumValue(jaxb.asPrismObject().getName(), RObjectTemplateType.class));
+        repo.setType(RUtil.getRepoEnumValue(jaxb.asPrismObject().getElementName(), RObjectTemplateType.class));
         repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
 
         repo.getIncludeRef().addAll(RUtil.safeListReferenceToSet(
@@ -186,7 +186,7 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
                 ObjectTemplateType template = new ObjectTemplateType();
                 // template needs name for serialization, in here it doesn't matter if it's objectTemplate
                 // or userTemplate, it's only wrapper for data
-                template.asPrismObject().setName(SchemaConstantsGenerated.C_OBJECT_TEMPLATE);
+                template.asPrismObject().setElementName(SchemaConstantsGenerated.C_OBJECT_TEMPLATE);
 
                 template.getAccountConstruction().addAll(jaxb.getAccountConstruction());
                 repo.setAccountConstruction(RUtil.toRepo(template, prismContext));
@@ -196,7 +196,7 @@ public class RObjectTemplate extends RObject<ObjectTemplateType> {
                 ObjectTemplateType template = new ObjectTemplateType();
                 // template needs name for serialization, in here it doesn't matter if it's objectTemplate
                 // or userTemplate, it's only wrapper for data
-                template.asPrismObject().setName(SchemaConstantsGenerated.C_OBJECT_TEMPLATE);
+                template.asPrismObject().setElementName(SchemaConstantsGenerated.C_OBJECT_TEMPLATE);
 
                 template.getMapping().addAll(jaxb.getMapping());
                 repo.setMapping(RUtil.toRepo(template, prismContext));

@@ -17,6 +17,9 @@
 package com.evolveum.midpoint.web.component.data;
 
 import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.web.component.data.paging.NavigatorPanel;
+import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
@@ -25,12 +28,12 @@ import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
-import org.apache.wicket.markup.head.IHeaderResponse;
-import org.apache.wicket.markup.head.JavaScriptHeaderItem;
-import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
+import org.apache.wicket.markup.html.navigation.paging.IPageable;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.markup.repeater.data.DataViewBase;
+import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
-import org.apache.wicket.request.resource.PackageResourceReference;
+import org.apache.wicket.model.StringResourceModel;
 
 import java.util.List;
 
@@ -39,11 +42,11 @@ import java.util.List;
  */
 public class TablePanel<T> extends Panel {
 
-    private static final String TABLE = "table";
-    private static final String NAV_TOP = "navigatorTop";
-    private static final String NAV_BOTTOM = "navigatorBottom";
-    private NavigatorPanel topNavigator;
-    private NavigatorPanel bottomNavigator;
+    private static final String ID_TABLE = "table";
+    private static final String ID_PAGING = "paging";
+
+    private IModel<Boolean> showPaging = new Model<Boolean>(true);
+    private IModel<Boolean> showCount = new Model<Boolean>(true);
 
     public TablePanel(String id, ISortableDataProvider provider, List<IColumn<T, String>> columns) {
         this(id, provider, columns, 10);
@@ -54,39 +57,38 @@ public class TablePanel<T> extends Panel {
         Validate.notNull(provider, "Object type must not be null.");
         Validate.notNull(columns, "Columns must not be null.");
 
+        add(AttributeModifier.prepend("style", "display: table; width: 100%;"));
+
         initLayout(columns, itemsPerPage, provider);
     }
 
     private void initLayout(List<IColumn<T, String>> columns, int itemsPerPage, ISortableDataProvider provider) {
-        DataTable<T, String> table = new SelectableDataTable<T>(TABLE, columns, provider, itemsPerPage);
+        DataTable<T, String> table = new SelectableDataTable<T>(ID_TABLE, columns, provider, itemsPerPage);
         table.setOutputMarkupId(true);
 
         TableHeadersToolbar headers = new TableHeadersToolbar(table, provider);
         headers.setOutputMarkupId(true);
         table.addTopToolbar(headers);
 
+        CountToolbar count = new CountToolbar(table);
+        addVisibleBehaviour(count, showCount);
+        table.addBottomToolbar(count);
+
         add(table);
-        topNavigator = new NavigatorPanel(NAV_TOP, table, showPagedPaging(provider)) {
+
+        NavigatorPanel nb2 = new NavigatorPanel(ID_PAGING, table, showPagedPaging(provider));
+        addVisibleBehaviour(nb2, showPaging);
+        add(nb2);
+    }
+
+    private void addVisibleBehaviour(Component comp, final IModel<Boolean> model) {
+        comp.add(new VisibleEnableBehaviour() {
 
             @Override
-            protected void onAjaxEvent(AjaxRequestTarget target) {
-                super.onAjaxEvent(target);
-                target.add(bottomNavigator);
+            public boolean isVisible() {
+                return model.getObject();
             }
-        };
-
-        bottomNavigator = new NavigatorPanel(NAV_BOTTOM, table, showPagedPaging(provider)) {
-
-            @Override
-            protected void onAjaxEvent(AjaxRequestTarget target) {
-                super.onAjaxEvent(target);
-                target.add(topNavigator);
-            }
-        };
-
-        add(topNavigator);
-        add(bottomNavigator);
-
+        });
     }
 
     private boolean showPagedPaging(ISortableDataProvider provider) {
@@ -99,7 +101,7 @@ public class TablePanel<T> extends Panel {
     }
 
     public DataTable getDataTable() {
-        return (DataTable) get("table");
+        return (DataTable) get(ID_TABLE);
     }
 
     public void setItemsPerPage(int size) {
@@ -122,17 +124,18 @@ public class TablePanel<T> extends Panel {
     }
 
     public void setShowPaging(boolean showPaging) {
-        Component nav = get(NAV_TOP);
-        nav.setVisible(showPaging);
-
-        nav = get(NAV_BOTTOM);
-        nav.setVisible(showPaging);
+        this.showPaging.setObject(showPaging);
+        this.showCount.setObject(showPaging);
 
         if (!showPaging) {
             setItemsPerPage(Integer.MAX_VALUE);
         } else {
             setItemsPerPage(10);
         }
+    }
+
+    public void setShowCount(boolean showCount) {
+        this.showCount.setObject(showCount);
     }
 
     public void setTableCssClass(String cssClass) {
@@ -147,15 +150,5 @@ public class TablePanel<T> extends Panel {
 
         DataTable table = getDataTable();
         table.add(new AttributeModifier("style", new Model(value)));
-    }
-
-    @Override
-    public void renderHead(IHeaderResponse response) {
-        super.renderHead(response);
-
-        //todo probably can be deleted [lazyman]
-        response.render(JavaScriptHeaderItem.forReference(
-                new PackageResourceReference(TablePanel.class, "TablePanel.js")));
-        response.render(OnDomReadyHeaderItem.forScript("initTable()"));
     }
 }

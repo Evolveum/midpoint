@@ -40,19 +40,15 @@ import com.evolveum.midpoint.util.exception.SystemException;
 public class PrismObjectDefinition<T extends Objectable> extends PrismContainerDefinition<T> {
 	private static final long serialVersionUID = -8298581031956931008L;
 
-	public PrismObjectDefinition(QName name, ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext, 
+	public PrismObjectDefinition(QName elementName, ComplexTypeDefinition complexTypeDefinition, PrismContext prismContext, 
 			Class<T> compileTimeClass) {
 		// Object definition can only be top-level, hence null parent
-		super(name, complexTypeDefinition, prismContext, compileTimeClass);
-		if (name != null) {
-			// Override default name for objects. In this case name is usually the element name
-			defaultName = name;
-		}
+		super(elementName, complexTypeDefinition, prismContext, compileTimeClass);
 	}
 	
 	@Override
 	public PrismObject<T> instantiate() {
-		PrismObject<T> midPointObject = new PrismObject<T>(getNameOrDefaultName(), this, prismContext);
+		PrismObject<T> midPointObject = new PrismObject<T>(getName(), this, prismContext);
 		return midPointObject;
 	}
 	
@@ -116,5 +112,10 @@ public class PrismObjectDefinition<T extends Objectable> extends PrismContainerD
 	protected String getDebugDumpClassName() {
 		return "POD";
 	}
+
+    @Override
+    public String getDocClassName() {
+        return "object";
+    }
 	
 }

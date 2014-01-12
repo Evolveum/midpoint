@@ -16,47 +16,74 @@
 
 package com.evolveum.midpoint.repo.sql;
 
-import com.evolveum.midpoint.common.QueryUtil;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import java.io.File;
+import java.sql.Timestamp;
+import java.util.Date;
+
+import javax.xml.XMLConstants;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
+
+import org.hibernate.Criteria;
+import org.hibernate.FetchMode;
+import org.hibernate.Session;
+import org.hibernate.criterion.Conjunction;
+import org.hibernate.criterion.Criterion;
+import org.hibernate.criterion.Disjunction;
+import org.hibernate.criterion.Order;
+import org.hibernate.criterion.ProjectionList;
+import org.hibernate.criterion.Projections;
+import org.hibernate.criterion.Restrictions;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
+import org.testng.annotations.Test;
+
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.*;
+import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.EqualsFilter;
+import com.evolveum.midpoint.prism.query.GreaterFilter;
+import com.evolveum.midpoint.prism.query.LessFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrFilter;
+import com.evolveum.midpoint.prism.query.OrderDirection;
+import com.evolveum.midpoint.prism.query.OrgFilter;
+import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.repo.sql.data.common.*;
+import com.evolveum.midpoint.repo.sql.data.common.RConnector;
+import com.evolveum.midpoint.repo.sql.data.common.RGenericObject;
+import com.evolveum.midpoint.repo.sql.data.common.RObject;
+import com.evolveum.midpoint.repo.sql.data.common.RRole;
+import com.evolveum.midpoint.repo.sql.data.common.RShadow;
+import com.evolveum.midpoint.repo.sql.data.common.RTask;
+import com.evolveum.midpoint.repo.sql.data.common.RUser;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RActivationStatus;
 import com.evolveum.midpoint.repo.sql.data.common.enums.RTaskExecutionStatus;
 import com.evolveum.midpoint.repo.sql.data.common.other.RAssignmentOwner;
 import com.evolveum.midpoint.repo.sql.query.QueryException;
-import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
 import com.evolveum.midpoint.repo.sql.util.HibernateToSqlTranslator;
-import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
-import com.evolveum.prism.xml.ns._public.query_2.QueryType;
-import org.hibernate.Criteria;
-import org.hibernate.FetchMode;
-import org.hibernate.Session;
-import org.hibernate.criterion.*;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ContextConfiguration;
-import org.testng.AssertJUnit;
-import org.testng.annotations.Test;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-
-import javax.xml.XMLConstants;
-import javax.xml.datatype.XMLGregorianCalendar;
-import javax.xml.namespace.QName;
-import java.io.File;
-import java.sql.Timestamp;
-import java.util.Date;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.GenericObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskExecutionStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.TriggerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
  * @author lazyman
@@ -72,8 +99,8 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     public void queryOrganizationNorm() throws Exception {
         Session session = open();
 
-        ObjectFilter filter = EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_ORGANIZATION,
-                new PolyString("asdf", "asdf"), PolyStringNormMatchingRule.NAME.getLocalPart());
+        ObjectFilter filter = EqualsFilter.createEqual(UserType.F_ORGANIZATION, UserType.class, prismContext, 
+        		PolyStringNormMatchingRule.NAME, new PolyString("asdf", "asdf"));
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 
         Criteria main = session.createCriteria(RUser.class, "u");
@@ -94,8 +121,8 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     public void queryOrganizationOrig() throws Exception {
         Session session = open();
 
-        ObjectFilter filter = EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_ORGANIZATION,
-                new PolyString("asdf", "asdf"), PolyStringOrigMatchingRule.NAME.getLocalPart());
+        ObjectFilter filter = EqualsFilter.createEqual(UserType.F_ORGANIZATION, UserType.class, prismContext, 
+        		PolyStringOrigMatchingRule.NAME, new PolyString("asdf", "asdf"));
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 
         Criteria main = session.createCriteria(RUser.class, "u");
@@ -116,8 +143,8 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
     public void queryOrganizationStrict() throws Exception {
         Session session = open();
 
-        ObjectFilter filter = EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_ORGANIZATION,
-                new PolyString("asdf", "asdf"));
+        ObjectFilter filter = EqualsFilter.createEqual(UserType.F_ORGANIZATION, UserType.class, prismContext, 
+                null, new PolyString("asdf", "asdf"));
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 
         Criteria main = session.createCriteria(RUser.class, "u");
@@ -146,7 +173,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
         String expected = HibernateToSqlTranslator.toSql(main);
 
-        ObjectFilter filter = EqualsFilter.createEqual(TaskType.class, prismContext, TaskType.F_DEPENDENT, "123456");
+        ObjectFilter filter = EqualsFilter.createEqual(TaskType.F_DEPENDENT, TaskType.class, prismContext, null, "123456");
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
         String real = getInterpretedQuery(session, TaskType.class, query);
 
@@ -161,8 +188,8 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         Session session = open();
 
         try {
-            ObjectFilter filter = EqualsFilter.createEqual(UserType.class, prismContext,
-                    UserType.F_DESCRIPTION, "aaa");
+            ObjectFilter filter = EqualsFilter.createEqual(UserType.F_DESCRIPTION, UserType.class, prismContext,
+                    null, "aaa");
             ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 
             //should throw exception, because description is lob and can't be queried
@@ -180,8 +207,8 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
         String expected = HibernateToSqlTranslator.toSql(main);
 
-        ObjectFilter filter = EqualsFilter.createEqual(TaskType.class, prismContext, TaskType.F_EXECUTION_STATUS,
-                TaskExecutionStatusType.WAITING);
+        ObjectFilter filter = EqualsFilter.createEqual(TaskType.F_EXECUTION_STATUS, TaskType.class, prismContext, 
+                null, TaskExecutionStatusType.WAITING);
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
         String real = getInterpretedQuery(session, TaskType.class, query);
 
@@ -288,8 +315,8 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         Session session = open();
 
         try {
-            EqualsFilter filter = EqualsFilter.createEqual(ObjectType.class, prismContext, ObjectType.F_NAME,
-                    new PolyString("cpt. Jack Sparrow", "cpt jack sparrow"));
+            EqualsFilter filter = EqualsFilter.createEqual(ObjectType.F_NAME, ObjectType.class, prismContext, 
+                    null, new PolyString("cpt. Jack Sparrow", "cpt jack sparrow"));
 
             ObjectQuery query = ObjectQuery.createObjectQuery(filter);
             query.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
@@ -416,61 +443,13 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
         String expected = HibernateToSqlTranslator.toSql(main);
 
-        RefFilter filter = RefFilter.createReferenceEqual(UserType.class, UserType.F_LINK_REF, prismContext, "123");
+        RefFilter filter = RefFilter.createReferenceEqual(UserType.F_LINK_REF, UserType.class, prismContext, "123");
         String real = getInterpretedQuery(session, UserType.class, ObjectQuery.createObjectQuery(filter));
 
         LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
         AssertJUnit.assertEquals(expected, real);
 
         close(session);
-    }
-
-    private <T extends ObjectType> String getInterpretedQuery(Session session, Class<T> type, ObjectQuery query)
-            throws Exception {
-        return getInterpretedQuery(session, type, query, false);
-    }
-
-    private <T extends ObjectType> String getInterpretedQuery(Session session, Class<T> type, ObjectQuery query,
-                                                              boolean interpretCount) throws Exception {
-
-        QueryInterpreter interpreter = new QueryInterpreter();
-        LOGGER.info("QUERY TYPE TO CONVERT : {}", (query.getFilter() != null ? query.getFilter().debugDump(3) : null));
-
-        Criteria criteria = interpreter.interpret(query, type, null, prismContext, interpretCount, session);
-        if (interpretCount) {
-            criteria.setProjection(Projections.rowCount());
-        }
-
-        return HibernateToSqlTranslator.toSql(criteria);
-    }
-
-    private <T extends ObjectType> String getInterpretedQuery(Session session, Class<T> type, File file) throws
-            Exception {
-        return getInterpretedQuery(session, type, file, false);
-    }
-
-    private <T extends ObjectType> String getInterpretedQuery(Session session, Class<T> type, File file,
-                                                              boolean interpretCount) throws Exception {
-
-        QueryInterpreter interpreter = new QueryInterpreter();
-
-        Document document = DOMUtil.parseFile(file);
-        QueryType queryType = prismContext.getPrismJaxbProcessor().unmarshalObject(file, QueryType.class);
-        Element filter = DOMUtil.listChildElements(document.getDocumentElement()).get(0);
-
-        LOGGER.info("QUERY TYPE TO CONVERT : {}", QueryUtil.dump(queryType));
-
-        ObjectQuery query = null;
-        try {
-            query = QueryConvertor.createObjectQuery(type, queryType, prismContext);
-        } catch (Exception ex) {
-            LOGGER.info("error while converting query: " + ex.getMessage(), ex);
-        }
-        Criteria criteria = interpreter.interpret(query, type, null, prismContext, interpretCount, session);
-        if (interpretCount) {
-            criteria.setProjection(Projections.rowCount());
-        }
-        return HibernateToSqlTranslator.toSql(criteria);
     }
 
     @Test
@@ -488,10 +467,9 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
         SchemaRegistry registry = prismContext.getSchemaRegistry();
         PrismObjectDefinition objectDef = registry.findObjectDefinitionByCompileTimeClass(ObjectType.class);
-        ItemPath triggerPath = new ItemPath(ObjectType.F_TRIGGER);
-        PrismContainerDefinition triggerContainerDef = objectDef.findContainerDefinition(triggerPath);
-        ObjectFilter filter = LessFilter.createLessFilter(triggerPath, triggerContainerDef,
-                TriggerType.F_TIMESTAMP, thisScanTimestamp, true);
+        ItemPath triggerPath = new ItemPath(ObjectType.F_TRIGGER, TriggerType.F_TIMESTAMP);
+//        PrismContainerDefinition triggerContainerDef = objectDef.findContainerDefinition(triggerPath);
+        ObjectFilter filter = LessFilter.createLess(triggerPath, objectDef, thisScanTimestamp, true);
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
         String real = getInterpretedQuery(session, ObjectType.class, query);
 
@@ -515,12 +493,11 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
         SchemaRegistry registry = prismContext.getSchemaRegistry();
         PrismObjectDefinition objectDef = registry.findObjectDefinitionByCompileTimeClass(UserType.class);
-        ItemPath activationPath = new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION);
+        ItemPath activationPath = new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
 
-        PrismContainerDefinition activationDef = objectDef.findContainerDefinition(activationPath);
+//        PrismContainerDefinition activationDef = objectDef.findContainerDefinition(activationPath);
 
-        ObjectFilter filter = EqualsFilter.createEqual(activationPath, activationDef,
-                ActivationType.F_ADMINISTRATIVE_STATUS, ActivationStatusType.ENABLED);
+        ObjectFilter filter = EqualsFilter.createEqual(activationPath, objectDef, ActivationStatusType.ENABLED);
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
         String real = getInterpretedQuery(session, UserType.class, query);
 
@@ -544,12 +521,11 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
         SchemaRegistry registry = prismContext.getSchemaRegistry();
         PrismObjectDefinition objectDef = registry.findObjectDefinitionByCompileTimeClass(RoleType.class);
-        ItemPath activationPath = new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_ACTIVATION);
+        ItemPath activationPath = new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
 
-        PrismContainerDefinition activationDef = objectDef.findContainerDefinition(activationPath);
+//        PrismContainerDefinition activationDef = objectDef.findContainerDefinition(activationPath);
 
-        ObjectFilter filter = EqualsFilter.createEqual(activationPath, activationDef,
-                ActivationType.F_ADMINISTRATIVE_STATUS, ActivationStatusType.ENABLED);
+        ObjectFilter filter = EqualsFilter.createEqual(activationPath, objectDef, ActivationStatusType.ENABLED);
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
         String real = getInterpretedQuery(session, RoleType.class, query);
 
@@ -583,16 +559,14 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         PrismObjectDefinition objectDef = registry.findObjectDefinitionByCompileTimeClass(RoleType.class);
 
         //filter1
-        ItemPath activationPath1 = new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION);
-        PrismContainerDefinition activationDef1 = objectDef.findContainerDefinition(activationPath1);
-        ObjectFilter filter1 = EqualsFilter.createEqual(activationPath1, activationDef1,
-                ActivationType.F_ADMINISTRATIVE_STATUS, ActivationStatusType.ENABLED);
+        ItemPath activationPath1 = new ItemPath(UserType.F_ASSIGNMENT, AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
+//        PrismContainerDefinition activationDef1 = objectDef.findContainerDefinition(activationPath1);
+        ObjectFilter filter1 = EqualsFilter.createEqual(activationPath1, objectDef, ActivationStatusType.ENABLED);
 
         //filter2
-        ItemPath activationPath2 = new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_ACTIVATION);
-        PrismContainerDefinition activationDef2 = objectDef.findContainerDefinition(activationPath2);
-        ObjectFilter filter2 = EqualsFilter.createEqual(activationPath2, activationDef2,
-                ActivationType.F_ADMINISTRATIVE_STATUS, ActivationStatusType.ENABLED);
+        ItemPath activationPath2 = new ItemPath(RoleType.F_INDUCEMENT, AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS);
+//        PrismContainerDefinition activationDef2 = objectDef.findContainerDefinition(activationPath2);
+        ObjectFilter filter2 = EqualsFilter.createEqual(activationPath2, objectDef, ActivationStatusType.ENABLED);
 
         ObjectQuery query = ObjectQuery.createObjectQuery(OrFilter.createOr(filter1, filter2));
         String real = getInterpretedQuery(session, RoleType.class, query);
@@ -617,15 +591,15 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
         SchemaRegistry registry = prismContext.getSchemaRegistry();
         PrismObjectDefinition objectDef = registry.findObjectDefinitionByCompileTimeClass(UserType.class);
-        ItemPath triggerPath = new ItemPath(AssignmentType.F_ACTIVATION);
+//        ItemPath triggerPath = new ItemPath(AssignmentType.F_ACTIVATION);
 
-        PrismContainerDefinition triggerContainerDef = objectDef.findContainerDefinition(triggerPath);
+//        PrismContainerDefinition triggerContainerDef = objectDef.findContainerDefinition(triggerPath);
 
-        ObjectFilter filter1 = EqualsFilter.createEqual(triggerPath, triggerContainerDef,
-                ActivationType.F_ADMINISTRATIVE_STATUS, ActivationStatusType.ENABLED);
+        ObjectFilter filter1 = EqualsFilter.createEqual(new ItemPath(AssignmentType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), objectDef,
+                ActivationStatusType.ENABLED);
 
-        ObjectFilter filter2 = EqualsFilter.createEqual(triggerPath, triggerContainerDef,
-                ActivationType.F_VALID_FROM, XmlTypeConverter.createXMLGregorianCalendar(NOW.getTime()));
+        ObjectFilter filter2 = EqualsFilter.createEqual(new ItemPath(AssignmentType.F_ACTIVATION, ActivationType.F_VALID_FROM), objectDef,
+                XmlTypeConverter.createXMLGregorianCalendar(NOW.getTime()));
 
         ObjectQuery query = ObjectQuery.createObjectQuery(AndFilter.createAnd(filter1, filter2));
         String real = getInterpretedQuery(session, UserType.class, query);
@@ -654,12 +628,10 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
 
         SchemaRegistry registry = prismContext.getSchemaRegistry();
         PrismObjectDefinition objectDef = registry.findObjectDefinitionByCompileTimeClass(ObjectType.class);
-        ItemPath triggerPath = new ItemPath(ObjectType.F_TRIGGER);
-        PrismContainerDefinition triggerContainerDef = objectDef.findContainerDefinition(triggerPath);
-        ObjectFilter greater = GreaterFilter.createGreaterFilter(triggerPath, triggerContainerDef,
-                TriggerType.F_TIMESTAMP, thisScanTimestamp, false);
-        ObjectFilter lesser = LessFilter.createLessFilter(triggerPath, triggerContainerDef,
-                TriggerType.F_TIMESTAMP, thisScanTimestamp, false);
+        ItemPath triggerPath = new ItemPath(ObjectType.F_TRIGGER, TriggerType.F_TIMESTAMP);
+//        PrismContainerDefinition triggerContainerDef = objectDef.findContainerDefinition(triggerPath);
+        ObjectFilter greater = GreaterFilter.createGreater(triggerPath, objectDef, thisScanTimestamp, false);
+        ObjectFilter lesser = LessFilter.createLess(triggerPath, objectDef, thisScanTimestamp, false);
         AndFilter and = AndFilter.createAnd(greater, lesser);
         LOGGER.info(and.dump());
 
@@ -686,6 +658,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         main.addOrder(Order.asc("o.name.orig"));
 
         Conjunction conjunction = Restrictions.conjunction();
+        conjunction.add(Restrictions.eq("anc.id", 0L));
         conjunction.add(Restrictions.eq("anc.oid", "some oid"));
         conjunction.add(Restrictions.le("closure.depth", 1));
         conjunction.add(Restrictions.gt("closure.depth", 0));
@@ -720,8 +693,8 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         main.setProjection(Projections.rowCount());
         String expected = HibernateToSqlTranslator.toSql(main);
 
-        EqualsFilter filter = EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_NAME,
-                new PolyString("cpt. Jack Sparrow", "cpt jack sparrow"));
+        EqualsFilter filter = EqualsFilter.createEqual(UserType.F_NAME, UserType.class, prismContext, 
+                null, new PolyString("cpt. Jack Sparrow", "cpt jack sparrow"));
 
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
         query.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
@@ -768,7 +741,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         main.setProjection(Projections.rowCount());
         String expected = HibernateToSqlTranslator.toSql(main);
 
-        EqualsFilter filter = EqualsFilter.createEqual(TaskType.class, prismContext, TaskType.F_PARENT, null);
+        EqualsFilter filter = EqualsFilter.createEqual(TaskType.F_PARENT, TaskType.class, prismContext, null);
 
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
         query.setPaging(ObjectPaging.createPaging(null, null, TaskType.F_NAME, OrderDirection.ASCENDING));

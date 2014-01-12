@@ -27,7 +27,10 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.model.api.WorkflowService;
 import com.evolveum.midpoint.model.util.Utils;
+import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
 import org.apache.commons.lang.NotImplementedException;
 import org.apache.commons.lang.Validate;
@@ -41,7 +44,6 @@ import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.audit.api.AuditService;
 import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
-import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.model.ModelObjectResolver;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
@@ -171,6 +173,9 @@ public class ModelController implements ModelService, ModelInteractionService, T
 
 	@Autowired(required = true)
 	private TaskManager taskManager;
+
+    @Autowired(required = false)                        // not required in all circumstances
+    private WorkflowManager workflowManager;
 	
 	@Autowired(required = true)
 	private ChangeExecutor changeExecutor;
@@ -319,7 +324,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		// But before that we need to make sure that we have proper definition, otherwise we
 		// might miss some encryptable data in dynamic schemas
 		applyDefinitions(deltas, options, result);
-		encrypt(deltas, options, result);
+		Utils.encrypt(deltas, protector, options, result);
 
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("MODEL.executeChanges(\n  deltas:\n{}\n  options:{}", DebugUtil.debugDump(deltas, 2), options);
@@ -375,9 +380,9 @@ public class ModelController implements ModelService, ModelInteractionService, T
 				auditRecord.setEventStage(AuditEventStage.EXECUTION);
 				auditService.audit(auditRecord, task);
 				
-			} else {
-				
-				LensContext<?, ?> context = contextFactory.createContext(deltas, options, task, result);
+			} else {				
+					
+				LensContext<? extends ObjectType> context = contextFactory.createContext(deltas, options, task, result);
 
 				clockwork.run(context, task, result);
 						
@@ -426,7 +431,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	}
 	
 	@Override
-	public <F extends FocusType> void recompute(Class<F> type, String oid, Task task, OperationResult parentResult) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
+	public <F extends ObjectType> void recompute(Class<F> type, String oid, Task task, OperationResult parentResult) throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 			
 		OperationResult result = parentResult.createMinorSubresult(RECOMPUTE);
 		result.addParams(new String[] { "oid", "type" }, oid, type);
@@ -440,7 +445,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			
 			LOGGER.trace("Recomputing {}", focus);
 
-			LensContext<F, ShadowType> syncContext = contextFactory.createRecomputeContext(focus, task, result); 
+			LensContext<F> syncContext = contextFactory.createRecomputeContext(focus, task, result); 
 			LOGGER.trace("Recomputing {}, context:\n{}", focus, syncContext.dump());
 			clockwork.run(syncContext, task, result);
 			
@@ -532,26 +537,26 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		}
 	}
 
-	private void encrypt(Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options,
-			OperationResult result) {
-		// Encrypt values even before we log anything. We want to avoid showing unencrypted values in the logfiles
-		if (!ModelExecuteOptions.isNoCrypt(options)) {
-			for(ObjectDelta<? extends ObjectType> delta: deltas) {				
-				try {
-					CryptoUtil.encryptValues(protector, delta);
-				} catch (EncryptionException e) {
-					result.recordFatalError(e);
-					throw new SystemException(e.getMessage(), e);
-				}
-			}
-		}
-	}
+//	private void encrypt(Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options,
+//			OperationResult result) {
+//		// Encrypt values even before we log anything. We want to avoid showing unencrypted values in the logfiles
+//		if (!ModelExecuteOptions.isNoCrypt(options)) {
+//			for(ObjectDelta<? extends ObjectType> delta: deltas) {				
+//				try {
+//					CryptoUtil.encryptValues(protector, delta);
+//				} catch (EncryptionException e) {
+//					result.recordFatalError(e);
+//					throw new SystemException(e.getMessage(), e);
+//				}
+//			}
+//		}
+//	}
 
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.model.api.ModelInteractionService#previewChanges(com.evolveum.midpoint.prism.delta.ObjectDelta, com.evolveum.midpoint.schema.result.OperationResult)
 	 */
 	@Override
-	public <F extends ObjectType, P extends ObjectType> ModelContext<F, P> previewChanges(
+	public <F extends ObjectType> ModelContext<F> previewChanges(
 			Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options, Task task, OperationResult parentResult)
 			throws SchemaException, PolicyViolationException, ExpressionEvaluationException, ObjectNotFoundException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 		
@@ -565,19 +570,19 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		}
 		
 		OperationResult result = parentResult.createSubresult(PREVIEW_CHANGES);
-		LensContext<F, P> context = null;
+		LensContext<F> context = null;
 		
 		try {
 			
 			//used cloned deltas instead of origin deltas, because some of the values should be lost later..
-			context = (LensContext<F, P>) contextFactory.createContext(clonedDeltas, options, task, result);
+			context = contextFactory.createContext(clonedDeltas, options, task, result);
 //			context.setOptions(options);
 			if (LOGGER.isDebugEnabled()) {
 				LOGGER.trace("Preview changes context:\n{}", context.debugDump());
 			}
 		
 			
-			projector.project((LensContext<F, ShadowType>) context, "preview", result);
+			projector.project(context, "preview", task, result);
 			context.distributeResource();
 			
 		} catch (ConfigurationException e) {
@@ -666,7 +671,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			try {
                 switch (searchProvider) {
                     case REPOSITORY: list = cacheRepositoryService.searchObjects(type, query, options, result); break;
-                    case PROVISIONING: list = provisioning.searchObjects(type, query, null, result); break;
+                    case PROVISIONING: list = provisioning.searchObjects(type, query, options, result); break;
                     case TASK_MANAGER: list = taskManager.searchObjects(type, query, options, result); break;
                     case WORKFLOW: throw new UnsupportedOperationException();
                     default: throw new AssertionError("Unexpected search provider: " + searchProvider);
@@ -1265,7 +1270,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 	}
 
     @Override
-    public <F extends ObjectType, P extends ObjectType> ModelContext<F, P> unwrapModelContext(LensContextType wrappedContext, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
+    public <F extends ObjectType> ModelContext<F> unwrapModelContext(LensContextType wrappedContext, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
         return LensContext.fromLensContextType(wrappedContext, prismContext, provisioning, result);
     }
 
@@ -1343,6 +1348,65 @@ public class ModelController implements ModelService, ModelInteractionService, T
     //endregion
 
     //region Workflow-related operations
+    @Override
+    public int countWorkItemsRelatedToUser(String userOid, boolean assigned, OperationResult parentResult) {
+        return workflowManager.countWorkItemsRelatedToUser(userOid, assigned, parentResult);
+    }
+
+    @Override
+    public List<WorkItemType> listWorkItemsRelatedToUser(String userOid, boolean assigned, int first, int count, OperationResult parentResult) {
+        return workflowManager.listWorkItemsRelatedToUser(userOid, assigned, first, count, parentResult);
+    }
+
+    @Override
+    public WorkItemType getWorkItemDetailsById(String workItemId, OperationResult parentResult) throws ObjectNotFoundException {
+        return workflowManager.getWorkItemDetailsById(workItemId, parentResult);
+    }
+
+    @Override
+    public int countProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, OperationResult parentResult) {
+        return workflowManager.countProcessInstancesRelatedToUser(userOid, requestedBy, requestedFor, finished, parentResult);
+    }
+
+    @Override
+    public List<WfProcessInstanceType> listProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, int first, int count, OperationResult parentResult) {
+        return workflowManager.listProcessInstancesRelatedToUser(userOid, requestedBy, requestedFor, finished, first, count, parentResult);
+    }
+
+    @Override
+    public WfProcessInstanceType getProcessInstanceByWorkItemId(String workItemId, OperationResult parentResult) throws ObjectNotFoundException {
+        return workflowManager.getProcessInstanceByWorkItemId(workItemId, parentResult);
+    }
+
+    @Override
+    public WfProcessInstanceType getProcessInstanceById(String instanceId, boolean historic, boolean getWorkItems, OperationResult parentResult) throws ObjectNotFoundException {
+        return workflowManager.getProcessInstanceById(instanceId, historic, getWorkItems, parentResult);
+    }
+
+    @Override
+    public void approveOrRejectWorkItem(String workItemId, boolean decision, OperationResult parentResult) {
+        workflowManager.approveOrRejectWorkItem(workItemId, decision, parentResult);
+    }
+
+    @Override
+    public void approveOrRejectWorkItemWithDetails(String workItemId, PrismObject specific, boolean decision, OperationResult result) {
+        workflowManager.approveOrRejectWorkItemWithDetails(workItemId, specific, decision, result);
+    }
+
+    @Override
+    public void completeWorkItemWithDetails(String workItemId, PrismObject specific, String decision, OperationResult parentResult) {
+        workflowManager.completeWorkItemWithDetails(workItemId, specific, decision, parentResult);
+    }
+
+    @Override
+    public void stopProcessInstance(String instanceId, String username, OperationResult parentResult) {
+        workflowManager.stopProcessInstance(instanceId, username, parentResult);
+    }
+
+    @Override
+    public void deleteProcessInstance(String instanceId, OperationResult parentResult) {
+        workflowManager.deleteProcessInstance(instanceId, parentResult);
+    }
     //endregion
 
 }

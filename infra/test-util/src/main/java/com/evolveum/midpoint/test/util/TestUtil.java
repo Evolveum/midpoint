@@ -115,7 +115,7 @@ public class TestUtil {
     public static void setAttribute(PrismObject<ShadowType> account, QName attrName, QName typeName, 
 			PrismContext prismContext, String value) throws SchemaException {
 		PrismContainer<Containerable> attributesContainer = account.findContainer(ShadowType.F_ATTRIBUTES);
-		ResourceAttributeDefinition attrDef = new ResourceAttributeDefinition(attrName, attrName, typeName, prismContext);
+		ResourceAttributeDefinition attrDef = new ResourceAttributeDefinition(attrName, typeName, prismContext);
 		ResourceAttribute attribute = attrDef.instantiate();
 		attribute.setRealValue(value);
 		attributesContainer.add(attribute);
@@ -223,6 +223,10 @@ public class TestUtil {
 		assertSuccess(message, result,-1);
 	}
 
+	public static void assertSuccess(OperationResultType result) {
+		assertSuccess(result.getOperation(), result);
+	}
+	
 	public static void assertSuccess(String message, OperationResultType result) {
 		if (!checkResults) {
 			return;
@@ -263,6 +267,9 @@ public class TestUtil {
 		assertEquals("Operation "+result.getOperation()+" result", expectedStatus, result.getStatus());		
 	}
 
+	public static void assertStatus(OperationResultType result, OperationResultStatusType expectedStatus) {
+		assertEquals("Operation "+result.getOperation()+" result", expectedStatus, result.getStatus());		
+	}
 
 	public static boolean hasWarningAssertSuccess(String message, OperationResultType result) {
 		boolean hasWarning = false;

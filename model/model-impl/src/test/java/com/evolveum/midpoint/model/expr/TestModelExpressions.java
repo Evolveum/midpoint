@@ -37,9 +37,9 @@ import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.common.expression.script.ScriptExpression;
-import com.evolveum.midpoint.common.expression.script.ScriptExpressionFactory;
-import com.evolveum.midpoint.common.expression.script.ScriptVariables;
+import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
+import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory;
 import com.evolveum.midpoint.model.controller.ModelController;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -110,10 +110,10 @@ public class TestModelExpressions extends AbstractModelIntegrationTest {
         OperationResult result = new OperationResult(TestModelExpressions.class.getName() + "." + TEST_NAME);
 		
 		ScriptExpressionEvaluatorType scriptType = parseScriptType("expression-func.xml");
-		ItemDefinition outputDefinition = new PrismPropertyDefinition(PROPERTY_NAME, PROPERTY_NAME, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
+		ItemDefinition outputDefinition = new PrismPropertyDefinition(PROPERTY_NAME, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 		ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptType, outputDefinition, TEST_NAME);
 		
-		ScriptVariables variables = null;
+		ExpressionVariables variables = null;
 		
 		// WHEN
 		List<PrismPropertyValue<String>> scriptOutputs = scriptExpression.evaluate(variables, null, false, TEST_NAME, result);
@@ -152,8 +152,8 @@ public class TestModelExpressions extends AbstractModelIntegrationTest {
         PrismObject<UserType> chef = repositoryService.getObject(UserType.class, CHEF_OID, null, result);
 
         ScriptExpressionEvaluatorType scriptType = parseScriptType("expression-" + TEST_NAME + ".xml");
-        ItemDefinition outputDefinition = new PrismPropertyDefinition(PROPERTY_NAME, PROPERTY_NAME, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());        ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptType, outputDefinition, TEST_NAME);
-        ScriptVariables variables = new ScriptVariables();
+        ItemDefinition outputDefinition = new PrismPropertyDefinition(PROPERTY_NAME, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());        ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptType, outputDefinition, TEST_NAME);
+        ExpressionVariables variables = new ExpressionVariables();
         variables.addVariableDefinition(new QName(SchemaConstants.NS_C, "user"), chef);
 
         // WHEN
@@ -179,8 +179,8 @@ public class TestModelExpressions extends AbstractModelIntegrationTest {
         PrismObject<UserType> chef = repositoryService.getObject(UserType.class, CHEF_OID, null, result);
 
         ScriptExpressionEvaluatorType scriptType = parseScriptType("expression-" + TEST_NAME + ".xml");
-        ItemDefinition outputDefinition = new PrismPropertyDefinition(PROPERTY_NAME, PROPERTY_NAME, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());        ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptType, outputDefinition, TEST_NAME);
-        ScriptVariables variables = new ScriptVariables();
+        ItemDefinition outputDefinition = new PrismPropertyDefinition(PROPERTY_NAME, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());        ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptType, outputDefinition, TEST_NAME);
+        ExpressionVariables variables = new ExpressionVariables();
         variables.addVariableDefinition(new QName(SchemaConstants.NS_C, "user"), chef);
 
         // WHEN
@@ -209,8 +209,8 @@ public class TestModelExpressions extends AbstractModelIntegrationTest {
         importIfNeeded();
 
         ScriptExpressionEvaluatorType scriptType = parseScriptType("expression-" + TEST_NAME + ".xml");
-        ItemDefinition outputDefinition = new PrismPropertyDefinition(PROPERTY_NAME, PROPERTY_NAME, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());        ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptType, outputDefinition, TEST_NAME);
-        ScriptVariables variables = new ScriptVariables();
+        ItemDefinition outputDefinition = new PrismPropertyDefinition(PROPERTY_NAME, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());        ScriptExpression scriptExpression = scriptExpressionFactory.createScriptExpression(scriptType, outputDefinition, TEST_NAME);
+        ExpressionVariables variables = new ExpressionVariables();
 
         // WHEN
         List<PrismPropertyValue<String>> scriptOutputs = scriptExpression.evaluate(variables, null, false, TEST_NAME, result);

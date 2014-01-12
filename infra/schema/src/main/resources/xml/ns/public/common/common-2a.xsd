@@ -32,17 +32,21 @@
 
     <xsd:annotation>
         <xsd:documentation>
+            <p>
             This is a common schema for midPoint project. It contains all the
-            data types that the stock midPoint is using.
-
+            data types that the stock midPoint is using
             This file contains more that a common schema in fact. It contains
             all the objects, even parts of what is known as identity schema and
             model schema in midPoint.
+            </p>
 
-            See https://wiki.evolveum.com/display/midPoint/Data+Model for more details.
-            
-            Version: 2a.2-SNAPSHOT
-            Recommended namespace prefix: (default), c
+            See
+            <a href="https://wiki.evolveum.com/display/midPoint/Data+Model">https://wiki.evolveum.com/display/midPoint/Data+Model</a>
+            for more details.
+
+            <p>Version: 2a.3-SNAPSHOT</p>
+
+            <p>Recommended namespace prefix: (default), c</p>
         </xsd:documentation>
         <xsd:appinfo>
             <jaxb:globalBindings>
@@ -108,16 +112,23 @@
     <xsd:element name="displayName" type="xsd:string">
         <xsd:annotation>
             <xsd:documentation>
+                <p>
                 Human readable name. This name may be displayed in tools and GUIs
                 to provide more pleasant user experience, as the XML data type names
-                or object names may look quite frightening.
+                or object names may look quite frightening.</p>
 
+                <p>
                 The "displayName" should contain a value that is readable for almost any
                 user. It is never used in the "logic", it is used only for display purposes.
+                </p>
 
+                <p>
                 The use of national characters is in "displayName" is fully supported.
+                </p>
 
+                <p>
                 DisplayName is reused in several location, but the meaning is still the same.
+                </p>
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
@@ -125,12 +136,16 @@
     <xsd:element name="description" type="xsd:string">
         <xsd:annotation>
             <xsd:documentation>
+                <p>
                 Free-form textual description of the object. It is supposed to describe
                 the object or a construct that it is attached to.
+                </p>
 
+                <p>
                 Anything that the system administrator wants may be here. The system
                 will not interpret the information except for displaying it and allow
                 user to edit it.
+                </p>
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
@@ -138,10 +153,11 @@
     <xsd:simpleType name="DepreactedAccessType">
         <xsd:annotation>
             <xsd:documentation>
-                TODO
+                Deprecated. Use LimirationsType instead.
             </xsd:documentation>
             <xsd:appinfo>
                 <jaxb:typesafeEnumClass/>
+                <a:deprecated/>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:restriction base="xsd:string">
@@ -172,13 +188,13 @@
     <xsd:element name="ignore" type="xsd:boolean" default="true">
         <xsd:annotation>
             <xsd:documentation>
-                Presence of this element signifies that the strcture that it contains should
+                <p>
+                Presence of this element signifies that the structure that contains it should
                 be ignored. If this element is present in the attribute definition, the attribute
                 should be ignored. If it appears in the object class definition, the entire object
                 class should be ignored. "Ignored" means that the system should pretend that the
                 structure does not exist at all.
-
-                This element may also be used as XSD annotation in the dynamic schemas.
+                </p>
             </xsd:documentation>
         </xsd:annotation>
     </xsd:element>
@@ -190,11 +206,12 @@
 
         <xsd:annotation>
             <xsd:documentation>
-                Common supertype for all identity objects.
+                <p>
+                Common supertype for all identity objects. Defines basic properties
+                that each object must have to live in our system (identifier, name).
+                </p>
 
-                Defines basic properties that each object must have to live in
-                our system (identifier, name).
-
+                <p>
                 Objects consists of identifier and name (see definition below)
                 and a set of properties represented as XML elements in the
                 object's body. The properties are represented as first-level
@@ -203,17 +220,23 @@
                 that are marked by a propertyContainer annotation. The QName
                 (namespace and local name) of the element holding the property
                 is considered to be a property name.
+                </p>
 
+                <p>
                 Single-value properties must appear as a none or one instance
                 of the XML element holding the value.
+                </p>
 
+                <p>
                 Multi-value properties must appear as none or more instances of
                 the same XML element. Multi-valued properties are regarded as
                 unordered sets. Duplicate values are allowed, but duplicates
                 should not be preserved by the implementations. The implementations
                 should reduce duplicate values to a single value if it is
                 possible and efficient.
+                </p>
 
+                <p>
                 If an element for a specific property does not appear in the
                 object it means that the property value is undefined (property
                 does not exists). This is a different state as compared to
@@ -222,16 +245,22 @@
                 must be able to handle undefined (non-existent) properties, but
                 may NOT be able to handle empty (null) values. The use of empty
                 (null) values is DISCOURADGED.
+                </p>
 
+                <p>
                 It is not mandated by this specification how to pass ordered
                 lists and multi-value properties with duplicates. However it is
                 recommended to use single value properties with appropriate complex
                 XML data structures to hold such data.
+                </p>
 
+                <p>
                 The following XML snippet is an example of the object (omitting
                 namespace definitions, but assuming default namespace to be the
                 target namespace of this schema definition):
+                </p>
 
+                <pre>
                 <![CDATA[
         <user oid="d3adm3a4" version="42">
             <name>foobar</name>
@@ -250,54 +279,73 @@
             <givenName>Foo</givenName>
             <familyName>Bar</familyName>
         </user>
-]]>
-
+]]></pre>
+                <p>
                 The above example describes an object with identifier "d3adm3a4",
                 name "foobar" and type defined by its top-level element User that
                 corresponds to URI "http://midpoint.evolveum.com/xml/ns/identity/1#User".
                 The object has 7 properties. Three of them are standard
                 properties defined by this schema:
+                </p>
 
+                <p>
                 Standard properties "fullName", "givenName" and "familyName"
                 in default namespace. These are single-valued string properties.
+                </p>
 
+                <p>
                 All the other properties are non-standard "extended" properties,
                 but they are considered equal to the standard attributes. They are
                 quarantined in the &lt;extension&gt; tag only to avoid XSD unique
                 particle attribution (UPA) problems. In the above example the
                 non-standard properties are:
+                </p>
 
+                <p>
                 Property "geekName" in namespace defined by "foo" prefix. This is also
                 single-valued string property.
+                </p>
 
+                <p>
                 Multi-valued non-standard property "guild". It is a string property
                 with multiple values. Multiple values are represented by providing
                 multiple instances of XML elements in the document.
                 Such properties are typically used for roles, groups, etc.
+                </p>
 
+                <p>
                 Complex property "pet". This property is defined by
                 complex XML type, using XML sub-elements to
                 represent structured data. Note that the use of XML attributes
                 is discouraged in the properties, although it might be possible in
                 some cases. This is also multi-valued property.
+                </p>
 
+                <p>
                 Complex property "shoppingPreferences". This property is using
                 complex XML type to form a structure of XML elements to
                 represent data. This is a single-valued property.
                 Note that the sub-elements "tShirt" and "tie" are NOT considered
                 to be properties.
+                </p>
 
+                <p>
                 QName-URI mapping:
+                </p>
 
+                <p>
                 For the purpose of this schema and all components that are using it,
                 URIs and QNames are considered equivalent. This is required by WWW
                 architecture and also helps avoid some drawbacks and bugs in XML-related
                 implementations that usually do not deal QNames well.
+                </p>
 
+                <p>
                 The QNames are mapped to URIs by concatenating namespace URI and a local
                 name. If URI does not end with slash (/) or hash (#) character, slash is
                 concatenated to the URI before adding the local name. The URI-QName
                 mapping is the reverse process.
+                </p>
 
             </xsd:documentation>
             <xsd:appinfo>
@@ -310,6 +358,7 @@
             <xsd:element name="name" type="t:PolyStringType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
+                        <p>
                         Human-readable, mutable name of the object. It
                         may also be an identifier (login name, group name).
                         Should be unique in the respective context of
@@ -317,25 +366,34 @@
                         should be unique in the whole system.
                         The name of the AccountType subtype should be unique in the
                         scope of resource (target system) that it belongs to.
+                        </p>
 
+                        <p>
                         This may not be human-readable in a sense to display
                         to a common end-user. It is intended to be displayed to
                         IDM system administrator. Therefore it may contain quite
                         a "ugly" structures such as LDAP DN or URL.
+                        </p>
 
+                        <p>
                         Name is considered to be ordinary property of the object.
                         Therefore it can be changed by invoking usual modifyObject
                         operations. However, change of the name may have side
                         effects (rename process).
-                        
+                        </p>
+
+                        <p>
                 		Name is mutable. It can change any time. However, a special
                 		handling may be needed in some cases (e.g. "rename" provisioning flow).
+                        </p>
 
+                        <p>
                         Although name is specified as optional by this schema, it
                         is in fact mandatory for most object types. The reason for
                         specifying the name as optional is that the name may be
                         generated by the system instead of supplied by the clients.
                         However, all objects stored in the repository must have a name.
+                        </p>
                     </xsd:documentation>
                     <xsd:appinfo>
                     	<a:displayName>Name</a:displayName>
@@ -347,7 +405,9 @@
             <xsd:element ref="tns:description" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
+                        <p>
                         Free-form textual description of the object.
+                        </p>
                     </xsd:documentation>
                     <xsd:appinfo>
                     	<a:displayName>Description</a:displayName>
@@ -359,27 +419,36 @@
 			<xsd:element name="fetchResult" type="tns:OperationResultType" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
+                        <p>
 						Result of the operation that fetched this instance of the object.
 						It is mostly used to indicate that the object is not complete or
 						there is some problem with the object. This is used instead of
 						exception if the object is part of larger structures (lists as in
 						list/search operations or composite objets). If not present then
 						the "SUCCESS" state is assumed.
-						
+                        </p>
+
+                        <p>
 						This field is TRANSIENT. It must only be used in runtime. It should
 						never be stored in the repository.
+                        </p>
 					</xsd:documentation>
+                    <xsd:appinfo>
+                        <a:operational/>
+                    </xsd:appinfo>
 				</xsd:annotation>
 			</xsd:element>
 
             <xsd:element ref="tns:extension" minOccurs="0" maxOccurs="1">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Object with generic extensibility mechanism. It contains a
-                        special XML element where almost any extension can be placed.
+                        <p>
+                        Container that provides generic extensibility mechanism.
+                        Almost any extension property can be placed in this container.
                         The extension is treated exactly the same as other object
                         properties by the code (storage, modifications, etc), except
                         that the system may not be able to understand their meaning.
+                        </p>
                     </xsd:documentation>
                     <xsd:appinfo>
                     	<a:displayName>Extension</a:displayName>
@@ -390,11 +459,6 @@
             
 	        <xsd:element name="parentOrg" type="tns:OrgType" minOccurs="0" maxOccurs="unbounded">
 	            <xsd:annotation>
-	                <xsd:documentation>
-	                    Set of the orgs (organizational units, projects, teams) that the object relates to.
-	                    This usually means that the object belongs to them but it may have other meanings as well
-	                    (e.g. user manages an organizational unit).
-	                </xsd:documentation>
 	                <xsd:appinfo>
 	        			<a:objectReference>tns:parentOrgRef</a:objectReference>
 	        		</xsd:appinfo>
@@ -403,9 +467,11 @@
 	        <xsd:element name="parentOrgRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
 	            <xsd:annotation>
 	                <xsd:documentation>
+                        <p>
 	                    Set of the orgs (organizational units, projects, teams) that the object relates to.
 	                    This usually means that the object belongs to them but it may have other meanings as well
 	                    (e.g. user manages an organizational unit).
+                        </p>
 	                </xsd:documentation>
 	                <xsd:appinfo>
 	        			<a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType>
@@ -419,8 +485,13 @@
 	        <xsd:element name="metadata" type="tns:MetadataType" minOccurs="0" maxOccurs="1">
 	        	<xsd:annotation>
 	        		<xsd:documentation>
+                        <p>
 	        			Meta-data about object creation, modification, etc.
+                        </p>
 	        		</xsd:documentation>
+                    <xsd:appinfo>
+                        <a:operational/>
+                    </xsd:appinfo>
 	        	</xsd:annotation>
 	        </xsd:element>
             
@@ -591,14 +662,17 @@
     <xsd:complexType name="GenericObjectType">
         <xsd:annotation>
             <xsd:documentation>
+                <p>
                 Generic object for storing unknown (unexpected) object types.
+                </p>
 
+                <p>
                 The generic object should be used if there is a need to
-                store a custom object (e.g KangarooType) at deployment-time
-                and the XML type relacement extensibility cannot be used.
+                store a custom object (e.g KangarooType) at deployment-time.
                 The properties of such custom objects are to be placed in the
                 extension part of this object. The schema is not checked or
                 enforced for this type of objects if technically possible.
+                </p>
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
@@ -607,19 +681,23 @@
                     <xsd:element name="objectType" type="xsd:anyURI">
                         <xsd:annotation>
                             <xsd:documentation>
+                                <p>
                                 Type of the stored object.
                                 This attribute contains URI defining the type (class) of
                                 stored object. The URI that maps to a QName of an object
                                 XML element should be used if possible (see QName
                                 mapping above). However this is not mandatory and the
                                 implementation must be able to work with any URI.
+                                </p>
 
+                                <p>
                                 Object type may be changed, but the possible values may
                                 be constrained by the implementation. E.g. the implementation
                                 may allow to change the object type only to the subtype or
                                 supertype, or it may fail if the attributes of the object
                                 does not conform to the schema constraints defined for the
                                 new type.
+                                </p>
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -632,7 +710,8 @@
 	<xsd:complexType name="TriggerType">
        	<xsd:annotation>
     		<xsd:documentation>
-    			TODO
+    			Defines triggers for an object. Trigger is an action that should take place
+                at specified time or under some other condition.
     		</xsd:documentation>
     		<xsd:appinfo>
     			<a:operational>true</a:operational>
@@ -666,19 +745,27 @@
     <xsd:complexType name="MetadataType">
        	<xsd:annotation>
     		<xsd:documentation>
+                <p>
     			Meta-data about data creation, modification, etc.
     			It may apply to objects but also parts of the object (e.g. assignments).
-    			
+                </p>
+
+                <p>
     			Mata-data only apply to successful operations. That is obvious for create, but it also applies
     			to modify. For obvious reasons there are no metadata about delete.
     			We keep no metadata about reading. That would be a huge performance hit.
-    			
+                </p>
+
+                <p>
     			These data are informational only. They should not be used for security purposes (use auditing
     			subsystem for that). But presence of metadata simplifies system administration and may provide
     			some basic information "at the glance" which may be later confirmed by the audit logs.
-    			
+                </p>
+
+                <p>
     			Meta-data are also supposed to be searchable. Therefore they may be used to quickly find
     			"candidate" objects for a closer examination.
+                </p>
     		</xsd:documentation>
     		<xsd:appinfo>
     			<a:operational>true</a:operational>
@@ -859,14 +946,43 @@
             </xsd:documentation>
         </xsd:annotation>
     </xsd:complexType>
+    
+    <xsd:simpleType name="BeforeAfterType">
+        <xsd:annotation>
+            <xsd:documentation>
+                An enumeration that defines when the activity will be excuted.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="before">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The activity will be executed before the "main" operation.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="BEFORE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="after">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The activity will be executed after the "main" operation.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="AFTER"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+    
 
 	<xsd:complexType name="NodeType">
         <xsd:annotation>
             <xsd:documentation>
                 Node describes a single installation of midPoint. MidPoint installations can work in cluster.
                 The Node objects are the way how the nodes in cluster know about each other.
-                
-                EXPERIMENTAL
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
@@ -1097,7 +1213,9 @@
             <xsd:documentation>
                 TaskType contains information about a task (either transient or persistent).
                 For background information and clarification of various terms used here, please see
-                http://wiki.evolveum.com/display/midPoint/Task+Manager.
+                <a href="http://wiki.evolveum.com/display/midPoint/Task+Manager">wiki:Task Manager</a>
+                and
+                <a href="https://wiki.evolveum.com/display/midPoint/Task">wiki:Task</a>.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:complexContent>
@@ -1106,15 +1224,19 @@
                     <xsd:element name="taskIdentifier" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
+                                <p>
                                 Task (lightweight) identifier. This is an unique identification of any task,
                                 regardless whether it is persistent or transient (cf. OID). Therefore this can be used
                                 to identify all tasks, e.g. for the purposes of auditing and logging.
+                                </p>
 
+                                <p>
                                 Task identifier is assigned automatically when the task is created. It is immutable.
                                 It is formally set as optional, however it is mandatory for any task to work. Setting
                                 it to optional allows creating a task without identifier and generating the identifier
                                 during import. However any tasks that live inside midPoint (running or stored in repository)
-                                must have valid task identifier. 
+                                must have valid task identifier.
+                                </p>
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -1320,6 +1442,24 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="stalledSince" type="xsd:dateTime" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                From which moment is this task stalled (if applicable)?
+                                TRANSIENT. This value is not stored in the repo, it is queried dynamically.
+                                (It is currently not possible to use it for filtering or sorting.)
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="expectedTotal" type="xsd:long" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Expected target (goal) value of task progress. Perceived progress
+                                is computed as a ratio of progress/expectedTotal. May be null; in that
+                                case we just do not know how much progress we should expect.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
                     <xsd:element name="recurrence" type="tns:TaskRecurrenceType">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -1340,14 +1480,20 @@
                     <xsd:element name="canRunOnNode" type="xsd:string" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
+                                <p>
                                 Whether a task is constrained to be run on a particular node,
                                 i.e. it will *not* be executed on a different node.
                                 If this attribute is not specified, the task will be executed on any available node.
+                                </p>
 
+                                <p>
                                 (There may be other constraints on the node(s) where this task may be run,
                                 determined e.g. by task handler.)
+                                </p>
 
+                                <p>
                                 NOTE: This attribute is currently not used; its use is planned.
+                                </p>
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
@@ -1372,26 +1518,6 @@
     </xsd:complexType>
 
     <xsd:element name="task" type="tns:TaskType" substitutionGroup="c:object"/>
-    <!-- useful extension element for task - todo: decide where to put it definitely (if at all) -->
-    <!--<xsd:element name="requesteeOid" type="xsd:string">-->
-        <!--<xsd:annotation>-->
-            <!--<xsd:appinfo>-->
-                <!--<a:maxOccurs>1</a:maxOccurs>-->
-            <!--</xsd:appinfo>-->
-        <!--</xsd:annotation>-->
-    <!--</xsd:element>-->
-
-    <!--<xsd:element name="requesteeRef" type="c:ObjectReferenceType">-->
-        <!--<xsd:annotation>-->
-            <!--<xsd:documentation>-->
-                <!--"Requestee", i.e. the user to which a request (represented by particular task) is related.-->
-                <!--Currently intended to be used in task extension; although temporarily superseded by requesteeOid.-->
-            <!--</xsd:documentation>-->
-            <!--<xsd:appinfo>-->
-                <!--<a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>-->
-            <!--</xsd:appinfo>-->
-        <!--</xsd:annotation>-->
-    <!--</xsd:element>-->
 
     <xsd:simpleType name="TaskExecutionStatusType">
         <xsd:annotation>
@@ -1751,6 +1877,13 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="recurrence" type="tns:TaskRecurrenceType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Recurrence type of this task (may be null - in that case it is guessed from the schedule).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
             <xsd:element name="schedule" type="tns:ScheduleType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
@@ -1778,8 +1911,13 @@
     <xsd:complexType name="FocusType" abstract="true">
         <xsd:annotation>
             <xsd:documentation>
-            	TODO
+            	<p>
+                    Abstract supertype for all object types that can be focus of midPoint computation.
+            	</p>
             </xsd:documentation>
+            <xsd:appinfo>
+                <a:object/>
+            </xsd:appinfo>
         </xsd:annotation>
         <xsd:complexContent>
             <xsd:extension base="c:ObjectType">
@@ -1787,22 +1925,6 @@
 
                     <xsd:element name="link" type="tns:ShadowType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
-                            <xsd:documentation>
-                            	TODO: update
-                            
-                                Set of user's accounts. This is the set of
-                                accounts that belongs to the user in a sense
-                                that these accounts represents the user (the
-                                same physical person, they are analogous).
-                                This element contains full AccountType XML
-                                elements.
-                                This version will probably be used in workflows and
-                                business logic.
-
-                                If this attribute is present in the User object,
-                                the accountRef attribute for the same account
-                                OID must not be present.
-                            </xsd:documentation>
                             <xsd:appinfo>
                     			<a:objectReference>tns:linkRef</a:objectReference>
                     		</xsd:appinfo>
@@ -1812,19 +1934,17 @@
                     <xsd:element name="linkRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                            	TODO: update
-                            	
-                                Set of user's accounts. This is the set of
-                                accounts that belongs to the user in a sense
-                                that these accounts represents the user (the
-                                same physical person, they are analogous).
-                                This element contains a set of pointers to
-                                Account objects (by OID) this version
-                                will be used in repository (for storage).
-
-                                If this attribute is present in the User
-                                object, the account attribute for the same account
-                                OID must not be present.
+                                <p>
+                                Set of shadows linked to this focal object.
+                                E.g. a set of accounts linked to a user. This is the set of
+                                shadows that belongs to the focal object in a sense
+                                that these shadows represents the focal object on the resource.
+                                E.g. The set of accounts that represent the same midPoint user (the
+                                same physical person, they are "analogous").
+                                </p>
+                                <p>
+                                Links define what the object HAS. The links reflect real state of things (cf. assignment).
+                                </p>
                             </xsd:documentation>
                             <xsd:appinfo>
                     			<a:objectReferenceTargetType>tns:ShadowType</a:objectReferenceTargetType>
@@ -1835,23 +1955,21 @@
                     <xsd:element name="assignment" type="tns:AssignmentType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                            	TODO: update
-                                Set of user's assignments.
-                                Represents objects (such as roles) or accounts directly assigned to
-                                a user.
+                                <p>
+                                Set of object's assignments.
+                                Assignments define the privileges and "features" that this object should have, that
+                                this object is entitled to. Typical assignment will point to a role or define
+                                a construction of an account.
+                                </p>
+                                <p>
+                                Assignments represent what the object SHOULD HAVE. The assignments represent a policy,
+                                a desired state of things (cf. linkRef).
+                                </p>
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
 
                     <xsd:element name="activation" type="tns:ActivationType" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Activation. e.g. enable/disable status, start and end dates, etc.
-                            </xsd:documentation>
-                            <xsd:appinfo>
-                                <a:displayName>Activation</a:displayName>
-                            </xsd:appinfo>
-                        </xsd:annotation>
                     </xsd:element>
 
                 </xsd:sequence>
@@ -1859,6 +1977,7 @@
         </xsd:complexContent>
     </xsd:complexType>
 
+	    
     <xsd:complexType name="UserType">
         <xsd:annotation>
             <xsd:documentation>
@@ -1876,19 +1995,26 @@
                     <xsd:element name="fullName" type="t:PolyStringType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
+                                <p>
                                 Full name of the user with all the decorations,
                                 middle name initials, honorific title and any
                                 other structure that is usual in the cultural
                                 environment that the system operates in. This
                                 element is intended to be displayed to
                                 a common user of the system.
+                                </p>
 
-                                Examples: cpt. Jack Sparrow,
-                                          William "Bootstrap" Turner,
-                                		  James W. Random, PhD.,
-                                		  Vladimir Iljic Lenin,
-                                		  Josip Broz Tito,
-                                		  Chuck Norris
+                                <p>
+                                Examples:
+                                    <ul>
+                                        <li>cpt. Jack Sparrow</li>
+                                        <li>William "Bootstrap" Turner</li>
+                                        <li>James W. Random, PhD.</li>
+                                        <li>Vladimir Iljic Lenin</li>
+                                        <li>Josip Broz Tito</li>
+                                        <li>Chuck Norris</li>
+                                    </ul>
+                                </p>
                             </xsd:documentation>
                             <xsd:appinfo>
 		                    	<a:displayName>Full Name</a:displayName>
@@ -1900,14 +2026,22 @@
                     <xsd:element name="givenName" type="t:PolyStringType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
+                                <p>
                                 Given name of the user. It is usually the first
                                 name of the user, but the order of names may
                                 differ in various cultural environments. This
                                 element will always contain the name that was
                                 given to the user at birth or was chosen
                                 by the user.
+                                </p>
 
-                                Examples: Jack, Chuck
+                                <p>
+                                Examples:
+                                    <ul>
+                                        <li>Jack</li>
+                                        <li>Chuck</li>
+                                    </ul>
+                                </p>
                             </xsd:documentation>
                             <xsd:appinfo>
 		                    	<a:displayName>Given Name</a:displayName>
@@ -1919,14 +2053,22 @@
                     <xsd:element name="familyName" type="t:PolyStringType" minOccurs="0">
                         <xsd:annotation>
                             <xsd:documentation>
+                                <p>
                                 Family name of the user. It is usually the last
                                 name of the user, but the order of names may
                                 differ in various cultural environments. This
                                 element will always contain the name that was
                                 inherited from the family or was assigned
                                 to a user by some other means.
+                                </p>
 
-                                Examples: Sparrow, Norris
+                                <p>
+                                Examples:
+                                    <ul>
+                                        <li>Sparrow</li>
+                                        <li>Norris</li>
+                                    </ul>
+                                </p>
                             </xsd:documentation>
                             <xsd:appinfo>
 		                    	<a:displayName>Family Name</a:displayName>
@@ -2466,6 +2608,7 @@
             </xsd:documentation>
             <xsd:appinfo>
                 <a:container/>
+                <a:displayName>Activation</a:displayName>
             </xsd:appinfo>
         </xsd:annotation>
         <xsd:sequence>
@@ -2570,9 +2713,21 @@
                         If this property is not present then the computation haven't taken place yet.
                     </xsd:documentation>
                     <xsd:appinfo>
-                        <a:displayName>Effective Status</a:displayName>
+                        <a:displayName>Validity Status</a:displayName>
                     </xsd:appinfo>
                 </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="disableReason" type="xsd:anyURI" minOccurs="0">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			URL that identifies a reason for disable. This may be indication that that identity
+            			was disabled explicitly, that the disable status was computed or other source of the
+            			disabled event.
+            		</xsd:documentation>
+            		<xsd:appinfo>
+            			<a:operational>true</a:operational>
+            		</xsd:appinfo>
+            	</xsd:annotation>
             </xsd:element>
             <xsd:element name="disableTimestamp" type="xsd:dateTime" minOccurs="0">
             	<xsd:annotation>
@@ -3602,7 +3757,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="inbound" type="tns:MappingType" minOccurs="0" maxOccurs="1">
+            <xsd:element name="inbound" type="tns:MappingType" minOccurs="0" maxOccurs="unbounded">
             	<xsd:annotation>
             		<xsd:documentation>
             			Defines how user password is constructed if he user is created or updated from this account.
@@ -3930,7 +4085,7 @@
 			                    </xsd:documentation>
 			                </xsd:annotation>
 			            </xsd:element>
-			            <xsd:element name="order" type="tns:ProvisioningScriptOrderType">
+			            <xsd:element name="order" type="tns:BeforeAfterType">
 			                <xsd:annotation>
 			                    <xsd:documentation>
 			                        Defines the order in which a script is executed.
@@ -4034,36 +4189,6 @@
                 	</xsd:documentation>
                     <xsd:appinfo>
                         <jaxb:typesafeEnumMember name="RECONCILE"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-        </xsd:restriction>
-    </xsd:simpleType>
-
-    <xsd:simpleType name="ProvisioningScriptOrderType">
-        <xsd:annotation>
-            <xsd:documentation>
-                An enumeration that defines when the script will be excuted.
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="before">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        The script will be executed before the provisioning operation.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="BEFORE"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="after">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        The script will be executed after the provisioning operation.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="AFTER"/>
                     </xsd:appinfo>
                 </xsd:annotation>
             </xsd:enumeration>
@@ -4216,6 +4341,15 @@
             		<xsd:documentation>
             			Limits application of this mapping only to specific channel. If the channel is listed then the
             			mapping will be applied. If it is not then it will not be applied.
+            			If no channel is specified then no limitations apply and the mapping will be applied for all channels.
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>
+            <xsd:element name="exceptChannel" type="xsd:anyURI" minOccurs="0" maxOccurs="unbounded">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Limits application of this mapping except for channel specified. If the channel is listed then the
+            			mapping will be not applied in this channel. If it is not then it will be applied.
             			If no channel is specified then no limitations apply and the mapping will be applied for all channels.
             		</xsd:documentation>
             	</xsd:annotation>
@@ -4560,38 +4694,15 @@
 
 	<xsd:element name="path" type="xsd:anyType" substitutionGroup="tns:expressionEvaluator"/>
 
-    <xsd:complexType name="ScriptExpressionEvaluatorType">
+    <xsd:complexType name="TransformExpressionEvaluatorType" abstract="true">
         <xsd:annotation>
             <xsd:documentation>
-                Generic script expression. The purpose of the expression is to return
-                a value. The expression must produce something that is a piece
-                of XML, which means that it may produce either string value,
-                XML node or a list of XML nodes.
-
-                The expression may use variables or arguments. However, such
-                variables or arguments passed to the expression will be different
-                for each invocation. It should be documented in each case this type is used.
+                TODO
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element ref="tns:description" minOccurs="0"/>
-            <xsd:element name="language" type="xsd:anyURI" minOccurs="0" default="http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Language of the expression. Groovy is the default language if other language is not specified.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="returnType" type="tns:ScriptExpressionReturnTypeType" minOccurs="0">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        The type of the expression result, either "list" or "scalar". If not set it will be
-                        determined automatically from the target data type for the expression. This setting
-                        should be used only if the automatic mechanism does not work as expected.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="relativityMode" type="tns:ScriptExpressionRelativityModeType" minOccurs="0">
+            <xsd:element name="relativityMode" type="tns:TransformExpressionRelativityModeType" minOccurs="0">
                 <xsd:annotation>
                     <xsd:documentation>
                         TODO
@@ -4614,14 +4725,85 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
-            <xsd:element name="code" type="tns:ScriptExpressionCodeType">
+        </xsd:sequence>
+    </xsd:complexType>
+    
+        <xsd:simpleType name="TransformExpressionRelativityModeType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Relativity mode of an expression.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <jaxb:typesafeEnumClass/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="relative">
                 <xsd:annotation>
                     <xsd:documentation>
-                        TODO
+                        Relative expression. Works on (partial) individual values transforming each of them one by one.
+                        This is the default.
                     </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="RELATIVE"/>
+                    </xsd:appinfo>
                 </xsd:annotation>
-            </xsd:element>
-        </xsd:sequence>
+            </xsd:enumeration>
+            <xsd:enumeration value="absolute">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Absolute expression. Works on all the values at once. May not be entirely reliable.
+                    </xsd:documentation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ABSOLUTE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+    
+    <xsd:complexType name="ScriptExpressionEvaluatorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Generic script expression. The purpose of the expression is to return
+                a value. The expression must produce something that is a piece
+                of XML, which means that it may produce either string value,
+                XML node or a list of XML nodes.
+
+                The expression may use variables or arguments. However, such
+                variables or arguments passed to the expression will be different
+                for each invocation. It should be documented in each case this type is used.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+        	<xsd:extension base="tns:TransformExpressionEvaluatorType">
+		        <xsd:sequence>
+		            <xsd:element name="language" type="xsd:anyURI" minOccurs="0" default="http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy">
+		                <xsd:annotation>
+		                    <xsd:documentation>
+		                        Language of the expression. Groovy is the default language if other language is not specified.
+		                    </xsd:documentation>
+		                </xsd:annotation>
+		            </xsd:element>
+		            <xsd:element name="returnType" type="tns:ScriptExpressionReturnTypeType" minOccurs="0">
+		                <xsd:annotation>
+		                    <xsd:documentation>
+		                        The type of the expression result, either "list" or "scalar". If not set it will be
+		                        determined automatically from the target data type for the expression. This setting
+		                        should be used only if the automatic mechanism does not work as expected.
+		                    </xsd:documentation>
+		                </xsd:annotation>
+		            </xsd:element>
+		            <xsd:element name="code" type="tns:ScriptExpressionCodeType">
+		                <xsd:annotation>
+		                    <xsd:documentation>
+		                        TODO
+		                    </xsd:documentation>
+		                </xsd:annotation>
+		            </xsd:element>
+		        </xsd:sequence>
+        	</xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
 
     <xsd:complexType name="ScriptExpressionCodeType" mixed="true">
@@ -4671,49 +4853,39 @@
                 </xsd:annotation>
             </xsd:enumeration>
         </xsd:restriction>
-    </xsd:simpleType>
-    
-    <xsd:simpleType name="ScriptExpressionRelativityModeType">
+    </xsd:simpleType>    
+
+	<xsd:complexType name="AssignmentExpressionEvaluatorType">
         <xsd:annotation>
             <xsd:documentation>
-                Relativity mode of an expression.
+                Create an AssignmentType expression based on several criteria and situations.
             </xsd:documentation>
-            <xsd:appinfo>
-                <jaxb:typesafeEnumClass/>
-            </xsd:appinfo>
         </xsd:annotation>
-        <xsd:restriction base="xsd:string">
-            <xsd:enumeration value="relative">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Relative expression. Works on (partial) individual values transforming each of them one by one.
-                        This is the default.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="RELATIVE"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-            <xsd:enumeration value="absolute">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Absolute expression. Works on all the values at once. May not be entirely reliable.
-                    </xsd:documentation>
-                    <xsd:appinfo>
-                        <jaxb:typesafeEnumMember name="ABSOLUTE"/>
-                    </xsd:appinfo>
-                </xsd:annotation>
-            </xsd:enumeration>
-        </xsd:restriction>
-    </xsd:simpleType>
+        <xsd:complexContent>
+        	<xsd:extension base="tns:TransformExpressionEvaluatorType">
+		        <xsd:sequence>
+		        	<xsd:element name="targetType" type="xsd:QName" minOccurs="1" maxOccurs="1">
+		        	</xsd:element>
+		        	<xsd:element name="query" type="q:QueryType" minOccurs="0" maxOccurs="1">
+		        	</xsd:element>
+		        	<xsd:element name="createOnDemand" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
+		        	</xsd:element>
+		        	<xsd:element name="objectTemplateRef" type="tns:ObjectReferenceType" minOccurs="0">
+		            	<xsd:annotation>
+		            		<xsd:documentation>
+		            			Object template used in case the objects are created on demand.
+		            		</xsd:documentation>
+		            		<xsd:appinfo>
+		                    	<a:objectReferenceTargetType>tns:ObjetcTemplateType</a:objectReferenceTargetType>
+		                    </xsd:appinfo>
+		            	</xsd:annotation>
+		            </xsd:element>
+		        </xsd:sequence>
+	        </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
 
-
-
-
-
-
-
-
+	<xsd:element name="assignmentExpression" type="tns:AssignmentExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
 
 
     <xsd:element name="synchronization" type="tns:SynchronizationType"/>
@@ -4740,48 +4912,105 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
+        	<xsd:element name="name" type="xsd:string" minOccurs="0">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Free-form name. Used for diagnostics purposes.
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element ref="tns:description" minOccurs="0"/>
+        	<xsd:element name="objectClass" type="xsd:QName" minOccurs="0" maxOccurs="unbounded">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Object classes that will be processed by this definition.
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0" maxOccurs="1">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Shadow kind assumed by this definition. If not specified then the kind
+        				defined by schemaHandling part will be used. However this element can define
+        				a more specific kind in case that the schemaHandling part is ambiguous
+        				(e.g. the same objectclass is used for two kinds).
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="intent" type="xsd:string" minOccurs="0" maxOccurs="1">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Shadow intent assumed by this definition. If not specified then the intent
+        				defined by schemaHandling part will be used. However this element can define
+        				a more specific intent in case that the schemaHandling part is ambiguous
+        				(e.g. the same objectclass is used for two intents).
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="focusType" type="xsd:QName" minOccurs="0" maxOccurs="1">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Type of the focus that would be applied to this type.
+        				If not specified the User (c:UserType) is assumed.
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
         	<xsd:element name="type" type="xsd:QName" minOccurs="0" maxOccurs="1">
         		<xsd:annotation>
         			<xsd:documentation>
-        				Type of object that this synchronization definition applies to.
-        				If not specified it applies to User (c:UserType).
+        				DEPRECATED, not used, never been used
         			</xsd:documentation>
+        			<xsd:appinfo>
+        				<a:deprecated/>
+        			</xsd:appinfo>
         		</xsd:annotation>
         	</xsd:element>
             <xsd:element name="enabled" type="xsd:boolean" minOccurs="0" default="true">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Flag indicating if the synchronization is enabled. If it is not,
-                        the synchronization process will be suspended.
+                        <p>Flag indicating if this synchronization specification is enabled. If it is not,
+                        then the system will ignore this definition.
                         If enabled, the synchronization should start with most recent change
                         after enablinh synchronization. It will NOT pull in even the changes that
-                        were done during disabled synchronization.
+                        were done during disabled synchronization.</p>
 
-                        If this flag is not present, but a valid synchronization setup is found (which usually
-                        means valid "synchrnization" element), the synchronization is assumed to be enabled.
+                        <p>If this flag is not present the synchronization is assumed to be enabled.
                         This flag is meant to act as a tool to temprarily disable synchronizatoin without loosing the
-                        configuration and and state or for forcing the synchronization engine to "skip" some changes.
+                        configuration and and state or for forcing the synchronization engine to "skip" some changes.</p>
                         
-                        Note that this is different than disabling/deleting the synchronization task. If the task
+                        <p>Note that this is different than disabling/deleting the synchronization task. If the task
                         is stopped, midPont will not poll for changes at all. This means that the changes will
                         still be "pending" on the resource and once the task is enabled it will pull such changes.
                         On the other hand, disabling synchronization using this flag and leaving the task running will
-                        "acknowldge" all changes without doing anything.
+                        "acknowldge" all changes without doing anything.</p>
                         
-                        Also note that disabling synchronization using this flag will disable all the flavors, e.g.
-                        it will also disable import from resource.
+                        <p>Also note that disabling synchronization using this flag will disable all the flavors, e.g.
+                        it will also disable import from resource.</p>
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="condition" type="c:ExpressionType" minOccurs="0">
+                <xsd:annotation>
+                    <xsd:documentation>
+                    	<p>Expression that is evaluated to check whether this definition is applicable to
+                        a particular shadow. It is assumed to return a boolean value. If it returns 'true'
+                        then the shadow will be processed by this definition. If it returns 'false' it will
+                        not be processed.</p>
+                        
+                        <p>If no condition is present then all applicable shadows will be processed.</p>
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="correlation" type="q:QueryType" minOccurs="0" maxOccurs="unbounded">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Correlation expression. It should return a list of candidate user entries that may be owners of a
-                        particular account.
+                    	<p>Correlation query expression. Running the query should return a list of candidate focus
+                    	entries that may be owners of a particular shadow.</p>
 
-                        Correlation is an rough but an efficient way how to relate the account to a user. The correlation
-                        expression is in fact just a search filter. If correlation search returns more that one entries,
-                        confirmation expression will be executed for each of them.
+                        <p>Correlation is an rough but an efficient way how to relate the shadow (e.g. an account)
+                        to a focus (e.g. an user). The correlation expression is in fact just a search query that can
+                        contain expressions inside it. If correlation search returns more that one entries,
+                        confirmation expression will be executed for each of them.</p>
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -4810,11 +5039,11 @@
             			This option is usually used set per-resource user template.
             		</xsd:documentation>
             		<xsd:appinfo>
-                    	<a:objectReferenceTargetType>tns:UserTemplateType</a:objectReferenceTargetType>
+                    	<a:objectReferenceTargetType>tns:ObjetcTemplateType</a:objectReferenceTargetType>
                     </xsd:appinfo>
             	</xsd:annotation>
             </xsd:element>
-            <xsd:element name="reconcileAttributes" type="xsd:boolean" minOccurs="0">
+            <xsd:element name="reconcile" type="xsd:boolean" minOccurs="0">
             	<xsd:annotation>
             		<xsd:documentation>
             			If set to true, applicable synchronization reactions will attempt to reconcile the real attributes
@@ -4828,79 +5057,27 @@
             		</xsd:documentation>
             	</xsd:annotation>
             </xsd:element>
+            <xsd:element name="reconcileAttributes" type="xsd:boolean" minOccurs="0">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			DEPRECATED. Use "reconcile" instead. 
+            		</xsd:documentation>
+            		<xsd:appinfo>
+            			<a:deprecated/>
+            		</xsd:appinfo>
+            	</xsd:annotation>
+            </xsd:element>
             <xsd:element name="opportunistic" type="xsd:boolean" minOccurs="0" default="true">
             	<xsd:annotation>
             		<xsd:documentation>
             			If set to true midPoint will try to link and synchronize objects whenever possible.
             			E.g. it will link accounts in a case if an account with a conflicting account is found
             			and correlation expression matches. MidPoint can be quite aggressive in this mode therefore
-            			this switch is used to turn it off. It is on by default.  
+            			this switch is used to turn it off. It is on by default.
             		</xsd:documentation>
             	</xsd:annotation>
             </xsd:element>
-            <xsd:element name="reaction" minOccurs="0" maxOccurs="unbounded">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Reaction to a synchronization situation.
-                        Situation identifier must be unique in this set (i.e. a situation definition may occur only once
-                        for each situation).
-                        If there is no definition for a particular situation, there will be no reaction ("do nothing").
-                        The set of situation reactions is considered to be unordered.
-                    </xsd:documentation>
-                </xsd:annotation>
-                <xsd:complexType>
-                    <xsd:sequence>
-                        <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
-                        <xsd:element name="situation" type="tns:SynchronizationSituationType">
-                            <xsd:annotation>
-                                <xsd:documentation>
-                                    Defines a particular synchronization situation.
-                                </xsd:documentation>
-                            </xsd:annotation>
-                        </xsd:element>
-                        <xsd:element name="channel" type="xsd:anyURI" minOccurs="0" maxOccurs="unbounded"/>
-                        <xsd:element name="action" minOccurs="0" maxOccurs="unbounded">
-                            <xsd:annotation>
-                                <xsd:documentation>
-                                    Defines an action to take when a situation is
-                                    encountered.
-                                    If there is no action for a
-                                    particular
-                                    situation,
-                                    there will be no reaction ("do nothing").
-                                    There may be sevaral
-                                    actions defined here.
-                                    In such
-                                    case all the actions
-                                    will be
-                                    executed
-                                    in the order as they are defined here.
-                                </xsd:documentation>
-                            </xsd:annotation>
-                            <xsd:complexType>
-                                <xsd:sequence>
-                                    <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax">
-                                        <xsd:annotation>
-                                            <xsd:documentation>
-                                                Action parameters.
-                                                TODO
-                                            </xsd:documentation>
-                                        </xsd:annotation>
-                                    </xsd:any>
-                                </xsd:sequence>
-                                <xsd:attribute name="ref" type="xsd:anyURI">
-                                    <xsd:annotation>
-                                        <xsd:documentation>
-                                            Action identifier (URL)
-                                            TODO
-                                        </xsd:documentation>
-                                    </xsd:annotation>
-                                </xsd:attribute>
-                            </xsd:complexType>
-                        </xsd:element>
-                    </xsd:sequence>
-                </xsd:complexType>
-            </xsd:element>
+            <xsd:element name="reaction" type="tns:SynchronizationReactionType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -4964,6 +5141,159 @@
             </xsd:enumeration>
         </xsd:restriction>
     </xsd:simpleType>
+    
+    <xsd:complexType name="SynchronizationReactionType">
+	    <xsd:annotation>
+	        <xsd:documentation>
+	            Reaction to a synchronization situation.
+	            Situation identifier must be unique in this set (i.e. a situation definition may occur only once
+	            for each situation).
+	            If there is no definition for a particular situation, there will be no reaction ("do nothing").
+	            The set of situation reactions is considered to be unordered.
+	        </xsd:documentation>
+	    </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="situation" type="tns:SynchronizationSituationType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Defines a particular synchronization situation.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="channel" type="xsd:anyURI" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="synchronize" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="reconcile" type="xsd:boolean" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="objectTemplateRef" type="tns:ObjectReferenceType" minOccurs="0">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Object template used in case the focus object is created or modified.
+            			This overrides other template definitions (system global, resource).
+            		</xsd:documentation>
+            		<xsd:appinfo>
+                    	<a:objectReferenceTargetType>tns:ObjetcTemplateType</a:objectReferenceTargetType>
+                    </xsd:appinfo>
+            	</xsd:annotation>
+            </xsd:element>
+            <xsd:element name="action" type="tns:SynchronizationActionType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="SynchronizationActionType">
+	    <xsd:annotation>
+	        <xsd:documentation>
+	            Defines an action to take when a synchronization situation is encountered.
+	            The actions change the default midpoint behaviour.
+	            If there is no action for a particular situation,there will be no special
+	            reaction and the default activity takes place.
+	            Sevaral action may be defined for a specific reaction. All of them will be
+	            executed however the ordering is not guaranteed.
+	        </xsd:documentation>
+	    </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element name="name" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+        	<xsd:element ref="tns:description" minOccurs="0" maxOccurs="1"/>
+        	<xsd:element name="handlerUri" type="xsd:anyURI" minOccurs="0" maxOccurs="1"/>
+        	<xsd:element name="order" type="tns:BeforeAfterType" minOccurs="0" default="before"/>
+        	<!-- TODO: ordering? -->
+        	<xsd:element name="parameters" minOccurs="0">
+        		<xsd:complexType>
+        			<xsd:sequence>
+			            <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax">
+			                <xsd:annotation>
+			                    <xsd:documentation>
+			                        Action parameters.
+			                        TODO
+			                    </xsd:documentation>
+			                </xsd:annotation>
+			            </xsd:any>
+        			</xsd:sequence>
+        		</xsd:complexType>
+            </xsd:element>
+        	<xsd:element name="userTemplateRef" type="tns:ObjectReferenceType" minOccurs="0">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				DEPRECATED. For compatibility only. Use objectTemplateRef in reaction instead.
+        			</xsd:documentation>
+        			<xsd:appinfo>
+                    	<a:objectReferenceTargetType>tns:ObjetcTemplateType</a:objectReferenceTargetType>
+                    	<a:deprecated/>
+                    </xsd:appinfo>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="objectTemplateRef" type="tns:ObjectReferenceType" minOccurs="0">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				DEPRECATED. For compatibility only. Use objectTemplateRef in reaction instead.
+        			</xsd:documentation>
+        			<xsd:appinfo>
+                    	<a:objectReferenceTargetType>tns:ObjetcTemplateType</a:objectReferenceTargetType>
+                    	<a:deprecated/>
+                    </xsd:appinfo>
+        		</xsd:annotation>
+        	</xsd:element>
+        </xsd:sequence>
+        <xsd:attribute name="ref" type="xsd:anyURI" use="optional">
+            <xsd:annotation>
+                <xsd:documentation>
+                    Action identifier (URL)
+                    DEPRECATED. Use handlerUri element instead.
+                </xsd:documentation>
+                <xsd:appinfo>
+                	<a:deprecated/>
+                </xsd:appinfo>
+            </xsd:annotation>
+        </xsd:attribute>
+    </xsd:complexType>
+   
+    <xsd:complexType name="ResourceObjectShadowChangeDescriptionType">
+        <xsd:annotation>
+            <xsd:documentation>
+            	Description of the change in the external resource. 
+            </xsd:documentation>
+        </xsd:annotation>
+        	<xsd:sequence>
+            	<xsd:element name="oldShadowOid" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Identifier of the old shadow. According to this identifier, the shadow will be
+                                fetched from the repo (resource). It may be null in the case when the notification
+                                describes the ADD object sitaution.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="currentShadow" type="tns:ShadowType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Current shadow. This is used in the "absolute" mode, when we do not have change description.
+                                Shadow represents the current state with the modifications already applied to its. Current 
+                                shadow is used to compare to the old state so the modifications may be computed and synchronized.
+                                It may be null. If the current shadow is null, object delta have to be specified.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="objectDelta" type="t:ObjectDeltaType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Delta describing the changes made to the shadow. E.g. if the change in the resource was
+                                to add new account, delta will contain ADD modification with the object specified.
+                                It may be null. If the object delta is null, the current shadow have to be specified.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="channel" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Channel which triggers the execution of notification, e.g. synchronization, reconciliation etc.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+    </xsd:complexType>
+    
+<xsd:element name="resourceObjectShadowChangeDescription" type="tns:ResourceObjectShadowChangeDescriptionType"/>
+    
 
     <xsd:complexType name="ConnectorType">
         <xsd:annotation>
@@ -5344,6 +5674,9 @@
                                 For more details see the ActivationType
                                 documentation.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>Activation</a:displayName>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="credentials" type="tns:CredentialsType" minOccurs="0" maxOccurs="1">
@@ -5368,6 +5701,16 @@
        		</xsd:appinfo>
     	</xsd:annotation>
     </xsd:element>
+    <xsd:element name="account" type="tns:ShadowType" substitutionGroup="c:object">
+     	<xsd:annotation>
+     		<xsd:documentation>
+     			DEPRECATED. Used only for compatibility back when there was an AccountShadowType.
+     		</xsd:documentation>
+     		<xsd:appinfo>
+      			<a:deprecated>true</a:deprecated>
+      		</xsd:appinfo>
+     	</xsd:annotation>
+     </xsd:element>
     <xsd:element name="shadow" type="tns:ShadowType" substitutionGroup="c:object"/>
     
     <xsd:simpleType name="ShadowKindType">
@@ -5540,17 +5883,7 @@
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-         
-     <xsd:element name="account" type="tns:ShadowType" substitutionGroup="c:object">
-     	<xsd:annotation>
-     		<xsd:documentation>
-     			DEPRECATED. Used only for compatibility back when there was an AccountShadowType.
-     		</xsd:documentation>
-     		<xsd:appinfo>
-         			<a:deprecated>true</a:deprecated>
-         		</xsd:appinfo>
-     	</xsd:annotation>
-     </xsd:element>
+
 
     <!-- CONVENIENCE ELEMENTS Following definitions are there to use in examples, 
 		import files, etc. These should not be used in the services -->
@@ -6546,29 +6879,47 @@
                     <xsd:element name="defaultUserTemplate" type="tns:ObjectTemplateType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
+                            	<p>
                                 User template that will be used "universally" in all situations regarding user internal
                                 consistency.
+                                </p>
 
-                                TODO: better documentation
+                                <p>DEPRECATED: use objectTemplate instead.</p>
                             </xsd:documentation>
                             <xsd:appinfo>
                     			<a:objectReference>tns:defaultUserTemplateRef</a:objectReference>
+                    			<a:deprecated/>
                     		</xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="defaultUserTemplateRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
+                            	<p>
                                 Reference to the default user template that will be used "universally" in all
-                                situations regarding
-                                user internal consistency.
+                                situations regarding user internal consistency.
+                                </p>
 
-                                TODO: better documentation
+								<p>DEPRECATED: use objectTemplate instead.</p>
                             </xsd:documentation>
                             <xsd:appinfo>
                     			<a:objectReferenceTargetType>tns:ObjectTemplateType</a:objectReferenceTargetType>
+                    			<a:deprecated/>
                     		</xsd:appinfo>
                         </xsd:annotation>
+                    </xsd:element>
+                    
+                    <xsd:element name="objectTemplate" type="tns:ObjectTypeTemplateType" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:annotation>
+						<xsd:documentation>
+							Definition of default object templates for a individual object type. The templates will be used
+							"universally" during all operations with specified object types - unless the templates are overriden
+							in other definitions (e.g. in resource).
+						</xsd:documentation>
+						<xsd:appinfo>
+							<a:container/>
+						</xsd:appinfo>
+					</xsd:annotation>
                     </xsd:element>
 
                     <xsd:element name="connectorFramework" minOccurs="0" maxOccurs="1" type="tns:ConnectorFrameworkType">
@@ -6579,30 +6930,6 @@
                         </xsd:annotation>
                     </xsd:element>
                     
-<!--                     <xsd:element name="orgRoot" type="tns:OrgType" minOccurs="0" maxOccurs="unbounded"> -->
-<!--                         <xsd:annotation> -->
-<!--                             <xsd:documentation> -->
-<!--                                 A root of an organizational hierarchy. -->
-<!--                                 Note: more than one root may be specified. These may be used e.g. to specify -->
-<!--                                 several different "views" of the organizational structure. -->
-<!--                             </xsd:documentation> -->
-<!--                             <xsd:appinfo> -->
-<!--                     			<a:objectReference>tns:orgRootRef</a:objectReference> -->
-<!--                     		</xsd:appinfo> -->
-<!--                         </xsd:annotation> -->
-<!--                     </xsd:element> -->
-<!--                     <xsd:element name="orgRootRef" type="tns:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded"> -->
-<!--                         <xsd:annotation> -->
-<!--                             <xsd:documentation> -->
-<!--                                 A root of an organizational hierarchy. -->
-<!--                                 Note: more than one root may be specified. These may be used e.g. to specify -->
-<!--                                 several different "views" of the organizational structure. -->
-<!--                             </xsd:documentation> -->
-<!--                             <xsd:appinfo> -->
-<!--                     			<a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType> -->
-<!--                     		</xsd:appinfo> -->
-<!--                         </xsd:annotation> -->
-<!--                     </xsd:element> -->
                     <xsd:element name="notificationConfiguration" type="tns:NotificationConfigurationType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -6634,6 +6961,37 @@
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="systemConfiguration" type="tns:SystemConfigurationType"/>
+
+	<xsd:complexType name="ObjectTypeTemplateType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Definition of default object templates for a specific object type.
+			</xsd:documentation>
+			<xsd:appinfo>
+				<a:container/>
+			</xsd:appinfo>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="type" type="xsd:QName">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specification of the type (class) of the object to apply this template to.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="objectTemplateRef" type="tns:ObjectReferenceType">
+                 <xsd:annotation>
+                     <xsd:documentation>
+                         Reference to the template.
+                     </xsd:documentation>
+                     <xsd:appinfo>
+             			<a:objectReferenceTargetType>tns:ObjectTemplateType</a:objectReferenceTargetType>
+             			<a:deprecated/>
+             		</xsd:appinfo>
+                 </xsd:annotation>
+             </xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
 
     <xsd:complexType name="ConnectorFrameworkType">
         <xsd:annotation>
@@ -6776,7 +7134,7 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="hook" type="tns:HookType"/>
+            <xsd:element name="hook" type="tns:HookType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -6787,7 +7145,33 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="ref" type="xsd:anyURI"/>
+        	<xsd:element name="name" type="xsd:string" minOccurs="0">
+        		<xsd:annotation>
+        			<xsd:documentation>
+        				Free-form hook name. Used for diagnostic purposed (e.g. in logfiles)
+        			</xsd:documentation>
+        		</xsd:annotation>
+        	</xsd:element>
+        	<xsd:element name="description" type="xsd:string" minOccurs="0"/>
+        	<xsd:element name="enabled" type="xsd:boolean" minOccurs="0" default="true"/>
+            <xsd:element name="state" type="tns:ModelStateType" minOccurs="0"/>
+            <xsd:element name="focusType" type="xsd:QName" minOccurs="0"/>
+            <xsd:element name="ref" type="xsd:anyURI" minOccurs="0">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			URL of hook handler.
+            			Exactly one of "ref" or "script" has to be specified.
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>
+            <xsd:element name="script" type="tns:ScriptExpressionEvaluatorType" minOccurs="0">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			Script that will be executed instead of hook handler.
+            			Exactly one of "ref" or "script" has to be specified.
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -7420,6 +7804,7 @@
         <xsd:sequence>
             <xsd:element name="auditRecords" type="tns:CleanupPolicyType" minOccurs="0"/>
             <xsd:element name="closedTasks" type="tns:CleanupPolicyType" minOccurs="0" />
+            <xsd:element name="outputReports" type="tns:CleanupPolicyType" minOccurs="0" />
         </xsd:sequence>
     </xsd:complexType>
     
@@ -8153,10 +8538,744 @@
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
-            <xsd:element name="name" minOccurs="0" type="xsd:string" />
-            <xsd:element name="activationCondition" minOccurs="0" maxOccurs="1" type="tns:ExpressionType" />
-            <xsd:element name="processName" minOccurs="1" type="xsd:string" />
+            <xsd:element name="enabled" minOccurs="0" type="xsd:boolean" default="true">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Is this scenario enabled?
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="name" minOccurs="0" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A human-readable name of the scenario (e.g. "Approving assignments of roles R1001-R1999 to users in XYZ organization").
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="activationCondition" minOccurs="0" type="tns:ExpressionType">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A condition controlling whether this scenario applies, i.e. whether a defined approval process should be started.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+            <xsd:element name="processName" minOccurs="1" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        A name of the approval process. When the above condition is met, this process is started. It has to evaluate the situation,
+                        seek user's (or users') approval(s), modifying the situation if necessary.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
+    </xsd:complexType>
+    
+    
+    <!-- Report Types -->
+    
+    <xsd:simpleType name="ExportType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Report export type.
+                pdf, csv, xml, xmlEmbed, html, rtf, xls, odt, ods, docx, xlsx, pptx, xhtml, jxl.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="pdf">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PDF"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="csv">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="CSV"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="xml">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="XML"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="xmlEmbed">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="XML_EMBED"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="html">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="HTML"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="rtf">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="RTF"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="xls">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="XLS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="odt">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ODT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="ods">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="ODS"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="docx">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="DOCX"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="xlsx">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="XLSX"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="pptx">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PPTX"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="xhtml">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="XHTML"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="jxl">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="JXL"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+    
+    
+    
+    <xsd:simpleType name="OrientationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Report orientation.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="landscape">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="LANDSCAPE"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+            <xsd:enumeration value="portrait">
+                <xsd:annotation>
+                    <xsd:appinfo>
+                        <jaxb:typesafeEnumMember name="PORTRAIT"/>
+                    </xsd:appinfo>
+                </xsd:annotation>
+            </xsd:enumeration>
+        </xsd:restriction>
+    </xsd:simpleType>
+    
+    
+    <xsd:complexType name="ReportFieldConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration of report fields.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="nameReportField" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="nameHeaderField" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="itemPathField" type="t:XPathType" minOccurs="0"/>
+            <xsd:element name="sortOrderNumber" type="xsd:int" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="sortOrder" type="q:OrderDirectionType" minOccurs="0" maxOccurs="1"/>  
+            <xsd:element name="widthField" type="xsd:int" minOccurs="0" maxOccurs="1" />
+            <xsd:element name="classTypeField" type="xsd:QName" minOccurs="0" maxOccurs="1"/>   
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="reportFieldConfiguration" type="tns:ReportFieldConfigurationType"/>
+    
+    <xsd:complexType name="ReportParameterConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Configuration of report parameters.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:element name="nameParameter" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="descriptionParameter" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="valueParameter" type="xsd:string" minOccurs="0" maxOccurs="1"/>
+            <xsd:element name="classTypeParameter" type="xsd:QName" minOccurs="0" maxOccurs="1"/>     
+        </xsd:sequence>
+    </xsd:complexType>
+    <xsd:element name="reportParameterConfiguration" type="tns:ReportParameterConfigurationType"/>
+
+    <xsd:complexType name="ReportTemplateType">
+        <xsd:sequence>
+            <xsd:any namespace="##other" processContents="lax">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <!-- TODO description -->
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:any>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="ReportTemplateStyleType">
+        <xsd:sequence>
+            <xsd:any namespace="##other" processContents="lax">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        <!-- TODO description -->
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:any>
+        </xsd:sequence>
+    </xsd:complexType>
+    
+	<xsd:complexType name="ReportType">
+	    <xsd:annotation>
+            <xsd:documentation>
+            	TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:ObjectType">
+                <xsd:sequence>
+                   	<xsd:element name="reportTemplate" type="tns:ReportTemplateType"/>
+                    
+                	<xsd:element name="reportTemplateStyle" type="tns:ReportTemplateStyleType"/>
+                    
+                    <xsd:element name="reportOrientation" type="tns:OrientationType" minOccurs="0" maxOccurs="1">
+    				<xsd:annotation>
+                            <xsd:documentation>
+                                Report orientation.                          
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    
+                    <xsd:element name="reportExport" type="tns:ExportType" minOccurs="0" maxOccurs="1">
+    				<xsd:annotation>
+                            <xsd:documentation>
+                                Report export type.                          
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    
+                 	<xsd:element name="query" type="q:QueryType" minOccurs="0" maxOccurs="1">
+                		<xsd:annotation>
+                    		<xsd:documentation>
+                        		Query expression with conditions for select data in the report.
+                    		</xsd:documentation>
+                		</xsd:annotation>
+            		</xsd:element>
+            		
+            		<xsd:element name="objectClass" type="xsd:QName" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The reference to a type definition for data in report. The reference should point
+                                to the complexType definition in the resource schema.                    
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+            	
+            		<xsd:element name="reportField" type="tns:ReportFieldConfigurationType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Columns user definition. Name, type, report field, column name.                            
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                                        
+                    <xsd:element name="reportParameter" type="tns:ReportParameterConfigurationType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Parameters definition. Name, type, value.                            
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>              
+            	</xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="report" type="tns:ReportType"/>
+
+	<xsd:complexType name="ReportOutputType">
+    	<xsd:annotation>
+            <xsd:documentation>
+            	Reports outputs.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:ObjectType">
+                <xsd:sequence>
+            		<xsd:element name="reportFilePath" type="xsd:string" minOccurs="0" maxOccurs="1"/>  
+            		<xsd:element name="report" type="tns:ReportType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Report which is assigned. 
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReference>tns:reportRef</a:objectReference>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>   
+                    <xsd:element name="reportRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Report which is assigned.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:ReportType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+        		</xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="reportOutput" type="tns:ReportOutputType"/>
+	
+    <xsd:complexType name="WorkItemType">
+        <xsd:annotation>
+            <xsd:documentation>
+                WorkItemType contains information about a human task (or a notification).
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ObjectType">
+                <xsd:sequence>
+                    <xsd:element name="workItemId" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Internal identifier of a work item, assigned by the underlying workflow engine
+                                (currently Activiti). MidPoint WorkItem is Activiti Task. So workItemId is
+                                taskId.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="processInstanceId" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Identifier of a process instance, to which this work item (activiti task) belongs.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="assignee" type="tns:UserType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                User to which the work item is assigned. Other users do not see such a work item in their work lists.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReference>tns:assigneeRef</a:objectReference>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="assigneeRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                User to which the work item is assigned. Other users do not see such a work item in their work lists.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="candidateUsers" type="tns:UserType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Users to which the work item MAY BE assigned.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReference>tns:candidateUsersRef</a:objectReference>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="candidateUsersRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Users to which the work item MAY BE assigned.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="candidateOrgs" type="tns:OrgType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Organizations to members of which the work item MAY BE assigned.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReference>tns:candidateUsersRef</a:objectReference>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="candidateOrgsRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:OrgType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="requester" type="tns:UserType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                User who requested the respective operation was carried out.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReference>tns:requesterRef</a:objectReference>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="requesterRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                User who requested the respective operation was carried out.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="objectOld" type="tns:ObjectType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Object before requested modification.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReference>tns:objectOldRef</a:objectReference>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="objectOldRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="objectNew" type="tns:ObjectType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Object after requested modification.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReference>tns:objectNewRef</a:objectReference>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="objectNewRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:UserType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="objectDelta" type="t:ObjectDeltaType" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Delta to be approved by this work item. (Filled-in only if applicable.)
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="requestSpecificData" type="tns:ObjectType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Data whose format is specific to the request (e.g. reason for the proposed change, ...).
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReference>tns:requestSpecificDataRef</a:objectReference>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="requestSpecificDataRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:ObjectType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="relatedObject" type="tns:ObjectType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                An object related to the request. E.g. if the request is to assign a role to the user,
+                                in this attribute there is the role that is actually to be assigned.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReference>tns:relatedObjectRef</a:objectReference>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="relatedObjectRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:ObjectType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                    <xsd:element name="trackingData" type="tns:TrackingDataType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Various implementation-level (activiti) data useful for diagnostics.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReference>tns:trackingDataRef</a:objectReference>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="trackingDataRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:TrackingDataType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:element name="workItem" type="tns:WorkItemType" substitutionGroup="c:object"/>
+
+    <xsd:complexType name="TrackingDataType">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:object/>
+            </xsd:appinfo>
+            <xsd:documentation>
+                Various implementation-level (activiti) data about a work item, useful for diagnostics.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="c:ObjectType">
+                <xsd:sequence>
+                    <xsd:element name="taskId" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>Activiti task identifier</a:displayName>
+                                <a:displayOrder>100</a:displayOrder>
+                                <a:access>read</a:access>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="processInstanceId" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>Process instance ID</a:displayName>
+                                <a:displayOrder>110</a:displayOrder>
+                                <a:access>read</a:access>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="executionId" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>Process execution ID</a:displayName>
+                                <a:displayOrder>120</a:displayOrder>
+                                <a:access>read</a:access>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="taskOwner" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>Task owner</a:displayName>
+                                <a:displayOrder>130</a:displayOrder>
+                                <a:access>read</a:access>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="taskAssignee" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>Task assignee</a:displayName>
+                                <a:displayOrder>140</a:displayOrder>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="taskCandidates" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>Task candidates</a:displayName>
+                                <a:displayOrder>150</a:displayOrder>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="processDefinitionKey" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>Process definition key</a:displayName>
+                                <a:displayOrder>160</a:displayOrder>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="processDefinitionId" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>Process definition ID</a:displayName>
+                                <a:displayOrder>170</a:displayOrder>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="shadowTaskOid" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:displayName>Related midPoint task</a:displayName>
+                                <a:displayOrder>200</a:displayOrder>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="trackingData" type="tns:TrackingDataType" substitutionGroup="c:object"/>
+
+    <xsd:complexType name="WfProcessInstanceType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Information about workflow process instance.
+
+                Beware, the list of work items (workItems) may not be always present.
+                It depends on situation, e.g. when retrieving list of process instances, we do not populate this attribute.
+                When retrieving specific instance, we usually do.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ObjectType">
+                <xsd:sequence>
+                    <xsd:element name="processInstanceId" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Internal identifier of a process instance, assigned by the underlying workflow engine
+                                (currently Activiti).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="startTimestamp" type="xsd:dateTime" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Time when this process instance started.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="endTimestamp" type="xsd:dateTime" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Time when this process instance finished (if it did).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="finished" type="xsd:boolean" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Is the instance finished? (TODO consider removing this and deriving from endTimestamp...)
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="answer" type="xsd:string" minOccurs="0">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                The result of the workflow process instance (if any).
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="variables" type="tns:WfProcessInstanceVariableType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Process instance variables.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="workItems" type="tns:WorkItemType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Work items that are part of this process instance. This attribute may or may not be filled-in.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReference>tns:workItemsRef</a:objectReference>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="workItemsRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="unbounded">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:WorkItemType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="WfProcessInstanceVariableType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Information about a value of particular process instance variable.
+                Non-string values are converted to string ones.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:string">
+                <xsd:attribute name="name" type="xsd:string">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            Name of the variable.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
+                <xsd:attribute name="encoded" type="xsd:boolean">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            True if the value is encoded (base64 serialized), false if it's stored as a plain string.
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
+            </xsd:extension>
+        </xsd:simpleContent>
     </xsd:complexType>
 </xsd:schema>
 

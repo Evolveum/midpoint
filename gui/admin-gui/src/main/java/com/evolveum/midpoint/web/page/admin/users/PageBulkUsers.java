@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.users;
 
-import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
 
@@ -36,8 +36,7 @@ public class PageBulkUsers extends PageAdminUsers {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
-        AjaxSubmitLinkButton start = new AjaxSubmitLinkButton(ID_START,
-                createStringResource("PageBulkUsers.button.start")) {
+        AjaxSubmitButton start = new AjaxSubmitButton(ID_START, createStringResource("PageBulkUsers.button.start")) {
 
             @Override
             protected void onError(AjaxRequestTarget target, Form<?> form) {

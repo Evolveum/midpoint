@@ -19,34 +19,31 @@ package com.evolveum.midpoint.web.page.admin.resources.content;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.ObjectOperationOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
-import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
-import com.evolveum.midpoint.web.component.button.ButtonType;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.resources.PageAdminResources;
-import com.evolveum.midpoint.web.page.admin.users.PageUsers;
+import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
-
-import org.apache.commons.lang.StringUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.util.string.StringValue;
@@ -101,7 +98,7 @@ public class PageAccount extends PageAdminResources {
 
         if (account == null) {
             getSession().error(getString("pageAccount.message.cantEditAccount"));
-            throw new RestartResponseException(PageUsers.class);
+            throw new RestartResponseException(PageResources.class);
         }
 
         ObjectWrapper wrapper = new ObjectWrapper(null, null, account, ContainerStatus.MODIFYING);
@@ -113,10 +110,6 @@ public class PageAccount extends PageAdminResources {
     }
 
     private void initLayout() {
-        Label subtitle = new Label("subtitle", createSubtitle());
-        subtitle.setRenderBodyOnly(true);
-        add(subtitle);
-
         Form mainForm = new Form("mainForm");
         add(mainForm);
 
@@ -134,8 +127,7 @@ public class PageAccount extends PageAdminResources {
     }
 
     private void initButtons(Form mainForm) {
-        AjaxSubmitLinkButton save = new AjaxSubmitLinkButton("save", ButtonType.POSITIVE,
-                createStringResource("pageAccount.button.save")) {
+        AjaxSubmitButton save = new AjaxSubmitButton("save", createStringResource("pageAccount.button.save")) {
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
@@ -149,7 +141,7 @@ public class PageAccount extends PageAdminResources {
         };
         mainForm.add(save);
 
-        AjaxLinkButton back = new AjaxLinkButton("back", createStringResource("pageAccount.button.back")) {
+        AjaxButton back = new AjaxButton("back", createStringResource("pageAccount.button.back")) {
 
             @Override
             public void onClick(AjaxRequestTarget target) {
@@ -159,7 +151,8 @@ public class PageAccount extends PageAdminResources {
         mainForm.add(back);
     }
 
-    private IModel<String> createSubtitle() {
+    @Override
+    protected IModel<String> createPageSubTitleModel() {
         return new LoadableModel<String>(false) {
 
             @Override
@@ -167,9 +160,9 @@ public class PageAccount extends PageAdminResources {
                 PrismObject<ShadowType> account = accountModel.getObject().getObject();
 
                 ResourceType resource = account.asObjectable().getResource();
-                String resourceName = WebMiscUtil.getName(resource);
+                String name = WebMiscUtil.getName(resource);
 
-                return createStringResource("pageAccount.subtitle", resourceName).getString();
+                return new StringResourceModel("page.subTitle", PageAccount.this, null, null, name).getString();
             }
         };
     }

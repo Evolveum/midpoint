@@ -20,8 +20,11 @@ import static com.evolveum.midpoint.provisioning.ucf.impl.IcfUtil.processIcfExce
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.security.Key;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -37,6 +40,8 @@ import javax.net.ssl.TrustManager;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.configuration.Configuration;
+import org.identityconnectors.common.security.Encryptor;
+import org.identityconnectors.common.security.EncryptorFactory;
 import org.identityconnectors.common.security.GuardedString;
 import org.identityconnectors.framework.api.ConnectorInfo;
 import org.identityconnectors.framework.api.ConnectorInfoManager;
@@ -228,7 +233,7 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 	 * 
 	 */
 	@Override
-	public ConnectorInstance createConnectorInstance(ConnectorType connectorType, String namespace)
+	public ConnectorInstance createConnectorInstance(ConnectorType connectorType, String namespace, String desc)
 			throws ObjectNotFoundException, SchemaException {
 
 		ConnectorInfo cinfo = getConnectorInfo(connectorType);
@@ -250,6 +255,7 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 		ConnectorInstanceIcfImpl connectorImpl = new ConnectorInstanceIcfImpl(cinfo, connectorType, namespace,
 				connectorSchema, protector, prismContext);
 		connectorImpl.setIcfNameMapper(icfNameMapper);
+		connectorImpl.setDescription(desc);
 		
 		return connectorImpl;
 	}
@@ -296,7 +302,7 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 				return connectors;
 			}
 		} catch (Throwable icfException) {
-			Throwable ex = processIcfException(icfException, result);
+			Throwable ex = processIcfException(icfException, "list connectors", result);
 			result.recordFatalError(ex.getMessage(), ex);
 			if (ex instanceof CommunicationException) {
 				throw (CommunicationException) ex;
@@ -671,6 +677,84 @@ public class ConnectorFactoryIcfImpl implements ConnectorFactory {
 	private ConnectorKey getConnectorKey(ConnectorType connectorType) {
 		return new ConnectorKey(connectorType.getConnectorBundle(), connectorType.getConnectorVersion(),
 				connectorType.getConnectorType());
+	}
+	
+	@Override
+	public void selfTest(OperationResult parentTestResult) {
+		selfTestGuardedString(parentTestResult);
+	}
+
+	private void selfTestGuardedString(OperationResult parentTestResult) {
+		OperationResult result = parentTestResult.createSubresult(ConnectorFactoryIcfImpl.class + ".selfTestGuardedString");
+		
+		OperationResult subresult = result.createSubresult(ConnectorFactoryIcfImpl.class + ".selfTestGuardedString.encryptorReflection");
+		EncryptorFactory encryptorFactory = EncryptorFactory.getInstance();
+		subresult.addReturn("encryptorFactoryImpl", encryptorFactory.getClass());
+		LOGGER.debug("Encryptor factory implementation class: {}", encryptorFactory.getClass());
+		Encryptor encryptor = EncryptorFactory.getInstance().newRandomEncryptor();
+		subresult.addReturn("encryptorImpl", encryptor.getClass());
+		LOGGER.debug("Encryptor implementation class: {}", encryptor.getClass());
+		if (encryptor.getClass().getName().equals("org.identityconnectors.common.security.impl.EncryptorImpl")) {
+			// let's do some reflection magic to have a look inside
+			try {
+				LOGGER.trace("Encryptor fields: {}", Arrays.asList(encryptor.getClass().getDeclaredFields()));
+				Field keyField = encryptor.getClass().getDeclaredField("key");
+				keyField.setAccessible(true);
+				Key key = (Key) keyField.get(encryptor);
+				subresult.addReturn("keyAlgorithm", key.getAlgorithm());
+				subresult.addReturn("keyLength", key.getEncoded().length*8);
+				subresult.addReturn("keyFormat", key.getFormat());
+				subresult.recordSuccess();
+			} catch (IllegalArgumentException e) {
+				subresult.recordPartialError("Reflection introspection failed", e);
+			} catch (IllegalAccessException e) {
+				subresult.recordPartialError("Reflection introspection failed", e);
+			} catch (NoSuchFieldException e) {
+				subresult.recordPartialError("Reflection introspection failed", e);
+			} catch (SecurityException e) {
+				subresult.recordPartialError("Reflection introspection failed", e);
+			}
+		}
+		
+		OperationResult encryptorSubresult = result.createSubresult(ConnectorFactoryIcfImpl.class + ".selfTestGuardedString.encryptor");
+		try {
+			String plainString = "Scurvy seadog";
+			byte[] encryptedBytes = encryptor.encrypt(plainString.getBytes());
+			byte[] decryptedBytes = encryptor.decrypt(encryptedBytes);
+			String decryptedString = new String(decryptedBytes);
+			if (!plainString.equals(decryptedString)) {
+				encryptorSubresult.recordFatalError("Encryptor roundtrip failed; encrypted="+plainString+", decrypted="+decryptedString);
+			} else {
+				encryptorSubresult.recordSuccess();
+			}
+		} catch (Throwable e) {
+			LOGGER.error("Encryptor operation error: {}", e.getMessage(), e);
+			encryptorSubresult.recordFatalError("Encryptor opeation error: " + e.getMessage(), e);
+		}
+		
+		
+		final OperationResult guardedStringSubresult = result.createSubresult(ConnectorFactoryIcfImpl.class + ".selfTestGuardedString.guardedString");
+		// try to encrypt and decrypt GuardedString
+		try {
+			final String origString = "Shiver me timbers";
+			// This should encrypt it
+			GuardedString guardedString = new GuardedString(origString.toCharArray());
+			// and this should decrypt it
+			guardedString.access(new GuardedString.Accessor() {
+				@Override
+				public void access(char[] decryptedChars) {
+					if (!(new String(decryptedChars)).equals(origString)) {
+						guardedStringSubresult.recordFatalError("GuardeString roundtrip failed; encrypted="+origString+", decrypted="+(new String(decryptedChars))); 
+					}
+				}
+			});
+			guardedStringSubresult.recordSuccessIfUnknown();
+		} catch (Throwable e) {
+			LOGGER.error("GuardedString operation error: {}", e.getMessage(), e);
+			guardedStringSubresult.recordFatalError("GuardedString opeation error: " + e.getMessage(), e);
+		}
+		
+		result.computeStatus();
 	}
 
 	static Class<? extends APIOperation> resolveApiOpClass(String opName) {

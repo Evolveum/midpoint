@@ -16,7 +16,8 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource;
 
-import org.apache.wicket.extensions.wizard.WizardStep;
+
+import com.evolveum.midpoint.web.component.wizard.WizardStep;
 
 /**
  * @author lazyman

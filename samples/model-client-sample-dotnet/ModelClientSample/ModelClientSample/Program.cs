@@ -37,6 +37,7 @@ namespace ModelClientSample
 
             //ObjectType o = modelPort.getObject(NS_C + "#UserType", ADMINISTRATOR_OID, new ObjectOperationOptionsType[0], out result);
             Console.WriteLine("returned object = " + obj);
+            Console.ReadKey();
         }
 
         private static modelPortType openConnection()
@@ -50,21 +51,21 @@ namespace ModelClientSample
             //binding.Security.Transport.ClientCredentialType = HttpClientCredentialType.None;
             //binding.Security.Message.ClientCredentialType = BasicHttpMessageCredentialType.UserName;
 
-            var securityElement = SecurityBindingElement.CreateUserNameOverTransportBindingElement();
-            securityElement.AllowInsecureTransport = true;
-            securityElement.ProtectTokens = true;
-            securityElement.EnableUnsecuredResponse = true;
+            //var securityElement = SecurityBindingElement.CreateUserNameOverTransportBindingElement();
+            //securityElement.AllowInsecureTransport = true;
+            //securityElement.ProtectTokens = true;
+            //securityElement.EnableUnsecuredResponse = true;
             
-            var encodingElement = new TextMessageEncodingBindingElement(MessageVersion.Soap11, Encoding.UTF8);
-            var transportElement = new HttpTransportBindingElement();
+            //var encodingElement = new TextMessageEncodingBindingElement(MessageVersion.Soap11, Encoding.UTF8);
+            //var transportElement = new HttpTransportBindingElement();
 
-            var binding = new CustomBinding(securityElement, encodingElement, transportElement);
-            service.Endpoint.Binding = binding;
+            //var binding = new CustomBinding(securityElement, encodingElement, transportElement);
+            //service.Endpoint.Binding = binding;
 
             service.ClientCredentials.UserName.UserName = LOGIN_USERNAME;
             service.ClientCredentials.UserName.Password = LOGIN_PASSWORD;
             
-            //service.Endpoint.Behaviors.Add(new InspectorBehavior(new ClientInspector(new SecurityHeader(LOGIN_USERNAME, LOGIN_PASSWORD))));
+            service.Endpoint.Behaviors.Add(new InspectorBehavior(new ClientInspector(new SecurityHeader(LOGIN_USERNAME, LOGIN_PASSWORD))));
             return service.ChannelFactory.CreateChannel(new EndpointAddress(WS_URL));
         }
 

@@ -67,8 +67,26 @@ public class DummyResourceContoller extends AbstractResourceController {
     public static final String DUMMY_ACCOUNT_ATTRIBUTE_GOSSIP_NAME = "gossip";
     public static final String DUMMY_ACCOUNT_ATTRIBUTE_WATER_NAME = "water";
     
+    public static final String DUMMY_ACCOUNT_ATTRIBUTE_AD_GIVEN_NAME_NAME = "givenName";
+    public static final String DUMMY_ACCOUNT_ATTRIBUTE_AD_SN_NAME = "sn";
+    public static final String DUMMY_ACCOUNT_ATTRIBUTE_AD_SAM_ACCOUNT_NAME_NAME = "sAMAccountName";
+    public static final String DUMMY_ACCOUNT_ATTRIBUTE_AD_USER_PRINCIPAL_NAME_NAME = "userPrincipalName";
+    public static final String DUMMY_ACCOUNT_ATTRIBUTE_AD_MAIL_NAME = "mail";
+    public static final String DUMMY_ACCOUNT_ATTRIBUTE_AD_USER_SHARED_FOLDER_OTHER_NAME = "userSharedFolderOther";
+    public static final String DUMMY_ACCOUNT_ATTRIBUTE_AD_DEPARTMENT_NAME = "department";
+    public static final String DUMMY_ACCOUNT_ATTRIBUTE_AD_FACSIMILE_TELEPHONE_NUMBER_NAME = "facsimileTelephoneNumber";
+    public static final String DUMMY_ACCOUNT_ATTRIBUTE_AD_TELEPHONE_NUMBER_NAME = "telephoneNumber";
+    public static final String DUMMY_ACCOUNT_ATTRIBUTE_AD_MOBILE_NAME = "mobile";
+    public static final String DUMMY_ACCOUNT_ATTRIBUTE_AD_IP_PHONE_NAME = "ipPhone";
+    public static final String DUMMY_ACCOUNT_ATTRIBUTE_AD_PHYSICAL_DELIVERY_OFFICE_NAME_NAME = "physicalDeliveryOfficeName";
+    public static final String DUMMY_ACCOUNT_ATTRIBUTE_AD_DESCRIPTION_NAME = "description";
+    public static final String DUMMY_ACCOUNT_ATTRIBUTE_AD_ACCOUNT_EXPIRES_NAME = "accountExpires";
+    public static final String DUMMY_ACCOUNT_ATTRIBUTE_AD_GROUPS_NAME = "groups";
+    
+    
     public static final String DUMMY_GROUP_MEMBERS_ATTRIBUTE_NAME = "members";
 	public static final String DUMMY_GROUP_ATTRIBUTE_DESCRIPTION = "description";
+    public static final String DUMMY_GROUP_ATTRIBUTE_CC = "cc";
 	
 	public static final String DUMMY_ENTITLEMENT_GROUP_NAME = "group";
 	public static final String DUMMY_ENTITLEMENT_PRIVILEGE_NAME = "priv";
@@ -92,7 +110,6 @@ public class DummyResourceContoller extends AbstractResourceController {
 		ctl.instanceName = instanceName;
 		ctl.dummyResource = DummyResource.getInstance(instanceName);
 		ctl.dummyResource.reset();
-		ctl.populateWithDefaultSchema();
 		
 		ctl.resource = resource;
 		
@@ -111,7 +128,11 @@ public class DummyResourceContoller extends AbstractResourceController {
 		dummyResource.populateWithDefaultSchema();
 	}
 
-	public void extendDummySchema() throws ConnectException, FileNotFoundException {
+	/**
+	 * Extend schema in piratey fashion. Arr! This is used in many tests. Lots of attributes, various combination of types, etc. 
+	 */
+	public void extendSchemaPirate() throws ConnectException, FileNotFoundException {
+		populateWithDefaultSchema();
 		DummyObjectClass accountObjectClass = dummyResource.getAccountObjectClass();
 		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_TITLE_NAME, String.class, false, true);
 		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_SHIP_NAME, String.class, false, false);
@@ -128,6 +149,32 @@ public class DummyResourceContoller extends AbstractResourceController {
 		
 		DummyObjectClass groupObjectClass = dummyResource.getGroupObjectClass();		
 		addAttrDef(groupObjectClass, DUMMY_GROUP_ATTRIBUTE_DESCRIPTION, String.class, false, false);
+        addAttrDef(groupObjectClass, DUMMY_GROUP_ATTRIBUTE_CC, String.class, false, false);
+		
+		isExtendedSchema = true;
+	}
+	
+	/**
+	 * Extend dummy schema to look like AD
+	 */
+	public void extendSchemaAd() throws ConnectException, FileNotFoundException {
+		DummyObjectClass accountObjectClass = dummyResource.getAccountObjectClass();
+		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_AD_GIVEN_NAME_NAME, String.class, false, false);
+		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_AD_SN_NAME, String.class, false, false);
+		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_AD_SAM_ACCOUNT_NAME_NAME, String.class, false, false);
+		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_AD_USER_PRINCIPAL_NAME_NAME, String.class, false, false);
+		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_AD_USER_SHARED_FOLDER_OTHER_NAME, String.class, false, true);
+		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_AD_MAIL_NAME, String.class, false, false);
+		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_AD_DEPARTMENT_NAME, String.class, false, false);
+		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_AD_FACSIMILE_TELEPHONE_NUMBER_NAME, String.class, false, false);
+		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_AD_TELEPHONE_NUMBER_NAME, String.class, false, false);
+		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_AD_MOBILE_NAME, String.class, false, false);
+		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_AD_IP_PHONE_NAME, String.class, false, false);
+		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_AD_PHYSICAL_DELIVERY_OFFICE_NAME_NAME, String.class, false, false);
+		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_AD_DESCRIPTION_NAME, String.class, false, false);
+		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_AD_ACCOUNT_EXPIRES_NAME, Long.class, false, false);
+		// This should in fact be icfs:groups but this is OK for now
+		addAttrDef(accountObjectClass, DUMMY_ACCOUNT_ATTRIBUTE_AD_GROUPS_NAME, String.class, false, true);
 		
 		isExtendedSchema = true;
 	}

@@ -22,6 +22,8 @@
              targetNamespace="http://evolveum.com/midpoint" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
     <process id="MyGreatPrimaryProcess" isExecutable="true">
+
+        <!-- This is necessary for midPoint to know when the process ends (because this is a "smart" process that informs midPoint about its state). -->
         <extensionElements>
             <activiti:executionListener event="end" class="com.evolveum.midpoint.wf.processes.common.MidPointProcessListener" />
         </extensionElements>
@@ -49,14 +51,24 @@
             
             println "state = " + modelContextUnwrapped.getState()
             execution.setVariable("status", "abcdefgh")
-            execution.setVariable("modelContextToBeEdited", new com.evolveum.midpoint.wf.processes.StringHolder(modelContext.getXmlValue()))
+            execution.setVariable("modelContextToBeEdited0", modelContext.getXmlValue(0))
+            execution.setVariable("modelContextToBeEdited1", modelContext.getXmlValue(1))
+            execution.setVariable("modelContextToBeEdited2", modelContext.getXmlValue(2))
+            execution.setVariable("modelContextToBeEdited3", modelContext.getXmlValue(3))
+            execution.setVariable("modelContextToBeEdited4", modelContext.getXmlValue(4))
+            execution.setVariable("modelContextToBeEdited5", modelContext.getXmlValue(5))
           </script>
         </scriptTask>
         <sequenceFlow sourceRef="theScriptTask" targetRef="approve" />
         
         <userTask id="approve" name="Approve this!" activiti:assignee="00000000-0000-0000-0000-000000000002" activiti:formKey="abc">
           <extensionElements>
-            <activiti:formProperty id="modelContext" expression="#{modelContextToBeEdited.value}" name="Model context" type="string" required="true" readable="true" writable="true"></activiti:formProperty>
+            <activiti:formProperty id="modelContextToBeEdited0" name="Model context, part 0" type="string" required="true" readable="true" writable="true"></activiti:formProperty>
+            <activiti:formProperty id="modelContextToBeEdited1" name="Model context, part 1" type="string" required="true" readable="true" writable="true"></activiti:formProperty>
+            <activiti:formProperty id="modelContextToBeEdited2" name="Model context, part 2" type="string" required="true" readable="true" writable="true"></activiti:formProperty>
+            <activiti:formProperty id="modelContextToBeEdited3" name="Model context, part 3" type="string" required="true" readable="true" writable="true"></activiti:formProperty>
+            <activiti:formProperty id="modelContextToBeEdited4" name="Model context, part 4" type="string" required="true" readable="true" writable="true"></activiti:formProperty>
+            <activiti:formProperty id="modelContextToBeEdited5" name="Model context, part 5" type="string" required="true" readable="true" writable="true"></activiti:formProperty>
             <activiti:formProperty id="comment" name="Your comment" type="string" required="false" readable="true" writable="true"></activiti:formProperty>
             <activiti:formProperty id="[H]decision" name="decision to be filled-in automatically" type="string" required="false" readable="false" writable="true"></activiti:formProperty>
             <activiti:formProperty id="[B]approve" name="Approve" type="boolean" required="false" readable="true" writable="true" />
@@ -73,7 +85,7 @@
             approved = execution.getVariable("[B]approve")
             if (approved) {
               println "Approved!"
-              newXmlValue = modelContextToBeEdited.getValue()
+              newXmlValue = modelContextToBeEdited0 + modelContextToBeEdited1 + modelContextToBeEdited2 + modelContextToBeEdited3 + modelContextToBeEdited4 + modelContextToBeEdited5
               modelContext.setXmlValue(newXmlValue)
               println "New value in modelContext = " + modelContext.getXmlValue()
               

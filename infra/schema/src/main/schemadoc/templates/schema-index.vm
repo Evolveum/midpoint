@@ -1,0 +1,75 @@
+#*
+ * Copyright (c) 2013 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *#
+
+## This template defines the structure of top-level schema index.
+## It contains a list of all schemas known to the system.
+## Output file: index.html
+## Variables:
+##   $schemaRegistry: initialized instance of SchemaRegistry
+##   $prismContext: initilaized instance of PrismContext
+##   $path: PathGenerator, simple utility class that creates paths and URLs
+##   $prefixToBase: string that represents path prefix to base of the HTML files (e.g. "." or "../..")
+
+#parse("header-inc.vm")
+
+<div class="header">
+    <h1>Schema Index</h1>
+</div>
+
+<div class="contentContainer">
+    <table class="overviewSummary" border="0" cellpadding="3" cellspacing="0">
+
+        <caption>
+            <span>Schema list</span>
+            <span class="tabEnd">&nbsp;</span>
+        </caption>
+
+        <tr>
+            <th class="colFirst" scope="col">Schema</th>
+            <th class="colLast" scope="col"></th>
+        </tr>
+
+        <tbody>
+
+            #set($counter = 1)
+            #foreach($schema in $schemaRegistry.getSchemas())
+                #set($modulo = $counter % 2)
+
+                #if($modulo == 0)
+                    <tr class="rowColor">
+                        <td class="colFirst">
+                            <a href="$path.schemaUrl($schema)">$schema.Namespace</a>
+                        </td>
+                        <td class="colLast">&nbsp;</td>
+                    </tr>
+                #else
+                    <tr class="altColor">
+                        <td class="colFirst">
+                            <a href="$path.schemaUrl($schema)">$schema.Namespace</a>
+                        </td>
+                        <td class="colLast">&nbsp;</td>
+                    </tr>
+                #end
+                #set($counter = $counter + 1)
+            #end
+
+
+        </tbody>
+
+    </table>
+</div>
+
+#parse("footer-inc.vm")

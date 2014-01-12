@@ -18,9 +18,6 @@ package com.evolveum.midpoint.web.security;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.common.crypto.Protector;
-import com.evolveum.midpoint.common.security.Authorization;
-import com.evolveum.midpoint.common.security.AuthorizationConstants;
-import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.model.api.ModelInteractionService;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.TaskService;
@@ -31,20 +28,28 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.GuiComponents;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
+import com.evolveum.midpoint.web.page.error.PageError;
+import com.evolveum.midpoint.web.page.error.PageError401;
 import com.evolveum.midpoint.web.page.login.PageLogin;
-import com.evolveum.midpoint.web.resource.css.CssResources;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
-import com.evolveum.midpoint.web.resource.js.JsResources;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.wf.api.WorkflowService;
+import com.evolveum.midpoint.wf.api.WorkflowManager;
 import org.apache.commons.configuration.Configuration;
 import org.apache.wicket.RuntimeConfigurationType;
+import org.apache.wicket.atmosphere.EventBus;
+import org.apache.wicket.atmosphere.config.AtmosphereLogLevel;
 import org.apache.wicket.authroles.authentication.AbstractAuthenticatedWebSession;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
+import org.apache.wicket.core.request.handler.PageProvider;
+import org.apache.wicket.core.request.handler.RenderPageRequestHandler;
 import org.apache.wicket.core.request.mapper.MountedMapper;
 import org.apache.wicket.markup.head.PriorityFirstComparator;
 import org.apache.wicket.markup.html.WebPage;
+import org.apache.wicket.request.IRequestHandler;
+import org.apache.wicket.request.cycle.AbstractRequestCycleListener;
+import org.apache.wicket.request.cycle.RequestCycle;
 import org.apache.wicket.request.resource.SharedResourceReference;
+import org.apache.wicket.settings.IApplicationSettings;
 import org.apache.wicket.settings.IResourceSettings;
 import org.apache.wicket.spring.injection.annot.SpringComponentInjector;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +57,6 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.io.FilenameFilter;
-import java.util.Collection;
 
 /**
  * @author lazyman
@@ -61,7 +65,11 @@ import java.util.Collection;
 public class MidPointApplication extends AuthenticatedWebApplication {
 
     private static final String WEB_APP_CONFIGURATION = "midpoint.webApplication";
+
     private static final Trace LOGGER = TraceManager.getTrace(MidPointApplication.class);
+
+    private EventBus eventBus;
+
     @Autowired
     transient ModelService model;
     @Autowired
@@ -73,7 +81,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
     @Autowired
     transient TaskManager taskManager;
     @Autowired
-    transient private WorkflowService workflowService;
+    transient private WorkflowManager workflowManager;
     @Autowired
     transient MidpointConfiguration configuration;
     @Autowired(required = true)
@@ -89,7 +97,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
     @Override
     public Class<PageDashboard> getHomePage() {
-    	return WebMiscUtil.getHomePage();
+        return WebMiscUtil.getHomePage();
     }
 
     @Override
@@ -110,24 +118,31 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         }
 
         //pretty url resources
-        mountFiles(CssResources.BASE_PATH, CssResources.class);
         mountFiles(ImgResources.BASE_PATH, ImgResources.class);
-        mountFiles(JsResources.BASE_PATH, JsResources.class);
 
         for (PageUrlMapping m : PageUrlMapping.values()) {
-        	
-        	//usually m.getPage() will not return null, this is only the case we set the url with wildcard which is then used by spring security
-			if (m.getPage() != null) {
-				mount(new MountedMapper(m.getUrl(), m.getPage(), m.getEncoder()));
-			}
+            // usually m.getPage() will not return null, this is only the case we set the url with
+            // wildcard which is then used by spring security
+            if (m.getPage() != null) {
+                mount(new MountedMapper(m.getUrl(), m.getPage(), m.getEncoder()));
+            }
         }
 
-        //todo design error pages...
-        //error pages
-//        mount(new MountedMapper("/error/401", PageUnauthorized.class, encoder));
-//        mount(new MountedMapper("/error/403", PageForbidden.class, encoder));
-//        mount(new MountedMapper("/error/404", PageNotFound.class, encoder));
-//        mount(new MountedMapper("/error/500", PageServerError.class, encoder));
+        IApplicationSettings appSettings = getApplicationSettings();
+        appSettings.setAccessDeniedPage(PageError401.class);
+        appSettings.setInternalErrorPage(PageError.class);
+        appSettings.setPageExpiredErrorPage(PageError.class);
+
+        getRequestCycleListeners().add(new AbstractRequestCycleListener() {
+
+            @Override
+            public IRequestHandler onException(RequestCycle cycle, Exception ex) {
+                return new RenderPageRequestHandler(new PageProvider(new PageError(ex)));
+            }
+        });
+
+        eventBus = new EventBus(this);
+        eventBus.getParameters().setLogLevel(AtmosphereLogLevel.DEBUG);
     }
 
     private void mountFiles(String path, Class<?> clazz) {
@@ -195,12 +210,16 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         return MidPointAuthWebSession.class;
     }
 
-    public WorkflowService getWorkflowService() {
-        return workflowService;
+    public WorkflowManager getWorkflowManager() {
+        return workflowManager;
     }
 
     public ModelInteractionService getModelInteractionService() {
         return modelInteractionService;
+    }
+
+    public EventBus getEventBus() {
+        return eventBus;
     }
 
     private static class ResourceFileFilter implements FilenameFilter {

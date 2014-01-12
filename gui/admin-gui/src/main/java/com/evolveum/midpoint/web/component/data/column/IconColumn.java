@@ -16,13 +16,10 @@
 
 package com.evolveum.midpoint.web.component.data.column;
 
-import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
-import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.request.resource.ResourceReference;
 
 /**
  * @author lazyman
@@ -35,23 +32,19 @@ public class IconColumn<T> extends AbstractColumn<T, String> {
 
     @Override
     public String getCssClass() {
-        return "iconColumn";
+        return "icon";
     }
 
     @Override
     public void populateItem(Item<ICellPopulator<T>> cellItem, String componentId, IModel<T> rowModel) {
-        cellItem.add(new ImagePanel(componentId, createIconModel(rowModel), createTitleModel(rowModel), createAttribute(rowModel)));
+        cellItem.add(new ImagePanel(componentId, createIconModel(rowModel), createTitleModel(rowModel)));
     }
-    
+
     protected IModel<String> createTitleModel(final IModel<T> rowModel) {
         return null;
     }
-    
-    protected IModel<ResourceReference> createIconModel(final IModel<T> rowModel) {
+
+    protected IModel<String> createIconModel(final IModel<T> rowModel) {
         throw new UnsupportedOperationException("Not implemented, please implement in your column.");
-    }
-    
-    protected IModel<AttributeModifier> createAttribute(final IModel<T> rowModel) {
-        return null;
     }
 }

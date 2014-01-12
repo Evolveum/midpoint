@@ -15,10 +15,8 @@
  */
 package com.evolveum.midpoint.model.expr;
 
-import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.common.crypto.Protector;
-import com.evolveum.midpoint.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
@@ -39,32 +37,43 @@ import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
-
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
+import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluationContext;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.lens.SynchronizationIntent;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 import java.util.*;
 
@@ -173,8 +182,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     @Override
     public OrgType getOrgByName(String name) throws ObjectNotFoundException, SchemaException {
         PolyString polyName = new PolyString(name);
-        polyName.recompute(prismContext.getDefaultPolyStringNormalizer());
-        ObjectQuery q = QueryUtil.createNameQuery(polyName, prismContext);
+        ObjectQuery q = ObjectQueryUtil.createNameQuery(polyName, prismContext);
         List<PrismObject<OrgType>> result = repositoryService.searchObjects(OrgType.class, q, null, new OperationResult("getOrgByName"));
         if (result.isEmpty()) {
             throw new ObjectNotFoundException("No organizational unit with the name '" + name + "'", name);
@@ -329,17 +337,17 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         }
     }
     
-    public boolean hasLinkedAccount(String resourceOid) {
-    	LensContext<ObjectType, ShadowType> ctx = ModelExpressionThreadLocalHolder.getLensContext();
+    public <F extends ObjectType> boolean hasLinkedAccount(String resourceOid) {
+    	LensContext<F> ctx = ModelExpressionThreadLocalHolder.getLensContext();
     	if (ctx == null) {
     		throw new IllegalStateException("No lens context");
     	}
-    	LensFocusContext<ObjectType> focusContext = ctx.getFocusContext();
+    	LensFocusContext<F> focusContext = ctx.getFocusContext();
     	if (focusContext == null) {
     		throw new IllegalStateException("No focus in lens context");
     	}
-    	ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, null);
-		LensProjectionContext<ShadowType> projectionContext = ctx.findProjectionContext(rat);
+    	ResourceShadowDiscriminator rat = new ResourceShadowDiscriminator(resourceOid, ShadowKindType.ACCOUNT, null);
+		LensProjectionContext projectionContext = ctx.findProjectionContext(rat);
 		if (projectionContext == null) {
 			return false;
 		}
@@ -350,7 +358,21 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		SynchronizationPolicyDecision synchronizationPolicyDecision = projectionContext.getSynchronizationPolicyDecision();
 		SynchronizationIntent synchronizationIntent = projectionContext.getSynchronizationIntent();
 		ScriptExpressionEvaluationContext scriptContext = ScriptExpressionEvaluationContext.getThreadLocal();
-		if (scriptContext.isEvaluateNew()) {
+		if (scriptContext == null) {
+			if (synchronizationPolicyDecision == null) {
+				if (synchronizationIntent == SynchronizationIntent.DELETE || synchronizationIntent == SynchronizationIntent.UNLINK) {
+					return false;
+				} else {
+					return true;
+				}
+			} else {
+				if (synchronizationPolicyDecision == SynchronizationPolicyDecision.DELETE || synchronizationPolicyDecision == SynchronizationPolicyDecision.UNLINK) {
+					return false;
+				} else {
+					return true;
+				}
+			}
+		} else if (scriptContext.isEvaluateNew()) {
 			// Evaluating new state
 			if (focusContext.isDelete()) {
 				return false;
@@ -389,10 +411,61 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	    }
     }
     
-    public <O extends ObjectType> O getObject(Class<O> type, String oid) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
-    	return modelObjectResolver.getObject(type, oid, null, null, getCurrentResult(MidpointFunctions.class.getName()+".getObject"));
+    @Override
+    public <F extends FocusType> boolean isDirectlyAssigned(F focusType, String targetOid) {
+    	for (AssignmentType assignment: focusType.getAssignment()) {
+    		ObjectReferenceType targetRef = assignment.getTargetRef();
+    		if (targetRef != null && targetRef.getOid().equals(targetOid)) {
+    			return true;
+    		}
+    	}
+    	return false;
     }
     
+    @Override
+    public <F extends FocusType> boolean isDirectlyAssigned(F focusType, ObjectType target) {
+    	return isDirectlyAssigned(focusType, target.getOid());
+    }
+    
+    @Override
+    public boolean isDirectlyAssigned(String targetOid) {
+    	LensContext<? extends FocusType> ctx = ModelExpressionThreadLocalHolder.getLensContext();
+    	if (ctx == null) {
+    		throw new IllegalStateException("No lens context");
+    	}
+    	LensFocusContext<? extends FocusType> focusContext = ctx.getFocusContext();
+    	if (focusContext == null) {
+    		throw new IllegalStateException("No focus in lens context");
+    	}
+    	
+    	PrismObject<? extends FocusType> focus;
+    	ScriptExpressionEvaluationContext scriptContext = ScriptExpressionEvaluationContext.getThreadLocal();
+    	if (scriptContext == null) {
+    		focus = focusContext.getObjectAny();
+    	} else if (scriptContext.isEvaluateNew()) {
+			// Evaluating new state
+			if (focusContext.isDelete()) {
+				return false;
+			}
+			focus = focusContext.getObjectNew();
+		} else {
+	    	// Evaluating old state
+	    	if (focusContext.isAdd()) {
+	    		return false;
+	    	}
+	    	focus = focusContext.getObjectOld();
+	    }
+    	if (focus == null) {
+    		return false;
+    	}
+    	return isDirectlyAssigned(focus.asObjectable(), targetOid);
+    }
+    
+    @Override
+    public boolean isDirectlyAssigned(ObjectType target) {
+    	return isDirectlyAssigned(target.getOid());
+    }
+        
     public <T> int countAccounts(String resourceOid, QName attributeName, T attributeValue) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
     	OperationResult result = getCurrentResult(MidpointFunctions.class.getName()+".countAccounts");
     	ResourceType resourceType = modelObjectResolver.getObjectSimple(ResourceType.class, resourceOid, null, null, result);
@@ -416,11 +489,10 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     	RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resourceType);
         RefinedObjectClassDefinition rAccountDef = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
         RefinedAttributeDefinition attrDef = rAccountDef.findAttributeDefinition(attributeName);
-        EqualsFilter idFilter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), attrDef, null, attributeValue);
-        EqualsFilter ocFilter = EqualsFilter.createEqual(ShadowType.class, prismContext, 
-        		ShadowType.F_OBJECT_CLASS, rAccountDef.getObjectClassDefinition().getTypeName());
-        RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.class, 
-        		ShadowType.F_RESOURCE_REF, resourceType.asPrismObject());
+        EqualsFilter idFilter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, attrDef.getName()), attrDef, attributeValue);
+        EqualsFilter ocFilter = EqualsFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, null,
+        		rAccountDef.getObjectClassDefinition().getTypeName());
+        RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, resourceType);
         AndFilter filter = AndFilter.createAnd(idFilter, ocFilter, resourceRefFilter);
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 		return modelObjectResolver.countObjects(ShadowType.class, query, result);
@@ -444,13 +516,13 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
     	RefinedResourceSchema rSchema = RefinedResourceSchema.getRefinedSchema(resourceType);
         RefinedObjectClassDefinition rAccountDef = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
         RefinedAttributeDefinition attrDef = rAccountDef.findAttributeDefinition(attributeName);
-        EqualsFilter idFilter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), attrDef, null, attributeValue);
-        EqualsFilter ocFilter = EqualsFilter.createEqual(ShadowType.class, prismContext, 
-        		ShadowType.F_OBJECT_CLASS, rAccountDef.getObjectClassDefinition().getTypeName());
-        RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.class, 
-        		ShadowType.F_RESOURCE_REF, resourceType.asPrismObject());
+        EqualsFilter idFilter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, attrDef.getName()), attrDef, attributeValue);
+        EqualsFilter ocFilter = EqualsFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext, 
+        		null, rAccountDef.getObjectClassDefinition().getTypeName());
+        RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, resourceType);
         AndFilter filter = AndFilter.createAnd(idFilter, ocFilter, resourceRefFilter);
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+        LOGGER.trace("Determining uniqueness of attribute {} using query:\n{}", attributeName, query.dump());
         
         final Holder<Boolean> isUniqueHolder = new Holder<Boolean>(true);
         ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
@@ -476,6 +548,14 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 		modelObjectResolver.searchIterative(ShadowType.class, query, handler, result);
 		
 		return isUniqueHolder.getValue();
+    }
+    
+    private Task getCurrentTask() {
+    	return ModelExpressionThreadLocalHolder.getCurrentTask();
+    }
+    
+    private OperationResult getCurrentResult() {
+    	return ModelExpressionThreadLocalHolder.getCurrentResult();
     }
     
     private OperationResult getCurrentResult(String operationName) {
@@ -512,7 +592,296 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         return LensContext.fromLensContextType(lensContextType, prismContext, provisioningService, getCurrentResult(MidpointFunctions.class.getName()+".getObject"));
     }
 
-    public LensContextType wrapModelContext(LensContext<?,?> lensContext) throws SchemaException {
+    public LensContextType wrapModelContext(LensContext<?> lensContext) throws SchemaException {
         return lensContext.toPrismContainer().getValue().asContainerable();
+    }
+    
+    // Convenience functions
+    
+	@Override
+	public <T extends ObjectType> T createEmptyObject(Class<T> type) {
+		PrismObjectDefinition<T> objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
+		PrismObject<T> object = objectDefinition.instantiate();
+		return object.asObjectable();
+	}
+
+	@Override
+	public <T extends ObjectType> T createEmptyObjectWithName(Class<T> type, String name) {
+		T objectType = createEmptyObject(type);
+		objectType.setName(new PolyStringType(name));
+		return objectType;
+	}
+
+	@Override
+	public <T extends ObjectType> T createEmptyObjectWithName(Class<T> type, PolyString name) {
+		T objectType = createEmptyObject(type);
+		objectType.setName(new PolyStringType(name));
+		return objectType;
+	}
+
+	@Override
+	public <T extends ObjectType> T createEmptyObjectWithName(Class<T> type, PolyStringType name) {
+		T objectType = createEmptyObject(type);
+		objectType.setName(name);
+		return objectType;
+	}
+    
+    // Functions accessing modelService
+    
+	@Override
+	public <T extends ObjectType> T getObject(Class<T> type,
+			String oid, Collection<SelectorOptions<GetOperationOptions>> options)
+			throws ObjectNotFoundException, SchemaException,
+			CommunicationException, ConfigurationException,
+			SecurityViolationException {
+		return modelService.getObject(type, oid, options, getCurrentTask(), getCurrentResult()).asObjectable();
+	}
+
+	@Override
+	public <T extends ObjectType> T getObject(Class<T> type,
+			String oid) throws ObjectNotFoundException, SchemaException,
+			SecurityViolationException, CommunicationException,
+			ConfigurationException, SecurityViolationException {
+		PrismObject<T> prismObject = modelService.getObject(type, oid, null, getCurrentTask(), getCurrentResult());
+		return prismObject.asObjectable();
+	}
+
+	@Override
+	public void executeChanges(
+			Collection<ObjectDelta<? extends ObjectType>> deltas,
+			ModelExecuteOptions options) throws ObjectAlreadyExistsException,
+			ObjectNotFoundException, SchemaException,
+			ExpressionEvaluationException, CommunicationException,
+			ConfigurationException, PolicyViolationException,
+			SecurityViolationException {
+		modelService.executeChanges(deltas, options, getCurrentTask(), getCurrentResult());
+	}
+
+	@Override
+	public void executeChanges(
+			Collection<ObjectDelta<? extends ObjectType>> deltas)
+			throws ObjectAlreadyExistsException, ObjectNotFoundException,
+			SchemaException, ExpressionEvaluationException,
+			CommunicationException, ConfigurationException,
+			PolicyViolationException, SecurityViolationException {
+		modelService.executeChanges(deltas, null, getCurrentTask(), getCurrentResult());
+	}
+
+	@Override
+	public void executeChanges(ObjectDelta<? extends ObjectType>... deltas)
+			throws ObjectAlreadyExistsException, ObjectNotFoundException,
+			SchemaException, ExpressionEvaluationException,
+			CommunicationException, ConfigurationException,
+			PolicyViolationException, SecurityViolationException {
+		Collection<ObjectDelta<? extends ObjectType>> deltaCollection = MiscSchemaUtil.createCollection(deltas);
+		modelService.executeChanges(deltaCollection, null, getCurrentTask(), getCurrentResult());
+	}
+
+	@Override
+	public <T extends ObjectType> String addObject(PrismObject<T> newObject,
+			ModelExecuteOptions options) throws ObjectAlreadyExistsException,
+			ObjectNotFoundException, SchemaException,
+			ExpressionEvaluationException, CommunicationException,
+			ConfigurationException, PolicyViolationException,
+			SecurityViolationException {
+		ObjectDelta<T> delta = ObjectDelta.createAddDelta(newObject);
+		Collection<ObjectDelta<? extends ObjectType>> deltaCollection = MiscSchemaUtil.createCollection(delta);
+		modelService.executeChanges(deltaCollection, options, getCurrentTask(), getCurrentResult());
+		return delta.getOid();
+	}
+
+	@Override
+	public <T extends ObjectType> String addObject(PrismObject<T> newObject)
+			throws ObjectAlreadyExistsException, ObjectNotFoundException,
+			SchemaException, ExpressionEvaluationException,
+			CommunicationException, ConfigurationException,
+			PolicyViolationException, SecurityViolationException {
+		return addObject(newObject, null);
+	}
+
+	@Override
+	public <T extends ObjectType> String addObject(T newObject,
+			ModelExecuteOptions options) throws ObjectAlreadyExistsException,
+			ObjectNotFoundException, SchemaException,
+			ExpressionEvaluationException, CommunicationException,
+			ConfigurationException, PolicyViolationException,
+			SecurityViolationException {
+		return addObject(newObject.asPrismObject(), options);
+	}
+
+	@Override
+	public <T extends ObjectType> String addObject(T newObject)
+			throws ObjectAlreadyExistsException, ObjectNotFoundException,
+			SchemaException, ExpressionEvaluationException,
+			CommunicationException, ConfigurationException,
+			PolicyViolationException, SecurityViolationException {
+		return addObject(newObject.asPrismObject(), null);
+	}
+
+	@Override
+	public <T extends ObjectType> void modifyObject(ObjectDelta<T> modifyDelta,
+			ModelExecuteOptions options) throws ObjectAlreadyExistsException,
+			ObjectNotFoundException, SchemaException,
+			ExpressionEvaluationException, CommunicationException,
+			ConfigurationException, PolicyViolationException,
+			SecurityViolationException {
+		Collection<ObjectDelta<? extends ObjectType>> deltaCollection = MiscSchemaUtil.createCollection(modifyDelta);
+		modelService.executeChanges(deltaCollection, options, getCurrentTask(), getCurrentResult());
+	}
+
+	@Override
+	public <T extends ObjectType> void modifyObject(ObjectDelta<T> modifyDelta)
+			throws ObjectAlreadyExistsException, ObjectNotFoundException,
+			SchemaException, ExpressionEvaluationException,
+			CommunicationException, ConfigurationException,
+			PolicyViolationException, SecurityViolationException {
+		Collection<ObjectDelta<? extends ObjectType>> deltaCollection = MiscSchemaUtil.createCollection(modifyDelta);
+		modelService.executeChanges(deltaCollection, null, getCurrentTask(), getCurrentResult());
+	}
+
+	@Override
+	public <T extends ObjectType> void deleteObject(Class<T> type, String oid,
+			ModelExecuteOptions options) throws ObjectAlreadyExistsException,
+			ObjectNotFoundException, SchemaException,
+			ExpressionEvaluationException, CommunicationException,
+			ConfigurationException, PolicyViolationException,
+			SecurityViolationException {
+		ObjectDelta<T> deleteDelta = ObjectDelta.createDeleteDelta(type, oid, prismContext);
+		Collection<ObjectDelta<? extends ObjectType>> deltaCollection = MiscSchemaUtil.createCollection(deleteDelta);
+		modelService.executeChanges(deltaCollection, options, getCurrentTask(), getCurrentResult());
+	}
+
+	@Override
+	public <T extends ObjectType> void deleteObject(Class<T> type, String oid)
+			throws ObjectAlreadyExistsException, ObjectNotFoundException,
+			SchemaException, ExpressionEvaluationException,
+			CommunicationException, ConfigurationException,
+			PolicyViolationException, SecurityViolationException {
+		ObjectDelta<T> deleteDelta = ObjectDelta.createDeleteDelta(type, oid, prismContext);
+		Collection<ObjectDelta<? extends ObjectType>> deltaCollection = MiscSchemaUtil.createCollection(deleteDelta);
+		modelService.executeChanges(deltaCollection, null, getCurrentTask(), getCurrentResult());
+	}
+
+	@Override
+	public <F extends FocusType> void recompute(Class<F> type, String oid) throws SchemaException, PolicyViolationException,
+			ExpressionEvaluationException, ObjectNotFoundException,
+			ObjectAlreadyExistsException, CommunicationException,
+			ConfigurationException, SecurityViolationException {
+		modelService.recompute(type, oid, getCurrentTask(), getCurrentResult());
+	}
+
+	@Override
+	public PrismObject<UserType> findShadowOwner(String accountOid) throws ObjectNotFoundException {
+		return modelService.findShadowOwner(accountOid, getCurrentTask(), getCurrentResult());
+	}
+
+	@Override
+	public <T extends ObjectType> List<T> searchObjects(
+			Class<T> type, ObjectQuery query,
+			Collection<SelectorOptions<GetOperationOptions>> options)
+			throws SchemaException, ObjectNotFoundException,
+			SecurityViolationException, CommunicationException,
+			ConfigurationException {
+		return MiscSchemaUtil.toObjectableList(
+				modelService.searchObjects(type, query, options, getCurrentTask(), getCurrentResult()));
+	}
+
+	@Override
+	public <T extends ObjectType> List<T> searchObjects(
+			Class<T> type, ObjectQuery query) throws SchemaException,
+			ObjectNotFoundException, SecurityViolationException,
+			CommunicationException, ConfigurationException {
+		return MiscSchemaUtil.toObjectableList(
+				modelService.searchObjects(type, query, null, getCurrentTask(), getCurrentResult()));
+	}
+
+	@Override
+	public <T extends ObjectType> void searchObjectsIterative(Class<T> type,
+			ObjectQuery query, ResultHandler<T> handler,
+			Collection<SelectorOptions<GetOperationOptions>> options)
+			throws SchemaException, ObjectNotFoundException,
+			CommunicationException, ConfigurationException,
+			SecurityViolationException {
+		modelService.searchObjectsIterative(type, query, handler, options, getCurrentTask(), getCurrentResult());
+	}
+
+	@Override
+	public <T extends ObjectType> void searchObjectsIterative(Class<T> type,
+			ObjectQuery query, ResultHandler<T> handler)
+			throws SchemaException, ObjectNotFoundException,
+			CommunicationException, ConfigurationException,
+			SecurityViolationException {
+		modelService.searchObjectsIterative(type, query, handler, null, getCurrentTask(), getCurrentResult());
+	}
+	
+	@Override
+	public <T extends ObjectType> T searchObjectByName(Class<T> type, String name) 
+				throws SecurityViolationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException {
+		ObjectQuery nameQuery = ObjectQueryUtil.createNameQuery(name, prismContext);
+		List<PrismObject<T>> foundObjects = modelService.searchObjects(type, nameQuery, null, getCurrentTask(), getCurrentResult());
+		if (foundObjects.isEmpty()) {
+			return null;
+		}
+		if (foundObjects.size() > 1) {
+			throw new IllegalStateException("More than one object found for type "+type+" and name '"+name+"'");
+		}
+		return foundObjects.iterator().next().asObjectable();
+	}
+	
+	@Override
+	public <T extends ObjectType> T searchObjectByName(Class<T> type, PolyString name) 
+				throws SecurityViolationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException {
+		ObjectQuery nameQuery = ObjectQueryUtil.createNameQuery(name, prismContext);
+		List<PrismObject<T>> foundObjects = modelService.searchObjects(type, nameQuery, null, getCurrentTask(), getCurrentResult());
+		if (foundObjects.isEmpty()) {
+			return null;
+		}
+		if (foundObjects.size() > 1) {
+			throw new IllegalStateException("More than one object found for type "+type+" and name '"+name+"'");
+		}
+		return foundObjects.iterator().next().asObjectable();
+	}
+	
+	@Override
+	public <T extends ObjectType> T searchObjectByName(Class<T> type, PolyStringType name) 
+				throws SecurityViolationException, ObjectNotFoundException, CommunicationException, ConfigurationException, SchemaException {
+		ObjectQuery nameQuery = ObjectQueryUtil.createNameQuery(name, prismContext);
+		List<PrismObject<T>> foundObjects = modelService.searchObjects(type, nameQuery, null, getCurrentTask(), getCurrentResult());
+		if (foundObjects.isEmpty()) {
+			return null;
+		}
+		if (foundObjects.size() > 1) {
+			throw new IllegalStateException("More than one object found for type "+type+" and name '"+name+"'");
+		}
+		return foundObjects.iterator().next().asObjectable();
+	}
+
+	@Override
+	public <T extends ObjectType> int countObjects(Class<T> type,
+			ObjectQuery query,
+			Collection<SelectorOptions<GetOperationOptions>> options)
+			throws SchemaException, ObjectNotFoundException,
+			SecurityViolationException, ConfigurationException,
+			CommunicationException {
+		return modelService.countObjects(type, query, options, getCurrentTask(), getCurrentResult());
+	}
+
+	@Override
+	public <T extends ObjectType> int countObjects(Class<T> type,
+			ObjectQuery query) throws SchemaException, ObjectNotFoundException,
+			SecurityViolationException, ConfigurationException,
+			CommunicationException {
+		return modelService.countObjects(type, query, null, getCurrentTask(), getCurrentResult());
+	}
+
+	@Override
+	public OperationResult testResource(String resourceOid)
+			throws ObjectNotFoundException {
+		return modelService.testResource(resourceOid, getCurrentTask());
+	}
+
+    @Override
+    public ObjectDeltaType getResourceDelta(ModelContext context, String resourceOid) {
+        return null;
     }
 }

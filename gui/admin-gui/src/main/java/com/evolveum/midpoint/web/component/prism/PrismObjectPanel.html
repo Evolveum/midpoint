@@ -17,10 +17,9 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="objectForm" align="center">
-
+    <div>
         <div class="tableForm" >
-            <div class="tableFormHead">
+            <div class="tableFormHead" style="display: none;">
                 <div class="objectFormHeader" wicket:id="headerPanel">
                     <div class="objectFormHeaderOptionButtons" wicket:id="optionButtons" />
                     <img class="objectFormHeaderIcon" wicket:id="headerImg"/>
@@ -34,13 +33,11 @@
                     <div class="objectFormHeaderOperationButtons" wicket:id="operationButtons" />
                 </div>
             </div>
-            <div class="tableFormBody" wicket:id="body">
+            <div class="row header" wicket:id="header"/>
+            <div wicket:id="body">
                 <div wicket:id="containers">
                     <div wicket:id="container"/>
                 </div>
-            </div>
-            <div class="tableFormFoot">
-                <div class="objectFormFooter">&nbsp;<div class="statusBarContent" wicket:id="footer"/></div>
             </div>
         </div>
     </div>

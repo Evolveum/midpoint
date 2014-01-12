@@ -20,30 +20,26 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
-import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AndFilter;
@@ -54,15 +50,13 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrFilter;
 import com.evolveum.midpoint.prism.query.OrgFilter;
+import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
@@ -193,49 +187,59 @@ public class QueryConvertor {
 		return not;
 	}
 
-	private static Element createEqualsFilterType(EqualsFilter filter, Document doc , PrismContext prismContext) throws SchemaException{
+	private static <T> Element createEqualsFilterType(EqualsFilter<T> filter, Document doc , PrismContext prismContext) throws SchemaException{
 
 		Element equal = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_EQUAL);
-		Element value = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_VALUE);
+		
 //		equal.appendChild(value);
 		
-		Element matching = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_MATCHING);
-		matching.setTextContent(filter.getMatchingRule());
-		equal.appendChild(matching);
+		createMatchingRuleElement(filter, equal, doc);
 		
+//		if (filter.getMatchingRule() != null){
+//			Element matching = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_MATCHING);
+//			matching.setTextContent(filter.getMatchingRule().getLocalPart());
+//			equal.appendChild(matching);
+		// }
+		//
 		Element path = createPathElement(filter, doc);
 		equal.appendChild(path);
 
 		QName propertyName = filter.getDefinition().getName();
-		for (PrismValue val : filter.getValues()) {
-			Element propValue = DOMUtil.createElement(doc, propertyName);
-			if (val instanceof PrismReferenceValue) {
-				throw new SchemaException("Prism refenrence value not allowed in the equal element");
-			} else {
-				if (val.getParent() == null){
-					val.setParent(filter);
-				}
-				Element element = prismContext.getPrismDomProcessor().serializeValueToDom(val, propertyName, doc);
-				if (PolyString.class.equals(filter.getDefinition().getTypeClass()) || PolyStringType.class.equals(filter.getDefinition().getTypeClass())) {
-					for (Element e : DOMUtil.listChildElements(element)){
-						value.appendChild(e);
-					}
-				} else{
-					value.setTextContent(element.getTextContent());
-				}
-//				if (XmlTypeConverter.canConvert(val.getClass())){
-//					Element propVal = val.asDomElement();
-//					value.setTextContent(propVal.getTextContent());
-//				} else {
-//					value.setTextContent(String.valueOf(((PrismPropertyValue)val).getValue()));
-//				}
-//				value.setTextContent();
-				equal.appendChild(value);
-//				propValue.setTextContent(String.valueOf(((PrismPropertyValue) val).getValue()));
+		
+		if (filter.getValues() == null || filter.getValues().isEmpty()){
+			equal.appendChild(DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_VALUE));
+		}
+		
+		for (PrismPropertyValue<T> val : filter.getValues()) {
+			if (val.getParent() == null) {
+				val.setParent(filter);
 			}
-//			value.appendChild(propValue);
+			Element value = createValueElement(val, propertyName, doc, filter, prismContext);
+			equal.appendChild(value);
 		}
 		return equal;
+	}
+	
+	
+	private static Element createValueElement(PrismPropertyValue val, QName propertyName, Document doc, PropertyValueFilter filter, PrismContext prismContext) throws SchemaException{
+		Element value = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_VALUE);
+		Element element = prismContext.getPrismDomProcessor().serializeValueToDom(val, propertyName, doc);
+		if (PolyString.class.equals(filter.getDefinition().getTypeClass()) || PolyStringType.class.equals(filter.getDefinition().getTypeClass())) {
+			for (Element e : DOMUtil.listChildElements(element)){
+				value.appendChild(e);
+			}
+		} else{
+			value.setTextContent(element.getTextContent());
+		}
+//		if (XmlTypeConverter.canConvert(val.getClass())){
+//			Element propVal = val.asDomElement();
+//			value.setTextContent(propVal.getTextContent());
+//		} else {
+//			value.setTextContent(String.valueOf(((PrismPropertyValue)val).getValue()));
+//		}
+//		value.setTextContent();
+		return value;
+
 	}
 	
 	private static Element createRefFilterType(RefFilter filter, Document doc, PrismContext prismContext) throws SchemaException {
@@ -276,25 +280,47 @@ public class QueryConvertor {
 		return ref;
 	}
 
-	private static Element createSubstringFilterType(SubstringFilter filter, Document doc, PrismContext prismContext) {
+	private static <T> Element createSubstringFilterType(SubstringFilter<T> filter, Document doc, PrismContext prismContext) throws SchemaException {
 		Element substring = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_SUBSTRING);
-		Element value = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_VALUE);
-		substring.appendChild(value);
+//		Element value = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_VALUE);
+//		substring.appendChild(value);
 
 		Element path = createPathElement(filter, doc);
 		substring.appendChild(path);
 		
-		Element matching = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_MATCHING);
-		matching.setTextContent(filter.getMatchingRule());
-		substring.appendChild(matching);
+		createMatchingRuleElement(filter, substring, doc);
+		
+//		if (filter.getMatchingRule() != null){
+//			Element matching = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_MATCHING);
+//			matching.setTextContent(filter.getMatchingRule().getLocalPart());
+//			substring.appendChild(matching);
+//		}
 
-//		QName propertyName = filter.getDefinition().getName();
-		String val = filter.getValue();
-
+		QName propertyName = filter.getDefinition().getName();
+		if (filter.getValues() == null || filter.getValues().isEmpty()){
+			substring.appendChild(DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_VALUE));
+		}
+		
+		for (PrismPropertyValue<T> val : filter.getValues()) {
+			if (val.getParent() == null) {
+				val.setParent(filter);
+			}
+			Element value = createValueElement(val, propertyName, doc, filter, prismContext);
+			substring.appendChild(value);
+		}
+		
 //		Element propValue = DOMUtil.createElement(doc, propertyName);
-		value.setTextContent(val);
-
+		
 		return substring;
+	}
+	
+	private static void createMatchingRuleElement(ValueFilter filter, Element filterType, Document doc){
+		if (filter.getMatchingRule() != null){
+			Element matching = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_MATCHING);
+			matching.setTextContent(filter.getMatchingRule().getLocalPart());
+			filterType.appendChild(matching);
+		}
+
 	}
 
 	private static Element createOrgFilterType(OrgFilter filter, Document doc, PrismContext prismContext) {
@@ -327,8 +353,8 @@ public class QueryConvertor {
 	private static Element createPathElement(ValueFilter filter, Document doc) {
 		Element path = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_PATH);
 		XPathHolder xpath = null;
-		if (filter.getParentPath() != null) {
-			xpath = new XPathHolder(new ItemPath(filter.getParentPath(), filter.getDefinition().getName()));
+		if (filter.getFullPath() != null) {
+			xpath = new XPathHolder(filter.getFullPath());
 		} else {
 			xpath = new XPathHolder(filter.getDefinition().getName());
 		}
@@ -410,7 +436,7 @@ public class QueryConvertor {
 		return NotFilter.createNot(objectFilter);
 	}
 
-	private static EqualsFilter createEqualFilter(PrismContainerDefinition pcd, Node filter) throws SchemaException {
+	private static <T> EqualsFilter<PrismPropertyDefinition<T>> createEqualFilter(PrismContainerDefinition pcd, Node filter) throws SchemaException {
 		
 		ItemPath path = getPath((Element) filter);
 
@@ -418,15 +444,16 @@ public class QueryConvertor {
 		throw new SchemaException("Could not convert query, because query does not contain property path.");	
 		}
 		
+		QName matchingRule = determineMatchingRule((Element) filter);
 		
-		String matchingRule = null;
-		Element matching = DOMUtil.getChildElement((Element) filter, SchemaConstantsGenerated.Q_MATCHING);
-		if (matching != null){
-			if (!(matching.getTextContent() instanceof String)){
-				throw new SchemaException("Matching type must be string. Fix your query definition");
-		}
-			 matchingRule = matching.getTextContent();
-		}
+//		String matchingRule = null;
+//		Element matching = DOMUtil.getChildElement((Element) filter, SchemaConstantsGenerated.Q_MATCHING);
+//		if (matching != null){
+//			if (!(matching.getTextContent() instanceof String)){
+//				throw new SchemaException("Matching type must be string. Fix your query definition");
+//		}
+//			 matchingRule = matching.getTextContent();
+//		}
 		
 		
 		List<Element> values = getValues(filter);
@@ -436,23 +463,23 @@ public class QueryConvertor {
 			if (expression == null){
 				expression = DOMUtil.findElementRecursive((Element) filter, SchemaConstantsGenerated.C_VALUE_EXPRESSION);
 			}
-			ItemDefinition itemDef = pcd.findItemDefinition(path);
-			return EqualsFilter.createEqual(path.allExceptLast(), itemDef, matchingRule, expression);
+			PrismPropertyDefinition itemDef = pcd.findPropertyDefinition(path);
+			return EqualsFilter.createEqual(path, itemDef, matchingRule, expression);
 		}
 		
 		if (path.last() == null){
 			throw new SchemaException("Cannot convert query, becasue query does not contian property path.");
 		}
 		QName propertyName = ItemPath.getName(path.last());
-		path = path.allExceptLast();
-		if (path.isEmpty()){
-			path = null;
+		ItemPath parentPath = path.allExceptLast();
+		if (parentPath.isEmpty()){
+			parentPath = null;
 		}
 		
-		Item item = getItem(values, pcd, path, propertyName, false);
+		PrismProperty item = getItem(values, pcd, parentPath, propertyName, false);
 		ItemDefinition itemDef = item.getDefinition();
 		if (itemDef == null) {
-			throw new SchemaException("Item definition for property " + item.getName() + " in container definition " + pcd
+			throw new SchemaException("Item definition for property " + item.getElementName() + " in container definition " + pcd
 					+ " not found.");
 		}
 
@@ -466,7 +493,24 @@ public class QueryConvertor {
 				throw new IllegalStateException("Single value property "+itemDef.getName()+"should have specified only one value.");
 			}
 		}
-		return EqualsFilter.createEqual(path, itemDef, matchingRule, item.getValues());
+		return EqualsFilter.createEqual(path, item, matchingRule);
+	}
+	
+	private static QName determineMatchingRule(Element filterType) throws SchemaException{
+		String matchingRule = null;
+		Element matching = DOMUtil.getChildElement(filterType, SchemaConstantsGenerated.Q_MATCHING);
+		if (matching != null){
+			if (!(matching.getTextContent() instanceof String)){
+				throw new SchemaException("Matching type must be string. Fix your query definition");
+		}
+			 matchingRule = matching.getTextContent();
+		}
+		
+		if (StringUtils.isNotBlank(matchingRule)){
+			return new QName(PrismConstants.NS_MATCHING_RULE, matchingRule);
+		}
+		
+		return null;
 	}
 	
 	private static RefFilter createRefFilter(PrismContainerDefinition pcd, Node filter) throws SchemaException{
@@ -483,15 +527,15 @@ public class QueryConvertor {
 		}
 		
 		QName propertyName = ItemPath.getName(path.last());
-		path = path.allExceptLast();
-		if (path.isEmpty()){
-			path = null;
+		ItemPath parentPath = path.allExceptLast();
+		if (parentPath.isEmpty()){
+			parentPath = null;
 		}
 		
-		Item item = getItem(values, pcd, path, propertyName, true);
+		PrismReference item = getItem(values, pcd, parentPath, propertyName, true);
 		ItemDefinition itemDef = item.getDefinition();
 		if (itemDef == null) {
-			throw new SchemaException("Item definition for property " + item.getName() + " in container definition " + pcd
+			throw new SchemaException("Item definition for property " + item.getElementName() + " in container definition " + pcd
 					+ " not found.");
 		}
 
@@ -502,12 +546,12 @@ public class QueryConvertor {
 		}
 
 		if (expression != null) {
-			return RefFilter.createReferenceEqual(path, itemDef, expression);
+			return RefFilter.createReferenceEqual(path, item, expression);
 		} 
-		return RefFilter.createReferenceEqual(path, itemDef, item.getValues());
+		return RefFilter.createReferenceEqual(path, item);
 	}
 
-	private static Item getItem(List<Element> values, PrismContainerDefinition pcd,
+	private static <I extends Item> I getItem(List<Element> values, PrismContainerDefinition pcd,
 			ItemPath path, QName propertyName, boolean reference) throws SchemaException {
 		
 		if (propertyName ==  null){
@@ -517,7 +561,7 @@ public class QueryConvertor {
 		if (path != null) {
 			pcd = pcd.findContainerDefinition(path);
 		}
-		Collection<Item> items = pcd.getPrismContext().getPrismDomProcessor().parseContainerItems(pcd, values, propertyName, reference);
+		Collection<I> items = pcd.getPrismContext().getPrismDomProcessor().parseContainerItems(pcd, values, propertyName, reference);
 
 		if (items.size() > 1) {
 			throw new SchemaException("Expected presence of a single item (path " + path
@@ -552,14 +596,7 @@ public class QueryConvertor {
 		
 		Element matching = DOMUtil.getChildElement((Element) filter, SchemaConstantsGenerated.Q_MATCHING);
 		
-		String matchingRule = null;
-		if (matching != null) {
-			if (!(matching.getTextContent() instanceof String)) {
-				throw new SchemaException("Matching type must be string. Fix your query definition");
-			}
-			matchingRule = matching.getTextContent();
-		}
-		 
+		QName matchingRule = determineMatchingRule((Element) filter); 
 		
 		List<Element> values = getValues(filter);
 
@@ -567,9 +604,9 @@ public class QueryConvertor {
 			throw new SchemaException("Cannot convert query, becasue query does not contian property path.");
 		}
 		QName propertyName = ItemPath.getName(path.last());
-		path = path.allExceptLast();
-		if (path.isEmpty()){
-			path = null;
+		ItemPath parentPath = path.allExceptLast();
+		if (parentPath.isEmpty()){
+			parentPath = null;
 		}
 		
 		if (values.size() > 1) {
@@ -580,12 +617,12 @@ public class QueryConvertor {
 			throw new SchemaException("No value specified in substring filter.");
 		}
 
-		Item item = getItem(values, pcd, path, propertyName, false);
-		ItemDefinition itemDef = item.getDefinition();
+		PrismProperty item = getItem(values, pcd, parentPath, propertyName, false);
+//		ItemDefinition itemDef = item.getDefinition();
 
 		String substring = values.get(0).getTextContent();
 
-		return SubstringFilter.createSubstring(path, itemDef, matchingRule, substring);
+		return SubstringFilter.createSubstring(path, item.getDefinition(), matchingRule, substring);
 	}
 
 	private static OrgFilter createOrgFilter(PrismContainerDefinition pcd, Node filter) throws SchemaException {

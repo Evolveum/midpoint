@@ -15,31 +15,37 @@
  */
 package com.evolveum.midpoint.model.lens.projector;
 
-import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
-import com.evolveum.midpoint.common.expression.StringPolicyResolver;
-import com.evolveum.midpoint.common.expression.evaluator.GenerateExpressionEvaluator;
-import com.evolveum.midpoint.common.mapping.Mapping;
-import com.evolveum.midpoint.common.mapping.MappingFactory;
-import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import java.util.List;
+
+import javax.xml.bind.JAXBElement;
+import javax.xml.namespace.QName;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
+import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
+import com.evolveum.midpoint.model.common.expression.StringPolicyResolver;
+import com.evolveum.midpoint.model.common.mapping.Mapping;
+import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.lens.AccountConstruction;
 import com.evolveum.midpoint.model.lens.LensContext;
+import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.lens.LensUtil;
-import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.OriginType;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -47,24 +53,16 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.GenerateExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.StringPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
-import javax.xml.bind.JAXBElement;
-import javax.xml.namespace.QName;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Processor that evaluates values of the outbound mappings. It does not create the deltas yet. It just collects the
@@ -83,7 +81,7 @@ public class OutboundProcessor {
     @Autowired(required = true)
     private MappingFactory mappingFactory;
 
-    void processOutbound(LensContext<UserType,ShadowType> context, LensProjectionContext<ShadowType> accCtx, OperationResult result) throws SchemaException,
+    public <F extends FocusType> void processOutbound(LensContext<F> context, LensProjectionContext accCtx, Task task, OperationResult result) throws SchemaException,
             ExpressionEvaluationException, ObjectNotFoundException {
 
         ResourceShadowDiscriminator rat = accCtx.getResourceShadowDiscriminator();
@@ -103,8 +101,8 @@ public class OutboundProcessor {
             throw new IllegalStateException("Definition for account type " + rat + " not found in the context, but it should be there");
         }
         
-        ObjectDeltaObject<UserType> userOdo = context.getFocusContext().getObjectDeltaObject();
-        ObjectDeltaObject<ShadowType> accountOdo = accCtx.getObjectDeltaObject();
+        ObjectDeltaObject<F> focusOdo = context.getFocusContext().getObjectDeltaObject();
+        ObjectDeltaObject<ShadowType> projectionOdo = accCtx.getObjectDeltaObject();
         
         AccountConstruction outboundAccountConstruction = new AccountConstruction(null, accCtx.getResource());
         
@@ -142,16 +140,18 @@ public class OutboundProcessor {
 			}
 			
 			mapping.setDefaultTargetDefinition(refinedAttributeDefinition);
-			mapping.setSourceContext(userOdo);
-			mapping.addVariableDefinition(ExpressionConstants.VAR_USER, userOdo);
-			mapping.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, accountOdo);
+			mapping.setSourceContext(focusOdo);
+			mapping.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo);
+			mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo);
+			mapping.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, projectionOdo);
+			mapping.addVariableDefinition(ExpressionConstants.VAR_PROJECTION, projectionOdo);
 			mapping.addVariableDefinition(ExpressionConstants.VAR_ITERATION, 
 					LensUtil.getIterationVariableValue(accCtx));
 			mapping.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, 
 					LensUtil.getIterationTokenVariableValue(accCtx));
 			mapping.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, accCtx.getResource());
 			mapping.addVariableDefinition(ExpressionConstants.VAR_OPERATION, operation);
-			mapping.setRootNode(userOdo);
+			mapping.setRootNode(focusOdo);
 			mapping.setOriginType(OriginType.OUTBOUND);
 			
 			StringPolicyResolver stringPolicyResolver = new StringPolicyResolver() {
@@ -198,14 +198,14 @@ public class OutboundProcessor {
 			
 			// Set condition masks. There are used as a brakes to avoid evaluating to nonsense values in case user is not present
 			// (e.g. in old values in ADD situations and new values in DELETE situations).
-			if (userOdo.getOldObject() == null) {
+			if (focusOdo.getOldObject() == null) {
 				mapping.setConditionMaskOld(false);
 			}
-			if (userOdo.getNewObject() == null) {
+			if (focusOdo.getNewObject() == null) {
 				mapping.setConditionMaskNew(false);
 			}
 			
-			LensUtil.evaluateMapping(mapping, context, result);
+			LensUtil.evaluateMapping(mapping, context, task, result);
 			
 			outboundAccountConstruction.addAttributeConstruction(mapping);
         }

@@ -42,8 +42,8 @@ public class ObjectClassComplexTypeDefinition extends ComplexTypeDefinition {
 	private String intent;
 	private String nativeObjectClass;
 
-	public ObjectClassComplexTypeDefinition(QName defaultName, QName typeName, PrismContext prismContext) {
-		super(defaultName, typeName, prismContext);
+	public ObjectClassComplexTypeDefinition(QName typeName, PrismContext prismContext) {
+		super(typeName, prismContext);
 	}
 	
 	public Collection<? extends ResourceAttributeDefinition> getAttributeDefinitions() {
@@ -288,7 +288,7 @@ public class ObjectClassComplexTypeDefinition extends ComplexTypeDefinition {
     }
     
 	public ResourceAttributeDefinition createAttributeDefinition(QName name, QName typeName) {
-		ResourceAttributeDefinition propDef = new ResourceAttributeDefinition(name, name, typeName, prismContext);
+		ResourceAttributeDefinition propDef = new ResourceAttributeDefinition(name, typeName, prismContext);
 		addDefinition(propDef);
 		return propDef;
 	}
@@ -323,7 +323,7 @@ public class ObjectClassComplexTypeDefinition extends ComplexTypeDefinition {
 	}
 	
 	public ObjectClassComplexTypeDefinition clone() {
-		ObjectClassComplexTypeDefinition clone = new ObjectClassComplexTypeDefinition(getDefaultName(), 
+		ObjectClassComplexTypeDefinition clone = new ObjectClassComplexTypeDefinition( 
 				getTypeName(), prismContext);
 		copyDefinitionData(clone);
 		return clone;

@@ -33,6 +33,7 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -50,7 +51,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.activiti.TestAuthenticationInfoHolder;
 import com.evolveum.midpoint.wf.api.Constants;
-import com.evolveum.midpoint.wf.api.ProcessInstance;
 import com.evolveum.midpoint.wf.processes.WorkflowResult;
 import com.evolveum.midpoint.wf.processes.itemApproval.ApprovalRequestImpl;
 import com.evolveum.midpoint.wf.processes.itemApproval.ProcessVariableNames;
@@ -83,15 +83,15 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
 
     protected static final Trace LOGGER = TraceManager.getTrace(TestUserChangeApproval.class);
 
-    private static final String TEST_RESOURCE_DIR_NAME = "src/test/resources";
-    private static final String REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE1 = TEST_RESOURCE_DIR_NAME + "/user-jack-modify-add-assignment-role1.xml";
-    private static final String REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE2_CHANGE_GN = TEST_RESOURCE_DIR_NAME + "/user-jack-modify-add-assignment-role2-change-gn.xml";
-    private static final String REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE3_CHANGE_GN2 = TEST_RESOURCE_DIR_NAME + "/user-jack-modify-add-assignment-role3-change-gn2.xml";
-    private static final String REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLES2_3_4 = TEST_RESOURCE_DIR_NAME + "/user-jack-modify-add-assignment-roles2-3-4.xml";
-    private static final String REQ_USER_JACK_MODIFY_ACTIVATION_DISABLE = TEST_RESOURCE_DIR_NAME + "/user-jack-modify-activation-disable.xml";
-    private static final String REQ_USER_JACK_MODIFY_ACTIVATION_ENABLE = TEST_RESOURCE_DIR_NAME + "/user-jack-modify-activation-enable.xml";
-    private static final String REQ_USER_JACK_MODIFY_CHANGE_PASSWORD = TEST_RESOURCE_DIR_NAME + "/user-jack-modify-change-password.xml";
-    private static final String REQ_USER_JACK_MODIFY_CHANGE_PASSWORD_2 = TEST_RESOURCE_DIR_NAME + "/user-jack-modify-change-password-2.xml";
+    private static final File TEST_RESOURCE_DIR = new File("src/test/resources");
+    private static final File REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE1 = new File(TEST_RESOURCE_DIR, "user-jack-modify-add-assignment-role1.xml");
+    private static final File REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE2_CHANGE_GN = new File(TEST_RESOURCE_DIR, "user-jack-modify-add-assignment-role2-change-gn.xml");
+    private static final File REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE3_CHANGE_GN2 = new File(TEST_RESOURCE_DIR, "user-jack-modify-add-assignment-role3-change-gn2.xml");
+    private static final File REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLES2_3_4 = new File(TEST_RESOURCE_DIR, "user-jack-modify-add-assignment-roles2-3-4.xml");
+    private static final File REQ_USER_JACK_MODIFY_ACTIVATION_DISABLE = new File(TEST_RESOURCE_DIR, "user-jack-modify-activation-disable.xml");
+    private static final File REQ_USER_JACK_MODIFY_ACTIVATION_ENABLE = new File(TEST_RESOURCE_DIR, "user-jack-modify-activation-enable.xml");
+    private static final File REQ_USER_JACK_MODIFY_CHANGE_PASSWORD = new File(TEST_RESOURCE_DIR, "user-jack-modify-change-password.xml");
+    private static final File REQ_USER_JACK_MODIFY_CHANGE_PASSWORD_2 = new File(TEST_RESOURCE_DIR, "user-jack-modify-change-password-2.xml");
 
     private static final String DONT_CHECK = "dont-check";
 
@@ -102,7 +102,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
 	private TaskManager taskManager;
 
     @Autowired(required = true)
-    private WorkflowServiceImpl workflowServiceImpl;
+    private WorkflowManagerImpl workflowServiceImpl;
 
     @Autowired
     private WfTaskUtil wfTaskUtil;
@@ -144,9 +144,9 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
        	executeTest("test010UserModifyAddRole", USER_JACK_OID, 1, false, true, new ContextCreator() {
                @Override
                public LensContext createModelContext(OperationResult result) throws Exception {
-                   LensContext<UserType, ShadowType> context = createUserAccountContext();
+                   LensContext<UserType> context = createUserAccountContext();
                    fillContextWithUser(context, USER_JACK_OID, result);
-                   addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE1);
+                   addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE1);
                    return context;
                }
 
@@ -268,9 +268,9 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
         executeTest("test011UserModifyAddRoleChangeGivenName", USER_JACK_OID, 1, false, true, new ContextCreator() {
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType, ShadowType> context = createUserAccountContext();
+                LensContext<UserType> context = createUserAccountContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
-                addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE2_CHANGE_GN);
+                addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE2_CHANGE_GN);
                 return context;
             }
 
@@ -313,9 +313,9 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
         executeTest("test012UserModifyAddRoleChangeGivenNameImmediate", USER_JACK_OID, 2, true, true, new ContextCreator() {
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType, ShadowType> context = createUserAccountContext();
+                LensContext<UserType> context = createUserAccountContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
-                addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE3_CHANGE_GN2);
+                addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE3_CHANGE_GN2);
                 context.setOptions(ModelExecuteOptions.createExecuteImmediatelyAfterApproval());
                 return context;
             }
@@ -357,10 +357,10 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
         executeTest("test020UserModifyAddThreeRoles", USER_JACK_OID, 2, false, true, new ContextCreator() {
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType, ShadowType> context = createUserAccountContext();
+                LensContext<UserType> context = createUserAccountContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
-                addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLES2_3_4);
-                addModificationToContext(context, REQ_USER_JACK_MODIFY_ACTIVATION_DISABLE);
+                addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLES2_3_4);
+                addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ACTIVATION_DISABLE);
                 return context;
             }
 
@@ -411,10 +411,10 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
         executeTest("test021UserModifyAddThreeRolesImmediate", USER_JACK_OID, 3, true, true, new ContextCreator() {
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType, ShadowType> context = createUserAccountContext();
+                LensContext<UserType> context = createUserAccountContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
-                addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLES2_3_4);
-                addModificationToContext(context, REQ_USER_JACK_MODIFY_ACTIVATION_ENABLE);
+                addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLES2_3_4);
+                addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ACTIVATION_ENABLE);
                 context.setOptions(ModelExecuteOptions.createExecuteImmediatelyAfterApproval());
                 return context;
             }
@@ -463,7 +463,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
         executeTest("test030UserAdd", null, 2, false, false, new ContextCreator() {
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType, ShadowType> context = createUserAccountContext();
+                LensContext<UserType> context = createUserAccountContext();
                 PrismObject<UserType> bill = prismContext.parseObject(new File(TestConstants.USER_BILL_FILENAME));
                 fillContextWithAddUserDelta(context, bill);
                 return context;
@@ -516,7 +516,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
         executeTest("test031UserAddImmediate", null, 3, true, true, new ContextCreator() {
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType, ShadowType> context = createUserAccountContext();
+                LensContext<UserType> context = createUserAccountContext();
                 PrismObject<UserType> bill = prismContext.parseObject(new File(TestConstants.USER_BILL_FILENAME));
                 fillContextWithAddUserDelta(context, bill);
                 context.setOptions(ModelExecuteOptions.createExecuteImmediatelyAfterApproval());
@@ -576,9 +576,9 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
         executeTest("test040UserModifyPasswordChangeBlocked", USER_JACK_OID, 1, false, true, new ContextCreator() {
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType, ShadowType> context = createUserAccountContext();
+                LensContext<UserType> context = createUserAccountContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
-                addModificationToContext(context, REQ_USER_JACK_MODIFY_CHANGE_PASSWORD);
+                addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_CHANGE_PASSWORD);
                 context.setOptions(ModelExecuteOptions.createNoCrypt());
                 return context;
             }
@@ -621,9 +621,9 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
         executeTest("test041UserModifyPasswordChange", USER_JACK_OID, 1, false, true, new ContextCreator() {
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType, ShadowType> context = createUserAccountContext();
+                LensContext<UserType> context = createUserAccountContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
-                addModificationToContext(context, REQ_USER_JACK_MODIFY_CHANGE_PASSWORD);
+                addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_CHANGE_PASSWORD);
                 context.setOptions(ModelExecuteOptions.createNoCrypt());
                 return context;
             }
@@ -665,10 +665,10 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
         executeTest("test050UserModifyAddRoleAndPasswordChange", USER_JACK_OID, 2, false, true, new ContextCreator() {
             @Override
             public LensContext createModelContext(OperationResult result) throws Exception {
-                LensContext<UserType, ShadowType> context = createUserAccountContext();
+                LensContext<UserType> context = createUserAccountContext();
                 fillContextWithUser(context, USER_JACK_OID, result);
-                addModificationToContext(context, REQ_USER_JACK_MODIFY_CHANGE_PASSWORD_2);
-                addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE1);
+                addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_CHANGE_PASSWORD_2);
+                addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ROLE1);
                 context.setOptions(ModelExecuteOptions.createNoCrypt());
                 return context;
             }
@@ -760,11 +760,11 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
             removeAllRoles(oid, result);
         }
 
-        LensContext<UserType, ShadowType> context = (LensContext<UserType, ShadowType>) contextCreator.createModelContext(result);
+        LensContext<UserType> context = (LensContext<UserType>) contextCreator.createModelContext(result);
 
         display("Input context", context);
 
-        assertUserModificationSanity(context);
+        assertFocusModificationSanity(context);
 
         // WHEN
 
@@ -841,12 +841,12 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
             String pid = wfTaskUtil.getProcessId(subtask);
             assertNotNull("Workflow process instance id not present in subtask " + subtask, pid);
 
-            ProcessInstance processInstance = workflowServiceImpl.getProcessInstanceByInstanceId(pid, false, true, result);
+            WfProcessInstanceType processInstance = workflowServiceImpl.getProcessInstanceById(pid, false, true, result);
             assertNotNull("Process instance information cannot be retrieved", processInstance);
             assertEquals("Incorrect number of work items", 1, processInstance.getWorkItems().size());
 
-            String taskId = processInstance.getWorkItems().get(0).getTaskId();
-            //WorkItemDetailed workItemDetailed = wfDataAccessor.getWorkItemDetailsByTaskId(taskId, result);
+            String taskId = processInstance.getWorkItems().get(0).getWorkItemId();
+            //WorkItemDetailed workItemDetailed = wfDataAccessor.getWorkItemDetailsById(taskId, result);
 
             org.activiti.engine.task.Task t = activitiEngine.getTaskService().createTaskQuery().taskId(taskId).singleResult();
             assertNotNull("activiti task not found", t);
@@ -941,12 +941,12 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
     }
 
     private List<PrismObject<UserType>> findUserInRepoUnchecked(String name, OperationResult result) throws SchemaException {
-        ObjectQuery q = ObjectQuery.createObjectQuery(EqualsFilter.createPolyStringOrigEqual(UserType.class, prismContext, UserType.F_NAME, new PolyStringType(name)));
+        ObjectQuery q = ObjectQuery.createObjectQuery(EqualsFilter.createEqual(UserType.F_NAME, UserType.class, prismContext, PolyStringOrigMatchingRule.NAME, new PolyString(name)));
         return repositoryService.searchObjects(UserType.class, q, null, result);
     }
 
     private List<PrismObject<RoleType>> findRoleInRepoUnchecked(String name, OperationResult result) throws SchemaException {
-        ObjectQuery q = ObjectQuery.createObjectQuery(EqualsFilter.createPolyStringOrigEqual(UserType.class, prismContext, RoleType.F_NAME, new PolyStringType(name)));
+        ObjectQuery q = ObjectQuery.createObjectQuery(EqualsFilter.createEqual(RoleType.F_NAME, UserType.class, prismContext, PolyStringOrigMatchingRule.NAME, new PolyString(name)));
         return repositoryService.searchObjects(RoleType.class, q, null, result);
     }
 

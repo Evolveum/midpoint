@@ -22,6 +22,7 @@ import com.evolveum.midpoint.repo.sql.util.DtoTranslationException;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.ForeignKey;
@@ -158,7 +159,10 @@ public class ROrg extends RAbstractRole<OrgType> {
         jaxb.setDisplayName(RPolyString.copyToJAXB(repo.getDisplayName()));
         jaxb.setIdentifier(repo.getIdentifier());
         jaxb.setLocality(RPolyString.copyToJAXB(repo.getLocality()));
-        jaxb.getOrgType().addAll(RUtil.safeSetToList(repo.getOrgType()));
+
+        if (SelectorOptions.hasToLoadPath(OrgType.F_ORG_TYPE, options)) {
+            jaxb.getOrgType().addAll(RUtil.safeSetToList(repo.getOrgType()));
+        }
     }
 
     @Override

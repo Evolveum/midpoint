@@ -21,40 +21,77 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
+import com.evolveum.prism.xml.ns._public.query_2.QueryType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 public class ObjectQueryUtil {
 
+	public static ObjectQuery createNameQuery(String name, PrismContext prismContext) throws SchemaException {
+    	PolyString polyName = new PolyString(name);
+    	return createNameQuery(polyName, prismContext);
+    }
+    
+    public static ObjectQuery createNameQuery(PolyStringType name, PrismContext prismContext) throws SchemaException {
+    	return createNameQuery(name.toPolyString(), prismContext);
+    }
+
+	public static ObjectQuery createNameQuery(PolyString name, PrismContext prismContext) throws SchemaException {
+        EqualsFilter filter = EqualsFilter.createEqual(ObjectType.F_NAME, ObjectType.class, prismContext, null, name);
+        return ObjectQuery.createObjectQuery(filter);
+	}
+	
+	public static ObjectQuery createNameQuery(ObjectType object) throws SchemaException {
+		return createNameQuery(object.getName(), object.asPrismObject().getPrismContext());
+	}
+	
+	public static <O extends ObjectType> ObjectQuery createNameQuery(PrismObject<O> object) throws SchemaException {
+		return createNameQuery(object.asObjectable().getName(), object.getPrismContext());
+	}
 	
 	public static ObjectQuery createResourceAndAccountQuery(String resourceOid, QName objectClass, PrismContext prismContext) throws SchemaException {
 		Validate.notNull(resourceOid, "Resource where to search must not be null.");
 		Validate.notNull(objectClass, "Object class to search must not be null.");
 		Validate.notNull(prismContext, "Prism context must not be null.");
 		AndFilter and = AndFilter.createAnd(
-				RefFilter.createReferenceEqual(ShadowType.class, ShadowType.F_RESOURCE_REF, prismContext, resourceOid), 
-				EqualsFilter.createEqual(
-						ShadowType.class, prismContext, ShadowType.F_OBJECT_CLASS, objectClass));
+				RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, prismContext, resourceOid), 
+				EqualsFilter.createEqual(ShadowType.F_OBJECT_CLASS, 
+						ShadowType.class, prismContext, null, objectClass));
 		return ObjectQuery.createObjectQuery(and);
 	}
 	
 	public static <T extends ObjectType> ObjectQuery createNameQuery(Class<T> clazz, PrismContext prismContext, String name) throws SchemaException{
 		PolyString namePolyString = new PolyString(name);
-		namePolyString.recompute(prismContext.getDefaultPolyStringNormalizer());
-		EqualsFilter equal = EqualsFilter.createEqual(clazz, prismContext, ObjectType.F_NAME, namePolyString);
+		EqualsFilter equal = EqualsFilter.createEqual(ObjectType.F_NAME, clazz, prismContext, null, namePolyString);
 		return ObjectQuery.createObjectQuery(equal);
 	}
 	
 	public static ObjectQuery createRootOrgQuery(PrismContext prismContext) throws SchemaException {
 		ObjectQuery objectQuery = ObjectQuery.createObjectQuery(OrgFilter.createRootOrg());
 		return objectQuery;
+	}
+	
+	public static String dump(QueryType query) {
+		if (query == null) {
+			return "null";
+		}
+		StringBuilder sb = new StringBuilder("Query(");
+		sb.append(query.getDescription()).append("):\n");
+		if (query.getFilter() != null)
+			sb.append(DOMUtil.serializeDOMToString(query.getFilter()));
+		else
+			sb.append("(no filter)");
+		return sb.toString();
 	}
 }

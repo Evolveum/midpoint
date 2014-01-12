@@ -49,6 +49,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -145,7 +146,7 @@ public class ConnectorManager {
 		try {
 
 			connector = connectorFactory.createConnectorInstance(connectorType,
-					ResourceTypeUtil.getResourceNamespace(resourceType));
+					ResourceTypeUtil.getResourceNamespace(resourceType), resource.toString());
 
 		} catch (ObjectNotFoundException e) {
 			result.recordFatalError(e.getMessage(), e);
@@ -330,7 +331,7 @@ public class ConnectorManager {
 				// Let's instantiate the connector and generate the schema
 				ConnectorInstance connectorInstance = null;
 				try {
-					connectorInstance = connectorFactory.createConnectorInstance(foundConnector, null);
+					connectorInstance = connectorFactory.createConnectorInstance(foundConnector, null, "discovered connector");
 					PrismSchema connectorSchema = connectorInstance.generateConnectorSchema();
 					if (connectorSchema == null) {
 						LOGGER.warn("Connector {} haven't provided configuration schema", foundConnector);
@@ -403,8 +404,8 @@ public class ConnectorManager {
 
 	private boolean isInRepo(ConnectorType connectorType, OperationResult result) throws SchemaException {
 		AndFilter filter = AndFilter.createAnd(
-				EqualsFilter.createEqual(ConnectorType.class, prismContext, SchemaConstants.C_CONNECTOR_FRAMEWORK, connectorType.getFramework()),
-				EqualsFilter.createEqual(ConnectorType.class, prismContext, SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE, connectorType.getConnectorType()));
+				EqualsFilter.createEqual(SchemaConstants.C_CONNECTOR_FRAMEWORK, ConnectorType.class, prismContext, null, connectorType.getFramework()),
+				EqualsFilter.createEqual(SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE, ConnectorType.class, prismContext, null, connectorType.getConnectorType()));
 	
 		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 		
@@ -486,6 +487,10 @@ public class ConnectorManager {
 		public String connectorOid;
 		public PrismContainer configuration;
 		public ConnectorInstance connectorInstance;
+	}
+
+	public void connectorFrameworkSelfTest(OperationResult parentTestResult, Task task) {
+		connectorFactory.selfTest(parentTestResult);
 	}
 
 }

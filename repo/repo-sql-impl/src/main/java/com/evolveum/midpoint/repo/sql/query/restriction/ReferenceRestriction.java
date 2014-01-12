@@ -90,7 +90,8 @@ public class ReferenceRestriction extends ItemRestriction<RefFilter> {
     private String createPropertyNamePrefix(RefFilter filter) throws QueryException {
         QueryContext context = getContext();
 
-        ItemPath path = RUtil.createFullPath(filter);
+//        ItemPath path = RUtil.createFullPath(filter);
+        ItemPath path = filter.getFullPath();
 
         StringBuilder sb = new StringBuilder();
         String alias = context.getAlias(path);

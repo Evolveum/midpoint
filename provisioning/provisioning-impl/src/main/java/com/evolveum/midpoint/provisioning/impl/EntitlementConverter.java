@@ -18,7 +18,6 @@ package com.evolveum.midpoint.provisioning.impl;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.xml.namespace.QName;
@@ -29,7 +28,6 @@ import org.springframework.stereotype.Component;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
-import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.ModificationType;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -191,9 +189,10 @@ class EntitlementConverter {
 			throw new SchemaException("Value attribute "+valueAttrName+" has no more than one value; attribute defined in entitlement association '"+associationName+"' in "+resourceType);
 		}
 		
-		ObjectFilter filter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), assocAttrDef, valueAttr.getValue());
-		ObjectQuery query = new ObjectQuery();
-		query.setFilter(filter);
+		ObjectFilter filter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, assocAttrDef.getName()), assocAttrDef, valueAttr.getValue());
+		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+//		ObjectQuery query = new ObjectQuery();
+//		query.setFilter(filter);
 		
 		AttributesToReturn attributesToReturn = ProvisioningUtil.createAttributesToReturn(entitlementDef, resourceType);
 		
@@ -346,9 +345,11 @@ class EntitlementConverter {
 				throw new SchemaException("Value attribute "+valueAttrName+" has no more than one value; attribute defined in entitlement association '"+associationName+"' in "+resourceType);
 			}
 			
-			ObjectFilter filter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), assocAttrDef, valueAttr.getValue());
-			ObjectQuery query = new ObjectQuery();
-			query.setFilter(filter);
+//			ObjectFilter filter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), assocAttrDef, valueAttr.getValue());
+			ObjectFilter filter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, assocAttrDef.getName()), assocAttrDef, valueAttr.getValue());
+			ObjectQuery query = ObjectQuery.createObjectQuery(filter); 
+//					new ObjectQuery();
+//			query.setFilter(filter);
 			
 			AttributesToReturn attributesToReturn = ProvisioningUtil.createAttributesToReturn(entitlementOcDef, resourceType);
 			
@@ -367,7 +368,7 @@ class EntitlementConverter {
 					for(Operation operation: operations) {
 						if (operation instanceof PropertyModificationOperation) {
 							PropertyModificationOperation propOp = (PropertyModificationOperation)operation;
-							if (propOp.getPropertyDelta().getName().equals(assocAttrName)) {
+							if (propOp.getPropertyDelta().getElementName().equals(assocAttrName)) {
 								attributeDelta = propOp.getPropertyDelta();
 							}
 						}
@@ -548,7 +549,7 @@ class EntitlementConverter {
 		for(Operation operation: operations) {
 			if (operation instanceof PropertyModificationOperation) {
 				PropertyModificationOperation propOp = (PropertyModificationOperation)operation;
-				if (propOp.getPropertyDelta().getName().equals(assocAttrName)) {
+				if (propOp.getPropertyDelta().getElementName().equals(assocAttrName)) {
 					attributeDelta = propOp.getPropertyDelta();
 				}
 			}

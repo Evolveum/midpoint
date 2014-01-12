@@ -48,6 +48,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
@@ -88,7 +89,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
 	private void initDummy(String name, Task initTask, OperationResult initResult) throws FileNotFoundException, ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException, ConnectException {
 		String resourceOid = getDummyOid(name);
 		DummyResourceContoller resourceCtl = DummyResourceContoller.create(name.toUpperCase());
-		resourceCtl.extendDummySchema();
+		resourceCtl.extendSchemaPirate();
 		PrismObject<ResourceType> resource = importAndGetObjectFromFile(ResourceType.class, 
 				getDummFile(name), resourceOid, initTask, initResult);
 		resourceCtl.setResource(resource);
@@ -116,9 +117,9 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
         
-        LensContext<UserType, ShadowType> context = createUserAccountContext();
+        LensContext<UserType> context = createUserAccountContext();
         LensFocusContext<UserType> focusContext = fillContextWithUser(context, USER_ELAINE_OID, result);
-        LensProjectionContext<ShadowType> accountContext = fillContextWithAccount(context, ACCOUNT_SHADOW_ELAINE_DUMMY_OID, result);
+        LensProjectionContext accountContext = fillContextWithAccount(context, ACCOUNT_SHADOW_ELAINE_DUMMY_OID, result);
         fillContextWithDummyElaineAccount(context, "a", result);
         
         context.recompute();
@@ -145,9 +146,9 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
         
-        LensContext<UserType, ShadowType> context = createUserAccountContext();
+        LensContext<UserType> context = createUserAccountContext();
         LensFocusContext<UserType> focusContext = fillContextWithUser(context, USER_ELAINE_OID, result);
-        LensProjectionContext<ShadowType> accountContext = fillContextWithAccount(context, ACCOUNT_SHADOW_ELAINE_DUMMY_OID, result);
+        LensProjectionContext accountContext = fillContextWithAccount(context, ACCOUNT_SHADOW_ELAINE_DUMMY_OID, result);
         fillContextWithDummyElaineAccount(context, "a", result);
         fillContextWithDummyElaineAccount(context, "b", result);
         
@@ -176,9 +177,9 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
         
-        LensContext<UserType, ShadowType> context = createUserAccountContext();
+        LensContext<UserType> context = createUserAccountContext();
         LensFocusContext<UserType> focusContext = fillContextWithUser(context, USER_ELAINE_OID, result);
-        LensProjectionContext<ShadowType> accountContext = fillContextWithAccount(context, ACCOUNT_SHADOW_ELAINE_DUMMY_OID, result);
+        LensProjectionContext accountContext = fillContextWithAccount(context, ACCOUNT_SHADOW_ELAINE_DUMMY_OID, result);
         fillContextWithDummyElaineAccount(context, "a", result);
         fillContextWithDummyElaineAccount(context, "b", result);
         fillContextWithDummyElaineAccount(context, "c", result);
@@ -211,7 +212,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
         
-        LensContext<UserType, ShadowType> context = createUserAccountContext();
+        LensContext<UserType> context = createUserAccountContext();
         LensFocusContext<UserType> focusContext = fillContextWithUser(context, USER_ELAINE_OID, result);
         fillContextWithDummyElaineAccount(context, "b", result);
         fillContextWithDummyElaineAccount(context, "c", result);
@@ -242,7 +243,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
         
-        LensContext<UserType, ShadowType> context = createUserAccountContext();
+        LensContext<UserType> context = createUserAccountContext();
         fillContextWithUser(context, USER_ELAINE_OID, result);
         fillContextWithDummyElaineAccount(context, "p", result);
         fillContextWithDummyElaineAccount(context, "r", result);
@@ -276,7 +277,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
         
-        LensContext<UserType, ShadowType> context = createUserAccountContext();
+        LensContext<UserType> context = createUserAccountContext();
         fillContextWithUser(context, USER_ELAINE_OID, result);
         fillContextWithDummyElaineAccount(context, "r", result);
         fillContextWithDummyElaineAccount(context, "p", result);
@@ -306,7 +307,7 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         OperationResult result = task.getResult();
         assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
         
-        LensContext<UserType, ShadowType> context = createUserAccountContext();
+        LensContext<UserType> context = createUserAccountContext();
         fillContextWithUser(context, USER_ELAINE_OID, result);
         fillContextWithDummyElaineAccount(context, "x", result);
         fillContextWithDummyElaineAccount(context, "y", result);
@@ -328,8 +329,8 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         
 	}
 	
-	private LensProjectionContext<ShadowType> fillContextWithDummyElaineAccount(
-			LensContext<UserType, ShadowType> context, String dummyName, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+	private LensProjectionContext fillContextWithDummyElaineAccount(
+			LensContext<UserType> context, String dummyName, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		String resourceOid = getDummyOid(dummyName);
 		String accountOid = getDummuAccountOid(dummyName,"e");
 		PrismObject<ShadowType> account = PrismTestUtil.parseObject(ACCOUNT_ELAINE_TEMPLATE_FILE);
@@ -340,20 +341,20 @@ public class TestDependencies extends AbstractInternalModelIntegrationTest {
         return fillContextWithAccount(context, account, result);
 	}
 	
-	private void assertWave(LensContext<UserType, ShadowType> context,
+	private void assertWave(LensContext<UserType> context,
 			String resourceOid, int order, int expectedWave) {
-		LensProjectionContext<ShadowType> ctxAccDummy = findAccountContext(context, resourceOid, order);
+		LensProjectionContext ctxAccDummy = findAccountContext(context, resourceOid, order);
 		assertNotNull("No context for "+resourceOid+", order="+order, ctxAccDummy);
         assertWave(ctxAccDummy, expectedWave);
 	}
 
-	private void assertWave(LensProjectionContext<ShadowType> projCtx, int expectedWave) {
+	private void assertWave(LensProjectionContext projCtx, int expectedWave) {
 		assertEquals("Wrong wave in "+projCtx, expectedWave, projCtx.getWave());
 	}
 
-	private LensProjectionContext<ShadowType> findAccountContext(LensContext<UserType, ShadowType> context,
+	private LensProjectionContext findAccountContext(LensContext<UserType> context,
 			String resourceOid, int order) {
-		ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(resourceOid, null);
+		ResourceShadowDiscriminator discr = new ResourceShadowDiscriminator(resourceOid, ShadowKindType.ACCOUNT, null);
 		discr.setOrder(order);
 		return context.findProjectionContext(discr);
 	}

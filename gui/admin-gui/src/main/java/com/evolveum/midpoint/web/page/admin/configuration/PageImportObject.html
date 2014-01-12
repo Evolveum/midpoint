@@ -18,28 +18,46 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <form wicket:id="mainForm">
-    	<h4><wicket:message key="pageImportObject.chooseImportType"/></h4>
-    	<span wicket:id="importTypes" />
-    	<br />
-    	<br />
-    	<div wicket:id="container">
-	        <span wicket:id="chooseFile"/>
-	        <input wicket:id="fileInput" type="file"/>
-	        
-	        <div wicket:id="aceContainer">
-		        <div id="aceEditorContainer">
-		            <textarea wicket:id="aceEditor"></textarea>
-		        </div>
-	        </div>
-	        
-	        
-	        <div wicket:id="importOptions"/>
-	
-	        <div class="operatingFormButtons">
-	            <a class="button" wicket:id="importFileButton"/>
-	            <a class="button" wicket:id="importXmlButton"/>
-	        </div>
+    <form class="form-horizontal" wicket:id="mainForm">
+        <div wicket:id="importOptions"/>
+
+        <div class="form-group">
+            <label class="col-lg-2 control-label"><wicket:message key="PageImportObject.getObjectsFrom"/></label>
+
+            <div class="col-lg-2">
+                <div wicket:id="importRadioGroup">
+                    <div class="radio">
+                        <label>
+                            <input wicket:id="fileRadio" type="radio">
+                            <wicket:message key="PageImportObject.file"/>
+                        </label>
+                    </div>
+                    <div class="radio">
+                        <label>
+                            <input wicket:id="xmlRadio" type="radio">
+                            <wicket:message key="PageImportObject.embeddedEditor"/>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group" wicket:id="input">
+            <div class="col-lg-12" wicket:id="inputAce">
+                <textarea wicket:id="aceEditor"></textarea>
+            </div>
+
+            <label class="col-lg-2 control-label" wicket:id="inputFileLabel"></label>
+            <div class="col-lg-2" wicket:id="inputFile">
+                <input wicket:id="fileInput" type="file"/>
+
+                <p class="help-block"><wicket:message key="PageImportObject.message.help"/></p>
+            </div>
+        </div>
+
+        <div class="main-button-bar" wicket:id="buttonBar">
+            <a class="btn btn-primary" wicket:id="importFileButton"/>
+            <a class="btn btn-primary" wicket:id="importXmlButton"/>
         </div>
     </form>
 </wicket:extend>

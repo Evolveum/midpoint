@@ -45,9 +45,9 @@
 			                </h4>
 		        			<div wicket:id="loggersTable"/>
 		        			
-		        			<a wicket:id="addComponentLogger"/>
-		        			<a wicket:id="addClassLogger"/>
-		        			<a wicket:id="deleteLogger"/>
+		        			<a class="btn btn-success btn-sm" wicket:id="addComponentLogger"/>
+		        			<a class="btn btn-success btn-sm" wicket:id="addClassLogger"/>
+		        			<a class="btn btn-danger btn-sm" wicket:id="deleteLogger"/>
 		        		</td>
 		        		<td style="vertical-align: top; padding-left: 70px;">
 		        			<h4>
@@ -55,8 +55,8 @@
 			                </h4>
 		        			<div wicket:id="filtersTable"/>
 		        			
-		        			 <a wicket:id="addFilter"/>
-		        			 <a wicket:id="deleteFilter"/>
+		        			 <a class="btn btn-success btn-sm" wicket:id="addFilter"/>
+		        			 <a class="btn btn-danger btn-sm" wicket:id="deleteFilter"/>
 		        		</td>
 		        	</tr>
 		        </table>
@@ -84,9 +84,9 @@
             <li wicket:id="appenders">
                 <div wicket:id="appendersTable"/>
 
-                <a wicket:id="addConsoleAppender"/>
-                <a wicket:id="addFileAppender"/>
-                <a wicket:id="deleteAppender"/>
+                <a class="btn btn-success btn-sm" wicket:id="addConsoleAppender"/>
+                <a class="btn btn-success btn-sm" wicket:id="addFileAppender"/>
+                <a class="btn btn-danger btn-sm" wicket:id="deleteAppender"/>
             </li>
             <li wicket:id="auditing">
 		        <table cellspacing="0" cellpadding="0">
@@ -200,10 +200,10 @@
         </div>
         
 
-        <div class="operatingFormButtons">
-            <a wicket:id="saveButton"/>
-            <a wicket:id="resetButton"/>
-            <a wicket:id="advancedButton"/>
+        <div class="main-button-bar">
+            <a class="btn btn-danger" wicket:id="resetButton"/>
+            <a class="btn btn-default" wicket:id="advancedButton"/>
+            <a class="btn btn-primary" wicket:id="saveButton"/>
         </div>
     </form>
 </wicket:extend>

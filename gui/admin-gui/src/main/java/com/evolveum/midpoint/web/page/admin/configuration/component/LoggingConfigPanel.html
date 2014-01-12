@@ -17,69 +17,247 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <h2><wicket:message key="LoggingConfigPanel.loggers"/></h2>
-    <table cellspacing="0" cellpadding="0">
-        <tr>
-            <td class="label">
-                <wicket:message key="LoggingConfigPanel.rootLevel"/>
-            </td>
-            <td class="values">
-                <select wicket:id="rootLevel"/>
-            </td>
-            <td class="label" style="padding-left: 40px;">
-                <wicket:message key="LoggingConfigPanel.rootAppender"/>
-            </td>
-            <td class="values">
-                <select wicket:id="rootAppender"/>
-            </td>
-        </tr>
-    </table>
-    <table>
-        <tr>
-            <td style="vertical-align: top;">
-                <h4>
-                    <wicket:message key="LoggingConfigPanel.loggersTable"/>
-                </h4>
-                <div wicket:id="loggersTable"/>
+<div class="row">
+    <div class="col-lg-6">
+        <h3><wicket:message key="LoggingConfigPanel.loggers"/></h3>
 
-                <a wicket:id="addComponentLogger"/>
-                <a wicket:id="addClassLogger"/>
-                <a wicket:id="deleteLogger"/>
-            </td>
-            <td style="vertical-align: top; padding-left: 70px;">
-                <h4>
-                    <wicket:message key="LoggingConfigPanel.filtersTable"/>
-                </h4>
-                <div wicket:id="filtersTable"/>
+        <div class="form-group">
+            <label class="col-lg-4 control-label"><wicket:message key="LoggingConfigPanel.rootLogger"/></label>
 
-                <a wicket:id="addFilter"/>
-                <a wicket:id="deleteFilter"/>
-            </td>
-        </tr>
-    </table>
-    <h4>
-        <wicket:message key="LoggingConfigPanel.logSubsystemEntryExit"/>
-    </h4>
-    <table cellspacing="0" cellpadding="0">
-        <tr>
-            <td class="label">
-                <wicket:message key="LoggingConfigPanel.subsystem.level"/>
-            </td>
-            <td class="values">
-                <select wicket:id="profilingLevel"/>
-            </td>
-            <td class="label" style="padding-left: 40px;">
-                <wicket:message key="LoggingConfigPanel.subsystem.appender"/>
-            </td>
-            <td class="values">
-                <select wicket:id="profilingAppender"/>
-            </td>
-        </tr>
-    </table>
+            <div class="col-lg-4">
+                <select class="form-control input-sm" wicket:id="rootLevel" />
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-lg-4 control-label"><wicket:message key="LoggingConfigPanel.rootAppender"/></label>
 
-    <h2><wicket:message key="LoggingConfigPanel.appenders"/></h2>
+            <div class="col-lg-4">
+                <select class="form-control input-sm" wicket:id="rootAppender" />
+            </div>
+        </div>
 
-    <h2><wicket:message key="LoggingConfigPanel.audit"/></h2>
+        <div wicket:id="loggersTable"/>
 
+        <div class="main-button-bar" style="margin-left: 20px;">
+            <span class="button-group">
+                <a class="btn btn-success" wicket:id="addComponentLogger"/>
+                <a class="btn btn-success" wicket:id="addClassLogger"/>
+            </span>
+
+            <a class="btn btn-danger" wicket:id="deleteLogger"/>
+        </div>
+
+        <!-- Audit configuration -->
+        <h3><wicket:message key="LoggingConfigPanel.audit"/></h3>
+
+        <div class="form-group">
+            <label class="col-lg-4 control-label"><wicket:message key="LoggingConfigPanel.auditLog"/></label>
+
+            <div class="col-lg-4">
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" wicket:id="auditLog">
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-lg-4 control-label"><wicket:message key="LoggingConfigPanel.details"/></label>
+
+            <div class="col-lg-4">
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" wicket:id="auditDetails">
+                    </label>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-lg-4 control-label"><wicket:message key="LoggingConfigPanel.appender"/></label>
+
+            <div class="col-lg-4">
+                <select class="form-control input-sm" wicket:id="auditAppender">
+                    <option>None</option>
+                    <option>IDM_LOG</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <!-- General profiling section -->
+        <h3><wicket:message key="LoggingConfigPanel.profiling.general"/></h3>
+
+        <div class="form-group">
+            <label class="col-lg-4 control-label"><wicket:message key="LoggingConfigPanel.profiling.requestFilter"/></label>
+
+            <div class="col-lg-4">
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" wicket:id="requestFilter">
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-lg-4 control-label"><wicket:message key="LoggingConfigPanel.profiling.performanceStatistics"/></label>
+
+            <div class="col-lg-4">
+                <div class="checkbox">
+                    <label>
+                        <input type="checkbox" wicket:id="performanceStatistics">
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-lg-4 control-label"><wicket:message key="LoggingConfigPanel.profiling.dumpInterval"/></label>
+
+            <div class="col-lg-2">
+                <input type="text" class="form-control input-sm" wicket:id="dumpInterval"
+                       wicket:message="placeholder:LoggingConfigPanel.profiling.dumpInterval.placeholder">
+            </div>
+        </div>
+
+        <!-- Subsystem profiling section -->
+        <h3><wicket:message key="LoggingConfigPanel.profiling.subsystems"/></h3>
+
+        <div class="form-group">
+            <div class="col-lg-6">
+                <div class="form-group">
+                    <label class="col-lg-4 control-label"><wicket:message key="LoggingConfigPanel.profiling.subsystem.model"/></label>
+
+                    <div class="col-lg-4">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" wicket:id="subsystemModel">
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-lg-4 control-label"><wicket:message key="LoggingConfigPanel.profiling.subsystem.repository"/></label>
+
+                    <div class="col-lg-4">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" wicket:id="subsystemRepository">
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-lg-4 control-label"><wicket:message key="LoggingConfigPanel.profiling.subsystem.provisioning"/></label>
+
+                    <div class="col-lg-4">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" wicket:id="subsystemProvisioning">
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-lg-4 control-label"><wicket:message key="LoggingConfigPanel.profiling.subsystem.ucf"/></label>
+
+                    <div class="col-lg-4">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" wicket:id="subsystemUcf">
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="form-group">
+                    <label class="col-lg-4 control-label"><wicket:message key="LoggingConfigPanel.profiling.subsystem.resourceObjectChangeListener"/></label>
+
+                    <div class="col-lg-4">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" wicket:id="subsystemResourceObjectChangeListener">
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-lg-4 control-label"><wicket:message key="LoggingConfigPanel.profiling.subsystem.taskManager"/></label>
+
+                    <div class="col-lg-4">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" wicket:id="subsystemTaskManager">
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-lg-4 control-label"><wicket:message key="LoggingConfigPanel.profiling.subsystem.workflow"/></label>
+
+                    <div class="col-lg-4">
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" wicket:id="subsystemWorkflow">
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profiling - Entry/Exit level -->
+        <h3><wicket:message key="LoggingConfigPanel.profiling.entryExit"/></h3>
+
+        <div class="form-group">
+            <label class="col-lg-4 control-label"><wicket:message key="LoggingConfigPanel.subsystem.level"/></label>
+
+            <div class="col-lg-4">
+                <select class="form-control input-sm" wicket:id="profilingLevel"/>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="col-lg-4 control-label"><wicket:message key="LoggingConfigPanel.subsystem.appender"/></label>
+
+            <div class="col-lg-4">
+                <select class="form-control input-sm" wicket:id="profilingAppender"/>
+            </div>
+        </div>
+
+
+    </div>
+</div>
+<div class="row">
+    <div class="col-lg-12">
+        <h3><wicket:message key="LoggingConfigPanel.appenders"/></h3>
+        <table class="table table-striped">
+            <thead>
+            <th><input type="checkbox" class="form-control input-sm"/></th>
+            <th>Name</th>
+            <th>Pattern</th>
+            <th>File path</th>
+            <th>File pattern</th>
+            <th>Max. history</th>
+            <th>Max. file size</th>
+            <th>Appending</th>
+            </thead>
+            <tbody>
+            <tr>
+                <td><input type="checkbox"/></td>
+                <td><a href="#">IDM_LOG</a></td>
+                <td>%date [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</td>
+                <td>${catalina.base}/logs/idm.log</td>
+                <td>${catalina.base}/logs/idm-%d{yyyy-MM-dd}.%i.log</td>
+                <td>10</td>
+                <td>100MB</td>
+                <td><input type="checkbox" disabled="true" checked/></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
 </wicket:panel>
 </html>

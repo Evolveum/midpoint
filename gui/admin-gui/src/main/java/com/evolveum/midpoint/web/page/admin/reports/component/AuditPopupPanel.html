@@ -20,35 +20,23 @@
     <form wicket:id="form">
         <div style="color: red;" wicket:id="feedback"/>
 
-        <table style="margin: 10px;" cellpadding="4" cellspacing="4">
+        <table class="table table-condensed table-striped">
             <tr>
-                <td>
-                    <wicket:message key="AuditPopupPanel.dateFrom"/>
-                </td>
-                <td>
-                    <span wicket:id="dateFrom"/>
-                </td>
+                <td><wicket:message key="AuditPopupPanel.dateFrom"/></td>
+                <td><span wicket:id="dateFrom"/></td>
             </tr>
             <tr>
-                <td>
-                    <wicket:message key="AuditPopupPanel.dateTo"/>
-                </td>
-                <td>
-                    <span wicket:id="dateTo"/>
-                </td>
+                <td><wicket:message key="AuditPopupPanel.dateTo"/></td>
+                <td><span wicket:id="dateTo"/></td>
             </tr>
             <tr>
-            <td>
-                    <wicket:message key="AuditPopupPanel.auditEventType"/>
-                </td>
-             <td>
-                    <select wicket:id="auditEventType"/>
-                </td> 
-                </tr>
+                <td><wicket:message key="AuditPopupPanel.auditEventType"/></td>
+                <td><select class="form-control input-sm" wicket:id="auditEventType"/></td>
+            </tr>
         </table>
 
         <div style="text-align: center;">
-            <a wicket:id="run"/>
+            <a class="btn btn-primary" wicket:id="run"/>
         </div>
     </form>
 </wicket:panel>

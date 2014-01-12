@@ -44,6 +44,8 @@ AS
     DELETE FROM m_user_organization;
     DELETE FROM m_user_organizational_unit;
     DELETE FROM m_user;
+	DELETE FROM m_report;
+	DELETE FROM m_report_output;
     DELETE FROM m_org_org_type;
     DELETE FROM m_authorization_action;
     DELETE FROM m_authorization;

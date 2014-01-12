@@ -1,0 +1,102 @@
+#*
+ * Copyright (c) 2013 Evolveum
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *#
+
+## Include template that renders a list of items. It is designed to work with any
+## definition that has items (e.g. both PrismObjectDefinition and ComplexTypeDefinition)
+
+<div class="contentContainer">
+    <table class="overviewSummary" border="0" cellpadding="0" cellspacing="0">
+
+        <caption>
+            <span>Item Summary</span>
+            <span class="tabEnd">&nbsp;</span>
+        </caption>
+
+        <tr>
+            <th class="colFirst" scope="col">Name</th>
+            <th class="colOne" scope="col">Type</th>
+            <th class="colOne" scope="col">Multiplicity</th>
+            <th class="colLast" scope="col">Description</th>
+        </tr>
+
+        <tbody>
+
+            #set($counter = 1)
+            #foreach($itemDefinition in $definition.getDefinitions())
+                #set( $typeUrl = $path.typeDefinitionUrl($itemDefinition.TypeName,$prefixToBase,$prismContext))
+                #set($modulo = $counter % 2)
+
+                #if($modulo == 0)
+                    <tr class="rowColor">
+                        <td class="colFirst"><a href="#item-$itemDefinition.Name.LocalPart">$itemDefinition.Name.LocalPart</a></td>
+                        <td class="colOne">
+                            $itemDefinition.DocClassName<br/>
+                            #if ($typeUrl)
+                                <a href="$typeUrl">
+                            #end
+                                 $itemDefinition.TypeName.LocalPart
+                            #if ($typeUrl)
+                                </a>
+                            #end
+                        </td>
+                        <td class="colOne">$itemDefinition.debugMultiplicity()</td>
+                        <td class="colLast">$!itemDefinition.getDocumentationPreview()&nbsp;</td>
+                    </tr>
+                #else
+                <tr class="altColor">
+                    <td class="colFirst"><a href="#item-$itemDefinition.Name.LocalPart">$itemDefinition.Name.LocalPart</a></td>
+                    <td class="colOne">
+                        $itemDefinition.DocClassName<br/>
+                        #if ($typeUrl)
+                        <a href="$typeUrl">
+                        #end
+                        $itemDefinition.TypeName.LocalPart
+                        #if ($typeUrl)
+                        </a>
+                        #end
+                    </td>
+                    <td class="colOne">$itemDefinition.debugMultiplicity()</td>
+                    <td class="colLast">$!itemDefinition.getDocumentationPreview()&nbsp;</td>
+                </tr>
+                #end
+                #set($counter = $counter + 1)
+            #end
+        </tbody>
+    </table>
+
+    <div class="details">
+        <ul class="blockList">
+            <li class="blockList"><a name="Items"></a>
+
+                <h3>Items</h3>
+
+                #foreach($itemDefinition in $definition.getDefinitions())
+                <a name="$itemDefinition.Name.LocalPart"></a>
+                <ul class="blockList">
+                    <li class="blockList">
+                        <h4>
+                            <a id="item-$itemDefinition.Name.LocalPart">$itemDefinition.Name.LocalPart</a>
+                        </h4>
+                        <p class="block">Flags: $!itemDefinition.debugFlags()</p>
+                        <p class="block">Multiplicity: $itemDefinition.debugMultiplicity()</p>
+                        <p class="block">$!itemDefinition.getDocumentation()</p>
+                    </li>
+                </ul>
+                #end
+            </li>
+        </ul>
+    </div>
+</div>

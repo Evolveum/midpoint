@@ -18,23 +18,31 @@ package com.evolveum.midpoint.web.page.admin.configuration.dto;
 
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author lazyman
  */
-public class DebugObjectItem extends Selectable {
+public class DebugObjectItem extends Selectable implements InlineMenuable {
 
     public static final String F_OID = "oid";
     public static final String F_NAME = "name";
     public static final String F_RESOURCE_NAME = "resourceName";
     public static final String F_RESOURCE_TYPE = "resourceType";
     public static final String F_FULL_NAME = "fullName";
+    public static final String F_DESCRIPTION = "description";
 
     private String oid;
     private String name;
+    private String description;
 
     //todo create subclasses
     private String resourceName;
@@ -42,9 +50,10 @@ public class DebugObjectItem extends Selectable {
 
     private String fullName;
 
-    public DebugObjectItem(String oid, String name) {
+    public DebugObjectItem(String oid, String name, String description) {
         this.name = name;
         this.oid = oid;
+        this.description = description;
     }
 
     public String getName() {
@@ -79,8 +88,13 @@ public class DebugObjectItem extends Selectable {
         this.fullName = fullName;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
     public static DebugObjectItem createDebugObjectItem(PrismObject object) {
-        DebugObjectItem item = new DebugObjectItem(object.getOid(), WebMiscUtil.getName(object));
+        DebugObjectItem item = new DebugObjectItem(object.getOid(), WebMiscUtil.getName(object),
+                (String) object.getPropertyRealValue(ObjectType.F_DESCRIPTION, String.class));
 
         if (UserType.class.isAssignableFrom(object.getCompileTimeClass())) {
             PolyString fullName = WebMiscUtil.getValue(object, UserType.F_FULL_NAME, PolyString.class);
@@ -88,5 +102,10 @@ public class DebugObjectItem extends Selectable {
         }
 
         return item;
+    }
+
+    @Override
+    public List<InlineMenuItem> getMenuItems() {
+        return new ArrayList<InlineMenuItem>();
     }
 }

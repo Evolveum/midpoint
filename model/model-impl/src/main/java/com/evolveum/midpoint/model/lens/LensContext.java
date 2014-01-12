@@ -45,7 +45,7 @@ import java.util.Map.Entry;
  * @author semancik
  *
  */
-public class LensContext<F extends ObjectType, P extends ObjectType> implements ModelContext<F, P> {
+public class LensContext<F extends ObjectType> implements ModelContext<F> {
 
     private static final long serialVersionUID = -778283437426659540L;
     private static final String DOT_CLASS = LensContext.class.getName() + ".";
@@ -58,21 +58,25 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
     private String channel;
     
 	private LensFocusContext<F> focusContext;
-	private Collection<LensProjectionContext<P>> projectionContexts = new ArrayList<LensProjectionContext<P>>();
+	private Collection<LensProjectionContext> projectionContexts = new ArrayList<LensProjectionContext>();
 
 	private Class<F> focusClass;
-	private Class<P> projectionClass;
 	
 	private boolean lazyAuditRequest = false;
 	private boolean requestAudited = false;
 	private boolean executionAudited = false;
 	private LensContextStatsType stats = new LensContextStatsType();
 
-	transient private ObjectTemplateType userTemplate;
+	transient private ObjectTemplateType focusTemplate;
 	transient private ProjectionPolicyType accountSynchronizationSettings;
 	transient private ValuePolicyType globalPasswordPolicy;
 
 	transient private DeltaSetTriple<Assignment> evaluatedAssignmentTriple;
+	
+	/**
+	 * Just a cached copy. Keep it in context so we do not need to reload it all the time.
+	 */
+	transient private PrismObject<SystemConfigurationType> systemConfiguration;
 	
 	/**
      * True if we want to reconcile all accounts in this context.
@@ -107,16 +111,12 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 	 */
 	transient private LensDebugListener debugListener;
 	
-	public LensContext(Class<F> focusClass, Class<P> projectionClass, PrismContext prismContext, ProvisioningService provisioningService) {
+	public LensContext(Class<F> focusClass, PrismContext prismContext, ProvisioningService provisioningService) {
 		Validate.notNull(prismContext, "No prismContext");
-		if (focusClass == null && projectionClass == null) {
-			throw new IllegalArgumentException("Neither focus class nor projection class was specified");
-		}
 		
         this.prismContext = prismContext;
         this.provisioningService = provisioningService;
         this.focusClass = focusClass;
-        this.projectionClass = projectionClass;
     }
 	
 	public PrismContext getPrismContext() {
@@ -176,20 +176,20 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 	}
 
 	@Override
-	public Collection<LensProjectionContext<P>> getProjectionContexts() {
+	public Collection<LensProjectionContext> getProjectionContexts() {
 		return projectionContexts;
 	}
 	
-	public Iterator<LensProjectionContext<P>> getProjectionContextsIterator() {
+	public Iterator<LensProjectionContext> getProjectionContextsIterator() {
 		return projectionContexts.iterator();
 	}
 	
-	public void addProjectionContext(LensProjectionContext<P> projectionContext) {
+	public void addProjectionContext(LensProjectionContext projectionContext) {
 		projectionContexts.add(projectionContext);
 	}
 	
-	public LensProjectionContext<P> findProjectionContextByOid(String oid) {
-		for (LensProjectionContext<P> projCtx: getProjectionContexts()) {
+	public LensProjectionContext findProjectionContextByOid(String oid) {
+		for (LensProjectionContext projCtx: getProjectionContexts()) {
 			if (oid.equals(projCtx.getOid())) {
 				return projCtx;
 			}
@@ -197,9 +197,9 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 		return null;
 	}
 		
-	public LensProjectionContext<P> findProjectionContext(ResourceShadowDiscriminator rat) {
+	public LensProjectionContext findProjectionContext(ResourceShadowDiscriminator rat) {
 		Validate.notNull(rat);
-		for (LensProjectionContext<P> projCtx: getProjectionContexts()) {
+		for (LensProjectionContext projCtx: getProjectionContexts()) {
 			if (projCtx.compareResourceShadowDiscriminator(rat, true)) {
 				return projCtx;
 			}
@@ -207,16 +207,20 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 		return null;
 	}
 
-	public LensProjectionContext<P> findOrCreateProjectionContext(ResourceShadowDiscriminator rat) {
-		LensProjectionContext<P> projectionContext = findProjectionContext(rat);
+	public LensProjectionContext findOrCreateProjectionContext(ResourceShadowDiscriminator rat) {
+		LensProjectionContext projectionContext = findProjectionContext(rat);
 		if (projectionContext == null) {
 			projectionContext = createProjectionContext(rat);
 		}
 		return projectionContext;
 	}
 	
-	public LensProjectionContext<P> findProjectionContext(ResourceShadowDiscriminator rat, String oid) {
-		LensProjectionContext<P> projectionContext = findProjectionContext(rat);
+	public ObjectTemplateType getFocusTemplate() {
+		return focusTemplate;
+	}
+	
+	public LensProjectionContext findProjectionContext(ResourceShadowDiscriminator rat, String oid) {
+		LensProjectionContext projectionContext = findProjectionContext(rat);
 		
 		if (projectionContext == null || projectionContext.getOid() == null || !oid.equals(projectionContext.getOid())) {
 			return null;
@@ -224,13 +228,18 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 		 
 		return projectionContext;
 	}
-	
-	public ObjectTemplateType getUserTemplate() {
-		return userTemplate;
+
+	public PrismObject<SystemConfigurationType> getSystemConfiguration() {
+		return systemConfiguration;
 	}
 
-	public void setUserTemplate(ObjectTemplateType userTemplate) {
-		this.userTemplate = userTemplate;
+	public void setSystemConfiguration(
+			PrismObject<SystemConfigurationType> systemConfiguration) {
+		this.systemConfiguration = systemConfiguration;
+	}
+
+	public void setFocusTemplate(ObjectTemplateType focusTemplate) {
+		this.focusTemplate = focusTemplate;
 	}
 
 	public ProjectionPolicyType getAccountSynchronizationSettings() {
@@ -280,7 +289,7 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 
 	public int getMaxWave() {
 		int maxWave = 0;
-		for (LensProjectionContext<P> projContext: projectionContexts) {
+		for (LensProjectionContext projContext: projectionContexts) {
 			if (projContext.getWave() > maxWave) {
 				maxWave = projContext.getWave();
 			}
@@ -304,7 +313,7 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 		if (focusContext != null) {
 			focusContext.setFresh(false);
 		}
-		for (LensProjectionContext<P> projectionContext: projectionContexts) {
+		for (LensProjectionContext projectionContext: projectionContexts) {
 			projectionContext.setFresh(false);
 			projectionContext.setFullShadow(false);
 		}
@@ -325,7 +334,7 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 			focusContext.reset();
 		}
 		if (projectionContexts != null) {
-			for (LensProjectionContext<P> projectionContext: projectionContexts) {
+			for (LensProjectionContext projectionContext: projectionContexts) {
 				projectionContext.reset();
 			}
 		}
@@ -422,7 +431,7 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 	        addChangeIfNotNull(allChanges, focusContext.getPrimaryDelta());
 	        addChangeIfNotNull(allChanges, focusContext.getSecondaryDelta());
         }
-        for (LensProjectionContext<P> projCtx: getProjectionContexts()) {
+        for (LensProjectionContext projCtx: getProjectionContexts()) {
             addChangeIfNotNull(allChanges, projCtx.getPrimaryDelta());
             addChangeIfNotNull(allChanges, projCtx.getSecondaryDelta());
         }
@@ -434,7 +443,7 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
         if (focusContext != null) {
 	        addChangeIfNotNull(allChanges, focusContext.getPrimaryDelta());
         }
-        for (LensProjectionContext<P> projCtx: getProjectionContexts()) {
+        for (LensProjectionContext projCtx: getProjectionContexts()) {
             addChangeIfNotNull(allChanges, projCtx.getPrimaryDelta());
         }
         return allChanges;
@@ -485,7 +494,7 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
         if (focusContext != null) {
 	        executedDeltas.addAll(focusContext.getExecutedDeltas(audited));
         }
-        for (LensProjectionContext<P> projCtx: getProjectionContexts()) {
+        for (LensProjectionContext projCtx: getProjectionContexts()) {
         	executedDeltas.addAll(projCtx.getExecutedDeltas(audited));
         }
         return executedDeltas;
@@ -495,7 +504,7 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
         if (focusContext != null) {
         	focusContext.markExecutedDeltasAudited();
         }
-        for (LensProjectionContext<P> projCtx: getProjectionContexts()) {
+        for (LensProjectionContext projCtx: getProjectionContexts()) {
         	projCtx.markExecutedDeltasAudited();
         }
     }
@@ -513,7 +522,7 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 	}
 	
 	public void recomputeProjections() throws SchemaException {
-		for (LensProjectionContext<P> projCtx: getProjectionContexts()) {
+		for (LensProjectionContext projCtx: getProjectionContexts()) {
 			projCtx.recompute();
 		}
 	}
@@ -522,7 +531,7 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 		if (focusContext != null) {
 			focusContext.checkConsistence();
 		}
-		for (LensProjectionContext<P> projectionContext: projectionContexts) {
+		for (LensProjectionContext projectionContext: projectionContexts) {
 			projectionContext.checkConsistence(this.toString(), isFresh, ModelExecuteOptions.isForce(options));
 		}
 	}
@@ -531,19 +540,19 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 		if (focusContext != null && !focusContext.isDelete()) {
 			focusContext.checkEncrypted();
 		}
-		for (LensProjectionContext<P> projectionContext: projectionContexts) {
+		for (LensProjectionContext projectionContext: projectionContexts) {
 			if (!projectionContext.isDelete()) {
 				projectionContext.checkEncrypted();
 			}
 		}
 	}
 	
-	public LensProjectionContext<P> createProjectionContext() {
+	public LensProjectionContext createProjectionContext() {
 		return createProjectionContext(null);
 	}
 	
-	public LensProjectionContext<P> createProjectionContext(ResourceShadowDiscriminator rat) {
-		LensProjectionContext<P> projCtx = new LensProjectionContext<P>(projectionClass, this, rat);
+	public LensProjectionContext createProjectionContext(ResourceShadowDiscriminator rat) {
+		LensProjectionContext projCtx = new LensProjectionContext(this, rat);
 		addProjectionContext(projCtx);
 		return projCtx;
 	}
@@ -602,7 +611,7 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 		if (focusContext != null) {
 			focusContext.cleanup();
 		}
-		for (LensProjectionContext<P> projectionContext: projectionContexts) {
+		for (LensProjectionContext projectionContext: projectionContexts) {
 			projectionContext.cleanup();
 		}
 		recompute();
@@ -614,7 +623,7 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
     	if (focusContext != null) {
     		focusContext.adopt(prismContext);
     	}
-    	for (LensProjectionContext<P> projectionContext: projectionContexts) {
+    	for (LensProjectionContext projectionContext: projectionContexts) {
     		projectionContext.adopt(prismContext);
     	}
     }
@@ -624,36 +633,35 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
     		focusContext.normalize();
     	}
     	if (projectionContexts != null) {
-    		for (LensProjectionContext<P> projectionContext: projectionContexts) {
+    		for (LensProjectionContext projectionContext: projectionContexts) {
     			projectionContext.normalize();
     		}
     	}
     }
     
-    public LensContext<F, P> clone() {
-    	LensContext<F, P> clone = new LensContext<F, P>(focusClass, projectionClass, prismContext, provisioningService);
+    public LensContext<F> clone() {
+    	LensContext<F> clone = new LensContext<F>(focusClass, prismContext, provisioningService);
     	copyValues(clone);
     	return clone;
     }
     
-    protected void copyValues(LensContext<F, P> clone) {
+    protected void copyValues(LensContext<F> clone) {
     	clone.state = this.state;
     	clone.channel = this.channel;
     	clone.doReconciliationForAllProjections = this.doReconciliationForAllProjections;
     	clone.focusClass = this.focusClass;
     	clone.isFresh = this.isFresh;
     	clone.prismContext = this.prismContext;
-    	clone.projectionClass = this.projectionClass;
     	clone.resourceCache = cloneResourceCache();
     	// User template is de-facto immutable, OK to just pass reference here.
-    	clone.userTemplate = this.userTemplate;
+    	clone.focusTemplate = this.focusTemplate;
     	clone.projectionWave = this.projectionWave;
     	
     	if (this.focusContext != null) {
     		clone.focusContext = this.focusContext.clone(this);
     	}
     	
-    	for (LensProjectionContext<P> thisProjectionContext: this.projectionContexts) {
+    	for (LensProjectionContext thisProjectionContext: this.projectionContexts) {
     		clone.projectionContexts.add(thisProjectionContext.clone(this));
     	}
     }
@@ -670,7 +678,7 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
 	}
 	
 	public void distributeResource() {
-		for (LensProjectionContext<P> projCtx: getProjectionContexts()) {
+		for (LensProjectionContext projCtx: getProjectionContexts()) {
 			projCtx.distributeResource();
 		}
 	}
@@ -678,11 +686,6 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
     @Override
     public Class<F> getFocusClass() {
         return focusClass;
-    }
-
-    @Override
-    public Class<P> getProjectionClass() {
-        return projectionClass;
     }
 
     @Override
@@ -711,7 +714,20 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
         sb.append(", Wave(e=").append(executionWave);
         sb.append(",p=").append(projectionWave);
         sb.append(",max=").append(getMaxWave());
-        sb.append("), fresh=").append(isFresh);
+        sb.append("), ");
+        if (focusContext != null) {
+        	sb.append("focus, ");
+        }
+        sb.append(projectionContexts.size());
+        sb.append(" projections, ");
+        try {
+			Collection<ObjectDelta<? extends ObjectType>> allChanges = getAllChanges();
+			sb.append(allChanges.size());
+		} catch (SchemaException e) {
+			sb.append("[ERROR]");
+		}
+        sb.append(" changes, ");
+        sb.append("fresh=").append(isFresh);
         sb.append("\n");
 
         DebugUtil.debugDumpLabel(sb, "Channel", indent + 1);
@@ -735,7 +751,7 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
             sb.append(" none");
         } else {
         	sb.append(" (").append(projectionContexts.size()).append(")");
-            for (LensProjectionContext<P> projCtx : projectionContexts) {
+            for (LensProjectionContext projCtx : projectionContexts) {
             	sb.append(":\n");
             	sb.append(projCtx.debugDump(indent + 2, showTriples));
             }
@@ -762,7 +778,6 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
             lensProjectionContext.addToPrismContainer(lensProjectionContextTypeContainer);
         }
         lensContextType.setFocusClass(focusClass != null ? focusClass.getName() : null);
-        lensContextType.setProjectionClass(projectionClass != null ? projectionClass.getName() : null);
         lensContextType.setDoReconciliationForAllProjections(doReconciliationForAllProjections);
         lensContextType.setProjectionWave(projectionWave);
         lensContextType.setExecutionWave(executionWave);
@@ -781,18 +796,14 @@ public class LensContext<F extends ObjectType, P extends ObjectType> implements 
         OperationResult result = parentResult.createSubresult(DOT_CLASS + "fromLensContextType");
 
         String focusClassString = lensContextType.getFocusClass();
-        String projectionClassString = lensContextType.getProjectionClass();
 
         if (StringUtils.isEmpty(focusClassString)) {
             throw new SystemException("Focus class is undefined in LensContextType");
         }
-        if (StringUtils.isEmpty(projectionClassString)) {
-            throw new SystemException("Projection class is undefined in LensContextType");
-        }
 
         LensContext lensContext;
         try {
-            lensContext = new LensContext(Class.forName(focusClassString), Class.forName(projectionClassString), prismContext, provisioningService);
+            lensContext = new LensContext(Class.forName(focusClassString), prismContext, provisioningService);
         } catch (ClassNotFoundException e) {
             throw new SystemException("Couldn't instantiate LensContext because focus or projection class couldn't be found", e);
         }

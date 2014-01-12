@@ -47,6 +47,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskRunResult;
@@ -104,14 +105,14 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 		PrismContainerDefinition<TriggerType> triggerContainerDef = focusObjectDef.findContainerDefinition(ObjectType.F_TRIGGER);
 		
 		if (handler.getLastScanTimestamp() == null) {
-			filter = LessFilter.createLessFilter(new ItemPath(ObjectType.F_TRIGGER), triggerContainerDef, 
-								TriggerType.F_TIMESTAMP, handler.getThisScanTimestamp(), true);
+			filter = LessFilter.createLess(new ItemPath(ObjectType.F_TRIGGER, TriggerType.F_TIMESTAMP), focusObjectDef, 
+								handler.getThisScanTimestamp(), true);
 		} else {
 			filter = AndFilter.createAnd(
-							GreaterFilter.createGreaterFilter(new ItemPath(ObjectType.F_TRIGGER), triggerContainerDef, 
-									TriggerType.F_TIMESTAMP, handler.getLastScanTimestamp(), false),
-							LessFilter.createLessFilter(new ItemPath(ObjectType.F_TRIGGER), triggerContainerDef, 
-									TriggerType.F_TIMESTAMP, handler.getThisScanTimestamp(), true));
+							GreaterFilter.createGreater(new ItemPath(ObjectType.F_TRIGGER, TriggerType.F_TIMESTAMP), focusObjectDef, 
+									handler.getLastScanTimestamp(), false),
+							LessFilter.createLess(new ItemPath(ObjectType.F_TRIGGER, TriggerType.F_TIMESTAMP), focusObjectDef, 
+									handler.getThisScanTimestamp(), true));
 		}
 		
 		query.setFilter(filter);
@@ -130,8 +131,8 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 				return true;
 			}
 		};
-		
-		return handler;
+        handler.setStopOnError(false);
+        return handler;
 	}
 
 	private void fireTriggers(AbstractScannerResultHandler<ObjectType> handler, PrismObject<ObjectType> object, Task task, OperationResult result) throws SchemaException, 
@@ -187,7 +188,16 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 		if (handler == null) {
 			LOGGER.warn("No registered trigger handler for URI {}", handlerUri);
 		} else {
-			handler.handle(object, task, result);
+			try {
+				
+				handler.handle(object, task, result);
+				
+			// Properly handle everything that the handler spits out. We do not want this task to die.
+			// Looks like the impossible happens and checked exceptions can somehow get here. Hence the heavy artillery below.
+			} catch (Throwable e) {
+				LOGGER.error("Trigger handler {} executed on {} thrown an error: {}", new Object[] { handler, object, e.getMessage(), e});
+				result.recordPartialError(e);
+			}
 		}
 	}
 
@@ -196,11 +206,15 @@ public class TriggerScannerTaskHandler extends AbstractScannerTaskHandler<Object
 		ContainerDelta<TriggerType> triggerDelta = (ContainerDelta<TriggerType>) triggerContainerDef.createEmptyDelta(new ItemPath(ObjectType.F_TRIGGER));
 		triggerDelta.addValuesToDelete(triggerCVal.clone());
 		Collection<? extends ItemDelta> modifications = MiscSchemaUtil.createCollection(triggerDelta);
+		// This is detached result. It will not take part of the task result. We do not really care.
 		OperationResult result = new OperationResult(TriggerScannerTaskHandler.class.getName()+".removeTrigger");
 		try {
 			repositoryService.modifyObject(object.getCompileTimeClass(), object.getOid(), modifications , result);
+			result.computeStatus();
 		} catch (ObjectNotFoundException e) {
-			LOGGER.error("Unable to remove trigger from {}: {}", new Object[]{object, e.getMessage(), e});
+			// Object is gone. Ergo there are no triggers left. Ergo the trigger was removed.
+			// Ergo this is not really an error.
+			LOGGER.trace("Unable to remove trigger from {}: {} (but this is probably OK)", new Object[]{object, e.getMessage(), e});
 		} catch (SchemaException e) {
 			LOGGER.error("Unable to remove trigger from {}: {}", new Object[]{object, e.getMessage(), e});
 		} catch (ObjectAlreadyExistsException e) {

@@ -50,6 +50,9 @@ import java.util.*;
  */
 public class ObjectWrapper implements Serializable {
 
+    public static final String F_DISPLAY_NAME = "displayName";
+    public static final String F_SELECTED = "selected";
+
 	private static final Trace LOGGER = TraceManager.getTrace(ObjectWrapper.class);
 
     private static final String DOT_CLASS = ObjectWrapper.class.getName() + ".";
@@ -177,13 +180,15 @@ public class ObjectWrapper implements Serializable {
 
 	public ContainerWrapper findContainerWrapper(ItemPath path) {
 		for (ContainerWrapper wrapper : getContainers()) {
-			if (path != null && path.equals(wrapper.getPath())) {
-				return wrapper;
-			} else {
-				if (wrapper.getPath() == null) {
-					return wrapper;
-				}
-			}
+            if (path != null) {
+                if (path.equals(wrapper.getPath())) {
+                    return wrapper;
+                }
+            } else {
+                if (wrapper.getPath() == null) {
+                    return wrapper;
+                }
+            }
 		}
 
 		return null;
@@ -521,7 +526,7 @@ public class ObjectWrapper implements Serializable {
 					PrismContainer parent = object.findOrCreateContainer(parentPath);
 					parent.add(container);
 				} else {
-					PrismContainer existing = object.findContainer(container.getName());
+					PrismContainer existing = object.findContainer(container.getElementName());
 					if (existing == null) {
 						object.add(container);
 					} else {
@@ -538,7 +543,7 @@ public class ObjectWrapper implements Serializable {
 				}
 
 				PrismProperty property = propertyWrapper.getItem().clone();
-				if (container.findProperty(property.getName()) != null) {
+				if (container.findProperty(property.getElementName()) != null) {
 					continue;
 				}
 				for (ValueWrapper valueWrapper : propertyWrapper.getValues()) {

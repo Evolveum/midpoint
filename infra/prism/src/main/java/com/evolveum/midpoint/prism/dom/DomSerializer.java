@@ -23,14 +23,12 @@ import javax.xml.namespace.QName;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Itemable;
 import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContainerable;
@@ -41,13 +39,11 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
@@ -81,7 +77,7 @@ public class DomSerializer {
 
 	public Element serialize(PrismObject<?> object) throws SchemaException {
 		initialize();		
-		Element topElement = createElement(object.getName());
+		Element topElement = createElement(object.getElementName());
 		serialize(object, topElement);
 		return topElement;
 	}
@@ -123,7 +119,7 @@ public class DomSerializer {
 
 	private void serialize(PrismContainerValue<?> value, Element parentElement) throws SchemaException {
 		PrismContainerable<?> parent = value.getParent();
-		QName elementQName = parent.getName();
+		QName elementQName = parent.getElementName();
 		Element element = createElement(elementQName);
 		parentElement.appendChild(element);
 		serializeItems(value.getItems(), parent.getDefinition(), element);
@@ -134,7 +130,10 @@ public class DomSerializer {
 	
 	private void serialize(PrismPropertyValue<?> value, Element parentElement) throws SchemaException {
 		Itemable parent = value.getParent();
-		QName elementName = parent.getName();
+		if (parent == null) {
+			throw new IllegalArgumentException("PValue "+value+" has no parent therefore it cannot be serialized to DOM");
+		}
+		QName elementName = parent.getElementName();
 		if (value.getRawElement() != null) {
 			// This element was not yet touched by the schema, but we still can serialize it
 			serializeRawElement(value.getRawElement(), parentElement);
@@ -246,7 +245,7 @@ public class DomSerializer {
 	private Item<?> findItem(List<Item<?>> items, ItemDefinition itemDef) {
 		QName itemName = itemDef.getName();
 		for (Item<?> item: items) {
-			if (itemName.equals(item.getName())) {
+			if (itemName.equals(item.getElementName())) {
 				return item;
 			}
 		}
@@ -304,7 +303,7 @@ public class DomSerializer {
 	
 	private void serializeRef(PrismReferenceValue value, Element parentElement) throws SchemaException {
 		Itemable parent = value.getParent();
-		Element element = createElement(parent.getName());
+		Element element = createElement(parent.getElementName());
 		parentElement.appendChild(element);
 		element.setAttribute(PrismConstants.ATTRIBUTE_OID_LOCAL_NAME, value.getOid());
 		if (value.getRelation() != null) {
@@ -313,7 +312,7 @@ public class DomSerializer {
 			try {
 				DOMUtil.setQNameAttribute(element, PrismConstants.ATTRIBUTE_RELATION_LOCAL_NAME, relation);
 			} catch (IllegalArgumentException e) {
-				throw new SchemaException(e.getMessage()+" in type field of reference "+parent.getName());
+				throw new SchemaException(e.getMessage()+" in type field of reference "+parent.getElementName());
 			}
 		}
 		if (value.getTargetType() != null) {
@@ -323,7 +322,7 @@ public class DomSerializer {
 			try {
 				DOMUtil.setQNameAttribute(element, PrismConstants.ATTRIBUTE_REF_TYPE_LOCAL_NAME, targetType);
 			} catch (IllegalArgumentException e) {
-				throw new SchemaException(e.getMessage()+" in type field of reference "+parent.getName());
+				throw new SchemaException(e.getMessage()+" in type field of reference "+parent.getElementName());
 			}
 		}
 		if (value.getDescription() != null) {

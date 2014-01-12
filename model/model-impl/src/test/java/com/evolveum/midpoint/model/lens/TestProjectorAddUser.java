@@ -106,7 +106,7 @@ public class TestProjectorAddUser extends AbstractTestNGSpringContextTests {
 	@SuppressWarnings("unchecked")
 	@Test
 	public void addUserWithSimpleTemplate() throws Exception {
-		PrismObject<UserType> user = PrismTestUtil.parseObject(new File(LensTestConstants.USER_DRAKE_FILENAME));
+		PrismObject<UserType> user = PrismTestUtil.parseObject(AbstractLensTest.USER_DRAKE_FILE);
 		UserType userType = user.asObjectable();
 		PrismObject<ObjectTemplateType> userTemplate = PrismTestUtil.parseObject(new File(AbstractInternalModelIntegrationTest.USER_TEMPLATE_FILENAME));
 		ObjectTemplateType userTemplateType = userTemplate.asObjectable();
@@ -145,7 +145,7 @@ public class TestProjectorAddUser extends AbstractTestNGSpringContextTests {
 		Task task = taskManager.createTaskInstance("Add User With Template");
 		OperationResult result = task.getResult();
 		
-		LensContext<UserType, ShadowType> syncContext = new LensContext<UserType, ShadowType>(UserType.class, ShadowType.class, PrismTestUtil.getPrismContext(), provisioning);
+		LensContext<UserType> syncContext = new LensContext<UserType>(UserType.class, PrismTestUtil.getPrismContext(), provisioning);
 		LensFocusContext<UserType> focusContext = syncContext.createFocusContext();
 
 		ObjectDelta<UserType> objectDelta = new ObjectDelta<UserType>(UserType.class, ChangeType.ADD, prismContext);
@@ -156,7 +156,7 @@ public class TestProjectorAddUser extends AbstractTestNGSpringContextTests {
 		focusContext.setObjectNew(user);
 		focusContext.setPrimaryDelta(objectDelta);
 		
-		syncContext.setUserTemplate(userTemplateType);
+		syncContext.setFocusTemplate(userTemplateType);
 		
 		syncContext.checkConsistence();
 
@@ -165,7 +165,7 @@ public class TestProjectorAddUser extends AbstractTestNGSpringContextTests {
 			LOGGER.info("repo" + repository.getClass());
 						
 			// WHEN
-			projector.project(syncContext, "test", result);
+			projector.project(syncContext, "test", task, result);
 			
 		} finally {
 			LOGGER.info(result.dump());

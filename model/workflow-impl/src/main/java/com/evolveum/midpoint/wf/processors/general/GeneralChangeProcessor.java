@@ -1,11 +1,11 @@
 package com.evolveum.midpoint.wf.processors.general;
 
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
-import com.evolveum.midpoint.common.expression.Expression;
-import com.evolveum.midpoint.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
+import com.evolveum.midpoint.model.common.expression.Expression;
+import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
+import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -31,7 +31,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.jobs.Job;
 import com.evolveum.midpoint.wf.jobs.JobCreationInstruction;
 import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
-import com.evolveum.midpoint.wf.api.ProcessInstance;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.processors.BaseChangeProcessor;
@@ -42,8 +41,10 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.GeneralChangeProces
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.GeneralChangeProcessorScenarioType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+
 import org.activiti.engine.form.FormProperty;
 import org.activiti.engine.form.TaskFormData;
 import org.apache.commons.configuration.Configuration;
@@ -62,6 +63,7 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -110,15 +112,17 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
         String path = determineConfigurationPath();
         LOGGER.info("Configuration path: " + path);
 
-        XMLConfiguration xmlConfiguration = midpointConfiguration.getXmlConfiguration();
-        Validate.notNull(xmlConfiguration, "XML version of midPoint configuration couldn't be found");
+        Document midpointConfig = midpointConfiguration.getXmlConfigAsDocument();
+        Validate.notNull(midpointConfig, "XML version of midPoint configuration couldn't be found");
 
         XPath xpath = XPathFactory.newInstance().newXPath();
         try {
-            Document midpointConfig = xmlConfiguration.getDocument();
             Element processorConfig = (Element) xpath.evaluate(path + "/*[local-name()='" + KEY_GENERAL_CHANGE_PROCESSOR_CONFIGURATION + "']", midpointConfig, XPathConstants.NODE);
             if (processorConfig == null) {
                 throw new SystemException("There's no " + KEY_GENERAL_CHANGE_PROCESSOR_CONFIGURATION + " element in " + getBeanName() + " configuration.");
+            }
+            if (LOGGER.isTraceEnabled()) {
+                LOGGER.trace("processor configuration = {}", DOMUtil.printDom(processorConfig));
             }
             try {
                 validateElement(processorConfig);
@@ -127,9 +131,9 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
             }
             processorConfigurationType = prismContext.getPrismJaxbProcessor().toJavaValue(processorConfig, GeneralChangeProcessorConfigurationType.class);
         } catch (XPathExpressionException e) {
-            throw new SystemException("Couldn't find activation condition in " + getBeanName() + " configuration due to an XPath problem", e);
+            throw new SystemException("Couldn't read general workflow processor configuration in " + getBeanName() + " due to an XPath problem", e);
         } catch (JAXBException e) {
-            throw new SystemException("Couldn't find activation condition in " + getBeanName() + " configuration due to a JAXB problem", e);
+            throw new SystemException("Couldn't read general workflow processor configuration in " + getBeanName() + " due to a JAXB problem", e);
         }
     }
 
@@ -155,7 +159,9 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
         warnIfNoScenarios();
 
         for (GeneralChangeProcessorScenarioType scenarioType : processorConfigurationType.getScenario()) {
-            if (!evaluateActivationCondition(scenarioType, context, result)) {
+            if (!scenarioType.isEnabled()) {
+                LOGGER.trace("scenario {} is disabled, skipping", scenarioType.getName());
+            } else if (!evaluateActivationCondition(scenarioType, context, result)) {
                 LOGGER.trace("activationCondition was evaluated to FALSE for scenario named {}", scenarioType.getName());
             } else {
                 LOGGER.trace("Applying scenario {} (process name {})", scenarioType.getName(), scenarioType.getProcessName());
@@ -184,7 +190,7 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
             instruction.setRequesterOidInProcess(taskFromModel.getOwner());
             instruction.setTaskName(new PolyStringType("Workflow-monitoring task"));
 
-            LensContextType lensContextType = ((LensContext<?,?>) context).toPrismContainer().getValue().asContainerable();
+            LensContextType lensContextType = ((LensContext<?>) context).toPrismContainer().getValue().asContainerable();
             instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MODEL_CONTEXT, new JaxbValueContainer<LensContextType>(lensContextType, prismContext));
 
             jobController.createJob(instruction, rootJob, result);
@@ -255,7 +261,7 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
 
         PrismContext prismContext = expressionFactory.getPrismContext();
         QName resultName = new QName(SchemaConstants.NS_C, "result");
-        PrismPropertyDefinition resultDef = new PrismPropertyDefinition(resultName, resultName, DOMUtil.XSD_BOOLEAN, prismContext);
+        PrismPropertyDefinition resultDef = new PrismPropertyDefinition(resultName, DOMUtil.XSD_BOOLEAN, prismContext);
         Expression<PrismPropertyValue<Boolean>> expression = expressionFactory.makeExpression(expressionType, resultDef, opContext, result);
         ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, opContext, result);
         PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> exprResultTriple = expression.evaluate(params);
@@ -316,7 +322,7 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
                 LOGGER.trace("- processing property {} having value {}", formProperty.getId(), formProperty.getValue());
                 if (formProperty.getValue() != null) {
                     QName propertyName = new QName(SchemaConstants.NS_WFCF, formProperty.getId());
-                    PrismPropertyDefinition<String> prismPropertyDefinition = new PrismPropertyDefinition<String>(propertyName, propertyName, DOMUtil.XSD_STRING, prismContext);
+                    PrismPropertyDefinition<String> prismPropertyDefinition = new PrismPropertyDefinition<String>(propertyName, DOMUtil.XSD_STRING, prismContext);
                     PrismProperty<String> prismProperty = prismPropertyDefinition.instantiate();
                     prismProperty.addRealValue(formProperty.getValue());
                     prism.add(prismProperty);
@@ -331,12 +337,30 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
     }
 
     @Override
-    public PrismObject<? extends ObjectType> getAdditionalData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public PrismObject<? extends ObjectType> getRelatedObject(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @Override
-    public String getProcessInstanceDetailsPanelName(ProcessInstance processInstance) {
+    public String getProcessInstanceDetailsPanelName(WfProcessInstanceType processInstance) {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
+
+    private GeneralChangeProcessorScenarioType findScenario(String scenarioName) {
+        for (GeneralChangeProcessorScenarioType scenario : processorConfigurationType.getScenario()) {
+            if (scenarioName.equals(scenario.getName())) {
+                return scenario;
+            }
+        }
+        throw new SystemException("Scenario named " + scenarioName + " couldn't be found");
+    }
+
+    public void disableScenario(String scenarioName) {
+        findScenario(scenarioName).setEnabled(false);
+    }
+
+    public void enableScenario(String scenarioName) {
+        findScenario(scenarioName).setEnabled(true);
+    }
+
 }

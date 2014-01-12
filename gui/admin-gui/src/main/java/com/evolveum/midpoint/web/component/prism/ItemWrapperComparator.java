@@ -58,7 +58,7 @@ public class ItemWrapperComparator implements Comparator<ItemWrapper> {
             return displayName;
         }
 
-        return def.getNameOrDefaultName().getLocalPart();
+        return def.getName().getLocalPart();
     }
 
     private boolean isMainContainer(ItemWrapper wrapper) {

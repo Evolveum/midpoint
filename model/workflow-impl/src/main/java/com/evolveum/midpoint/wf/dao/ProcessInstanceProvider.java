@@ -16,20 +16,24 @@
 
 package com.evolveum.midpoint.wf.dao;
 
-import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.SerializationUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.WorkflowServiceImpl;
+import com.evolveum.midpoint.wf.WorkflowManagerImpl;
 import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.activiti.ActivitiEngineDataHelper;
-import com.evolveum.midpoint.wf.api.ProcessInstance;
+
 import com.evolveum.midpoint.wf.api.WorkflowException;
-import com.evolveum.midpoint.wf.api.WorkflowService;
+import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
-import com.evolveum.midpoint.wf.util.MiscDataUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceVariableType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.activiti.engine.ActivitiException;
 import org.activiti.engine.HistoryService;
 import org.activiti.engine.RuntimeService;
@@ -42,6 +46,8 @@ import org.activiti.engine.task.Task;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
+import java.io.Serializable;
 import java.util.*;
 
 /**
@@ -61,13 +67,13 @@ public class ProcessInstanceProvider {
     @Autowired
     private WorkItemProvider workItemProvider;
 
-    private static final String DOT_CLASS = WorkflowServiceImpl.class.getName() + ".";
-    private static final String DOT_INTERFACE = WorkflowService.class.getName() + ".";
+    private static final String DOT_CLASS = WorkflowManagerImpl.class.getName() + ".";
+    private static final String DOT_INTERFACE = WorkflowManager.class.getName() + ".";
 
     private static final String OPERATION_COUNT_PROCESS_INSTANCES_RELATED_TO_USER = DOT_INTERFACE + "countProcessInstancesRelatedToUser";
     private static final String OPERATION_LIST_PROCESS_INSTANCES_RELATED_TO_USER = DOT_INTERFACE + "listProcessInstancesRelatedToUser";
-    private static final String OPERATION_GET_PROCESS_INSTANCE_BY_TASK_ID = DOT_INTERFACE + "getProcessInstanceByTaskId";
-    private static final String OPERATION_GET_PROCESS_INSTANCE_BY_INSTANCE_ID = DOT_INTERFACE + "getProcessInstanceByInstanceId";
+    private static final String OPERATION_GET_PROCESS_INSTANCE_BY_TASK_ID = DOT_INTERFACE + "getProcessInstanceByWorkItemId";
+    private static final String OPERATION_GET_PROCESS_INSTANCE_BY_INSTANCE_ID = DOT_INTERFACE + "getProcessInstanceById";
     private static final String OPERATION_ACTIVITI_TO_MIDPOINT_PROCESS_INSTANCE = DOT_CLASS + "activitiToMidpointRunningProcessInstance";
     private static final String OPERATION_ACTIVITI_TO_MIDPOINT_PROCESS_INSTANCE_HISTORY = DOT_CLASS + "activitiToMidpointProcessInstanceHistory";
 
@@ -75,7 +81,7 @@ public class ProcessInstanceProvider {
      * ========================= PART 1 - main operations =========================
      */
 
-    public int countProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, OperationResult parentResult) throws WorkflowException {
+    public int countProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, OperationResult parentResult) {
         OperationResult result = parentResult.createSubresult(OPERATION_COUNT_PROCESS_INSTANCES_RELATED_TO_USER);
         result.addParam("userOid", userOid);
         result.addParam("requestedBy", requestedBy);
@@ -88,11 +94,11 @@ public class ProcessInstanceProvider {
         } catch (ActivitiException e) {
             String m = "Couldn't count process instances related to " + userOid + " due to Activiti exception";
             result.recordFatalError(m, e);
-            throw new WorkflowException(m, e);
+            throw new SystemException(m, e);
         }
     }
 
-    public List<ProcessInstance> listProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, int first, int count, OperationResult parentResult) throws WorkflowException {
+    public List<WfProcessInstanceType> listProcessInstancesRelatedToUser(String userOid, boolean requestedBy, boolean requestedFor, boolean finished, int first, int count, OperationResult parentResult) {
         OperationResult result = parentResult.createSubresult(OPERATION_LIST_PROCESS_INSTANCES_RELATED_TO_USER);
         result.addParam("userOid", userOid);
         result.addParam("requestedBy", requestedBy);
@@ -102,7 +108,7 @@ public class ProcessInstanceProvider {
         result.addParam("count", count);
         try {
             List<?> instances = createQueryForProcessInstancesRelatedToUser(userOid, requestedBy, requestedFor, finished).listPage(first, count);
-            List<ProcessInstance> mInstances = finished ?
+            List<WfProcessInstanceType> mInstances = finished ?
                     activitiToMidpointHistoricProcessInstanceList((List<HistoricProcessInstance>) instances, result) :
                     activitiToMidpointRunningProcessInstanceList((List<org.activiti.engine.runtime.ProcessInstance>) instances, false, result); // false = no work items
             result.recordSuccessIfUnknown();
@@ -110,7 +116,7 @@ public class ProcessInstanceProvider {
         } catch (ActivitiException e) {
             String m = "Couldn't list process instances related to " + userOid + " due to Activiti exception";
             result.recordFatalError(m, e);
-            throw new WorkflowException(m, e);
+            throw new SystemException(m, e);
         }
     }
 
@@ -138,28 +144,28 @@ public class ProcessInstanceProvider {
         }
     }
 
-    public ProcessInstance getProcessInstanceByTaskId(String taskId, OperationResult parentResult) throws ObjectNotFoundException, WorkflowException {
+    public WfProcessInstanceType getProcessInstanceByTaskId(String taskId, OperationResult parentResult) throws ObjectNotFoundException {
         OperationResult result = parentResult.createSubresult(OPERATION_GET_PROCESS_INSTANCE_BY_TASK_ID);
         result.addParam("taskId", taskId);
         Task task = activitiEngineDataHelper.getTaskById(taskId, result);
         return getProcessInstanceByInstanceIdInternal(task.getProcessInstanceId(), false, true, result);       // true = load also work items
     }
 
-    public ProcessInstance getProcessInstanceByInstanceId(String instanceId, boolean historic, boolean getWorkItems, OperationResult parentResult) throws ObjectNotFoundException, WorkflowException {
+    public WfProcessInstanceType getProcessInstanceByInstanceId(String instanceId, boolean historic, boolean getWorkItems, OperationResult parentResult) throws ObjectNotFoundException {
         OperationResult result = parentResult.createSubresult(OPERATION_GET_PROCESS_INSTANCE_BY_INSTANCE_ID);
         result.addParam("instanceId", instanceId);
         result.addParam("historic", historic);
         return getProcessInstanceByInstanceIdInternal(instanceId, historic, getWorkItems, result);
     }
 
-    private ProcessInstance getProcessInstanceByInstanceIdInternal(String instanceId, boolean historic, boolean getWorkItems, OperationResult result) throws ObjectNotFoundException, WorkflowException {
+    private WfProcessInstanceType getProcessInstanceByInstanceIdInternal(String instanceId, boolean historic, boolean getWorkItems, OperationResult result) throws ObjectNotFoundException {
 
         if (historic) {
             HistoricProcessInstanceQuery hpiq = activitiEngine.getHistoryService().createHistoricProcessInstanceQuery();
             hpiq.processInstanceId(instanceId);
             HistoricProcessInstance historicProcessInstance = hpiq.singleResult();
             if (historicProcessInstance != null) {
-                ProcessInstance retval = activitiToMidpointProcessInstanceHistory(historicProcessInstance, result);
+                WfProcessInstanceType retval = activitiToMidpointProcessInstanceHistory(historicProcessInstance, result);
                 result.computeStatus();
                 return retval;
             } else {
@@ -172,7 +178,7 @@ public class ProcessInstanceProvider {
             org.activiti.engine.runtime.ProcessInstance instance = piq.singleResult();
 
             if (instance != null) {
-                ProcessInstance retval = activitiToMidpointRunningProcessInstance(instance, getWorkItems, result);
+                WfProcessInstanceType retval = activitiToMidpointRunningProcessInstance(instance, getWorkItems, result);
                 result.computeStatus();
                 return retval;
             } else {
@@ -190,8 +196,8 @@ public class ProcessInstanceProvider {
      *
      */
 
-    private List<ProcessInstance> activitiToMidpointRunningProcessInstanceList(List<org.activiti.engine.runtime.ProcessInstance> instances, boolean getWorkItems, OperationResult result) {
-        List<ProcessInstance> retval = new ArrayList<ProcessInstance>();
+    private List<WfProcessInstanceType> activitiToMidpointRunningProcessInstanceList(List<org.activiti.engine.runtime.ProcessInstance> instances, boolean getWorkItems, OperationResult result) {
+        List<WfProcessInstanceType> retval = new ArrayList<WfProcessInstanceType>();
         int problems = 0;
         Exception lastException = null;
         for (org.activiti.engine.runtime.ProcessInstance instance : instances) {
@@ -211,8 +217,8 @@ public class ProcessInstanceProvider {
         return retval;
     }
 
-    private List<ProcessInstance> activitiToMidpointHistoricProcessInstanceList(List<HistoricProcessInstance> instances, OperationResult result) throws WorkflowException {
-        List<ProcessInstance> retval = new ArrayList<ProcessInstance>();
+    private List<WfProcessInstanceType> activitiToMidpointHistoricProcessInstanceList(List<HistoricProcessInstance> instances, OperationResult result) {
+        List<WfProcessInstanceType> retval = new ArrayList<WfProcessInstanceType>();
         for (HistoricProcessInstance instance : instances) {
             retval.add(activitiToMidpointProcessInstanceHistory(instance, result));
             if (!result.getLastSubresult().isSuccess()) {
@@ -221,35 +227,32 @@ public class ProcessInstanceProvider {
                 // operation result already contains the exception information
             }
         }
-        if (result.isUnknown()) {
-            result.computeStatus();
-        }
+        result.computeStatusIfUnknown();
         return retval;
     }
 
-    private ProcessInstance activitiToMidpointRunningProcessInstance(org.activiti.engine.runtime.ProcessInstance instance, boolean getWorkItems, OperationResult parentResult) {
+    private WfProcessInstanceType activitiToMidpointRunningProcessInstance(org.activiti.engine.runtime.ProcessInstance instance, boolean getWorkItems, OperationResult parentResult) {
 
         OperationResult result = parentResult.createSubresult(OPERATION_ACTIVITI_TO_MIDPOINT_PROCESS_INSTANCE);
         result.addParam("instance id", instance.getProcessInstanceId());
         result.addParam("getWorkItems", getWorkItems);
-        ProcessInstance pi = new ProcessInstance();
+        WfProcessInstanceType pi = new WfProcessInstanceType();
         pi.setFinished(false);
-        pi.setProcessId(instance.getProcessInstanceId());
+        pi.setProcessInstanceId(instance.getProcessInstanceId());
 
         RuntimeService rs = activitiEngine.getRuntimeService();
 
         Map<String,Object> vars = null;
         try {
             vars = rs.getVariables(instance.getProcessInstanceId());
-            pi.setVariables(vars);
-            pi.setName((String) vars.get(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME));
-            pi.setStartTime((Date) vars.get(CommonProcessVariableNames.VARIABLE_START_TIME));
+            convertVariablesToJaxb(pi.getVariables(), vars);
+            pi.setName(new PolyStringType((String) vars.get(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME)));
+            pi.setStartTimestamp(XmlTypeConverter.createXMLGregorianCalendar((Date) vars.get(CommonProcessVariableNames.VARIABLE_START_TIME)));
         } catch (ActivitiException e) {
             result.recordFatalError("Couldn't get process instance variables for instance " + instance.getProcessInstanceId(), e);
-
-            pi.setName("(unreadable process instance with id = " + instance.getId() + ")");
-            pi.setStartTime(null);
-            pi.setVariables(new HashMap<String,Object>());      // not to get NPEs
+            LoggingUtils.logException(LOGGER, "Couldn't get process instance variables for instance {}", e, instance.getProcessInstanceId());
+            pi.setName(new PolyStringType("(unreadable process instance with id = " + instance.getId() + ")"));
+            pi.setStartTimestamp(null);
 
             return pi;
         }
@@ -257,29 +260,29 @@ public class ProcessInstanceProvider {
         if (getWorkItems) {
             TaskService ts = activitiEngine.getTaskService();
             List<Task> tasks = ts.createTaskQuery().processInstanceId(instance.getProcessInstanceId()).list();
-            pi.setWorkItems(workItemProvider.tasksToWorkItems(tasks, false, true, result));     // "no" to task forms, "yes" to assignee details
+            pi.getWorkItems().addAll(workItemProvider.tasksToWorkItems(tasks, false, true, result));     // "no" to task forms, "yes" to assignee details
         }
 
         result.recordSuccessIfUnknown();
         return pi;
     }
 
-    public ProcessInstance activitiToMidpointProcessInstanceHistory(HistoricProcessInstance instance, OperationResult parentResult)  {
+    public WfProcessInstanceType activitiToMidpointProcessInstanceHistory(HistoricProcessInstance instance, OperationResult parentResult)  {
 
         OperationResult result = parentResult.createSubresult(OPERATION_ACTIVITI_TO_MIDPOINT_PROCESS_INSTANCE_HISTORY);
 
-        ProcessInstance pi = new ProcessInstance();
+        WfProcessInstanceType pi = new WfProcessInstanceType();
         pi.setFinished(true);
-        pi.setProcessId(instance.getId());
-        pi.setStartTime(instance.getStartTime());
-        pi.setEndTime(instance.getEndTime());
+        pi.setProcessInstanceId(instance.getId());
+        pi.setStartTimestamp(XmlTypeConverter.createXMLGregorianCalendar(instance.getStartTime()));
+        pi.setEndTimestamp(XmlTypeConverter.createXMLGregorianCalendar(instance.getEndTime()));
 
         Exception exception;
 
         try {
             Map<String,Object> vars = activitiEngineDataHelper.getHistoricVariables(instance.getId(), result);
-            pi.setVariables(vars);
-            pi.setName((String) vars.get(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME));
+            convertVariablesToJaxb(pi.getVariables(), vars);
+            pi.setName(new PolyStringType((String) vars.get(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME)));
             result.recordSuccessIfUnknown();
             return pi;
         } catch (RuntimeException e) {
@@ -289,8 +292,30 @@ public class ProcessInstanceProvider {
         }
 
         result.recordFatalError("Couldn't get information about finished process instance " + instance.getId(), exception);
-        pi.setName("(unreadable process instance with id = " + instance.getId() + ")");
-        pi.setVariables(new HashMap<String,Object>());      // not to get NPEs
+        pi.setName(new PolyStringType("(unreadable process instance with id = " + instance.getId() + ")"));
         return pi;
+    }
+
+    private void convertVariablesToJaxb(List<WfProcessInstanceVariableType> variables, Map<String, Object> vars) {
+        for (Map.Entry<String, Object> var : vars.entrySet()) {
+            WfProcessInstanceVariableType variable = new WfProcessInstanceVariableType();
+            variable.setName(var.getKey());
+            if (var.getValue() instanceof String) {
+                variable.setValue((String) var.getValue());
+                variable.setEncoded(false);
+            } else if (var.getValue() instanceof Serializable) {
+                try {
+                    variable.setValue(SerializationUtil.toString((Serializable) var.getValue()));
+                } catch (IOException e) {
+                    LoggingUtils.logException(LOGGER, "Process variable {} couldn't be returned because it couldn't be serialized", e, var.getKey());
+                    continue;
+                }
+                variable.setEncoded(true);
+            } else {
+                LOGGER.error("Process variable {} couldn't be returned because it's not serializable", var.getKey());
+                continue;
+            }
+            variables.add(variable);
+        }
     }
 }

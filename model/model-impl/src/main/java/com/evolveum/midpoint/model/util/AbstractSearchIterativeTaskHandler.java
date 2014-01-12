@@ -18,6 +18,10 @@ package com.evolveum.midpoint.model.util;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import com.evolveum.midpoint.model.ModelObjectResolver;
@@ -52,7 +56,8 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 	private String taskName;
 	private String taskOperationPrefix;
 	private Class<O> type;
-	private boolean logFinishInfo = false; 
+	private boolean logFinishInfo = false;
+    private boolean countObjectsOnStart = true;         // todo make configurable per task instance (if necessary)
 	
 	// If you need to store fields specific to task instance or task run the ResultHandler is a good place to do that.
 	
@@ -93,8 +98,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 		opResult.setStatus(OperationResultStatus.IN_PROGRESS);
 		TaskRunResult runResult = new TaskRunResult();
 		runResult.setOperationResult(opResult);
-		runResult.setProgress(0);
-		
+
 		H resultHandler = createHandler(runResult, task, opResult);
 		if (resultHandler == null) {
 			// the error should already be in the runResult
@@ -128,10 +132,26 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("{}: searching using query:\n{}", taskName, query.dump());
 		}
-		
+
 		try {
-		
-			modelObjectResolver.searchIterative(type, query, resultHandler, opResult);
+
+            // counting objects can be within try-catch block, because the handling is similar to handling errors within searchIterative
+            Long expectedTotal = null;
+            if (countObjectsOnStart) {
+                expectedTotal = (long) modelObjectResolver.countObjects(type, query, opResult);
+                LOGGER.trace("{}: expecting {} objects to be processed", expectedTotal);
+            }
+
+            runResult.setProgress(0);
+            task.setProgress(0);
+            task.setExpectedTotal(expectedTotal);
+            try {
+                task.savePendingModifications(opResult);
+            } catch (ObjectAlreadyExistsException e) {      // other exceptions are handled in the outer try block
+                throw new IllegalStateException("Unexpected ObjectAlreadyExistsException when updating task progress/expectedTotal", e);
+            }
+
+            modelObjectResolver.searchIterative(type, query, resultHandler, opResult);
 			
 		} catch (ObjectNotFoundException ex) {
             LOGGER.error("{}: Object not found: {}", new Object[]{taskName, ex.getMessage(), ex});
@@ -178,11 +198,11 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
             runResult.setProgress(resultHandler.getProgress());
             return runResult;
 		}
-		
-		// TODO: check last handler status
+
+        // TODO: check last handler status
 
         handlers.remove(task);
-        opResult.computeStatus("Errors during import");
+        opResult.computeStatus("Errors during processing");
         runResult.setProgress(resultHandler.getProgress());
         runResult.setRunResultStatus(TaskRunResultStatus.FINISHED);
 
@@ -294,6 +314,17 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
     @Override
     public void refreshStatus(Task task) {
         // Local task. No refresh needed. The Task instance has always fresh data.
+    }
+
+    // meant to be used in specific createQuery methods; it is not used here directly, because QueryType->ObjectQuery conversion
+    // requires information on object class, and this is specific to individual subclasses (handlers)
+    protected QueryType getObjectQueryTypeFromTask(Task task) {
+        PrismProperty<QueryType> objectQueryPrismProperty = task.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_OBJECT_QUERY);
+        if (objectQueryPrismProperty != null && objectQueryPrismProperty.getRealValue() != null) {
+            return objectQueryPrismProperty.getRealValue();
+        } else {
+            return null;
+        }
     }
     
     /**

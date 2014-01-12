@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2010-2013 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<c:user oid="c0c010c0-d34d-b33f-f00d-111111111112" 
+   xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
+   xmlns:xsd='http://www.w3.org/2001/XMLSchema'
+   xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
+   xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+   xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'>
+   <!-- This is parsed by JAXB in the tests. Therefore we need to provide this in full -->
+    <c:name>
+    	<t:orig>barbossa</t:orig>
+    	<t:norm>barbossa</t:norm>
+    </c:name>
+    <!-- Description is a string as opposed to name which is PolyString. We use description instead of
+         name in tests where we need string. -->
+    <c:description>barbossa</c:description>
+    <c:extension>
+        <piracy:ship xsi:type="xsd:string">Black Pearl</piracy:ship>
+    </c:extension>
+    <c:fullName>Hector Barbossa</c:fullName>
+    <c:givenName>Hector</c:givenName>
+    <c:familyName>Basbossa</c:familyName>
+    <c:honorificPrefix>Cpt.</c:honorificPrefix>    
+</c:user>

@@ -24,9 +24,14 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.StringUtils;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 /**
  * Task Manager configuration, derived from "taskManager" section of midPoint config,
@@ -49,10 +54,10 @@ public class TaskManagerConfiguration {
     private static final String JDBC_JOB_STORE_CONFIG_ENTRY = "jdbcJobStore";
     private static final String JDBC_DRIVER_CONFIG_ENTRY = "jdbcDriver";
     private static final String JDBC_URL_CONFIG_ENTRY = "jdbcUrl";
-    private static final String JDBC_USER_CONFIG = "jdbcUser";
-    private static final String JDBC_PASSWORD_CONFIG = "jdbcPassword";
+    private static final String JDBC_USER_CONFIG_ENTRY = "jdbcUser";
+    private static final String JDBC_PASSWORD_CONFIG_ENTRY = "jdbcPassword";
     private static final String SQL_SCHEMA_FILE_CONFIG_ENTRY = "sqlSchemaFile";
-    private static final String CREATE_QUARTZ_TABLES = "createQuartzTables";
+    private static final String CREATE_QUARTZ_TABLES_CONFIG_ENTRY = "createQuartzTables";
     private static final String JDBC_DRIVER_DELEGATE_CLASS_CONFIG_ENTRY = "jdbcDriverDelegateClass";
     private static final String USE_THREAD_INTERRUPT_CONFIG_ENTRY = "useThreadInterrupt";
     private static final String JMX_CONNECT_TIMEOUT_CONFIG_ENTRY = "jmxConnectTimeout";
@@ -62,7 +67,10 @@ public class TaskManagerConfiguration {
     private static final String JMX_USERNAME_CONFIG_ENTRY = "jmxUsername";
     private static final String JMX_PASSWORD_CONFIG_ENTRY = "jmxPassword";
     private static final String TEST_MODE_CONFIG_ENTRY = "testMode";
-    private static final String CHECK_WAITING_TASKS_INTERVAL_CONFIG_ENTRY = "checkWaitingTasksInterval";
+    private static final String WAITING_TASKS_CHECK_INTERVAL_CONFIG_ENTRY = "waitingTasksCheckInterval";
+    private static final String STALLED_TASKS_CHECK_INTERVAL_CONFIG_ENTRY = "stalledTasksCheckInterval";
+    private static final String STALLED_TASKS_THRESHOLD_CONFIG_ENTRY = "stalledTasksThreshold";
+    private static final String STALLED_TASKS_REPEATED_NOTIFICATION_INTERVAL_CONFIG_ENTRY = "stalledTasksRepeatedNotificationInterval";
     private static final String RUN_NOW_KEEPS_ORIGINAL_SCHEDULE_CONFIG_ENTRY = "runNowKeepsOriginalSchedule";
 
     private static final String MIDPOINT_NODE_ID_PROPERTY = "midpoint.nodeId";
@@ -83,7 +91,10 @@ public class TaskManagerConfiguration {
     private static final int NODE_TIMEOUT_DEFAULT = 30;
     private static final String JMX_USERNAME_DEFAULT = "midpoint";
     private static final String JMX_PASSWORD_DEFAULT = "secret";
-    private static final int CHECK_WAITING_TASKS_INTERVAL_DEFAULT = 600;
+    private static final int WAITING_TASKS_CHECK_INTERVAL_DEFAULT = 600;
+    private static final int STALLED_TASKS_CHECK_INTERVAL_DEFAULT = 600;
+    private static final int STALLED_TASKS_THRESHOLD_DEFAULT = 600;             // if a task does not advance its progress for 10 minutes, it is considered stalled
+    private static final int STALLED_TASKS_REPEATED_NOTIFICATION_INTERVAL_DEFAULT = 3600;
     private static final boolean RUN_NOW_KEEPS_ORIGINAL_SCHEDULE_DEFAULT = false;
 
     private boolean stopOnInitializationFailure;
@@ -97,7 +108,10 @@ public class TaskManagerConfiguration {
     private int quartzNodeRegistrationCycleTime;            // UNUSED (currently) !
     private int nodeRegistrationCycleTime, nodeTimeout;
     private UseThreadInterrupt useThreadInterrupt;
-    private int checkWaitingTasksInterval;
+    private int waitingTasksCheckInterval;
+    private int stalledTasksCheckInterval;
+    private int stalledTasksThreshold;
+    private int stalledTasksRepeatedNotificationInterval;
     private boolean runNowKeepsOriginalSchedule;
 
     // JMX credentials for connecting to remote nodes
@@ -132,6 +146,58 @@ public class TaskManagerConfiguration {
       * by looking for SUREFIRE_PRESENCE_PROPERTY.
       */
     private boolean midPointTestMode = false;
+
+    public static final List<String> KNOWN_KEYS = Arrays.asList(
+            "midpoint.home",
+            STOP_ON_INITIALIZATION_FAILURE_CONFIG_ENTRY,
+            THREADS_CONFIG_ENTRY,
+            CLUSTERED_CONFIG_ENTRY,
+            JDBC_JOB_STORE_CONFIG_ENTRY,
+            JDBC_DRIVER_CONFIG_ENTRY,
+            JDBC_URL_CONFIG_ENTRY,
+            JDBC_USER_CONFIG_ENTRY,
+            JDBC_PASSWORD_CONFIG_ENTRY,
+            SQL_SCHEMA_FILE_CONFIG_ENTRY,
+            CREATE_QUARTZ_TABLES_CONFIG_ENTRY,
+            JDBC_DRIVER_DELEGATE_CLASS_CONFIG_ENTRY,
+            USE_THREAD_INTERRUPT_CONFIG_ENTRY,
+            JMX_CONNECT_TIMEOUT_CONFIG_ENTRY,
+            QUARTZ_NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY,
+            NODE_REGISTRATION_INTERVAL_CONFIG_ENTRY,
+            NODE_TIMEOUT_CONFIG_ENTRY,
+            JMX_USERNAME_CONFIG_ENTRY,
+            JMX_PASSWORD_CONFIG_ENTRY,
+            TEST_MODE_CONFIG_ENTRY,
+            WAITING_TASKS_CHECK_INTERVAL_CONFIG_ENTRY,
+            STALLED_TASKS_CHECK_INTERVAL_CONFIG_ENTRY,
+            STALLED_TASKS_THRESHOLD_CONFIG_ENTRY,
+            STALLED_TASKS_REPEATED_NOTIFICATION_INTERVAL_CONFIG_ENTRY,
+            RUN_NOW_KEEPS_ORIGINAL_SCHEDULE_CONFIG_ENTRY
+    );
+
+    void checkAllowedKeys(MidpointConfiguration masterConfig) throws TaskManagerConfigurationException {
+        Configuration c = masterConfig.getConfiguration(TASK_MANAGER_CONFIG_SECTION);
+        checkAllowedKeys(c, KNOWN_KEYS);
+    }
+
+    // todo copied from WfConfiguration -- refactor
+    private void checkAllowedKeys(Configuration c, List<String> knownKeys) throws TaskManagerConfigurationException {
+        Set<String> knownKeysSet = new HashSet<String>(knownKeys);
+
+        Iterator<String> keyIterator = c.getKeys();
+        while (keyIterator.hasNext())  {
+            String keyName = keyIterator.next();
+            String normalizedKeyName = StringUtils.substringBefore(keyName, ".");                       // because of subkeys
+            normalizedKeyName = StringUtils.substringBefore(normalizedKeyName, "[");                    // because of [@xmlns:c]
+            int colon = normalizedKeyName.indexOf(':');                                                 // because of c:generalChangeProcessorConfiguration
+            if (colon != -1) {
+                normalizedKeyName = normalizedKeyName.substring(colon + 1);
+            }
+            if (!knownKeysSet.contains(keyName) && !knownKeysSet.contains(normalizedKeyName)) {         // ...we need to test both because of keys like 'midpoint.home'
+                throw new TaskManagerConfigurationException("Unknown key " + keyName + " in task manager configuration");
+            }
+        }
+    }
 
     void setBasicInformation(MidpointConfiguration masterConfig) throws TaskManagerConfigurationException {
         Configuration c = masterConfig.getConfiguration(TASK_MANAGER_CONFIG_SECTION);
@@ -191,7 +257,10 @@ public class TaskManagerConfiguration {
         jmxUsername = c.getString(JMX_USERNAME_CONFIG_ENTRY, JMX_USERNAME_DEFAULT);
         jmxPassword = c.getString(JMX_PASSWORD_CONFIG_ENTRY, JMX_PASSWORD_DEFAULT);
 
-        checkWaitingTasksInterval = c.getInt(CHECK_WAITING_TASKS_INTERVAL_CONFIG_ENTRY, CHECK_WAITING_TASKS_INTERVAL_DEFAULT);
+        waitingTasksCheckInterval = c.getInt(WAITING_TASKS_CHECK_INTERVAL_CONFIG_ENTRY, WAITING_TASKS_CHECK_INTERVAL_DEFAULT);
+        stalledTasksCheckInterval = c.getInt(STALLED_TASKS_CHECK_INTERVAL_CONFIG_ENTRY, STALLED_TASKS_CHECK_INTERVAL_DEFAULT);
+        stalledTasksThreshold = c.getInt(STALLED_TASKS_THRESHOLD_CONFIG_ENTRY, STALLED_TASKS_THRESHOLD_DEFAULT);
+        stalledTasksRepeatedNotificationInterval = c.getInt(STALLED_TASKS_REPEATED_NOTIFICATION_INTERVAL_CONFIG_ENTRY, STALLED_TASKS_REPEATED_NOTIFICATION_INTERVAL_DEFAULT);
         runNowKeepsOriginalSchedule = c.getBoolean(RUN_NOW_KEEPS_ORIGINAL_SCHEDULE_CONFIG_ENTRY, RUN_NOW_KEEPS_ORIGINAL_SCHEDULE_DEFAULT);
     }
 
@@ -235,8 +304,8 @@ public class TaskManagerConfiguration {
         }
         LOGGER.info("Quartz database is at " + jdbcUrl);
 
-        jdbcUser = c.getString(JDBC_USER_CONFIG, sqlConfig != null ? sqlConfig.getJdbcUsername() : null);
-        jdbcPassword = c.getString(JDBC_PASSWORD_CONFIG, sqlConfig != null ? sqlConfig.getJdbcPassword() : null);
+        jdbcUser = c.getString(JDBC_USER_CONFIG_ENTRY, sqlConfig != null ? sqlConfig.getJdbcUsername() : null);
+        jdbcPassword = c.getString(JDBC_PASSWORD_CONFIG_ENTRY, sqlConfig != null ? sqlConfig.getJdbcPassword() : null);
 
         hibernateDialect = sqlConfig != null ? sqlConfig.getHibernateDialect() : "";
 
@@ -246,7 +315,7 @@ public class TaskManagerConfiguration {
         sqlSchemaFile = c.getString(SQL_SCHEMA_FILE_CONFIG_ENTRY, defaultSqlSchemaFile);
         jdbcDriverDelegateClass = c.getString(JDBC_DRIVER_DELEGATE_CLASS_CONFIG_ENTRY, defaultDriverDelegate);
 
-        createQuartzTables = c.getBoolean(CREATE_QUARTZ_TABLES, CREATE_QUARTZ_TABLES_DEFAULT);
+        createQuartzTables = c.getBoolean(CREATE_QUARTZ_TABLES_CONFIG_ENTRY, CREATE_QUARTZ_TABLES_DEFAULT);
     }
 
     /**
@@ -400,8 +469,20 @@ public class TaskManagerConfiguration {
         return jmxHostName;
     }
 
-    public int getCheckWaitingTasksInterval() {
-        return checkWaitingTasksInterval;
+    public int getWaitingTasksCheckInterval() {
+        return waitingTasksCheckInterval;
+    }
+
+    public int getStalledTasksCheckInterval() {
+        return stalledTasksCheckInterval;
+    }
+
+    public int getStalledTasksThreshold() {
+        return stalledTasksThreshold;
+    }
+
+    public int getStalledTasksRepeatedNotificationInterval() {
+        return stalledTasksRepeatedNotificationInterval;
     }
 
     public boolean isRunNowKeepsOriginalSchedule() {

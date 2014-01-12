@@ -119,12 +119,11 @@ public class ObjectAlreadyExistHandler extends ErrorHandler {
 		// TODO: error handling TODO TODO TODO set matching rule instead of null in equlas filter
 		PrismProperty nameProperty = shadow.getAttributes().asPrismContainerValue()
 				.findProperty(new QName(SchemaConstants.NS_ICF_SCHEMA, "name"));
-		EqualsFilter nameFilter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES),
-				nameProperty.getDefinition(), null, nameProperty.getValues());
-		RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.class,
-				ShadowType.F_RESOURCE_REF, prismContext, shadow.getResourceRef().getOid());
-		EqualsFilter objectClassFilter = EqualsFilter.createEqual(ShadowType.class, prismContext,
-				ShadowType.F_OBJECT_CLASS, shadow.getObjectClass());
+		EqualsFilter nameFilter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, nameProperty.getDefinition().getName()),nameProperty);
+		RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class,
+				prismContext, shadow.getResourceRef().getOid());
+		EqualsFilter objectClassFilter = EqualsFilter.createEqual(ShadowType.F_OBJECT_CLASS, ShadowType.class, prismContext,
+				null, shadow.getObjectClass());
 
 		ObjectQuery query = ObjectQuery.createObjectQuery(AndFilter.createAnd(nameFilter, resourceRefFilter,
 				objectClassFilter));

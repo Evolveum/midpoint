@@ -28,13 +28,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensElementContextType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensObjectDeltaOperationType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.common.crypto.CryptoUtil;
-import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
+import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -63,11 +64,11 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 	private String oid = null;
 	private transient boolean isFresh = false;
 	
-	private LensContext<? extends ObjectType, ? extends ObjectType> lensContext;
+	private LensContext<? extends ObjectType> lensContext;
 	
 	private transient PrismObjectDefinition<O> objectDefinition = null;
 	
-	public LensElementContext(Class<O> objectTypeClass, LensContext<? extends ObjectType, ? extends ObjectType> lensContext) {
+	public LensElementContext(Class<O> objectTypeClass, LensContext<? extends ObjectType> lensContext) {
 		super();
 		Validate.notNull(objectTypeClass, "Object class is null");
 		Validate.notNull(lensContext, "Lens context is null");
@@ -75,7 +76,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		this.objectTypeClass = objectTypeClass;
 	}
 
-	public LensContext<? extends ObjectType, ? extends ObjectType> getLensContext() {
+	public LensContext<? extends ObjectType> getLensContext() {
 		return lensContext;
 	}
 	
@@ -106,6 +107,16 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 
 	public void setObjectCurrent(PrismObject<O> objectCurrent) {
 		this.objectCurrent = objectCurrent;
+	}
+	
+	public PrismObject<O> getObjectAny() {
+		if (objectNew != null) {
+			return objectNew;
+		}
+		if (objectCurrent != null) {
+			return objectCurrent;
+		}
+		return objectOld;
 	}
 	
 	/**
@@ -165,12 +176,20 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
         }
     }
 	
-	public void addToSecondaryDelta(ItemDelta accountPasswordDelta) throws SchemaException {
+	public void swallowToPrimaryDelta(ItemDelta<?> itemDelta) throws SchemaException {
+        if (primaryDelta == null) {
+        	primaryDelta = new ObjectDelta<O>(getObjectTypeClass(), ChangeType.MODIFY, getPrismContext());
+        	primaryDelta.setOid(oid);
+        }
+        primaryDelta.swallow(itemDelta);
+    }
+	
+	public void swallowToSecondaryDelta(ItemDelta<?> itemDelta) throws SchemaException {
         if (secondaryDelta == null) {
             secondaryDelta = new ObjectDelta<O>(getObjectTypeClass(), ChangeType.MODIFY, getPrismContext());
             secondaryDelta.setOid(oid);
         }
-        secondaryDelta.swallow(accountPasswordDelta);
+        secondaryDelta.swallow(itemDelta);
     }
 	
 	public boolean isAdd() {
@@ -437,7 +456,7 @@ public abstract class LensElementContext<O extends ObjectType> implements ModelE
 		// TODO: object definition?
 	}
 	
-	public abstract LensElementContext<O> clone(LensContext lensContext);
+	public abstract LensElementContext<O> clone(LensContext<? extends ObjectType> lensContext);
 	
 	protected void copyValues(LensElementContext<O> clone, LensContext lensContext) {
 		clone.lensContext = lensContext;

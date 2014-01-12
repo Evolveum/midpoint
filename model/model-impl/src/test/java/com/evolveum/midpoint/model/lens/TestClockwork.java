@@ -15,8 +15,6 @@
  */
 package com.evolveum.midpoint.model.lens;
 
-import static com.evolveum.midpoint.model.lens.LensTestConstants.REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY;
-import static com.evolveum.midpoint.model.lens.LensTestConstants.REQ_USER_JACK_MODIFY_DELETE_ASSIGNMENT_ACCOUNT_DUMMY;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
@@ -91,7 +89,7 @@ import org.w3c.dom.Element;
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestClockwork extends AbstractInternalModelIntegrationTest {
+public class TestClockwork extends AbstractLensTest {
 	
 	@Autowired(required = true)
 	private Clockwork clockwork;
@@ -122,7 +120,7 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestClockwork.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
 
-        LensContext<UserType, ShadowType> context = createUserAccountContext();
+        LensContext<UserType> context = createUserAccountContext();
         PrismObject<UserType> bill = prismContext.parseObject(new File(USER_BARBOSSA_FILENAME));
         fillContextWithAddUserDelta(context, bill);
 
@@ -162,11 +160,11 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
 	        Task task = taskManager.createTaskInstance(TestClockwork.class.getName() + "." + TEST_NAME);
 	        OperationResult result = task.getResult();
 	        
-	        LensContext<UserType, ShadowType> context = createJackAssignAccountContext(result);
+	        LensContext<UserType> context = createJackAssignAccountContext(result);
 	
 	        display("Input context", context);
 	
-	        assertUserModificationSanity(context);
+	        assertFocusModificationSanity(context);
 	        mockClockworkHook.reset();
 	        mockClockworkHook.setRecord(true);
 	        rememberShadowFetchOperationCount();
@@ -185,7 +183,7 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
 	        assertJackAssignAccountContext(context);
 	        assertJackAccountShadow(context);
 	        
-	        List<LensContext<?, ?>> hookContexts = mockClockworkHook.getContexts();
+	        List<LensContext<?>> hookContexts = mockClockworkHook.getContexts();
 	        assertFalse("No contexts recorded by the hook", hookContexts.isEmpty());
         
 		} finally {
@@ -231,7 +229,7 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestProjector.class.getName() + ".test053ModifyUserBarbossaDisable");
         OperationResult result = task.getResult();
 
-        LensContext<UserType, ShadowType> context = createUserAccountContext();
+        LensContext<UserType> context = createUserAccountContext();
         fillContextWithUser(context, USER_BARBOSSA_OID, result);
         fillContextWithAccount(context, ACCOUNT_HBARBOSSA_DUMMY_OID, result);
         addModificationToContextReplaceUserProperty(context,
@@ -241,7 +239,7 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
 
         display("Input context", context);
 
-        assertUserModificationSanity(context);
+        assertFocusModificationSanity(context);
 
         // WHEN
         clockwork.run(context, task, result);
@@ -254,18 +252,20 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
         		ActivationStatusType.DISABLED);
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
-        Collection<LensProjectionContext<ShadowType>> accountContexts = context.getProjectionContexts();
+        Collection<LensProjectionContext> accountContexts = context.getProjectionContexts();
         assertEquals(1, accountContexts.size());
-        LensProjectionContext<ShadowType> accContext = accountContexts.iterator().next();
+        LensProjectionContext accContext = accountContexts.iterator().next();
         assertNull(accContext.getPrimaryDelta());
         assertEquals(SynchronizationPolicyDecision.KEEP,accContext.getSynchronizationPolicyDecision());
 
         ObjectDelta<ShadowType> accountSecondaryDelta = accContext.getSecondaryDelta();
         assertEquals(ChangeType.MODIFY, accountSecondaryDelta.getChangeType());
-        assertEquals("Unexpected number of account secondary changes", 5, accountSecondaryDelta.getModifications().size());
+        assertEquals("Unexpected number of account secondary changes", 6, accountSecondaryDelta.getModifications().size());
         PrismAsserts.assertPropertyReplace(accountSecondaryDelta, 
         		new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS),
         		ActivationStatusType.DISABLED);
+        PrismAsserts.assertPropertyReplace(accountSecondaryDelta, SchemaConstants.PATH_ACTIVATION_DISABLE_REASON,
+        		SchemaConstants.MODEL_DISABLE_REASON_MAPPED);
         
         ContainerDelta<TriggerType> triggerDelta = accountSecondaryDelta.findContainerDelta(ObjectType.F_TRIGGER);
         assertNotNull("No trigger delta in account secondary delta", triggerDelta);
@@ -287,11 +287,11 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestClockwork.class.getName() + "."+testName);
         OperationResult result = task.getResult();
         
-        LensContext<UserType, ShadowType> context = createJackAssignAccountContext(result);
+        LensContext<UserType> context = createJackAssignAccountContext(result);
 
         display("Input context", context);
 
-        assertUserModificationSanity(context);
+        assertFocusModificationSanity(context);
         mockClockworkHook.reset();
         mockClockworkHook.setRecord(true);
         mockClockworkHook.setAsynchronous(true);
@@ -336,7 +336,7 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
         assertJackAccountShadow(context);
 	}
 	
-	private void assertJackAssignAccountContext(LensContext<UserType, ShadowType> context) {
+	private void assertJackAssignAccountContext(LensContext<UserType> context) {
         assertTrue(context.getFocusContext().getPrimaryDelta().getChangeType() == ChangeType.MODIFY);
         if (context.getFocusContext().getSecondaryDelta() != null) {
         	assertEffectiveActivationDeltaOnly(context.getFocusContext().getSecondaryDelta(), "user secondary delta",
@@ -344,9 +344,9 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
         }
         assertFalse("No account changes", context.getProjectionContexts().isEmpty());
 
-        Collection<LensProjectionContext<ShadowType>> accountContexts = context.getProjectionContexts();
+        Collection<LensProjectionContext> accountContexts = context.getProjectionContexts();
         assertEquals(1, accountContexts.size());
-        LensProjectionContext<ShadowType> accContext = accountContexts.iterator().next();
+        LensProjectionContext accContext = accountContexts.iterator().next();
         assertNull("Account primary delta sneaked in", accContext.getPrimaryDelta());
 
         assertEquals(SynchronizationPolicyDecision.KEEP, accContext.getSynchronizationPolicyDecision());
@@ -358,7 +358,7 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
         
 	}
 	
-	private ObjectDelta<?> getExecutedDelta(LensProjectionContext<ShadowType> ctx) {
+	private ObjectDelta<?> getExecutedDelta(LensProjectionContext ctx) {
 		List<LensObjectDeltaOperation<ShadowType>> executedDeltas = ctx.getExecutedDeltas();
 		if (executedDeltas.isEmpty()) {
 			return null;
@@ -369,14 +369,14 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
 		return executedDeltas.get(0).getObjectDelta();
 	}
 
-	private void assertJackAccountShadow(LensContext<UserType, ShadowType> context) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
-        Collection<LensProjectionContext<ShadowType>> accountContexts = context.getProjectionContexts();
+	private void assertJackAccountShadow(LensContext<UserType> context) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+        Collection<LensProjectionContext> accountContexts = context.getProjectionContexts();
         assertEquals(1, accountContexts.size());
-        LensProjectionContext<ShadowType> accContext = accountContexts.iterator().next();
+        LensProjectionContext accContext = accountContexts.iterator().next();
         String accountOid = accContext.getOid();
         assertNotNull("No OID in account context "+accContext);
         
-        PrismObject<ShadowType> newAccount = getAccount(accountOid);
+        PrismObject<ShadowType> newAccount = getShadowModel(accountOid);
         assertEquals(DEFAULT_INTENT, newAccount.findProperty(ShadowType.F_INTENT).getRealValue());
         assertEquals(new QName(ResourceTypeUtil.getResourceNamespace(resourceDummyType), "AccountObjectClass"),
                 newAccount.findProperty(ShadowType.F_OBJECT_CLASS).getRealValue());
@@ -388,19 +388,19 @@ public class TestClockwork extends AbstractInternalModelIntegrationTest {
         assertEquals("Jack Sparrow", attributes.findProperty(new QName(ResourceTypeUtil.getResourceNamespace(resourceDummyType), "fullname")).getRealValue());
 	}
 
-	private LensContext<UserType, ShadowType> createJackAssignAccountContext(OperationResult result) throws SchemaException, ObjectNotFoundException, FileNotFoundException, JAXBException {
-		LensContext<UserType, ShadowType> context = createUserAccountContext();
+	private LensContext<UserType> createJackAssignAccountContext(OperationResult result) throws SchemaException, ObjectNotFoundException, FileNotFoundException, JAXBException {
+		LensContext<UserType> context = createUserAccountContext();
         fillContextWithUser(context, USER_JACK_OID, result);
-        addModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY);
+        addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_ADD_ASSIGNMENT_ACCOUNT_DUMMY);
         return context;
 	}
 
 	private void unassignJackAccount() throws SchemaException, ObjectNotFoundException, FileNotFoundException, JAXBException, PolicyViolationException, ExpressionEvaluationException, ObjectAlreadyExistsException, CommunicationException, ConfigurationException, SecurityViolationException {
 		Task task = taskManager.createTaskInstance(TestClockwork.class.getName() + ".unassignJackAccount");
-		LensContext<UserType, ShadowType> context = createUserAccountContext();
+		LensContext<UserType> context = createUserAccountContext();
 		OperationResult result = task.getResult();
         fillContextWithUser(context, USER_JACK_OID, result);
-        addModificationToContext(context, REQ_USER_JACK_MODIFY_DELETE_ASSIGNMENT_ACCOUNT_DUMMY);
+        addFocusModificationToContext(context, REQ_USER_JACK_MODIFY_DELETE_ASSIGNMENT_ACCOUNT_DUMMY);
         clockwork.run(context, task, result);
 	}
 

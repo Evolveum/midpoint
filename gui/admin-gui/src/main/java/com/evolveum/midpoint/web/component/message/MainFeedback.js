@@ -278,7 +278,7 @@ jQuery.fn.disableTextSelection = function(){
 };
 
 function setTempMessagePositionWhileScroll() {
-	if (($.browser.msie && $.browser.version >= 9.0) || (!$.browser.msie)) {
+	if (isIE9OrNewer() || !isIE()) {
 		var scroll;
 		var isSelected;
 		$(window).scroll(function() {

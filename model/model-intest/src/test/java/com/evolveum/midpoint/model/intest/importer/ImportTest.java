@@ -17,7 +17,6 @@ package com.evolveum.midpoint.model.intest.importer;
 
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.common.InternalsConfig;
-import com.evolveum.midpoint.common.QueryUtil;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.intest.AbstractConfiguredModelIntegrationTest;
 import com.evolveum.midpoint.prism.*;
@@ -30,6 +29,7 @@ import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
@@ -116,7 +116,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		
 		// Just initialize the resource, do NOT import resource definition
 		dummyResourceCtl = DummyResourceContoller.create(null);
-		dummyResourceCtl.extendDummySchema();
+		dummyResourceCtl.extendSchemaPirate();
 		dummyResource = dummyResourceCtl.getDummyResource();
 		
 		dummyConnector = findConnectorByTypeAndVersion(CONNECTOR_DUMMY_TYPE, CONNECTOR_DUMMY_VERSION, initResult);
@@ -203,8 +203,9 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		assertNotNull("Er? The pirate sectrets were lost!",protectedString.getEncryptedData());
 
 		// Check import with generated OID
-		EqualsFilter equal = EqualsFilter.createEqual(UserType.class, PrismTestUtil.getPrismContext(), UserType.F_NAME, "guybrush");
-		ObjectQuery query = ObjectQuery.createObjectQuery(equal);
+//		EqualsFilter equal = EqualsFilter.createEqual(UserType.class, PrismTestUtil.getPrismContext(), UserType.F_NAME, "guybrush");
+//		ObjectQuery query = ObjectQuery.createObjectQuery(equal);
+		ObjectQuery query = ObjectQueryUtil.createNameQuery("guybrush", PrismTestUtil.getPrismContext());
 		
 		List<PrismObject<UserType>> users = repositoryService.searchObjects(UserType.class, query, null, result);
 
@@ -437,7 +438,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		// GIVEN
 		Task task = taskManager.createTaskInstance(ImportTest.class.getName() + "." + TEST_NAME);
 		OperationResult result = task.getResult();
-		FileInputStream stream = new FileInputStream(new File(RESOURCE_DUMMY_FILENAME));
+		FileInputStream stream = new FileInputStream(RESOURCE_DUMMY_FILE);
 		
 		IntegrationTestTools.assertNoRepoCache();
 		dummyAuditService.clear();
@@ -448,7 +449,7 @@ public class ImportTest extends AbstractConfiguredModelIntegrationTest {
 		// THEN
 		result.computeStatus();
 		display("Result after import", result);
-		TestUtil.assertSuccess("Import of "+RESOURCE_DUMMY_FILENAME+" has failed (result)", result, 2);
+		TestUtil.assertSuccess("Import of "+RESOURCE_DUMMY_FILE+" has failed (result)", result, 2);
 
 		IntegrationTestTools.assertNoRepoCache();
 		

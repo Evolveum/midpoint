@@ -66,7 +66,7 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
 
     @Override
     public String getCssClass() {
-        return "tableCheckbox";
+        return "icon";
     }
 
     /**
@@ -104,7 +104,7 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
         }
     }
 
-    public static <T> boolean shoulBeHeaderSelected(DataTable table) {
+    public static <T> boolean shouldBeHeaderSelected(DataTable table) {
         boolean selectedAll = true;
 
         BaseSortableDataProvider baseProvider = (BaseSortableDataProvider) table.getDataProvider();
@@ -125,9 +125,6 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
 
     /**
      * This method is called after checkbox in row is updated
-     * @param target
-     * @param table
-     * @param rowModel
      */
     @Override
     protected void onUpdateRow(AjaxRequestTarget target, DataTable table, IModel<T> rowModel) {
@@ -137,7 +134,7 @@ public class CheckBoxHeaderColumn<T extends Serializable> extends CheckBoxColumn
             return;
         }
 
-        header.getPanelComponent().setModelObject(shoulBeHeaderSelected(table));
+        header.getPanelComponent().setModelObject(shouldBeHeaderSelected(table));
         target.add(header);
     }
 

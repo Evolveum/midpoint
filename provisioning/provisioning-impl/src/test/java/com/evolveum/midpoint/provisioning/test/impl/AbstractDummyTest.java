@@ -50,6 +50,9 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.match.MatchingRule;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -161,6 +164,9 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	@Autowired(required = true) 
 	protected TaskManager taskManager;
 	
+	@Autowired(required = true)
+	protected MatchingRuleRegistry matchingRuleRegistry;
+	
 	// Values used to check if something is unchanged or changed properly
 	private Long lastResourceVersion = null;
 	private ConnectorInstance lastConfiguredConnectorInstance;
@@ -181,7 +187,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 
 		dummyResourceCtl = DummyResourceContoller.create(null);
 		dummyResourceCtl.setResource(resource);
-		dummyResourceCtl.extendDummySchema();
+		dummyResourceCtl.extendSchemaPirate();
 		dummyResource = dummyResourceCtl.getDummyResource();
 
 		DummyAccount dummyAccountDaemon = new DummyAccount(ACCOUNT_DAEMON_USERNAME);
@@ -210,6 +216,11 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		PrismProperty<String> icfUidAttr = shadow.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_UID));
 		return icfUidAttr.getRealValue();
 	}
+	
+	protected String getIcfName(PrismObject<ShadowType> shadow) {
+		PrismProperty<String> icfUidAttr = shadow.findProperty(new ItemPath(ShadowType.F_ATTRIBUTES, ConnectorFactoryIcfImpl.ICFS_NAME));
+		return icfUidAttr.getRealValue();
+	}
 
 	protected String getResourceDummyFilename() {
 		return RESOURCE_DUMMY_FILENAME;
@@ -234,11 +245,11 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		OperationResult result = new OperationResult(TestDummyNegative.class.getName()
 				+ ".checkConsistency");
 		
-		ItemDefinition itemDef = ShadowUtil.getAttributesContainer(object).getDefinition().findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_NAME);
+		PrismPropertyDefinition itemDef = ShadowUtil.getAttributesContainer(object).getDefinition().findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_NAME);
 		
 		LOGGER.info("item definition: {}", itemDef.dump());
 		//TODO: matching rule
-		EqualsFilter equal = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), itemDef, null, getWillRepoIcfName());
+		EqualsFilter equal = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, itemDef.getName()), itemDef, getWillRepoIcfName());
 		ObjectQuery query = ObjectQuery.createObjectQuery(equal);
 		
 		System.out.println("Looking for shadows of \"" + getWillRepoIcfName() + "\" with filter "
@@ -262,6 +273,10 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		ProvisioningTestUtil.assertAttribute(resource, shadow, attrName, expectedValues);
 	}
 	
+	protected <T> void assertAttribute(ShadowType shadow, MatchingRule<T> matchingRule, QName attrName, T... expectedValues) {
+		ProvisioningTestUtil.assertAttribute(resource, shadow, matchingRule, attrName, expectedValues);
+	}
+	
 	protected <T> void assertNoAttribute(ShadowType shadow, String attrName) {
 		ProvisioningTestUtil.assertNoAttribute(resource, shadow, attrName);
 	}
@@ -275,7 +290,8 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	}
 	
 	protected DummyAccount getDummyAccount(String icfName, String icfUid) throws ConnectException, FileNotFoundException {
-		if (isNameUnique()) {
+//		if (isNameUnique()) {
+		if (isIcfNameUidSame()) {
 			return dummyResource.getAccountByUsername(icfName);
 		} else {
 			 return dummyResource.getAccountById(icfUid);
@@ -283,7 +299,8 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	}
 	
 	protected DummyAccount getDummyAccountAssert(String icfName, String icfUid) throws ConnectException, FileNotFoundException {
-		if (isNameUnique()) {
+//		if (isNameUnique()) {
+		if (isIcfNameUidSame()) {
 			return dummyResource.getAccountByUsername(icfName);
 		} else {
 			 DummyAccount account = dummyResource.getAccountById(icfUid);
@@ -294,7 +311,8 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	}
 	
 	protected DummyGroup getDummyGroup(String icfName, String icfUid) throws ConnectException, FileNotFoundException {
-		if (isNameUnique()) {
+//		if (isNameUnique()) {
+		if (isIcfNameUidSame()) {
 			return dummyResource.getGroupByName(icfName);
 		} else {
 			 return dummyResource.getGroupById(icfUid);
@@ -302,7 +320,8 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	}
 	
 	protected DummyGroup getDummyGroupAssert(String icfName, String icfUid) throws ConnectException, FileNotFoundException {
-		if (isNameUnique()) {
+//		if (isNameUnique()) {
+		if (isIcfNameUidSame()) {
 			return dummyResource.getGroupByName(icfName);
 		} else {
 			 DummyGroup group = dummyResource.getGroupById(icfUid);
@@ -313,7 +332,8 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	}
 	
 	protected DummyPrivilege getDummyPrivilege(String icfName, String icfUid) throws ConnectException, FileNotFoundException {
-		if (isNameUnique()) {
+//		if (isNameUnique()) {
+		if (isIcfNameUidSame()) {
 			return dummyResource.getPrivilegeByName(icfName);
 		} else {
 			 return dummyResource.getPrivilegeById(icfUid);
@@ -321,7 +341,8 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	}
 
 	protected DummyPrivilege getDummyPrivilegeAssert(String icfName, String icfUid) throws ConnectException, FileNotFoundException {
-		if (isNameUnique()) {
+//		if (isNameUnique()) {
+		if (isIcfNameUidSame()) {
 			return dummyResource.getPrivilegeByName(icfName);
 		} else {
 			 DummyPrivilege priv = dummyResource.getPrivilegeById(icfUid);

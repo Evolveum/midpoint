@@ -134,6 +134,9 @@ public class ResourceManager {
 		PrismObject<ResourceType> cachedResource = resourceCache.get(oid, version);
 		if (cachedResource != null) {
 			InternalMonitor.getResourceCacheStats().recordHit();
+			if (LOGGER.isTraceEnabled()){
+				LOGGER.trace("Returning resource from cache:\n{}", cachedResource.dump());
+			}
 			return cachedResource;
 		}
 		
@@ -479,8 +482,8 @@ public class ResourceManager {
 		// Resource)
 		LOGGER.info("Storing generated schema in resource {}", resource);
 
-		ContainerDelta<XmlSchemaType> schemaContainerDelta = ContainerDelta.createDelta(prismContext,
-				ResourceType.class, ResourceType.F_SCHEMA);
+		ContainerDelta<XmlSchemaType> schemaContainerDelta = ContainerDelta.createDelta(
+				ResourceType.F_SCHEMA, ResourceType.class, prismContext);
 		PrismContainerValue<XmlSchemaType> cval = new PrismContainerValue<XmlSchemaType>();
 		schemaContainerDelta.setValueToReplace(cval);
 		PrismProperty<CachingMetadataType> cachingMetadataProperty = cval

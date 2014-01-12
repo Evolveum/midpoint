@@ -20,10 +20,6 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.path.ItemPath;
-
-import java.util.Set;
 
 /**
  * Resource Object Attribute is a Property of Resource Object. All that applies
@@ -87,7 +83,7 @@ public class ResourceAttribute<T> extends PrismProperty<T> {
     
     @Override
 	public ResourceAttribute<T> clone() {
-    	ResourceAttribute<T> clone = new ResourceAttribute<T>(getName(), getDefinition(), getPrismContext());
+    	ResourceAttribute<T> clone = new ResourceAttribute<T>(getElementName(), getDefinition(), getPrismContext());
     	copyValues(clone);
     	return clone;
 	}

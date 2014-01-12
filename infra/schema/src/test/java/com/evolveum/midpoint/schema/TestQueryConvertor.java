@@ -30,6 +30,7 @@ import org.xml.sax.SAXException;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -78,7 +79,7 @@ public class TestQueryConvertor {
 			QueryType queryType = prismContext.getPrismJaxbProcessor().unmarshalObject(file, QueryType.class);
 			LOGGER.info("===[ query type parsed ]===");
 			ObjectQuery query = null;
-//			try {
+			try {
 				query = QueryConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
 				LOGGER.info("query converted: ");
 
@@ -90,13 +91,13 @@ public class TestQueryConvertor {
 				QueryType convertedQueryType = QueryConvertor.createQueryType(query, prismContext);
 				LOGGER.info(DOMUtil.serializeDOMToString(convertedQueryType.getFilter()));
 
-//			} catch (SchemaException ex) {
-//				LOGGER.error("Error while converting query: {}", ex.getMessage(), ex);
-//			} catch (RuntimeException ex) {
-//				LOGGER.error("Error while converting query: {}", ex.getMessage(), ex);
-//			} catch (Exception ex) {
-//				LOGGER.error("Error while converting query: {}", ex.getMessage(), ex);
-//			}
+			} catch (SchemaException ex) {
+				LOGGER.error("Error while converting query: {}", ex.getMessage(), ex);
+			} catch (RuntimeException ex) {
+				LOGGER.error("Error while converting query: {}", ex.getMessage(), ex);
+			} catch (Exception ex) {
+				LOGGER.error("Error while converting query: {}", ex.getMessage(), ex);
+			}
 
 		}
 		// TODO: add some asserts
@@ -127,6 +128,7 @@ public class TestQueryConvertor {
 					((PrismPropertyValue) values.get(0)).getValue());
 			AssertJUnit.assertEquals(ConnectorType.F_CONNECTOR_TYPE, ((EqualsFilter) query.getFilter()).getDefinition()
 					.getName());
+			AssertJUnit.assertEquals(new ItemPath(ConnectorType.F_CONNECTOR_TYPE), ((EqualsFilter) query.getFilter()).getFullPath());
 			AssertJUnit.assertEquals(DOMUtil.XSD_STRING, ((EqualsFilter) query.getFilter()).getDefinition()
 					.getTypeName());
 

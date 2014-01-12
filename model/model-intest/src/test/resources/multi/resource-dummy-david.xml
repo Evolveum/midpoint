@@ -126,6 +126,17 @@
 					</condition>
 				</outbound>
 			</attribute>
+			<!-- Let's have some weak mapping. This can ruin some things. E.g. it can cause phantom changes -->
+			<attribute>
+				<ref>ri:gossip</ref>
+				<tolerant>true</tolerant>
+				<outbound>
+					<strength>weak</strength>
+					<expression>
+						<value>the king</value>
+					</expression>
+				</outbound>
+			</attribute>
 			<dependency>
 				<resourceRef oid="10000000-0000-0000-0000-000000300002"/>
 				<strictness>relaxed</strictness>

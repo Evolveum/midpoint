@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.task.api.TaskManagerInitializationException;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerConfiguration;
 import com.evolveum.midpoint.task.quartzimpl.TaskManagerQuartzImpl;
@@ -91,11 +92,11 @@ public class NodeRegistrar {
         }
 
         for (PrismObject<NodeType> n : nodes) {
-            LOGGER.trace("Removing existing NodeType with oid = {}, name = {}", n.getOid(), n.getName());
+            LOGGER.trace("Removing existing NodeType with oid = {}, name = {}", n.getOid(), n.getElementName());
             try {
                 getRepositoryService().deleteObject(NodeType.class, n.getOid(), result);
             } catch (ObjectNotFoundException e) {
-                LoggingUtils.logException(LOGGER, "Cannot remove NodeType with oid = {}, name = {}, because it does not exist.", e, n.getOid(), n.getName());
+                LoggingUtils.logException(LOGGER, "Cannot remove NodeType with oid = {}, name = {}, because it does not exist.", e, n.getOid(), n.getElementName());
                 // continue, because the error is not that severe (we hope so)
             }
         }
@@ -359,8 +360,8 @@ public class NodeRegistrar {
 
     private List<PrismObject<NodeType>> findNodesWithGivenName(OperationResult result, PolyStringType name) throws SchemaException {
 
-//        QueryType q = QueryUtil.createNameQuery(name);
-    	ObjectQuery q = ObjectQuery.createObjectQuery(EqualsFilter.createEqual(NodeType.class, getPrismContext(), NodeType.F_NAME, name));
+        ObjectQuery q = ObjectQueryUtil.createNameQuery(name, getPrismContext());
+//    	ObjectQuery q = ObjectQuery.createObjectQuery(EqualsFilter.createEqual(NodeType.F_NAME, NodeType.class, getPrismContext(), null, name));
         return getRepositoryService().searchObjects(NodeType.class, q, null, result);
     }
 

@@ -162,6 +162,18 @@ public class DeltaSetTriple<T> implements Dumpable, DebugDumpable, Serializable,
 
     }
 
+    public void addAllToSet(PlusMinusZero destination, Collection<T> items) {
+    	if (destination == null) {
+    		return;
+    	} else if (destination == PlusMinusZero.PLUS) {
+    		addAllToSet(plusSet, items);
+    	} else if (destination == PlusMinusZero.MINUS) {
+    		addAllToSet(minusSet, items);
+    	} else if (destination == PlusMinusZero.ZERO) {
+    		addAllToSet(zeroSet, items);
+    	}
+    }
+    
 	private void addAllToSet(Collection<T> set, Collection<T> items) {
 		if (items == null) {
 			return;

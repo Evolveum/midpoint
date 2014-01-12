@@ -18,6 +18,7 @@ package com.evolveum.midpoint.repo.sql.data.common;
 
 import com.evolveum.midpoint.repo.sql.util.RUtil;
 import org.hibernate.annotations.ForeignKey;
+import org.hibernate.annotations.Index;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -27,6 +28,8 @@ import java.io.Serializable;
  */
 @Entity
 @Table(name = "m_org_closure")
+@org.hibernate.annotations.Table(appliesTo = "m_org_closure",
+        indexes = {@Index(name = "iAncestorDepth", columnNames = {"ancestor_id","ancestor_oid","depthValue"})})
 public class ROrgClosure implements Serializable {
 
     private Long id;
@@ -132,7 +135,6 @@ public class ROrgClosure implements Serializable {
     public int getDepth() {
         return depth;
     }
-
 
     public void setDepth(int depth) {
         this.depth = depth;

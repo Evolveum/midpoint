@@ -451,7 +451,7 @@ public class DummyResource {
 		
 		if (syncStyle != DummySyncStyle.NONE) {
 			int syncToken = nextSyncToken();
-			DummyDelta delta = new DummyDelta(syncToken, type, newId, normalName, DummyDeltaType.ADD);
+			DummyDelta delta = new DummyDelta(syncToken, type, newId, newObject.getName(), DummyDeltaType.ADD);
 			deltas.add(delta);
 		}
 		
@@ -495,7 +495,7 @@ public class DummyResource {
 		
 		if (syncStyle != DummySyncStyle.NONE) {
 			int syncToken = nextSyncToken();
-			DummyDelta delta = new DummyDelta(syncToken, type, existingObject.getId(), normalName, DummyDeltaType.DELETE);
+			DummyDelta delta = new DummyDelta(syncToken, type, existingObject.getId(), name, DummyDeltaType.DELETE);
 			deltas.add(delta);
 		}
 	}
@@ -559,7 +559,7 @@ public class DummyResource {
 		
 		if (syncStyle != DummySyncStyle.NONE) {
 			int syncToken = nextSyncToken();
-			DummyDelta delta = new DummyDelta(syncToken, type, id, normalName, DummyDeltaType.DELETE);
+			DummyDelta delta = new DummyDelta(syncToken, type, id, object.getName(), DummyDeltaType.DELETE);
 			deltas.add(delta);
 		}
 	}

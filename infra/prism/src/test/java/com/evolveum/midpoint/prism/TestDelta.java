@@ -64,7 +64,7 @@ public class TestDelta {
 		
 		// GIVEN
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
-				UserType.F_DESCRIPTION, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
+				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
 		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition);
 		delta1.addValueToAdd(new PrismPropertyValue<String>("add1"));
@@ -90,7 +90,7 @@ public class TestDelta {
 		
 		// GIVEN
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
-				UserType.F_DESCRIPTION, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
+				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
 		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition);
 		delta1.addValueToDelete(new PrismPropertyValue<String>("del1"));
@@ -116,7 +116,7 @@ public class TestDelta {
 		
 		// GIVEN
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
-				UserType.F_DESCRIPTION, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
+				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
 		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition);
 		delta1.addValueToAdd(new PrismPropertyValue<String>("add1"));
@@ -144,7 +144,7 @@ public class TestDelta {
 		
 		// GIVEN
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
-				UserType.F_DESCRIPTION, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
+				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
 		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition);
 		delta1.addValueToAdd(new PrismPropertyValue<String>("add1"));
@@ -172,7 +172,7 @@ public class TestDelta {
 		
 		// GIVEN
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
-				UserType.F_DESCRIPTION, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
+				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
 		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition);
 		delta1.addValueToAdd(new PrismPropertyValue<String>("add1"));
@@ -199,7 +199,7 @@ public class TestDelta {
 		
 		// GIVEN
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
-				UserType.F_DESCRIPTION, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
+				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
 		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition);
 		delta1.addValueToAdd(new PrismPropertyValue<String>("add1"));
@@ -226,7 +226,7 @@ public class TestDelta {
 		
 		// GIVEN
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
-				UserType.F_DESCRIPTION, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
+				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
 		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition);
 		delta1.setValuesToReplace(new PrismPropertyValue<String>("r1x"), new PrismPropertyValue<String>("r1y"));
@@ -252,7 +252,7 @@ public class TestDelta {
 		
 		// GIVEN
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
-				UserType.F_DESCRIPTION, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
+				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
 		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition);
 		delta1.setValuesToReplace(new PrismPropertyValue<String>("r1x"), new PrismPropertyValue<String>("r1y"));
@@ -279,7 +279,7 @@ public class TestDelta {
 		
 		// GIVEN
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
-				UserType.F_DESCRIPTION, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
+				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
 		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition);
 		delta1.setValuesToReplace(new PrismPropertyValue<String>("r1x"), new PrismPropertyValue<String>("r1y"));
@@ -306,7 +306,7 @@ public class TestDelta {
 		
 		// GIVEN
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
-				UserType.F_DESCRIPTION, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
+				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
 		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition);
 		delta1.addValueToAdd(new PrismPropertyValue<String>("add1"));
@@ -333,7 +333,7 @@ public class TestDelta {
 		
 		// GIVEN
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
-				UserType.F_DESCRIPTION, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
+				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
 		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition);
 		delta1.addValueToAdd(new PrismPropertyValue<String>("add1"));
@@ -364,7 +364,7 @@ public class TestDelta {
 		
 		// GIVEN
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
-				UserType.F_DESCRIPTION, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
+				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
 		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition);
 		delta1.addValueToAdd(new PrismPropertyValue<String>("add1"));
@@ -398,7 +398,7 @@ public class TestDelta {
 		
 		// GIVEN
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
-				UserType.F_DESCRIPTION, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
+				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
 		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition);
 		delta1.addValueToDelete(new PrismPropertyValue<String>("del1"));
@@ -432,7 +432,7 @@ public class TestDelta {
 		
 		// GIVEN
 		PrismPropertyDefinition propertyDefinition = new PrismPropertyDefinition(UserType.F_DESCRIPTION, 
-				UserType.F_DESCRIPTION, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
+				DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 
 		PropertyDelta<String> delta1 = new PropertyDelta<String>(propertyDefinition);
 		// Let's complicate the things a bit with origin. This should work even though origins do not match.
@@ -468,7 +468,7 @@ public class TestDelta {
 
         // GIVEN
         PrismReferenceDefinition referenceDefinition = new PrismReferenceDefinition(UserType.F_PARENT_ORG_REF,
-                UserType.F_PARENT_ORG_REF, OBJECT_REFERENCE_TYPE_QNAME, PrismTestUtil.getPrismContext());
+                OBJECT_REFERENCE_TYPE_QNAME, PrismTestUtil.getPrismContext());
 
         ReferenceDelta delta1 = new ReferenceDelta(referenceDefinition);
         delta1.addValueToAdd(new PrismReferenceValue("oid1"));
@@ -565,7 +565,7 @@ public class TestDelta {
     	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValue<AssignmentType>();
     	// The value id is null
     	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "jamalalicha patlama paprtala");
-    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(getUserTypeDefinition(), UserType.F_ASSIGNMENT);
+    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(UserType.F_ASSIGNMENT,getUserTypeDefinition());
     	containerDelta2.addValueToAdd(assignmentValue2);
     	
 		// WHEN
@@ -601,7 +601,7 @@ public class TestDelta {
     	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValue<AssignmentType>();
     	// The value id is null
     	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "abra kadabra");
-    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(getUserTypeDefinition(), UserType.F_ASSIGNMENT);
+    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(UserType.F_ASSIGNMENT,getUserTypeDefinition());
     	containerDelta2.addValueToAdd(assignmentValue2);
     	
 		// WHEN
@@ -638,7 +638,7 @@ public class TestDelta {
     	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValue<AssignmentType>();
     	// The value id is null    	
     	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "abra kadabra");
-    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(getUserTypeDefinition(), UserType.F_ASSIGNMENT);
+    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(UserType.F_ASSIGNMENT, getUserTypeDefinition());
     	containerDelta2.addValueToAdd(assignmentValue2);
     	
 		// WHEN
@@ -675,7 +675,7 @@ public class TestDelta {
     	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValue<AssignmentType>();
     	assignmentValue2.setId(USER_ASSIGNMENT_2_ID);
     	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "abra kadabra");
-    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(getUserTypeDefinition(), UserType.F_ASSIGNMENT);
+    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(UserType.F_ASSIGNMENT,getUserTypeDefinition());
     	containerDelta2.addValueToAdd(assignmentValue2);
     	
 		// WHEN
@@ -712,7 +712,7 @@ public class TestDelta {
     	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValue<AssignmentType>();
     	assignmentValue2.setId(USER_ASSIGNMENT_2_ID);
     	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "abra kadabra");
-    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(getUserTypeDefinition(), UserType.F_ASSIGNMENT);
+    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(UserType.F_ASSIGNMENT,getUserTypeDefinition());
     	containerDelta2.addValueToAdd(assignmentValue2);
     	
 		// WHEN
@@ -749,7 +749,7 @@ public class TestDelta {
     	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValue<AssignmentType>();
     	assignmentValue2.setId(USER_ASSIGNMENT_1_ID);
     	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "jamalalicha patlama paprtala");
-    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(getUserTypeDefinition(), UserType.F_ASSIGNMENT);
+    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(UserType.F_ASSIGNMENT,getUserTypeDefinition());
     	containerDelta2.addValueToAdd(assignmentValue2);
     	
 		// WHEN
@@ -786,7 +786,7 @@ public class TestDelta {
     	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValue<AssignmentType>();
     	assignmentValue2.setId(USER_ASSIGNMENT_1_ID);
     	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "abra kadabra");
-    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(getUserTypeDefinition(), UserType.F_ASSIGNMENT);
+    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(UserType.F_ASSIGNMENT, getUserTypeDefinition());
     	containerDelta2.addValueToAdd(assignmentValue2);
     	
 		// WHEN
@@ -808,7 +808,7 @@ public class TestDelta {
     	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValue<AssignmentType>();
     	// null container ID
     	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "abra kadabra");
-    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(getUserTypeDefinition(), UserType.F_ASSIGNMENT);
+    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(UserType.F_ASSIGNMENT,getUserTypeDefinition());
     	containerDelta2.addValueToAdd(assignmentValue2);
     	
 		// WHEN
@@ -844,7 +844,7 @@ public class TestDelta {
     	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValue<AssignmentType>();
     	// null container ID
     	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "abra kadabra");
-    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(getUserTypeDefinition(), UserType.F_ASSIGNMENT);
+    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(UserType.F_ASSIGNMENT,getUserTypeDefinition());
     	containerDelta2.addValueToAdd(assignmentValue2);
     	
 		// WHEN
@@ -876,7 +876,7 @@ public class TestDelta {
     	PrismContainerValue<AssignmentType> assignmentValue2 = new PrismContainerValue<AssignmentType>();
     	assignmentValue2.setId(USER_ASSIGNMENT_2_ID);
     	assignmentValue2.setPropertyRealValue(AssignmentType.F_DESCRIPTION, "abra kadabra");
-    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(getUserTypeDefinition(), UserType.F_ASSIGNMENT);
+    	ContainerDelta<AssignmentType> containerDelta2 = ContainerDelta.createDelta(UserType.F_ASSIGNMENT,getUserTypeDefinition());
     	containerDelta2.addValueToAdd(assignmentValue2);
     	
 		// WHEN

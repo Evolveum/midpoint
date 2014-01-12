@@ -16,12 +16,20 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
+import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.util.SerializationUtil;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.wf.api.ProcessInstance;
-import com.evolveum.midpoint.wf.api.WorkItem;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
+import com.evolveum.midpoint.wf.util.WfVariablesUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceVariableType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
 
+import java.io.IOException;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,84 +40,53 @@ public class ProcessInstanceDto extends Selectable {
 
     public static final String F_WATCHING_TASK_OID = "watchingTaskOid";
 
-    ProcessInstance processInstance;
+    WfProcessInstanceType processInstance;
 
-    public ProcessInstanceDto(ProcessInstance processInstance) {
+    public ProcessInstanceDto(WfProcessInstanceType processInstance) {
         this.processInstance = processInstance;
     }
 
     public String getStartedTime() {
-        return processInstance.getStartTime() == null ? "-" : WebMiscUtil.formatDate(processInstance.getStartTime());
+        return processInstance.getStartTimestamp() == null ? "-" : WebMiscUtil.formatDate(XmlTypeConverter.toDate(processInstance.getStartTimestamp()));
     }
 
     public String getFinishedTime() {
-        return processInstance.getEndTime() == null ? "-" : WebMiscUtil.formatDate(processInstance.getEndTime());
+        return processInstance.getEndTimestamp() == null ? "-" : WebMiscUtil.formatDate(XmlTypeConverter.toDate(processInstance.getEndTimestamp()));
     }
 
     public String getName() {
-        return processInstance.getName();
+        return PolyString.getOrig(processInstance.getName());
     }
 
     public String getInstanceId() {
-        return processInstance.getProcessId();
+        return processInstance.getProcessInstanceId();
     }
 
-    public ProcessInstance getProcessInstance() {
+    public WfProcessInstanceType getProcessInstance() {
         return processInstance;
     }
 
     public List<WorkItemDto> getWorkItems() {
         List<WorkItemDto> retval = new ArrayList<WorkItemDto>();
         if (processInstance.getWorkItems() != null) {
-            for (WorkItem workItem : processInstance.getWorkItems()) {
+            for (WorkItemType workItem : processInstance.getWorkItems()) {
                 retval.add(new WorkItemDto(workItem));
             }
         }
         return retval;
     }
 
-//    public String getTasks() {
-//        if (processInstance.getWorkItems() == null || processInstance.getWorkItems().isEmpty()) {
-//            return "-";
-//        } else {
-//            StringBuffer sb = new StringBuffer();
-//            for (WorkItem wi : processInstance.getWorkItems()) {
-//                sb.append(wi.getTaskId() + ": " + wi.getName());
-//                if (!wi.getAssignee().isEmpty()) {
-//                    sb.append(", assigned to ");
-//                    sb.append(wi.getAssigneeName());
-//                }
-//                if (!wi.getCandidates().isEmpty()) {
-//                    sb.append("(candidates: ");
-//                    sb.append(wi.getCandidates());
-//                    sb.append(")");
-//                }
-//                if (wi.getCreateTime() != null) {
-//
-//
-//                    sb.append(", created on " + WebMiscUtil.getFormatedDate(wi.getCreateTime()));
-//                }
-//                sb.append("\n");
-//            }
-//            return sb.toString();
-//        }
-//    }
-
-    public Object getVariable(String name) {
-        return processInstance.getVariables().get(name);
-    }
-
     public String getAnswer() {
-        return (String) processInstance.getVariables().get(CommonProcessVariableNames.VARIABLE_WF_ANSWER);
+        return WfVariablesUtil.getAnswer(processInstance);
     }
 
     public boolean isAnswered() {
-        return getAnswer() != null;
+        return WfVariablesUtil.isAnswered(processInstance);
     }
 
     // null if not answered or answer is not true/false
     public Boolean getAnswerAsBoolean() {
-        return CommonProcessVariableNames.approvalBooleanValue(getAnswer());
+        return WfVariablesUtil.getAnswerAsBoolean(processInstance);
     }
 
     public boolean isFinished() {
@@ -117,6 +94,11 @@ public class ProcessInstanceDto extends Selectable {
     }
 
     public String getWatchingTaskOid() {
-        return (String) processInstance.getVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_TASK_OID);
+        return WfVariablesUtil.getWatchingTaskOid(processInstance);
+    }
+
+    // fixme (parametrize)
+    public Object getVariable(String name) {
+        return WfVariablesUtil.getVariable(processInstance, name, Serializable.class);
     }
 }

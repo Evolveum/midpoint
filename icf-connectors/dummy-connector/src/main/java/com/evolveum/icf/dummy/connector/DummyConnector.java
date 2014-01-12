@@ -97,7 +97,7 @@ import com.evolveum.icf.dummy.connector.Utils;
 @ConnectorClass(displayNameKey = "UI_CONNECTOR_NAME",
 configurationClass = DummyConfiguration.class)
 public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernameOp, CreateOp, DeleteOp, SchemaOp,
-        ScriptOnConnectorOp, ScriptOnResourceOp, SearchOp<Filter>, SyncOp, TestOp, UpdateAttributeValuesOp, AttributeNormalizer {
+        ScriptOnConnectorOp, ScriptOnResourceOp, SearchOp<Filter>, SyncOp, TestOp, UpdateAttributeValuesOp {
 	
 	// We want to see if the ICF framework logging works properly
     private static final Log log = Log.getLog(DummyConnector.class);
@@ -182,7 +182,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
      * {@inheritDoc}
      */
     public Uid create(final ObjectClass objectClass, final Set<Attribute> createAttributes, final OperationOptions options) {
-        log.info("create::begin");
+        log.info("create::begin attributes {0}", createAttributes);
         validate(objectClass);
         
         DummyObject newObject;
@@ -192,18 +192,24 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 	            // Convert attributes to account
 	            DummyAccount newAccount = convertToAccount(createAttributes);
 	    			
+	            log.ok("Adding dummy account:\n{0}", newAccount.dump());
+	            
     			resource.addAccount(newAccount);
     			newObject = newAccount;
 	
 	        } else if (ObjectClass.GROUP.is(objectClass.getObjectClassValue())) {
 	            DummyGroup newGroup = convertToGroup(createAttributes);
-	    			
+	    		
+	            log.ok("Adding dummy group:\n{0}", newGroup.dump());
+	            
     			resource.addGroup(newGroup);
     			newObject = newGroup;
 	            
 	        } else if (objectClass.is(OBJECTCLASS_PRIVILEGE_NAME)) {
 	            DummyPrivilege newPriv = convertToPriv(createAttributes);
 	
+	            log.ok("Adding dummy privilege:\n{0}", newPriv.dump());
+	            
     			resource.addPrivilege(newPriv);
     			newObject = newPriv;
 
@@ -268,8 +274,10 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 						} catch (ObjectAlreadyExistsException e) {
 							throw new org.identityconnectors.framework.common.exceptions.AlreadyExistsException(e.getMessage(), e);
 						}
-		        		// We need to change the returned uid here
-		        		uid = new Uid(newName);
+		        		// We need to change the returned uid here (only if the mode is not set to UUID)
+						if (!(configuration.getUidMode().equals(DummyConfiguration.UID_MODE_UUID))){
+							uid = new Uid(newName);
+						}
 		        	} else if (attr.is(OperationalAttributes.PASSWORD_NAME)) {
 		        		changePassword(account,attr);
 		        	
@@ -1101,9 +1109,11 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 
 	
 	private DummyAccount convertToAccount(Set<Attribute> createAttributes) throws ConnectException, FileNotFoundException {
-		String userName = Utils.getMandatoryStringAttribute(createAttributes,Name.NAME);
+		log.ok("Create attributes: {0}", createAttributes);
+		String userName = Utils.getMandatoryStringAttribute(createAttributes, Name.NAME);
+		log.ok("Username {0}", userName);
 		final DummyAccount newAccount = new DummyAccount(userName);
-
+		
 		Boolean enabled = null;
 		for (Attribute attr : createAttributes) {
 			if (attr.is(Uid.NAME)) {
@@ -1269,26 +1279,26 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 		});
 	}
 
-	/* (non-Javadoc)
-	 * @see org.identityconnectors.framework.spi.AttributeNormalizer#normalizeAttribute(org.identityconnectors.framework.common.objects.ObjectClass, org.identityconnectors.framework.common.objects.Attribute)
-	 */
-	@Override
-	public Attribute normalizeAttribute(ObjectClass ObjectClass, Attribute attribute) {
-		if (!configuration.getCaseIgnoreId()) {
-			return attribute;
-		}
-		String attrName = attribute.getName();
-		if (Uid.NAME.equals(attrName) || Name.NAME.equals(attrName)) {
-			List<String> values = (List) attribute.getValue();
-			AttributeBuilder builder = new AttributeBuilder();
-			builder.setName(attrName);
-			for (String origVal: values) {
-				builder.addValue(StringUtils.lowerCase(origVal));
-			}
-			return builder.build();
-		} else {
-			return attribute;
-		}
-	}
+//	/* (non-Javadoc)
+//	 * @see org.identityconnectors.framework.spi.AttributeNormalizer#normalizeAttribute(org.identityconnectors.framework.common.objects.ObjectClass, org.identityconnectors.framework.common.objects.Attribute)
+//	 */
+//	@Override
+//	public Attribute normalizeAttribute(ObjectClass ObjectClass, Attribute attribute) {
+//		if (!configuration.getCaseIgnoreId()) {
+//			return attribute;
+//		}
+//		String attrName = attribute.getName();
+//		if (Uid.NAME.equals(attrName) || Name.NAME.equals(attrName)) {
+//			List<String> values = (List) attribute.getValue();
+//			AttributeBuilder builder = new AttributeBuilder();
+//			builder.setName(attrName);
+//			for (String origVal: values) {
+//				builder.addValue(StringUtils.lowerCase(origVal));
+//			}
+//			return builder.build();
+//		} else {
+//			return attribute;
+//		}
+//	}
 
 }

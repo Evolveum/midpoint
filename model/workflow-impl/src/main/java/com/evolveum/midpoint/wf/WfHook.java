@@ -87,6 +87,11 @@ public class WfHook implements ChangeHook {
         return retval;
     }
 
+    @Override
+    public void invokeOnException(ModelContext context, Throwable throwable, Task task, OperationResult result) {
+        // do nothing
+    }
+
     private void logOperationInformation(ModelContext context) {
 
         if (LOGGER.isTraceEnabled()) {

@@ -15,11 +15,12 @@
  */
 package com.evolveum.midpoint.model.util.mock;
 
-import com.evolveum.midpoint.common.mapping.Mapping;
+import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensDebugListener;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 
 /**
@@ -34,11 +35,11 @@ public class MockLensDebugListener implements LensDebugListener {
 
 	private LensContext lastSyncContext;
 	
-	public <F extends ObjectType, P extends ObjectType>  LensContext<F, P> getLastSyncContext() {
+	public <F extends ObjectType>  LensContext<F> getLastSyncContext() {
 		return lastSyncContext;
 	}
 
-	public <F extends ObjectType, P extends ObjectType> void setLastSyncContext(LensContext<F, P> lastSyncContext) {
+	public <F extends ObjectType> void setLastSyncContext(LensContext<F> lastSyncContext) {
 		this.lastSyncContext = lastSyncContext;
 	}
 	
@@ -46,7 +47,7 @@ public class MockLensDebugListener implements LensDebugListener {
 	 * @see com.evolveum.midpoint.model.lens.LensDebugListener#beforeSync(com.evolveum.midpoint.model.lens.LensContext)
 	 */
 	@Override
-	public <F extends ObjectType, P extends ObjectType> void beforeSync(LensContext<F, P> context) {
+	public <F extends ObjectType> void beforeSync(LensContext<F> context) {
 		LOGGER.trace(SEPARATOR+"\nSYNC CONTEXT BEFORE SYNC\n{}\n"+SEPARATOR, context.dump());
 	}
 
@@ -54,28 +55,28 @@ public class MockLensDebugListener implements LensDebugListener {
 	 * @see com.evolveum.midpoint.model.lens.LensDebugListener#afterSync(com.evolveum.midpoint.model.lens.LensContext)
 	 */
 	@Override
-	public <F extends ObjectType, P extends ObjectType> void afterSync(LensContext<F, P> context) {
+	public <F extends ObjectType> void afterSync(LensContext<F> context) {
 		LOGGER.trace(SEPARATOR+"\nSYNC CONTEXT AFTER SYNC\n{}\n"+SEPARATOR, context.dump());
 		lastSyncContext = context;
 	}
 
 	@Override
-	public <F extends ObjectType, P extends ObjectType> void beforeProjection(
-			LensContext<F, P> context) {
+	public <F extends ObjectType> void beforeProjection(
+			LensContext<F> context) {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public <F extends ObjectType, P extends ObjectType> void afterProjection(
-			LensContext<F, P> context) {
+	public <F extends ObjectType> void afterProjection(
+			LensContext<F> context) {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public <F extends ObjectType, P extends ObjectType> void afterMappingEvaluation(
-			LensContext<F, P> context,
+	public <F extends ObjectType> void afterMappingEvaluation(
+			LensContext<F> context,
 			Mapping<?> evaluatedMapping) {
 		// TODO Auto-generated method stub
 		

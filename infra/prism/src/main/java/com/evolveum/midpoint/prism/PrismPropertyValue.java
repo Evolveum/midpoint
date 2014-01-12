@@ -19,10 +19,9 @@ package com.evolveum.midpoint.prism;
 import com.evolveum.midpoint.prism.dom.ElementPrismPropertyImpl;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.CloneUtil;
+import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
@@ -98,7 +97,7 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
         		// the attribute now. But we should rather do this: TODO:
         		// throw new IllegalStateException("Attempt to get value withot a type from raw value of property "+getParent());
     			if (parent != null && parent.getPrismContext() != null) {
-    				def = SchemaRegistry.createDefaultItemDefinition(parent.getName(), parent.getPrismContext());
+    				def = SchemaRegistry.createDefaultItemDefinition(parent.getElementName(), parent.getPrismContext());
     			} else {
     				if (rawElement instanceof Element) {
         				// Do the most stupid thing possible. Assume string value. And there will be no definition.
@@ -163,13 +162,7 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 		if (realValue == null) {
 			return;
 		}
-		// TODO: switch to Recomputable interface instead of PolyString
-		if (realValue instanceof PolyString && prismContext != null) {
-			PolyStringNormalizer polyStringNormalizer = prismContext.getDefaultPolyStringNormalizer();
-			if (polyStringNormalizer != null) {
-				((PolyString)realValue).recompute(polyStringNormalizer);
-			}
-		}
+		PrismUtil.recomputeRealValue(realValue, prismContext);
 	}
 
 	@Override

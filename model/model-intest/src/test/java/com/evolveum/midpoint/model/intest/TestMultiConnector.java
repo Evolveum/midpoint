@@ -87,7 +87,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
 		super.initSystem(initTask, initResult);
 		
 		dummyResourceCtl = DummyResourceContoller.create(null, resourceDummy);
-		dummyResourceCtl.extendDummySchema();
+		dummyResourceCtl.extendSchemaPirate();
 		dummyResource = dummyResourceCtl.getDummyResource();
 		
 		dummyResourceCtl.addAccount(ACCOUNT_HERMAN_DUMMY_USERNAME, "Herman Toothrot");
@@ -200,7 +200,7 @@ public class TestMultiConnector extends AbstractConfiguredModelIntegrationTest {
         OperationResult result = task.getResult();
         
 		// WHEN
-        importObjectFromFile(RESOURCE_DUMMY_FILENAME, result);
+        importObjectFromFile(RESOURCE_DUMMY_FILE, result);
 		
 		// THEN
         result.computeStatus();

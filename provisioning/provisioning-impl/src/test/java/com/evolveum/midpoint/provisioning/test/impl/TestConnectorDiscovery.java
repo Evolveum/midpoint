@@ -147,8 +147,8 @@ public class TestConnectorDiscovery extends AbstractIntegrationTest {
 //		QueryType query = new QueryType();
 //		query.setFilter(filter);
 		AndFilter filter = AndFilter.createAnd(
-				EqualsFilter.createEqual(ConnectorType.class, prismContext, SchemaConstants.C_CONNECTOR_FRAMEWORK, ConnectorFactoryIcfImpl.ICF_FRAMEWORK_URI),
-				EqualsFilter.createEqual(ConnectorType.class, prismContext, SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE, LDAP_CONNECTOR_TYPE));
+				EqualsFilter.createEqual(SchemaConstants.C_CONNECTOR_FRAMEWORK, ConnectorType.class, prismContext, null, ConnectorFactoryIcfImpl.ICF_FRAMEWORK_URI),
+				EqualsFilter.createEqual(SchemaConstants.C_CONNECTOR_CONNECTOR_TYPE, ConnectorType.class, prismContext, null, LDAP_CONNECTOR_TYPE));
 		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 		
 		System.out.println("Query:\n"+query.dump());

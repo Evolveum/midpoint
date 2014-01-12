@@ -25,6 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 
 /**
  * @author Vilo Repan
@@ -98,6 +99,9 @@ public abstract class SchemaConstants {
 	public static final QName C_PROTECTED_STRING = new QName(NS_C, "protectedString");
 	public static final QName C_PROTECTED_BYTE_ARRAY_TYPE = new QName(NS_C, "ProtectedByteArrayType");
 	
+	public static final QName C_REPORT = new QName(NS_C, "report");
+	public static final QName C_REPORT_OUTPUT = new QName(NS_C, "reportOutput");
+	public static final QName C_ITEM_PATH_FIELD = new QName(NS_C, "itemPathField");
 	public static final QName C_ACTIVATION_STATUS_TYPE = new QName(NS_C, "ActivationStatusType");
 
 	public static final QName T_POLY_STRING_TYPE = new QName(SchemaConstantsGenerated.NS_TYPES, "PolyStringType");
@@ -113,6 +117,7 @@ public abstract class SchemaConstants {
 	public static final ItemPath PATH_ACTIVATION_EFFECTIVE_STATUS = new ItemPath(C_ACTIVATION, ActivationType.F_EFFECTIVE_STATUS);
 	public static final ItemPath PATH_ACTIVATION_VALID_FROM = new ItemPath(C_ACTIVATION, ActivationType.F_VALID_FROM);
 	public static final ItemPath PATH_ACTIVATION_VALID_TO = new ItemPath(C_ACTIVATION, ActivationType.F_VALID_TO);
+	public static final ItemPath PATH_ACTIVATION_DISABLE_REASON = new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_DISABLE_REASON);
 	public static final ItemPath PATH_ATTRIBUTES = new ItemPath(C_ATTRIBUTES);
 	public static final ItemPath PATH_TRIGGER = new ItemPath(ObjectType.F_TRIGGER);
 
@@ -130,6 +135,7 @@ public abstract class SchemaConstants {
 	public static final QName CHANGE_CHANNEL_IMPORT = new QName(NS_PROVISIONING_CHANNEL, "import");
 
 	public static final String NS_MODEL = NS_MIDPOINT_PUBLIC + "/model";
+	
 	public static final String NS_MODEL_CHANNEL = NS_MODEL + "/channels-2";
 	public static final QName CHANNEL_WEB_SERVICE_QNAME = new QName(NS_MODEL_CHANNEL, "webService");
 	public static final String CHANNEL_WEB_SERVICE_URI = QNameUtil.qNameToUri(CHANNEL_WEB_SERVICE_QNAME);
@@ -145,6 +151,13 @@ public abstract class SchemaConstants {
 	public static final QName MODEL_EXTENSION_FRESHENESS_INTERVAL_PROPERTY_NAME = new QName(NS_MODEL_EXTENSION, "freshnessInterval");
 	public static final QName MODEL_EXTENSION_DRY_RUN = new QName(NS_MODEL_EXTENSION, "dryRun");
 	public static final QName MODEL_EXTENSION_LAST_SCAN_TIMESTAMP_PROPERTY_NAME = new QName(NS_MODEL_EXTENSION, "lastScanTimestamp");
+
+	public static final String NS_MODEL_DISABLE_REASON = NS_MODEL + "/disableReason";
+	public static final String MODEL_DISABLE_REASON_EXPLICIT = QNameUtil.qNameToUri(new QName(NS_MODEL_DISABLE_REASON, "explicit"));
+	public static final String MODEL_DISABLE_REASON_DEPROVISION = QNameUtil.qNameToUri(new QName(NS_MODEL_DISABLE_REASON, "deprovision"));
+	public static final String MODEL_DISABLE_REASON_MAPPED = QNameUtil.qNameToUri(new QName(NS_MODEL_DISABLE_REASON, "mapped"));
+	
+    public static final QName MODEL_EXTENSION_OBJECT_QUERY = new QName(NS_MODEL_EXTENSION, "objectQuery");
 
 	public static final String INTENT_DEFAULT = "default";
 

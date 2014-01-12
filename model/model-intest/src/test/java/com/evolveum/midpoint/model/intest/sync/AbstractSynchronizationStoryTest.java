@@ -91,10 +91,6 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
 	protected boolean allwaysCheckTimestamp = false;
 	protected long timeBeforeSync;
 
-	public AbstractSynchronizationStoryTest() throws JAXBException {
-		super();
-	}
-	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
@@ -177,7 +173,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         display("User mancomb", userMancomb);
         assertNotNull("User mancomb was not created", userMancomb);
-        assertAccounts(userMancomb, 1);
+        assertLinks(userMancomb, 1);
         assertAdministrativeStatusEnabled(userMancomb);
         assertValidFrom(userMancomb, ACCOUNT_MANCOMB_VALID_FROM_DATE);
         assertValidTo(userMancomb, ACCOUNT_MANCOMB_VALID_TO_DATE);
@@ -245,7 +241,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         assertNotNull("User wally was not created", userWally);
         userWallyOid = userWally.getOid();
         assertUser(userWally, userWallyOid, ACCOUNT_WALLY_DUMMY_USERNAME, "Wally Feed", null, null);
-        assertAccounts(userWally, 1);
+        assertLinks(userWally, 1);
         
         assertLinked(userWally, accountWallyBlue);
         
@@ -303,7 +299,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         display("User wally", userWally);
         assertNotNull("User wally disappeared", userWally);
         assertUser(userWally, userWallyOid, ACCOUNT_WALLY_DUMMY_USERNAME, "Wally Feed", null, null);
-        assertAccounts(userWally, 2);
+        assertLinks(userWally, 2);
 
         assertLinked(userWally, accountWallyGreen);
         assertLinked(userWally, accountWallyBlue);
@@ -361,7 +357,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         display("User mancomb", userMancomb);
         assertNotNull("User mancomb disappeared", userMancomb);
         assertUser(userMancomb, userMancomb.getOid(), ACCOUNT_MANCOMB_DUMMY_USERNAME, "Mancomb Seepgood", null, null);
-        assertAccounts(userMancomb, 2);
+        assertLinks(userMancomb, 2);
         assertAccount(userMancomb, RESOURCE_DUMMY_BLUE_OID);
         assertAccount(userMancomb, RESOURCE_DUMMY_GREEN_OID);
 
@@ -450,7 +446,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         display("User wally", userWally);
         assertNotNull("User wally disappeared", userWally);
         assertUser(userWally, userWallyOid, ACCOUNT_WALLY_DUMMY_USERNAME, "Wally Feed", null, null);
-        assertAccounts(userWally, 3);
+        assertLinks(userWally, 3);
 
         assertLinked(userWally, accountWallyDefault);
         assertLinked(userWally, accountWallyGreen);
@@ -567,7 +563,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         PrismObject<ShadowType> accountWallyDefault = checkWallyAccount(resourceDummy, dummyResource, "default", "Wally B. Feed");
         assertShadowOperationalData(accountWallyDefault, SynchronizationSituationType.LINKED);
         
-        assertAccounts(userWally, 3);
+        assertLinks(userWally, 3);
 
         assertLinked(userWally, accountWallyGreen);
         assertLinked(userWally, accountWallyBlue);
@@ -628,7 +624,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         assertNotNull("User wally disappeared", userWally);
         assertUser(userWally, userWallyOid, ACCOUNT_WALLY_DUMMY_USERNAME, "Bloodnose", null, "Bloodnose from Sync");
        
-        assertAccounts(userWally, 3);
+        assertLinks(userWally, 3);
 
         assertLinked(userWally, accountWallyGreen);
         assertLinked(userWally, accountWallyBlue);
@@ -690,7 +686,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         display("User wally", userWally);
         assertNotNull("User wally disappeared", userWally);
         assertUser(userWally, userWallyOid, ACCOUNT_WALLY_DUMMY_USERNAME, "Bloodnose", null, "Bloodnose from Sync");
-        assertAccounts(userWally, 2);
+        assertLinks(userWally, 2);
 
         assertLinked(userWally, accountWallyGreen);
         assertLinked(userWally, accountWallyBlue);
@@ -795,7 +791,7 @@ public abstract class AbstractSynchronizationStoryTest extends AbstractInitializ
         assertNotNull("User wally was not created", userWally);
         userWallyOid = userWally.getOid();
         assertUser(userWally, userWallyOid, ACCOUNT_WALLY_DUMMY_USERNAME, "Wally Feed", null, "Wally Feed from Sync");
-        assertAccounts(userWally, 1);
+        assertLinks(userWally, 1);
         assertLinked(userWally, accountWallyBlue);
         
         assertUsers(7 + getNumberOfExtraDummyUsers());

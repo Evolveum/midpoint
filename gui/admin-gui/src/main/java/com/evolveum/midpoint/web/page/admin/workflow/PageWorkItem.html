@@ -18,9 +18,9 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <form wicket:id="mainForm">
-    	<h2><span wicket:id="title"/></h2>
-		<table>
+    <form wicket:id="mainForm" class="form-horizontal">
+    	<h3><span wicket:id="title"/></h3>
+		<table class="table table-condensed table-striped">
 			<tr>
 				<td><wicket:message key="pageWorkItem.requestedBy" /></td>
 				<td><b><span wicket:id="requestedBy" /></b> (<span
@@ -35,7 +35,7 @@
 				<td><b><span wicket:id="workItemCreatedOn" /></b></td>
 			</tr>
 		</table>
-        <table width="100%">
+        <table class="table table-condensed table-striped">
 			<tr>
                 <td style="width: 620px; vertical-align: top;">
                     <div wicket:id="requestSpecificForm"/>
@@ -84,15 +84,23 @@
             </tr>
         </table>
 
-        <div class="operatingFormButtons">
-            <div class="operatingFormBlock">
-                <a wicket:id="approve"/>
-                <a wicket:id="reject"/>
-                <!--<a wicket:id="done"/>-->
-                <a wicket:id="cancel"/>
-                <span class="operatingFormText"><wicket:message key="pageWorkItem.label.showTechnicalInformation"/></span>
-                <input wicket:id="showTechnicalInformation" type="checkbox"/>
+        <div class="form-group">
+            <label class="col-lg-2 control-label"><wicket:message key="pageWorkItem.options"/></label>
+
+            <div class="col-lg-8">
+                <label class="col-lg-4 checkbox-inline">
+                    <input type="checkbox" class="form-control" wicket:id="showTechnicalInformation" />
+                    <wicket:message key="pageWorkItem.label.showTechnicalInformation"/>
+                </label>
             </div>
+        </div>
+
+        <div class="main-button-bar">
+            <span class="button-group">
+                <a class="btn btn-default" wicket:id="cancel" />
+            </span>
+            <a class="btn btn-danger" wicket:id="reject"/>
+            <a class="btn btn-success" wicket:id="approve"/>
         </div>
     </form>
 </wicket:extend>

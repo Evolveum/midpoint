@@ -85,6 +85,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 	public static final File TEST_DIR = new File("src/test/resources/sync");
 	
 	protected static final File RESOURCE_DUMMY_EMERALD_FILE = new File(TEST_DIR, "resource-dummy-emerald.xml");
+	protected static final File RESOURCE_DUMMY_EMERALD_DEPRECATED_FILE = new File(TEST_DIR, "resource-dummy-emerald-deprecated.xml");
 	protected static final String RESOURCE_DUMMY_EMERALD_OID = "10000000-0000-0000-0000-00000000e404";
 	protected static final String RESOURCE_DUMMY_EMERALD_NAME = "emerald";
 	protected static final String RESOURCE_DUMMY_EMERALD_NAMESPACE = MidPointConstants.NS_RI;
@@ -110,10 +111,6 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 	protected boolean allwaysCheckTimestamp = false;
 	protected long timeBeforeSync;
 
-	public AbstractInboundSyncTest() throws JAXBException {
-		super();
-	}
-	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
@@ -121,13 +118,17 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
 		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.NONE);
 		
 		dummyResourceCtlEmerald = DummyResourceContoller.create(RESOURCE_DUMMY_EMERALD_NAME, resourceDummyEmerald);
-		dummyResourceCtlEmerald.extendDummySchema();
+		dummyResourceCtlEmerald.extendSchemaPirate();
 		dummyResourceEmerald = dummyResourceCtlEmerald.getDummyResource();
-		resourceDummyEmerald = importAndGetObjectFromFile(ResourceType.class, RESOURCE_DUMMY_EMERALD_FILE, RESOURCE_DUMMY_EMERALD_OID, initTask, initResult); 
+		resourceDummyEmerald = importAndGetObjectFromFile(ResourceType.class, getResourceDummyEmeraldFile(), RESOURCE_DUMMY_EMERALD_OID, initTask, initResult); 
 		resourceDummyEmeraldType = resourceDummyEmerald.asObjectable();
 		dummyResourceCtlEmerald.setResource(resourceDummyEmerald);
 	}
 	
+	protected File getResourceDummyEmeraldFile() {
+		return RESOURCE_DUMMY_EMERALD_FILE;
+	}
+
 	protected abstract void importSyncTask(PrismObject<ResourceType> resource) throws FileNotFoundException;
 
 	protected abstract String getSyncTaskOid(PrismObject<ResourceType> resource);
@@ -205,7 +206,7 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         display("User mancomb", userMancomb);
         assertNotNull("User mancomb was not created", userMancomb);
-        assertAccounts(userMancomb, 1);
+        assertLinks(userMancomb, 1);
         assertAdministrativeStatusEnabled(userMancomb);
         assertValidFrom(userMancomb, ACCOUNT_MANCOMB_VALID_FROM_DATE);
         assertValidTo(userMancomb, ACCOUNT_MANCOMB_VALID_TO_DATE);
@@ -249,9 +250,10 @@ public abstract class AbstractInboundSyncTest extends AbstractInitializedModelIn
         
         PrismObject<UserType> userMancomb = findUserByUsername(ACCOUNT_MANCOMB_DUMMY_USERNAME);
         display("User mancomb", userMancomb);
-        assertNotNull("User mancomb was not created", userMancomb);
-        assertAccounts(userMancomb, 0);
-        assertAdministrativeStatusEnabled(userMancomb);
+        assertNotNull("User mancomb is gone", userMancomb);
+        assertLinks(userMancomb, 0);
+        // Disabled by sync reaction
+        assertAdministrativeStatusDisabled(userMancomb);
         assertValidFrom(userMancomb, ACCOUNT_MANCOMB_VALID_FROM_DATE);
         assertValidTo(userMancomb, ACCOUNT_MANCOMB_VALID_TO_DATE);
         

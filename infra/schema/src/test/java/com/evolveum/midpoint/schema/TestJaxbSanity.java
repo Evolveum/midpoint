@@ -26,6 +26,7 @@ import java.lang.reflect.Method;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -42,13 +43,6 @@ import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConstructionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType.Definition;
 
 /**
@@ -299,5 +293,30 @@ public class TestJaxbSanity {
 		
 		assertTrue("HashCode does not match", userAssignmentType.hashCode() == assignmentType.hashCode());
 	}
-	
+
+    @Test
+    public void testObjectReferenceNullSet() throws Exception {
+        System.out.println("\n\n ===[testObjectReferenceNullSet]===\n");
+
+        //GIVEN
+        SystemConfigurationType config = new SystemConfigurationType();
+        PrismTestUtil.getPrismContext().adopt(config);
+
+        //WHEN
+        config.setGlobalPasswordPolicyRef(null);
+
+        //THEN
+        SystemConfigurationType configNew = new SystemConfigurationType();
+
+        ObjectReferenceType ref = new ObjectReferenceType();
+        ref.setOid("1234");
+        ref.setType(ValuePolicyType.F_COMPLEX___TYPE);
+
+        configNew.setGlobalPasswordPolicyRef(ref);
+        configNew.setGlobalPasswordPolicyRef(null);
+
+        PrismTestUtil.getPrismContext().adopt(configNew);
+
+        assertTrue(config.equals(configNew));
+    }
 }

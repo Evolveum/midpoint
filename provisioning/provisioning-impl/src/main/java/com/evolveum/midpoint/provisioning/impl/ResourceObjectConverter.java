@@ -24,40 +24,30 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.common.ResourceObjectPattern;
-import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.ModificationType;
 import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ContainerDelta;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -66,18 +56,15 @@ import com.evolveum.midpoint.provisioning.ucf.api.AttributesToReturn;
 import com.evolveum.midpoint.provisioning.ucf.api.Change;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.api.ExecuteProvisioningScriptOperation;
-import com.evolveum.midpoint.provisioning.ucf.api.ExecuteScriptArgument;
 import com.evolveum.midpoint.provisioning.ucf.api.GenericFrameworkException;
 import com.evolveum.midpoint.provisioning.ucf.api.Operation;
 import com.evolveum.midpoint.provisioning.ucf.api.PropertyModificationOperation;
 import com.evolveum.midpoint.provisioning.ucf.api.ResultHandler;
 import com.evolveum.midpoint.provisioning.util.ProvisioningUtil;
-import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
-import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -85,7 +72,6 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -195,7 +181,7 @@ public class ResourceObjectConverter {
 			RefinedAttributeDefinition secondaryIdentifierDef = secondaryIdentifierDefs.iterator().next();
 			ResourceAttribute<?> secondaryIdentifier = null;
 			for (ResourceAttribute<?> identifier: identifiers) {
-				if (identifier.getName().equals(secondaryIdentifierDef.getName())) {
+				if (identifier.getElementName().equals(secondaryIdentifierDef.getName())) {
 					secondaryIdentifier = identifier;
 				}
 			}
@@ -205,9 +191,9 @@ public class ResourceObjectConverter {
 			
 			final ResourceAttribute<?> finalSecondaryIdentifier = secondaryIdentifier;
 			
-			ObjectFilter filter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES), secondaryIdentifierDef, secondaryIdentifier.getValue());
-			ObjectQuery query = new ObjectQuery();
-			query.setFilter(filter);
+			ObjectFilter filter = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, secondaryIdentifierDef.getName()), secondaryIdentifierDef, secondaryIdentifier.getValue());
+			ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+//			query.setFilter(filter);
 			final Holder<PrismObject<ShadowType>> shadowHolder = new Holder<PrismObject<ShadowType>>();
 			ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {
 				@Override
@@ -239,7 +225,7 @@ public class ResourceObjectConverter {
 		for (RefinedAttributeDefinition identifierDef: identifierDefs) {
 			boolean found = false;
 			for(ResourceAttribute<?> attribute: attributes) {
-				if (attribute.getName().equals(identifierDef.getName()) && !attribute.isEmpty()) {
+				if (attribute.getElementName().equals(identifierDef.getName()) && !attribute.isEmpty()) {
 					found = true;
 				}
 			}
@@ -753,7 +739,7 @@ public class ResourceObjectConverter {
 		ResourceAttributeContainer attributesContainer = ShadowUtil
 				.getAttributesContainer(shadow);
 		for (ResourceAttribute attributeAfter : resourceAttributesAfterAdd) {
-			ResourceAttribute attributeBefore = attributesContainer.findAttribute(attributeAfter.getName());
+			ResourceAttribute attributeBefore = attributesContainer.findAttribute(attributeAfter.getElementName());
 			if (attributeBefore != null) {
 				attributesContainer.remove(attributeBefore);
 			}
@@ -908,10 +894,10 @@ public class ResourceObjectConverter {
 				activationSimulateAttribute.add(activationValue);
 
 				PrismContainer attributesContainer =shadow.asPrismObject().findContainer(ShadowType.F_ATTRIBUTES);
-				if (attributesContainer.findItem(activationSimulateAttribute.getName()) == null){
+				if (attributesContainer.findItem(activationSimulateAttribute.getElementName()) == null){
 					attributesContainer.add(activationSimulateAttribute);
 				} else{
-					attributesContainer.findItem(activationSimulateAttribute.getName()).replace(activationSimulateAttribute.getValue());
+					attributesContainer.findItem(activationSimulateAttribute.getElementName()).replace(activationSimulateAttribute.getValue());
 				}
 				shadow.setActivation(null);
 			}
@@ -1293,18 +1279,18 @@ public class ResourceObjectConverter {
 		
 		if (status == null && activationDelta.isDelete()){
 			LOGGER.trace("deleting activation property.");
-			enableAttributeDelta = PropertyDelta.createModificationDeleteProperty(new ItemPath(ShadowType.F_ATTRIBUTES, activationAttribute.getName()), activationAttribute.getDefinition(), activationAttribute.getRealValue());
+			enableAttributeDelta = PropertyDelta.createModificationDeleteProperty(new ItemPath(ShadowType.F_ATTRIBUTES, activationAttribute.getElementName()), activationAttribute.getDefinition(), activationAttribute.getRealValue());
 			
 		} else if (status == ActivationStatusType.ENABLED) {
 			String enableValue = getEnableValue(capActStatus);
 			LOGGER.trace("enable attribute delta: {}", enableValue);
 			enableAttributeDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(
-					ShadowType.F_ATTRIBUTES, activationAttribute.getName()), activationAttribute.getDefinition(), enableValue);
+					ShadowType.F_ATTRIBUTES, activationAttribute.getElementName()), activationAttribute.getDefinition(), enableValue);
 		} else {
 			String disableValue = getDisableValue(capActStatus);
 			LOGGER.trace("enable attribute delta: {}", disableValue);
 			enableAttributeDelta = PropertyDelta.createModificationReplaceProperty(new ItemPath(
-					ShadowType.F_ATTRIBUTES, activationAttribute.getName()), activationAttribute.getDefinition(), disableValue);
+					ShadowType.F_ATTRIBUTES, activationAttribute.getElementName()), activationAttribute.getDefinition(), disableValue);
 		}
 
 		PropertyModificationOperation attributeChange = new PropertyModificationOperation(

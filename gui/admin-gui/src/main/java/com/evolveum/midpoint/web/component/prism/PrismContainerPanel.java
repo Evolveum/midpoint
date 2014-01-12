@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.prism;
 
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -25,6 +26,7 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.Panel;
+import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
@@ -89,9 +91,21 @@ public class PrismContainerPanel extends Panel {
             @Override
             protected void populateItem(ListItem<PropertyWrapper> item) {
                 item.add(new PrismPropertyPanel("property", item.getModel(), form));
+                item.add(AttributeModifier.append("class", createStyleClassModel(item.getModel())));
             }
         };
         add(properties);
+    }
+
+    private IModel<String> createStyleClassModel(final IModel<PropertyWrapper> wrapper) {
+        return new AbstractReadOnlyModel<String>() {
+
+            @Override
+            public String getObject() {
+                PropertyWrapper property = wrapper.getObject();
+                return property.isVisible() ? "visible" : null;
+            }
+        };
     }
 
     public boolean isShowHeader() {

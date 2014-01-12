@@ -15,13 +15,20 @@
  */
 package com.evolveum.midpoint.provisioning.test.impl;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import com.evolveum.midpoint.prism.match.MatchingRule;
+import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
+import com.evolveum.midpoint.prism.match.StringIgnoreCaseMatchingRule;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 
 /**
  * Almost the same as TestDummy but this is using a caseIgnore resource version.
@@ -35,6 +42,13 @@ public class TestDummyCaseIgnore extends TestDummy {
 	
 	public static final String TEST_DIR = "src/test/resources/impl/dummy-case-ignore/";
 	public static final String RESOURCE_DUMMY_FILENAME = TEST_DIR + "resource-dummy.xml";
+	private MatchingRule<String> uidMatchingRule;
+
+	@Override
+	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
+		super.initSystem(initTask, initResult);
+		uidMatchingRule = matchingRuleRegistry.getMatchingRule(StringIgnoreCaseMatchingRule.NAME, DOMUtil.XSD_STRING);
+	}
 
 	@Override
 	protected String getResourceDummyFilename() {
@@ -46,6 +60,26 @@ public class TestDummyCaseIgnore extends TestDummy {
 		return "will";
 	}
 	
+	@Override
+	protected String getMurrayRepoIcfName() {
+		return StringUtils.lowerCase(super.getMurrayRepoIcfName());
+	}
+
+	@Override
+	protected String getBlackbeardRepoIcfName() {
+		return StringUtils.lowerCase(super.getBlackbeardRepoIcfName());
+	}
+
+	@Override
+	protected String getDrakeRepoIcfName() {
+		return StringUtils.lowerCase(super.getDrakeRepoIcfName());
+	}
+
+	@Override
+	protected MatchingRule<String> getUidMatchingRule() {
+		return uidMatchingRule;
+	}
+
 	@Test
 	public void test175SearchUidCase() throws Exception {
 		final String TEST_NAME = "test175SearchUidCase";

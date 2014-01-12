@@ -139,22 +139,22 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 		XMLGregorianCalendar thisScanTimestamp = handler.getThisScanTimestamp();
 		if (lastScanTimestamp == null) {
 			filter = OrFilter.createOr(
-						LessFilter.createLessFilter(new ItemPath(FocusType.F_ACTIVATION), activationContainerDef, 
-								ActivationType.F_VALID_FROM, thisScanTimestamp, true),
-						LessFilter.createLessFilter(new ItemPath(FocusType.F_ACTIVATION), activationContainerDef, 
-								ActivationType.F_VALID_TO, thisScanTimestamp, true));
+						LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM), focusObjectDef, 
+								thisScanTimestamp, true),
+						LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), focusObjectDef, 
+								thisScanTimestamp, true));
 		} else {
 			filter = OrFilter.createOr(
 						AndFilter.createAnd(
-							GreaterFilter.createGreaterFilter(new ItemPath(FocusType.F_ACTIVATION), activationContainerDef, 
-									ActivationType.F_VALID_FROM, lastScanTimestamp, false),
-							LessFilter.createLessFilter(new ItemPath(FocusType.F_ACTIVATION), activationContainerDef, 
-									ActivationType.F_VALID_FROM, thisScanTimestamp, true)),
+							GreaterFilter.createGreater(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM), focusObjectDef, 
+									lastScanTimestamp, false),
+							LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_FROM), focusObjectDef, 
+									thisScanTimestamp, true)),
 						AndFilter.createAnd(
-							GreaterFilter.createGreaterFilter(new ItemPath(FocusType.F_ACTIVATION), activationContainerDef, 
-									ActivationType.F_VALID_TO, lastScanTimestamp, false),
-							LessFilter.createLessFilter(new ItemPath(FocusType.F_ACTIVATION), activationContainerDef, 
-									ActivationType.F_VALID_TO, thisScanTimestamp, true)));			
+							GreaterFilter.createGreater(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), focusObjectDef, 
+									lastScanTimestamp, false),
+							LessFilter.createLess(new ItemPath(FocusType.F_ACTIVATION, ActivationType.F_VALID_TO), focusObjectDef, 
+									thisScanTimestamp, true)));			
 		}
 		
 		query.setFilter(filter);
@@ -173,7 +173,7 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 				return true;
 			}
 		};
-		
+        handler.setStopOnError(false);
 		return handler;
 	}
 
@@ -182,7 +182,7 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 			ConfigurationException, PolicyViolationException, SecurityViolationException {
 		LOGGER.trace("Recomputing user {}", user);
 
-		LensContext<UserType, ShadowType> syncContext = contextFactory.createRecomputeContext(user, task, result);
+		LensContext<UserType> syncContext = contextFactory.createRecomputeContext(user, task, result);
 		LOGGER.trace("Recomputing of user {}: context:\n{}", user, syncContext.dump());
 		clockwork.run(syncContext, task, result);
 		LOGGER.trace("Recomputing of user {}: {}", user, result.getStatus());

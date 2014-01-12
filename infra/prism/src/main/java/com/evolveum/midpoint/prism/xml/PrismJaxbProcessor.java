@@ -18,7 +18,6 @@ package com.evolveum.midpoint.prism.xml;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
@@ -39,14 +38,12 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-import com.evolveum.midpoint.prism.ComplexTypeDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -56,7 +53,6 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
-import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaDescription;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -105,7 +101,7 @@ public class PrismJaxbProcessor {
 		}
 		String jaxbPaths = sb.toString();
 		if (jaxbPaths.isEmpty()) {
-			LOGGER.warn("No JAXB paths, skipping creation of JAXB context");
+			LOGGER.debug("No JAXB paths, skipping creation of JAXB context");
 		} else {
 			try {
 				context = JAXBContext.newInstance(jaxbPaths);
@@ -473,8 +469,17 @@ public class PrismJaxbProcessor {
 	}
 
     // element name must correspond to the name that points to the container definition
+    public <T extends Containerable> PrismContainer<T> unmarshalSingleValueContainer(File file, Class<T> type) throws JAXBException, SchemaException, FileNotFoundException {
+        return unmarshalSingleValueContainer(unmarshalElement(file, type));
+    }
+
+    // element name must correspond to the name that points to the container definition
     public <T extends Containerable> PrismContainer<T> unmarshalSingleValueContainer(String stringXml, Class<T> type) throws JAXBException, SchemaException {
-        JAXBElement<T> element = unmarshalElement(stringXml, type);
+        return unmarshalSingleValueContainer(unmarshalElement(stringXml, type));
+    }
+
+    // element name must correspond to the name that points to the container definition
+    private <T extends Containerable> PrismContainer<T> unmarshalSingleValueContainer(JAXBElement<T> element) throws JAXBException, SchemaException {
         if (element == null) {
             return null;
         }
@@ -666,7 +671,7 @@ public class PrismJaxbProcessor {
 		if (value == null) {
 			return value;
 		}
-		QName elementName = value.getParent().getName();
+		QName elementName = value.getParent().getElementName();
 		Object xmlValue;
 		if (value instanceof PrismPropertyValue) {
 			PrismPropertyValue<Object> pval = (PrismPropertyValue)value;
@@ -699,13 +704,13 @@ public class PrismJaxbProcessor {
 	
 	private QName determineElementQName(Objectable objectable) {
 		PrismObject<?> prismObject = objectable.asPrismObject();
-		if (prismObject.getName() != null) {
-			return prismObject.getName();
+		if (prismObject.getElementName() != null) {
+			return prismObject.getElementName();
 		}
 		PrismObjectDefinition<?> definition = prismObject.getDefinition();
 		if (definition != null) {
-			if (definition.getNameOrDefaultName() != null) {
-				return definition.getNameOrDefaultName();
+			if (definition.getName() != null) {
+				return definition.getName();
 			}
 		}
 		throw new IllegalStateException("Cannot determine element name of "+objectable);
@@ -715,8 +720,8 @@ public class PrismJaxbProcessor {
         PrismContainerValue prismContainerValue = containerable.asPrismContainerValue();
         PrismContainerDefinition<?> definition = prismContainerValue.getParent() != null ? prismContainerValue.getParent().getDefinition() : null;
         if (definition != null) {
-            if (definition.getNameOrDefaultName() != null) {
-                return definition.getNameOrDefaultName();
+            if (definition.getName() != null) {
+                return definition.getName();
             }
         }
         throw new IllegalStateException("Cannot determine element name of " + containerable + " (parent = " + prismContainerValue.getParent() + ", definition = " + definition + ")");

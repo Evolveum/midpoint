@@ -35,6 +35,7 @@ import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.PageUrlMapping;
@@ -45,6 +46,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
 import org.apache.wicket.Session;
+import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
 import org.apache.wicket.authroles.authorization.strategies.role.Roles;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -56,6 +58,10 @@ import org.apache.wicket.model.StringResourceModel;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.namespace.QName;
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryMXBean;
+import java.lang.management.OperatingSystemMXBean;
+import java.lang.management.RuntimeMXBean;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -78,40 +84,40 @@ public final class WebMiscUtil {
     private WebMiscUtil() {
     }
 
-    public static boolean isAuthorized(String... action){
-    	if (action ==  null){
-    		return true;
-    	}
-    	List<String> actions = Arrays.asList(action);
-    	Roles roles = new Roles(AuthorizationConstants.AUTZ_ALL_URL);
+    public static boolean isAuthorized(String... action) {
+        if (action == null) {
+            return true;
+        }
+        List<String> actions = Arrays.asList(action);
+        Roles roles = new Roles(AuthorizationConstants.AUTZ_ALL_URL);
         roles.addAll(actions);
-        if (((AuthenticatedWebApplication)AuthenticatedWebApplication.get()).hasAnyRole(roles)){
-        	return true;
+        if (((AuthenticatedWebApplication) AuthenticatedWebApplication.get()).hasAnyRole(roles)) {
+            return true;
         }
         return false;
     }
-    
-    public static Class getHomePage(){
-    	if (isAuthorized(PageUrlMapping.findActions(PageDashboard.class))){
-    		return PageDashboard.class;
-    	}
-    	
-    	MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
-    	if (principal != null){
-    		Collection<Authorization> authorizations = principal.getAuthorities();
-    		for (Authorization auth : authorizations){
-    			for (String action : auth.getAction()){
-    				Class homePage = PageUrlMapping.findClassForAction(action);
-    				if (homePage != null){
-    					return homePage;
-    				}
-    			}
-    		}
-    	}
-    	
+
+    public static Class getHomePage() {
+        if (isAuthorized(PageUrlMapping.findActions(PageDashboard.class))) {
+            return PageDashboard.class;
+        }
+
+        MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
+        if (principal != null) {
+            Collection<Authorization> authorizations = principal.getAuthorities();
+            for (Authorization auth : authorizations) {
+                for (String action : auth.getAction()) {
+                    Class homePage = PageUrlMapping.findClassForAction(action);
+                    if (homePage != null) {
+                        return homePage;
+                    }
+                }
+            }
+        }
+
         return PageDashboard.class;
     }
-    
+
     public static Integer safeLongToInteger(Long l) {
         if (l == null) {
             return null;
@@ -196,6 +202,10 @@ public final class WebMiscUtil {
         return poly;
     }
 
+    public static String getOrigStringFromPoly(PolyString str) {
+        return str != null ? str.getOrig() : null;
+    }
+
     public static String getOrigStringFromPoly(PolyStringType str) {
         return str != null ? str.getOrig() : null;
     }
@@ -212,10 +222,10 @@ public final class WebMiscUtil {
 
         return (T) property.getRealValue(type);
     }
-    
+
     public static <T> T getContainerValue(PrismContainerValue object, QName containerName,
-			Class<T> type) {
-    	if (object == null) {
+                                          Class<T> type) {
+        if (object == null) {
             return null;
         }
 
@@ -223,16 +233,16 @@ public final class WebMiscUtil {
         if (container == null || container.isEmpty()) {
             return null;
         }
-        
+
         PrismContainerValue containerValue = container.getValue();
 
-        if (containerValue == null || containerValue.isEmpty()){
-        	return null;
+        if (containerValue == null || containerValue.isEmpty()) {
+            return null;
         }
-        
+
         return (T) containerValue.getValue();
-	}
-    
+    }
+
     public static <T> T getValue(PrismContainer object, QName propertyName, Class<T> type) {
         if (object == null) {
             return null;
@@ -360,7 +370,7 @@ public final class WebMiscUtil {
 
     public static boolean showResultInPage(OperationResult result) {
         if (result == null) {
-            return true;
+            return false;
         }
 
         return !result.isSuccess() && !result.isHandledError() && !result.isInProgress();
@@ -403,5 +413,104 @@ public final class WebMiscUtil {
         Validate.notNull(result, "Operation result must not be null.");
 
         return result.isSuccess() || result.isHandledError();
+    }
+
+    public static String createUserIcon(PrismObject<UserType> object) {
+        UserType user = object.asObjectable();
+        CredentialsType credentials = user.getCredentials();
+
+        //if allowedIdmAdminGuiAccess is true, it's superuser
+        if (credentials != null) {
+            Boolean allowedAdmin = credentials.isAllowedIdmAdminGuiAccess();
+            if (allowedAdmin != null && allowedAdmin) {
+                return "silk-user_red";
+            }
+        }
+
+        //if user has superuser role assigned, it's superuser
+        for (AssignmentType assignment : user.getAssignment()) {
+            ObjectReferenceType targetRef = assignment.getTargetRef();
+            if (targetRef == null) {
+                continue;
+            }
+            if (StringUtils.equals(targetRef.getOid(), SystemObjectsType.ROLE_SUPERUSER.value())) {
+                return "silk-user_red";
+            }
+        }
+
+        return "silk-user";
+    }
+
+    public static double getSystemLoad() {
+        com.sun.management.OperatingSystemMXBean operatingSystemMXBean = (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
+        RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
+        int availableProcessors = operatingSystemMXBean.getAvailableProcessors();
+        long prevUpTime = runtimeMXBean.getUptime();
+        long prevProcessCpuTime = operatingSystemMXBean.getProcessCpuTime();
+
+        try {
+            Thread.sleep(30);
+        } catch (Exception ignored) {
+        }
+
+        operatingSystemMXBean = (com.sun.management.OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
+        long upTime = runtimeMXBean.getUptime();
+        long processCpuTime = operatingSystemMXBean.getProcessCpuTime();
+        long elapsedCpu = processCpuTime - prevProcessCpuTime;
+        long elapsedTime = upTime - prevUpTime;
+
+        double cpuUsage = Math.min(99F, elapsedCpu / (elapsedTime * 10000F * availableProcessors));
+
+        return cpuUsage;
+    }
+
+    public static double getMaxRam() {
+        int MB = 1024 * 1024;
+
+        MemoryMXBean mBean = ManagementFactory.getMemoryMXBean();
+        long maxHeap = mBean.getHeapMemoryUsage().getMax();
+        long maxNonHeap = mBean.getNonHeapMemoryUsage().getMax();
+
+        return (maxHeap + maxNonHeap) / MB;
+    }
+
+    public static double getRamUsage() {
+        int MB = 1024 * 1024;
+
+        MemoryMXBean mBean = ManagementFactory.getMemoryMXBean();
+        long usedHead = mBean.getHeapMemoryUsage().getUsed();
+        long usedNonHeap = mBean.getNonHeapMemoryUsage().getUsed();
+
+        return (usedHead + usedNonHeap) / MB;
+    }
+
+    /**
+     * Checks table if has any selected rows ({@link Selectable} interface dtos), adds "single"
+     * parameter to selected items if it's not null. If table has no selected rows warn message
+     * is added to feedback panel, and feedback is refreshed through {@link AjaxRequestTarget}
+     *
+     * @param target
+     * @param single             this parameter is used for row actions when action must be done only on chosen row.
+     * @param table
+     * @param page
+     * @param nothingWarnMessage
+     * @param <T>
+     * @return
+     */
+    public static <T extends Selectable> List<T> isAnythingSelected(AjaxRequestTarget target, T single, TablePanel table,
+                                                                    PageBase page, String nothingWarnMessage) {
+        List<T> selected;
+        if (single != null) {
+            selected = new ArrayList<T>();
+            selected.add(single);
+        } else {
+            selected = WebMiscUtil.getSelectedData(table);
+            if (selected.isEmpty()) {
+                page.warn(page.getString(nothingWarnMessage));
+                target.add(page.getFeedbackPanel());
+            }
+        }
+
+        return selected;
     }
 }

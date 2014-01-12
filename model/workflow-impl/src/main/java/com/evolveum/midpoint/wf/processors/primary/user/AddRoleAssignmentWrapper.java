@@ -87,7 +87,7 @@ public class AddRoleAssignmentWrapper extends BaseUserWrapper {
     // ------------------------------------------------------------ Things that execute on request arrival
 
     @Override
-    public List<JobCreationInstruction> prepareJobCreationInstructions(ModelContext<?, ?> modelContext, ObjectDelta<? extends ObjectType> change, Task taskFromModel, OperationResult result) throws SchemaException {
+    public List<JobCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext, ObjectDelta<? extends ObjectType> change, Task taskFromModel, OperationResult result) throws SchemaException {
 
         List<ApprovalRequest<AssignmentType>> approvalRequestList = getAssignmentToApproveList(change, result);
         if (approvalRequestList == null) {
@@ -145,7 +145,7 @@ public class AddRoleAssignmentWrapper extends BaseUserWrapper {
 
             while (deltaIterator.hasNext()) {
                 ItemDelta delta = deltaIterator.next();
-                if (UserType.F_ASSIGNMENT.equals(delta.getName()) && delta.getValuesToAdd() != null && !delta.getValuesToAdd().isEmpty()) {          // todo: what if assignments are modified?
+                if (UserType.F_ASSIGNMENT.equals(delta.getElementName()) && delta.getValuesToAdd() != null && !delta.getValuesToAdd().isEmpty()) {          // todo: what if assignments are modified?
                     Iterator valueIterator = delta.getValuesToAdd().iterator();
                     while (valueIterator.hasNext()) {
                         Object o = valueIterator.next();
@@ -188,7 +188,7 @@ public class AddRoleAssignmentWrapper extends BaseUserWrapper {
     }
 
     // approvalRequestList should contain de-referenced roles and approvalRequests that have prismContext set
-    private List<JobCreationInstruction> prepareJobCreateInstructions(ModelContext<?, ?> modelContext, Task taskFromModel, OperationResult result, List<ApprovalRequest<AssignmentType>> approvalRequestList) throws SchemaException {
+    private List<JobCreationInstruction> prepareJobCreateInstructions(ModelContext<?> modelContext, Task taskFromModel, OperationResult result, List<ApprovalRequest<AssignmentType>> approvalRequestList) throws SchemaException {
         List<JobCreationInstruction> instructions = new ArrayList<JobCreationInstruction>();
 
         String userName = MiscDataUtil.getObjectName(modelContext);
@@ -223,8 +223,8 @@ public class AddRoleAssignmentWrapper extends BaseUserWrapper {
             instruction.setSimple(false);
 
             String andExecuting = instruction.isExecuteApprovedChangeImmediately() ? "and executing " : "";
-            instruction.setTaskName(new PolyStringType("Workflow for approving " + andExecuting + "adding " + roleName + " to " + userName));
-            instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME, "Adding " + roleName + " to " + userName);
+            instruction.setTaskName("Workflow for approving " + andExecuting + "adding " + roleName + " to " + userName);
+            instruction.setProcessInstanceName("Adding " + roleName + " to " + userName);
 
             instruction.addProcessVariable(ProcessVariableNames.APPROVAL_REQUEST, approvalRequest);
             instruction.addProcessVariable(ProcessVariableNames.APPROVAL_TASK_NAME, "Approve adding " + roleName + " to " + userName);
@@ -237,7 +237,7 @@ public class AddRoleAssignmentWrapper extends BaseUserWrapper {
         return instructions;
     }
 
-    private ObjectDelta<? extends ObjectType> assignmentToDelta(ModelContext<?, ?> modelContext, ApprovalRequest<AssignmentType> approvalRequest, String objectOid) {
+    private ObjectDelta<? extends ObjectType> assignmentToDelta(ModelContext<?> modelContext, ApprovalRequest<AssignmentType> approvalRequest, String objectOid) {
         PrismObject<UserType> user = (PrismObject<UserType>) modelContext.getFocusContext().getObjectNew();
         PrismContainerDefinition<AssignmentType> prismContainerDefinition = user.getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
 
@@ -325,7 +325,7 @@ public class AddRoleAssignmentWrapper extends BaseUserWrapper {
 
 
     @Override
-    public PrismObject<? extends ObjectType> getAdditionalData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public PrismObject<? extends ObjectType> getRelatedObject(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {
 
         ApprovalRequest<AssignmentType> approvalRequest = (ApprovalRequest<AssignmentType>) variables.get(ProcessVariableNames.APPROVAL_REQUEST);
         approvalRequest.setPrismContext(prismContext);

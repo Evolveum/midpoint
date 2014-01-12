@@ -76,12 +76,12 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
      * This is needed by the LayerRefinedObjectClassDefinition class
      */
     protected RefinedObjectClassDefinition(QName typeName, PrismContext prismContext) {
-    	super(SchemaConstants.C_ATTRIBUTES, typeName, prismContext);
+    	super(typeName, prismContext);
     }
 
     private RefinedObjectClassDefinition(PrismContext prismContext, ResourceType resourceType,
     		ObjectClassComplexTypeDefinition objectClassDefinition) {
-        super(SchemaConstants.C_ATTRIBUTES, objectClassDefinition.getTypeName(), prismContext);
+        super(objectClassDefinition.getTypeName(), prismContext);
         Validate.notNull(objectClassDefinition, "ObjectClass definition must not be null");
         attributeDefinitions = new ArrayList<RefinedAttributeDefinition>();
         this.resourceType = resourceType;
@@ -573,7 +573,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
     }
 
     public ResourceShadowDiscriminator getShadowDiscriminator() {
-        return new ResourceShadowDiscriminator(resourceType.getOid(), getIntent());
+        return new ResourceShadowDiscriminator(resourceType.getOid(), getKind(), getIntent());
     }
 
     public Collection<? extends QName> getNamesOfAttributesWithOutboundExpressions() {
@@ -598,7 +598,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
         return attrNames;
     }
 
-    public MappingType getCredentialsInbound() {
+    public List<MappingType> getCredentialsInbound() {
         
     	ResourcePasswordDefinitionType password = getPasswordDefinition();
     	

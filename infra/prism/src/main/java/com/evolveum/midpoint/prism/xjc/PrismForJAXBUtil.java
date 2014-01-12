@@ -188,11 +188,15 @@ public final class PrismForJAXBUtil {
     	return fieldContainerValue.asContainerable(fieldClass);
     }
 
-    public static <T extends PrismContainer<?>> T getContainer(PrismContainerValue value, QName name) {
-        Validate.notNull(value, "Container must not be null.");
+    public static <T extends PrismContainer<?>> T getContainer(PrismContainerValue parentValue, QName name) {
+        Validate.notNull(parentValue, "Parent container value must not be null.");
         Validate.notNull(name, "QName must not be null.");
 
-        return getContainer(value.getContainer(), name);
+        try {
+            return (T) parentValue.findOrCreateContainer(name);
+        } catch (SchemaException ex) {
+            throw new SystemException(ex.getMessage(),  ex);
+        }
     }
 
     public static <T extends PrismContainer<?>> T getContainer(PrismContainer<?> parent, QName name) {
@@ -295,25 +299,21 @@ public final class PrismForJAXBUtil {
 		if (reference == null) {
         	throw new IllegalArgumentException("No reference "+referenceName+" in "+parentValue);
         }
-    	if (reference.isEmpty()) {
-    		if (value.getParent() != null) {
-    			value = value.clone();
-    		}
-    		reference.add(value);
-    	} else {
-            if (value == null) {
-                parentValue.remove(reference);
-//                reference.getValue().setOid(null);
-//                reference.getValue().setTargetType(null);
-//                reference.getValue().setFilter(null);
-//                reference.getValue().setDescription(null);
-	        } else {
+        if (value == null) {
+            parentValue.remove(reference);
+        } else {
+            if (reference.isEmpty()) {
+                if (value.getParent() != null) {
+                    value = value.clone();
+                }
+                reference.add(value);
+            } else {
                 reference.getValue().setOid(value.getOid());
                 reference.getValue().setTargetType(value.getTargetType());
                 reference.getValue().setFilter(value.getFilter());
                 reference.getValue().setDescription(value.getDescription());
-	        }
-    	}
+            }
+        }
     }
 
     public static void setReferenceValueAsRef(PrismContainer parent, QName name, PrismReferenceValue value) {

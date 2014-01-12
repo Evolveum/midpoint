@@ -56,7 +56,8 @@ public class AnyPropertyRestriction extends ItemRestriction<ValueFilter> {
         }
 
         ValueFilter valFilter = (ValueFilter) filter;
-        ItemPath fullPath = RUtil.createFullPath(valFilter);
+//        ItemPath fullPath = RUtil.createFullPath(valFilter);
+        ItemPath fullPath = valFilter.getFullPath();
 
         List<Definition> defPath = createDefinitionPath(fullPath, context);
         return containsAnyDefinition(defPath);

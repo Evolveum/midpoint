@@ -238,35 +238,46 @@ public class TaskSynchronizer {
                     throw new SystemException("Cannot a trigger for a task because of a cron expression parsing exception", e);
                 }
 
-                // if the trigger should exist and it does not...
-                if (!triggerExists) {
-                    String m1 = "Creating trigger for a RUNNABLE task " + task;
-                    LOGGER.trace(" - " + m1);
-                    message += "[" + m1 + "] ";
-                    scheduler.scheduleJob(triggerToBe);
-                    changed = true;
+                if (triggerToBe == null) {
+                    if (triggerExists) {
+                        String m1 = "Removing Quartz trigger for RUNNABLE task that should have no trigger; task = " + task;
+                        message += "[" + m1 + "] ";
+                        LOGGER.trace(" - " + m1);
+                        scheduler.unscheduleJob(TriggerKey.triggerKey(oid));
+                        changed = true;
+                    }
                 } else {
 
-                    // we have to compare trigger parameters with the task's ones
-                    Trigger triggerAsIs = scheduler.getTrigger(triggerKey);
-
-                    if (task.isRecreateQuartzTrigger() || TaskQuartzImplUtil.triggerDataMapsDiffer(triggerAsIs, triggerToBe)) {
-                        String m1 = "Existing trigger has incompatible parameters or was explicitly requested to be recreated; recreating it. Task = " + task;
+                    // if the trigger should exist and it does not...
+                    if (!triggerExists) {
+                        String m1 = "Creating trigger for a RUNNABLE task " + task;
                         LOGGER.trace(" - " + m1);
                         message += "[" + m1 + "] ";
-                        scheduler.rescheduleJob(triggerKey, triggerToBe);
+                        scheduler.scheduleJob(triggerToBe);
                         changed = true;
                     } else {
-                        String m1 = "Existing trigger is OK, leaving it as is; task = " + task;
-                        LOGGER.trace(" - " + m1);
-                        message += "[" + m1 + "] ";
-                        Trigger.TriggerState state = scheduler.getTriggerState(triggerKey);
-                        if (state == Trigger.TriggerState.PAUSED) {
-                            String m2 = "However, the trigger is paused, resuming it; task = " + task;
-                            LOGGER.trace(" - " + m2);
-                            message += "[" + m2 + "] ";
-                            scheduler.resumeTrigger(triggerKey);
+
+                        // we have to compare trigger parameters with the task's ones
+                        Trigger triggerAsIs = scheduler.getTrigger(triggerKey);
+
+                        if (task.isRecreateQuartzTrigger() || TaskQuartzImplUtil.triggerDataMapsDiffer(triggerAsIs, triggerToBe)) {
+                            String m1 = "Existing trigger has incompatible parameters or was explicitly requested to be recreated; recreating it. Task = " + task;
+                            LOGGER.trace(" - " + m1);
+                            message += "[" + m1 + "] ";
+                            scheduler.rescheduleJob(triggerKey, triggerToBe);
                             changed = true;
+                        } else {
+                            String m1 = "Existing trigger is OK, leaving it as is; task = " + task;
+                            LOGGER.trace(" - " + m1);
+                            message += "[" + m1 + "] ";
+                            Trigger.TriggerState state = scheduler.getTriggerState(triggerKey);
+                            if (state == Trigger.TriggerState.PAUSED) {
+                                String m2 = "However, the trigger is paused, resuming it; task = " + task;
+                                LOGGER.trace(" - " + m2);
+                                message += "[" + m2 + "] ";
+                                scheduler.resumeTrigger(triggerKey);
+                                changed = true;
+                            }
                         }
                     }
                 }

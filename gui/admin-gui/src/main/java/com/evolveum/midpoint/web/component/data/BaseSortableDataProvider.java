@@ -29,7 +29,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.wf.api.WorkflowService;
+import com.evolveum.midpoint.wf.api.WorkflowManager;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
 import org.apache.wicket.extensions.markup.html.repeater.data.sort.SortOrder;
@@ -89,9 +89,9 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
         return application.getModelInteractionService();
     }
 
-    protected WorkflowService getWorkflowService() {
+    protected WorkflowManager getWorkflowService() {
         MidPointApplication application = (MidPointApplication) MidPointApplication.get();
-        return application.getWorkflowService();
+        return application.getWorkflowManager();
     }
 
     public List<T> getAvailableData() {
@@ -184,7 +184,7 @@ public abstract class BaseSortableDataProvider<T extends Serializable> extends S
             return internalSize();
         }
 
-        long size = 0L;
+        long size;
         CachedSize cachedSize = getCachedSize(cache);
         if (cachedSize != null) {
             long timestamp = cachedSize.getTimestamp();

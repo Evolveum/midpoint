@@ -32,12 +32,13 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.jobs.JobCreationInstruction;
 import com.evolveum.midpoint.wf.jobs.JobController;
 import com.evolveum.midpoint.wf.jobs.Job;
-import com.evolveum.midpoint.wf.api.ProcessInstance;
 import com.evolveum.midpoint.wf.processors.BaseChangeProcessor;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceVariableType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.Validate;
@@ -73,9 +74,9 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
     public void init() {
         initializeBaseProcessor(LOCALLY_KNOWN_KEYS);
         processWrappers = getPrimaryChangeProcessorWrappers();
-        for (PrimaryApprovalProcessWrapper processWrapper : processWrappers) {
-            processWrapper.setChangeProcessor(this);
-        }
+//        for (PrimaryApprovalProcessWrapper processWrapper : processWrappers) {
+//            processWrapper.setChangeProcessor(this);
+//        }
     }
 
     private List<PrimaryApprovalProcessWrapper> getPrimaryChangeProcessorWrappers() {
@@ -346,13 +347,19 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
     }
 
     @Override
-    public PrismObject<? extends ObjectType> getAdditionalData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        return getProcessWrapper(variables).getAdditionalData(task, variables, result);
+    public PrismObject<? extends ObjectType> getRelatedObject(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {
+        return getProcessWrapper(variables).getRelatedObject(task, variables, result);
     }
 
     @Override
-    public String getProcessInstanceDetailsPanelName(ProcessInstance processInstance) {
-        String wrapperName = (String) processInstance.getVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_PROCESS_WRAPPER);
+    public String getProcessInstanceDetailsPanelName(WfProcessInstanceType processInstance) {
+        String wrapperName = null;
+        for (WfProcessInstanceVariableType var : processInstance.getVariables()) {
+            if (CommonProcessVariableNames.VARIABLE_MIDPOINT_PROCESS_WRAPPER.equals(var.getName())) {
+                wrapperName = var.getValue();           // assume it's not encoded
+                break;
+            }
+        }
         Validate.notNull(wrapperName, "There's no change processor name among the process instance variables");
         PrimaryApprovalProcessWrapper wrapper = findProcessWrapper(wrapperName);
         return wrapper.getProcessInstanceDetailsPanelName(processInstance);

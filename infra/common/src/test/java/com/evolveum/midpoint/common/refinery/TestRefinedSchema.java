@@ -541,7 +541,7 @@ public class TestRefinedSchema {
 	}
 
 	private ResourceAttribute<String> createStringAttribute(QName attrName, String value) {
-		ResourceAttributeDefinition testAttrDef = new ResourceAttributeDefinition(attrName, attrName, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
+		ResourceAttributeDefinition testAttrDef = new ResourceAttributeDefinition(attrName, DOMUtil.XSD_STRING, PrismTestUtil.getPrismContext());
 		ResourceAttribute<String> testAttr = testAttrDef.instantiate();
 		testAttr.setRealValue(value);
 		return testAttr;

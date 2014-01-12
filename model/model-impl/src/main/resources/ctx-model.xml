@@ -21,11 +21,14 @@
        xmlns:context="http://www.springframework.org/schema/context"
        xmlns:jaxws="http://cxf.apache.org/jaxws"
        xmlns:jaxrs="http://cxf.apache.org/jaxrs"
+       xmlns:util="http://www.springframework.org/schema/util"
        xmlns:ssec="http://cxf.apache.org/spring-security"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
      http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
      http://www.springframework.org/schema/context
      http://www.springframework.org/schema/context/spring-context-3.0.xsd
+     http://www.springframework.org/schema/util
+     http://www.springframework.org/schema/util/spring-util-3.0.xsd
      http://cxf.apache.org/jaxws
      http://cxf.apache.org/schemas/jaxws.xsd
      http://cxf.apache.org/jaxrs
@@ -40,18 +43,18 @@
     <context:component-scan base-package="com.evolveum.midpoint.model"/>
     <context:spring-configured/>
     
-    <bean id="basicFunctionObject" class="com.evolveum.midpoint.common.expression.functions.BasicExpressionFunctions"
+    <bean id="basicFunctionObject" class="com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions"
           scope="singleton">
           <constructor-arg name="prismContext" ref="prismContext"/>
           <constructor-arg name="protector" ref="protector"/>
     </bean>
     
-    <bean id="basicFunctionObjectXml" class="com.evolveum.midpoint.common.expression.functions.BasicExpressionFunctionsXPath"
+    <bean id="basicFunctionObjectXml" class="com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctionsXPath"
           scope="singleton">
-          <constructor-arg type="com.evolveum.midpoint.common.expression.functions.BasicExpressionFunctions" ref="basicFunctionObject"/>
+          <constructor-arg type="com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctions" ref="basicFunctionObject"/>
     </bean>
     
-    <bean id="basicFunctionLibrary" class="com.evolveum.midpoint.common.expression.functions.FunctionLibrary"
+    <bean id="basicFunctionLibrary" class="com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary"
           scope="singleton">
         <property name="variableName" value="basic"/>
         <property name="namespace" value="http://midpoint.evolveum.com/xml/ns/public/function/basic-2"/>
@@ -63,12 +66,12 @@
         </property>
     </bean>
 
-    <bean id="logFunctionObject" class="com.evolveum.midpoint.common.expression.functions.LogExpressionFunctions"
+    <bean id="logFunctionObject" class="com.evolveum.midpoint.model.common.expression.functions.LogExpressionFunctions"
           scope="singleton">
           <constructor-arg name="prismContext" ref="prismContext"/>
     </bean>
     
-    <bean id="logFunctionLibrary" class="com.evolveum.midpoint.common.expression.functions.FunctionLibrary"
+    <bean id="logFunctionLibrary" class="com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary"
           scope="singleton">
         <property name="variableName" value="log"/>
         <property name="namespace" value="http://midpoint.evolveum.com/xml/ns/public/function/log-2"/>
@@ -77,35 +80,26 @@
         </property>
     </bean>
     
-    <bean id="midpointFunctionLibrary" class="com.evolveum.midpoint.common.expression.functions.FunctionLibrary"
-          scope="singleton">
-        <property name="variableName" value="midpoint"/>
-        <property name="namespace" value="http://midpoint.evolveum.com/xml/ns/public/function/midpoint-2"/>
-        <property name="genericFunctions">
-            <ref bean="midpointFunctionsImpl"/>
-        </property>
-    </bean>
-
-    <bean id="xpathScriptEvaluator" class="com.evolveum.midpoint.common.expression.script.xpath.XPathScriptEvaluator"
+    <bean id="xpathScriptEvaluator" class="com.evolveum.midpoint.model.common.expression.script.xpath.XPathScriptEvaluator"
           scope="singleton">
           <constructor-arg name="prismContext" ref="prismContext"/>
     </bean>
     
-    <bean id="javascriptScriptEvaluator" class="com.evolveum.midpoint.common.expression.script.jsr223.Jsr223ScriptEvaluator"
+    <bean id="javascriptScriptEvaluator" class="com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator"
           scope="singleton">
           <constructor-arg name="engineName" value="JavaScript"/>
           <constructor-arg name="prismContext" ref="prismContext"/>
           <constructor-arg name="protector" ref="protector"/>
     </bean>
 
-    <bean id="groovyScriptEvaluator" class="com.evolveum.midpoint.common.expression.script.jsr223.Jsr223ScriptEvaluator"
+    <bean id="groovyScriptEvaluator" class="com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator"
           scope="singleton">
           <constructor-arg name="engineName" value="groovy"/>
           <constructor-arg name="prismContext" ref="prismContext"/>
           <constructor-arg name="protector" ref="protector"/>
     </bean>
     
-    <bean id="scriptExpressionFactory" class="com.evolveum.midpoint.common.expression.script.ScriptExpressionFactory"
+    <bean id="scriptExpressionFactory" class="com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory"
           scope="singleton">
           <constructor-arg ref="modelObjectResolver"/>
           <constructor-arg name="prismContext" ref="prismContext"/>
@@ -126,37 +120,46 @@
         </constructor-arg>
     </bean>
 
-    <bean id="scriptExpressionEvaluatorFactory" class="com.evolveum.midpoint.common.expression.script.ScriptExpressionEvaluatorFactory"
+    <bean id="scriptExpressionEvaluatorFactory" class="com.evolveum.midpoint.model.common.expression.script.ScriptExpressionEvaluatorFactory"
           scope="singleton">
           <constructor-arg ref="scriptExpressionFactory"/>
     </bean>
     
-    <bean id="generateExpressionEvaluatorFactory" class="com.evolveum.midpoint.common.expression.evaluator.GenerateExpressionEvaluatorFactory"
+    <bean id="generateExpressionEvaluatorFactory" class="com.evolveum.midpoint.model.common.expression.evaluator.GenerateExpressionEvaluatorFactory"
           scope="singleton">
           <constructor-arg ref="protector"/>
           <constructor-arg ref="modelObjectResolver"/>
           <constructor-arg name="prismContext" ref="prismContext"/>
     </bean>
     
-    <bean id="pathExpressionEvaluatorFactory" class="com.evolveum.midpoint.common.expression.evaluator.PathExpressionEvaluatorFactory"
+    <bean id="pathExpressionEvaluatorFactory" class="com.evolveum.midpoint.model.common.expression.evaluator.PathExpressionEvaluatorFactory"
           scope="singleton">
           <constructor-arg name="prismContext" ref="prismContext"/>
           <constructor-arg ref="modelObjectResolver"/>
           <constructor-arg name="protector" ref="protector"/>
     </bean>
     
-    <bean id="literalExpressionEvaluatorFactory" class="com.evolveum.midpoint.common.expression.evaluator.LiteralExpressionEvaluatorFactory"
+    <bean id="literalExpressionEvaluatorFactory" class="com.evolveum.midpoint.model.common.expression.evaluator.LiteralExpressionEvaluatorFactory"
           scope="singleton">
           <constructor-arg name="prismContext" ref="prismContext"/>
     </bean>
     
-    <bean id="asisExpressionEvaluatorFactory" class="com.evolveum.midpoint.common.expression.evaluator.AsIsExpressionEvaluatorFactory"
+    <bean id="asisExpressionEvaluatorFactory" 
+          class="com.evolveum.midpoint.model.common.expression.evaluator.AsIsExpressionEvaluatorFactory"
           scope="singleton">
           <constructor-arg name="prismContext" ref="prismContext"/>
           <constructor-arg name="protector" ref="protector"/>
     </bean>
 
-    <bean id="expressionFactory" class="com.evolveum.midpoint.common.expression.ExpressionFactory" 
+	<bean id="assignmentExpressionEvaluatorFactory" 
+	      class="com.evolveum.midpoint.model.common.expression.evaluator.AssignmentExpressionEvaluatorFactory"
+          scope="singleton">
+          <constructor-arg name="prismContext" ref="prismContext"/>
+          <constructor-arg name="protector" ref="protector"/>
+          <constructor-arg ref="modelObjectResolver"/>
+    </bean>
+    
+    <bean id="expressionFactory" class="com.evolveum.midpoint.model.common.expression.ExpressionFactory" 
     		scope="singleton">
         <constructor-arg>
         	<ref bean="modelObjectResolver"/>
@@ -171,6 +174,7 @@
         		<ref bean="pathExpressionEvaluatorFactory"/>
         		<ref bean="literalExpressionEvaluatorFactory"/>
         		<ref bean="asisExpressionEvaluatorFactory"/>
+        		<ref bean="assignmentExpressionEvaluatorFactory"/>
         	</list>
         </constructor-arg>
         <property name="defaultEvaluatorFactory">
@@ -178,7 +182,7 @@
         </property>
     </bean>
 
-    <bean id="mappingFactory" class="com.evolveum.midpoint.common.mapping.MappingFactory"
+    <bean id="mappingFactory" class="com.evolveum.midpoint.model.common.mapping.MappingFactory"
           scope="singleton">
         <property name="expressionFactory">
             <ref bean="expressionFactory"/>
@@ -196,46 +200,80 @@
             <ref bean="filterManager"/>
         </property>
     </bean>
+    
+    <bean id="midpointFunctionLibrary" class="com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary"
+          scope="singleton">
+        <property name="variableName" value="midpoint"/>
+        <property name="namespace" value="http://midpoint.evolveum.com/xml/ns/public/function/midpoint-2"/>
+        <property name="genericFunctions">
+            <ref bean="midpointFunctionsImpl"/>
+        </property>
+    </bean>
 
     <bean id="actionManager" class="com.evolveum.midpoint.model.sync.ActionManagerImpl">
         <property name="actionMapping">
             <map>
-                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addUser">
-                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.AddUserAction</value>
+            	<entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#link">
+                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.LinkAction</value>
                 </entry>
-                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#modifyUser">
-                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.ModifyUserAction</value>
+                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addFocus">
+                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.AddFocusAction</value>
                 </entry>
-                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#disableUser">
-                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.DisableUserAction</value>
+                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#deleteFocus">
+                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.DeleteFocusAction</value>
                 </entry>
-                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#enableUser">
-                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.EnableUserAction</value>
+                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlink">
+                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.UnlinkAction</value>
                 </entry>
+                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#deleteShadow">
+                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.DeleteShadowAction</value>
+                </entry>
+                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#inactivateShadow">
+                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.InactivateShadowAction</value>
+                </entry>
+                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#inactivateFocus">
+                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.InactivateFocusAction</value>
+                </entry>
+                
+
+				<!-- DEPRECATED. for compatibility only. -->
                 <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#linkAccount">
-                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.LinkAccountAction</value>
+                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.LinkAction</value>
+                </entry>
+            	<entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#modifyUser">
+                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.EmptyAction</value>
+                </entry>
+            	<entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#synchronize">
+                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.EmptyAction</value>
+                </entry>
+                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addUser">
+                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.AddFocusAction</value>
+                </entry>
+                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#deleteUser">
+                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.DeleteFocusAction</value>
                 </entry>
                 <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlinkAccount">
-                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.UnlinkAccountAction</value>
+                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.UnlinkAction</value>
                 </entry>
                 <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#deleteAccount">
-                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.DeleteAccountAction</value>
+                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.DeleteShadowAction</value>
                 </entry>
                 <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#disableAccount">
-                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.DisableAccountAction</value>
+                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.InactivateShadowAction</value>
+                </entry>
+                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#disableUser">
+                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.InactivateFocusAction</value>
+                </entry>
+                
+                <!-- TODO -->
+                <!-- 
+                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#enableUser">
+                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.EnableUserAction</value>
                 </entry>
                 <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#addAccount">
                     <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.AddAccountAction</value>
                 </entry>
-                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#deleteUser">
-                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.DeleteUserAction</value>
-                </entry>
-                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#modifyPassword">
-                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.ModifyPasswordAction</value>
-                </entry>
-                <entry key="http://midpoint.evolveum.com/xml/ns/public/model/action-2#synchronize">
-                    <value type="java.lang.Class">com.evolveum.midpoint.model.sync.action.SynchronizeAction</value>
-                </entry>
+                 -->
             </map>
         </property>
         <property name="model">
@@ -256,7 +294,9 @@
         <property name="provisioningService">
             <ref bean="provisioningService"/>
         </property>
-
+        <property name="contextFactory">
+            <ref bean="contextFactory"/>
+        </property>
     </bean>
 
     <bean id="filterManager" class="com.evolveum.midpoint.common.filter.FilterManagerImpl">
@@ -298,15 +338,39 @@
         <jaxws:outInterceptors>
 
         </jaxws:outInterceptors>
+
+        <!-- this is because of https://jira.evolveum.com/browse/MID-1603 -->
+        <jaxws:properties>
+            <entry key="javax.xml.stream.XMLOutputFactory" value-ref="modelWsXmlOutputFactory"/>
+        </jaxws:properties>
+
     </jaxws:endpoint>
-    
+
+
+    <bean id="modelWsXmlOutputFactory" class="com.ctc.wstx.stax.WstxOutputFactory" />
+
+    <bean class="org.springframework.beans.factory.config.MethodInvokingFactoryBean">
+        <property name="targetObject">
+            <ref local="modelWsXmlOutputFactory" />
+        </property>
+        <property name="targetMethod">
+            <value>setProperty</value>
+        </property>
+        <property name="arguments">
+            <list>
+                <util:constant static-field="org.codehaus.stax2.XMLOutputFactory2.P_AUTOMATIC_EMPTY_ELEMENTS"/>
+                <value>false</value>
+            </list>
+        </property>
+    </bean>
+
     <jaxrs:server id="restService" address="/rest/">
         <jaxrs:serviceBeans>
         	<ref bean="modelRestService"/>
         </jaxrs:serviceBeans>
       <jaxrs:providers>
       	<ref bean="jaxbProvider" />
-      	<ref bean="jsonProvider" />
+<!--       	<ref bean="jsonProvider" /> -->
      	<ref bean="restAuthenticationHandler" />
     </jaxrs:providers>
    
@@ -314,7 +378,7 @@
      
       <bean id="modelRestService" class="com.evolveum.midpoint.model.ModelRestService"/>
      <bean id="jaxbProvider" class="com.evolveum.midpoint.model.rest.MidpointXmlProvider"/>
-     <bean id="jsonProvider" class="com.evolveum.midpoint.model.rest.MidpointJsonProvider"/>
+<!--      <bean id="jsonProvider" class="com.evolveum.midpoint.model.rest.MidpointJsonProvider"/> -->
      <bean id="restAuthenticationHandler" class="com.evolveum.midpoint.model.security.MidpointRestAuthenticationHandler"/>
 
     <bean id="authenticationInterceptor" class="org.apache.cxf.ws.security.wss4j.WSS4JInInterceptor">

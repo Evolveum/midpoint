@@ -272,7 +272,7 @@ public class TaskQuartzImpl implements Task {
             return;
         }
         for (ItemDelta<?> delta : deltas) {
-			if (delta.getParentPath().isEmpty() && quartzRelatedProperties.contains(delta.getName())) {
+			if (delta.getParentPath().isEmpty() && quartzRelatedProperties.contains(delta.getElementName())) {
 				synchronizeWithQuartz(parentResult);
 				return;
 			}
@@ -302,7 +302,7 @@ public class TaskQuartzImpl implements Task {
 	 */
 	
 	/*
-	 * Progress
+	 * Progress / expectedTotal
 	 */
 	
 	@Override
@@ -339,7 +339,43 @@ public class TaskQuartzImpl implements Task {
 		setProgressTransient(value);
 		return isPersistent() ? PropertyDelta.createReplaceDelta(
 				taskManager.getTaskObjectDefinition(), TaskType.F_PROGRESS, value) : null;
-	}	
+	}
+
+    @Override
+    public Long getExpectedTotal() {
+        Long value = taskPrism.getPropertyRealValue(TaskType.F_EXPECTED_TOTAL, Long.class);
+        return value != null ? value : 0;
+    }
+
+    @Override
+    public void setExpectedTotal(Long value) {
+        processModificationBatched(setExpectedTotalAndPrepareDelta(value));
+    }
+
+    @Override
+    public void setExpectedTotalImmediate(Long value, OperationResult parentResult)
+            throws ObjectNotFoundException, SchemaException {
+        try {
+            processModificationNow(setExpectedTotalAndPrepareDelta(value), parentResult);
+        } catch (ObjectAlreadyExistsException ex) {
+            throw new SystemException(ex);
+        }
+    }
+
+    public void setExpectedTotalTransient(Long value) {
+        try {
+            taskPrism.setPropertyRealValue(TaskType.F_EXPECTED_TOTAL, value);
+        } catch (SchemaException e) {
+            // This should not happen
+            throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
+        }
+    }
+
+    private PropertyDelta<?> setExpectedTotalAndPrepareDelta(Long value) {
+        setExpectedTotalTransient(value);
+        return isPersistent() ? PropertyDelta.createReplaceDelta(
+                taskManager.getTaskObjectDefinition(), TaskType.F_EXPECTED_TOTAL, value) : null;
+    }
 
 	/*
 	 * Result
@@ -583,6 +619,7 @@ public class TaskQuartzImpl implements Task {
 
             UriStackEntry use = new UriStackEntry();
             use.setHandlerUri(getHandlerUri());
+            use.setRecurrence(getRecurrenceStatus().toTaskType());
             use.setSchedule(getSchedule());
             use.setBinding(getBinding().toTaskType());
             if (extensionDeltas != null) {
@@ -603,7 +640,7 @@ public class TaskQuartzImpl implements Task {
     public ItemDelta<?> createExtensionDelta(PrismPropertyDefinition definition, Object realValue) {
         PrismProperty<?> property = (PrismProperty<?>) definition.instantiate();
         property.setRealValue(realValue);
-        PropertyDelta propertyDelta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, property.getName()), definition);
+        PropertyDelta propertyDelta = new PropertyDelta(new ItemPath(TaskType.F_EXTENSION, property.getElementName()), definition);
         propertyDelta.setValuesToReplace(PrismValue.cloneCollection(property.getValues()));
         return propertyDelta;
     }
@@ -668,7 +705,7 @@ public class TaskQuartzImpl implements Task {
 		if (otherHandlersUriStack != null && !otherHandlersUriStack.getUriStackEntry().isEmpty()) {
             UriStackEntry use = popFromOtherHandlersUriStack();
 			setHandlerUri(use.getHandlerUri());
-            setRecurrenceStatus(recurrenceFromSchedule(use.getSchedule()));
+            setRecurrenceStatus(use.getRecurrence() != null ? TaskRecurrence.fromTaskType(use.getRecurrence()) : recurrenceFromSchedule(use.getSchedule()));
             setSchedule(use.getSchedule());
             if (use.getBinding() != null) {
                 setBinding(TaskBinding.fromTaskType(use.getBinding()));
@@ -682,7 +719,7 @@ public class TaskQuartzImpl implements Task {
             }
             this.setRecreateQuartzTrigger(true);
 		} else {
-			setHandlerUri(null);
+			//setHandlerUri(null);                                                  // we want the last handler to remain set so the task can be revived
 			taskManager.closeTaskWithoutSavingState(this, parentResult);			// if there are no more handlers, let us close this task
 		}
         try {
@@ -730,6 +767,10 @@ public class TaskQuartzImpl implements Task {
             }
         }
 
+        // this could be a bit tricky, taking MID-1683 into account:
+        // when a task finishes its execution, we now leave the last handler set
+        // however, this applies to executable tasks; for WAITING tasks we can safely expect that if there is a handler
+        // on the stack, we can run it (by unpausing the task)
         if (getHandlerUri() != null) {
             LOGGER.trace("All dependencies of {} are closed, unpausing the task (it has a handler defined)", this);
             taskManager.unpauseTask(this, result);
@@ -1600,22 +1641,22 @@ public class TaskQuartzImpl implements Task {
 
     @Override
 	public void setExtensionProperty(PrismProperty<?> property) throws SchemaException {
-		processModificationBatched(setExtensionPropertyAndPrepareDelta(property.getName(), property.getDefinition(), PrismValue.cloneCollection(property.getValues())));
+		processModificationBatched(setExtensionPropertyAndPrepareDelta(property.getElementName(), property.getDefinition(), PrismValue.cloneCollection(property.getValues())));
 	}
 
     @Override
     public void setExtensionReference(PrismReference reference) throws SchemaException {
-        processModificationBatched(setExtensionReferenceAndPrepareDelta(reference.getName(), reference.getDefinition(), PrismValue.cloneCollection(reference.getValues())));
+        processModificationBatched(setExtensionReferenceAndPrepareDelta(reference.getElementName(), reference.getDefinition(), PrismValue.cloneCollection(reference.getValues())));
     }
 
     @Override
     public void addExtensionReference(PrismReference reference) throws SchemaException {
-        processModificationBatched(addExtensionReferenceAndPrepareDelta(reference.getName(), reference.getDefinition(), PrismValue.cloneCollection(reference.getValues())));
+        processModificationBatched(addExtensionReferenceAndPrepareDelta(reference.getElementName(), reference.getDefinition(), PrismValue.cloneCollection(reference.getValues())));
     }
 
     @Override
     public <C extends Containerable> void setExtensionContainer(PrismContainer<C> container) throws SchemaException {
-        processModificationBatched(setExtensionContainerAndPrepareDelta(container.getName(), container.getDefinition(), PrismValue.cloneCollection(container.getValues())));
+        processModificationBatched(setExtensionContainerAndPrepareDelta(container.getElementName(), container.getDefinition(), PrismValue.cloneCollection(container.getValues())));
     }
 
     // use this method to avoid cloning the value
@@ -1646,12 +1687,12 @@ public class TaskQuartzImpl implements Task {
 
     @Override
     public void addExtensionProperty(PrismProperty<?> property) throws SchemaException {
-        processModificationBatched(addExtensionPropertyAndPrepareDelta(property.getName(), property.getDefinition(), PrismValue.cloneCollection(property.getValues())));
+        processModificationBatched(addExtensionPropertyAndPrepareDelta(property.getElementName(), property.getDefinition(), PrismValue.cloneCollection(property.getValues())));
     }
 
     @Override
     public void deleteExtensionProperty(PrismProperty<?> property) throws SchemaException {
-        processModificationBatched(deleteExtensionPropertyAndPrepareDelta(property.getName(), property.getDefinition(), PrismValue.cloneCollection(property.getValues())));
+        processModificationBatched(deleteExtensionPropertyAndPrepareDelta(property.getElementName(), property.getDefinition(), PrismValue.cloneCollection(property.getValues())));
     }
 
     @Override
@@ -1668,7 +1709,7 @@ public class TaskQuartzImpl implements Task {
 	public void setExtensionPropertyImmediate(PrismProperty<?> property, OperationResult parentResult)
             throws ObjectNotFoundException, SchemaException {
         try {
-		    processModificationNow(setExtensionPropertyAndPrepareDelta(property.getName(), property.getDefinition(), PrismValue.cloneCollection(property.getValues())), parentResult);
+		    processModificationNow(setExtensionPropertyAndPrepareDelta(property.getElementName(), property.getDefinition(), PrismValue.cloneCollection(property.getValues())), parentResult);
         } catch (ObjectAlreadyExistsException ex) {
             throw new SystemException(ex);
         }
@@ -2210,11 +2251,11 @@ public class TaskQuartzImpl implements Task {
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);
 
         ObjectFilter filter = null;
-        try {
-            filter = EqualsFilter.createEqual(TaskType.class, taskManager.getPrismContext(), TaskType.F_PARENT, getTaskIdentifier());
-        } catch (SchemaException e) {
-            throw new SystemException("Cannot create filter for 'parent equals task identifier' due to schema exception", e);
-        }
+//        try {
+            filter = EqualsFilter.createEqual(TaskType.F_PARENT, TaskType.class, taskManager.getPrismContext(), null, getTaskIdentifier());
+//        } catch (SchemaException e) {
+//            throw new SystemException("Cannot create filter for 'parent equals task identifier' due to schema exception", e);
+//        }
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 
         List<PrismObject<TaskType>> list = taskManager.getRepositoryService().searchObjects(TaskType.class, query, null, result);
@@ -2228,11 +2269,11 @@ public class TaskQuartzImpl implements Task {
         result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, TaskQuartzImpl.class);
 
         ObjectFilter filter = null;
-        try {
-            filter = EqualsFilter.createEqual(TaskType.class, taskManager.getPrismContext(), TaskType.F_DEPENDENT, getTaskIdentifier());
-        } catch (SchemaException e) {
-            throw new SystemException("Cannot create filter for 'dependent contains task identifier' due to schema exception", e);
-        }
+//        try {
+            filter = EqualsFilter.createEqual(TaskType.F_DEPENDENT, TaskType.class, taskManager.getPrismContext(), null, getTaskIdentifier());
+//        } catch (SchemaException e) {
+//            throw new SystemException("Cannot create filter for 'dependent contains task identifier' due to schema exception", e);
+//        }
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 
         List<PrismObject<TaskType>> list = taskManager.getRepositoryService().searchObjects(TaskType.class, query, null, result);

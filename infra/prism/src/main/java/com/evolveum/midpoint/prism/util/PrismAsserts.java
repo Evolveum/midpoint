@@ -55,6 +55,7 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
+import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
@@ -112,7 +113,7 @@ public class PrismAsserts {
 		
 	public static <T> void assertPropertyValueDesc(PrismProperty<T> property, String contextDescrition, T... expectedPropValues) {
 		Collection<PrismPropertyValue<T>> pvals = property.getValues();
-		QName propQName = property.getName();
+		QName propQName = property.getElementName();
 		assert pvals != null && !pvals.isEmpty() : "Empty property "+propQName;
 		assertSet("property "+propQName + (contextDescrition == null ? "" : " in " + contextDescrition), 
 				"value", pvals, expectedPropValues);
@@ -185,7 +186,7 @@ public class PrismAsserts {
 	
 	public static void assertDefinition(Item item, QName type, int minOccurs, int maxOccurs) {
 		ItemDefinition definition = item.getDefinition();
-		assertDefinition(definition, item.getName(), type, minOccurs, maxOccurs);
+		assertDefinition(definition, item.getElementName(), type, minOccurs, maxOccurs);
 	}
 		
 	public static void assertPropertyDefinition(PrismContainer<?> container, QName propertyName, QName type, int minOccurs, int maxOccurs) {
@@ -198,7 +199,7 @@ public class PrismAsserts {
 		PrismPropertyDefinition<?> definition = container.findPropertyDefinition(propertyName);
 		assertDefinition(definition, propertyName, type, minOccurs, maxOccurs);
 	}
-
+	
     public static void assertPropertyDefinition(PrismProperty property, QName type, int minOccurs, int maxOccurs, Boolean indexed) {
         assertDefinition(property, type, minOccurs, maxOccurs);
 
@@ -223,9 +224,21 @@ public class PrismAsserts {
 		assert equals(expectedDisplayName, definition.getDisplayName()) : "Wrong display name for item "+propertyName+", expected " +
 			expectedDisplayName + ", was " + definition.getDisplayName();
 	}
+	
+	public static void assertItemDefinitionDisplayName(ComplexTypeDefinition containerDef, QName propertyName, String expectedDisplayName) {
+		ItemDefinition definition = containerDef.findItemDefinition(propertyName, ItemDefinition.class);
+		assert equals(expectedDisplayName, definition.getDisplayName()) : "Wrong display name for item "+propertyName+", expected " +
+			expectedDisplayName + ", was " + definition.getDisplayName();
+	}
 
 	public static void assertItemDefinitionDisplayOrder(PrismContainerDefinition<?> containerDef, QName propertyName, Integer expectedDisplayOrder) {
 		ItemDefinition definition = containerDef.findItemDefinition(propertyName);
+		assert equals(expectedDisplayOrder, definition.getDisplayOrder()) : "Wrong display order for item "+propertyName+", expected " +
+		expectedDisplayOrder + ", was " + definition.getDisplayOrder();
+	}
+	
+	public static void assertItemDefinitionDisplayOrder(ComplexTypeDefinition containerDef, QName propertyName, Integer expectedDisplayOrder) {
+		ItemDefinition definition = containerDef.findItemDefinition(propertyName, ItemDefinition.class);
 		assert equals(expectedDisplayOrder, definition.getDisplayOrder()) : "Wrong display order for item "+propertyName+", expected " +
 		expectedDisplayOrder + ", was " + definition.getDisplayOrder();
 	}
@@ -273,7 +286,7 @@ public class PrismAsserts {
 
 	public static void assertParentConsistency(Item<?> item) {
 		for (PrismValue pval: item.getValues()) {
-			assert pval.getParent() == item : "Wrong parent of "+pval+" in "+PrettyPrinter.prettyPrint(item.getName());
+			assert pval.getParent() == item : "Wrong parent of "+pval+" in "+PrettyPrinter.prettyPrint(item.getElementName());
 			if (pval instanceof PrismContainerValue) {
 				assertParentConsistency((PrismContainerValue)pval);
 			}
@@ -314,7 +327,7 @@ public class PrismAsserts {
 	}
 		
 	public static <T> void assertReplace(PropertyDelta<T> propertyDelta, T... expectedValues) {
-		assertSet("delta "+propertyDelta+" for "+propertyDelta.getName(), "replace", propertyDelta.getValuesToReplace(), expectedValues);
+		assertSet("delta "+propertyDelta+" for "+propertyDelta.getElementName(), "replace", propertyDelta.getValuesToReplace(), expectedValues);
 	}
 
 	public static void assertPropertyAdd(ObjectDelta<?> objectDelta, QName propertyName, Object... expectedValues) {
@@ -342,11 +355,11 @@ public class PrismAsserts {
 	}
 		
 	public static <T> void assertAdd(PropertyDelta<T> propertyDelta, T... expectedValues) {
-		assertSet("delta "+propertyDelta+" for "+propertyDelta.getName(), "add", propertyDelta.getValuesToAdd(), expectedValues);
+		assertSet("delta "+propertyDelta+" for "+propertyDelta.getElementName(), "add", propertyDelta.getValuesToAdd(), expectedValues);
 	}
 	
 	public static <T> void assertDelete(PropertyDelta<T> propertyDelta, T... expectedValues) {
-		assertSet("delta "+propertyDelta+" for "+propertyDelta.getName(), "delete", propertyDelta.getValuesToDelete(), expectedValues);
+		assertSet("delta "+propertyDelta+" for "+propertyDelta.getElementName(), "delete", propertyDelta.getValuesToDelete(), expectedValues);
 	}
 
 	public static void assertPropertyDelete(ObjectDelta<?> userDelta, ItemPath propertyPath, Object... expectedValues) {
@@ -700,13 +713,23 @@ public class PrismAsserts {
 	}
 	
 	public static <T> void assertSets(String message, Collection<T> actualValues, T... expectedValues) {
+		assertSets(message, null, actualValues, expectedValues);
+	}
+	
+	public static <T> void assertSets(String message, MatchingRule<T> matchingRule, Collection<T> actualValues, T... expectedValues) {
 		assertNotNull("Null set in " + message, actualValues);
 		assertEquals("Wrong number of values in " + message, expectedValues.length, actualValues.size());
 		for (T actualValue: actualValues) {
 			boolean found = false;
 			for (T value: expectedValues) {
-				if (value.equals(actualValue)) {
-					found = true;
+				if (matchingRule == null) {
+					if (value.equals(actualValue)) {
+						found = true;
+					}
+				} else {
+					if (matchingRule.match(value, actualValue)) {
+						found = true;
+					}
 				}
 			}
 			if (!found) {
@@ -765,6 +788,12 @@ public class PrismAsserts {
 				+ ", was " + MiscUtil.getValueWithClass(actual);
 	}
 	
+	public static <T> void assertEquals(String message, MatchingRule<T> matchingRule, T expected, T actual) {
+		assert equals(matchingRule, expected, actual) : message 
+				+ ": expected " + MiscUtil.getValueWithClass(expected)
+				+ ", was " + MiscUtil.getValueWithClass(actual);
+	}
+	
 	static void assertSame(String message, Object expected, Object actual) {
 		assert expected == actual : message 
 				+ ": expected ("+expected.getClass().getSimpleName() + ")"  + expected 
@@ -773,6 +802,20 @@ public class PrismAsserts {
 	
 	static void fail(String message) {
 		assert false: message;
+	}
+	
+	private static <T> boolean equals(MatchingRule<T> matchingRule, T a, T b) {
+		if (a == null && b == null) {
+			return true;
+		}
+		if (a == null || b == null) {
+			return false;
+		}
+		if (matchingRule == null) {
+			return a.equals(b);
+		} else {
+			return matchingRule.match(a, b);
+		}
 	}
 
 	private static boolean equals(Object a, Object b) {

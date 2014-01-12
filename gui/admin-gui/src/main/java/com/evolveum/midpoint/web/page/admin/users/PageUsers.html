@@ -19,49 +19,23 @@
 <body>
 <wicket:extend>
     <div wicket:id="confirmDeletePopup" />
-    <form wicket:id="mainForm">
-        <div wicket:id="option">
-            <div wicket:id="search">
-                <input class="searchText" type="text" wicket:id="searchText"/>
-                <table>
-                    <tr>
-                        <td>
-                            <input type="checkbox" wicket:id="nameCheck"/>
-                            <wicket:message key="pageUsers.name"/>
-                        </td>
-                        <td><input type="checkbox" wicket:id="fullNameCheck"/>
-                            <wicket:message key="pageUsers.fullName"/>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>
-                            <input type="checkbox" wicket:id="givenNameCheck"/>
-                            <wicket:message key="pageUsers.givenName"/>
-                        </td>
-                        <td>
-                            <input type="checkbox" wicket:id="familyNameCheck"/>
-                            <wicket:message key="pageUsers.familyName"/>
-                        </td>
-                    </tr>
-                </table>
-                <a wicket:id="clearButton"/>
-                <a class="submitSearch" wicket:id="searchButton"/>
-            </div>
-        </div>
-        <div wicket:id="optionContent">
-            <div wicket:id="table"/>
+
+    <form class="form-inline pull-right search-form" wicket:id="searchForm">
+        <div class="form-group">
+            <label class="sr-only"><wicket:message key="pageUsers.searchTextPlaceholder"/></label>
+            <input class="form-control input-sm" wicket:id="searchText"
+                   wicket:message="placeholder:pageUsers.searchTextPlaceholder">
         </div>
 
-        <div class="operatingFormButtons">
-            <div class="operatingFormBlock">
-                <a wicket:id="enable"/>
-                <a wicket:id="disable"/>
-                <a wicket:id="delete"/>
-                <a wicket:id="reconcile"/>
-            </div>
+        <select multiple="multiple" class="multiselect" wicket:id="searchType"/>
 
-            <div class="operatingFormBlock" wicket:id="executeOptions" />
-        </div>
+        <a class="btn btn-default btn-sm" wicket:id="searchButton"/>
+    </form>
+
+    <form wicket:id="mainForm" class="clearfix form-horizontal">
+        <div wicket:id="table"/>
+
+        <div class="form-group" wicket:id="executeOptions"/>
     </form>
 </wicket:extend>
 </body>

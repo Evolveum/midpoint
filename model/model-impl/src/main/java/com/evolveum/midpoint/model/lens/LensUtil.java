@@ -17,43 +17,40 @@ package com.evolveum.midpoint.model.lens;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import com.evolveum.midpoint.common.expression.ItemDeltaItem;
-import com.evolveum.midpoint.common.mapping.Mapping;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
+import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
+import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
+import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.expr.ModelExpressionThreadLocalHolder;
 import com.evolveum.midpoint.model.lens.projector.ValueMatcher;
-import com.evolveum.midpoint.prism.Item;
-import com.evolveum.midpoint.prism.ItemDefinition;
-import com.evolveum.midpoint.prism.OriginType;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.DeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
+import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
@@ -66,13 +63,16 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScriptExpressionReturnTypeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
 
 /**
  * @author semancik
@@ -82,8 +82,8 @@ public class LensUtil {
 	
 	private static final Trace LOGGER = TraceManager.getTrace(LensUtil.class);
 	
-	public static <F extends ObjectType, P extends ObjectType> void traceContext(Trace logger, String activity, String phase, 
-			boolean important,  LensContext<F,P> context, boolean showTriples) throws SchemaException {
+	public static <F extends ObjectType> void traceContext(Trace logger, String activity, String phase, 
+			boolean important,  LensContext<F> context, boolean showTriples) throws SchemaException {
         if (logger.isTraceEnabled()) {
         	logger.trace("Lens context:\n"+
             		"---[ {} context {} ]--------------------------------\n"+
@@ -92,7 +92,7 @@ public class LensUtil {
         }
     }
 	
-	public static <F extends ObjectType, P extends ObjectType> ResourceType getResource(LensContext<F,P> context,
+	public static <F extends ObjectType> ResourceType getResource(LensContext<F> context,
 			String resourceOid, ProvisioningService provisioningService, OperationResult result) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 		ResourceType resourceType = context.getResource(resourceOid);
@@ -106,43 +106,46 @@ public class LensUtil {
 		return resourceType;
 	}
 	
-	public static String refineAccountType(String intent, ResourceType resource, PrismContext prismContext) throws SchemaException {
+	public static String refineProjectionIntent(ShadowKindType kind, String intent, ResourceType resource, PrismContext prismContext) throws SchemaException {
 		RefinedResourceSchema refinedSchema = RefinedResourceSchema.getRefinedSchema(resource, LayerType.MODEL, prismContext);
-		RefinedObjectClassDefinition accountDefinition = refinedSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, intent);
-		if (accountDefinition == null) {
-			throw new SchemaException("No account definition for intent="+intent+" in "+resource);
+		RefinedObjectClassDefinition rObjClassDef = refinedSchema.getRefinedDefinition(kind, intent);
+		if (rObjClassDef == null) {
+			throw new SchemaException("No projection definition for kind="+kind+" intent="+intent+" in "+resource);
 		}
-		return accountDefinition.getIntent();
+		return rObjClassDef.getIntent();
 	}
 	
-	public static LensProjectionContext<ShadowType> getAccountContext(LensContext<UserType,ShadowType> context,
+	public static <F extends FocusType> LensProjectionContext getProjectionContext(LensContext<F> context,
 			PrismObject<ShadowType> equivalentAccount, ProvisioningService provisioningService, PrismContext prismContext, OperationResult result) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
-		return getAccountContext(context, ShadowUtil.getResourceOid(equivalentAccount.asObjectable()), 
-				equivalentAccount.asObjectable().getIntent(), provisioningService, prismContext, result);
+		ShadowType equivalentAccountType = equivalentAccount.asObjectable();
+		ShadowKindType kind = ShadowUtil.getKind(equivalentAccountType);
+		return getProjectionContext(context, ShadowUtil.getResourceOid(equivalentAccountType), 
+				kind, equivalentAccountType.getIntent(), provisioningService, 
+				prismContext, result);
 	}
 	
-	public static LensProjectionContext<ShadowType> getAccountContext(LensContext<UserType,ShadowType> context,
-			String resourceOid, String intent, ProvisioningService provisioningService, PrismContext prismContext, OperationResult result) throws ObjectNotFoundException,
+	public static <F extends FocusType> LensProjectionContext getProjectionContext(LensContext<F> context,
+			String resourceOid, ShadowKindType kind, String intent, ProvisioningService provisioningService, PrismContext prismContext, OperationResult result) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 		ResourceType resource = getResource(context, resourceOid, provisioningService, result);
-		String accountType = refineAccountType(intent, resource, prismContext);
-		ResourceShadowDiscriminator rsd = new ResourceShadowDiscriminator(resourceOid, accountType);
+		String refinedIntent = refineProjectionIntent(kind, intent, resource, prismContext);
+		ResourceShadowDiscriminator rsd = new ResourceShadowDiscriminator(resourceOid, kind, refinedIntent);
 		return context.findProjectionContext(rsd);
 	}
 	
-	public static LensProjectionContext<ShadowType> getOrCreateAccountContext(LensContext<UserType,ShadowType> context,
-			String resourceOid, String intent, ProvisioningService provisioningService, PrismContext prismContext, OperationResult result) throws ObjectNotFoundException,
+	public static <F extends FocusType> LensProjectionContext getOrCreateProjectionContext(LensContext<F> context,
+			String resourceOid, ShadowKindType kind, String intent, ProvisioningService provisioningService, PrismContext prismContext, OperationResult result) throws ObjectNotFoundException,
 			CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 		ResourceType resource = getResource(context, resourceOid, provisioningService, result);
-		String accountType = refineAccountType(intent, resource, prismContext);
-		ResourceShadowDiscriminator rsd = new ResourceShadowDiscriminator(resourceOid, accountType);
-		return getOrCreateAccountContext(context, rsd);
+		String accountType = refineProjectionIntent(kind, intent, resource, prismContext);
+		ResourceShadowDiscriminator rsd = new ResourceShadowDiscriminator(resourceOid, kind, accountType);
+		return getOrCreateProjectionContext(context, rsd);
 	}
 		
-	public static LensProjectionContext<ShadowType> getOrCreateAccountContext(LensContext<UserType,ShadowType> context,
+	public static <F extends ObjectType> LensProjectionContext getOrCreateProjectionContext(LensContext<F> context,
 			ResourceShadowDiscriminator rsd) {
-		LensProjectionContext<ShadowType> accountSyncContext = context.findProjectionContext(rsd);
+		LensProjectionContext accountSyncContext = context.findProjectionContext(rsd);
 		if (accountSyncContext == null) {
 			accountSyncContext = context.createProjectionContext(rsd);
 			ResourceType resource = context.getResource(rsd.getResourceOid());
@@ -151,8 +154,8 @@ public class LensUtil {
 		return accountSyncContext;
 	}
 	
-	public static <F extends ObjectType, P extends ObjectType> LensProjectionContext<ShadowType> createAccountContext(LensContext<F, P> context, ResourceShadowDiscriminator rsd){
-		return new LensProjectionContext(ShadowType.class, context, rsd);
+	public static <F extends ObjectType> LensProjectionContext createAccountContext(LensContext<F> context, ResourceShadowDiscriminator rsd){
+		return new LensProjectionContext(context, rsd);
 	}
 	
 	
@@ -473,12 +476,12 @@ public class LensUtil {
 		
 		PrismPropertyDefinition<XMLGregorianCalendar> timestampDef = activationDefinition.findPropertyDefinition(timestampPropertyName);
 		PropertyDelta<XMLGregorianCalendar> timestampDelta 
-				= timestampDef.createEmptyDelta(new ItemPath(UserType.F_ACTIVATION, timestampPropertyName));
+				= timestampDef.createEmptyDelta(new ItemPath(FocusType.F_ACTIVATION, timestampPropertyName));
 		timestampDelta.setValueToReplace(new PrismPropertyValue<XMLGregorianCalendar>(now, origin, null));
 		return timestampDelta;
     }
 
-	public static void moveTriggers(LensProjectionContext<ShadowType> projCtx, LensFocusContext<UserType> focusCtx) throws SchemaException {
+	public static <F extends ObjectType> void moveTriggers(LensProjectionContext projCtx, LensFocusContext<F> focusCtx) throws SchemaException {
 		ObjectDelta<ShadowType> projSecondaryDelta = projCtx.getSecondaryDelta();
 		if (projSecondaryDelta == null) {
 			return;
@@ -495,21 +498,41 @@ public class LensUtil {
 		}
 	}
 	
-	public static <V extends PrismValue, F extends ObjectType, P extends ObjectType> void evaluateMapping(Mapping<V> mapping, LensContext<F, P> lensContext, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-		ModelExpressionThreadLocalHolder.setLensContext(lensContext);
-		ModelExpressionThreadLocalHolder.setCurrentResult(parentResult);
+	public static <V extends PrismValue, F extends ObjectType> void evaluateMapping(
+			Mapping<V> mapping, LensContext<F> lensContext, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		ModelExpressionThreadLocalHolder.pushLensContext(lensContext);
+		ModelExpressionThreadLocalHolder.pushCurrentResult(parentResult);
+		ModelExpressionThreadLocalHolder.pushCurrentTask(task);
 		try {
 			mapping.evaluate(parentResult);
 		} finally {
-			ModelExpressionThreadLocalHolder.resetLensContext();
-			ModelExpressionThreadLocalHolder.resetCurrentResult();
+			ModelExpressionThreadLocalHolder.popLensContext();
+			ModelExpressionThreadLocalHolder.popCurrentResult();
+			ModelExpressionThreadLocalHolder.popCurrentTask();
 			if (lensContext.getDebugListener() != null) {
 				lensContext.getDebugListener().afterMappingEvaluation(lensContext, mapping);
 			}
 		}
 	}
-	
-	public static void loadFullAccount(LensProjectionContext<ShadowType> accCtx, ProvisioningService provisioningService,
+
+    public static <V extends PrismValue, F extends ObjectType> void evaluateScript(
+            ScriptExpression scriptExpression, LensContext<F> lensContext, ExpressionVariables variables, String shortDesc, Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+        ModelExpressionThreadLocalHolder.pushLensContext(lensContext);
+        ModelExpressionThreadLocalHolder.pushCurrentResult(parentResult);
+        ModelExpressionThreadLocalHolder.pushCurrentTask(task);
+        try {
+            scriptExpression.evaluate(variables, ScriptExpressionReturnTypeType.SCALAR, false, shortDesc, parentResult);
+        } finally {
+            ModelExpressionThreadLocalHolder.popLensContext();
+            ModelExpressionThreadLocalHolder.popCurrentResult();
+            ModelExpressionThreadLocalHolder.popCurrentTask();
+//			if (lensContext.getDebugListener() != null) {
+//				lensContext.getDebugListener().afterScriptEvaluation(lensContext, scriptExpression);
+//			}
+        }
+    }
+
+	public static <F extends ObjectType> void loadFullAccount(LensContext<F> context, LensProjectionContext accCtx, ProvisioningService provisioningService,
 			OperationResult result) throws ObjectNotFoundException, CommunicationException, SchemaException, ConfigurationException, SecurityViolationException {
 		if (accCtx.isFullShadow()) {
 			// already loaded
@@ -519,16 +542,24 @@ public class LensUtil {
 			// nothing to load yet
 			return;
 		}
+		ResourceShadowDiscriminator discr = accCtx.getResourceShadowDiscriminator();
+		if (discr != null && discr.getOrder() > 0) {
+			// It may be just too early to load the projection
+			if (LensUtil.hasLowerOrderContext(context, accCtx) && (context.getExecutionWave() < accCtx.getWave())) {
+				// We cannot reliably load the context now
+				return;
+			}
+		}
 		LOGGER.trace("Loading full account {} from provisioning", accCtx);
 		
 		try{
-		PrismObject<ShadowType> objectOld = provisioningService.getObject(ShadowType.class,
-				accCtx.getOid(), SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()),
-				null, result);
-		// TODO: use setLoadedObject() instead?
-		accCtx.setObjectCurrent(objectOld);
-		ShadowType oldShadow = objectOld.asObjectable();
-		accCtx.determineFullShadowFlag(oldShadow.getFetchResult());
+			PrismObject<ShadowType> objectOld = provisioningService.getObject(ShadowType.class,
+					accCtx.getOid(), SelectorOptions.createCollection(GetOperationOptions.createDoNotDiscovery()),
+					null, result);
+			// TODO: use setLoadedObject() instead?
+			accCtx.setObjectCurrent(objectOld);
+			ShadowType oldShadow = objectOld.asObjectable();
+			accCtx.determineFullShadowFlag(oldShadow.getFetchResult());
 		
 		} catch (ObjectNotFoundException ex){
 			if (accCtx.isDelete()){
@@ -546,7 +577,7 @@ public class LensUtil {
 		}
 	}
 
-	public static Object getIterationVariableValue(LensProjectionContext<ShadowType> accCtx) {
+	public static Object getIterationVariableValue(LensProjectionContext accCtx) {
 		Integer iterationOld = null;
 		PrismObject<ShadowType> shadowCurrent = accCtx.getObjectCurrent();
 		if (shadowCurrent != null) {
@@ -556,7 +587,7 @@ public class LensUtil {
 			return accCtx.getIteration();
 		}
 		PrismPropertyDefinition<Integer> propDef = new PrismPropertyDefinition<Integer>(ExpressionConstants.VAR_ITERATION,
-				ExpressionConstants.VAR_ITERATION, DOMUtil.XSD_INT, accCtx.getPrismContext());
+				DOMUtil.XSD_INT, accCtx.getPrismContext());
 		PrismProperty<Integer> propOld = propDef.instantiate();
 		propOld.setRealValue(iterationOld);
 		PropertyDelta<Integer> propDelta = propDef.createEmptyDelta(new ItemPath(ExpressionConstants.VAR_ITERATION));
@@ -567,7 +598,7 @@ public class LensUtil {
 		return idi;
 	}
 
-	public static Object getIterationTokenVariableValue(LensProjectionContext<ShadowType> accCtx) {
+	public static Object getIterationTokenVariableValue(LensProjectionContext accCtx) {
 		String iterationTokenOld = null;
 		PrismObject<ShadowType> shadowCurrent = accCtx.getObjectCurrent();
 		if (shadowCurrent != null) {
@@ -577,8 +608,7 @@ public class LensUtil {
 			return accCtx.getIterationToken();
 		}
 		PrismPropertyDefinition<String> propDef = new PrismPropertyDefinition<String>(
-				ExpressionConstants.VAR_ITERATION_TOKEN, ExpressionConstants.VAR_ITERATION_TOKEN,
-				DOMUtil.XSD_STRING, accCtx.getPrismContext());
+				ExpressionConstants.VAR_ITERATION_TOKEN, DOMUtil.XSD_STRING, accCtx.getPrismContext());
 		PrismProperty<String> propOld = propDef.instantiate();
 		propOld.setRealValue(iterationTokenOld);
 		PropertyDelta<String> propDelta = propDef.createEmptyDelta(new ItemPath(ExpressionConstants.VAR_ITERATION_TOKEN));
@@ -588,5 +618,136 @@ public class LensUtil {
 		ItemDeltaItem<PrismPropertyValue<String>> idi = new ItemDeltaItem<PrismPropertyValue<String>>(propOld, propDelta, propNew);
 		return idi;
 	}
-    
+	
+	/**
+	 * Extracts the delta from this projection context and also from all other projection contexts that have 
+	 * equivalent discriminator.
+	 */
+	public static <F extends ObjectType, T> PropertyDelta<T> findAPrioriDelta(LensContext<F> context,
+			LensProjectionContext projCtx, ItemPath projectionPropertyPath) throws SchemaException {
+		PropertyDelta<T> aPrioriDelta = null;
+		for (LensProjectionContext aProjCtx: findRelatedContexts(context, projCtx)) {
+			ObjectDelta<ShadowType> aProjDelta = aProjCtx.getDelta();
+			if (aProjDelta != null) {
+				PropertyDelta<T> aPropProjDelta = aProjDelta.findPropertyDelta(projectionPropertyPath);
+				if (aPropProjDelta != null) {
+					if (aPrioriDelta == null) {
+						aPrioriDelta = aPropProjDelta.clone();
+					} else {
+						aPrioriDelta.merge(aPropProjDelta);
+					}
+				}
+			}
+		}
+		return aPrioriDelta;
+	}
+	
+	/**
+	 * Returns a list of context that have equivalent discriminator with the reference context. Ordered by "order" in the
+	 * discriminator.
+	 */
+	public static <F extends ObjectType> List<LensProjectionContext> findRelatedContexts(
+			LensContext<F> context, LensProjectionContext refProjCtx) {
+		List<LensProjectionContext> projCtxs = new ArrayList<LensProjectionContext>();
+		ResourceShadowDiscriminator refDiscr = refProjCtx.getResourceShadowDiscriminator();
+		if (refDiscr == null) {
+			return projCtxs;
+		}
+		for (LensProjectionContext aProjCtx: context.getProjectionContexts()) {
+			ResourceShadowDiscriminator aDiscr = aProjCtx.getResourceShadowDiscriminator();
+			if (refDiscr.equivalent(aDiscr)) {
+				projCtxs.add(aProjCtx);
+			}
+		}
+		Comparator<? super LensProjectionContext> orderComparator = new Comparator<LensProjectionContext>() {
+			@Override
+			public int compare(LensProjectionContext ctx1, LensProjectionContext ctx2) {
+				int order1 = ctx1.getResourceShadowDiscriminator().getOrder();
+				int order2 = ctx2.getResourceShadowDiscriminator().getOrder();
+				return Integer.compare(order1, order2);
+			}
+		};
+		Collections.sort(projCtxs, orderComparator);
+		return projCtxs;
+	}
+
+	public static <F extends ObjectType> boolean hasLowerOrderContext(LensContext<F> context,
+			LensProjectionContext refProjCtx) {
+		ResourceShadowDiscriminator refDiscr = refProjCtx.getResourceShadowDiscriminator();
+		for (LensProjectionContext aProjCtx: context.getProjectionContexts()) {
+			ResourceShadowDiscriminator aDiscr = aProjCtx.getResourceShadowDiscriminator();
+			if (refDiscr.equivalent(aDiscr) && (refDiscr.getOrder() > aDiscr.getOrder())) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public static <F extends ObjectType> LensProjectionContext findLowerOrderContext(LensContext<F> context,
+			LensProjectionContext refProjCtx) {
+		int minOrder = -1;
+		LensProjectionContext foundCtx = null;
+		ResourceShadowDiscriminator refDiscr = refProjCtx.getResourceShadowDiscriminator();
+		for (LensProjectionContext aProjCtx: context.getProjectionContexts()) {
+			ResourceShadowDiscriminator aDiscr = aProjCtx.getResourceShadowDiscriminator();
+			if (refDiscr.equivalent(aDiscr) && (refDiscr.getOrder() > aDiscr.getOrder())) {
+				if (minOrder < 0 || (aDiscr.getOrder() < minOrder)) {
+					minOrder = aDiscr.getOrder();
+					foundCtx = aProjCtx;
+				}
+			}
+		}
+		return foundCtx;
+	}
+	
+	public static <T extends ObjectType, F extends ObjectType> void setContextOid(LensContext<F> context,
+			LensElementContext<T> objectContext, String oid) {
+		objectContext.setOid(oid);
+		// Check if we need to propagate this oid also to higher-order contexts
+		if (!(objectContext instanceof LensProjectionContext)) {
+			return;
+		}
+		LensProjectionContext refProjCtx = (LensProjectionContext)objectContext;
+		ResourceShadowDiscriminator refDiscr = refProjCtx.getResourceShadowDiscriminator();
+		if (refDiscr == null) {
+			return;
+		}
+		for (LensProjectionContext aProjCtx: context.getProjectionContexts()) {
+			ResourceShadowDiscriminator aDiscr = aProjCtx.getResourceShadowDiscriminator();
+			if (aDiscr != null && refDiscr.equivalent(aDiscr) && (refDiscr.getOrder() < aDiscr.getOrder())) {
+				aProjCtx.setOid(oid);
+			}
+		}
+	}
+
+	public static PrismObject<SystemConfigurationType> getSystemConfiguration(LensContext context, RepositoryService repositoryService, OperationResult result) throws ObjectNotFoundException, SchemaException {
+		PrismObject<SystemConfigurationType> systemConfiguration = context.getSystemConfiguration();
+		if (systemConfiguration == null) {
+			try {
+				systemConfiguration = 
+					repositoryService.getObject(SystemConfigurationType.class, SystemObjectsType.SYSTEM_CONFIGURATION.value(),
+							null, result);
+			} catch (ObjectNotFoundException e) {
+				// just go on ... we will return and continue
+				// This is needed e.g. to set up new system configuration is the old one gets deleted
+			}
+			if (systemConfiguration == null) {
+			    // throw new SystemException("System configuration object is null (should not happen!)");
+			    // This should not happen, but it happens in tests. And it is a convenient short cut. Tolerate it for now.
+			    LOGGER.warn("System configuration object is null (should not happen!)");
+			    return null;
+			}
+			context.setSystemConfiguration(systemConfiguration);
+		}
+		return systemConfiguration;
+	}
+
+    public static <F extends FocusType> PrismObjectDefinition<F> getFocusDefinition(LensContext<F> context) {
+        LensFocusContext<F> focusContext = context.getFocusContext();
+        if (focusContext == null) {
+            return null;
+        }
+        Class<F> typeClass = focusContext.getObjectTypeClass();
+        return context.getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(typeClass);
+    }
 }

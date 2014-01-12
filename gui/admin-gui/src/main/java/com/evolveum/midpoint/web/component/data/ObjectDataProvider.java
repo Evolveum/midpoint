@@ -41,7 +41,8 @@ import org.apache.wicket.Component;
 /**
  * @author lazyman
  */
-public class ObjectDataProvider<T extends ObjectType> extends BaseSortableDataProvider<SelectableBean<T>> {
+public class ObjectDataProvider<W extends Serializable, T extends ObjectType>
+        extends BaseSortableDataProvider<W> {
 
     private static final Trace LOGGER = TraceManager.getTrace(ObjectDataProvider.class);
     private static final String DOT_CLASS = ObjectDataProvider.class.getName() + ".";
@@ -59,7 +60,7 @@ public class ObjectDataProvider<T extends ObjectType> extends BaseSortableDataPr
     }
 
     @Override
-    public Iterator<SelectableBean<T>> internalIterator(long first, long count) {
+    public Iterator<W> internalIterator(long first, long count) {
         LOGGER.trace("begin::iterator() from {} count {}.", new Object[]{first, count});
         getAvailableData().clear();
 
@@ -76,7 +77,7 @@ public class ObjectDataProvider<T extends ObjectType> extends BaseSortableDataPr
 
             List<PrismObject<T>> list = getModel().searchObjects(type, query, options, task, result);
             for (PrismObject<T> object : list) {
-                getAvailableData().add(new SelectableBean<T>(object.asObjectable()));
+                getAvailableData().add(createDataObjectWrapper(object));
             }
 
             result.recordSuccess();
@@ -91,6 +92,10 @@ public class ObjectDataProvider<T extends ObjectType> extends BaseSortableDataPr
 
         LOGGER.trace("end::iterator()");
         return getAvailableData().iterator();
+    }
+
+    public W createDataObjectWrapper(PrismObject<T> obj) {
+        return (W) new SelectableBean<T>(obj.asObjectable());
     }
 
     @Override

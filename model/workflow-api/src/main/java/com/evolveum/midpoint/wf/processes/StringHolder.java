@@ -35,6 +35,10 @@ public class StringHolder implements Serializable {
         return value;
     }
 
+    public byte[] getAsByteArray() {
+        return value.getBytes();
+    }
+
     public void setValue(String value) {
         this.value = value;
     }

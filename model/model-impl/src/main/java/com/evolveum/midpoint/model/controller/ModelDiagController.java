@@ -34,6 +34,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.RepositoryDiag;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -81,6 +82,9 @@ public class ModelDiagController implements ModelDiagnosticService {
 	@Qualifier("repositoryService")
 	private transient RepositoryService repositoryService;
 	
+	@Autowired(required = true)
+	private ProvisioningService provisioningService;
+	
 	private RandomString randomString;
 
 	ModelDiagController() {
@@ -105,6 +109,16 @@ public class ModelDiagController implements ModelDiagnosticService {
 		repositoryService.repositorySelfTest(testResult);
 		
 		repositorySelfTestUser(task, testResult);
+		
+		testResult.computeStatus();
+		return testResult;
+	}
+
+	@Override
+	public OperationResult provisioningSelfTest(Task task) {
+		OperationResult testResult = new OperationResult(PROVISIONING_SELF_TEST);
+		// Give provisioning chance to run its own self-test
+		provisioningService.provisioningSelfTest(testResult, task);
 		
 		testResult.computeStatus();
 		return testResult;
@@ -177,7 +191,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 				try {
 					
 					ObjectQuery query = new ObjectQuery();
-					ObjectFilter filter = EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_FULL_NAME,
+					ObjectFilter filter = EqualsFilter.createEqual(UserType.F_FULL_NAME, UserType.class, prismContext, null,
 							toPolyString(USER_FULL_NAME));
 					query.setFilter(filter);
 					subresult.addParam("query", query);
@@ -206,7 +220,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 				try {
 					
 					ObjectQuery query = new ObjectQuery();
-					ObjectFilter filter = EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_EMPLOYEE_TYPE,
+					ObjectFilter filter = EqualsFilter.createEqual(UserType.F_EMPLOYEE_TYPE, UserType.class, prismContext, null,
 							USER_EMPLOYEE_TYPE[0]);
 					query.setFilter(filter);
 					subresult.addParam("query", query);
@@ -235,7 +249,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 				try {
 					
 					ObjectQuery query = new ObjectQuery();
-					ObjectFilter filter = EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_ORGANIZATION,
+					ObjectFilter filter = EqualsFilter.createEqual(UserType.F_ORGANIZATION, UserType.class, prismContext, null,
 							toPolyString(USER_ORGANIZATION[1]));
 					query.setFilter(filter);
 					subresult.addParam("query", query);

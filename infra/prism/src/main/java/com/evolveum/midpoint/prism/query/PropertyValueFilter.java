@@ -18,159 +18,122 @@ package com.evolveum.midpoint.prism.query;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.Itemable;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
-public abstract class PropertyValueFilter extends ValueFilter{
+public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFilter implements Itemable{
 
-	private List<? extends PrismValue> values;
+	private List<T> values;
 
 	PropertyValueFilter(){
 		
 	}
 	
-	PropertyValueFilter(ItemPath path, ItemDefinition definition, String matchingRule, List<? extends PrismValue> values) {
+	PropertyValueFilter(ItemPath path, ItemDefinition definition, QName matchingRule, List<T> values) {
 		super(path, definition, matchingRule);
 		this.values = values;
 	}
 	
-	
-	PropertyValueFilter(ItemPath path, ItemDefinition definition, PrismValue value) {
+	PropertyValueFilter(ItemPath path, ItemDefinition definition, T value){
 		super(path, definition);
 		setValue(value);
+	}
+	
+	PropertyValueFilter(ItemPath path, ItemDefinition definition, QName matchingRule) { 
+		super(path, definition, matchingRule);
+		this.values = null;
 	}
 	
 	PropertyValueFilter(ItemPath path, ItemDefinition definition, Element expression) {
 		super(path, definition, expression);
 	}
 	
-	PropertyValueFilter(ItemPath path, ItemDefinition definition, String matchingRule, Element expression) {
+	PropertyValueFilter(ItemPath path, ItemDefinition definition, QName matchingRule, Element expression) {
 		super(path, definition, matchingRule, expression);
 	}
 	
-	static PropertyValueFilter create(Class filterClass, ItemPath path, ItemDefinition itemDef, String matchingRule, PrismValue value){
-		if (filterClass.isAssignableFrom(EqualsFilter.class)){
-			return EqualsFilter.createEqual(path, itemDef, matchingRule, value);
-		} else if (filterClass.isAssignableFrom(LessFilter.class)){
-			return LessFilter.createLessFilter(path, itemDef, value, false);
-		} else if (filterClass.isAssignableFrom(GreaterFilter.class)){
-			return GreaterFilter.createGreaterFilter(path, itemDef, value, false);
-		}
-		throw new IllegalArgumentException("Bad filter class");
-	}
-
-	static PropertyValueFilter create(Class filterClass, ItemPath path, ItemDefinition itemDef, String matchingRule, List<PrismValue> values) {
-		if (filterClass.isAssignableFrom(EqualsFilter.class)) {
-			return EqualsFilter.createEqual(path, itemDef, matchingRule, values);
-		}
-		throw new IllegalArgumentException("Bad filter class");
-	}
+	static <T> List<PrismPropertyValue<T>> createPropertyList(PrismPropertyDefinition itemDefinition, PrismPropertyValue<T> values) {
+		Validate.notNull(itemDefinition, "Item definition in substring filter must not be null.");
 		
-	public static PropertyValueFilter createPropertyFilter(Class filterClass, ItemPath parentPath, ItemDefinition item, String matchingRule, Object realValue) {
-
-		if (realValue == null){
-			return create(filterClass, parentPath, item, matchingRule, (PrismPropertyValue)null);
+		List<PrismPropertyValue<T>> pValues = new ArrayList<PrismPropertyValue<T>>();
+		PrismUtil.recomputePrismPropertyValue(values, itemDefinition.getPrismContext());
+		pValues.add(values);
+		
+		return pValues;
+	}
+	
+	static <T> List<PrismPropertyValue<T>> createPropertyList(PrismPropertyDefinition itemDefinition, PrismPropertyValue<T>[] values) {
+		Validate.notNull(itemDefinition, "Item definition in substring filter must not be null.");
+		
+		List<PrismPropertyValue<T>> pValues = new ArrayList<PrismPropertyValue<T>>();
+		
+		for (PrismPropertyValue<T> val : values){
+			PrismUtil.recomputePrismPropertyValue(val, itemDefinition.getPrismContext());
+			pValues.add(val);
 		}
-		if (List.class.isAssignableFrom(realValue.getClass())) {
-			List<PrismValue> prismValues = new ArrayList<PrismValue>();
-			for (Object o : (List) realValue) {
-				if (o instanceof PrismPropertyValue) {
-					prismValues.add((PrismPropertyValue) o);
-				} else {
-					PrismPropertyValue val = new PrismPropertyValue(o);
-					prismValues.add(val);
+		
+		return pValues;
+	}
+	
+	
+	 static <T> List<PrismPropertyValue<T>> createPropertyList(PrismPropertyDefinition itemDefinition, T realValue){
+		List<PrismPropertyValue<T>> pVals = new ArrayList<PrismPropertyValue<T>>();
+
+		if (realValue.getClass() != null && Collection.class.isAssignableFrom(realValue.getClass())) {
+			for (Object o : (Iterable)realValue){
+				if (o instanceof PrismPropertyValue){
+					PrismPropertyValue pVal = (PrismPropertyValue) o;
+					PrismUtil.recomputePrismPropertyValue(pVal, itemDefinition.getPrismContext());
+					pVals.add(pVal);
+				}else{
+					pVals.addAll(PrismPropertyValue.createCollection((Collection<T>) realValue));
 				}
 			}
-			return create(filterClass, parentPath, item, matchingRule, prismValues);
+			
+		} else {
+			PrismUtil.recomputeRealValue(realValue, itemDefinition.getPrismContext());
+			pVals.add(new PrismPropertyValue<T>(realValue));
 		}
-		
-		//temporary hack to not allow polystring type to go to the filter..we want polyString
-		PrismPropertyValue value = null;
-		if (realValue instanceof PolyStringType){
-			value = new PrismPropertyValue(((PolyStringType) realValue).toPolyString());
-		} else{
-			value = new PrismPropertyValue(realValue);
-		}
-		
-		return create(filterClass, parentPath, item, matchingRule, value);
-	}
-
-	
-	public static PropertyValueFilter createPropertyFilter(Class filterClass, ItemPath parentPath, PrismContainerDefinition<? extends Containerable> containerDef,
-			QName propertyName, PrismValue... values) throws SchemaException {
-		ItemDefinition itemDef = containerDef.findItemDefinition(propertyName);
-		if (itemDef == null) {
-			throw new SchemaException("No definition for item " + propertyName + " in container definition "
-					+ containerDef);
-		}
-
-		return create(filterClass, parentPath, itemDef, null, Arrays.asList(values));
-	}
-
-	public static PropertyValueFilter createPropertyFilter(Class filterClass, ItemPath parentPath, PrismContainerDefinition<? extends Containerable> containerDef,
-			QName propertyName, Object realValue) throws SchemaException {
-		ItemDefinition itemDef = containerDef.findItemDefinition(propertyName);
-		if (itemDef == null) {
-			throw new SchemaException("No definition for item " + propertyName + " in container definition "
-					+ containerDef);
-		}
-
-		return createPropertyFilter(filterClass, parentPath, itemDef, null, realValue);
-	}
-
-	public static PropertyValueFilter createPropertyFilter(Class filterClass, Class<? extends Objectable> type, PrismContext prismContext, QName propertyName, Object realValue)
-			throws SchemaException {
-		PrismObjectDefinition<?> objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
-		return createPropertyFilter(filterClass, null, objDef, propertyName, realValue);
+		return pVals;
 	}
 	
-	public static PropertyValueFilter createPropertyFilter(Class filterClass, Class<? extends Objectable> type, 
-			PrismContext prismContext, ItemPath propertyPath, Object realValue) throws SchemaException {
-		PrismObjectDefinition<? extends Objectable> objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
-		PrismContainerDefinition<? extends Containerable> containerDef = objDef;
-		ItemPath parentPath = propertyPath.allExceptLast();
-		if (!parentPath.isEmpty()) {
-			containerDef = objDef.findContainerDefinition(parentPath);
-			if (containerDef == null) {
-				throw new SchemaException("No definition for container " + parentPath + " in object definition "
-						+ objDef);
-			}
-		}
-		return createPropertyFilter(filterClass, propertyPath.allExceptLast(), containerDef, ItemPath.getName(propertyPath.last()), realValue);
-	}
-	
-	public List<? extends PrismValue> getValues() {
+	public List<T> getValues() {
 		return values;
 	}
 	
-	public void setValues(List<? extends PrismValue> values) {
+	public void setValues(List<T> values) {
 		this.values = values;
 	}
 	
-	public void setValue(PrismValue value) {
-		List<PrismValue> values = new ArrayList<PrismValue>();
+	public void setValue(T value) {
+		List<T> values = new ArrayList<T>();
 		if (value != null) {
 			values.add(value);
 		}
@@ -181,33 +144,21 @@ public abstract class PropertyValueFilter extends ValueFilter{
 		super.cloneValues(clone);
 		clone.values = getCloneValuesList();
 	}
-	private List<? extends PrismValue> getCloneValuesList() {
+	private List<T> getCloneValuesList() {
 		if (values == null) {
 			return null;
 		}
-		List<PrismValue> clonedValues = new ArrayList<PrismValue>(values.size());
-		for(PrismValue value: values) {
-			clonedValues.add(value.clone());
+		List<T> clonedValues = new ArrayList<T>(values.size());
+		for(T value: values) {
+			clonedValues.add((T) value.clone());
 		}
 		return clonedValues;
-	}
-	
-	private ItemPath getFullPath(){
-		ItemPath path = null;
-		if (getParentPath() != null){
-			return new ItemPath(getParentPath(), getDefinition().getName());
-		} else{
-			return new ItemPath(getDefinition().getName());
-		}
 	}
 	
 	public Item getObjectItem(PrismObject object){
 		
 		ItemPath path = getFullPath();
 		return object.findItem(path);
-//		if (item == null && getValues() == null) {
-//			return true;
-//		}
 		
 	}
 	
@@ -229,10 +180,89 @@ public abstract class PropertyValueFilter extends ValueFilter{
 	
 	@Override
 	public <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry){
-//		if (getObjectItem(object) == null && getValues() == null) {
-//			return true;
-//		}
-		return false;
+		if (getObjectItem(object) == null && getValues() == null) {
+			return true;
+		}
+		
+		Item filterItem = getFilterItem();
+		MatchingRule matching = getMatchingRuleFromRegistry(matchingRuleRegistry, filterItem);
+		
+		Item item = getObjectItem(object);
+		
+		if (item == null && getValues() == null) {
+			return true;
+		}
+		
+		if (item != null && !item.isEmpty() && getValues() == null){
+			return false;
+		}
+		
+		return true;
+	}
+	
+	public String debugDump(int indent, StringBuilder sb){
+		if (getFullPath() != null){
+			sb.append("\n");
+			DebugUtil.indentDebugDump(sb, indent+1);
+			sb.append("PATH: ");
+			sb.append(getFullPath().toString());
+		} 
+		
+		sb.append("\n");
+		DebugUtil.indentDebugDump(sb, indent+1);
+		sb.append("DEF: ");
+		if (getDefinition() != null) {
+			sb.append(getDefinition().toString());
+		} else {
+			sb.append("null");
+		}
+		
+		sb.append("\n");
+		DebugUtil.indentDebugDump(sb, indent+1);
+		sb.append("VALUE:");
+		if (getValues() != null) {
+			sb.append("\n");
+			for (PrismValue val : getValues()) {
+				sb.append(DebugUtil.debugDump(val, indent + 2));
+			}
+		} else {
+			sb.append(" null");
+		}
+		
+		sb.append("\n");
+		DebugUtil.indentDebugDump(sb, indent+1);
+		sb.append("MATCHING: ");
+		if (getMatchingRule() != null) {
+			sb.append(getMatchingRule());
+		} else {
+			sb.append("default");
+		}
+		return sb.toString();
+	}
+	
+	public String toString(StringBuilder sb){
+		if (getFullPath() != null){
+			sb.append(getFullPath().toString());
+			sb.append(", ");
+		}
+		if (getDefinition() != null){
+			sb.append(getDefinition().getName().getLocalPart());
+			sb.append(", ");
+		}
+		if (getValues() != null){
+			for (int i = 0; i< getValues().size() ; i++){
+				PrismValue value = getValues().get(i);
+				if (value == null) {
+					sb.append("null");
+				} else {
+					sb.append(value.toString());
+				}
+				if ( i != getValues().size() -1){
+					sb.append(", ");
+				}
+			}
+		}
+		return sb.toString();
 	}
 	
 }

@@ -16,8 +16,7 @@
 
 package com.evolveum.midpoint.provisioning.util;
 
-import com.evolveum.midpoint.common.QueryUtil;
-import com.evolveum.midpoint.common.mapping.Mapping;
+import com.evolveum.midpoint.common.StaticExpressionUtil;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.*;
@@ -70,6 +69,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -239,11 +239,11 @@ public class ProvisioningUtil {
 		ExecuteProvisioningScriptOperation scriptOperation = new ExecuteProvisioningScriptOperation();
 
 		PrismPropertyDefinition scriptArgumentDefinition = new PrismPropertyDefinition(FAKE_SCRIPT_ARGUMENT_NAME,
-				FAKE_SCRIPT_ARGUMENT_NAME, DOMUtil.XSD_STRING, prismContext);
+				DOMUtil.XSD_STRING, prismContext);
 		
 		for (ProvisioningScriptArgumentType argument : scriptType.getArgument()) {
 			ExecuteScriptArgument arg = new ExecuteScriptArgument(argument.getName(),
-					Mapping.getStaticOutput(argument, scriptArgumentDefinition,
+					StaticExpressionUtil.getStaticOutput(argument, scriptArgumentDefinition,
 							desc, 
 							ExpressionReturnMultiplicityType.SINGLE, prismContext));
 			scriptOperation.getArgument().add(arg);

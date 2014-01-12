@@ -25,27 +25,16 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.menu.top.BottomMenuItem;
-import com.evolveum.midpoint.web.component.util.PageVisibleDisabledBehaviour;
-import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
-import com.evolveum.midpoint.web.page.admin.resources.content.PageAccount;
-import com.evolveum.midpoint.web.page.admin.resources.content.PageContentAccounts;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
-import org.apache.wicket.model.AbstractReadOnlyModel;
-import org.apache.wicket.model.IModel;
 import org.apache.wicket.util.string.StringValue;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 /**
- * Marker page class for {@link com.evolveum.midpoint.web.component.menu.top.TopMenu}
- *
  * @author lazyman
  */
 public class PageAdminResources extends PageAdmin {
@@ -56,54 +45,6 @@ public class PageAdminResources extends PageAdmin {
     private static final String OPERATION_LOAD_RESOURCE = DOT_CLASS + "loadResource";
 
     protected static final Trace LOGGER = TraceManager.getTrace(PageAdminResources.class);
-
-    @Override
-    public List<BottomMenuItem> getBottomMenuItems() {
-        List<BottomMenuItem> items = new ArrayList<BottomMenuItem>();
-
-        items.add(new BottomMenuItem(createStringResource("pageAdminResources.listResources"), PageResources.class));
-        items.add(new BottomMenuItem(createStringResource("pageAdminResources.detailsResource"), PageResource.class,
-                new PageVisibleDisabledBehaviour(this, PageResource.class)));
-        items.add(new BottomMenuItem(createResourceWizardLabel(), PageResourceEdit.class,
-                createWizardVisibleBehaviour()));
-        items.add(new BottomMenuItem(createStringResource("pageAdminResources.importResource"),
-                PageResourceImport.class, new PageVisibleDisabledBehaviour(this, PageResourceImport.class)));
-        items.add(new BottomMenuItem(createStringResource("pageAdminResources.contentAccounts"),
-                PageContentAccounts.class, new PageVisibleDisabledBehaviour(this, PageContentAccounts.class)));
-        items.add(new BottomMenuItem(createStringResource("pageAdminResources.accountDetails"), PageAccount.class,
-                new PageVisibleDisabledBehaviour(this, PageAccount.class)));
-
-        return items;
-    }
-
-    private VisibleEnableBehaviour createWizardVisibleBehaviour() {
-        return new VisibleEnableBehaviour() {
-
-            @Override
-            public boolean isEnabled() {
-                return !isResourceEditEditing() && !(getPage() instanceof PageResourceEdit);
-            }
-        };
-    }
-
-    private IModel<String> createResourceWizardLabel() {
-        return new AbstractReadOnlyModel<String>() {
-
-            @Override
-            public String getObject() {
-                String key = isResourceEditEditing() ? "pageAdminResources.editResource" : "pageAdminResources.newResource";
-                return PageAdminResources.this.getString(key);
-            }
-        };
-    }
-
-    private boolean isResourceEditEditing() {
-        if (!PageResourceEdit.class.isAssignableFrom(this.getClass())) {
-            return false;
-        }
-        StringValue resourceOid = getPageParameters().get(PageAdminResources.PARAM_RESOURCE_ID);
-        return resourceOid != null && StringUtils.isNotEmpty(resourceOid.toString());
-    }
 
     protected boolean isResourceOidAvailable() {
         StringValue resourceOid = getPageParameters().get(PageAdminResources.PARAM_RESOURCE_ID);

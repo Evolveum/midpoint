@@ -16,12 +16,12 @@
 
 package com.evolveum.midpoint.model.security;
 
-import com.evolveum.midpoint.common.expression.ObjectDeltaObject;
-import com.evolveum.midpoint.common.mapping.MappingFactory;
 import com.evolveum.midpoint.common.security.Authorization;
 import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.model.UserComputer;
+import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
+import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.lens.Assignment;
 import com.evolveum.midpoint.model.lens.AssignmentEvaluator;
 import com.evolveum.midpoint.model.security.api.UserDetailsService;
@@ -33,6 +33,7 @@ import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -95,10 +96,9 @@ public class UserDetailsServiceImpl implements UserDetailsService {
 
     private MidPointPrincipal findByUsername(String username) throws SchemaException, ObjectNotFoundException {
         PolyString usernamePoly = new PolyString(username);
-        usernamePoly.recompute(prismContext.getDefaultPolyStringNormalizer());
-
-        ObjectQuery query = ObjectQuery.createObjectQuery(
-                EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_NAME, usernamePoly));
+        ObjectQuery query = ObjectQueryUtil.createNameQuery(usernamePoly, prismContext);
+//        ObjectQuery query = ObjectQuery.createObjectQuery(
+//                EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_NAME, usernamePoly));
         LOGGER.trace("Looking for user, query:\n" + query.dump());
 
         List<PrismObject<UserType>> list = repositoryService.searchObjects(UserType.class, query, null, 
@@ -151,7 +151,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         OperationResult result = new OperationResult(UserDetailsServiceImpl.class.getName() + ".addAuthorizations");
         for(AssignmentType assignmentType: userType.getAssignment()) {
         	try {
-				Assignment assignment = assignmentEvaluator.evaluate(assignmentType, userType, userType.toString(), result);
+				Assignment assignment = assignmentEvaluator.evaluate(assignmentType, userType, userType.toString(), null, result);
 				authorizations.addAll(assignment.getAuthorizations());
 			} catch (SchemaException e) {
 				LOGGER.error("Schema violation while processing assignment of {}: {}; assignment: {}", 

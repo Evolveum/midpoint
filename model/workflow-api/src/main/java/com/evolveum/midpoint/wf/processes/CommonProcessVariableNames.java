@@ -100,4 +100,9 @@ public class CommonProcessVariableNames {
 
     public static final String VARIABLE_MODEL_CONTEXT = "modelContext";
 
+    // A signal that the process instance is being stopped. Used e.g. to suppress propagation of exceptions
+    // occurring in the process instance end listener.
+    // [Boolean]
+    public static final String VARIABLE_MIDPOINT_IS_PROCESS_INSTANCE_STOPPING = "midPointIsProcessInstanceStopping";
+
 }

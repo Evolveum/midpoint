@@ -557,8 +557,8 @@ public class EncodingTest extends BaseSQLRepoTest {
             OperationResult subresult1 = result.createSubresult(result.getOperation() + ".searchObjects.fullName");
             try {
                 ObjectQuery query = new ObjectQuery();
-                ObjectFilter filter = EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_FULL_NAME,
-                        toPolyString(USER_FULL_NAME), PolyStringNormMatchingRule.NAME.getLocalPart());
+                ObjectFilter filter = EqualsFilter.createEqual(UserType.F_FULL_NAME, UserType.class, prismContext,
+                		PolyStringNormMatchingRule.NAME, toPolyString(USER_FULL_NAME));
                 query.setFilter(filter);
                 subresult1.addParam("query", query);
                 List<PrismObject<UserType>> foundObjects = repositoryService.searchObjects(UserType.class, query, null, subresult1);

@@ -81,6 +81,7 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.test.DummyResourceContoller;
+import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -141,7 +142,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		
 		dummyResourceCtl = DummyResourceContoller.create(null);
 		dummyResourceCtl.setResource(resource);
-		dummyResourceCtl.extendDummySchema();
+		dummyResourceCtl.extendSchemaPirate();
 		dummyResource = dummyResourceCtl.getDummyResource();
 				
 		manager = connectorFactoryIcfImpl;
@@ -206,7 +207,8 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 	public void test002ConnectorSchema() throws ObjectNotFoundException, SchemaException {
 		TestUtil.displayTestTile("test002ConnectorSchema");
 		
-		ConnectorInstance cc = manager.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType));
+		ConnectorInstance cc = manager.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType),
+				"test connector");
 		assertNotNull("Failed to instantiate connector", cc);
 		PrismSchema connectorSchema = cc.generateConnectorSchema();
 		ProvisioningTestUtil.assertConnectorSchemaSanity(connectorSchema, "generated");
@@ -258,7 +260,8 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 			GenericFrameworkException, SchemaException, ConfigurationException {
 		TestUtil.displayTestTile("test004CreateConfiguredConnector");
 		
-		ConnectorInstance cc = manager.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType));
+		ConnectorInstance cc = manager.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType),
+				"test connector");
 		assertNotNull("Failed to instantiate connector", cc);
 		OperationResult result = new OperationResult(TestUcfDummy.class.getName() + ".testCreateConfiguredConnector");
 		PrismContainerValue configContainer = resourceType.getConnectorConfiguration().asPrismContainerValue();
@@ -279,7 +282,8 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		
 		OperationResult result = new OperationResult(TestUcfDummy.class+".test030ResourceSchema");
 		
-		cc = manager.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType));
+		cc = manager.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType), 
+				"test connector");
 		assertNotNull("Failed to instantiate connector", cc);
 		
 		PrismContainerValue configContainer = resourceType.getConnectorConfiguration().asPrismContainerValue();
@@ -314,7 +318,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		
 		OperationResult result = new OperationResult(TestUcfDummy.class+".test030ResourceSchema");
 		
-		cc = manager.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType));
+		cc = manager.createConnectorInstance(connectorType, ResourceTypeUtil.getResourceNamespace(resourceType), "test connector");
 		assertNotNull("Failed to instantiate connector", cc);
 		
 		PrismContainerValue configContainer = resourceType.getConnectorConfiguration().asPrismContainerValue();
@@ -332,8 +336,6 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		assertEquals("Unexpected number of definitions", 1, resourceSchema.getDefinitions().size());
 		
 		assertEquals("Unexpected number of object class definitions", 1, resourceSchema.getObjectClassDefinitions().size());
-		
-		assertEquals("Unexpected object class ", new QName(resource.asObjectable().getNamespace(), "accountObjectClass"), resourceSchema.getObjectClassDefinitions().iterator().next().getDefaultName());
 		
 		display("RESOURCE SCHEMA DEFINITION" + resourceSchema.getDefinitions().iterator().next().getTypeName());
 //		dummyResourceCtl.assertDummyResourceSchemaSanityExtended(resourceSchema, resourceType);
@@ -477,7 +479,22 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		
 	}
 	
-	
+	@Test
+	public void test500SelfTest() throws Exception {
+		final String TEST_NAME = "test500SelfTest";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		
+		// GIVEN
+		OperationResult testResult = new OperationResult(TestUcfDummy.class + "." + TEST_NAME);
+		
+		// WHEN
+		connectorFactoryIcfImpl.selfTest(testResult);
+		
+		// THEN
+		testResult.computeStatus();
+		IntegrationTestTools.display(testResult);
+		TestUtil.assertSuccess(testResult);
+	}
 
 
 	private void assertPropertyDefinition(PrismContainer<?> container, String propName, QName xsdType, int minOccurs,

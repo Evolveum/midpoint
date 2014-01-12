@@ -20,7 +20,6 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.RetrieveOption;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -32,9 +31,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.button.AjaxLinkButton;
-import com.evolveum.midpoint.web.component.button.AjaxSubmitLinkButton;
-import com.evolveum.midpoint.web.component.button.ButtonType;
+import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.DateInput;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.LinkPanel;
 import com.evolveum.midpoint.web.component.model.operationStatus.ModelOperationStatusDto;
@@ -57,7 +56,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ThreadStopActionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
@@ -65,11 +63,9 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.behavior.AttributeAppender;
-import org.apache.wicket.datetime.markup.html.form.DateTextField;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvider;
-import org.apache.wicket.extensions.yui.calendar.DateTimeField;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -93,7 +89,6 @@ import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.util.string.StringValue;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -225,14 +220,14 @@ public class PageTaskEdit extends PageAdminTasks {
         Label subtasksLabel = new Label(ID_SUBTASKS_LABEL, new ResourceModel("pageTaskEdit.subtasksLabel"));
         subtasksLabel.add(hiddenWhenEditingOrNoSubtasks);
         mainForm.add(subtasksLabel);
-        SubtasksPanel subtasksPanel = new SubtasksPanel(ID_SUBTASKS_PANEL, new PropertyModel<List<TaskDto>>(model, TaskDto.F_SUBTASKS), getWorkflowService().isEnabled());
+        SubtasksPanel subtasksPanel = new SubtasksPanel(ID_SUBTASKS_PANEL, new PropertyModel<List<TaskDto>>(model, TaskDto.F_SUBTASKS), getWorkflowManager().isEnabled());
         subtasksPanel.add(hiddenWhenEditingOrNoSubtasks);
         mainForm.add(subtasksPanel);
 
         VisibleEnableBehaviour hiddenWhenEditingOrNoWorkflowInformation = new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {
-                return !edit && model.getObject().isWorkflowShadowTask() && getWorkflowService().isEnabled();
+                return !edit && model.getObject().isWorkflowShadowTask() && getWorkflowManager().isEnabled();
             }
         };
 
@@ -406,6 +401,7 @@ public class PageTaskEdit extends PageAdminTasks {
 	}
 
 	private void initSchedule(Form mainForm) {
+        //todo probably can be removed, visibility can be updated in children (already components) [lazyman]
 		final WebMarkupContainer container = new WebMarkupContainer("container");
 		container.setOutputMarkupId(true);
 		mainForm.add(container);
@@ -562,13 +558,7 @@ public class PageTaskEdit extends PageAdminTasks {
 		});
 		cronContainer.add(cronHelp);
 
-		final DateTimeField notStartBefore = new DateTimeField("notStartBeforeField",
-				new PropertyModel<Date>(model, "notStartBefore")) {
-			@Override
-			protected DateTextField newDateTextField(String id, PropertyModel dateFieldModel) {
-				return DateTextField.forDatePattern(id, dateFieldModel, "dd/MMM/yyyy");
-			}
-		};
+        DateInput notStartBefore = new DateInput("notStartBeforeField", new PropertyModel<Date>(model, "notStartBefore"));
 		notStartBefore.setOutputMarkupId(true);
 		notStartBefore.add(new VisibleEnableBehaviour() {
 			@Override
@@ -578,13 +568,7 @@ public class PageTaskEdit extends PageAdminTasks {
 		});
 		mainForm.add(notStartBefore);
 
-		final DateTimeField notStartAfter = new DateTimeField("notStartAfterField", new PropertyModel<Date>(
-				model, "notStartAfter")) {
-			@Override
-			protected DateTextField newDateTextField(String id, PropertyModel dateFieldModel) {
-				return DateTextField.forDatePattern(id, dateFieldModel, "dd/MMM/yyyy");
-			}
-		};
+        DateInput notStartAfter = new DateInput("notStartAfterField", new PropertyModel<Date>(model, "notStartAfter"));
 		notStartAfter.setOutputMarkupId(true);
 		notStartAfter.add(new VisibleEnableBehaviour() {
 			@Override
@@ -657,8 +641,7 @@ public class PageTaskEdit extends PageAdminTasks {
 	}
 
 	private void initButtons(final Form mainForm) {
-		AjaxLinkButton backButton = new AjaxLinkButton("backButton",
-				createStringResource("pageTaskEdit.button.back")) {
+		AjaxButton backButton = new AjaxButton("backButton", createStringResource("pageTaskEdit.button.back")) {
 
 			@Override
 			public void onClick(AjaxRequestTarget target) {
@@ -668,8 +651,8 @@ public class PageTaskEdit extends PageAdminTasks {
 		};
 		mainForm.add(backButton);
 
-		AjaxSubmitLinkButton saveButton = new AjaxSubmitLinkButton("saveButton", ButtonType.POSITIVE,
-				createStringResource("pageTaskEdit.button.save")) {
+		AjaxSubmitButton saveButton = new AjaxSubmitButton("saveButton",
+                createStringResource("pageTaskEdit.button.save")) {
 
 			@Override
 			protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
@@ -690,7 +673,7 @@ public class PageTaskEdit extends PageAdminTasks {
 		});
 		mainForm.add(saveButton);
 
-		AjaxLinkButton editButton = new AjaxLinkButton("editButton",
+        AjaxButton editButton = new AjaxButton("editButton",
 				createStringResource("pageTaskEdit.button.edit")) {
 
 			@Override

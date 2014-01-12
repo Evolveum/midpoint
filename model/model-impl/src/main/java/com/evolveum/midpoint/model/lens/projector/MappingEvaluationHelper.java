@@ -27,8 +27,8 @@ import org.apache.commons.lang.mutable.MutableBoolean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.evolveum.midpoint.common.mapping.Mapping;
-import com.evolveum.midpoint.common.mapping.MappingFactory;
+import com.evolveum.midpoint.model.common.mapping.Mapping;
+import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.lens.LensUtil;
@@ -48,18 +48,19 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Handler;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingStrengthType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TriggerType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
  * @author Radovan Semancik
@@ -81,11 +82,11 @@ public class MappingEvaluationHelper {
      * Used to know whether (when doing reconciliation) this value should be forcibly put onto the resource, even
      * if it was not changed (i.e. if it's only in the zero set).
      */
-	public <V extends PrismValue> PrismValueDeltaSetTriple<V> evaluateMappingSetProjection(Collection<MappingType> mappingTypes, String mappingDesc,
+	public <V extends PrismValue, F extends FocusType> PrismValueDeltaSetTriple<V> evaluateMappingSetProjection(Collection<MappingType> mappingTypes, String mappingDesc,
 			XMLGregorianCalendar now, MappingInitializer<V> initializer, 
-			Item<V> aPrioriValue, ItemDelta<V> aPrioriDelta, PrismObject<? extends ShadowType> aPrioriObject,
+			Item<V> aPrioriValue, ItemDelta<V> aPrioriDelta, PrismObject<? extends ObjectType> aPrioriObject,
 			Boolean evaluateCurrent, MutableBoolean strongMappingWasUsed,
-			LensContext<UserType,ShadowType> context, LensProjectionContext<ShadowType> accCtx, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			LensContext<F> context, LensProjectionContext accCtx, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 
 		PrismValueDeltaSetTriple<V> outputTriple = null;
 		XMLGregorianCalendar nextRecomputeTime = null;
@@ -135,7 +136,7 @@ public class MappingEvaluationHelper {
 	        	}
 	        }
 						
-			LensUtil.evaluateMapping(mapping, context, result);
+			LensUtil.evaluateMapping(mapping, context, task, result);
 			
 			PrismValueDeltaSetTriple<V> mappingOutputTriple = mapping.getOutputTriple();
 			if (mappingOutputTriple != null) {
@@ -161,7 +162,7 @@ public class MappingEvaluationHelper {
 					continue;
 				}
 
-				LensUtil.evaluateMapping(mapping, context, result);
+				LensUtil.evaluateMapping(mapping, context, task, result);
 
 				PrismValueDeltaSetTriple<V> mappingOutputTriple = mapping.getOutputTriple();
 				if (mappingOutputTriple != null) {
@@ -207,7 +208,7 @@ public class MappingEvaluationHelper {
 				triggerType.setTimestamp(nextRecomputeTime);
 				triggerType.setHandlerUri(RecomputeTriggerHandler.HANDLER_URI);
 
-				accCtx.addToSecondaryDelta(triggerDelta);
+				accCtx.swallowToSecondaryDelta(triggerDelta);
 			}
 		}		
 		
