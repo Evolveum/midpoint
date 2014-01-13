@@ -26,6 +26,7 @@ import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -54,7 +55,7 @@ public class GcpExpressionHelper {
     @Autowired
     private ExpressionFactory expressionFactory;
 
-    boolean evaluateActivationCondition(GeneralChangeProcessorScenarioType scenarioType, ModelContext context, OperationResult result) throws SchemaException {
+    boolean evaluateActivationCondition(GeneralChangeProcessorScenarioType scenarioType, ModelContext context, Task taskFromModel, OperationResult result) throws SchemaException {
         ExpressionType conditionExpression = scenarioType.getActivationCondition();
 
         if (conditionExpression == null) {
@@ -66,20 +67,20 @@ public class GcpExpressionHelper {
 
         boolean start;
         try {
-            start = evaluateBooleanExpression(conditionExpression, variables, "workflow activation condition", result);
+            start = evaluateBooleanExpression(conditionExpression, variables, "workflow activation condition", taskFromModel, result);
         } catch (ObjectNotFoundException|ExpressionEvaluationException e) {
             throw new SystemException("Couldn't evaluate generalChangeProcessor activation condition", e);
         }
         return start;
     }
 
-    private boolean evaluateBooleanExpression(ExpressionType expressionType, Map<QName, Object> expressionVariables, String opContext, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+    private boolean evaluateBooleanExpression(ExpressionType expressionType, Map<QName, Object> expressionVariables, String opContext, Task taskFromModel, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
 
         PrismContext prismContext = expressionFactory.getPrismContext();
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         PrismPropertyDefinition resultDef = new PrismPropertyDefinition(resultName, DOMUtil.XSD_BOOLEAN, prismContext);
         Expression<PrismPropertyValue<Boolean>> expression = expressionFactory.makeExpression(expressionType, resultDef, opContext, result);
-        ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, opContext, result);
+        ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, opContext, taskFromModel, result);
         PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> exprResultTriple = expression.evaluate(params);
 
         Collection<PrismPropertyValue<Boolean>> exprResult = exprResultTriple.getZeroSet();

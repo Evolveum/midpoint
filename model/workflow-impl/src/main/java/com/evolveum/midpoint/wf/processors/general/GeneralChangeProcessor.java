@@ -133,7 +133,7 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
         for (GeneralChangeProcessorScenarioType scenarioType : processorConfigurationType.getScenario()) {
             if (Boolean.FALSE.equals(scenarioType.isEnabled())) {
                 LOGGER.trace("scenario {} is disabled, skipping", scenarioType.getName());
-            } else if (!evaluateActivationCondition(scenarioType, context, taskFromModel, result)) {
+            } else if (!gcpExpressionHelper.evaluateActivationCondition(scenarioType, context, taskFromModel, result)) {
                 LOGGER.trace("activationCondition was evaluated to FALSE for scenario named {}", scenarioType.getName());
             } else {
                 LOGGER.trace("Applying scenario {} (process name {})", scenarioType.getName(), scenarioType.getProcessName());
