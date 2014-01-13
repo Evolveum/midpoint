@@ -119,6 +119,26 @@
 					</q:equal>
 				</query>
 				<createOnDemand>true</createOnDemand>
+				<populateObject>
+					<populateProperty>
+						<expression>
+							<path>$organizationalUnit</path>
+						</expression>
+						<target>
+							<path>name</path>
+						</target>
+					</populateProperty>
+					<populateProperty>
+						<expression>
+							<script>
+								<code>'Created on demand from user '+user.getName()</code>
+							</script>
+						</expression>
+						<target>
+							<path>description</path>
+						</target>
+					</populateProperty>
+				</populateObject>
             </assignmentExpression>    	
     	</expression>
     	<target>

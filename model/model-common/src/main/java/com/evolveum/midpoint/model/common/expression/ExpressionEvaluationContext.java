@@ -20,7 +20,9 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 
 /**
  * Simple DTO used to contain all the parameters of expression execution.
@@ -32,7 +34,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
  */
 public class ExpressionEvaluationContext {
 
-	private Collection<Source<?>> sources;
+	private Collection<Source<? extends PrismValue>> sources;
 	private Source<?> defaultSource;
 	private Map<QName, Object> variables;
 	private boolean skipEvaluationPlus = false;
@@ -40,19 +42,21 @@ public class ExpressionEvaluationContext {
 	private StringPolicyResolver stringPolicyResolver;
 	private ExpressionFactory expressionFactory;
 	private String contextDescription;
+	private Task task;
 	private OperationResult result;
 	
-	public ExpressionEvaluationContext(Collection<Source<?>> sources,
-			Map<QName, Object> variables, String contextDescription,
+	public ExpressionEvaluationContext(Collection<Source<? extends PrismValue>> sources,
+			Map<QName, Object> variables, String contextDescription, Task task,
 			OperationResult result) {
 		super();
 		this.sources = sources;
 		this.variables = variables;
 		this.contextDescription = contextDescription;
+		this.task = task;
 		this.result = result;
 	}
 
-	public Collection<Source<?>> getSources() {
+	public Collection<Source<? extends PrismValue>> getSources() {
 		return sources;
 	}
 	
@@ -116,6 +120,14 @@ public class ExpressionEvaluationContext {
 		this.contextDescription = contextDescription;
 	}
 	
+	public Task getTask() {
+		return task;
+	}
+
+	public void setTask(Task task) {
+		this.task = task;
+	}
+
 	public OperationResult getResult() {
 		return result;
 	}
@@ -125,7 +137,7 @@ public class ExpressionEvaluationContext {
 	}
 	
 	public ExpressionEvaluationContext shallowClone() {
-		ExpressionEvaluationContext clone = new ExpressionEvaluationContext(sources, variables, contextDescription, result);
+		ExpressionEvaluationContext clone = new ExpressionEvaluationContext(sources, variables, contextDescription, task, result);
 		clone.skipEvaluationMinus = this.skipEvaluationMinus;
 		clone.skipEvaluationPlus = this.skipEvaluationPlus;
 		clone.stringPolicyResolver = this.stringPolicyResolver;

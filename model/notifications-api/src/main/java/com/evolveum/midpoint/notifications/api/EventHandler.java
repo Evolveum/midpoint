@@ -18,6 +18,7 @@ package com.evolveum.midpoint.notifications.api;
 
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventHandlerType;
 
@@ -27,5 +28,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventHandlerType;
 public interface EventHandler {
 
     // true if we should continue with processing, false otherwise
-    boolean processEvent(Event event, EventHandlerType eventHandlerType, NotificationManager notificationManager, OperationResult result) throws SchemaException;
+    boolean processEvent(Event event, EventHandlerType eventHandlerType, NotificationManager notificationManager, 
+    		Task task, OperationResult result) throws SchemaException;
 }

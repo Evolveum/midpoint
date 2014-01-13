@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.notifications.api.transports;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
@@ -24,7 +25,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
  */
 public interface Transport {
 
-    void send(Message message, String transportName, OperationResult parentResult);
+    void send(Message message, String transportName, Task task, OperationResult parentResult);
 
     String getDefaultRecipientAddress(UserType recipient);
 

@@ -20,11 +20,13 @@ import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.api.events.Event;
 import com.evolveum.midpoint.notifications.handlers.BaseHandler;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventExpressionFilterType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventHandlerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionType;
+
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -44,14 +46,16 @@ public class ExpressionFilter extends BaseHandler {
     }
 
     @Override
-    public boolean processEvent(Event event, EventHandlerType eventHandlerType, NotificationManager notificationManager, OperationResult result) {
+    public boolean processEvent(Event event, EventHandlerType eventHandlerType, NotificationManager notificationManager, 
+    		Task task, OperationResult result) {
 
         EventExpressionFilterType eventExpressionFilterType = (EventExpressionFilterType) eventHandlerType;
         ExpressionType expressionType = eventExpressionFilterType.getExpression();
 
         logStart(LOGGER, event, eventHandlerType, expressionType);
 
-        boolean retval = evaluateBooleanExpressionChecked(expressionType, getDefaultVariables(event, result), "event filter expression", result);
+        boolean retval = evaluateBooleanExpressionChecked(expressionType, getDefaultVariables(event, result), 
+        		"event filter expression", task, result);
 
         logEnd(LOGGER, event, eventHandlerType, retval);
         return retval;

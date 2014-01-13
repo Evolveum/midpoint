@@ -24,6 +24,7 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -62,6 +63,7 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
         }
 
         OperationResult result = new OperationResult("dummy");
+        Task task = null;
 
         Map<QName, Object> expressionVariables = null;
 
@@ -75,7 +77,7 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
         if (level.getAutomaticallyApproved() != null) {
             try {
                 expressionVariables = getDefaultVariables(execution, result);
-                preApproved = evaluateBooleanExpression(level.getAutomaticallyApproved(), expressionVariables, execution, result);
+                preApproved = evaluateBooleanExpression(level.getAutomaticallyApproved(), expressionVariables, execution, task, result);
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Pre-approved = " + preApproved + " for level " + level);
                 }
@@ -92,7 +94,7 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
             if (!level.getApproverExpressions().isEmpty()) {
                 try {
                     expressionVariables = getDefaultVariablesIfNeeded(expressionVariables, execution, result);
-                    approverRefs.addAll(evaluateExpressions(level.getApproverExpressions(), expressionVariables, execution, result));
+                    approverRefs.addAll(evaluateExpressions(level.getApproverExpressions(), expressionVariables, execution, task, result));
                 } catch (Exception e) {     // todo
                     throw new SystemException("Couldn't evaluate approvers expressions", e);
                 }
@@ -118,15 +120,17 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
         execution.setVariableLocal(ProcessVariableNames.LOOP_APPROVERS_IN_LEVEL_STOP, stop);
     }
 
-    private Collection<? extends LightweightObjectRef> evaluateExpressions(List<ExpressionType> approverExpressionList, Map<QName, Object> expressionVariables, DelegateExecution execution, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    private Collection<? extends LightweightObjectRef> evaluateExpressions(List<ExpressionType> approverExpressionList, 
+    		Map<QName, Object> expressionVariables, DelegateExecution execution, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         List<LightweightObjectRef> retval = new ArrayList<LightweightObjectRef>();
         for (ExpressionType approverExpression : approverExpressionList) {
-            retval.addAll(evaluateExpression(approverExpression, expressionVariables, execution, result));
+            retval.addAll(evaluateExpression(approverExpression, expressionVariables, execution, task, result));
         }
         return retval;
     }
 
-    private Collection<LightweightObjectRef> evaluateExpression(ExpressionType approverExpression, Map<QName, Object> expressionVariables, DelegateExecution execution, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+    private Collection<LightweightObjectRef> evaluateExpression(ExpressionType approverExpression, Map<QName, Object> expressionVariables, 
+    		DelegateExecution execution, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
 
         if (expressionFactory == null) {
             expressionFactory = getExpressionFactory();
@@ -136,7 +140,7 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
         QName approverOidName = new QName(SchemaConstants.NS_C, "approverOid");
         PrismPropertyDefinition approverOidDef = new PrismPropertyDefinition(approverOidName, DOMUtil.XSD_STRING, prismContext);
         Expression<PrismPropertyValue<String>> expression = expressionFactory.makeExpression(approverExpression, approverOidDef, "approverExpression", result);
-        ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, "approverExpression", result);
+        ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, "approverExpression", task, result);
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> exprResult = expression.evaluate(params);
 
         List<LightweightObjectRef> retval = new ArrayList<LightweightObjectRef>();
@@ -148,7 +152,8 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 
     }
 
-    private boolean evaluateBooleanExpression(ExpressionType expressionType, Map<QName, Object> expressionVariables, DelegateExecution execution, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+    private boolean evaluateBooleanExpression(ExpressionType expressionType, Map<QName, Object> expressionVariables, 
+    		DelegateExecution execution, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
 
         if (expressionFactory == null) {
             expressionFactory = getExpressionFactory();
@@ -158,7 +163,8 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         PrismPropertyDefinition resultDef = new PrismPropertyDefinition(resultName, DOMUtil.XSD_BOOLEAN, prismContext);
         Expression<PrismPropertyValue<Boolean>> expression = expressionFactory.makeExpression(expressionType, resultDef, "automatic approval expression", result);
-        ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, "automatic approval expression", result);
+        ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, 
+        		"automatic approval expression", task, result);
         PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> exprResultTriple = expression.evaluate(params);
 
         Collection<PrismPropertyValue<Boolean>> exprResult = exprResultTriple.getZeroSet();
