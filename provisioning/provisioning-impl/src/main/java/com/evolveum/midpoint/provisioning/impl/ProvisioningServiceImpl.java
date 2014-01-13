@@ -1404,6 +1404,7 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 
 	@Override
 	public void provisioningSelfTest(OperationResult parentTestResult, Task task) {
+		CryptoUtil.securitySelfTest(parentTestResult);
 		connectorManager.connectorFrameworkSelfTest(parentTestResult, task);
 	}
 
