@@ -34,13 +34,13 @@ import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.jobs.JobCreationInstruction;
-import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.processes.addrole.AddRoleVariableNames;
 import com.evolveum.midpoint.wf.processes.itemApproval.ApprovalRequest;
 import com.evolveum.midpoint.wf.processes.itemApproval.ApprovalRequestImpl;
 import com.evolveum.midpoint.wf.processes.itemApproval.ProcessVariableNames;
+import com.evolveum.midpoint.wf.processors.primary.PcpChildJobCreationInstruction;
 import com.evolveum.midpoint.wf.processors.primary.PrimaryChangeProcessor;
+import com.evolveum.midpoint.wf.processors.primary.wrapper.BaseWrapper;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AbstractRoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
@@ -49,7 +49,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.RoleApprovalFormType;
-import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -77,7 +76,7 @@ import java.util.Map;
  * @author mederly
  */
 @Component("addRoleAssignmentWrapper")
-public class AddRoleAssignmentWrapper extends BaseUserWrapper {
+public class AddRoleAssignmentWrapper extends BaseWrapper {
 
     private static final Trace LOGGER = TraceManager.getTrace(AddRoleAssignmentWrapper.class);
 
@@ -87,7 +86,7 @@ public class AddRoleAssignmentWrapper extends BaseUserWrapper {
     // ------------------------------------------------------------ Things that execute on request arrival
 
     @Override
-    public List<JobCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext, ObjectDelta<? extends ObjectType> change, Task taskFromModel, OperationResult result) throws SchemaException {
+    public List<PcpChildJobCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext, ObjectDelta<? extends ObjectType> change, Task taskFromModel, OperationResult result) throws SchemaException {
 
         List<ApprovalRequest<AssignmentType>> approvalRequestList = getAssignmentToApproveList(change, result);
         if (approvalRequestList == null) {
@@ -120,7 +119,7 @@ public class AddRoleAssignmentWrapper extends BaseUserWrapper {
             Iterator<AssignmentType> assignmentTypeIterator = user.getAssignment().iterator();
             while (assignmentTypeIterator.hasNext()) {
                 AssignmentType a = assignmentTypeIterator.next();
-                ObjectType objectType = resolveObjectRef(a, result);
+                ObjectType objectType = wrapperHelper.resolveObjectRef(a, result);
                 if (objectType != null && objectType instanceof RoleType) {         // later might be changed to AbstractRoleType but we should do this change at all places in this wrapper
                     RoleType role = (RoleType) objectType;
                     boolean approvalRequired = shouldRoleBeApproved(role);
@@ -153,7 +152,7 @@ public class AddRoleAssignmentWrapper extends BaseUserWrapper {
                             LOGGER.trace("Assignment to add = " + ((PrismContainerValue) o).dump());
                         }
                         PrismContainerValue<AssignmentType> at = (PrismContainerValue<AssignmentType>) o;
-                        ObjectType objectType = resolveObjectRef(at.getValue(), result);
+                        ObjectType objectType = wrapperHelper.resolveObjectRef(at.getValue(), result);
                         if (objectType != null && objectType instanceof RoleType) {
                             RoleType role = (RoleType) objectType;
                             boolean approvalRequired = shouldRoleBeApproved(role);
@@ -188,10 +187,10 @@ public class AddRoleAssignmentWrapper extends BaseUserWrapper {
     }
 
     // approvalRequestList should contain de-referenced roles and approvalRequests that have prismContext set
-    private List<JobCreationInstruction> prepareJobCreateInstructions(ModelContext<?> modelContext, Task taskFromModel, OperationResult result, List<ApprovalRequest<AssignmentType>> approvalRequestList) throws SchemaException {
-        List<JobCreationInstruction> instructions = new ArrayList<JobCreationInstruction>();
+    private List<PcpChildJobCreationInstruction> prepareJobCreateInstructions(ModelContext<?> modelContext, Task taskFromModel, OperationResult result, List<ApprovalRequest<AssignmentType>> approvalRequestList) throws SchemaException {
+        List<PcpChildJobCreationInstruction> instructions = new ArrayList<>();
 
-        String userName = MiscDataUtil.getObjectName(modelContext);
+        String userName = MiscDataUtil.getFocusObjectName(modelContext);
 
         for (ApprovalRequest<AssignmentType> approvalRequest : approvalRequestList) {
 
@@ -211,12 +210,12 @@ public class AddRoleAssignmentWrapper extends BaseUserWrapper {
             Validate.notNull(roleType.getName());
             String roleName = roleType.getName().getOrig();
 
-            String objectOid = getObjectOid(modelContext);
-            PrismObject<UserType> requester = getRequester(taskFromModel, result);
+            String objectOid = wrapperHelper.getObjectOid(modelContext);
+            PrismObject<UserType> requester = wrapperHelper.getRequester(taskFromModel, result);
 
-            JobCreationInstruction instruction = JobCreationInstruction.createWfProcessChildJob(getChangeProcessor());
+            PcpChildJobCreationInstruction instruction = PcpChildJobCreationInstruction.createInstruction(getChangeProcessor());
 
-            prepareCommonInstructionAttributes(instruction, modelContext, objectOid, requester);
+            wrapperHelper.prepareCommonInstructionAttributes(changeProcessor, this, instruction, modelContext, objectOid, requester);
             instruction.addProcessVariable(AddRoleVariableNames.USER_NAME, userName);
 
             instruction.setProcessDefinitionKey(GENERAL_APPROVAL_PROCESS);
@@ -230,7 +229,7 @@ public class AddRoleAssignmentWrapper extends BaseUserWrapper {
             instruction.addProcessVariable(ProcessVariableNames.APPROVAL_TASK_NAME, "Approve adding " + roleName + " to " + userName);
 
             ObjectDelta<? extends ObjectType> delta = assignmentToDelta(modelContext, approvalRequest, objectOid);
-            setDeltaProcessAndTaskVariables(instruction, delta);
+            wrapperHelper.setDeltaProcessAndTaskVariables(instruction, delta);
 
             instructions.add(instruction);
         }
@@ -241,7 +240,7 @@ public class AddRoleAssignmentWrapper extends BaseUserWrapper {
         PrismObject<UserType> user = (PrismObject<UserType>) modelContext.getFocusContext().getObjectNew();
         PrismContainerDefinition<AssignmentType> prismContainerDefinition = user.getDefinition().findContainerDefinition(UserType.F_ASSIGNMENT);
 
-        ItemDelta<PrismContainerValue<AssignmentType>> addRoleDelta = new ContainerDelta<AssignmentType>(new ItemPath(), UserType.F_ASSIGNMENT, prismContainerDefinition);
+        ItemDelta<PrismContainerValue<AssignmentType>> addRoleDelta = new ContainerDelta<>(new ItemPath(), UserType.F_ASSIGNMENT, prismContainerDefinition);
         PrismContainerValue<AssignmentType> assignmentValue = approvalRequest.getItemToApprove().asPrismContainerValue().clone();
         addRoleDelta.addValueToAdd(assignmentValue);
 

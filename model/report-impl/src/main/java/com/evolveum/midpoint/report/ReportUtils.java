@@ -7,6 +7,8 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import net.sf.jasperreports.engine.JRException;
+import net.sf.jasperreports.engine.JRExpression;
+import net.sf.jasperreports.engine.JRStyle;
 import net.sf.jasperreports.engine.base.JRBasePen;
 import net.sf.jasperreports.engine.design.JRDesignBand;
 import net.sf.jasperreports.engine.design.JRDesignExpression;
@@ -69,15 +71,292 @@ public class ReportUtils {
 		return textField;
 	}
 	
-	private static JasperDesign setOrientation(JasperDesign jasperDesign, OrientationEnum orientation, int pageWidth, int pageHeight, int columnWidth)
+	private static void setOrientation(JasperDesign jasperDesign, OrientationEnum orientation, int pageWidth, int pageHeight, int columnWidth)
 	{
 		jasperDesign.setOrientation(orientation);
 		jasperDesign.setPageWidth(pageWidth);
 		jasperDesign.setPageHeight(pageHeight);
 		jasperDesign.setColumnWidth(columnWidth);
-		return jasperDesign;
 	}
     
+	private static JRDesignStyle createStyle(String name, boolean isDefault, boolean isBold, JRStyle parentStyle, Color backcolor, Color forecolor, ModeEnum mode, HorizontalAlignEnum hAlign, VerticalAlignEnum vAlign, int fontSize, String pdfFontName, String pdfEncoding, boolean isPdfEmbedded)
+	{
+		JRDesignStyle style = new JRDesignStyle();
+		style.setName(name);
+		style.setDefault(isDefault);
+		style.setBold(isBold);
+		if (parentStyle != null) style.setParentStyle(parentStyle);
+		style.setBackcolor(backcolor);
+		style.setForecolor(forecolor);
+		if (hAlign != null) style.setHorizontalAlignment(hAlign);
+		if (vAlign != null) style.setVerticalAlignment(vAlign);
+		if (fontSize != 0) style.setFontSize(fontSize);
+		if (mode != null) style.setMode(mode);
+		if (!pdfFontName.isEmpty())
+		{
+			style.setPdfFontName(pdfFontName);
+			style.setPdfEncoding(pdfEncoding);
+			style.setPdfEmbedded(isPdfEmbedded);
+		}
+		return style;
+	}
+	
+	private static JRDesignStyle createStyle(String name, boolean isBold, JRStyle parentStyle, Color backcolor, Color forecolor, ModeEnum mode, HorizontalAlignEnum hAlign, int fontSize)
+	{
+		JRDesignStyle style = createStyle(name, false, isBold, parentStyle, backcolor, forecolor, mode, hAlign, null, fontSize, "", "", false);
+		return style;
+	}
+	
+	private static JRDesignStyle createStyle(String name, boolean isBold, JRStyle parentStyle, Color backcolor, Color forecolor, ModeEnum mode, int fontSize)
+	{
+		JRDesignStyle style = createStyle(name, false, isBold, parentStyle, backcolor, forecolor, mode, null, null, fontSize, "", "", false);
+		return style;
+	}
+	private static JRDesignStyle createStyle(String name, boolean isBold, JRStyle parentStyle, int fontSize)
+	{
+		JRDesignStyle style = createStyle(name, false, isBold, parentStyle, null, null, null, null, null, fontSize, "", "", false);
+		return style;
+	}
+	
+	private static JRDesignStyle createStyle(String name, boolean isBold, JRStyle parentStyle)
+	{
+		JRDesignStyle style = createStyle(name, false, isBold, parentStyle, null, null, null, null, null, 0, "", "", false);
+		return style;
+	}
+	
+	private static JRDesignBand createBand(int height, SplitTypeEnum split)
+	{
+		JRDesignBand band = new JRDesignBand();
+		band.setHeight(height);
+		band.setSplitType(split);
+		return band;
+	}
+	
+	private static JRDesignBand createBand(int height)
+	{
+		return createBand(height, SplitTypeEnum.STRETCH);
+	}
+	
+	private static JRDesignFrame createFrame(int x, int y, int height, int width, String styleName, ModeEnum mode)
+	{
+		JRDesignFrame frame = new JRDesignFrame();
+		frame.setX(x);
+		frame.setY(y);
+		frame.setHeight(height);
+		frame.setWidth(width);
+		frame.setStyleNameReference(styleName);
+		if (mode != null) frame.setMode(mode);
+		return frame;
+	}
+	
+	private static JRDesignFrame createFrame(int x, int y, int height, int width, String styleName)
+	{
+		return createFrame(x, y, height, width, styleName, null);
+	}
+	private static JRDesignStaticText createStaticText(int x, int y, int height, int width, String styleName, VerticalAlignEnum vAlign, String text)
+	{
+		JRDesignStaticText staticText = new JRDesignStaticText();
+		staticText.setX(x);
+		staticText.setY(y);
+		staticText.setHeight(height);
+		staticText.setWidth(width);
+		staticText.setStyleNameReference(styleName);
+		staticText.setVerticalAlignment(vAlign);
+		staticText.setText(text);
+		return staticText;
+	}
+	
+	private static JRDesignImage createImage(int x, int y, int height, int width, String styleName, JRExpression expression)
+	{
+		JRDesignImage image = new JRDesignImage(new JRDesignStyle().getDefaultStyleProvider());
+		image.setX(x);
+		image.setY(y);
+		image.setHeight(height);
+		image.setWidth(width);
+		image.setStyleNameReference(styleName);
+		image.setExpression(expression);
+		return image;
+	}
+	
+	private static JRDesignTextField createTextField(int x, int y, int height, int width, HorizontalAlignEnum hAlign, VerticalAlignEnum vAlign, String styleName, Boolean isBold, EvaluationTimeEnum evalution, Boolean blankWhenNull, JRExpression expression)
+	{
+		JRDesignTextField textField = new JRDesignTextField();
+		textField.setX(x);
+		textField.setY(y);
+		textField.setHeight(height);
+		textField.setWidth(width);
+		textField.setHorizontalAlignment(hAlign);
+		textField.setVerticalAlignment(vAlign);
+		textField.setStyleNameReference(styleName);
+		if (isBold != null) textField.setBold(isBold);
+		textField.setEvaluationTime(evalution);
+		if (blankWhenNull != null) textField.setBlankWhenNull(blankWhenNull);
+		textField.setExpression(expression);
+		return textField;
+	}
+	
+	private static JRDesignTextField createTextField(int x, int y, int height, int width, String styleName, Boolean isBold, JRExpression expression)
+	{
+		return createTextField(x, y, height, width, HorizontalAlignEnum.RIGHT, VerticalAlignEnum.MIDDLE, styleName, isBold, EvaluationTimeEnum.NOW, null, expression);
+	}
+	
+	private static JRDesignTextField createTextField(int x, int y, int height, int width, String styleName, JRExpression expression)
+	{
+		return createTextField(x, y, height, width, HorizontalAlignEnum.RIGHT, VerticalAlignEnum.MIDDLE, styleName, null, EvaluationTimeEnum.NOW, null, expression);
+	}
+	
+	private static JRDesignTextField createTextField(int x, int y, int height, int width, String styleName, Boolean isBold, EvaluationTimeEnum evalution, JRExpression expression)
+	{
+		return createTextField(x, y, height, width, HorizontalAlignEnum.RIGHT, VerticalAlignEnum.MIDDLE, styleName, isBold, evalution, null, expression);
+	}
+	
+	private static JRDesignTextField createTextField(int x, int y, int height, int width, String styleName, EvaluationTimeEnum evalution, JRExpression expression)
+	{
+		return createTextField(x, y, height, width, HorizontalAlignEnum.RIGHT, VerticalAlignEnum.MIDDLE, styleName, null, evalution, null, expression);
+	}
+	
+	private static JRDesignLine createLine(int x, int y, int height, int width, PositionTypeEnum position, float penLineWidth)
+	{
+		JRDesignLine line = new JRDesignLine();
+		line.setX(x);
+		line.setY(y);
+		line.setHeight(height);
+		line.setWidth(width);
+		line.setPositionType(position);
+		JRBasePen pen = new JRBasePen(line);
+		pen.setLineWidth(penLineWidth);
+		pen.setLineColor(Color.decode("#999999"));
+		return line;
+	}
+	
+	private static void createStyles(JasperDesign jasperDesign) throws JRException
+	{
+		JRDesignStyle baseStyle = createStyle("Base", true, true, null, Color.decode("#FFFFFF"), Color.decode("#000000"), null, HorizontalAlignEnum.LEFT, VerticalAlignEnum.MIDDLE, 10, "Helvetica", "Cp1252", false);
+		jasperDesign.addStyle(baseStyle);
+			
+		JRDesignStyle titleStyle = createStyle("Title", true, baseStyle, Color.decode("#267994"), Color.decode("#FFFFFF"), ModeEnum.OPAQUE, 26);
+		jasperDesign.addStyle(titleStyle);
+		
+		JRDesignStyle pageHeaderStyle = createStyle("Page header", true, baseStyle, 12);
+		jasperDesign.addStyle(pageHeaderStyle);
+		
+		JRDesignStyle columnHeaderStyle = createStyle ("Column header", true, baseStyle, Color.decode("#333333"), Color.decode("#FFFFFF"), ModeEnum.OPAQUE, HorizontalAlignEnum.CENTER, 12);
+		jasperDesign.addStyle(columnHeaderStyle);
+		
+		JRDesignStyle detailStyle = createStyle("Detail", false, baseStyle);
+		jasperDesign.addStyle(detailStyle);
+		
+		JRDesignStyle pageFooterStyle = createStyle("Page footer", true, baseStyle, 9);
+		jasperDesign.addStyle(pageFooterStyle);
+	}
+	
+	private static JRDesignBand createTitleBand(int height, int reportColumn, int secondColumn, List<ReportParameterConfigurationType> parameters)
+	{
+		JRDesignBand titleBand = createBand(height);
+		JRDesignFrame frame = createFrame(0, 0, 70, reportColumn, "Title");
+		titleBand.addElement(frame);
+	
+		JRDesignStaticText staticText = createStaticText(10, 15, 40, 266, "Title", VerticalAlignEnum.MIDDLE, "DataSource Report");
+		frame.addElement(staticText);
+	
+		JRDesignImage image = createImage(589, 15, 40, 203, "Title", new JRDesignExpression("$P{LOGO_PATH}"));
+		frame.addElement(image);
+
+		staticText = createStaticText(secondColumn, 70, 20, 150, "Page header", VerticalAlignEnum.MIDDLE, "Report generated on:");
+		titleBand.addElement(staticText);
+	
+		JRDesignTextField textField = createTextField(secondColumn + 150, 70, 20, 250, "Page header", false, new JRDesignExpression("new java.util.Date()"));
+		titleBand.addElement(textField);
+	
+		staticText = createStaticText(secondColumn, 90, 20, 150, "Page header", VerticalAlignEnum.MIDDLE, "Number of records:");
+		titleBand.addElement(staticText);
+	
+		textField = createTextField(secondColumn + 150, 90, 20, 250, "Page header", false, EvaluationTimeEnum.REPORT, new JRDesignExpression("$V{REPORT_COUNT}"));
+		titleBand.addElement(textField);
+	
+		parameters.remove(0);
+		parameters.remove(0);
+		int y = 70;
+		for(ReportParameterConfigurationType parameterRepo : parameters)
+		{
+			staticText = createStaticText(2, y, 20, 150, "Page header", VerticalAlignEnum.MIDDLE, parameterRepo.getDescriptionParameter() + ":");
+			titleBand.addElement(staticText);
+		
+			textField = createTextField(160, y, 20, 240, "Page header", false, new JRDesignExpression("$P{"+ parameterRepo.getNameParameter() + "}"));
+			titleBand.addElement(textField);
+
+			y = y + 20;
+		}
+		return titleBand;
+	}
+	
+	private static JRDesignBand createColumnHeaderBand(int height, int reportColumn, List<ReportFieldConfigurationType> reportFields)
+	{
+		JRDesignBand columnHeaderBand = createBand(height);
+		JRDesignFrame frame = createFrame(0, 5, 19, reportColumn, "Column header");
+	
+		int x = 0;
+		int width = 0;
+		for(ReportFieldConfigurationType fieldRepo : reportFields)
+		{
+			width =  Math.round((float) ((frame.getWidth()/100) * fieldRepo.getWidthField()));	
+			JRDesignStaticText staticText = createStaticText(x, 0, 18, width, "Column header", VerticalAlignEnum.MIDDLE, fieldRepo.getNameHeaderField());
+			frame.addElement(staticText);
+			x = x + width;
+		}
+	
+		columnHeaderBand.addElement(frame);
+		return columnHeaderBand;
+	}
+	private static JRDesignBand createDetailBand(int height, int reportColumn, List<ReportFieldConfigurationType> reportFields)
+	{ 
+		JRDesignBand detailBand = createBand(height);
+		JRDesignFrame frame = createFrame(0, 1, 19, reportColumn, "Detail");
+	
+		int x = 0;
+		int width = 0;
+		int frameWidth = frame.getWidth();
+		for(ReportFieldConfigurationType fieldRepo : reportFields)
+		{
+			width = Math.round((float) ((frameWidth/100) * fieldRepo.getWidthField())); 
+			JRDesignTextField textField = createField(fieldRepo, x, width, frameWidth);
+			frame.addElement(textField);
+			x = x + width;
+		}
+	
+		JRDesignLine line = createLine(0, 3, 1, reportColumn, PositionTypeEnum.FIX_RELATIVE_TO_BOTTOM, (float) 0.5);
+		frame.addElement(line);
+	
+		detailBand.addElement(frame);
+		return detailBand;
+	}
+	private static JRDesignBand createColumnFooterBand(int height, int reportColumn)
+	{
+		JRDesignBand columnFooterBand = createBand(height);
+		
+		JRDesignLine line = createLine(0, 3, 1, reportColumn, PositionTypeEnum.FIX_RELATIVE_TO_BOTTOM, (float) 0.5);
+		columnFooterBand.addElement(line);
+		return columnFooterBand;
+	}
+
+	
+	private static JRDesignBand createPageFooterBand(int height, int reportColumn)
+	{
+		JRDesignBand pageFooterBand = createBand(height);
+		JRDesignFrame frame = createFrame(0, 1, 24, reportColumn, "Page footer", ModeEnum.TRANSPARENT);
+		JRDesignTextField textField = createTextField(2, 1, 20, 197, "Page footer", new JRDesignExpression("new java.util.Date()"));
+		frame.addElement(textField);
+
+		textField = createTextField(680, 1, 20, 80, "Page footer", new JRDesignExpression("\"Page \" + String.valueOf($V{PAGE_NUMBER}) + \" of\""));
+		frame.addElement(textField);
+	
+		textField = createTextField(760, 1, 20, 40,"Page footer", EvaluationTimeEnum.REPORT, new JRDesignExpression("$V{PAGE_NUMBER}")); 
+		frame.addElement(textField);
+	
+		pageFooterBand.addElement(frame);
+		return pageFooterBand;
+	}
+	
     public static JasperDesign createJasperDesign(ReportType reportType) throws JRException
 	{
 		//JasperDesign
@@ -88,34 +367,18 @@ public class ReportUtils {
 		switch (reportType.getReportOrientation())
 		{
 			case LANDSCAPE :
-			default:
-			{/*
-				jasperDesign.setOrientation(OrientationEnum.LANDSCAPE);
-				jasperDesign.setPageWidth(842);
-				jasperDesign.setPageHeight(595);
-				jasperDesign.setColumnWidth(802);
-			*/
-				jasperDesign = setOrientation(jasperDesign, OrientationEnum.LANDSCAPE, 842, 595, 802);
-			}
-			break;
-			case PORTRAIT :
-			{/*
-				jasperDesign.setOrientation(OrientationEnum.PORTRAIT);
-				jasperDesign.setPageWidth(595);
-				jasperDesign.setPageHeight(842);
-				jasperDesign.setColumnWidth(555);
-			*/
-				jasperDesign = setOrientation(jasperDesign, OrientationEnum.PORTRAIT, 595, 842, 555);
-			}
-			break;
+			default: setOrientation(jasperDesign, OrientationEnum.LANDSCAPE, 842, 595, 802);
+				break;
+			case PORTRAIT :	setOrientation(jasperDesign, OrientationEnum.PORTRAIT, 595, 842, 555);
+				break;
 		}
+		
 		jasperDesign.setColumnSpacing(0);
 		jasperDesign.setWhenNoDataType(WhenNoDataTypeEnum.ALL_SECTIONS_NO_DETAIL);
 		jasperDesign.setLeftMargin(20);
 		jasperDesign.setRightMargin(20);
 		jasperDesign.setTopMargin(20);
 		jasperDesign.setBottomMargin(20);
-		
 		
 		//Parameters
 		//two parameters are there every time - template styles and logo image and will be excluded
@@ -136,58 +399,7 @@ public class ReportUtils {
 			JRDesignReportTemplate templateStyle = new JRDesignReportTemplate(new JRDesignExpression("$P{BaseTemplateStyles}"));
 			jasperDesign.addTemplate(templateStyle);
 		}
-		else
-		{
-			JRDesignStyle baseStyle = new JRDesignStyle();
-			baseStyle.setName("Base");
-			baseStyle.setDefault(true);
-			baseStyle.setHorizontalAlignment(HorizontalAlignEnum.LEFT);
-			baseStyle.setVerticalAlignment(VerticalAlignEnum.MIDDLE);
-			baseStyle.setFontSize(10);
-			baseStyle.setPdfFontName("Helvetica");
-			baseStyle.setPdfEncoding("Cp1252");
-			baseStyle.setPdfEmbedded(false);
-			jasperDesign.addStyle(baseStyle);
-			
-			JRDesignStyle titleStyle = new JRDesignStyle();
-			titleStyle.setName("Title");
-			titleStyle.setParentStyle(baseStyle);
-			titleStyle.setMode(ModeEnum.OPAQUE);
-			titleStyle.setBackcolor(Color.decode("#267994"));
-			titleStyle.setForecolor(Color.decode("#FFFFFF"));
-			titleStyle.setFontSize(26);
-			jasperDesign.addStyle(titleStyle);
-			
-			JRDesignStyle pageHeaderStyle = new JRDesignStyle();
-			pageHeaderStyle.setName("Page header");
-			pageHeaderStyle.setParentStyle(baseStyle);
-			pageHeaderStyle.setForecolor(Color.decode("#000000"));
-			pageHeaderStyle.setFontSize(12);
-			jasperDesign.addStyle(pageHeaderStyle);
-			
-			JRDesignStyle columnHeaderStyle = new JRDesignStyle();
-			columnHeaderStyle.setName("Column header");
-			columnHeaderStyle.setParentStyle(baseStyle);
-			columnHeaderStyle.setHorizontalAlignment(HorizontalAlignEnum.CENTER);
-			columnHeaderStyle.setMode(ModeEnum.OPAQUE);
-			columnHeaderStyle.setBackcolor(Color.decode("#333333"));
-			columnHeaderStyle.setForecolor(Color.decode("#FFFFFF"));
-			columnHeaderStyle.setFontSize(12);
-			jasperDesign.addStyle(columnHeaderStyle);
-			
-			JRDesignStyle detailStyle = new JRDesignStyle();
-			detailStyle.setName("Detail");
-			detailStyle.setParentStyle(baseStyle);
-			detailStyle.setBold(false);
-			jasperDesign.addStyle(detailStyle);
-			
-			JRDesignStyle pageFooterStyle = new JRDesignStyle();
-			pageFooterStyle.setName("Page footer");
-			pageFooterStyle.setParentStyle(baseStyle);
-			pageFooterStyle.setForecolor(Color.decode("#000000"));
-			pageFooterStyle.setFontSize(9);
-			jasperDesign.addStyle(pageFooterStyle);
-		}
+		else createStyles(jasperDesign);
 		
 		//Fields
 		for(ReportFieldConfigurationType fieldRepo : reportType.getReportField())
@@ -199,270 +411,33 @@ public class ReportUtils {
 		}
 
 		//Background
-		JRDesignBand bandBackground = new JRDesignBand();
-		bandBackground.setHeight(30);
-		bandBackground.setSplitType(SplitTypeEnum.STRETCH);
+		JRDesignBand bandBackground = createBand(30);
 		jasperDesign.setBackground(bandBackground);
 		
 		//Title
 		//band size depends on the number of parameters
 		//two pre-defined parameters were excluded
+		int reportColumn = jasperDesign.getColumnWidth() - 2;
 		int secondColumn = Math.round(jasperDesign.getColumnWidth()/2 - 1);
-		JRDesignBand titleBand = new JRDesignBand();
 		int height = 70 + Math.max(40, parameters.size()*20);
-		titleBand.setHeight(height);
-		titleBand.setSplitType(SplitTypeEnum.STRETCH);
-		
-		JRDesignFrame frame = new JRDesignFrame();
-		frame.setX(0);
-		frame.setY(0);
-		frame.setWidth(jasperDesign.getColumnWidth() - 2);
-		frame.setHeight(70);
-		frame.setStyleNameReference("Title");
-		titleBand.addElement(frame);
-		
-		JRDesignStaticText staticText = new JRDesignStaticText();
-		staticText.setX(10);
-		staticText.setY(15);
-		staticText.setWidth(266);
-		staticText.setHeight(40);
-		staticText.setStyleNameReference("Title");
-		staticText.setVerticalAlignment(VerticalAlignEnum.MIDDLE);
-		staticText.setText("DataSource Report");
-		frame.addElement(staticText);
-		
-		JRDesignImage image = new JRDesignImage(new JRDesignStyle().getDefaultStyleProvider());
-		image.setX(589);
-		image.setY(15);
-		image.setWidth(203);
-		image.setHeight(40);
-		image.setStyleNameReference("Title");
-		image.setExpression(new JRDesignExpression("$P{LOGO_PATH}"));
-		frame.addElement(image);
-		
-		 
-		staticText = new JRDesignStaticText();
-		staticText.setX(secondColumn);
-		staticText.setY(70);
-		staticText.setWidth(150);
-		staticText.setHeight(20);
-		staticText.setStyleNameReference("Page header");
-		staticText.setVerticalAlignment(VerticalAlignEnum.MIDDLE);
-		staticText.setText("Report generated on:");
-		titleBand.addElement(staticText);
-		
-		JRDesignTextField textField = new JRDesignTextField();
-		textField.setX(secondColumn + 150);
-		textField.setY(70);
-		textField.setWidth(250);
-		textField.setHeight(20);
-		textField.setHorizontalAlignment(HorizontalAlignEnum.RIGHT);
-		textField.setVerticalAlignment(VerticalAlignEnum.MIDDLE);
-		textField.setStyleNameReference("Page header");
-		textField.setBold(false);
-		textField.setExpression(new JRDesignExpression("new java.util.Date()"));
-		titleBand.addElement(textField);
-		
-		staticText = new JRDesignStaticText();
-		staticText.setX(secondColumn);
-		staticText.setY(90);
-		staticText.setWidth(150);
-		staticText.setHeight(20);
-		staticText.setStyleNameReference("Page header");
-		staticText.setVerticalAlignment(VerticalAlignEnum.MIDDLE);
-		staticText.setText("Number of records:");
-		titleBand.addElement(staticText);
-		
-		textField = new JRDesignTextField();
-		textField.setX(secondColumn + 150);
-		textField.setY(90);
-		textField.setWidth(250);
-		textField.setHeight(20);
-		textField.setHorizontalAlignment(HorizontalAlignEnum.RIGHT);
-		textField.setVerticalAlignment(VerticalAlignEnum.MIDDLE);
-		textField.setStyleNameReference("Page header");
-		textField.setBold(false);
-		textField.setEvaluationTime(EvaluationTimeEnum.REPORT);
-		textField.setBlankWhenNull(true);
-		textField.setExpression(new JRDesignExpression("$V{REPORT_COUNT}"));
-		titleBand.addElement(textField);
-		
-		parameters.remove(0);
-		parameters.remove(0);
-		int y = 70;
-		for(ReportParameterConfigurationType parameterRepo : parameters)
-		{
-			staticText = new JRDesignStaticText();
-			staticText.setX(2);
-			staticText.setY(y);
-			staticText.setWidth(150);
-			staticText.setHeight(20);
-			staticText.setStyleNameReference("Page header");
-			staticText.setVerticalAlignment(VerticalAlignEnum.MIDDLE);
-			staticText.setText(parameterRepo.getDescriptionParameter() + ":");
-			titleBand.addElement(staticText);
-			
-			textField = new JRDesignTextField();
-			textField.setX(160);
-			textField.setY(y);
-			textField.setWidth(240);
-			textField.setHeight(20);
-			textField.setHorizontalAlignment(HorizontalAlignEnum.RIGHT);
-			textField.setVerticalAlignment(VerticalAlignEnum.MIDDLE);
-			textField.setStyleNameReference("Page header");
-			textField.setBold(false);
-			textField.setExpression(new JRDesignExpression("$P{"+ parameterRepo.getNameParameter() + "}"));
-			titleBand.addElement(textField);
-			
-			y = y + 20;
-		}
-		
+				
+		JRDesignBand titleBand = createTitleBand(height, reportColumn, secondColumn, parameters);
 		jasperDesign.setTitle(titleBand);
 	
-		//Page header
-		JRDesignBand pageHeaderBand = new JRDesignBand();
-		pageHeaderBand.setSplitType(SplitTypeEnum.STRETCH);
-		jasperDesign.setPageHeader(pageHeaderBand);
-		
 		//Column header
-		JRDesignBand columnHeaderBand = new JRDesignBand();
-		columnHeaderBand.setSplitType(SplitTypeEnum.STRETCH);
-		columnHeaderBand.setHeight(24);
-
-		frame = new JRDesignFrame();
-		frame.setX(0);
-		frame.setY(5);
-		//frame.setWidth(799);
-		frame.setWidth(jasperDesign.getColumnWidth() - 2);
-		frame.setHeight(19);
-		frame.setStyleNameReference("Column header");
-		//frame.setRemoveLineWhenBlank(true);
-		
-		int x = 0;
-		int width = 0;
-		for(ReportFieldConfigurationType fieldRepo : reportType.getReportField())
-		{
-			staticText = new JRDesignStaticText();
-			staticText.setX(x);
-			staticText.setY(0);
-			width =  Math.round((float) ((frame.getWidth()/100) * fieldRepo.getWidthField()));
-			staticText.setWidth(width);
-			staticText.setHeight(18);
-			staticText.setStyleNameReference("Column header");
-			staticText.setVerticalAlignment(VerticalAlignEnum.MIDDLE);
-			staticText.setText(fieldRepo.getNameHeaderField());
-			frame.addElement(staticText);
-			x = x + width;
-		}
-		
-		columnHeaderBand.addElement(frame);
+		JRDesignBand columnHeaderBand = createColumnHeaderBand(24, reportColumn, reportType.getReportField());
 		jasperDesign.setColumnHeader(columnHeaderBand);
 		
 		//Detail
-		JRDesignBand detailBand = new JRDesignBand();
-		detailBand.setHeight(20);
-		detailBand.setSplitType(SplitTypeEnum.PREVENT);
-		
-		frame = new JRDesignFrame();
-		frame.setX(0);
-		frame.setY(1);
-		//frame.setWidth(799);
-		frame.setWidth(jasperDesign.getColumnWidth() - 2);
-		frame.setHeight(19);
-		frame.setStyleNameReference("Detail");
-		
-		x = 0;
-		width = 0;
-		int frameWidth = frame.getWidth();
-		for(ReportFieldConfigurationType fieldRepo : reportType.getReportField())
-		{
-			width = Math.round((float) ((frameWidth/100) * fieldRepo.getWidthField())); 
-			textField = createField(fieldRepo, x, width, frameWidth);
-			frame.addElement(textField);
-			x = x + width;
-		}
-		
-		JRDesignLine line = new JRDesignLine();
-		line.setX(0);
-		line.setY(3);
-		//line.setWidth(800);
-		line.setWidth(jasperDesign.getColumnWidth()-2);
-		line.setHeight(1);
-		line.setPositionType(PositionTypeEnum.FIX_RELATIVE_TO_BOTTOM);
-		JRBasePen pen = new JRBasePen(line);
-		pen.setLineWidth((float) 0.5);
-		pen.setLineColor(Color.decode("#999999"));
-		frame.addElement(line);
-		
-		detailBand.addElement(frame);
+		JRDesignBand detailBand = createDetailBand(20, reportColumn, reportType.getReportField());
 		((JRDesignSection)jasperDesign.getDetailSection()).addBand(detailBand);		
 		
 		//Column footer
-		JRDesignBand columnFooterBand = new JRDesignBand();
-		columnFooterBand.setHeight(7);
-		columnFooterBand.setSplitType(SplitTypeEnum.STRETCH);		
-		
-		line = new JRDesignLine();
-		line.setX(0);
-		line.setY(3);
-		//line.setWidth(800);
-		line.setWidth(jasperDesign.getColumnWidth()-2);
-		line.setHeight(1);
-		line.setPositionType(PositionTypeEnum.FIX_RELATIVE_TO_BOTTOM);
-		pen = new JRBasePen(line);
-		pen.setLineWidth((float) 0.5);
-		pen.setLineColor(Color.decode("#999999"));
-		columnFooterBand.addElement(line);
+		JRDesignBand columnFooterBand = createColumnFooterBand(7, reportColumn);
 		jasperDesign.setColumnFooter(columnFooterBand);
 
 		//Page footer
-		JRDesignBand pageFooterBand = new JRDesignBand();
-		pageFooterBand.setHeight(32);
-		pageFooterBand.setSplitType(SplitTypeEnum.STRETCH);
-		frame = new JRDesignFrame();
-		frame.setX(0);
-		frame.setY(1);
-		//frame.setWidth(800);
-		frame.setWidth(jasperDesign.getColumnWidth() - 2);
-		frame.setHeight(24);
-		frame.setStyleNameReference("Page footer");
-		frame.setMode(ModeEnum.TRANSPARENT);
-		
-		textField = new JRDesignTextField();
-		textField.setX(2);
-		textField.setY(1);
-		textField.setWidth(197);
-		textField.setHeight(20);
-		//textField.setPattern("EEEEE dd MMMMM yyyy");
-		textField.setVerticalAlignment(VerticalAlignEnum.MIDDLE);
-		textField.setStyleNameReference("Page footer");
-		textField.setExpression(new JRDesignExpression("new java.util.Date()"));
-		frame.addElement(textField);
-		
-		textField = new JRDesignTextField();
-		textField.setX(680);
-		textField.setY(1);
-		textField.setWidth(80);
-		textField.setHeight(20);
-		textField.setHorizontalAlignment(HorizontalAlignEnum.RIGHT);
-		textField.setVerticalAlignment(VerticalAlignEnum.MIDDLE);
-		textField.setStyleNameReference("Page footer");
-		textField.setExpression(new JRDesignExpression("\"Page \" + String.valueOf($V{PAGE_NUMBER}) + \" of\""));
-		frame.addElement(textField);
-		
-		textField = new JRDesignTextField();
-		textField.setX(760);
-		textField.setY(1);
-		textField.setWidth(40);
-		textField.setHeight(20);
-		textField.setEvaluationTime(EvaluationTimeEnum.REPORT);
-		textField.setVerticalAlignment(VerticalAlignEnum.MIDDLE);
-		textField.setStyleNameReference("Page footer");	
-		textField.setExpression(new JRDesignExpression("$V{PAGE_NUMBER}"));
-		frame.addElement(textField);
-		
-		pageFooterBand.addElement(frame);
-		
+		JRDesignBand pageFooterBand = createPageFooterBand(32, reportColumn);
 		jasperDesign.setPageFooter(pageFooterBand);
 
 		return jasperDesign;

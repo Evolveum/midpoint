@@ -31,11 +31,12 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.jobs.JobCreationInstruction;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.processes.itemApproval.ApprovalRequest;
 import com.evolveum.midpoint.wf.processes.itemApproval.ApprovalRequestImpl;
 import com.evolveum.midpoint.wf.processes.itemApproval.ProcessVariableNames;
+import com.evolveum.midpoint.wf.processors.primary.PcpChildJobCreationInstruction;
+import com.evolveum.midpoint.wf.processors.primary.wrapper.BaseWrapper;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
@@ -66,7 +67,7 @@ import java.util.Map;
  * @author mederly
  */
 @Component
-public class ChangePasswordWrapper extends BaseUserWrapper {
+public class ChangePasswordWrapper extends BaseWrapper {
 
     private static final Trace LOGGER = TraceManager.getTrace(ChangePasswordWrapper.class);
 
@@ -74,10 +75,10 @@ public class ChangePasswordWrapper extends BaseUserWrapper {
     private PrismContext prismContext;
 
     @Override
-    public List<JobCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext, ObjectDelta<? extends ObjectType> change, Task taskFromModel, OperationResult result) throws SchemaException {
+    public List<PcpChildJobCreationInstruction> prepareJobCreationInstructions(ModelContext<?> modelContext, ObjectDelta<? extends ObjectType> change, Task taskFromModel, OperationResult result) throws SchemaException {
 
         List<ApprovalRequest<String>> approvalRequestList = new ArrayList<ApprovalRequest<String>>();
-        List<JobCreationInstruction> instructions = new ArrayList<JobCreationInstruction>();
+        List<PcpChildJobCreationInstruction> instructions = new ArrayList<>();
 
         if (change.getChangeType() != ChangeType.MODIFY) {
             return null;
@@ -126,15 +127,15 @@ public class ChangePasswordWrapper extends BaseUserWrapper {
         return new ApprovalRequestImpl("Password change", null, approvers, null, null, prismContext);
     }
 
-    private JobCreationInstruction createStartProcessInstruction(ModelContext<?> modelContext, ItemDelta delta, ApprovalRequest approvalRequest, Task taskFromModel, OperationResult result) throws SchemaException {
+    private PcpChildJobCreationInstruction createStartProcessInstruction(ModelContext<?> modelContext, ItemDelta delta, ApprovalRequest approvalRequest, Task taskFromModel, OperationResult result) throws SchemaException {
 
-        String userName = MiscDataUtil.getObjectName(modelContext);
-        String objectOid = getObjectOid(modelContext);
-        PrismObject<UserType> requester = getRequester(taskFromModel, result);
+        String userName = MiscDataUtil.getFocusObjectName(modelContext);
+        String objectOid = wrapperHelper.getObjectOid(modelContext);
+        PrismObject<UserType> requester = wrapperHelper.getRequester(taskFromModel, result);
 
-        JobCreationInstruction instruction = JobCreationInstruction.createWfProcessChildJob(getChangeProcessor());
+        PcpChildJobCreationInstruction instruction = PcpChildJobCreationInstruction.createInstruction(getChangeProcessor());
 
-        prepareCommonInstructionAttributes(instruction, modelContext, objectOid, requester);
+        wrapperHelper.prepareCommonInstructionAttributes(changeProcessor, this, instruction, modelContext, objectOid, requester);
 
         instruction.setProcessDefinitionKey(GENERAL_APPROVAL_PROCESS);
         instruction.setSimple(false);
@@ -149,7 +150,7 @@ public class ChangePasswordWrapper extends BaseUserWrapper {
         instruction.setExecuteApprovedChangeImmediately(ModelExecuteOptions.isExecuteImmediatelyAfterApproval(((LensContext) modelContext).getOptions()));
 
         ObjectDelta objectDelta = itemDeltaToObjectDelta(objectOid, delta);
-        setDeltaProcessAndTaskVariables(instruction, objectDelta);
+        wrapperHelper.setDeltaProcessAndTaskVariables(instruction, objectDelta);
 
         return instruction;
     }

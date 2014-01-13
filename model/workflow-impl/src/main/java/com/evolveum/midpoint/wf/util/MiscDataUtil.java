@@ -260,7 +260,10 @@ public class MiscDataUtil {
         }
     }
 
-    public static String getObjectName(ModelContext<? extends ObjectType> modelContext) {
+    /**
+     * Retrieves focus object name from the model context.
+     */
+    public static String getFocusObjectName(ModelContext<? extends ObjectType> modelContext) {
         ModelElementContext<? extends ObjectType> fc = modelContext.getFocusContext();
         PrismObject<? extends ObjectType> prism = fc.getObjectNew() != null ? fc.getObjectNew() : fc.getObjectOld();
         if (prism == null) {

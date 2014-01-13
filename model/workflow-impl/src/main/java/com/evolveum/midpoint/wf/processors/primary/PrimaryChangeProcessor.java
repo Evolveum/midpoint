@@ -32,17 +32,18 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.jobs.JobCreationInstruction;
 import com.evolveum.midpoint.wf.jobs.JobController;
 import com.evolveum.midpoint.wf.jobs.Job;
+import com.evolveum.midpoint.wf.jobs.WfTaskUtil;
 import com.evolveum.midpoint.wf.processors.BaseChangeProcessor;
+import com.evolveum.midpoint.wf.processors.BaseModelInvocationProcessingHelper;
+import com.evolveum.midpoint.wf.processors.primary.wrapper.PrimaryApprovalProcessWrapper;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceVariableType;
-import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
-import org.apache.commons.configuration.Configuration;
 import org.apache.commons.lang.Validate;
-import org.springframework.beans.BeansException;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
 import java.util.ArrayList;
@@ -57,11 +58,20 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
 
     private static final Trace LOGGER = TraceManager.getTrace(PrimaryChangeProcessor.class);
 
+    @Autowired
+    private PrimaryChangeProcessorConfigurationHelper primaryChangeProcessorConfigurationHelper;
+
+    @Autowired
+    private BaseModelInvocationProcessingHelper baseModelInvocationProcessingHelper;
+
+    @Autowired
+    private WfTaskUtil wfTaskUtil;
+
+    @Autowired
+    private JobController jobController;
+
     public static final String UNKNOWN_OID = "?";
 
-    // configuration
-    private static final String KEY_WRAPPER = "wrapper";
-    private static final List<String> LOCALLY_KNOWN_KEYS = Arrays.asList(KEY_WRAPPER);
     List<PrimaryApprovalProcessWrapper> processWrappers;
 
     public enum ExecutionMode {
@@ -72,38 +82,11 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
     // =================================================================================== Configuration
     @PostConstruct
     public void init() {
-        initializeBaseProcessor(LOCALLY_KNOWN_KEYS);
-        processWrappers = getPrimaryChangeProcessorWrappers();
-//        for (PrimaryApprovalProcessWrapper processWrapper : processWrappers) {
-//            processWrapper.setChangeProcessor(this);
-//        }
+        primaryChangeProcessorConfigurationHelper.configure(this);
     }
 
-    private List<PrimaryApprovalProcessWrapper> getPrimaryChangeProcessorWrappers() {
-
-        List<PrimaryApprovalProcessWrapper> retval = new ArrayList<PrimaryApprovalProcessWrapper>();
-
-        Configuration c = getProcessorConfiguration();
-        if (c == null) {
-            return retval;
-        }
-
-        String[] wrappers = c.getStringArray(KEY_WRAPPER);
-        if (wrappers == null || wrappers.length == 0) {
-            LOGGER.warn("No wrappers defined for primary change processor " + getBeanName());
-        } else {
-            for (String wrapperName : wrappers) {
-                LOGGER.trace("Searching for wrapper " + wrapperName);
-                try {
-                    PrimaryApprovalProcessWrapper wrapper = (PrimaryApprovalProcessWrapper) getBeanFactory().getBean(wrapperName);
-                    retval.add(wrapper);
-                } catch (BeansException e) {
-                    throw new SystemException("Process wrapper " + wrapperName + " could not be found.", e);
-                }
-            }
-            LOGGER.debug("Resolved " + retval.size() + " process wrappers for primary change processor " + getBeanName());
-        }
-        return retval;
+    public void setProcessWrappers(List<PrimaryApprovalProcessWrapper> processWrappers) {
+        this.processWrappers = processWrappers;
     }
     //endregion
 
@@ -125,7 +108,7 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
         // examine the request using process wrappers
 
         ObjectDelta<? extends ObjectType> changeBeingDecomposed = change.clone();
-        List<JobCreationInstruction> jobCreationInstructions = gatherStartInstructions(context, changeBeingDecomposed, taskFromModel, result);
+        List<PcpChildJobCreationInstruction> jobCreationInstructions = gatherStartInstructions(context, changeBeingDecomposed, taskFromModel, result);
 
         // start the process(es)
 
@@ -137,11 +120,11 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
         }
     }
 
-    private List<JobCreationInstruction> gatherStartInstructions(ModelContext context, ObjectDelta<? extends ObjectType> changeBeingDecomposed, Task taskFromModel, OperationResult result) throws SchemaException {
-        List<JobCreationInstruction> startProcessInstructions = new ArrayList<JobCreationInstruction>();
+    private List<PcpChildJobCreationInstruction> gatherStartInstructions(ModelContext context, ObjectDelta<? extends ObjectType> changeBeingDecomposed, Task taskFromModel, OperationResult result) throws SchemaException {
+        List<PcpChildJobCreationInstruction> startProcessInstructions = new ArrayList<>();
 
         for (PrimaryApprovalProcessWrapper wrapper : processWrappers) {
-            List<JobCreationInstruction> instructions = wrapper.prepareJobCreationInstructions(context, changeBeingDecomposed, taskFromModel, result);
+            List<PcpChildJobCreationInstruction> instructions = wrapper.prepareJobCreationInstructions(context, changeBeingDecomposed, taskFromModel, result);
             logWrapperResult(wrapper, instructions);
             if (instructions != null) {
                 startProcessInstructions.addAll(instructions);
@@ -158,23 +141,23 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
             } catch (SystemException e) {
                 throw new SystemException("Couldn't serialize object to be added to XML", e);
             }
-            for (JobCreationInstruction instruction : startProcessInstructions) {
+            for (PcpChildJobCreationInstruction instruction : startProcessInstructions) {
                 instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_TO_BE_ADDED, objectToBeAdded);
             }
         }
 
-        for (JobCreationInstruction instruction : startProcessInstructions) {
+        for (PcpChildJobCreationInstruction instruction : startProcessInstructions) {
             if (instruction.startsWorkflowProcess() && instruction.isExecuteApprovedChangeImmediately()) {
                 // if we want to execute approved changes immediately in this instruction, we have to wait for
                 // task0 (if there is any) and then to update our model context with the results (if there are any)
-                instruction.addHandlersAfterWfProcessAtEnd(JobController.WAIT_FOR_TASKS_HANDLER_URI, WfPrepareChildOperationTaskHandler.HANDLER_URI);
+                instruction.addHandlersAfterWfProcessAtEnd(WfTaskUtil.WAIT_FOR_TASKS_HANDLER_URI, WfPrepareChildOperationTaskHandler.HANDLER_URI);
             }
         }
 
         return startProcessInstructions;
     }
 
-    private void logWrapperResult(PrimaryApprovalProcessWrapper wrapper, List<JobCreationInstruction> instructions) {
+    private void logWrapperResult(PrimaryApprovalProcessWrapper wrapper, List<? extends JobCreationInstruction> instructions) {
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("Wrapper " + wrapper.getClass() + " returned the following process start instructions (count: " + (instructions == null ? "(null)" : instructions.size()) + "):");
             if (instructions != null) {
@@ -185,9 +168,8 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
         }
     }
 
-    private HookOperationMode startJobs(List<JobCreationInstruction> instructions, final ModelContext context, final ObjectDelta<? extends ObjectType> changeWithoutApproval, Task taskFromModel, OperationResult result) {
+    private HookOperationMode startJobs(List<PcpChildJobCreationInstruction> instructions, final ModelContext context, final ObjectDelta<? extends ObjectType> changeWithoutApproval, Task taskFromModel, OperationResult result) {
 
-        Throwable failReason;
         try {
 
             // prepare root job and job0
@@ -196,7 +178,7 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
             Job job0 = createJob0(context, changeWithoutApproval, rootJob, executionMode, result);
 
             // start the jobs
-            List<Job> jobs = new ArrayList<Job>(instructions.size());
+            List<Job> jobs = new ArrayList<>(instructions.size());
             for (JobCreationInstruction instruction : instructions) {
                 Job job = jobController.createJob(instruction, rootJob.getTask(), result);
                 jobs.add(job);
@@ -212,42 +194,30 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
 
             // now start the tasks - and exit
 
-            logTasksBeforeStart(rootJob, result);
+            baseModelInvocationProcessingHelper.logJobsBeforeStart(rootJob, result);
             if (job0 != null) {
                 job0.resumeTask(result);
             }
             rootJob.startWaitingForSubtasks(result);
             return HookOperationMode.BACKGROUND;
 
-        } catch (SchemaException e) {
-            failReason = e;
-        } catch (ObjectNotFoundException e) {
-            failReason = e;
-        } catch (ObjectAlreadyExistsException e) {
-            failReason = e;
-        } catch (RuntimeException e) {
-            failReason = e;
-        } catch (CommunicationException e) {
-            failReason = e;
-        } catch (ConfigurationException e) {
-            failReason = e;
+        } catch (SchemaException|ObjectNotFoundException|ObjectAlreadyExistsException|CommunicationException|ConfigurationException|RuntimeException e) {
+            LoggingUtils.logException(LOGGER, "Workflow process(es) could not be started", e);
+            result.recordFatalError("Workflow process(es) could not be started: " + e, e);
+            return HookOperationMode.ERROR;
+
+            // todo rollback - at least close open tasks, maybe stop workflow process instances
         }
-
-        LoggingUtils.logException(LOGGER, "Workflow process(es) could not be started", failReason);
-        result.recordFatalError("Workflow process(es) could not be started: " + failReason, failReason);
-        return HookOperationMode.ERROR;
-
-        // todo rollback - at least close open tasks, maybe stop workflow process instances
     }
 
     private Job createRootJob(ModelContext context, ObjectDelta<? extends ObjectType> changeWithoutApproval, Task taskFromModel, OperationResult result, ExecutionMode executionMode) throws SchemaException, ObjectNotFoundException {
         LensContext contextForRootTask = determineContextForRootTask(context, changeWithoutApproval, executionMode);
-        JobCreationInstruction instructionForRoot = createInstructionForRoot(contextForRootTask, context, taskFromModel);
+        JobCreationInstruction instructionForRoot = baseModelInvocationProcessingHelper.createInstructionForRoot(this, context, taskFromModel, contextForRootTask);
         if (executionMode != ExecutionMode.ALL_IMMEDIATELY) {
             instructionForRoot.setHandlersBeforeModelOperation(WfPrepareRootOperationTaskHandler.HANDLER_URI);      // gather all deltas from child objects
             instructionForRoot.setExecuteModelOperationHandler(true);
         }
-        return super.createRootJob(instructionForRoot, taskFromModel, result);
+        return baseModelInvocationProcessingHelper.createRootJob(instructionForRoot, taskFromModel, result);
     }
 
     // Child job0 - in modes 2, 3 we have to prepare first child that executes all changes that do not require approval
@@ -255,11 +225,11 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
         if (!changeWithoutApproval.isEmpty() && executionMode != ExecutionMode.ALL_AFTERWARDS) {
             ModelContext modelContext = contextCopyWithDeltaReplaced(context, changeWithoutApproval);
             JobCreationInstruction instruction0 = JobCreationInstruction.createModelOperationChildJob(rootJob, modelContext);
-            instruction0.setTaskName(new PolyStringType("Executing changes that do not require approval"));
+            instruction0.setTaskName("Executing changes that do not require approval");
             if (context.getFocusContext().getPrimaryDelta().isAdd()) {
                 instruction0.setHandlersAfterModelOperation(WfPropagateTaskObjectReferenceTaskHandler.HANDLER_URI);  // for add operations we have to propagate ObjectOID
             }
-            instruction0.setCreateSuspended(true);   // task0 should execute only after all subtasks are created, because when it finishes, it
+            instruction0.setCreateTaskAsSuspended(true);   // task0 should execute only after all subtasks are created, because when it finishes, it
             // writes some information to all dependent tasks (i.e. they must exist at that time)
             return jobController.createJob(instruction0, rootJob, result);
         } else {
@@ -272,7 +242,7 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
         if (executionMode == ExecutionMode.ALL_AFTERWARDS) {
             contextForRootTask = contextCopyWithDeltaReplaced(context, changeWithoutApproval);
         } else if (executionMode == ExecutionMode.MIXED) {
-            contextForRootTask = contextCopyWithNoDelta((LensContext) context);
+            contextForRootTask = contextCopyWithNoDelta(context);
         } else {
             contextForRootTask = null;
         }
@@ -297,7 +267,7 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
         return contextCopy;
     }
 
-    private ExecutionMode determineExecutionMode(List<JobCreationInstruction> instructions) {
+    private ExecutionMode determineExecutionMode(List<PcpChildJobCreationInstruction> instructions) {
         ExecutionMode executionMode;
         if (shouldAllExecuteImmediately(instructions)) {
             executionMode = ExecutionMode.ALL_IMMEDIATELY;
@@ -309,8 +279,8 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
         return executionMode;
     }
 
-    private boolean shouldAllExecuteImmediately(List<JobCreationInstruction> startProcessInstructions) {
-        for (JobCreationInstruction instruction : startProcessInstructions) {
+    private boolean shouldAllExecuteImmediately(List<PcpChildJobCreationInstruction> startProcessInstructions) {
+        for (PcpChildJobCreationInstruction instruction : startProcessInstructions) {
             if (!instruction.isExecuteApprovedChangeImmediately()) {
                 return false;
             }
@@ -318,8 +288,8 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
         return true;
     }
 
-    private boolean shouldAllExecuteAfterwards(List<JobCreationInstruction> startProcessInstructions) {
-        for (JobCreationInstruction instruction : startProcessInstructions) {
+    private boolean shouldAllExecuteAfterwards(List<PcpChildJobCreationInstruction> startProcessInstructions) {
+        for (PcpChildJobCreationInstruction instruction : startProcessInstructions) {
             if (instruction.isExecuteApprovedChangeImmediately()) {
                 return false;
             }
@@ -331,7 +301,7 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
     //region Processing process finish event
     @Override
     public void onProcessEnd(ProcessEvent event, Job job, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
-        PrimaryChangeProcessorJob pcpJob = new PrimaryChangeProcessorJob(job);
+        PcpJob pcpJob = new PcpJob(job);
         PrimaryApprovalProcessWrapper wrapper = pcpJob.getProcessWrapper();
 
         pcpJob.storeResultingDeltas(wrapper.prepareDeltaOut(event, pcpJob, result));
@@ -383,6 +353,10 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
             }
         }
         throw new IllegalStateException("Wrapper " + name + " is not registered.");
+    }
+
+    WfTaskUtil getWfTaskUtil() {     // ugly hack - used in PcpJob
+        return wfTaskUtil;
     }
     //endregion
 }

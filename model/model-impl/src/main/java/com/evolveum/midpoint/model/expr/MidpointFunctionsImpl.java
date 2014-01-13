@@ -23,6 +23,7 @@ import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.ModelObjectResolver;
 import com.evolveum.midpoint.model.api.context.ModelContext;
+import com.evolveum.midpoint.model.api.context.ModelProjectionContext;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.api.expr.MidpointFunctions;
 import com.evolveum.midpoint.prism.*;
@@ -37,6 +38,7 @@ import com.evolveum.midpoint.prism.query.OrgFilter;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
+import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -881,7 +883,16 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 	}
 
     @Override
-    public ObjectDeltaType getResourceDelta(ModelContext context, String resourceOid) {
-        return null;
+    public ObjectDeltaType getResourceDelta(ModelContext context, String resourceOid) throws SchemaException {
+        List<ObjectDelta<ShadowType>> deltas = new ArrayList<>();
+        for (Object modelProjectionContextObject : context.getProjectionContexts()) {
+            LensProjectionContext lensProjectionContext = (LensProjectionContext) modelProjectionContextObject;
+            if (lensProjectionContext.getResourceShadowDiscriminator() != null &&
+                    resourceOid.equals(lensProjectionContext.getResourceShadowDiscriminator().getResourceOid())) {
+                deltas.add(lensProjectionContext.getDelta());   // union of primary and secondary deltas
+            }
+        }
+        ObjectDelta<ShadowType> sum = ObjectDelta.summarize(deltas);
+        return DeltaConvertor.toObjectDeltaType(sum);
     }
 }

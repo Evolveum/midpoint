@@ -23,7 +23,7 @@ import javax.xml.XMLConstants;
  */
 public enum PrefixMapper {
 
-    W("http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd", "WORKFLOW"),
+    //W("http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd", "WORKFLOW"),
 
     C("http://midpoint.evolveum.com/xml/ns/public/common/common-2a", "COMMON"),
 

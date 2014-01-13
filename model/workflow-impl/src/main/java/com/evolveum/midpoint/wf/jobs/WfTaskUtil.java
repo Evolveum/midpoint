@@ -18,27 +18,45 @@ package com.evolveum.midpoint.wf.jobs;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.lens.LensContext;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.task.api.TaskBinding;
+import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.WfConfiguration;
-import com.evolveum.midpoint.wf.api.Constants;
-import com.evolveum.midpoint.wf.processors.primary.PrimaryApprovalProcessWrapper;
+import com.evolveum.midpoint.wf.api.WfTaskExtensionItemsNames;
 import com.evolveum.midpoint.wf.processors.ChangeProcessor;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
-import com.evolveum.midpoint.xml.ns._public.communication.workflow_1.WfProcessInstanceEventType;
-import com.evolveum.midpoint.xml.ns._public.communication.workflow_1.WfProcessVariable;
+import com.evolveum.midpoint.wf.processors.primary.wrapper.PrimaryApprovalProcessWrapper;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScheduleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UriStackEntry;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
@@ -49,7 +67,12 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Handles low-level task operations, e.g. handling wf* properties in task extension.
@@ -63,19 +86,21 @@ import java.util.*;
 
 public class WfTaskUtil {
 
-    @Autowired(required = true)
-    private RepositoryService repositoryService;
-
-    @Autowired(required = true)
-    private PrismContext prismContext;
-
-    @Autowired(required = true)
-    private ProvisioningService provisioningService;
-
     @Autowired
     private WfConfiguration wfConfiguration;
 
+    @Autowired
+    private RepositoryService repositoryService;
+
+    @Autowired
+    private PrismContext prismContext;
+
+    @Autowired
+    private ProvisioningService provisioningService;
+
 	private static final Trace LOGGER = TraceManager.getTrace(WfTaskUtil.class);
+
+    public static final String WAIT_FOR_TASKS_HANDLER_URI = "<<< marker for calling pushWaitForTasksHandlerUri >>>";
 
     // wfModelContext - records current model context (i.e. context of current model operation)
 
@@ -100,31 +125,31 @@ public class WfTaskUtil {
 
         wfModelContextContainerDefinition = prismContext.getSchemaRegistry().findContainerDefinitionByElementName(SchemaConstants.MODEL_CONTEXT_NAME);
         wfSkipModelContextProcessingPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(SchemaConstants.SKIP_MODEL_CONTEXT_PROCESSING_PROPERTY);
-        wfStatusPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(Constants.WFSTATUS_PROPERTY_NAME);
-        wfLastDetailsPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(Constants.WFLAST_DETAILS_PROPERTY_NAME);
-        wfLastVariablesPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(Constants.WFLASTVARIABLES_PROPERTY_NAME);
-		wfProcessWrapperPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(Constants.WFPROCESS_WRAPPER_PROPERTY_NAME);
-        wfChangeProcessorPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(Constants.WFCHANGE_PROCESSOR_PROPERTY_NAME);
-		wfProcessIdPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(Constants.WFPROCESSID_PROPERTY_NAME);
-        wfDeltaToProcessPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(Constants.WFDELTA_TO_PROCESS_PROPERTY_NAME);
-        wfResultingDeltaPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(Constants.WFRESULTING_DELTA_PROPERTY_NAME);
-        wfProcessInstanceFinishedPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(Constants.WFPROCESS_INSTANCE_FINISHED_PROPERTY_NAME);
-        wfRootTaskOidPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(Constants.WFROOT_TASK_OID_PROPERTY_NAME);
-        wfApprovedByReferenceDefinition = prismContext.getSchemaRegistry().findReferenceDefinitionByElementName(Constants.WFAPPROVED_BY_REFERENCE_NAME);
+        wfStatusPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WfTaskExtensionItemsNames.WFSTATUS_PROPERTY_NAME);
+        wfLastDetailsPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WfTaskExtensionItemsNames.WFLAST_DETAILS_PROPERTY_NAME);
+        wfLastVariablesPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WfTaskExtensionItemsNames.WFLAST_VARIABLES_PROPERTY_NAME);
+		wfProcessWrapperPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WfTaskExtensionItemsNames.WFPROCESS_WRAPPER_PROPERTY_NAME);
+        wfChangeProcessorPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WfTaskExtensionItemsNames.WFCHANGE_PROCESSOR_PROPERTY_NAME);
+		wfProcessIdPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WfTaskExtensionItemsNames.WFPROCESSID_PROPERTY_NAME);
+        wfDeltaToProcessPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WfTaskExtensionItemsNames.WFDELTA_TO_PROCESS_PROPERTY_NAME);
+        wfResultingDeltaPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WfTaskExtensionItemsNames.WFRESULTING_DELTA_PROPERTY_NAME);
+        wfProcessInstanceFinishedPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WfTaskExtensionItemsNames.WFPROCESS_INSTANCE_FINISHED_PROPERTY_NAME);
+        wfRootTaskOidPropertyDefinition = prismContext.getSchemaRegistry().findPropertyDefinitionByElementName(WfTaskExtensionItemsNames.WFROOT_TASK_OID_PROPERTY_NAME);
+        wfApprovedByReferenceDefinition = prismContext.getSchemaRegistry().findReferenceDefinitionByElementName(WfTaskExtensionItemsNames.WFAPPROVED_BY_REFERENCE_NAME);
 
         Validate.notNull(wfModelContextContainerDefinition, SchemaConstants.MODEL_CONTEXT_NAME + " definition was not found");
         Validate.notNull(wfSkipModelContextProcessingPropertyDefinition, SchemaConstants.SKIP_MODEL_CONTEXT_PROCESSING_PROPERTY + " definition was not found");
-        Validate.notNull(wfStatusPropertyDefinition, Constants.WFSTATUS_PROPERTY_NAME + " definition was not found");
-        Validate.notNull(wfLastDetailsPropertyDefinition, Constants.WFLAST_DETAILS_PROPERTY_NAME + " definition was not found");
-        Validate.notNull(wfLastVariablesPropertyDefinition, Constants.WFLASTVARIABLES_PROPERTY_NAME + " definition was not found");
-        Validate.notNull(wfProcessWrapperPropertyDefinition, Constants.WFPROCESS_WRAPPER_PROPERTY_NAME + " definition was not found");
-        Validate.notNull(wfChangeProcessorPropertyDefinition, Constants.WFCHANGE_PROCESSOR_PROPERTY_NAME + " definition was not found");
-        Validate.notNull(wfProcessIdPropertyDefinition, Constants.WFPROCESSID_PROPERTY_NAME + " definition was not found");
-        Validate.notNull(wfDeltaToProcessPropertyDefinition, Constants.WFDELTA_TO_PROCESS_PROPERTY_NAME + " definition was not found");
-        Validate.notNull(wfResultingDeltaPropertyDefinition, Constants.WFRESULTING_DELTA_PROPERTY_NAME + " definition was not found");
-        Validate.notNull(wfProcessInstanceFinishedPropertyDefinition, Constants.WFPROCESS_INSTANCE_FINISHED_PROPERTY_NAME + " definition was not found");
-        Validate.notNull(wfRootTaskOidPropertyDefinition, Constants.WFROOT_TASK_OID_PROPERTY_NAME + " definition was not found");
-        Validate.notNull(wfApprovedByReferenceDefinition, Constants.WFAPPROVED_BY_REFERENCE_NAME + " definition was not found");
+        Validate.notNull(wfStatusPropertyDefinition, WfTaskExtensionItemsNames.WFSTATUS_PROPERTY_NAME + " definition was not found");
+        Validate.notNull(wfLastDetailsPropertyDefinition, WfTaskExtensionItemsNames.WFLAST_DETAILS_PROPERTY_NAME + " definition was not found");
+        Validate.notNull(wfLastVariablesPropertyDefinition, WfTaskExtensionItemsNames.WFLAST_VARIABLES_PROPERTY_NAME + " definition was not found");
+        Validate.notNull(wfProcessWrapperPropertyDefinition, WfTaskExtensionItemsNames.WFPROCESS_WRAPPER_PROPERTY_NAME + " definition was not found");
+        Validate.notNull(wfChangeProcessorPropertyDefinition, WfTaskExtensionItemsNames.WFCHANGE_PROCESSOR_PROPERTY_NAME + " definition was not found");
+        Validate.notNull(wfProcessIdPropertyDefinition, WfTaskExtensionItemsNames.WFPROCESSID_PROPERTY_NAME + " definition was not found");
+        Validate.notNull(wfDeltaToProcessPropertyDefinition, WfTaskExtensionItemsNames.WFDELTA_TO_PROCESS_PROPERTY_NAME + " definition was not found");
+        Validate.notNull(wfResultingDeltaPropertyDefinition, WfTaskExtensionItemsNames.WFRESULTING_DELTA_PROPERTY_NAME + " definition was not found");
+        Validate.notNull(wfProcessInstanceFinishedPropertyDefinition, WfTaskExtensionItemsNames.WFPROCESS_INSTANCE_FINISHED_PROPERTY_NAME + " definition was not found");
+        Validate.notNull(wfRootTaskOidPropertyDefinition, WfTaskExtensionItemsNames.WFROOT_TASK_OID_PROPERTY_NAME + " definition was not found");
+        Validate.notNull(wfApprovedByReferenceDefinition, WfTaskExtensionItemsNames.WFAPPROVED_BY_REFERENCE_NAME + " definition was not found");
 
         if (wfLastVariablesPropertyDefinition.isIndexed() != Boolean.FALSE) {
             throw new SystemException("lastVariables property isIndexed attribute is incorrect (should be FALSE, it is " + wfLastVariablesPropertyDefinition.isIndexed() + ")");
@@ -142,7 +167,7 @@ public class WfTaskUtil {
 	}
 
 	String getLastVariables(Task task) {
-		PrismProperty<?> p = task.getExtensionProperty(Constants.WFLASTVARIABLES_PROPERTY_NAME);
+		PrismProperty<?> p = task.getExtensionProperty(WfTaskExtensionItemsNames.WFLAST_VARIABLES_PROPERTY_NAME);
 		if (p == null) {
 			return null;
         } else {
@@ -151,7 +176,7 @@ public class WfTaskUtil {
 	}
 
     String getLastDetails(Task task) {
-        PrismProperty<?> p = task.getExtensionProperty(Constants.WFLAST_DETAILS_PROPERTY_NAME);
+        PrismProperty<?> p = task.getExtensionProperty(WfTaskExtensionItemsNames.WFLAST_DETAILS_PROPERTY_NAME);
         if (p == null) {
             return null;
         } else {
@@ -208,69 +233,6 @@ public class WfTaskUtil {
 
     }
 
-    // todo: fix this brutal hack (task closing should not go through repo)
-	void markTaskAsClosed(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-        String oid = task.getOid();
-		try {
-            ItemDelta delta = PropertyDelta.createReplaceDelta(
-                    prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class),
-                    TaskType.F_EXECUTION_STATUS,
-                    TaskExecutionStatusType.CLOSED);
-            List<ItemDelta> deltas = new ArrayList<ItemDelta>();
-            deltas.add(delta);
-			repositoryService.modifyObject(TaskType.class, oid, deltas, parentResult);
-		} catch (ObjectNotFoundException e) {
-            LoggingUtils.logException(LOGGER, "Cannot mark task " + task + " as closed.", e);
-            throw e;
-        } catch (SchemaException e) {
-            LoggingUtils.logException(LOGGER, "Cannot mark task " + task + " as closed.", e);
-            throw e;
-        } catch (ObjectAlreadyExistsException e) {
-            LoggingUtils.logException(LOGGER, "Cannot mark task " + task + " as closed.", e);
-            throw new SystemException(e);
-        }
-
-    }
-
-//	void returnToAsyncCaller(Task task, OperationResult parentResult) throws Exception {
-//		try {
-//			task.finishHandler(parentResult);
-////			if (task.getExclusivityStatus() == TaskExclusivityStatus.CLAIMED) {
-////				taskManager.releaseTask(task, parentResult);	// necessary for active tasks
-////				task.shutdown();								// this works when this java object is the same as is being executed by CycleRunner
-////			}
-////			if (task.getHandlerUri() != null)
-////				task.setExecutionStatusWithPersist(TaskExecutionStatus.RUNNING, parentResult);
-//		}
-//		catch (Exception e) {
-//			throw new Exception("Couldn't mark task " + task + " as running.", e);
-//		}
-//	}
-
-//	void setTaskResult(String oid, OperationResult result) throws Exception {
-//		try {
-//			OperationResultType ort = result.createOperationResultType();
-//			repositoryService.modifyObject(TaskType.class, ObjectTypeUtil.createModificationReplaceProperty(oid, 
-//				SchemaConstants.C_RESULT,
-//				ort), result);
-//		}
-//		catch (Exception e) {
-//			throw new Exception("Couldn't set result for the task " + oid, e);
-//		}
-//
-//	}
-
-
-//    void putWorkflowAnswerIntoTask(boolean doit, Task task, OperationResult result) throws IOException, ClassNotFoundException {
-//
-//    	ModelOperationStateType state = task.getModelOperationState();
-//    	if (state == null)
-//    		state = new ModelOperationStateType();
-//
-////    	state.setShouldBeExecuted(doit);
-////    	task.setModelOperationStateWithPersist(state, result);
-//    }
-
     public void setProcessWrapper(Task task, PrimaryApprovalProcessWrapper wrapper) throws SchemaException {
         Validate.notNull(wrapper, "Process Wrapper is undefined.");
         PrismProperty<String> w = wfProcessWrapperPropertyDefinition.instantiate();
@@ -279,7 +241,7 @@ public class WfTaskUtil {
     }
 
     public PrimaryApprovalProcessWrapper getProcessWrapper(Task task, List<PrimaryApprovalProcessWrapper> wrappers) {
-        String wrapperClassName = getExtensionValue(String.class, task, Constants.WFPROCESS_WRAPPER_PROPERTY_NAME);
+        String wrapperClassName = getExtensionValue(String.class, task, WfTaskExtensionItemsNames.WFPROCESS_WRAPPER_PROPERTY_NAME);
         if (wrapperClassName == null) {
             throw new IllegalStateException("No wf process wrapper defined in task " + task);
         }
@@ -301,7 +263,7 @@ public class WfTaskUtil {
     }
 
     public ChangeProcessor getChangeProcessor(Task task) {
-        String processorClassName = getExtensionValue(String.class, task, Constants.WFCHANGE_PROCESSOR_PROPERTY_NAME);
+        String processorClassName = getExtensionValue(String.class, task, WfTaskExtensionItemsNames.WFCHANGE_PROCESSOR_PROPERTY_NAME);
         if (processorClassName == null) {
             throw new IllegalStateException("No change processor defined in task " + task);
         }
@@ -309,72 +271,10 @@ public class WfTaskUtil {
     }
 
 
-    public Map<String, String> unwrapWfVariables(WfProcessInstanceEventType event) {
-        Map<String,String> retval = new HashMap<String,String>();
-        for (WfProcessVariable var : event.getWfProcessVariable()) {
-            retval.put(var.getName(), var.getValue());
-        }
-        return retval;
-    }
-
-    public String getWfVariable(WfProcessInstanceEventType event, String name) {
-        for (WfProcessVariable v : event.getWfProcessVariable())
-            if (name.equals(v.getName()))
-                return v.getValue();
-        return null;
-    }
-
-
-//    public void markRejection(Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
-//
-//        ModelOperationStateType state = task.getModelOperationState();
-//        state.setStage(null);
-//        task.setModelOperationState(state);
-//        try {
-//            task.savePendingModifications(result);
-//        } catch (ObjectAlreadyExistsException ex) {
-//            throw new SystemException(ex);
-//        }
-//
-//        markTaskAsClosed(task, result);         // brutal hack
-//    }
-
-
-//    public void markAcceptation(Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
-//
-//        ModelOperationStateType state = task.getModelOperationState();
-//        ModelOperationStageType stage = state.getStage();
-//        switch (state.getStage()) {
-//            case PRIMARY: stage = ModelOperationStageType.SECONDARY; break;
-//            case SECONDARY: stage = ModelOperationStageType.EXECUTE; break;
-//            case EXECUTE: stage = null; break;      // should not occur
-//            default: throw new SystemException("Unknown model operation stage: " + state.getStage());
-//        }
-//        state.setStage(stage);
-//        task.setModelOperationState(state);
-//        try {
-//            task.savePendingModifications(result);
-//        } catch (ObjectAlreadyExistsException ex) {
-//            throw new SystemException(ex);
-//        }
-//
-//        // todo continue with model operation
-//
-//        markTaskAsClosed(task, result);         // brutal hack
-//
-////        switch (state.getKindOfOperation()) {
-////            case ADD: modelController.addObjectContinuing(task, result); break;
-////            case MODIFY: modelController.modifyObjectContinuing(task, result); break;
-////            case DELETE: modelController.deleteObjectContinuing(task, result); break;
-////            default: throw new SystemException("Unknown kind of model operation: " + state.getKindOfOperation());
-////        }
-//
-//    }
-
     public String getProcessId(Task task) {
         // let us request the current task status
         // todo make this property single-valued in schema to be able to use getRealValue
-        PrismProperty idProp = task.getExtensionProperty(Constants.WFPROCESSID_PROPERTY_NAME);
+        PrismProperty idProp = task.getExtensionProperty(WfTaskExtensionItemsNames.WFPROCESSID_PROPERTY_NAME);
         Collection<String> values = null;
         if (idProp != null) {
             values = idProp.getRealValues(String.class);
@@ -385,12 +285,6 @@ public class WfTaskUtil {
             return values.iterator().next();
         }
     }
-
-//    void setModelOperationState(Task task, ModelContext context) throws IOException {
-//        ModelOperationStateType state = new ModelOperationStateType();
-//        state.setOperationData(SerializationUtil.toString(context));
-//        task.setModelOperationState(state);
-//    }
 
     public boolean hasModelContext(Task task) {
         PrismProperty modelContextProperty = task.getExtensionProperty(SchemaConstants.MODEL_CONTEXT_NAME);
@@ -450,9 +344,9 @@ public class WfTaskUtil {
 
     public List<ObjectDelta<Objectable>> retrieveDeltasToProcess(Task task) throws SchemaException {
 
-        PrismProperty<ObjectDeltaType> deltaTypePrismProperty = task.getExtensionProperty(Constants.WFDELTA_TO_PROCESS_PROPERTY_NAME);
+        PrismProperty<ObjectDeltaType> deltaTypePrismProperty = task.getExtensionProperty(WfTaskExtensionItemsNames.WFDELTA_TO_PROCESS_PROPERTY_NAME);
         if (deltaTypePrismProperty == null) {
-            throw new SchemaException("No " + Constants.WFDELTA_TO_PROCESS_PROPERTY_NAME + " in task extension; task = " + task);
+            throw new SchemaException("No " + WfTaskExtensionItemsNames.WFDELTA_TO_PROCESS_PROPERTY_NAME + " in task extension; task = " + task);
         }
         List<ObjectDelta<Objectable>> retval = new ArrayList<ObjectDelta<Objectable>>();
         for (ObjectDeltaType objectDeltaType : deltaTypePrismProperty.getRealValues()) {
@@ -466,7 +360,7 @@ public class WfTaskUtil {
 
         List<ObjectDelta<Objectable>> retval = new ArrayList<ObjectDelta<Objectable>>();
 
-        PrismProperty<ObjectDeltaType> deltaTypePrismProperty = task.getExtensionProperty(Constants.WFRESULTING_DELTA_PROPERTY_NAME);
+        PrismProperty<ObjectDeltaType> deltaTypePrismProperty = task.getExtensionProperty(WfTaskExtensionItemsNames.WFRESULTING_DELTA_PROPERTY_NAME);
         if (deltaTypePrismProperty != null) {
             for (ObjectDeltaType objectDeltaType : deltaTypePrismProperty.getRealValues()) {
                 retval.add(DeltaConvertor.createObjectDelta(objectDeltaType, prismContext));
@@ -509,7 +403,7 @@ public class WfTaskUtil {
     }
 
     public boolean isProcessInstanceFinished(Task task) {
-        Boolean value = getExtensionValue(Boolean.class, task, Constants.WFPROCESS_INSTANCE_FINISHED_PROPERTY_NAME);
+        Boolean value = getExtensionValue(Boolean.class, task, WfTaskExtensionItemsNames.WFPROCESS_INSTANCE_FINISHED_PROPERTY_NAME);
         return value != null ? value : false;
     }
 
@@ -518,7 +412,7 @@ public class WfTaskUtil {
     }
 
     public String getRootTaskOid(Task task) {
-        return getExtensionValue(String.class, task, Constants.WFROOT_TASK_OID_PROPERTY_NAME);
+        return getExtensionValue(String.class, task, WfTaskExtensionItemsNames.WFROOT_TASK_OID_PROPERTY_NAME);
     }
 
     public void setSkipModelContextProcessingProperty(Task task, boolean value, OperationResult result) throws SchemaException, ObjectNotFoundException {
@@ -555,7 +449,7 @@ public class WfTaskUtil {
     }
 
     public PrismReference getApprovedBy(Task task) throws SchemaException {
-        return task.getExtensionReference(Constants.WFAPPROVED_BY_REFERENCE_NAME);
+        return task.getExtensionReference(WfTaskExtensionItemsNames.WFAPPROVED_BY_REFERENCE_NAME);
     }
 
     public List<? extends ObjectReferenceType> getApprovedByFromTaskTree(Task task, OperationResult result) throws SchemaException {
@@ -627,5 +521,61 @@ public class WfTaskUtil {
 
     public PrismReferenceDefinition getWfApprovedByReferenceDefinition() {
         return wfApprovedByReferenceDefinition;
+    }
+
+    void setTaskOwner(Task task, PrismObject<UserType> owner) {
+        if (owner == null) {
+            throw new IllegalStateException("Couldn't create a job task because the owner is not set.");
+        }
+        task.setOwner(owner);
+    }
+
+    // handlers are stored in the list in the order they should be executed; so the last one has to be pushed first
+    void pushHandlers(Task task, List<UriStackEntry> handlers) {
+        for (int i = handlers.size()-1; i >= 0; i--) {
+            UriStackEntry entry = handlers.get(i);
+            if (WAIT_FOR_TASKS_HANDLER_URI.equals(entry.getHandlerUri())) {
+                task.pushWaitForTasksHandlerUri();
+            } else {
+                if (!entry.getExtensionDelta().isEmpty()) {
+                    throw new UnsupportedOperationException("handlers with extension delta set are not supported yet");
+                }
+                task.pushHandlerUri(entry.getHandlerUri(), entry.getSchedule(), TaskBinding.fromTaskType(entry.getBinding()), (ItemDelta) null);
+            }
+        }
+    }
+
+    /**
+     * Makes a task active, i.e. a task that actively queries wf process instance about its status.
+     *
+     *          OR
+     *
+     * Creates a passive task, i.e. a task that stores information received from WfMS about a process instance.
+     *
+     * We expect task to be transient at this moment!
+     * @param active
+     * @param t
+     * @param result
+     */
+    void pushProcessShadowHandler(boolean active, Task t, long taskStartDelay, OperationResult result) throws SchemaException, ObjectNotFoundException {
+
+        if (active) {
+
+            ScheduleType schedule = new ScheduleType();
+            schedule.setInterval(wfConfiguration.getProcessCheckInterval());
+            schedule.setEarliestStartTime(MiscUtil.asXMLGregorianCalendar(new Date(System.currentTimeMillis() + taskStartDelay)));
+            t.pushHandlerUri(WfProcessInstanceShadowTaskHandler.HANDLER_URI, schedule, TaskBinding.LOOSE);
+
+        } else {
+
+            t.pushHandlerUri(WfProcessInstanceShadowTaskHandler.HANDLER_URI, new ScheduleType(), null);		// note that this handler will not be actively used (at least for now)
+            t.makeWaiting();
+        }
+    }
+
+    void setDefaultTaskOwnerIfEmpty(Task t, OperationResult result, JobController jobController) throws SchemaException, ObjectNotFoundException {
+        if (t.getOwner() == null) {
+            t.setOwner(repositoryService.getObject(UserType.class, SystemObjectsType.USER_ADMINISTRATOR.value(), null, result));
+        }
     }
 }
