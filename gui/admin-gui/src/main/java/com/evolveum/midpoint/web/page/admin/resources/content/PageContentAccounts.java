@@ -52,6 +52,7 @@ import com.evolveum.midpoint.web.page.admin.resources.content.dto.AccountOwnerCh
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserListItemDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
@@ -493,7 +494,7 @@ public class PageContentAccounts extends PageAdminResources {
         }
 
         PageParameters parameters = new PageParameters();
-        parameters.add(PageAccount.PARAM_ACCOUNT_ID, accountOid);
+        parameters.add(OnePageParameterEncoder.PARAMETER, accountOid);
         setResponsePage(PageAccount.class, parameters);
     }
 

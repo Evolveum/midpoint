@@ -36,6 +36,7 @@ import com.evolveum.midpoint.web.component.MultiValueChoosePanel;
 import com.evolveum.midpoint.web.component.form.*;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.PrismPropertyModel;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
@@ -60,8 +61,6 @@ import java.util.List;
  * @author lazyman
  */
 public class PageOrgUnit extends PageAdminUsers {
-
-    public static final String PARAM_ORG_ID = "orgId";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageOrgUnit.class);
     private static final String DOT_CLASS = PageOrgUnit.class.getName() + ".";
@@ -213,34 +212,34 @@ public class PageOrgUnit extends PageAdminUsers {
         form.add(orgType);
 
         MultiValueChoosePanel parentOrgType = new MultiValueChoosePanel(ID_PARENT_ORG_UNITS, parentOrgUnitsModel,
-                createStringResource("ObjectType.parentOrgRef"), ID_LABEL_SIZE, ID_INPUT_SIZE, false, OrgType.class){
+                createStringResource("ObjectType.parentOrgRef"), ID_LABEL_SIZE, ID_INPUT_SIZE, false, OrgType.class) {
 
             @Override
-            protected IModel<String> createTextModel(final IModel model){
+            protected IModel<String> createTextModel(final IModel model) {
                 return new AbstractReadOnlyModel<String>() {
 
                     @Override
                     public String getObject() {
                         OrgType org = (OrgType) model.getObject();
 
-                        return org == null ? null:WebMiscUtil.getOrigStringFromPoly(org.getName());
+                        return org == null ? null : WebMiscUtil.getOrigStringFromPoly(org.getName());
                     }
                 };
             }
 
             @Override
-            protected Serializable createNewEmptyItem(){
+            protected Serializable createNewEmptyItem() {
                 return new OrgType();
             }
 
             @Override
-            protected void replaceIfEmpty(Object object){
+            protected void replaceIfEmpty(Object object) {
 
                 boolean added = false;
 
                 List<OrgType> parents = parentOrgUnitsModel.getObject();
-                for(OrgType org: parents){
-                    if(WebMiscUtil.getName(org) == null || WebMiscUtil.getName(org).isEmpty()){
+                for (OrgType org : parents) {
+                    if (WebMiscUtil.getName(org) == null || WebMiscUtil.getName(org).isEmpty()) {
                         parents.remove(org);
                         parents.add((OrgType) object);
                         added = true;
@@ -248,7 +247,7 @@ public class PageOrgUnit extends PageAdminUsers {
                     }
                 }
 
-                if(!added){
+                if (!added) {
                     parents.add((OrgType) object);
                 }
             }
@@ -285,7 +284,7 @@ public class PageOrgUnit extends PageAdminUsers {
     }
 
     private boolean isEditing() {
-        StringValue oid = getPageParameters().get(PageOrgUnit.PARAM_ORG_ID);
+        StringValue oid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
         return oid != null && StringUtils.isNotEmpty(oid.toString());
     }
 
@@ -307,9 +306,9 @@ public class PageOrgUnit extends PageAdminUsers {
             }
         }
 
-        if(parentOrgUnitsModel != null && parentOrgUnitsModel.getObject() != null){
-            for(OrgType parent: parentOrgUnitsModel.getObject()){
-                if(parent != null && WebMiscUtil.getName(parent) != null && !WebMiscUtil.getName(parent).isEmpty()){
+        if (parentOrgUnitsModel != null && parentOrgUnitsModel.getObject() != null) {
+            for (OrgType parent : parentOrgUnitsModel.getObject()) {
+                if (parent != null && WebMiscUtil.getName(parent) != null && !WebMiscUtil.getName(parent).isEmpty()) {
                     ObjectReferenceType ref = new ObjectReferenceType();
                     ref.setOid(parent.getOid());
                     org.asObjectable().getParentOrgRef().add(ref);
@@ -371,7 +370,7 @@ public class PageOrgUnit extends PageAdminUsers {
                     org = unitToEdit;
                 }
             } else {
-                StringValue oid = getPageParameters().get(PageOrgUnit.PARAM_ORG_ID);
+                StringValue oid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
                 org = getModelService().getObject(OrgType.class, oid.toString(), null,
                         createSimpleTask(LOAD_UNIT), result);
             }
@@ -393,7 +392,7 @@ public class PageOrgUnit extends PageAdminUsers {
         return org;
     }
 
-    private List<OrgType> loadParentOrgUnits(){
+    private List<OrgType> loadParentOrgUnits() {
         List<OrgType> parentList = new ArrayList<OrgType>();
         List<ObjectReferenceType> refList = new ArrayList<ObjectReferenceType>();
         OrgType orgHelper;
@@ -402,26 +401,26 @@ public class PageOrgUnit extends PageAdminUsers {
 
         OrgType actOrg = orgModel.getObject().asObjectable();
 
-        if(actOrg != null){
+        if (actOrg != null) {
             refList.addAll(actOrg.getParentOrgRef());
         }
 
-        try{
-            if(!refList.isEmpty()){
-                for(ObjectReferenceType ref: refList){
+        try {
+            if (!refList.isEmpty()) {
+                for (ObjectReferenceType ref : refList) {
                     String oid = ref.getOid();
                     orgHelper = getModelService().getObject(OrgType.class, oid, null, loadTask, result).asObjectable();
                     parentList.add(orgHelper);
                 }
             }
-        }catch(Exception e){
+        } catch (Exception e) {
             LoggingUtils.logException(LOGGER, "Couldn't load parent org. unit refs.", e);
             result.recordFatalError("Couldn't load parent org. unit refs.", e);
-        }finally{
+        } finally {
             result.computeStatus();
         }
 
-        if(parentList.isEmpty())
+        if (parentList.isEmpty())
             parentList.add(new OrgType());
 
         return parentList;

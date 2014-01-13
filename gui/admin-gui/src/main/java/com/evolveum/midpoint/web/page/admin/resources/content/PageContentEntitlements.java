@@ -33,8 +33,6 @@ public class PageContentEntitlements extends PageAdminResources {
 
     private IModel<PrismObject<ResourceType>> resourceModel;
 
-    public static final String PARAM_RESOURCE_ID = "entResourceOid";
-
     public PageContentEntitlements() {
         resourceModel = new LoadableModel<PrismObject<ResourceType>>(false) {
 

@@ -35,6 +35,7 @@ import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceController;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceObjectTypeDto;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceStatus;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -290,7 +291,7 @@ public class PageResource extends PageAdminResources {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 PageParameters parameters = new PageParameters();
-                parameters.add(PageResourceEdit.PARAM_RESOURCE_ID, model.getObject().getOid());
+                parameters.add(OnePageParameterEncoder.PARAMETER, model.getObject().getOid());
                 setResponsePage(PageResourceEdit.class, parameters);
             }
         };

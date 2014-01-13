@@ -143,6 +143,12 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
         eventBus = new EventBus(this);
         eventBus.getParameters().setLogLevel(AtmosphereLogLevel.DEBUG);
+
+        loadDescriptor();
+    }
+
+    private void loadDescriptor() {
+        //todo implement
     }
 
     private void mountFiles(String path, Class<?> clazz) {

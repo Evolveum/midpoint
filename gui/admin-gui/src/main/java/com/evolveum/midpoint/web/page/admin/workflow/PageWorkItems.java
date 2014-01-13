@@ -26,6 +26,7 @@ import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.*;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
@@ -236,7 +237,7 @@ public class PageWorkItems extends PageAdminWorkItems {
 
     private void itemDetailsPerformed(AjaxRequestTarget target, String taskid) {
         PageParameters parameters = new PageParameters();
-        parameters.add(PageWorkItem.PARAM_TASK_ID, taskid);
+        parameters.add(OnePageParameterEncoder.PARAMETER, taskid);
         setResponsePage(new PageWorkItem(parameters, this));
     }
 

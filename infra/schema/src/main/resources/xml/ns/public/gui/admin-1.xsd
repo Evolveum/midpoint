@@ -37,12 +37,11 @@
 
     <xsd:complexType name="DescriptorType">
         <xsd:sequence>
-            <xsd:element ref="tns:menu"/>
+            <xsd:element name="menu" type="tns:MenuType" minOccurs="0"/>
+            <xsd:element name="page" type="tns:PageType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
 
-    <xsd:element name="menu" type="tns:MenuType"/>
-    
     <xsd:complexType name="MenuType">
         <xsd:sequence>
             <xsd:element name="root" type="tns:RootMenuItemType" minOccurs="0" maxOccurs="unbounded"/>
@@ -63,6 +62,11 @@
                 <xsd:sequence>
                     <xsd:element name="name" type="xsd:string"/>
                     <xsd:element name="order" type="xsd:int"/>
+                    <xsd:choice minOccurs="0" maxOccurs="unbounded">
+                        <xsd:element name="item" type="tns:MenuItemType"/>
+                        <xsd:element name="header" type="tns:MenuItemHeaderType"/>
+                        <xsd:element name="divider" type="tns:MenuItemDividerType"/>
+                    </xsd:choice>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -74,8 +78,6 @@
                 <xsd:sequence>
                     <xsd:element name="name" type="xsd:string"/>
                     <xsd:element name="page" type="xsd:string"/>
-                    <xsd:element name="pageUrl" type="xsd:string"/>
-                    <xsd:element name="pageParameterEncoder" type="xsd:string" minOccurs="0"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -97,5 +99,13 @@
 
             </xsd:extension>
         </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="PageType">
+        <xsd:sequence>
+            <xsd:element name="class" type="xsd:string"/>
+            <xsd:element name="url" type="xsd:string" minOccurs="0"/>
+            <xsd:element name="encoder" type="xsd:string" minOccurs="0"/>
+        </xsd:sequence>
     </xsd:complexType>
 </xsd:schema>

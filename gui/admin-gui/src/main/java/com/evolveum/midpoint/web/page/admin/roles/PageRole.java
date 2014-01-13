@@ -27,6 +27,7 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.xml.ace.AceEditor;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 
@@ -44,7 +45,6 @@ import org.apache.wicket.util.string.StringValue;
  */
 public class PageRole extends PageAdminRoles {
 
-    public static final String PARAM_ROLE_ID = "roleOid";
     private static final String DOT_CLASS = PageRole.class.getName() + ".";
     private static final String OPERATION_LOAD_ROLE = DOT_CLASS + "loadRole";
     private static final String OPERATION_SAVE_ROLE = DOT_CLASS + "saveRole";
@@ -81,7 +81,7 @@ public class PageRole extends PageAdminRoles {
     }
 
     private ObjectViewDto loadRole() {
-        StringValue roleOid = getPageParameters().get(PARAM_ROLE_ID);
+        StringValue roleOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
         if (roleOid == null || StringUtils.isEmpty(roleOid.toString())) {
             return new ObjectViewDto();
         }
@@ -166,7 +166,7 @@ public class PageRole extends PageAdminRoles {
     }
 
     private boolean isEditing() {
-        StringValue roleOid = getPageParameters().get(PARAM_ROLE_ID);
+        StringValue roleOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
         if (roleOid == null || StringUtils.isEmpty(roleOid.toString())) {
             return false;
         }

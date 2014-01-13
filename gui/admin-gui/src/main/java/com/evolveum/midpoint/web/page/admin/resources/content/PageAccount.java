@@ -34,6 +34,7 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.resources.PageAdminResources;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
@@ -55,8 +56,6 @@ import java.util.Collection;
  * @author lazyman
  */
 public class PageAccount extends PageAdminResources {
-
-    public static final String PARAM_ACCOUNT_ID = "accountOid";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageAccount.class);
     private static final String DOT_CLASS = PageAccount.class.getName() + ".";
@@ -84,7 +83,7 @@ public class PageAccount extends PageAdminResources {
             Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
                     ShadowType.F_RESOURCE, GetOperationOptions.createResolve());
 
-            StringValue userOid = getPageParameters().get(PARAM_ACCOUNT_ID);
+            StringValue userOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
             account = getModelService().getObject(ShadowType.class, userOid.toString(), options, task, result);
             result.recordSuccess();
         } catch (Exception ex) {
@@ -213,7 +212,7 @@ public class PageAccount extends PageAdminResources {
         ResourceType resource = account.asObjectable().getResource();
 
         PageParameters parameters = new PageParameters();
-        parameters.add(PageContentAccounts.PARAM_RESOURCE_ID, resource.getOid());
+        parameters.add(OnePageParameterEncoder.PARAMETER, resource.getOid());
         setResponsePage(PageContentAccounts.class, parameters);
     }
 }

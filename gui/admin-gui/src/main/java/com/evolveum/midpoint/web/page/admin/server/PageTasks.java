@@ -38,6 +38,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAc
 import com.evolveum.midpoint.web.page.admin.server.dto.*;
 import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstance;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
@@ -439,7 +440,7 @@ public class PageTasks extends PageAdminTasks {
 
             private void taskDetailsPerformed(AjaxRequestTarget target, String oid) {
                 PageParameters parameters = new PageParameters();
-                parameters.add(PageTaskEdit.PARAM_TASK_EDIT_ID, oid);
+                parameters.add(OnePageParameterEncoder.PARAMETER, oid);
                 component.setResponsePage(new PageTaskEdit(parameters, (PageBase) component.getPage()));
             }
 
@@ -499,7 +500,7 @@ public class PageTasks extends PageAdminTasks {
                 private void taskDetailsPerformed(AjaxRequestTarget target, TaskDto task) {
                     if (task.getWorkflowProcessInstanceId() != null) {
                         PageParameters parameters = new PageParameters();
-                        parameters.add(PageProcessInstance.PARAM_PROCESS_INSTANCE_ID, task.getWorkflowProcessInstanceId());
+                        parameters.add(OnePageParameterEncoder.PARAMETER, task.getWorkflowProcessInstanceId());
                         parameters.add(PageProcessInstance.PARAM_PROCESS_INSTANCE_FINISHED, task.isWorkflowProcessInstanceFinished());
                         component.setResponsePage(new PageProcessInstance(parameters, (PageBase) component.getPage()));
                     }

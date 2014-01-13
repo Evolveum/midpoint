@@ -32,6 +32,7 @@ import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -203,7 +204,7 @@ public class PageRoles extends PageAdminRoles {
 
     private void roleDetailsPerformed(AjaxRequestTarget target, String oid) {
         PageParameters parameters = new PageParameters();
-        parameters.add(PageRole.PARAM_ROLE_ID, oid);
+        parameters.add(OnePageParameterEncoder.PARAMETER, oid);
         setResponsePage(PageRole.class, parameters);
     }
 }

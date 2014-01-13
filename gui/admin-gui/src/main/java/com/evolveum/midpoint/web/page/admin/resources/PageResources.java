@@ -43,6 +43,7 @@ import com.evolveum.midpoint.web.page.admin.resources.component.ContentPanel;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageContentAccounts;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageContentEntitlements;
 import com.evolveum.midpoint.web.page.admin.resources.dto.*;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
@@ -231,7 +232,7 @@ public class PageResources extends PageAdminResources {
                         ResourceDto dto = model.getObject();
 
                         PageParameters parameters = new PageParameters();
-                        parameters.add(PageContentAccounts.PARAM_RESOURCE_ID, dto.getOid());
+                        parameters.add(OnePageParameterEncoder.PARAMETER, dto.getOid());
                         setResponsePage(PageContentAccounts.class, parameters);
                     }
 
@@ -240,7 +241,7 @@ public class PageResources extends PageAdminResources {
                         ResourceDto dto = model.getObject();
 
                         PageParameters parameters = new PageParameters();
-                        parameters.add(PageContentEntitlements.PARAM_RESOURCE_ID, dto.getOid());
+                        parameters.add(OnePageParameterEncoder.PARAMETER, dto.getOid());
                         setResponsePage(PageContentEntitlements.class, parameters);
                     }
                 });
@@ -323,7 +324,7 @@ public class PageResources extends PageAdminResources {
 
     private void resourceDetailsPerformed(AjaxRequestTarget target, String oid) {
         PageParameters parameters = new PageParameters();
-        parameters.add(PageResource.PARAM_RESOURCE_ID, oid);
+        parameters.add(OnePageParameterEncoder.PARAMETER, oid);
         setResponsePage(PageResource.class, parameters);
     }
 
