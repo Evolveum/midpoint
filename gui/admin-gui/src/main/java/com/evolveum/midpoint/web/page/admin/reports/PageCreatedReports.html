@@ -17,24 +17,30 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <form wicket:id="filterForm" class="form-inline pull-left search-form">
+    <form wicket:id="searchForm" class="form-inline pull-right search-form">
         <div class="form-group">
             <label class="sr-only">
                 <wicket:message key="pageCreatedReports.filter.filetype"/>
             </label>
             <select class="form-control input-sm" wicket:id="filetype" />
         </div>
-    </form>
 
-    <form class="form-inline pull-right search-form">
         <div class="form-group">
-            <label class="sr-only"></label>
-            <input class="form-control input-sm">
+            <label class="sr-only">
+                <wicket:message key="pageCreatedReports.filter.reportType" />
+            </label>
+            <select class="form-control input-sm" wicket:id="reportType" />
         </div>
 
-        <select multiple="multiple" class="multiselect"/>
+        <div class="form-group">
+            <label class="sr-only"><wicket:message key="searchForm.searchTextPlaceholder" /></label>
+            <input class="form-control input-sm" wicket:id="searchText"
+                    wicket:message="placeholder:searchForm.searchTextPlaceholder">
+        </div>
 
-        <a class="btn btn-default btm-sm"/>
+        <select multiple="multiple" class="multiselect" wicket:id="searchType"/>
+
+        <a class="btn btn-default btm-sm" wicket:id="searchButton"/>
     </form>
 
     <form wicket:id="mainForm">

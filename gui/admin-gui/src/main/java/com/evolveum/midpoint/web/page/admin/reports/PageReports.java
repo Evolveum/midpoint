@@ -27,6 +27,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromStream;
 import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
+import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
@@ -34,12 +36,12 @@ import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ResourceItemDto;
 import com.evolveum.midpoint.web.page.admin.reports.component.AuditPopupPanel;
 import com.evolveum.midpoint.web.page.admin.reports.component.ReconciliationPopupPanel;
-import com.evolveum.midpoint.web.page.admin.reports.component.ReportButtonPanel;
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditReportDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReconciliationReportDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import net.sf.jasperreports.engine.*;
@@ -59,6 +61,7 @@ import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -96,6 +99,9 @@ public class PageReports extends PageAdminReports {
     private static final String ID_AUDIT_POPUP = "auditPopup";
     private static final String ID_RECONCILIATION_POPUP = "reconciliationPopup";
     private static final String ID_REPORTS_TABLE = "reportsTable";
+
+    private final String BUTTON_CAPTION_RUN = createStringResource("PageReports.button.run").getString();
+    private final String BUTTON_CAPTION_CONFIGURE = createStringResource("PageReports.button.configure").getString();
 
     private final IModel<List<ResourceItemDto>> resources;
     private final IModel reportParamsModel = new Model();
@@ -211,13 +217,18 @@ public class PageReports extends PageAdminReports {
         List<IColumn<ReportDto, String>> columns = new ArrayList<IColumn<ReportDto, String>>();
 
         IColumn column;
-        column = new PropertyColumn<ReportDto, String>(createStringResource("PageReports.table.name"), null){
+        column = new LinkColumn<ReportDto>(createStringResource("PageReports.table.name"),
+                ReportType.F_NAME.getLocalPart(), createStringResource(ReportDto.F_NAME).getString()){
 
             @Override
-            public IModel<Object> getDataModel(IModel<ReportDto> rowModel){
+            protected IModel<String> createLinkModel(IModel<ReportDto> rowModel){
                 ReportDto dto = rowModel.getObject();
+                return new Model<String>(createStringResource(dto.getName()).getString());
+            }
 
-                return (IModel)createStringResource(dto.getName());
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<ReportDto> rowModel){
+                reportTypeFilterPerformed(target, rowModel);
             }
         };
         columns.add(column);
@@ -233,28 +244,34 @@ public class PageReports extends PageAdminReports {
         };
         columns.add(column);
 
-        column = new AbstractColumn<ReportDto, String>(new Model(), null) {
+        column = new DoubleButtonColumn<ReportDto>(new Model(), null){
 
             @Override
-            public String getCssClass(){
-                return "debug-list-buttons";
+            public String getFirstCap(){
+                return BUTTON_CAPTION_RUN;
             }
 
             @Override
-            public void populateItem(Item<ICellPopulator<ReportDto>> cellItem, String componentId,
-                                     IModel<ReportDto> rowModel) {
-                cellItem.add(new ReportButtonPanel<ReportDto>(componentId, rowModel){
+            public String getSecondCap(){
+                return BUTTON_CAPTION_CONFIGURE;
+            }
 
-                    @Override
-                    public void runPerformed(AjaxRequestTarget target, IModel<ReportDto> model){
-                        runClickPerformed(target, model.getObject(), ajaxDownloadBehavior);
-                    }
+            @Override
+            public String getFirstColorCssClass(){
+                return BUTTON_COLOR_CLASS.PRIMARY.toString();
+            }
 
-                    @Override
-                    public void configurePerformed(AjaxRequestTarget target, IModel<ReportDto> model){
-                        //TODO - what to do here?
-                    }
-                });
+            @Override
+            public void firstClicked(AjaxRequestTarget target, IModel<ReportDto> model){
+                runReportPerformed(target, model);
+
+                //TODO - delete below line, it is here just for now
+                runClickPerformed(target, model.getObject(), ajaxDownloadBehavior);
+            }
+
+            @Override
+            public void secondClicked(AjaxRequestTarget target, IModel<ReportDto> model){
+                configurePerformed(target, model);
             }
         };
         columns.add(column);
@@ -265,6 +282,18 @@ public class PageReports extends PageAdminReports {
     private void showModalWindow(String id, AjaxRequestTarget target) {
         ModalWindow window = (ModalWindow) get(id);
         window.show(target);
+    }
+
+    private void reportTypeFilterPerformed(AjaxRequestTarget target, IModel<ReportDto> model){
+        //TODO - navigate to CreatedReportsPage and set report type filter.
+    }
+
+    private void runReportPerformed(AjaxRequestTarget target, IModel<ReportDto> model){
+        //TODO - create report based on current configuration
+    }
+
+    private void configurePerformed(AjaxRequestTarget target, IModel<ReportDto> model){
+        //TODO - navigate to new page, where report configuration will be performed
     }
 
     private void runClickPerformed(AjaxRequestTarget target, ReportDto report,
