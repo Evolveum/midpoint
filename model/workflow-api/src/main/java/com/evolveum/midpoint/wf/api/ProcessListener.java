@@ -21,13 +21,30 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import java.util.Map;
 
 /**
+ * An interface through which external observers can be notified about wf process related events.
+ *
+ * EXPERIMENTAL. This interface will probably change in near future.
+ *
  * @author mederly
  */
 public interface ProcessListener {
 
+    /**
+     * This method is called by wf module when a process instance successfully starts.
+     *
+     * @param instanceName name of the process instance that was started
+     * @param variables process instance variables (todo fixme this is quite a hack because implementor needs to know internal structure of these variables)
+     * @param result implementor should report its result here
+     */
     void onProcessInstanceStart(String instanceName, Map<String, Object> variables, OperationResult result);
 
-    // beware, 'decision' depends on WF_ANSWER process variable, which may or may not be present!
+    /**
+     * This method is called by wf module when a process instance ends.
+     *
+     * @param instanceName name of the process instance that was finished
+     * @param variables process instance variables (todo fixme this is quite a hack because implementor needs to know internal structure of these variables)
+     * @param decision the final decision (the value of WF_ANSWER process variable, which may or may not be present)
+     * @param result implementor should report its result here
+     */
     void onProcessInstanceEnd(String instanceName, Map<String, Object> variables, String decision, OperationResult result);
-
 }

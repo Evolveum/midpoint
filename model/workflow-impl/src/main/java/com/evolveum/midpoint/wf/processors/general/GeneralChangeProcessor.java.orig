@@ -133,7 +133,11 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
         for (GeneralChangeProcessorScenarioType scenarioType : processorConfigurationType.getScenario()) {
             if (Boolean.FALSE.equals(scenarioType.isEnabled())) {
                 LOGGER.trace("scenario {} is disabled, skipping", scenarioType.getName());
-            } else if (!gcpExpressionHelper.evaluateActivationCondition(scenarioType, context, taskFromModel, result)) {
+<<<<<<< HEAD
+            } else if (!gcpExpressionHelper.evaluateActivationCondition(scenarioType, context, result)) {
+=======
+            } else if (!evaluateActivationCondition(scenarioType, context, taskFromModel, result)) {
+>>>>>>> 6a8eba40655dc9dcb400932370a1506d858d06da
                 LOGGER.trace("activationCondition was evaluated to FALSE for scenario named {}", scenarioType.getName());
             } else {
                 LOGGER.trace("Applying scenario {} (process name {})", scenarioType.getName(), scenarioType.getProcessName());
@@ -171,12 +175,88 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
 
             return HookOperationMode.BACKGROUND;
 
+<<<<<<< HEAD
         } catch (SchemaException|ObjectNotFoundException|CommunicationException|ConfigurationException|RuntimeException e) {
             LoggingUtils.logException(LOGGER, "Workflow process(es) could not be started", e);
             result.recordFatalError("Workflow process(es) could not be started: " + e, e);
             return HookOperationMode.ERROR;
             // todo rollback - at least close open tasks, maybe stop workflow process instances
         }
+=======
+        } catch (SchemaException e) {
+            failReason = e;
+        } catch (ObjectNotFoundException e) {
+            failReason = e;
+        } catch (RuntimeException e) {
+            failReason = e;
+        } catch (CommunicationException e) {
+            failReason = e;
+        } catch (ConfigurationException e) {
+            failReason = e;
+        }
+
+        LoggingUtils.logException(LOGGER, "Workflow process(es) could not be started", failReason);
+        result.recordFatalError("Workflow process(es) could not be started: " + failReason, failReason);
+        return HookOperationMode.ERROR;
+
+        // todo rollback - at least close open tasks, maybe stop workflow process instances
+    }
+
+    private boolean evaluateActivationCondition(GeneralChangeProcessorScenarioType scenarioType, ModelContext context, Task task, OperationResult result) throws SchemaException {
+        ExpressionType conditionExpression = scenarioType.getActivationCondition();
+
+        if (conditionExpression == null) {
+            return true;
+        }
+
+        Map<QName,Object> variables = new HashMap<QName,Object>();
+        variables.put(new QName(SchemaConstants.NS_C, "context"), context);
+
+        boolean start;
+        try {
+            start = evaluateBooleanExpression(conditionExpression, variables, "workflow activation condition", task, result);
+        } catch (ObjectNotFoundException e) {
+            throw new SystemException("Couldn't evaluate generalChangeProcessor activation condition", e);
+        } catch (ExpressionEvaluationException e) {
+            throw new SystemException("Couldn't evaluate generalChangeProcessor activation condition", e);
+        }
+        return start;
+    }
+
+    private ExpressionFactory expressionFactory;
+
+    private ExpressionFactory getExpressionFactory() {
+        LOGGER.trace("Getting expressionFactory");
+        ExpressionFactory ef = getBeanFactory().getBean("expressionFactory", ExpressionFactory.class);
+        if (ef == null) {
+            throw new IllegalStateException("expressionFactory bean cannot be found");
+        }
+        return ef;
+    }
+
+    private boolean evaluateBooleanExpression(ExpressionType expressionType, Map<QName, Object> expressionVariables, 
+    		String opContext, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+
+        if (expressionFactory == null) {
+            expressionFactory = getExpressionFactory();
+        }
+
+        PrismContext prismContext = expressionFactory.getPrismContext();
+        QName resultName = new QName(SchemaConstants.NS_C, "result");
+        PrismPropertyDefinition resultDef = new PrismPropertyDefinition(resultName, DOMUtil.XSD_BOOLEAN, prismContext);
+        Expression<PrismPropertyValue<Boolean>> expression = expressionFactory.makeExpression(expressionType, resultDef, opContext, result);
+        ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, opContext, task, result);
+        PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> exprResultTriple = expression.evaluate(params);
+
+        Collection<PrismPropertyValue<Boolean>> exprResult = exprResultTriple.getZeroSet();
+        if (exprResult.size() == 0) {
+            return false;
+        } else if (exprResult.size() > 1) {
+            throw new IllegalStateException("Expression should return exactly one boolean value; it returned " + exprResult.size() + " ones");
+        }
+        Boolean boolResult = exprResult.iterator().next().getValue();
+        return boolResult != null ? boolResult : false;
+>>>>>>> 6a8eba40655dc9dcb400932370a1506d858d06da
     }
     //endregion
 
