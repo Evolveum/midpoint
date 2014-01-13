@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.web.security;
 
-import com.evolveum.midpoint.web.page.test.PageBootstrap;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.home.PageMyPasswords;
@@ -36,12 +35,7 @@ import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.users.*;
 import com.evolveum.midpoint.web.page.admin.workflow.*;
-import com.evolveum.midpoint.web.page.error.PageError;
-import com.evolveum.midpoint.web.page.error.PageError401;
-import com.evolveum.midpoint.web.page.error.PageError403;
-import com.evolveum.midpoint.web.page.error.PageError404;
 import com.evolveum.midpoint.web.page.login.PageLogin;
-import com.evolveum.midpoint.web.page.test.PageTest;
 import com.evolveum.midpoint.web.util.MidPointPageParametersEncoder;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import org.apache.wicket.markup.html.WebPage;
@@ -54,9 +48,9 @@ import static com.evolveum.midpoint.common.security.AuthorizationConstants.*;
  */
 public enum PageUrlMapping {
 
-    LOGIN("/login", PageLogin.class, MidPointPageParametersEncoder.ENCODER, null),
+    LOGIN("/login", null, null, null),
 
-    ADMIN_DASHBOARD("/admin/dashboard", PageDashboard.class, MidPointPageParametersEncoder.ENCODER, new String[]{AUTZ_UI_DASHBOARD_URL, AUTZ_UI_HOME_ALL_URL}),
+    ADMIN_DASHBOARD("/admin/dashboard", null, null, new String[]{AUTZ_UI_DASHBOARD_URL, AUTZ_UI_HOME_ALL_URL}),
 
     ADMIN_MY_PASSWORDS("/admin/myPasswords", PageMyPasswords.class, MidPointPageParametersEncoder.ENCODER, new String[]{AUTZ_UI_MY_PASSWORDS_URL, AUTZ_UI_HOME_ALL_URL}),
 
@@ -102,7 +96,7 @@ public enum PageUrlMapping {
     CONFIG_LOGGING("/admin/config/logging", PageLogging.class, MidPointPageParametersEncoder.ENCODER, new String[]{AUTZ_UI_CONFIGURATION_LOGGING_URL, AUTZ_UI_CONFIGURATION_ALL_URL}),
     CONFIG_TIME_TEST("/admin/config/timeTest", PageTimeTest.class, MidPointPageParametersEncoder.ENCODER, new String[]{null}),
     CONFIG_SYSTEM_CONFIGURATION("/admin/config/system", PageSystemConfiguration.class, MidPointPageParametersEncoder.ENCODER, new String[]{AUTZ_UI_CONFIGURATION_SYSTEM_CONFIG_URL}),
-    CONFIG_ABOUT("/admin/config/about", PageAbout.class, MidPointPageParametersEncoder.ENCODER, new String[]{AUTZ_UI_PERMIT_ALL_URL}),
+    CONFIG_ABOUT("/admin/config/about",  null, null, new String[]{AUTZ_UI_PERMIT_ALL_URL}),
     CONFIG_SYNC_ACCOUNTS("/admin/config/sync/accounts", PageAccounts.class, MidPointPageParametersEncoder.ENCODER, null),
 
     REPORTS("/admin/reports", PageReports.class, MidPointPageParametersEncoder.ENCODER, new String[]{AUTZ_UI_REPORTS_URL}),

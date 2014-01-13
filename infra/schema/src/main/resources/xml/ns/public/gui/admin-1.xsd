@@ -38,7 +38,14 @@
     <xsd:complexType name="DescriptorType">
         <xsd:sequence>
             <xsd:element name="menu" type="tns:MenuType" minOccurs="0"/>
-            <xsd:element name="page" type="tns:PageType" minOccurs="0" maxOccurs="unbounded"/>
+            <xsd:element name="packagesToScan" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Scan selected packages for Page classes, search for annotation @PageDescriptor.
+                        This descriptor is used for url mapping and encoder.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
         </xsd:sequence>
     </xsd:complexType>
 
@@ -100,13 +107,5 @@
 
             </xsd:extension>
         </xsd:complexContent>
-    </xsd:complexType>
-
-    <xsd:complexType name="PageType">
-        <xsd:sequence>
-            <xsd:element name="class" type="xsd:string"/>
-            <xsd:element name="url" type="xsd:string" minOccurs="0"/>
-            <xsd:element name="encoder" type="xsd:string" minOccurs="0"/>
-        </xsd:sequence>
     </xsd:complexType>
 </xsd:schema>

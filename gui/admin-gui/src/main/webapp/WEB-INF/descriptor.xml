@@ -162,26 +162,14 @@
             </item>
         </root>
     </menu>
-    <page>
-        <class>com.evolveum.midpoint.web.page.admin.home.PageDashboard</class>
-        <url>/admin/dashboard</url>
-    </page>
-    <page>
-        <class>com.evolveum.midpoint.web.page.admin.users.PageUsers</class>
-        <url>/admin/users</url>
-    </page>
-    <page>
-        <class>com.evolveum.midpoint.web.page.admin.users.PageUser</class>
-        <url>/admin/user</url>
-        <encoder>com.evolveum.midpoint.web.util.OnePageParameterEncoder</encoder>
-    </page>
-    <page>
-        <class>com.evolveum.midpoint.web.page.admin.users.PageOrgTree</class>
-        <url>/admin/org/tree</url>
-    </page>
-    <page>
-        <class>com.evolveum.midpoint.web.page.admin.users.PageOrgUnit</class>
-        <url>/admin/org/unit</url>
-        <encoder>com.evolveum.midpoint.web.util.OnePageParameterEncoder</encoder>
-    </page>
+
+    <packagesToScan>com.evolveum.midpoint.web.page.admin.home</packagesToScan>
+    <packagesToScan>com.evolveum.midpoint.web.page.admin.users</packagesToScan>
+    <packagesToScan>com.evolveum.midpoint.web.page.admin.roles</packagesToScan>
+    <packagesToScan>com.evolveum.midpoint.web.page.admin.resources</packagesToScan>
+    <packagesToScan>com.evolveum.midpoint.web.page.admin.workflow</packagesToScan>
+    <packagesToScan>com.evolveum.midpoint.web.page.admin.server</packagesToScan>
+    <packagesToScan>com.evolveum.midpoint.web.page.admin.reports</packagesToScan>
+    <packagesToScan>com.evolveum.midpoint.web.page.admin.configuration</packagesToScan>
+    <packagesToScan>com.evolveum.midpoint.web.page.login</packagesToScan>
 </descriptor>

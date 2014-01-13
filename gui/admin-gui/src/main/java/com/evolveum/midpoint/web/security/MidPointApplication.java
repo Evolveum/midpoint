@@ -124,13 +124,13 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         //pretty url for resources (e.g. images)
         mountFiles(ImgResources.BASE_PATH, ImgResources.class);
 
-        for (PageUrlMapping m : PageUrlMapping.values()) {
-            // usually m.getPage() will not return null, this is only the case we set the url with
-            // wildcard which is then used by spring security
-            if (m.getPage() != null) {
-                mount(new MountedMapper(m.getUrl(), m.getPage(), m.getEncoder()));
-            }
-        }
+//        for (PageUrlMapping m : PageUrlMapping.values()) {
+//            // usually m.getPage() will not return null, this is only the case we set the url with
+//            // wildcard which is then used by spring security
+//            if (m.getPage() != null) {
+//                mount(new MountedMapper(m.getUrl(), m.getPage(), m.getEncoder()));
+//            }
+//        }
 
         //exception handling an error pages
         IApplicationSettings appSettings = getApplicationSettings();

@@ -23,6 +23,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
 import com.evolveum.midpoint.web.component.async.CallableResult;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -51,6 +52,7 @@ import java.util.concurrent.Callable;
 /**
  * @author lazyman
  */
+@PageDescriptor(url = "/admin/dashboard")
 public class PageDashboard extends PageAdminHome {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageDashboard.class);

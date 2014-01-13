@@ -16,16 +16,21 @@
 
 package com.evolveum.midpoint.web.application;
 
+import com.evolveum.midpoint.util.ClassPathUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.menu.top.MenuBarItem;
 import com.evolveum.midpoint.web.component.menu.top.MenuItem;
 import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.web.util.MidPointPageParametersEncoder;
 import com.evolveum.midpoint.xml.ns._public.gui.admin_1.*;
 import org.apache.commons.lang.Validate;
+import org.apache.wicket.core.request.mapper.MountedMapper;
+import org.apache.wicket.markup.html.WebPage;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.request.mapper.parameter.IPageParametersEncoder;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -60,10 +65,10 @@ public class DescriptorLoader {
 
             JAXBContext context = JAXBContext.newInstance(ObjectFactory.class);
             Unmarshaller unmarshaller = context.createUnmarshaller();
-            JAXBElement<DescriptorType> element = (JAXBElement)unmarshaller.unmarshal(baseInput);
+            JAXBElement<DescriptorType> element = (JAXBElement) unmarshaller.unmarshal(baseInput);
             DescriptorType descriptor = element.getValue();
 
-                    LOGGER.debug("Loading menu bar from " + baseFileName + " .");
+            LOGGER.debug("Loading menu bar from " + baseFileName + " .");
             MenuType menu = descriptor.getMenu();
             Map<Integer, RootMenuItemType> rootMenuItems = new HashMap<>();
             mergeRootMenuItems(menu, rootMenuItems);
@@ -78,9 +83,9 @@ public class DescriptorLoader {
             List<RootMenuItemType> sortedRootMenuItems = sortRootMenuItems(rootMenuItems);
             loadMenuBar(sortedRootMenuItems);
 
-            loadPageMapping(descriptor.getPage(), application);
+            loadPageMapping(descriptor.getPackagesToScan(), application);
             if (customDescriptor != null) {
-                loadPageMapping(customDescriptor.getPage(), application);
+                loadPageMapping(customDescriptor.getPackagesToScan(), application);
             }
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't process application descriptor", ex);
@@ -148,7 +153,28 @@ public class DescriptorLoader {
         return new StringResourceModel(resourceKey, new Model<String>(), resourceKey);
     }
 
-    private void loadPageMapping(List<PageType> pages, MidPointApplication application) {
+    private void loadPageMapping(List<String> packages, MidPointApplication application)
+            throws InstantiationException, IllegalAccessException {
 
+        for (String pac : packages) {
+            LOGGER.info("Loading page mapping for package {}", new Object[]{pac});
+
+            Set<Class> classes = ClassPathUtil.listClasses(pac);
+            for (Class clazz : classes) {
+                if (!WebPage.class.isAssignableFrom(clazz)) {
+                    continue;
+                }
+
+                PageDescriptor descriptor = (PageDescriptor) clazz.getAnnotation(PageDescriptor.class);
+                if (descriptor == null) {
+                    continue;
+                }
+
+                for (String url : descriptor.url()) {
+                    IPageParametersEncoder encoder = descriptor.encoder().newInstance();
+                    application.mount(new MountedMapper(url, clazz, encoder));
+                }
+            }
+        }
     }
 }

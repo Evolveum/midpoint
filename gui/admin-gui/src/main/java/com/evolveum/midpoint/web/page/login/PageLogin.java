@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.login;
 
+import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.menu.top.TopMenuBar;
 import com.evolveum.midpoint.web.component.menu.top.LocalePanel;
 import com.evolveum.midpoint.web.page.PageBase;
@@ -30,6 +31,7 @@ import org.apache.wicket.model.Model;
 /**
  * @author mserbak
  */
+@PageDescriptor(url = "/login")
 public class PageLogin extends PageBase {
 
     private static final String ID_LOGIN_FORM = "loginForm";
