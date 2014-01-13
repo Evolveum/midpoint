@@ -28,6 +28,7 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 
 import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Unmarshaller;
 import java.io.InputStream;
 import java.util.*;
@@ -59,16 +60,18 @@ public class DescriptorLoader {
 
             JAXBContext context = JAXBContext.newInstance(ObjectFactory.class);
             Unmarshaller unmarshaller = context.createUnmarshaller();
-            DescriptorType descriptor = (DescriptorType) unmarshaller.unmarshal(baseInput);
+            JAXBElement<DescriptorType> element = (JAXBElement)unmarshaller.unmarshal(baseInput);
+            DescriptorType descriptor = element.getValue();
 
-            LOGGER.debug("Loading menu bar from " + baseFileName + " .");
+                    LOGGER.debug("Loading menu bar from " + baseFileName + " .");
             MenuType menu = descriptor.getMenu();
             Map<Integer, RootMenuItemType> rootMenuItems = new HashMap<>();
             mergeRootMenuItems(menu, rootMenuItems);
 
             DescriptorType customDescriptor = null;
             if (customInput != null) {
-                customDescriptor = (DescriptorType) unmarshaller.unmarshal(customInput);
+                element = (JAXBElement) unmarshaller.unmarshal(customInput);
+                customDescriptor = element.getValue();
                 mergeRootMenuItems(customDescriptor.getMenu(), rootMenuItems);
             }
 
@@ -127,7 +130,7 @@ public class DescriptorLoader {
                     Validate.notNull(menuItem.getName(), "Menu item name must not be null.");
                     Validate.notNull(menuItem.getPage(), "Menu item page class must not be null.");
 
-                    page = Class.forName(root.getPage());
+                    page = Class.forName(menuItem.getPage());
                     menuBarItem.addMenuItem(new MenuItem(createStringResource(menuItem.getName()), page));
                 } else if (item instanceof MenuItemDividerType) {
                     menuBarItem.addMenuItem(new MenuItem(null));

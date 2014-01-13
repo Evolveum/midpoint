@@ -109,17 +109,11 @@ public enum PageUrlMapping {
 
     ADMIN("/admin", PageDashboard.class, MidPointPageParametersEncoder.ENCODER, new String[]{AUTZ_UI_DASHBOARD_URL, AUTZ_UI_HOME_ALL_URL}),
 
-    //todo remove this, they has to be disabled before release [lazyman]
-    TEST("/test", PageTest.class, MidPointPageParametersEncoder.ENCODER, null),
-    TEST_BOOTSTRAP("/bootstrap", PageBootstrap.class, MidPointPageParametersEncoder.ENCODER, null),
-
-    ERROR("/error", PageError.class, MidPointPageParametersEncoder.ENCODER, null),
-
-    ERROR_401("/error/401", PageError401.class, MidPointPageParametersEncoder.ENCODER, null),
-
-    ERROR_403("/error/403", PageError403.class, MidPointPageParametersEncoder.ENCODER, null),
-
-    ERROR_404("/error/404", PageError404.class, MidPointPageParametersEncoder.ENCODER, null);
+    //todo errors will be removed later completely, they are mounted manually in MidpointApplication [lazyman]
+    ERROR("/error", null, null, null),
+    ERROR_401("/error/401", null, null, null),
+    ERROR_403("/error/403", null, null, null),
+    ERROR_404("/error/404", null, null, null);
 
     private String url;
 
