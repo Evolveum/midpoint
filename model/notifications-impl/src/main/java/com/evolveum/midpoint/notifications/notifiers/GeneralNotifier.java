@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.notifications.notifiers;
 
+import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.NotificationsUtil;
 import com.evolveum.midpoint.notifications.api.events.Event;
@@ -123,11 +124,11 @@ public class GeneralNotifier extends BaseHandler {
             }
             else {
 
-                Map<QName,Object> variables = getDefaultVariables(event, result);
+            	ExpressionVariables variables = getDefaultVariables(event, result);
 
                 for (String transportName : generalNotifierType.getTransport()) {
 
-                    variables.put(SchemaConstants.C_TRANSPORT_NAME, transportName);
+                    variables.addVariableDefinition(SchemaConstants.C_TRANSPORT_NAME, transportName);
                     Transport transport = notificationManager.getTransport(transportName);
 
                     List<String> recipientsAddresses = getRecipientsAddresses(event, generalNotifierType, variables, 
@@ -195,7 +196,7 @@ public class GeneralNotifier extends BaseHandler {
         return DEFAULT_LOGGER;              // in case a subclass does not provide its own logger
     }
 
-    protected List<String> getRecipientsAddresses(Event event, GeneralNotifierType generalNotifierType, Map<QName, Object> variables, 
+    protected List<String> getRecipientsAddresses(Event event, GeneralNotifierType generalNotifierType, ExpressionVariables variables, 
     		UserType defaultRecipient, String transportName, Transport transport, Task task, OperationResult result) {
         List<String> addresses = new ArrayList<String>();
         if (!generalNotifierType.getRecipientExpression().isEmpty()) {
@@ -221,7 +222,7 @@ public class GeneralNotifier extends BaseHandler {
         return addresses;
     }
 
-    protected String getSubjectFromExpression(Event event, GeneralNotifierType generalNotifierType, Map<QName, Object> variables, 
+    protected String getSubjectFromExpression(Event event, GeneralNotifierType generalNotifierType, ExpressionVariables variables, 
     		Task task, OperationResult result) {
         if (generalNotifierType.getSubjectExpression() != null) {
             List<String> subjectList = evaluateExpressionChecked(generalNotifierType.getSubjectExpression(), variables, "subject expression", 
@@ -239,7 +240,7 @@ public class GeneralNotifier extends BaseHandler {
         }
     }
 
-    protected String getBodyFromExpression(Event event, GeneralNotifierType generalNotifierType, Map<QName, Object> variables, 
+    protected String getBodyFromExpression(Event event, GeneralNotifierType generalNotifierType, ExpressionVariables variables, 
     		Task task, OperationResult result) {
         if (generalNotifierType.getBodyExpression() != null) {
             List<String> bodyList = evaluateExpressionChecked(generalNotifierType.getBodyExpression(), variables, 

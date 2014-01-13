@@ -5,6 +5,7 @@ import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.common.expression.Expression;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -175,7 +176,7 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
             LoggingUtils.logException(LOGGER, "Workflow process(es) could not be started", e);
             result.recordFatalError("Workflow process(es) could not be started: " + e, e);
             return HookOperationMode.ERROR;
-            // todo rollback - at least close open tasks, maybe stop workflow process instances
+            // todo rollback - at least close open tasks, maybe stop workflow process instances>>>>>>> b3692cbfffd41753ae76370c0d78543d81378be4
         }
     }
     //endregion

@@ -1061,9 +1061,9 @@ public class TestMappingDynamicSimple {
     	Item oldItem = account.findItem(new ItemPath(ShadowType.F_ATTRIBUTES, SchemaTestConstants.ICFS_NAME));
     	ItemDelta delta = PropertyDelta.createModificationAddProperty(SchemaTestConstants.ICFS_NAME_PATH, (PrismPropertyDefinition) oldItem.getDefinition(), ((PrismPropertyValue) oldItem.getValue(0)).getValue());
     	
-    	UserType user = new UserType();
+    	PrismObject<UserType> user = evaluator.getUserDefinition().instantiate();
     	
-    	Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createInboudMapping("mapping-inbound.xml", TEST_NAME, delta, user, account.asObjectable(), null, null);
+    	Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createInboudMapping("mapping-inbound.xml", TEST_NAME, delta, user.asObjectable(), account.asObjectable(), null, null);
     	
     	OperationResult opResult = new OperationResult(TEST_NAME);
     	mapping.evaluate(null, opResult);

@@ -63,6 +63,7 @@ public class BaseConfigurationHelper {
         Configuration c = wfConfiguration.getChangeProcessorsConfig().subset(beanName);
         if (c.isEmpty()) {
             LOGGER.info("Skipping reading configuration of " + beanName + ", as it is not on the list of change processors or is empty.");
+            return;
         }
 
         List<String> allKnownKeys = new ArrayList<>(KNOWN_KEYS);

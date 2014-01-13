@@ -21,6 +21,8 @@ import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
@@ -35,7 +37,7 @@ import java.util.Map.Entry;
 /**
  * @author Radovan Semancik
  */
-public class ExpressionVariables {
+public class ExpressionVariables implements Dumpable, DebugDumpable {
 
     private Map<QName, Object> variables = new HashMap<QName, Object>();
 
@@ -59,6 +61,10 @@ public class ExpressionVariables {
             variables.put(entry.getKey(), value);
         }
     }
+    
+    public void addVariableDefinitions(ExpressionVariables extraVariables) {
+    	addVariableDefinitions(extraVariables.getMap());
+    }
 
     /**
      * Adds map of extra variables to the expression.
@@ -78,6 +84,10 @@ public class ExpressionVariables {
             variables.put(entry.getKey(), value);
         }
     }
+    
+    public void addVariableDefinitionsOld(ExpressionVariables extraVariables) {
+    	addVariableDefinitionsOld(extraVariables.getMap());
+    }
 
     /**
      * Adds map of extra variables to the expression.
@@ -96,6 +106,10 @@ public class ExpressionVariables {
         	}
             variables.put(entry.getKey(), value);
         }
+    }
+    
+    public void addVariableDefinitionsNew(ExpressionVariables extraVariables) {
+    	addVariableDefinitionsNew(extraVariables.getMap());
     }
     
     public void setRootNode(ObjectReferenceType objectRef) {
@@ -122,7 +136,27 @@ public class ExpressionVariables {
     	return variables.entrySet();
     }
 
-    public String formatVariables() {
+    public int size() {
+		return variables.size();
+	}
+
+	public boolean isEmpty() {
+		return variables.isEmpty();
+	}
+
+	public boolean containsKey(Object key) {
+		return variables.containsKey(key);
+	}
+
+	public boolean containsValue(Object value) {
+		return variables.containsValue(value);
+	}
+
+	public Set<QName> keySet() {
+		return variables.keySet();
+	}
+
+	public String formatVariables() {
         StringBuilder sb = new StringBuilder();
         Iterator<Entry<QName, Object>> i = variables.entrySet().iterator();
         while (i.hasNext()) {
@@ -195,5 +229,24 @@ public class ExpressionVariables {
 	public String toString() {
 		return "variables(" + variables + ")";
 	}
+
+	@Override
+	public String debugDump() {
+		return debugDump(0);
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.debugDumpMapMultiLine(sb, variables, 1);
+		return sb.toString();
+	}
+
+	@Override
+	public String dump() {
+		return debugDump();
+	}
+	
+	
     
 }
