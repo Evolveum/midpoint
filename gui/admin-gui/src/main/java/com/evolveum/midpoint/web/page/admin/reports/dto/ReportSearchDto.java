@@ -21,11 +21,21 @@ import java.io.Serializable;
 /**
  *  @author shood
  * */
-public class ReportFilterDto implements Serializable{
+public class ReportSearchDto implements Serializable{
 
     public static final String F_FILE_TYPE = "fileType";
+    public static final String F_REPORT_TYPE = "reportType";
 
     private String fileType;
+    private String reportType;
+
+    public String getReportType() {
+        return reportType;
+    }
+
+    public void setReportType(String reportType) {
+        this.reportType = reportType;
+    }
 
     public String getFileType() {
         return fileType;
