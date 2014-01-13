@@ -32,8 +32,10 @@ import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFu
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctionsXPath;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.functions.LogExpressionFunctions;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -261,6 +263,8 @@ public class ExpressionUtil {
 					root = ((ItemDeltaItem<?>)varValue).getDefinition();
 				} else if (varValue instanceof Item<?>) {
 					root = ((Item<?>)varValue).getDefinition();
+				} else if (varValue instanceof Objectable) {
+					root = ((Objectable)varValue).asPrismObject().getDefinition();
 				} else if (varValue instanceof ItemDefinition) {
 					root = varValue;
 				} else {

@@ -264,7 +264,7 @@ public class MappingTestEvaluator {
 		return PrismTestUtil.parseObject(ACCOUNT_FILE);
 	}
 	
-	private PrismObjectDefinition<UserType> getUserDefinition() {
+	public PrismObjectDefinition<UserType> getUserDefinition() {
 		return prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
 	}
 	
