@@ -26,6 +26,7 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.DescriptorLoader;
 import com.evolveum.midpoint.web.component.GuiComponents;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.error.PageError;
@@ -144,11 +145,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
         eventBus = new EventBus(this);
         eventBus.getParameters().setLogLevel(AtmosphereLogLevel.DEBUG);
 
-        loadDescriptor();
-    }
-
-    private void loadDescriptor() {
-        //todo implement
+        new DescriptorLoader().loadData(this);
     }
 
     private void mountFiles(String path, Class<?> clazz) {

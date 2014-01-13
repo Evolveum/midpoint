@@ -50,7 +50,7 @@
 
     <xsd:complexType name="AbstractMenuItemType">
         <xsd:sequence>
-            <xsd:element name="cssClass" type="xsd:string" minOccurs="0"/>
+            <!--<xsd:element name="cssClass" type="xsd:string" minOccurs="0"/>-->
             <xsd:element name="behaviour" type="xsd:string" minOccurs="0"/>
             <!--<xsd:element name="security" type="xsd:string" minOccurs="0"/>-->
         </xsd:sequence>
@@ -61,6 +61,7 @@
             <xsd:extension base="tns:AbstractMenuItemType">
                 <xsd:sequence>
                     <xsd:element name="name" type="xsd:string"/>
+                    <xsd:element name="page" type="xsd:string" minOccurs="0"/>
                     <xsd:element name="order" type="xsd:int"/>
                     <xsd:choice minOccurs="0" maxOccurs="unbounded">
                         <xsd:element name="item" type="tns:MenuItemType"/>
