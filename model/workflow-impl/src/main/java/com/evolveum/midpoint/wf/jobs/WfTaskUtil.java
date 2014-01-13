@@ -18,10 +18,19 @@ package com.evolveum.midpoint.wf.jobs;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.lens.LensContext;
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -30,17 +39,24 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskBinding;
 import com.evolveum.midpoint.util.MiscUtil;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.WfConfiguration;
 import com.evolveum.midpoint.wf.api.WfTaskExtensionItemsNames;
-import com.evolveum.midpoint.wf.processors.primary.wrapper.PrimaryApprovalProcessWrapper;
 import com.evolveum.midpoint.wf.processors.ChangeProcessor;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
-import com.evolveum.midpoint.xml.ns._public.communication.workflow_1.WfProcessInstanceEventType;
-import com.evolveum.midpoint.xml.ns._public.communication.workflow_1.WfProcessVariable;
+import com.evolveum.midpoint.wf.processors.primary.wrapper.PrimaryApprovalProcessWrapper;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScheduleType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UriStackEntry;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
@@ -51,7 +67,12 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Handles low-level task operations, e.g. handling wf* properties in task extension.
@@ -212,69 +233,6 @@ public class WfTaskUtil {
 
     }
 
-    // todo: fix this brutal hack (task closing should not go through repo)
-	void markTaskAsClosed(Task task, OperationResult parentResult) throws ObjectNotFoundException, SchemaException {
-        String oid = task.getOid();
-		try {
-            ItemDelta delta = PropertyDelta.createReplaceDelta(
-                    prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(TaskType.class),
-                    TaskType.F_EXECUTION_STATUS,
-                    TaskExecutionStatusType.CLOSED);
-            List<ItemDelta> deltas = new ArrayList<ItemDelta>();
-            deltas.add(delta);
-			repositoryService.modifyObject(TaskType.class, oid, deltas, parentResult);
-		} catch (ObjectNotFoundException e) {
-            LoggingUtils.logException(LOGGER, "Cannot mark task " + task + " as closed.", e);
-            throw e;
-        } catch (SchemaException e) {
-            LoggingUtils.logException(LOGGER, "Cannot mark task " + task + " as closed.", e);
-            throw e;
-        } catch (ObjectAlreadyExistsException e) {
-            LoggingUtils.logException(LOGGER, "Cannot mark task " + task + " as closed.", e);
-            throw new SystemException(e);
-        }
-
-    }
-
-//	void returnToAsyncCaller(Task task, OperationResult parentResult) throws Exception {
-//		try {
-//			task.finishHandler(parentResult);
-////			if (task.getExclusivityStatus() == TaskExclusivityStatus.CLAIMED) {
-////				taskManager.releaseTask(task, parentResult);	// necessary for active tasks
-////				task.shutdown();								// this works when this java object is the same as is being executed by CycleRunner
-////			}
-////			if (task.getHandlerUri() != null)
-////				task.setExecutionStatusWithPersist(TaskExecutionStatus.RUNNING, parentResult);
-//		}
-//		catch (Exception e) {
-//			throw new Exception("Couldn't mark task " + task + " as running.", e);
-//		}
-//	}
-
-//	void setTaskResult(String oid, OperationResult result) throws Exception {
-//		try {
-//			OperationResultType ort = result.createOperationResultType();
-//			repositoryService.modifyObject(TaskType.class, ObjectTypeUtil.createModificationReplaceProperty(oid, 
-//				SchemaConstants.C_RESULT,
-//				ort), result);
-//		}
-//		catch (Exception e) {
-//			throw new Exception("Couldn't set result for the task " + oid, e);
-//		}
-//
-//	}
-
-
-//    void putWorkflowAnswerIntoTask(boolean doit, Task task, OperationResult result) throws IOException, ClassNotFoundException {
-//
-//    	ModelOperationStateType state = task.getModelOperationState();
-//    	if (state == null)
-//    		state = new ModelOperationStateType();
-//
-////    	state.setShouldBeExecuted(doit);
-////    	task.setModelOperationStateWithPersist(state, result);
-//    }
-
     public void setProcessWrapper(Task task, PrimaryApprovalProcessWrapper wrapper) throws SchemaException {
         Validate.notNull(wrapper, "Process Wrapper is undefined.");
         PrismProperty<String> w = wfProcessWrapperPropertyDefinition.instantiate();
@@ -313,68 +271,6 @@ public class WfTaskUtil {
     }
 
 
-    public Map<String, String> unwrapWfVariables(WfProcessInstanceEventType event) {
-        Map<String,String> retval = new HashMap<String,String>();
-        for (WfProcessVariable var : event.getWfProcessVariable()) {
-            retval.put(var.getName(), var.getValue());
-        }
-        return retval;
-    }
-
-    public String getWfVariable(WfProcessInstanceEventType event, String name) {
-        for (WfProcessVariable v : event.getWfProcessVariable())
-            if (name.equals(v.getName()))
-                return v.getValue();
-        return null;
-    }
-
-
-//    public void markRejection(Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
-//
-//        ModelOperationStateType state = task.getModelOperationState();
-//        state.setStage(null);
-//        task.setModelOperationState(state);
-//        try {
-//            task.savePendingModifications(result);
-//        } catch (ObjectAlreadyExistsException ex) {
-//            throw new SystemException(ex);
-//        }
-//
-//        markTaskAsClosed(task, result);         // brutal hack
-//    }
-
-
-//    public void markAcceptation(Task task, OperationResult result) throws ObjectNotFoundException, SchemaException {
-//
-//        ModelOperationStateType state = task.getModelOperationState();
-//        ModelOperationStageType stage = state.getStage();
-//        switch (state.getStage()) {
-//            case PRIMARY: stage = ModelOperationStageType.SECONDARY; break;
-//            case SECONDARY: stage = ModelOperationStageType.EXECUTE; break;
-//            case EXECUTE: stage = null; break;      // should not occur
-//            default: throw new SystemException("Unknown model operation stage: " + state.getStage());
-//        }
-//        state.setStage(stage);
-//        task.setModelOperationState(state);
-//        try {
-//            task.savePendingModifications(result);
-//        } catch (ObjectAlreadyExistsException ex) {
-//            throw new SystemException(ex);
-//        }
-//
-//        // todo continue with model operation
-//
-//        markTaskAsClosed(task, result);         // brutal hack
-//
-////        switch (state.getKindOfOperation()) {
-////            case ADD: modelController.addObjectContinuing(task, result); break;
-////            case MODIFY: modelController.modifyObjectContinuing(task, result); break;
-////            case DELETE: modelController.deleteObjectContinuing(task, result); break;
-////            default: throw new SystemException("Unknown kind of model operation: " + state.getKindOfOperation());
-////        }
-//
-//    }
-
     public String getProcessId(Task task) {
         // let us request the current task status
         // todo make this property single-valued in schema to be able to use getRealValue
@@ -389,12 +285,6 @@ public class WfTaskUtil {
             return values.iterator().next();
         }
     }
-
-//    void setModelOperationState(Task task, ModelContext context) throws IOException {
-//        ModelOperationStateType state = new ModelOperationStateType();
-//        state.setOperationData(SerializationUtil.toString(context));
-//        task.setModelOperationState(state);
-//    }
 
     public boolean hasModelContext(Task task) {
         PrismProperty modelContextProperty = task.getExtensionProperty(SchemaConstants.MODEL_CONTEXT_NAME);
