@@ -15,8 +15,18 @@
  */
 package com.evolveum.midpoint.common.crypto;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.security.NoSuchAlgorithmException;
+import java.security.Provider;
+import java.security.Security;
 import java.util.Collection;
 
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.IvParameterSpec;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -27,6 +37,7 @@ import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.TunnelException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
@@ -197,6 +208,75 @@ public class CryptoUtil {
 				throw new IllegalStateException(e.getMessage() + " in modification " + delta, e);
 			}
 
+		}
+	}
+
+	private final static byte [] DEFAULT_IV_BYTES = {
+        (byte) 0x51,(byte) 0x65,(byte) 0x22,(byte) 0x23,
+        (byte) 0x64,(byte) 0x05,(byte) 0x6A,(byte) 0xBE,
+        (byte) 0x51,(byte) 0x65,(byte) 0x22,(byte) 0x23,
+        (byte) 0x64,(byte) 0x05,(byte) 0x6A,(byte) 0xBE,
+    };
+	
+	public static void securitySelfTest(OperationResult parentTestResult) {
+		OperationResult result = parentTestResult.createSubresult(CryptoUtil.class.getName()+".securitySelfTest");
+		
+		// Providers
+		for (Provider provider: Security.getProviders()) {
+			String providerName = provider.getName();
+			OperationResult providerResult = result.createSubresult(CryptoUtil.class.getName()+".securitySelfTest.provider."+providerName);
+			try {
+				providerResult.addContext("info", provider.getInfo());
+				ByteArrayOutputStream os = new ByteArrayOutputStream();
+				provider.storeToXML(os, "Crypto provider "+providerName);
+				String propXml = os.toString();
+				providerResult.addContext("properties", propXml);
+				providerResult.recordSuccess();
+			} catch (Throwable e) {
+				providerResult.recordFatalError(e);
+			}
+		}
+		
+		securitySelfTestAlgorithm("AES", "AES/CBC/PKCS5Padding",result);
+		
+		result.computeStatus();
+	}
+
+	private static void securitySelfTestAlgorithm(String algorithmName, String transformationName, OperationResult parentResult) {
+		OperationResult subresult = parentResult.createSubresult(CryptoUtil.class.getName()+".securitySelfTest.algorithm."+algorithmName);
+		try {
+			SecretKey key = KeyGenerator.getInstance(algorithmName).generateKey();
+			subresult.addReturn("keyAlgorithm", key.getAlgorithm());
+			subresult.addReturn("keyLength", key.getEncoded().length*8);
+			subresult.addReturn("keyFormat", key.getFormat());
+			subresult.recordSuccess();
+			
+			IvParameterSpec iv = new IvParameterSpec(DEFAULT_IV_BYTES);
+			
+			String plainString = "Scurvy seadog";
+			
+			Cipher cipher = Cipher.getInstance(transformationName);
+			subresult.addReturn("cipherAlgorithmName", algorithmName);
+			subresult.addReturn("cipherTansfromationName", transformationName);
+			subresult.addReturn("cipherAlgorithm", cipher.getAlgorithm());
+			subresult.addReturn("cipherBlockSize", cipher.getBlockSize());
+			subresult.addReturn("cipherProvider", cipher.getProvider().getName());
+			subresult.addReturn("cipherMaxAllowedKeyLength", cipher.getMaxAllowedKeyLength(transformationName));
+            cipher.init(Cipher.ENCRYPT_MODE, key, iv);
+            byte[] encryptedBytes = cipher.doFinal(plainString.getBytes());
+            
+            cipher = Cipher.getInstance(transformationName);
+            cipher.init(Cipher.DECRYPT_MODE, key, iv);
+            byte[] decryptedBytes = cipher.doFinal(encryptedBytes);
+            String decryptedString = new String(decryptedBytes);
+			
+            if (!plainString.equals(decryptedString)) {
+            	subresult.recordFatalError("Encryptor roundtrip failed; encrypted="+plainString+", decrypted="+decryptedString);
+			} else {
+				subresult.recordSuccess();
+			}
+		} catch (Throwable e) {
+			subresult.recordFatalError(e);
 		}
 	}
 
