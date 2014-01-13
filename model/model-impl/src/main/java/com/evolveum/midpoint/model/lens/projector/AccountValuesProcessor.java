@@ -37,6 +37,7 @@ import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.common.expression.Expression;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.model.common.expression.Source;
 import com.evolveum.midpoint.model.lens.LensContext;
@@ -548,7 +549,7 @@ public class AccountValuesProcessor {
 		Source<PrismPropertyValue<Integer>> iterationSource = new Source<PrismPropertyValue<Integer>>(idi, ExpressionConstants.VAR_ITERATION);
 		sources.add(iterationSource);
 		
-		Map<QName, Object> variables = createExpressionVariables(context, accountContext);
+		ExpressionVariables variables = createExpressionVariables(context, accountContext);
 		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(sources , variables, 
 				"iteration token expression in "+accountContext.getHumanReadableName(), task, result);
 		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = expression.evaluate(expressionContext);
@@ -566,7 +567,7 @@ public class AccountValuesProcessor {
 		return realValue;
 	}
 		
-	private <F extends ObjectType> Map<QName, Object> createExpressionVariables(LensContext<F> context, 
+	private <F extends ObjectType> ExpressionVariables createExpressionVariables(LensContext<F> context, 
 			LensProjectionContext accountContext) {
 		return Utils.getDefaultExpressionVariables(context.getFocusContext().getObjectNew(), accountContext.getObjectNew(),
 				accountContext.getResourceShadowDiscriminator(), accountContext.getResource().asPrismObject());
@@ -607,9 +608,9 @@ public class AccountValuesProcessor {
 				DOMUtil.XSD_BOOLEAN, prismContext);
 		Expression<PrismPropertyValue<Boolean>> expression = expressionFactory.makeExpression(expressionType, outputDefinition , desc, result);
 		
-		Map<QName, Object> variables = createExpressionVariables(context, accountContext);
-		variables.put(ExpressionConstants.VAR_ITERATION, iteration);
-		variables.put(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken);
+		ExpressionVariables variables = createExpressionVariables(context, accountContext);
+		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION, iteration);
+		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, iterationToken);
 		
 		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(null , variables, desc, task, result);
 		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = expression.evaluate(expressionContext);

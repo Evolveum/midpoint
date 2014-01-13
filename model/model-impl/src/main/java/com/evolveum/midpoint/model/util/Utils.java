@@ -30,6 +30,7 @@ import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
+import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.importer.ImportConstants;
 import com.evolveum.midpoint.model.importer.ObjectImporter;
 import com.evolveum.midpoint.model.lens.LensContext;
@@ -386,7 +387,7 @@ public final class Utils {
 		return dryRun.booleanValue(); 
     }
     
-    public static Map<QName, Object> getDefaultExpressionVariables(ObjectType focusType,
+    public static ExpressionVariables getDefaultExpressionVariables(ObjectType focusType,
     		ShadowType shadowType, ResourceType resourceType) {
     	PrismObject<? extends ObjectType> focus = null;
     	if (focusType != null) {
@@ -403,20 +404,20 @@ public final class Utils {
     	return getDefaultExpressionVariables(focus, shadow, null, resource);
     }
     
-    public static Map<QName, Object> getDefaultExpressionVariables(PrismObject<? extends ObjectType> focus,
+    public static ExpressionVariables getDefaultExpressionVariables(PrismObject<? extends ObjectType> focus,
     		PrismObject<? extends ShadowType> shadow, ResourceShadowDiscriminator discr, PrismObject<ResourceType> resource) {
-		Map<QName, Object> variables = new HashMap<QName, Object>();
+    	ExpressionVariables variables = new ExpressionVariables();
 
         // Legacy. And convenience/understandability.
         if (focus == null || (focus != null && focus.canRepresent(UserType.class))
                 || (discr != null && discr.getKind() == ShadowKindType.ACCOUNT)) {
-		    variables.put(ExpressionConstants.VAR_USER, focus);
-            variables.put(ExpressionConstants.VAR_ACCOUNT, shadow);
+		    variables.addVariableDefinition(ExpressionConstants.VAR_USER, focus);
+            variables.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, shadow);
         }
 
-        variables.put(ExpressionConstants.VAR_FOCUS, focus);
-		variables.put(ExpressionConstants.VAR_SHADOW, shadow);
-		variables.put(ExpressionConstants.VAR_RESOURCE, resource);
+        variables.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focus);
+		variables.addVariableDefinition(ExpressionConstants.VAR_SHADOW, shadow);
+		variables.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, resource);
 
         return variables;
 	}

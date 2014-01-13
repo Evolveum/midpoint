@@ -20,6 +20,7 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -36,17 +37,18 @@ public class ExpressionEvaluationContext {
 
 	private Collection<Source<? extends PrismValue>> sources;
 	private Source<?> defaultSource;
-	private Map<QName, Object> variables;
+	private ExpressionVariables variables;
 	private boolean skipEvaluationPlus = false;
 	private boolean skipEvaluationMinus = false;
 	private StringPolicyResolver stringPolicyResolver;
 	private ExpressionFactory expressionFactory;
+	private PrismObjectDefinition<?> defaultTargetContext;
 	private String contextDescription;
 	private Task task;
 	private OperationResult result;
 	
 	public ExpressionEvaluationContext(Collection<Source<? extends PrismValue>> sources,
-			Map<QName, Object> variables, String contextDescription, Task task,
+			ExpressionVariables variables, String contextDescription, Task task,
 			OperationResult result) {
 		super();
 		this.sources = sources;
@@ -72,11 +74,11 @@ public class ExpressionEvaluationContext {
 		this.defaultSource = defaultSource;
 	}
 
-	public Map<QName, Object> getVariables() {
+	public ExpressionVariables getVariables() {
 		return variables;
 	}
 	
-	public void setVariables(Map<QName, Object> variables) {
+	public void setVariables(ExpressionVariables variables) {
 		this.variables = variables;
 	}
 	
@@ -110,6 +112,14 @@ public class ExpressionEvaluationContext {
 
 	public void setExpressionFactory(ExpressionFactory expressionFactory) {
 		this.expressionFactory = expressionFactory;
+	}
+
+	public PrismObjectDefinition<?> getDefaultTargetContext() {
+		return defaultTargetContext;
+	}
+
+	public void setDefaultTargetContext(PrismObjectDefinition<?> defaultTargetContext) {
+		this.defaultTargetContext = defaultTargetContext;
 	}
 
 	public String getContextDescription() {

@@ -181,7 +181,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 	}
 
 	private PrismValueDeltaSetTriple<V> evaluateAbsoluteExpression(Collection<Source<? extends PrismValue>> sources,
-			Map<QName, Object> variables, ExpressionEvaluationContext params, String contextDescription, Task task, OperationResult result) 
+			ExpressionVariables variables, ExpressionEvaluationContext params, String contextDescription, Task task, OperationResult result) 
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		
 		PrismValueDeltaSetTriple<V> outputTriple;
@@ -215,7 +215,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 		return false;
 	}
 
-	private boolean hasDelas(Map<QName, Object> variables) {
+	private boolean hasDelas(ExpressionVariables variables) {
 		for (Entry<QName,Object> entry: variables.entrySet()) {
 			Object value = entry.getValue();
 			if (value instanceof ObjectDeltaObject<?>) {
@@ -232,7 +232,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 	}
 
 	private Collection<V> evaluateScriptExpression(Collection<Source<? extends PrismValue>> sources,
-			Map<QName, Object> variables, String contextDescription, boolean useNew, ExpressionEvaluationContext params, 
+			ExpressionVariables variables, String contextDescription, boolean useNew, ExpressionEvaluationContext params, 
 			Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		
 		ExpressionVariables scriptVariables = new ExpressionVariables();
@@ -321,7 +321,7 @@ public abstract class AbstractValueTransformationExpressionEvaluator<V extends P
 	}
 
 	private PrismValueDeltaSetTriple<V> evaluateRelativeExpression(final List<SourceTriple<? extends PrismValue>> sourceTriples,
-			final Map<QName, Object> variables, final boolean skipEvaluationMinus, final boolean skipEvaluationPlus, 
+			final ExpressionVariables variables, final boolean skipEvaluationMinus, final boolean skipEvaluationPlus, 
 			final Boolean includeNulls, final ExpressionEvaluationContext params, final String contextDescription, 
 			final Task task, final OperationResult result) 
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {

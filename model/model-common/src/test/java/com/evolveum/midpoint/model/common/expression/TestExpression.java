@@ -94,14 +94,14 @@ public class TestExpression {
 				DOMUtil.XSD_BOOLEAN, prismContext);
 		Expression<PrismPropertyValue<Boolean>> expression = expressionFactory.makeExpression(expressionType, outputDefinition , TEST_NAME, result);
 		
-		Map<QName, Object> variables = new HashMap<QName, Object>();
+		ExpressionVariables variables = new ExpressionVariables();
 		PrismObject<UserType> user = PrismTestUtil.parseObject(new File(TEST_DIR, "user-jack.xml"));
-		variables.put(ExpressionConstants.VAR_FOCUS, user);
-		variables.put(ExpressionConstants.VAR_USER, user);
+		variables.addVariableDefinition(ExpressionConstants.VAR_FOCUS, user);
+		variables.addVariableDefinition(ExpressionConstants.VAR_USER, user);
 		PrismObject<ShadowType> account = PrismTestUtil.parseObject(new File(TEST_DIR, "account-jack-dummy.xml"));
-		variables.put(ExpressionConstants.VAR_SHADOW, account);
-		variables.put(ExpressionConstants.VAR_ITERATION, 1);
-		variables.put(ExpressionConstants.VAR_ITERATION_TOKEN, "001");
+		variables.addVariableDefinition(ExpressionConstants.VAR_SHADOW, account);
+		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION, 1);
+		variables.addVariableDefinition(ExpressionConstants.VAR_ITERATION_TOKEN, "001");
 		
 		ExpressionEvaluationContext expressionContext = new ExpressionEvaluationContext(null , variables, TEST_NAME, null, result);
 		

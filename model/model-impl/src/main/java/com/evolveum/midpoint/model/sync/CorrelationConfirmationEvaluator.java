@@ -34,6 +34,7 @@ import com.evolveum.midpoint.model.common.expression.Expression;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.util.Utils;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -154,7 +155,7 @@ public class CorrelationConfirmationEvaluator {
 		}
 		
 		ExpressionType condition = ExpressionUtil.createExpression((Element) query.getCondition(), prismContext);
-		Map<QName, Object> variables = Utils.getDefaultExpressionVariables(null,currentShadow, resourceType);
+		ExpressionVariables variables = Utils.getDefaultExpressionVariables(null,currentShadow, resourceType);
 		ItemDefinition outputDefinition = new PrismPropertyDefinition(
 				ExpressionConstants.OUTPUT_ELMENT_NAME, DOMUtil.XSD_BOOLEAN,
 				prismContext);
@@ -375,7 +376,7 @@ private <F extends FocusType> boolean matchUserCorrelationRule(Class<F> focusTyp
 	
 	private void evaluateFilterExpressions(ObjectFilter filter, ShadowType currentShadow, ResourceType resource, String shortDesc, 
 			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
-		Map<QName, Object> variables = Utils.getDefaultExpressionVariables(null, currentShadow, resource);
+		ExpressionVariables variables = Utils.getDefaultExpressionVariables(null, currentShadow, resource);
 		ExpressionUtil.evaluateFilterExpressions(filter, variables, expressionFactory, prismContext, shortDesc, task, result);
 	}
 	
@@ -388,7 +389,7 @@ private <F extends FocusType> boolean matchUserCorrelationRule(Class<F> focusTyp
 		Validate.notNull(expressionType, "Expression must not be null.");
 		Validate.notNull(result, "Operation result must not be null.");
 
-		Map<QName, Object> variables = Utils.getDefaultExpressionVariables(user, shadow, resource);
+		ExpressionVariables variables = Utils.getDefaultExpressionVariables(user, shadow, resource);
 		String shortDesc = "confirmation expression for "+resource.asPrismObject();
 		
 		PrismPropertyDefinition outputDefinition = new PrismPropertyDefinition(ExpressionConstants.OUTPUT_ELMENT_NAME, 

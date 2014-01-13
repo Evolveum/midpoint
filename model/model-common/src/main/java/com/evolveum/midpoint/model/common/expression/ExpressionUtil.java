@@ -32,8 +32,10 @@ import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFu
 import com.evolveum.midpoint.model.common.expression.functions.BasicExpressionFunctionsXPath;
 import com.evolveum.midpoint.model.common.expression.functions.FunctionLibrary;
 import com.evolveum.midpoint.model.common.expression.functions.LogExpressionFunctions;
+import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
@@ -177,7 +179,7 @@ public class ExpressionUtil {
 		return convertedVal;
     }
 
-	public static Object resolvePath(ItemPath path, Map<QName, Object> variables, Object defaultContext, 
+	public static Object resolvePath(ItemPath path, ExpressionVariables variables, Object defaultContext, 
 			ObjectResolver objectResolver, String shortDesc, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		
 		Object root = defaultContext;
@@ -244,7 +246,7 @@ public class ExpressionUtil {
     	}
     }
 
-	public static ItemDefinition resolveDefinitionPath(ItemPath path, Map<QName, Object> variables,
+	public static ItemDefinition resolveDefinitionPath(ItemPath path, ExpressionVariables variables,
 			PrismObjectDefinition<?> defaultContext, String shortDesc) throws SchemaException {
 		while (path!=null && !path.isEmpty() && !(path.first() instanceof NameItemPathSegment)) {
 			path = path.rest();
@@ -254,22 +256,25 @@ public class ExpressionUtil {
 		NameItemPathSegment first = (NameItemPathSegment)path.first();
 		if (first.isVariable()) {
 			relativePath = path.rest();
-			if (variables.containsKey(first.getName())) {
-				Object varValue = variables.get(first.getName());
-				if (root instanceof ItemDeltaItem<?>) {
+			QName varName = first.getName();
+			if (variables.containsKey(varName)) {
+				Object varValue = variables.get(varName);
+				if (varValue instanceof ItemDeltaItem<?>) {
 					root = ((ItemDeltaItem<?>)varValue).getDefinition();
-				} else if (root instanceof Item<?>) {
+				} else if (varValue instanceof Item<?>) {
 					root = ((Item<?>)varValue).getDefinition();
-				} else if (root instanceof ItemDefinition) {
-					// This is OK
+				} else if (varValue instanceof Objectable) {
+					root = ((Objectable)varValue).asPrismObject().getDefinition();
+				} else if (varValue instanceof ItemDefinition) {
+					root = varValue;
 				} else {
-					throw new IllegalStateException("Unexpected content of variable "+first.getName()+": "+varValue);
+					throw new IllegalStateException("Unexpected content of variable "+varName+": "+varValue+" ("+varValue.getClass()+")");
 				}
 				if (root == null) {
-					throw new IllegalStateException("Null definition in content of variable "+first.getName()+": "+varValue);
+					throw new IllegalStateException("Null definition in content of variable "+varName+": "+varValue);
 				}
 			} else {
-				throw new SchemaException("No variable with name "+first.getName()+" in "+shortDesc);
+				throw new SchemaException("No variable with name "+varName+" in "+shortDesc);
 			}
 		}
 		if (root == null) {
@@ -333,7 +338,7 @@ public class ExpressionUtil {
 		return lib;
 	}
 	
-	public static void evaluateFilterExpressions(ObjectFilter filter, Map<QName, Object> variables, 
+	public static void evaluateFilterExpressions(ObjectFilter filter, ExpressionVariables variables, 
 			ExpressionFactory expressionFactory, PrismContext prismContext,
 			String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		
@@ -414,7 +419,7 @@ public class ExpressionUtil {
 
 	}
 
-	private static PrismPropertyValue evaluateExpression(Map<QName, Object> variables, PrismContext prismContext,
+	private static PrismPropertyValue evaluateExpression(ExpressionVariables variables, PrismContext prismContext,
 			ExpressionType valueExpression, ObjectFilter filter, ExpressionFactory expressionFactory, 
 			String shortDesc, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		
@@ -436,7 +441,7 @@ public class ExpressionUtil {
 //				shortDesc, result);
    	}
 	
-	public static PrismPropertyValue evaluateExpression(Map<QName, Object> variables,
+	public static PrismPropertyValue evaluateExpression(ExpressionVariables variables,
 			ItemDefinition outputDefinition, ExpressionType valueExpression,
 			ExpressionFactory expressionFactory,
 			String shortDesc, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException{

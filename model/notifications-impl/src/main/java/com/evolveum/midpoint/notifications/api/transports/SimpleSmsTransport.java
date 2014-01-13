@@ -19,6 +19,7 @@ package com.evolveum.midpoint.notifications.api.transports;
 import com.evolveum.midpoint.model.common.expression.Expression;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.NotificationsUtil;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -202,7 +203,7 @@ public class SimpleSmsTransport implements Transport {
         return "================ " + new Date() + " ======= " + (url != null ? url : "") + "\n" + mailMessage.toString() + "\n\n";
     }
 
-    private String evaluateExpressionChecked(ExpressionType expressionType, Map<QName, Object> expressionVariables, 
+    private String evaluateExpressionChecked(ExpressionType expressionType, ExpressionVariables expressionVariables, 
     		String shortDesc, Task task, OperationResult result) {
 
         Throwable failReason;
@@ -221,7 +222,7 @@ public class SimpleSmsTransport implements Transport {
         throw new SystemException(failReason);
     }
 
-    private String evaluateExpression(ExpressionType expressionType, Map<QName, Object> expressionVariables, 
+    private String evaluateExpression(ExpressionType expressionType, ExpressionVariables expressionVariables, 
     		String shortDesc, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
 
         QName resultName = new QName(SchemaConstants.NS_C, "result");
@@ -238,14 +239,14 @@ public class SimpleSmsTransport implements Transport {
         return exprResult.getZeroSet().iterator().next().getValue();
     }
 
-    protected Map<QName, Object> getDefaultVariables(String from, String to, Message message) throws UnsupportedEncodingException {
+    protected ExpressionVariables getDefaultVariables(String from, String to, Message message) throws UnsupportedEncodingException {
 
-        Map<QName, Object> variables = new HashMap<QName, Object>();
+    	ExpressionVariables variables = new ExpressionVariables();
 
-        variables.put(SchemaConstants.C_FROM, from);
-        variables.put(SchemaConstants.C_TO, to);
-        variables.put(SchemaConstants.C_ENCODED_MESSAGE_TEXT, URLEncoder.encode(message.getBody(), "US-ASCII"));
-        variables.put(SchemaConstants.C_MESSAGE, message);
+        variables.addVariableDefinition(SchemaConstants.C_FROM, from);
+        variables.addVariableDefinition(SchemaConstants.C_TO, to);
+        variables.addVariableDefinition(SchemaConstants.C_ENCODED_MESSAGE_TEXT, URLEncoder.encode(message.getBody(), "US-ASCII"));
+        variables.addVariableDefinition(SchemaConstants.C_MESSAGE, message);
 
         return variables;
     }
