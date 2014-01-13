@@ -22,9 +22,11 @@ import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromStream;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.DropDownMultiChoice;
 import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
+import com.evolveum.midpoint.web.component.data.column.*;
+import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportSearchDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportOutputDto;
@@ -32,9 +34,12 @@ import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExportType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
+import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
@@ -197,7 +202,6 @@ public class PageCreatedReports extends PageAdminReports {
                 new EnumChoiceRenderer(PageCreatedReports.this));
         filetypeSelect.add(createFilterAjaxBehaviour());
         filetypeSelect.setOutputMarkupId(true);
-        //filetypeSelect.setNullValid(true);
 
         if(filetypeSelect.getModel().getObject() == null){
             filetypeSelect.getModel().setObject(null);
@@ -215,7 +219,6 @@ public class PageCreatedReports extends PageAdminReports {
                 }, new EnumChoiceRenderer(PageCreatedReports.this));
         reportTypeSelect.add(createFilterAjaxBehaviour());
         reportTypeSelect.setOutputMarkupId(true);
-        //reportTypeSelect.setNullValid(true);
 
         if(reportTypeSelect.getModel().getObject() == null){
             reportTypeSelect.getModel().setObject(null);
@@ -249,6 +252,10 @@ public class PageCreatedReports extends PageAdminReports {
         List<IColumn<ReportOutputDto, String>> columns = new ArrayList<IColumn<ReportOutputDto, String>>();
 
         IColumn column;
+
+        column = new CheckBoxHeaderColumn();
+        columns.add(column);
+
         column = new PropertyColumn<ReportOutputDto, String>(createStringResource("pageCreatedReports.table.name"), null){
 
             @Override
@@ -355,7 +362,63 @@ public class PageCreatedReports extends PageAdminReports {
         };
         columns.add(column);
 
+        column = new InlineMenuHeaderColumn<InlineMenuable>(initInlineMenu()){
+
+            @Override
+            public void populateItem(Item<ICellPopulator<InlineMenuable>> cellItem, String componentId,
+                                     IModel<InlineMenuable> rowModel) {
+                //We do not need row inline menu
+                cellItem.add(new Label(componentId));
+            }
+        };
+        columns.add(column);
+
         return columns;
+    }
+
+    private List<InlineMenuItem> initInlineMenu(){
+        List<InlineMenuItem> headerMenuItems = new ArrayList<InlineMenuItem>();
+
+        headerMenuItems.add(new InlineMenuItem(createStringResource("pageCreatedReports.inlineMenu.deleteAll"), true,
+                new HeaderMenuAction(this){
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target, Form<?> form){
+                        deleteAllPerformed(target);
+                    }
+                }));
+
+        headerMenuItems.add(new InlineMenuItem(createStringResource("pageCreatedReports.inlineMenu.deleteSelected"), true,
+                new HeaderMenuAction(this){
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target, Form<?> form){
+                        deleteSelectedPerformed(target);
+                    }
+                }));
+
+        return headerMenuItems;
+    }
+
+    private List<ReportOutputDto> getSelectedData(AjaxRequestTarget target, ReportOutputDto item){
+        List<ReportOutputDto> items;
+
+        if(item != null){
+            items = new ArrayList<ReportOutputDto>();
+            items.add(item);
+            return items;
+        }
+
+        items = WebMiscUtil.getSelectedData(getListTable());
+        if(items.isEmpty()){
+            warn(getString("pageCreatedReports.message.nothingSelected"));
+            target.add(getFeedbackPanel());
+        }
+        return items;
+    }
+
+    private TablePanel getListTable() {
+        return (TablePanel) get(createComponentPath(ID_MAIN_FORM, ID_CREATED_REPORTS_TABLE));
     }
 
     private void downloadPerformed(AjaxRequestTarget target, ReportOutputDto report,
@@ -365,6 +428,14 @@ public class PageCreatedReports extends PageAdminReports {
 
     private void deletePerformed(AjaxRequestTarget targert, ReportOutputDto report){
         //TODO - delete current report output
+    }
+
+    private void deleteAllPerformed(AjaxRequestTarget target){
+        //TODO - delete all objects of ReportOutputType
+    }
+
+    private void deleteSelectedPerformed(AjaxRequestTarget target){
+        //TODO - delete Selected objects of ReportOutputType
     }
 
     private byte[] createReport(){
