@@ -55,6 +55,7 @@ import com.evolveum.midpoint.prism.delta.PlusMinusZero;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -86,8 +87,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingTargetDeclar
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.PopulateItemType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PopulateObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.PopulatePropertyType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 
 /**
@@ -140,7 +141,8 @@ public class AssignmentExpressionEvaluator<V extends PrismValue>
 		
 		if (searchResults.isEmpty() && getExpressionEvaluatorType().isCreateOnDemand() == Boolean.TRUE &&
 				(valueDestination == PlusMinusZero.PLUS || valueDestination == PlusMinusZero.ZERO || useNew)) {
-			createOnDemand(targetTypeClass, variables, params, params.getContextDescription(), task, params.getResult());
+			String createdObjectOid = createOnDemand(targetTypeClass, variables, params, params.getContextDescription(), task, params.getResult());
+			searchResults.add(createAssignmentCVal(createdObjectOid, targetTypeQName, contextDescription));
 		}
 		
 		return (List<V>) searchResults;
@@ -153,26 +155,8 @@ public class AssignmentExpressionEvaluator<V extends PrismValue>
 		ResultHandler<O> handler = new ResultHandler<O>() {
 			@Override
 			public boolean handle(PrismObject<O> object, OperationResult parentResult) {
-				AssignmentType assignmentType = new AssignmentType();
-				PrismContainerValue<AssignmentType> assignmentCVal = assignmentType.asPrismContainerValue();
-				
-				ObjectReferenceType targetRef = new ObjectReferenceType();
-				targetRef.setOid(object.getOid());
-				targetRef.setType(targetTypeQName);
-				assignmentType.setTargetRef(targetRef);
-				
-				list.add(assignmentCVal);
-				
-				try {
-					prismContext.adopt(assignmentCVal, FocusType.COMPLEX_TYPE, new ItemPath(FocusType.F_ASSIGNMENT));
-					if (InternalsConfig.consistencyChecks) {
-						assignmentCVal.assertDefinitions("assignmentCVal in assignment expression in "+shortDesc);
-					}
-				} catch (SchemaException e) {
-					// Should not happen
-					throw new SystemException(e);
-				}
-				
+				list.add(createAssignmentCVal(object.getOid(), targetTypeQName, shortDesc));
+
 				// TODO: we should count results and stop after some reasonably high number?
 				
 				return true;
@@ -196,7 +180,29 @@ public class AssignmentExpressionEvaluator<V extends PrismValue>
 		return list;
 	}
 	
-	private <O extends ObjectType> void createOnDemand(Class<O> targetTypeClass, ExpressionVariables variables, 
+	private PrismContainerValue<AssignmentType> createAssignmentCVal(String oid, QName targetTypeQName, String shortDesc) {
+		AssignmentType assignmentType = new AssignmentType();
+		PrismContainerValue<AssignmentType> assignmentCVal = assignmentType.asPrismContainerValue();
+		
+		ObjectReferenceType targetRef = new ObjectReferenceType();
+		targetRef.setOid(oid);
+		targetRef.setType(targetTypeQName);
+		assignmentType.setTargetRef(targetRef);
+		
+		try {
+			prismContext.adopt(assignmentCVal, FocusType.COMPLEX_TYPE, new ItemPath(FocusType.F_ASSIGNMENT));
+			if (InternalsConfig.consistencyChecks) {
+				assignmentCVal.assertDefinitions("assignmentCVal in assignment expression in "+shortDesc);
+			}
+		} catch (SchemaException e) {
+			// Should not happen
+			throw new SystemException(e);
+		}
+		
+		return assignmentCVal;
+	}
+	
+	private <O extends ObjectType> String createOnDemand(Class<O> targetTypeClass, ExpressionVariables variables, 
 			ExpressionEvaluationContext params, String contextDescription, Task task, OperationResult result) 
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		if (LOGGER.isTraceEnabled()) {
@@ -204,56 +210,22 @@ public class AssignmentExpressionEvaluator<V extends PrismValue>
 		}
 		PrismObjectDefinition<O> objectDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(targetTypeClass);
 		PrismObject<O> newObject = objectDefinition.instantiate();
-		ObjectDelta<O> addDelta = newObject.createAddDelta();
-		
-		// TODO: populate
 		
 		PopulateObjectType populateObject = getExpressionEvaluatorType().getPopulateObject();
 		if (populateObject == null) {
 			LOGGER.warn("No populateObject in assignment expression in {}, "
 					+ "object created on demand will be empty. Subsequent operations will most likely fail", contextDescription);
-		} else {
-			ExpressionFactory expressionFactory = params.getExpressionFactory();
-			for (PopulatePropertyType populateProperty: populateObject.getPopulateProperty()) {
-				ExpressionType expressionType = populateProperty.getExpression();
-				if (expressionType == null) {
-					LOGGER.warn("No expression in populateObject in assignment expression in {}, "
-							+ "skipping. Subsequent operations will most likely fail", contextDescription);
-					continue;
-				}
+		} else {			
+			for (PopulateItemType populateItem: populateObject.getPopulateItem()) {
 				
-				MappingTargetDeclarationType targetType = populateProperty.getTarget();
-				if (targetType == null) {
-					LOGGER.warn("No target in populateObject in assignment expression in {}, "
-							+ "skipping. Subsequent operations will most likely fail", contextDescription);
-					continue;
+				ItemDelta<PrismValue> itemDelta = evaluatePopulateExpression(populateItem, variables, params, contextDescription, task, result);
+				if (itemDelta != null) {
+					itemDelta.applyTo(newObject);
 				}
-				Element pathElement = targetType.getPath();
-				if (pathElement == null) {
-					throw new SchemaException("No path in target definition in "+contextDescription);
-				}
-				ItemPath path = new XPathHolder(pathElement).toItemPath();
-				ItemDefinition propOutputDefinition = ExpressionUtil.resolveDefinitionPath(path, variables, 
-						null, "target definition in "+contextDescription);
-				if (propOutputDefinition == null) {
-					throw new SchemaException("No target item that would conform to the path "+path+" in "+contextDescription);
-				}
-				
-				String expressionDesc = "expression in assignment expression in "+contextDescription;
-				Expression<PrismValue> expression = expressionFactory.makeExpression(expressionType, propOutputDefinition, 
-						expressionDesc, result);
-				ExpressionEvaluationContext expressionParams = new ExpressionEvaluationContext(null, variables, 
-						expressionDesc, task, result);
-				expressionParams.setExpressionFactory(expressionFactory);
-				expressionParams.setStringPolicyResolver(params.getStringPolicyResolver());
-				expressionParams.setSkipEvaluationMinus(true);
-				expressionParams.setSkipEvaluationPlus(false);
-				PrismValueDeltaSetTriple<PrismValue> outputTriple = expression.evaluate(params);
-				Collection<PrismValue> pvalues = outputTriple.getNonNegativeValues();
-				// TODO
 			}
 		}
 		
+		ObjectDelta<O> addDelta = newObject.createAddDelta();
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(addDelta);
 		try {
 			modelService.executeChanges(deltas, null, task, result);
@@ -262,8 +234,64 @@ public class AssignmentExpressionEvaluator<V extends PrismValue>
 			throw new ExpressionEvaluationException(e.getMessage(), e);
 		}
 		
+		return addDelta.getOid();
 	}
 
+	private <X extends PrismValue> ItemDelta<X> evaluatePopulateExpression(PopulateItemType populateItem,
+			ExpressionVariables variables, ExpressionEvaluationContext params,
+			String contextDescription, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+		ExpressionType expressionType = populateItem.getExpression();
+		if (expressionType == null) {
+			LOGGER.warn("No expression in populateObject in assignment expression in {}, "
+					+ "skipping. Subsequent operations will most likely fail", contextDescription);
+			return null;
+		}
+		
+		MappingTargetDeclarationType targetType = populateItem.getTarget();
+		if (targetType == null) {
+			LOGGER.warn("No target in populateObject in assignment expression in {}, "
+					+ "skipping. Subsequent operations will most likely fail", contextDescription);
+			return null;
+		}
+		Element pathElement = targetType.getPath();
+		if (pathElement == null) {
+			throw new SchemaException("No path in target definition in "+contextDescription);
+		}
+		ItemPath targetPath = new XPathHolder(pathElement).toItemPath();
+		ItemDefinition propOutputDefinition = ExpressionUtil.resolveDefinitionPath(targetPath, variables, 
+				params.getDefaultTargetContext(), "target definition in "+contextDescription);
+		if (propOutputDefinition == null) {
+			throw new SchemaException("No target item that would conform to the path "+targetPath+" in "+contextDescription);
+		}
+		
+		String expressionDesc = "expression in assignment expression in "+contextDescription;
+		ExpressionFactory expressionFactory = params.getExpressionFactory();
+		Expression<X> expression = expressionFactory.makeExpression(expressionType, propOutputDefinition, 
+				expressionDesc, result);
+		ExpressionEvaluationContext expressionParams = new ExpressionEvaluationContext(null, variables, 
+				expressionDesc, task, result);
+		expressionParams.setExpressionFactory(expressionFactory);
+		expressionParams.setStringPolicyResolver(params.getStringPolicyResolver());
+		expressionParams.setDefaultTargetContext(params.getDefaultTargetContext());
+		expressionParams.setSkipEvaluationMinus(true);
+		expressionParams.setSkipEvaluationPlus(false);
+		PrismValueDeltaSetTriple<X> outputTriple = expression.evaluate(params);
+		LOGGER.trace("output triple: {}", outputTriple.dump());
+		Collection<X> pvalues = outputTriple.getPlusSet();
+		
+		// Maybe not really clean but it works. TODO: refactor later
+		NameItemPathSegment first = (NameItemPathSegment)targetPath.first();
+		if (first.isVariable()) {
+			targetPath = targetPath.rest();
+		}
+		
+		ItemDelta<X> itemDelta = propOutputDefinition.createEmptyDelta(targetPath);
+		itemDelta.addValuesToAdd(PrismValue.cloneCollection(pvalues));
+		
+		LOGGER.trace("Item delta:\n{}", itemDelta.dump());
+		
+		return itemDelta;
+	}
 	
 	// Override the default in this case. It makes more sense like this.
 	@Override

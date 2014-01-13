@@ -120,24 +120,24 @@
 				</query>
 				<createOnDemand>true</createOnDemand>
 				<populateObject>
-					<populateProperty>
+					<populateItem>
 						<expression>
 							<path>$organizationalUnit</path>
 						</expression>
 						<target>
-							<path>name</path>
+							<path>$focus/name</path>
 						</target>
-					</populateProperty>
-					<populateProperty>
+					</populateItem>
+					<populateItem>
 						<expression>
 							<script>
 								<code>'Created on demand from user '+user.getName()</code>
 							</script>
 						</expression>
 						<target>
-							<path>description</path>
+							<path>$focus/description</path>
 						</target>
-					</populateProperty>
+					</populateItem>
 				</populateObject>
             </assignmentExpression>    	
     	</expression>

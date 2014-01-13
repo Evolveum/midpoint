@@ -254,22 +254,23 @@ public class ExpressionUtil {
 		NameItemPathSegment first = (NameItemPathSegment)path.first();
 		if (first.isVariable()) {
 			relativePath = path.rest();
-			if (variables.containsKey(first.getName())) {
-				Object varValue = variables.get(first.getName());
-				if (root instanceof ItemDeltaItem<?>) {
+			QName varName = first.getName();
+			if (variables.containsKey(varName)) {
+				Object varValue = variables.get(varName);
+				if (varValue instanceof ItemDeltaItem<?>) {
 					root = ((ItemDeltaItem<?>)varValue).getDefinition();
-				} else if (root instanceof Item<?>) {
+				} else if (varValue instanceof Item<?>) {
 					root = ((Item<?>)varValue).getDefinition();
-				} else if (root instanceof ItemDefinition) {
-					// This is OK
+				} else if (varValue instanceof ItemDefinition) {
+					root = varValue;
 				} else {
-					throw new IllegalStateException("Unexpected content of variable "+first.getName()+": "+varValue);
+					throw new IllegalStateException("Unexpected content of variable "+varName+": "+varValue+" ("+varValue.getClass()+")");
 				}
 				if (root == null) {
-					throw new IllegalStateException("Null definition in content of variable "+first.getName()+": "+varValue);
+					throw new IllegalStateException("Null definition in content of variable "+varName+": "+varValue);
 				}
 			} else {
-				throw new SchemaException("No variable with name "+first.getName()+" in "+shortDesc);
+				throw new SchemaException("No variable with name "+varName+" in "+shortDesc);
 			}
 		}
 		if (root == null) {

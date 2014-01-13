@@ -20,6 +20,7 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -41,6 +42,7 @@ public class ExpressionEvaluationContext {
 	private boolean skipEvaluationMinus = false;
 	private StringPolicyResolver stringPolicyResolver;
 	private ExpressionFactory expressionFactory;
+	private PrismObjectDefinition<?> defaultTargetContext;
 	private String contextDescription;
 	private Task task;
 	private OperationResult result;
@@ -110,6 +112,14 @@ public class ExpressionEvaluationContext {
 
 	public void setExpressionFactory(ExpressionFactory expressionFactory) {
 		this.expressionFactory = expressionFactory;
+	}
+
+	public PrismObjectDefinition<?> getDefaultTargetContext() {
+		return defaultTargetContext;
+	}
+
+	public void setDefaultTargetContext(PrismObjectDefinition<?> defaultTargetContext) {
+		this.defaultTargetContext = defaultTargetContext;
 	}
 
 	public String getContextDescription() {

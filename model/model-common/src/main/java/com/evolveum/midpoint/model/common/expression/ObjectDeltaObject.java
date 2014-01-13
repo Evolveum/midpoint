@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.model.common.expression;
 
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PartiallyResolvedValue;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -82,6 +83,18 @@ public class ObjectDeltaObject<T extends ObjectType> extends ItemDeltaItem<Prism
 	@Override
 	public boolean isContainer() {
 		return true;
+	}
+
+	@Override
+	public ItemDefinition getDefinition() {
+		PrismObject<T> anyObject = getAnyObject();
+		if (anyObject != null) {
+			return anyObject.getDefinition();
+		}
+		if (delta != null) {
+			return delta.getPrismContext().getSchemaRegistry().findObjectDefinitionByCompileTimeClass(delta.getObjectTypeClass());
+		}
+		return null;
 	}
 
 	@Override
