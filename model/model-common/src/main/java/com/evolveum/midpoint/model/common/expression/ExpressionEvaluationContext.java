@@ -60,7 +60,7 @@ public class ExpressionEvaluationContext {
 		return sources;
 	}
 	
-	public void setSources(Collection<Source<?>> sources) {
+	public void setSources(Collection<Source<? extends PrismValue>> sources) {
 		this.sources = sources;
 	}
 	

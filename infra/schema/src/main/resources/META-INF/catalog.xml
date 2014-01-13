@@ -40,8 +40,10 @@
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/model/import/extension-2" uri="../xml/ns/public/model/import/extension-2.xsd" />
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/model/import/extension-2" uri="../xml/ns/public/model/import/extension-2.xsd" />
 
+    <!--
     <public publicId="http://midpoint.evolveum.com/xml/ns/public/model/workflow-1.xsd" uri="../xml/ns/public/model/workflow-1.xsd" />
     <system systemId="http://midpoint.evolveum.com/xml/ns/public/model/workflow-1.xsd" uri="../xml/ns/public/model/workflow-1.xsd" />
+    -->
 
     <!-- Experimental XSD schema file locations -->
     <public publicId="http://midpoint.evolveum.com/xml/ns/experimental/unix-resource-1.xsd" uri="../xml/ns/experimental/unix-resource-1.xsd" />
