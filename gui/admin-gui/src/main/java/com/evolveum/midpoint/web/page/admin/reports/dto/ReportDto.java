@@ -23,7 +23,14 @@ import java.io.Serializable;
  */
 public class ReportDto implements Serializable {
 
-    public static enum Type {USERS, RECONCILIATION, AUDIT}
+    public static enum Type {
+        USERS("User"), RECONCILIATION("Reconciliation"), AUDIT("Audit");
+
+        private final String name;
+
+        private Type(final String s){name = s;}
+        public String toString(){return name;}
+    }
 
     public static final String F_NAME = "name";
     public static final String F_DESCRIPTION = "description";
@@ -31,23 +38,11 @@ public class ReportDto implements Serializable {
     private Type type;
     private String name;
     private String description;
-    private String author;
-    private String timeString;
-    private String fileType;
-
 
     public ReportDto(Type type, String name, String description) {
         this.type = type;
         this.description = description;
         this.name = name;
-    }
-
-    public ReportDto(Type type, String name, String description, String author, String timeString){
-        this.type = type;
-        this.name = name;
-        this.description = description;
-        this.author = author;
-        this.timeString = timeString;
     }
 
     public Type getType() {
@@ -60,21 +55,5 @@ public class ReportDto implements Serializable {
 
     public String getName() {
         return name;
-    }
-
-    public String getAuthor(){
-        return author;
-    }
-
-    public String getTimeString(){
-        return timeString;
-    }
-
-    public String getFileType(){
-        return fileType;
-    }
-
-    public void setFileType(String fileType){
-        this.fileType = fileType;
     }
 }
