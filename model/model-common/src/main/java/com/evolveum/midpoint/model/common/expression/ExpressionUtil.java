@@ -177,7 +177,7 @@ public class ExpressionUtil {
 		return convertedVal;
     }
 
-	public static Object resolvePath(ItemPath path, Map<QName, Object> variables, Object defaultContext, 
+	public static Object resolvePath(ItemPath path, ExpressionVariables variables, Object defaultContext, 
 			ObjectResolver objectResolver, String shortDesc, OperationResult result) throws SchemaException, ObjectNotFoundException {
 		
 		Object root = defaultContext;
@@ -244,7 +244,7 @@ public class ExpressionUtil {
     	}
     }
 
-	public static ItemDefinition resolveDefinitionPath(ItemPath path, Map<QName, Object> variables,
+	public static ItemDefinition resolveDefinitionPath(ItemPath path, ExpressionVariables variables,
 			PrismObjectDefinition<?> defaultContext, String shortDesc) throws SchemaException {
 		while (path!=null && !path.isEmpty() && !(path.first() instanceof NameItemPathSegment)) {
 			path = path.rest();
@@ -333,7 +333,7 @@ public class ExpressionUtil {
 		return lib;
 	}
 	
-	public static void evaluateFilterExpressions(ObjectFilter filter, Map<QName, Object> variables, 
+	public static void evaluateFilterExpressions(ObjectFilter filter, ExpressionVariables variables, 
 			ExpressionFactory expressionFactory, PrismContext prismContext,
 			String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		
@@ -414,7 +414,7 @@ public class ExpressionUtil {
 
 	}
 
-	private static PrismPropertyValue evaluateExpression(Map<QName, Object> variables, PrismContext prismContext,
+	private static PrismPropertyValue evaluateExpression(ExpressionVariables variables, PrismContext prismContext,
 			ExpressionType valueExpression, ObjectFilter filter, ExpressionFactory expressionFactory, 
 			String shortDesc, Task task, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		
@@ -436,7 +436,7 @@ public class ExpressionUtil {
 //				shortDesc, result);
    	}
 	
-	public static PrismPropertyValue evaluateExpression(Map<QName, Object> variables,
+	public static PrismPropertyValue evaluateExpression(ExpressionVariables variables,
 			ItemDefinition outputDefinition, ExpressionType valueExpression,
 			ExpressionFactory expressionFactory,
 			String shortDesc, Task task, OperationResult parentResult) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException{

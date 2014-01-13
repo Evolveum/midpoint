@@ -24,11 +24,13 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.mutable.MutableInt;
+import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
+import com.evolveum.midpoint.model.common.expression.Expression;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
@@ -59,6 +61,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
@@ -77,10 +80,14 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AsIsExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingTargetDeclarationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.PopulateObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.PopulatePropertyType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 
 /**
@@ -126,14 +133,14 @@ public class AssignmentExpressionEvaluator<V extends PrismValue>
 		}
 		ObjectQuery query = QueryConvertor.createObjectQuery(targetTypeClass, queryType, prismContext);
 
-		ExpressionUtil.evaluateFilterExpressions(query.getFilter(), variables.getMap(), params.getExpressionFactory(), 
+		ExpressionUtil.evaluateFilterExpressions(query.getFilter(), variables, params.getExpressionFactory(), 
 				prismContext, params.getContextDescription(), task, result);
 		
 		List<PrismContainerValue<AssignmentType>> searchResults = executeSearch(targetTypeClass, targetTypeQName, query, params.getContextDescription(), params.getResult());
 		
 		if (searchResults.isEmpty() && getExpressionEvaluatorType().isCreateOnDemand() == Boolean.TRUE &&
 				(valueDestination == PlusMinusZero.PLUS || valueDestination == PlusMinusZero.ZERO || useNew)) {
-			createOnDemand(targetTypeClass, variables, params.getContextDescription(), task, params.getResult());
+			createOnDemand(targetTypeClass, variables, params, params.getContextDescription(), task, params.getResult());
 		}
 		
 		return (List<V>) searchResults;
@@ -165,7 +172,7 @@ public class AssignmentExpressionEvaluator<V extends PrismValue>
 					// Should not happen
 					throw new SystemException(e);
 				}
-					
+				
 				// TODO: we should count results and stop after some reasonably high number?
 				
 				return true;
@@ -190,7 +197,7 @@ public class AssignmentExpressionEvaluator<V extends PrismValue>
 	}
 	
 	private <O extends ObjectType> void createOnDemand(Class<O> targetTypeClass, ExpressionVariables variables, 
-			String contextDescription, Task task, OperationResult result) 
+			ExpressionEvaluationContext params, String contextDescription, Task task, OperationResult result) 
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Going to create assignment targets on demand, variables:\n{}", variables.formatVariables());
@@ -200,6 +207,52 @@ public class AssignmentExpressionEvaluator<V extends PrismValue>
 		ObjectDelta<O> addDelta = newObject.createAddDelta();
 		
 		// TODO: populate
+		
+		PopulateObjectType populateObject = getExpressionEvaluatorType().getPopulateObject();
+		if (populateObject == null) {
+			LOGGER.warn("No populateObject in assignment expression in {}, "
+					+ "object created on demand will be empty. Subsequent operations will most likely fail", contextDescription);
+		} else {
+			ExpressionFactory expressionFactory = params.getExpressionFactory();
+			for (PopulatePropertyType populateProperty: populateObject.getPopulateProperty()) {
+				ExpressionType expressionType = populateProperty.getExpression();
+				if (expressionType == null) {
+					LOGGER.warn("No expression in populateObject in assignment expression in {}, "
+							+ "skipping. Subsequent operations will most likely fail", contextDescription);
+					continue;
+				}
+				
+				MappingTargetDeclarationType targetType = populateProperty.getTarget();
+				if (targetType == null) {
+					LOGGER.warn("No target in populateObject in assignment expression in {}, "
+							+ "skipping. Subsequent operations will most likely fail", contextDescription);
+					continue;
+				}
+				Element pathElement = targetType.getPath();
+				if (pathElement == null) {
+					throw new SchemaException("No path in target definition in "+contextDescription);
+				}
+				ItemPath path = new XPathHolder(pathElement).toItemPath();
+				ItemDefinition propOutputDefinition = ExpressionUtil.resolveDefinitionPath(path, variables, 
+						null, "target definition in "+contextDescription);
+				if (propOutputDefinition == null) {
+					throw new SchemaException("No target item that would conform to the path "+path+" in "+contextDescription);
+				}
+				
+				String expressionDesc = "expression in assignment expression in "+contextDescription;
+				Expression<PrismValue> expression = expressionFactory.makeExpression(expressionType, propOutputDefinition, 
+						expressionDesc, result);
+				ExpressionEvaluationContext expressionParams = new ExpressionEvaluationContext(null, variables, 
+						expressionDesc, task, result);
+				expressionParams.setExpressionFactory(expressionFactory);
+				expressionParams.setStringPolicyResolver(params.getStringPolicyResolver());
+				expressionParams.setSkipEvaluationMinus(true);
+				expressionParams.setSkipEvaluationPlus(false);
+				PrismValueDeltaSetTriple<PrismValue> outputTriple = expression.evaluate(params);
+				Collection<PrismValue> pvalues = outputTriple.getNonNegativeValues();
+				// TODO
+			}
+		}
 		
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(addDelta);
 		try {

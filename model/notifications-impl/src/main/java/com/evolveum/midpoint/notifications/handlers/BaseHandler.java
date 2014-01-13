@@ -19,6 +19,7 @@ package com.evolveum.midpoint.notifications.handlers;
 import com.evolveum.midpoint.model.common.expression.Expression;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.notifications.api.EventHandler;
 import com.evolveum.midpoint.notifications.api.NotificationManager;
 import com.evolveum.midpoint.notifications.NotificationsUtil;
@@ -95,7 +96,7 @@ public abstract class BaseHandler implements EventHandler {
     // expressions
 
     // shortDesc = what is to be evaluated e.g. "event filter expression"
-    protected boolean evaluateBooleanExpressionChecked(ExpressionType expressionType, Map<QName, Object> expressionVariables, 
+    protected boolean evaluateBooleanExpressionChecked(ExpressionType expressionType, ExpressionVariables expressionVariables, 
     		String shortDesc, Task task, OperationResult result) {
 
         Throwable failReason;
@@ -114,7 +115,7 @@ public abstract class BaseHandler implements EventHandler {
         throw new SystemException(failReason);
     }
 
-    protected boolean evaluateBooleanExpression(ExpressionType expressionType, Map<QName, Object> expressionVariables, String shortDesc, 
+    protected boolean evaluateBooleanExpression(ExpressionType expressionType, ExpressionVariables expressionVariables, String shortDesc, 
     		Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
 
         QName resultName = new QName(SchemaConstants.NS_C, "result");
@@ -133,7 +134,7 @@ public abstract class BaseHandler implements EventHandler {
         return boolResult != null ? boolResult : false;
     }
 
-    protected List<String> evaluateExpressionChecked(ExpressionType expressionType, Map<QName, Object> expressionVariables, 
+    protected List<String> evaluateExpressionChecked(ExpressionType expressionType, ExpressionVariables expressionVariables, 
     		String shortDesc, Task task, OperationResult result) {
 
         Throwable failReason;
@@ -152,7 +153,7 @@ public abstract class BaseHandler implements EventHandler {
         throw new SystemException(failReason);
     }
 
-    private List<String> evaluateExpression(ExpressionType expressionType, Map<QName, Object> expressionVariables, 
+    private List<String> evaluateExpression(ExpressionType expressionType, ExpressionVariables expressionVariables, 
     		String shortDesc, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
 
         QName resultName = new QName(SchemaConstants.NS_C, "result");
@@ -169,11 +170,13 @@ public abstract class BaseHandler implements EventHandler {
         return retval;
     }
 
-    protected Map<QName, Object> getDefaultVariables(Event event, OperationResult result) {
+    protected ExpressionVariables getDefaultVariables(Event event, OperationResult result) {
 
+    	ExpressionVariables expressionVariables = new ExpressionVariables();
         Map<QName, Object> variables = new HashMap<QName, Object>();
-        event.createExpressionVariables(variables, result);
-        return variables;
+		event.createExpressionVariables(variables, result);
+		expressionVariables.addVariableDefinitions(variables);
+        return expressionVariables;
     }
 
 

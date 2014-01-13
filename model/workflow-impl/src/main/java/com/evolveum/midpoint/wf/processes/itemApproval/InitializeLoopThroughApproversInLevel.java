@@ -19,6 +19,7 @@ package com.evolveum.midpoint.wf.processes.itemApproval;
 import com.evolveum.midpoint.model.common.expression.Expression;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.api.RepositoryService;
@@ -65,7 +66,7 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
         OperationResult result = new OperationResult("dummy");
         Task task = null;
 
-        Map<QName, Object> expressionVariables = null;
+        ExpressionVariables expressionVariables = null;
 
         ApprovalLevelImpl level = (ApprovalLevelImpl) execution.getVariable(ProcessVariableNames.LEVEL);
         Validate.notNull(level, "Variable " + ProcessVariableNames.LEVEL + " is undefined");
@@ -121,7 +122,7 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
     }
 
     private Collection<? extends LightweightObjectRef> evaluateExpressions(List<ExpressionType> approverExpressionList, 
-    		Map<QName, Object> expressionVariables, DelegateExecution execution, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    		ExpressionVariables expressionVariables, DelegateExecution execution, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         List<LightweightObjectRef> retval = new ArrayList<LightweightObjectRef>();
         for (ExpressionType approverExpression : approverExpressionList) {
             retval.addAll(evaluateExpression(approverExpression, expressionVariables, execution, task, result));
@@ -129,7 +130,7 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
         return retval;
     }
 
-    private Collection<LightweightObjectRef> evaluateExpression(ExpressionType approverExpression, Map<QName, Object> expressionVariables, 
+    private Collection<LightweightObjectRef> evaluateExpression(ExpressionType approverExpression, ExpressionVariables expressionVariables, 
     		DelegateExecution execution, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
 
         if (expressionFactory == null) {
@@ -152,7 +153,7 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 
     }
 
-    private boolean evaluateBooleanExpression(ExpressionType expressionType, Map<QName, Object> expressionVariables, 
+    private boolean evaluateBooleanExpression(ExpressionType expressionType, ExpressionVariables expressionVariables, 
     		DelegateExecution execution, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
 
         if (expressionFactory == null) {
@@ -187,7 +188,7 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
     }
 
 
-    private Map<QName, Object> getDefaultVariablesIfNeeded(Map<QName, Object> variables, DelegateExecution execution, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    private ExpressionVariables getDefaultVariablesIfNeeded(ExpressionVariables variables, DelegateExecution execution, OperationResult result) throws SchemaException, ObjectNotFoundException {
         if (variables != null) {
             return variables;
         } else {
@@ -195,16 +196,16 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
         }
     }
 
-    private Map<QName, Object> getDefaultVariables(DelegateExecution execution, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    private ExpressionVariables getDefaultVariables(DelegateExecution execution, OperationResult result) throws SchemaException, ObjectNotFoundException {
 
         RepositoryService repositoryService = SpringApplicationContextHolder.getRepositoryService();
         MiscDataUtil miscDataUtil = SpringApplicationContextHolder.getMiscDataUtil();
         PrismContext prismContext = SpringApplicationContextHolder.getPrismContext();
 
-        Map<QName, Object> variables = new HashMap<QName, Object>();
+        ExpressionVariables variables = new ExpressionVariables();
 
         try {
-            variables.put(SchemaConstants.C_REQUESTER, miscDataUtil.getRequester(execution.getVariables(), result));
+            variables.addVariableDefinition(SchemaConstants.C_REQUESTER, miscDataUtil.getRequester(execution.getVariables(), result));
         } catch (SchemaException e) {
             throw new SchemaException("Couldn't get requester object due to schema exception", e);  // todo do we really want to skip the whole processing? perhaps yes, otherwise we could get NPEs
         } catch (ObjectNotFoundException e) {
@@ -213,12 +214,12 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 
         PrismObject<? extends ObjectType> objectToBeAdded = (PrismObject<? extends ObjectType>) execution.getVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_TO_BE_ADDED);
         if (objectToBeAdded != null) {
-            variables.put(SchemaConstants.C_OBJECT, objectToBeAdded);
+            variables.addVariableDefinition(SchemaConstants.C_OBJECT, objectToBeAdded);
         } else {
             String objectOid = (String) execution.getVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_OID);
             if (objectOid != null) {
                 try {
-                    variables.put(SchemaConstants.C_OBJECT, miscDataUtil.getObjectBefore(execution.getVariables(), prismContext, result));
+                    variables.addVariableDefinition(SchemaConstants.C_OBJECT, miscDataUtil.getObjectBefore(execution.getVariables(), prismContext, result));
                 } catch (SchemaException e) {
                     throw new SchemaException("Couldn't get requester object due to schema exception", e);  // todo do we really want to skip the whole processing? perhaps yes, otherwise we could get NPEs
                 } catch (ObjectNotFoundException e) {

@@ -40,6 +40,7 @@ import com.evolveum.midpoint.model.common.expression.Expression;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.expression.Source;
@@ -106,7 +107,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 	private static final QName CONDITION_OUTPUT_NAME = new QName(SchemaConstants.NS_C, "condition");
 	
 	private ExpressionFactory expressionFactory;
-	private Map<QName,Object> variables = new HashMap<QName,Object>();
+	private ExpressionVariables variables = new ExpressionVariables();
 	private String contextDescription;
 	private String mappingContextDescription = null;
 	private MappingType mappingType;
@@ -295,17 +296,11 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 	}
 
 	public void addVariableDefinitions(Map<QName, Object> extraVariables) {
-		for (Entry<QName, Object> entry : extraVariables.entrySet()) {
-			variables.put(entry.getKey(), entry.getValue());
-		}
+		variables.addVariableDefinitions(extraVariables);
 	}
 	
 	public void addVariableDefinition(QName name, Object value) {
-		if (variables.containsKey(name)) {
-			LOGGER.warn("Duplicate definition of variable {} in {}, ignoring it",name,getMappingContextDescription());
-			return;
-		}
-		variables.put(name, value);
+		variables.addVariableDefinition(name, value);
 	}
 	
 	public boolean hasVariableDefinition(QName varName) {

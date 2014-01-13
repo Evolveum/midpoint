@@ -6,6 +6,7 @@ import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.common.expression.Expression;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -228,8 +229,8 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
             return true;
         }
 
-        Map<QName,Object> variables = new HashMap<QName,Object>();
-        variables.put(new QName(SchemaConstants.NS_C, "context"), context);
+        ExpressionVariables variables = new ExpressionVariables();
+        variables.addVariableDefinition(new QName(SchemaConstants.NS_C, "context"), context);
 
         boolean start;
         try {
@@ -253,7 +254,7 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
         return ef;
     }
 
-    private boolean evaluateBooleanExpression(ExpressionType expressionType, Map<QName, Object> expressionVariables, 
+    private boolean evaluateBooleanExpression(ExpressionType expressionType, ExpressionVariables expressionVariables, 
     		String opContext, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
 
         if (expressionFactory == null) {

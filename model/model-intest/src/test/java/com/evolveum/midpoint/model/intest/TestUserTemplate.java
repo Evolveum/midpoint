@@ -607,7 +607,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 	/**
 	 * Creates org on demand.
 	 */
-	@Test(enabled=false) // WORK IN PROGRESS
+	@Test
     public void test155ModifyJackOrganizationalUnitFD001() throws Exception {
 		final String TEST_NAME = "test155ModifyJackOrganizationalUnitFD001";
         TestUtil.displayTestTile(this, TEST_NAME);

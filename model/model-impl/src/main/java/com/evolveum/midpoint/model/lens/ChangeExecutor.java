@@ -24,6 +24,7 @@ import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.common.expression.Expression;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.util.Utils;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -923,14 +924,14 @@ public class ChangeExecutor {
 
         ResourceShadowDiscriminator discr = ((LensProjectionContext) objectContext).getResourceShadowDiscriminator();
 
-        Map<QName, Object> variables = Utils.getDefaultExpressionVariables(user, resourceObject, discr, resource.asPrismObject());
+        ExpressionVariables variables = Utils.getDefaultExpressionVariables(user, resourceObject, discr, resource.asPrismObject());
         return evaluateScript(resourceScripts, discr, operation, null, variables, task, result);
       
     }
 	
 	private OperationProvisioningScriptsType evaluateScript(OperationProvisioningScriptsType resourceScripts,
             ResourceShadowDiscriminator discr, ProvisioningOperationTypeType operation, BeforeAfterType order, 
-            Map<QName, Object> variables, Task task, OperationResult result) 
+            ExpressionVariables variables, Task task, OperationResult result) 
             		throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException{
 		  OperationProvisioningScriptsType outScripts = new OperationProvisioningScriptsType();
 	        if (resourceScripts != null) {
@@ -959,7 +960,7 @@ public class ChangeExecutor {
 	        return outScripts;
 	}
     
-    private void evaluateScriptArgument(ProvisioningScriptArgumentType argument, Map<QName, Object> variables, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException{
+    private void evaluateScriptArgument(ProvisioningScriptArgumentType argument, ExpressionVariables variables, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException{
     	
     	QName FAKE_SCRIPT_ARGUMENT_NAME = new QName(SchemaConstants.NS_C, "arg");
     	
@@ -1042,7 +1043,7 @@ public class ChangeExecutor {
 			throw new IllegalArgumentException("Unknown order "+order);
 		}
         
-		Map<QName, Object> variables = Utils.getDefaultExpressionVariables(user, shadow,
+		ExpressionVariables variables = Utils.getDefaultExpressionVariables(user, shadow,
                 projContext.getResourceShadowDiscriminator(), resource.asPrismObject());
         OperationProvisioningScriptsType evaluatedScript = evaluateScript(resourceScripts,
                 projContext.getResourceShadowDiscriminator(),
