@@ -1001,6 +1001,26 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 			}
 		}
 
+		Set<Entry<String, Serializable>> context = opResult.getContext().entrySet();
+		if (!context.isEmpty()) {
+			ParamsType paramsType = new ParamsType();
+			result.setContext(paramsType);
+
+			for (Entry<String, Serializable> entry : context) {
+				paramsType.getEntry().add(createEntryElement(entry.getKey(),entry.getValue()));
+			}
+		}
+
+		Set<Entry<String, Serializable>> returns = opResult.getReturns().entrySet();
+		if (!returns.isEmpty()) {
+			ParamsType paramsType = new ParamsType();
+			result.setReturns(paramsType);
+
+			for (Entry<String, Serializable> entry : returns) {
+				paramsType.getEntry().add(createEntryElement(entry.getKey(),entry.getValue()));
+			}
+		}
+
 		for (OperationResult subResult : opResult.getSubresults()) {
 			result.getPartialResults().add(opResult.createOperationResultType(subResult));
 		}
