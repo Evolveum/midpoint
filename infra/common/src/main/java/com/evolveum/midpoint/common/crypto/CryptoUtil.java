@@ -245,7 +245,10 @@ public class CryptoUtil {
 	private static void securitySelfTestAlgorithm(String algorithmName, String transformationName, OperationResult parentResult) {
 		OperationResult subresult = parentResult.createSubresult(CryptoUtil.class.getName()+".securitySelfTest.algorithm."+algorithmName);
 		try {
-			SecretKey key = KeyGenerator.getInstance(algorithmName).generateKey();
+			KeyGenerator keyGenerator = KeyGenerator.getInstance(algorithmName);
+			subresult.addReturn("keyGeneratorProvider", keyGenerator.getProvider().getName());
+			subresult.addReturn("keyGeneratorAlgorithm", keyGenerator.getAlgorithm());
+			SecretKey key = keyGenerator.generateKey();
 			subresult.addReturn("keyAlgorithm", key.getAlgorithm());
 			subresult.addReturn("keyLength", key.getEncoded().length*8);
 			subresult.addReturn("keyFormat", key.getFormat());
