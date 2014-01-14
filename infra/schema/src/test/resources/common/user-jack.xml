@@ -79,7 +79,7 @@
     	</filter>
     </linkRef>
 
-   <assignment id="111">
+   <assignment>
     	<extension>
     		<ext:intType>42</ext:intType>
     	</extension>

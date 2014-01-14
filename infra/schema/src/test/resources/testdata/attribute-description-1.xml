@@ -22,19 +22,25 @@
    xmlns:c='http://midpoint.evolveum.com/xml/ns/public/common/common-2a'
    xmlns:piracy='http://midpoint.evolveum.com/xml/ns/samples/piracy'
    xmlns:foo='http://midpoint.evolveum.com/xml/ns/samples/foo'>
-
+<ref></ref>
     <inbound>
         <source>
+        <path>
             $i:account/i:attributes/foo:vessel
+            </path>
         </source>
         <target>
+        <path>
            $c:user/c:extension/piracy:ship
+           </path>
         </target>
     </inbound>
 
     <inbound>
         <target>
+        <path>
            $c:user/c:extension/foo:whatever
+           </path>
         </target>
     </inbound>
 
