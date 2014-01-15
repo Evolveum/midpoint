@@ -46,7 +46,7 @@
 	               xmlns:icfc="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2">
 					   
 		<icfc:configurationProperties>
-			<icfi:instanceId>green</icfi:instanceId> <!-- Default instance. -->
+			<icfi:instanceId>green</icfi:instanceId>
 			<icfi:supportValidity>true</icfi:supportValidity>
 		</icfc:configurationProperties>
 
@@ -111,7 +111,7 @@
 	</schema>
 
 	<schemaHandling>
-		<accountType>
+		<objectType>
 			<name>default</name>
 			<displayName>Default Account</displayName>
 			<default>true</default>
@@ -311,7 +311,7 @@
                 </password>
             </credentials>
             
-		</accountType>
+		</objectType>
 		
 	</schemaHandling>
 	
