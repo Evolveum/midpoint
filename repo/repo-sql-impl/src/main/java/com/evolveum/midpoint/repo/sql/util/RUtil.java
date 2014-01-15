@@ -451,6 +451,13 @@ public final class RUtil {
                     prismContext));
             jaxb.setParams(RUtil.toJAXB(OperationResultType.class, new ItemPath(OperationResultType.F_PARAMS),
                     repo.getParams(), ParamsType.class, prismContext));
+            
+            jaxb.setContext(RUtil.toJAXB(OperationResultType.class, new ItemPath(OperationResultType.F_CONTEXT),
+                    repo.getContext(), ParamsType.class, prismContext));
+
+            jaxb.setReturns(RUtil.toJAXB(OperationResultType.class, new ItemPath(OperationResultType.F_RETURNS),
+                    repo.getReturns(), ParamsType.class, prismContext));
+
 
             if (StringUtils.isNotEmpty(repo.getPartialResults())) {
                 OperationResultType result = RUtil.toJAXB(repo.getPartialResults(), OperationResultType.class,
@@ -477,6 +484,8 @@ public final class RUtil {
         try {
             repo.setLocalizedMessage(RUtil.toRepo(jaxb.getLocalizedMessage(), prismContext));
             repo.setParams(RUtil.toRepo(jaxb.getParams(), prismContext));
+            repo.setContext(RUtil.toRepo(jaxb.getContext(), prismContext));
+            repo.setReturns(RUtil.toRepo(jaxb.getReturns(), prismContext));
 
             if (!jaxb.getPartialResults().isEmpty()) {
                 OperationResultType result = new OperationResultType();

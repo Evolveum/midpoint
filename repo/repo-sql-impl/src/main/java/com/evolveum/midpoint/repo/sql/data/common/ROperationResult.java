@@ -46,6 +46,8 @@ public class ROperationResult implements OperationResult {
 
     private String localizedMessage;
     private String params;
+    private String context;
+    private String returns;
     private String partialResults;
 
     @ForeignKey(name = "fk_result_owner")
@@ -81,6 +83,18 @@ public class ROperationResult implements OperationResult {
     @Type(type = RUtil.LOB_STRING_TYPE)
     public String getParams() {
         return params;
+    }
+
+    @Lob
+    @Type(type = RUtil.LOB_STRING_TYPE)
+    public String getContext() {
+        return context;
+    }
+
+    @Lob
+    @Type(type = RUtil.LOB_STRING_TYPE)
+    public String getReturns() {
+        return returns;
     }
 
     @Lob
@@ -162,6 +176,14 @@ public class ROperationResult implements OperationResult {
     public void setParams(String params) {
         this.params = params;
     }
+    
+    public void setContext(String context) {
+		this.context = context;
+	}
+    
+    public void setReturns(String returns) {
+		this.returns = returns;
+	}
 
     public void setPartialResults(String partialResults) {
         this.partialResults = partialResults;
@@ -189,6 +211,8 @@ public class ROperationResult implements OperationResult {
         if (messageCode != null ? !messageCode.equals(that.messageCode) : that.messageCode != null) return false;
         if (operation != null ? !operation.equals(that.operation) : that.operation != null) return false;
         if (params != null ? !params.equals(that.params) : that.params != null) return false;
+        if (context != null ? !context.equals(that.context) : that.context != null) return false;
+        if (returns != null ? !returns.equals(that.returns) : that.returns != null) return false;
         if (partialResults != null ? !partialResults.equals(that.partialResults) : that.partialResults != null)
             return false;
         if (status != that.status) return false;
@@ -207,6 +231,8 @@ public class ROperationResult implements OperationResult {
         result = 31 * result + (details != null ? details.hashCode() : 0);
         result = 31 * result + (localizedMessage != null ? localizedMessage.hashCode() : 0);
         result = 31 * result + (params != null ? params.hashCode() : 0);
+        result = 31 * result + (context != null ? context.hashCode() : 0);
+        result = 31 * result + (returns != null ? returns.hashCode() : 0);
         result = 31 * result + (partialResults != null ? partialResults.hashCode() : 0);
         return result;
     }
