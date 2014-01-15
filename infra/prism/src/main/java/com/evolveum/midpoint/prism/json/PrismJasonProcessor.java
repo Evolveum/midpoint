@@ -19,6 +19,7 @@ import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonGenerator;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.JsonProcessingException;
 import org.codehaus.jackson.PrettyPrinter;
 import org.codehaus.jackson.map.DeserializationConfig.Feature;
 import org.codehaus.jackson.map.JsonMappingException;
@@ -32,6 +33,7 @@ import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -46,17 +48,28 @@ import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.JavaTypeConverter;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 public class PrismJasonProcessor {
 	
 	private SchemaRegistry schemaRegistry;
 	private PrismContext prismContext;
+//	private PrismSchema prismSchema;
+	
+	public PrismSchema getPrismSchema(Class clazz) {
+
+		return schemaRegistry.findSchemaByCompileTimeClass(clazz);
+//		
+//		return prismSchema;
+	}
 	
 	public PrismContext getPrismContext() {
 		return prismContext;
@@ -73,6 +86,8 @@ public class PrismJasonProcessor {
 	public SchemaRegistry getSchemaRegistry() {
 		return schemaRegistry;
 	}
+	
+	private PrismSchema prismSchema = null;
 	
 	public <T extends Objectable> PrismObject<T> parseObject(File file, Class<T> valueType) throws IOException, SchemaException{
 		ObjectMapper mapper = new ObjectMapper();
@@ -95,45 +110,72 @@ public class PrismJasonProcessor {
 	}
 	
 	private <T extends Objectable> void  serializeToJson(PrismContainerValue<?> val, JsonGenerator generator) throws JsonGenerationException, IOException{
-		if (val != null && val.getPath() != null && val.getPath().last() != null){
-		generator.writeFieldName(ItemPath.getName(val.getPath().last()).getLocalPart());
-		
-		}else{
-			generator.writeFieldName(val.getContainer().getCompileTimeClass().getSimpleName());
-		}
+//		generator.writeStartObject();
+//		if (val != null && val.getPath() != null && val.getPath().last() != null){
+////		generator.writeFieldName(ItemPath.getName(val.getPath().last()).getLocalPart());
+//		
+//		}else{
+//			generator.writeFieldName(val.getContainer().getCompileTimeClass().getSimpleName());
+//		}
 		generator.writeStartObject();
 		
 		for (Item<?> item : val.getItems()){
 //			generator.writeFieldName(item.getElementName().getLocalPart());
-			for (PrismValue v : item.getValues()){
-				if (v instanceof PrismPropertyValue){
-					Object o = ((PrismPropertyValue) v).getValue();
-					generator.writeFieldName(item.getElementName().getLocalPart());
-					generator.writeObject(o);
-//					generator.writeString("\n");
+			generator.writeFieldName(item.getElementName().getLocalPart());
+			if (item.getValues().isEmpty()){
+				continue;
+			} 
+			
+			if (item.getValues().size() > 1){
+				generator.writeStartArray();
+				for (PrismValue v : item.getValues()){
+					serializeValue(v, generator);
 				}
-				if (v instanceof PrismReferenceValue){
-					String oid = ((PrismReferenceValue) v).getOid();
-					
-//					generator.writeString("\n");
-					QName qname = ((PrismReferenceValue) v).getTargetType();
-					
-//					generator.writeString("\n");
-				}
-				if (v instanceof PrismContainerValue){
-//					generator.writeString("\n");
-					serializeToJson((PrismContainerValue) v, generator);
-				}
+				generator.writeEndArray();
+				continue;
 			}
+//			
+			serializeValue(item.getValues().iterator().next(), generator);
+				
+//			}
+//			generator.writeEndArray();
 		}
 		generator.writeEndObject();
 			}
+	
+	private void serializeValue(PrismValue v, JsonGenerator generator) throws JsonProcessingException, IOException{
+		if (v instanceof PrismPropertyValue){
+			Object o = ((PrismPropertyValue) v).getValue();
+			generator.writeObject(o);
+//			generator.writeString("\n");
+		}
+		if (v instanceof PrismReferenceValue){
+			generator.writeStartObject();
+			String oid = ((PrismReferenceValue) v).getOid();
+			generator.writeFieldName("oid");
+			generator.writeString(oid);
+//			generator.writeString("\n");
+			QName qname = ((PrismReferenceValue) v).getTargetType();
+			if (qname != null){
+			generator.writeFieldName("taretType");
+			generator.writeString(qname.toString());
+			
+			}
+			generator.writeEndObject();
+//			generator.writeString("\n");
+		}
+		if (v instanceof PrismContainerValue){
+//			generator.writeString("\n");
+			serializeToJson((PrismContainerValue) v, generator);
+		}
+	}
 	
 	public <T extends Objectable> void serializeToJson(PrismObject<T> object, OutputStream out) throws IOException, SchemaException{
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.configure(org.codehaus.jackson.map.SerializationConfig.Feature.WRITE_NULL_MAP_VALUES, false);
 		mapper.configure(org.codehaus.jackson.map.SerializationConfig.Feature.WRITE_EMPTY_JSON_ARRAYS, false);
 		mapper.configure(org.codehaus.jackson.map.SerializationConfig.Feature.WRITE_ENUMS_USING_TO_STRING, true);
+		
 		ObjectWriter writer = mapper.writer();
 //		JsonGenerator jsonGenerator = new J
 		JsonFactory factory = new JsonFactory();
@@ -143,15 +185,24 @@ public class PrismJasonProcessor {
 //		pp.
 		generator.setPrettyPrinter(pp);
 		generator.setCodec(mapper);
-		generator.writeObject(object.asObjectable());
-//		generator.writeStartObject();
+//		generator.writeObject(object.asObjectable());
 		
-//for (PrismContainerValue<?> pcv : object.getValues()){
-//			
-//serializeToJson(pcv, generator);			
-//		}
+				
+for (PrismContainerValue<?> pcv : object.getValues()){
+	generator.writeStartObject();
+	if (pcv != null && pcv.getPath() != null && pcv.getPath().last() != null){
+//	generator.writeFieldName(ItemPath.getName(val.getPath().last()).getLocalPart());
+	
+	}else{
+		generator.writeFieldName(pcv.getContainer().getCompileTimeClass().getSimpleName());
+	}
 
-//generator.writeEndObject();
+			
+serializeToJson(pcv, generator);
+generator.writeEndObject();
+		}
+
+
 
 //		for (PrismContainerValue<?> pcv : object.getValues()){
 //			generator.writeFieldName(pcv.getPath().last().toString());
@@ -222,7 +273,9 @@ public class PrismJasonProcessor {
 //			JsonNode ns = obj.findValue("_ns");
 //			String defaultNamespace = ns.getTextValue();
 			
-			PrismSchema schema = schemaRegistry.findSchemaByCompileTimeClass(valueType);
+			PrismSchema schema = getPrismSchema(valueType);
+			
+			prismSchema = schema;
 			if (schema == null) {
 				throw new SchemaException("No schema for namespace " + valueType);
 			}
@@ -264,7 +317,8 @@ public class PrismJasonProcessor {
 	}
 	
 	private <T extends Objectable> PrismObject<T> parseObject(JsonNode jsonObject, QName itemName, String defaultNamespace, 
-			PrismObjectDefinition<T> objectDefinition) throws SchemaException {
+			PrismObjectDefinition<T> objectDefinition) throws SchemaException, JsonParseException, JsonMappingException, IOException {
+
 		PrismObject<T> object = (PrismObject<T>) parsePrismContainer(jsonObject, itemName, defaultNamespace, objectDefinition);
 		
 		if (jsonObject.findValue("_oid") != null){
@@ -281,7 +335,7 @@ public class PrismJasonProcessor {
 		return object;
 	}
 	
-	  private <T extends Containerable> PrismContainer<T> parsePrismContainer(JsonNode jsonObject, QName itemName, String defaultNamespace, PrismContainerDefinition<T> containerDefinition) throws SchemaException {
+	  private <T extends Containerable> PrismContainer<T> parsePrismContainer(JsonNode jsonObject, QName itemName, String defaultNamespace, PrismContainerDefinition<T> containerDefinition) throws SchemaException, JsonParseException, JsonMappingException, IOException {
 			PrismContainer<T> container = containerDefinition.instantiate(itemName);
 			
 			PrismContainerValue<T> pval = new PrismContainerValue<T>(null, null, container, null);
@@ -314,7 +368,7 @@ public class PrismJasonProcessor {
 	  
 	  protected <T extends Containerable> Collection<? extends Item<?>> parsePrismContainerItems(JsonNode jsonObject,
 				PrismContainerDefinition<T> containerDefinition, String defaultNamespace)
-				throws SchemaException {
+				throws SchemaException, JsonParseException, JsonMappingException, IOException {
 
 			// TODO: more robustness in handling schema violations (min/max
 			// constraints, etc.)
@@ -326,25 +380,30 @@ public class PrismJasonProcessor {
 			Iterator<Entry<String, JsonNode>> items = jsonObject.getFields();
 			
 //			String namespace = null;
-			JsonNode defaultNs = jsonObject.findValue("_ns");
-			if (defaultNs != null){
-				defaultNamespace = defaultNs.getTextValue();
-			}
+//			JsonNode defaultNs = jsonObject.findValue("_ns");
+//			if (defaultNs != null){
+//				defaultNamespace = defaultNs.getTextValue();
+//			}
 			while (items.hasNext()){
 				Entry<String, JsonNode> item = items.next();
 				
 				//not items, will be handled differently
-				if (item.getKey() != null && item.getKey().startsWith("_")){
+//				if (item.getKey() != null && item.getKey().startsWith("_")){
+//					continue;
+//				}
+//				
+//				JsonNode ns = item.getValue().findValue("_ns");
+//				JsonNode nsw = item.getValue().get("_ns");
+//				
+//				if (nsw != null){
+//					defaultNamespace = nsw.getTextValue();
+//				}
+//				
+//				PrismSchema schema  = getPrismSchema(containerDefinition.get);
+//				ItemDefinition def = prismSchema.findItemDefinition(item.getKey(), containerDefinition.getTypeClass());
+				if (item.getKey().equals("id") || item.getKey().equals("any")){
 					continue;
 				}
-				
-				JsonNode ns = item.getValue().findValue("_ns");
-				JsonNode nsw = item.getValue().get("_ns");
-				
-				if (nsw != null){
-					defaultNamespace = nsw.getTextValue();
-				}
-				
 				QName itemQName = new QName(defaultNamespace, item.getKey());
 				
 				ItemDefinition def = locateItemDefinition(containerDefinition, itemQName);
@@ -387,7 +446,7 @@ public class PrismJasonProcessor {
 		}
 	  
 	  public <V extends PrismValue> Item<V> parseItem(JsonNode values, QName itemName, String defaultNamespace, ItemDefinition def)
-				throws SchemaException {
+				throws SchemaException, JsonParseException, JsonMappingException, IOException {
 			if (def == null) {
 				// Assume property in a container with runtime definition
 				return (Item<V>) parsePrismPropertyRaw(values, itemName);
@@ -410,8 +469,8 @@ public class PrismJasonProcessor {
 		}
 	  
 	  public <T> PrismProperty<T> parsePrismProperty(JsonNode values, QName propName,
-				PrismPropertyDefinition<T> propertyDefinition) throws SchemaException {
-			if (values == null) {
+				PrismPropertyDefinition<T> propertyDefinition) throws SchemaException, JsonParseException, JsonMappingException, IOException {
+			if (values.isNull()) {
 				return null;
 			}
 			PrismProperty<T> prop = propertyDefinition.instantiate(propName);
@@ -424,7 +483,7 @@ public class PrismJasonProcessor {
 				while (vals.hasNext()){
 					JsonNode val = vals.next();
 					if (val != null){
-						T realValue = parsePrismPropertyRealValue(val.getTextValue(), propertyDefinition);
+						T realValue = parsePrismPropertyRealValue(val, propertyDefinition);
 						if (realValue != null) {
 							prop.add(new PrismPropertyValue<T>(realValue));
 						}
@@ -432,7 +491,7 @@ public class PrismJasonProcessor {
 				}
 			} else {
 				if (values != null){
-					T realValue = parsePrismPropertyRealValue(values.getTextValue(), propertyDefinition);
+					T realValue = parsePrismPropertyRealValue(values, propertyDefinition);
 					if (realValue != null) {
 						prop.add(new PrismPropertyValue<T>(realValue));
 					}
@@ -442,20 +501,40 @@ public class PrismJasonProcessor {
 			return prop;
 		}
 
-		public <T> T parsePrismPropertyRealValue(String valueElement, PrismPropertyDefinition<T> propertyDefinition)
-				throws SchemaException {
+		public <T> T parsePrismPropertyRealValue(JsonNode valueElement, PrismPropertyDefinition<T> propertyDefinition)
+				throws SchemaException, JsonParseException, JsonMappingException, IOException {
 			QName typeName = propertyDefinition.getTypeName();
 //			PrismJaxbProcessor jaxbProcessor = getPrismContext().getPrismJaxbProcessor();
 			Object realValue = null;
 			
 			
-			Class<?> expectedJavaType = XsdTypeMapper.toJavaType(propertyDefinition.getTypeName());
+			Class<T> expectedJavaType = XsdTypeMapper.toJavaType(propertyDefinition.getTypeName());
 	    	if (expectedJavaType == null) {
-	    		expectedJavaType = schemaRegistry.determineCompileTimeClass(propertyDefinition.getTypeName());
+	    		expectedJavaType = (Class<T>) schemaRegistry.determineCompileTimeClass(propertyDefinition.getTypeName());
 	    	}
 	    	
 	    
-					realValue = JavaTypeConverter.convert(expectedJavaType, valueElement);
+	    
+	    	Object value = null;	
+	    	ObjectMapper mapper = new ObjectMapper();
+	    	if (typeName.equals(PolyStringType.COMPLEX_TYPE)) {
+				 value = mapper.readValue(valueElement, PolyStringType.class);
+			} else{
+	    	
+				value = mapper.readValue(valueElement, expectedJavaType);
+			}
+//					Object value = null;
+//					if (expectedJavaType.equals(PolyString.class)){
+//						if (valueElement.isObject()){
+//							JsonNode orig = valueElement.get("orig");
+//							JsonNode norm = valueElement.get("norm");
+//							value = new PolyString(orig.asText(), norm.asText());
+//							System.out.println("orig: " + orig.asText() +" norm: " + norm.asText());						
+//						}
+//						
+//					}
+//					
+					realValue = JavaTypeConverter.convert(expectedJavaType, value);
 				 
 			postProcessPropertyRealValue((T) realValue);
 			return (T) realValue;
@@ -469,7 +548,7 @@ public class PrismJasonProcessor {
 		}
 		
 		public PrismReference parsePrismReference(JsonNode values, QName propName,
-				PrismReferenceDefinition referenceDefinition) throws SchemaException {
+				PrismReferenceDefinition referenceDefinition) throws SchemaException, JsonParseException, JsonMappingException, IOException {
 			if (values == null) {
 				return null;
 			}
@@ -532,7 +611,7 @@ public class PrismJasonProcessor {
 		}
 
 		private PrismReferenceValue parseReferenceAsCompositeObject(JsonNode valueElement,
-				PrismReferenceDefinition referenceDefinition) throws SchemaException {
+				PrismReferenceDefinition referenceDefinition) throws SchemaException, JsonParseException, JsonMappingException, IOException {
 			QName targetTypeName = referenceDefinition.getTargetTypeName();
 			PrismObjectDefinition<Objectable> schemaObjectDefinition = null;
 			if (targetTypeName != null) {
