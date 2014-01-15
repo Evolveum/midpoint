@@ -24,6 +24,7 @@ import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.home.dto.MyWorkItemDto;
 import com.evolveum.midpoint.web.page.admin.workflow.PageWorkItem;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
@@ -61,7 +62,7 @@ public class WorkItemsPanel extends SimplePanel<List<WorkItemDto>> {
             public void onClick(AjaxRequestTarget target, IModel<WorkItemDto> rowModel) {
                 WorkItemDto workItemDto = rowModel.getObject();
                 PageParameters parameters = new PageParameters();
-                parameters.add(PageWorkItem.PARAM_TASK_ID, workItemDto.getWorkItem().getWorkItemId());
+                parameters.add(OnePageParameterEncoder.PARAMETER, workItemDto.getWorkItem().getWorkItemId());
                 setResponsePage(new PageWorkItem(parameters, (PageBase) WorkItemsPanel.this.getPage()));
             }
         });

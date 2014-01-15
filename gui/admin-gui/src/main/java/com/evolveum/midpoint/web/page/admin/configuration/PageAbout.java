@@ -23,6 +23,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
@@ -40,6 +41,7 @@ import java.util.List;
 /**
  * @author lazyman
  */
+@PageDescriptor(url = "/admin/config/about")
 public class PageAbout extends PageAdminConfiguration {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageAbout.class);
@@ -147,7 +149,7 @@ public class PageAbout extends PageAdminConfiguration {
             }
         };
         add(testRepository);
-        
+
         AjaxButton testProvisioning = new AjaxButton(ID_TEST_PROVISIONING,
                 createStringResource("PageAbout.button.testProvisioning")) {
 
@@ -202,7 +204,7 @@ public class PageAbout extends PageAdminConfiguration {
 
         target.add(getFeedbackPanel());
     }
-    
+
     private void testProvisioningPerformed(AjaxRequestTarget target) {
         Task task = createSimpleTask(OPERATION_TEST_REPOSITORY);
 

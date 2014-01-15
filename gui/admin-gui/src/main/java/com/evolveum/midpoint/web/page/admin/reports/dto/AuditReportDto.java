@@ -21,6 +21,7 @@ import java.sql.Timestamp;
 import java.util.Date;
 
 import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExportType;
 
 /**
  * @author lazyman
@@ -30,10 +31,31 @@ public class AuditReportDto implements Serializable {
     public static final String F_FROM = "from";
     public static final String F_TO = "to";
     public static final String F_AUDITEVENTTYPE = "auditEventType";
+    public static final String F_DESCRIPTION = "description";
+    public static final String F_EXPORT_TYPE = "exportType";
+
 
     private Date from;
     private Date to;
     private AuditEventType auditEventType;
+    private ExportType exportType;
+    private String description;
+
+    public ExportType getExportType() {
+        return exportType;
+    }
+
+    public void setExportType(ExportType exportType) {
+        this.exportType = exportType;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
     public Date getFrom() {
         if (from == null) {

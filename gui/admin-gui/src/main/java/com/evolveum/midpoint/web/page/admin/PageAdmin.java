@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.page.admin;
 
 import com.evolveum.midpoint.common.security.AuthorizationConstants;
+import com.evolveum.midpoint.web.application.DescriptorLoader;
 import com.evolveum.midpoint.web.component.menu.top.MenuBarItem;
 import com.evolveum.midpoint.web.component.menu.top.MenuItem;
 import com.evolveum.midpoint.web.component.menu.top.TopMenuBar;
@@ -55,6 +56,9 @@ public class PageAdmin extends PageBase {
 
     @Override
     protected List<MenuBarItem> createMenuItems() {
+        //todo enable, disabled descriptor loader until finished [lazyman]
+//        return DescriptorLoader.getMenuBarItems();
+
         List<MenuBarItem> items = new ArrayList<MenuBarItem>();
 
         // todo fix with visible behaviour [lazyman]

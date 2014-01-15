@@ -117,6 +117,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TriggerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.model.model_1_wsdl.ModelPortType;
+
 import org.apache.commons.lang.StringUtils;
 import org.opends.server.types.DirectoryException;
 import org.opends.server.types.SearchResultEntry;
@@ -127,6 +128,7 @@ import org.testng.AssertJUnit;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -1354,6 +1356,10 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         assertShadowModel(accountShadow, oid, username, resourceType, getAccountObjectClass(resourceType), null);
     }
 
+    protected void assertAccountShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType, MatchingRule<String> matchingRule) {
+        assertShadowModel(accountShadow, oid, username, resourceType, getAccountObjectClass(resourceType), matchingRule);
+    }
+    
     protected void assertShadowModel(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType,
                                      QName objectClass) {
     	assertShadowModel(accountShadow, oid, username, resourceType, objectClass, null);

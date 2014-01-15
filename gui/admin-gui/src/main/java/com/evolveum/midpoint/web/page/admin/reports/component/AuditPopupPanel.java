@@ -21,14 +21,17 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.DateInput;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditReportDto;
+import com.evolveum.midpoint.web.page.admin.reports.dto.UserReportDto;
 import com.evolveum.midpoint.web.util.DateValidator;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExportType;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
@@ -45,7 +48,11 @@ public class AuditPopupPanel extends SimplePanel<AuditReportDto> {
     private static final String ID_DATE_TO = "dateTo";
     private static final String ID_FEEDBACK = "feedback";
     private static final String ID_AUDITEVENTTYPE = "auditEventType";
-    private static final String ID_RUN = "run";
+    private static final String ID_DESCRIPTION = "description";
+    private static final String ID_EXPORT_TYPE = "exportType";
+    private static final String ID_BUTTON_RUN = "runSave";
+    private static final String ID_BUTTON_SAVE = "save";
+    private static final String ID_BUTTON_CANCEL = "cancel";
 
     public AuditPopupPanel(String id, IModel<AuditReportDto> model) {
         super(id, model);
@@ -61,6 +68,34 @@ public class AuditPopupPanel extends SimplePanel<AuditReportDto> {
         final FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK);
         feedback.setOutputMarkupId(true);
         form.add(feedback);
+
+        TextField<String> description = new TextField<String>(ID_DESCRIPTION,
+                new PropertyModel<String>(getModel(), UserReportDto.F_DESCRIPTION));
+        description.setRequired(true);
+        form.add(description);
+
+        IChoiceRenderer<ExportType> exportTypeRenderer = new IChoiceRenderer<ExportType>() {
+
+            @Override
+            public Object getDisplayValue(ExportType object) {
+                return WebMiscUtil.createLocalizedModelForEnum(object, component).getObject();
+            }
+
+            @Override
+            public String getIdValue(ExportType object, int index) {
+                return Integer.toString(index);
+            }
+        };
+
+        DropDownChoice exportDropDown = new DropDownChoice(ID_EXPORT_TYPE, new PropertyModel<ExportType>(getModel(),
+                UserReportDto.F_EXPORT_TYPE), WebMiscUtil.createReadonlyModelFromEnum(ExportType.class), exportTypeRenderer){
+
+            @Override
+            protected CharSequence getDefaultChoice(final String selectedValue){
+                return ExportType.PDF.toString();
+            }
+        };
+        form.add(exportDropDown);
 
         IChoiceRenderer<AuditEventType> renderer = new IChoiceRenderer<AuditEventType>() {
 
@@ -85,8 +120,6 @@ public class AuditPopupPanel extends SimplePanel<AuditReportDto> {
             }
         };
         dropDown.setNullValid(true);
-
-
         form.add(dropDown);
 
         DateInput dateFrom = new DateInput(ID_DATE_FROM, new PropertyModel<Date>(getModel(), AuditReportDto.F_FROM));
@@ -99,7 +132,7 @@ public class AuditPopupPanel extends SimplePanel<AuditReportDto> {
 
         form.add(new DateValidator(dateFrom, dateTo));
 
-        AjaxSubmitButton run = new AjaxSubmitButton(ID_RUN, createStringResource("PageBase.button.run")) {
+        AjaxSubmitButton saveAndRun = new AjaxSubmitButton(ID_BUTTON_RUN, createStringResource("PageBase.button.saveAndRun")) {
 
             @Override
             protected void onError(AjaxRequestTarget target, Form<?> form) {
@@ -108,14 +141,41 @@ public class AuditPopupPanel extends SimplePanel<AuditReportDto> {
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                onRunPerformed(target);
+                onSaveAndRunPerformed(target);
             }
         };
-        form.add(run);
+        form.add(saveAndRun);
+
+        AjaxSubmitButton save = new AjaxSubmitButton(ID_BUTTON_SAVE, createStringResource("PageBase.button.save")) {
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(feedback);
+            }
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                onSavePerformed(target);
+            }
+        };
+        form.add(save);
+
+        AjaxSubmitButton cancel = new AjaxSubmitButton(ID_BUTTON_CANCEL, createStringResource("PageBase.button.cancel")) {
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(feedback);
+            }
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                onCancelPerformed(target);
+            }
+        };
+        form.add(cancel);
     }
 
-
-    protected void onRunPerformed(AjaxRequestTarget target) {
-
-    }
+    protected void onSaveAndRunPerformed(AjaxRequestTarget target) {}
+    protected void onSavePerformed(AjaxRequestTarget target) {}
+    protected void onCancelPerformed(AjaxRequestTarget target) {}
 }

@@ -23,6 +23,10 @@ import java.io.Serializable;
  */
 public class AccountContentSearchDto implements Serializable {
 
+    public static final String F_SEARCH_TEXT = "searchText";
+    public static final String F_NAME = "name";
+    public static final String F_IDENTIFIERS = "identifiers";
+
     private String searchText;
     private boolean name = true;
     private boolean identifiers;

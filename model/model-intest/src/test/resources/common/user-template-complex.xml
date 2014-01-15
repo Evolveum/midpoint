@@ -99,10 +99,14 @@
 		</condition>
     </mapping>
 
-	<!-- WORK IN PROGRESS  -->
-
     <mapping>
     	<name>Org mapping</name>
+    	<description>
+    		Look for appropriate Org objects by using the user's organizationalUnit property
+    		as the name of the org object. When no such object is found we want to create it on
+    		demand. We want to populate new Org object with a name and description derived from
+    		the user.
+    	</description>
     	<authoritative>true</authoritative>
     	<source>
     		<path>organizationalUnit</path>
@@ -145,8 +149,6 @@
     		<path>assignment</path>
     	</target>
     </mapping>
-
-	<!-- END -->
     
     <mapping>
     	<strength>weak</strength>

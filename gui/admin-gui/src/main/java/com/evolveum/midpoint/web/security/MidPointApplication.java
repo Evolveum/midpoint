@@ -26,12 +26,16 @@ import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.DescriptorLoader;
 import com.evolveum.midpoint.web.component.GuiComponents;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.page.error.PageError401;
+import com.evolveum.midpoint.web.page.error.PageError403;
+import com.evolveum.midpoint.web.page.error.PageError404;
 import com.evolveum.midpoint.web.page.login.PageLogin;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
+import com.evolveum.midpoint.web.util.MidPointPageParametersEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import org.apache.commons.configuration.Configuration;
@@ -117,21 +121,19 @@ public class MidPointApplication extends AuthenticatedWebApplication {
             getDebugSettings().setDevelopmentUtilitiesEnabled(true);
         }
 
-        //pretty url resources
+        //pretty url for resources (e.g. images)
         mountFiles(ImgResources.BASE_PATH, ImgResources.class);
 
-        for (PageUrlMapping m : PageUrlMapping.values()) {
-            // usually m.getPage() will not return null, this is only the case we set the url with
-            // wildcard which is then used by spring security
-            if (m.getPage() != null) {
-                mount(new MountedMapper(m.getUrl(), m.getPage(), m.getEncoder()));
-            }
-        }
-
+        //exception handling an error pages
         IApplicationSettings appSettings = getApplicationSettings();
         appSettings.setAccessDeniedPage(PageError401.class);
         appSettings.setInternalErrorPage(PageError.class);
         appSettings.setPageExpiredErrorPage(PageError.class);
+
+        mount(new MountedMapper("/error",PageError.class, MidPointPageParametersEncoder.ENCODER));
+        mount(new MountedMapper("/error/401",PageError401.class, MidPointPageParametersEncoder.ENCODER));
+        mount(new MountedMapper("/error/403",PageError403.class, MidPointPageParametersEncoder.ENCODER));
+        mount(new MountedMapper("/error/404",PageError404.class, MidPointPageParametersEncoder.ENCODER));
 
         getRequestCycleListeners().add(new AbstractRequestCycleListener() {
 
@@ -141,8 +143,12 @@ public class MidPointApplication extends AuthenticatedWebApplication {
             }
         });
 
+        //ajax push (just an experiment)
         eventBus = new EventBus(this);
         eventBus.getParameters().setLogLevel(AtmosphereLogLevel.DEBUG);
+
+        //descriptor loader, used for customization
+        new DescriptorLoader().loadData(this);
     }
 
     private void mountFiles(String path, Class<?> clazz) {

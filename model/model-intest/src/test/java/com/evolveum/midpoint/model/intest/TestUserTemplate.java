@@ -52,7 +52,11 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
@@ -623,17 +627,14 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
 		display("User after", userJack);
         
-		// TODO: lookup org
-		PrismObject<OrgType> orgFD001 = findObjectByName(OrgType.class, "FD001");
-		assertNotNull("The org was not created on demand", orgFD001);
-		
 		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
         assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
         assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
         assertAssignedOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
-        assertAssignedOrg(userJack, orgFD001.getOid());
         assertHasOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
-        assertHasOrg(userJack, orgFD001.getOid());
+
+        assertOnDemandOrgAssigned("FD001", userJack);
+        
         assertAssignments(userJack, 3);
         
         UserType userJackType = userJack.asObjectable();
@@ -648,7 +649,111 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         assertNull("Unexpected title: "+userJackType.getTitle(), userJackType.getTitle());
         IntegrationTestTools.assertNoExtensionProperty(userJack, PIRACY_COLORS);
 	}
+	
+	/**
+	 * Creates two orgs on demand.
+	 */
+	@Test
+    public void test156ModifyJackOrganizationalUnitFD0023() throws Exception {
+		final String TEST_NAME = "test156ModifyJackOrganizationalUnitFD0023";
+        TestUtil.displayTestTile(this, TEST_NAME);
 
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+                    
+		// WHEN
+        modifyUserAdd(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, 
+        		PrismTestUtil.createPolyString("FD002"), PrismTestUtil.createPolyString("FD003"));
+
+		// THEN
+		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+		display("User after", userJack);
+        
+		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
+        assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
+        assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
+        
+        assertAssignedOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
+        assertHasOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
+        
+        assertOnDemandOrgAssigned("FD001", userJack);
+        assertOnDemandOrgAssigned("FD002", userJack);
+        assertOnDemandOrgAssigned("FD003", userJack);
+                
+        assertAssignments(userJack, 5);
+        
+        UserType userJackType = userJack.asObjectable();
+        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
+        
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertEquals("Wrong costCenter", "X000", userJackType.getCostCenter());
+        assertEquals("Wrong employee number", jackEmployeeNumber, userJackType.getEmployeeNumber());
+        assertEquals("Wrong telephone number", "1 222 3456789", userJackType.getTelephoneNumber());
+        assertNull("Unexpected title: "+userJackType.getTitle(), userJackType.getTitle());
+        IntegrationTestTools.assertNoExtensionProperty(userJack, PIRACY_COLORS);
+	}
+	
+	@Test
+    public void test157ModifyJackDeleteOrganizationalUnitFD002() throws Exception {
+		final String TEST_NAME = "test157ModifyJackDeleteOrganizationalUnitFD002";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestUserTemplate.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+                    
+		// WHEN
+        modifyUserDelete(USER_JACK_OID, UserType.F_ORGANIZATIONAL_UNIT, task, result, 
+        		PrismTestUtil.createPolyString("FD002"));
+
+		// THEN
+		PrismObject<UserType> userJack = modelService.getObject(UserType.class, USER_JACK_OID, null, task, result);
+		display("User after", userJack);
+        
+		PrismAsserts.assertPropertyValue(userJack, UserType.F_DESCRIPTION, "Where's the rum?");
+        assertAssignedAccount(userJack, RESOURCE_DUMMY_BLUE_OID);
+        assertNotAssignedRole(userJack, ROLE_PIRATE_OID);
+        
+        assertAssignedOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
+        assertHasOrg(userJack, ORG_MINISTRY_OF_RUM_OID);
+        
+        assertOnDemandOrgAssigned("FD001", userJack);
+        assertOnDemandOrgAssigned("FD003", userJack);
+                
+        assertAssignments(userJack, 4);
+        
+        assertOnDemandOrgExists("FD002");
+        
+        UserType userJackType = userJack.asObjectable();
+        assertEquals("Unexpected number of accountRefs", 1, userJackType.getLinkRef().size());
+        
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        assertEquals("Wrong costCenter", "X000", userJackType.getCostCenter());
+        assertEquals("Wrong employee number", jackEmployeeNumber, userJackType.getEmployeeNumber());
+        assertEquals("Wrong telephone number", "1 222 3456789", userJackType.getTelephoneNumber());
+        assertNull("Unexpected title: "+userJackType.getTitle(), userJackType.getTitle());
+        IntegrationTestTools.assertNoExtensionProperty(userJack, PIRACY_COLORS);
+	}
+	
+	private PrismObject<OrgType> assertOnDemandOrgExists(String orgName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+		PrismObject<OrgType> org = findObjectByName(OrgType.class, orgName);
+		assertNotNull("The org "+orgName+" is missing!", org);
+		display("Org "+orgName, org);
+		PrismAsserts.assertPropertyValue(org, OrgType.F_NAME, PrismTestUtil.createPolyString(orgName));
+		return org;
+	}
+	
+	private void assertOnDemandOrgAssigned(String orgName, PrismObject<UserType> user) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+		PrismObject<OrgType> org = assertOnDemandOrgExists(orgName);
+		PrismAsserts.assertPropertyValue(org, OrgType.F_DESCRIPTION, "Created on demand from user "+user.asObjectable().getName());
+		assertAssignedOrg(user, org.getOid());
+        assertHasOrg(user, org.getOid());		
+	}
 	
 	@Test
     public void test200AddUserRapp() throws Exception {

@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright (c) 2010-2014 Evolveum
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/public/gui/admin-1"
+            xmlns:tns="http://midpoint.evolveum.com/xml/ns/public/gui/admin-1"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+            xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+            elementFormDefault="qualified"
+            jaxb:extensionBindingPrefixes="xjc"
+            jaxb:version="2.0">
+
+    <xsd:annotation>
+        <xsd:documentation>
+            <p>
+                todo
+            </p>
+        </xsd:documentation>
+    </xsd:annotation>
+
+    <xsd:element name="descriptor" type="tns:DescriptorType"/>
+
+    <xsd:complexType name="DescriptorType">
+        <xsd:sequence>
+            <xsd:element name="menu" type="tns:MenuType" minOccurs="0"/>
+            <xsd:element name="packagesToScan" type="xsd:string" minOccurs="0" maxOccurs="unbounded">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Scan selected packages for Page classes, search for annotation @PageDescriptor.
+                        This descriptor is used for url mapping and encoder.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="MenuType">
+        <xsd:sequence>
+            <xsd:element name="root" type="tns:RootMenuItemType" minOccurs="0" maxOccurs="unbounded"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="AbstractMenuItemType">
+        <xsd:sequence>
+            <!--<xsd:element name="cssClass" type="xsd:string" minOccurs="0"/>-->
+            <xsd:element name="behaviour" type="xsd:string" minOccurs="0"/>
+            <!--<xsd:element name="security" type="xsd:string" minOccurs="0"/>-->
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="RootMenuItemType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractMenuItemType">
+                <xsd:sequence>
+                    <xsd:element name="name" type="xsd:string"/>
+                    <xsd:element name="page" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="order" type="xsd:int"/>
+                    <xsd:choice minOccurs="0" maxOccurs="unbounded">
+                        <xsd:element name="item" type="tns:MenuItemType"/>
+                        <xsd:element name="header" type="tns:MenuItemHeaderType"/>
+                        <xsd:element name="divider" type="tns:MenuItemDividerType"/>
+                    </xsd:choice>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="MenuItemType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractMenuItemType">
+                <xsd:sequence>
+                    <xsd:element name="name" type="xsd:string"/>
+                    <xsd:element name="page" type="xsd:string"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="MenuItemHeaderType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractMenuItemType">
+                <xsd:sequence>
+                    <xsd:element name="name" type="xsd:string"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:complexType name="MenuItemDividerType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:AbstractMenuItemType">
+
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+</xsd:schema>

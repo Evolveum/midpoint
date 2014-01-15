@@ -31,6 +31,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.DateInput;
@@ -50,6 +51,7 @@ import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProviderOptions;
 import com.evolveum.midpoint.web.page.admin.server.subtasks.SubtasksPanel;
 import com.evolveum.midpoint.web.page.admin.server.workflowInformation.WorkflowInformationPanel;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MisfireActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
@@ -97,12 +99,11 @@ import java.util.List;
  * @author lazyman
  * @author mserbak
  */
+@PageDescriptor(url = "/admin/task", encoder = OnePageParameterEncoder.class)
 public class PageTaskEdit extends PageAdminTasks {
-	private static final long serialVersionUID = -5933030498922903813L;
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageTaskEdit.class);
 	private static final String DOT_CLASS = PageTaskAdd.class.getName() + ".";
-	public static final String PARAM_TASK_EDIT_ID = "taskEditOid";
 	private static final String OPERATION_LOAD_TASK = DOT_CLASS + "loadTask";
 	private static final String OPERATION_SAVE_TASK = DOT_CLASS + "saveTask";
 
@@ -162,7 +163,7 @@ public class PageTaskEdit extends PageAdminTasks {
 		OperationResult result = new OperationResult(OPERATION_LOAD_TASK);
         Task operationTask = getTaskManager().createTaskInstance(OPERATION_LOAD_TASK);
 
-        StringValue taskOid = parameters.get(PARAM_TASK_EDIT_ID);
+        StringValue taskOid = parameters.get(OnePageParameterEncoder.PARAMETER);
 
         TaskDto taskDto = null;
 		try {
@@ -346,7 +347,7 @@ public class PageTaskEdit extends PageAdminTasks {
                 String oid = model.getObject().getParentTaskOid();
                 if (oid != null) {
                     PageParameters parameters = new PageParameters();
-                    parameters.add(PageTaskEdit.PARAM_TASK_EDIT_ID, oid);
+                    parameters.add(OnePageParameterEncoder.PARAMETER, oid);
                     setResponsePage(new PageTaskEdit(parameters, PageTaskEdit.this));
                 }
             }

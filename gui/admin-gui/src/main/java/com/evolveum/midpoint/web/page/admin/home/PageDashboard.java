@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.home;
 
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -23,6 +24,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
 import com.evolveum.midpoint.web.component.async.CallableResult;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -48,9 +50,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+import static com.evolveum.midpoint.common.security.AuthorizationConstants.AUTZ_UI_DASHBOARD_URL;
+import static com.evolveum.midpoint.common.security.AuthorizationConstants.AUTZ_UI_HOME_ALL_URL;
+
 /**
  * @author lazyman
  */
+@PageDescriptor(url = "/admin/dashboard", action = {
+        PageAdminHome.AUTHORIZATION_HOME,
+        AuthorizationConstants.NS_AUTHORIZATION_UI + "#dashboard"})
 public class PageDashboard extends PageAdminHome {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageDashboard.class);

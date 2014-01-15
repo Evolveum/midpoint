@@ -29,6 +29,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromFile;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
@@ -67,6 +68,7 @@ import java.util.*;
 /**
  * @author lazyman
  */
+@PageDescriptor(url = "/admin/config/sync/accounts")
 public class PageAccounts extends PageAdminConfiguration {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageAccounts.class);

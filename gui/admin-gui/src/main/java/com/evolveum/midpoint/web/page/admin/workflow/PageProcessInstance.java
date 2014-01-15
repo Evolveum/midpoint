@@ -20,11 +20,13 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskAdd;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.Form;
@@ -37,11 +39,11 @@ import org.apache.wicket.util.string.StringValue;
  * @author mserbak
  * @author mederly
  */
+@PageDescriptor(url = "/admin/workItems/processInstance", encoder = OnePageParameterEncoder.class)
 public class PageProcessInstance extends PageAdminWorkItems {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageProcessInstance.class);
     private static final String DOT_CLASS = PageTaskAdd.class.getName() + ".";
-    public static final String PARAM_PROCESS_INSTANCE_ID = "processInstanceId";
     public static final String PARAM_PROCESS_INSTANCE_FINISHED = "processInstanceFinished";     // boolean value
     private static final String OPERATION_LOAD_TASK = DOT_CLASS + "loadProcessInstance";
 
@@ -77,7 +79,7 @@ public class PageProcessInstance extends PageAdminWorkItems {
         OperationResult result = new OperationResult(OPERATION_LOAD_TASK);
 
         try {
-            StringValue pid = parameters.get(PARAM_PROCESS_INSTANCE_ID);
+            StringValue pid = parameters.get(OnePageParameterEncoder.PARAMETER);
             boolean finished = parameters.get(PARAM_PROCESS_INSTANCE_FINISHED).toBoolean();
             WfProcessInstanceType processInstance;
             try {

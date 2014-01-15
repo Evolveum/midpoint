@@ -2,6 +2,7 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 
 import com.evolveum.midpoint.common.Clock;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.input.DatePanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
@@ -12,6 +13,7 @@ import org.apache.wicket.spring.injection.annot.SpringBean;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 
+@PageDescriptor(url = "/admin/config/timeTest")
 public class PageTimeTest extends PageAdminConfiguration {
 
     @SpringBean(name = "clock")

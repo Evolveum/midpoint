@@ -30,6 +30,7 @@ import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDtoProvider;
 import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
@@ -274,7 +275,7 @@ public abstract class PageProcessInstances extends PageAdminWorkItems {
 
     private void itemDetailsPerformed(AjaxRequestTarget target, boolean finished, String pid) {
         PageParameters parameters = new PageParameters();
-        parameters.add(PageProcessInstance.PARAM_PROCESS_INSTANCE_ID, pid);
+        parameters.add(OnePageParameterEncoder.PARAMETER, pid);
         parameters.add(PageProcessInstance.PARAM_PROCESS_INSTANCE_FINISHED, finished);
         setResponsePage(new PageProcessInstance(parameters, this));
     }
