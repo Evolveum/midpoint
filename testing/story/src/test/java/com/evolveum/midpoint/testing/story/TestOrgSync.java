@@ -155,6 +155,11 @@ public class TestOrgSync extends AbstractStoryTest {
 	private static final String ACCOUNT_GUYBRUSH_FIST_NAME = "Guybrush";
 	private static final String ACCOUNT_GUYBRUSH_LAST_NAME = "Threepwood";
 	private static final String ACCOUNT_GUYBRUSH_ORGPATH = "Scumm Bar";
+	
+	private static final String ACCOUNT_HERMAN_USERNAME = "ht";
+	private static final String ACCOUNT_HERMAN_FIST_NAME = "Herman";
+	private static final String ACCOUNT_HERMAN_LAST_NAME = "Toothrot";
+	private static final String ACCOUNT_HERMAN_ORGPATH = "Monkey Island/Gov";
 
 	protected static DummyResource dummyResourceHr;
 	protected static DummyResourceContoller dummyResourceCtlHr;
@@ -236,10 +241,49 @@ public class TestOrgSync extends AbstractStoryTest {
         assertAssignments(user, 1);
 	}
 	
+	@Test
+    public void test110AddHrAccountHerman() throws Exception {
+		final String TEST_NAME = "test110AddHrAccountHerman";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        
+        DummyAccount newAccount = new DummyAccount(ACCOUNT_HERMAN_USERNAME);
+        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_HERMAN_FIST_NAME);
+        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME, ACCOUNT_HERMAN_LAST_NAME);
+        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_ORGPATH, ACCOUNT_HERMAN_ORGPATH);
+		
+        // WHEN
+        dummyResourceHr.addAccount(newAccount);
+        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        
+        // THEN
+        PrismObject<UserType> user = findUserByUsername(ACCOUNT_HERMAN_USERNAME);
+        assertNotNull("No herman user", user);
+        display("User", user);
+        assertUserHerman(user);
+        assertAccount(user, RESOURCE_DUMMY_HR_OID);
+        
+        PrismObject<OrgType> orgMonkeyIsland = getOrg("Monkey Island");
+        PrismObject<OrgType> orgGov = getOrg("Gov");
+        
+        assertAssignedOrg(user, orgMonkeyIsland.getOid());
+        assertHasOrg(user, orgMonkeyIsland.getOid());
+        assertHasOrg(orgMonkeyIsland, orgGov.getOid());
+        assertHasOrg(orgGov, ORG_TOP_OID);
+        
+        assertAssignments(user, 1);
+	}
+	
 	protected void assertUserGuybrush(PrismObject<UserType> user) {
 		assertUser(user, user.getOid(), ACCOUNT_GUYBRUSH_USERNAME, ACCOUNT_GUYBRUSH_FIST_NAME + " " + ACCOUNT_GUYBRUSH_LAST_NAME,
 				ACCOUNT_GUYBRUSH_FIST_NAME, ACCOUNT_GUYBRUSH_LAST_NAME);
 	}
+
+	protected void assertUserHerman(PrismObject<UserType> user) {
+		assertUser(user, user.getOid(), ACCOUNT_HERMAN_USERNAME, ACCOUNT_HERMAN_FIST_NAME + " " + ACCOUNT_HERMAN_LAST_NAME,
+				ACCOUNT_HERMAN_FIST_NAME, ACCOUNT_HERMAN_LAST_NAME);
+	}
+
 	
 	private PrismObject<OrgType> getOrg(String orgName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
 		PrismObject<OrgType> org = findObjectByName(OrgType.class, orgName);
