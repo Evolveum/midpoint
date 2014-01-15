@@ -225,6 +225,12 @@ public class AssignmentExpressionEvaluator<V extends PrismValue>
 			}
 		}
 		
+		LOGGER.debug("Creating object on demand from {}: {}", contextDescription, newObject);
+		
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Creating object on demand:\n{}", newObject.dump());
+		}
+		
 		ObjectDelta<O> addDelta = newObject.createAddDelta();
 		Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(addDelta);
 		try {
@@ -275,9 +281,9 @@ public class AssignmentExpressionEvaluator<V extends PrismValue>
 		expressionParams.setDefaultTargetContext(params.getDefaultTargetContext());
 		expressionParams.setSkipEvaluationMinus(true);
 		expressionParams.setSkipEvaluationPlus(false);
-		PrismValueDeltaSetTriple<X> outputTriple = expression.evaluate(params);
+		PrismValueDeltaSetTriple<X> outputTriple = expression.evaluate(expressionParams);
 		LOGGER.trace("output triple: {}", outputTriple.dump());
-		Collection<X> pvalues = outputTriple.getPlusSet();
+		Collection<X> pvalues = outputTriple.getNonNegativeValues();
 		
 		// Maybe not really clean but it works. TODO: refactor later
 		NameItemPathSegment first = (NameItemPathSegment)targetPath.first();

@@ -13,7 +13,6 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
@@ -22,29 +21,34 @@
 
         <table class="table table-condensed table-striped">
             <tr>
-                <td><wicket:message key="ReconciliationPopupPanel.descriptionPlaceholder" /></td>
+                <td><wicket:message key="UserReportConfigPanel.description" /></td>
                 <td>
                     <input class="form-control input-sm" wicket:id="description"
-                           wicket:message="placeholder:ReconciliationPopupPanel.descriptionPlaceholder" />
+                           wicket:message="placeholder:UserReportConfigPanel.description"/>
                 </td>
             </tr>
             <tr>
-                <td><wicket:message key="ReconsiliationPopupPanel.exportFileType" /></td>
+                <td><wicket:message key="UserReportConfigPanel.exportFileType" /></td>
                 <td>
                     <select class="form-control input-sm" wicket:id="exportType" />
                 </td>
             </tr>
             <tr>
-                <td><wicket:message key="ReconciliationPopupPanel.resource"/></td>
-                <td><select class="form-control input-sm" wicket:id="resource"/></td>
+                <td><wicket:message key="UserReportConfigPanel.dateFrom" /></td>
+                <td><span wicket:id="dateFrom" /></td>
+            </tr>
+            <tr>
+                <td><wicket:message key="UserReportConfigPanel.dateTo" /></td>
+                <td><span wicket:id="dateTo" /></td>
             </tr>
         </table>
 
-        <div style="text-align: center;">
+        <div style="text-align: center">
             <a class="btn btn-primary" wicket:id="runSave"/>
             <a class="btn btn-info" wicket:id="save" />
             <a class="btn btn-danger" wicket:id="cancel" />
         </div>
+
     </form>
 </wicket:panel>
 </html>
