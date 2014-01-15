@@ -32,5 +32,5 @@ public @interface PageDescriptor {
 
     Class<? extends IPageParametersEncoder> encoder() default MidPointPageParametersEncoder.class;
 
-    //todo security
+    String[] action() default {};
 }

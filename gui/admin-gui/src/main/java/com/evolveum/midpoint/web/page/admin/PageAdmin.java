@@ -56,9 +56,8 @@ public class PageAdmin extends PageBase {
 
     @Override
     protected List<MenuBarItem> createMenuItems() {
-        if (1==1) {
-            return DescriptorLoader.getMenuBarItems();
-        }
+        //todo enable, disabled descriptor loader until finished [lazyman]
+//        return DescriptorLoader.getMenuBarItems();
 
         List<MenuBarItem> items = new ArrayList<MenuBarItem>();
 
