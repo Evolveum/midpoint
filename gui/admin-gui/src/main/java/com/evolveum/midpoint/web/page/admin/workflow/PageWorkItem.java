@@ -27,6 +27,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.accordion.Accordion;
@@ -64,6 +65,7 @@ import org.apache.wicket.request.resource.PackageResourceReference;
 /**
  * @author mederly
  */
+@PageDescriptor(url = "/admin/workItem", encoder = OnePageParameterEncoder.class)
 public class PageWorkItem extends PageAdminWorkItems {
 
     private static final String DOT_CLASS = PageWorkItem.class.getName() + ".";

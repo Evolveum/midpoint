@@ -31,6 +31,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.DateInput;
@@ -98,6 +99,7 @@ import java.util.List;
  * @author lazyman
  * @author mserbak
  */
+@PageDescriptor(url = "/admin/task", encoder = OnePageParameterEncoder.class)
 public class PageTaskEdit extends PageAdminTasks {
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageTaskEdit.class);

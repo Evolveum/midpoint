@@ -28,6 +28,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
@@ -64,6 +65,7 @@ import java.util.List;
  * @author lazyman
  * @author mserbak
  */
+@PageDescriptor(url = "/admin/addTask")
 public class PageTaskAdd extends PageAdminTasks {
     private static final long serialVersionUID = 2317887071933841581L;
 

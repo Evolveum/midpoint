@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Holder;
+import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
@@ -43,6 +44,7 @@ import org.apache.wicket.util.string.StringValue;
 /**
  * @author lazyman
  */
+@PageDescriptor(url = "/admin/role", encoder = OnePageParameterEncoder.class)
 public class PageRole extends PageAdminRoles {
 
     private static final String DOT_CLASS = PageRole.class.getName() + ".";

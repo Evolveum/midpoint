@@ -23,7 +23,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.menu.top.MenuBarItem;
 import com.evolveum.midpoint.web.component.menu.top.MenuItem;
 import com.evolveum.midpoint.web.security.MidPointApplication;
-import com.evolveum.midpoint.web.util.MidPointPageParametersEncoder;
 import com.evolveum.midpoint.xml.ns._public.gui.admin_1.*;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.core.request.mapper.MountedMapper;

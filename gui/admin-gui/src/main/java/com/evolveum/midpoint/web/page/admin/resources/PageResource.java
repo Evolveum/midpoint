@@ -27,6 +27,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
@@ -65,6 +66,7 @@ import java.util.List;
  * @author lazyman
  * @author Michal Serbak
  */
+@PageDescriptor(url = "/admin/resource", encoder = OnePageParameterEncoder.class)
 public class PageResource extends PageAdminResources {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageResource.class);

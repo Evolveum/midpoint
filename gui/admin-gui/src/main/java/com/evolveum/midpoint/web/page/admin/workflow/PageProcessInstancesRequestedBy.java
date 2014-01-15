@@ -16,7 +16,9 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow;
 
+import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import org.apache.wicket.model.IModel;
 
 /**
@@ -26,6 +28,7 @@ import org.apache.wicket.model.IModel;
  * Time: 14:11
  * To change this template use File | Settings | File Templates.
  */
+@PageDescriptor(url = "/admin/workItems/myRequests")
 public class PageProcessInstancesRequestedBy extends PageProcessInstances {
 
     protected IModel<String> createPageTitleModel() {

@@ -20,6 +20,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
@@ -38,6 +39,7 @@ import org.apache.wicket.util.string.StringValue;
  * @author mserbak
  * @author mederly
  */
+@PageDescriptor(url = "/admin/workItems/processInstance", encoder = OnePageParameterEncoder.class)
 public class PageProcessInstance extends PageAdminWorkItems {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageProcessInstance.class);

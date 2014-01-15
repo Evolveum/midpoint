@@ -23,6 +23,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
@@ -51,6 +52,7 @@ import java.util.List;
 /**
  * @author lazyman
  */
+@PageDescriptor(url = "/admin/roles")
 public class PageRoles extends PageAdminRoles {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageRoles.class);
@@ -70,7 +72,7 @@ public class PageRoles extends PageAdminRoles {
         add(mainForm);
 
         List<IColumn<RoleType, String>> columns = initColumns();
-        TablePanel table = new TablePanel<RoleType>(ID_TABLE, new ObjectDataProvider(PageRoles.this, RoleType.class), columns);
+        TablePanel table = new TablePanel<>(ID_TABLE, new ObjectDataProvider(PageRoles.this, RoleType.class), columns);
         table.setOutputMarkupId(true);
         mainForm.add(table);
 
