@@ -211,6 +211,16 @@ public class Expression<V extends PrismValue> {
 		sb.append("---[ EXPRESSION in ");
 		sb.append(context.getContextDescription());
 		sb.append("]---------------------------");
+		sb.append("\nSources:");
+		Collection<Source<? extends PrismValue>> sources = context.getSources();
+		if (sources == null) {
+			sb.append(" null");
+		} else {
+			for (Source<? extends PrismValue> source: sources) {
+				sb.append("\n");
+				sb.append(source.debugDump(1));
+			}
+		}
 		sb.append("\nVariables:");
 		if (processedVariables == null) {
 			sb.append(" null");
