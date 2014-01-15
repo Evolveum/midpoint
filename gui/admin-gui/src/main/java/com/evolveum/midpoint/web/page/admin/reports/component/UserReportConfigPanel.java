@@ -13,18 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.evolveum.midpoint.web.page.admin.reports.component;
 
-import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.DateInput;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.page.admin.reports.dto.AuditReportDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.UserReportDto;
 import com.evolveum.midpoint.web.util.DateValidator;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExportType;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -39,29 +35,27 @@ import org.apache.wicket.model.PropertyModel;
 import java.util.Date;
 
 /**
- * @author lazyman
- */
-public class AuditPopupPanel extends SimplePanel<AuditReportDto> {
+ *  @author shood
+ * */
+public class UserReportConfigPanel extends SimplePanel<UserReportDto>{
 
     private static final String ID_FORM = "form";
+    private static final String ID_FEEDBACK = "feedback";
     private static final String ID_DATE_FROM = "dateFrom";
     private static final String ID_DATE_TO = "dateTo";
-    private static final String ID_FEEDBACK = "feedback";
-    private static final String ID_AUDITEVENTTYPE = "auditEventType";
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_EXPORT_TYPE = "exportType";
     private static final String ID_BUTTON_RUN = "runSave";
     private static final String ID_BUTTON_SAVE = "save";
     private static final String ID_BUTTON_CANCEL = "cancel";
 
-    public AuditPopupPanel(String id, IModel<AuditReportDto> model) {
-        super(id, model);
+    public UserReportConfigPanel(String componentId, IModel<UserReportDto> model){
+        super(componentId, model);
 
         initLayout(this);
     }
 
-    @SuppressWarnings("serial")
-    protected void initLayout(final Component component) {
+    protected void initLayout(final Component component){
         Form form = new Form(ID_FORM);
         add(form);
 
@@ -74,7 +68,7 @@ public class AuditPopupPanel extends SimplePanel<AuditReportDto> {
         description.setRequired(true);
         form.add(description);
 
-        IChoiceRenderer<ExportType> exportTypeRenderer = new IChoiceRenderer<ExportType>() {
+        IChoiceRenderer<ExportType> renderer = new IChoiceRenderer<ExportType>() {
 
             @Override
             public Object getDisplayValue(ExportType object) {
@@ -87,47 +81,22 @@ public class AuditPopupPanel extends SimplePanel<AuditReportDto> {
             }
         };
 
-        DropDownChoice exportDropDown = new DropDownChoice(ID_EXPORT_TYPE, new PropertyModel<ExportType>(getModel(),
-                UserReportDto.F_EXPORT_TYPE), WebMiscUtil.createReadonlyModelFromEnum(ExportType.class), exportTypeRenderer){
+        DropDownChoice dropDown = new DropDownChoice(ID_EXPORT_TYPE, new PropertyModel<ExportType>(getModel(),
+                UserReportDto.F_EXPORT_TYPE), WebMiscUtil.createReadonlyModelFromEnum(ExportType.class), renderer){
 
             @Override
             protected CharSequence getDefaultChoice(final String selectedValue){
                 return ExportType.PDF.toString();
             }
         };
-        form.add(exportDropDown);
-
-        IChoiceRenderer<AuditEventType> renderer = new IChoiceRenderer<AuditEventType>() {
-
-            @Override
-            public Object getDisplayValue(AuditEventType object) {
-                return WebMiscUtil.createLocalizedModelForEnum(object, component).getObject();
-            }
-
-            @Override
-            public String getIdValue(AuditEventType object, int index) {
-                return Integer.toString(index);
-            }
-        };
-
-        DropDownChoice dropDown = new DropDownChoice(ID_AUDITEVENTTYPE, new PropertyModel<AuditEventType>(getModel(),
-                AuditReportDto.F_AUDITEVENTTYPE), WebMiscUtil.createReadonlyModelFromEnum(AuditEventType.class),
-                renderer) {
-
-            @Override
-            protected String getNullValidDisplayValue() {
-                return AuditPopupPanel.this.getString("AuditEventType.null");
-            }
-        };
-        dropDown.setNullValid(true);
         form.add(dropDown);
 
-        DateInput dateFrom = new DateInput(ID_DATE_FROM, new PropertyModel<Date>(getModel(), AuditReportDto.F_FROM));
+        DateInput dateFrom = new DateInput(ID_DATE_FROM, new PropertyModel<Date>(getModel(), UserReportDto.F_FROM));
         dateFrom.setRequired(true);
         form.add(dateFrom);
 
-        DateInput dateTo = new DateInput(ID_DATE_TO, new PropertyModel<Date>(getModel(), AuditReportDto.F_TO));
-        dateTo.setRequired(true);
+        DateInput dateTo = new DateInput(ID_DATE_TO, new PropertyModel<Date>(getModel(), UserReportDto.F_TO));
+        dateFrom.setRequired(true);
         form.add(dateTo);
 
         form.add(new DateValidator(dateFrom, dateTo));
@@ -178,4 +147,5 @@ public class AuditPopupPanel extends SimplePanel<AuditReportDto> {
     protected void onSaveAndRunPerformed(AjaxRequestTarget target) {}
     protected void onSavePerformed(AjaxRequestTarget target) {}
     protected void onCancelPerformed(AjaxRequestTarget target) {}
+
 }

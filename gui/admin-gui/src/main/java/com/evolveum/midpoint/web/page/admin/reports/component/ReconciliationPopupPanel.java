@@ -20,12 +20,19 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ResourceItemDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReconciliationReportDto;
+import com.evolveum.midpoint.web.page.admin.reports.dto.UserReportDto;
+import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExportType;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
+import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
 
 import java.util.List;
 
@@ -34,20 +41,58 @@ import java.util.List;
  */
 public class ReconciliationPopupPanel extends SimplePanel<ReconciliationReportDto> {
 
+    private static final String ID_FEEDBACK = "feedback";
     private static final String ID_FORM = "form";
     private static final String ID_RESOURCE = "resource";
-    private static final String ID_RUN = "run";
+    private static final String ID_DESCRIPTION = "description";
+    private static final String ID_EXPORT_TYPE = "exportType";
+    private static final String ID_BUTTON_RUN = "runSave";
+    private static final String ID_BUTTON_SAVE = "save";
+    private static final String ID_BUTTON_CANCEL = "cancel";
 
     public ReconciliationPopupPanel(String id, IModel<ReconciliationReportDto> model,
                                     IModel<List<ResourceItemDto>> resources) {
         super(id, model);
 
-        initLayout(resources);
+        initLayout(resources, this);
     }
 
-    private void initLayout(IModel<List<ResourceItemDto>> resources) {
+    private void initLayout(IModel<List<ResourceItemDto>> resources,
+                            final Component component) {
         Form form = new Form(ID_FORM);
         add(form);
+
+        final FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK);
+        feedback.setOutputMarkupId(true);
+        form.add(feedback);
+
+        TextField<String> description = new TextField<String>(ID_DESCRIPTION,
+                new PropertyModel<String>(getModel(), UserReportDto.F_DESCRIPTION));
+        description.setRequired(true);
+        form.add(description);
+
+        IChoiceRenderer<ExportType> exportTypeRenderer = new IChoiceRenderer<ExportType>() {
+
+            @Override
+            public Object getDisplayValue(ExportType object) {
+                return WebMiscUtil.createLocalizedModelForEnum(object, component).getObject();
+            }
+
+            @Override
+            public String getIdValue(ExportType object, int index) {
+                return Integer.toString(index);
+            }
+        };
+
+        DropDownChoice exportDropDown = new DropDownChoice(ID_EXPORT_TYPE, new PropertyModel<ExportType>(getModel(),
+                UserReportDto.F_EXPORT_TYPE), WebMiscUtil.createReadonlyModelFromEnum(ExportType.class), exportTypeRenderer){
+
+            @Override
+            protected CharSequence getDefaultChoice(final String selectedValue){
+                return ExportType.PDF.toString();
+            }
+        };
+        form.add(exportDropDown);
 
         IChoiceRenderer renderer = new IChoiceRenderer<ResourceItemDto>() {
 
@@ -66,19 +111,47 @@ public class ReconciliationPopupPanel extends SimplePanel<ReconciliationReportDt
                 resources, renderer);
         form.add(dropDown);
 
-        AjaxSubmitButton run = new AjaxSubmitButton(ID_RUN, createStringResource("PageBase.button.run")) {
+        AjaxSubmitButton saveAndRun = new AjaxSubmitButton(ID_BUTTON_RUN, createStringResource("PageBase.button.saveAndRun")) {
 
             @Override
             protected void onError(AjaxRequestTarget target, Form<?> form) {
-                target.add(getPageBase().getFeedbackPanel());
+                target.add(feedback);
             }
 
             @Override
             protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                onRunPerformed(target);
+                onSaveAndRunPerformed(target);
             }
         };
-        form.add(run);
+        form.add(saveAndRun);
+
+        AjaxSubmitButton save = new AjaxSubmitButton(ID_BUTTON_SAVE, createStringResource("PageBase.button.save")) {
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(feedback);
+            }
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                onSavePerformed(target);
+            }
+        };
+        form.add(save);
+
+        AjaxSubmitButton cancel = new AjaxSubmitButton(ID_BUTTON_CANCEL, createStringResource("PageBase.button.cancel")) {
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(feedback);
+            }
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                onCancelPerformed(target);
+            }
+        };
+        form.add(cancel);
     }
 
     private IModel<ResourceItemDto> createModel(final List<ResourceItemDto> resources) {
@@ -114,7 +187,7 @@ public class ReconciliationPopupPanel extends SimplePanel<ReconciliationReportDt
         };
     }
 
-    protected void onRunPerformed(AjaxRequestTarget target) {
-
-    }
+    protected void onSaveAndRunPerformed(AjaxRequestTarget target) {}
+    protected void onSavePerformed(AjaxRequestTarget target) {}
+    protected void onCancelPerformed(AjaxRequestTarget target) {}
 }

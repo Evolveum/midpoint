@@ -13,49 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.evolveum.midpoint.web.page.admin.reports.dto;
+
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExportType;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
 import java.util.Date;
 
-import com.evolveum.midpoint.audit.api.AuditEventType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExportType;
-
 /**
- * @author lazyman
- */
-public class AuditReportDto implements Serializable {
+ *  @author shood
+ * */
+public class UserReportDto implements Serializable{
 
     public static final String F_FROM = "from";
     public static final String F_TO = "to";
-    public static final String F_AUDITEVENTTYPE = "auditEventType";
     public static final String F_DESCRIPTION = "description";
     public static final String F_EXPORT_TYPE = "exportType";
 
-
     private Date from;
     private Date to;
-    private AuditEventType auditEventType;
     private ExportType exportType;
     private String description;
-
-    public ExportType getExportType() {
-        return exportType;
-    }
-
-    public void setExportType(ExportType exportType) {
-        this.exportType = exportType;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
 
     public Date getFrom() {
         if (from == null) {
@@ -79,13 +58,22 @@ public class AuditReportDto implements Serializable {
         this.to = to;
     }
 
-    public AuditEventType getAuditEventType() {
-        return auditEventType;
+    public ExportType getExport() {
+        return exportType;
     }
 
-    public void setAuditEventType(AuditEventType auditEventType) {
-        this.auditEventType = auditEventType;
+    public void setExport(ExportType export) {
+        this.exportType = export;
     }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
     public Timestamp getDateFrom() {
         return new Timestamp(getFrom().getTime());
     }
