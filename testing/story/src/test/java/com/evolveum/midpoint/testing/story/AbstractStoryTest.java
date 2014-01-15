@@ -123,7 +123,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
 public class AbstractStoryTest extends AbstractModelIntegrationTest {
 	
-	public static final String SYSTEM_CONFIGURATION_FILENAME = COMMON_DIR_NAME + "/system-configuration.xml";
+	public static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR, "system-configuration.xml");
 	public static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
 	
 	protected static final String USER_ADMINISTRATOR_FILENAME = COMMON_DIR_NAME + "/user-administrator.xml";
@@ -155,7 +155,7 @@ public class AbstractStoryTest extends AbstractModelIntegrationTest {
 		
 		// System Configuration
 		try {
-			repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILENAME, SystemConfigurationType.class, initResult);
+			repoAddObjectFromFile(getSystemConfigurationFile(), SystemConfigurationType.class, initResult);
 		} catch (ObjectAlreadyExistsException e) {
 			throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
 					"looks like the previous test haven't cleaned it up", e);
@@ -173,6 +173,10 @@ public class AbstractStoryTest extends AbstractModelIntegrationTest {
 		caseIgnoreMatchingRule = matchingRuleRegistry.getMatchingRule(StringIgnoreCaseMatchingRule.NAME, DOMUtil.XSD_STRING);
 		
 		importSystemTasks(initResult);
+	}
+
+	protected File getSystemConfigurationFile() {
+		return SYSTEM_CONFIGURATION_FILE;
 	}
 
 	protected void importSystemTasks(OperationResult initResult) throws FileNotFoundException {

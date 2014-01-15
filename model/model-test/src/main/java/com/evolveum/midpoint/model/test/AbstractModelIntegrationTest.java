@@ -102,6 +102,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectTypeTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
@@ -1030,23 +1031,23 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertAssignedOrg(user, orgOid);
 	}
 	
-	protected void assertHasOrg(PrismObject<UserType> user, String orgOid) {
-		MidPointAsserts.assertHasOrg(user, orgOid);
+	protected <O extends ObjectType> void assertHasOrg(PrismObject<O> focus, String orgOid) {
+		MidPointAsserts.assertHasOrg(focus, orgOid);
 	}
 	
-	protected void assertHasOrg(PrismObject<UserType> user, String orgOid, QName relation) {
+	protected <O extends ObjectType> void assertHasOrg(PrismObject<O> user, String orgOid, QName relation) {
 		MidPointAsserts.assertHasOrg(user, orgOid, relation);
 	}
 	
-	protected void assertHasNoOrg(PrismObject<UserType> user) {
+	protected <O extends ObjectType> void assertHasNoOrg(PrismObject<O> user) {
 		MidPointAsserts.assertHasNoOrg(user);
 	}
 	
-	protected void assertHasOrgs(PrismObject<UserType> user, int expectedNumber) {
+	protected <O extends ObjectType> void assertHasOrgs(PrismObject<O> user, int expectedNumber) {
 		MidPointAsserts.assertHasOrgs(user, expectedNumber);
 	}
 
-	protected void assertAssignments(PrismObject<UserType> user, int expectedNumber) {
+	protected <F extends FocusType> void assertAssignments(PrismObject<F> user, int expectedNumber) {
 		MidPointAsserts.assertAssignments(user, expectedNumber);
 	}
 	
@@ -1221,25 +1222,51 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         attrs.add(attr);
 	}
 	
-	protected void setDefaultUserTemplate(String userTemplateOid)
+	protected void setDefaultUserTemplate(String userTemplateOid) throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+		setDefaultObjectTemplate(UserType.COMPLEX_TYPE, userTemplateOid);
+	}
+	
+	protected void setDefaultObjectTemplate(QName objectType, String userTemplateOid)
+			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
+		OperationResult result = new OperationResult(AbstractModelIntegrationTest.class.getName()+".setDefaultObjectTemplate");
+		setDefaultObjectTemplate(objectType, userTemplateOid, result);
+//		display("Aplying default user template result", result);
+		result.computeStatus();
+		TestUtil.assertSuccess("Aplying default object template failed (result)", result);
+	}
+	
+	protected void setDefaultObjectTemplate(QName objectType, String userTemplateOid, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, ObjectAlreadyExistsException {
 
-		PrismObjectDefinition<SystemConfigurationType> objectDefinition = prismContext.getSchemaRegistry()
-				.findObjectDefinitionByCompileTimeClass(SystemConfigurationType.class);
-
-		PrismReferenceValue userTemplateRefVal = new PrismReferenceValue(userTemplateOid);
+		PrismObject<SystemConfigurationType> systemConfig = repositoryService.getObject(SystemConfigurationType.class,
+				SystemObjectsType.SYSTEM_CONFIGURATION.value(), null, parentResult);
 		
-		Collection<? extends ItemDelta> modifications = ReferenceDelta.createModificationReplaceCollection(
-						SystemConfigurationType.F_DEFAULT_USER_TEMPLATE_REF,
-						objectDefinition, userTemplateRefVal);
-
-		OperationResult result = new OperationResult("Aplying default user template");
-
+		PrismContainerValue<ObjectTypeTemplateType> deleteValue = null;
+		for (ObjectTypeTemplateType objectTemplate: systemConfig.asObjectable().getObjectTemplate()) {
+			if (objectType.equals(objectTemplate)) {
+				deleteValue = objectTemplate.asPrismContainerValue();
+			}
+		}
+		Collection<? extends ItemDelta> modifications = new ArrayList<ItemDelta>();
+		
+		if (deleteValue != null) {
+			ContainerDelta<ObjectTypeTemplateType> deleteDelta = ContainerDelta.createModificationDelete(SystemConfigurationType.F_OBJECT_TEMPLATE, 
+					SystemConfigurationType.class, prismContext, deleteValue);
+			((Collection)modifications).add(deleteDelta);
+		}
+		
+		ObjectTypeTemplateType newTemplateType = new ObjectTypeTemplateType();
+		newTemplateType.setType(objectType);
+		ObjectReferenceType templateRef = new ObjectReferenceType();
+		templateRef.setOid(userTemplateOid);
+		newTemplateType.setObjectTemplateRef(templateRef);
+		ContainerDelta<ObjectTypeTemplateType> addDelta = ContainerDelta.createModificationAdd(SystemConfigurationType.F_OBJECT_TEMPLATE, 
+				SystemConfigurationType.class, prismContext, newTemplateType);
+		((Collection)modifications).add(addDelta);
+		
 		repositoryService.modifyObject(SystemConfigurationType.class,
-				SystemObjectsType.SYSTEM_CONFIGURATION.value(), modifications, result);
-		display("Aplying default user template result", result);
-		result.computeStatus();
-		TestUtil.assertSuccess("Aplying default user template failed (result)", result);
+				SystemObjectsType.SYSTEM_CONFIGURATION.value(), modifications, parentResult);
+		
 	}
 	
 	protected ItemPath getIcfsNameAttributePath() {

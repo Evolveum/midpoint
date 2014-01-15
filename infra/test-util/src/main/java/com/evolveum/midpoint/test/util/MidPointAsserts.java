@@ -25,6 +25,7 @@ import org.testng.AssertJUnit;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
@@ -82,8 +83,8 @@ public class MidPointAsserts {
 		}
 	}
 	
-	public static void assertAssignments(PrismObject<UserType> user, int expectedNumber) {
-		UserType userType = user.asObjectable();
+	public static <F extends FocusType> void assertAssignments(PrismObject<F> user, int expectedNumber) {
+		F userType = user.asObjectable();
 		assertEquals("Unexepected number of assignments in "+user+": "+userType.getAssignment(), expectedNumber, userType.getAssignment().size());
 	}
 	
@@ -103,16 +104,16 @@ public class MidPointAsserts {
 		assertAssigned(user, orgOid, OrgType.COMPLEX_TYPE, relation);
 	}
 	
-	public static void assertHasOrg(PrismObject<UserType> user, String orgOid) {
-		for (ObjectReferenceType orgRef: user.asObjectable().getParentOrgRef()) {
+	public static <O extends ObjectType> void assertHasOrg(PrismObject<O> object, String orgOid) {
+		for (ObjectReferenceType orgRef: object.asObjectable().getParentOrgRef()) {
 			if (orgOid.equals(orgRef.getOid())) {
 				return;
 			}
 		}
-		AssertJUnit.fail(user + " does not have org " + orgOid);
+		AssertJUnit.fail(object + " does not have org " + orgOid);
 	}
 	
-	public static void assertHasOrg(PrismObject<UserType> user, String orgOid, QName relation) {
+	public static <O extends ObjectType> void assertHasOrg(PrismObject<O> user, String orgOid, QName relation) {
 		for (ObjectReferenceType orgRef: user.asObjectable().getParentOrgRef()) {
 			if (orgOid.equals(orgRef.getOid()) &&
 					MiscSchemaUtil.compareRelation(orgRef.getRelation(), relation)) {
@@ -122,12 +123,12 @@ public class MidPointAsserts {
 		AssertJUnit.fail(user + " does not have org " + orgOid + ", relation "+relation);
 	}
 	
-	public static void assertHasNoOrg(PrismObject<UserType> user) {
+	public static <O extends ObjectType> void assertHasNoOrg(PrismObject<O> user) {
 		assertTrue(user + " does have orgs "+user.asObjectable().getParentOrgRef()+" while not expecting them", user.asObjectable().getParentOrgRef().isEmpty());
 	}
 
-	public static void assertHasOrgs(PrismObject<UserType> user, int expectedNumber) {
-		UserType userType = user.asObjectable();
+	public static <O extends ObjectType> void assertHasOrgs(PrismObject<O> user, int expectedNumber) {
+		O userType = user.asObjectable();
 		assertEquals("Unexepected number of orgs in "+user+": "+userType.getParentOrgRef(), expectedNumber, userType.getParentOrgRef().size());
 	}
 	
