@@ -89,6 +89,14 @@
 					</target>
 				</inbound>
 			</attribute>
+			<attribute>
+				<ref>ri:responsibilities</ref>
+				<inbound>
+					<target>
+						<path>extension/ext:responsibility</path>
+					</target>
+				</inbound>
+			</attribute>
 
 			<activation>
             	<administrativeStatus>

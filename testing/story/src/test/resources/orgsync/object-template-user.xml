@@ -127,4 +127,51 @@
     	</target>
     </mapping>
     
+    <mapping>
+    	<name>responsibility role assignment</name>
+    	<authoritative>true</authoritative>
+    	<source>
+    		<path>extension/ext:responsibility</path>
+    	</source>
+    	<expression>
+            <assignmentExpression>
+            	<targetType>c:RoleType</targetType>
+        		<query>
+					<q:equal>
+						<q:path>c:extension/ext:responsibility</q:path>
+						<valueExpression>
+							<path>$ext:responsibility</path>
+						</valueExpression>
+					</q:equal>
+				</query>
+				<createOnDemand>true</createOnDemand>
+				<populateObject>
+					<populateItem>
+						<expression>
+							<script>
+								<code>
+									'R_'+responsibility
+								</code>
+							</script>
+						</expression>
+						<target>
+							<path>name</path>
+						</target>
+					</populateItem>
+					<populateItem>
+						<expression>
+							<path>$ext:responsibility</path>
+						</expression>
+						<target>
+							<path>extension/ext:responsibility</path>
+						</target>
+					</populateItem>
+				</populateObject>
+            </assignmentExpression>    	
+    	</expression>
+    	<target>
+    		<path>assignment</path>
+    	</target>
+    </mapping>
+    
 </objectTemplate>

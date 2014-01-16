@@ -1375,6 +1375,15 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		return modelService.searchObjects(OrgType.class, query, null, task, result);
 	}
     
+    protected <T extends ObjectType> PrismObject<T> searchObjectByName(Class<T> type, String name) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+    	Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName()+".searchObjectByName");
+    	OperationResult result = task.getResult();
+    	PrismObject<T> out = searchObjectByName(type, name, task, result);
+    	result.computeStatus();
+    	TestUtil.assertSuccess(result);
+    	return out;
+    }
+    
     protected <T extends ObjectType> PrismObject<T> searchObjectByName(Class<T> type, String name, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
         ObjectQuery query = ObjectQueryUtil.createNameQuery(name, prismContext);
 		List<PrismObject<T>> foundObjects = modelService.searchObjects(type, query, null, task, result);
