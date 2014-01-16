@@ -87,7 +87,15 @@
 							</script>
 						</expression>
 						<target>
-							<path>$focus/name</path>
+							<path>name</path>
+						</target>
+					</populateItem>
+					<populateItem>
+						<expression>
+							<value>replicated</value>
+						</expression>
+						<target>
+							<path>orgType</path>
 						</target>
 					</populateItem>
 					<populateItem>
@@ -95,7 +103,7 @@
 							<path>$ext:orgpath</path>
 						</expression>
 						<target>
-							<path>$focus/extension/ext:orgpath</path>
+							<path>extension/ext:orgpath</path>
 						</target>
 					</populateItem>
 				</populateObject>

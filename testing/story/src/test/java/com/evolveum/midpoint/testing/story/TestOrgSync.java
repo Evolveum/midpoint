@@ -141,12 +141,19 @@ public class TestOrgSync extends AbstractStoryTest {
 	protected static final String RESOURCE_DUMMY_HR_OID = "10000000-0000-0000-0000-000000000001";
 	protected static final String RESOURCE_DUMMY_HR_NAMESPACE = MidPointConstants.NS_RI;
 	
+	protected static final File RESOURCE_OPENDJ_FILE = new File(TEST_DIR, "resource-opendj.xml");
+	protected static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
+	protected static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
+	
 	private static final String DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME = "firstname";
 	private static final String DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME = "lastname";
 	private static final String DUMMY_ACCOUNT_ATTRIBUTE_HR_ORGPATH = "orgpath";
 	
 	public static final File ORG_TOP_FILE = new File(TEST_DIR, "org-top.xml");
 	public static final String ORG_TOP_OID = "00000000-8888-6666-0000-100000000001";
+	
+	public static final File ROLE_META_REPLICATED_ORG_FILE = new File(TEST_DIR, "role-meta-replicated-org.xml");
+	public static final String ROLE_META_REPLICATED_ORG_OID = "10000000-0000-0000-0000-000000006601";
 	
 	protected static final File TASK_LIVE_SYNC_DUMMY_HR_FILE = new File(TEST_DIR, "task-dumy-hr-livesync.xml");
 	protected static final String TASK_LIVE_SYNC_DUMMY_HR_OID = "10000000-0000-0000-5555-555500000001";
@@ -179,12 +186,23 @@ public class TestOrgSync extends AbstractStoryTest {
 	protected static DummyResourceContoller dummyResourceCtlHr;
 	protected ResourceType resourceDummyHrType;
 	protected PrismObject<ResourceType> resourceDummyHr;
+	
+	protected ResourceType resourceOpenDjType;
+	protected PrismObject<ResourceType> resourceOpenDj;
 
 	private String orgMonkeyIslandOid;
-
 	private String orgMoROid;
-
 	private String orgScummBarOid;
+	
+	@Override
+    protected void startResources() throws Exception {
+        openDJController.startCleanServer();
+    }
+
+    @AfterClass
+    public static void stopResources() throws Exception {
+        openDJController.stop();
+    }
 	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -201,6 +219,10 @@ public class TestOrgSync extends AbstractStoryTest {
 		resourceDummyHrType = resourceDummyHr.asObjectable();
 		dummyResourceCtlHr.setResource(resourceDummyHr);
 		dummyResourceHr.setSyncStyle(DummySyncStyle.SMART);
+		
+		resourceOpenDj = importAndGetObjectFromFile(ResourceType.class, RESOURCE_OPENDJ_FILE, RESOURCE_OPENDJ_OID, initTask, initResult);
+		resourceOpenDjType = resourceOpenDj.asObjectable();
+		openDJController.setResource(resourceOpenDj);
 	
 		// Object Templates
 		importObjectFromFile(OBJECT_TEMPLATE_USER_FILE, initResult);
@@ -209,8 +231,11 @@ public class TestOrgSync extends AbstractStoryTest {
 		importObjectFromFile(OBJECT_TEMPLATE_ORG_FILE, initResult);
 		setDefaultObjectTemplate(OrgType.COMPLEX_TYPE, OBJECT_TEMPLATE_ORG_OID);
 		
-		// ORG
+		// Org
 		importObjectFromFile(ORG_TOP_FILE, initResult);
+		
+		// Role
+		importObjectFromFile(ROLE_META_REPLICATED_ORG_FILE, initResult);
 		
 		// Tasks
 		importObjectFromFile(TASK_LIVE_SYNC_DUMMY_HR_FILE, initResult);
@@ -225,6 +250,9 @@ public class TestOrgSync extends AbstractStoryTest {
         
         OperationResult testResultHr = modelService.testResource(RESOURCE_DUMMY_HR_OID, task);
         TestUtil.assertSuccess(testResultHr);
+        
+        OperationResult testResultOpenDj = modelService.testResource(RESOURCE_OPENDJ_OID, task);
+        TestUtil.assertSuccess(testResultOpenDj);
         
         waitForTaskStart(TASK_TRIGGER_SCANNER_OID, true);
         waitForTaskStart(TASK_VALIDITY_SCANNER_OID, true);
@@ -256,7 +284,7 @@ public class TestOrgSync extends AbstractStoryTest {
         assertUserHerman(user);
         assertAccount(user, RESOURCE_DUMMY_HR_OID);
         
-        PrismObject<OrgType> org = getOrg(ORGPATH_MONKEY_ISLAND);
+        PrismObject<OrgType> org = getAndAssertReplicatedOrg(ORGPATH_MONKEY_ISLAND);
         orgMonkeyIslandOid = org.getOid();
         assertAssignedOrg(user, org.getOid());
         assertHasOrg(user, org.getOid());
@@ -290,7 +318,7 @@ public class TestOrgSync extends AbstractStoryTest {
         assertUser(user, ACCOUNT_LEMONHEAD_USERNAME, ACCOUNT_LEMONHEAD_FIST_NAME, ACCOUNT_LEMONHEAD_LAST_NAME);
         assertAccount(user, RESOURCE_DUMMY_HR_OID);
         
-        PrismObject<OrgType> org = getOrg(ORGPATH_MONKEY_ISLAND);
+        PrismObject<OrgType> org = getAndAssertReplicatedOrg(ORGPATH_MONKEY_ISLAND);
         assertAssignedOrg(user, org.getOid());
         assertHasOrg(user, org.getOid());
         assertHasOrg(org, ORG_TOP_OID);
@@ -325,8 +353,8 @@ public class TestOrgSync extends AbstractStoryTest {
         assertUserGuybrush(user);
         assertAccount(user, RESOURCE_DUMMY_HR_OID);
         
-        PrismObject<OrgType> orgFreelance = getOrg("Freelance");
-        PrismObject<OrgType> orgMoR = getOrg("Ministry of Rum");
+        PrismObject<OrgType> orgFreelance = getAndAssertReplicatedOrg("Freelance");
+        PrismObject<OrgType> orgMoR = getAndAssertReplicatedOrg("Ministry of Rum");
         orgMoROid = orgMoR.getOid();
         
         assertAssignedOrg(user, orgFreelance.getOid());
@@ -362,9 +390,9 @@ public class TestOrgSync extends AbstractStoryTest {
         assertUser(user, ACCOUNT_MANCOMB_USERNAME, ACCOUNT_MANCOMB_FIST_NAME, ACCOUNT_MANCOMB_LAST_NAME);
         assertAccount(user, RESOURCE_DUMMY_HR_OID);
         
-        PrismObject<OrgType> orgScummBar = getOrg("Scumm Bar");
+        PrismObject<OrgType> orgScummBar = getAndAssertReplicatedOrg("Scumm Bar");
         orgScummBarOid = orgScummBar.getOid();
-        PrismObject<OrgType> orgMoR = getOrg("Ministry of Rum");
+        PrismObject<OrgType> orgMoR = getAndAssertReplicatedOrg("Ministry of Rum");
         
         assertAssignedOrg(user, orgScummBar.getOid());
         assertHasOrg(user, orgScummBar.getOid());
@@ -401,8 +429,8 @@ public class TestOrgSync extends AbstractStoryTest {
         assertUser(user, ACCOUNT_COBB_USERNAME, ACCOUNT_COBB_FIST_NAME, ACCOUNT_COBB_LAST_NAME);
         assertAccount(user, RESOURCE_DUMMY_HR_OID);
         
-        PrismObject<OrgType> orgScummBar = getOrg("Scumm Bar");
-        PrismObject<OrgType> orgMoR = getOrg("Ministry of Rum");
+        PrismObject<OrgType> orgScummBar = getAndAssertReplicatedOrg("Scumm Bar");
+        PrismObject<OrgType> orgMoR = getAndAssertReplicatedOrg("Ministry of Rum");
         
         assertAssignedOrg(user, orgScummBar.getOid());
         assertHasOrg(user, orgScummBar.getOid());
@@ -428,6 +456,13 @@ public class TestOrgSync extends AbstractStoryTest {
 				firstName, lastName);
 	}
 
+	private PrismObject<OrgType> getAndAssertReplicatedOrg(String orgName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+		PrismObject<OrgType> org = getOrg(orgName);
+		PrismAsserts.assertPropertyValue(org, OrgType.F_ORG_TYPE, "replicated");
+		assertAssignedRole(org, ROLE_META_REPLICATED_ORG_OID);
+		return org;
+	}
+	
 	private PrismObject<OrgType> getOrg(String orgName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
 		PrismObject<OrgType> org = findObjectByName(OrgType.class, orgName);
 		assertNotNull("The org "+orgName+" is missing!", org);
@@ -435,5 +470,6 @@ public class TestOrgSync extends AbstractStoryTest {
 		PrismAsserts.assertPropertyValue(org, OrgType.F_NAME, PrismTestUtil.createPolyString(orgName));
 		return org;
 	}
+
 	
 }

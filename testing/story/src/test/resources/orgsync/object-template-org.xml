@@ -29,6 +29,9 @@
     	<source>
     		<path>extension/ext:orgpath</path>
     	</source>
+    	<source>
+    		<path>orgType</path>
+    	</source>
     	<expression>
             <assignmentExpression>
             	<targetType>c:OrgType</targetType>
@@ -60,7 +63,15 @@
 							</script>
 						</expression>
 						<target>
-							<path>$focus/name</path>
+							<path>name</path>
+						</target>
+					</populateItem>
+					<populateItem>
+						<expression>
+							<value>replicated</value>
+						</expression>
+						<target>
+							<path>orgType</path>
 						</target>
 					</populateItem>
 					<populateItem>
@@ -72,7 +83,7 @@
 							</script>
 						</expression>
 						<target>
-							<path>$focus/extension/ext:orgpath</path>
+							<path>extension/ext:orgpath</path>
 						</target>
 					</populateItem>
 				</populateObject>
@@ -81,6 +92,33 @@
     	<target>
     		<path>assignment</path>
     	</target>
+    	<condition>
+    		<script>
+    			<code>orgType == 'replicated'</code>
+    		</script>
+    	</condition>
+    </mapping>
+    
+    <mapping>
+    	<name>Org metarole assignment</name>
+    	<authoritative>true</authoritative>
+    	<source>
+    		<path>orgType</path>
+    	</source>
+    	<expression>
+            <assignmentExpression>
+            	<targetType>c:RoleType</targetType>
+        		<oid>10000000-0000-0000-0000-000000006601</oid>
+            </assignmentExpression>    	
+    	</expression>
+    	<target>
+    		<path>assignment</path>
+    	</target>
+    	<condition>
+    		<script>
+    			<code>orgType == 'replicated'</code>
+    		</script>
+    	</condition>
     </mapping>
     
 </objectTemplate>

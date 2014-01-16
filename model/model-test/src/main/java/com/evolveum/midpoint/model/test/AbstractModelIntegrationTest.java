@@ -996,7 +996,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertAssignedRole(user, roleOid);
 	}
 	
-	protected void assertAssignedRole(PrismObject<UserType> user, String roleOid) {
+	protected <F extends FocusType> void assertAssignedRole(PrismObject<F> user, String roleOid) {
 		MidPointAsserts.assertAssignedRole(user, roleOid);
 	}
 
@@ -1005,7 +1005,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         MidPointAsserts.assertNotAssignedRole(user, roleOid);
     }
 
-    protected void assertNotAssignedRole(PrismObject<UserType> user, String roleOid) {
+    protected <F extends FocusType> void assertNotAssignedRole(PrismObject<F> user, String roleOid) {
 		MidPointAsserts.assertNotAssignedRole(user, roleOid);
 	}
 

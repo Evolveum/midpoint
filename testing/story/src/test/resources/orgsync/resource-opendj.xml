@@ -17,7 +17,7 @@
 
 <!-- Resource definition for an embedded OpenDJ instance. -->
 
-<resource oid="ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff"
+<resource oid="10000000-0000-0000-0000-000000000003"
           xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
           xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
           xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"

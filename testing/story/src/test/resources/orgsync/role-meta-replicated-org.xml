@@ -24,20 +24,14 @@
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
         xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
     <name>Replicated Orgstruct Metarole</name>
+<!--     
     <inducement>
-    	<construction>
-    		<resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
-    		<kind>entitlement</kind>
-            <intent>group</intent>
-    		<attribute>
-                <ref>ri:cc</ref>
-                <outbound>
-                    <strength>weak</strength>
-                	<expression>
-						<value>META0000</value>
-					</expression>
-				</outbound>
-            </attribute>
-    	</construction>
-    </inducement>
+    	<construction> -->
+    		<!-- OpenDJ resource -->
+<!--     		<resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>
+    		<kind>generic</kind>
+            <intent>ou</intent>
+    	</construction> 
+    </inducement> -->
+    
 </role>

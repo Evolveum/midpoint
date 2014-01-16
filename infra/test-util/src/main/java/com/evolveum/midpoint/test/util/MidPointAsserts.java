@@ -38,8 +38,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
  */
 public class MidPointAsserts {
 	
-	public static void assertAssigned(PrismObject<UserType> user, String targetOid, QName refType) {
-		UserType userType = user.asObjectable();
+	public static <F extends FocusType> void assertAssigned(PrismObject<F> user, String targetOid, QName refType) {
+		F userType = user.asObjectable();
 		for (AssignmentType assignmentType: userType.getAssignment()) {
 			ObjectReferenceType targetRef = assignmentType.getTargetRef();
 			if (targetRef != null) {
@@ -69,8 +69,8 @@ public class MidPointAsserts {
 		AssertJUnit.fail(user + " does not have assigned "+refType.getLocalPart()+" "+targetOid+ ", relation "+relation);
 	}
 	
-	public static void assertNotAssigned(PrismObject<UserType> user, String targetOid, QName refType) {
-		UserType userType = user.asObjectable();
+	public static <F extends FocusType> void assertNotAssigned(PrismObject<F> user, String targetOid, QName refType) {
+		F userType = user.asObjectable();
 		for (AssignmentType assignmentType: userType.getAssignment()) {
 			ObjectReferenceType targetRef = assignmentType.getTargetRef();
 			if (targetRef != null) {
@@ -88,11 +88,11 @@ public class MidPointAsserts {
 		assertEquals("Unexepected number of assignments in "+user+": "+userType.getAssignment(), expectedNumber, userType.getAssignment().size());
 	}
 	
-	public static void assertAssignedRole(PrismObject<UserType> user, String roleOid) {
+	public static <F extends FocusType> void assertAssignedRole(PrismObject<F> user, String roleOid) {
 		assertAssigned(user, roleOid, RoleType.COMPLEX_TYPE);
 	}
 	
-	public static void assertNotAssignedRole(PrismObject<UserType> user, String roleOid) {
+	public static <F extends FocusType> void assertNotAssignedRole(PrismObject<F> user, String roleOid) {
 		assertNotAssigned(user, roleOid, RoleType.COMPLEX_TYPE);
 	}
 	
