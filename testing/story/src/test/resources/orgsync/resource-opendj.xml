@@ -162,6 +162,43 @@
             <intent>ldapGroup</intent>
             <displayName>LDAP Group</displayName>
             <objectClass>ri:GroupObjectClass</objectClass>
+            <attribute>
+                <ref>icfs:name</ref>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+                <outbound>
+                    <!-- Name cannot be weak. Changes in name trigger object rename. -->
+					<source>
+						<path>$focus/name</path>
+					</source>
+                    <expression>
+                    	<script>
+	                        <code>
+	                            'cn=' + name + ',ou=groups,dc=example,dc=com'
+	                        </code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:cn</ref>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+                <outbound>
+                	<!-- This MUST be weak in case of OpenDJ. If DN (name) is changed then the uid will be changed
+                	     as a side-effect as it is a naming attribute. -->
+                	<strength>weak</strength>
+                	<source>
+                		<path>$focus/name</path>
+                	</source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:description</ref>
+                <outbound>
+                	<source>
+                		<path>description</path>
+                	</source>
+                </outbound>
+            </attribute>
         </objectType>
 
         <objectType>

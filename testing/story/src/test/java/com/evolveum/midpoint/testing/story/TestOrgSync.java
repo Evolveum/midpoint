@@ -136,6 +136,9 @@ public class TestOrgSync extends AbstractStoryTest {
 	public static final File OBJECT_TEMPLATE_ORG_FILE = new File(TEST_DIR, "object-template-org.xml");
 	public static final String OBJECT_TEMPLATE_ORG_OID = "10000000-0000-0000-0000-000000000231";
 	
+	public static final File OBJECT_TEMPLATE_ROLE_FILE = new File(TEST_DIR, "object-template-role.xml");
+	public static final String OBJECT_TEMPLATE_ROLE_OID = "10000000-0000-0000-0000-000000000241";
+	
 	protected static final File RESOURCE_DUMMY_HR_FILE = new File(TEST_DIR, "resource-dummy-hr.xml");
 	protected static final String RESOURCE_DUMMY_HR_ID = "HR";
 	protected static final String RESOURCE_DUMMY_HR_OID = "10000000-0000-0000-0000-000000000001";
@@ -158,6 +161,9 @@ public class TestOrgSync extends AbstractStoryTest {
 	
 	public static final File ROLE_META_REPLICATED_ORG_FILE = new File(TEST_DIR, "role-meta-replicated-org.xml");
 	public static final String ROLE_META_REPLICATED_ORG_OID = "10000000-0000-0000-0000-000000006601";
+	
+	public static final File ROLE_META_RESPONSIBILITY_FILE = new File(TEST_DIR, "role-meta-responsibility.xml");
+	public static final String ROLE_META_RESPONSIBILITY_OID = "10000000-0000-0000-0000-000000006602";
 	
 	protected static final File TASK_LIVE_SYNC_DUMMY_HR_FILE = new File(TEST_DIR, "task-dumy-hr-livesync.xml");
 	protected static final String TASK_LIVE_SYNC_DUMMY_HR_OID = "10000000-0000-0000-5555-555500000001";
@@ -249,12 +255,16 @@ public class TestOrgSync extends AbstractStoryTest {
 		importObjectFromFile(OBJECT_TEMPLATE_ORG_FILE, initResult);
 		setDefaultObjectTemplate(OrgType.COMPLEX_TYPE, OBJECT_TEMPLATE_ORG_OID);
 		
+		importObjectFromFile(OBJECT_TEMPLATE_ROLE_FILE, initResult);
+		setDefaultObjectTemplate(RoleType.COMPLEX_TYPE, OBJECT_TEMPLATE_ROLE_OID);
+		
 		// Org
 		importObjectFromFile(ORG_TOP_FILE, initResult);
 		
 		// Role
 		importObjectFromFile(ROLE_BASIC_FILE, initResult);
 		importObjectFromFile(ROLE_META_REPLICATED_ORG_FILE, initResult);
+		importObjectFromFile(ROLE_META_RESPONSIBILITY_FILE, initResult);
 		
 		// Tasks
 		importObjectFromFile(TASK_LIVE_SYNC_DUMMY_HR_FILE, initResult);
@@ -569,6 +579,8 @@ public class TestOrgSync extends AbstractStoryTest {
 		// We are bold enough to get the whole shadow
 		PrismObject<ShadowType> shadow = getShadowModel(linkRef.getOid());
 		display("Org "+orgName+" shadow", shadow);
+		// TODO assert shadow content
+		
 		return org;
 	}
 	
@@ -585,6 +597,7 @@ public class TestOrgSync extends AbstractStoryTest {
 		PrismReferenceValue linkRef = getLinkRef(user, RESOURCE_OPENDJ_OID);
 		PrismObject<ShadowType> shadow = getShadowModel(linkRef.getOid());
 		display("OpenDJ shadow linked to "+user, shadow);
+		// TODO assert shadow content
 	}
 	
 	private String assertResponsibility(PrismObject<UserType> user, String respName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
@@ -593,6 +606,14 @@ public class TestOrgSync extends AbstractStoryTest {
 		assertNotNull("No role for responsibility "+respName);
 		display("Responsibility role for "+respName, respRole);
 		assertAssignedRole(user, respRole.getOid());
+		
+		PrismReferenceValue linkRef = getSingleLinkRef(respRole);
+		PrismObject<ShadowType> shadow = getShadowModel(linkRef.getOid());
+		display("Role "+respRoleName+" shadow", shadow);
+		// TODO assert shadow content
+		
+		// TODO: assert membership in group
+		
 		return respRole.getOid();
 	}
 
