@@ -150,21 +150,41 @@ public class TestOrgSync extends AbstractStoryTest {
 	
 	protected static final File TASK_LIVE_SYNC_DUMMY_HR_FILE = new File(TEST_DIR, "task-dumy-hr-livesync.xml");
 	protected static final String TASK_LIVE_SYNC_DUMMY_HR_OID = "10000000-0000-0000-5555-555500000001";
-
-	private static final String ACCOUNT_GUYBRUSH_USERNAME = "guybrush";
-	private static final String ACCOUNT_GUYBRUSH_FIST_NAME = "Guybrush";
-	private static final String ACCOUNT_GUYBRUSH_LAST_NAME = "Threepwood";
-	private static final String ACCOUNT_GUYBRUSH_ORGPATH = "Scumm Bar";
 	
 	private static final String ACCOUNT_HERMAN_USERNAME = "ht";
 	private static final String ACCOUNT_HERMAN_FIST_NAME = "Herman";
 	private static final String ACCOUNT_HERMAN_LAST_NAME = "Toothrot";
-	private static final String ACCOUNT_HERMAN_ORGPATH = "Monkey Island/Gov";
+	
+	private static final String ACCOUNT_LEMONHEAD_USERNAME = "lemonhead";
+	private static final String ACCOUNT_LEMONHEAD_FIST_NAME = "Lemonhead";
+	private static final String ACCOUNT_LEMONHEAD_LAST_NAME = "Canibal";
 
+	private static final String ACCOUNT_GUYBRUSH_USERNAME = "guybrush";
+	private static final String ACCOUNT_GUYBRUSH_FIST_NAME = "Guybrush";
+	private static final String ACCOUNT_GUYBRUSH_LAST_NAME = "Threepwood";
+	
+	private static final String ACCOUNT_MANCOMB_USERNAME = "mancomb";
+	private static final String ACCOUNT_MANCOMB_FIST_NAME = "Mancomb";
+	private static final String ACCOUNT_MANCOMB_LAST_NAME = "Seepgood";
+
+	private static final String ACCOUNT_COBB_USERNAME = "cobb";
+	private static final String ACCOUNT_COBB_FIST_NAME = "Cobb";
+	private static final String ACCOUNT_COBB_LAST_NAME = "Loom";
+
+	private static final String ORGPATH_MONKEY_ISLAND = "Monkey Island";
+	private static final String ORGPATH_FREELANCE = "Freelance/Ministry of Rum";
+	private static final String ORGPATH_SCUMM_BAR = "Scumm Bar/Ministry of Rum";
+	
 	protected static DummyResource dummyResourceHr;
 	protected static DummyResourceContoller dummyResourceCtlHr;
 	protected ResourceType resourceDummyHrType;
 	protected PrismObject<ResourceType> resourceDummyHr;
+
+	private String orgMonkeyIslandOid;
+
+	private String orgMoROid;
+
+	private String orgScummBarOid;
 	
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
@@ -211,46 +231,19 @@ public class TestOrgSync extends AbstractStoryTest {
         waitForTaskStart(TASK_LIVE_SYNC_DUMMY_HR_OID, false);
 	}
 	
+	/**
+	 * First account on Monkey Island. The Monkey Island org should be created.
+	 */
 	@Test
-    public void test100AddHrAccountGuybrush() throws Exception {
-		final String TEST_NAME = "test100AddHrAccountGuybrush";
-        TestUtil.displayTestTile(this, TEST_NAME);
-        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
-        
-        DummyAccount newAccount = new DummyAccount(ACCOUNT_GUYBRUSH_USERNAME);
-        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_GUYBRUSH_FIST_NAME);
-        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME, ACCOUNT_GUYBRUSH_LAST_NAME);
-        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_ORGPATH, ACCOUNT_GUYBRUSH_ORGPATH);
-		
-        // WHEN
-        dummyResourceHr.addAccount(newAccount);
-        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
-        
-        // THEN
-        PrismObject<UserType> user = findUserByUsername(ACCOUNT_GUYBRUSH_USERNAME);
-        assertNotNull("No guybrush user", user);
-        display("User", user);
-        assertUserGuybrush(user);
-        assertAccount(user, RESOURCE_DUMMY_HR_OID);
-        
-        PrismObject<OrgType> org = getOrg(ACCOUNT_GUYBRUSH_ORGPATH);
-        assertAssignedOrg(user, org.getOid());
-        assertHasOrg(user, org.getOid());
-        assertHasOrg(org, ORG_TOP_OID);
-        
-        assertAssignments(user, 1);
-	}
-	
-	@Test
-    public void test110AddHrAccountHerman() throws Exception {
-		final String TEST_NAME = "test110AddHrAccountHerman";
+    public void test100AddHrAccountHerman() throws Exception {
+		final String TEST_NAME = "test100AddHrAccountHerman";
         TestUtil.displayTestTile(this, TEST_NAME);
         Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
         
         DummyAccount newAccount = new DummyAccount(ACCOUNT_HERMAN_USERNAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_HERMAN_FIST_NAME);
         newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME, ACCOUNT_HERMAN_LAST_NAME);
-        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_ORGPATH, ACCOUNT_HERMAN_ORGPATH);
+        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_ORGPATH, ORGPATH_MONKEY_ISLAND);
 		
         // WHEN
         dummyResourceHr.addAccount(newAccount);
@@ -263,28 +256,178 @@ public class TestOrgSync extends AbstractStoryTest {
         assertUserHerman(user);
         assertAccount(user, RESOURCE_DUMMY_HR_OID);
         
-        PrismObject<OrgType> orgMonkeyIsland = getOrg("Monkey Island");
-        PrismObject<OrgType> orgGov = getOrg("Gov");
+        PrismObject<OrgType> org = getOrg(ORGPATH_MONKEY_ISLAND);
+        orgMonkeyIslandOid = org.getOid();
+        assertAssignedOrg(user, org.getOid());
+        assertHasOrg(user, org.getOid());
+        assertHasOrg(org, ORG_TOP_OID);
         
-        assertAssignedOrg(user, orgMonkeyIsland.getOid());
-        assertHasOrg(user, orgMonkeyIsland.getOid());
-        assertHasOrg(orgMonkeyIsland, orgGov.getOid());
-        assertHasOrg(orgGov, ORG_TOP_OID);
+        assertAssignments(user, 1);
+	}
+	
+	/**
+	 * Second account on Monkey Island. The existing org should be reused.
+	 */
+	@Test
+    public void test105AddHrAccountLemonhead() throws Exception {
+		final String TEST_NAME = "test105AddHrAccountLemonhead";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        
+        DummyAccount newAccount = new DummyAccount(ACCOUNT_LEMONHEAD_USERNAME);
+        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_LEMONHEAD_FIST_NAME);
+        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME, ACCOUNT_LEMONHEAD_LAST_NAME);
+        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_ORGPATH, ORGPATH_MONKEY_ISLAND);
+		
+        // WHEN
+        dummyResourceHr.addAccount(newAccount);
+        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        
+        // THEN
+        PrismObject<UserType> user = findUserByUsername(ACCOUNT_LEMONHEAD_USERNAME);
+        assertNotNull("No lemonhead user", user);
+        display("User", user);
+        assertUser(user, ACCOUNT_LEMONHEAD_USERNAME, ACCOUNT_LEMONHEAD_FIST_NAME, ACCOUNT_LEMONHEAD_LAST_NAME);
+        assertAccount(user, RESOURCE_DUMMY_HR_OID);
+        
+        PrismObject<OrgType> org = getOrg(ORGPATH_MONKEY_ISLAND);
+        assertAssignedOrg(user, org.getOid());
+        assertHasOrg(user, org.getOid());
+        assertHasOrg(org, ORG_TOP_OID);
+        
+        assertEquals("Monkey island Org OID has changed", orgMonkeyIslandOid, org.getOid());
+        
+        assertAssignments(user, 1);
+	}
+	
+	/**
+	 * Two-level orgpath. Both orgs should be created.
+	 */
+	@Test
+    public void test110AddHrAccountGuybrush() throws Exception {
+		final String TEST_NAME = "test110AddHrAccountGuybrush";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        
+        DummyAccount newAccount = new DummyAccount(ACCOUNT_GUYBRUSH_USERNAME);
+        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_GUYBRUSH_FIST_NAME);
+        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME, ACCOUNT_GUYBRUSH_LAST_NAME);
+        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_ORGPATH, ORGPATH_FREELANCE);
+		
+        // WHEN
+        dummyResourceHr.addAccount(newAccount);
+        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        
+        // THEN
+        PrismObject<UserType> user = findUserByUsername(ACCOUNT_GUYBRUSH_USERNAME);
+        assertNotNull("No guybrush user", user);
+        display("User", user);
+        assertUserGuybrush(user);
+        assertAccount(user, RESOURCE_DUMMY_HR_OID);
+        
+        PrismObject<OrgType> orgFreelance = getOrg("Freelance");
+        PrismObject<OrgType> orgMoR = getOrg("Ministry of Rum");
+        orgMoROid = orgMoR.getOid();
+        
+        assertAssignedOrg(user, orgFreelance.getOid());
+        assertHasOrg(user, orgFreelance.getOid());
+        assertHasOrg(orgFreelance, orgMoR.getOid());
+        assertHasOrg(orgMoR, ORG_TOP_OID);
+        
+        assertAssignments(user, 1);
+	}
+	
+	/**
+	 * Two-level orgpath, partially created. Only scumm bar should be crated. Ministry should be reused.
+	 */
+	@Test
+    public void test115AddHrAccountMancomb() throws Exception {
+		final String TEST_NAME = "test115AddHrAccountMancomb";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        
+        DummyAccount newAccount = new DummyAccount(ACCOUNT_MANCOMB_USERNAME);
+        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_MANCOMB_FIST_NAME);
+        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME, ACCOUNT_MANCOMB_LAST_NAME);
+        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_ORGPATH, ORGPATH_SCUMM_BAR);
+		
+        // WHEN
+        dummyResourceHr.addAccount(newAccount);
+        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        
+        // THEN
+        PrismObject<UserType> user = findUserByUsername(ACCOUNT_MANCOMB_USERNAME);
+        assertNotNull("No mancomb user", user);
+        display("User", user);
+        assertUser(user, ACCOUNT_MANCOMB_USERNAME, ACCOUNT_MANCOMB_FIST_NAME, ACCOUNT_MANCOMB_LAST_NAME);
+        assertAccount(user, RESOURCE_DUMMY_HR_OID);
+        
+        PrismObject<OrgType> orgScummBar = getOrg("Scumm Bar");
+        orgScummBarOid = orgScummBar.getOid();
+        PrismObject<OrgType> orgMoR = getOrg("Ministry of Rum");
+        
+        assertAssignedOrg(user, orgScummBar.getOid());
+        assertHasOrg(user, orgScummBar.getOid());
+        assertHasOrg(orgScummBar, orgMoR.getOid());
+        assertHasOrg(orgMoR, ORG_TOP_OID);
+        
+        assertEquals("MoR Org OID has changed", orgMoROid, orgMoR.getOid());
+        
+        assertAssignments(user, 1);
+	}
+	
+	/**
+	 * Two-level orgpath, completely created. No new orgs should be created.
+	 */
+	@Test
+    public void test117AddHrAccountCobb() throws Exception {
+		final String TEST_NAME = "test117AddHrAccountCobb";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        
+        DummyAccount newAccount = new DummyAccount(ACCOUNT_COBB_USERNAME);
+        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_COBB_FIST_NAME);
+        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME, ACCOUNT_COBB_LAST_NAME);
+        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_ORGPATH, ORGPATH_SCUMM_BAR);
+		
+        // WHEN
+        dummyResourceHr.addAccount(newAccount);
+        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        
+        // THEN
+        PrismObject<UserType> user = findUserByUsername(ACCOUNT_COBB_USERNAME);
+        assertNotNull("No cobb user", user);
+        display("User", user);
+        assertUser(user, ACCOUNT_COBB_USERNAME, ACCOUNT_COBB_FIST_NAME, ACCOUNT_COBB_LAST_NAME);
+        assertAccount(user, RESOURCE_DUMMY_HR_OID);
+        
+        PrismObject<OrgType> orgScummBar = getOrg("Scumm Bar");
+        PrismObject<OrgType> orgMoR = getOrg("Ministry of Rum");
+        
+        assertAssignedOrg(user, orgScummBar.getOid());
+        assertHasOrg(user, orgScummBar.getOid());
+        assertHasOrg(orgScummBar, orgMoR.getOid());
+        assertHasOrg(orgMoR, ORG_TOP_OID);
+        
+        assertEquals("MoR Org OID has changed", orgMoROid, orgMoR.getOid());
+        assertEquals("Scumm bar Org OID has changed", orgScummBarOid, orgScummBar.getOid());
         
         assertAssignments(user, 1);
 	}
 	
 	protected void assertUserGuybrush(PrismObject<UserType> user) {
-		assertUser(user, user.getOid(), ACCOUNT_GUYBRUSH_USERNAME, ACCOUNT_GUYBRUSH_FIST_NAME + " " + ACCOUNT_GUYBRUSH_LAST_NAME,
-				ACCOUNT_GUYBRUSH_FIST_NAME, ACCOUNT_GUYBRUSH_LAST_NAME);
+		assertUser(user, ACCOUNT_GUYBRUSH_USERNAME, ACCOUNT_GUYBRUSH_FIST_NAME, ACCOUNT_GUYBRUSH_LAST_NAME);
 	}
 
 	protected void assertUserHerman(PrismObject<UserType> user) {
-		assertUser(user, user.getOid(), ACCOUNT_HERMAN_USERNAME, ACCOUNT_HERMAN_FIST_NAME + " " + ACCOUNT_HERMAN_LAST_NAME,
-				ACCOUNT_HERMAN_FIST_NAME, ACCOUNT_HERMAN_LAST_NAME);
+		assertUser(user, ACCOUNT_HERMAN_USERNAME, ACCOUNT_HERMAN_FIST_NAME, ACCOUNT_HERMAN_LAST_NAME);
+	}
+	
+	protected void assertUser(PrismObject<UserType> user, String username, String firstName, String lastName) {
+		assertUser(user, user.getOid(), username, firstName + " " + lastName,
+				firstName, lastName);
 	}
 
-	
 	private PrismObject<OrgType> getOrg(String orgName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
 		PrismObject<OrgType> org = findObjectByName(OrgType.class, orgName);
 		assertNotNull("The org "+orgName+" is missing!", org);
