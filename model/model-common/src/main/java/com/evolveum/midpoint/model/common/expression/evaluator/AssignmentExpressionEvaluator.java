@@ -128,24 +128,32 @@ public class AssignmentExpressionEvaluator<V extends PrismValue>
 		}
 		Class<? extends ObjectType> targetTypeClass = targetType.getClassDefinition();
 		
-		QueryType queryType = getExpressionEvaluatorType().getQuery();
-		if (queryType == null) {
-			throw new SchemaException("No query in assignment expression");
+		List<PrismContainerValue<AssignmentType>> resultValues = null;
+		
+		if (getExpressionEvaluatorType().getOid() != null) {
+			resultValues = new ArrayList<>(1);
+			resultValues.add(createAssignmentCVal(getExpressionEvaluatorType().getOid(), targetTypeQName, contextDescription));
+		} else {
+		
+			QueryType queryType = getExpressionEvaluatorType().getQuery();
+			if (queryType == null) {
+				throw new SchemaException("No query in assignment expression");
+			}
+			ObjectQuery query = QueryConvertor.createObjectQuery(targetTypeClass, queryType, prismContext);
+	
+			ExpressionUtil.evaluateFilterExpressions(query.getFilter(), variables, params.getExpressionFactory(), 
+					prismContext, params.getContextDescription(), task, result);
+			
+			resultValues = executeSearch(targetTypeClass, targetTypeQName, query, params.getContextDescription(), params.getResult());
 		}
-		ObjectQuery query = QueryConvertor.createObjectQuery(targetTypeClass, queryType, prismContext);
-
-		ExpressionUtil.evaluateFilterExpressions(query.getFilter(), variables, params.getExpressionFactory(), 
-				prismContext, params.getContextDescription(), task, result);
-		
-		List<PrismContainerValue<AssignmentType>> searchResults = executeSearch(targetTypeClass, targetTypeQName, query, params.getContextDescription(), params.getResult());
-		
-		if (searchResults.isEmpty() && getExpressionEvaluatorType().isCreateOnDemand() == Boolean.TRUE &&
+			
+		if (resultValues.isEmpty() && getExpressionEvaluatorType().isCreateOnDemand() == Boolean.TRUE &&
 				(valueDestination == PlusMinusZero.PLUS || valueDestination == PlusMinusZero.ZERO || useNew)) {
 			String createdObjectOid = createOnDemand(targetTypeClass, variables, params, params.getContextDescription(), task, params.getResult());
-			searchResults.add(createAssignmentCVal(createdObjectOid, targetTypeQName, contextDescription));
+			resultValues.add(createAssignmentCVal(createdObjectOid, targetTypeQName, contextDescription));
 		}
 		
-		return (List<V>) searchResults;
+		return (List<V>) resultValues;
 	}
 
 	private <O extends ObjectType> List<PrismContainerValue<AssignmentType>> executeSearch(Class<O> targetTypeClass,
