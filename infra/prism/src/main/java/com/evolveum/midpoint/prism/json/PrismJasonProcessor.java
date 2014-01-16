@@ -28,6 +28,7 @@ import org.codehaus.jackson.map.ObjectReader;
 import org.codehaus.jackson.map.ObjectWriter;
 import org.codehaus.jackson.util.DefaultPrettyPrinter;
 import org.codehaus.jackson.util.TokenBuffer;
+import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
@@ -54,6 +55,7 @@ import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.JavaTypeConverter;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
@@ -146,7 +148,8 @@ public class PrismJasonProcessor {
 	private void serializeValue(PrismValue v, JsonGenerator generator) throws JsonProcessingException, IOException{
 		if (v instanceof PrismPropertyValue){
 			Object o = ((PrismPropertyValue) v).getValue();
-			generator.writeObject(o);
+			serializeProperty(o);
+//			generator.writeObject(o);
 //			generator.writeString("\n");
 		}
 		if (v instanceof PrismReferenceValue){
@@ -168,6 +171,21 @@ public class PrismJasonProcessor {
 //			generator.writeString("\n");
 			serializeToJson((PrismContainerValue) v, generator);
 		}
+	}
+	
+	private void serializeProperty(Object o, JsonGenerator generator) throws JsonGenerationException, IOException{
+		if (o instanceof PolyString){
+			generator.writeStartObject();
+			generator.writeStringField("orig", ((PolyString) o).getOrig());
+			generator.writeStringField("norm", ((PolyString) o).getNorm());
+			generator.writeEndObject();
+		} else if (o instanceof Element){
+			Element node = (Element) o;
+			DOMUtil.getQName(node);
+			
+		}
+		
+		generator.writeObject(o);
 	}
 	
 	public <T extends Objectable> void serializeToJson(PrismObject<T> object, OutputStream out) throws IOException, SchemaException{
