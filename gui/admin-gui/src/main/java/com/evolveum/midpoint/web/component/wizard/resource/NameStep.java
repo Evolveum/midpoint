@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource;
 
+import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
@@ -27,6 +28,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
+import com.evolveum.midpoint.web.component.form.TextAreaFormGroup;
+import com.evolveum.midpoint.web.component.form.TextFormGroup;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.PrismPropertyModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
@@ -41,10 +45,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.form.RequiredTextField;
 import org.apache.wicket.markup.html.form.TextArea;
+import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
 
 import java.util.*;
@@ -59,7 +65,6 @@ public class NameStep extends WizardStep {
     private static final String DOT_CLASS = NameStep.class.getName() + ".";
     private static final String OPERATION_DISCOVER_CONNECTORS = DOT_CLASS + "discoverConnectors";
     private static final String OPERATION_SAVE_RESOURCE = DOT_CLASS + "saveResource";
-    private static final String OPERATION_LOAD_RESOURCE = DOT_CLASS + "loadResource";
 
     private static final String ID_NAME = "name";
     private static final String ID_DESCRIPTION = "description";
@@ -101,10 +106,14 @@ public class NameStep extends WizardStep {
     }
 
     private void initLayout() {
-        RequiredTextField name = new RequiredTextField(ID_NAME, new PrismPropertyModel(resourceModel, UserType.F_NAME));
+        TextFormGroup name = new TextFormGroup(ID_NAME, new PrismPropertyModel(resourceModel, UserType.F_NAME),
+                createStringResource("NameStep.name"), "col-md-3", "col-md-3", true);
         add(name);
 
-        TextArea description = new TextArea(ID_DESCRIPTION, new PrismPropertyModel(resourceModel, UserType.F_DESCRIPTION));
+        TextAreaFormGroup description = new TextAreaFormGroup(ID_DESCRIPTION,
+                new PrismPropertyModel(resourceModel, UserType.F_DESCRIPTION),
+                createStringResource("NameStep.description"), "col-md-3", "col-md-3");
+        description.setRows(2);
         add(description);
 
         DropDownChoice<PrismObject<ConnectorHostType>> location = createLocationDropDown();
@@ -499,7 +508,7 @@ public class NameStep extends WizardStep {
                 delta = ObjectDelta.createAddDelta(resource);
             }
 
-            WebModelUtils.save(delta, result, page);
+            WebModelUtils.save(delta, ModelExecuteOptions.createRaw(), result, page);
 
             resource = WebModelUtils.loadObject(ResourceType.class, delta.getOid(), result, page);
             resourceModel.setObject(resource);

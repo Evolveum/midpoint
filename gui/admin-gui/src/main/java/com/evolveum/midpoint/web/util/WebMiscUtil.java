@@ -45,15 +45,19 @@ import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.Component;
+import org.apache.wicket.MarkupContainer;
 import org.apache.wicket.Session;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.authroles.authentication.AuthenticatedWebApplication;
 import org.apache.wicket.authroles.authorization.strategies.role.Roles;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
+import org.apache.wicket.feedback.IFeedback;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.util.visit.IVisit;
+import org.apache.wicket.util.visit.IVisitor;
 
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
@@ -512,5 +516,15 @@ public final class WebMiscUtil {
         }
 
         return selected;
+    }
+
+    public static void refreshFeedbacks(MarkupContainer component, final AjaxRequestTarget target) {
+        component.visitChildren(IFeedback.class, new IVisitor<Component, Void>() {
+
+            @Override
+            public void component(final Component component, final IVisit<Void> visit) {
+                target.add(component);
+            }
+        });
     }
 }

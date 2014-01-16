@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.component.form;
 
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
@@ -36,12 +37,17 @@ public class TextAreaFormGroup extends SimplePanel<String> {
     private static final String ID_LABEL = "label";
 
     public TextAreaFormGroup(String id, IModel<String> value, IModel<String> label, String labelSize, String textSize) {
-        super(id, value);
-
-        initLayout(label, labelSize, textSize);
+        this(id, value, label, labelSize, textSize, false);
     }
 
-    private void initLayout(IModel<String> label, String labelSize, String textSize) {
+    public TextAreaFormGroup(String id, IModel<String> value, IModel<String> label, String labelSize, String textSize,
+                             boolean required) {
+        super(id, value);
+
+        initLayout(label, labelSize, textSize, required);
+    }
+
+    private void initLayout(IModel<String> label, String labelSize, String textSize, boolean required) {
         Label l = new Label(ID_LABEL, label);
         if (StringUtils.isNotEmpty(labelSize)) {
             l.add(AttributeAppender.prepend("class", labelSize));
@@ -55,8 +61,15 @@ public class TextAreaFormGroup extends SimplePanel<String> {
         add(textWrapper);
 
         TextArea text = new TextArea(ID_TEXT, getModel());
+        text.setOutputMarkupId(true);
+        text.setRequired(required);
         text.setLabel(label);
         text.add(AttributeAppender.replace("placeholder", label));
         textWrapper.add(text);
+    }
+
+    public void setRows(int rows) {
+        TextArea area = (TextArea) get(createComponentPath(ID_TEXT_WRAPPER, ID_TEXT));
+        area.add(AttributeModifier.replace("rows", rows));
     }
 }
