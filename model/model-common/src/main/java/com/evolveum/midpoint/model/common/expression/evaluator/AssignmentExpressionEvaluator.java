@@ -218,7 +218,8 @@ public class AssignmentExpressionEvaluator<V extends PrismValue>
 		} else {			
 			for (PopulateItemType populateItem: populateObject.getPopulateItem()) {
 				
-				ItemDelta<PrismValue> itemDelta = evaluatePopulateExpression(populateItem, variables, params, contextDescription, task, result);
+				ItemDelta<PrismValue> itemDelta = evaluatePopulateExpression(populateItem, variables, params, 
+						objectDefinition, contextDescription, task, result);
 				if (itemDelta != null) {
 					itemDelta.applyTo(newObject);
 				}
@@ -243,8 +244,8 @@ public class AssignmentExpressionEvaluator<V extends PrismValue>
 		return addDelta.getOid();
 	}
 
-	private <X extends PrismValue> ItemDelta<X> evaluatePopulateExpression(PopulateItemType populateItem,
-			ExpressionVariables variables, ExpressionEvaluationContext params,
+	private <X extends PrismValue, O extends ObjectType> ItemDelta<X> evaluatePopulateExpression(PopulateItemType populateItem,
+			ExpressionVariables variables, ExpressionEvaluationContext params, PrismObjectDefinition<O> objectDefinition,
 			String contextDescription, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		ExpressionType expressionType = populateItem.getExpression();
 		if (expressionType == null) {
@@ -265,7 +266,7 @@ public class AssignmentExpressionEvaluator<V extends PrismValue>
 		}
 		ItemPath targetPath = new XPathHolder(pathElement).toItemPath();
 		ItemDefinition propOutputDefinition = ExpressionUtil.resolveDefinitionPath(targetPath, variables, 
-				params.getDefaultTargetContext(), "target definition in "+contextDescription);
+				objectDefinition, "target definition in "+contextDescription);
 		if (propOutputDefinition == null) {
 			throw new SchemaException("No target item that would conform to the path "+targetPath+" in "+contextDescription);
 		}
