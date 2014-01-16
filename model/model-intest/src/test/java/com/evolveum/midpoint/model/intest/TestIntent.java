@@ -174,8 +174,8 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack);
 		assertLinks(userJack, 2);
-		String accountOidDefault = getLinkRef(userJack, RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
-		String accountOidTest = getLinkRef(userJack, RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, ACCOUNT_INTENT_TEST);
+		String accountOidDefault = getLinkRefOid(userJack, RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
+		String accountOidTest = getLinkRefOid(userJack, RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, ACCOUNT_INTENT_TEST);
         
 		// Check shadow: intent=default
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOidDefault, null, result);
@@ -239,8 +239,8 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "cpt. Jack Sparrow", "Jack", "Sparrow");
 		assertLinks(userJack, 2);
-		String accountOidDefault = getLinkRef(userJack, RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
-		String accountOidTest = getLinkRef(userJack, RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, ACCOUNT_INTENT_TEST);
+		String accountOidDefault = getLinkRefOid(userJack, RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
+		String accountOidTest = getLinkRefOid(userJack, RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, ACCOUNT_INTENT_TEST);
         
 		// Check shadow: intent=default
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOidDefault, null, result);
@@ -310,7 +310,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "cpt. Jack Sparrow", "Jack", "Sparrow");
 		assertLinks(userJack, 1);
-		String accountOidTest = getLinkRef(userJack, RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, ACCOUNT_INTENT_TEST);
+		String accountOidTest = getLinkRefOid(userJack, RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, ACCOUNT_INTENT_TEST);
         
         // Check shadow: intent=test
         PrismObject<ShadowType> accountShadowTest = repositoryService.getObject(ShadowType.class, accountOidTest, null, result);

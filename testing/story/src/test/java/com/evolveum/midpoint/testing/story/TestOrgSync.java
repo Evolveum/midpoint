@@ -152,6 +152,9 @@ public class TestOrgSync extends AbstractStoryTest {
 	public static final File ORG_TOP_FILE = new File(TEST_DIR, "org-top.xml");
 	public static final String ORG_TOP_OID = "00000000-8888-6666-0000-100000000001";
 	
+	public static final File ROLE_BASIC_FILE = new File(TEST_DIR, "role-basic.xml");
+	public static final String ROLE_BASIC_OID = "10000000-0000-0000-0000-000000000601";
+	
 	public static final File ROLE_META_REPLICATED_ORG_FILE = new File(TEST_DIR, "role-meta-replicated-org.xml");
 	public static final String ROLE_META_REPLICATED_ORG_OID = "10000000-0000-0000-0000-000000006601";
 	
@@ -235,6 +238,7 @@ public class TestOrgSync extends AbstractStoryTest {
 		importObjectFromFile(ORG_TOP_FILE, initResult);
 		
 		// Role
+		importObjectFromFile(ROLE_BASIC_FILE, initResult);
 		importObjectFromFile(ROLE_META_REPLICATED_ORG_FILE, initResult);
 		
 		// Tasks
@@ -290,7 +294,8 @@ public class TestOrgSync extends AbstractStoryTest {
         assertHasOrg(user, org.getOid());
         assertHasOrg(org, ORG_TOP_OID);
         
-        assertAssignments(user, 1);
+        assertRoleAndResources(user);
+        assertAssignments(user, 2);
 	}
 	
 	/**
@@ -325,7 +330,8 @@ public class TestOrgSync extends AbstractStoryTest {
         
         assertEquals("Monkey island Org OID has changed", orgMonkeyIslandOid, org.getOid());
         
-        assertAssignments(user, 1);
+        assertRoleAndResources(user);
+        assertAssignments(user, 2);
 	}
 	
 	/**
@@ -362,7 +368,8 @@ public class TestOrgSync extends AbstractStoryTest {
         assertHasOrg(orgFreelance, orgMoR.getOid());
         assertHasOrg(orgMoR, ORG_TOP_OID);
         
-        assertAssignments(user, 1);
+        assertRoleAndResources(user);
+        assertAssignments(user, 2);
 	}
 	
 	/**
@@ -401,7 +408,8 @@ public class TestOrgSync extends AbstractStoryTest {
         
         assertEquals("MoR Org OID has changed", orgMoROid, orgMoR.getOid());
         
-        assertAssignments(user, 1);
+        assertRoleAndResources(user);
+        assertAssignments(user, 2);
 	}
 	
 	/**
@@ -440,7 +448,8 @@ public class TestOrgSync extends AbstractStoryTest {
         assertEquals("MoR Org OID has changed", orgMoROid, orgMoR.getOid());
         assertEquals("Scumm bar Org OID has changed", orgScummBarOid, orgScummBar.getOid());
         
-        assertAssignments(user, 1);
+        assertRoleAndResources(user);
+        assertAssignments(user, 2);
 	}
 	
 	protected void assertUserGuybrush(PrismObject<UserType> user) {
@@ -460,6 +469,10 @@ public class TestOrgSync extends AbstractStoryTest {
 		PrismObject<OrgType> org = getOrg(orgName);
 		PrismAsserts.assertPropertyValue(org, OrgType.F_ORG_TYPE, "replicated");
 		assertAssignedRole(org, ROLE_META_REPLICATED_ORG_OID);
+		PrismReferenceValue linkRef = getSingleLinkRef(org);
+		// We are bold enough to get the whole shadow
+		PrismObject<ShadowType> shadow = getShadowModel(linkRef.getOid());
+		display("Org "+orgName+" shadow", shadow);
 		return org;
 	}
 	
@@ -469,6 +482,13 @@ public class TestOrgSync extends AbstractStoryTest {
 		display("Org "+orgName, org);
 		PrismAsserts.assertPropertyValue(org, OrgType.F_NAME, PrismTestUtil.createPolyString(orgName));
 		return org;
+	}
+
+	private void assertRoleAndResources(PrismObject<UserType> user) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+		assertAssignedRole(user, ROLE_BASIC_OID);
+		PrismReferenceValue linkRef = getLinkRef(user, RESOURCE_OPENDJ_OID);
+		PrismObject<ShadowType> shadow = getShadowModel(linkRef.getOid());
+		display("OpenDJ shadow linked to "+user, shadow);
 	}
 
 	

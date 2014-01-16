@@ -359,7 +359,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	protected void assertAccount(PrismObject<UserType> user, String resourceOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
-		String accountOid = getLinkRef(user, resourceOid);
+		String accountOid = getLinkRefOid(user, resourceOid);
 		assertNotNull("User " + user + " has no account on resource " + resourceOid, accountOid);
 	}
 	
@@ -428,7 +428,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	protected ObjectDelta<UserType> createModifyUserDeleteAccount(String userOid, PrismObject<ResourceType> resource) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
-		String accountOid = getLinkRef(userOid, resource.getOid());
+		String accountOid = getLinkRefOid(userOid, resource.getOid());
 		PrismObject<ShadowType> account = getShadowModel(accountOid);
 		
 		ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, userOid, prismContext);
@@ -441,7 +441,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	}
 	
 	protected ObjectDelta<UserType> createModifyUserUnlinkAccount(String userOid, PrismObject<ResourceType> resource) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
-		String accountOid = getLinkRef(userOid, resource.getOid());
+		String accountOid = getLinkRefOid(userOid, resource.getOid());
 		
 		ObjectDelta<UserType> userDelta = ObjectDelta.createEmptyModifyDelta(UserType.class, userOid, prismContext);
         PrismReferenceValue accountRefVal = new PrismReferenceValue();
@@ -934,11 +934,19 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
         return accountRefValue;
     }
 	
-	protected String getLinkRef(String userOid, String resourceOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
-		return getLinkRef(getUser(userOid), resourceOid);
+	protected String getLinkRefOid(String userOid, String resourceOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+		return getLinkRefOid(getUser(userOid), resourceOid);
 	}
 	
-	protected <F extends FocusType> String getLinkRef(PrismObject<F> focus, String resourceOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+	protected <F extends FocusType> String getLinkRefOid(PrismObject<F> focus, String resourceOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+		PrismReferenceValue linkRef = getLinkRef(focus, resourceOid);
+		if (linkRef == null) {
+			return null;
+		}
+        return linkRef.getOid(); 
+	}
+	
+	protected <F extends FocusType> PrismReferenceValue getLinkRef(PrismObject<F> focus, String resourceOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
         F focusType = focus.asObjectable();
         for (ObjectReferenceType linkRefType: focusType.getLinkRef()) {
         	String linkTargetOid = linkRefType.getOid();
@@ -946,14 +954,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	        PrismObject<ShadowType> account = getShadowModel(linkTargetOid, true, false);
 	        if (resourceOid.equals(account.asObjectable().getResourceRef().getOid())) {
 	        	// This is noFetch. Therefore there is no fetchResult
-	        	return linkTargetOid;
+	        	return linkRefType.asReferenceValue();
 	        }
         }
         AssertJUnit.fail("Account for resource "+resourceOid+" not found in "+focus);
         return null; // Never reached. But compiler complains about missing return 
 	}
 	
-	protected <F extends FocusType> String getLinkRef(PrismObject<F> focus, String resourceOid, ShadowKindType kind, String intent) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
+	protected <F extends FocusType> String getLinkRefOid(PrismObject<F> focus, String resourceOid, ShadowKindType kind, String intent) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
         F focusType = focus.asObjectable();
         for (ObjectReferenceType linkRefType: focusType.getLinkRef()) {
         	String linkTargetOid = linkRefType.getOid();

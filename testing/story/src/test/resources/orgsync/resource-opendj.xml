@@ -27,7 +27,7 @@
           xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
           xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
           xmlns:func="http://midpoint.evolveum.com/xml/ns/public/function/basic-2"
-          xmlns:my="http://whatever.com/my">
+          xmlns:ext="http://midpoint.evolveum.com/xml/ns/story/orgsync/ext">
 
     <name>Embedded Test OpenDJ</name>
 
@@ -59,456 +59,80 @@
 
     <schemaHandling>
 
-        <!-- Definition of default account type.
-This is now the only account type that midPoint can work with. -->
-
         <objectType>
 			<kind>account</kind>
             <intent>default</intent>
-            <!-- Readable name for the account type -->
             <displayName>Default Account</displayName>
-
             <default>true</default>
-            <!-- Reference to the Resource Schema specifying
-      object class for this account type -->
-
             <objectClass>ri:AccountObjectClass</objectClass>
-
-            <!-- Definition of __NAME__ attribute handling.
-     ICF will put entry DN into __NAME__ attribute.-->
             <attribute>
                 <ref>icfs:name</ref>
-
-                <!-- Readable name for the attribute. This will be used in GUI -->
                 <displayName>Distinguished Name</displayName>
-
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
-
-                <!-- Outbound expression for the __NAME__ attribute.
-      If account is created or updated, the __NAME__ attribute
-      will be set accrding to this expression.
-
-      This specific expression will construct DN by concatenating
-      name from user object and string constants.
-
-      The expression is marked as "default", therefore it will
-      be evaluated only if the entry already does not have an DN.
-
-      It is an XPath expression, similar to BPEL assignment expressions. -->
                 <outbound>
                     <!-- Name cannot be weak. Changes in name trigger object rename. -->
 					<source>
 						<path>$user/name</path>
 					</source>
+					<source>
+						<path>$focus/extension/ext:orgpath</path>
+					</source>
                     <expression>
                     	<script>
-                    		<language>http://www.w3.org/TR/xpath/</language>
 	                        <code>
-	                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
-	                            concat('uid=', $i:name/t:orig, ',ou=people,dc=example,dc=com')
+	                        	if (orgpath) {
+	                        		oupath = 'ou='+orgpath.tokenize('/').join(',ou=')
+	                        	} else {
+	                        		oupath = 'ou=people'
+	                        	}
+	                            'uid=' + name + ',' + oupath + ',dc=example,dc=com'
 	                        </code>
                         </script>
                     </expression>
                 </outbound>
-
-                <!-- No inbound expression here. We cannot sync changes in DN yet -->
-
             </attribute>
 
-            <!-- Definition of __UID__ attribute handling.
-           ICF will put entry UUID into __UID__ attribute in case it
-           is connecting to OpenDJ/OpenDS. It may be different for
-           other directory servers and it also dependes on connector
-           configuration. Please see connector documentation for
-           more details.-->
             <attribute>
-                <ref>icfs:uid</ref>
-
-                <!-- Readable name for the attribute. This will be used in GUI -->
-                <displayName>Entry UUID</displayName>
-
-                <!-- Access limitation for this attribute.
-       Entry UUID is created by the directory server itelf
-       and it is immutable. We can only read it. -->
-
-                <access>read</access>
-
-                <!-- There is no "outbound" expression, so midPoint will not
-           do anything with this attribute. -->
-
-                <!-- No inbound expression here. Does not make sense to sync UUID as it is supposed to be immutable -->
-                
-                <matchingRule>mr:stringIgnoreCase</matchingRule>
-
-            </attribute>
-
-            <!-- Definition of cn attribute handling. -->
-            <attribute>
-
                 <ref>ri:cn</ref>
                 <displayName>Common Name</displayName>
-                <access>create</access>
-                <access>read</access>
-                <access>update</access>
-
-                <!-- Outbound expression here is using "pure" XPath, without
-                    using functions. This is the simplest case, just copying
-                    the "fullName" property of user to the "cn" attribute of
-                    an account.
-
-                    Please note that this expression is not marked as "default".
-                    Therefore this value will be copied on every change,
-                    overwriting the original value of "cn" on the resource.
-                -->
-
                 <outbound>
                 	<source>
-	                    <path>
-	                    	$user/fullName
-	                    </path>
+	                    <path>$user/fullName</path>
                     </source>
                 </outbound>
-
-                <!-- Inbound expression. It is used to synchronize changes
-                    in the account to the user object in the IDM. This
-                    expression specifies to copy the cn attribute value
-                    from the account to the fullName property of the user.
-                -->
-                <inbound>
-					<expression>
-						<script>
-							<relativityMode>absolute</relativityMode>
-							<language>http://www.w3.org/TR/xpath/</language>
-							<code>func:determineLdapSingleAttributeValue($c:account/c:attributes/icfs:name, 'cn', $c:input)</code>
-						</script>
-					</expression>
-                    <target>
-                    	<path>
-	                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
-	                        $i:user/i:fullName
-                        </path>
-                    </target>
-                </inbound>
-
             </attribute>
 
-            <!-- Definition of sn attribute handling. -->
             <attribute>
-                <ref>ri:sn</ref>
-
-                <displayName>Surname</displayName>
-                <access>create</access>
-                <access>read</access>
-                <access>update</access>
-                
+                <ref>ri:sn</ref>                
                 <outbound>
                 	<source>
-                		<path>$c:user/c:familyName</path>
+                		<path>familyName</path>
                 	</source>
-                    <expression>
-                    	<script>
-	                    	<description>
-	                    		The expression is using "c" and "t" prefixes without declaring it. The prefix is taken from
-	                    		the enclosing XML definition.
-	                    	</description>
-	                    	<language>http://www.w3.org/TR/xpath/</language>
-	                        <code>
-	                            $c:familyName/t:orig
-	                        </code>
-                        </script>
-                    </expression>
                 </outbound>
-                <!-- sn will be synchronized to user's familyName -->
-                <inbound>
-                	<expression>
-						<script>
-							<relativityMode>absolute</relativityMode>
-							<language>http://www.w3.org/TR/xpath/</language>
-							<code>func:determineLdapSingleAttributeValue($c:account/c:attributes/icfs:name, 'sn', $c:input)</code>
-						</script>
-					</expression>
-                    <target>
-                    	<!-- Relative path, we want to test the default target context which is $user -->
-                    	<path>familyName</path>
-                    </target>
-                </inbound>
-
             </attribute>
 
-            <!-- Definition of givenName attribute handling. -->
             <attribute>
                 <ref>ri:givenName</ref>
-                <displayName>Given Name</displayName>
-                <access>create</access>
-                <access>read</access>
-
-                <access>update</access>
                 <outbound>
-                	<description>
-                    	The mapping is using relative path in default source context (which is $user)
-                    	and default expression (which is asIs).
-                    </description>
                 	<source>
                 		<path>givenName</path>
                 	</source>
                 </outbound>
-                <!-- givenName will be synchronized to user's givenName -->
-
-                <inbound>
-                	<expression>
-						<script>
-							<relativityMode>absolute</relativityMode>
-							<language>http://www.w3.org/TR/xpath/</language>
- 							<code>func:determineLdapSingleAttributeValue($c:account/c:attributes/icfs:name, 'givenName', $c:input)</code>  
-<!--							<code>func:logDebug($c:account/c:attributes/icfs:name, 'givenName', $c:input)</code> -->
-						</script>
-					</expression>
-                    <target>
-                    	<path>
-                        	$user/givenName
-                        </path>
-                    </target>
-                </inbound>
             </attribute>
 
-            <!-- Definition of uid attribute handling.
-       Do not confuse with __UID__! -->
             <attribute>
                 <ref>ri:uid</ref>
-
-                <displayName>Login Name</displayName>
-                <access>create</access>
-                <access>read</access>
-                
                 <matchingRule>mr:stringIgnoreCase</matchingRule>
-                
                 <outbound>
-                	<description>
-                		It is mapped from (and also to) "name" property of user. It is essentially a login name.
-                		This outbound construction is using a Groovy expression.
-                	</description>
                 	<!-- This MUST be weak in case of OpenDJ. If DN (name) is changed then the uid will be changed
                 	     as a side-effect as it is a naming attribute. -->
                 	<strength>weak</strength>
                 	<source>
                 		<path>$user/name</path>
                 	</source>
-                    <expression>
-	                    <script>
-	                    	<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-	                        <code>
-	                        	name;
-	                        </code>
-	                    </script>
-                    </expression>
-                </outbound>
-                <inbound>
-                	<description>
-                		It is mapped to (and also from) "name" property of user. It is essentially a login name	
-                	</description>
-                	<strength>weak</strength>
-                	<expression>                		
-                		<script>
-                			<relativityMode>absolute</relativityMode>
-                			<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#Groovy</language>
-                			<code>
-                				basic.determineLdapSingleAttributeValue(
-                					basic.getAttributeStringValues(account, 'http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2', 'name'),
-                					'uid', input)
-                			</code>
-                		</script>
-               		</expression>
-                    <target>
-                    	<path>$user/name</path>
-                    </target>
-                </inbound>
-
-            </attribute>
-
-            <!-- Definition of description attribute handling. -->
-            <attribute>
-                <ref>ri:description</ref>
-
-                <!-- This outbound expression is not really an expression.
-              It is using a fixed literal insead of dynamically
-              generated value. -->
-                <outbound>
-                    <strength>weak</strength>
-                    <expression>
-                    	<value>Created by IDM</value>
-                    </expression>
-                </outbound>
-
-                <inbound>
-                    <target>
-                    	<path>
-	                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
-	                        declare namespace my="http://whatever.com/my";
-	                        $i:user/i:extension/my:description
-                        </path>
-                    </target>
-                </inbound>
-                <!-- No inbound expression for description. We don't want to synchronize that -->
-            </attribute>
-
-
-            <attribute>
-                <ref>ri:carLicense</ref>
-
-				<description>
-					This attibute definition is used to test tolerance of empty values.
-				</description>
-				
-                <outbound>
-                    <description>
-                    	The expression will produce empty value. OpenDJ will die if empty value
-                    	is provided for an attribute. midPoint should filter out the empty value
-                    	and do not sent it to OpenDJ.
-                    </description>
-					<strength>weak</strength>
-                    <expression>
-                    	<script>
-                    		<language>http://www.w3.org/TR/xpath/</language>
-	                    	<returnType>scalar</returnType>
-	                    	<c:code>
-	                    		concat('','')
-	                    	</c:code>
-                    	</script>
-                    </expression>
-                </outbound>
-
-                <inbound>
-                    <target>
-                    	<path>
-	                        declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
-	                        declare namespace my="http://whatever.com/my";
-	                        $i:user/i:extension/my:description
-                        </path>
-                    </target>
-                </inbound>
-                <!-- No inbound expression for description. We don't want to synchronize that -->
-            </attribute>
-            
-            <attribute>
-                <ref>ri:employeeType</ref>
-
-				<description>
-					This attibute definition is used to test inboud mapping when deleting the value from attribute.
-				</description>
-				
-               <inbound>
-<!--                <strength>strong</strength> -->
-                    <target>
-                    	  <path>$user/employeeType</path>
-                    </target>
-                </inbound>
-                <!-- No inbound expression for description. We don't want to synchronize that -->
-            </attribute>
-            
-            <attribute>
-                <ref>ri:displayName</ref>
-                <displayName>Display Name</displayName>
-                <outbound>
-                	<description>
-                		It is mapped from "fullName" property of user using ECMAScript (JavaScript) expression.
-                	</description>
-                	<source>
-                		<path>$user/fullName</path>
-                	</source>
-                    <expression>
-                    	<script>
-	                    	<language>http://midpoint.evolveum.com/xml/ns/public/expression/language#ECMAScript</language>
-	                        <code>
-	                        	user == null ? null : user.getFullName();
-	                        </code>
-                        </script>
-                    </expression>
-                </outbound>
-            </attribute>
-            
-            <attribute>
-                <ref>ri:postalAddress</ref>
-                <displayName>Display Name</displayName>
-                <outbound>
-                	<description>
-                		Conditional expression. It will be evaluated only if user's employee number is set.
-                	</description>
-                	<source>
-                		<path>$c:user/c:employeeNumber</path>
-                	</source>
-                    <expression>
-                    	<script>
-	                    	<language>http://www.w3.org/TR/xpath/</language>
-	                    	<returnType>scalar</returnType>
-	                        <code>
-	                        	concat('Number ',$c:employeeNumber)
-	                        </code>
-                        </script>
-                    </expression>
-                    <condition>
-                    	<script>
-                    		<language>http://www.w3.org/TR/xpath/</language>
-	                    	<code>
-	                    		$c:user/c:employeeNumber
-	                    	</code>
-                    	</script>
-                    </condition>
                 </outbound>
             </attribute>
 
-            <!-- Definition of description attribute handling. -->
-            <!-- This attribute is using a lookup table to translate the values
- valid for user to a values valid for the resource account. -->
-            <attribute>
-                <ref>ri:l</ref>
-                <c:tolerant>false</c:tolerant>
-
-                <!-- Outbound expression definition. This expression is using
-              a configuration object (set into an XPath variable) to
-              translate values. -->
-                <outbound>
-                	<strength>strong</strength>
-                	<source>
-                		<path>$c:user/c:locality</path>
-                	</source>
-                    <expression xmlns:my="http://whatever.com/my">
-                        <!-- Definition of extra variable for the XPath expression.
-                             The variable will appear as "$my:config" in the Xpath
-                             expression below. It will contain the content of XML
-                             object stored by OID c0c010c0-d34d-b33f-f00d-999111111111. -->
-                        <variable>
-                            <name>my:config</name>
-                            <objectRef oid="c0c010c0-d34d-b33f-f00d-999111111111" type="c:GenericObjectType"/>
-                        </variable>
-                        <!-- Example of setting a variable to a string value. -->
-                        <variable>
-                            <name>my:defaultLocation</name>
-                            <value>middle of nowhere</value>
-                        </variable>
-                    	<script>
-                    		<c:relativityMode>absolute</c:relativityMode>
-                    		<language>http://www.w3.org/TR/xpath/</language>
-	                        <returnType>scalar</returnType>
-	                        <!-- The expression itself. It translates the value of
-	                             user's attribute "locality" (expressed as $i:user/i:locality)
-	                             using a lookup table defined in the configuration object
-	                             in the $my:config variable specified above. -->
-	                        <c:code>
-	                            declare namespace i="http://midpoint.evolveum.com/xml/ns/public/common/common-2a";
-	                            declare namespace t="http://prism.evolveum.com/xml/ns/public/types-2";
-	                            declare namespace my="http://whatever.com/my";
-	
-	                            if ($my:config/i:extension/my:locations/my:location[@key=$i:locality/t:orig]) then
-	                            	$my:config/i:extension/my:locations/my:location[@key=$i:locality/t:orig]
-	                            else
-	                            	$my:defaultLocation
-	                        </c:code>
-                        </script>
-                    </expression>
-
-                </outbound>
-            </attribute>
-            
             <association>
             	<name>ri:group</name>
             	<displayName>LDAP Group Membership</displayName>
@@ -521,35 +145,13 @@ This is now the only account type that midPoint can work with. -->
             
             <activation>
                 <administrativeStatus>
-                	<!-- Empty outbound and inbound should do just fine in this case -->
                     <outbound/>
-                    <inbound/>
                 </administrativeStatus>
             </activation>
             
             <credentials>
                 <password>
-                    <outbound>
-                    	<expression>
-                        	<asIs/>
-                        </expression>
-                    </outbound>
-                    <inbound>
-                    <channel>http://midpoint.evolveum.com/xml/ns/public/model/channels-2#webService</channel>
-<!--                     	<strength>weak</strength>  -->
-                    	<expression>
-<!--                      		<generate/>  -->
-							<asIs/>
-                    	</expression>
-                    </inbound>
-                    <inbound>
-                    <strength>weak</strength>
-                    <exceptChannel>http://midpoint.evolveum.com/xml/ns/public/model/channels-2#webService</exceptChannel>
-                    	<expression>
-                    		<generate/>
-<!-- 							<asIs/> -->
-                    	</expression>
-                    </inbound>
+                    <outbound/>
                 </password>
             </credentials>
 
@@ -560,6 +162,54 @@ This is now the only account type that midPoint can work with. -->
             <intent>ldapGroup</intent>
             <displayName>LDAP Group</displayName>
             <objectClass>ri:GroupObjectClass</objectClass>
+        </objectType>
+
+        <objectType>
+        	<kind>generic</kind>
+            <intent>ou</intent>
+            <displayName>Organizational Unit</displayName>
+            <objectClass>ri:CustomorganizationalUnitObjectClass</objectClass>
+            <attribute>
+                <ref>icfs:name</ref>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+                <outbound>
+                    <!-- Name cannot be weak. Changes in name trigger object rename. -->
+					<source>
+						<path>$focus/name</path>
+					</source>
+					<source>
+						<path>$focus/extension/ext:orgpath</path>
+					</source>
+                    <expression>
+                    	<script>
+	                        <code>
+	                        	oupath = orgpath.tokenize('/').join(',ou=')
+	                            'ou=' + oupath + ',dc=example,dc=com'
+	                        </code>
+                        </script>
+                    </expression>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:ou</ref>
+                <matchingRule>mr:stringIgnoreCase</matchingRule>
+                <outbound>
+                	<!-- This MUST be weak in case of OpenDJ. If DN (name) is changed then the uid will be changed
+                	     as a side-effect as it is a naming attribute. -->
+                	<strength>weak</strength>
+                	<source>
+                		<path>$focus/name</path>
+                	</source>
+                </outbound>
+            </attribute>
+            <attribute>
+                <ref>ri:description</ref>
+                <outbound>
+                	<source>
+                		<path>description</path>
+                	</source>
+                </outbound>
+            </attribute>
         </objectType>
         
     </schemaHandling>
@@ -576,27 +226,10 @@ This is now the only account type that midPoint can work with. -->
 		</configured>
     </capabilities>
 
-    <!--
-        Synchronization section describes the synchronization policy, timing,
-        reactions and similar synchronization settings.
-    -->
     <c:synchronization>
     	<objectSynchronization>
-	        <!--
-	    The synchronization for this resource is enabled.
-	    It means that the synchronization will poll for changes once
-	    per interval specified below. -->
 	        <c:enabled>true</c:enabled>
-	
-	        <!-- Correlation expression.
-	           It will be used to find appropriate user entry for an account.
-	        -->
-	        <c:correlation> <!-- Correlation rule is a search query -->
-	
-	            <!-- The clause <c:type uri="http://midpoint.evolveum.com/xml/ns/public/common/common-2a#UserType"/> is implicit in correlation rules -->
-	            <!-- Following search query will look for users that have "name"
-	equal to the "uid" attribute of the account. Simply speaking,
-	it will look for match in usernames in the IDM and the resource. -->
+	        <c:correlation>
 	            <q:equal>
 	                <q:path>c:name</q:path>
 	                <expression>
@@ -610,22 +243,9 @@ This is now the only account type that midPoint can work with. -->
 	                </expression>
 	            </q:equal>
 	        </c:correlation>
-	
-	        <!-- Confirmation rule may be here, but as the search above will
-	always return at most one match, the confirmation rule is not needed. -->
 
-            <!-- Reference to the User Template is here. If the user would be
-                 created as a result of this action, it will be created according
-                 to this template. -->
             <objectTemplateRef oid="c0c010c0-d34d-b33f-f00d-777111111111"/>
 
-	
-	        <!-- Following section describes reactions to a situations.
-	            The setting here assumes that this resource is authoritative,
-	            therefore all accounts created on the resource should be
-	            reflected as new users in IDM.
-	            See http://wiki.evolveum.com/display/midPoint/Synchronization+Situations
-	        -->
 	        <reaction>
 	            <situation>linked</situation>
 	            <synchronize>true</synchronize>

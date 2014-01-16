@@ -224,7 +224,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		assertAccount(userJack, RESOURCE_DUMMY_OID);
 		assertAccount(userJack, RESOURCE_DUMMY_PINK_OID);
 		
-		String accountPinkOid = getLinkRef(userJack, RESOURCE_DUMMY_PINK_OID);
+		String accountPinkOid = getLinkRefOid(userJack, RESOURCE_DUMMY_PINK_OID);
         
 		// Check shadow
         PrismObject<ShadowType> accountPinkShadow = repositoryService.getObject(ShadowType.class, accountPinkOid, null, result);
@@ -286,7 +286,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		assertAccount(userGuybrush, RESOURCE_DUMMY_OID);
 		assertAccount(userGuybrush, RESOURCE_DUMMY_PINK_OID);
 		
-		String accountPinkOid = getLinkRef(userGuybrush, RESOURCE_DUMMY_PINK_OID);
+		String accountPinkOid = getLinkRefOid(userGuybrush, RESOURCE_DUMMY_PINK_OID);
         
 		// Check shadow
         PrismObject<ShadowType> accountPinkShadow = repositoryService.getObject(ShadowType.class, accountPinkOid, null, result);
@@ -353,7 +353,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		assertLinks(userDeWattAfter, 1);
 		assertAccount(userDeWattAfter, RESOURCE_DUMMY_PINK_OID);
 		
-		String accountPinkOid = getLinkRef(userDeWattAfter, RESOURCE_DUMMY_PINK_OID);
+		String accountPinkOid = getLinkRefOid(userDeWattAfter, RESOURCE_DUMMY_PINK_OID);
         
 		// Check shadow
         PrismObject<ShadowType> accountPinkShadow = repositoryService.getObject(ShadowType.class, accountPinkOid, null, result);
@@ -419,7 +419,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		assertAccount(userJack, RESOURCE_DUMMY_PINK_OID);
 		assertAccount(userJack, RESOURCE_DUMMY_VIOLET_OID);
 		
-		String accountVioletOid = getLinkRef(userJack, RESOURCE_DUMMY_VIOLET_OID);
+		String accountVioletOid = getLinkRefOid(userJack, RESOURCE_DUMMY_VIOLET_OID);
         
 		// Check shadow
         PrismObject<ShadowType> accountVioletShadow = repositoryService.getObject(ShadowType.class, accountVioletOid, null, result);
@@ -478,7 +478,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		assertAccount(userGuybrush, RESOURCE_DUMMY_PINK_OID);
 		assertAccount(userGuybrush, RESOURCE_DUMMY_VIOLET_OID);
 		
-		String accountVioletOid = getLinkRef(userGuybrush, RESOURCE_DUMMY_VIOLET_OID);
+		String accountVioletOid = getLinkRefOid(userGuybrush, RESOURCE_DUMMY_VIOLET_OID);
         
 		// Check shadow
         PrismObject<ShadowType> accountVioletShadow = repositoryService.getObject(ShadowType.class, accountVioletOid, null, result);
@@ -536,7 +536,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		assertLinks(userHerman, 1);
 		assertAccount(userHerman, RESOURCE_DUMMY_VIOLET_OID);
 		
-		String accountVioletOid = getLinkRef(userHerman, RESOURCE_DUMMY_VIOLET_OID);
+		String accountVioletOid = getLinkRefOid(userHerman, RESOURCE_DUMMY_VIOLET_OID);
         
 		// Check shadow
         PrismObject<ShadowType> accountVioletShadow = repositoryService.getObject(ShadowType.class, accountVioletOid, null, result);
@@ -630,7 +630,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		assertAccount(userJack, RESOURCE_DUMMY_VIOLET_OID);
 		assertAccount(userJack, RESOURCE_DUMMY_MAGENTA_OID);
 		
-		String accountMagentaOid = getLinkRef(userJack, RESOURCE_DUMMY_MAGENTA_OID);
+		String accountMagentaOid = getLinkRefOid(userJack, RESOURCE_DUMMY_MAGENTA_OID);
         
 		// Check shadow
         PrismObject<ShadowType> accountMagentaShadow = repositoryService.getObject(ShadowType.class, accountMagentaOid, null, result);
@@ -708,7 +708,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		assertLinks(userDrakeAfter, 1);
 		assertAccount(userDrakeAfter, RESOURCE_DUMMY_MAGENTA_OID);
 		
-		String accountMagentaOid = getLinkRef(userDrakeAfter, RESOURCE_DUMMY_MAGENTA_OID);
+		String accountMagentaOid = getLinkRefOid(userDrakeAfter, RESOURCE_DUMMY_MAGENTA_OID);
         
 		// Check shadow
         PrismObject<ShadowType> accountMagentaShadow = repositoryService.getObject(ShadowType.class, accountMagentaOid, null, result);
@@ -772,7 +772,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		assertLinks(userDrakeAfter, 1);
 		assertAccount(userDrakeAfter, RESOURCE_DUMMY_MAGENTA_OID);
 		
-		String accountMagentaOid = getLinkRef(userDrakeAfter, RESOURCE_DUMMY_MAGENTA_OID);
+		String accountMagentaOid = getLinkRefOid(userDrakeAfter, RESOURCE_DUMMY_MAGENTA_OID);
         
 		// Check shadow
         PrismObject<ShadowType> accountMagentaShadow = repositoryService.getObject(ShadowType.class, accountMagentaOid, null, result);
@@ -844,7 +844,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		assertAccount(userGuybrush, RESOURCE_DUMMY_VIOLET_OID);
 		assertAccount(userGuybrush, RESOURCE_DUMMY_MAGENTA_OID);
 		
-		String accountMagentaOid = getLinkRef(userGuybrush, RESOURCE_DUMMY_MAGENTA_OID);
+		String accountMagentaOid = getLinkRefOid(userGuybrush, RESOURCE_DUMMY_MAGENTA_OID);
         
 		// Check shadow
         PrismObject<ShadowType> accountMagentaShadow = repositoryService.getObject(ShadowType.class, accountMagentaOid, null, result);
@@ -907,7 +907,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		assertAccount(userGuybrush, RESOURCE_DUMMY_VIOLET_OID);
 		assertAccount(userGuybrush, RESOURCE_DUMMY_MAGENTA_OID);
 		
-		String accountMagentaOid = getLinkRef(userGuybrush, RESOURCE_DUMMY_MAGENTA_OID);
+		String accountMagentaOid = getLinkRefOid(userGuybrush, RESOURCE_DUMMY_MAGENTA_OID);
         
 		// Check shadow
         PrismObject<ShadowType> accountMagentaShadow = repositoryService.getObject(ShadowType.class, accountMagentaOid, null, result);
@@ -972,7 +972,7 @@ public class TestIteration extends AbstractInitializedModelIntegrationTest {
 		assertAccount(userJack, RESOURCE_DUMMY_VIOLET_OID);
 		assertAccount(userJack, RESOURCE_DUMMY_MAGENTA_OID);
 		
-		String accountMagentaOid = getLinkRef(userJack, RESOURCE_DUMMY_MAGENTA_OID);
+		String accountMagentaOid = getLinkRefOid(userJack, RESOURCE_DUMMY_MAGENTA_OID);
         
 		// Check shadow
         PrismObject<ShadowType> accountMagentaShadow = repositoryService.getObject(ShadowType.class, accountMagentaOid, null, result);

@@ -114,4 +114,17 @@
     	</target>
     </mapping>
     
+    <mapping>
+    	<name>basic role</name>
+    	<expression>
+            <assignmentExpression>
+            	<targetType>c:RoleType</targetType>
+            	<oid>10000000-0000-0000-0000-000000000601</oid>
+            </assignmentExpression>    	
+    	</expression>
+    	<target>
+    		<path>assignment</path>
+    	</target>
+    </mapping>
+    
 </objectTemplate>
