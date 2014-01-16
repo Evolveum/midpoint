@@ -1,4 +1,4 @@
- use for db create
+# use for db create
 # CREATE DATABASE <database name>
 #   CHARACTER SET utf8
 #   DEFAULT CHARACTER SET utf8
