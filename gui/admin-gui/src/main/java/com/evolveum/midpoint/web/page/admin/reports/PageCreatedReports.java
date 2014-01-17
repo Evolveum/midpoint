@@ -357,7 +357,7 @@ public class PageCreatedReports extends PageAdminReports {
 
             @Override
             public String getSecondSizeCssClass(){
-                return BUTTON_SIZE_CLASS.DEFAULT.toString();
+                return BUTTON_SIZE_CLASS.SMALL.toString();
             }
         };
         columns.add(column);

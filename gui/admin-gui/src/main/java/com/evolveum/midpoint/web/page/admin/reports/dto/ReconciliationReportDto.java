@@ -25,15 +25,25 @@ import java.io.Serializable;
  */
 public class ReconciliationReportDto implements Serializable {
 
-    private static final String F_RESOURCE_OID = "resourceOid";
-    private static final String F_RESOURCE_NAME_ = "resourceName";
-    private static final String F_DESCRIPTION = "description";
-    private static final String F_EXPORT_TYPE = "exportType";
+    public static final String F_NAME = "name";
+    public static final String F_RESOURCE_OID = "resourceOid";
+    public static final String F_RESOURCE_NAME_ = "resourceName";
+    public static final String F_DESCRIPTION = "description";
+    public static final String F_EXPORT_TYPE = "exportType";
 
     private String resourceOid;
     private String resourceName;
     private String description;
     private ExportType exportType;
+    private String name;
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
 
     public String getDescription() {
         return description;
