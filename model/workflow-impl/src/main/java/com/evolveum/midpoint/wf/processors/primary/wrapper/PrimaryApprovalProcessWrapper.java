@@ -30,6 +30,8 @@ import com.evolveum.midpoint.wf.processors.primary.PcpJob;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.PrimaryApprovalProcessInstanceState;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessInstanceState;
 
 import java.util.List;
 import java.util.Map;
@@ -133,4 +135,6 @@ public interface PrimaryApprovalProcessWrapper {
      * @see com.evolveum.midpoint.web.component.wf.processes.itemApproval.ItemApprovalPanel
      */
     String getProcessInstanceDetailsPanelName(WfProcessInstanceType processInstance);
+
+    PrismObject<? extends PrimaryApprovalProcessInstanceState> externalizeInstanceState(Map<String, Object> variables);
 }

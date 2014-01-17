@@ -18,18 +18,14 @@ package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.util.SerializationUtil;
-import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
-import com.evolveum.midpoint.wf.util.WfVariablesUtil;
+import com.evolveum.midpoint.wf.util.ApprovalUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceVariableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessInstanceState;
 
-import java.io.IOException;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,9 +37,11 @@ public class ProcessInstanceDto extends Selectable {
     public static final String F_WATCHING_TASK_OID = "watchingTaskOid";
 
     WfProcessInstanceType processInstance;
+    ProcessInstanceState processInstanceState;
 
     public ProcessInstanceDto(WfProcessInstanceType processInstance) {
         this.processInstance = processInstance;
+        this.processInstanceState = (ProcessInstanceState) processInstance.getState();
     }
 
     public String getStartedTime() {
@@ -77,16 +75,16 @@ public class ProcessInstanceDto extends Selectable {
     }
 
     public String getAnswer() {
-        return WfVariablesUtil.getAnswer(processInstance);
+        return processInstanceState.getMidPointAnswer();
     }
 
     public boolean isAnswered() {
-        return WfVariablesUtil.isAnswered(processInstance);
+        return getAnswer() != null;
     }
 
     // null if not answered or answer is not true/false
     public Boolean getAnswerAsBoolean() {
-        return WfVariablesUtil.getAnswerAsBoolean(processInstance);
+        return ApprovalUtils.approvalBooleanValue(getAnswer());
     }
 
     public boolean isFinished() {
@@ -94,11 +92,10 @@ public class ProcessInstanceDto extends Selectable {
     }
 
     public String getWatchingTaskOid() {
-        return WfVariablesUtil.getWatchingTaskOid(processInstance);
+        return processInstanceState.getMidPointTaskOid();
     }
 
-    // fixme (parametrize)
-    public Object getVariable(String name) {
-        return WfVariablesUtil.getVariable(processInstance, name, Serializable.class);
+    public ObjectType getInstanceState() {
+        return processInstance.getState();
     }
 }

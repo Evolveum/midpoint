@@ -21,7 +21,10 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelElementContext;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.DeltaConvertor;
@@ -37,19 +40,24 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.jobs.WfTaskUtil;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
-import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
-import com.evolveum.midpoint.wf.processes.StringHolder;
+import com.evolveum.midpoint.wf.processes.common.CommonProcessVariableNames;
+import com.evolveum.midpoint.wf.processes.common.StringHolder;
+import com.evolveum.midpoint.wf.processes.itemApproval.ApprovalRequest;
 import com.evolveum.midpoint.wf.processes.itemApproval.Decision;
 import com.evolveum.midpoint.wf.processes.itemApproval.ProcessVariableNames;
 import com.evolveum.midpoint.wf.processors.primary.PcpChildJobCreationInstruction;
 import com.evolveum.midpoint.wf.processors.primary.PcpJob;
 import com.evolveum.midpoint.wf.processors.primary.PrimaryChangeProcessor;
+import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ItemApprovalProcessInstanceState;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ItemApprovalRequestType;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.PrimaryApprovalProcessInstanceState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -57,6 +65,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author mederly
@@ -71,6 +80,9 @@ public class WrapperHelper {
 
     @Autowired
     private WfTaskUtil wfTaskUtil;
+
+    @Autowired
+    private PrismContext prismContext;
 
     //region ========================================================================== Jobs-related methods
     public void prepareCommonInstructionAttributes(PrimaryChangeProcessor changeProcessor, PrimaryApprovalProcessWrapper wrapper, PcpChildJobCreationInstruction instruction, ModelContext<?> modelContext, String objectOid, PrismObject<UserType> requester) throws SchemaException {
@@ -118,7 +130,7 @@ public class WrapperHelper {
      */
     public List<ObjectDelta<Objectable>> prepareDeltaOut(ProcessEvent event, PcpJob pcpJob, OperationResult result) throws SchemaException {
         List<ObjectDelta<Objectable>> deltaIn = pcpJob.retrieveDeltasToProcess();
-        if (CommonProcessVariableNames.isApproved(event.getAnswer())) {
+        if (ApprovalUtils.isApproved(event.getAnswer())) {
             return new ArrayList<>(deltaIn);
         } else {
             return new ArrayList<>();
@@ -130,7 +142,7 @@ public class WrapperHelper {
      */
     public List<ObjectReferenceType> getApprovedBy(ProcessEvent event) {
         List<ObjectReferenceType> retval = new ArrayList<ObjectReferenceType>();
-        if (!CommonProcessVariableNames.isApproved(event.getAnswer())) {
+        if (!ApprovalUtils.isApproved(event.getAnswer())) {
             return retval;
         }
         List<Decision> allDecisions = (List<Decision>) event.getVariable(ProcessVariableNames.ALL_DECISIONS);
@@ -142,6 +154,32 @@ public class WrapperHelper {
 
         return retval;
     }
+
+    /**
+     * Default implementation of externalizeInstanceState; it expects that we are using general item approval process.
+     */
+    public PrismObject<? extends PrimaryApprovalProcessInstanceState> externalizeInstanceState(Map<String, Object> variables) {
+        PrismObjectDefinition<ItemApprovalProcessInstanceState> extDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByType(ItemApprovalProcessInstanceState.COMPLEX_TYPE);
+        PrismObject<ItemApprovalProcessInstanceState> extVariablesObject = extDefinition.instantiate();
+        ItemApprovalProcessInstanceState extVariables = extVariablesObject.asObjectable();
+
+        PrismContainer<ItemApprovalRequestType> extRequestContainer = prismContext.getSchemaRegistry().findContainerDefinitionByType(ItemApprovalRequestType.COMPLEX_TYPE).instantiate();
+        ItemApprovalRequestType extRequestType = extRequestContainer.createNewValue().asContainerable();
+
+        ApprovalRequest<?> intApprovalRequest = (ApprovalRequest) variables.get(ProcessVariableNames.APPROVAL_REQUEST);
+        intApprovalRequest.setPrismContext(prismContext);
+        extRequestType.setApprovalSchema(intApprovalRequest.getApprovalSchema().toApprovalSchemaType());
+        extRequestType.setItemToApprove(intApprovalRequest.getItemToApprove());
+        extVariables.setApprovalRequest(extRequestType);
+
+        List<Decision> intDecisions = (List<Decision>) variables.get(ProcessVariableNames.ALL_DECISIONS);
+        for (Decision intDecision : intDecisions) {
+            extVariables.getDecisions().add(intDecision.toDecisionType());
+        }
+
+        return extVariablesObject;
+    }
+
     //endregion
 
     //region ========================================================================== Miscellaneous

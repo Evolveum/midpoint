@@ -20,7 +20,8 @@ import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.activiti.SpringApplicationContextHolder;
-import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
+import com.evolveum.midpoint.wf.processes.common.CommonProcessVariableNames;
+import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LevelEvaluationStrategyType;
 import org.activiti.engine.delegate.DelegateExecution;
@@ -53,7 +54,7 @@ public class RecordIndividualDecision implements JavaDelegate {
         Validate.notNull(level, "level is null");
         level.setPrismContext(SpringApplicationContextHolder.getPrismContext());
 
-        boolean approved = CommonProcessVariableNames.isApproved((String) execution.getVariable(CommonProcessVariableNames.FORM_FIELD_DECISION));
+        boolean approved = ApprovalUtils.isApproved((String) execution.getVariable(CommonProcessVariableNames.FORM_FIELD_DECISION));
         String comment = (String) execution.getVariable(CommonProcessVariableNames.FORM_FIELD_COMMENT);
 
         Decision decision = new Decision();

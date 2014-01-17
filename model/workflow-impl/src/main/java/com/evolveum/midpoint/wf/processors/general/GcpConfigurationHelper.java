@@ -45,9 +45,9 @@ import java.util.List;
  * @author mederly
  */
 @Component
-public class GeneralChangeProcessorConfigurationHelper {
+public class GcpConfigurationHelper {
 
-    private static final Trace LOGGER = TraceManager.getTrace(GeneralChangeProcessorConfigurationHelper.class);
+    private static final Trace LOGGER = TraceManager.getTrace(GcpConfigurationHelper.class);
 
     private static final String KEY_GENERAL_CHANGE_PROCESSOR_CONFIGURATION = "generalChangeProcessorConfiguration";
     private static final List<String> LOCALLY_KNOWN_KEYS = Arrays.asList(KEY_GENERAL_CHANGE_PROCESSOR_CONFIGURATION);

@@ -22,16 +22,9 @@ import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.controller.ModelOperationTaskHandler;
 import com.evolveum.midpoint.model.lens.Clockwork;
 import com.evolveum.midpoint.model.lens.LensContext;
-import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.delta.ReferenceDelta;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -41,8 +34,6 @@ import com.evolveum.midpoint.test.AbstractIntegrationTest;
 import com.evolveum.midpoint.test.Checker;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -51,19 +42,15 @@ import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.activiti.ActivitiUtil;
 import com.evolveum.midpoint.wf.activiti.TestAuthenticationInfoHolder;
 import com.evolveum.midpoint.wf.jobs.WfTaskUtil;
-import com.evolveum.midpoint.wf.processes.WorkflowResult;
 import com.evolveum.midpoint.wf.processors.general.GeneralChangeProcessor;
 import com.evolveum.midpoint.wf.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.util.JaxbValueContainer;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
-import com.evolveum.midpoint.wf.util.WfVariablesUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
-import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -72,18 +59,12 @@ import org.testng.annotations.Test;
 
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
-
 import java.io.File;
-import java.io.File;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 
 /**
@@ -230,19 +211,19 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
                 display("workItemObject", workItemObject);
 
                 WfProcessInstanceType instance = workflowServiceImpl.getProcessInstanceById(workItem.getProcessInstanceId(), false, true, result);
-                JaxbValueContainer<ObjectDeltaType> deltaTypeWrapped = WfVariablesUtil.getVariable(instance, "dummyResourceDelta", JaxbValueContainer.class);
-                activitiUtil.revive(deltaTypeWrapped);
-                ObjectDeltaType deltaType = deltaTypeWrapped.getValue();
-                display("dummyResourceDelta", DeltaConvertor.createObjectDelta(deltaType, prismContext));
-
-                PrismPropertyDefinition ppd = new PrismPropertyDefinition(new QName(SchemaConstants.NS_WFCF, "[Button]rejectAll"),
-                        DOMUtil.XSD_BOOLEAN, prismContext);
-                PrismProperty<Boolean> rejectAll = ppd.instantiate();
-                rejectAll.setRealValue(Boolean.TRUE);
-                workItemObject.addReplaceExisting(rejectAll);
-
-                TestAuthenticationInfoHolder.setUserType(getUser(USER_ADMINISTRATOR_OID).asObjectable());
-                workflowServiceImpl.completeWorkItemWithDetails(taskId, workItemObject, "rejectAll", result);
+//                JaxbValueContainer<ObjectDeltaType> deltaTypeWrapped = ((ProcessInstanceState) instance.getState().getVariable(instance, "dummyResourceDelta", JaxbValueContainer.class);
+//                activitiUtil.revive(deltaTypeWrapped);
+//                ObjectDeltaType deltaType = deltaTypeWrapped.getValue();
+//                display("dummyResourceDelta", DeltaConvertor.createObjectDelta(deltaType, prismContext));
+//
+//                PrismPropertyDefinition ppd = new PrismPropertyDefinition(new QName(SchemaConstants.NS_WFCF, "[Button]rejectAll"),
+//                        DOMUtil.XSD_BOOLEAN, prismContext);
+//                PrismProperty<Boolean> rejectAll = ppd.instantiate();
+//                rejectAll.setRealValue(Boolean.TRUE);
+//                workItemObject.addReplaceExisting(rejectAll);
+//
+//                TestAuthenticationInfoHolder.setUserType(getUser(USER_ADMINISTRATOR_OID).asObjectable());
+//                workflowServiceImpl.completeWorkItemWithDetails(taskId, workItemObject, "rejectAll", result);
             }
 
             @Override
@@ -287,20 +268,20 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
                 PrismObject<? extends ObjectType> workItemObject = workItem.getRequestSpecificData().asPrismObject();
                 display("workItemObject", workItemObject);
 
-                WfProcessInstanceType instance = workflowServiceImpl.getProcessInstanceById(workItem.getProcessInstanceId(), false, true, result);
-                JaxbValueContainer<ObjectDeltaType> deltaTypeWrapped = WfVariablesUtil.getVariable(instance, "dummyResourceDelta", JaxbValueContainer.class);
-                activitiUtil.revive(deltaTypeWrapped);
-                ObjectDeltaType deltaType = deltaTypeWrapped.getValue();
-                display("dummyResourceDelta", DeltaConvertor.createObjectDelta(deltaType, prismContext));
-
-                PrismPropertyDefinition ppd = new PrismPropertyDefinition(new QName(SchemaConstants.NS_WFCF, "[Button]approve"),
-                        DOMUtil.XSD_BOOLEAN, prismContext);
-                PrismProperty<Boolean> approve = ppd.instantiate();
-                approve.setRealValue(Boolean.TRUE);
-                workItemObject.addReplaceExisting(approve);
-
-                TestAuthenticationInfoHolder.setUserType(getUser(USER_ADMINISTRATOR_OID).asObjectable());
-                workflowServiceImpl.completeWorkItemWithDetails(taskId, workItemObject, "approve", result);
+//                WfProcessInstanceType instance = workflowServiceImpl.getProcessInstanceById(workItem.getProcessInstanceId(), false, true, result);
+//                JaxbValueContainer<ObjectDeltaType> deltaTypeWrapped = WfVariablesUtil.getVariable(instance, "dummyResourceDelta", JaxbValueContainer.class);
+//                activitiUtil.revive(deltaTypeWrapped);
+//                ObjectDeltaType deltaType = deltaTypeWrapped.getValue();
+//                display("dummyResourceDelta", DeltaConvertor.createObjectDelta(deltaType, prismContext));
+//
+//                PrismPropertyDefinition ppd = new PrismPropertyDefinition(new QName(SchemaConstants.NS_WFCF, "[Button]approve"),
+//                        DOMUtil.XSD_BOOLEAN, prismContext);
+//                PrismProperty<Boolean> approve = ppd.instantiate();
+//                approve.setRealValue(Boolean.TRUE);
+//                workItemObject.addReplaceExisting(approve);
+//
+//                TestAuthenticationInfoHolder.setUserType(getUser(USER_ADMINISTRATOR_OID).asObjectable());
+//                workflowServiceImpl.completeWorkItemWithDetails(taskId, workItemObject, "approve", result);
             }
 
             @Override

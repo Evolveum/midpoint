@@ -2,25 +2,18 @@ package com.evolveum.midpoint.wf.processors.general;
 
 import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
-import com.evolveum.midpoint.model.common.expression.Expression;
-import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
-import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
-import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
-import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
-import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -28,25 +21,25 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.jobs.Job;
 import com.evolveum.midpoint.wf.jobs.JobController;
 import com.evolveum.midpoint.wf.jobs.JobCreationInstruction;
-import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.jobs.WfTaskUtil;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
-import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
+import com.evolveum.midpoint.wf.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.processors.BaseChangeProcessor;
+import com.evolveum.midpoint.wf.processors.BaseExternalizationHelper;
 import com.evolveum.midpoint.wf.processors.BaseModelInvocationProcessingHelper;
 import com.evolveum.midpoint.wf.util.JaxbValueContainer;
 import com.evolveum.midpoint.wf.util.SerializationSafeContainer;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.GeneralChangeProcessorConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.GeneralChangeProcessorScenarioType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
-
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessInstanceState;
 import org.activiti.engine.form.FormProperty;
 import org.activiti.engine.form.TaskFormData;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,9 +47,6 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.xml.namespace.QName;
-
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -83,7 +73,10 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
     private BaseModelInvocationProcessingHelper baseModelInvocationProcessingHelper;
 
     @Autowired
-    private GeneralChangeProcessorConfigurationHelper myConfigurationHelper;
+    private BaseExternalizationHelper baseExternalizationHelper;
+
+    @Autowired
+    private GcpConfigurationHelper gcpConfigurationHelper;
 
     @Autowired
     private GcpExpressionHelper gcpExpressionHelper;
@@ -93,7 +86,7 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
     //region Initialization and Configuration
     @PostConstruct
     public void init() {
-        processorConfigurationType = myConfigurationHelper.configure(this);
+        processorConfigurationType = gcpConfigurationHelper.configure(this);
         if (isEnabled()) {
             // print startup message
             int scenarios = processorConfigurationType.getScenario().size();
@@ -252,5 +245,18 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
+    /**
+     * Currently returns PrismObject containing only general information about the process.
+     * TODO think about something like process wrappers for this change processor.
+     *
+     * @param variables
+     * @return
+     */
+    @Override
+    public PrismObject<? extends ProcessInstanceState> externalizeInstanceState(Map<String, Object> variables) {
+        PrismObject<ProcessInstanceState> statePrism = (PrismObject) prismContext.getSchemaRegistry().findObjectDefinitionByType(ProcessInstanceState.COMPLEX_TYPE).instantiate();
+        baseExternalizationHelper.externalizeState(statePrism, variables);
+        return statePrism;
+    }
 
 }

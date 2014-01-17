@@ -16,31 +16,34 @@
 
 package com.evolveum.midpoint.wf;
 
-import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.api.*;
+import com.evolveum.midpoint.wf.api.ProcessListener;
+import com.evolveum.midpoint.wf.api.WorkItemListener;
+import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.wf.dao.ProcessInstanceManager;
 import com.evolveum.midpoint.wf.dao.ProcessInstanceProvider;
 import com.evolveum.midpoint.wf.dao.WorkItemManager;
 import com.evolveum.midpoint.wf.dao.WorkItemProvider;
-
-import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.jobs.JobController;
 import com.evolveum.midpoint.wf.jobs.WfTaskUtil;
+import com.evolveum.midpoint.wf.processes.common.CommonProcessVariableNames;
+import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceVariableType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessInstanceState;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.List;
 
 /**
  * @author mederly
@@ -105,12 +108,12 @@ public class WorkflowManagerImpl implements WorkflowManager {
 
     @Override
     public void approveOrRejectWorkItem(String taskId, boolean decision, OperationResult parentResult) {
-        workItemManager.completeWorkItemWithDetails(taskId, null, CommonProcessVariableNames.approvalStringValue(decision), parentResult);
+        workItemManager.completeWorkItemWithDetails(taskId, null, ApprovalUtils.approvalStringValue(decision), parentResult);
     }
 
     @Override
     public void approveOrRejectWorkItemWithDetails(String taskId, PrismObject specific, boolean decision, OperationResult parentResult) {
-        workItemManager.completeWorkItemWithDetails(taskId, specific, CommonProcessVariableNames.approvalStringValue(decision), parentResult);
+        workItemManager.completeWorkItemWithDetails(taskId, specific, ApprovalUtils.approvalStringValue(decision), parentResult);
     }
 
     @Override
@@ -171,15 +174,9 @@ public class WorkflowManagerImpl implements WorkflowManager {
     @Override
     public String getProcessInstanceDetailsPanelName(WfProcessInstanceType processInstance) {
 
-        String processor = null;
-        for (WfProcessInstanceVariableType var : processInstance.getVariables()) {
-            if (CommonProcessVariableNames.VARIABLE_MIDPOINT_CHANGE_PROCESSOR.equals(var.getName())) {
-                processor = var.getValue();         // we assume it's not encoded
-                break;
-            }
-        }
+        String processor = ((ProcessInstanceState) processInstance.getState()).getMidPointChangeProcessor();
         if (processor == null) {
-            LOGGER.error("There's no change processor name among the process instance variables; variables = {}; processInstance = {}", processInstance.getVariables(), processInstance.asPrismObject().dump());
+            LOGGER.error("There's no change processor name among the process instance variables; processInstance = {}", processInstance.asPrismObject().dump());
             throw new IllegalStateException("There's no change processor name among the process instance variables");
         }
         return wfConfiguration.findChangeProcessor(processor).getProcessInstanceDetailsPanelName(processInstance);

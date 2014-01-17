@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.wf.processes.itemApproval;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.xjc.PrismForJAXBUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 
 import java.io.Serializable;
@@ -99,6 +100,17 @@ public class ApprovalSchemaImpl implements ApprovalSchema, Serializable {
         for (ApprovalLevel approvalLevel : levels) {
             approvalLevel.setPrismContext(prismContext);
         }
+    }
+
+    @Override
+    public ApprovalSchemaType toApprovalSchemaType() {
+        ApprovalSchemaType approvalSchemaType = (ApprovalSchemaType) prismContext.getSchemaRegistry().findContainerDefinitionByType(ApprovalSchemaType.COMPLEX_TYPE).instantiate().createNewValue().asContainerable();
+        approvalSchemaType.setName(getName());
+        approvalSchemaType.setDescription(getDescription());
+        for (ApprovalLevel level : getLevels()) {
+            approvalSchemaType.getLevel().add(level.toApprovalLevelType(prismContext));
+        }
+        return approvalSchemaType;
     }
 
     public void addLevel(ApprovalLevelImpl level) {

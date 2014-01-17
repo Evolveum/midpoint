@@ -49,11 +49,12 @@ import com.evolveum.midpoint.wf.messages.ProcessEvent;
 import com.evolveum.midpoint.wf.messages.ProcessFinishedEvent;
 import com.evolveum.midpoint.wf.messages.ProcessStartedEvent;
 import com.evolveum.midpoint.wf.messages.StartProcessCommand;
-import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
+import com.evolveum.midpoint.wf.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessInstanceState;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -85,8 +86,8 @@ public class JobController {
     private static final long TASK_START_DELAY = 5000L;
     private static final boolean USE_WFSTATUS = true;
 
-    private Set<ProcessListener> processListeners = new HashSet<ProcessListener>();
-    private Set<WorkItemListener> workItemListeners = new HashSet<WorkItemListener>();
+    private Set<ProcessListener> processListeners = new HashSet<>();
+    private Set<WorkItemListener> workItemListeners = new HashSet<>();
 
     //region Spring beans
     @Autowired
@@ -106,6 +107,9 @@ public class JobController {
 
     @Autowired
     private MiscDataUtil miscDataUtil;
+
+    @Autowired
+    private WfConfiguration wfConfiguration;
     //endregion
 
     //region Job creation & re-creation
@@ -283,7 +287,7 @@ public class JobController {
             activitiInterface.midpoint2activiti(spc, task, result);
             auditProcessStart(spc, job, result);
             notifyProcessStart(spc, job, result);
-        } catch (RuntimeException e) {
+        } catch (JAXBException|SchemaException|RuntimeException e) {
             LoggingUtils.logException(LOGGER,
                     "Couldn't send a request to start a process instance to workflow management system", e);
             recordProcessInstanceState(job, "Workflow process instance creation could not be requested: " + e, null, result);
@@ -324,7 +328,7 @@ public class JobController {
         }
     }
 
-    private void processFinishedEvent(ProcessEvent event, Job job, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException {
+    private void processFinishedEvent(ProcessEvent event, Job job, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException, JAXBException {
         LOGGER.trace("processFinishedEvent starting");
         LOGGER.trace("Calling onProcessEnd on {}", job.getChangeProcessor());
         job.getChangeProcessor().onProcessEnd(event, job, result);
@@ -415,6 +419,12 @@ public class JobController {
         return sb.toString();
     }
 
+    private ChangeProcessor getChangeProcessor(Map<String,Object> variables) {
+        String cpName = (String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_CHANGE_PROCESSOR);
+        Validate.notNull(cpName, "Change processor is not defined among process instance variables");
+        return wfConfiguration.findChangeProcessor(cpName);
+    }
+
     //endregion
 
     //region Auditing and notifications
@@ -474,28 +484,33 @@ public class JobController {
         auditService.audit(auditEventRecord, task);
     }
 
-    private void notifyProcessStart(StartProcessCommand spc, Job job, OperationResult result) {
+    private void notifyProcessStart(StartProcessCommand spc, Job job, OperationResult result) throws JAXBException, SchemaException {
+        PrismObject<? extends ProcessInstanceState> state = job.getChangeProcessor().externalizeInstanceState(spc.getVariables());
         for (ProcessListener processListener : processListeners) {
-            processListener.onProcessInstanceStart((String) spc.getVariables().get(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME), spc.getVariables(), result);
+            processListener.onProcessInstanceStart(state, result);
         }
     }
 
-    private void notifyProcessEnd(ProcessEvent event, Job job, OperationResult result) {
+    private void notifyProcessEnd(ProcessEvent event, Job job, OperationResult result) throws JAXBException, SchemaException {
+        PrismObject<? extends ProcessInstanceState> state = job.getChangeProcessor().externalizeInstanceState(event.getVariables());
         for (ProcessListener processListener : processListeners) {
-            processListener.onProcessInstanceEnd((String) event.getVariables().get(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME),
-                    event.getVariables(), (String) event.getVariables().get(CommonProcessVariableNames.VARIABLE_WF_ANSWER), result);
+            processListener.onProcessInstanceEnd(state, result);
         }
     }
 
-    public void notifyWorkItemCreated(String workItemName, String assigneeOid, String processInstanceName, Map<String,Object> processVariables) {
+    public void notifyWorkItemCreated(String workItemName, String assigneeOid, String processInstanceName, Map<String,Object> processVariables) throws JAXBException, SchemaException {
+        ChangeProcessor cp = getChangeProcessor(processVariables);
+        PrismObject<? extends ProcessInstanceState> state = cp.externalizeInstanceState(processVariables);
         for (WorkItemListener workItemListener : workItemListeners) {
-            workItemListener.onWorkItemCreation(workItemName, assigneeOid, processInstanceName, processVariables);
+            workItemListener.onWorkItemCreation(workItemName, assigneeOid, processInstanceName, state);
         }
     }
 
-    public void notifyWorkItemCompleted(String workItemName, String assigneeOid, String processInstanceName, Map<String,Object> processVariables, String decision) {
+    public void notifyWorkItemCompleted(String workItemName, String assigneeOid, String processInstanceName, Map<String,Object> processVariables, String decision) throws JAXBException, SchemaException {
+        ChangeProcessor cp = getChangeProcessor(processVariables);
+        PrismObject<? extends ProcessInstanceState> state = cp.externalizeInstanceState(processVariables);
         for (WorkItemListener workItemListener : workItemListeners) {
-            workItemListener.onWorkItemCompletion(workItemName, assigneeOid, processInstanceName, processVariables, decision);
+            workItemListener.onWorkItemCompletion(workItemName, assigneeOid, processInstanceName, state, decision);
         }
     }
 
@@ -540,7 +555,7 @@ public class JobController {
 
         ObjectDelta delta;
         try {
-            delta = miscDataUtil.getObjectDelta(variables, result, true);
+            delta = miscDataUtil.getObjectDelta(variables, true);
             if (delta != null) {
                 auditEventRecord.addDelta(new ObjectDeltaOperation(delta));
             }

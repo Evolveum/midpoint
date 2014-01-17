@@ -17,6 +17,8 @@
 package com.evolveum.midpoint.wf.processes.itemApproval;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.wf.processes.common.LightweightObjectRef;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ApprovalLevelType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LevelEvaluationStrategyType;
 
@@ -41,4 +43,6 @@ public interface ApprovalLevel {
     PrismContext getPrismContext();
 
     void setPrismContext(PrismContext prismContext);
+
+    ApprovalLevelType toApprovalLevelType(PrismContext prismContext);
 }

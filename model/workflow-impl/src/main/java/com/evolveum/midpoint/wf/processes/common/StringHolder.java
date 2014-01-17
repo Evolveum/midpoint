@@ -14,17 +14,37 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.wf.processes.itemApproval;
+package com.evolveum.midpoint.wf.processes.common;
 
-import javax.xml.namespace.QName;
+import java.io.Serializable;
 
 /**
+ * Just to persuade Activiti to store strings into dedicated table enabling more than 4000 characters.
+ *
  * @author mederly
  */
-public interface LightweightObjectRef {
-    String getOid();
+public class StringHolder implements Serializable {
 
-    QName getType();
+    private String value;
 
-    String getDescription();
+    public StringHolder(String value) {
+        this.value = value;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public byte[] getAsByteArray() {
+        return value.getBytes();
+    }
+
+    public void setValue(String value) {
+        this.value = value;
+    }
+
+    @Override
+    public String toString() {
+        return value;
+    }
 }

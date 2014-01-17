@@ -16,12 +16,19 @@
 
 package com.evolveum.midpoint.wf.api;
 
-import java.util.Map;
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessInstanceState;
 
 /**
  * An interface through which external observers can be notified about work item related events.
+ * Used e.g. for implementing workflow-related notifications.
  *
- * EXPERIMENTAL. This interface will probably change in near future.
+ * A tricky question is how to let the observer know how to deal with the process instance state
+ * (e.g. how to construct a notification). Currently, the observer has to use the class of
+ * the instance state prism object. It is up to the process implementer to provide appropriate
+ * information through ChangeProcessor.externalizeInstanceState() method.
+ *
+ * EXPERIMENTAL. This interface may change in near future.
  *
  * @author mederly
  */
@@ -33,9 +40,9 @@ public interface WorkItemListener {
      * @param workItemName name of the work item
      * @param assigneeOid OID of the user to which the work item is assigned
      * @param processInstanceName name of the process instance
-     * @param processVariables process instance variables (todo fixme this is dangerous, reconsider)
+     * @param instanceState externalized process instance state
      */
-    public void onWorkItemCreation(String workItemName, String assigneeOid, String processInstanceName, Map<String, Object> processVariables);
+    public void onWorkItemCreation(String workItemName, String assigneeOid, String processInstanceName, PrismObject<? extends ProcessInstanceState> instanceState);
 
     /**
      * This method is called by wf module when a work item is completed.
@@ -43,8 +50,8 @@ public interface WorkItemListener {
      * @param workItemName name of the work item
      * @param assigneeOid OID of the user to which the work item is assigned
      * @param processInstanceName name of the process instance
-     * @param processVariables process instance variables (todo fixme this is dangerous, reconsider)
+     * @param instanceState externalized process instance state
      * @param decision decision of the user
      */
-    public void onWorkItemCompletion(String workItemName, String assigneeOid, String processInstanceName, Map<String, Object> processVariables, String decision);
+    public void onWorkItemCompletion(String workItemName, String assigneeOid, String processInstanceName, PrismObject<? extends ProcessInstanceState> instanceState, String decision);
 }

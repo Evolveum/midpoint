@@ -34,8 +34,8 @@ import java.util.List;
  * @author mederly
  */
 @Component
-public class PrimaryChangeProcessorConfigurationHelper {
-    private static final Trace LOGGER = TraceManager.getTrace(PrimaryChangeProcessorConfigurationHelper.class);
+public class PcpConfigurationHelper {
+    private static final Trace LOGGER = TraceManager.getTrace(PcpConfigurationHelper.class);
 
     @Autowired
     private BaseConfigurationHelper baseConfigurationHelper;

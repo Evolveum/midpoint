@@ -16,8 +16,8 @@
   ~ limitations under the License.
   -->
 
-<xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/model/workflow/process-variables-2"
-            xmlns:tns="http://midpoint.evolveum.com/xml/ns/model/workflow/process-variables-2"
+<xsd:schema targetNamespace="http://midpoint.evolveum.com/xml/ns/model/workflow/process-instance-state-2"
+            xmlns:tns="http://midpoint.evolveum.com/xml/ns/model/workflow/process-instance-state-2"
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
             xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
@@ -26,7 +26,7 @@
 
     <xsd:annotation>
         <xsd:documentation>
-            Externalized process variables.
+            Externalized process instance state.
         </xsd:documentation>
     </xsd:annotation>
 
@@ -48,7 +48,7 @@
         </xsd:annotation>
     </xsd:import>
 
-    <xsd:complexType name="ItemApprovalProcessVariables">
+    <xsd:complexType name="ProcessInstanceState">
         <xsd:annotation>
             <xsd:appinfo>
                 <a:object/>
@@ -60,13 +60,73 @@
         <xsd:complexContent>
             <xsd:extension base="c:ObjectType">
                 <xsd:sequence>
+                    <xsd:element name="processInstanceName" type="xsd:string"/>
+                    <xsd:element name="startTime" type="xsd:dateTime"/>
+                    <xsd:element name="midPointTaskOid" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="midPointChangeProcessor" type="xsd:string"/>
+                    <xsd:element name="midPointRequesterOid" type="xsd:string"/>
+                    <xsd:element name="midPointState" type="xsd:string"/>
+                    <xsd:element name="midPointAnswer" type="xsd:string"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="processInstanceState" type="tns:ProcessInstanceState" substitutionGroup="c:object"/>
+
+    <xsd:complexType name="PrimaryApprovalProcessInstanceState">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:object/>
+            </xsd:appinfo>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:ProcessInstanceState">
+                <xsd:sequence>
+                    <xsd:element name="midPointProcessWrapper" type="xsd:string"/>
+                    <xsd:element name="midPointObjectOid" type="xsd:string" minOccurs="0"/>
+                    <xsd:element name="midPointObjectToBeAdded" type="c:ObjectType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:objectReference>tns:midPointObjectToBeAddedRef</a:objectReference>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="midPointObjectToBeAddedRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:ObjectType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="midPointDelta" type="t:ObjectDeltaType" minOccurs="0"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="primaryApprovalProcessInstanceState" type="tns:PrimaryApprovalProcessInstanceState" substitutionGroup="c:object"/>
+
+    <xsd:complexType name="ItemApprovalProcessInstanceState">
+        <xsd:annotation>
+            <xsd:appinfo>
+                <a:object/>
+            </xsd:appinfo>
+            <xsd:documentation>
+                TODO
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+            <xsd:extension base="tns:PrimaryApprovalProcessInstanceState">
+                <xsd:sequence>
                     <xsd:element name="approvalRequest" type="tns:ItemApprovalRequestType"/>
                     <xsd:element name="decisions" type="tns:DecisionType" minOccurs="0" maxOccurs="unbounded"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-    <xsd:element name="itemApprovalProcessVariables" type="tns:ItemApprovalProcessVariables" substitutionGroup="c:object"/>
+    <xsd:element name="itemApprovalProcessInstanceState" type="tns:ItemApprovalProcessInstanceState" substitutionGroup="c:object"/>
 
     <xsd:complexType name="ItemApprovalRequestType">
         <xsd:annotation>
@@ -82,6 +142,7 @@
             <xsd:element name="approvalSchema" type="c:ApprovalSchemaType" minOccurs="0" />
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="itemApprovalRequestType" type="tns:ItemApprovalRequestType" />
 
     <xsd:complexType name="DecisionType">
         <xsd:annotation>
@@ -102,5 +163,6 @@
             <xsd:element name="dateTime" type="xsd:dateTime" />
         </xsd:sequence>
     </xsd:complexType>
+    <xsd:element name="decisionType" type="tns:DecisionType" />
 
 </xsd:schema>
