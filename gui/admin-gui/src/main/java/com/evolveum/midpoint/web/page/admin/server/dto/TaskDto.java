@@ -50,6 +50,7 @@ import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.web.component.wf.history.WfHistoryEventDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.wf.api.WfTaskExtensionItemsNames;
+import com.evolveum.midpoint.wf.processors.primary.PcpTaskExtensionItemsNames;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
@@ -316,7 +317,7 @@ public class TaskDto extends Selectable {
 
     private List<DeltaDto> retrieveDeltasToProcess(TaskType taskType) throws SchemaException {
         List<DeltaDto> retval = new ArrayList<DeltaDto>();
-        PrismProperty<ObjectDeltaType> deltaTypePrismProperty = getExtensionProperty(taskType, WfTaskExtensionItemsNames.WFDELTA_TO_PROCESS_PROPERTY_NAME);
+        PrismProperty<ObjectDeltaType> deltaTypePrismProperty = getExtensionProperty(taskType, PcpTaskExtensionItemsNames.WFDELTA_TO_PROCESS_PROPERTY_NAME);
         if (deltaTypePrismProperty != null) {
             for (ObjectDeltaType objectDeltaType : deltaTypePrismProperty.getRealValues()) {
                 retval.add(new DeltaDto(DeltaConvertor.createObjectDelta(objectDeltaType, taskType.asPrismObject().getPrismContext())));
@@ -327,7 +328,7 @@ public class TaskDto extends Selectable {
 
     public List<DeltaDto> retrieveResultingDeltas(TaskType taskType) throws SchemaException {
         List<DeltaDto> retval = new ArrayList<DeltaDto>();
-        PrismProperty<ObjectDeltaType> deltaTypePrismProperty = getExtensionProperty(taskType, WfTaskExtensionItemsNames.WFRESULTING_DELTA_PROPERTY_NAME);
+        PrismProperty<ObjectDeltaType> deltaTypePrismProperty = getExtensionProperty(taskType, PcpTaskExtensionItemsNames.WFRESULTING_DELTA_PROPERTY_NAME);
         if (deltaTypePrismProperty != null) {
             for (ObjectDeltaType objectDeltaType : deltaTypePrismProperty.getRealValues()) {
                 retval.add(new DeltaDto(DeltaConvertor.createObjectDelta(objectDeltaType, taskType.asPrismObject().getPrismContext())));
