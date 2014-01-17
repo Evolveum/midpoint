@@ -2565,7 +2565,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		syncServiceMock.reset();
 
-		ObjectDelta<ShadowType> delta = ProvisioningTestUtil.createEntitleDelta(ACCOUNT_WILL_OID, 
+		ObjectDelta<ShadowType> delta = IntegrationTestTools.createEntitleDelta(ACCOUNT_WILL_OID, 
 				dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
 				GROUP_PIRATES_OID, prismContext);
 		display("ObjectDelta", delta);
@@ -2633,7 +2633,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		syncServiceMock.reset();
 
-		ObjectDelta<ShadowType> delta = ProvisioningTestUtil.createEntitleDelta(ACCOUNT_WILL_OID, 
+		ObjectDelta<ShadowType> delta = IntegrationTestTools.createEntitleDelta(ACCOUNT_WILL_OID, 
 				dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_PRIVILEGE_NAME),
 				PRIVILEGE_PILLAGE_OID, prismContext);
 		display("ObjectDelta", delta);
@@ -2722,7 +2722,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		syncServiceMock.reset();
 
-		ObjectDelta<ShadowType> delta = ProvisioningTestUtil.createDetitleDelta(ACCOUNT_WILL_OID,
+		ObjectDelta<ShadowType> delta = IntegrationTestTools.createDetitleDelta(ACCOUNT_WILL_OID,
 				dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
 				GROUP_PIRATES_OID, prismContext);
 		display("ObjectDelta", delta);
@@ -2766,7 +2766,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		syncServiceMock.reset();
 
-		ObjectDelta<ShadowType> delta = ProvisioningTestUtil.createDetitleDelta(ACCOUNT_WILL_OID, 
+		ObjectDelta<ShadowType> delta = IntegrationTestTools.createDetitleDelta(ACCOUNT_WILL_OID, 
 				dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_PRIVILEGE_NAME),
 				PRIVILEGE_PILLAGE_OID, prismContext);
 		display("ObjectDelta", delta);

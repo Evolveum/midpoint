@@ -61,7 +61,10 @@ import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 
 /**
- * @author semancik
+ * Generic synchronization test. We create role and assign a resource to it.
+ * Entitlement (group) should be created.
+ * 
+ * @author Radovan Semancik
  *
  */
 @ContextConfiguration(locations = {"classpath:ctx-model-intest-test-main.xml"})

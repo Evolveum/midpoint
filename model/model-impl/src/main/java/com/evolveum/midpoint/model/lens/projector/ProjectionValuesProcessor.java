@@ -97,9 +97,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
  * @author Radovan Semancik
  */
 @Component
-public class AccountValuesProcessor {
+public class ProjectionValuesProcessor {
 	
-	private static final Trace LOGGER = TraceManager.getTrace(AccountValuesProcessor.class);
+	private static final Trace LOGGER = TraceManager.getTrace(ProjectionValuesProcessor.class);
 	
 	@Autowired(required = true)
     private OutboundProcessor outboundProcessor;
@@ -143,7 +143,7 @@ public class AccountValuesProcessor {
     		// We can do this only for focus types.
     		return;
     	}
-    	OperationResult processorResult = result.createSubresult(AccountValuesProcessor.class.getName()+".processAccountsValues");
+    	OperationResult processorResult = result.createSubresult(ProjectionValuesProcessor.class.getName()+".processAccountsValues");
     	processorResult.recordSuccessIfUnknown();
     	processAccounts((LensContext<? extends FocusType>) context, projectionContext,
     			activityDescription, task, processorResult);
@@ -198,7 +198,7 @@ public class AccountValuesProcessor {
 			// These are normally null. But there may be leftover from the previous iteration.
 			// While that should not affect the algorithm (it should overwrite it) it may confuse
 			// people during debugging and unecessarily clutter the debug output.
-			projContext.setOutboundAccountConstruction(null);
+			projContext.setOutboundConstruction(null);
 			projContext.setSqueezedAttributes(null);
 			
 			LOGGER.trace("Projection values iteration {}, token '{}' for {}", new Object[]{iteration, iterationToken, projContext.getHumanReadableName()});

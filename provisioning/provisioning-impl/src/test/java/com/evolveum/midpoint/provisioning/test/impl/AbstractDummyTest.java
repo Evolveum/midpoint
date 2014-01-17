@@ -377,17 +377,11 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	}
 	
 	protected void assertMember(DummyGroup group, String accountId) {
-		Collection<String> members = group.getMembers();
-		assertNotNull("No members in group "+group.getName()+", expected that "+accountId+" will be there", members);
-		assertTrue("Account "+accountId+" is not member of group "+group.getName()+", members: "+members, members.contains(accountId));
+		IntegrationTestTools.assertMember(group, accountId);
 	}
 
 	protected void assertNoMember(DummyGroup group, String accountId) {
-		Collection<String> members = group.getMembers();
-		if (members == null) {
-			return;
-		}
-		assertFalse("Account "+accountId+" IS member of group "+group.getName()+" while not expecting it, members: "+members, members.contains(accountId));
+		IntegrationTestTools.assertNoMember(group, accountId);
 	}
 	
 	protected void assertEntitlement(PrismObject<ShadowType> account, String entitlementOid) {
