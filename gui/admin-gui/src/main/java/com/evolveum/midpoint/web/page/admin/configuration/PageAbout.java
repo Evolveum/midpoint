@@ -42,7 +42,9 @@ import java.util.List;
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/config/about", action = {AuthorizationConstants.AUTZ_UI_PERMIT_ALL})
+@PageDescriptor(url = "/admin/config/about", action = {
+        PageAdminConfiguration.AUTHORIZATION_CONFIGURATION_ALL,
+        AuthorizationConstants.NS_AUTHORIZATION + "#configAbout"})
 public class PageAbout extends PageAdminConfiguration {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageAbout.class);

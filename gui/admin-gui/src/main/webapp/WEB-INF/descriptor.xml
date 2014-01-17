@@ -167,6 +167,7 @@
     <packagesToScan>com.evolveum.midpoint.web.page.admin.users</packagesToScan>
     <packagesToScan>com.evolveum.midpoint.web.page.admin.roles</packagesToScan>
     <packagesToScan>com.evolveum.midpoint.web.page.admin.resources</packagesToScan>
+    <packagesToScan>com.evolveum.midpoint.web.page.admin.resources.content</packagesToScan>
     <packagesToScan>com.evolveum.midpoint.web.page.admin.workflow</packagesToScan>
     <packagesToScan>com.evolveum.midpoint.web.page.admin.server</packagesToScan>
     <packagesToScan>com.evolveum.midpoint.web.page.admin.reports</packagesToScan>
