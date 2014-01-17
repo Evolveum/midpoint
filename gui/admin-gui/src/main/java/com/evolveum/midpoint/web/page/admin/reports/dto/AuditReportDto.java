@@ -21,25 +21,61 @@ import java.sql.Timestamp;
 import java.util.Date;
 
 import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExportType;
 
+import javax.xml.datatype.XMLGregorianCalendar;
+
 /**
+ *  TODO - get rid of XMLGregorianCalendar - Date conversions
+ *
  * @author lazyman
  */
 public class AuditReportDto implements Serializable {
 
+    public static final String F_NAME = "name";
+    public static final String F_FROM_GREG = "fromG";
+    public static final String F_TO_GREG = "toG";
     public static final String F_FROM = "from";
     public static final String F_TO = "to";
     public static final String F_AUDITEVENTTYPE = "auditEventType";
     public static final String F_DESCRIPTION = "description";
     public static final String F_EXPORT_TYPE = "exportType";
 
-
+    private XMLGregorianCalendar fromG;
+    private XMLGregorianCalendar toG;
+    private String name;
     private Date from;
     private Date to;
     private AuditEventType auditEventType;
     private ExportType exportType;
     private String description;
+
+    public XMLGregorianCalendar getFromG() {
+        return MiscUtil.asXMLGregorianCalendar(from);
+    }
+
+    public void setFromG(XMLGregorianCalendar fromG) {
+        this.from = MiscUtil.asDate(fromG);
+        this.fromG = fromG;
+    }
+
+    public XMLGregorianCalendar getToG() {
+        return MiscUtil.asXMLGregorianCalendar(to);
+    }
+
+    public void setToG(XMLGregorianCalendar toG) {
+        this.to = MiscUtil.asDate(toG);
+        this.toG = toG;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
 
     public ExportType getExportType() {
         return exportType;
