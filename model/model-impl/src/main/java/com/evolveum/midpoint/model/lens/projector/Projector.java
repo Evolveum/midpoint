@@ -78,7 +78,7 @@ public class Projector {
 	private ContextLoader contextLoader;
 	
 	@Autowired(required = true)
-    private UserPolicyProcessor userPolicyProcessor;
+    private FocusPolicyProcessor focusPolicyProcessor;
 
     @Autowired(required = true)
     private AssignmentProcessor assignmentProcessor;
@@ -87,7 +87,7 @@ public class Projector {
     private InboundProcessor inboundProcessor;
     
     @Autowired(required = true)
-    private AccountValuesProcessor accountValuesProcessor;
+    private ProjectionValuesProcessor projectionValuesProcessor;
 
     @Autowired(required = true)
     private ReconciliationProcessor reconciliationProcessor;
@@ -161,7 +161,7 @@ public class Projector {
 		        LensUtil.traceContext(LOGGER, activityDescription, "inbound", false, context, false);
 		        if (consistencyChecks) context.checkConsistence();
 		
-		        userPolicyProcessor.processUserPolicy(context, now, task, result);
+		        focusPolicyProcessor.processUserPolicy(context, now, task, result);
 		        context.recomputeFocus();
 		        LensUtil.traceContext(LOGGER, activityDescription,"user policy", false, context, false);
 		        if (consistencyChecks) context.checkConsistence();
@@ -228,7 +228,7 @@ public class Projector {
 		        	// TODO: decide if we need to continue
 		        	
 		        	// This is a "composite" processor. it contains several more processor invocations inside
-		        	accountValuesProcessor.process(context, projectionContext, activityDescription, task, result);
+		        	projectionValuesProcessor.process(context, projectionContext, activityDescription, task, result);
 		        	
 		        	if (consistencyChecks) context.checkConsistence();
 		        	
@@ -310,13 +310,13 @@ public class Projector {
 	}
 
 	private <F extends ObjectType> void addConflictingContexts(LensContext<F> context) {
-		List<LensProjectionContext> conflictingContexts = accountValuesProcessor.getConflictingContexts();
+		List<LensProjectionContext> conflictingContexts = projectionValuesProcessor.getConflictingContexts();
 		if (conflictingContexts != null || !conflictingContexts.isEmpty()){
 			for (LensProjectionContext conflictingContext : conflictingContexts){
 				context.addProjectionContext(conflictingContext);
 			}
 		
-			accountValuesProcessor.getConflictingContexts().clear();
+			projectionValuesProcessor.getConflictingContexts().clear();
 		}
 		
 	}

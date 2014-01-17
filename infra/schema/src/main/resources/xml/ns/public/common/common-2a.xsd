@@ -3920,11 +3920,11 @@
      	<xsd:sequence>
      		<xsd:element name="name" type="xsd:QName"></xsd:element>
      		<xsd:element ref="tns:displayName" minOccurs="0"/>
-     		<xsd:element name="kind" type="tns:ShadowKindType"></xsd:element>
+     		<xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0"></xsd:element>
      		<xsd:element name="intent" type="xsd:string" minOccurs="0"></xsd:element>
-     		<xsd:element name="direction" type="tns:ResourceObjectAssociationDirectionType"></xsd:element>
-     		<xsd:element name="associationAttribute" type="xsd:QName"></xsd:element>
-     		<xsd:element name="valueAttribute" type="xsd:QName"></xsd:element>
+     		<xsd:element name="direction" type="tns:ResourceObjectAssociationDirectionType"  minOccurs="0"></xsd:element>
+     		<xsd:element name="associationAttribute" type="xsd:QName"  minOccurs="0"></xsd:element>
+     		<xsd:element name="valueAttribute" type="xsd:QName"  minOccurs="0"></xsd:element>
      		<xsd:element name="fetchStrategy" type="tns:AttributeFetchStrategyType" minOccurs="0"/>
      		
      		<xsd:element name="outbound" type="tns:MappingType" minOccurs="0" maxOccurs="1">

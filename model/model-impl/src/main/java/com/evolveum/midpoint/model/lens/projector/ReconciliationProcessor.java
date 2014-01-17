@@ -153,7 +153,7 @@ public class ReconciliationProcessor {
 				accContext.recompute();
 			}
 
-			Map<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> squeezedAttributes = accContext
+			Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>>>> squeezedAttributes = accContext
 					.getSqueezedAttributes();
 			if (squeezedAttributes == null || squeezedAttributes.isEmpty()) {
 				return;
@@ -178,7 +178,7 @@ public class ReconciliationProcessor {
 
 	private void reconcileAccount(
 			LensProjectionContext accCtx,
-			Map<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> squeezedAttributes,
+			Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>>>> squeezedAttributes,
 			RefinedObjectClassDefinition accountDefinition) throws SchemaException {
 
 		PrismObject<ShadowType> account = accCtx.getObjectNew();
@@ -196,7 +196,7 @@ public class ReconciliationProcessor {
 						+ accCtx.getResourceShadowDiscriminator());
 			}
 
-			DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>> pvwoTriple = squeezedAttributes
+			DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>>> pvwoTriple = squeezedAttributes
 					.get(attrName);
 
 			if (attributeDefinition.isIgnored(LayerType.MODEL)) {
@@ -221,9 +221,9 @@ public class ReconciliationProcessor {
 				}
 			}
 
-			Collection<ItemValueWithOrigin<? extends PrismPropertyValue<?>>> shouldBePValues = null;
+			Collection<ItemValueWithOrigin<PrismPropertyValue<?>>> shouldBePValues = null;
 			if (pvwoTriple == null) {
-				shouldBePValues = new ArrayList<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>();
+				shouldBePValues = new ArrayList<ItemValueWithOrigin<PrismPropertyValue<?>>>();
 			} else {
 				shouldBePValues = pvwoTriple.getNonNegativeValues();
 			}
@@ -296,10 +296,10 @@ public class ReconciliationProcessor {
 											+ attrName + " in " + accCtx.getResourceShadowDiscriminator());
 						}
 						recordDelta(valueMatcher, accCtx, attributeDefinition, ModificationType.REPLACE, shouldBeRealValue,
-								shouldBePvwo.getAccountConstruction().getSource());
+								shouldBePvwo.getConstruction().getSource());
 					} else {
 						recordDelta(valueMatcher, accCtx, attributeDefinition, ModificationType.ADD, shouldBeRealValue,
-								shouldBePvwo.getAccountConstruction().getSource());
+								shouldBePvwo.getConstruction().getSource());
 					}
 					hasValue = true;
 				}
@@ -322,7 +322,7 @@ public class ReconciliationProcessor {
 	private void decideIfTolerate(LensProjectionContext accCtx,
 			RefinedAttributeDefinition attributeDefinition,
 			Collection<PrismPropertyValue<Object>> arePValues,
-			Collection<ItemValueWithOrigin<? extends PrismPropertyValue<?>>> shouldBePValues,
+			Collection<ItemValueWithOrigin<PrismPropertyValue<?>>> shouldBePValues,
 			ValueMatcher valueMatcher) throws SchemaException {
 		
 		for (PrismPropertyValue<Object> isPValue : arePValues){
@@ -444,7 +444,7 @@ public class ReconciliationProcessor {
 	}
 
 	private boolean isInPvwoValues(ValueMatcher valueMatcher, Object value,
-			Collection<ItemValueWithOrigin<? extends PrismPropertyValue<?>>> shouldBePvwos) {
+			Collection<ItemValueWithOrigin<PrismPropertyValue<?>>> shouldBePvwos) {
 
 		if (shouldBePvwos == null || shouldBePvwos.isEmpty()) {
 			return false;

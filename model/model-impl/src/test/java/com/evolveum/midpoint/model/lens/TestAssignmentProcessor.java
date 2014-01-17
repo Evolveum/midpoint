@@ -160,7 +160,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assignmentProcessor.processAssignmentsAccountValues(accContext, result);
         
         PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> accountConstructionDeltaSetTriple =
-        	accContext.getAccountConstructionDeltaSetTriple();
+        	accContext.getConstructionDeltaSetTriple();
         
         PrismAsserts.assertTripleNoMinus(accountConstructionDeltaSetTriple);
         PrismAsserts.assertTripleNoPlus(accountConstructionDeltaSetTriple);
@@ -263,7 +263,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assignmentProcessor.processAssignmentsAccountValues(accContext, result);
         
         PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> accountConstructionDeltaSetTriple =
-        	accContext.getAccountConstructionDeltaSetTriple();
+        	accContext.getConstructionDeltaSetTriple();
         
         PrismAsserts.assertTripleNoMinus(accountConstructionDeltaSetTriple);
         PrismAsserts.assertTripleNoZero(accountConstructionDeltaSetTriple);
@@ -332,7 +332,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         assignmentProcessor.processAssignmentsAccountValues(accContext, result);
         
         PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> accountConstructionDeltaSetTriple =
-        	accContext.getAccountConstructionDeltaSetTriple();
+        	accContext.getConstructionDeltaSetTriple();
         
         PrismAsserts.assertTripleNoMinus(accountConstructionDeltaSetTriple);
         
@@ -433,7 +433,7 @@ public class TestAssignmentProcessor extends AbstractLensTest {
         
         
         PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> accountConstructionDeltaSetTriple =
-        	accContext.getAccountConstructionDeltaSetTriple();
+        	accContext.getConstructionDeltaSetTriple();
         
         PrismAsserts.assertTripleNoPlus(accountConstructionDeltaSetTriple);
         
