@@ -25,7 +25,7 @@ import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.wizard.Wizard;
 import com.evolveum.midpoint.web.component.wizard.resource.*;
-import com.evolveum.midpoint.web.component.xml.ace.AceEditor;
+import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.page.error.PageError;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
