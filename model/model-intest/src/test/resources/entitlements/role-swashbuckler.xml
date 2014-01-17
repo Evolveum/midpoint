@@ -34,7 +34,7 @@
 				</outbound>
             </attribute>
             <association>
-            	<name>group</name>
+            	<name>ri:group</name>
             	<outbound>
             		<expression>
             			<value>

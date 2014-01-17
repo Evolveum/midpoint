@@ -46,6 +46,7 @@ import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -394,6 +395,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Dumpabl
 		mapping.addVariableDefinition(ExpressionConstants.VAR_USER, userOdo);
 		mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS, userOdo);
 		mapping.addVariableDefinition(ExpressionConstants.VAR_SOURCE, source);
+		mapping.setMappingQName(attrName);
 		mapping.setSourceContext(userOdo);
 		mapping.setRootNode(userOdo);
 		mapping.setDefaultTargetDefinition(outputDefinition);
@@ -480,6 +482,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Dumpabl
 		mapping.addVariableDefinition(ExpressionConstants.VAR_USER, userOdo);
 		mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS, userOdo);
 		mapping.addVariableDefinition(ExpressionConstants.VAR_SOURCE, source);
+		mapping.setMappingQName(assocName);
 		mapping.setSourceContext(userOdo);
 		mapping.setRootNode(userOdo);
 		mapping.setDefaultTargetDefinition(outputDefinition);
@@ -597,16 +600,20 @@ public class Construction<F extends FocusType> implements DebugDumpable, Dumpabl
 			sb.append(refinedAccountDefinition.getShadowDiscriminator());
 		}
 		sb.append(")");
-		if (attributeMappings != null) {
+		if (attributeMappings != null && !attributeMappings.isEmpty()) {
+			sb.append("\n");
+			DebugUtil.debugDumpLabel(sb, "attribute mappings", indent+1);
 			for (Mapping mapping: attributeMappings) {
 				sb.append("\n");
-				sb.append(mapping.debugDump(indent+1));
+				sb.append(mapping.debugDump(indent+2));
 			}
 		}
-		if (associationMappings != null) {
+		if (associationMappings != null && !associationMappings.isEmpty()) {
+			sb.append("\n");
+			DebugUtil.debugDumpLabel(sb, "association mappings", indent+1);
 			for (Mapping mapping: associationMappings) {
 				sb.append("\n");
-				sb.append(mapping.debugDump(indent+1));
+				sb.append(mapping.debugDump(indent+2));
 			}
 		}
 		return sb.toString();
