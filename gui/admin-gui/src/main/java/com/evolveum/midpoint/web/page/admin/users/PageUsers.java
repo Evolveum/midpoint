@@ -51,6 +51,7 @@ import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptions
 import com.evolveum.midpoint.web.page.admin.users.dto.UserListItemDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
 import com.evolveum.midpoint.web.session.UsersStorage;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.apache.commons.lang.StringUtils;
@@ -400,7 +401,7 @@ public class PageUsers extends PageAdminUsers {
 
     private void userDetailsPerformed(AjaxRequestTarget target, String oid) {
         PageParameters parameters = new PageParameters();
-        parameters.add(PageUser.PARAM_USER_ID, oid);
+        parameters.add(OnePageParameterEncoder.PARAMETER, oid);
         setResponsePage(PageUser.class, parameters);
     }
 

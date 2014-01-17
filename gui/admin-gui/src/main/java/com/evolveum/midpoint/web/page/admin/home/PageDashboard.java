@@ -56,7 +56,7 @@ import static com.evolveum.midpoint.common.security.AuthorizationConstants.AUTZ_
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/dashboard", action = {
+@PageDescriptor(url = {"/admin/dashboard", "/admin"}, action = {
         PageAdminHome.AUTHORIZATION_HOME_ALL,
         AuthorizationConstants.NS_AUTHORIZATION + "#dashboard"})
 public class PageDashboard extends PageAdminHome {
