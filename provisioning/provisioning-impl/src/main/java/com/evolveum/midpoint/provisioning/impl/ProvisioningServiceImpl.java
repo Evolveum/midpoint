@@ -1283,23 +1283,6 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		}
 	}
 	
-//	private void notifyResourceObjectChangeListeners(ResourceObjectShadowChangeDescription change,
-//			Task task, OperationResult parentResult) {
-//		changeNotificationDispatcher.notifyChange(change, task, parentResult);
-//	}
-
-//	@SuppressWarnings("unchecked")
-//	private ResourceObjectShadowChangeDescription createResourceShadowChangeDescription(Change<ShadowType> change,
-//			ResourceType resourceType) {
-//		ResourceObjectShadowChangeDescription shadowChangeDescription = new ResourceObjectShadowChangeDescription();
-//		shadowChangeDescription.setObjectDelta(change.getObjectDelta());
-//		shadowChangeDescription.setResource(resourceType.asPrismObject());
-//		shadowChangeDescription.setOldShadow(change.getOldShadow());
-//		shadowChangeDescription.setCurrentShadow(change.getCurrentShadow());
-//		shadowChangeDescription.setSourceChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_LIVE_SYNC));
-//		return shadowChangeDescription;
-//	}
-
 
 	/*
 	 * (non-Javadoc)
@@ -1418,7 +1401,12 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 			result.cleanupResult();
 		}
 	}
-	
+
+	@Override
+	public void provisioningSelfTest(OperationResult parentTestResult, Task task) {
+		CryptoUtil.securitySelfTest(parentTestResult);
+		connectorManager.connectorFrameworkSelfTest(parentTestResult, task);
+	}
 
 	/*
 	 * (non-Javadoc)

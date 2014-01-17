@@ -86,6 +86,7 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
+import com.evolveum.midpoint.provisioning.test.ucf.TestUcfDummy;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.CapabilityUtil;
@@ -893,6 +894,24 @@ public class TestDummy extends AbstractDummyTest {
 		TestUtil.assertSuccess("applyDefinition(add delta) result", result);
 		
 		assertSteadyResource();
+	}
+	
+	@Test
+	public void test050SelfTest() throws Exception {
+		final String TEST_NAME = "test050SelfTest";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		
+		// GIVEN
+		Task task = taskManager.createTaskInstance();
+		OperationResult testResult = new OperationResult(TestUcfDummy.class + "." + TEST_NAME);
+		
+		// WHEN
+		provisioningService.provisioningSelfTest(testResult, task);
+		
+		// THEN
+		testResult.computeStatus();
+		IntegrationTestTools.display(testResult);
+		TestUtil.assertSuccess(testResult);
 	}
 
 	// The account must exist to test this with modify delta. So we postpone the

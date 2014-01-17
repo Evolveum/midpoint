@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.common.crypto;
 
+import java.security.KeyStore;
 import java.util.List;
 
 import javax.net.ssl.TrustManager;
@@ -91,5 +92,7 @@ public interface Protector {
 	 * (e.g. used to validate remote connector connections).
 	 */
 	List<TrustManager> getTrustManagers();
+	
+	KeyStore getKeyStore();
 
 }

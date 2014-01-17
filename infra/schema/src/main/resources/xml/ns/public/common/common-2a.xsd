@@ -6424,6 +6424,8 @@
             <xsd:element name="operation" type="xsd:string"/>
             <xsd:element name="status" type="tns:OperationResultStatusType"/>
             <xsd:element name="params" type="tns:ParamsType" minOccurs="0"/>
+            <xsd:element name="context" type="tns:ParamsType" minOccurs="0"/>
+            <xsd:element name="returns" type="tns:ParamsType" minOccurs="0"/>
             <xsd:element name="token" type="xsd:long" minOccurs="0"/>
             <xsd:element name="messageCode" type="xsd:string" minOccurs="0"/>
             <xsd:element name="message" type="xsd:string" minOccurs="0">

@@ -40,6 +40,8 @@ public class Main {
     public static final Option Password = new Option("P", "password-prompt", false, "JDBC password (prompt)");
     public static final Option exportOp = new Option("e", "export", true,
             "Export objects to XML file provided by this option.");
+    public static final Option keyStore = new Option("k", "keystore", false,
+            "Dumping key store entries.");
 
 
     public static void main(String[] args) {
@@ -55,6 +57,7 @@ public class Main {
         options.addOption(username);
         options.addOption(password);
         options.addOption(Password);
+        options.addOption(keyStore);
 
         try {
             CommandLineParser parser = new GnuParser();
@@ -91,6 +94,12 @@ public class Main {
                 ExportObjects objects = new ExportObjects(path);
                 objects.execute();
             }
+            
+            if (line.hasOption(keyStore.getOpt())){
+            	KeyStoreDumper keyStoreDumper = new KeyStoreDumper();
+            	keyStoreDumper.execute();
+            }
+            
         } catch (ParseException ex) {
             System.out.println("Error: " + ex.getMessage());
             printHelp(options);

@@ -85,5 +85,10 @@ public interface ConnectorFactory {
 	 * @return list of all known connectors.
 	 */
 	public Set<ConnectorType> listConnectors(ConnectorHostType host, OperationResult parentRestul) throws CommunicationException;
+	
+	/**
+	 * Execute self-test for each connector framework that is capable of executing tests.
+	 */
+	public void selfTest(OperationResult parentTestResult);
 
 }
