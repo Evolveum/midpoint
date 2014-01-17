@@ -322,7 +322,7 @@ public class TreeTablePanel extends SimplePanel<String> {
                 OrgTableDto dto = rowModel.getObject();
                 if (UserType.class.equals(dto.getType())) {
                     PageParameters parameters = new PageParameters();
-                    parameters.add(PageUser.PARAM_USER_ID, dto.getOid());
+                    parameters.add(OnePageParameterEncoder.PARAMETER, dto.getOid());
                     setResponsePage(PageUser.class, parameters);
                 } else if (OrgType.class.equals(dto.getType())) {
                     PageParameters parameters = new PageParameters();

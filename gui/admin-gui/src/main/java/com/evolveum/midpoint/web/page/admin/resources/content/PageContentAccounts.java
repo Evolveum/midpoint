@@ -336,7 +336,7 @@ public class PageContentAccounts extends PageAdminResources {
         }
 
         PageParameters parameters = new PageParameters();
-        parameters.add(PageUser.PARAM_USER_ID, ownerOid);
+        parameters.add(OnePageParameterEncoder.PARAMETER, ownerOid);
         setResponsePage(PageUser.class, parameters);
     }
 
