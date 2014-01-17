@@ -65,16 +65,19 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 
 /**
+ * Live class that contains "construction" - a definition how to construct a resource object. It in fact reflects
+ * the definition of ConstructionType but it also contains "live" objects and can evaluate the construction. It also
+ * contains intermediary and side results of the evaluation.
  * 
- * @author semancik
+ * @author Radovan Semancik
  *
  * This class is Serializable but it is not in fact serializable. It implements Serializable interface only
  * to be storable in the PrismPropertyValue.
  */
-public class AccountConstruction<F extends FocusType> implements DebugDumpable, Dumpable, Serializable {
+public class Construction<F extends FocusType> implements DebugDumpable, Dumpable, Serializable {
 
 	private AssignmentPath assignmentPath;
-	private ConstructionType accountConstructionType;
+	private ConstructionType constructionType;
 	private ObjectType source;
 	private OriginType originType;
 	private String channel;
@@ -82,7 +85,7 @@ public class AccountConstruction<F extends FocusType> implements DebugDumpable, 
 	private ObjectDeltaObject<F> userOdo;
 	private ResourceType resource;
 	private ObjectResolver objectResolver;
-	private MappingFactory valueConstructionFactory;
+	private MappingFactory mappingFactory;
 	private Collection<Mapping<? extends PrismPropertyValue<?>>> attributeMappings;
 	private RefinedObjectClassDefinition refinedAccountDefinition;
 	private PrismContainerValue<AssignmentType> magicAssignment;
@@ -91,10 +94,10 @@ public class AccountConstruction<F extends FocusType> implements DebugDumpable, 
 	private PrismObject<? extends AbstractRoleType> immediateRole;
 	private PrismContext prismContext;
 	
-	private static final Trace LOGGER = TraceManager.getTrace(AccountConstruction.class);
+	private static final Trace LOGGER = TraceManager.getTrace(Construction.class);
 	
-	public AccountConstruction(ConstructionType accountConstructionType, ObjectType source) {
-		this.accountConstructionType = accountConstructionType;
+	public Construction(ConstructionType constructionType, ObjectType source) {
+		this.constructionType = constructionType;
 		this.source = source;
 		this.assignmentPath = null;
 		this.attributeMappings = null;
@@ -152,12 +155,12 @@ public class AccountConstruction<F extends FocusType> implements DebugDumpable, 
 		this.prismContext = prismContext;
 	}
 
-	public MappingFactory getValueConstructionFactory() {
-		return valueConstructionFactory;
+	public MappingFactory getMappingFactory() {
+		return mappingFactory;
 	}
 
-	public void setValueConstructionFactory(MappingFactory valueConstructionFactory) {
-		this.valueConstructionFactory = valueConstructionFactory;
+	public void setMappingFactory(MappingFactory mappingFactory) {
+		this.mappingFactory = mappingFactory;
 	}
 
 	public ShadowKindType getKind() {
@@ -175,7 +178,7 @@ public class AccountConstruction<F extends FocusType> implements DebugDumpable, 
 	}
 
 	public Object getDescription() {
-		return accountConstructionType.getDescription();
+		return constructionType.getDescription();
 	}
 	
 	public Collection<Mapping<? extends PrismPropertyValue<?>>> getAttributeMappings() {
@@ -185,7 +188,7 @@ public class AccountConstruction<F extends FocusType> implements DebugDumpable, 
 		return attributeMappings;
 	}
 	
-	public Mapping<? extends PrismPropertyValue<?>> getAttributeConstruction(QName attrName) {
+	public Mapping<? extends PrismPropertyValue<?>> getAttributeMapping(QName attrName) {
 		for (Mapping<? extends PrismPropertyValue<?>> myVc : getAttributeMappings()) {
 			if (myVc.getItemName().equals(attrName)) {
 				return myVc;
@@ -194,11 +197,11 @@ public class AccountConstruction<F extends FocusType> implements DebugDumpable, 
 		return null;
 	}
 	
-	public void addAttributeConstruction(Mapping<? extends PrismPropertyValue<?>> valueConstruction) {
+	public void addAttributeMapping(Mapping<? extends PrismPropertyValue<?>> valueConstruction) {
 		getAttributeMappings().add(valueConstruction);
 	}
 
-	public boolean containsAttributeConstruction(QName attributeName) {
+	public boolean containsAttributeMapping(QName attributeName) {
 		for (Mapping<?> myVc: getAttributeMappings()) {
 			if (attributeName.equals(myVc.getItemName())) {
 				return true;
@@ -217,11 +220,11 @@ public class AccountConstruction<F extends FocusType> implements DebugDumpable, 
 
 	public ResourceType getResource(OperationResult result) throws ObjectNotFoundException, SchemaException {
 		if (resource == null) {
-			if (accountConstructionType.getResource() != null) {
-				resource = accountConstructionType.getResource();
-			} else if (accountConstructionType.getResourceRef() != null) {
+			if (constructionType.getResource() != null) {
+				resource = constructionType.getResource();
+			} else if (constructionType.getResourceRef() != null) {
 				try {
-					resource = objectResolver.resolve(accountConstructionType.getResourceRef(), ResourceType.class,
+					resource = objectResolver.resolve(constructionType.getResourceRef(), ResourceType.class,
 							"account construction in "+ source , result);
 				} catch (ObjectNotFoundException e) {
 					throw new ObjectNotFoundException("Resource reference seems to be invalid in account construction in " + source + ": "+e.getMessage(), e);
@@ -242,11 +245,11 @@ public class AccountConstruction<F extends FocusType> implements DebugDumpable, 
 	
 	private void evaluateAccountType(OperationResult result) throws SchemaException, ObjectNotFoundException {
 		String resourceOid = null;
-		if (accountConstructionType.getResourceRef() != null) {
-			resourceOid = accountConstructionType.getResourceRef().getOid();
+		if (constructionType.getResourceRef() != null) {
+			resourceOid = constructionType.getResourceRef().getOid();
 		}
-		if (accountConstructionType.getResource() != null) {
-			resourceOid = accountConstructionType.getResource().getOid();
+		if (constructionType.getResource() != null) {
+			resourceOid = constructionType.getResource().getOid();
 		}
 		ResourceType resource = getResource(result);
 		if (!resource.getOid().equals(resourceOid)) {
@@ -259,15 +262,15 @@ public class AccountConstruction<F extends FocusType> implements DebugDumpable, 
 			throw new SchemaException("No (refined) schema for "+resource);
 		}
 		
-		ShadowKindType kind = accountConstructionType.getKind();
+		ShadowKindType kind = constructionType.getKind();
 		if (kind == null) {
 			kind = ShadowKindType.ACCOUNT;
 		}
-		refinedAccountDefinition = refinedSchema.getRefinedDefinition(kind, accountConstructionType.getIntent());
+		refinedAccountDefinition = refinedSchema.getRefinedDefinition(kind, constructionType.getIntent());
 		
 		if (refinedAccountDefinition == null) {
-			if (accountConstructionType.getIntent() != null) {
-				throw new SchemaException("No account type '"+accountConstructionType.getIntent()+"' found in "+ObjectTypeUtil.toShortString(getResource(result))+" as specified in account construction in "+ObjectTypeUtil.toShortString(source));
+			if (constructionType.getIntent() != null) {
+				throw new SchemaException("No account type '"+constructionType.getIntent()+"' found in "+ObjectTypeUtil.toShortString(getResource(result))+" as specified in account construction in "+ObjectTypeUtil.toShortString(source));
 			} else {
 				throw new SchemaException("No default account type found in " + resource + " as specified in account construction in "+ObjectTypeUtil.toShortString(source));
 			}
@@ -331,7 +334,7 @@ public class AccountConstruction<F extends FocusType> implements DebugDumpable, 
 		attributeMappings = new ArrayList<Mapping<? extends PrismPropertyValue<?>>>();
 //		LOGGER.trace("Assignments used for account construction for {} ({}): {}", new Object[]{this.resource,
 //				assignments.size(), assignments});
-		for (ResourceAttributeDefinitionType attribudeDefinitionType : accountConstructionType.getAttribute()) {
+		for (ResourceAttributeDefinitionType attribudeDefinitionType : constructionType.getAttribute()) {
 			QName attrName = attribudeDefinitionType.getRef();
 			if (attrName == null) {
 				throw new SchemaException("No attribute name (ref) in attribute definition in account construction in "+source);
@@ -368,7 +371,7 @@ public class AccountConstruction<F extends FocusType> implements DebugDumpable, 
 		if (outputDefinition == null) {
 			throw new SchemaException("Attribute "+attrName+" not found in schema for account type "+getIntent()+", "+ObjectTypeUtil.toShortString(getResource(result))+" as definied in "+ObjectTypeUtil.toShortString(source), attrName);
 		}
-		Mapping<? extends PrismPropertyValue<?>> mapping = valueConstructionFactory.createMapping(outboundMappingType,
+		Mapping<? extends PrismPropertyValue<?>> mapping = mappingFactory.createMapping(outboundMappingType,
 				"for attribute " + PrettyPrinter.prettyPrint(attrName)  + " in "+source);
 		
 		if (!mapping.isApplicableToChannel(channel)) {
@@ -445,7 +448,7 @@ public class AccountConstruction<F extends FocusType> implements DebugDumpable, 
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		AccountConstruction other = (AccountConstruction) obj;
+		Construction other = (Construction) obj;
 		if (assignmentPath == null) {
 			if (other.assignmentPath != null)
 				return false;
@@ -490,7 +493,7 @@ public class AccountConstruction<F extends FocusType> implements DebugDumpable, 
 		for (int i=0;i<indent;i++) {
 			sb.append(INDENT_STRING);
 		}
-		sb.append("AccountConstruction(");
+		sb.append("Construction(");
 		if (refinedAccountDefinition == null) {
 			sb.append("null");
 		} else {
@@ -508,7 +511,7 @@ public class AccountConstruction<F extends FocusType> implements DebugDumpable, 
 
 	@Override
 	public String toString() {
-		return "AccountConstruction(" + attributeMappings + ")";
+		return "Construction(" + attributeMappings + ")";
 	}
 	
 }

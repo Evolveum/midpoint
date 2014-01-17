@@ -30,7 +30,7 @@ import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.expression.StringPolicyResolver;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
-import com.evolveum.midpoint.model.lens.AccountConstruction;
+import com.evolveum.midpoint.model.lens.Construction;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
@@ -104,7 +104,7 @@ public class OutboundProcessor {
         ObjectDeltaObject<F> focusOdo = context.getFocusContext().getObjectDeltaObject();
         ObjectDeltaObject<ShadowType> projectionOdo = accCtx.getObjectDeltaObject();
         
-        AccountConstruction outboundAccountConstruction = new AccountConstruction(null, accCtx.getResource());
+        Construction outboundAccountConstruction = new Construction(null, accCtx.getResource());
         
         String operation = accCtx.getOperation().getValue();
 
@@ -207,7 +207,7 @@ public class OutboundProcessor {
 			
 			LensUtil.evaluateMapping(mapping, context, task, result);
 			
-			outboundAccountConstruction.addAttributeConstruction(mapping);
+			outboundAccountConstruction.addAttributeMapping(mapping);
         }
         
         accCtx.setOutboundAccountConstruction(outboundAccountConstruction);

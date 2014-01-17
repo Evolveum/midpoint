@@ -35,10 +35,10 @@ public class ItemValueWithOrigin<V extends PrismValue> implements Dumpable, Debu
 	
 	private V propertyValue;
 	private Mapping<V> mapping;
-	private AccountConstruction accountConstruction;
+	private Construction accountConstruction;
 	
 	public ItemValueWithOrigin(V propertyValue,
-			Mapping<V> mapping, AccountConstruction accountConstruction) {
+			Mapping<V> mapping, Construction accountConstruction) {
 		super();
 		this.propertyValue = propertyValue;
 		this.mapping = mapping;
@@ -53,7 +53,7 @@ public class ItemValueWithOrigin<V extends PrismValue> implements Dumpable, Debu
 		return mapping;
 	}
 	
-	public AccountConstruction getAccountConstruction() {
+	public Construction getAccountConstruction() {
 		return accountConstruction;
 	}
 

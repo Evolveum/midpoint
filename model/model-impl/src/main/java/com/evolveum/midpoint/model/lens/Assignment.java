@@ -36,21 +36,21 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
  */
 public class Assignment implements DebugDumpable, Dumpable {
 
-	private Collection<AccountConstruction> accountConstructions;
+	private Collection<Construction> accountConstructions;
 	private Collection<PrismReferenceValue> orgRefVals;
 	private Collection<Authorization> authorizations;
 
 	public Assignment() {
-		accountConstructions = new ArrayList<AccountConstruction>();
+		accountConstructions = new ArrayList<Construction>();
 		orgRefVals = new ArrayList<PrismReferenceValue>();
 		authorizations = new ArrayList<Authorization>();
 	}
 	
-	public Collection<AccountConstruction> getAccountConstructions() {
+	public Collection<Construction> getAccountConstructions() {
 		return accountConstructions;
 	}
 
-	public void addAccountConstruction(AccountConstruction accpuntContruction) {
+	public void addAccountConstruction(Construction accpuntContruction) {
 		accountConstructions.add(accpuntContruction);
 	}
 	
@@ -72,7 +72,7 @@ public class Assignment implements DebugDumpable, Dumpable {
 
 	public Collection<ResourceType> getResources(OperationResult result) throws ObjectNotFoundException, SchemaException {
 		Collection<ResourceType> resources = new ArrayList<ResourceType>();
-		for (AccountConstruction acctConstr: accountConstructions) {
+		for (Construction acctConstr: accountConstructions) {
 			resources.add(acctConstr.getResource(result));
 		}
 		return resources;
@@ -95,7 +95,7 @@ public class Assignment implements DebugDumpable, Dumpable {
 		if (!accountConstructions.isEmpty()) {
 			sb.append("\n");
 			DebugUtil.debugDumpLabel(sb, "Accounts", indent+1);
-			for (AccountConstruction ac: accountConstructions) {
+			for (Construction ac: accountConstructions) {
 				sb.append("\n");
 				sb.append(ac.debugDump(indent+2));
 			}

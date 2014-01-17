@@ -163,9 +163,9 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      * Intermediary computation result. It is stored to allow re-computing of account constructions during
      * iterative computations.
      */
-    private transient PrismValueDeltaSetTriple<PrismPropertyValue<AccountConstruction>> accountConstructionDeltaSetTriple;
+    private transient PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> accountConstructionDeltaSetTriple;
     
-    private transient AccountConstruction outboundAccountConstruction;
+    private transient Construction outboundAccountConstruction;
     
     private transient Collection<ResourceObjectTypeDependencyType> dependencies = null;
     
@@ -445,20 +445,20 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		return ShadowKindType.ACCOUNT;
 	}
 	
-	public PrismValueDeltaSetTriple<PrismPropertyValue<AccountConstruction>> getAccountConstructionDeltaSetTriple() {
+	public PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> getAccountConstructionDeltaSetTriple() {
 		return accountConstructionDeltaSetTriple;
 	}
 
 	public void setAccountConstructionDeltaSetTriple(
-			PrismValueDeltaSetTriple<PrismPropertyValue<AccountConstruction>> accountConstructionDeltaSetTriple) {
+			PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> accountConstructionDeltaSetTriple) {
 		this.accountConstructionDeltaSetTriple = accountConstructionDeltaSetTriple;
 	}
 	
-	public AccountConstruction getOutboundAccountConstruction() {
+	public Construction getOutboundAccountConstruction() {
 		return outboundAccountConstruction;
 	}
 
-	public void setOutboundAccountConstruction(AccountConstruction outboundAccountConstruction) {
+	public void setOutboundAccountConstruction(Construction outboundAccountConstruction) {
 		this.outboundAccountConstruction = outboundAccountConstruction;
 	}
 
@@ -861,12 +861,12 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		return false;
 	}
 
-	private boolean hasValueForAttribute(QName attributeName, Collection<PrismPropertyValue<AccountConstruction>> acPpvSet) {
+	private boolean hasValueForAttribute(QName attributeName, Collection<PrismPropertyValue<Construction>> acPpvSet) {
 		if (acPpvSet == null) {
 			return false;
 		}
-		for (PrismPropertyValue<AccountConstruction> acPpv: acPpvSet) {
-			AccountConstruction ac = acPpv.getValue();
+		for (PrismPropertyValue<Construction> acPpv: acPpvSet) {
+			Construction ac = acPpv.getValue();
 			if (ac.hasValueForAttribute(attributeName)) {
 				return true;
 			}
