@@ -4,10 +4,13 @@
 function initInlineMenu(menuId, hideByDefault) {
     var menu = $('#' + menuId).find('ul.cog');
 
-    var parent = menu.parent().parent();
+    var parent = menu.parent().parent();     //this is inline menu div
     if (!hideByDefault && (!parent.hasClass('cog') || parent[0].tagName.toLowerCase() != 'td')) {
         return;
     }
+
+    //we now look for <tr> element
+    parent = parent.parent('tr');
 
     // we only want to hide inline menus that are in table <td> element,
     // inline menu in header must be visible all the time, or every menu
