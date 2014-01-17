@@ -98,9 +98,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
  * 
  */
 @Component
-public class UserPolicyProcessor {
+public class FocusPolicyProcessor {
 
-	private static final Trace LOGGER = TraceManager.getTrace(UserPolicyProcessor.class);
+	private static final Trace LOGGER = TraceManager.getTrace(FocusPolicyProcessor.class);
 
 	private PrismContainerDefinition<ActivationType> activationDefinition;
 	
