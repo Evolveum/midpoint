@@ -3926,6 +3926,16 @@
      		<xsd:element name="associationAttribute" type="xsd:QName"></xsd:element>
      		<xsd:element name="valueAttribute" type="xsd:QName"></xsd:element>
      		<xsd:element name="fetchStrategy" type="tns:AttributeFetchStrategyType" minOccurs="0"/>
+     		
+     		<xsd:element name="outbound" type="tns:MappingType" minOccurs="0" maxOccurs="1">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        Defines how the association value is constructed in case of information flow from IDM to the
+                        resource, e.g. in case of provisioning.
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+     		
      	</xsd:sequence>
      </xsd:complexType>
     
@@ -6396,6 +6406,7 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="association" type="tns:ResourceObjectAssociationType" minOccurs="0" maxOccurs="unbounded"/>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="construction" type="tns:ConstructionType"/>
