@@ -16,35 +16,18 @@
 
 package com.evolveum.midpoint.wf.processes.common;
 
-import com.evolveum.midpoint.audit.api.AuditEventRecord;
 import com.evolveum.midpoint.audit.api.AuditEventStage;
-import com.evolveum.midpoint.audit.api.AuditEventType;
-import com.evolveum.midpoint.common.security.MidPointPrincipal;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
-import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.activiti.SpringApplicationContextHolder;
 import com.evolveum.midpoint.wf.jobs.JobController;
-import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
-import com.evolveum.midpoint.wf.processes.WorkflowResult;
-import com.evolveum.midpoint.wf.util.MiscDataUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.GenericObjectType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.activiti.engine.delegate.DelegateTask;
 import org.activiti.engine.delegate.TaskListener;
 
 import javax.xml.bind.JAXBException;
-import java.util.Map;
 
 /**
  * @author mederly
@@ -69,19 +52,27 @@ public class MidPointTaskListener implements TaskListener {
 
         if (TaskListener.EVENTNAME_CREATE.equals(delegateTask.getEventName())) {
             jobController.auditWorkItemEvent(delegateTask.getVariables(), delegateTask.getId(), getWorkItemName(delegateTask), delegateTask.getAssignee(), AuditEventStage.REQUEST, result);
-            jobController.notifyWorkItemCreated(
-                    delegateTask.getName(),
-                    delegateTask.getAssignee(),
-                    getWorkItemName(delegateTask),
-                    delegateTask.getVariables());
+            try {
+                jobController.notifyWorkItemCreated(
+                        delegateTask.getName(),
+                        delegateTask.getAssignee(),
+                        getWorkItemName(delegateTask),
+                        delegateTask.getVariables());
+            } catch (JAXBException|SchemaException e) {
+                LoggingUtils.logException(LOGGER, "Couldn't audit work item create event", e);
+            }
         } else if (TaskListener.EVENTNAME_COMPLETE.equals(delegateTask.getEventName())) {
             jobController.auditWorkItemEvent(delegateTask.getVariables(), delegateTask.getId(), getWorkItemName(delegateTask), delegateTask.getAssignee(), AuditEventStage.EXECUTION, result);
-            jobController.notifyWorkItemCompleted(
-                    delegateTask.getName(),
-                    delegateTask.getAssignee(),
-                    getWorkItemName(delegateTask),
-                    delegateTask.getVariables(),
-                    (String) delegateTask.getVariable(CommonProcessVariableNames.FORM_FIELD_DECISION));
+            try {
+                jobController.notifyWorkItemCompleted(
+                        delegateTask.getName(),
+                        delegateTask.getAssignee(),
+                        getWorkItemName(delegateTask),
+                        delegateTask.getVariables(),
+                        (String) delegateTask.getVariable(CommonProcessVariableNames.FORM_FIELD_DECISION));
+            } catch (JAXBException|SchemaException e) {
+                LoggingUtils.logException(LOGGER, "Couldn't audit work item complete event", e);
+            }
         }
     }
 

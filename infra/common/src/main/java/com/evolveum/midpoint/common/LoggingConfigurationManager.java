@@ -63,8 +63,12 @@ public class LoggingConfigurationManager {
 			res.recordNotApplicableIfUnknown();
 			return;
 		}
-		
-		LOGGER.info("Changing logging configuration (current config version: {}, new version {})", currentlyUsedVersion, version);
+
+        if (currentlyUsedVersion != null) {
+		    LOGGER.info("Applying logging configuration (currently applied version: {}, new version: {})", currentlyUsedVersion, version);
+        } else {
+            LOGGER.info("Applying logging configuration (version {})", version);
+        }
         currentlyUsedVersion = version;
 
         // JUL Bridge initialization was here. (SLF4JBridgeHandler)

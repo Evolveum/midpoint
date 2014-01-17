@@ -202,6 +202,7 @@
 
     <!-- Basic Object Types -->
 
+
     <xsd:complexType name="ObjectType" abstract="true">
 
         <xsd:annotation>
@@ -9251,11 +9252,25 @@
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    <xsd:element name="variables" type="tns:WfProcessInstanceVariableType" minOccurs="0" maxOccurs="unbounded">
+                    <xsd:element name="state" type="tns:ObjectType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Process instance variables.
+                                (Externalized) process instance state stored as PrismObject.
+                                Actually, it is always a subtype of ProcessInstanceState,
+                                but this structure is defined in separate XSD file.
+                                TODO consider moving all wf-related structures to that file
+                                in order to allow correct references among them.
                             </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:objectReference>tns:stateRef</a:objectReference>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="stateRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <a:objectReferenceTargetType>tns:ObjectType</a:objectReferenceTargetType>
+                            </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>
                     <xsd:element name="workItems" type="tns:WorkItemType" minOccurs="0" maxOccurs="unbounded">
@@ -9280,31 +9295,31 @@
         </xsd:complexContent>
     </xsd:complexType>
 
-    <xsd:complexType name="WfProcessInstanceVariableType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Information about a value of particular process instance variable.
-                Non-string values are converted to string ones.
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:simpleContent>
-            <xsd:extension base="xsd:string">
-                <xsd:attribute name="name" type="xsd:string">
-                    <xsd:annotation>
-                        <xsd:documentation>
-                            Name of the variable.
-                        </xsd:documentation>
-                    </xsd:annotation>
-                </xsd:attribute>
-                <xsd:attribute name="encoded" type="xsd:boolean">
-                    <xsd:annotation>
-                        <xsd:documentation>
-                            True if the value is encoded (base64 serialized), false if it's stored as a plain string.
-                        </xsd:documentation>
-                    </xsd:annotation>
-                </xsd:attribute>
-            </xsd:extension>
-        </xsd:simpleContent>
-    </xsd:complexType>
+    <!--<xsd:complexType name="WfProcessInstanceVariableType">-->
+        <!--<xsd:annotation>-->
+            <!--<xsd:documentation>-->
+                <!--Information about a value of particular process instance variable.-->
+                <!--Non-string values are converted to string ones.-->
+            <!--</xsd:documentation>-->
+        <!--</xsd:annotation>-->
+        <!--<xsd:simpleContent>-->
+            <!--<xsd:extension base="xsd:string">-->
+                <!--<xsd:attribute name="name" type="xsd:string">-->
+                    <!--<xsd:annotation>-->
+                        <!--<xsd:documentation>-->
+                            <!--Name of the variable.-->
+                        <!--</xsd:documentation>-->
+                    <!--</xsd:annotation>-->
+                <!--</xsd:attribute>-->
+                <!--<xsd:attribute name="encoded" type="xsd:boolean">-->
+                    <!--<xsd:annotation>-->
+                        <!--<xsd:documentation>-->
+                            <!--True if the value is encoded (base64 serialized), false if it's stored as a plain string.-->
+                        <!--</xsd:documentation>-->
+                    <!--</xsd:annotation>-->
+                <!--</xsd:attribute>-->
+            <!--</xsd:extension>-->
+        <!--</xsd:simpleContent>-->
+    <!--</xsd:complexType>-->
 </xsd:schema>
 

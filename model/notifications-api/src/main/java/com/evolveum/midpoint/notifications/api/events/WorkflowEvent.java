@@ -17,22 +17,22 @@
 package com.evolveum.midpoint.notifications.api.events;
 
 import com.evolveum.midpoint.notifications.api.OperationStatus;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
-import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
+import com.evolveum.midpoint.wf.util.ApprovalUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventOperationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventStatusType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import org.apache.commons.lang.Validate;
-
-import java.util.Map;
 
 /**
  * @author mederly
  */
 abstract public class WorkflowEvent extends BaseEvent {
 
-    private String processName;
-    private Map<String,Object> variables;
+    private String processInstanceName;
+    private PrismObject<? extends ObjectType> processInstanceState;
     private String operationStatusCustom;                // exact string representation of the status (useful for work items that return custom statuses)
     private ChangeType changeType;                      // ADD = process/task start, DELETE = process/task finish (for now)
 
@@ -43,20 +43,20 @@ abstract public class WorkflowEvent extends BaseEvent {
         this.changeType = changeType;
     }
 
-    public String getProcessName() {
-        return processName;
+    public String getProcessInstanceName() {
+        return processInstanceName;
     }
 
-    public void setProcessName(String processName) {
-        this.processName = processName;
+    public void setProcessInstanceName(String processInstanceName) {
+        this.processInstanceName = processInstanceName;
     }
 
-    public Map<String, Object> getVariables() {
-        return variables;
+    public PrismObject<? extends ObjectType> getProcessInstanceState() {
+        return processInstanceState;
     }
 
-    public void setVariables(Map<String, Object> variables) {
-        this.variables = variables;
+    public void setProcessInstanceState(PrismObject<? extends ObjectType> processInstanceState) {
+        this.processInstanceState = processInstanceState;
     }
 
     public OperationStatus getOperationStatus() {
@@ -103,9 +103,9 @@ abstract public class WorkflowEvent extends BaseEvent {
         } else {
             if (decision == null) {
                 return OperationStatus.IN_PROGRESS;
-            } else if (decision.equals(CommonProcessVariableNames.DECISION_APPROVED)) {
+            } else if (decision.equals(ApprovalUtils.DECISION_APPROVED)) {
                 return OperationStatus.SUCCESS;
-            } else if (decision.equals(CommonProcessVariableNames.DECISION_REJECTED)) {
+            } else if (decision.equals(ApprovalUtils.DECISION_REJECTED)) {
                 return OperationStatus.FAILURE;
             } else {
                 return OperationStatus.OTHER;
@@ -118,7 +118,7 @@ abstract public class WorkflowEvent extends BaseEvent {
     public String toString() {
         return "WorkflowEvent{" +
                 "event=" + super.toString() +
-                ", processName='" + processName + '\'' +
+                ", processInstanceName='" + processInstanceName + '\'' +
                 ", changeType=" + changeType +
                 ", operationStatusCustom=" + operationStatusCustom +
                 '}';

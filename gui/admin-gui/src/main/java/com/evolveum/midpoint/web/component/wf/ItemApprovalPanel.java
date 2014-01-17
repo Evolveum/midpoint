@@ -23,8 +23,10 @@ import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.DecisionDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
-import com.evolveum.midpoint.wf.processes.itemApproval.*;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.DecisionType;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ItemApprovalProcessInstanceState;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ItemApprovalRequestType;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang.Validate;
 import org.apache.wicket.AttributeModifier;
@@ -107,14 +109,14 @@ public class ItemApprovalPanel extends Panel {
             @Override
             public String getObject() {
 
-                ApprovalRequest<?> approvalRequest = (ApprovalRequest) model.getObject().getVariable(ProcessVariableNames.APPROVAL_REQUEST);
-                approvalRequest.setPrismContext(((PageBase) getPage()).getPrismContext());
+                ItemApprovalProcessInstanceState instanceState = (ItemApprovalProcessInstanceState) model.getObject().getInstanceState();
+                ItemApprovalRequestType approvalRequestType = instanceState.getApprovalRequest();
 
                 // todo delegate to process wrapper instead
-                if (approvalRequest == null) {
+                if (approvalRequestType == null) {
                     return "?";
                 } else {
-                    Object item = approvalRequest.getItemToApprove();
+                    Object item = approvalRequestType.getItemToApprove();
                     if (item instanceof AssignmentType) {
                         AssignmentType assignmentType = (AssignmentType) item;
                         if (assignmentType.getTarget() != null) {
@@ -132,89 +134,84 @@ public class ItemApprovalPanel extends Panel {
         });
         add(itemToBeApproved);
 
-
         // todo i18n
         Label approvalSchema = new Label(ID_APPROVAL_SCHEMA, new AbstractReadOnlyModel() {
             @Override
             public Object getObject() {
                 StringBuilder retval = new StringBuilder();
 
-                ApprovalRequest<?> approvalRequest = (ApprovalRequest) model.getObject().getVariable(ProcessVariableNames.APPROVAL_REQUEST);
-                approvalRequest.setPrismContext(((PageBase) getPage()).getPrismContext());
-                if (approvalRequest == null) {
+                ItemApprovalProcessInstanceState instanceState = (ItemApprovalProcessInstanceState) model.getObject().getInstanceState();
+                ItemApprovalRequestType approvalRequestType = instanceState.getApprovalRequest();
+
+                if (approvalRequestType == null) {
                     return "?";
                 } else {
-                    ApprovalSchema approvalSchema = approvalRequest.getApprovalSchema();
-                    if (approvalSchema.getName() != null) {
-                        retval.append("<b>");
-                        retval.append(StringEscapeUtils.escapeHtml(approvalSchema.getName()));
-                        retval.append("</b>");
-                    }
-                    if (approvalSchema.getDescription() != null) {
-                        retval.append(" (");
-                        retval.append(StringEscapeUtils.escapeHtml(approvalSchema.getDescription()));
-                        retval.append(")");
-                    }
-                    if (approvalSchema.getName() != null || approvalSchema.getDescription() != null) {
-                        retval.append("<br/>");
-                    }
-                    retval.append("Levels:<p/><ol>");
-                    for (ApprovalLevel level : approvalSchema.getLevels()) {
-                        retval.append("<li>");
-                        if (level.getName() != null) {
-                            retval.append(StringEscapeUtils.escapeHtml(level.getName()));
-                        } else {
-                            retval.append("unnamed level");
+                    ApprovalSchemaType approvalSchema = approvalRequestType.getApprovalSchema();
+                    if (approvalSchema != null) {
+                        if (approvalSchema.getName() != null) {
+                            retval.append("<b>");
+                            retval.append(StringEscapeUtils.escapeHtml(approvalSchema.getName()));
+                            retval.append("</b>");
                         }
-                        if (level.getDescription() != null) {
+                        if (approvalSchema.getDescription() != null) {
                             retval.append(" (");
-                            retval.append(StringEscapeUtils.escapeHtml(level.getDescription()));
+                            retval.append(StringEscapeUtils.escapeHtml(approvalSchema.getDescription()));
                             retval.append(")");
                         }
-                        if (level.getEvaluationStrategy() != null) {
-                            retval.append(" [" + level.getEvaluationStrategy() + "]");
+                        if (approvalSchema.getName() != null || approvalSchema.getDescription() != null) {
+                            retval.append("<br/>");
                         }
-                        if (level.getAutomaticallyApproved() != null) {
-                            String desc = level.getAutomaticallyApproved().getDescription();
-                            if (desc != null) {
-                                retval.append(" (auto-approval condition: " + StringEscapeUtils.escapeHtml(desc) + ")");
-                            } else {
-                                retval.append(" (auto-approval condition present)");
-                            }
-                        }
-                        retval.append("<br/>Approvers:<ul>");
-                        for (LightweightObjectRef approverRef : level.getApproverRefs()) {
+                        retval.append("Levels:<p/><ol>");
+                        for (ApprovalLevelType level : approvalSchema.getLevel()) {
                             retval.append("<li>");
-                            retval.append(approverRef.getOid());
-                            if (approverRef.getType() != null) {
-                                retval.append(" (" + approverRef.getType().getLocalPart() + ")");
-                            }
-                            if (approverRef.getDescription() != null) {
-                                retval.append (" - " + approverRef.getDescription());
-                            }
-                            retval.append("</li>");
-                        }
-                        for (ExpressionType expression : level.getApproverExpressions()) {
-                            retval.append("<li>Expression: ");
-                            // todo display the expression
-                            if (expression.getDescription() != null) {
-                                retval.append(StringEscapeUtils.escapeHtml(expression.getDescription()));
+                            if (level.getName() != null) {
+                                retval.append(StringEscapeUtils.escapeHtml(level.getName()));
                             } else {
-                                retval.append("(...)");
+                                retval.append("unnamed level");
                             }
-//                            PrismJaxbProcessor p = prismContext.getPrismJaxbProcessor();
-//                            try {
-//                                retval.append(StringEscapeUtils.escapeHtml(p.marshalElementToString(expression, new QName("", "expression"))));
-//                            } catch (JAXBException e) {
-//                                LoggingUtils.logException(LOGGER, "Cannot display expression", e);
-//                                retval.append(StringEscapeUtils.escapeHtml("Cannot display expression: " + e.getMessage()));
-//                            }
-                            retval.append("</li>");
+                            if (level.getDescription() != null) {
+                                retval.append(" (");
+                                retval.append(StringEscapeUtils.escapeHtml(level.getDescription()));
+                                retval.append(")");
+                            }
+                            if (level.getEvaluationStrategy() != null) {
+                                retval.append(" [" + level.getEvaluationStrategy() + "]");
+                            }
+                            if (level.getAutomaticallyApproved() != null) {
+                                String desc = level.getAutomaticallyApproved().getDescription();
+                                if (desc != null) {
+                                    retval.append(" (auto-approval condition: " + StringEscapeUtils.escapeHtml(desc) + ")");
+                                } else {
+                                    retval.append(" (auto-approval condition present)");
+                                }
+                            }
+                            retval.append("<br/>Approvers:<ul>");
+                            for (ObjectReferenceType approverRef : level.getApproverRef()) {
+                                retval.append("<li>");
+                                retval.append(approverRef.getOid());
+                                if (approverRef.getType() != null) {
+                                    retval.append(" (" + approverRef.getType().getLocalPart() + ")");
+                                }
+                                if (approverRef.getDescription() != null) {
+                                    retval.append (" - " + approverRef.getDescription());
+                                }
+                                retval.append("</li>");
+                            }
+                            for (ExpressionType expression : level.getApproverExpression()) {
+                                retval.append("<li>Expression: ");
+                                // todo display the expression
+                                if (expression.getDescription() != null) {
+                                    retval.append(StringEscapeUtils.escapeHtml(expression.getDescription()));
+                                } else {
+                                    retval.append("(...)");
+                                }
+                                retval.append("</li>");
+                            }
                         }
 
                         retval.append("</ul>");     // ends the list of approvers
+                        retval.append("</ol>");         // ends the list of levels
                     }
-                    retval.append("</ol>");         // ends the list of levels
                 }
                 return retval.toString();
             }
@@ -227,10 +224,11 @@ public class ItemApprovalPanel extends Panel {
         add(new DecisionsPanel(ID_DECISIONS_DONE, new AbstractReadOnlyModel<List<DecisionDto>>() {
             @Override
             public List<DecisionDto> getObject() {
-                List<DecisionDto> retval = new ArrayList<DecisionDto>();
-                List<Decision> allDecisions = (List<Decision>) model.getObject().getVariable(ProcessVariableNames.ALL_DECISIONS);
+                List<DecisionDto> retval = new ArrayList<>();
+                ItemApprovalProcessInstanceState instanceState = (ItemApprovalProcessInstanceState) model.getObject().getInstanceState();
+                List<DecisionType> allDecisions = instanceState.getDecisions();
                 if (allDecisions != null) {
-                    for (Decision decision : allDecisions) {
+                    for (DecisionType decision : allDecisions) {
                         retval.add(new DecisionDto(decision));
                     }
                 }

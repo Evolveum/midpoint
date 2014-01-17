@@ -25,27 +25,35 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
-import com.evolveum.midpoint.util.exception.*;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.wf.jobs.JobCreationInstruction;
-import com.evolveum.midpoint.wf.jobs.JobController;
 import com.evolveum.midpoint.wf.jobs.Job;
+import com.evolveum.midpoint.wf.jobs.JobController;
+import com.evolveum.midpoint.wf.jobs.JobCreationInstruction;
 import com.evolveum.midpoint.wf.jobs.WfTaskUtil;
+import com.evolveum.midpoint.wf.messages.ProcessEvent;
+import com.evolveum.midpoint.wf.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.processors.BaseChangeProcessor;
+import com.evolveum.midpoint.wf.processors.BaseExternalizationHelper;
 import com.evolveum.midpoint.wf.processors.BaseModelInvocationProcessingHelper;
 import com.evolveum.midpoint.wf.processors.primary.wrapper.PrimaryApprovalProcessWrapper;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
-import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
-import com.evolveum.midpoint.wf.messages.ProcessEvent;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceVariableType;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.PrimaryApprovalProcessInstanceState;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessInstanceState;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PostConstruct;
+import javax.xml.bind.JAXBException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -59,10 +67,16 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
     private static final Trace LOGGER = TraceManager.getTrace(PrimaryChangeProcessor.class);
 
     @Autowired
-    private PrimaryChangeProcessorConfigurationHelper primaryChangeProcessorConfigurationHelper;
+    private PcpConfigurationHelper pcpConfigurationHelper;
 
     @Autowired
     private BaseModelInvocationProcessingHelper baseModelInvocationProcessingHelper;
+
+    @Autowired
+    private BaseExternalizationHelper baseExternalizationHelper;
+
+    @Autowired
+    private PcpExternalizationHelper pcpExternalizationHelper;
 
     @Autowired
     private WfTaskUtil wfTaskUtil;
@@ -82,7 +96,7 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
     // =================================================================================== Configuration
     @PostConstruct
     public void init() {
-        primaryChangeProcessorConfigurationHelper.configure(this);
+        pcpConfigurationHelper.configure(this);
     }
 
     public void setProcessWrappers(List<PrimaryApprovalProcessWrapper> processWrappers) {
@@ -323,16 +337,19 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
 
     @Override
     public String getProcessInstanceDetailsPanelName(WfProcessInstanceType processInstance) {
-        String wrapperName = null;
-        for (WfProcessInstanceVariableType var : processInstance.getVariables()) {
-            if (CommonProcessVariableNames.VARIABLE_MIDPOINT_PROCESS_WRAPPER.equals(var.getName())) {
-                wrapperName = var.getValue();           // assume it's not encoded
-                break;
-            }
-        }
+        PrimaryApprovalProcessInstanceState state = (PrimaryApprovalProcessInstanceState) processInstance.getState();
+        String wrapperName = state.getMidPointProcessWrapper();
         Validate.notNull(wrapperName, "There's no change processor name among the process instance variables");
         PrimaryApprovalProcessWrapper wrapper = findProcessWrapper(wrapperName);
         return wrapper.getProcessInstanceDetailsPanelName(processInstance);
+    }
+
+    @Override
+    public PrismObject<? extends ProcessInstanceState> externalizeInstanceState(Map<String, Object> variables) throws JAXBException, SchemaException {
+        PrismObject<? extends PrimaryApprovalProcessInstanceState> state = getProcessWrapper(variables).externalizeInstanceState(variables);
+        pcpExternalizationHelper.externalizeState(state, variables);
+        baseExternalizationHelper.externalizeState(state, variables);
+        return state;
     }
     //endregion
 

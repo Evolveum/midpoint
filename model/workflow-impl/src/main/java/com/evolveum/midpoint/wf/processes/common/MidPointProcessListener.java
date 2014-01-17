@@ -19,7 +19,6 @@ package com.evolveum.midpoint.wf.processes.common;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.activiti.SpringApplicationContextHolder;
-import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
 import org.activiti.engine.delegate.DelegateExecution;
 import org.activiti.engine.delegate.ExecutionListener;
 

@@ -28,7 +28,9 @@ import com.evolveum.midpoint.wf.jobs.Job;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessInstanceState;
 
+import javax.xml.bind.JAXBException;
 import java.util.Map;
 
 /**
@@ -86,5 +88,13 @@ public interface ChangeProcessor {
      */
     boolean isEnabled();
 
-
+    /**
+     * Externalizes internal state of the process instance. Typically, uninteresting (auxiliary) data elements
+     * are thrown away, internal representation suitable for workflow processing is replaced by "clean" prism
+     * object structure, and untyped Map[String,Object] is replaced by typed prism data.
+     *
+     * @param variables internal process state represented by a map
+     * @return external representation in the form of PrismObject
+     */
+    PrismObject<? extends ProcessInstanceState> externalizeInstanceState(Map<String, Object> variables) throws JAXBException, SchemaException;
 }

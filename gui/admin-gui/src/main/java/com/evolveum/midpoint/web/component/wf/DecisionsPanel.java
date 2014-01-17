@@ -50,7 +50,7 @@ public class DecisionsPanel extends SimplePanel<List<DecisionDto>> {
         columns.add(new PropertyColumn(createStringResource("DecisionsPanel.when"), DecisionDto.F_TIME));
 
         ISortableDataProvider provider = new ListDataProvider(this, getModel());
-        TablePanel decisionsTable = new TablePanel<DecisionDto>(ID_DECISIONS_TABLE, provider, columns);
+        TablePanel decisionsTable = new TablePanel<>(ID_DECISIONS_TABLE, provider, columns);
         add(decisionsTable);
     }
 }

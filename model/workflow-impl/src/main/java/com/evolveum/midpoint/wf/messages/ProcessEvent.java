@@ -16,7 +16,7 @@
 
 package com.evolveum.midpoint.wf.messages;
 
-import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
+import com.evolveum.midpoint.wf.processes.common.CommonProcessVariableNames;
 
 import java.util.HashMap;
 import java.util.Map;

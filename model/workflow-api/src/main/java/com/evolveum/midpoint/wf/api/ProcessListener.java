@@ -16,9 +16,9 @@
 
 package com.evolveum.midpoint.wf.api;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
-
-import java.util.Map;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessInstanceState;
 
 /**
  * An interface through which external observers can be notified about wf process related events.
@@ -32,19 +32,16 @@ public interface ProcessListener {
     /**
      * This method is called by wf module when a process instance successfully starts.
      *
-     * @param instanceName name of the process instance that was started
-     * @param variables process instance variables (todo fixme this is quite a hack because implementor needs to know internal structure of these variables)
-     * @param result implementor should report its result here
+     * @param instanceState externalized process instance variables
+     * @param result implementer should report its result here
      */
-    void onProcessInstanceStart(String instanceName, Map<String, Object> variables, OperationResult result);
+    void onProcessInstanceStart(PrismObject<? extends ProcessInstanceState> instanceState, OperationResult result);
 
     /**
      * This method is called by wf module when a process instance ends.
      *
-     * @param instanceName name of the process instance that was finished
-     * @param variables process instance variables (todo fixme this is quite a hack because implementor needs to know internal structure of these variables)
-     * @param decision the final decision (the value of WF_ANSWER process variable, which may or may not be present)
-     * @param result implementor should report its result here
+     * @param instanceState externalized process instance variables
+     * @param result implementer should report its result here
      */
-    void onProcessInstanceEnd(String instanceName, Map<String, Object> variables, String decision, OperationResult result);
+    void onProcessInstanceEnd(PrismObject<? extends ProcessInstanceState> instanceState, OperationResult result);
 }

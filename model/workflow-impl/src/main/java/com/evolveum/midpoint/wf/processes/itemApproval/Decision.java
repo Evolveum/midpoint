@@ -16,13 +16,18 @@
 
 package com.evolveum.midpoint.wf.processes.itemApproval;
 
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.DecisionType;
+
 import java.io.Serializable;
 import java.util.Date;
 
 /**
  * @author mederly
  */
-public class Decision<I extends Serializable> implements Serializable {
+public class Decision implements Serializable {
 
     private static final long serialVersionUID = -542549699933865819L;
 
@@ -75,5 +80,19 @@ public class Decision<I extends Serializable> implements Serializable {
     @Override
     public String toString() {
         return "Decision: approved=" + isApproved() + ", comment=" + getComment() + ", approver=" + getApproverName() + "/" + getApproverOid() + ", date=" + getDate();
+    }
+
+    public DecisionType toDecisionType() {
+        DecisionType decisionType = new DecisionType();
+        decisionType.setApproved(isApproved());
+        decisionType.setComment(getComment());
+        decisionType.setDateTime(XmlTypeConverter.createXMLGregorianCalendar(getDate()));
+        if (approverOid != null) {
+            ObjectReferenceType ort = new ObjectReferenceType();
+            ort.setOid(approverOid);
+            ort.setType(UserType.COMPLEX_TYPE);
+            decisionType.setApproverRef(ort);
+        }
+        return decisionType;
     }
 }

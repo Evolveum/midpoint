@@ -18,21 +18,22 @@ package com.evolveum.midpoint.wf.dao;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.util.SerializationUtil;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.wf.WfConfiguration;
 import com.evolveum.midpoint.wf.WorkflowManagerImpl;
 import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.activiti.ActivitiEngineDataHelper;
 
 import com.evolveum.midpoint.wf.api.WorkflowException;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
-import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
+import com.evolveum.midpoint.wf.processes.common.CommonProcessVariableNames;
+import com.evolveum.midpoint.wf.processors.ChangeProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceVariableType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.activiti.engine.ActivitiException;
 import org.activiti.engine.HistoryService;
@@ -46,8 +47,7 @@ import org.activiti.engine.task.Task;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
-import java.io.Serializable;
+import javax.xml.bind.JAXBException;
 import java.util.*;
 
 /**
@@ -66,6 +66,9 @@ public class ProcessInstanceProvider {
 
     @Autowired
     private WorkItemProvider workItemProvider;
+
+    @Autowired
+    private WfConfiguration wfConfiguration;
 
     private static final String DOT_CLASS = WorkflowManagerImpl.class.getName() + ".";
     private static final String DOT_INTERFACE = WorkflowManager.class.getName() + ".";
@@ -236,6 +239,7 @@ public class ProcessInstanceProvider {
         OperationResult result = parentResult.createSubresult(OPERATION_ACTIVITI_TO_MIDPOINT_PROCESS_INSTANCE);
         result.addParam("instance id", instance.getProcessInstanceId());
         result.addParam("getWorkItems", getWorkItems);
+
         WfProcessInstanceType pi = new WfProcessInstanceType();
         pi.setFinished(false);
         pi.setProcessInstanceId(instance.getProcessInstanceId());
@@ -245,17 +249,25 @@ public class ProcessInstanceProvider {
         Map<String,Object> vars = null;
         try {
             vars = rs.getVariables(instance.getProcessInstanceId());
-            convertVariablesToJaxb(pi.getVariables(), vars);
-            pi.setName(new PolyStringType((String) vars.get(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME)));
-            pi.setStartTimestamp(XmlTypeConverter.createXMLGregorianCalendar((Date) vars.get(CommonProcessVariableNames.VARIABLE_START_TIME)));
         } catch (ActivitiException e) {
             result.recordFatalError("Couldn't get process instance variables for instance " + instance.getProcessInstanceId(), e);
             LoggingUtils.logException(LOGGER, "Couldn't get process instance variables for instance {}", e, instance.getProcessInstanceId());
             pi.setName(new PolyStringType("(unreadable process instance with id = " + instance.getId() + ")"));
             pi.setStartTimestamp(null);
-
             return pi;
         }
+
+        ChangeProcessor cp = wfConfiguration.findChangeProcessor((String) vars.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_CHANGE_PROCESSOR));
+
+        try {
+            pi.setState(cp.externalizeInstanceState(vars).asObjectable());
+        } catch (JAXBException|SchemaException e) {
+            result.recordFatalError("Couldn't externalize process instance state for instance " + instance.getProcessInstanceId(), e);
+            LoggingUtils.logException(LOGGER, "Couldn't externalize process instance state for instance {}", e, instance.getProcessInstanceId());
+        }
+
+        pi.setName(new PolyStringType((String) vars.get(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME)));
+        pi.setStartTimestamp(XmlTypeConverter.createXMLGregorianCalendar((Date) vars.get(CommonProcessVariableNames.VARIABLE_START_TIME)));
 
         if (getWorkItems) {
             TaskService ts = activitiEngine.getTaskService();
@@ -277,45 +289,17 @@ public class ProcessInstanceProvider {
         pi.setStartTimestamp(XmlTypeConverter.createXMLGregorianCalendar(instance.getStartTime()));
         pi.setEndTimestamp(XmlTypeConverter.createXMLGregorianCalendar(instance.getEndTime()));
 
-        Exception exception;
-
         try {
             Map<String,Object> vars = activitiEngineDataHelper.getHistoricVariables(instance.getId(), result);
-            convertVariablesToJaxb(pi.getVariables(), vars);
             pi.setName(new PolyStringType((String) vars.get(CommonProcessVariableNames.VARIABLE_PROCESS_INSTANCE_NAME)));
+            ChangeProcessor cp = wfConfiguration.findChangeProcessor((String) vars.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_CHANGE_PROCESSOR));
+            pi.setState(cp.externalizeInstanceState(vars).asObjectable());
             result.recordSuccessIfUnknown();
             return pi;
-        } catch (RuntimeException e) {
-            exception = e;
-        } catch (WorkflowException e) {
-            exception = e;
-        }
-
-        result.recordFatalError("Couldn't get information about finished process instance " + instance.getId(), exception);
-        pi.setName(new PolyStringType("(unreadable process instance with id = " + instance.getId() + ")"));
-        return pi;
-    }
-
-    private void convertVariablesToJaxb(List<WfProcessInstanceVariableType> variables, Map<String, Object> vars) {
-        for (Map.Entry<String, Object> var : vars.entrySet()) {
-            WfProcessInstanceVariableType variable = new WfProcessInstanceVariableType();
-            variable.setName(var.getKey());
-            if (var.getValue() instanceof String) {
-                variable.setValue((String) var.getValue());
-                variable.setEncoded(false);
-            } else if (var.getValue() instanceof Serializable) {
-                try {
-                    variable.setValue(SerializationUtil.toString((Serializable) var.getValue()));
-                } catch (IOException e) {
-                    LoggingUtils.logException(LOGGER, "Process variable {} couldn't be returned because it couldn't be serialized", e, var.getKey());
-                    continue;
-                }
-                variable.setEncoded(true);
-            } else {
-                LOGGER.error("Process variable {} couldn't be returned because it's not serializable", var.getKey());
-                continue;
-            }
-            variables.add(variable);
+        } catch (RuntimeException|WorkflowException|JAXBException|SchemaException e) {
+            result.recordFatalError("Couldn't get information about finished process instance " + instance.getId(), e);
+            pi.setName(new PolyStringType("(unreadable process instance with id = " + instance.getId() + ")"));
+            return pi;
         }
     }
 }

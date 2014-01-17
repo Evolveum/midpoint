@@ -14,24 +14,30 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.wf.processes.itemApproval;
+package com.evolveum.midpoint.wf.processes.common;
 
-import com.evolveum.midpoint.prism.PrismContext;
-
-import java.util.List;
+import com.evolveum.midpoint.wf.util.ApprovalUtils;
 
 /**
  * @author mederly
  */
-public interface ApprovalSchema {
+public enum WorkflowResult {
 
-    String getName();
+    REJECTED, APPROVED, UNKNOWN, OTHER;
 
-    String getDescription();
+    public static WorkflowResult fromStandardWfAnswer(String answer) {
 
-    List<? extends ApprovalLevel> getLevels();
-
-    PrismContext getPrismContext();
-
-    void setPrismContext(PrismContext prismContext);
+        if (answer == null) {
+            return UNKNOWN;
+        } else {
+            Boolean booleanValue = ApprovalUtils.approvalBooleanValue(answer);
+            if (booleanValue == null) {
+                return OTHER;
+            } else if (booleanValue) {
+                return APPROVED;
+            } else {
+                return REJECTED;
+            }
+        }
+    }
 }

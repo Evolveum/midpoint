@@ -35,7 +35,7 @@ import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.activiti.ActivitiEngineDataHelper;
 import com.evolveum.midpoint.wf.api.WorkflowException;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
-import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
+import com.evolveum.midpoint.wf.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.processors.ChangeProcessor;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MetadataType;
@@ -252,7 +252,7 @@ public class WorkItemProvider {
                     }
                 }
 
-                wi.setObjectDelta(miscDataUtil.getObjectDeltaType(variables, result, true));
+                wi.setObjectDelta(miscDataUtil.getObjectDeltaType(variables, true));
 
                 PrismObject<? extends ObjectType> objectAfter = miscDataUtil.getObjectAfter(variables, wi.getObjectDelta(), objectBefore, prismContext, result);
                 if (objectAfter != null) {

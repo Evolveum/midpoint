@@ -17,28 +17,24 @@
 package com.evolveum.midpoint.wf.processes.itemApproval;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExpressionType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.LevelEvaluationStrategyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ApprovalSchemaType;
 
 import java.util.List;
 
 /**
  * @author mederly
  */
-public interface ApprovalLevel {
+public interface ApprovalSchema {
+
     String getName();
 
     String getDescription();
 
-    List<? extends LightweightObjectRef> getApproverRefs();
-
-    List<ExpressionType> getApproverExpressions();
-
-    LevelEvaluationStrategyType getEvaluationStrategy();
-
-    ExpressionType getAutomaticallyApproved();
+    List<? extends ApprovalLevel> getLevels();
 
     PrismContext getPrismContext();
 
     void setPrismContext(PrismContext prismContext);
+
+    void toApprovalSchemaType(ApprovalSchemaType approvalSchemaType);           // expects empty (newly created) ApprovalSchemaType instance
 }
