@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.roles;
 
 
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 
 /**
@@ -24,4 +25,5 @@ import com.evolveum.midpoint.web.page.admin.PageAdmin;
  */
 public class PageAdminRoles extends PageAdmin {
 
+    public static final String AUTHORIZATION_ROLE_ALL = AuthorizationConstants.NS_AUTHORIZATION + "#roleAll";
 }

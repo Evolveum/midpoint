@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.resources.content;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.ChangeType;
@@ -82,7 +83,9 @@ import java.util.List;
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/resources/content/accounts", encoder = OnePageParameterEncoder.class)
+@PageDescriptor(url = "/admin/resources/content/accounts", encoder = OnePageParameterEncoder.class, action = {
+        PageAdminResources.AUTHORIZATION_RESOURCE_ALL,
+        AuthorizationConstants.NS_AUTHORIZATION + "#resourcesContentAccounts"})
 public class PageContentAccounts extends PageAdminResources {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageContentAccounts.class);

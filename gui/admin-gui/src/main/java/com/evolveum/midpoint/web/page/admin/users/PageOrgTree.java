@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.users;
 
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
@@ -44,7 +45,9 @@ import java.util.List;
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/org/tree")
+@PageDescriptor(url = "/admin/org/tree", action = {
+        PageAdminUsers.AUTHORIZATION_ORG_ALL,
+        AuthorizationConstants.NS_AUTHORIZATION + "#orgTree"})
 public class PageOrgTree extends PageAdminUsers {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageOrgTree.class);

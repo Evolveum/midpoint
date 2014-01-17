@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.resources;
 
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -36,6 +37,7 @@ import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceController;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceObjectTypeDto;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceStatus;
+import com.evolveum.midpoint.web.page.admin.roles.PageAdminRoles;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import org.apache.commons.lang.StringUtils;
@@ -66,7 +68,9 @@ import java.util.List;
  * @author lazyman
  * @author Michal Serbak
  */
-@PageDescriptor(url = "/admin/resource", encoder = OnePageParameterEncoder.class)
+@PageDescriptor(url = "/admin/resource", encoder = OnePageParameterEncoder.class, action = {
+        PageAdminResources.AUTHORIZATION_RESOURCE_ALL,
+        AuthorizationConstants.NS_AUTHORIZATION + "#resource"})
 public class PageResource extends PageAdminResources {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageResource.class);

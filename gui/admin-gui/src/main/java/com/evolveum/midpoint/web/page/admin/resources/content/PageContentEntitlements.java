@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.resources.content;
 
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
@@ -31,7 +32,9 @@ import org.apache.wicket.model.StringResourceModel;
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/resources/content/entitlements", encoder = OnePageParameterEncoder.class)
+@PageDescriptor(url = "/admin/resources/content/entitlements", encoder = OnePageParameterEncoder.class, action = {
+        AuthorizationConstants.AUTZ_DENY_ALL
+})
 public class PageContentEntitlements extends PageAdminResources {
 
     private IModel<PrismObject<ResourceType>> resourceModel;

@@ -17,11 +17,11 @@
 package com.evolveum.midpoint.web.page.login;
 
 import com.evolveum.midpoint.web.application.PageDescriptor;
-import com.evolveum.midpoint.web.component.menu.top.TopMenuBar;
 import com.evolveum.midpoint.web.component.menu.top.LocalePanel;
+import com.evolveum.midpoint.web.component.menu.top.TopMenuBar;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.security.MidPointAuthWebSession;
-import com.evolveum.midpoint.web.util.WebMiscUtil;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.PasswordTextField;
 import org.apache.wicket.markup.html.form.RequiredTextField;
@@ -52,12 +52,7 @@ public class PageLogin extends PageBase {
                 RequiredTextField<String> username = (RequiredTextField) get(ID_USERNAME);
                 PasswordTextField password = (PasswordTextField) get(ID_PASSWORD);
                 if (session.authenticate(username.getModelObject(), password.getModelObject())) {
-                    //continueToOriginalDestination();
-                    setResponsePage(WebMiscUtil.getHomePage());
-
-                    //TODO disable! just a sample for ajax push (wicket-atmosphere) [lazyman]
-//                    EventBus bus = getMidpointApplication().getEventBus();
-//                    bus.post(new NotifyMessage("Information", "User logged in."));
+                    setResponsePage(PageDashboard.class);
                 }
             }
         };
@@ -69,6 +64,6 @@ public class PageLogin extends PageBase {
 
     @Override
     protected IModel<String> createPageTitleModel() {
-        return new Model<String>("");
+        return new Model<>("");
     }
 }

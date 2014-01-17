@@ -19,7 +19,6 @@ package com.evolveum.midpoint.web.security;
 import com.evolveum.midpoint.web.page.admin.configuration.*;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.home.PageMyPasswords;
-import com.evolveum.midpoint.web.page.admin.configuration.PageAccounts;
 import com.evolveum.midpoint.web.page.admin.reports.PageReports;
 import com.evolveum.midpoint.web.page.admin.resources.PageResource;
 import com.evolveum.midpoint.web.page.admin.resources.PageResourceEdit;
@@ -49,39 +48,40 @@ import static com.evolveum.midpoint.common.security.AuthorizationConstants.*;
  */
 public enum PageUrlMapping {
 
-    LOGIN("/login", PageLogin.class, null),
+//    LOGIN("/login", PageLogin.class, null),
 
-    ADMIN_DASHBOARD("/admin/dashboard", PageDashboard.class, new String[]{AUTZ_UI_DASHBOARD_URL, AUTZ_UI_HOME_ALL_URL}),
+//    ADMIN_DASHBOARD("/admin/dashboard", PageDashboard.class, new String[]{AUTZ_UI_DASHBOARD_URL, AUTZ_UI_HOME_ALL_URL}),
 
-    ADMIN_MY_PASSWORDS("/admin/myPasswords", PageMyPasswords.class, new String[]{AUTZ_UI_MY_PASSWORDS_URL, AUTZ_UI_HOME_ALL_URL}),
+//    ADMIN_MY_PASSWORDS("/admin/myPasswords", PageMyPasswords.class, new String[]{AUTZ_UI_MY_PASSWORDS_URL, AUTZ_UI_HOME_ALL_URL}),
 
-    ADMIN_USERS("/admin/users", PageUsers.class, new String[]{AUTZ_UI_USERS_URL, AUTZ_UI_USERS_ALL_URL}),
-    ADMIN_FIND_USERS("/admin/users/find", PageFindUsers.class, new String[]{AUTZ_UI_FIND_USERS_URL, AUTZ_UI_USERS_ALL_URL}),
-    ADMIN_USER("/admin/user", PageUser.class, new String[]{AUTZ_UI_USER_URL, AUTZ_UI_USERS_ALL_URL}),
+//    ADMIN_USERS("/admin/users", PageUsers.class, new String[]{AUTZ_UI_USERS_URL, AUTZ_UI_USERS_ALL_URL}),
+//    ADMIN_FIND_USERS("/admin/users/find", PageFindUsers.class, new String[]{AUTZ_UI_FIND_USERS_URL, AUTZ_UI_USERS_ALL_URL}),
+//    ADMIN_USER("/admin/user", PageUser.class, new String[]{AUTZ_UI_USER_URL, AUTZ_UI_USERS_ALL_URL}),
     ADMIN_USER_DETAILS("/admin/user/**", null, new String[]{AUTZ_UI_USER_DETAILS_URL, AUTZ_UI_USERS_ALL_URL}),
-    ADMIN_USERS_BULK("/admin/users/bulk", PageBulkUsers.class, new String[]{AUTZ_DENY_ALL_URL}),
+//    ADMIN_USERS_BULK("/admin/users/bulk", PageBulkUsers.class, new String[]{AUTZ_DENY_ALL_URL}),
+
     //fix security [lazyman]
-    ORG_UNIT("/admin/org/unit", PageOrgUnit.class, null),
-    ORG_TREE("/admin/org/tree", PageOrgTree.class, new String[]{AUTZ_UI_ORG_STRUCT_URL, AUTZ_UI_USERS_ALL_URL}),
+//    ORG_UNIT("/admin/org/unit", PageOrgUnit.class, null),
+//    ORG_TREE("/admin/org/tree", PageOrgTree.class, new String[]{AUTZ_UI_ORG_STRUCT_URL, AUTZ_UI_USERS_ALL_URL}),
 
-    TASK("/admin/task", PageTaskEdit.class, new String[]{AUTZ_UI_TASK_URL, AUTZ_UI_TASKS_ALL_URL}),
+//    TASK("/admin/task", PageTaskEdit.class, new String[]{AUTZ_UI_TASK_URL, AUTZ_UI_TASKS_ALL_URL}),
     TASK_DETAILS("/admin/task/**", null, new String[]{AUTZ_UI_TASK_DETAIL_URL, AUTZ_UI_TASKS_ALL_URL}),
-    TASKS("/admin/tasks", PageTasks.class, new String[]{AUTZ_UI_TASKS_URL, AUTZ_UI_TASKS_ALL_URL}),
-    ADD_TASK("/admin/addTask", PageTaskAdd.class, new String[]{AUTZ_UI_TASK_ADD_URL, AUTZ_UI_TASKS_ALL_URL}),
+//    TASKS("/admin/tasks", PageTasks.class, new String[]{AUTZ_UI_TASKS_URL, AUTZ_UI_TASKS_ALL_URL}),
+//    ADD_TASK("/admin/addTask", PageTaskAdd.class, new String[]{AUTZ_UI_TASK_ADD_URL, AUTZ_UI_TASKS_ALL_URL}),
 
-    ROLE("/admin/role", PageRole.class, new String[]{AUTZ_UI_ROLE_URL, AUTZ_UI_ROLES_ALL_URL}),
+//    ROLE("/admin/role", PageRole.class, new String[]{AUTZ_UI_ROLE_URL, AUTZ_UI_ROLES_ALL_URL}),
     ROLE_DETAILS("/admin/role/**", null, new String[]{AUTZ_UI_ROLE_DETAILS_URL, AUTZ_UI_ROLES_ALL_URL}),
-    ROLES("/admin/roles", PageRoles.class, new String[]{AUTZ_UI_ROLES_URL, AUTZ_UI_ROLES_ALL_URL}),
+//    ROLES("/admin/roles", PageRoles.class, new String[]{AUTZ_UI_ROLES_URL, AUTZ_UI_ROLES_ALL_URL}),
 
-    RESOURCE("/admin/resource", PageResource.class, new String[]{AUTZ_UI_RESOURCE_URL, AUTZ_UI_RESOURCES_ALL_URL}),
+//    RESOURCE("/admin/resource", PageResource.class, new String[]{AUTZ_UI_RESOURCE_URL, AUTZ_UI_RESOURCES_ALL_URL}),
     RESOURCE_DETAILS("/admin/resource/**", null, new String[]{AUTZ_UI_RESOURCE_DETAILS_URL, AUTZ_UI_RESOURCES_ALL_URL}),
-    RESOURCE_EDIT("/admin/resource/edit", PageResourceEdit.class, new String[]{AUTZ_UI_RESOURCE_EDIT_URL, AUTZ_UI_RESOURCES_ALL_URL}),
+//    RESOURCE_EDIT("/admin/resource/edit", PageResourceEdit.class, new String[]{AUTZ_UI_RESOURCE_EDIT_URL, AUTZ_UI_RESOURCES_ALL_URL}),
     //todo url security for wizard
-    RESOURCE_WIZARD("/admin/resource/wizard", PageResourceWizard.class, null),
-    RESOURCES("/admin/resources", PageResources.class, new String[]{AUTZ_UI_RESOURCES_URL, AUTZ_UI_RESOURCES_ALL_URL}),
-    RESOURCES_ACCOUNT("/admin/resources/account", PageAccount.class, new String[]{AUTZ_UI_RESOURCES_ACCOUNT_URL, AUTZ_UI_RESOURCES_ALL_URL}),
-    RESOURCES_CONTENT_ACCOUNTS("/admin/resources/content/accounts", PageContentAccounts.class, new String[]{AUTZ_UI_RESOURCES_CONTENT_ACCOUNTS_URL, AUTZ_UI_RESOURCES_ALL_URL}),
-    RESOURCES_CONTENT_ENTITLEMENTS("/admin/resources/content/entitlements", PageContentEntitlements.class, new String[]{AUTZ_DENY_ALL_URL}),
+//    RESOURCE_WIZARD("/admin/resource/wizard", PageResourceWizard.class, null),
+//    RESOURCES("/admin/resources", PageResources.class, new String[]{AUTZ_UI_RESOURCES_URL, AUTZ_UI_RESOURCES_ALL_URL}),
+//    RESOURCES_ACCOUNT("/admin/resources/account", PageAccount.class, new String[]{AUTZ_UI_RESOURCES_ACCOUNT_URL, AUTZ_UI_RESOURCES_ALL_URL}),
+//    RESOURCES_CONTENT_ACCOUNTS("/admin/resources/content/accounts", PageContentAccounts.class, new String[]{AUTZ_UI_RESOURCES_CONTENT_ACCOUNTS_URL, AUTZ_UI_RESOURCES_ALL_URL}),
+//    RESOURCES_CONTENT_ENTITLEMENTS("/admin/resources/content/entitlements", PageContentEntitlements.class, new String[]{AUTZ_DENY_ALL_URL}),
 
     WORK_ITEM("/admin/workItem", PageWorkItem.class, new String[]{AUTZ_UI_WORK_ITEM_URL, AUTZ_UI_WORK_ITEMS_ALL_URL}),
     WORK_ITEMS("/admin/workItems", PageWorkItems.class, new String[]{AUTZ_UI_WORK_ITEMS_URL, AUTZ_UI_WORK_ITEMS_ALL_URL}),
@@ -102,7 +102,7 @@ public enum PageUrlMapping {
 
     REPORTS("/admin/reports", PageReports.class, new String[]{AUTZ_UI_REPORTS_URL}),
 
-    ADMIN("/admin", PageDashboard.class, new String[]{AUTZ_UI_DASHBOARD_URL, AUTZ_UI_HOME_ALL_URL}),
+//    ADMIN("/admin", PageDashboard.class, new String[]{AUTZ_UI_DASHBOARD_URL, AUTZ_UI_HOME_ALL_URL}),
 
     ERROR("/error", PageError.class, null),
     ERROR_401("/error/401", PageError401.class, null),
@@ -119,28 +119,6 @@ public enum PageUrlMapping {
         this.page = page;
         this.url = url;
         this.action = action;
-    }
-
-    public static String[] findActions(Class page) {
-        for (PageUrlMapping urlMapping : values()) {
-            if (page.equals(urlMapping.getPage())) {
-                return urlMapping.getAction();
-            }
-        }
-        return null;
-    }
-
-    public static Class findClassForAction(String action) {
-        for (PageUrlMapping urlMapping : values()) {
-            if (urlMapping.getAction() != null) {
-                for (String act : urlMapping.getAction()) {
-                    if (act.equals(action)) {
-                        return urlMapping.getPage();
-                    }
-                }
-            }
-        }
-        return null;
     }
 
     public Class<? extends WebPage> getPage() {

@@ -36,6 +36,7 @@ public class AuthorizationConstants {
 	
 	public static final QName AUTZ_DENY_ALL_QNAME = new QName(NS_AUTHORIZATION, "denyAll");
 	public static final String AUTZ_DENY_ALL_URL = QNameUtil.qNameToUri(AUTZ_DENY_ALL_QNAME);
+    public static final String AUTZ_DENY_ALL = NS_AUTHORIZATION + "#denyAll";
 	
 	//user
 	public static final QName AUTZ_UI_USERS_ALL_QNAME = new QName(NS_AUTHORIZATION, "usersAll");

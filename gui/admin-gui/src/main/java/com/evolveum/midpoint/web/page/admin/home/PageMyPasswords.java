@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.home;
 
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismReference;
@@ -63,7 +64,9 @@ import java.util.List;
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/myPasswords")
+@PageDescriptor(url = "/admin/myPasswords", action = {
+        PageAdminHome.AUTHORIZATION_HOME_ALL,
+        AuthorizationConstants.NS_AUTHORIZATION + "#myPasswords"})
 public class PageMyPasswords extends PageAdminHome {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageMyPasswords.class);

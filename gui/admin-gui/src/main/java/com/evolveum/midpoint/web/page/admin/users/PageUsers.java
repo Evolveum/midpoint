@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.users;
 
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
@@ -44,6 +45,7 @@ import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
+import com.evolveum.midpoint.web.page.admin.home.PageAdminHome;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserListItemDto;
@@ -74,7 +76,9 @@ import java.util.Map;
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/users")
+@PageDescriptor(url = "/admin/users", action = {
+        PageAdminUsers.AUTHORIZATION_USERS_ALL,
+        AuthorizationConstants.NS_AUTHORIZATION + "#users"})
 public class PageUsers extends PageAdminUsers {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageUsers.class);

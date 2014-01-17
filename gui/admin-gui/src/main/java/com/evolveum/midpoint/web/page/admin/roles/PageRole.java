@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.roles;
 
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
@@ -28,6 +29,7 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.xml.ace.AceEditor;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
+import com.evolveum.midpoint.web.page.admin.users.PageAdminUsers;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
@@ -44,7 +46,9 @@ import org.apache.wicket.util.string.StringValue;
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/role", encoder = OnePageParameterEncoder.class)
+@PageDescriptor(url = "/admin/role", encoder = OnePageParameterEncoder.class, action = {
+        PageAdminRoles.AUTHORIZATION_ROLE_ALL,
+        AuthorizationConstants.NS_AUTHORIZATION + "#role"})
 public class PageRole extends PageAdminRoles {
 
     private static final String DOT_CLASS = PageRole.class.getName() + ".";

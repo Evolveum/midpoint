@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.server;
 
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -50,6 +51,7 @@ import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProviderOptions;
 import com.evolveum.midpoint.web.page.admin.server.subtasks.SubtasksPanel;
 import com.evolveum.midpoint.web.page.admin.server.workflowInformation.WorkflowInformationPanel;
+import com.evolveum.midpoint.web.page.admin.users.PageAdminUsers;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
@@ -99,7 +101,9 @@ import java.util.List;
  * @author lazyman
  * @author mserbak
  */
-@PageDescriptor(url = "/admin/task", encoder = OnePageParameterEncoder.class)
+@PageDescriptor(url = "/admin/task", encoder = OnePageParameterEncoder.class, action = {
+        PageAdminTasks.AUTHORIZATION_TASKS_ALL,
+        AuthorizationConstants.NS_AUTHORIZATION + "#task"})
 public class PageTaskEdit extends PageAdminTasks {
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageTaskEdit.class);
