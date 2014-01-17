@@ -172,4 +172,36 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         IntegrationTestTools.assertMember(dummyGroup, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
 	}
 
+    @Test(enabled=false) // WORK IN PROGRESS
+    public void test200AssignRoleSwashbucklerToJack() throws Exception {
+		final String TEST_NAME = "test200AssignRoleSwashbucklerToJack";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestEntitlements.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ObjectDelta<ShadowType> delta = IntegrationTestTools.createEntitleDelta(ACCOUNT_SHADOW_GUYBRUSH_OID, 
+				dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
+				SHADOW_GROUP_DUMMY_SWASHBUCKLERS_OID, prismContext);
+        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
+        
+		// WHEN
+        assignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, task, result);
+        
+        // THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+        
+        PrismObject<UserType> user = getUser(USER_JACK_OID);
+        display("User jack", user);
+        // TODO: assert role assignment
+        
+        DummyGroup dummyGroup = dummyResource.getGroupByName(GROUP_DUMMY_SWASHBUCKLERS_NAME);
+        assertNotNull("No group on dummy resource", dummyGroup);
+        display("Group", dummyGroup);
+        assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION, 
+        		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
+        IntegrationTestTools.assertMember(dummyGroup, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+        IntegrationTestTools.assertMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
+	}
 }

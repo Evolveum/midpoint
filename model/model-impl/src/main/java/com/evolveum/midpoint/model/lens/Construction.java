@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,8 +61,11 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceAttributeDefinitionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 
 /**
  * Live class that contains "construction" - a definition how to construct a resource object. It in fact reflects
@@ -87,12 +90,14 @@ public class Construction<F extends FocusType> implements DebugDumpable, Dumpabl
 	private ObjectResolver objectResolver;
 	private MappingFactory mappingFactory;
 	private Collection<Mapping<? extends PrismPropertyValue<?>>> attributeMappings;
+	private Collection<Mapping<PrismContainerValue<ShadowAssociationType>>> associationMappings;
 	private RefinedObjectClassDefinition refinedAccountDefinition;
 	private PrismContainerValue<AssignmentType> magicAssignment;
 	private PrismContainerValue<AssignmentType> immediateAssignment;
 	private PrismContainerValue<AssignmentType> thisAssignment;
 	private PrismObject<? extends AbstractRoleType> immediateRole;
 	private PrismContext prismContext;
+	private PrismContainerDefinition<ShadowAssociationType> associationContainerDefinition;
 	
 	private static final Trace LOGGER = TraceManager.getTrace(Construction.class);
 	
@@ -209,6 +214,13 @@ public class Construction<F extends FocusType> implements DebugDumpable, Dumpabl
 		}
 		return false;
 	}
+	
+	public Collection<Mapping<PrismContainerValue<ShadowAssociationType>>> getAssociationMappings() {
+		if (associationMappings == null) {
+			associationMappings = new ArrayList<Mapping<PrismContainerValue<ShadowAssociationType>>>();
+		}
+		return associationMappings;
+	}
 
 	public AssignmentPath getAssignmentPath() {
 		return assignmentPath;
@@ -238,12 +250,13 @@ public class Construction<F extends FocusType> implements DebugDumpable, Dumpabl
 	}
 	
 	public void evaluate(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
-		evaluateAccountType(result);
+		evaluateKindIntent(result);
 		computeVariables(result);
 		evaluateAttributes(task, result);
+		evaluateAssociations(task, result);
 	}
 	
-	private void evaluateAccountType(OperationResult result) throws SchemaException, ObjectNotFoundException {
+	private void evaluateKindIntent(OperationResult result) throws SchemaException, ObjectNotFoundException {
 		String resourceOid = null;
 		if (constructionType.getResourceRef() != null) {
 			resourceOid = constructionType.getResourceRef().getOid();
@@ -407,7 +420,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Dumpabl
 
 		LensUtil.evaluateMapping(mapping, lensContext, task, result);
 		
-		LOGGER.trace("Evaluated mapping for "+attrName+": "+mapping);
+		LOGGER.trace("Evaluated mapping for attribute "+attrName+": "+mapping);
 		return mapping;
 	}
 
@@ -426,13 +439,92 @@ public class Construction<F extends FocusType> implements DebugDumpable, Dumpabl
 		}
 		return false;
 	}
+	
+	private void evaluateAssociations(Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		associationMappings = new ArrayList<Mapping<PrismContainerValue<ShadowAssociationType>>>();
+		for (ResourceObjectAssociationType associationDefinitionType : constructionType.getAssociation()) {
+			QName assocName = associationDefinitionType.getName();
+			if (assocName == null) {
+				throw new SchemaException("No association name (ref) in association definition in construction in "+source);
+			}
+			MappingType outboundMappingType = associationDefinitionType.getOutbound();
+			if (outboundMappingType == null) {
+				throw new SchemaException("No outbound section in definition of association "+assocName+" in construction in "+source);
+			}
+			Mapping<PrismContainerValue<ShadowAssociationType>> assocMapping = evaluateAssociation(associationDefinitionType, task, result);
+			if (assocMapping != null) {
+				associationMappings.add(assocMapping);
+			}
+		}
+	}
+
+	private Mapping<PrismContainerValue<ShadowAssociationType>> evaluateAssociation(ResourceObjectAssociationType associationDefinitionType,
+			Task task, OperationResult result) 
+			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		QName assocName = associationDefinitionType.getName();
+		if (assocName == null) {
+			throw new SchemaException("Missing 'ref' in association in construction in "+source);
+		}
+		MappingType outboundMappingType = associationDefinitionType.getOutbound();
+		if (outboundMappingType == null) {
+			throw new SchemaException("No outbound section in definition of association "+assocName+" in construction in "+source);
+		}
+		PrismContainerDefinition<ShadowAssociationType> outputDefinition = getAssociationContainerDefinition();
+		Mapping<PrismContainerValue<ShadowAssociationType>> mapping = mappingFactory.createMapping(outboundMappingType,
+				"for association " + PrettyPrinter.prettyPrint(assocName)  + " in " + source);
 		
+		if (!mapping.isApplicableToChannel(channel)) {
+			return null;
+		}
+		
+		mapping.addVariableDefinition(ExpressionConstants.VAR_USER, userOdo);
+		mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS, userOdo);
+		mapping.addVariableDefinition(ExpressionConstants.VAR_SOURCE, source);
+		mapping.setSourceContext(userOdo);
+		mapping.setRootNode(userOdo);
+		mapping.setDefaultTargetDefinition(outputDefinition);
+		mapping.setOriginType(originType);
+		mapping.setOriginObject(source);
+		if (!assignmentPath.isEmpty()) {
+			AssignmentType assignmentType = assignmentPath.getFirstAssignment();
+			mapping.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, magicAssignment);
+			mapping.addVariableDefinition(ExpressionConstants.VAR_IMMEDIATE_ASSIGNMENT, immediateAssignment);
+			mapping.addVariableDefinition(ExpressionConstants.VAR_THIS_ASSIGNMENT, thisAssignment);
+			mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS_ASSIGNMENT, assignmentType.asPrismContainerValue());
+			mapping.addVariableDefinition(ExpressionConstants.VAR_IMMEDIATE_ROLE, immediateRole);
+		}
+		// TODO: other variables ?
+		
+		// Set condition masks. There are used as a brakes to avoid evaluating to nonsense values in case user is not present
+		// (e.g. in old values in ADD situations and new values in DELETE situations).
+		if (userOdo.getOldObject() == null) {
+			mapping.setConditionMaskOld(false);
+		}
+		if (userOdo.getNewObject() == null) {
+			mapping.setConditionMaskNew(false);
+		}
+
+		LensUtil.evaluateMapping(mapping, lensContext, task, result);
+		
+		LOGGER.trace("Evaluated mapping for association "+assocName+": "+mapping);
+		return mapping;
+	}
+	
+	private PrismContainerDefinition<ShadowAssociationType> getAssociationContainerDefinition() {
+		if (associationContainerDefinition == null) {
+			PrismObjectDefinition<ShadowType> shadowDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
+			associationContainerDefinition = shadowDefinition.findContainerDefinition(ShadowType.F_ASSOCIATION);
+		}
+		return associationContainerDefinition;
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((assignmentPath == null) ? 0 : assignmentPath.hashCode());
 		result = prime * result + ((attributeMappings == null) ? 0 : attributeMappings.hashCode());
+		result = prime * result + ((associationMappings == null) ? 0 : associationMappings.hashCode());
 		result = prime * result
 				+ ((refinedAccountDefinition == null) ? 0 : refinedAccountDefinition.hashCode());
 		result = prime * result + ((resource == null) ? 0 : resource.hashCode());
@@ -458,6 +550,11 @@ public class Construction<F extends FocusType> implements DebugDumpable, Dumpabl
 			if (other.attributeMappings != null)
 				return false;
 		} else if (!attributeMappings.equals(other.attributeMappings))
+			return false;
+		if (associationMappings == null) {
+			if (other.associationMappings != null)
+				return false;
+		} else if (!associationMappings.equals(other.associationMappings))
 			return false;
 		if (refinedAccountDefinition == null) {
 			if (other.refinedAccountDefinition != null)
@@ -501,9 +598,15 @@ public class Construction<F extends FocusType> implements DebugDumpable, Dumpabl
 		}
 		sb.append(")");
 		if (attributeMappings != null) {
-			for (Mapping attrConstr: attributeMappings) {
+			for (Mapping mapping: attributeMappings) {
 				sb.append("\n");
-				sb.append(attrConstr.debugDump(indent+1));
+				sb.append(mapping.debugDump(indent+1));
+			}
+		}
+		if (associationMappings != null) {
+			for (Mapping mapping: associationMappings) {
+				sb.append("\n");
+				sb.append(mapping.debugDump(indent+1));
 			}
 		}
 		return sb.toString();
@@ -511,7 +614,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Dumpabl
 
 	@Override
 	public String toString() {
-		return "Construction(" + attributeMappings + ")";
+		return "Construction(" + (refinedAccountDefinition == null ? "unknown" : refinedAccountDefinition.getShadowDiscriminator()) + ")";
 	}
 	
 }

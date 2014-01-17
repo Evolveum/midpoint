@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2014 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -33,7 +33,18 @@
 					</expression>
 				</outbound>
             </attribute>
-            
+            <association>
+            	<name>group</name>
+            	<outbound>
+            		<expression>
+            			<value>
+            				<association>
+            					<shadowRef oid="20000000-0000-0000-3333-000000000001"/>
+            				</association>
+            			</value>
+            		</expression>
+            	</outbound>
+            </association>
     	</construction>
     </inducement>
 </role>

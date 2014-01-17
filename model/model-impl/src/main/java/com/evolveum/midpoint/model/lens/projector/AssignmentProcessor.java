@@ -440,7 +440,7 @@ public class AssignmentProcessor {
             LensProjectionContext accountContext = context.findProjectionContext(rat);
             if (accountContext != null) {
             	// This can be null in a exotic case if we delete already deleted account
-            	accountContext.setAccountConstructionDeltaSetTriple(accountDeltaSetTriple);
+            	accountContext.setConstructionDeltaSetTriple(accountDeltaSetTriple);
             	if (isForceRecon(zeroAccountMap.get(rat)) || isForceRecon(plusAccountMap.get(rat)) || isForceRecon(minusAccountMap.get(rat))) {
             		accountContext.setDoReconciliation(true);
             	}

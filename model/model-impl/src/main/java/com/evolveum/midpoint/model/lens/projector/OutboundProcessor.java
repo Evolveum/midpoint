@@ -210,6 +210,6 @@ public class OutboundProcessor {
 			outboundAccountConstruction.addAttributeMapping(mapping);
         }
         
-        accCtx.setOutboundAccountConstruction(outboundAccountConstruction);
+        accCtx.setOutboundConstruction(outboundAccountConstruction);
     }
 }
