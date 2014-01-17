@@ -43,9 +43,7 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
-import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
@@ -65,8 +63,6 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
@@ -179,30 +175,6 @@ public class ProvisioningTestUtil {
 		QName attrQname = new QName(ResourceTypeUtil.getResourceNamespace(resource), attrName);
 		ResourceAttribute attribute = ShadowUtil.getAttribute(shadow.asPrismContainer(), attrQname);
 		assertNull("Unexpected attribute "+attrQname+" in "+shadow+": "+attribute, attribute);
-	}
-	
-	public static ObjectDelta<ShadowType> createEntitleDelta(String accountOid, QName associationName, String groupOid, PrismContext prismContext) throws SchemaException {
-		ShadowAssociationType association = new ShadowAssociationType();
-		association.setName(associationName);
-		ObjectReferenceType shadowRefType = new ObjectReferenceType();
-		shadowRefType.setOid(groupOid);
-		association.setShadowRef(shadowRefType);
-		ItemPath entitlementAssociationPath = new ItemPath(ShadowType.F_ASSOCIATION);
-		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationAddContainer(ShadowType.class, 
-				accountOid, entitlementAssociationPath, prismContext, association);
-		return delta;
-	}
-	
-	public static ObjectDelta<ShadowType> createDetitleDelta(String accountOid, QName associationName, String groupOid, PrismContext prismContext) throws SchemaException {
-		ShadowAssociationType association = new ShadowAssociationType();
-		association.setName(associationName);
-		ObjectReferenceType shadowRefType = new ObjectReferenceType();
-		shadowRefType.setOid(groupOid);
-		association.setShadowRef(shadowRefType);
-		ItemPath entitlementAssociationPath = new ItemPath(ShadowType.F_ASSOCIATION);
-		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationDeleteContainer(ShadowType.class, 
-				accountOid, entitlementAssociationPath, prismContext, association);
-		return delta;
 	}
 
 }
