@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.server;
 
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
@@ -68,7 +69,9 @@ import java.util.*;
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/tasks")
+@PageDescriptor(url = "/admin/tasks", action = {
+        PageAdminTasks.AUTHORIZATION_TASKS_ALL,
+        AuthorizationConstants.NS_AUTHORIZATION + "#tasks"})
 public class PageTasks extends PageAdminTasks {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageTasks.class);

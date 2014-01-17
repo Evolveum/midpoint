@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.resources;
 
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
@@ -57,7 +58,9 @@ import java.util.List;
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/resource/edit", encoder = OnePageParameterEncoder.class)
+@PageDescriptor(url = "/admin/resource/edit", encoder = OnePageParameterEncoder.class, action = {
+        PageAdminResources.AUTHORIZATION_RESOURCE_ALL,
+        AuthorizationConstants.NS_AUTHORIZATION + "#resourceEdit"})
 public class PageResourceEdit extends PageAdminResources {
 
     private static final String DOT_CLASS = PageResourceEdit.class.getName() + ".";

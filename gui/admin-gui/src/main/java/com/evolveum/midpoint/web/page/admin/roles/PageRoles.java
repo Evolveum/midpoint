@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.roles;
 
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -52,7 +53,9 @@ import java.util.List;
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/roles")
+@PageDescriptor(url = "/admin/roles", action = {
+        PageAdminRoles.AUTHORIZATION_ROLE_ALL,
+        AuthorizationConstants.NS_AUTHORIZATION + "#roles"})
 public class PageRoles extends PageAdminRoles {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageRoles.class);

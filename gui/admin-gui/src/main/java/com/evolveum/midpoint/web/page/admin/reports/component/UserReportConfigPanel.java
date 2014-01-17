@@ -17,135 +17,70 @@ package com.evolveum.midpoint.web.page.admin.reports.component;
 
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.DateInput;
+import com.evolveum.midpoint.web.component.form.DateFormGroup;
+import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
+import com.evolveum.midpoint.web.component.form.TextFormGroup;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.page.admin.reports.dto.AuditReportDto;
+import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.UserReportDto;
 import com.evolveum.midpoint.web.util.DateValidator;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExportType;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
+import javax.xml.datatype.XMLGregorianCalendar;
 import java.util.Date;
 
 /**
+ *  TODO - add proper Date validator
+ *
  *  @author shood
  * */
 public class UserReportConfigPanel extends SimplePanel<UserReportDto>{
 
-    private static final String ID_FORM = "form";
-    private static final String ID_FEEDBACK = "feedback";
+    private static final String ID_NAME = "name";
     private static final String ID_DATE_FROM = "dateFrom";
     private static final String ID_DATE_TO = "dateTo";
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_EXPORT_TYPE = "exportType";
-    private static final String ID_BUTTON_RUN = "runSave";
-    private static final String ID_BUTTON_SAVE = "save";
-    private static final String ID_BUTTON_CANCEL = "cancel";
+
+    private static final String ID_LABEL_SIZE = "col-md-4";
+    private static final String ID_INPUT_SIZE = "col-md-6";
 
     public UserReportConfigPanel(String componentId, IModel<UserReportDto> model){
         super(componentId, model);
-
         initLayout(this);
     }
 
     protected void initLayout(final Component component){
-        Form form = new Form(ID_FORM);
-        add(form);
 
-        final FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK);
-        feedback.setOutputMarkupId(true);
-        form.add(feedback);
+        TextFormGroup name = new TextFormGroup(ID_NAME, new PropertyModel<String>(getModel(), UserReportDto.F_NAME),
+                createStringResource("ObjectType.name"), ID_LABEL_SIZE, ID_INPUT_SIZE, true);
+        add(name);
 
-        TextField<String> description = new TextField<String>(ID_DESCRIPTION,
-                new PropertyModel<String>(getModel(), UserReportDto.F_DESCRIPTION));
-        description.setRequired(true);
-        form.add(description);
+        TextFormGroup description = new TextFormGroup(ID_DESCRIPTION, new PropertyModel<String>(getModel(), UserReportDto.F_DESCRIPTION),
+                createStringResource("ObjectType.description"), ID_LABEL_SIZE, ID_INPUT_SIZE, true);
+        add(description);
 
-        IChoiceRenderer<ExportType> renderer = new IChoiceRenderer<ExportType>() {
+        IModel choices = WebMiscUtil.createReadonlyModelFromEnum(ExportType.class);
+        IChoiceRenderer renderer = new EnumChoiceRenderer();
+        DropDownFormGroup exportType = new DropDownFormGroup(ID_EXPORT_TYPE, new
+                PropertyModel<ExportType>(getModel(), UserReportDto.F_EXPORT_TYPE), choices, renderer,
+                createStringResource("UserReportConfigPanel.exportFileType"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+        add(exportType);
 
-            @Override
-            public Object getDisplayValue(ExportType object) {
-                return WebMiscUtil.createLocalizedModelForEnum(object, component).getObject();
-            }
+        DateFormGroup dateFrom = new DateFormGroup(ID_DATE_FROM, new PropertyModel<XMLGregorianCalendar>(getModel(), UserReportDto.F_FROM_GREG),
+                createStringResource("UserReportConfigPanel.dateFrom"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+        add(dateFrom);
 
-            @Override
-            public String getIdValue(ExportType object, int index) {
-                return Integer.toString(index);
-            }
-        };
-
-        DropDownChoice dropDown = new DropDownChoice(ID_EXPORT_TYPE, new PropertyModel<ExportType>(getModel(),
-                UserReportDto.F_EXPORT_TYPE), WebMiscUtil.createReadonlyModelFromEnum(ExportType.class), renderer){
-
-            @Override
-            protected CharSequence getDefaultChoice(final String selectedValue){
-                return ExportType.PDF.toString();
-            }
-        };
-        form.add(dropDown);
-
-        DateInput dateFrom = new DateInput(ID_DATE_FROM, new PropertyModel<Date>(getModel(), UserReportDto.F_FROM));
-        dateFrom.setRequired(true);
-        form.add(dateFrom);
-
-        DateInput dateTo = new DateInput(ID_DATE_TO, new PropertyModel<Date>(getModel(), UserReportDto.F_TO));
-        dateFrom.setRequired(true);
-        form.add(dateTo);
-
-        form.add(new DateValidator(dateFrom, dateTo));
-
-        AjaxSubmitButton saveAndRun = new AjaxSubmitButton(ID_BUTTON_RUN, createStringResource("PageBase.button.saveAndRun")) {
-
-            @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
-                target.add(feedback);
-            }
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                onSaveAndRunPerformed(target);
-            }
-        };
-        form.add(saveAndRun);
-
-        AjaxSubmitButton save = new AjaxSubmitButton(ID_BUTTON_SAVE, createStringResource("PageBase.button.save")) {
-
-            @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
-                target.add(feedback);
-            }
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                onSavePerformed(target);
-            }
-        };
-        form.add(save);
-
-        AjaxSubmitButton cancel = new AjaxSubmitButton(ID_BUTTON_CANCEL, createStringResource("PageBase.button.cancel")) {
-
-            @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
-                target.add(feedback);
-            }
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                onCancelPerformed(target);
-            }
-        };
-        form.add(cancel);
+        DateFormGroup dateTo = new DateFormGroup(ID_DATE_TO, new PropertyModel<XMLGregorianCalendar>(getModel(), UserReportDto.F_TO_GREG),
+                createStringResource("UserReportConfigPanel.dateTo"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+        add(dateTo);
     }
-
-    protected void onSaveAndRunPerformed(AjaxRequestTarget target) {}
-    protected void onSavePerformed(AjaxRequestTarget target) {}
-    protected void onCancelPerformed(AjaxRequestTarget target) {}
-
 }

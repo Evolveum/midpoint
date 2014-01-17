@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.web.page.admin.reports.dto;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExportType;
+
 import java.io.Serializable;
 
 /**
@@ -34,10 +36,12 @@ public class ReportDto implements Serializable {
 
     public static final String F_NAME = "name";
     public static final String F_DESCRIPTION = "description";
+    public static final String F_EXPORT_TYPE = "exportType";
 
     private Type type;
     private String name;
     private String description;
+    private ExportType exportType;
 
     public ReportDto(Type type, String name, String description) {
         this.type = type;
@@ -49,11 +53,31 @@ public class ReportDto implements Serializable {
         return type;
     }
 
-    public String getDescription() {
-        return description;
+    public void setType(Type type) {
+        this.type = type;
     }
 
     public String getName() {
         return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public ExportType getExportType() {
+        return exportType;
+    }
+
+    public void setExportType(ExportType exportType) {
+        this.exportType = exportType;
     }
 }

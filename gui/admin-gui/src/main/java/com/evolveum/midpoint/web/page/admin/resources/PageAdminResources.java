@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.resources;
 
 
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
@@ -44,6 +45,7 @@ public class PageAdminResources extends PageAdmin {
     private static final String OPERATION_LOAD_RESOURCE = DOT_CLASS + "loadResource";
 
     protected static final Trace LOGGER = TraceManager.getTrace(PageAdminResources.class);
+    public static final String AUTHORIZATION_RESOURCE_ALL = AuthorizationConstants.NS_AUTHORIZATION + "#resourcesAll";
 
     protected boolean isResourceOidAvailable() {
         StringValue resourceOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);

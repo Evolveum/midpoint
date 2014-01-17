@@ -56,9 +56,9 @@ import static com.evolveum.midpoint.common.security.AuthorizationConstants.AUTZ_
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/dashboard", action = {
-        PageAdminHome.AUTHORIZATION_HOME,
-        AuthorizationConstants.NS_AUTHORIZATION_UI + "#dashboard"})
+@PageDescriptor(url = {"/admin/dashboard", "/admin"}, action = {
+        PageAdminHome.AUTHORIZATION_HOME_ALL,
+        AuthorizationConstants.NS_AUTHORIZATION + "#dashboard"})
 public class PageDashboard extends PageAdminHome {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageDashboard.class);

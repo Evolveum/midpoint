@@ -16,8 +16,10 @@
 
 package com.evolveum.midpoint.web.page.admin.reports;
 
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromStream;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.DropDownMultiChoice;
@@ -53,6 +55,9 @@ import java.util.Map;
 /**
  * @author lazyman
  */
+@PageDescriptor(url = "/admin/reports/created", action = {
+        PageAdminReports.AUTHORIZATION_REPORTS_ALL,
+        AuthorizationConstants.NS_AUTHORIZATION + "#createdReports"})
 public class PageCreatedReports extends PageAdminReports {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageCreatedReports.class);
@@ -357,7 +362,7 @@ public class PageCreatedReports extends PageAdminReports {
 
             @Override
             public String getSecondSizeCssClass(){
-                return BUTTON_SIZE_CLASS.DEFAULT.toString();
+                return BUTTON_SIZE_CLASS.SMALL.toString();
             }
         };
         columns.add(column);

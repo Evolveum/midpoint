@@ -40,14 +40,19 @@ import java.util.*;
 /**
  * @author lazyman
  */
-public class DescriptorLoader {
+public final class DescriptorLoader {
 
     private static final Trace LOGGER = TraceManager.getTrace(DescriptorLoader.class);
 
     private static List<MenuBarItem> menuBarItems = new ArrayList<>();
+    private static Map<String, String[]> actions = new HashMap<>();
 
     public static List<MenuBarItem> getMenuBarItems() {
         return menuBarItems;
+    }
+
+    public static Map<String, String[]> getActions() {
+        return actions;
     }
 
     public void loadData(MidPointApplication application) {
@@ -82,9 +87,9 @@ public class DescriptorLoader {
             List<RootMenuItemType> sortedRootMenuItems = sortRootMenuItems(rootMenuItems);
             loadMenuBar(sortedRootMenuItems);
 
-            loadPageMapping(descriptor.getPackagesToScan(), application);
+            scanPackagesForPages(descriptor.getPackagesToScan(), application);
             if (customDescriptor != null) {
-                loadPageMapping(customDescriptor.getPackagesToScan(), application);
+                scanPackagesForPages(customDescriptor.getPackagesToScan(), application);
             }
         } catch (Exception ex) {
             LoggingUtils.logException(LOGGER, "Couldn't process application descriptor", ex);
@@ -152,11 +157,11 @@ public class DescriptorLoader {
         return new StringResourceModel(resourceKey, new Model<String>(), resourceKey);
     }
 
-    private void loadPageMapping(List<String> packages, MidPointApplication application)
+    private void scanPackagesForPages(List<String> packages, MidPointApplication application)
             throws InstantiationException, IllegalAccessException {
 
         for (String pac : packages) {
-            LOGGER.info("Loading page mapping for package {}", new Object[]{pac});
+            LOGGER.info("Scanning package package {} for page annotations", new Object[]{pac});
 
             Set<Class> classes = ClassPathUtil.listClasses(pac);
             for (Class clazz : classes) {
@@ -169,11 +174,24 @@ public class DescriptorLoader {
                     continue;
                 }
 
-                for (String url : descriptor.url()) {
-                    IPageParametersEncoder encoder = descriptor.encoder().newInstance();
-                    application.mount(new MountedMapper(url, clazz, encoder));
-                }
+                mountPage(descriptor, clazz, application);
+                loadActions(descriptor);
             }
+        }
+    }
+
+    private void loadActions(PageDescriptor descriptor) {
+        for (String url : descriptor.url()) {
+            actions.put(url, descriptor.action());
+        }
+    }
+
+    private void mountPage(PageDescriptor descriptor, Class clazz, MidPointApplication application)
+            throws InstantiationException, IllegalAccessException {
+
+        for (String url : descriptor.url()) {
+            IPageParametersEncoder encoder = descriptor.encoder().newInstance();
+            application.mount(new MountedMapper(url, clazz, encoder));
         }
     }
 }

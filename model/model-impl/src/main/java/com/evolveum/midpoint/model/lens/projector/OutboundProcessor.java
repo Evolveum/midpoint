@@ -141,6 +141,7 @@ public class OutboundProcessor {
 			
 			mapping.setDefaultTargetDefinition(refinedAttributeDefinition);
 			mapping.setSourceContext(focusOdo);
+			mapping.setMappingQName(attributeName);
 			mapping.addVariableDefinition(ExpressionConstants.VAR_USER, focusOdo);
 			mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS, focusOdo);
 			mapping.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, projectionOdo);

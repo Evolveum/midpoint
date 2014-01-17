@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.resources;
 
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -41,7 +42,9 @@ import org.apache.wicket.model.StringResourceModel;
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/resource/wizard", encoder = OnePageParameterEncoder.class)
+@PageDescriptor(url = "/admin/resource/wizard", encoder = OnePageParameterEncoder.class, action = {
+        PageAdminResources.AUTHORIZATION_RESOURCE_ALL,
+        AuthorizationConstants.NS_AUTHORIZATION + "#resourceWizard"})
 public class PageResourceWizard extends PageAdminResources {
 
     private static final String ID_WIZARD = "wizard";

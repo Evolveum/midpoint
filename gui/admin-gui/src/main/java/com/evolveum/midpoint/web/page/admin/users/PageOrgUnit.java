@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.users;
 
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.prism.OriginType;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -61,7 +62,9 @@ import java.util.List;
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/org/unit", encoder = OnePageParameterEncoder.class)
+@PageDescriptor(url = "/admin/org/unit", encoder = OnePageParameterEncoder.class, action = {
+        PageAdminUsers.AUTHORIZATION_ORG_ALL,
+        AuthorizationConstants.NS_AUTHORIZATION + "#orgUnit"})
 public class PageOrgUnit extends PageAdminUsers {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageOrgUnit.class);

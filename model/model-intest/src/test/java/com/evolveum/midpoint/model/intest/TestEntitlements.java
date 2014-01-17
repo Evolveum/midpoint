@@ -172,7 +172,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         IntegrationTestTools.assertMember(dummyGroup, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
 	}
 
-    @Test(enabled=false) // WORK IN PROGRESS
+    @Test
     public void test200AssignRoleSwashbucklerToJack() throws Exception {
 		final String TEST_NAME = "test200AssignRoleSwashbucklerToJack";
         TestUtil.displayTestTile(this, TEST_NAME);

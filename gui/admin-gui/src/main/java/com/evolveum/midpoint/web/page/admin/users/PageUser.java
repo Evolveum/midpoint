@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.users;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.*;
@@ -92,10 +93,11 @@ import java.util.List;
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/user", encoder = OnePageParameterEncoder.class)
+@PageDescriptor(url = "/admin/user", encoder = OnePageParameterEncoder.class, action = {
+        PageAdminUsers.AUTHORIZATION_USERS_ALL,
+        AuthorizationConstants.NS_AUTHORIZATION + "#user"})
 public class PageUser extends PageAdminUsers {
 
-    public static final String PARAM_USER_ID = "userId";
     public static final String PARAM_RETURN_PAGE = "returnPage";
     private static final String DOT_CLASS = PageUser.class.getName() + ".";
     private static final String OPERATION_LOAD_USER = DOT_CLASS + "loadUser";
@@ -188,7 +190,7 @@ public class PageUser extends PageAdminUsers {
             } else {
                 Task task = createSimpleTask(OPERATION_LOAD_USER);
 
-                StringValue userOid = getPageParameters().get(PARAM_USER_ID);
+                StringValue userOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
                 user = getModelService().getObject(UserType.class, userOid.toString(), null, task, result);
 
             }
@@ -619,7 +621,7 @@ public class PageUser extends PageAdminUsers {
             @Override
             protected void onInitialize() {
                 super.onInitialize();
-                StringValue oidValue = getPageParameters().get(PARAM_USER_ID);
+                StringValue oidValue = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
 
                 taskDtoProvider.setQuery(createTaskQuery(oidValue != null ? oidValue.toString() : null));
             }
@@ -727,7 +729,7 @@ public class PageUser extends PageAdminUsers {
     }
 
     private boolean isEditingUser() {
-        StringValue userOid = getPageParameters().get(PageUser.PARAM_USER_ID);
+        StringValue userOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
         return userOid != null && StringUtils.isNotEmpty(userOid.toString());
     }
 

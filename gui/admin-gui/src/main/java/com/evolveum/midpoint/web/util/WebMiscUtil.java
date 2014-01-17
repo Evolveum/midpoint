@@ -101,27 +101,6 @@ public final class WebMiscUtil {
         return false;
     }
 
-    public static Class getHomePage() {
-        if (isAuthorized(PageUrlMapping.findActions(PageDashboard.class))) {
-            return PageDashboard.class;
-        }
-
-        MidPointPrincipal principal = SecurityUtils.getPrincipalUser();
-        if (principal != null) {
-            Collection<Authorization> authorizations = principal.getAuthorities();
-            for (Authorization auth : authorizations) {
-                for (String action : auth.getAction()) {
-                    Class homePage = PageUrlMapping.findClassForAction(action);
-                    if (homePage != null) {
-                        return homePage;
-                    }
-                }
-            }
-        }
-
-        return PageDashboard.class;
-    }
-
     public static Integer safeLongToInteger(Long l) {
         if (l == null) {
             return null;

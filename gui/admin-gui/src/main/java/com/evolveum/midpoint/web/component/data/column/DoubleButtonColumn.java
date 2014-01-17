@@ -113,19 +113,19 @@ public class DoubleButtonColumn<T extends Serializable>  extends AbstractColumn<
     public void secondClicked(AjaxRequestTarget target, IModel<T> model){};
 
     public String getFirstSizeCssClass(){
-        return DoubleButtonColumn.BUTTON_SIZE_CLASS.DEFAULT.toString();
+        return BUTTON_SIZE_CLASS.SMALL.toString();
     }
 
     public String getSecondSizeCssClass(){
-        return DoubleButtonColumn.BUTTON_SIZE_CLASS.DEFAULT.toString();
+        return BUTTON_SIZE_CLASS.SMALL.toString();
     }
 
     public String getFirstColorCssClass(){
-        return DoubleButtonColumn.BUTTON_COLOR_CLASS.DEFAULT.toString();
+        return BUTTON_COLOR_CLASS.DEFAULT.toString();
     }
 
     public String getSecondColorCssClass(){
-        return DoubleButtonColumn.BUTTON_COLOR_CLASS.DEFAULT.toString();
+        return BUTTON_COLOR_CLASS.DEFAULT.toString();
     }
 
     public String getFirstCap(){

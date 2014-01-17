@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.page.admin.reports;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -42,6 +43,7 @@ import com.evolveum.midpoint.web.page.admin.reports.dto.AuditReportDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReconciliationReportDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.UserReportDto;
+import com.evolveum.midpoint.web.page.admin.users.PageAdminUsers;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
@@ -78,7 +80,9 @@ import java.util.*;
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/reports")
+@PageDescriptor(url = "/admin/reports", action = {
+        PageAdminReports.AUTHORIZATION_REPORTS_ALL,
+        AuthorizationConstants.NS_AUTHORIZATION + "#reports"})
 public class PageReports extends PageAdminReports {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageReports.class);
@@ -109,20 +113,12 @@ public class PageReports extends PageAdminReports {
     private final String BUTTON_CAPTION_RUN = createStringResource("PageReports.button.run").getString();
     private final String BUTTON_CAPTION_CONFIGURE = createStringResource("PageReports.button.configure").getString();
 
-    private final IModel<List<ResourceItemDto>> resources;
     private final IModel reportParamsModel = new Model();
 
     @SpringBean(name = "sessionFactory")
     private SessionFactory sessionFactory;
 
     public PageReports() {
-        resources = new LoadableModel<List<ResourceItemDto>>(false) {
-
-            @Override
-            protected List<ResourceItemDto> load() {
-                return loadResources();
-            }
-        };
         initLayout();
     }
 
@@ -135,38 +131,6 @@ public class PageReports extends PageAdminReports {
                 return createStringResource("page.subTitle").getString();
             }
         };
-    }
-
-    private List<ResourceItemDto> loadResources() {
-        List<ResourceItemDto> resources = new ArrayList<ResourceItemDto>();
-
-        OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCES);
-        try {
-            List<PrismObject<ResourceType>> objects = getModelService().searchObjects(ResourceType.class, null, null,
-                    createSimpleTask(OPERATION_LOAD_RESOURCES), result);
-
-            if (objects != null) {
-                for (PrismObject<ResourceType> object : objects) {
-                    resources.add(new ResourceItemDto(object.getOid(), WebMiscUtil.getName(object)));
-                }
-            }
-        } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't load resources", ex);
-            result.recordFatalError("Couldn't load resources, reason: " + ex.getMessage(), ex);
-        } finally {
-            if (result.isUnknown()) {
-                result.recomputeStatus();
-            }
-        }
-
-        Collections.sort(resources);
-
-        if (!WebMiscUtil.isSuccessOrHandledError(result)) {
-            showResultInSession(result);
-            throw new RestartResponseException(PageDashboard.class);
-        }
-
-        return resources;
     }
    
     private void initLayout() {
@@ -188,44 +152,6 @@ public class PageReports extends PageAdminReports {
         table.setShowPaging(false);
         table.setOutputMarkupId(true);
         mainForm.add(table);
-
-        ModalWindow auditPopup = createModalWindow(ID_AUDIT_POPUP,
-                createStringResource("PageReports.title.auditPopup"), 570, 350);
-        auditPopup.setContent(new AuditPopupPanel(auditPopup.getContentId(), reportParamsModel) {
-
-            /*
-            @Override
-            protected void onRunPerformed(AjaxRequestTarget target) {
-                ajaxDownloadBehavior.initiate(target);
-
-                ModalWindow window = (ModalWindow) PageReports.this.get(ID_AUDIT_POPUP);
-                window.close(target);
-            }
-            */
-        });
-        add(auditPopup);
-
-        ModalWindow reconciliationPopup = createModalWindow(ID_RECONCILIATION_POPUP,
-                createStringResource("PageReports.title.reconciliationPopup"), 570, 350);
-        reconciliationPopup.setContent(new ReconciliationPopupPanel(reconciliationPopup.getContentId(),
-                reportParamsModel, resources) {
-
-            /*
-            @Override
-            protected void onRunPerformed(AjaxRequestTarget target) {
-                ajaxDownloadBehavior.initiate(target);
-
-                ModalWindow window = (ModalWindow) PageReports.this.get(ID_RECONCILIATION_POPUP);
-                window.close(target);
-            }
-            */
-        });
-        add(reconciliationPopup);
-
-        ModalWindow userPopup = createModalWindow(ID_USER_POPUP,
-                createStringResource("User report parameters"), 570, 350);
-        userPopup.setContent(new UserReportConfigPanel(userPopup.getContentId(),reportParamsModel));
-        add(userPopup);
     }
 
     private List<IColumn<ReportDto, String>> initColumns(final AjaxDownloadBehaviorFromStream ajaxDownloadBehavior) {
@@ -305,61 +231,15 @@ public class PageReports extends PageAdminReports {
 
     private void runReportPerformed(AjaxRequestTarget target, IModel<ReportDto> model,
                                     AjaxDownloadBehaviorFromStream ajaxDownloadBehavior){
+        //ajaxDownloadBehavior.initiate(target);
         //TODO - create report based on current configuration
     }
 
     private void configurePerformed(AjaxRequestTarget target, ReportDto report,
                                     AjaxDownloadBehaviorFromStream ajaxDownloadBehavior){
-        //TODO - navigate to new page, where report configuration will be performed
-        switch (report.getType()) {
-            case AUDIT:
-                if (!(reportParamsModel.getObject() instanceof AuditReportDto)) {
-                    reportParamsModel.setObject(new AuditReportDto());
-                }
-                showModalWindow(ID_AUDIT_POPUP, target);
-                break;
-            case RECONCILIATION:
-                if (!(reportParamsModel.getObject() instanceof ReconciliationReportDto)) {
-                    reportParamsModel.setObject(new ReconciliationReportDto());
-                }
-                showModalWindow(ID_RECONCILIATION_POPUP, target);
-                break;
-            case USERS:
-                if(!(reportParamsModel.getObject() instanceof UserReportDto)){
-                    reportParamsModel.setObject(new UserReportDto());
-                }
-                showModalWindow(ID_USER_POPUP, target);
-                //ajaxDownloadBehavior.initiate(target);
-                break;
-            default:
-                error(getString("PageReports.message.unknownReport"));
-                target.add(getFeedbackPanel());
-        }
-    }
-
-    private void runClickPerformed(AjaxRequestTarget target, ReportDto report,
-                                      AjaxDownloadBehaviorFromStream ajaxDownloadBehavior) {
-        switch (report.getType()) {
-            case AUDIT:
-                if (!(reportParamsModel.getObject() instanceof AuditReportDto)) {
-                    reportParamsModel.setObject(new AuditReportDto());
-                }
-                showModalWindow(ID_AUDIT_POPUP, target);
-                break;
-            case RECONCILIATION:
-                if (!(reportParamsModel.getObject() instanceof ReconciliationReportDto)) {
-                    reportParamsModel.setObject(new ReconciliationReportDto());
-                }
-                showModalWindow(ID_RECONCILIATION_POPUP, target);
-                break;
-            case USERS:
-                reportParamsModel.setObject(null);
-                ajaxDownloadBehavior.initiate(target);
-                break;
-            default:
-                error(getString("PageReports.message.unknownReport"));
-                target.add(getFeedbackPanel());
-        }
+        PageParameters params = new PageParameters();
+        params.add("reportType", report.getType().toString());
+        setResponsePage(PageReport.class, params);
     }
 
     private byte[] createReport() {

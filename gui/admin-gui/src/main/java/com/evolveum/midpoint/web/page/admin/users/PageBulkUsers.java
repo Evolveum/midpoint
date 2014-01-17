@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.users;
 
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -24,7 +25,8 @@ import org.apache.wicket.markup.html.form.Form;
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/users/bulk")
+@PageDescriptor(url = "/admin/users/bulk", action = {
+        AuthorizationConstants.AUTZ_DENY_ALL})
 public class PageBulkUsers extends PageAdminUsers {
 
     private static final String ID_MAIN_FORM = "mainForm";

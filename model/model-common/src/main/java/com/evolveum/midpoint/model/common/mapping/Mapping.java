@@ -134,6 +134,9 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 	private boolean profiling = false;
 	private Long evaluationStartTime = null;
 	private Long evaluationEndTime = null;
+	// This is sometimes used to identify the element that mapping produces
+	// if it is different from itemName. E.g. this happens with associations.
+	private QName mappingQName;
 	
 	// This is single-use only. Once evaluated it is not used any more
 	// it is remembered only for tracing purposes.
@@ -434,7 +437,14 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		}
 		return evaluationEndTime - evaluationStartTime;
 	}
-	
+
+	public QName getMappingQName() {
+		return mappingQName;
+	}
+
+	public void setMappingQName(QName mappingQName) {
+		this.mappingQName = mappingQName;
+	}
 
 	public void evaluate(Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		
@@ -1162,10 +1172,13 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 
 	@Override
 	public String toString() {
-		return "M(" + getOutputDefName() + " = " + outputTriple + toStringStrength() + ")";
+		return "M(" + getMappingDisplayName() + " = " + outputTriple + toStringStrength() + ")";
 	}
 
-	private String getOutputDefName() {
+	private String getMappingDisplayName() {
+		if (mappingQName != null) {
+			return SchemaDebugUtil.prettyPrint(mappingQName);
+		}
 		if (outputDefinition == null) {
 			return null;
 		}

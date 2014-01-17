@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.server;
 
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -65,8 +66,11 @@ import java.util.List;
  * @author lazyman
  * @author mserbak
  */
-@PageDescriptor(url = "/admin/addTask")
+@PageDescriptor(url = "/admin/tasks/addTask", action = {
+        PageAdminTasks.AUTHORIZATION_TASKS_ALL,
+        AuthorizationConstants.NS_AUTHORIZATION + "#taskAdd"})
 public class PageTaskAdd extends PageAdminTasks {
+
     private static final long serialVersionUID = 2317887071933841581L;
 
     private static final Trace LOGGER = TraceManager.getTrace(PageTaskAdd.class);

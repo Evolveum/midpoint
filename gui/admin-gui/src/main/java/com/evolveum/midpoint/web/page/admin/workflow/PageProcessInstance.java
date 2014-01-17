@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow;
 
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -39,7 +40,9 @@ import org.apache.wicket.util.string.StringValue;
  * @author mserbak
  * @author mederly
  */
-@PageDescriptor(url = "/admin/workItems/processInstance", encoder = OnePageParameterEncoder.class)
+@PageDescriptor(url = "/admin/workItems/processInstance", encoder = OnePageParameterEncoder.class, action = {
+        PageAdminWorkItems.AUTHORIZATION_WORK_ITEMS_ALL,
+        AuthorizationConstants.NS_AUTHORIZATION + "#workItemsProcessInstance"})
 public class PageProcessInstance extends PageAdminWorkItems {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageProcessInstance.class);

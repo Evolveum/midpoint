@@ -101,7 +101,7 @@ public class MidPointApplication extends AuthenticatedWebApplication {
 
     @Override
     public Class<PageDashboard> getHomePage() {
-        return WebMiscUtil.getHomePage();
+        return PageDashboard.class;
     }
 
     @Override

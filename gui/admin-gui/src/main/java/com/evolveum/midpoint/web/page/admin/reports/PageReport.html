@@ -16,10 +16,16 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <body>
-    <wicket:extend>
-        <div class="form-group">
-            <div wicket:id="editPanel" />
+<wicket:extend>
+    <form wicket:id="mainForm" class="form-horizontal">
+        <div wicket:id="tabPanel" class="tabbable" />
+
+        <div class="main-button-bar">
+            <a class="btn btn-primary" wicket:id="runSave"/>
+            <a class="btn btn-info" wicket:id="save" />
+            <a class="btn btn-danger" wicket:id="cancel" />
         </div>
-    </wicket:extend>
+    </form>
+</wicket:extend>
 </body>
 </html>

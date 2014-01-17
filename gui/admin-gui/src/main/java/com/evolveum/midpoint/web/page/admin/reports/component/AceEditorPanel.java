@@ -13,17 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package com.evolveum.midpoint.web.page.admin.roles;
-
-
-import com.evolveum.midpoint.common.security.AuthorizationConstants;
-import com.evolveum.midpoint.web.page.admin.PageAdmin;
+package com.evolveum.midpoint.web.page.admin.reports.component;
 
 /**
- * @author lazyman
- */
-public class PageAdminRoles extends PageAdmin {
-
-    public static final String AUTHORIZATION_ROLE_ALL = AuthorizationConstants.NS_AUTHORIZATION + "#roleAll";
+ *  @author shood
+ * */
+public class AceEditorPanel {
 }
