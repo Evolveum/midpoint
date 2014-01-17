@@ -614,7 +614,7 @@ public class InboundProcessor {
 			        ObjectDelta<ShadowType> aPrioriDelta = getAPrioriDelta(context, accContext);
 			        ItemDelta<PrismPropertyValue<?>> specialAttributeDelta = null;
 			        if (aPrioriDelta != null){
-			        	specialAttributeDelta = (ItemDelta<PrismPropertyValue<?>>) aPrioriDelta.findItemDelta(sourcePath);
+			        	specialAttributeDelta = aPrioriDelta.findItemDelta(sourcePath);
 			        }
 			        ItemDeltaItem<PrismPropertyValue<?>> sourceIdi = accContext.getObjectDeltaObject().findIdi(sourcePath);
 			        if (specialAttributeDelta == null){

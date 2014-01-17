@@ -1034,7 +1034,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         if (showTriples) {
         	
         	sb.append("\n");
-        	DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("accountConstructionDeltaSetTriple"), constructionDeltaSetTriple, indent + 1);
+        	DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("constructionDeltaSetTriple"), constructionDeltaSetTriple, indent + 1);
         	
 	        sb.append("\n");
 	        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("outbound account construction"), outboundConstruction, indent + 1);

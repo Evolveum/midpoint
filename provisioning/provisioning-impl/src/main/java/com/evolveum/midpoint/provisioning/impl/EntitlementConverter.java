@@ -426,7 +426,7 @@ class EntitlementConverter {
 		}
 		ResourceObjectAssociationType assocDefType = objectClassDefinition.findEntitlementAssociation(associationName);
 		if (assocDefType == null) {
-			throw new SchemaException("No entitlement association with name "+assocDefType+" in schema of "+resource);
+			throw new SchemaException("No entitlement association with name "+associationName+" in schema of "+resource);
 		}
 		
 		ResourceObjectAssociationDirectionType direction = assocDefType.getDirection();
