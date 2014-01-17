@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.wf.processors.primary;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.processes.common.CommonProcessVariableNames;
@@ -37,11 +38,19 @@ public class PcpExternalizationHelper {
     @Autowired
     private MiscDataUtil miscDataUtil;
 
+    @Autowired
+    private PrismContext prismContext;
+
     public void externalizeState(PrismObject<? extends PrimaryApprovalProcessInstanceState> statePrism, Map<String, Object> variables) throws JAXBException, SchemaException {
         PrimaryApprovalProcessInstanceState state = statePrism.asObjectable();
         state.setMidPointProcessWrapper((String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_PROCESS_WRAPPER));
         state.setMidPointObjectOid((String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_OID));
-        state.setMidPointObjectToBeAdded((ObjectType) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_TO_BE_ADDED));
+
+        String objectXml = (String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_TO_BE_ADDED);
+        if (objectXml != null) {
+            ObjectType objectToBeAdded = prismContext.getPrismJaxbProcessor().unmarshalObject(objectXml, ObjectType.class);
+            state.setMidPointObjectToBeAdded(objectToBeAdded);
+        }
         state.setMidPointDelta(miscDataUtil.getObjectDeltaType(variables, true));
     }
 }

@@ -103,14 +103,12 @@ public class ApprovalSchemaImpl implements ApprovalSchema, Serializable {
     }
 
     @Override
-    public ApprovalSchemaType toApprovalSchemaType() {
-        ApprovalSchemaType approvalSchemaType = (ApprovalSchemaType) prismContext.getSchemaRegistry().findContainerDefinitionByType(ApprovalSchemaType.COMPLEX_TYPE).instantiate().createNewValue().asContainerable();
+    public void toApprovalSchemaType(ApprovalSchemaType approvalSchemaType) {
         approvalSchemaType.setName(getName());
         approvalSchemaType.setDescription(getDescription());
         for (ApprovalLevel level : getLevels()) {
             approvalSchemaType.getLevel().add(level.toApprovalLevelType(prismContext));
         }
-        return approvalSchemaType;
     }
 
     public void addLevel(ApprovalLevelImpl level) {

@@ -49,6 +49,7 @@ import com.evolveum.midpoint.wf.processors.primary.PcpChildJobCreationInstructio
 import com.evolveum.midpoint.wf.processors.primary.PcpJob;
 import com.evolveum.midpoint.wf.processors.primary.PrimaryChangeProcessor;
 import com.evolveum.midpoint.wf.util.ApprovalUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ApprovalSchemaType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
@@ -163,18 +164,23 @@ public class WrapperHelper {
         PrismObject<ItemApprovalProcessInstanceState> extVariablesObject = extDefinition.instantiate();
         ItemApprovalProcessInstanceState extVariables = extVariablesObject.asObjectable();
 
-        PrismContainer<ItemApprovalRequestType> extRequestContainer = prismContext.getSchemaRegistry().findContainerDefinitionByType(ItemApprovalRequestType.COMPLEX_TYPE).instantiate();
-        ItemApprovalRequestType extRequestType = extRequestContainer.createNewValue().asContainerable();
+        PrismContainer extRequestContainer = extDefinition.findContainerDefinition(ItemApprovalProcessInstanceState.F_APPROVAL_REQUEST).instantiate();
+        ItemApprovalRequestType extRequestType = (ItemApprovalRequestType) extRequestContainer.createNewValue().asContainerable();
 
         ApprovalRequest<?> intApprovalRequest = (ApprovalRequest) variables.get(ProcessVariableNames.APPROVAL_REQUEST);
         intApprovalRequest.setPrismContext(prismContext);
-        extRequestType.setApprovalSchema(intApprovalRequest.getApprovalSchema().toApprovalSchemaType());
+
+        ApprovalSchemaType approvalSchemaType = (ApprovalSchemaType) extRequestContainer.getDefinition().findContainerDefinition(ItemApprovalRequestType.F_APPROVAL_SCHEMA).instantiate().createNewValue().asContainerable();
+        intApprovalRequest.getApprovalSchema().toApprovalSchemaType(approvalSchemaType);
+        extRequestType.setApprovalSchema(approvalSchemaType);
         extRequestType.setItemToApprove(intApprovalRequest.getItemToApprove());
         extVariables.setApprovalRequest(extRequestType);
 
         List<Decision> intDecisions = (List<Decision>) variables.get(ProcessVariableNames.ALL_DECISIONS);
-        for (Decision intDecision : intDecisions) {
-            extVariables.getDecisions().add(intDecision.toDecisionType());
+        if (intDecisions != null) {
+            for (Decision intDecision : intDecisions) {
+                extVariables.getDecisions().add(intDecision.toDecisionType());
+            }
         }
 
         return extVariablesObject;
