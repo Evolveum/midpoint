@@ -66,7 +66,7 @@ import java.util.List;
  * @author lazyman
  * @author mserbak
  */
-@PageDescriptor(url = "/admin/addTask", action = {
+@PageDescriptor(url = "/admin/tasks/addTask", action = {
         PageAdminTasks.AUTHORIZATION_TASKS_ALL,
         AuthorizationConstants.NS_AUTHORIZATION + "#taskAdd"})
 public class PageTaskAdd extends PageAdminTasks {
