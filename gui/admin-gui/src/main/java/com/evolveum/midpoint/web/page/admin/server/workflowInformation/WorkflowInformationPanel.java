@@ -18,9 +18,9 @@ package com.evolveum.midpoint.web.page.admin.server.workflowInformation;
 
 import com.evolveum.midpoint.web.component.data.column.LinkPanel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.component.wf.deltas.WfDeltasPanel;
-import com.evolveum.midpoint.web.component.wf.history.WfHistoryEventDto;
-import com.evolveum.midpoint.web.component.wf.history.WfHistoryPanel;
+import com.evolveum.midpoint.web.component.wf.WfDeltasPanel;
+import com.evolveum.midpoint.web.component.wf.WfHistoryEventDto;
+import com.evolveum.midpoint.web.component.wf.WfHistoryPanel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstance;

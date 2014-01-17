@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.component.wf.processes.itemApproval;
+package com.evolveum.midpoint.web.component.wf;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.component.wf.decisions.DecisionsPanel;
-import com.evolveum.midpoint.web.component.wf.workItems.WorkItemsPanel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.DecisionDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
