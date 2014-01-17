@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow;
 
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
@@ -52,7 +53,9 @@ import java.util.List;
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/workItems")
+@PageDescriptor(url = "/admin/workItems", action = {
+        PageAdminWorkItems.AUTHORIZATION_WORK_ITEMS_ALL,
+        AuthorizationConstants.NS_AUTHORIZATION + "#workItems"})
 public class PageWorkItems extends PageAdminWorkItems {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageWorkItems.class);

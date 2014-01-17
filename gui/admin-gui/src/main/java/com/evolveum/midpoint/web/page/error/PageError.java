@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.error;
 
+import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
@@ -35,6 +36,7 @@ import java.util.Date;
  *
  * @author lazyman
  */
+@PageDescriptor(url = "/error")
 public class PageError extends PageBase {
 
     private static final String ID_MESSAGE = "message";

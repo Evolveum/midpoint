@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -56,7 +57,9 @@ import java.io.InputStreamReader;
  * @author lazyman
  * @author mserbak
  */
-@PageDescriptor(url = "/admin/config/import")
+@PageDescriptor(url = "/admin/config/import", action = {
+        PageAdminConfiguration.AUTHORIZATION_CONFIGURATION_ALL,
+        AuthorizationConstants.NS_AUTHORIZATION + "#configImport"})
 public class PageImportObject extends PageAdminConfiguration {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageImportObject.class);

@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow;
 
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -65,7 +66,9 @@ import org.apache.wicket.request.resource.PackageResourceReference;
 /**
  * @author mederly
  */
-@PageDescriptor(url = "/admin/workItem", encoder = OnePageParameterEncoder.class)
+@PageDescriptor(url = "/admin/workItem", encoder = OnePageParameterEncoder.class, action = {
+        PageAdminWorkItems.AUTHORIZATION_WORK_ITEMS_ALL,
+        AuthorizationConstants.NS_AUTHORIZATION + "#workItem"})
 public class PageWorkItem extends PageAdminWorkItems {
 
     private static final String DOT_CLASS = PageWorkItem.class.getName() + ".";

@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.schema.LabeledString;
 import com.evolveum.midpoint.schema.RepositoryDiag;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -41,7 +42,7 @@ import java.util.List;
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/config/about")
+@PageDescriptor(url = "/admin/config/about", action = {AuthorizationConstants.AUTZ_UI_PERMIT_ALL})
 public class PageAbout extends PageAdminConfiguration {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageAbout.class);

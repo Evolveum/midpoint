@@ -172,4 +172,5 @@
     <packagesToScan>com.evolveum.midpoint.web.page.admin.reports</packagesToScan>
     <packagesToScan>com.evolveum.midpoint.web.page.admin.configuration</packagesToScan>
     <packagesToScan>com.evolveum.midpoint.web.page.login</packagesToScan>
+    <packagesToScan>com.evolveum.midpoint.web.page.error</packagesToScan>
 </descriptor>

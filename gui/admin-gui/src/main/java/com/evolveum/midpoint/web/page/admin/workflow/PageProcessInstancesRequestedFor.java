@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow;
 
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.page.PageBase;
 import org.apache.wicket.model.IModel;
@@ -27,7 +28,9 @@ import org.apache.wicket.model.IModel;
  * Time: 14:11
  * To change this template use File | Settings | File Templates.
  */
-@PageDescriptor(url = "/admin/workItems/aboutMeRequests")
+@PageDescriptor(url = "/admin/workItems/aboutMeRequests", action = {
+        PageAdminWorkItems.AUTHORIZATION_WORK_ITEMS_ALL,
+        AuthorizationConstants.NS_AUTHORIZATION + "#workItemsAboutMeRequests"})
 public class PageProcessInstancesRequestedFor extends PageProcessInstances {
 
     protected IModel<String> createPageTitleModel() {

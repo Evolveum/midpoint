@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.page.admin.reports;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -42,6 +43,7 @@ import com.evolveum.midpoint.web.page.admin.reports.dto.AuditReportDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReconciliationReportDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.UserReportDto;
+import com.evolveum.midpoint.web.page.admin.users.PageAdminUsers;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
@@ -78,7 +80,9 @@ import java.util.*;
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/reports")
+@PageDescriptor(url = "/admin/reports", action = {
+        PageAdminReports.AUTHORIZATION_REPORTS_ALL,
+        AuthorizationConstants.NS_AUTHORIZATION + "#reports"})
 public class PageReports extends PageAdminReports {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageReports.class);

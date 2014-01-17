@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -83,7 +84,9 @@ import java.util.*;
 /**
  * @author lazyman
  */
-@PageDescriptor(url = "/admin/config/debugs")
+@PageDescriptor(url = "/admin/config/debugs", action = {
+        PageAdminConfiguration.AUTHORIZATION_CONFIGURATION_ALL,
+        AuthorizationConstants.NS_AUTHORIZATION + "#debugs"})
 public class PageDebugList extends PageAdminConfiguration {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageDebugList.class);
