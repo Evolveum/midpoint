@@ -51,8 +51,8 @@
 	<logger name="com.evolveum.midpoint.model.sync.CorrelationConfirmationEvaluator" level="DEBUG" />
     <logger name="com.evolveum.midpoint.provisioning" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.expression" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.common.expression" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.common.expression.Expression" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.common.expression" level="TRACE" />
+	<logger name="com.evolveum.midpoint.common.expression.Expression" level="TRACE" />
 	<logger name="com.evolveum.midpoint.common.mapping" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.common.monitor" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.notifications" level="DEBUG" />

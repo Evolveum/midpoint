@@ -180,20 +180,32 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 	
 	@Override
 	public <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry){
-		if (getObjectItem(object) == null && getValues() == null) {
-			return true;
-		}
-		
+//		if (getObjectItem(object) == null && getValues() == null) {
+//			return true;
+//		}
+//		
 		Item filterItem = getFilterItem();
 		MatchingRule matching = getMatchingRuleFromRegistry(matchingRuleRegistry, filterItem);
 		
 		Item item = getObjectItem(object);
 		
-		if (item == null && getValues() == null) {
-			return true;
+		if (item == null){
+			return false;
 		}
 		
-		if (item != null && !item.isEmpty() && getValues() == null){
+//		if (item == null && getValues() == null) {
+//			return true;
+//		}
+//		
+//		if (item == null && getValues() != null) {
+//			return false;
+//		}
+		
+		if (!item.isEmpty() && (getValues() == null || getValues().isEmpty())){
+			return false;
+		}
+		
+		if (item.isEmpty() && (getValues() != null && !getValues().isEmpty())){
 			return false;
 		}
 		

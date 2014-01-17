@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import org.apache.commons.lang.StringUtils;
@@ -39,20 +40,18 @@ import java.util.Collection;
  */
 public class PageAdminResources extends PageAdmin {
 
-    public static final String PARAM_RESOURCE_ID = "resourceOid";
-
     private static final String DOT_CLASS = PageAdminResources.class.getName() + ".";
     private static final String OPERATION_LOAD_RESOURCE = DOT_CLASS + "loadResource";
 
     protected static final Trace LOGGER = TraceManager.getTrace(PageAdminResources.class);
 
     protected boolean isResourceOidAvailable() {
-        StringValue resourceOid = getPageParameters().get(PageAdminResources.PARAM_RESOURCE_ID);
+        StringValue resourceOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
         return resourceOid != null && StringUtils.isNotEmpty(resourceOid.toString());
     }
 
     protected String getResourceOid() {
-        StringValue resourceOid = getPageParameters().get(PageAdminResources.PARAM_RESOURCE_ID);
+        StringValue resourceOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
         return resourceOid != null ? resourceOid.toString() : null;
     }
 

@@ -18,7 +18,22 @@
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
     <form wicket:id="form">
+        <div style="color: red;" wicket:id="feedback"/>
+
         <table class="table table-condensed table-striped">
+            <tr>
+                <td><wicket:message key="ReconciliationPopupPanel.descriptionPlaceholder" /></td>
+                <td>
+                    <input class="form-control input-sm" wicket:id="description"
+                           wicket:message="placeholder:ReconciliationPopupPanel.descriptionPlaceholder" />
+                </td>
+            </tr>
+            <tr>
+                <td><wicket:message key="ReconsiliationPopupPanel.exportFileType" /></td>
+                <td>
+                    <select class="form-control input-sm" wicket:id="exportType" />
+                </td>
+            </tr>
             <tr>
                 <td><wicket:message key="ReconciliationPopupPanel.resource"/></td>
                 <td><select class="form-control input-sm" wicket:id="resource"/></td>
@@ -26,7 +41,9 @@
         </table>
 
         <div style="text-align: center;">
-            <a class="btn btn-primary" wicket:id="run"/>
+            <a class="btn btn-primary" wicket:id="runSave"/>
+            <a class="btn btn-info" wicket:id="save" />
+            <a class="btn btn-danger" wicket:id="cancel" />
         </div>
     </form>
 </wicket:panel>

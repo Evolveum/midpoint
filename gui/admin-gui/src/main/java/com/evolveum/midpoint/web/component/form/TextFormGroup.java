@@ -56,13 +56,20 @@ public class TextFormGroup extends SimplePanel<String> {
         }
         add(textWrapper);
 
-        TextField text = new TextField(ID_TEXT, getModel());
-        text.setRequired(required);
-        text.add(AttributeAppender.replace("placeholder", label));
+        TextField text = createText(getModel(), label, required);
         text.setLabel(label);
         textWrapper.add(text);
 
         FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK, new ComponentFeedbackMessageFilter(text));
+        feedback.setOutputMarkupId(true);
         textWrapper.add(feedback);
+    }
+
+    protected TextField createText(IModel<String> model, IModel<String> label, boolean required) {
+        TextField text = new TextField(ID_TEXT, model);
+        text.setRequired(required);
+        text.add(AttributeAppender.replace("placeholder", label));
+
+        return text;
     }
 }

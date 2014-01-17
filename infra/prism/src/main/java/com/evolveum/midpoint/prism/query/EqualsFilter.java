@@ -242,7 +242,12 @@ public class EqualsFilter<T extends Object> extends PropertyValueFilter<PrismPro
 			return false;
 		}
 		
-		for (Object v : getObjectItem(object).getValues()){
+		List<Object> values = getObjectItem(object).getValues();
+		if (values == null){
+			return true;
+		}
+		
+		for (Object v : values){
 			if (!(v instanceof PrismPropertyValue)){
 				throw new IllegalArgumentException("Not supported prism value for equals filter. It must be an instance of PrismPropertyValue but it is " + v.getClass());
 			}

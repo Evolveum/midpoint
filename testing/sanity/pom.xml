@@ -97,6 +97,36 @@
 			<artifactId>repo-test-util</artifactId>
 			<version>2.3-SNAPSHOT</version>
 		</dependency>
+        <dependency>
+        	<groupId>com.evolveum.midpoint.model</groupId>
+        	<artifactId>report-api</artifactId>
+			<version>2.3-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+        	<groupId>com.evolveum.midpoint.model</groupId>
+        	<artifactId>report-impl</artifactId>
+			<version>2.3-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+        	<groupId>com.evolveum.midpoint.model</groupId>
+        	<artifactId>notifications-api</artifactId>
+			<version>2.3-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+        	<groupId>com.evolveum.midpoint.model</groupId>
+        	<artifactId>notifications-impl</artifactId>
+			<version>2.3-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+        	<groupId>com.evolveum.midpoint.model</groupId>
+        	<artifactId>workflow-api</artifactId>
+			<version>2.3-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+        	<groupId>com.evolveum.midpoint.model</groupId>
+        	<artifactId>workflow-impl</artifactId>
+			<version>2.3-SNAPSHOT</version>
+        </dependency>
 
 		<!-- TEST dependency -->
 		<dependency>

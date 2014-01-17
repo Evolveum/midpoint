@@ -32,11 +32,13 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.xml.ace.AceEditor;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
@@ -55,6 +57,7 @@ import java.util.List;
 /**
  * @author lazyman
  */
+@PageDescriptor(url = "/admin/resource/edit", encoder = OnePageParameterEncoder.class)
 public class PageResourceEdit extends PageAdminResources {
 
     private static final String DOT_CLASS = PageResourceEdit.class.getName() + ".";
@@ -173,7 +176,7 @@ public class PageResourceEdit extends PageAdminResources {
     }
 
     private boolean isEditing() {
-        StringValue resourceOid = getPageParameters().get(PARAM_RESOURCE_ID);
+        StringValue resourceOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
         if (resourceOid == null || StringUtils.isEmpty(resourceOid.toString())) {
             return false;
         }

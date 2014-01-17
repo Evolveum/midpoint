@@ -128,24 +128,32 @@ public class AssignmentExpressionEvaluator<V extends PrismValue>
 		}
 		Class<? extends ObjectType> targetTypeClass = targetType.getClassDefinition();
 		
-		QueryType queryType = getExpressionEvaluatorType().getQuery();
-		if (queryType == null) {
-			throw new SchemaException("No query in assignment expression");
+		List<PrismContainerValue<AssignmentType>> resultValues = null;
+		
+		if (getExpressionEvaluatorType().getOid() != null) {
+			resultValues = new ArrayList<>(1);
+			resultValues.add(createAssignmentCVal(getExpressionEvaluatorType().getOid(), targetTypeQName, contextDescription));
+		} else {
+		
+			QueryType queryType = getExpressionEvaluatorType().getQuery();
+			if (queryType == null) {
+				throw new SchemaException("No query in assignment expression");
+			}
+			ObjectQuery query = QueryConvertor.createObjectQuery(targetTypeClass, queryType, prismContext);
+	
+			ExpressionUtil.evaluateFilterExpressions(query.getFilter(), variables, params.getExpressionFactory(), 
+					prismContext, params.getContextDescription(), task, result);
+			
+			resultValues = executeSearch(targetTypeClass, targetTypeQName, query, params.getContextDescription(), params.getResult());
 		}
-		ObjectQuery query = QueryConvertor.createObjectQuery(targetTypeClass, queryType, prismContext);
-
-		ExpressionUtil.evaluateFilterExpressions(query.getFilter(), variables, params.getExpressionFactory(), 
-				prismContext, params.getContextDescription(), task, result);
-		
-		List<PrismContainerValue<AssignmentType>> searchResults = executeSearch(targetTypeClass, targetTypeQName, query, params.getContextDescription(), params.getResult());
-		
-		if (searchResults.isEmpty() && getExpressionEvaluatorType().isCreateOnDemand() == Boolean.TRUE &&
+			
+		if (resultValues.isEmpty() && getExpressionEvaluatorType().isCreateOnDemand() == Boolean.TRUE &&
 				(valueDestination == PlusMinusZero.PLUS || valueDestination == PlusMinusZero.ZERO || useNew)) {
 			String createdObjectOid = createOnDemand(targetTypeClass, variables, params, params.getContextDescription(), task, params.getResult());
-			searchResults.add(createAssignmentCVal(createdObjectOid, targetTypeQName, contextDescription));
+			resultValues.add(createAssignmentCVal(createdObjectOid, targetTypeQName, contextDescription));
 		}
 		
-		return (List<V>) searchResults;
+		return (List<V>) resultValues;
 	}
 
 	private <O extends ObjectType> List<PrismContainerValue<AssignmentType>> executeSearch(Class<O> targetTypeClass,
@@ -218,11 +226,18 @@ public class AssignmentExpressionEvaluator<V extends PrismValue>
 		} else {			
 			for (PopulateItemType populateItem: populateObject.getPopulateItem()) {
 				
-				ItemDelta<PrismValue> itemDelta = evaluatePopulateExpression(populateItem, variables, params, contextDescription, task, result);
+				ItemDelta<PrismValue> itemDelta = evaluatePopulateExpression(populateItem, variables, params, 
+						objectDefinition, contextDescription, task, result);
 				if (itemDelta != null) {
 					itemDelta.applyTo(newObject);
 				}
 			}
+		}
+		
+		LOGGER.debug("Creating object on demand from {}: {}", contextDescription, newObject);
+		
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Creating object on demand:\n{}", newObject.dump());
 		}
 		
 		ObjectDelta<O> addDelta = newObject.createAddDelta();
@@ -237,8 +252,8 @@ public class AssignmentExpressionEvaluator<V extends PrismValue>
 		return addDelta.getOid();
 	}
 
-	private <X extends PrismValue> ItemDelta<X> evaluatePopulateExpression(PopulateItemType populateItem,
-			ExpressionVariables variables, ExpressionEvaluationContext params,
+	private <X extends PrismValue, O extends ObjectType> ItemDelta<X> evaluatePopulateExpression(PopulateItemType populateItem,
+			ExpressionVariables variables, ExpressionEvaluationContext params, PrismObjectDefinition<O> objectDefinition,
 			String contextDescription, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		ExpressionType expressionType = populateItem.getExpression();
 		if (expressionType == null) {
@@ -259,7 +274,7 @@ public class AssignmentExpressionEvaluator<V extends PrismValue>
 		}
 		ItemPath targetPath = new XPathHolder(pathElement).toItemPath();
 		ItemDefinition propOutputDefinition = ExpressionUtil.resolveDefinitionPath(targetPath, variables, 
-				params.getDefaultTargetContext(), "target definition in "+contextDescription);
+				objectDefinition, "target definition in "+contextDescription);
 		if (propOutputDefinition == null) {
 			throw new SchemaException("No target item that would conform to the path "+targetPath+" in "+contextDescription);
 		}
@@ -275,9 +290,9 @@ public class AssignmentExpressionEvaluator<V extends PrismValue>
 		expressionParams.setDefaultTargetContext(params.getDefaultTargetContext());
 		expressionParams.setSkipEvaluationMinus(true);
 		expressionParams.setSkipEvaluationPlus(false);
-		PrismValueDeltaSetTriple<X> outputTriple = expression.evaluate(params);
+		PrismValueDeltaSetTriple<X> outputTriple = expression.evaluate(expressionParams);
 		LOGGER.trace("output triple: {}", outputTriple.dump());
-		Collection<X> pvalues = outputTriple.getPlusSet();
+		Collection<X> pvalues = outputTriple.getNonNegativeValues();
 		
 		// Maybe not really clean but it works. TODO: refactor later
 		NameItemPathSegment first = (NameItemPathSegment)targetPath.first();

@@ -17,20 +17,9 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="form-group">
-        <label class="col-md-3 control-label"><wicket:message key="NameStep.name"/></label>
+    <div class="form-group" wicket:id="name"/>
+    <div class="form-group" wicket:id="description"/>
 
-        <div class="col-md-3">
-            <input wicket:id="name" type="text" class="form-control input-sm" wicket:message="placeholder:NameStep.name">
-        </div>
-    </div>
-    <div class="form-group">
-        <label class="col-md-3 control-label"><wicket:message key="NameStep.description"/></label>
-
-        <div class="col-md-3">
-            <textarea rows="2" class="form-control input-sm" wicket:id="description" wicket:message="placeholder:NameStep.description"></textarea>
-        </div>
-    </div>
     <div class="form-group">
         <label class="col-md-3 control-label"><wicket:message key="NameStep.connectorHost"/></label>
 

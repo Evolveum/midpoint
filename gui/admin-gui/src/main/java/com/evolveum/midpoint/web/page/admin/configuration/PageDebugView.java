@@ -30,6 +30,7 @@ import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
@@ -54,6 +55,7 @@ import org.apache.wicket.util.string.StringValue;
 import javax.xml.namespace.QName;
 import java.util.Collection;
 
+@PageDescriptor(url = "/admin/config/debug")
 public class PageDebugView extends PageAdminConfiguration {
 
     private static final String DOT_CLASS = PageDebugView.class.getName() + ".";

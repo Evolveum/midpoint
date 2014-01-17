@@ -26,6 +26,7 @@ import com.evolveum.midpoint.repo.sql.util.RUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
+
 import org.hibernate.annotations.ForeignKey;
 import org.hibernate.annotations.Type;
 
@@ -60,6 +61,8 @@ public class RObjectDeltaOperation implements OperationResult {
 
     private String localizedMessage;
     private String params;
+    private String context;
+    private String returns;
     private String partialResults;
 
 
@@ -117,6 +120,18 @@ public class RObjectDeltaOperation implements OperationResult {
     @Type(type = RUtil.LOB_STRING_TYPE)
     public String getParams() {
         return params;
+    }
+    
+    @Lob
+    @Type(type = RUtil.LOB_STRING_TYPE)
+    public String getContext() {
+        return context;
+    }
+    
+    @Lob
+    @Type(type = RUtil.LOB_STRING_TYPE)
+    public String getReturns() {
+        return returns;
     }
 
     @Lob
@@ -218,6 +233,14 @@ public class RObjectDeltaOperation implements OperationResult {
     public void setParams(String params) {
         this.params = params;
     }
+    
+    public void setContext(String context) {
+    	this.context = context;
+    }
+    
+    public void setReturns(String returns) {
+		this.returns = returns;
+	}
 
     public void setPartialResults(String partialResults) {
         this.partialResults = partialResults;
@@ -255,6 +278,8 @@ public class RObjectDeltaOperation implements OperationResult {
         if (messageCode != null ? !messageCode.equals(that.messageCode) : that.messageCode != null) return false;
         if (operation != null ? !operation.equals(that.operation) : that.operation != null) return false;
         if (params != null ? !params.equals(that.params) : that.params != null) return false;
+        if (context != null ? !context.equals(that.context) : that.context != null) return false;
+        if (returns != null ? !returns.equals(that.params) : that.returns != null) return false;
         if (partialResults != null ? !partialResults.equals(that.partialResults) : that.partialResults != null)
             return false;
         if (status != that.status) return false;
@@ -277,6 +302,8 @@ public class RObjectDeltaOperation implements OperationResult {
         result1 = 31 * result1 + (details != null ? details.hashCode() : 0);
         result1 = 31 * result1 + (localizedMessage != null ? localizedMessage.hashCode() : 0);
         result1 = 31 * result1 + (params != null ? params.hashCode() : 0);
+        result1 = 31 * result1 + (context != null ? context.hashCode() : 0);
+        result1 = 31 * result1 + (returns != null ? returns.hashCode() : 0);
         result1 = 31 * result1 + (partialResults != null ? partialResults.hashCode() : 0);
         result1 = 31 * result1 + (deltaOid != null ? deltaOid.hashCode() : 0);
         result1 = 31 * result1 + (deltaType != null ? deltaType.hashCode() : 0);

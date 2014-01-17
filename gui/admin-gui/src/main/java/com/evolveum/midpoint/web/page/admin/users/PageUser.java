@@ -34,6 +34,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
@@ -60,6 +61,7 @@ import com.evolveum.midpoint.web.page.admin.users.dto.SimpleUserResourceProvider
 import com.evolveum.midpoint.web.page.admin.users.dto.UserAccountDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserDtoStatus;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.apache.commons.lang.StringUtils;
@@ -90,6 +92,7 @@ import java.util.List;
 /**
  * @author lazyman
  */
+@PageDescriptor(url = "/admin/user", encoder = OnePageParameterEncoder.class)
 public class PageUser extends PageAdminUsers {
 
     public static final String PARAM_USER_ID = "userId";

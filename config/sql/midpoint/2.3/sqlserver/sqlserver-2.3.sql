@@ -142,6 +142,7 @@
     create table m_audit_delta (
         checksum nvarchar(32) not null,
         record_id bigint not null,
+        context nvarchar(MAX),
         delta nvarchar(MAX),
         deltaOid nvarchar(36),
         deltaType int,
@@ -152,6 +153,7 @@
         operation nvarchar(MAX),
         params nvarchar(MAX),
         partialResults nvarchar(MAX),
+        returns nvarchar(MAX),
         status int,
         token bigint,
         primary key (checksum, record_id)
@@ -350,6 +352,7 @@
     create table m_operation_result (
         owner_oid nvarchar(36) not null,
         owner_id bigint not null,
+        context nvarchar(MAX),
         details nvarchar(MAX),
         localizedMessage nvarchar(MAX),
         message nvarchar(MAX),
@@ -357,6 +360,7 @@
         operation nvarchar(MAX),
         params nvarchar(MAX),
         partialResults nvarchar(MAX),
+        returns nvarchar(MAX),
         status int,
         token bigint,
         primary key (owner_oid, owner_id)

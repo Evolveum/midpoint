@@ -25,7 +25,7 @@ import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
-import com.evolveum.midpoint.model.lens.AccountConstruction;
+import com.evolveum.midpoint.model.lens.Construction;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
@@ -506,7 +506,7 @@ public class ConsolidationProcessor {
 
 	private void sqeezeAttributesFromAccountConstructionTriple(
 			Map<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> squeezedMap,
-			PrismValueDeltaSetTriple<PrismPropertyValue<AccountConstruction>> accountConstructionDeltaSetTriple) {
+			PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> accountConstructionDeltaSetTriple) {
 		// Zero account constructions go normally, plus to plus, minus to minus
 		sqeezeAttributesFromAccountConstructionSet(squeezedMap, accountConstructionDeltaSetTriple.getZeroSet());
 		// Plus accounts: zero and plus values go to plus
@@ -517,40 +517,40 @@ public class ConsolidationProcessor {
 
 	private void sqeezeAttributesFromAccountConstructionSet(
 			Map<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> squeezedMap,
-			Collection<PrismPropertyValue<AccountConstruction>> accountConstructionSet) {
+			Collection<PrismPropertyValue<Construction>> accountConstructionSet) {
 		if (accountConstructionSet == null) {
 			return;
 		}
-		for (PrismPropertyValue<AccountConstruction> accountConstruction: accountConstructionSet) {
+		for (PrismPropertyValue<Construction> accountConstruction: accountConstructionSet) {
 			sqeezeAttributesFromAccountConstruction(squeezedMap, accountConstruction.getValue());
 		}
 	}
 	
 	private void sqeezeAttributesFromAccountConstructionSetNonminusToPlus(
 			Map<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> squeezedMap,
-			Collection<PrismPropertyValue<AccountConstruction>> accountConstructionSet) {
+			Collection<PrismPropertyValue<Construction>> accountConstructionSet) {
 		if (accountConstructionSet == null) {
 			return;
 		}
-		for (PrismPropertyValue<AccountConstruction> accountConstruction: accountConstructionSet) {
+		for (PrismPropertyValue<Construction> accountConstruction: accountConstructionSet) {
 			sqeezeAttributesFromAccountConstructionNonminusToPlus(squeezedMap, accountConstruction.getValue());
 		}
 	}
 	
 	private void sqeezeAttributesFromAccountConstructionSetNonminusToMinus(
 			Map<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> squeezedMap,
-			Collection<PrismPropertyValue<AccountConstruction>> accountConstructionSet) {
+			Collection<PrismPropertyValue<Construction>> accountConstructionSet) {
 		if (accountConstructionSet == null) {
 			return;
 		}
-		for (PrismPropertyValue<AccountConstruction> accountConstruction: accountConstructionSet) {
+		for (PrismPropertyValue<Construction> accountConstruction: accountConstructionSet) {
 			sqeezeAttributesFromAccountConstructionNonminusToMinus(squeezedMap, accountConstruction.getValue());
 		}
 	}
 
 	private <F extends FocusType> void sqeezeAttributesFromAccountConstruction(
 			Map<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> squeezedMap,
-			AccountConstruction<F> accountConstruction) {
+			Construction<F> accountConstruction) {
 		for (Mapping<? extends PrismPropertyValue<?>> vc: accountConstruction.getAttributeMappings()) {
 			PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> vcTriple = vc.getOutputTriple();
 			if (vcTriple == null) {
@@ -565,7 +565,7 @@ public class ConsolidationProcessor {
 	
 	private <F extends FocusType> void sqeezeAttributesFromAccountConstructionNonminusToPlus(
 			Map<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> squeezedMap,
-			AccountConstruction<F> accountConstruction) {
+			Construction<F> accountConstruction) {
 		for (Mapping<? extends PrismPropertyValue<?>> vc: accountConstruction.getAttributeMappings()) {
 			PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> vcTriple = vc.getOutputTriple();
 			if (vcTriple == null) {
@@ -580,7 +580,7 @@ public class ConsolidationProcessor {
 
 	private <F extends FocusType> void sqeezeAttributesFromAccountConstructionNonminusToMinus(
 			Map<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> squeezedMap,
-			AccountConstruction<F> accountConstruction) {
+			Construction<F> accountConstruction) {
 		for (Mapping<? extends PrismPropertyValue<?>> vc: accountConstruction.getAttributeMappings()) {
 			PrismValueDeltaSetTriple<? extends PrismPropertyValue<?>> vcTriple = vc.getOutputTriple();
 			if (vcTriple == null) {
@@ -595,7 +595,7 @@ public class ConsolidationProcessor {
 
 	private void convertSqueezeSet(Collection<? extends PrismPropertyValue<?>> fromSet,
 			Collection<ItemValueWithOrigin<? extends PrismPropertyValue<?>>> toSet,
-			Mapping<? extends PrismPropertyValue<?>> valueConstruction, AccountConstruction accountConstruction) {
+			Mapping<? extends PrismPropertyValue<?>> valueConstruction, Construction accountConstruction) {
 		if (fromSet != null) {
 			for (PrismValue from: fromSet) {
 				ItemValueWithOrigin<PrismPropertyValue<?>> pvwo = new ItemValueWithOrigin(from, valueConstruction, accountConstruction);

@@ -204,7 +204,11 @@ public class WebModelUtils {
     }
 
     public static void save(ObjectDelta delta, OperationResult result, PageBase page) {
-        save(WebMiscUtil.createDeltaCollection(delta), null, result, page);
+        save(delta, null, result, page);
+    }
+
+    public static void save(ObjectDelta delta, ModelExecuteOptions options, OperationResult result, PageBase page) {
+        save(WebMiscUtil.createDeltaCollection(delta), options, result, page);
     }
 
     public static void save(Collection<ObjectDelta<? extends ObjectType>> deltas, ModelExecuteOptions options,

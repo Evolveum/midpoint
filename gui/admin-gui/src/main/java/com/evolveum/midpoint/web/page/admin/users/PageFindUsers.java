@@ -18,10 +18,12 @@ package com.evolveum.midpoint.web.page.admin.users;
 
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.PageDescriptor;
 
 /**
  * @author lazyman
  */
+@PageDescriptor(url = "/admin/users/find")
 public class PageFindUsers extends PageAdminUsers {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageFindUsers.class);

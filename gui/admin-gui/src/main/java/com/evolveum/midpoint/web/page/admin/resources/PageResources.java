@@ -31,6 +31,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
@@ -43,6 +44,7 @@ import com.evolveum.midpoint.web.page.admin.resources.component.ContentPanel;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageContentAccounts;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageContentEntitlements;
 import com.evolveum.midpoint.web.page.admin.resources.dto.*;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorHostType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
@@ -69,6 +71,7 @@ import java.util.List;
 /**
  * @author lazyman
  */
+@PageDescriptor(url = "/admin/resources")
 public class PageResources extends PageAdminResources {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageResources.class);
@@ -231,7 +234,7 @@ public class PageResources extends PageAdminResources {
                         ResourceDto dto = model.getObject();
 
                         PageParameters parameters = new PageParameters();
-                        parameters.add(PageContentAccounts.PARAM_RESOURCE_ID, dto.getOid());
+                        parameters.add(OnePageParameterEncoder.PARAMETER, dto.getOid());
                         setResponsePage(PageContentAccounts.class, parameters);
                     }
 
@@ -240,7 +243,7 @@ public class PageResources extends PageAdminResources {
                         ResourceDto dto = model.getObject();
 
                         PageParameters parameters = new PageParameters();
-                        parameters.add(PageContentEntitlements.PARAM_RESOURCE_ID, dto.getOid());
+                        parameters.add(OnePageParameterEncoder.PARAMETER, dto.getOid());
                         setResponsePage(PageContentEntitlements.class, parameters);
                     }
                 });
@@ -323,7 +326,7 @@ public class PageResources extends PageAdminResources {
 
     private void resourceDetailsPerformed(AjaxRequestTarget target, String oid) {
         PageParameters parameters = new PageParameters();
-        parameters.add(PageResource.PARAM_RESOURCE_ID, oid);
+        parameters.add(OnePageParameterEncoder.PARAMETER, oid);
         setResponsePage(PageResource.class, parameters);
     }
 

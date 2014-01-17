@@ -23,6 +23,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
@@ -32,6 +33,7 @@ import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -50,6 +52,7 @@ import java.util.List;
 /**
  * @author lazyman
  */
+@PageDescriptor(url = "/admin/roles")
 public class PageRoles extends PageAdminRoles {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageRoles.class);
@@ -69,7 +72,7 @@ public class PageRoles extends PageAdminRoles {
         add(mainForm);
 
         List<IColumn<RoleType, String>> columns = initColumns();
-        TablePanel table = new TablePanel<RoleType>(ID_TABLE, new ObjectDataProvider(PageRoles.this, RoleType.class), columns);
+        TablePanel table = new TablePanel<>(ID_TABLE, new ObjectDataProvider(PageRoles.this, RoleType.class), columns);
         table.setOutputMarkupId(true);
         mainForm.add(table);
 
@@ -203,7 +206,7 @@ public class PageRoles extends PageAdminRoles {
 
     private void roleDetailsPerformed(AjaxRequestTarget target, String oid) {
         PageParameters parameters = new PageParameters();
-        parameters.add(PageRole.PARAM_ROLE_ID, oid);
+        parameters.add(OnePageParameterEncoder.PARAMETER, oid);
         setResponsePage(PageRole.class, parameters);
     }
 }

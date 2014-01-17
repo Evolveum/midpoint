@@ -62,13 +62,20 @@ public class DropDownFormGroup<T> extends SimplePanel<T> {
         }
         add(selectWrapper);
 
+        DropDownChoice select = createDropDown(choices, renderer, required);
+        select.setLabel(label);
+        selectWrapper.add(select);
+
+        FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK, new ComponentFeedbackMessageFilter(select));
+        feedback.setOutputMarkupId(true);
+        selectWrapper.add(feedback);
+    }
+
+    protected DropDownChoice createDropDown(IModel<List<T>> choices, IChoiceRenderer renderer, boolean required) {
         DropDownChoice select = new DropDownChoice(ID_SELECT, getModel(), choices, renderer);
         if (!required) {
             select.setNullValid(true);
         }
-        selectWrapper.add(select);
-
-        FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK, new ComponentFeedbackMessageFilter(select));
-        selectWrapper.add(feedback);
+        return select;
     }
 }

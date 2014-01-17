@@ -27,6 +27,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.accordion.Accordion;
@@ -43,6 +44,7 @@ import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDetailedDto;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
@@ -63,9 +65,9 @@ import org.apache.wicket.request.resource.PackageResourceReference;
 /**
  * @author mederly
  */
+@PageDescriptor(url = "/admin/workItem", encoder = OnePageParameterEncoder.class)
 public class PageWorkItem extends PageAdminWorkItems {
 
-    public static final String PARAM_TASK_ID = "taskId";
     private static final String DOT_CLASS = PageWorkItem.class.getName() + ".";
     private static final String OPERATION_LOAD_WORK_ITEM = DOT_CLASS + "loadWorkItem";
     private static final String OPERATION_LOAD_PROCESS_INSTANCE = DOT_CLASS + "loadProcessInstance";
@@ -334,7 +336,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         WorkItemType workItem = null;
         try {
             WorkflowManager wfm = getWorkflowManager();
-            workItem = wfm.getWorkItemDetailsById(parameters.get(PARAM_TASK_ID).toString(), result);
+            workItem = wfm.getWorkItemDetailsById(parameters.get(OnePageParameterEncoder.PARAMETER).toString(), result);
             workItemDetailedDto = new WorkItemDetailedDto(workItem, getPrismContext());
             result.recordSuccessIfUnknown();
         } catch (Exception ex) {
@@ -354,7 +356,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         OperationResult result = new OperationResult(OPERATION_LOAD_PROCESS_INSTANCE);
         WfProcessInstanceType processInstance;
         try {
-            String taskId = parameters.get(PARAM_TASK_ID).toString();
+            String taskId = parameters.get(OnePageParameterEncoder.PARAMETER).toString();
             LOGGER.trace("Loading process instance for task {}", taskId);
             WorkflowManager wfm = getWorkflowManager();
             processInstance = wfm.getProcessInstanceByWorkItemId(taskId, result);

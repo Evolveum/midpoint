@@ -35,6 +35,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.*;
@@ -52,6 +53,7 @@ import com.evolveum.midpoint.web.page.admin.resources.content.dto.AccountOwnerCh
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserListItemDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
@@ -80,6 +82,7 @@ import java.util.List;
 /**
  * @author lazyman
  */
+@PageDescriptor(url = "/admin/resources/content/accounts", encoder = OnePageParameterEncoder.class)
 public class PageContentAccounts extends PageAdminResources {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageContentAccounts.class);
@@ -99,7 +102,7 @@ public class PageContentAccounts extends PageAdminResources {
     private static final String ID_TABLE = "table";
 
     private IModel<PrismObject<ResourceType>> resourceModel;
-    private LoadableModel<AccountContentSearchDto> model;
+    private IModel<AccountContentSearchDto> model = new Model<>(new AccountContentSearchDto());
     private LoadableModel<AccountOwnerChangeDto> ownerChangeModel;
 
     public PageContentAccounts() {
@@ -112,13 +115,6 @@ public class PageContentAccounts extends PageAdminResources {
                     throw new RestartResponseException(PageResources.class);
                 }
                 return loadResource(null);
-            }
-        };
-        model = new LoadableModel<AccountContentSearchDto>(false) {
-
-            @Override
-            protected AccountContentSearchDto load() {
-                return new AccountContentSearchDto();
             }
         };
         ownerChangeModel = new LoadableModel<AccountOwnerChangeDto>(false) {
@@ -150,13 +146,15 @@ public class PageContentAccounts extends PageAdminResources {
         Form searchForm = new Form(ID_SEARCH_FORM);
         add(searchForm);
 
-        TextField searchText = new TextField(ID_SEARCH_TEXT);
+        TextField searchText = new TextField(ID_SEARCH_TEXT,
+                new PropertyModel(model, AccountContentSearchDto.F_SEARCH_TEXT));
         searchForm.add(searchText);
 
-        CheckBox nameCheck = new CheckBox(ID_NAME_CHECK);
+        CheckBox nameCheck = new CheckBox(ID_NAME_CHECK, new PropertyModel(model, AccountContentSearchDto.F_NAME));
         searchForm.add(nameCheck);
 
-        CheckBox identifiersCheck = new CheckBox(ID_IDENTIFIERS_CHECK);
+        CheckBox identifiersCheck = new CheckBox(ID_IDENTIFIERS_CHECK,
+                new PropertyModel(model, AccountContentSearchDto.F_IDENTIFIERS));
         searchForm.add(identifiersCheck);
 
         AjaxSubmitButton searchButton = new AjaxSubmitButton(ID_SEARCH_BUTTON,
@@ -216,7 +214,7 @@ public class PageContentAccounts extends PageAdminResources {
                 for (ResourceAttribute<?> attr : dto.getIdentifiers()) {
                     values.add(attr.getElementName().getLocalPart() + ": " + attr.getRealValue());
                 }
-                cellItem.add(new Label(componentId, new Model<String>(StringUtils.join(values, ", "))));
+                cellItem.add(new Label(componentId, new Model<>(StringUtils.join(values, ", "))));
             }
         };
         columns.add(column);
@@ -382,8 +380,7 @@ public class PageContentAccounts extends PageAdminResources {
     }
 
     private TablePanel getTable() {
-        OptionContent content = (OptionContent) get("mainForm:optionContent");
-        return (TablePanel) content.getBodyContainer().get("table");
+        return (TablePanel) get(createComponentPath(ID_MAIN_FORM, ID_TABLE));
     }
 
     private void searchPerformed(AjaxRequestTarget target) {
@@ -499,14 +496,14 @@ public class PageContentAccounts extends PageAdminResources {
         }
 
         PageParameters parameters = new PageParameters();
-        parameters.add(PageAccount.PARAM_ACCOUNT_ID, accountOid);
+        parameters.add(OnePageParameterEncoder.PARAMETER, accountOid);
         setResponsePage(PageAccount.class, parameters);
     }
 
     private List<AccountContentDto> isAnythingSelected(AjaxRequestTarget target, AccountContentDto dto) {
         List<AccountContentDto> accounts;
         if (dto != null) {
-            accounts = new ArrayList<AccountContentDto>();
+            accounts = new ArrayList<>();
             accounts.add(dto);
         } else {
             accounts = WebMiscUtil.getSelectedData(getTable());

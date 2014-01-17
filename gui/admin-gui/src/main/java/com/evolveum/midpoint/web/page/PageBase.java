@@ -142,7 +142,7 @@ public abstract class PageBase extends WebPage {
     @Override
     protected void onAfterRender() {
         super.onAfterRender();
-
+        LOGGER.info("*******************************");
         //we try to remove messages (and operation results) that were stored in session, but only
         //if all session messages were already rendered.
         boolean allRendered = true;
@@ -150,15 +150,18 @@ public abstract class PageBase extends WebPage {
         Iterator<FeedbackMessage> iterator = messages.iterator();
         while (iterator.hasNext()) {
             FeedbackMessage message = iterator.next();
+            LOGGER.info("MESSAGE {}", message);
             if (!message.isRendered()) {
                 allRendered = false;
                 break;
             }
         }
 
-        if (allRendered) {
+        if (getSession().getFeedbackMessages().size() > 0 && allRendered) {
+            LOGGER.info("clearing {}", getSession().getFeedbackMessages().size());
             getSession().getFeedbackMessages().clear();
         }
+        LOGGER.info("_______________________________");
     }
 
     private void initLayout() {

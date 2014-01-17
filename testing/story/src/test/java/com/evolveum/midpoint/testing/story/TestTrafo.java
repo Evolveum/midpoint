@@ -91,6 +91,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.ProvisioningScriptSpec;
+import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.MiscUtil;
@@ -120,9 +121,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
  */
 @ContextConfiguration(locations = {"classpath:ctx-story-test-main.xml"})
 @DirtiesContext(classMode = ClassMode.AFTER_CLASS)
-public class TestTrafo extends AbstractModelIntegrationTest {
+public class TestTrafo extends AbstractStoryTest {
 	
-	public static final File TEST_DIR = new File("src/test/resources/trafo");
+	public static final File TEST_DIR = new File(MidPointTestConstants.TEST_RESOURCES_DIR, "trafo");
 	
 	public static final String NS_TRAFO_EXT = "http://midpoint.evolveum.com/xml/ns/story/trafo/ext";
 	private static final File TRAFO_SCHEMA_EXTENSION_FILE = new File(TEST_DIR, "extension.xsd");
@@ -130,18 +131,7 @@ public class TestTrafo extends AbstractModelIntegrationTest {
 	private static final ItemPath TRAFO_EXTENSION_HOMEDIR_PATH = new ItemPath(UserType.F_EXTENSION, TRAFO_EXTENSION_HOMEDIR_QNAME);
 	
 	private static final String TRAFO_MAIL_DOMAIN = "trafo.xx";
-	
-	public static final String SYSTEM_CONFIGURATION_FILENAME = COMMON_DIR_NAME + "/system-configuration.xml";
-	public static final String SYSTEM_CONFIGURATION_OID = SystemObjectsType.SYSTEM_CONFIGURATION.value();
-	
-	protected static final String USER_ADMINISTRATOR_FILENAME = COMMON_DIR_NAME + "/user-administrator.xml";
-	protected static final String USER_ADMINISTRATOR_OID = "00000000-0000-0000-0000-000000000002";
-	protected static final String USER_ADMINISTRATOR_USERNAME = "administrator";
-	
-	protected static final File USER_JACK_FILE = new File(COMMON_DIR_NAME, "user-jack.xml");
-	protected static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
-	protected static final String USER_JACK_USERNAME = "jack";
-	
+		
 	protected static final File USER_ANGELICA_FILE = new File(TEST_DIR, "user-angelica.xml");
 	protected static final String USER_ANGELICA_OID = "c0c010c0-d34d-b33f-f00d-11111111aaaa";
 	protected static final String USER_ANGELICA_USERNAME = "angelica";
@@ -178,9 +168,6 @@ public class TestTrafo extends AbstractModelIntegrationTest {
 	private static final String ACCOUNT_SMITH222_MAIL_USERNAME = "John Smith/222/TRAFO/XX";
 	private static final String ACCOUNT_SMITH222_MAIL_USERNAME_AFTER_RENAME = "John Smither/222/TRAFO/XX";
 	
-	protected static final File ROLE_SUPERUSER_FILE = new File(COMMON_DIR_NAME, "role-superuser.xml");
-	protected static final String ROLE_SUPERUSER_OID = "00000000-0000-0000-0000-000000000004";
-	
 	protected static final File ROLE_EMPLOYEE_FILE = new File(TEST_DIR, "role-employee.xml");
 	protected static final String ROLE_EMPLOYEE_OID = "6de5ff6a-5b61-11e3-adc5-001e8c717e5b";
 	
@@ -194,12 +181,6 @@ public class TestTrafo extends AbstractModelIntegrationTest {
 	protected static final String RESOURCE_DUMMY_MAIL_OID = "14400000-0000-0000-0000-000000000001";
 	protected static final String RESOURCE_DUMMY_MAIL_NAMESPACE = MidPointConstants.NS_RI;
 	
-	protected static final File TASK_TRIGGER_SCANNER_FILE = new File(COMMON_DIR_NAME, "task-trigger-scanner.xml");
-	protected static final String TASK_TRIGGER_SCANNER_OID = "00000000-0000-0000-0000-000000000007";
-	
-	protected static final File TASK_VALIDITY_SCANNER_FILE = new File(COMMON_DIR_NAME, "task-validity-scanner.xml");
-	protected static final String TASK_VALIDITY_SCANNER_OID = "00000000-0000-0000-0000-000000000006";
-
 	private static final String DUMMY_ACCOUNT_ATTRIBUTE_MAIL_FIRST_NAME_NAME = "FirstName";
 	private static final String DUMMY_ACCOUNT_ATTRIBUTE_MAIL_LAST_NAME_NAME = "LastName";
 	private static final String DUMMY_ACCOUNT_ATTRIBUTE_MAIL_SHORT_NAME_NAME = "ShortName";
@@ -221,14 +202,9 @@ public class TestTrafo extends AbstractModelIntegrationTest {
 	protected ResourceType resourceDummyMailType;
 	protected PrismObject<ResourceType> resourceDummyMail;
 	
-	private MatchingRule<String> caseIgnoreMatchingRule;
-	
 	private String jackAdIcfUid;
 	private String jackMailIcfUid;
 	
-	@Autowired(required=true)
-	private MatchingRuleRegistry matchingRuleRegistry;
-
 	private String angelicaAdIcfUid;
 
 	private String smith111MailIcfUid;
@@ -244,25 +220,8 @@ public class TestTrafo extends AbstractModelIntegrationTest {
 	@Override
 	public void initSystem(Task initTask, OperationResult initResult) throws Exception {
 		super.initSystem(initTask, initResult);
-		modelService.postInit(initResult);
-		
-		// Schema
-//		prismContext.getSchemaRegistry().loadPrismSchemaFile(TRAFO_SCHEMA_EXTENSION_FILE);
-		
-		// System Configuration
-		try {
-			repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILENAME, SystemConfigurationType.class, initResult);
-		} catch (ObjectAlreadyExistsException e) {
-			throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
-					"looks like the previous test haven't cleaned it up", e);
-		}
-		
-		// Users
-		repoAddObjectFromFile(USER_ADMINISTRATOR_FILENAME, UserType.class, initResult);
-		repoAddObjectFromFile(USER_JACK_FILE, UserType.class, true, initResult).asObjectable();
 		
 		// Roles
-		repoAddObjectFromFile(ROLE_SUPERUSER_FILE, RoleType.class, initResult);
 		repoAddObjectFromFile(ROLE_EMPLOYEE_FILE, RoleType.class, initResult);
 		
 		// Resources
@@ -290,12 +249,6 @@ public class TestTrafo extends AbstractModelIntegrationTest {
 		resourceDummyMailType = resourceDummyMail.asObjectable();
 		dummyResourceCtlMail.setResource(resourceDummyMail);
 		
-		assumeAssignmentPolicy(AssignmentPolicyEnforcementType.RELATIVE);
-		
-		caseIgnoreMatchingRule = matchingRuleRegistry.getMatchingRule(StringIgnoreCaseMatchingRule.NAME, DOMUtil.XSD_STRING);
-		
-		importObjectFromFile(TASK_TRIGGER_SCANNER_FILE, initResult);
-		importObjectFromFile(TASK_VALIDITY_SCANNER_FILE, initResult);
 	}
 
 	@Test
@@ -336,16 +289,16 @@ public class TestTrafo extends AbstractModelIntegrationTest {
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack);
-        String accountOid = getSingleUserAccountRef(userJack);
+        String accountOid = getSingleLinkRef(userJack).getOid();
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-        assertShadowRepo(accountShadow, accountOid, ACCOUNT_JACK_AD_DN, resourceDummyAdType, caseIgnoreMatchingRule);
+        assertAccountShadowRepo(accountShadow, accountOid, ACCOUNT_JACK_AD_DN, resourceDummyAdType, caseIgnoreMatchingRule);
         
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         display("AD shadow", accountModel);
-        assertShadowModel(accountModel, accountOid, ACCOUNT_JACK_AD_DN, resourceDummyAdType, caseIgnoreMatchingRule);
+        assertAccountShadowModel(accountModel, accountOid, ACCOUNT_JACK_AD_DN, resourceDummyAdType, caseIgnoreMatchingRule);
         assertAdministrativeStatusEnabled(accountModel);
         
         jackAdIcfUid = getIcfUid(accountModel);
@@ -402,16 +355,16 @@ public class TestTrafo extends AbstractModelIntegrationTest {
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack);
-        String accountOid = getSingleUserAccountRef(userJack);
+        String accountOid = getSingleLinkRef(userJack).getOid();
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-        assertShadowRepo(accountShadow, accountOid, ACCOUNT_JACK_AD_DN, resourceDummyAdType, caseIgnoreMatchingRule);
+        assertAccountShadowRepo(accountShadow, accountOid, ACCOUNT_JACK_AD_DN, resourceDummyAdType, caseIgnoreMatchingRule);
         
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         display("AD shadow", accountModel);
-        assertShadowModel(accountModel, accountOid, ACCOUNT_JACK_AD_DN, resourceDummyAdType, caseIgnoreMatchingRule);
+        assertAccountShadowModel(accountModel, accountOid, ACCOUNT_JACK_AD_DN, resourceDummyAdType, caseIgnoreMatchingRule);
         assertAdministrativeStatusDisabled(accountModel);
         
         assertEquals("Jack AD ICF UID has changed", jackAdIcfUid, getIcfUid(accountModel));
@@ -469,7 +422,7 @@ public class TestTrafo extends AbstractModelIntegrationTest {
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack);
-		assertAccounts(userJack, 0);
+		assertLinks(userJack, 0);
         
         // Check account in dummy resource
         assertNoDummyAccountById(RESOURCE_DUMMY_AD_ID, jackAdIcfUid);
@@ -507,16 +460,16 @@ public class TestTrafo extends AbstractModelIntegrationTest {
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack);
-        String accountOid = getSingleUserAccountRef(userJack);
+        String accountOid = getSingleLinkRef(userJack).getOid();
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-        assertShadowRepo(accountShadow, accountOid, ACCOUNT_JACK_MAIL_USERNAME, resourceDummyMailType, caseIgnoreMatchingRule);
+        assertAccountShadowRepo(accountShadow, accountOid, ACCOUNT_JACK_MAIL_USERNAME, resourceDummyMailType, caseIgnoreMatchingRule);
         
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         display("Mail shadow", accountModel);
-        assertShadowModel(accountModel, accountOid, ACCOUNT_JACK_MAIL_USERNAME, resourceDummyMailType, caseIgnoreMatchingRule);
+        assertAccountShadowModel(accountModel, accountOid, ACCOUNT_JACK_MAIL_USERNAME, resourceDummyMailType, caseIgnoreMatchingRule);
         assertAdministrativeStatusEnabled(accountModel);
         
         jackMailIcfUid = getIcfUid(accountModel);
@@ -581,16 +534,16 @@ public class TestTrafo extends AbstractModelIntegrationTest {
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack);
-        String accountOid = getSingleUserAccountRef(userJack);
+        String accountOid = getSingleLinkRef(userJack).getOid();
         
 		// Check shadow
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOid, null, result);
-        assertShadowRepo(accountShadow, accountOid, ACCOUNT_JACK_MAIL_USERNAME, resourceDummyMailType, caseIgnoreMatchingRule);
+        assertAccountShadowRepo(accountShadow, accountOid, ACCOUNT_JACK_MAIL_USERNAME, resourceDummyMailType, caseIgnoreMatchingRule);
         
         // Check account
         PrismObject<ShadowType> accountModel = modelService.getObject(ShadowType.class, accountOid, null, task, result);
         display("Mail shadow", accountModel);
-        assertShadowModel(accountModel, accountOid, ACCOUNT_JACK_MAIL_USERNAME, resourceDummyMailType, caseIgnoreMatchingRule);
+        assertAccountShadowModel(accountModel, accountOid, ACCOUNT_JACK_MAIL_USERNAME, resourceDummyMailType, caseIgnoreMatchingRule);
         assertAdministrativeStatusDisabled(accountModel);
         
         assertEquals("Jack Mail ICF UID has changed", jackMailIcfUid, getIcfUid(accountModel));
@@ -656,7 +609,7 @@ public class TestTrafo extends AbstractModelIntegrationTest {
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack);
-		assertAccounts(userJack, 0);
+		assertLinks(userJack, 0);
         
         // Check account in dummy resource
         assertNoDummyAccountById(RESOURCE_DUMMY_MAIL_ID, jackMailIcfUid);
@@ -705,20 +658,20 @@ public class TestTrafo extends AbstractModelIntegrationTest {
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		display("User after change execution", userJack);
 		assertUserJack(userJack);
-		assertAccounts(userJack, 2);
-		String accountAdOid = getLinkRef(userJack, RESOURCE_DUMMY_AD_OID);
-		String accountMailOid = getLinkRef(userJack, RESOURCE_DUMMY_MAIL_OID);
+		assertLinks(userJack, 2);
+		String accountAdOid = getLinkRefOid(userJack, RESOURCE_DUMMY_AD_OID);
+		String accountMailOid = getLinkRefOid(userJack, RESOURCE_DUMMY_MAIL_OID);
         
 		// AD ACCOUNT
 		
 		// Check shadow
         PrismObject<ShadowType> accountAdShadow = repositoryService.getObject(ShadowType.class, accountAdOid, null, result);
-        assertShadowRepo(accountAdShadow, accountAdOid, ACCOUNT_JACK_AD_DN, resourceDummyAdType, caseIgnoreMatchingRule);
+        assertAccountShadowRepo(accountAdShadow, accountAdOid, ACCOUNT_JACK_AD_DN, resourceDummyAdType, caseIgnoreMatchingRule);
         
         // Check account
         PrismObject<ShadowType> accountAdModel = modelService.getObject(ShadowType.class, accountAdOid, null, task, result);
         display("AD shadow", accountAdModel);
-        assertShadowModel(accountAdModel, accountAdOid, ACCOUNT_JACK_AD_DN, resourceDummyAdType, caseIgnoreMatchingRule);
+        assertAccountShadowModel(accountAdModel, accountAdOid, ACCOUNT_JACK_AD_DN, resourceDummyAdType, caseIgnoreMatchingRule);
         assertAdministrativeStatusEnabled(accountAdModel);
         
         jackAdIcfUid = getIcfUid(accountAdModel);
@@ -744,12 +697,12 @@ public class TestTrafo extends AbstractModelIntegrationTest {
  		
  		// Check shadow
         PrismObject<ShadowType> accountMailShadow = repositoryService.getObject(ShadowType.class, accountMailOid, null, result);
-        assertShadowRepo(accountMailShadow, accountMailOid, ACCOUNT_JACK_MAIL_USERNAME, resourceDummyMailType, caseIgnoreMatchingRule);
+        assertAccountShadowRepo(accountMailShadow, accountMailOid, ACCOUNT_JACK_MAIL_USERNAME, resourceDummyMailType, caseIgnoreMatchingRule);
         
         // Check account
         PrismObject<ShadowType> accountMailModel = modelService.getObject(ShadowType.class, accountMailOid, null, task, result);
         display("Mail shadow", accountMailModel);
-        assertShadowModel(accountMailModel, accountMailOid, ACCOUNT_JACK_MAIL_USERNAME, resourceDummyMailType, caseIgnoreMatchingRule);
+        assertAccountShadowModel(accountMailModel, accountMailOid, ACCOUNT_JACK_MAIL_USERNAME, resourceDummyMailType, caseIgnoreMatchingRule);
         assertAdministrativeStatusEnabled(accountMailModel);
         
         jackMailIcfUid = getIcfUid(accountMailModel);
@@ -821,20 +774,20 @@ public class TestTrafo extends AbstractModelIntegrationTest {
 		PrismObject<UserType> userAngelica = getUser(USER_ANGELICA_OID);
 		display("User angelica after change execution", userAngelica);
 		assertUser(userAngelica, USER_ANGELICA_OID, USER_ANGELICA_USERNAME, "Jack Sparrow", "Jack", "Sparrow");
-		assertAccounts(userAngelica, 2);
-		String accountAdOid = getLinkRef(userAngelica, RESOURCE_DUMMY_AD_OID);
-		String accountMailOid = getLinkRef(userAngelica, RESOURCE_DUMMY_MAIL_OID);
+		assertLinks(userAngelica, 2);
+		String accountAdOid = getLinkRefOid(userAngelica, RESOURCE_DUMMY_AD_OID);
+		String accountMailOid = getLinkRefOid(userAngelica, RESOURCE_DUMMY_MAIL_OID);
         
 		// AD ACCOUNT
 		
 		// Check shadow
         PrismObject<ShadowType> accountAdShadow = repositoryService.getObject(ShadowType.class, accountAdOid, null, result);
-        assertShadowRepo(accountAdShadow, accountAdOid, ACCOUNT_ANGELICA_AD_DN, resourceDummyAdType, caseIgnoreMatchingRule);
+        assertAccountShadowRepo(accountAdShadow, accountAdOid, ACCOUNT_ANGELICA_AD_DN, resourceDummyAdType, caseIgnoreMatchingRule);
         
         // Check account
         PrismObject<ShadowType> accountAdModel = modelService.getObject(ShadowType.class, accountAdOid, null, task, result);
         display("AD shadow", accountAdModel);
-        assertShadowModel(accountAdModel, accountAdOid, ACCOUNT_ANGELICA_AD_DN, resourceDummyAdType, caseIgnoreMatchingRule);
+        assertAccountShadowModel(accountAdModel, accountAdOid, ACCOUNT_ANGELICA_AD_DN, resourceDummyAdType, caseIgnoreMatchingRule);
         assertAdministrativeStatusEnabled(accountAdModel);
         
         angelicaAdIcfUid = getIcfUid(accountAdModel);
@@ -860,12 +813,12 @@ public class TestTrafo extends AbstractModelIntegrationTest {
  		
  		// Check shadow
         PrismObject<ShadowType> accountMailShadow = repositoryService.getObject(ShadowType.class, accountMailOid, null, result);
-        assertShadowRepo(accountMailShadow, accountMailOid, ACCOUNT_ANGELICA_MAIL_USERNAME, resourceDummyMailType, caseIgnoreMatchingRule);
+        assertAccountShadowRepo(accountMailShadow, accountMailOid, ACCOUNT_ANGELICA_MAIL_USERNAME, resourceDummyMailType, caseIgnoreMatchingRule);
         
         // Check account
         PrismObject<ShadowType> accountMailModel = modelService.getObject(ShadowType.class, accountMailOid, null, task, result);
         display("Mail shadow", accountMailModel);
-        assertShadowModel(accountMailModel, accountMailOid, ACCOUNT_ANGELICA_MAIL_USERNAME, resourceDummyMailType, caseIgnoreMatchingRule);
+        assertAccountShadowModel(accountMailModel, accountMailOid, ACCOUNT_ANGELICA_MAIL_USERNAME, resourceDummyMailType, caseIgnoreMatchingRule);
         assertAdministrativeStatusEnabled(accountMailModel);
         
         angelicaMailIcfUid = getIcfUid(accountMailModel);
@@ -938,20 +891,20 @@ public class TestTrafo extends AbstractModelIntegrationTest {
 		PrismObject<UserType> userSmith = getUser(USER_SMITH111_OID);
 		display("User smith111 after change execution", userSmith);
 		assertUser(userSmith, USER_SMITH111_OID, USER_SMITH111_USERNAME, "John Smith", "John", "Smith");
-		assertAccounts(userSmith, 2);
-		String accountAdOid = getLinkRef(userSmith, RESOURCE_DUMMY_AD_OID);
-		String accountMailOid = getLinkRef(userSmith, RESOURCE_DUMMY_MAIL_OID);
+		assertLinks(userSmith, 2);
+		String accountAdOid = getLinkRefOid(userSmith, RESOURCE_DUMMY_AD_OID);
+		String accountMailOid = getLinkRefOid(userSmith, RESOURCE_DUMMY_MAIL_OID);
         
 		// AD ACCOUNT
 		
 		// Check shadow
         PrismObject<ShadowType> accountAdShadow = repositoryService.getObject(ShadowType.class, accountAdOid, null, result);
-        assertShadowRepo(accountAdShadow, accountAdOid, ACCOUNT_SMITH111_AD_DN, resourceDummyAdType, caseIgnoreMatchingRule);
+        assertAccountShadowRepo(accountAdShadow, accountAdOid, ACCOUNT_SMITH111_AD_DN, resourceDummyAdType, caseIgnoreMatchingRule);
         
         // Check account
         PrismObject<ShadowType> accountAdModel = modelService.getObject(ShadowType.class, accountAdOid, null, task, result);
         display("AD shadow", accountAdModel);
-        assertShadowModel(accountAdModel, accountAdOid, ACCOUNT_SMITH111_AD_DN, resourceDummyAdType, caseIgnoreMatchingRule);
+        assertAccountShadowModel(accountAdModel, accountAdOid, ACCOUNT_SMITH111_AD_DN, resourceDummyAdType, caseIgnoreMatchingRule);
         assertAdministrativeStatusEnabled(accountAdModel);
         
         smith111AdIcfUid = getIcfUid(accountAdModel);
@@ -979,12 +932,12 @@ public class TestTrafo extends AbstractModelIntegrationTest {
  		
  		// Check shadow
         PrismObject<ShadowType> accountMailShadow = repositoryService.getObject(ShadowType.class, accountMailOid, null, result);
-        assertShadowRepo(accountMailShadow, accountMailOid, ACCOUNT_SMITH111_MAIL_USERNAME, resourceDummyMailType, caseIgnoreMatchingRule);
+        assertAccountShadowRepo(accountMailShadow, accountMailOid, ACCOUNT_SMITH111_MAIL_USERNAME, resourceDummyMailType, caseIgnoreMatchingRule);
         
         // Check account
         PrismObject<ShadowType> accountMailModel = modelService.getObject(ShadowType.class, accountMailOid, null, task, result);
         display("Mail shadow", accountMailModel);
-        assertShadowModel(accountMailModel, accountMailOid, ACCOUNT_SMITH111_MAIL_USERNAME, resourceDummyMailType, caseIgnoreMatchingRule);
+        assertAccountShadowModel(accountMailModel, accountMailOid, ACCOUNT_SMITH111_MAIL_USERNAME, resourceDummyMailType, caseIgnoreMatchingRule);
         assertAdministrativeStatusEnabled(accountMailModel);
         
         smith111MailIcfUid = getIcfUid(accountMailModel);
@@ -1059,20 +1012,20 @@ public class TestTrafo extends AbstractModelIntegrationTest {
 		PrismObject<UserType> userSmith = getUser(USER_SMITH222_OID);
 		display("User smith222 after change execution", userSmith);
 		assertUser(userSmith, USER_SMITH222_OID, USER_SMITH222_USERNAME, "John Smith", "John", "Smith");
-		assertAccounts(userSmith, 2);
-		String accountAdOid = getLinkRef(userSmith, RESOURCE_DUMMY_AD_OID);
-		String accountMailOid = getLinkRef(userSmith, RESOURCE_DUMMY_MAIL_OID);
+		assertLinks(userSmith, 2);
+		String accountAdOid = getLinkRefOid(userSmith, RESOURCE_DUMMY_AD_OID);
+		String accountMailOid = getLinkRefOid(userSmith, RESOURCE_DUMMY_MAIL_OID);
         
 		// AD ACCOUNT
 		
 		// Check shadow
         PrismObject<ShadowType> accountAdShadow = repositoryService.getObject(ShadowType.class, accountAdOid, null, result);
-        assertShadowRepo(accountAdShadow, accountAdOid, ACCOUNT_SMITH222_AD_DN, resourceDummyAdType, caseIgnoreMatchingRule);
+        assertAccountShadowRepo(accountAdShadow, accountAdOid, ACCOUNT_SMITH222_AD_DN, resourceDummyAdType, caseIgnoreMatchingRule);
         
         // Check account
         PrismObject<ShadowType> accountAdModel = modelService.getObject(ShadowType.class, accountAdOid, null, task, result);
         display("AD shadow", accountAdModel);
-        assertShadowModel(accountAdModel, accountAdOid, ACCOUNT_SMITH222_AD_DN, resourceDummyAdType, caseIgnoreMatchingRule);
+        assertAccountShadowModel(accountAdModel, accountAdOid, ACCOUNT_SMITH222_AD_DN, resourceDummyAdType, caseIgnoreMatchingRule);
         assertAdministrativeStatusEnabled(accountAdModel);
         
         smith222AdIcfUid = getIcfUid(accountAdModel);
@@ -1100,12 +1053,12 @@ public class TestTrafo extends AbstractModelIntegrationTest {
  		
  		// Check shadow
         PrismObject<ShadowType> accountMailShadow = repositoryService.getObject(ShadowType.class, accountMailOid, null, result);
-        assertShadowRepo(accountMailShadow, accountMailOid, ACCOUNT_SMITH222_MAIL_USERNAME, resourceDummyMailType, caseIgnoreMatchingRule);
+        assertAccountShadowRepo(accountMailShadow, accountMailOid, ACCOUNT_SMITH222_MAIL_USERNAME, resourceDummyMailType, caseIgnoreMatchingRule);
         
         // Check account
         PrismObject<ShadowType> accountMailModel = modelService.getObject(ShadowType.class, accountMailOid, null, task, result);
         display("Mail shadow", accountMailModel);
-        assertShadowModel(accountMailModel, accountMailOid, ACCOUNT_SMITH222_MAIL_USERNAME, resourceDummyMailType, caseIgnoreMatchingRule);
+        assertAccountShadowModel(accountMailModel, accountMailOid, ACCOUNT_SMITH222_MAIL_USERNAME, resourceDummyMailType, caseIgnoreMatchingRule);
         assertAdministrativeStatusEnabled(accountMailModel);
         
         smith222MailIcfUid = getIcfUid(accountMailModel);
@@ -1180,9 +1133,9 @@ public class TestTrafo extends AbstractModelIntegrationTest {
 		PrismObject<UserType> userSmith = getUser(USER_SMITH111_OID);
 		display("User smith111 before change execution", userSmith);
 		assertUser(userSmith, USER_SMITH111_OID, USER_SMITH111_USERNAME, "John Smith", "John", "Smith");
-		assertAccounts(userSmith, 2);
-		String accountAdOid = getLinkRef(userSmith, RESOURCE_DUMMY_AD_OID);
-		String accountMailOid = getLinkRef(userSmith, RESOURCE_DUMMY_MAIL_OID);
+		assertLinks(userSmith, 2);
+		String accountAdOid = getLinkRefOid(userSmith, RESOURCE_DUMMY_AD_OID);
+		String accountMailOid = getLinkRefOid(userSmith, RESOURCE_DUMMY_MAIL_OID);
         
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -1201,12 +1154,12 @@ public class TestTrafo extends AbstractModelIntegrationTest {
 		// Check shadow
         PrismObject<ShadowType> accountAdShadow = repositoryService.getObject(ShadowType.class, accountAdOid, null, result);
         display("AD shadow", accountAdShadow);
-        assertShadowRepo(accountAdShadow, accountAdOid, ACCOUNT_SMITH111_AD_DN_AFTER_RENAME, resourceDummyAdType, caseIgnoreMatchingRule);
+        assertAccountShadowRepo(accountAdShadow, accountAdOid, ACCOUNT_SMITH111_AD_DN_AFTER_RENAME, resourceDummyAdType, caseIgnoreMatchingRule);
         
         // Check account
         PrismObject<ShadowType> accountAdModel = modelService.getObject(ShadowType.class, accountAdOid, null, task, result);
         display("AD shadow", accountAdModel);
-        assertShadowModel(accountAdModel, accountAdOid, ACCOUNT_SMITH111_AD_DN_AFTER_RENAME, resourceDummyAdType, caseIgnoreMatchingRule);
+        assertAccountShadowModel(accountAdModel, accountAdOid, ACCOUNT_SMITH111_AD_DN_AFTER_RENAME, resourceDummyAdType, caseIgnoreMatchingRule);
         assertAdministrativeStatusEnabled(accountAdModel);
         
         smith111AdIcfUid = getIcfUid(accountAdModel);
@@ -1234,12 +1187,12 @@ public class TestTrafo extends AbstractModelIntegrationTest {
  		
  		// Check shadow
         PrismObject<ShadowType> accountMailShadow = repositoryService.getObject(ShadowType.class, accountMailOid, null, result);
-        assertShadowRepo(accountMailShadow, accountMailOid, ACCOUNT_SMITH111_MAIL_USERNAME_AFTER_RENAME, resourceDummyMailType, caseIgnoreMatchingRule);
+        assertAccountShadowRepo(accountMailShadow, accountMailOid, ACCOUNT_SMITH111_MAIL_USERNAME_AFTER_RENAME, resourceDummyMailType, caseIgnoreMatchingRule);
         
         // Check account
         PrismObject<ShadowType> accountMailModel = modelService.getObject(ShadowType.class, accountMailOid, null, task, result);
         display("Mail shadow", accountMailModel);
-        assertShadowModel(accountMailModel, accountMailOid, ACCOUNT_SMITH111_MAIL_USERNAME_AFTER_RENAME, resourceDummyMailType, caseIgnoreMatchingRule);
+        assertAccountShadowModel(accountMailModel, accountMailOid, ACCOUNT_SMITH111_MAIL_USERNAME_AFTER_RENAME, resourceDummyMailType, caseIgnoreMatchingRule);
         assertAdministrativeStatusEnabled(accountMailModel);
         
         smith111MailIcfUid = getIcfUid(accountMailModel);
@@ -1309,9 +1262,9 @@ public class TestTrafo extends AbstractModelIntegrationTest {
 		PrismObject<UserType> userSmith = getUser(USER_SMITH222_OID);
 		display("User smith222 before change execution", userSmith);
 		assertUser(userSmith, USER_SMITH222_OID, USER_SMITH222_USERNAME, "John Smith", "John", "Smith");
-		assertAccounts(userSmith, 2);
-		String accountAdOid = getLinkRef(userSmith, RESOURCE_DUMMY_AD_OID);
-		String accountMailOid = getLinkRef(userSmith, RESOURCE_DUMMY_MAIL_OID);
+		assertLinks(userSmith, 2);
+		String accountAdOid = getLinkRefOid(userSmith, RESOURCE_DUMMY_AD_OID);
+		String accountMailOid = getLinkRefOid(userSmith, RESOURCE_DUMMY_MAIL_OID);
         
 		// THEN
 		TestUtil.displayThen(TEST_NAME);
@@ -1325,12 +1278,12 @@ public class TestTrafo extends AbstractModelIntegrationTest {
 		// Check shadow
         PrismObject<ShadowType> accountAdShadow = repositoryService.getObject(ShadowType.class, accountAdOid, null, result);
         display("AD shadow", accountAdShadow);
-        assertShadowRepo(accountAdShadow, accountAdOid, ACCOUNT_SMITH222_AD_DN_AFTER_RENAME, resourceDummyAdType, caseIgnoreMatchingRule);
+        assertAccountShadowRepo(accountAdShadow, accountAdOid, ACCOUNT_SMITH222_AD_DN_AFTER_RENAME, resourceDummyAdType, caseIgnoreMatchingRule);
         
         // Check account
         PrismObject<ShadowType> accountAdModel = modelService.getObject(ShadowType.class, accountAdOid, null, task, result);
         display("AD shadow", accountAdModel);
-        assertShadowModel(accountAdModel, accountAdOid, ACCOUNT_SMITH222_AD_DN_AFTER_RENAME, resourceDummyAdType, caseIgnoreMatchingRule);
+        assertAccountShadowModel(accountAdModel, accountAdOid, ACCOUNT_SMITH222_AD_DN_AFTER_RENAME, resourceDummyAdType, caseIgnoreMatchingRule);
         assertAdministrativeStatusEnabled(accountAdModel);
         
         smith222AdIcfUid = getIcfUid(accountAdModel);
@@ -1358,12 +1311,12 @@ public class TestTrafo extends AbstractModelIntegrationTest {
  		
  		// Check shadow
         PrismObject<ShadowType> accountMailShadow = repositoryService.getObject(ShadowType.class, accountMailOid, null, result);
-        assertShadowRepo(accountMailShadow, accountMailOid, ACCOUNT_SMITH222_MAIL_USERNAME_AFTER_RENAME, resourceDummyMailType, caseIgnoreMatchingRule);
+        assertAccountShadowRepo(accountMailShadow, accountMailOid, ACCOUNT_SMITH222_MAIL_USERNAME_AFTER_RENAME, resourceDummyMailType, caseIgnoreMatchingRule);
         
         // Check account
         PrismObject<ShadowType> accountMailModel = modelService.getObject(ShadowType.class, accountMailOid, null, task, result);
         display("Mail shadow", accountMailModel);
-        assertShadowModel(accountMailModel, accountMailOid, ACCOUNT_SMITH222_MAIL_USERNAME_AFTER_RENAME, resourceDummyMailType, caseIgnoreMatchingRule);
+        assertAccountShadowModel(accountMailModel, accountMailOid, ACCOUNT_SMITH222_MAIL_USERNAME_AFTER_RENAME, resourceDummyMailType, caseIgnoreMatchingRule);
         assertAdministrativeStatusEnabled(accountMailModel);
         
         smith222MailIcfUid = getIcfUid(accountMailModel);
@@ -1414,9 +1367,4 @@ public class TestTrafo extends AbstractModelIntegrationTest {
         dummyAuditService.assertExecutionSuccess();
 	}
 
-	
-	private void assertUserJack(PrismObject<UserType> userJack) {
-		assertUser(userJack, USER_JACK_OID, USER_JACK_USERNAME, "Jack Sparrow", "Jack", "Sparrow");
-	}
-	
 }

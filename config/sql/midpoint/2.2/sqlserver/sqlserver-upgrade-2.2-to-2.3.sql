@@ -6,6 +6,11 @@ ALTER TABLE m_task ADD expectedTotal BIGINT;
 ALTER TABLE m_assignment ADD disableReason NVARCHAR(255);
 ALTER TABLE m_focus ADD disableReason NVARCHAR(255);
 ALTER TABLE m_shadow ADD disableReason NVARCHAR(255);
+ALTER TABLE m_audit_delta ADD context NVARCHAR(MAX);
+ALTER TABLE m_audit_delta ADD returns NVARCHAR(MAX);
+ALTER TABLE m_operation_result ADD context NVARCHAR(MAX);
+ALTER TABLE m_operation_result ADD returns NVARCHAR(MAX);
+
 
 CREATE TABLE m_report (
     name_norm NVARCHAR(255),

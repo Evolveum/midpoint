@@ -19,12 +19,14 @@ package com.evolveum.midpoint.web.page.admin.resources;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
+import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.wizard.Wizard;
 import com.evolveum.midpoint.web.component.wizard.resource.*;
 import com.evolveum.midpoint.web.component.xml.ace.AceEditor;
 import com.evolveum.midpoint.web.page.error.PageError;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
@@ -39,6 +41,7 @@ import org.apache.wicket.model.StringResourceModel;
 /**
  * @author lazyman
  */
+@PageDescriptor(url = "/admin/resource/wizard", encoder = OnePageParameterEncoder.class)
 public class PageResourceWizard extends PageAdminResources {
 
     private static final String ID_WIZARD = "wizard";

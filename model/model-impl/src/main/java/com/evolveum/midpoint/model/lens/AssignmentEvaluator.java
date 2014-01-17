@@ -68,7 +68,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 	private String channel;
 	private ObjectResolver objectResolver;
 	private PrismContext prismContext;
-	private MappingFactory valueConstructionFactory;
+	private MappingFactory mappingFactory;
 	private boolean evaluateConstructions = true;
 	
 	public RepositoryService getRepository() {
@@ -119,12 +119,12 @@ public class AssignmentEvaluator<F extends FocusType> {
 		this.prismContext = prismContext;
 	}
 
-	public MappingFactory getValueConstructionFactory() {
-		return valueConstructionFactory;
+	public MappingFactory getMappingFactory() {
+		return mappingFactory;
 	}
 
-	public void setValueConstructionFactory(MappingFactory valueConstructionFactory) {
-		this.valueConstructionFactory = valueConstructionFactory;
+	public void setMappingFactory(MappingFactory mappingFactory) {
+		this.mappingFactory = mappingFactory;
 	}
 
 	public boolean isEvaluateConstructions() {
@@ -206,14 +206,14 @@ public class AssignmentEvaluator<F extends FocusType> {
 				constructionType.setKind(ShadowKindType.ACCOUNT);
 			}
 		}
-		AccountConstruction<F> accContruction = new AccountConstruction<F>(constructionType, source);
+		Construction<F> accContruction = new Construction<F>(constructionType, source);
 		// We have to clone here as the path is constantly changing during evaluation
 		accContruction.setAssignmentPath(assignmentPath.clone());
 		accContruction.setUserOdo(userOdo);
 		accContruction.setLensContext(lensContext);
 		accContruction.setObjectResolver(objectResolver);
 		accContruction.setPrismContext(prismContext);
-		accContruction.setValueConstructionFactory(valueConstructionFactory);
+		accContruction.setMappingFactory(mappingFactory);
 		accContruction.setOriginType(OriginType.ASSIGNMENTS);
 		accContruction.setChannel(channel);
 		

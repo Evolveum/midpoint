@@ -34,6 +34,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.DropDownMultiChoice;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
@@ -73,6 +74,7 @@ import java.util.Map;
 /**
  * @author lazyman
  */
+@PageDescriptor(url = "/admin/users")
 public class PageUsers extends PageAdminUsers {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageUsers.class);

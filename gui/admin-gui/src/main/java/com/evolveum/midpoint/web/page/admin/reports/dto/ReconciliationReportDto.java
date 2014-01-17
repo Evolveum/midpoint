@@ -16,6 +16,8 @@
 
 package com.evolveum.midpoint.web.page.admin.reports.dto;
 
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExportType;
+
 import java.io.Serializable;
 
 /**
@@ -23,8 +25,31 @@ import java.io.Serializable;
  */
 public class ReconciliationReportDto implements Serializable {
 
+    private static final String F_RESOURCE_OID = "resourceOid";
+    private static final String F_RESOURCE_NAME_ = "resourceName";
+    private static final String F_DESCRIPTION = "description";
+    private static final String F_EXPORT_TYPE = "exportType";
+
     private String resourceOid;
     private String resourceName;
+    private String description;
+    private ExportType exportType;
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public ExportType getExportType() {
+        return exportType;
+    }
+
+    public void setExportType(ExportType exportType) {
+        this.exportType = exportType;
+    }
 
     public String getResourceOid() {
         return resourceOid;

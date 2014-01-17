@@ -22,6 +22,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.panel.Panel;
@@ -64,7 +65,7 @@ public class ProcessInstancePanel extends SimplePanel<ProcessInstanceDto> {
                 String oid = model.getObject().getWatchingTaskOid();
                 if (oid != null) {
                     PageParameters parameters = new PageParameters();
-                    parameters.add(PageTaskEdit.PARAM_TASK_EDIT_ID, oid);
+                    parameters.add(OnePageParameterEncoder.PARAMETER, oid);
                     setResponsePage(new PageTaskEdit(parameters, (PageBase) this.getPage()));
                 }
             }

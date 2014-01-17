@@ -6,6 +6,10 @@ ALTER TABLE m_task ADD COLUMN expectedTotal INT8;
 ALTER TABLE m_assignment ADD disableReason VARCHAR(255);
 ALTER TABLE m_focus ADD disableReason VARCHAR(255);
 ALTER TABLE m_shadow ADD disableReason VARCHAR(255);
+ALTER TABLE m_audit_delta ADD context TEXT;
+ALTER TABLE m_audit_delta ADD returns TEXT;
+ALTER TABLE m_operation_result ADD context TEXT;
+ALTER TABLE m_operation_result ADD returns TEXT;
 
 CREATE TABLE m_report (
     name_norm VARCHAR(255),

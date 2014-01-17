@@ -22,6 +22,19 @@
 
         <table class="table table-condensed table-striped">
             <tr>
+                <td><wicket:message key="AuditPopupPanel.descriptionPlaceholder" /></td>
+                <td>
+                    <input class="form-control input-sm" wicket:id="description"
+                           wicket:message="placeholder:AuditPopupPanel.descriptionPlaceholder" />
+                </td>
+            </tr>
+            <tr>
+                <td><wicket:message key="AuditPopupPanel.exportTypePlaceholder" /></td>
+                <td>
+                    <select class="form-control input-sm" wicket:id="exportType" />
+                </td>
+            </tr>
+            <tr>
                 <td><wicket:message key="AuditPopupPanel.dateFrom"/></td>
                 <td><span wicket:id="dateFrom"/></td>
             </tr>
@@ -36,7 +49,9 @@
         </table>
 
         <div style="text-align: center;">
-            <a class="btn btn-primary" wicket:id="run"/>
+            <a class="btn btn-primary" wicket:id="runSave"/>
+            <a class="btn btn-info" wicket:id="save" />
+            <a class="btn btn-danger" wicket:id="cancel" />
         </div>
     </form>
 </wicket:panel>

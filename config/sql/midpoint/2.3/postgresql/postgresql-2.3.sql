@@ -142,6 +142,7 @@
     create table m_audit_delta (
         checksum varchar(32) not null,
         record_id int8 not null,
+        context text,
         delta text,
         deltaOid varchar(36),
         deltaType int4,
@@ -152,6 +153,7 @@
         operation text,
         params text,
         partialResults text,
+        returns text,
         status int4,
         token int8,
         primary key (checksum, record_id)
@@ -350,6 +352,7 @@
     create table m_operation_result (
         owner_oid varchar(36) not null,
         owner_id int8 not null,
+        context text,
         details text,
         localizedMessage text,
         message text,
@@ -357,6 +360,7 @@
         operation text,
         params text,
         partialResults text,
+        returns text,
         status int4,
         token int8,
         primary key (owner_oid, owner_id)

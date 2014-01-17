@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.web.page.admin.reports.dto;
 
+import com.evolveum.midpoint.web.component.util.Selectable;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -22,7 +24,7 @@ import java.util.Collection;
 /**
  *  @author shood
  * */
-public class ReportOutputDto implements Serializable{
+public class ReportOutputDto extends Selectable implements Serializable{
 
     public static enum SearchType{
         NAME("SearchType.NAME"),
