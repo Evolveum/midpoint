@@ -24,50 +24,56 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SearchObjectExpressionEvaluatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAssociationType;
 
 /**
  * @author Radovan Semancik
  */
-public class AssignmentExpressionEvaluator 
-			extends AbstractSearchExpressionEvaluator<PrismContainerValue<AssignmentType>> {
+public class AssociationExpressionEvaluator 
+			extends AbstractSearchExpressionEvaluator<PrismContainerValue<ShadowAssociationType>> {
 	
-	private static final Trace LOGGER = TraceManager.getTrace(AssignmentExpressionEvaluator.class);
+	private static final Trace LOGGER = TraceManager.getTrace(AssociationExpressionEvaluator.class);
 	
-	public AssignmentExpressionEvaluator(SearchObjectExpressionEvaluatorType expressionEvaluatorType, 
+	public AssociationExpressionEvaluator(SearchObjectExpressionEvaluatorType expressionEvaluatorType, 
 			ItemDefinition outputDefinition, Protector protector, ObjectResolver objectResolver, 
 			ModelService modelService, PrismContext prismContext) {
 		super(expressionEvaluatorType, outputDefinition, protector, objectResolver, modelService, prismContext);
 	}
 	
-	protected PrismContainerValue<AssignmentType> createPrismValue(String oid, QName targetTypeQName, String shortDesc) {
-		AssignmentType assignmentType = new AssignmentType();
-		PrismContainerValue<AssignmentType> assignmentCVal = assignmentType.asPrismContainerValue();
+	protected PrismContainerValue<ShadowAssociationType> createPrismValue(String oid, QName targetTypeQName, String shortDesc) {
+		ShadowAssociationType associationType = new ShadowAssociationType();
+		PrismContainerValue<ShadowAssociationType> associationCVal = associationType.asPrismContainerValue();
 		
 		ObjectReferenceType targetRef = new ObjectReferenceType();
 		targetRef.setOid(oid);
 		targetRef.setType(targetTypeQName);
-		assignmentType.setTargetRef(targetRef);
+		associationType.setShadowRef(targetRef);
 		
 		try {
-			getPrismContext().adopt(assignmentCVal, FocusType.COMPLEX_TYPE, new ItemPath(FocusType.F_ASSIGNMENT));
+			getPrismContext().adopt(associationCVal, FocusType.COMPLEX_TYPE, new ItemPath(FocusType.F_ASSIGNMENT));
 			if (InternalsConfig.consistencyChecks) {
-				assignmentCVal.assertDefinitions("assignmentCVal in assignment expression in "+shortDesc);
+				associationCVal.assertDefinitions("assignmentCVal in assignment expression in "+shortDesc);
 			}
 		} catch (SchemaException e) {
 			// Should not happen
 			throw new SystemException(e);
 		}
 		
-		return assignmentCVal;
+		return associationCVal;
+	}
+	
+	@Override
+	protected ObjectTypes getDefaultTargetType() {
+		return ObjectTypes.SHADOW;
 	}
 
 	/* (non-Javadoc)
@@ -75,7 +81,7 @@ public class AssignmentExpressionEvaluator
 	 */
 	@Override
 	public String shortDebugDump() {
-		return "assignmentExpression";
+		return "associationExpression";
 	}
 
 }
