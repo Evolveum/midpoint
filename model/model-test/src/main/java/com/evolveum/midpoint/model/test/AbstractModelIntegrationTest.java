@@ -1703,16 +1703,25 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		addObject(object);
 	}
 	
+	protected <O extends ObjectType> void addObject(File file, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+		PrismObject<O> object = PrismTestUtil.parseObject(file);
+		addObject(object, task, result);
+	}
+	
 	protected <O extends ObjectType> void addObject(PrismObject<O> object) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class.getName() + ".addObject");
         OperationResult result = task.getResult();
-        ObjectDelta<O> addDelta = object.createAddDelta();
-        modelService.executeChanges(MiscSchemaUtil.createCollection(addDelta), null, task, result);
+        addObject(object, task, result);
         result.computeStatus();
         TestUtil.assertSuccess(result);
-        object.setOid(addDelta.getOid());
 	}
 	
+	protected <O extends ObjectType> void addObject(PrismObject<O> object, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
+        ObjectDelta<O> addDelta = object.createAddDelta();
+        modelService.executeChanges(MiscSchemaUtil.createCollection(addDelta), null, task, result);
+        object.setOid(addDelta.getOid());
+	}
+		
 	protected <O extends ObjectType> void deleteObject(Class<O> type, String oid, Task task, OperationResult result) throws ObjectAlreadyExistsException, ObjectNotFoundException, SchemaException, ExpressionEvaluationException, CommunicationException, ConfigurationException, PolicyViolationException, SecurityViolationException {
 		ObjectDelta<O> delta = ObjectDelta.createDeleteDelta(type, oid, prismContext);
 		modelService.executeChanges(MiscSchemaUtil.createCollection(delta), null, task, result);
@@ -2028,6 +2037,14 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		assertNotNull("No password value in "+user, protectedStringType);
 		String decryptedUserPassword = protector.decryptString(protectedStringType);
 		assertEquals("Wrong password in "+user, expectedPassword, decryptedUserPassword);
+	}
+	
+	protected void assertGroupMember(DummyGroup group, String accountId) {
+		IntegrationTestTools.assertGroupMember(group, accountId);
+	}
+
+	protected void assertNoGroupMember(DummyGroup group, String accountId) {
+		IntegrationTestTools.assertNoGroupMember(group, accountId);
 	}
 
 }

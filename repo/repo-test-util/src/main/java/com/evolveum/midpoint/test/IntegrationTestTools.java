@@ -824,13 +824,13 @@ public class IntegrationTestTools {
 		return delta;
 	}
 	
-	public static void assertMember(DummyGroup group, String accountId) {
+	public static void assertGroupMember(DummyGroup group, String accountId) {
 		Collection<String> members = group.getMembers();
 		assertNotNull("No members in group "+group.getName()+", expected that "+accountId+" will be there", members);
 		assertTrue("Account "+accountId+" is not member of group "+group.getName()+", members: "+members, members.contains(accountId));
 	}
 	
-	public static void assertNoMember(DummyGroup group, String accountId) {
+	public static void assertNoGroupMember(DummyGroup group, String accountId) {
 		Collection<String> members = group.getMembers();
 		if (members == null) {
 			return;

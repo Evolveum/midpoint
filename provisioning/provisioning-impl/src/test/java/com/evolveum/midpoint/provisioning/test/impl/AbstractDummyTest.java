@@ -377,11 +377,11 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	}
 	
 	protected void assertMember(DummyGroup group, String accountId) {
-		IntegrationTestTools.assertMember(group, accountId);
+		IntegrationTestTools.assertGroupMember(group, accountId);
 	}
 
 	protected void assertNoMember(DummyGroup group, String accountId) {
-		IntegrationTestTools.assertNoMember(group, accountId);
+		IntegrationTestTools.assertNoGroupMember(group, accountId);
 	}
 	
 	protected void assertEntitlement(PrismObject<ShadowType> account, String entitlementOid) {

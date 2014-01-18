@@ -29,6 +29,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.icf.dummy.resource.DummyGroup;
+import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -38,8 +39,13 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
+import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 
 import org.apache.commons.lang.StringUtils;
@@ -103,11 +109,9 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         
         
         PrismObject<ShadowType> group = prismContext.parseObject(SHADOW_GROUP_DUMMY_SWASHBUCKLERS_FILE);
-        ObjectDelta<ShadowType> delta = group.createAddDelta();
-        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
         
 		// WHEN
-        modelService.executeChanges(deltas, null, task, result);
+        addObject(group, task, result);
         
         // THEN
         result.computeStatus();
@@ -120,7 +124,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
 	}
     
-    @Test
+	@Test
     public void test101GetGroupShadowSwashbucklers() throws Exception {
 		final String TEST_NAME = "test101GetGroupShadowSwashbucklers";
         TestUtil.displayTestTile(this, TEST_NAME);
@@ -169,7 +173,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         display("Group", dummyGroup);
         assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION, 
         		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
-        IntegrationTestTools.assertMember(dummyGroup, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+        assertGroupMember(dummyGroup, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
 	}
 
     @Test
@@ -201,7 +205,7 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         display("Group", dummyGroup);
         assertEquals("Wrong group description", GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION, 
         		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
-        IntegrationTestTools.assertMember(dummyGroup, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
-        IntegrationTestTools.assertMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
+        assertGroupMember(dummyGroup, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
+        assertGroupMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
 	}
 }

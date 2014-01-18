@@ -193,6 +193,15 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 	public void setAssociations(Collection<ResourceObjectAssociationType> associations) {
 		this.associations = associations;
 	}
+	
+	public ResourceObjectAssociationType findAssociation(QName name) {
+		for (ResourceObjectAssociationType assocType: getAssociations()) {
+			if (assocType.getName().equals(name)) {
+				return assocType;
+			}
+		}
+		return null;
+	}
 
 	public Collection<ResourceObjectAssociationType> getEntitlementAssociations() {
 		return getAssociations(ShadowKindType.ENTITLEMENT);
@@ -206,6 +215,17 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 		}
 		return null;
 	}
+	
+    public Collection<? extends QName> getNamesOfAssociationsWithOutboundExpressions() {
+        Collection<QName> names = new HashSet<QName>();
+        for (ResourceObjectAssociationType assocDef : getAssociations()) {
+            if (assocDef.getOutbound() != null) {
+                names.add(assocDef.getName());
+            }
+        }
+        return names;
+    }
+
 	
 	public Collection<ResourceObjectPattern> getProtectedObjectPatterns() {
 		if (protectedObjectPatterns == null) {
@@ -597,7 +617,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 
         return attrNames;
     }
-
+    
     public List<MappingType> getCredentialsInbound() {
         
     	ResourcePasswordDefinitionType password = getPasswordDefinition();

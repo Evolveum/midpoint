@@ -78,6 +78,8 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
         
+        addObject(SHADOW_GROUP_DUMMY_TESTERS_FILE, initTask, initResult);
+        
         rememberSteadyResources();
     }
 
@@ -200,6 +202,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         
         // Check account in dummy resource: intent=test
         assertDummyAccount("T"+ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow (test)", true);
+        assertGroupMember(GROUP_DUMMY_TESTERS_NAME, "T"+ACCOUNT_JACK_DUMMY_USERNAME);
         
         // Check audit
         display("Audit", dummyAuditService);

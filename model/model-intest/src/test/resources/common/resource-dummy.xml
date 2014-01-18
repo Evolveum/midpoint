@@ -353,6 +353,16 @@
             	<direction>objectToSubject</direction>
             	<associationAttribute>ri:members</associationAttribute>
             	<valueAttribute>icfs:name</valueAttribute>
+            	<outbound>
+            		<expression>
+            			<value>
+            				<association>
+            					<!-- "testers" group -->
+            					<shadowRef oid="20000000-0000-0000-3333-000000000002"/>
+            				</association>
+            			</value>
+            		</expression>
+            	</outbound>
             </association>
             
             <association>

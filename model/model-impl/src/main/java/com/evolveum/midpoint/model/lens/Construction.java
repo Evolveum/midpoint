@@ -28,7 +28,9 @@ import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.Definition;
 import com.evolveum.midpoint.prism.Item;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -38,6 +40,7 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.OriginType;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
@@ -203,24 +206,37 @@ public class Construction<F extends FocusType> implements DebugDumpable, Dumpabl
 		return null;
 	}
 	
-	public void addAttributeMapping(Mapping<? extends PrismPropertyValue<?>> valueConstruction) {
-		getAttributeMappings().add(valueConstruction);
+	public void addAttributeMapping(Mapping<? extends PrismPropertyValue<?>> mapping) {
+		getAttributeMappings().add(mapping);
 	}
 
 	public boolean containsAttributeMapping(QName attributeName) {
-		for (Mapping<?> myVc: getAttributeMappings()) {
-			if (attributeName.equals(myVc.getItemName())) {
+		for (Mapping<?> mapping: getAttributeMappings()) {
+			if (attributeName.equals(mapping.getItemName())) {
 				return true;
 			}
 		}
 		return false;
 	}
-	
+		
 	public Collection<Mapping<PrismContainerValue<ShadowAssociationType>>> getAssociationMappings() {
 		if (associationMappings == null) {
 			associationMappings = new ArrayList<Mapping<PrismContainerValue<ShadowAssociationType>>>();
 		}
 		return associationMappings;
+	}
+	
+	public void addAssociationMapping(Mapping<PrismContainerValue<ShadowAssociationType>> mapping) {
+		getAssociationMappings().add(mapping);
+	}
+
+	public boolean containsAssociationMapping(QName assocName) {
+		for (Mapping<?> mapping: getAssociationMappings()) {
+			if (assocName.equals(mapping.getItemName())) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public AssignmentPath getAssignmentPath() {
@@ -388,42 +404,10 @@ public class Construction<F extends FocusType> implements DebugDumpable, Dumpabl
 		Mapping<? extends PrismPropertyValue<?>> mapping = mappingFactory.createMapping(outboundMappingType,
 				"for attribute " + PrettyPrinter.prettyPrint(attrName)  + " in "+source);
 		
-		if (!mapping.isApplicableToChannel(channel)) {
-			return null;
-		}
+		Mapping<? extends PrismPropertyValue<?>> evaluatedMapping = evaluateMapping(mapping, attrName, outputDefinition, task, result);		
 		
-		mapping.addVariableDefinition(ExpressionConstants.VAR_USER, userOdo);
-		mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS, userOdo);
-		mapping.addVariableDefinition(ExpressionConstants.VAR_SOURCE, source);
-		mapping.setMappingQName(attrName);
-		mapping.setSourceContext(userOdo);
-		mapping.setRootNode(userOdo);
-		mapping.setDefaultTargetDefinition(outputDefinition);
-		mapping.setOriginType(originType);
-		mapping.setOriginObject(source);
-		if (!assignmentPath.isEmpty()) {
-			AssignmentType assignmentType = assignmentPath.getFirstAssignment();
-			mapping.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, magicAssignment);
-			mapping.addVariableDefinition(ExpressionConstants.VAR_IMMEDIATE_ASSIGNMENT, immediateAssignment);
-			mapping.addVariableDefinition(ExpressionConstants.VAR_THIS_ASSIGNMENT, thisAssignment);
-			mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS_ASSIGNMENT, assignmentType.asPrismContainerValue());
-			mapping.addVariableDefinition(ExpressionConstants.VAR_IMMEDIATE_ROLE, immediateRole);
-		}
-		// TODO: other variables ?
-		
-		// Set condition masks. There are used as a brakes to avoid evaluating to nonsense values in case user is not present
-		// (e.g. in old values in ADD situations and new values in DELETE situations).
-		if (userOdo.getOldObject() == null) {
-			mapping.setConditionMaskOld(false);
-		}
-		if (userOdo.getNewObject() == null) {
-			mapping.setConditionMaskNew(false);
-		}
-
-		LensUtil.evaluateMapping(mapping, lensContext, task, result);
-		
-		LOGGER.trace("Evaluated mapping for attribute "+attrName+": "+mapping);
-		return mapping;
+		LOGGER.trace("Evaluated mapping for attribute "+attrName+": "+evaluatedMapping);
+		return evaluatedMapping;
 	}
 
 	private ResourceAttributeDefinition findAttributeDefinition(QName attributeName) {
@@ -475,6 +459,15 @@ public class Construction<F extends FocusType> implements DebugDumpable, Dumpabl
 		Mapping<PrismContainerValue<ShadowAssociationType>> mapping = mappingFactory.createMapping(outboundMappingType,
 				"for association " + PrettyPrinter.prettyPrint(assocName)  + " in " + source);
 		
+		Mapping<PrismContainerValue<ShadowAssociationType>> evaluatedMapping = evaluateMapping(mapping, assocName, outputDefinition, task, result);
+		
+		LOGGER.trace("Evaluated mapping for association "+assocName+": "+evaluatedMapping);
+		return evaluatedMapping;
+	}
+	
+	private <V extends PrismValue> Mapping<V> evaluateMapping(Mapping<V> mapping, QName mappingQName, ItemDefinition outputDefinition,
+			Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+		
 		if (!mapping.isApplicableToChannel(channel)) {
 			return null;
 		}
@@ -482,7 +475,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Dumpabl
 		mapping.addVariableDefinition(ExpressionConstants.VAR_USER, userOdo);
 		mapping.addVariableDefinition(ExpressionConstants.VAR_FOCUS, userOdo);
 		mapping.addVariableDefinition(ExpressionConstants.VAR_SOURCE, source);
-		mapping.setMappingQName(assocName);
+		mapping.setMappingQName(mappingQName);
 		mapping.setSourceContext(userOdo);
 		mapping.setRootNode(userOdo);
 		mapping.setDefaultTargetDefinition(outputDefinition);
@@ -508,8 +501,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Dumpabl
 		}
 
 		LensUtil.evaluateMapping(mapping, lensContext, task, result);
-		
-		LOGGER.trace("Evaluated mapping for association "+assocName+": "+mapping);
+
 		return mapping;
 	}
 	

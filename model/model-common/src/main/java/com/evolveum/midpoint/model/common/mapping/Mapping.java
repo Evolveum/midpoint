@@ -239,6 +239,10 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		return mappingContextDescription;
 	}
 
+	public MappingType getMappingType() {
+		return mappingType;
+	}
+
 	public void setRootNode(ObjectReferenceType objectRef) {
 		addVariableDefinition(null,(Object)objectRef);
 	}
