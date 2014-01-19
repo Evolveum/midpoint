@@ -64,7 +64,7 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 	private Collection<? extends RefinedAttributeDefinition> secondaryIdentifiers;
 	private Collection<ResourceObjectPattern> protectedObjectPatterns;
 	private List<RefinedAttributeDefinition> attributeDefinitions;
-	private Collection<ResourceObjectAssociationType> associations = new ArrayList<ResourceObjectAssociationType>();
+	private Collection<RefinedAssociationDefinition> associations = new ArrayList<RefinedAssociationDefinition>();
 	
     /**
      * Refined object definition. The "any" parts are replaced with appropriate schema (e.g. resource schema)
@@ -176,13 +176,13 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 		return new ArrayList<RefinedAttributeDefinition>();
 	}
 	
-	public Collection<ResourceObjectAssociationType> getAssociations() {
+	public Collection<RefinedAssociationDefinition> getAssociations() {
 		return associations;
 	}
 	
-	public Collection<ResourceObjectAssociationType> getAssociations(ShadowKindType kind) {
-		Collection<ResourceObjectAssociationType> retAssoc = new ArrayList<ResourceObjectAssociationType>();
-		for (ResourceObjectAssociationType association: associations) {
+	public Collection<RefinedAssociationDefinition> getAssociations(ShadowKindType kind) {
+		Collection<RefinedAssociationDefinition> retAssoc = new ArrayList<RefinedAssociationDefinition>();
+		for (RefinedAssociationDefinition association: associations) {
 			if (kind == association.getKind()) {
 				retAssoc.add(association);
 			}
@@ -190,12 +190,12 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 		return retAssoc;
 	}
 
-	public void setAssociations(Collection<ResourceObjectAssociationType> associations) {
+	public void setAssociations(Collection<RefinedAssociationDefinition> associations) {
 		this.associations = associations;
 	}
 	
-	public ResourceObjectAssociationType findAssociation(QName name) {
-		for (ResourceObjectAssociationType assocType: getAssociations()) {
+	public RefinedAssociationDefinition findAssociation(QName name) {
+		for (RefinedAssociationDefinition assocType: getAssociations()) {
 			if (assocType.getName().equals(name)) {
 				return assocType;
 			}
@@ -203,12 +203,12 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 		return null;
 	}
 
-	public Collection<ResourceObjectAssociationType> getEntitlementAssociations() {
+	public Collection<RefinedAssociationDefinition> getEntitlementAssociations() {
 		return getAssociations(ShadowKindType.ENTITLEMENT);
 	}
 	
-	public ResourceObjectAssociationType findEntitlementAssociation(QName name) {
-		for (ResourceObjectAssociationType assocType: getEntitlementAssociations()) {
+	public RefinedAssociationDefinition findEntitlementAssociation(QName name) {
+		for (RefinedAssociationDefinition assocType: getEntitlementAssociations()) {
 			if (assocType.getName().equals(name)) {
 				return assocType;
 			}
@@ -218,15 +218,14 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 	
     public Collection<? extends QName> getNamesOfAssociationsWithOutboundExpressions() {
         Collection<QName> names = new HashSet<QName>();
-        for (ResourceObjectAssociationType assocDef : getAssociations()) {
-            if (assocDef.getOutbound() != null) {
+        for (RefinedAssociationDefinition assocDef : getAssociations()) {
+            if (assocDef.getOutboundMappingType() != null) {
                 names.add(assocDef.getName());
             }
         }
         return names;
     }
 
-	
 	public Collection<ResourceObjectPattern> getProtectedObjectPatterns() {
 		if (protectedObjectPatterns == null) {
 			protectedObjectPatterns = new ArrayList<ResourceObjectPattern>();
@@ -450,8 +449,6 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 
     }
 	
-	
-	
 	private static RefinedObjectClassDefinition parseRefinedObjectClass(ResourceObjectTypeDefinitionType schemaHandlingObjDefType,
 			ResourceType resourceType, RefinedResourceSchema rSchema, PrismContext prismContext,
 			ShadowKindType kind, String intent, String typeDesc, String contextDescription) throws SchemaException {
@@ -522,16 +519,21 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
             }
         }
         
-        // Associations
-        if (schemaHandlingObjDefType.getAssociation() != null) {
-        	rOcDef.associations.addAll(schemaHandlingObjDefType.getAssociation());
-        }
-        
         parseProtected(rOcDef, schemaHandlingObjDefType);
    
         return rOcDef;
 	}
 
+	public void parseAssociations(RefinedResourceSchema rSchema) {
+		for (ResourceObjectAssociationType resourceObjectAssociationType: schemaHandlingObjectTypeDefinitionType.getAssociation()) {
+			RefinedAssociationDefinition rAssocDef = new RefinedAssociationDefinition(resourceObjectAssociationType);
+			ShadowKindType assocKind = rAssocDef.getKind();
+			String assocIntent = rAssocDef.getIntent();
+			RefinedObjectClassDefinition assocTarget = rSchema.getRefinedDefinition(assocKind, assocIntent);
+			rAssocDef.setAssociationTarget(assocTarget);
+			associations.add(rAssocDef);
+		}
+	}
 
 	private void processIdentifiers(RefinedAttributeDefinition rAttrDef, ObjectClassComplexTypeDefinition objectClassDef) {
 		QName attrName = rAttrDef.getName();

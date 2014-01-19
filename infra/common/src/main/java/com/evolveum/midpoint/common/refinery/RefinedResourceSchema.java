@@ -67,6 +67,17 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 		this.originalResourceSchema = originalResourceSchema;
 	}
 	
+	public Collection<? extends RefinedObjectClassDefinition> getRefinedDefinitions() {
+		Collection<RefinedObjectClassDefinition> ocDefs = new ArrayList<RefinedObjectClassDefinition>();
+		for (Definition def: definitions) {
+			if (def instanceof RefinedObjectClassDefinition) {
+				RefinedObjectClassDefinition rOcDef = (RefinedObjectClassDefinition)def;
+				ocDefs.add(rOcDef);
+			}
+		}
+		return ocDefs;
+	}
+	
 	public Collection<? extends RefinedObjectClassDefinition> getRefinedDefinitions(ShadowKindType kind) {
 		Collection<RefinedObjectClassDefinition> ocDefs = new ArrayList<RefinedObjectClassDefinition>();
 		for (Definition def: definitions) {
@@ -125,8 +136,8 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 		return getObjectDefinition(kind, ShadowUtil.getIntent(shadow));
 	}
 		
-	private void add(RefinedObjectClassDefinition refinedAccountDefinition) {
-		definitions.add(refinedAccountDefinition);
+	private void add(RefinedObjectClassDefinition rOcDef) {
+		definitions.add(rOcDef);
 	}
 	
 	public RefinedObjectClassDefinition findRefinedDefinitionByObjectClassQName(ShadowKindType kind, QName objectClass) {
@@ -311,7 +322,13 @@ public class RefinedResourceSchema extends PrismSchema implements Dumpable, Debu
 			}
 				
 			rSchema.add(rOcDef);
-		}		
+		}
+		
+		// We need to parse associations in a second pass. We need to have all object classes parsed before correctly setting association
+		// targets
+		for (RefinedObjectClassDefinition rOcDef: rSchema.getRefinedDefinitions()) {
+			rOcDef.parseAssociations(rSchema);
+		}
 	}
 
 	private static void parseObjectTypesFromSchema(RefinedResourceSchema rSchema, ResourceType resourceType,

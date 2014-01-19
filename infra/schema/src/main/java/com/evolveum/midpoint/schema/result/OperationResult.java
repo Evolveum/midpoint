@@ -22,6 +22,7 @@ import java.util.Map.Entry;
 import javax.xml.bind.JAXBElement;
 
 import com.evolveum.midpoint.prism.util.CloneUtil;
+
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -89,6 +90,7 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 	public static final String PARAM_OPTIONS = "options";
 	public static final String PARAM_TASK = "task";
 	public static final String PARAM_OBJECT = "object";
+	public static final String PARAM_QUERY = "query";
 	
 	public static final String RETURN_COUNT = "count";
 	

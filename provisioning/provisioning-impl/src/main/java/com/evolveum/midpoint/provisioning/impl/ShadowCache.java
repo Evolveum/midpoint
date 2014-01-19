@@ -28,11 +28,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 
 import com.evolveum.midpoint.common.monitor.InternalMonitor;
+import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.common.refinery.ShadowDiscriminatorObjectDelta;
 import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
@@ -57,6 +59,7 @@ import com.evolveum.midpoint.prism.query.NaryLogicalFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
+import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.provisioning.api.ChangeNotificationDispatcher;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
@@ -614,7 +617,52 @@ public abstract class ShadowCache {
 		applyAttributesDefinition(shadow, resource);
 	}
 
-	
+	public void applyDefinition(final ObjectQuery query, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+		ObjectFilter filter = query.getFilter();
+		String resourceOid = null;
+		QName objectClassName = null;
+		if (filter instanceof AndFilter){
+			List<? extends ObjectFilter> conditions = ((AndFilter) filter).getCondition();
+			resourceOid = ProvisioningUtil.getResourceOidFromFilter(conditions);
+			objectClassName = ProvisioningUtil.getValueFromFilter(conditions, ShadowType.F_OBJECT_CLASS);
+		}
+		PrismObject<ResourceType> resource = resourceTypeManager.getResource(resourceOid, result);
+		final RefinedObjectClassDefinition objectClassDef = determineObjectClassDefinition(objectClassName, resource.asObjectable(), query);
+		applyDefinition(query, objectClassDef);
+	}
+
+	public void applyDefinition(final ObjectQuery query, final RefinedObjectClassDefinition objectClassDef) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+		ObjectFilter filter = query.getFilter();
+		final ItemPath attributesPath = new ItemPath(ShadowType.F_ATTRIBUTES);
+		com.evolveum.midpoint.prism.query.Visitor visitor = new com.evolveum.midpoint.prism.query.Visitor() {
+			@Override
+			public void visit(ObjectFilter filter) {
+				if (filter instanceof ValueFilter) {
+					ValueFilter<?> valueFilter = (ValueFilter<?>)filter;
+					ItemDefinition definition = valueFilter.getDefinition();
+					if (definition == null) {
+						ItemPath itemPath = valueFilter.getFullPath();
+						if (attributesPath.equals(valueFilter.getParentPath())) {
+							QName attributeName = valueFilter.getElementName();
+							ResourceAttributeDefinition attributeDefinition = objectClassDef.findAttributeDefinition(attributeName);
+							if (attributeDefinition == null) {
+								throw new TunnelException(
+										new SchemaException("No definition for attribute "+attributeName+" in query "+query));
+							}
+							valueFilter.setDefinition(attributeDefinition);
+						}
+					}
+				}
+			}
+		};
+		try {
+			filter.accept(visitor);
+		} catch (TunnelException te) {
+			SchemaException e = (SchemaException)te.getCause();
+			throw e;
+		}
+	}
+
 	protected ResourceType getResource(PrismObject<ShadowType> shadow, OperationResult parentResult)
 			throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		String resourceOid = ShadowUtil.getResourceOid(shadow.asObjectable());
@@ -703,7 +751,7 @@ public abstract class ShadowCache {
 		Validate.notNull(parentResult, "Operation result must not be null.");
 
 		LOGGER.trace("Searching objects iterative with obejct class {}, resource: {}.", objectClassName,
-				ObjectTypeUtil.toShortString(resourceType));
+				resourceType);
 
 		searchObjectsIterativeInternal(objectClassName, resourceType, query, options, handler,
 				true, parentResult);
@@ -725,6 +773,8 @@ public abstract class ShadowCache {
 		
 		final RefinedObjectClassDefinition objectClassDef = determineObjectClassDefinition(objectClassName, resourceType, query);
 
+		applyDefinition(query, objectClassDef);
+		
 		if (objectClassDef == null) {
 			String message = "Object class " + objectClassName + " is not defined in schema of "
 					+ ObjectTypeUtil.toShortString(resourceType);
@@ -925,12 +975,14 @@ public abstract class ShadowCache {
 	
 	private List<ObjectFilter> getAttributeQuery(List<? extends ObjectFilter> conditions, List<ObjectFilter> attributeFilter) throws SchemaException{
 		
+		ItemPath objectClassPath = new ItemPath(ShadowType.F_OBJECT_CLASS);
+		ItemPath resourceRefPath = new ItemPath(ShadowType.F_RESOURCE_REF);
 		for (ObjectFilter f : conditions){
 			if (f instanceof EqualsFilter){
-				if (ShadowType.F_OBJECT_CLASS.equals(((EqualsFilter) f).getDefinition().getName())){
+				if (objectClassPath.equals(((EqualsFilter) f).getFullPath())){
 					continue;
 				}
-				if (ShadowType.F_RESOURCE_REF.equals(((EqualsFilter) f).getDefinition().getName())){
+				if (resourceRefPath.equals(((EqualsFilter) f).getFullPath())){
 					continue;
 				}
 				
@@ -1539,8 +1591,8 @@ public abstract class ShadowCache {
 					}
 					ShadowAssociationType shadowAssociationType = associationCVal.asContainerable();
 					QName associationName = shadowAssociationType.getName();
-					ResourceObjectAssociationType entitlementAssociationType = objectClassDefinition.findEntitlementAssociation(associationName);
-					String entitlementIntent = entitlementAssociationType.getIntent();
+					RefinedAssociationDefinition rEntitlementAssociation = objectClassDefinition.findEntitlementAssociation(associationName);
+					String entitlementIntent = rEntitlementAssociation.getIntent();
 					RefinedObjectClassDefinition entitlementObjectClassDef = refinedSchema.getRefinedDefinition(ShadowKindType.ENTITLEMENT, entitlementIntent);
 					
 					PrismObject<ShadowType> entitlementShadow = (PrismObject<ShadowType>) identifierContainer.getUserData(ResourceObjectConverter.FULL_SHADOW_KEY);

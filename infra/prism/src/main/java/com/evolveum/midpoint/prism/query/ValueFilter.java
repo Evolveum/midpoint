@@ -33,6 +33,8 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.ItemPathSegment;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 public abstract class ValueFilter<T extends PrismValue> extends ObjectFilter {
@@ -108,6 +110,23 @@ public abstract class ValueFilter<T extends PrismValue> extends ObjectFilter {
 		}
 		
 		return parentPath; 
+	}
+	
+	public QName getElementName(){
+		if (fullPath == null){
+			return null;
+		}
+		ItemPathSegment lastPathSegement = fullPath.last();
+		
+		if (lastPathSegement == null) {
+			return null;
+		}
+		
+		if (lastPathSegement instanceof NameItemPathSegment) {
+			return ((NameItemPathSegment)lastPathSegement).getName();
+		} else {
+			throw new IllegalStateException("Got "+lastPathSegement+" as a last path segment in value filter "+this);
+		}
 	}
 	
 	public MatchingRule getMatchingRuleFromRegistry(MatchingRuleRegistry matchingRuleRegistry, Item filterItem){

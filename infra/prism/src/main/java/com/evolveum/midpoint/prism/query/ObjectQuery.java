@@ -105,6 +105,9 @@ public class ObjectQuery implements Dumpable, DebugDumpable, Serializable {
 		if (this.paging != null) {
 			clone.paging = this.paging.clone();
 		}
+		if (this.condition != null) {
+			clone.condition = condition;
+		}
 		return clone;
 	}
 	

@@ -20,6 +20,7 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -43,6 +44,7 @@ public class ExpressionEvaluationContext {
 	private StringPolicyResolver stringPolicyResolver;
 	private ExpressionFactory expressionFactory;
 	private PrismObjectDefinition<?> defaultTargetContext;
+	private RefinedObjectClassDefinition refinedObjectClassDefinition;
 	private String contextDescription;
 	private Task task;
 	private OperationResult result;
@@ -122,6 +124,14 @@ public class ExpressionEvaluationContext {
 		this.defaultTargetContext = defaultTargetContext;
 	}
 
+	public RefinedObjectClassDefinition getRefinedObjectClassDefinition() {
+		return refinedObjectClassDefinition;
+	}
+
+	public void setRefinedObjectClassDefinition(RefinedObjectClassDefinition refinedObjectClassDefinition) {
+		this.refinedObjectClassDefinition = refinedObjectClassDefinition;
+	}
+
 	public String getContextDescription() {
 		return contextDescription;
 	}
@@ -153,6 +163,7 @@ public class ExpressionEvaluationContext {
 		clone.stringPolicyResolver = this.stringPolicyResolver;
 		clone.expressionFactory = this.expressionFactory;
 		clone.defaultSource = this.defaultSource;
+		clone.refinedObjectClassDefinition = this.refinedObjectClassDefinition;
 		return clone;
 	}
 

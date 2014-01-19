@@ -57,6 +57,7 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.task.api.Task;
@@ -1402,6 +1403,52 @@ public class ProvisioningServiceImpl implements ProvisioningService {
 		}
 	}
 
+    @Override
+    public <T extends ObjectType> void applyDefinition(Class<T> type, ObjectQuery query, OperationResult parentResult)
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+    	
+    	OperationResult result = parentResult.createMinorSubresult(ProvisioningService.class.getName() + ".applyDefinition");
+    	result.addParam(OperationResult.PARAM_TYPE, type);
+		result.addParam(OperationResult.PARAM_QUERY, query);
+		result.addContext(OperationResult.CONTEXT_IMPLEMENTATION_CLASS, ProvisioningServiceImpl.class);
+		
+		try {
+			
+			if (ObjectQueryUtil.hasAllDefinitions(query)) {
+				return;
+			}
+			
+			if (ShadowType.class.isAssignableFrom(type)){	
+				getShadowCache(Mode.STANDARD).applyDefinition(query, result);
+			} else if (ResourceType.class.isAssignableFrom(type)){
+				resourceManager.applyDefinition(query, result);
+			} else {
+				throw new IllegalArgumentException("Could not apply definition to query for object type: " + type);
+			}
+			
+			result.computeStatus();
+			result.recordSuccessIfUnknown();
+			
+		} catch (ObjectNotFoundException e) {
+			recordFatalError(LOGGER, result, null, e);
+			throw e;
+		} catch (CommunicationException e) {
+			recordFatalError(LOGGER, result, null, e);
+			throw e;
+		} catch (ConfigurationException e) {
+			recordFatalError(LOGGER, result, null, e);
+			throw e;
+		} catch (SchemaException e) {
+			recordFatalError(LOGGER, result, null, e);
+			throw e;
+		} catch (RuntimeException e) {
+			recordFatalError(LOGGER, result, null, e);
+			throw e;
+		} finally {
+			result.cleanupResult();
+		}
+	}
+    
 	@Override
 	public void provisioningSelfTest(OperationResult parentTestResult, Task task) {
 		CryptoUtil.securitySelfTest(parentTestResult);

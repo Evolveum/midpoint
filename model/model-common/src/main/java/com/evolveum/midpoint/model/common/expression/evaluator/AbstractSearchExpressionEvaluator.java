@@ -118,17 +118,18 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue>
 			ExpressionEvaluationContext params, String contextDescription, Task task, OperationResult result) 
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		
-		final QName targetTypeQName = getExpressionEvaluatorType().getTargetType();
-		ObjectTypes targetType = ObjectTypes.getObjectTypeFromTypeQName(targetTypeQName);
-		if (targetType == null) {
-			targetType = getDefaultTargetType();
+		QName targetTypeQName = getExpressionEvaluatorType().getTargetType();
+		if (targetTypeQName == null) {
+			targetTypeQName = getDefaultTargetType();
 		}
+		ObjectTypes targetType = ObjectTypes.getObjectTypeFromTypeQName(targetTypeQName);
 		if (targetType == null) {
 			throw new SchemaException("Unknown target type "+targetTypeQName+" in "+shortDebugDump());
 		}
 		Class<? extends ObjectType> targetTypeClass = targetType.getClassDefinition();
 		
 		List<V> resultValues = null;
+		ObjectQuery query = null;
 		
 		if (getExpressionEvaluatorType().getOid() != null) {
 			resultValues = new ArrayList<>(1);
@@ -139,10 +140,10 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue>
 			if (queryType == null) {
 				throw new SchemaException("No query in "+shortDebugDump());
 			}
-			ObjectQuery query = QueryConvertor.createObjectQuery(targetTypeClass, queryType, prismContext);
-	
-			ExpressionUtil.evaluateFilterExpressions(query.getFilter(), variables, params.getExpressionFactory(), 
+			query = QueryConvertor.createObjectQuery(targetTypeClass, queryType, prismContext);
+			query = ExpressionUtil.evaluateQueryExpressions(query, variables, params.getExpressionFactory(), 
 					prismContext, params.getContextDescription(), task, result);
+			query = extendQuery(query, params);
 			
 			resultValues = executeSearch(targetTypeClass, targetTypeQName, query, params.getContextDescription(), params.getResult());
 		}
@@ -153,10 +154,16 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue>
 			resultValues.add(createPrismValue(createdObjectOid, targetTypeQName, contextDescription));
 		}
 		
+		LOGGER.trace("Search expression got {} results for query {}", resultValues==null?"null":resultValues.size(), query);
+		
 		return (List<V>) resultValues;
 	}
 
-	protected ObjectTypes getDefaultTargetType() {
+	protected ObjectQuery extendQuery(ObjectQuery query, ExpressionEvaluationContext params) throws SchemaException {
+		return query;
+	}
+
+	protected QName getDefaultTargetType() {
 		return null;
 	}
 

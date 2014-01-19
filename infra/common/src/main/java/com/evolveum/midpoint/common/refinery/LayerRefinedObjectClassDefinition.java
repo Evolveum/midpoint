@@ -349,11 +349,11 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 		return refinedObjectClassDefinition.isRuntimeSchema();
 	}
 
-	public Collection<ResourceObjectAssociationType> getAssociations() {
+	public Collection<RefinedAssociationDefinition> getAssociations() {
 		return refinedObjectClassDefinition.getAssociations();
 	}
 
-	public Collection<ResourceObjectAssociationType> getAssociations(ShadowKindType kind) {
+	public Collection<RefinedAssociationDefinition> getAssociations(ShadowKindType kind) {
 		return refinedObjectClassDefinition.getAssociations(kind);
 	}
 
@@ -381,7 +381,7 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 		return refinedObjectClassDefinition.getActivationFetchStrategy(propertyName);
 	}
 
-	public Collection<ResourceObjectAssociationType> getEntitlementAssociations() {
+	public Collection<RefinedAssociationDefinition> getEntitlementAssociations() {
 		return refinedObjectClassDefinition.getEntitlementAssociations();
 	}
 

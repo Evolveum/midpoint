@@ -19,21 +19,27 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.crypto.Protector;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.AndFilter;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
+import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.FocusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SearchObjectExpressionEvaluatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAssociationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 
 /**
  * @author Radovan Semancik
@@ -49,6 +55,17 @@ public class AssociationExpressionEvaluator
 		super(expressionEvaluatorType, outputDefinition, protector, objectResolver, modelService, prismContext);
 	}
 	
+	@Override
+	protected ObjectQuery extendQuery(ObjectQuery query, ExpressionEvaluationContext params) throws SchemaException {
+		RefinedObjectClassDefinition rOcDef = params.getRefinedObjectClassDefinition();
+		ObjectFilter resourceFilter = ObjectQueryUtil.createResourceFilter(rOcDef.getResourceType().getOid(), getPrismContext());
+		ObjectFilter objectClassFilter = ObjectQueryUtil.createObjectClassFilter(rOcDef.getObjectClassDefinition().getTypeName(),
+				getPrismContext());
+		ObjectFilter extendedFilter = AndFilter.createAnd(resourceFilter, objectClassFilter, query.getFilter());
+		query.setFilter(extendedFilter);
+		return query;
+	}
+
 	protected PrismContainerValue<ShadowAssociationType> createPrismValue(String oid, QName targetTypeQName, String shortDesc) {
 		ShadowAssociationType associationType = new ShadowAssociationType();
 		PrismContainerValue<ShadowAssociationType> associationCVal = associationType.asPrismContainerValue();
@@ -59,9 +76,9 @@ public class AssociationExpressionEvaluator
 		associationType.setShadowRef(targetRef);
 		
 		try {
-			getPrismContext().adopt(associationCVal, FocusType.COMPLEX_TYPE, new ItemPath(FocusType.F_ASSIGNMENT));
+			getPrismContext().adopt(associationCVal, ShadowType.COMPLEX_TYPE, new ItemPath(ShadowType.F_ASSOCIATION));
 			if (InternalsConfig.consistencyChecks) {
-				associationCVal.assertDefinitions("assignmentCVal in assignment expression in "+shortDesc);
+				associationCVal.assertDefinitions("associationCVal in assignment expression in "+shortDesc);
 			}
 		} catch (SchemaException e) {
 			// Should not happen
@@ -72,8 +89,8 @@ public class AssociationExpressionEvaluator
 	}
 	
 	@Override
-	protected ObjectTypes getDefaultTargetType() {
-		return ObjectTypes.SHADOW;
+	protected QName getDefaultTargetType() {
+		return ShadowType.COMPLEX_TYPE;
 	}
 
 	/* (non-Javadoc)

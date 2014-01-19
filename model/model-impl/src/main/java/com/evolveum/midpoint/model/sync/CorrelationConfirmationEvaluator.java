@@ -193,6 +193,7 @@ public class CorrelationConfirmationEvaluator {
 			try {
 				q = QueryConvertor.createObjectQuery(focusType, query, prismContext);
 				q = updateFilterWithAccountValues(currentShadow, resourceType, q, "Correlation expression", task, result);
+				LOGGER.trace("XXX: {}",q.dump());
 				if (q == null) {
 					// Null is OK here, it means that the value in the filter
 					// evaluated
@@ -356,30 +357,21 @@ private <F extends FocusType> boolean matchUserCorrelationRule(Class<F> focusTyp
 	}
 
 	private ObjectQuery updateFilterWithAccountValues(ShadowType currentShadow, ResourceType resource,
-			ObjectQuery query, String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			ObjectQuery origQuery, String shortDesc, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		
-		if (query.getFilter() == null) {
+		if (origQuery.getFilter() == null) {
 			LOGGER.trace("No filter provivided, skipping updating filter");
-			return null;
+			return origQuery;
 		}
 		
-		ObjectFilter filter = query.getFilter();
-		
-		LOGGER.trace("updateFilterWithAccountValues::begin");
-
-		evaluateFilterExpressions(filter, currentShadow, resource, shortDesc, task, result);
-		
-		LOGGER.trace("updateFilterWithAccountValues::end");
-		return query;
+		return evaluateQueryExpressions(origQuery, currentShadow, resource, shortDesc, task, result);
 	}
 
-	
-	private void evaluateFilterExpressions(ObjectFilter filter, ShadowType currentShadow, ResourceType resource, String shortDesc, 
+	private ObjectQuery evaluateQueryExpressions(ObjectQuery query, ShadowType currentShadow, ResourceType resource, String shortDesc, 
 			Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		ExpressionVariables variables = Utils.getDefaultExpressionVariables(null, currentShadow, resource);
-		ExpressionUtil.evaluateFilterExpressions(filter, variables, expressionFactory, prismContext, shortDesc, task, result);
+		return ExpressionUtil.evaluateQueryExpressions(query, variables, expressionFactory, prismContext, shortDesc, task, result);
 	}
-	
 	
 	public <F extends FocusType> boolean evaluateConfirmationExpression(Class<F> focusType, F user, ShadowType shadow, ResourceType resource,
 			ExpressionType expressionType, Task task, OperationResult result) 

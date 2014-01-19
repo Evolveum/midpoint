@@ -23,6 +23,7 @@ import javax.xml.namespace.QName;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
@@ -133,8 +134,8 @@ public class OutboundProcessor {
 			        "outbound mapping for " + PrettyPrinter.prettyPrint(refinedAttributeDefinition.getName())
 			        + " in " + rOcDef.getResourceType());
 
-			Mapping<? extends PrismPropertyValue<?>> evaluatedMapping = evaluateMapping(mapping, attributeName, refinedAttributeDefinition, focusOdo, projectionOdo,
-					operation, context, projCtx, task, result);
+			Mapping<? extends PrismPropertyValue<?>> evaluatedMapping = evaluateMapping(mapping, attributeName, refinedAttributeDefinition, 
+					focusOdo, projectionOdo, operation, rOcDef, context, projCtx, task, result);
 			
 			if (evaluatedMapping != null) {
 				outboundConstruction.addAttributeMapping(evaluatedMapping);
@@ -142,9 +143,9 @@ public class OutboundProcessor {
         }
         
         for (QName assocName : rOcDef.getNamesOfAssociationsWithOutboundExpressions()) {
-			ResourceObjectAssociationType associationDefinition = rOcDef.findAssociation(assocName);
+			RefinedAssociationDefinition associationDefinition = rOcDef.findAssociation(assocName);
 						
-			final MappingType outboundMappingType = associationDefinition.getOutbound();
+			final MappingType outboundMappingType = associationDefinition.getOutboundMappingType();
 			if (outboundMappingType == null) {
 			    continue;
 			}
@@ -159,8 +160,9 @@ public class OutboundProcessor {
 			        + " in " + rOcDef.getResourceType());
 
 			PrismContainerDefinition<ShadowAssociationType> outputDefinition = getAssociationContainerDefinition();
-			Mapping<? extends PrismPropertyValue<?>> evaluatedMapping = evaluateMapping(mapping, assocName, outputDefinition, focusOdo, projectionOdo,
-					operation, context, projCtx, task, result);
+			Mapping<? extends PrismPropertyValue<?>> evaluatedMapping = evaluateMapping(mapping, assocName, outputDefinition, 
+					focusOdo, projectionOdo, operation, associationDefinition.getAssociationTarget(),
+					context, projCtx, task, result);
 			
 			if (evaluatedMapping != null) {
 				outboundConstruction.addAssociationMapping(evaluatedMapping);
@@ -172,7 +174,7 @@ public class OutboundProcessor {
     
     private <F extends FocusType, V extends PrismValue> Mapping<V> evaluateMapping(final Mapping<V> mapping, QName mappingQName,
     		ItemDefinition targetDefinition, ObjectDeltaObject<F> focusOdo, ObjectDeltaObject<ShadowType> projectionOdo,
-    		String operation,
+    		String operation, RefinedObjectClassDefinition rOcDef,
     		LensContext<F> context, LensProjectionContext projCtx, Task task, OperationResult result) 
     				throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		if (!mapping.isApplicableToChannel(context.getChannel())) {
@@ -204,6 +206,7 @@ public class OutboundProcessor {
 		mapping.addVariableDefinition(ExpressionConstants.VAR_OPERATION, operation);
 		mapping.setRootNode(focusOdo);
 		mapping.setOriginType(OriginType.OUTBOUND);
+		mapping.setRefinedObjectClassDefinition(rOcDef);
 		
 		StringPolicyResolver stringPolicyResolver = new StringPolicyResolver() {
 			private ItemPath outputPath;

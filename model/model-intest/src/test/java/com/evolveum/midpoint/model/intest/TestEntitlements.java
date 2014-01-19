@@ -81,19 +81,31 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 	
 	public static final File ROLE_SWASHBUCKLER_FILE = new File(TEST_DIR, "role-swashbuckler.xml");
 	public static final String ROLE_SWASHBUCKLER_OID = "10000000-0000-0000-0000-000000001601";
-	
+
+	public static final File ROLE_LANDLUBER_FILE = new File(TEST_DIR, "role-landluber.xml");
+	public static final String ROLE_LANDLUBER_OID = "10000000-0000-0000-0000-000000001603";
+
 	public static final File SHADOW_GROUP_DUMMY_SWASHBUCKLERS_FILE = new File(TEST_DIR, "group-swashbucklers.xml");
 	public static final String SHADOW_GROUP_DUMMY_SWASHBUCKLERS_OID = "20000000-0000-0000-3333-000000000001";
 	public static final String GROUP_DUMMY_SWASHBUCKLERS_NAME = "swashbucklers";
 	public static final String GROUP_DUMMY_SWASHBUCKLERS_DESCRIPTION = "Scurvy swashbucklers";
 
+	public static final File SHADOW_GROUP_DUMMY_LANDLUBERS_FILE = new File(TEST_DIR, "group-landlubers.xml");
+	public static final String SHADOW_GROUP_DUMMY_LANDLUBERS_OID = "20000000-0000-0000-3333-000000000003";
+	public static final String GROUP_DUMMY_LANDLUBERS_NAME = "landlubers";
+	public static final String GROUP_DUMMY_LANDLUBERS_DESCRIPTION = "Earthworms";
+
 	private static final QName RESOURCE_DUMMY_GROUP_OBJECTCLASS = new QName(RESOURCE_DUMMY_NAMESPACE, "GroupObjectClass");
+
+	private static final String USER_WALLY_NAME = "wally";
+	private static final String USER_WALLY_FULLNAME = "Wally B. Feed";
 
     @Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
         importObjectFromFile(ROLE_SWASHBUCKLER_FILE);
+        importObjectFromFile(ROLE_LANDLUBER_FILE);
     }
     
     /**
@@ -184,11 +196,6 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestEntitlements.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        ObjectDelta<ShadowType> delta = IntegrationTestTools.createEntitleDelta(ACCOUNT_SHADOW_GUYBRUSH_OID, 
-				dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
-				SHADOW_GROUP_DUMMY_SWASHBUCKLERS_OID, prismContext);
-        Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(delta);
-        
 		// WHEN
         assignRole(USER_JACK_OID, ROLE_SWASHBUCKLER_OID, task, result);
         
@@ -207,5 +214,33 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
         assertGroupMember(dummyGroup, ACCOUNT_GUYBRUSH_DUMMY_USERNAME);
         assertGroupMember(dummyGroup, ACCOUNT_JACK_DUMMY_USERNAME);
+	}
+    
+    @Test
+    public void test220AssignRoleLandluberToWally() throws Exception {
+		final String TEST_NAME = "test220AssignRoleLandluberToWally";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestEntitlements.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        addObject(SHADOW_GROUP_DUMMY_LANDLUBERS_FILE);
+        
+        PrismObject<UserType> user = createUser(USER_WALLY_NAME, USER_WALLY_FULLNAME, true);
+        addObject(user);
+        
+		// WHEN
+        assignRole(user.getOid(), ROLE_LANDLUBER_OID, task, result);
+        
+        // THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+                
+        DummyGroup dummyGroup = dummyResource.getGroupByName(GROUP_DUMMY_LANDLUBERS_NAME);
+        assertNotNull("No group on dummy resource", dummyGroup);
+        display("Group", dummyGroup);
+        assertEquals("Wrong group description", GROUP_DUMMY_LANDLUBERS_DESCRIPTION, 
+        		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
+        assertGroupMember(dummyGroup, USER_WALLY_NAME);
 	}
 }

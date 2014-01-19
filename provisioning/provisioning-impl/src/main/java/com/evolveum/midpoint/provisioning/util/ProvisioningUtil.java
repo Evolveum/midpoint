@@ -213,9 +213,9 @@ public class ProvisioningUtil {
 	
 	@SuppressWarnings("rawtypes")
 	public static <T> T getValueFromFilter(List<? extends ObjectFilter> conditions, QName propertyName) throws SchemaException{
-		
+			ItemPath propertyPath = new ItemPath(propertyName);
 			for (ObjectFilter f : conditions){
-				if (f instanceof EqualsFilter && propertyName.equals(((EqualsFilter) f).getDefinition().getName())){
+				if (f instanceof EqualsFilter && propertyPath.equals(((EqualsFilter) f).getFullPath())){
 					List<? extends PrismValue> values = ((EqualsFilter) f).getValues();
 					if (values.size() > 1){
 						throw new SchemaException("More than one "+propertyName+" defined in the search query.");

@@ -159,6 +159,15 @@
           <constructor-arg ref="modelObjectResolver"/>
           <constructor-arg ref="modelController"/>
     </bean>
+
+	<bean id="associationExpressionEvaluatorFactory" 
+	      class="com.evolveum.midpoint.model.common.expression.evaluator.AssociationExpressionEvaluatorFactory"
+          scope="singleton">
+          <constructor-arg name="prismContext" ref="prismContext"/>
+          <constructor-arg name="protector" ref="protector"/>
+          <constructor-arg ref="modelObjectResolver"/>
+          <constructor-arg ref="modelController"/>
+    </bean>
     
     <bean id="expressionFactory" class="com.evolveum.midpoint.model.common.expression.ExpressionFactory" 
     		scope="singleton">
@@ -176,6 +185,7 @@
         		<ref bean="literalExpressionEvaluatorFactory"/>
         		<ref bean="asisExpressionEvaluatorFactory"/>
         		<ref bean="assignmentExpressionEvaluatorFactory"/>
+        		<ref bean="associationExpressionEvaluatorFactory"/>
         	</list>
         </constructor-arg>
         <property name="defaultEvaluatorFactory">

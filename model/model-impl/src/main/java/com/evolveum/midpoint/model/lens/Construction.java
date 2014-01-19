@@ -22,6 +22,7 @@ import java.util.Iterator;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
@@ -95,7 +96,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Dumpabl
 	private MappingFactory mappingFactory;
 	private Collection<Mapping<? extends PrismPropertyValue<?>>> attributeMappings;
 	private Collection<Mapping<PrismContainerValue<ShadowAssociationType>>> associationMappings;
-	private RefinedObjectClassDefinition refinedAccountDefinition;
+	private RefinedObjectClassDefinition refinedObjectClassDefinition;
 	private PrismContainerValue<AssignmentType> magicAssignment;
 	private PrismContainerValue<AssignmentType> immediateAssignment;
 	private PrismContainerValue<AssignmentType> thisAssignment;
@@ -173,17 +174,17 @@ public class Construction<F extends FocusType> implements DebugDumpable, Dumpabl
 	}
 
 	public ShadowKindType getKind() {
-		if (refinedAccountDefinition == null) {
+		if (refinedObjectClassDefinition == null) {
 			throw new IllegalStateException("Kind can only be fetched from evaluated Construction");
 		}
-		return refinedAccountDefinition.getKind();
+		return refinedObjectClassDefinition.getKind();
 	}
 
 	public String getIntent() {
-		if (refinedAccountDefinition == null) {
+		if (refinedObjectClassDefinition == null) {
 			throw new IllegalStateException("Intent can only be fetched from evaluated Construction");
 		}
-		return refinedAccountDefinition.getIntent();
+		return refinedObjectClassDefinition.getIntent();
 	}
 
 	public Object getDescription() {
@@ -296,9 +297,9 @@ public class Construction<F extends FocusType> implements DebugDumpable, Dumpabl
 		if (kind == null) {
 			kind = ShadowKindType.ACCOUNT;
 		}
-		refinedAccountDefinition = refinedSchema.getRefinedDefinition(kind, constructionType.getIntent());
+		refinedObjectClassDefinition = refinedSchema.getRefinedDefinition(kind, constructionType.getIntent());
 		
-		if (refinedAccountDefinition == null) {
+		if (refinedObjectClassDefinition == null) {
 			if (constructionType.getIntent() != null) {
 				throw new SchemaException("No account type '"+constructionType.getIntent()+"' found in "+ObjectTypeUtil.toShortString(getResource(result))+" as specified in account construction in "+ObjectTypeUtil.toShortString(source));
 			} else {
@@ -404,14 +405,14 @@ public class Construction<F extends FocusType> implements DebugDumpable, Dumpabl
 		Mapping<? extends PrismPropertyValue<?>> mapping = mappingFactory.createMapping(outboundMappingType,
 				"for attribute " + PrettyPrinter.prettyPrint(attrName)  + " in "+source);
 		
-		Mapping<? extends PrismPropertyValue<?>> evaluatedMapping = evaluateMapping(mapping, attrName, outputDefinition, task, result);		
+		Mapping<? extends PrismPropertyValue<?>> evaluatedMapping = evaluateMapping(mapping, attrName, outputDefinition, refinedObjectClassDefinition, task, result);		
 		
 		LOGGER.trace("Evaluated mapping for attribute "+attrName+": "+evaluatedMapping);
 		return evaluatedMapping;
 	}
 
 	private ResourceAttributeDefinition findAttributeDefinition(QName attributeName) {
-		return refinedAccountDefinition.findAttributeDefinition(attributeName);
+		return refinedObjectClassDefinition.findAttributeDefinition(attributeName);
 	}
 	
 	public boolean hasValueForAttribute(QName attributeName) {
@@ -459,14 +460,18 @@ public class Construction<F extends FocusType> implements DebugDumpable, Dumpabl
 		Mapping<PrismContainerValue<ShadowAssociationType>> mapping = mappingFactory.createMapping(outboundMappingType,
 				"for association " + PrettyPrinter.prettyPrint(assocName)  + " in " + source);
 		
-		Mapping<PrismContainerValue<ShadowAssociationType>> evaluatedMapping = evaluateMapping(mapping, assocName, outputDefinition, task, result);
+		RefinedAssociationDefinition rAssocDef = refinedObjectClassDefinition.findAssociation(assocName);
+		
+		Mapping<PrismContainerValue<ShadowAssociationType>> evaluatedMapping = evaluateMapping(mapping, assocName, outputDefinition, 
+				rAssocDef.getAssociationTarget(), task, result);
 		
 		LOGGER.trace("Evaluated mapping for association "+assocName+": "+evaluatedMapping);
 		return evaluatedMapping;
 	}
 	
 	private <V extends PrismValue> Mapping<V> evaluateMapping(Mapping<V> mapping, QName mappingQName, ItemDefinition outputDefinition,
-			Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			RefinedObjectClassDefinition targetObjectClassDefinition, Task task, OperationResult result) 
+					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		
 		if (!mapping.isApplicableToChannel(channel)) {
 			return null;
@@ -481,6 +486,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Dumpabl
 		mapping.setDefaultTargetDefinition(outputDefinition);
 		mapping.setOriginType(originType);
 		mapping.setOriginObject(source);
+		mapping.setRefinedObjectClassDefinition(targetObjectClassDefinition);
 		if (!assignmentPath.isEmpty()) {
 			AssignmentType assignmentType = assignmentPath.getFirstAssignment();
 			mapping.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, magicAssignment);
@@ -521,7 +527,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Dumpabl
 		result = prime * result + ((attributeMappings == null) ? 0 : attributeMappings.hashCode());
 		result = prime * result + ((associationMappings == null) ? 0 : associationMappings.hashCode());
 		result = prime * result
-				+ ((refinedAccountDefinition == null) ? 0 : refinedAccountDefinition.hashCode());
+				+ ((refinedObjectClassDefinition == null) ? 0 : refinedObjectClassDefinition.hashCode());
 		result = prime * result + ((resource == null) ? 0 : resource.hashCode());
 		result = prime * result + ((source == null) ? 0 : source.hashCode());
 		return result;
@@ -551,10 +557,10 @@ public class Construction<F extends FocusType> implements DebugDumpable, Dumpabl
 				return false;
 		} else if (!associationMappings.equals(other.associationMappings))
 			return false;
-		if (refinedAccountDefinition == null) {
-			if (other.refinedAccountDefinition != null)
+		if (refinedObjectClassDefinition == null) {
+			if (other.refinedObjectClassDefinition != null)
 				return false;
-		} else if (!refinedAccountDefinition.equals(other.refinedAccountDefinition))
+		} else if (!refinedObjectClassDefinition.equals(other.refinedObjectClassDefinition))
 			return false;
 		if (resource == null) {
 			if (other.resource != null)
@@ -586,10 +592,10 @@ public class Construction<F extends FocusType> implements DebugDumpable, Dumpabl
 			sb.append(INDENT_STRING);
 		}
 		sb.append("Construction(");
-		if (refinedAccountDefinition == null) {
+		if (refinedObjectClassDefinition == null) {
 			sb.append("null");
 		} else {
-			sb.append(refinedAccountDefinition.getShadowDiscriminator());
+			sb.append(refinedObjectClassDefinition.getShadowDiscriminator());
 		}
 		sb.append(")");
 		if (attributeMappings != null && !attributeMappings.isEmpty()) {
@@ -613,7 +619,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Dumpabl
 
 	@Override
 	public String toString() {
-		return "Construction(" + (refinedAccountDefinition == null ? "unknown" : refinedAccountDefinition.getShadowDiscriminator()) + ")";
+		return "Construction(" + (refinedObjectClassDefinition == null ? "unknown" : refinedObjectClassDefinition.getShadowDiscriminator()) + ")";
 	}
 	
 }

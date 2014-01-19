@@ -76,8 +76,8 @@ public class EqualsFilter<T extends Object> extends PropertyValueFilter<PrismPro
 	}
 	
 	public static EqualsFilter createEqual(ItemPath path, PrismPropertyDefinition definition, QName matchingRule, Element expression){
-		Validate.notNull(definition, "Item must not be null");
 		Validate.notNull(path, "Path must not be null");
+		// Do not check definition. We may want queries for which the definition is supplied later.
 		return new EqualsFilter(path, definition, matchingRule, expression);
 	}
 
@@ -216,11 +216,6 @@ public class EqualsFilter<T extends Object> extends PropertyValueFilter<PrismPro
 		StringBuilder sb = new StringBuilder();
 		sb.append("EQUALS: ");
 		return toString(sb);
-	}
-
-	@Override
-	public QName getElementName() {
-		return getDefinition().getName();
 	}
 
 	@Override

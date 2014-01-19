@@ -36,6 +36,7 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.filter.Filter;
 import com.evolveum.midpoint.common.filter.FilterManager;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.common.expression.Expression;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
@@ -137,6 +138,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 	// This is sometimes used to identify the element that mapping produces
 	// if it is different from itemName. E.g. this happens with associations.
 	private QName mappingQName;
+	private RefinedObjectClassDefinition refinedObjectClassDefinition;
 	
 	// This is single-use only. Once evaluated it is not used any more
 	// it is remembered only for tracing purposes.
@@ -448,6 +450,14 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 
 	public void setMappingQName(QName mappingQName) {
 		this.mappingQName = mappingQName;
+	}
+
+	public RefinedObjectClassDefinition getRefinedObjectClassDefinition() {
+		return refinedObjectClassDefinition;
+	}
+
+	public void setRefinedObjectClassDefinition(RefinedObjectClassDefinition refinedObjectClassDefinition) {
+		this.refinedObjectClassDefinition = refinedObjectClassDefinition;
 	}
 
 	public void evaluate(Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
@@ -930,6 +940,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		params.setExpressionFactory(expressionFactory);
 		params.setDefaultSource(defaultSource);
 		params.setDefaultTargetContext(getTargetContext());
+		params.setRefinedObjectClassDefinition(getRefinedObjectClassDefinition());
 		conditionOutputTriple = expression.evaluate(params);
 	}
 
@@ -949,6 +960,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		params.setStringPolicyResolver(stringPolicyResolver);
 		params.setExpressionFactory(expressionFactory);
 		params.setDefaultTargetContext(getTargetContext());
+		params.setRefinedObjectClassDefinition(getRefinedObjectClassDefinition());
 		outputTriple = expression.evaluate(params);
 		
 		if (outputTriple == null) {
