@@ -632,7 +632,13 @@ public abstract class ShadowCache {
 	}
 
 	public void applyDefinition(final ObjectQuery query, final RefinedObjectClassDefinition objectClassDef) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+		if (query == null) {
+			return;
+		}
 		ObjectFilter filter = query.getFilter();
+		if (filter == null) {
+			return;
+		}
 		final ItemPath attributesPath = new ItemPath(ShadowType.F_ATTRIBUTES);
 		com.evolveum.midpoint.prism.query.Visitor visitor = new com.evolveum.midpoint.prism.query.Visitor() {
 			@Override
