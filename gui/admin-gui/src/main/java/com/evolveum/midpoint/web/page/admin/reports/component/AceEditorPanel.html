@@ -15,9 +15,17 @@
   -->
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
-<body>
-<wicket:extend>
+<wicket:panel>
 
-</wicket:extend>
-</body>
+    <h3 style="margin-left: 20px;">
+        <wicket:message key="AceEditorPanel.title.basic"/>
+    </h3>
+
+    <div class="form-group">
+        <div class="col-lg-12">
+            <textarea wicket:id="aceEditor"></textarea>
+        </div>
+    </div>
+
+</wicket:panel>
 </html>

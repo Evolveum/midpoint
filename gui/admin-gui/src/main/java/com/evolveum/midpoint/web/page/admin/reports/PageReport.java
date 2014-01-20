@@ -16,7 +16,11 @@
 package com.evolveum.midpoint.web.page.admin.reports;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -27,16 +31,20 @@ import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ResourceItemDto;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
-import com.evolveum.midpoint.web.page.admin.reports.component.AuditPopupPanel;
-import com.evolveum.midpoint.web.page.admin.reports.component.DefaultReportPanel;
-import com.evolveum.midpoint.web.page.admin.reports.component.ReconciliationPopupPanel;
-import com.evolveum.midpoint.web.page.admin.reports.component.UserReportConfigPanel;
+import com.evolveum.midpoint.web.page.admin.reports.component.*;
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditReportDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReconciliationReportDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.UserReportDto;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import com.evolveum.midpoint.web.util.WebModelUtils;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
@@ -46,6 +54,7 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
+import org.apache.wicket.util.string.StringValue;
 
 import javax.swing.text.html.ObjectView;
 import java.io.Serializable;
@@ -99,8 +108,26 @@ public class PageReport<T extends Serializable> extends PageAdminReports{
     }
 
     private ReportDto loadReport(){
-        //TODO - load report from repository
-        return new ReportDto(null, null, null);
+        StringValue reportOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
+
+        ReportDto dto = null;
+
+        OperationResult result = new OperationResult(OPERATION_LOAD_REPORT);
+        PrismObject<ReportType> prismReport = WebModelUtils.loadObject(ReportType.class, reportOid.toString(), result, this);
+
+        try{
+            ReportType report = prismReport.asObjectable();
+
+            PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
+            String xml = domProcessor.serializeObjectToString(prismReport);
+            dto = new ReportDto(report.getName().getNorm(), report.getDescription(), xml, report.getReportExport());
+            result.recordSuccess();
+        } catch (Exception e){
+            result.recordFatalError("Couldn't load report from repository.", e);
+            LoggingUtils.logException(LOGGER, "Couldn't load report from repository.", e);
+        }
+
+        return dto;
     }
 
     private void initLayout(){
@@ -112,17 +139,15 @@ public class PageReport<T extends Serializable> extends PageAdminReports{
 
             @Override
             public WebMarkupContainer getPanel(String panelId) {
-                SimplePanel editorPanel = initEditingPanel(panelId);
-                return editorPanel;
+                return initEditingPanel(panelId);
             }
         });
 
         tabs.add(new AbstractTab(createStringResource("pageReport.tab.aceEditor")) {
 
             @Override
-            public WebMarkupContainer getPanel(String s) {
-                //TODO - return panel with Ace XML editor
-                return null;
+            public WebMarkupContainer getPanel(String panelId) {
+                return initAceEditorPanel(panelId);
             }
         });
 
@@ -175,8 +200,25 @@ public class PageReport<T extends Serializable> extends PageAdminReports{
         mainForm.add(cancel);
     }
 
+    private SimplePanel initAceEditorPanel(String panelId){
+
+        return new AceEditorPanel<ReportDto>(panelId, model){
+
+            @Override
+            public IModel<ReportDto> getEditorModel(){
+                return model;
+            }
+
+            @Override
+            public String getExpression(){
+                return ReportDto.F_XML;
+            }
+
+        };
+    }
+
     private SimplePanel initEditingPanel(String panelId){
-        //TODO - return new panel with wizard configuration
+        //TODO - return dynamically generated editing panel for report
         SimplePanel editReportPanel;
         IModel editPanelModel = new Model();
         String reportType = getPageParameters().get("reportType").toString();
@@ -230,7 +272,49 @@ public class PageReport<T extends Serializable> extends PageAdminReports{
         return resources;
     }
 
-    protected void onSaveAndRunPerformed(AjaxRequestTarget target) {}
-    protected void onSavePerformed(AjaxRequestTarget target) {}
-    protected void onCancelPerformed(AjaxRequestTarget target) {}
+    protected void onSaveAndRunPerformed(AjaxRequestTarget target) {
+        onSavePerformed(target);
+
+        //TODO - add functionality to run report
+    }
+
+    //TODO - fix problems with validation
+    protected void onSavePerformed(AjaxRequestTarget target) {
+        ReportDto dto = model.getObject();
+
+        if(StringUtils.isEmpty(dto.getXml())){
+            error(getString("pageReport.message.emptyXml"));
+            target.add(getFeedbackPanel());
+            return;
+        }
+
+        OperationResult result = new OperationResult(OPERATION_SAVE_REPORT);
+        Holder<PrismObject<ReportType>> objectHolder = new Holder<PrismObject<ReportType>>(null);
+        validateObject(dto.getXml(), objectHolder, true, result);
+
+        try{
+            Task task = createSimpleTask(OPERATION_SAVE_REPORT);
+            PrismObject<ReportType> newReport = objectHolder.getValue();
+
+            PrismObject<ReportType> oldReport = dto.getObject();
+            ObjectDelta<ReportType> delta = oldReport.diff(newReport);
+            getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
+
+        } catch (Exception e){
+            result.recordFatalError("Couldn't save report.", e);
+        }
+        result.recomputeStatus();
+
+        showResult(result);
+        target.add(getFeedbackPanel());
+
+        if(result.isSuccess()){
+            showResultInSession(result);
+            setResponsePage(PageReports.class);
+        }
+    }
+
+    protected void onCancelPerformed(AjaxRequestTarget target) {
+        setResponsePage(PageReports.class);
+    }
 }
