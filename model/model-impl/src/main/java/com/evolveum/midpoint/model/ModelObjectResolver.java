@@ -77,8 +77,8 @@ public class ModelObjectResolver implements ObjectResolver {
 	private static final Trace LOGGER = TraceManager.getTrace(ModelObjectResolver.class);
 	
 	@Override
-	public <O extends ObjectType> O resolve(ObjectReferenceType ref, Class<O> expectedType, String contextDescription, 
-			OperationResult result) throws ObjectNotFoundException, SchemaException {
+	public <O extends ObjectType> O resolve(ObjectReferenceType ref, Class<O> expectedType, Collection<SelectorOptions<GetOperationOptions>> options,
+			String contextDescription, OperationResult result) throws ObjectNotFoundException, SchemaException {
 				String oid = ref.getOid();
 				Class<?> typeClass = null;
 				QName typeQName = ref.getType();
@@ -88,7 +88,19 @@ public class ModelObjectResolver implements ObjectResolver {
 				if (typeClass != null && expectedType.isAssignableFrom(typeClass)) {
 					expectedType = (Class<O>) typeClass;
 				}
-				return getObjectSimple(expectedType, oid, null, null, result);
+				try {
+					return getObject(expectedType, oid, options, null, result);
+				} catch (SystemException ex) {
+					throw ex;
+				} catch (ObjectNotFoundException ex) {
+					throw ex;
+				} catch (CommonException ex) {
+					LoggingUtils.logException(LOGGER, "Error resolving object with oid {}", ex, oid);
+					// Add to result only a short version of the error, the details will be in subresults
+					result.recordFatalError(
+							"Couldn't get object with oid '" + oid + "': "+ex.getOperationResultMessage(), ex);
+					throw new SystemException("Error resolving object with oid '" + oid + "': "+ex.getMessage(), ex);
+				}
 	}
 	
 	public PrismObject<?> resolve(PrismReferenceValue refVal, String string, Task task, OperationResult result) throws ObjectNotFoundException {

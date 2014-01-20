@@ -3336,26 +3336,26 @@
     <xsd:complexType name="ShadowDiscriminatorType">
     	<xsd:annotation>
     		<xsd:documentation>
-    			TODO
+    			Shadow discriminator uniquely identifies a projection among other projections linked to the
+    			same focus.
     		</xsd:documentation>
     	</xsd:annotation>
     	<xsd:sequence>
-			<xsd:element name="resourceRef" type="c:ObjectReferenceType">
+			<xsd:element name="resourceRef" type="c:ObjectReferenceType" minOccurs="0">
             	<xsd:annotation>
 	                <xsd:documentation>
-	                    Reference to a resource that is the target of reference.
+	                    Reference to a resource that is the target of reference. It may be implicit in some cases.
 	                </xsd:documentation>
 	                <xsd:appinfo>
 	            		<a:objectReferenceTargetType>tns:ResourceType</a:objectReferenceTargetType>
 	            	</xsd:appinfo>
 	            </xsd:annotation>
 	       	</xsd:element>
-	       	<xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0" default="account">
-            </xsd:element>
+	       	<xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0" default="account"/>
             <xsd:element name="intent" type="xsd:string" minOccurs="0" default="default">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Type of account that is the target of reference.
+                        Type of projection that is the target of reference. E.g "default", "admin", "testing"
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
@@ -3499,6 +3499,16 @@
             			DEPRECACTED, use limitations instead
             			
             			Override of schema maxOccurs specification.
+            		</xsd:documentation>
+            	</xsd:annotation>
+            </xsd:element>
+            <xsd:element name="exclusiveStrong" type="xsd:boolean" minOccurs="0" default="false">
+            	<xsd:annotation>
+            		<xsd:documentation>
+            			When set to false then both strong and normal mapping values are merged to produce
+            			the final set of values.
+            			When set to true only strong values are used if there is at least one strong mapping.
+            			Normal values are used if there is no strong mapping.
             		</xsd:documentation>
             	</xsd:annotation>
             </xsd:element>
@@ -4748,7 +4758,7 @@
         </xsd:sequence>
     </xsd:complexType>
     
-        <xsd:simpleType name="TransformExpressionRelativityModeType">
+    <xsd:simpleType name="TransformExpressionRelativityModeType">
         <xsd:annotation>
             <xsd:documentation>
                 Relativity mode of an expression.
@@ -4907,6 +4917,22 @@
     </xsd:complexType>
 	<xsd:element name="assignmentExpression" type="tns:SearchObjectExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
 	<xsd:element name="associationExpression" type="tns:SearchObjectExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
+
+	<xsd:complexType name="ShadowDiscriminatorExpressionEvaluatorType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Expression based on selecting a specific projection.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+        	<xsd:element ref="tns:description" minOccurs="0" maxOccurs="1">
+        	</xsd:element>
+        	<xsd:element name="projectionDiscriminator" type="tns:ShadowDiscriminatorType" minOccurs="0" maxOccurs="1">
+        	</xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+	<xsd:element name="associationFromLink" type="tns:ShadowDiscriminatorExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
+	<xsd:element name="assignmentFromAssociation" type="tns:ShadowDiscriminatorExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
 
 	<xsd:complexType name="PopulateObjectType">
 		<xsd:annotation>

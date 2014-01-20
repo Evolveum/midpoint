@@ -838,4 +838,8 @@ public class IntegrationTestTools {
 		assertFalse("Account "+accountId+" IS member of group "+group.getName()+" while not expecting it, members: "+members, members.contains(accountId));
 	}
 	
+	public static void assertNoGroupMembers(DummyGroup group) {
+		Collection<String> members = group.getMembers();
+		assertTrue("Group "+group.getName()+" has members while not expecting it, members: "+members, members == null || members.isEmpty());
+	}
 }

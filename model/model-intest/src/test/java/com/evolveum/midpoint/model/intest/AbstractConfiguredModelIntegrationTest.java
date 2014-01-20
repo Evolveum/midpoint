@@ -179,7 +179,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String USER_GUYBRUSH_USERNAME = "guybrush";
 	
 	// Largo does not have a full name set, employeeType=PIRATE
-	protected static final String USER_LARGO_FILENAME = COMMON_DIR_NAME + "/user-largo.xml";
+	protected static final File USER_LARGO_FILE = new File(COMMON_DIR, "user-largo.xml");
 	protected static final String USER_LARGO_OID = "c0c010c0-d34d-b33f-f00d-111111111118";
 	protected static final String USER_LARGO_USERNAME = "largo";
 	

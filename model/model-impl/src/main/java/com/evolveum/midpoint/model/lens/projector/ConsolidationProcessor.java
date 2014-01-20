@@ -19,6 +19,7 @@ package com.evolveum.midpoint.model.lens.projector;
 import static com.evolveum.midpoint.common.InternalsConfig.consistencyChecks;
 
 import com.evolveum.midpoint.common.refinery.PropertyLimitations;
+import com.evolveum.midpoint.common.refinery.RefinedAssociationDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
@@ -272,8 +273,8 @@ public class ConsolidationProcessor {
        
         ValueMatcher<T> valueMatcher = ValueMatcher.createMatcher(attributeDefinition, matchingRuleRegistry); 
        
-        return (PropertyDelta<T>) consolidateItem(rOcDef, discr, existingDelta, projCtx, addUnchangedValues, completeShadow, itemPath, 
-        		attributeDefinition, triple, valueMatcher, "attribute "+itemName);
+        return (PropertyDelta<T>) consolidateItem(rOcDef, discr, existingDelta, projCtx, addUnchangedValues, completeShadow, 
+        		attributeDefinition.isExlusiveStrong(), itemPath, attributeDefinition, triple, valueMatcher, "attribute "+itemName);
     }
 
     private <V extends PrismValue> ContainerDelta<ShadowAssociationType> consolidateAssociation(RefinedObjectClassDefinition rOcDef,
@@ -283,8 +284,10 @@ public class ConsolidationProcessor {
     	
     	ItemPath itemPath = new ItemPath(ShadowType.F_ASSOCIATION);
     	PrismContainerDefinition<ShadowAssociationType> asspcContainerDef = getAssociationDefinition();
+    	RefinedAssociationDefinition associationDef = rOcDef.findAssociation(associationName);
        
-    	ContainerDelta<ShadowAssociationType> delta = (ContainerDelta<ShadowAssociationType>) consolidateItem(rOcDef, discr, existingDelta, projCtx, addUnchangedValues, completeShadow, itemPath, 
+		ContainerDelta<ShadowAssociationType> delta = (ContainerDelta<ShadowAssociationType>) consolidateItem(rOcDef, discr, existingDelta,
+    			projCtx, addUnchangedValues, completeShadow, associationDef.isExclusiveStrong(), itemPath, 
         		asspcContainerDef, triple, null, "association "+associationName);
     	
     	if (delta != null) {
@@ -315,7 +318,8 @@ public class ConsolidationProcessor {
 
 	private <V extends PrismValue> ItemDelta<V> consolidateItem(RefinedObjectClassDefinition rOcDef,
 			ResourceShadowDiscriminator discr, ObjectDelta<ShadowType> existingDelta, LensProjectionContext projCtx,
-			boolean addUnchangedValues, boolean completeShadow, ItemPath itemPath, ItemDefinition itemDefinition, 
+			boolean addUnchangedValues, boolean completeShadow, boolean isExclusiveStrong, 
+			ItemPath itemPath, ItemDefinition itemDefinition, 
 			DeltaSetTriple<ItemValueWithOrigin<V>> triple, ValueMatcher<?> valueMatcher, String itemDesc) 
 					throws SchemaException, ExpressionEvaluationException, PolicyViolationException {
 
@@ -336,7 +340,8 @@ public class ConsolidationProcessor {
         // Use this common utility method to do the computation. It does most of the work.
 		ItemDelta<V> itemDelta = LensUtil.consolidateTripleToDelta(
 				itemPath, (DeltaSetTriple)triple, itemDefinition, existingItemDelta, projCtx.getObjectNew(), 
-				valueMatcher, addUnchangedValues || forceAddUnchangedValues, completeShadow, "account " + discr, completeShadow);
+				valueMatcher, addUnchangedValues || forceAddUnchangedValues, completeShadow, isExclusiveStrong,
+				discr.toHumanReadableString(), completeShadow);
 		
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Consolidated delta (before sync filter) for {}:\n{}",discr,itemDelta==null?"null":itemDelta.dump());

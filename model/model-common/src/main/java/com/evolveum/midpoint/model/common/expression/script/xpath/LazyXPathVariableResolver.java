@@ -108,7 +108,7 @@ public class LazyXPathVariableResolver implements XPathVariableResolver {
         		type = ref.getType();
 		    	try {
 		    		
-					variableValue = objectResolver.resolve(ref, ObjectType.class, contextDescription, result);
+					variableValue = objectResolver.resolve(ref, ObjectType.class, null, contextDescription, result);
 					
 				} catch (ObjectNotFoundException e) {
 					ObjectNotFoundException newEx = new ObjectNotFoundException("Object not found during variable "+name+" resolution in "+contextDescription+": "+e.getMessage(),e, ref.getOid());

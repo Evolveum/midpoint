@@ -45,6 +45,7 @@ public class ExpressionEvaluationContext {
 	private ExpressionFactory expressionFactory;
 	private PrismObjectDefinition<?> defaultTargetContext;
 	private RefinedObjectClassDefinition refinedObjectClassDefinition;
+	private QName mappingQName;
 	private String contextDescription;
 	private Task task;
 	private OperationResult result;
@@ -132,6 +133,14 @@ public class ExpressionEvaluationContext {
 		this.refinedObjectClassDefinition = refinedObjectClassDefinition;
 	}
 
+	public QName getMappingQName() {
+		return mappingQName;
+	}
+
+	public void setMappingQName(QName mappingQName) {
+		this.mappingQName = mappingQName;
+	}
+
 	public String getContextDescription() {
 		return contextDescription;
 	}
@@ -164,6 +173,7 @@ public class ExpressionEvaluationContext {
 		clone.expressionFactory = this.expressionFactory;
 		clone.defaultSource = this.defaultSource;
 		clone.refinedObjectClassDefinition = this.refinedObjectClassDefinition;
+		clone.mappingQName = this.mappingQName;
 		return clone;
 	}
 

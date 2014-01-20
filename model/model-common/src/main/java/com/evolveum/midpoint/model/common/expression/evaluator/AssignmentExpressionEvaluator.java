@@ -20,6 +20,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -48,7 +49,7 @@ public class AssignmentExpressionEvaluator
 		super(expressionEvaluatorType, outputDefinition, protector, objectResolver, modelService, prismContext);
 	}
 	
-	protected PrismContainerValue<AssignmentType> createPrismValue(String oid, QName targetTypeQName, String shortDesc) {
+	protected PrismContainerValue<AssignmentType> createPrismValue(String oid, QName targetTypeQName, ExpressionEvaluationContext params) {
 		AssignmentType assignmentType = new AssignmentType();
 		PrismContainerValue<AssignmentType> assignmentCVal = assignmentType.asPrismContainerValue();
 		
@@ -60,7 +61,7 @@ public class AssignmentExpressionEvaluator
 		try {
 			getPrismContext().adopt(assignmentCVal, FocusType.COMPLEX_TYPE, new ItemPath(FocusType.F_ASSIGNMENT));
 			if (InternalsConfig.consistencyChecks) {
-				assignmentCVal.assertDefinitions("assignmentCVal in assignment expression in "+shortDesc);
+				assignmentCVal.assertDefinitions("assignmentCVal in assignment expression in "+params.getContextDescription());
 			}
 		} catch (SchemaException e) {
 			// Should not happen
