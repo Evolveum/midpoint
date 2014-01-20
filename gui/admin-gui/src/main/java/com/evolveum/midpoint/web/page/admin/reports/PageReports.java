@@ -28,12 +28,14 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromStream;
+import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.IconColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ResourceItemDto;
 import com.evolveum.midpoint.web.page.admin.reports.component.AuditPopupPanel;
@@ -44,6 +46,7 @@ import com.evolveum.midpoint.web.page.admin.reports.dto.ReconciliationReportDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.UserReportDto;
 import com.evolveum.midpoint.web.page.admin.users.PageAdminUsers;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
@@ -89,6 +92,7 @@ public class PageReports extends PageAdminReports {
 
     private static final ArrayList<ReportDto> REPORTS = new ArrayList<ReportDto>();
 
+    /*
     static {
         REPORTS.add(new ReportDto(ReportDto.Type.AUDIT, "PageReports.report.auditName",
                 "PageReports.report.auditDescription"));
@@ -97,17 +101,12 @@ public class PageReports extends PageAdminReports {
         REPORTS.add(new ReportDto(ReportDto.Type.USERS, "PageReports.report.usersName",
                 "PageReports.report.usersDescription"));
     }
+    */
 
     private static final String DOT_CLASS = PageReports.class.getName() + ".";
-    private static final String OPERATION_LOAD_RESOURCES = DOT_CLASS + "loadResources";
     private static final String OPERATION_LOAD_RESOURCE = DOT_CLASS + "loadResource";
-    private static final String OPERATION_LOAD_AUDITEVENTTYPES = DOT_CLASS + "loadAuditEventTypes";
-    private static final String OPERATION_LOAD_AUDITEVENTTYPE = DOT_CLASS + "loadAuditEventType";
 
     private static final String ID_MAIN_FORM = "mainForm";
-    private static final String ID_AUDIT_POPUP = "auditPopup";
-    private static final String ID_USER_POPUP = "userReportPopup";
-    private static final String ID_RECONCILIATION_POPUP = "reconciliationPopup";
     private static final String ID_REPORTS_TABLE = "reportsTable";
 
     private final String BUTTON_CAPTION_RUN = createStringResource("PageReports.button.run").getString();
@@ -147,45 +146,34 @@ public class PageReports extends PageAdminReports {
         ajaxDownloadBehavior.setContentType("application/pdf; charset=UTF-8");
         mainForm.add(ajaxDownloadBehavior);
 
-        TablePanel table = new TablePanel<ReportDto>(ID_REPORTS_TABLE,
-                new ListDataProvider<ReportDto>(this, new Model(REPORTS)), initColumns(ajaxDownloadBehavior));
+        //TablePanel table = new TablePanel<ReportDto>(ID_REPORTS_TABLE,
+        //        new ListDataProvider<ReportDto>(this, new Model(REPORTS)), initColumns(ajaxDownloadBehavior));
+        TablePanel table = new TablePanel<>(ID_REPORTS_TABLE, new ObjectDataProvider(PageReports.this, ReportType.class),
+                initColumns(ajaxDownloadBehavior));
         table.setShowPaging(false);
         table.setOutputMarkupId(true);
         mainForm.add(table);
     }
 
-    private List<IColumn<ReportDto, String>> initColumns(final AjaxDownloadBehaviorFromStream ajaxDownloadBehavior) {
-        List<IColumn<ReportDto, String>> columns = new ArrayList<IColumn<ReportDto, String>>();
+    private List<IColumn<ReportType, String>> initColumns(final AjaxDownloadBehaviorFromStream ajaxDownloadBehavior) {
+        List<IColumn<ReportType, String>> columns = new ArrayList<IColumn<ReportType, String>>();
 
         IColumn column;
-        column = new LinkColumn<ReportDto>(createStringResource("PageReports.table.name"),
-                ReportType.F_NAME.getLocalPart(), createStringResource(ReportDto.F_NAME).getString()){
+        column = new LinkColumn<SelectableBean<ReportType>>(createStringResource("PageReports.table.name"),
+                ReportType.F_NAME.getLocalPart(), "value.name"){
 
             @Override
-            protected IModel<String> createLinkModel(IModel<ReportDto> rowModel){
-                ReportDto dto = rowModel.getObject();
-                return new Model<String>(createStringResource(dto.getName()).getString());
-            }
-
-            @Override
-            public void onClick(AjaxRequestTarget target, IModel<ReportDto> rowModel){
-                reportTypeFilterPerformed(target, rowModel);
+            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<ReportType>> rowModel){
+                ReportType report = rowModel.getObject().getValue();
+                reportTypeFilterPerformed(target, report.getOid());
             }
         };
         columns.add(column);
 
-        column = new PropertyColumn<ReportDto, String>(createStringResource("PageReports.table.description"), null) {
-
-            @Override
-            public IModel<Object> getDataModel(IModel<ReportDto> rowModel) {
-                ReportDto dto = rowModel.getObject();
-
-                return (IModel) createStringResource(dto.getDescription());
-            }
-        };
+        column = new PropertyColumn(createStringResource("PageReports.table.description"), "value.description");
         columns.add(column);
 
-        column = new DoubleButtonColumn<ReportDto>(new Model(), null){
+        column = new DoubleButtonColumn<SelectableBean<ReportType>>(new Model(), null){
 
             @Override
             public String getFirstCap(){
@@ -203,16 +191,13 @@ public class PageReports extends PageAdminReports {
             }
 
             @Override
-            public void firstClicked(AjaxRequestTarget target, IModel<ReportDto> model){
-                runReportPerformed(target, model, ajaxDownloadBehavior);
-
-                //TODO - delete below line, it is here just for now
-                //runClickPerformed(target, model.getObject(), ajaxDownloadBehavior);
+            public void firstClicked(AjaxRequestTarget target, IModel<SelectableBean<ReportType>> model){
+                runReportPerformed(target, model.getObject().getValue(), ajaxDownloadBehavior);
             }
 
             @Override
-            public void secondClicked(AjaxRequestTarget target, IModel<ReportDto> model){
-                configurePerformed(target, model.getObject(), ajaxDownloadBehavior);
+            public void secondClicked(AjaxRequestTarget target, IModel<SelectableBean<ReportType>> model){
+                configurePerformed(target, model.getObject().getValue());
             }
         };
         columns.add(column);
@@ -220,25 +205,19 @@ public class PageReports extends PageAdminReports {
         return columns;
     }
 
-    private void showModalWindow(String id, AjaxRequestTarget target) {
-        ModalWindow window = (ModalWindow) get(id);
-        window.show(target);
-    }
-
-    private void reportTypeFilterPerformed(AjaxRequestTarget target, IModel<ReportDto> model){
+    private void reportTypeFilterPerformed(AjaxRequestTarget target, String oid){
         //TODO - navigate to CreatedReportsPage and set report type filter.
     }
 
-    private void runReportPerformed(AjaxRequestTarget target, IModel<ReportDto> model,
+    private void runReportPerformed(AjaxRequestTarget target, ReportType model,
                                     AjaxDownloadBehaviorFromStream ajaxDownloadBehavior){
         //ajaxDownloadBehavior.initiate(target);
         //TODO - create report based on current configuration
     }
 
-    private void configurePerformed(AjaxRequestTarget target, ReportDto report,
-                                    AjaxDownloadBehaviorFromStream ajaxDownloadBehavior){
+    private void configurePerformed(AjaxRequestTarget target, ReportType report){
         PageParameters params = new PageParameters();
-        params.add("reportType", report.getType().toString());
+        params.add(OnePageParameterEncoder.PARAMETER, report.getOid());
         setResponsePage(PageReport.class, params);
     }
 

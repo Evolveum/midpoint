@@ -45,7 +45,7 @@ public class RefinedAssociationDefinition {
 	}
 
 	public QName getName() {
-		return resourceObjectAssociationType.getName();
+		return resourceObjectAssociationType.getRef();
 	}
 	
 	public ShadowKindType getKind() {

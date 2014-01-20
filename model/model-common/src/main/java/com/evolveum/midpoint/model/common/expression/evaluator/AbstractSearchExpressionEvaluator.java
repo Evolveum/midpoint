@@ -21,6 +21,7 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.BooleanUtils;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.common.crypto.Protector;
@@ -43,14 +44,17 @@ import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.QueryConvertor;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -171,6 +175,11 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue>
 			final QName targetTypeQName, ObjectQuery query, final String shortDesc, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException {
 		final List<V> list = new ArrayList<V>();
 		
+		Collection<SelectorOptions<GetOperationOptions>> options = null;
+		if (!BooleanUtils.isTrue(getExpressionEvaluatorType().isSearchOnResource())) {
+			options = SelectorOptions.createCollection(GetOperationOptions.createNoFetch());
+		}
+		
 		ResultHandler<O> handler = new ResultHandler<O>() {
 			@Override
 			public boolean handle(PrismObject<O> object, OperationResult parentResult) {
@@ -183,7 +192,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue>
 		};
 		
 		try {
-			objectResolver.searchIterative(targetTypeClass, query, handler, result);
+			objectResolver.searchIterative(targetTypeClass, query, options, handler, result);
 		} catch (SchemaException | CommunicationException | ConfigurationException 
 				| SecurityViolationException e) {
 			throw new ExpressionEvaluationException("Unexpected expressione exception "+e+": "+e.getMessage(), e);

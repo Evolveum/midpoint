@@ -61,7 +61,7 @@ public interface ObjectResolver {
 	<T extends ObjectType> T resolve(ObjectReferenceType ref, Class<T> expectedType, String contextDescription, OperationResult result) 
 			throws ObjectNotFoundException, SchemaException;
 	
-	<O extends ObjectType> void searchIterative(Class<O> type, ObjectQuery query, ResultHandler<O> handler, OperationResult parentResult) 
+	<O extends ObjectType> void searchIterative(Class<O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<O> handler, OperationResult parentResult) 
 			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException;
 	
 }

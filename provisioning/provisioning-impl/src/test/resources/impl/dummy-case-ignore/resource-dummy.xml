@@ -72,7 +72,7 @@
 				<fetchStrategy>explicit</fetchStrategy>
 			</attribute>
 			<association>
-            	<name>ri:group</name>
+            	<ref>ri:group</ref>
             	<kind>entitlement</kind>
             	<intent>group</intent>
             	<direction>objectToSubject</direction>
@@ -80,7 +80,7 @@
             	<valueAttribute>icfs:name</valueAttribute>
             </association>
             <association>
-            	<name>ri:priv</name>
+            	<ref>ri:priv</ref>
             	<kind>entitlement</kind>
             	<intent>privilege</intent>
             	<direction>subjectToObject</direction>

@@ -370,7 +370,7 @@
 				</limitations>
 			</attribute>
 			<association>
-            	<name>ri:group</name>
+            	<ref>ri:group</ref>
             	<kind>entitlement</kind>
             	<intent>group</intent>
             	<direction>objectToSubject</direction>
