@@ -54,8 +54,9 @@ public class DirectoryFileObjectResolver implements ObjectResolver {
 	}
 
 	@Override
-	public <T extends ObjectType> T resolve(ObjectReferenceType ref, Class<T> expectedType, String contextDescription, OperationResult result)
-			throws ObjectNotFoundException, SchemaException {
+	public <T extends ObjectType> T resolve(ObjectReferenceType ref, Class<T> expectedType,
+			Collection<SelectorOptions<GetOperationOptions>> options, String contextDescription,
+			OperationResult result) throws ObjectNotFoundException, SchemaException {
 		File file = new File( directory, oidToFilename(ref.getOid()));
 		if (file.exists()) {
 			return (T)PrismTestUtil.parseObject(file).asObjectable();
@@ -75,5 +76,6 @@ public class DirectoryFileObjectResolver implements ObjectResolver {
 			CommunicationException, ConfigurationException, SecurityViolationException {
 		throw new UnsupportedOperationException();
 	}
+
 
 }

@@ -135,7 +135,7 @@ public class OutboundProcessor {
 			        + " in " + rOcDef.getResourceType());
 
 			Mapping<? extends PrismPropertyValue<?>> evaluatedMapping = evaluateMapping(mapping, attributeName, refinedAttributeDefinition, 
-					focusOdo, projectionOdo, operation, rOcDef, context, projCtx, task, result);
+					focusOdo, projectionOdo, operation, rOcDef, null, context, projCtx, task, result);
 			
 			if (evaluatedMapping != null) {
 				outboundConstruction.addAttributeMapping(evaluatedMapping);
@@ -161,7 +161,7 @@ public class OutboundProcessor {
 
 			PrismContainerDefinition<ShadowAssociationType> outputDefinition = getAssociationContainerDefinition();
 			Mapping<? extends PrismPropertyValue<?>> evaluatedMapping = evaluateMapping(mapping, assocName, outputDefinition, 
-					focusOdo, projectionOdo, operation, associationDefinition.getAssociationTarget(),
+					focusOdo, projectionOdo, operation, rOcDef, associationDefinition.getAssociationTarget(),
 					context, projCtx, task, result);
 			
 			if (evaluatedMapping != null) {
@@ -174,7 +174,7 @@ public class OutboundProcessor {
     
     private <F extends FocusType, V extends PrismValue> Mapping<V> evaluateMapping(final Mapping<V> mapping, QName mappingQName,
     		ItemDefinition targetDefinition, ObjectDeltaObject<F> focusOdo, ObjectDeltaObject<ShadowType> projectionOdo,
-    		String operation, RefinedObjectClassDefinition rOcDef,
+    		String operation, RefinedObjectClassDefinition rOcDef, RefinedObjectClassDefinition assocTargetObjectClassDefinition,
     		LensContext<F> context, LensProjectionContext projCtx, Task task, OperationResult result) 
     				throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		if (!mapping.isApplicableToChannel(context.getChannel())) {
@@ -204,6 +204,9 @@ public class OutboundProcessor {
 				LensUtil.getIterationTokenVariableValue(projCtx));
 		mapping.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, projCtx.getResource());
 		mapping.addVariableDefinition(ExpressionConstants.VAR_OPERATION, operation);
+		if (assocTargetObjectClassDefinition != null) {
+			mapping.addVariableDefinition(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION, assocTargetObjectClassDefinition);
+		}
 		mapping.setRootNode(focusOdo);
 		mapping.setOriginType(OriginType.OUTBOUND);
 		mapping.setRefinedObjectClassDefinition(rOcDef);
@@ -232,7 +235,8 @@ public class OutboundProcessor {
 							if (object != null && object instanceof GenerateExpressionEvaluatorType && ((GenerateExpressionEvaluatorType) object).getValuePolicyRef() != null){
 								ObjectReferenceType ref = ((GenerateExpressionEvaluatorType) object).getValuePolicyRef();
 								try{
-								ValuePolicyType valuePolicyType = mappingFactory.getObjectResolver().resolve(ref, ValuePolicyType.class, "resolving value policy for generate attribute "+ outputDefinition.getName()+"value", new OperationResult("Resolving value policy"));
+								ValuePolicyType valuePolicyType = mappingFactory.getObjectResolver().resolve(ref, ValuePolicyType.class, 
+										null, "resolving value policy for generate attribute "+ outputDefinition.getName()+"value", new OperationResult("Resolving value policy"));
 								if (valuePolicyType != null){
 									return valuePolicyType.getStringPolicy();
 								}

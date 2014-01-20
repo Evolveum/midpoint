@@ -43,7 +43,7 @@
 	<logger name="com.evolveum.midpoint.model.lens.Clockwork" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.lens.ChangeExecutor" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.lens.ShadowConstraintsChecker" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.model.lens.LensUtil" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.model.lens.LensUtil" level="TRACE" />
 	<logger name="com.evolveum.midpoint.model.expr" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.util" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.sync" level="DEBUG" />

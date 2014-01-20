@@ -58,7 +58,8 @@ public interface ObjectResolver {
 	 * @throws IllegalArgumentException
 	 *             wrong OID format, etc.
 	 */
-	<T extends ObjectType> T resolve(ObjectReferenceType ref, Class<T> expectedType, String contextDescription, OperationResult result) 
+	<T extends ObjectType> T resolve(ObjectReferenceType ref, Class<T> expectedType, Collection<SelectorOptions<GetOperationOptions>> options, 
+			String contextDescription, OperationResult result) 
 			throws ObjectNotFoundException, SchemaException;
 	
 	<O extends ObjectType> void searchIterative(Class<O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<O> handler, OperationResult parentResult) 

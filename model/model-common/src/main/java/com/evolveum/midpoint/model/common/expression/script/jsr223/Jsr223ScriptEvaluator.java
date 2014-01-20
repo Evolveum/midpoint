@@ -265,7 +265,7 @@ public class Jsr223ScriptEvaluator implements ScriptEvaluator {
     	} else {
 	    	try {
 	    		
-				return objectResolver.resolve(ref, ObjectType.class, contextDescription, result);
+				return objectResolver.resolve(ref, ObjectType.class, null, contextDescription, result);
 				
 			} catch (ObjectNotFoundException e) {
 				throw new ObjectNotFoundException("Object not found during variable "+name+" resolution in "+contextDescription+": "+e.getMessage(),e, ref.getOid());

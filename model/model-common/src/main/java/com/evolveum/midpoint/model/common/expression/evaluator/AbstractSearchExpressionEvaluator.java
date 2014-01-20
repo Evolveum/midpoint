@@ -137,7 +137,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue>
 		
 		if (getExpressionEvaluatorType().getOid() != null) {
 			resultValues = new ArrayList<>(1);
-			resultValues.add(createPrismValue(getExpressionEvaluatorType().getOid(), targetTypeQName, contextDescription));
+			resultValues.add(createPrismValue(getExpressionEvaluatorType().getOid(), targetTypeQName, params));
 		} else {
 		
 			QueryType queryType = getExpressionEvaluatorType().getQuery();
@@ -149,13 +149,13 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue>
 					prismContext, params.getContextDescription(), task, result);
 			query = extendQuery(query, params);
 			
-			resultValues = executeSearch(targetTypeClass, targetTypeQName, query, params.getContextDescription(), params.getResult());
+			resultValues = executeSearch(targetTypeClass, targetTypeQName, query, params, params.getResult());
 		}
 			
 		if (resultValues.isEmpty() && getExpressionEvaluatorType().isCreateOnDemand() == Boolean.TRUE &&
 				(valueDestination == PlusMinusZero.PLUS || valueDestination == PlusMinusZero.ZERO || useNew)) {
 			String createdObjectOid = createOnDemand(targetTypeClass, variables, params, params.getContextDescription(), task, params.getResult());
-			resultValues.add(createPrismValue(createdObjectOid, targetTypeQName, contextDescription));
+			resultValues.add(createPrismValue(createdObjectOid, targetTypeQName, params));
 		}
 		
 		LOGGER.trace("Search expression got {} results for query {}", resultValues==null?"null":resultValues.size(), query);
@@ -163,7 +163,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue>
 		return (List<V>) resultValues;
 	}
 
-	protected ObjectQuery extendQuery(ObjectQuery query, ExpressionEvaluationContext params) throws SchemaException {
+	protected ObjectQuery extendQuery(ObjectQuery query, ExpressionEvaluationContext params) throws SchemaException, ExpressionEvaluationException {
 		return query;
 	}
 
@@ -172,7 +172,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue>
 	}
 
 	private <O extends ObjectType> List<V> executeSearch(Class<O> targetTypeClass,
-			final QName targetTypeQName, ObjectQuery query, final String shortDesc, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException {
+			final QName targetTypeQName, ObjectQuery query, final ExpressionEvaluationContext params, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException {
 		final List<V> list = new ArrayList<V>();
 		
 		Collection<SelectorOptions<GetOperationOptions>> options = null;
@@ -183,7 +183,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue>
 		ResultHandler<O> handler = new ResultHandler<O>() {
 			@Override
 			public boolean handle(PrismObject<O> object, OperationResult parentResult) {
-				list.add(createPrismValue(object.getOid(), targetTypeQName, shortDesc));
+				list.add(createPrismValue(object.getOid(), targetTypeQName, params));
 
 				// TODO: we should count results and stop after some reasonably high number?
 				
@@ -208,7 +208,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue>
 		return list;
 	}
 	
-	protected abstract V createPrismValue(String oid, QName targetTypeQName, String shortDesc);
+	protected abstract V createPrismValue(String oid, QName targetTypeQName, ExpressionEvaluationContext params);
 	
 	private <O extends ObjectType> String createOnDemand(Class<O> targetTypeClass, ExpressionVariables variables, 
 			ExpressionEvaluationContext params, String contextDescription, Task task, OperationResult result) 

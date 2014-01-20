@@ -2046,5 +2046,9 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	protected void assertNoGroupMember(DummyGroup group, String accountId) {
 		IntegrationTestTools.assertNoGroupMember(group, accountId);
 	}
+	
+	protected void assertNoGroupMembers(DummyGroup group) {
+		IntegrationTestTools.assertNoGroupMembers(group);
+	}
 
 }
