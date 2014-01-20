@@ -17,6 +17,7 @@ package com.evolveum.midpoint.test.util;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.Collection;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -25,7 +26,9 @@ import org.opends.server.types.ObjectClass;
 
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.ResultHandler;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -67,9 +70,9 @@ public class DirectoryFileObjectResolver implements ObjectResolver {
 
 	@Override
 	public <O extends ObjectType> void searchIterative(Class<O> type, ObjectQuery query,
-			ResultHandler<O> handler, OperationResult parentResult) throws SchemaException,
-			ObjectNotFoundException, CommunicationException, ConfigurationException,
-			SecurityViolationException {
+			Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<O> handler,
+			OperationResult parentResult) throws SchemaException, ObjectNotFoundException,
+			CommunicationException, ConfigurationException, SecurityViolationException {
 		throw new UnsupportedOperationException();
 	}
 

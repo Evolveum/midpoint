@@ -27,7 +27,7 @@
     		<resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
     		<kind>account</kind>
             <association>
-            	<name>ri:group</name>
+            	<ref>ri:group</ref>
             	<outbound>
             		<expression>
             			<associationExpression>
