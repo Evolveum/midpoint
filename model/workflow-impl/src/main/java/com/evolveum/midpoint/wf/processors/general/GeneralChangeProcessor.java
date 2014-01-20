@@ -39,6 +39,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
+import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.WorkItemContents;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessInstanceState;
 import org.activiti.engine.form.FormProperty;
 import org.activiti.engine.form.TaskFormData;
@@ -46,6 +47,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 import java.util.Map;
 
@@ -259,4 +261,8 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
         return statePrism;
     }
 
+    @Override
+    public PrismObject<? extends WorkItemContents> prepareWorkItemContents(org.activiti.engine.task.Task task, Map<String, Object> processInstanceVariables, OperationResult result) throws JAXBException, ObjectNotFoundException, SchemaException {
+        return null;            // todo implement this
+    }
 }

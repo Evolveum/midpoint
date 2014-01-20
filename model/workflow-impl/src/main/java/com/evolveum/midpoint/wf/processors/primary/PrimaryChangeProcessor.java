@@ -20,10 +20,13 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.lens.LensContext;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -47,6 +50,9 @@ import com.evolveum.midpoint.wf.processors.primary.wrapper.PrimaryApprovalProces
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
+import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.GeneralChangeApprovalWorkItemContents;
+import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.QuestionFormType;
+import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.WorkItemContents;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.PrimaryApprovalProcessInstanceState;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessInstanceState;
 import org.apache.commons.lang.Validate;
@@ -83,6 +89,12 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
 
     @Autowired
     private JobController jobController;
+
+    @Autowired
+    private PrismContext prismContext;
+
+    @Autowired
+    private MiscDataUtil miscDataUtil;
 
     public static final String UNKNOWN_OID = "?";
 
@@ -325,12 +337,10 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
     //endregion
 
     //region User interaction
-    @Override
-    public PrismObject<? extends ObjectType> getRequestSpecificData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public PrismObject<? extends QuestionFormType> getQuestionForm(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {
         return getProcessWrapper(variables).getRequestSpecificData(task, variables, result);
     }
 
-    @Override
     public PrismObject<? extends ObjectType> getRelatedObject(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {
         return getProcessWrapper(variables).getRelatedObject(task, variables, result);
     }
@@ -351,6 +361,48 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
         baseExternalizationHelper.externalizeState(state, variables);
         return state;
     }
+
+    @Override
+    public PrismObject<? extends WorkItemContents> prepareWorkItemContents(org.activiti.engine.task.Task task, Map<String, Object> processInstanceVariables, OperationResult result) throws JAXBException, ObjectNotFoundException, SchemaException {
+
+        PrismObject<? extends GeneralChangeApprovalWorkItemContents> wicPrism = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(GeneralChangeApprovalWorkItemContents.class).instantiate();
+        GeneralChangeApprovalWorkItemContents wic = wicPrism.asObjectable();
+
+        PrismObject<? extends ObjectType> objectBefore = miscDataUtil.getObjectBefore(processInstanceVariables, prismContext, result);
+        if (objectBefore != null) {
+            wic.setObjectOld(objectBefore.asObjectable());
+            if (objectBefore.getOid() != null) {
+                wic.setObjectOldRef(MiscSchemaUtil.createObjectReference(objectBefore.getOid(), SchemaConstants.C_OBJECT_TYPE));     // todo ...or will we determine real object type?
+            }
+        }
+
+        wic.setObjectDelta(miscDataUtil.getObjectDeltaType(processInstanceVariables, true));
+
+        PrismObject<? extends ObjectType> objectAfter = miscDataUtil.getObjectAfter(processInstanceVariables, wic.getObjectDelta(), objectBefore, prismContext, result);
+        if (objectAfter != null) {
+            wic.setObjectNew(objectAfter.asObjectable());
+            if (objectAfter.getOid() != null) {
+                wic.setObjectNewRef(MiscSchemaUtil.createObjectReference(objectAfter.getOid(), SchemaConstants.C_OBJECT_TYPE));     // todo ...or will we determine real object type?
+            }
+        }
+
+        PrismObject<? extends ObjectType> relatedObject = getRelatedObject(task, processInstanceVariables, result);
+        if (relatedObject != null) {
+            wic.setRelatedObject(relatedObject.asObjectable());
+            if (relatedObject.getOid() != null) {
+                wic.setRelatedObjectRef(MiscSchemaUtil.createObjectReference(relatedObject.getOid(), SchemaConstants.C_OBJECT_TYPE));     // todo ...or will we determine real object type?
+            }
+        }
+
+        wic.setQuestionForm(asObjectable(getQuestionForm(task, processInstanceVariables, result)));
+        return wicPrism;
+    }
+
+    private <T> T asObjectable(PrismObject<? extends T> prismObject) {
+        return prismObject != null ? prismObject.asObjectable() : null;
+    }
+
+
     //endregion
 
     //region Getters and setters

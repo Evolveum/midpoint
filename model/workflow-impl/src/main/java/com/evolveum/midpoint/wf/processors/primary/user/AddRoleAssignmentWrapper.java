@@ -48,6 +48,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.QuestionFormType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.RoleApprovalFormType;
 import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -254,7 +255,7 @@ public class AddRoleAssignmentWrapper extends BaseWrapper {
     // ------------------------------------------------------------ Things that execute on when item is being approved
 
     @Override
-    public PrismObject<? extends ObjectType> getRequestSpecificData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    public PrismObject<? extends QuestionFormType> getRequestSpecificData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {
 
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("getRequestSpecific starting: execution id " + task.getExecutionId() + ", pid " + task.getProcessInstanceId() + ", variables = " + variables);

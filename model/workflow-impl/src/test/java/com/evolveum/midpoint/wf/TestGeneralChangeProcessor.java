@@ -51,6 +51,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
+import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.QuestionFormType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -147,29 +148,31 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 
             @Override
             void completeWorkItem(WorkItemType workItem, String taskId, OperationResult result) throws Exception {
-                PrismObject<? extends ObjectType> workItemObject = workItem.getRequestSpecificData().asPrismObject();
-                LOGGER.trace("workItemObject = " + workItemObject.debugDump());
-
-                // change role1 -> role2
-                final int N = 6;
-                StringBuilder ctx = new StringBuilder();
-
-                for (int ctxIndex = 0; ctxIndex < N; ctxIndex++) {
-                    QName contextQName = new QName(SchemaConstants.NS_WFCF, "modelContextToBeEdited" + ctxIndex);
-                    PrismProperty<String> contextProperty = workItemObject.findProperty(contextQName);
-                    assertNotNull(contextQName + " not found among workItem specific properties", contextProperty);
-                    ctx.append(contextProperty.getRealValue());
-                }
-
-                String newCtx = ctx.toString().replaceAll("00000001-d34d-b33f-f00d-000000000001", "00000001-d34d-b33f-f00d-000000000002");
-                for (int ctxIndex = 0; ctxIndex < N; ctxIndex++) {
-                    QName contextQName = new QName(SchemaConstants.NS_WFCF, "modelContextToBeEdited" + ctxIndex);
-                    PrismProperty<String> contextProperty = workItemObject.findProperty(contextQName);
-                    contextProperty.replace(new PrismPropertyValue<String>(JaxbValueContainer.getChunk(newCtx, ctxIndex)));
-                }
-
-                TestAuthenticationInfoHolder.setUserType(getUser(USER_ADMINISTRATOR_OID).asObjectable());
-                workflowServiceImpl.completeWorkItemWithDetails(taskId, workItemObject, "approve", result);
+//                ObjectType contents = workItem.getContents();
+//                PrismObject<? extends QuestionFormType> workItemObject = ;
+//                LOGGER.trace("workItemObject = " + workItemObject.debugDump());
+//
+//                // change role1 -> role2
+//                final int N = 6;
+//                StringBuilder ctx = new StringBuilder();
+//
+//                for (int ctxIndex = 0; ctxIndex < N; ctxIndex++) {
+//                    QName contextQName = new QName(SchemaConstants.NS_WFCF, "modelContextToBeEdited" + ctxIndex);
+//                    PrismProperty<String> contextProperty = workItemObject.findProperty(contextQName);
+//                    assertNotNull(contextQName + " not found among workItem specific properties", contextProperty);
+//                    ctx.append(contextProperty.getRealValue());
+//                }
+//
+//                String newCtx = ctx.toString().replaceAll("00000001-d34d-b33f-f00d-000000000001", "00000001-d34d-b33f-f00d-000000000002");
+//                for (int ctxIndex = 0; ctxIndex < N; ctxIndex++) {
+//                    QName contextQName = new QName(SchemaConstants.NS_WFCF, "modelContextToBeEdited" + ctxIndex);
+//                    PrismProperty<String> contextProperty = workItemObject.findProperty(contextQName);
+//                    contextProperty.replace(new PrismPropertyValue<String>(JaxbValueContainer.getChunk(newCtx, ctxIndex)));
+//                }
+//
+//                TestAuthenticationInfoHolder.setUserType(getUser(USER_ADMINISTRATOR_OID).asObjectable());
+//                workflowServiceImpl.completeWorkItemWithDetails(taskId, workItemObject, "approve", result);
+                throw new UnsupportedOperationException();
             }
 
             @Override
@@ -207,23 +210,24 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 
             @Override
             void completeWorkItem(WorkItemType workItem, String taskId, OperationResult result) throws Exception {
-                PrismObject<? extends ObjectType> workItemObject = workItem.getRequestSpecificData().asPrismObject();
-                display("workItemObject", workItemObject);
-
-                WfProcessInstanceType instance = workflowServiceImpl.getProcessInstanceById(workItem.getProcessInstanceId(), false, true, result);
-//                JaxbValueContainer<ObjectDeltaType> deltaTypeWrapped = ((ProcessInstanceState) instance.getState().getVariable(instance, "dummyResourceDelta", JaxbValueContainer.class);
-//                activitiUtil.revive(deltaTypeWrapped);
-//                ObjectDeltaType deltaType = deltaTypeWrapped.getValue();
-//                display("dummyResourceDelta", DeltaConvertor.createObjectDelta(deltaType, prismContext));
+                throw new UnsupportedOperationException();
+//                PrismObject<? extends ObjectType> workItemObject = workItem.getQuestionForm().asPrismObject();
+//                display("workItemObject", workItemObject);
 //
-//                PrismPropertyDefinition ppd = new PrismPropertyDefinition(new QName(SchemaConstants.NS_WFCF, "[Button]rejectAll"),
-//                        DOMUtil.XSD_BOOLEAN, prismContext);
-//                PrismProperty<Boolean> rejectAll = ppd.instantiate();
-//                rejectAll.setRealValue(Boolean.TRUE);
-//                workItemObject.addReplaceExisting(rejectAll);
-//
-//                TestAuthenticationInfoHolder.setUserType(getUser(USER_ADMINISTRATOR_OID).asObjectable());
-//                workflowServiceImpl.completeWorkItemWithDetails(taskId, workItemObject, "rejectAll", result);
+//                WfProcessInstanceType instance = workflowServiceImpl.getProcessInstanceById(workItem.getProcessInstanceId(), false, true, result);
+////                JaxbValueContainer<ObjectDeltaType> deltaTypeWrapped = ((ProcessInstanceState) instance.getState().getVariable(instance, "dummyResourceDelta", JaxbValueContainer.class);
+////                activitiUtil.revive(deltaTypeWrapped);
+////                ObjectDeltaType deltaType = deltaTypeWrapped.getValue();
+////                display("dummyResourceDelta", DeltaConvertor.createObjectDelta(deltaType, prismContext));
+////
+////                PrismPropertyDefinition ppd = new PrismPropertyDefinition(new QName(SchemaConstants.NS_WFCF, "[Button]rejectAll"),
+////                        DOMUtil.XSD_BOOLEAN, prismContext);
+////                PrismProperty<Boolean> rejectAll = ppd.instantiate();
+////                rejectAll.setRealValue(Boolean.TRUE);
+////                workItemObject.addReplaceExisting(rejectAll);
+////
+////                TestAuthenticationInfoHolder.setUserType(getUser(USER_ADMINISTRATOR_OID).asObjectable());
+////                workflowServiceImpl.completeWorkItemWithDetails(taskId, workItemObject, "rejectAll", result);
             }
 
             @Override
@@ -265,23 +269,24 @@ public class TestGeneralChangeProcessor extends AbstractInternalModelIntegration
 
             @Override
             void completeWorkItem(WorkItemType workItem, String taskId, OperationResult result) throws Exception {
-                PrismObject<? extends ObjectType> workItemObject = workItem.getRequestSpecificData().asPrismObject();
-                display("workItemObject", workItemObject);
-
-//                WfProcessInstanceType instance = workflowServiceImpl.getProcessInstanceById(workItem.getProcessInstanceId(), false, true, result);
-//                JaxbValueContainer<ObjectDeltaType> deltaTypeWrapped = WfVariablesUtil.getVariable(instance, "dummyResourceDelta", JaxbValueContainer.class);
-//                activitiUtil.revive(deltaTypeWrapped);
-//                ObjectDeltaType deltaType = deltaTypeWrapped.getValue();
-//                display("dummyResourceDelta", DeltaConvertor.createObjectDelta(deltaType, prismContext));
+                throw new UnsupportedOperationException();
+//                PrismObject<? extends ObjectType> workItemObject = workItem.getQuestionForm().asPrismObject();
+//                display("workItemObject", workItemObject);
 //
-//                PrismPropertyDefinition ppd = new PrismPropertyDefinition(new QName(SchemaConstants.NS_WFCF, "[Button]approve"),
-//                        DOMUtil.XSD_BOOLEAN, prismContext);
-//                PrismProperty<Boolean> approve = ppd.instantiate();
-//                approve.setRealValue(Boolean.TRUE);
-//                workItemObject.addReplaceExisting(approve);
-//
-//                TestAuthenticationInfoHolder.setUserType(getUser(USER_ADMINISTRATOR_OID).asObjectable());
-//                workflowServiceImpl.completeWorkItemWithDetails(taskId, workItemObject, "approve", result);
+////                WfProcessInstanceType instance = workflowServiceImpl.getProcessInstanceById(workItem.getProcessInstanceId(), false, true, result);
+////                JaxbValueContainer<ObjectDeltaType> deltaTypeWrapped = WfVariablesUtil.getVariable(instance, "dummyResourceDelta", JaxbValueContainer.class);
+////                activitiUtil.revive(deltaTypeWrapped);
+////                ObjectDeltaType deltaType = deltaTypeWrapped.getValue();
+////                display("dummyResourceDelta", DeltaConvertor.createObjectDelta(deltaType, prismContext));
+////
+////                PrismPropertyDefinition ppd = new PrismPropertyDefinition(new QName(SchemaConstants.NS_WFCF, "[Button]approve"),
+////                        DOMUtil.XSD_BOOLEAN, prismContext);
+////                PrismProperty<Boolean> approve = ppd.instantiate();
+////                approve.setRealValue(Boolean.TRUE);
+////                workItemObject.addReplaceExisting(approve);
+////
+////                TestAuthenticationInfoHolder.setUserType(getUser(USER_ADMINISTRATOR_OID).asObjectable());
+////                workflowServiceImpl.completeWorkItemWithDetails(taskId, workItemObject, "approve", result);
             }
 
             @Override

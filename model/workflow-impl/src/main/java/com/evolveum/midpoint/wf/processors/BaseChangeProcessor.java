@@ -1,12 +1,20 @@
 package com.evolveum.midpoint.wf.processors;
 
+import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.WorkItemContents;
 import org.apache.commons.configuration.Configuration;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.beans.factory.BeanNameAware;
+
+import javax.xml.bind.JAXBException;
+import java.util.Map;
 
 /**
  * Useful base class for creating change processors. Currently this class deals only with keeping the processor
@@ -59,4 +67,5 @@ public abstract class BaseChangeProcessor implements ChangeProcessor, BeanNameAw
     protected void setProcessorConfiguration(Configuration c) {
         processorConfiguration = c;
     }
+
 }

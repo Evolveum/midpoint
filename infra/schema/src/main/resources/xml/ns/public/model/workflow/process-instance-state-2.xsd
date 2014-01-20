@@ -121,7 +121,7 @@
             <xsd:extension base="tns:PrimaryApprovalProcessInstanceState">
                 <xsd:sequence>
                     <xsd:element name="approvalRequest" type="tns:ItemApprovalRequestType"/>
-                    <xsd:element name="decisions" type="tns:DecisionType" minOccurs="0" maxOccurs="unbounded"/>
+                    <xsd:element name="decisions" type="c:DecisionType" minOccurs="0" maxOccurs="unbounded"/>
                 </xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -143,26 +143,5 @@
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="itemApprovalRequestType" type="tns:ItemApprovalRequestType" />
-
-    <xsd:complexType name="DecisionType">
-        <xsd:annotation>
-            <xsd:documentation>
-                TODO
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="approverRef" type="c:ObjectReferenceType" >
-                <xsd:annotation>
-                    <xsd:documentation>
-                        TODO
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-            <xsd:element name="approved" type="xsd:boolean" />
-            <xsd:element name="comment" type="xsd:string" minOccurs="0"/>
-            <xsd:element name="dateTime" type="xsd:dateTime" />
-        </xsd:sequence>
-    </xsd:complexType>
-    <xsd:element name="decisionType" type="tns:DecisionType" />
 
 </xsd:schema>

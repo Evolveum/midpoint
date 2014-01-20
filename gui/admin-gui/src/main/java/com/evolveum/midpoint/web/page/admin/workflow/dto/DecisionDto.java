@@ -18,7 +18,7 @@ package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.web.component.util.Selectable;
-import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.DecisionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.DecisionType;
 
 import java.util.Date;
 
@@ -38,7 +38,11 @@ public class DecisionDto extends Selectable {
     private Date time;
 
     public DecisionDto(DecisionType decision) {
-        this.user = decision.getApproverRef().getOid();         // todo get name, not OID
+        if (decision.getApprover() != null && decision.getApprover().getName() != null) {
+            this.user = decision.getApprover().getName().getOrig();
+        } else {
+            this.user = decision.getApproverRef().getOid();
+        }
         if (Boolean.TRUE.equals(decision.isApproved())) {
             this.result = "APPROVED";
         } else if (Boolean.FALSE.equals(decision.isApproved())) {
