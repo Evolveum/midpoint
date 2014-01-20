@@ -31,7 +31,7 @@ public interface WorkflowEventCreator {
 
     WorkflowProcessEvent createWorkflowProcessEndEvent(PrismObject<? extends ProcessInstanceState> instanceState, OperationResult result);
 
-    WorkItemEvent createWorkItemCreateEvent(String workItemName, String assigneeOid, String processInstanceName, PrismObject<? extends ProcessInstanceState> instanceState);
+    WorkItemEvent createWorkItemCreateEvent(String workItemName, String assigneeOid, PrismObject<? extends ProcessInstanceState> instanceState);
 
-    WorkItemEvent createWorkItemCompleteEvent(String workItemName, String assigneeOid, String processInstanceName, PrismObject<? extends ProcessInstanceState> instanceState, String decision);
+    WorkItemEvent createWorkItemCompleteEvent(String workItemName, String assigneeOid, PrismObject<? extends ProcessInstanceState> instanceState, String decision);
 }

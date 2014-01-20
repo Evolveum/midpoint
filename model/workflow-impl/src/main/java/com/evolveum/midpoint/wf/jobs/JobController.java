@@ -502,7 +502,7 @@ public class JobController {
         ChangeProcessor cp = getChangeProcessor(processVariables);
         PrismObject<? extends ProcessInstanceState> state = cp.externalizeInstanceState(processVariables);
         for (WorkItemListener workItemListener : workItemListeners) {
-            workItemListener.onWorkItemCreation(workItemName, assigneeOid, processInstanceName, state);
+            workItemListener.onWorkItemCreation(workItemName, assigneeOid, state);
         }
     }
 
@@ -510,7 +510,7 @@ public class JobController {
         ChangeProcessor cp = getChangeProcessor(processVariables);
         PrismObject<? extends ProcessInstanceState> state = cp.externalizeInstanceState(processVariables);
         for (WorkItemListener workItemListener : workItemListeners) {
-            workItemListener.onWorkItemCompletion(workItemName, assigneeOid, processInstanceName, state, decision);
+            workItemListener.onWorkItemCompletion(workItemName, assigneeOid, state, decision);
         }
     }
 
