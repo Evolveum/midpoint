@@ -191,11 +191,12 @@ public class ModelObjectResolver implements ObjectResolver {
 		return objectType;
 	}
 	
-	public <O extends ObjectType> void searchIterative(Class<O> type, ObjectQuery query, ResultHandler<O> handler, OperationResult parentResult) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
+	public <O extends ObjectType> void searchIterative(Class<O> type, ObjectQuery query, Collection<SelectorOptions<GetOperationOptions>> options, ResultHandler<O> handler, OperationResult parentResult) 
+			throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException, SecurityViolationException {
 		if (ObjectTypes.isClassManagedByProvisioning(type)) {
-			provisioning.searchObjectsIterative(type, query, null, handler, parentResult);
+			provisioning.searchObjectsIterative(type, query, options, handler, parentResult);
 		} else {
-			cacheRepositoryService.searchObjectsIterative(type, query, handler, null, parentResult);
+			cacheRepositoryService.searchObjectsIterative(type, query, handler, options, parentResult);
 		}
 	}
 	

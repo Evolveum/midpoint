@@ -150,7 +150,7 @@ public class PageDashboard extends PageAdminHome {
 
     private void initPersonalInfo() {
         DashboardPanel personalInfo = new DashboardPanel(ID_PERSONAL_INFO, null,
-                createStringResource("PageDashboard.personalInfo"), "silk-user", DashboardColor.GRAY) {
+                createStringResource("PageDashboard.personalInfo"), "fa fa-fw fa-male", DashboardColor.GRAY) {
 
             @Override
             protected Component getMainComponent(String componentId) {
@@ -201,7 +201,7 @@ public class PageDashboard extends PageAdminHome {
     private void initSystemInfo() {
         AsyncDashboardPanel<Object, SystemInfoDto> systemInfo =
                 new AsyncDashboardPanel<Object, SystemInfoDto>(ID_SYSTEM_INFO, createStringResource("PageDashboard.systemInfo"),
-                        "silk-application_osx_terminal", DashboardColor.GREEN) {
+                        "fa fa-fw fa-tachometer", DashboardColor.GREEN) {
 
                     @Override
                     protected Callable<CallableResult<SystemInfoDto>> createCallable(IModel callableParameterModel) {
@@ -237,7 +237,7 @@ public class PageDashboard extends PageAdminHome {
     private void initMyWorkItems() {
         AsyncDashboardPanel<Object, List<WorkItemDto>> workItems =
                 new AsyncDashboardPanel<Object, List<WorkItemDto>>(ID_WORK_ITEMS, createStringResource("PageDashboard.workItems"),
-                        "silk-script", DashboardColor.RED) {
+                        "fa fa-fw fa-tasks", DashboardColor.RED) {
 
                     @Override
                     protected Callable<CallableResult<List<WorkItemDto>>> createCallable(IModel callableParameterModel) {
@@ -268,7 +268,7 @@ public class PageDashboard extends PageAdminHome {
     private void initMyAccounts() {
         AsyncDashboardPanel<Object, List<SimpleAccountDto>> accounts =
                 new AsyncDashboardPanel<Object, List<SimpleAccountDto>>(ID_ACCOUNTS, createStringResource("PageDashboard.accounts"),
-                        "silk-user_suit", DashboardColor.BLUE) {
+                        "fa fa-fw fa-external-link", DashboardColor.BLUE) {
 
                     @Override
                     protected Callable<CallableResult<List<SimpleAccountDto>>> createCallable(
@@ -319,7 +319,7 @@ public class PageDashboard extends PageAdminHome {
     private void initAssignments() {
         AsyncDashboardPanel<Object, List<AssignmentItemDto>> assignedOrgUnits =
                 new AsyncDashboardPanel<Object, List<AssignmentItemDto>>(ID_ASSIGNMENTS, createStringResource("PageDashboard.assignments"),
-                        "silk-medal_silver_1", DashboardColor.YELLOW) {
+                        "fa fa-fw fa-star", DashboardColor.YELLOW) {
 
                     @Override
                     protected Callable<CallableResult<List<AssignmentItemDto>>> createCallable(IModel callableParameterModel) {

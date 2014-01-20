@@ -430,7 +430,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Dumpabl
 	private void evaluateAssociations(Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		associationMappings = new ArrayList<Mapping<PrismContainerValue<ShadowAssociationType>>>();
 		for (ResourceObjectAssociationType associationDefinitionType : constructionType.getAssociation()) {
-			QName assocName = associationDefinitionType.getName();
+			QName assocName = associationDefinitionType.getRef();
 			if (assocName == null) {
 				throw new SchemaException("No association name (ref) in association definition in construction in "+source);
 			}
@@ -448,7 +448,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Dumpabl
 	private Mapping<PrismContainerValue<ShadowAssociationType>> evaluateAssociation(ResourceObjectAssociationType associationDefinitionType,
 			Task task, OperationResult result) 
 			throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
-		QName assocName = associationDefinitionType.getName();
+		QName assocName = associationDefinitionType.getRef();
 		if (assocName == null) {
 			throw new SchemaException("Missing 'ref' in association in construction in "+source);
 		}

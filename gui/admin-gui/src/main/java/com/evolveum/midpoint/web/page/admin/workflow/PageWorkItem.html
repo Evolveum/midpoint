@@ -19,70 +19,58 @@
 <body>
 <wicket:extend>
     <form wicket:id="mainForm" class="form-horizontal">
-    	<h3><span wicket:id="title"/></h3>
-		<table class="table table-condensed table-striped">
-			<tr>
-				<td><wicket:message key="pageWorkItem.requestedBy" /></td>
-				<td><b><span wicket:id="requestedBy" /></b> (<span
-					wicket:id="requestedByFullName" />)</td>
-			</tr>
-			<tr>
-				<td><wicket:message key="pageWorkItem.requestedOn" /></td>
-				<td><b><span wicket:id="requestedOn" /></b></td>
-			</tr>
-			<tr>
-				<td><wicket:message key="pageWorkItem.workItemCreatedOn" /></td>
-				<td><b><span wicket:id="workItemCreatedOn" /></b></td>
-			</tr>
-		</table>
-        <table class="table table-condensed table-striped">
-			<tr>
-                <td style="width: 620px; vertical-align: top;">
-                    <div wicket:id="requestSpecificForm"/>
-                </td>
-                <td style="vertical-align: top;">
-                	<div wicket:id="accordion">
-                        <li wicket:id="additionalInfo">
-                            <div wicket:id="requesterForm"/>
-		                    <div wicket:id="additionalDataForm"/>
-		                    <div wicket:id="objectOldForm"/>
-		                    <div wicket:id="objectNewForm"/>
-		                    <div wicket:id="trackingDataForm"/>
-                            <div wicket:id="deltaAccordion">
-                                <li wicket:id="deltaInfo">
-                                    <div wicket:id="deltaPanel"/>
-                                </li>
-                            </div>
-                            <div wicket:id="requesterAccordion">
-                                <li wicket:id="requesterAccordionInfo">
-                                    <div wicket:id="requesterPanel"/>
-                                </li>
-                            </div>
-                            <div wicket:id="objectOldAccordion">
-                                <li wicket:id="objectOldAccordionInfo">
-                                    <div wicket:id="objectOldPanel"/>
-                                </li>
-                            </div>
-                            <div wicket:id="objectNewAccordion">
-                                <li wicket:id="objectNewAccordionInfo">
-                                    <div wicket:id="objectNewPanel"/>
-                                </li>
-                            </div>
-                            <div wicket:id="additionalDataAccordion">
-                                <li wicket:id="additionalDataAccordionInfo">
-                                    <div wicket:id="additionalDataPanel"/>
-                                </li>
-                            </div>
-                            <div wicket:id="processInstanceAccordion">
-                                <li wicket:id="processInstanceAccordionInfo">
-                                    <div wicket:id="processInstancePanel"/>
-                                </li>
-                            </div>
-                        </li>
-                    </div>
-                </td>
-            </tr>
-        </table>
+        <div class="row">
+            <div class="col-md-6">
+                <h3><wicket:message key="pageWorkItem.mainInfo"/></h3>
+                <table class="table table-condensed table-striped">
+                    <tr>
+                        <td><wicket:message key="pageWorkItem.requestedBy" /></td>
+                        <td><b><span wicket:id="requestedBy" /></b> (<span
+                                wicket:id="requestedByFullName" />)</td>
+                    </tr>
+                    <tr>
+                        <td><wicket:message key="pageWorkItem.requestedOn" /></td>
+                        <td><b><span wicket:id="requestedOn" /></b></td>
+                    </tr>
+                    <tr>
+                        <td><wicket:message key="pageWorkItem.workItemCreatedOn" /></td>
+                        <td><b><span wicket:id="workItemCreatedOn" /></b></td>
+                    </tr>
+                </table>
+
+                <div wicket:id="requestSpecificForm"/>
+            </div>
+            <div class="col-md-6">
+                <div wicket:id="requesterForm"/>
+                <div wicket:id="additionalDataForm"/>
+                <div wicket:id="objectOldForm"/>
+                <div wicket:id="objectNewForm"/>
+                <div wicket:id="trackingDataForm"/>
+
+                <h3><wicket:message key="pageWorkItem.additionalInfo"/></h3>
+
+                <div wicket:id="accordion">
+                    <li wicket:id="deltaInfo">
+                        <div wicket:id="deltaPanel"/>
+                    </li>
+                    <li wicket:id="requesterAccordionInfo">
+                        <div wicket:id="requesterPanel"/>
+                    </li>
+                    <li wicket:id="objectOldAccordionInfo">
+                        <div wicket:id="objectOldPanel"/>
+                    </li>
+                    <li wicket:id="objectNewAccordionInfo">
+                        <div wicket:id="objectNewPanel"/>
+                    </li>
+                    <li wicket:id="additionalDataAccordionInfo">
+                        <div wicket:id="additionalDataPanel"/>
+                    </li>
+                    <li wicket:id="processInstanceAccordionInfo">
+                        <div wicket:id="processInstancePanel"/>
+                    </li>
+                </div>
+            </div>
+        </div>
 
         <div class="form-group">
             <label class="col-lg-2 control-label"><wicket:message key="pageWorkItem.options"/></label>

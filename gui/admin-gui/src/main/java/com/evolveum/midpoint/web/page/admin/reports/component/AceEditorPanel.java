@@ -15,8 +15,38 @@
  */
 package com.evolveum.midpoint.web.page.admin.reports.component;
 
+import com.evolveum.midpoint.web.component.AceEditor;
+import com.evolveum.midpoint.web.component.util.SimplePanel;
+import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
+
+import java.io.Serializable;
+
 /**
  *  @author shood
  * */
-public class AceEditorPanel {
+public class AceEditorPanel<T extends Serializable> extends SimplePanel<T> {
+
+    private static final String ID_EDITOR = "aceEditor";
+
+    public AceEditorPanel(String id, IModel<T> model){
+        super(id, model);
+    }
+
+    @Override
+    protected void initLayout(){
+
+        AceEditor editor = new AceEditor(ID_EDITOR, new PropertyModel<String>(getEditorModel(), getExpression()));
+        editor.setReadonly(false);
+        add(editor);
+    }
+
+    public IModel<T> getEditorModel(){
+        return null;
+    }
+
+    public String getExpression(){
+        return "";
+    }
+
 }

@@ -547,7 +547,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
 			}
 		};
         
-		modelObjectResolver.searchIterative(ShadowType.class, query, handler, result);
+		modelObjectResolver.searchIterative(ShadowType.class, query, null, handler, result);
 		
 		return isUniqueHolder.getValue();
     }

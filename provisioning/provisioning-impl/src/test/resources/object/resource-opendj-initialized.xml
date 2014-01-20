@@ -197,7 +197,7 @@
             <default>true</default>
             <objectClass>ri:AccountObjectClass</objectClass>
             <association>
-            	<name>ri:group</name>
+            	<ref>ri:group</ref>
             	<displayName>LDAP Group Membership</displayName>
             	<kind>entitlement</kind>
             	<intent>ldapGroup</intent>

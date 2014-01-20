@@ -18,12 +18,15 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromFile;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.configuration.PageDebugList;
+import com.evolveum.midpoint.web.page.error.PageError;
+import com.evolveum.midpoint.web.page.error.PageError401;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.util.file.File;
 import org.apache.wicket.util.file.Files;
 
@@ -124,7 +127,7 @@ public class PageDebugDownloadBehaviour extends AjaxDownloadBehaviorFromFile {
             LOGGER.debug("Removing file '{}'.", new Object[]{file.getAbsolutePath()});
             Files.remove(file);
 
-            page.setResponsePage(PageDebugList.class);
+            throw new RestartResponseException(PageError.class);
         }
 
         return file;
@@ -171,9 +174,8 @@ public class PageDebugDownloadBehaviour extends AjaxDownloadBehaviorFromFile {
         };
 
         ModelService service = page.getModelService();
-        service.searchObjectsIterative((Class<T>) type, query, handler,
-                SelectorOptions.createCollection(new ItemPath(), GetOperationOptions.createRaw()),
-                page.createSimpleTask(OPERATION_SEARCH_OBJECT), result);
+        service.searchObjectsIterative(type, query, handler, SelectorOptions.createCollection(new ItemPath(),
+                GetOperationOptions.createRaw()), page.createSimpleTask(OPERATION_SEARCH_OBJECT), result);
     }
 
     private PageBase getPage() {

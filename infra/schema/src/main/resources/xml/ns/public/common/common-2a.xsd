@@ -3442,25 +3442,26 @@
             </xsd:enumeration>
              </xsd:restriction>
     </xsd:simpleType>
-    
-    <xsd:complexType name="ResourceAttributeDefinitionType">
+
+    <xsd:complexType name="ResourceItemDefinitionType">
         <xsd:annotation>
             <xsd:documentation>
-                Description of the attribute handling details, such as display name,
+                Description of the common item handling details, such as display name,
                 read/write access and value and synchronization expressions.
-
+                These are the parts that are common to both attributes and associations.
+                
                 This is supposed to be used in schemaHandling part and therefore
                 describe the decisions of the system administrator about the
-                way how that attribute is used in midPoint.
+                way how that attribute or association is used in midPoint.
             </xsd:documentation>
         </xsd:annotation>
         <xsd:sequence>
             <xsd:element name="ref" type="xsd:QName">
                 <xsd:annotation>
                     <xsd:documentation>
-                        Name of the property attribute (XSD element) that this
-                        definition describes. It must point to the first-level
-                        attributein the resource schema that belongs to an
+                        Name of the attribute (XSD element) or assciation that this
+                        definition describes. It must point to the
+                        attribute in the resource schema that belongs to an
                         object class that is being described here.
                     </xsd:documentation>
                 </xsd:annotation>
@@ -3592,6 +3593,24 @@
                 </xsd:annotation>
             </xsd:element>
         </xsd:sequence>
+    </xsd:complexType>
+    
+    <xsd:complexType name="ResourceAttributeDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Description of the attribute handling details, such as display name,
+                read/write access and value and synchronization expressions.
+
+                This is supposed to be used in schemaHandling part and therefore
+                describe the decisions of the system administrator about the
+                way how that attribute is used in midPoint.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:complexContent>
+        	<xsd:extension base="tns:ResourceItemDefinitionType">
+        		<!-- No extra elements -->
+        	</xsd:extension>
+        </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="resourceAttributeDefinition" type="tns:ResourceAttributeDefinitionType"/>
     
@@ -3918,29 +3937,19 @@
                 way how entitlements are used in midPoint.
      		</xsd:documentation>
      	</xsd:annotation>
-     	<xsd:sequence>
-     		<xsd:element name="name" type="xsd:QName"></xsd:element>
-     		<xsd:element ref="tns:displayName" minOccurs="0"/>
-     		<xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0"></xsd:element>
-     		<xsd:element name="intent" type="xsd:string" minOccurs="0"></xsd:element>
-     		<xsd:element name="direction" type="tns:ResourceObjectAssociationDirectionType"  minOccurs="0"></xsd:element>
-     		<xsd:element name="associationAttribute" type="xsd:QName"  minOccurs="0"></xsd:element>
-     		<xsd:element name="valueAttribute" type="xsd:QName"  minOccurs="0"></xsd:element>
-     		<xsd:element name="fetchStrategy" type="tns:AttributeFetchStrategyType" minOccurs="0"/>
-     		
-     		<xsd:element name="outbound" type="tns:MappingType" minOccurs="0" maxOccurs="1">
-                <xsd:annotation>
-                    <xsd:documentation>
-                        Defines how the association value is constructed in case of information flow from IDM to the
-                        resource, e.g. in case of provisioning.
-                    </xsd:documentation>
-                </xsd:annotation>
-            </xsd:element>
-     		
-     	</xsd:sequence>
+        <xsd:complexContent>
+        	<xsd:extension base="tns:ResourceItemDefinitionType">
+		     	<xsd:sequence>
+		     		<xsd:element name="kind" type="tns:ShadowKindType" minOccurs="0"></xsd:element>
+		     		<xsd:element name="intent" type="xsd:string" minOccurs="0"></xsd:element>
+		     		<xsd:element name="direction" type="tns:ResourceObjectAssociationDirectionType"  minOccurs="0"></xsd:element>
+		     		<xsd:element name="associationAttribute" type="xsd:QName"  minOccurs="0"></xsd:element>
+		     		<xsd:element name="valueAttribute" type="xsd:QName"  minOccurs="0"></xsd:element>
+		     	</xsd:sequence>
+		     </xsd:extension>
+	     </xsd:complexContent>
      </xsd:complexType>
-    
-     
+
      <xsd:simpleType name="ResourceObjectAssociationDirectionType">
         <xsd:annotation>
             <xsd:documentation>
@@ -4881,7 +4890,7 @@
 		        	</xsd:element>
 		        	<xsd:element name="query" type="q:QueryType" minOccurs="0" maxOccurs="1">
 		        	</xsd:element>
-		        	<xsd:element name="noFetch" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="true">
+		        	<xsd:element name="searchOnResource" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
 		        	</xsd:element>
 		        	<xsd:element name="createOnDemand" type="xsd:boolean" minOccurs="0" maxOccurs="1" default="false">
 		        	</xsd:element>

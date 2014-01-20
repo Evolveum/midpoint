@@ -28,6 +28,8 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import org.apache.commons.collections.ListUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -36,7 +38,10 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
 import java.io.Serializable;
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -68,6 +73,7 @@ public class PageAbout extends PageAdminConfiguration {
     private static final String ID_ADDITIONAL_DETAILS = "additionalDetails";
     private static final String ID_DETAIL_NAME = "detailName";
     private static final String ID_DETAIL_VALUE = "detailValue";
+    private static final String ID_JVM_PROPERTIES = "jvmProperties";
 
     private static final String[] PROPERTIES = new String[]{"file.separator", "java.class.path",
             "java.home", "java.vendor", "java.vendor.url", "java.version", "line.separator", "os.arch",
@@ -132,6 +138,23 @@ public class PageAbout extends PageAdminConfiguration {
             }
         };
         add(additionalDetails);
+
+        Label jvmProperties = new Label(ID_JVM_PROPERTIES, new LoadableModel<String>(false) {
+
+            @Override
+            protected String load() {
+                try {
+                    RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
+                    List<String> arguments = runtimeMxBean.getInputArguments();
+
+                    return StringUtils.join(arguments, "<br/>");
+                } catch (Exception ex) {
+                    return PageAbout.this.getString("PageAbout.message.couldntObtainJvmParams");
+                }
+            }
+        });
+        jvmProperties.setEscapeModelStrings(false);
+        add(jvmProperties);
 
         initButtons();
     }
