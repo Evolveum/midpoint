@@ -20,57 +20,60 @@
 	<wicket:extend>
 
     <div class="row">
-        <div class="col-md-3">
-            <h2><wicket:message key="PageAbout.title.basic"/></h2>
-            <table class="table">
-                <tr>
-                    <td><wicket:message key="PageAbout.midPointVersionTitle" /></td>
-                    <td><wicket:message key="PageAbout.midPointVersion" /></td>
-                </tr>
-                <tr>
-                    <td><wicket:message key="PageAbout.midPointRevisionTitle" /></td>
-                    <td><span wicket:id="revision" /></td>
-                </tr>
-            </table>
-        </div>
-    </div>
-
-    <div class="row">
         <div class="col-md-6">
-            <h2><wicket:message key="PageAbout.title.repository"/></h2>
-            <table class="table">
-                <tr>
-                    <td><wicket:message key="PageAbout.repoDiag.implementationShortName" /></td>
-                    <td><span wicket:id="implementationShortName"/></td>
-                </tr>
-                <tr>
-                    <td><wicket:message key="PageAbout.repoDiag.implementationDescription" /></td>
-                    <td><span wicket:id="implementationDescription"/></td>
-                </tr>
-                <tr>
-                    <td><wicket:message key="PageAbout.repoDiag.isEmbedded" /></td>
-                    <td><span wicket:id="isEmbedded"/></td>
-                </tr>
-                <tr>
-                    <td><wicket:message key="PageAbout.repoDiag.driverShortName" /></td>
-                    <td><span wicket:id="driverShortName"/></td>
-                </tr>
-                <tr>
-                    <td><wicket:message key="PageAbout.repoDiag.driverVersion" /></td>
-                    <td><span wicket:id="driverVersion"/></td>
-                </tr>
-                <tr>
-                    <td><wicket:message key="PageAbout.repoDiag.repositoryUrl" /></td>
-                    <td><span wicket:id="repositoryUrl"/></td>
-                </tr>
-            </table>
-            <h3><wicket:message key="PageAbout.title.repository.additional"/></h3>
-            <table class="table">
-                <tr wicket:id="additionalDetails">
-                    <td><span wicket:id="detailName" /></td>
-                    <td><span wicket:id="detailValue" /></td>
-                </tr>
-            </table>
+            <div class="row">
+                <div class="col-md-6">
+                    <h2><wicket:message key="PageAbout.title.basic"/></h2>
+                    <table class="table">
+                        <tr>
+                            <td><wicket:message key="PageAbout.midPointVersionTitle" /></td>
+                            <td><wicket:message key="PageAbout.midPointVersion" /></td>
+                        </tr>
+                        <tr>
+                            <td><wicket:message key="PageAbout.midPointRevisionTitle" /></td>
+                            <td><span wicket:id="revision" /></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <h2><wicket:message key="PageAbout.title.repository"/></h2>
+                    <table class="table">
+                        <tr>
+                            <td><wicket:message key="PageAbout.repoDiag.implementationShortName" /></td>
+                            <td><span wicket:id="implementationShortName"/></td>
+                        </tr>
+                        <tr>
+                            <td><wicket:message key="PageAbout.repoDiag.implementationDescription" /></td>
+                            <td><span wicket:id="implementationDescription"/></td>
+                        </tr>
+                        <tr>
+                            <td><wicket:message key="PageAbout.repoDiag.isEmbedded" /></td>
+                            <td><span wicket:id="isEmbedded"/></td>
+                        </tr>
+                        <tr>
+                            <td><wicket:message key="PageAbout.repoDiag.driverShortName" /></td>
+                            <td><span wicket:id="driverShortName"/></td>
+                        </tr>
+                        <tr>
+                            <td><wicket:message key="PageAbout.repoDiag.driverVersion" /></td>
+                            <td><span wicket:id="driverVersion"/></td>
+                        </tr>
+                        <tr>
+                            <td><wicket:message key="PageAbout.repoDiag.repositoryUrl" /></td>
+                            <td><span wicket:id="repositoryUrl"/></td>
+                        </tr>
+                    </table>
+                    <h3><wicket:message key="PageAbout.title.repository.additional"/></h3>
+                    <table class="table">
+                        <tr wicket:id="additionalDetails">
+                            <td><span wicket:id="detailName" /></td>
+                            <td><span wicket:id="detailValue" /></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
         </div>
         <div class="col-md-6">
             <h2><wicket:message key="PageAbout.title.systemProperties"/></h2>
@@ -78,6 +81,12 @@
                 <tr wicket:id="listSystemItems">
                     <td><span wicket:id="property" /></td>
                     <td><span wicket:id="value" /></td>
+                </tr>
+            </table>
+            <h2><wicket:message key="PageAbout.title.jvmProperties"/></h2>
+            <table class="table">
+                <tr>
+                    <td wicket:id="jvmProperties"/>
                 </tr>
             </table>
         </div>
