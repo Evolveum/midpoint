@@ -8609,6 +8609,15 @@
                     </xsd:documentation>
                 </xsd:annotation>
             </xsd:element>
+            <xsd:element name="processWrapper" minOccurs="0" type="xsd:string">
+                <xsd:annotation>
+                    <xsd:documentation>
+                        The wrapper for an approval process, used for customizations. It provides e.g. a method for externalizing process state,
+                        a method for providing work item contents, and so on. The wrapper is specified via its bean name (Spring).
+                    </xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+
         </xsd:sequence>
     </xsd:complexType>
     

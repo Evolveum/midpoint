@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.wf.processes.common;
 
 /**
- * @author Pavol
+ * @author mederly
  */
 public class CommonProcessVariableNames {
 

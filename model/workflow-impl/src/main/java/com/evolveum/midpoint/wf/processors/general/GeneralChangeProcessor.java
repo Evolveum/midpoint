@@ -31,6 +31,7 @@ import com.evolveum.midpoint.wf.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.processors.BaseChangeProcessor;
 import com.evolveum.midpoint.wf.processors.BaseExternalizationHelper;
 import com.evolveum.midpoint.wf.processors.BaseModelInvocationProcessingHelper;
+import com.evolveum.midpoint.wf.processors.primary.wrapper.PrimaryApprovalProcessWrapper;
 import com.evolveum.midpoint.wf.util.JaxbValueContainer;
 import com.evolveum.midpoint.wf.util.SerializationSafeContainer;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.GeneralChangeProcessorConfigurationType;
@@ -39,7 +40,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
+import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.QuestionFormType;
 import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.WorkItemContents;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.PrimaryApprovalProcessInstanceState;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessInstanceState;
 import org.activiti.engine.form.FormProperty;
 import org.activiti.engine.form.TaskFormData;
@@ -82,6 +85,9 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
 
     @Autowired
     private GcpExpressionHelper gcpExpressionHelper;
+
+    @Autowired
+    private GcpExternalizationHelper gcpExternalizationHelper;
 
     private GeneralChangeProcessorConfigurationType processorConfigurationType;
 
@@ -152,6 +158,9 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
 
             JobCreationInstruction instruction = JobCreationInstruction.createWfProcessChildJob(rootJob);
             instruction.setProcessDefinitionKey(scenarioType.getProcessName());
+            if (scenarioType.getProcessWrapper() != null) {
+                instruction.addProcessVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_PROCESS_WRAPPER, scenarioType.getProcessWrapper());
+            }
             instruction.setRequesterOidInProcess(taskFromModel.getOwner());
             instruction.setTaskName("Workflow-monitoring task");
 
@@ -209,37 +218,8 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
     //endregion
 
     @Override
-    public PrismObject<? extends ObjectType> getRequestSpecificData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("getRequestSpecific starting: execution id " + task.getExecutionId() + ", pid " + task.getProcessInstanceId() + ", variables = " + variables);
-        }
-
-        PrismObjectDefinition<GenericObjectType> prismDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByType(GenericObjectType.COMPLEX_TYPE);
-        PrismObject<GenericObjectType> prism = prismDefinition.instantiate();
-
-        TaskFormData data = activitiEngine.getFormService().getTaskFormData(task.getId());
-        for (FormProperty formProperty : data.getFormProperties()) {
-            if (formProperty.isReadable() && !formProperty.getId().startsWith(CommonProcessVariableNames.FORM_BUTTON_PREFIX)) {
-                LOGGER.trace("- processing property {} having value {}", formProperty.getId(), formProperty.getValue());
-                if (formProperty.getValue() != null) {
-                    QName propertyName = new QName(SchemaConstants.NS_WFCF, formProperty.getId());
-                    PrismPropertyDefinition<String> prismPropertyDefinition = new PrismPropertyDefinition<String>(propertyName, DOMUtil.XSD_STRING, prismContext);
-                    PrismProperty<String> prismProperty = prismPropertyDefinition.instantiate();
-                    prismProperty.addRealValue(formProperty.getValue());
-                    prism.add(prismProperty);
-                }
-            }
-        }
-        if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Resulting prism object instance = " + prism.debugDump());
-        }
-        return prism;
-
-    }
-
-    @Override
-    public PrismObject<? extends ObjectType> getRelatedObject(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    public PrismObject<? extends WorkItemContents> prepareWorkItemContents(org.activiti.engine.task.Task task, Map<String, Object> processInstanceVariables, OperationResult result) throws JAXBException, ObjectNotFoundException, SchemaException {
+        return getProcessWrapper(processInstanceVariables).prepareWorkItemContents(task, processInstanceVariables, result);
     }
 
     @Override
@@ -247,22 +227,29 @@ public class GeneralChangeProcessor extends BaseChangeProcessor {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
-    /**
-     * Currently returns PrismObject containing only general information about the process.
-     * TODO think about something like process wrappers for this change processor.
-     *
-     * @param variables
-     * @return
-     */
     @Override
-    public PrismObject<? extends ProcessInstanceState> externalizeInstanceState(Map<String, Object> variables) {
-        PrismObject<ProcessInstanceState> statePrism = (PrismObject) prismContext.getSchemaRegistry().findObjectDefinitionByType(ProcessInstanceState.COMPLEX_TYPE).instantiate();
-        baseExternalizationHelper.externalizeState(statePrism, variables);
-        return statePrism;
+    public PrismObject<? extends ProcessInstanceState> externalizeInstanceState(Map<String, Object> variables) throws JAXBException, SchemaException {
+        PrismObject<? extends ProcessInstanceState> state = getProcessWrapper(variables).externalizeInstanceState(variables);
+        baseExternalizationHelper.externalizeState(state, variables);
+        return state;
     }
 
-    @Override
-    public PrismObject<? extends WorkItemContents> prepareWorkItemContents(org.activiti.engine.task.Task task, Map<String, Object> processInstanceVariables, OperationResult result) throws JAXBException, ObjectNotFoundException, SchemaException {
-        return null;            // todo implement this
+    private GcpProcessWrapper getProcessWrapper(Map<String, Object> variables) {
+        String wrapperClassName = (String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_PROCESS_WRAPPER);
+        if (wrapperClassName == null) {
+            wrapperClassName = "defaultGcpProcessWrapper";
+        }
+        return findProcessWrapper(wrapperClassName);
     }
+
+    public GcpProcessWrapper findProcessWrapper(String name) {
+        if (getBeanFactory().containsBean(name)) {
+            return getBeanFactory().getBean(name, GcpProcessWrapper.class);
+        } else {
+            throw new IllegalStateException("Wrapper " + name + " couldn't be found.");
+        }
+    }
+
+
+
 }

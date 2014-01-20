@@ -337,14 +337,6 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
     //endregion
 
     //region User interaction
-    public PrismObject<? extends QuestionFormType> getQuestionForm(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        return getProcessWrapper(variables).getRequestSpecificData(task, variables, result);
-    }
-
-    public PrismObject<? extends ObjectType> getRelatedObject(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        return getProcessWrapper(variables).getRelatedObject(task, variables, result);
-    }
-
     @Override
     public String getProcessInstanceDetailsPanelName(WfProcessInstanceType processInstance) {
         PrimaryApprovalProcessInstanceState state = (PrimaryApprovalProcessInstanceState) processInstance.getState();
@@ -364,45 +356,8 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
 
     @Override
     public PrismObject<? extends WorkItemContents> prepareWorkItemContents(org.activiti.engine.task.Task task, Map<String, Object> processInstanceVariables, OperationResult result) throws JAXBException, ObjectNotFoundException, SchemaException {
-
-        PrismObject<? extends GeneralChangeApprovalWorkItemContents> wicPrism = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(GeneralChangeApprovalWorkItemContents.class).instantiate();
-        GeneralChangeApprovalWorkItemContents wic = wicPrism.asObjectable();
-
-        PrismObject<? extends ObjectType> objectBefore = miscDataUtil.getObjectBefore(processInstanceVariables, prismContext, result);
-        if (objectBefore != null) {
-            wic.setObjectOld(objectBefore.asObjectable());
-            if (objectBefore.getOid() != null) {
-                wic.setObjectOldRef(MiscSchemaUtil.createObjectReference(objectBefore.getOid(), SchemaConstants.C_OBJECT_TYPE));     // todo ...or will we determine real object type?
-            }
-        }
-
-        wic.setObjectDelta(miscDataUtil.getObjectDeltaType(processInstanceVariables, true));
-
-        PrismObject<? extends ObjectType> objectAfter = miscDataUtil.getObjectAfter(processInstanceVariables, wic.getObjectDelta(), objectBefore, prismContext, result);
-        if (objectAfter != null) {
-            wic.setObjectNew(objectAfter.asObjectable());
-            if (objectAfter.getOid() != null) {
-                wic.setObjectNewRef(MiscSchemaUtil.createObjectReference(objectAfter.getOid(), SchemaConstants.C_OBJECT_TYPE));     // todo ...or will we determine real object type?
-            }
-        }
-
-        PrismObject<? extends ObjectType> relatedObject = getRelatedObject(task, processInstanceVariables, result);
-        if (relatedObject != null) {
-            wic.setRelatedObject(relatedObject.asObjectable());
-            if (relatedObject.getOid() != null) {
-                wic.setRelatedObjectRef(MiscSchemaUtil.createObjectReference(relatedObject.getOid(), SchemaConstants.C_OBJECT_TYPE));     // todo ...or will we determine real object type?
-            }
-        }
-
-        wic.setQuestionForm(asObjectable(getQuestionForm(task, processInstanceVariables, result)));
-        return wicPrism;
+        return pcpExternalizationHelper.prepareWorkItemContents(task, processInstanceVariables, result);
     }
-
-    private <T> T asObjectable(PrismObject<? extends T> prismObject) {
-        return prismObject != null ? prismObject.asObjectable() : null;
-    }
-
-
     //endregion
 
     //region Getters and setters
@@ -410,12 +365,17 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
         return processWrappers;
     }
 
-    private PrimaryApprovalProcessWrapper getProcessWrapper(Map<String, Object> variables) {
+    PrimaryApprovalProcessWrapper getProcessWrapper(Map<String, Object> variables) {
         String wrapperClassName = (String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_PROCESS_WRAPPER);
         return findProcessWrapper(wrapperClassName);
     }
 
     public PrimaryApprovalProcessWrapper findProcessWrapper(String name) {
+
+        // we can search either by bean name or by wrapper class name (experience will show what is the better way)
+        if (getBeanFactory().containsBean(name)) {
+            return getBeanFactory().getBean(name, PrimaryApprovalProcessWrapper.class);
+        }
         for (PrimaryApprovalProcessWrapper w : processWrappers) {
             if (name.equals(w.getClass().getName())) {
                 return w;
