@@ -41,6 +41,7 @@ public class ReportOutputDto extends Selectable implements Serializable{
     public static final String F_TYPE = "type";
     public static final String F_DESCRIPTION = "description";
     public static final String F_TEXT = "text";
+    public static final String F_NAME = "name";
 
     private ReportDto.Type reportType;
     private String name;
@@ -51,6 +52,8 @@ public class ReportOutputDto extends Selectable implements Serializable{
     private String text;
 
     private Collection<SearchType> type;
+
+    public ReportOutputDto(){}
 
     public ReportOutputDto(ReportDto.Type type, String name, String description){
         this.reportType = type;
