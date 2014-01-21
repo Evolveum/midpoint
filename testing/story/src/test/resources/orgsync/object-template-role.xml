@@ -30,10 +30,10 @@
     		<path>extension/ext:responsibility</path>
     	</source>
     	<expression>
-            <assignmentExpression>
+            <assignmentTargetSearch>
             	<targetType>c:RoleType</targetType>
         		<oid>10000000-0000-0000-0000-000000006602</oid>
-            </assignmentExpression>    	
+            </assignmentTargetSearch>    	
     	</expression>
     	<target>
     		<path>assignment</path>

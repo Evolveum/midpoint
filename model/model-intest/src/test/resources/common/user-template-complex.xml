@@ -112,7 +112,7 @@
     		<path>organizationalUnit</path>
     	</source>
     	<expression>
-            <assignmentExpression>
+            <assignmentTargetSearch>
             	<targetType>c:OrgType</targetType>
         		<query>
 					<q:equal>
@@ -143,7 +143,7 @@
 						</target>
 					</populateItem>
 				</populateObject>
-            </assignmentExpression>    	
+            </assignmentTargetSearch>    	
     	</expression>
     	<target>
     		<path>assignment</path>

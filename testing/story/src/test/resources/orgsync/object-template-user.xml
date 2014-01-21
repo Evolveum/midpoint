@@ -62,7 +62,7 @@
     		<path>extension/ext:orgpath</path>
     	</source>
     	<expression>
-            <assignmentExpression>
+            <assignmentTargetSearch>
             	<targetType>c:OrgType</targetType>
         		<query>
 					<q:equal>
@@ -107,7 +107,7 @@
 						</target>
 					</populateItem>
 				</populateObject>
-            </assignmentExpression>    	
+            </assignmentTargetSearch>    	
     	</expression>
     	<target>
     		<path>assignment</path>
@@ -117,10 +117,10 @@
     <mapping>
     	<name>basic role</name>
     	<expression>
-            <assignmentExpression>
+            <assignmentTargetSearch>
             	<targetType>c:RoleType</targetType>
             	<oid>10000000-0000-0000-0000-000000000601</oid>
-            </assignmentExpression>    	
+            </assignmentTargetSearch>    	
     	</expression>
     	<target>
     		<path>assignment</path>
@@ -134,7 +134,7 @@
     		<path>extension/ext:responsibility</path>
     	</source>
     	<expression>
-            <assignmentExpression>
+            <assignmentTargetSearch>
             	<targetType>c:RoleType</targetType>
         		<query>
 					<q:equal>
@@ -167,7 +167,7 @@
 						</target>
 					</populateItem>
 				</populateObject>
-            </assignmentExpression>    	
+            </assignmentTargetSearch>    	
     	</expression>
     	<target>
     		<path>assignment</path>

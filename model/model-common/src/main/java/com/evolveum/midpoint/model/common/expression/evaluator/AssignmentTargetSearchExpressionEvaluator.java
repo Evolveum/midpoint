@@ -38,12 +38,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.SearchObjectExpress
 /**
  * @author Radovan Semancik
  */
-public class AssignmentExpressionEvaluator 
+public class AssignmentTargetSearchExpressionEvaluator 
 			extends AbstractSearchExpressionEvaluator<PrismContainerValue<AssignmentType>> {
 	
-	private static final Trace LOGGER = TraceManager.getTrace(AssignmentExpressionEvaluator.class);
+	private static final Trace LOGGER = TraceManager.getTrace(AssignmentTargetSearchExpressionEvaluator.class);
 	
-	public AssignmentExpressionEvaluator(SearchObjectExpressionEvaluatorType expressionEvaluatorType, 
+	public AssignmentTargetSearchExpressionEvaluator(SearchObjectExpressionEvaluatorType expressionEvaluatorType, 
 			ItemDefinition outputDefinition, Protector protector, ObjectResolver objectResolver, 
 			ModelService modelService, PrismContext prismContext) {
 		super(expressionEvaluatorType, outputDefinition, protector, objectResolver, modelService, prismContext);

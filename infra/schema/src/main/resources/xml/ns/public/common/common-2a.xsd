@@ -4915,8 +4915,8 @@
 	        </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
-	<xsd:element name="assignmentExpression" type="tns:SearchObjectExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
-	<xsd:element name="associationExpression" type="tns:SearchObjectExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
+	<xsd:element name="assignmentTargetSearch" type="tns:SearchObjectExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
+	<xsd:element name="associationTargetSearch" type="tns:SearchObjectExpressionEvaluatorType" substitutionGroup="tns:expressionEvaluator"/>
 
 	<xsd:complexType name="ShadowDiscriminatorExpressionEvaluatorType">
         <xsd:annotation>

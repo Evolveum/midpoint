@@ -33,7 +33,7 @@
     		<path>orgType</path>
     	</source>
     	<expression>
-            <assignmentExpression>
+            <assignmentTargetSearch>
             	<targetType>c:OrgType</targetType>
         		<query>
 					<q:equal>
@@ -87,7 +87,7 @@
 						</target>
 					</populateItem>
 				</populateObject>
-            </assignmentExpression>    	
+            </assignmentTargetSearch>    	
     	</expression>
     	<target>
     		<path>assignment</path>
@@ -106,10 +106,10 @@
     		<path>orgType</path>
     	</source>
     	<expression>
-            <assignmentExpression>
+            <assignmentTargetSearch>
             	<targetType>c:RoleType</targetType>
         		<oid>10000000-0000-0000-0000-000000006601</oid>
-            </assignmentExpression>    	
+            </assignmentTargetSearch>    	
     	</expression>
     	<target>
     		<path>assignment</path>

@@ -151,8 +151,8 @@
           <constructor-arg name="protector" ref="protector"/>
     </bean>
 
-	<bean id="assignmentExpressionEvaluatorFactory" 
-	      class="com.evolveum.midpoint.model.common.expression.evaluator.AssignmentExpressionEvaluatorFactory"
+	<bean id="assignmentTargetSearchExpressionEvaluatorFactory" 
+	      class="com.evolveum.midpoint.model.common.expression.evaluator.AssignmentTargetSearchExpressionEvaluatorFactory"
           scope="singleton">
           <constructor-arg name="prismContext" ref="prismContext"/>
           <constructor-arg name="protector" ref="protector"/>
@@ -160,8 +160,8 @@
           <constructor-arg ref="modelController"/>
     </bean>
 
-	<bean id="associationExpressionEvaluatorFactory" 
-	      class="com.evolveum.midpoint.model.common.expression.evaluator.AssociationExpressionEvaluatorFactory"
+	<bean id="associationTargetSearchExpressionEvaluatorFactory" 
+	      class="com.evolveum.midpoint.model.common.expression.evaluator.AssociationTargetSearchExpressionEvaluatorFactory"
           scope="singleton">
           <constructor-arg name="prismContext" ref="prismContext"/>
           <constructor-arg name="protector" ref="protector"/>
@@ -193,8 +193,8 @@
         		<ref bean="pathExpressionEvaluatorFactory"/>
         		<ref bean="literalExpressionEvaluatorFactory"/>
         		<ref bean="asisExpressionEvaluatorFactory"/>
-        		<ref bean="assignmentExpressionEvaluatorFactory"/>
-        		<ref bean="associationExpressionEvaluatorFactory"/>
+        		<ref bean="assignmentTargetSearchExpressionEvaluatorFactory"/>
+        		<ref bean="associationTargetSearchExpressionEvaluatorFactory"/>
         		<ref bean="associationFromLinkExpressionEvaluatorFactory"/>
         	</list>
         </constructor-arg>

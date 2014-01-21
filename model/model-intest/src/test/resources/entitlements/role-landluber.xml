@@ -30,14 +30,14 @@
             	<ref>ri:group</ref>
             	<outbound>
             		<expression>
-            			<associationExpression>
+            			<associationTargetSearch>
             				<query>
 								<q:equal>
 									<q:path>attributes/icfs:name</q:path>
 									<q:value>landlubers</q:value>
 								</q:equal>
             				</query>
-            			</associationExpression>
+            			</associationTargetSearch>
             		</expression>
             	</outbound>
             </association>

@@ -46,12 +46,12 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 /**
  * @author Radovan Semancik
  */
-public class AssociationExpressionEvaluator 
+public class AssociationTargetSearchExpressionEvaluator 
 			extends AbstractSearchExpressionEvaluator<PrismContainerValue<ShadowAssociationType>> {
 	
-	private static final Trace LOGGER = TraceManager.getTrace(AssociationExpressionEvaluator.class);
+	private static final Trace LOGGER = TraceManager.getTrace(AssociationTargetSearchExpressionEvaluator.class);
 	
-	public AssociationExpressionEvaluator(SearchObjectExpressionEvaluatorType expressionEvaluatorType, 
+	public AssociationTargetSearchExpressionEvaluator(SearchObjectExpressionEvaluatorType expressionEvaluatorType, 
 			ItemDefinition outputDefinition, Protector protector, ObjectResolver objectResolver, 
 			ModelService modelService, PrismContext prismContext) {
 		super(expressionEvaluatorType, outputDefinition, protector, objectResolver, modelService, prismContext);
