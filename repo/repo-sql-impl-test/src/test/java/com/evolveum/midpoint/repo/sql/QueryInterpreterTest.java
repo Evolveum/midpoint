@@ -18,12 +18,14 @@ package com.evolveum.midpoint.repo.sql;
 
 import java.io.File;
 import java.sql.Timestamp;
+import java.util.Arrays;
 import java.util.Date;
 
 import javax.xml.XMLConstants;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.query.*;
 import org.hibernate.Criteria;
 import org.hibernate.FetchMode;
 import org.hibernate.Session;
@@ -44,17 +46,6 @@ import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.match.PolyStringOrigMatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.query.AndFilter;
-import com.evolveum.midpoint.prism.query.EqualsFilter;
-import com.evolveum.midpoint.prism.query.GreaterFilter;
-import com.evolveum.midpoint.prism.query.LessFilter;
-import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
-import com.evolveum.midpoint.prism.query.ObjectQuery;
-import com.evolveum.midpoint.prism.query.OrFilter;
-import com.evolveum.midpoint.prism.query.OrderDirection;
-import com.evolveum.midpoint.prism.query.OrgFilter;
-import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.repo.sql.data.common.RConnector;
@@ -747,6 +738,26 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         query.setPaging(ObjectPaging.createPaging(null, null, TaskType.F_NAME, OrderDirection.ASCENDING));
 
         String real = getInterpretedQuery(session, TaskType.class, query, true);
+
+        LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
+        AssertJUnit.assertEquals(expected, real);
+
+        close(session);
+    }
+
+    @Test
+    public void inOidTest() throws Exception {
+        Session session = open();
+
+        Criteria main = session.createCriteria(RObject.class, "o");
+        main.add(Restrictions.in("oid", Arrays.asList("1", "2")));
+
+        String expected = HibernateToSqlTranslator.toSql(main);
+
+        InOidFilter filter = InOidFilter.createInOid(Arrays.asList("1", "2"));
+
+        ObjectQuery query = ObjectQuery.createObjectQuery(filter);
+        String real = getInterpretedQuery(session, ObjectType.class, query, false);
 
         LOGGER.info("exp. query>\n{}\nreal query>\n{}", new Object[]{expected, real});
         AssertJUnit.assertEquals(expected, real);
