@@ -24,17 +24,17 @@ import java.io.Serializable;
 public class ReportSearchDto implements Serializable{
 
     public static final String F_FILE_TYPE = "fileType";
-    public static final String F_REPORT_TYPE = "reportType";
+    public static final String F_SEARCH_TEXT = "text";
 
     private String fileType;
-    private String reportType;
+    private String text;
 
-    public String getReportType() {
-        return reportType;
+    public String getText() {
+        return text;
     }
 
-    public void setReportType(String reportType) {
-        this.reportType = reportType;
+    public void setText(String text) {
+        this.text = text;
     }
 
     public String getFileType() {
