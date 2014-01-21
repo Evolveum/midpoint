@@ -92,7 +92,7 @@ public class ResourceTypeUtil {
 			return resource.getConnector();
 		} else if (resource.getConnectorRef() != null) {
 			return resolver.resolve(resource.getConnectorRef(), ConnectorType.class,
-					"resolving connector in " + resource ,parentResult);
+					null, "resolving connector in " + resource ,parentResult);
 		} else {
 			return null;
 		}

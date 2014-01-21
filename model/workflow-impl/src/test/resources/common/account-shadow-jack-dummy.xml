@@ -27,6 +27,5 @@
 	<intent>default</intent>
 	<attributes>
 		<icfs:name>jack</icfs:name>
-		<icfs:uid>jack</icfs:uid>
 	</attributes>
 </account>

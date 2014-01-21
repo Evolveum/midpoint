@@ -976,7 +976,7 @@ public class TestActivation extends AbstractInitializedModelIntegrationTest {
         Task task = taskManager.createTaskInstance(TestActivation.class.getName() + "." + TEST_NAME);
         OperationResult result = task.getResult();
         
-        PrismObject<UserType> userLargo = PrismTestUtil.parseObject(new File(USER_LARGO_FILENAME));
+        PrismObject<UserType> userLargo = PrismTestUtil.parseObject(USER_LARGO_FILE);
         ObjectDelta<UserType> addDelta = userLargo.createAddDelta();
         Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(addDelta);
         

@@ -233,7 +233,7 @@ public class ExpressionUtil {
     	} else {
 	    	try {
 	    		
-				ObjectType objectType = objectResolver.resolve(ref, ObjectType.class, contextDescription, result);
+				ObjectType objectType = objectResolver.resolve(ref, ObjectType.class, null, contextDescription, result);
 				if (objectType == null) {
 					throw new IllegalArgumentException("Resolve returned null for "+ref+" in "+contextDescription);
 				}

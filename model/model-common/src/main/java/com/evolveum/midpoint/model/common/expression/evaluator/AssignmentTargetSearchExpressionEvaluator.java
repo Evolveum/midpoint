@@ -20,6 +20,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -37,18 +38,18 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.SearchObjectExpress
 /**
  * @author Radovan Semancik
  */
-public class AssignmentExpressionEvaluator 
+public class AssignmentTargetSearchExpressionEvaluator 
 			extends AbstractSearchExpressionEvaluator<PrismContainerValue<AssignmentType>> {
 	
-	private static final Trace LOGGER = TraceManager.getTrace(AssignmentExpressionEvaluator.class);
+	private static final Trace LOGGER = TraceManager.getTrace(AssignmentTargetSearchExpressionEvaluator.class);
 	
-	public AssignmentExpressionEvaluator(SearchObjectExpressionEvaluatorType expressionEvaluatorType, 
+	public AssignmentTargetSearchExpressionEvaluator(SearchObjectExpressionEvaluatorType expressionEvaluatorType, 
 			ItemDefinition outputDefinition, Protector protector, ObjectResolver objectResolver, 
 			ModelService modelService, PrismContext prismContext) {
 		super(expressionEvaluatorType, outputDefinition, protector, objectResolver, modelService, prismContext);
 	}
 	
-	protected PrismContainerValue<AssignmentType> createPrismValue(String oid, QName targetTypeQName, String shortDesc) {
+	protected PrismContainerValue<AssignmentType> createPrismValue(String oid, QName targetTypeQName, ExpressionEvaluationContext params) {
 		AssignmentType assignmentType = new AssignmentType();
 		PrismContainerValue<AssignmentType> assignmentCVal = assignmentType.asPrismContainerValue();
 		
@@ -60,7 +61,7 @@ public class AssignmentExpressionEvaluator
 		try {
 			getPrismContext().adopt(assignmentCVal, FocusType.COMPLEX_TYPE, new ItemPath(FocusType.F_ASSIGNMENT));
 			if (InternalsConfig.consistencyChecks) {
-				assignmentCVal.assertDefinitions("assignmentCVal in assignment expression in "+shortDesc);
+				assignmentCVal.assertDefinitions("assignmentCVal in assignment expression in "+params.getContextDescription());
 			}
 		} catch (SchemaException e) {
 			// Should not happen

@@ -44,6 +44,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.QuestionFormType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -106,7 +107,7 @@ public class ChangePasswordWrapper extends BaseWrapper {
     }
 
     @Override
-    public PrismObject<? extends ObjectType> getRequestSpecificData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) {
+    public PrismObject<? extends QuestionFormType> getRequestSpecificData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) {
         return null;        // todo implement this
     }
 

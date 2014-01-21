@@ -800,7 +800,7 @@ public class TestUserTemplate extends AbstractInitializedModelIntegrationTest {
         task.setChannel(QNameUtil.qNameToUri(SchemaConstants.CHANGE_CHANNEL_IMPORT));
         OperationResult result = task.getResult();
     
-        PrismObject<UserType> user = PrismTestUtil.parseObject(new File(USER_LARGO_FILENAME));
+        PrismObject<UserType> user = PrismTestUtil.parseObject(USER_LARGO_FILE);
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<UserType> userDelta = ObjectDelta.createAddDelta(user);
         deltas.add(userDelta);

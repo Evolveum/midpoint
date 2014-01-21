@@ -30,6 +30,7 @@ import com.evolveum.midpoint.wf.processors.primary.PcpJob;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
+import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.QuestionFormType;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.PrimaryApprovalProcessInstanceState;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessInstanceState;
 
@@ -113,7 +114,7 @@ public interface PrimaryApprovalProcessWrapper {
      * @throws SchemaException if any of key objects cannot be retrieved because of schema exception
      * @throws ObjectNotFoundException if any of key objects cannot be found
      */
-    PrismObject<? extends ObjectType> getRequestSpecificData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException;
+    PrismObject<? extends QuestionFormType> getRequestSpecificData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException;
 
     /**
      * Returns a object related to the work item at hand. E.g. for 'approve role addition' process this method returns corresponding role object.

@@ -23,6 +23,14 @@ import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.Proc
 /**
  * Used to create (fill-in) a workflow event based on information passed from workflow module.
  *
+ * Although, generally, the mapping from that information to an event is quite straightforward,
+ * filling-in some fields (e.g. the requestee information) is a bit dependent on particular workflow
+ * process. Therefore, the author of wf process can supply his own implementation of workflow
+ * event creator to deal with that situation.
+ *
+ * (If there are special requirements on how the notification should look like, one could
+ * provide a custom notifier as well - see SimpleWorkflowNotifier for an inspiration.)
+ *
  * @author mederly
  */
 public interface WorkflowEventCreator {
@@ -31,7 +39,7 @@ public interface WorkflowEventCreator {
 
     WorkflowProcessEvent createWorkflowProcessEndEvent(PrismObject<? extends ProcessInstanceState> instanceState, OperationResult result);
 
-    WorkItemEvent createWorkItemCreateEvent(String workItemName, String assigneeOid, String processInstanceName, PrismObject<? extends ProcessInstanceState> instanceState);
+    WorkItemEvent createWorkItemCreateEvent(String workItemName, String assigneeOid, PrismObject<? extends ProcessInstanceState> instanceState);
 
-    WorkItemEvent createWorkItemCompleteEvent(String workItemName, String assigneeOid, String processInstanceName, PrismObject<? extends ProcessInstanceState> instanceState, String decision);
+    WorkItemEvent createWorkItemCompleteEvent(String workItemName, String assigneeOid, PrismObject<? extends ProcessInstanceState> instanceState, String decision);
 }

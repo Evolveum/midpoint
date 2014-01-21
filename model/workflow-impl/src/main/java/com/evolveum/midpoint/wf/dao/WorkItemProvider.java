@@ -239,38 +239,14 @@ public class WorkItemProvider {
         if (getTaskDetails) {
             try {
                 Map<String,Object> variables = activitiEngineDataHelper.getProcessVariables(task.getId(), result);
+                ChangeProcessor cp = getChangeProcessor(task, variables);
 
                 PrismObject<UserType> requester = miscDataUtil.getRequester(variables, result);
                 wi.setRequester(requester.asObjectable());
                 wi.setRequesterRef(MiscSchemaUtil.createObjectReference(requester.getOid(), SchemaConstants.C_USER_TYPE));
 
-                PrismObject<? extends ObjectType> objectBefore = miscDataUtil.getObjectBefore(variables, prismContext, result);
-                if (objectBefore != null) {
-                    wi.setObjectOld(objectBefore.asObjectable());
-                    if (objectBefore.getOid() != null) {
-                        wi.setObjectOldRef(MiscSchemaUtil.createObjectReference(objectBefore.getOid(), SchemaConstants.C_OBJECT_TYPE));     // todo ...or will we determine real object type?
-                    }
-                }
+                wi.setContents(asObjectable(cp.prepareWorkItemContents(task, variables, result)));
 
-                wi.setObjectDelta(miscDataUtil.getObjectDeltaType(variables, true));
-
-                PrismObject<? extends ObjectType> objectAfter = miscDataUtil.getObjectAfter(variables, wi.getObjectDelta(), objectBefore, prismContext, result);
-                if (objectAfter != null) {
-                    wi.setObjectNew(objectAfter.asObjectable());
-                    if (objectAfter.getOid() != null) {
-                        wi.setObjectNewRef(MiscSchemaUtil.createObjectReference(objectAfter.getOid(), SchemaConstants.C_OBJECT_TYPE));     // todo ...or will we determine real object type?
-                    }
-                }
-
-                PrismObject<? extends ObjectType> relatedObject = getRelatedObject(task, variables, result);
-                if (relatedObject != null) {
-                    wi.setRelatedObject(relatedObject.asObjectable());
-                    if (relatedObject.getOid() != null) {
-                        wi.setRelatedObjectRef(MiscSchemaUtil.createObjectReference(relatedObject.getOid(), SchemaConstants.C_OBJECT_TYPE));     // todo ...or will we determine real object type?
-                    }
-                }
-
-                wi.setRequestSpecificData(asObjectable(getRequestSpecificData(task, variables, result)));
                 wi.setTrackingData(asObjectable(getTrackingData(task, variables, result)));
             } catch (SchemaException e) {
                 throw new SystemException("Got unexpected schema exception when preparing information on Work Item", e);
@@ -292,10 +268,6 @@ public class WorkItemProvider {
         return prismObject != null ? prismObject.asObjectable() : null;
     }
 
-    private PrismObject<? extends ObjectType> getRequestSpecificData(Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException, WorkflowException {
-        return getChangeProcessor(task, variables).getRequestSpecificData(task, variables, result);
-    }
-
     private ChangeProcessor getChangeProcessor(Task task, Map<String, Object> variables) {
         String cpClassName = (String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_CHANGE_PROCESSOR);
         if (cpClassName == null) {
@@ -305,8 +277,12 @@ public class WorkItemProvider {
         return wfConfiguration.findChangeProcessor(cpClassName);
     }
 
-    private PrismObject<? extends ObjectType> getRelatedObject(Task task, Map<String, Object> variables, OperationResult result) throws ObjectNotFoundException, SchemaException {
-        return getChangeProcessor(task, variables).getRelatedObject(task, variables, result);
+    private ChangeProcessor getChangeProcessor(Map<String, Object> variables, String context) {
+        String cpClassName = (String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_CHANGE_PROCESSOR);
+        if (cpClassName == null) {
+            throw new IllegalStateException("No change processor in " + context);
+        }
+        return wfConfiguration.findChangeProcessor(cpClassName);
     }
 
     private PrismObject<? extends TrackingDataType> getTrackingData(Task task, Map<String,Object> variables, OperationResult result) throws ObjectNotFoundException, SchemaException {

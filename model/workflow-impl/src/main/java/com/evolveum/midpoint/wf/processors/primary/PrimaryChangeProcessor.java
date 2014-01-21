@@ -20,10 +20,13 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.lens.LensContext;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -47,6 +50,9 @@ import com.evolveum.midpoint.wf.processors.primary.wrapper.PrimaryApprovalProces
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
+import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.GeneralChangeApprovalWorkItemContents;
+import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.QuestionFormType;
+import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.WorkItemContents;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.PrimaryApprovalProcessInstanceState;
 import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessInstanceState;
 import org.apache.commons.lang.Validate;
@@ -83,6 +89,12 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
 
     @Autowired
     private JobController jobController;
+
+    @Autowired
+    private PrismContext prismContext;
+
+    @Autowired
+    private MiscDataUtil miscDataUtil;
 
     public static final String UNKNOWN_OID = "?";
 
@@ -326,16 +338,6 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
 
     //region User interaction
     @Override
-    public PrismObject<? extends ObjectType> getRequestSpecificData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        return getProcessWrapper(variables).getRequestSpecificData(task, variables, result);
-    }
-
-    @Override
-    public PrismObject<? extends ObjectType> getRelatedObject(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException {
-        return getProcessWrapper(variables).getRelatedObject(task, variables, result);
-    }
-
-    @Override
     public String getProcessInstanceDetailsPanelName(WfProcessInstanceType processInstance) {
         PrimaryApprovalProcessInstanceState state = (PrimaryApprovalProcessInstanceState) processInstance.getState();
         String wrapperName = state.getMidPointProcessWrapper();
@@ -351,6 +353,11 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
         baseExternalizationHelper.externalizeState(state, variables);
         return state;
     }
+
+    @Override
+    public PrismObject<? extends WorkItemContents> prepareWorkItemContents(org.activiti.engine.task.Task task, Map<String, Object> processInstanceVariables, OperationResult result) throws JAXBException, ObjectNotFoundException, SchemaException {
+        return pcpExternalizationHelper.prepareWorkItemContents(task, processInstanceVariables, result);
+    }
     //endregion
 
     //region Getters and setters
@@ -358,12 +365,17 @@ public abstract class PrimaryChangeProcessor extends BaseChangeProcessor {
         return processWrappers;
     }
 
-    private PrimaryApprovalProcessWrapper getProcessWrapper(Map<String, Object> variables) {
+    PrimaryApprovalProcessWrapper getProcessWrapper(Map<String, Object> variables) {
         String wrapperClassName = (String) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_PROCESS_WRAPPER);
         return findProcessWrapper(wrapperClassName);
     }
 
     public PrimaryApprovalProcessWrapper findProcessWrapper(String name) {
+
+        // we can search either by bean name or by wrapper class name (experience will show what is the better way)
+        if (getBeanFactory().containsBean(name)) {
+            return getBeanFactory().getBean(name, PrimaryApprovalProcessWrapper.class);
+        }
         for (PrimaryApprovalProcessWrapper w : processWrappers) {
             if (name.equals(w.getClass().getName())) {
                 return w;

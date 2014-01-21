@@ -52,6 +52,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
+import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.GeneralChangeApprovalWorkItemContents;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -214,7 +215,8 @@ public class PageWorkItem extends PageAdminWorkItems {
     }
 
     private ObjectWrapper getObjectOldWrapper() {
-        ObjectType objectOld = workItemDtoModel.getObject().getWorkItem().getObjectOld();
+        GeneralChangeApprovalWorkItemContents wic = getGeneralChangeApprovalWorkItemContents();
+        ObjectType objectOld = wic.getObjectOld();
 
         PrismObject<? extends ObjectType> prism;
         if (objectOld != null) {
@@ -239,8 +241,18 @@ public class PageWorkItem extends PageAdminWorkItems {
         return wrapper;
     }
 
+    private GeneralChangeApprovalWorkItemContents getGeneralChangeApprovalWorkItemContents() {
+        ObjectType contents = workItemDtoModel.getObject().getWorkItem().getContents();
+        if (contents instanceof GeneralChangeApprovalWorkItemContents) {
+            return (GeneralChangeApprovalWorkItemContents) contents;
+        } else {
+            return null;
+        }
+    }
+
     private ObjectWrapper getObjectNewWrapper() {
-        ObjectType objectNew = workItemDtoModel.getObject().getWorkItem().getObjectNew();
+        GeneralChangeApprovalWorkItemContents wic = getGeneralChangeApprovalWorkItemContents();
+        ObjectType objectNew = wic.getObjectNew();
 
         PrismObject<? extends ObjectType> prism;
         if (objectNew != null) {
@@ -277,7 +289,8 @@ public class PageWorkItem extends PageAdminWorkItems {
     }
 
     private ObjectWrapper getRequestSpecificWrapper() {
-        PrismObject<?> prism = workItemDtoModel.getObject().getWorkItem().getRequestSpecificData().asPrismObject();
+        GeneralChangeApprovalWorkItemContents wic = getGeneralChangeApprovalWorkItemContents();
+        PrismObject<?> prism = wic.getQuestionForm().asPrismObject();
 
         ContainerStatus status = ContainerStatus.MODIFYING;
         ObjectWrapper wrapper = new ObjectWrapper("pageWorkItem.requestSpecifics", null, prism, status);
@@ -293,7 +306,8 @@ public class PageWorkItem extends PageAdminWorkItems {
 
 
     private ObjectWrapper getAdditionalDataWrapper() {
-        ObjectType relatedObject = workItemDtoModel.getObject().getWorkItem().getRelatedObject();
+        GeneralChangeApprovalWorkItemContents wic = getGeneralChangeApprovalWorkItemContents();
+        ObjectType relatedObject = wic.getRelatedObject();
         PrismObject<? extends ObjectType> prism;
         if (relatedObject != null) {
             prism = relatedObject.asPrismObject();
@@ -456,7 +470,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         objectOldForm.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {
-                return workItemDtoModel.getObject().getWorkItem().getObjectOld() != null;
+                return getGeneralChangeApprovalWorkItemContents() != null && getGeneralChangeApprovalWorkItemContents().getObjectOld() != null;
             }
         });
         mainForm.add(objectOldForm);
@@ -466,7 +480,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         objectNewForm.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {
-                return workItemDtoModel.getObject().getWorkItem().getObjectNew() != null;
+                return getGeneralChangeApprovalWorkItemContents() != null && getGeneralChangeApprovalWorkItemContents().getObjectNew() != null;
             }
         });
         mainForm.add(objectNewForm);

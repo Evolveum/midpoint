@@ -85,6 +85,9 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 	public static final File ROLE_LANDLUBER_FILE = new File(TEST_DIR, "role-landluber.xml");
 	public static final String ROLE_LANDLUBER_OID = "10000000-0000-0000-0000-000000001603";
 
+	public static final File ROLE_WIMP_FILE = new File(TEST_DIR, "role-wimp.xml");
+	public static final String ROLE_WIMP_OID = "10000000-0000-0000-0000-000000001604";
+
 	public static final File SHADOW_GROUP_DUMMY_SWASHBUCKLERS_FILE = new File(TEST_DIR, "group-swashbucklers.xml");
 	public static final String SHADOW_GROUP_DUMMY_SWASHBUCKLERS_OID = "20000000-0000-0000-3333-000000000001";
 	public static final String GROUP_DUMMY_SWASHBUCKLERS_NAME = "swashbucklers";
@@ -94,13 +97,15 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
 	public static final String SHADOW_GROUP_DUMMY_LANDLUBERS_OID = "20000000-0000-0000-3333-000000000003";
 	public static final String GROUP_DUMMY_LANDLUBERS_NAME = "landlubers";
 	public static final String GROUP_DUMMY_LANDLUBERS_DESCRIPTION = "Earthworms";
+	
+	public static final String GROUP_DUMMY_WIMPS_NAME = "wimps";
 
 	private static final QName RESOURCE_DUMMY_GROUP_OBJECTCLASS = new QName(RESOURCE_DUMMY_NAMESPACE, "GroupObjectClass");
 
 	private static final String USER_WALLY_NAME = "wally";
 	private static final String USER_WALLY_FULLNAME = "Wally B. Feed";
 
-    @Override
+	@Override
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
 
@@ -243,4 +248,53 @@ public class TestEntitlements extends AbstractInitializedModelIntegrationTest {
         		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
         assertGroupMember(dummyGroup, USER_WALLY_NAME);
 	}
+    
+    @Test
+    public void test300AddRoleWimp() throws Exception {
+		final String TEST_NAME = "test300AddRoleWimp";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestEntitlements.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+		// WHEN
+        addObject(ROLE_WIMP_FILE, task, result);
+        
+        // THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+                
+        DummyGroup dummyGroup = dummyResource.getGroupByName(GROUP_DUMMY_WIMPS_NAME);
+        assertNotNull("No group on dummy resource", dummyGroup);
+        display("Group", dummyGroup);
+//        assertEquals("Wrong group description", GROUP_DUMMY_LANDLUBERS_DESCRIPTION, 
+//        		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
+        assertNoGroupMembers(dummyGroup);
+	}
+    
+    @Test
+    public void test310AssignRoleWimpToLargo() throws Exception {
+		final String TEST_NAME = "test310AssignRoleWimpToLargo";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        Task task = taskManager.createTaskInstance(TestEntitlements.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        addObject(USER_LARGO_FILE);
+        
+		// WHEN
+        assignRole(USER_LARGO_OID, ROLE_WIMP_OID, task, result);
+        
+        // THEN
+        result.computeStatus();
+        TestUtil.assertSuccess(result);
+                
+        DummyGroup dummyGroup = dummyResource.getGroupByName(GROUP_DUMMY_WIMPS_NAME);
+        assertNotNull("No group on dummy resource", dummyGroup);
+        display("Group", dummyGroup);
+//        assertEquals("Wrong group description", GROUP_DUMMY_LANDLUBERS_DESCRIPTION, 
+//        		dummyGroup.getAttributeValue(DummyResourceContoller.DUMMY_GROUP_ATTRIBUTE_DESCRIPTION));
+        assertGroupMember(dummyGroup, USER_LARGO_USERNAME);
+	}
+
 }

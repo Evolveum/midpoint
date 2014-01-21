@@ -253,7 +253,7 @@ public class Expression<V extends PrismValue> {
 				throw new SchemaException("No variable name in expression in "+contextDescription);
 			}
 			if (variableDefType.getObjectRef() != null) {
-				ObjectType varObject = objectResolver.resolve(variableDefType.getObjectRef(), ObjectType.class, "variable "+varName+" in "+contextDescription, result);
+				ObjectType varObject = objectResolver.resolve(variableDefType.getObjectRef(), ObjectType.class, null, "variable "+varName+" in "+contextDescription, result);
 				newVariables.addVariableDefinition(varName, varObject);
 			} else if (variableDefType.getValue() != null) {
 				// Only string is supported now

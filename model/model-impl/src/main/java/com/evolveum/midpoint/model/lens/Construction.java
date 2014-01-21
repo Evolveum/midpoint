@@ -255,7 +255,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Dumpabl
 			} else if (constructionType.getResourceRef() != null) {
 				try {
 					resource = objectResolver.resolve(constructionType.getResourceRef(), ResourceType.class,
-							"account construction in "+ source , result);
+							null, "account construction in "+ source , result);
 				} catch (ObjectNotFoundException e) {
 					throw new ObjectNotFoundException("Resource reference seems to be invalid in account construction in " + source + ": "+e.getMessage(), e);
 				}
@@ -405,7 +405,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Dumpabl
 		Mapping<? extends PrismPropertyValue<?>> mapping = mappingFactory.createMapping(outboundMappingType,
 				"for attribute " + PrettyPrinter.prettyPrint(attrName)  + " in "+source);
 		
-		Mapping<? extends PrismPropertyValue<?>> evaluatedMapping = evaluateMapping(mapping, attrName, outputDefinition, refinedObjectClassDefinition, task, result);		
+		Mapping<? extends PrismPropertyValue<?>> evaluatedMapping = evaluateMapping(mapping, attrName, outputDefinition, null, task, result);		
 		
 		LOGGER.trace("Evaluated mapping for attribute "+attrName+": "+evaluatedMapping);
 		return evaluatedMapping;
@@ -470,7 +470,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Dumpabl
 	}
 	
 	private <V extends PrismValue> Mapping<V> evaluateMapping(Mapping<V> mapping, QName mappingQName, ItemDefinition outputDefinition,
-			RefinedObjectClassDefinition targetObjectClassDefinition, Task task, OperationResult result) 
+			RefinedObjectClassDefinition assocTargetObjectClassDefinition, Task task, OperationResult result) 
 					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		
 		if (!mapping.isApplicableToChannel(channel)) {
@@ -486,7 +486,12 @@ public class Construction<F extends FocusType> implements DebugDumpable, Dumpabl
 		mapping.setDefaultTargetDefinition(outputDefinition);
 		mapping.setOriginType(originType);
 		mapping.setOriginObject(source);
-		mapping.setRefinedObjectClassDefinition(targetObjectClassDefinition);
+		mapping.setRefinedObjectClassDefinition(refinedObjectClassDefinition);
+		
+		mapping.addVariableDefinition(ExpressionConstants.VAR_THIS_OBJECT, source);
+		if (assocTargetObjectClassDefinition != null) {
+			mapping.addVariableDefinition(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION, assocTargetObjectClassDefinition);
+		}
 		if (!assignmentPath.isEmpty()) {
 			AssignmentType assignmentType = assignmentPath.getFirstAssignment();
 			mapping.addVariableDefinition(ExpressionConstants.VAR_ASSIGNMENT, magicAssignment);

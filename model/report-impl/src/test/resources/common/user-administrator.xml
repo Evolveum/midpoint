@@ -14,34 +14,45 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<user oid="00000000-0000-0000-0000-000000000002" 
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
-	xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
-	<name>administrator</name>
-	<fullName>midPoint Administrator</fullName>
-	<givenName>midPoint</givenName>
-	<familyName>Administrator</familyName>
-	<emailAddress>administrator@evolveum.com</emailAddress>
-	<activation>
-		<administrativeStatus>enabled</administrativeStatus>
-	</activation>
-	<credentials xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
-		<password>
-			<value xmlns:enc="http://www.w3.org/2001/04/xmlenc#" xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
-				<enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element">
-					<enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes256-cbc" />
-					<ds:KeyInfo>
-						<ds:KeyName>HF6JRsNMeJt6alihT44CXKgpe0c=</ds:KeyName>
-					</ds:KeyInfo>
-					<enc:CipherData>
-						<enc:CipherValue>LZ4QxLrHPrNz/VbNXm6tJU+fHverLrpLFaRudVOaIMAJEGJtpRu7gkgGqRlOJQEH</enc:CipherValue>
-					</enc:CipherData>
-				</enc:EncryptedData>
-			</value>
-		</password>
-	</credentials>
-	<assignment>
-		<targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"/>
-	</assignment>
-</user>
+  <c:user oid="00000000-0000-0000-0000-000000000002"
+            xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2">
+        <c:name>
+            <t:orig>administrator</t:orig>
+            <t:norm>administrator</t:norm>
+        </c:name>
+        <c:fullName>
+            <t:orig>midPoint Administrator</t:orig>
+            <t:norm>midpoint administrator</t:norm>
+        </c:fullName>
+        <c:givenName>
+            <t:orig>midPoint</t:orig>
+            <t:norm>midpoint</t:norm>
+        </c:givenName>
+        <c:familyName>
+            <t:orig>Administrator</t:orig>
+            <t:norm>administrator</t:norm>
+        </c:familyName>
+        <c:assignment>
+			<c:targetRef oid="00000000-0000-0000-0000-000000000004" type="c:RoleType"/>
+		</c:assignment>
+        <c:activation>
+            <c:administrativeStatus>enabled</c:administrativeStatus>
+        </c:activation>
+        <c:credentials xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a">
+            <c:password>
+                <c:value xmlns:enc="http://www.w3.org/2001/04/xmlenc#"
+                         xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+                    <enc:EncryptedData Type="http://www.w3.org/2001/04/xmlenc#Element">
+                        <enc:EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes128-cbc"/>
+                        <ds:KeyInfo>
+                            <ds:KeyName>4HXeUejV93Vd3JuIZz7sbs5bVko=</ds:KeyName>
+                        </ds:KeyInfo>
+                        <enc:CipherData>
+                            <enc:CipherValue>R8JV6Bsf6Hjh1yodavjZ0cPshnGyHdspmANJmCQe2zXo7brYj1I/Bs5LGTZNI4k8</enc:CipherValue>
+                        </enc:CipherData>
+                    </enc:EncryptedData>
+                </c:value>
+            </c:password>
+        </c:credentials>
+    </c:user>

@@ -17,6 +17,8 @@ package com.evolveum.midpoint.common.refinery;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.BooleanUtils;
+
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectAssociationDirectionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectAssociationType;
@@ -58,6 +60,10 @@ public class RefinedAssociationDefinition {
 	
 	public MappingType getOutboundMappingType() {
 		return resourceObjectAssociationType.getOutbound();
+	}
+	
+	public boolean isExclusiveStrong() {
+		return BooleanUtils.isTrue(resourceObjectAssociationType.isExclusiveStrong());
 	}
 
 }

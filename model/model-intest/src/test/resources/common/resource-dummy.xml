@@ -402,6 +402,7 @@
         	<attribute>
 				<ref>icfs:name</ref>
 				<displayName>Groupname</displayName>
+				<exclusiveStrong>true</exclusiveStrong>
 				<outbound>
 				    <source>
 				    	<path>$focus/name</path>

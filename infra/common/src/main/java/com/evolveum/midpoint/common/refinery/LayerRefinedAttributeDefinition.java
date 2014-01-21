@@ -31,6 +31,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.AttributeFetchStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MappingType;
 
@@ -311,6 +312,60 @@ public class LayerRefinedAttributeDefinition extends RefinedAttributeDefinition 
 	@Override
 	public boolean isValidFor(QName elementQName, Class<? extends ItemDefinition> clazz) {
 		return refinedAttributeDefinition.isValidFor(elementQName, clazz);
+	}
+
+	
+	
+	public Boolean getReturnedByDefault() {
+		return refinedAttributeDefinition.getReturnedByDefault();
+	}
+
+	public boolean isAbstract() {
+		return refinedAttributeDefinition.isAbstract();
+	}
+
+	public boolean isDeprecated() {
+		return refinedAttributeDefinition.isDeprecated();
+	}
+
+	public boolean isOperational() {
+		return refinedAttributeDefinition.isOperational();
+	}
+
+	public String getDocumentation() {
+		return refinedAttributeDefinition.getDocumentation();
+	}
+
+	public String getDocumentationPreview() {
+		return refinedAttributeDefinition.getDocumentationPreview();
+	}
+
+	public boolean isRuntimeSchema() {
+		return refinedAttributeDefinition.isRuntimeSchema();
+	}
+
+	public boolean isReturnedByDefault() {
+		return refinedAttributeDefinition.isReturnedByDefault();
+	}
+
+	public String getDocClassName() {
+		return refinedAttributeDefinition.getDocClassName();
+	}
+
+	public boolean isExlusiveStrong() {
+		return refinedAttributeDefinition.isExlusiveStrong();
+	}
+
+	public AttributeFetchStrategyType getFetchStrategy() {
+		return refinedAttributeDefinition.getFetchStrategy();
+	}
+
+	public List<String> getTolerantValuePattern() {
+		return refinedAttributeDefinition.getTolerantValuePattern();
+	}
+
+	public List<String> getIntolerantValuePattern() {
+		return refinedAttributeDefinition.getIntolerantValuePattern();
 	}
 
 	@Override

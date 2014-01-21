@@ -98,20 +98,20 @@ public class DefaultWorkflowEventCreator implements WorkflowEventCreator {
     }
 
     @Override
-    public WorkItemEvent createWorkItemCreateEvent(String workItemName, String assigneeOid, String processInstanceName, PrismObject<? extends ProcessInstanceState> instanceState) {
-        return createWorkItemEvent(workItemName, assigneeOid, processInstanceName, instanceState, ChangeType.ADD, null);
+    public WorkItemEvent createWorkItemCreateEvent(String workItemName, String assigneeOid, PrismObject<? extends ProcessInstanceState> instanceState) {
+        return createWorkItemEvent(workItemName, assigneeOid, instanceState, ChangeType.ADD, null);
     }
 
     @Override
-    public WorkItemEvent createWorkItemCompleteEvent(String workItemName, String assigneeOid, String processInstanceName, PrismObject<? extends ProcessInstanceState> instanceState, String decision) {
-        return createWorkItemEvent(workItemName, assigneeOid, processInstanceName, instanceState, ChangeType.ADD, decision);
+    public WorkItemEvent createWorkItemCompleteEvent(String workItemName, String assigneeOid, PrismObject<? extends ProcessInstanceState> instanceState, String decision) {
+        return createWorkItemEvent(workItemName, assigneeOid, instanceState, ChangeType.ADD, decision);
     }
 
-    private WorkItemEvent createWorkItemEvent(String workItemName, String assigneeOid, String processInstanceName, PrismObject<? extends ProcessInstanceState> instanceState, ChangeType changeType, String decision) {
+    private WorkItemEvent createWorkItemEvent(String workItemName, String assigneeOid, PrismObject<? extends ProcessInstanceState> instanceState, ChangeType changeType, String decision) {
         WorkItemEvent event = new WorkItemEvent(lightweightIdentifierGenerator, changeType);
         event.setWorkItemName(workItemName);
         event.setAssignee(new SimpleObjectRefImpl(notificationsUtil, assigneeOid));
-        fillInEvent(event, processInstanceName, instanceState, decision, new OperationResult("dummy"));
+        fillInEvent(event, instanceState.asObjectable().getProcessInstanceName(), instanceState, decision, new OperationResult("dummy"));
         return event;
     }
 }

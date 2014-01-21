@@ -24,8 +24,8 @@ import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluatorFactory;
-import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -33,19 +33,21 @@ import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectFactory;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SearchObjectExpressionEvaluatorType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAssociationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowDiscriminatorExpressionEvaluatorType;
 
 /**
  * @author semancik
  *
  */
-public class AssignmentExpressionEvaluatorFactory implements ExpressionEvaluatorFactory {
+public class AssociationFromLinkExpressionEvaluatorFactory implements ExpressionEvaluatorFactory {
 	
 	private PrismContext prismContext;
 	private Protector protector;
 	private ObjectResolver objectResolver;
 	private ModelService modelService;
 
-	public AssignmentExpressionEvaluatorFactory(PrismContext prismContext, Protector protector, ObjectResolver objectResolver, ModelService modelService) {
+	public AssociationFromLinkExpressionEvaluatorFactory(PrismContext prismContext, Protector protector, ObjectResolver objectResolver, ModelService modelService) {
 		super();
 		this.prismContext = prismContext;
 		this.protector = protector;
@@ -58,7 +60,7 @@ public class AssignmentExpressionEvaluatorFactory implements ExpressionEvaluator
 	 */
 	@Override
 	public QName getElementName() {
-		return new ObjectFactory().createAssignmentExpression(new SearchObjectExpressionEvaluatorType()).getName();
+		return new ObjectFactory().createAssociationFromLink(new ShadowDiscriminatorExpressionEvaluatorType()).getName();
 	}
 
 	/* (non-Javadoc)
@@ -80,12 +82,13 @@ public class AssignmentExpressionEvaluatorFactory implements ExpressionEvaluator
         if (evaluatorElement != null) {
         	evaluatorTypeObject = evaluatorElement.getValue();
         }
-        if (evaluatorTypeObject != null && !(evaluatorTypeObject instanceof SearchObjectExpressionEvaluatorType)) {
-            throw new SchemaException("assignment expression evlauator cannot handle elements of type " + evaluatorTypeObject.getClass().getName()+" in "+contextDescription);
+        if (evaluatorTypeObject != null && !(evaluatorTypeObject instanceof ShadowDiscriminatorExpressionEvaluatorType)) {
+            throw new SchemaException("Association expression evaluator cannot handle elements of type " + evaluatorTypeObject.getClass().getName()+" in "+contextDescription);
         }
-        AssignmentExpressionEvaluator expressionEvaluator = new AssignmentExpressionEvaluator((SearchObjectExpressionEvaluatorType)evaluatorTypeObject, 
-        		outputDefinition, protector, objectResolver, modelService, prismContext);
-        return (ExpressionEvaluator<V>) expressionEvaluator;
+        AssociationFromLinkExpressionEvaluator evaluator = new AssociationFromLinkExpressionEvaluator(
+        		(ShadowDiscriminatorExpressionEvaluatorType)evaluatorTypeObject, 
+        		(PrismContainerDefinition<ShadowAssociationType>) outputDefinition, objectResolver, prismContext);
+        return (ExpressionEvaluator<V>) evaluator;
 	}
 
 }

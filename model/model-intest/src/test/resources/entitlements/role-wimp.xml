@@ -13,34 +13,49 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<role oid="10000000-0000-0000-0000-000000001603"
+<role oid="10000000-0000-0000-0000-000000001604"
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
         xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
-        xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
         xmlns:icfs="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
         xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
-    <name>Landluber</name>
+    <name>Wimp</name>
+    <assignment>
+        <construction>
+    		<resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
+    		<kind>entitlement</kind>
+            <intent>group</intent>
+    		<attribute>
+                <ref>icfs:name</ref>
+                <outbound>
+                	<strength>strong</strength>
+                	<expression>
+						<value>wimps</value>
+					</expression>
+				</outbound>
+            </attribute>
+    	</construction>
+    </assignment>
     <inducement>
     	<construction>
     		<resourceRef oid="10000000-0000-0000-0000-000000000004" type="c:ResourceType"/>
     		<kind>account</kind>
-            <association>
+    		<intent>default</intent>
+    		<association>
             	<ref>ri:group</ref>
             	<outbound>
             		<expression>
-            			<associationTargetSearch>
-            				<query>
-								<q:equal>
-									<q:path>attributes/icfs:name</q:path>
-									<q:value>landlubers</q:value>
-								</q:equal>
-            				</query>
-            			</associationTargetSearch>
+            			<associationFromLink>
+            				<projectionDiscriminator>
+	            				<kind>entitlement</kind>
+	            				<intent>group</intent>
+            				</projectionDiscriminator>
+            			</associationFromLink>
             		</expression>
             	</outbound>
             </association>
     	</construction>
     </inducement>
+    <requestable>true</requestable>
 </role>

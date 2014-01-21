@@ -23,26 +23,43 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.nio.file.Files;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
-import javax.xml.datatype.XMLGregorianCalendar;
+
+import net.sf.jasperreports.engine.JasperCompileManager;
+import net.sf.jasperreports.engine.JasperExportManager;
+import net.sf.jasperreports.engine.JasperFillManager;
+import net.sf.jasperreports.engine.JasperPrint;
+import net.sf.jasperreports.engine.JasperReport;
+import net.sf.jasperreports.engine.design.JasperDesign;
+import net.sf.jasperreports.engine.query.JRHibernateQueryExecuterFactory;
+import net.sf.jasperreports.engine.xml.JRXmlLoader;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
+import com.evolveum.midpoint.audit.api.AuditEventType;
+import com.evolveum.midpoint.common.validator.EventHandler;
+import com.evolveum.midpoint.common.validator.EventResult;
+import com.evolveum.midpoint.common.validator.Validator;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -58,6 +75,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.report.api.ReportManager;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.PagingConvertor;
 import com.evolveum.midpoint.schema.QueryConvertor;
@@ -66,10 +84,12 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -97,9 +117,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.prism.xml.ns._public.query_2.OrderDirectionType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
-import com.evolveum.midpoint.repo.sql.type.XMLGregorianCalendarType;
-import com.evolveum.midpoint.report.ReportCreateTaskHandler;
-import com.evolveum.midpoint.report.api.ReportManager;
 
 /**
  * @author garbika
@@ -140,13 +157,19 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 			+ "test010DeleteReport";
 	private static final String CLEANUP_REPORTS = CLASS_NAME_WITH_DOT
 			+ "test011CleanupReports";
+	private static final String AUDIT_REPORT = CLASS_NAME_WITH_DOT
+			+ "test012AudtReportWithDeltas";
 	private static final Trace LOGGER = TraceManager
 			.getTrace(BasicReportTest.class);
 
+	
+	private static final String MIDPOINT_HOME = System.getProperty("midpoint.home");
+	
 	private static final File REPORTS_DIR = new File("src/test/resources/reports");
 	private static final File STYLES_DIR = new File("src/test/resources/styles");
 	private static final File COMMON_DIR = new File("src/test/resources/common");
-	private static final String MIDPOINT_HOME = System.getProperty("midpoint.home");
+	
+	private static String EXPORT_DIR = MIDPOINT_HOME + "/export/";
 	
 	private static final File SYSTEM_CONFIGURATION_FILE = new File(COMMON_DIR + "/system-configuration.xml");
 	private static final File USER_ADMINISTRATOR_FILE = new File(COMMON_DIR + "/user-administrator.xml");
@@ -156,6 +179,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	private static final File TEST_REPORT_FILE = new File(REPORTS_DIR + "/report-test.xml");
 	private static final File REPORT_DATASOURCE_TEST = new File(REPORTS_DIR + "/reportDataSourceTest.jrxml");
 	private static final File STYLE_TEMPLATE_DEFAULT = new File(STYLES_DIR	+ "/midpoint_base_styles.jrtx");
+	private static final File REPORT_AUDIT_TEST = new File(REPORTS_DIR + "/reportAuditLogs.jrxml");
 	
 	private static final String REPORT_OID_001 = "00000000-3333-3333-0000-100000000001";
 	private static final String REPORT_OID_002 = "00000000-3333-3333-0000-100000000002";
@@ -174,6 +198,9 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	@Autowired
 	private ReportCreateTaskHandler reportHandler;
 	
+	@Autowired
+	private SessionFactory sessionFactory;
+	
 	protected PrismObject<UserType> userAdministrator;
 	
 	public BasicReportTest() {
@@ -188,16 +215,21 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		LOGGER.trace("initSystem");
 		super.initSystem(initTask, initResult);
 		
+		OperationResult result = new OperationResult("System variables");
 		// System Configuration
 		try {
-			repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, SystemConfigurationType.class, initResult);
+			repoAddObjectFromFile(SYSTEM_CONFIGURATION_FILE, SystemConfigurationType.class, result);
 		} catch (ObjectAlreadyExistsException e) {
-			throw new ObjectAlreadyExistsException("System configuration already exists in repository;" +
-					"looks like the previous test haven't cleaned it up", e);
+			LOGGER.trace("System configuration already exists in repository;");
 		}
 		
 		// Users
-		userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, UserType.class, initResult);
+		try {
+			userAdministrator = repoAddObjectFromFile(USER_ADMINISTRATOR_FILE, UserType.class, result);
+		} catch (ObjectAlreadyExistsException e) {
+			LOGGER.trace("User administrator already exists in repository;");
+		}
+		
 	}
 	
 	protected Task createTask(String operationName) {
@@ -261,7 +293,74 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		assertEquals("Unexpected number of count users", to + 1, countUsers);
 		result.computeStatus();
 	}
-	
+
+	private Calendar create_2014_01_01_12_00_Calendar() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.YEAR, 2014);
+        calendar.set(Calendar.MONTH, Calendar.JANUARY);
+        calendar.set(Calendar.DAY_OF_MONTH, 1);
+        calendar.set(Calendar.HOUR_OF_DAY, 12);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+
+        return calendar;
+    }
+
+    private Calendar create_2013_06_01_00_00_Calendar() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.YEAR, 2013);
+        calendar.set(Calendar.MONTH, Calendar.JUNE);
+        calendar.set(Calendar.DAY_OF_MONTH, 1);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+
+        return calendar;
+    }
+
+    private Calendar create_2013_07_01_00_00_Calendar() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.YEAR, 2013);
+        calendar.set(Calendar.MONTH, Calendar.JULY);
+        calendar.set(Calendar.DAY_OF_MONTH, 1);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+
+        return calendar;
+    }
+
+    private Calendar create_2013_08_01_00_00_Calendar() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.YEAR, 2013);
+        calendar.set(Calendar.MONTH, Calendar.AUGUST);
+        calendar.set(Calendar.DAY_OF_MONTH, 1);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+
+        return calendar;
+    }
+
+    private Duration createDuration(Calendar when, long now) throws Exception {
+        long seconds = (now - when.getTimeInMillis()) / 1000;
+        return DatatypeFactory.newInstance().newDuration("PT" + seconds + "S").negate();
+    }
+
+    private CleanupPolicyType createPolicy(Calendar when, long now) throws Exception {
+        CleanupPolicyType policy = new CleanupPolicyType();
+
+        Duration duration = createDuration(when, now);
+        policy.setMaxAge(duration);
+
+        return policy;
+    }
+
+
 	@Test
 	public void test001CreateReport() throws Exception {
 		// import vo for cycle cez usertype zrusit vsetky RTable
@@ -514,7 +613,35 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 					parameterRepo.getClassTypeParameter());
 		}
 	}
-	
+	/*
+	private   <P extends Object> void validateObject(String xmlObject, final Holder<P> objectHolder,
+            boolean validateSchema, OperationResult result) {
+	EventHandler handler = new EventHandler() {
+
+		@Override
+		public EventResult preMarshall(Element objectElement, Node postValidationTree, OperationResult objectResult) {
+			return EventResult.cont();
+		}
+
+		@Override
+		public <T extends Objectable> EventResult postMarshall(PrismObject<T> object, Element objectElement,
+                                             OperationResult objectResult) {
+			objectHolder.setValue((P) object);
+			return EventResult.cont();
+		}
+
+		@Override
+		public void handleGlobalError(OperationResult currentResult) {
+		}	
+	};
+	Validator validator = new Validator(prismContext, handler);
+	validator.setVerbose(true);
+	validator.setValidateSchema(validateSchema);
+	validator.validateObject(xmlObject, result);
+
+	result.computeStatus();
+	}
+	*/
 	@Test 
 	public void test002CreateReportFromFile() throws Exception {
 		
@@ -523,9 +650,12 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	
 		Task task = taskManager.createTaskInstance(CREATE_REPORT_FROM_FILE);
 		OperationResult result = task.getResult();
-		 
+		/*
+		Holder<PrismObject<ReportType>> objectHolder = new Holder<PrismObject<ReportType>>(null);
+	    validateObject(FileUtils.readFileToString(TEST_REPORT_FILE, "UTF-8"), objectHolder, true, result);
+		*/
 		PrismObject<? extends Objectable> reportType =  prismContext.getPrismDomProcessor().parseObject(TEST_REPORT_FILE);
-			 
+
 		ObjectDelta<ReportType> objectDelta = 
 		ObjectDelta.createAddDelta((PrismObject<ReportType>) reportType);
 		Collection<ObjectDelta<? extends ObjectType>> deltas =
@@ -694,6 +824,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	public void test006RunTask() throws Exception {
 		final String TEST_NAME = "test006RunTask";
         TestUtil.displayTestTile(this, TEST_NAME);
+        
         boolean import10000 = false;
         int countUsers = 11;
         if (import10000){ 
@@ -785,7 +916,6 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
         assertEquals("Unexpected number of users", countUsers, count-5);
 	}
 
-
 		@Test
 		public void test007CountReport() throws Exception {
 			final String TEST_NAME = "test007CountReport";
@@ -863,9 +993,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 			assertEquals("Unexpected export type", ExportType.CSV, reportType.getReportExport());
 		}
 		
-		/**
-		 * Delete report type.
-		 */
+		
 		@Test
 		public void test010DeleteReport() throws Exception {
 			
@@ -983,71 +1111,83 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	        AssertJUnit.assertEquals(2, reportOutputs.size());
 
 	    }
+		@Test
+		public void test012AuditReportWithDeltas() throws Exception {
+			
+			final String TEST_NAME = "test012AuditReportWithDeltas";
+	        TestUtil.displayTestTile(this, TEST_NAME);
+			
+	        // GIVEN
+	        Task task = taskManager.createTaskInstance(AUDIT_REPORT);
+			OperationResult result = task.getResult();
+			
+			
+			AuditEventType auditEventType = null;//AuditEventType.ADD_OBJECT;
+			int auditEventTypeId = auditEventType != null ? auditEventType.ordinal() : -1;
+			String auditEventTypeName = auditEventType == null ? "AuditEventType.null" : auditEventType.toString();
+			final long NOW = System.currentTimeMillis();
+			Calendar calendar = create_2013_07_01_00_00_Calendar();
+			Timestamp dateFrom = new Timestamp(calendar.getTimeInMillis());
+			Timestamp dateTo = new Timestamp(NOW);
+			
+			Map params = new HashMap();
+		    params.put("DATE_FROM", dateFrom);
+		    params.put("DATE_TO", dateTo);
+		    params.put("EVENT_TYPE", auditEventTypeId);
+		    params.put("EVENT_TYPE_DESC", auditEventTypeName);
+		    //String theQuery = auditEventTypeId != -1 ? "select aer.timestamp as timestamp, aer.initiatorName as initiator, aer.eventType as eventType, aer.eventStage as eventStage, aer.targetName as targetName, aer.targetType as targetType, aer.targetOwnerName as targetOwnerName, aer.outcome as outcome, aer.message as message from RAuditEventRecord as aer where aer.eventType = $P{EVENT_TYPE} and aer.timestamp >= $P{DATE_FROM} and aer.timestamp <= $P{DATE_TO} order by aer.timestamp" : "select aer.timestamp as timestamp, aer.initiatorName as initiator, aer.eventType as eventType, aer.eventStage as eventStage, aer.targetName as targetName, aer.targetType as targetType, aer.targetOwnerName as targetOwnerName, aer.outcome as outcome, aer.message as message from RAuditEventRecord as aer where aer.timestamp >= $P{DATE_FROM} and aer.timestamp <= $P{DATE_TO} order by aer.timestamp";
+		    String theQuery = auditEventTypeId != -1 ? 
+		    		"select aer.timestamp as timestamp, " +
+		        	"aer.initiatorName as initiator, " +
+		        	"aer.eventType as eventType, " +
+		        	"aer.eventStage as eventStage, " +
+		        	"aer.targetName as targetName, " +
+		        	"aer.targetType as targetType, " +
+		        	"aer.targetOwnerName as targetOwnerName, " +
+		        	"aer.outcome as outcome, " +
+		        	"aer.message as message, " +
+		        	"odo.delta as delta " +
+		        	"from RObjectDeltaOperation as odo " +
+		        	"join odo.record as aer " +
+		        	"where aer.eventType = $P{EVENT_TYPE} and aer.timestamp >= $P{DATE_FROM} and aer.timestamp <= $P{DATE_TO} " +
+		        	"order by aer.timestamp" 
+		        	: 
+		        	"select aer.timestamp as timestamp, " +
+		        	"aer.initiatorName as initiator, " +
+		        	"aer.eventType as eventType, " +
+		        	"aer.eventStage as eventStage, " +
+		        	"aer.targetName as targetName, " +
+		        	"aer.targetType as targetType, " +
+		        	"aer.targetOwnerName as targetOwnerName, " +
+		        	"aer.outcome as outcome, " +
+		        	"aer.message as message, " +
+		        	"odo.delta as delta " +
+		        	"from RObjectDeltaOperation as odo " +
+		        	"join odo.record as aer " +
+		        	"where aer.timestamp >= $P{DATE_FROM} and aer.timestamp <= $P{DATE_TO} " +
+		        	"order by aer.timestamp";
+		    params.put("QUERY_STRING", theQuery); 		    
+		    params.put("LOGO_PATH", REPORTS_DIR.getPath() + "/logo.jpg");
+		    params.put("BaseTemplateStyles", STYLE_TEMPLATE_DEFAULT.getPath());
 
-	    private Calendar create_2014_01_01_12_00_Calendar() {
-	        Calendar calendar = Calendar.getInstance();
-	        calendar.set(Calendar.YEAR, 2014);
-	        calendar.set(Calendar.MONTH, Calendar.JANUARY);
-	        calendar.set(Calendar.DAY_OF_MONTH, 1);
-	        calendar.set(Calendar.HOUR_OF_DAY, 12);
-	        calendar.set(Calendar.MINUTE, 0);
-	        calendar.set(Calendar.SECOND, 0);
-	        calendar.set(Calendar.MILLISECOND, 0);
+	        byte[] generatedReport = new byte[]{};
+	        Session session = null;
+	        // Loading template
+	        JasperDesign design = JRXmlLoader.load(REPORT_AUDIT_TEST);
+	        JasperReport report = JasperCompileManager.compileReport(design);
 
-	        return calendar;
-	    }
+	        session = sessionFactory.openSession();
+	        session.beginTransaction();
 
-	    private Calendar create_2013_06_01_00_00_Calendar() {
-	        Calendar calendar = Calendar.getInstance();
-	        calendar.set(Calendar.YEAR, 2013);
-	        calendar.set(Calendar.MONTH, Calendar.JUNE);
-	        calendar.set(Calendar.DAY_OF_MONTH, 1);
-	        calendar.set(Calendar.HOUR_OF_DAY, 0);
-	        calendar.set(Calendar.MINUTE, 0);
-	        calendar.set(Calendar.SECOND, 0);
-	        calendar.set(Calendar.MILLISECOND, 0);
+	        params.put(JRHibernateQueryExecuterFactory.PARAMETER_HIBERNATE_SESSION, session);
+	        JasperPrint jasperPrint = JasperFillManager.fillReport(report, params);
+	        
+	        String output =  EXPORT_DIR + "AuditReport.pdf";
+	        JasperExportManager.exportReportToPdfFile(jasperPrint, output);
+	        
+	        
 
-	        return calendar;
-	    }
-
-	    private Calendar create_2013_07_01_00_00_Calendar() {
-	        Calendar calendar = Calendar.getInstance();
-	        calendar.set(Calendar.YEAR, 2013);
-	        calendar.set(Calendar.MONTH, Calendar.JULY);
-	        calendar.set(Calendar.DAY_OF_MONTH, 1);
-	        calendar.set(Calendar.HOUR_OF_DAY, 0);
-	        calendar.set(Calendar.MINUTE, 0);
-	        calendar.set(Calendar.SECOND, 0);
-	        calendar.set(Calendar.MILLISECOND, 0);
-
-	        return calendar;
-	    }
-
-	    private Calendar create_2013_08_01_00_00_Calendar() {
-	        Calendar calendar = Calendar.getInstance();
-	        calendar.set(Calendar.YEAR, 2013);
-	        calendar.set(Calendar.MONTH, Calendar.AUGUST);
-	        calendar.set(Calendar.DAY_OF_MONTH, 1);
-	        calendar.set(Calendar.HOUR_OF_DAY, 0);
-	        calendar.set(Calendar.MINUTE, 0);
-	        calendar.set(Calendar.SECOND, 0);
-	        calendar.set(Calendar.MILLISECOND, 0);
-
-	        return calendar;
-	    }
-
-	    private Duration createDuration(Calendar when, long now) throws Exception {
-	        long seconds = (now - when.getTimeInMillis()) / 1000;
-	        return DatatypeFactory.newInstance().newDuration("PT" + seconds + "S").negate();
-	    }
-
-	    private CleanupPolicyType createPolicy(Calendar when, long now) throws Exception {
-	        CleanupPolicyType policy = new CleanupPolicyType();
-
-	        Duration duration = createDuration(when, now);
-	        policy.setMaxAge(duration);
-
-	        return policy;
-	    }
-		
+	       session.getTransaction().commit();
+	       session.close();			
+		}
 }

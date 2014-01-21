@@ -56,6 +56,7 @@
                                 </c:script>
                             </c:activationCondition>
                             <c:processName>ApprovingDummyResourceChangesProcess</c:processName>
+                            <c:processWrapper>approvingDummyResourceChangesProcessWrapper</c:processWrapper>
                         </c:scenario>
                     </c:generalChangeProcessorConfiguration>
                 </generalChangeProcessor>

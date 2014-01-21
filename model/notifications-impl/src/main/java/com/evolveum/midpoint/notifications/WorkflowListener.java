@@ -81,16 +81,16 @@ public class WorkflowListener implements ProcessListener, WorkItemListener {
     }
 
     @Override
-    public void onWorkItemCreation(String workItemName, String assigneeOid, String processInstanceName, PrismObject<? extends ProcessInstanceState> instanceState) {
+    public void onWorkItemCreation(String workItemName, String assigneeOid, PrismObject<? extends ProcessInstanceState> instanceState) {
         WorkflowEventCreator workflowEventCreator = notificationManager.getWorkflowEventCreator(instanceState);
-        WorkItemEvent event = workflowEventCreator.createWorkItemCreateEvent(workItemName, assigneeOid, processInstanceName, instanceState);
+        WorkItemEvent event = workflowEventCreator.createWorkItemCreateEvent(workItemName, assigneeOid, instanceState);
         processEvent(event);
     }
 
     @Override
-    public void onWorkItemCompletion(String workItemName, String assigneeOid, String processInstanceName, PrismObject<? extends ProcessInstanceState> instanceState, String decision) {
+    public void onWorkItemCompletion(String workItemName, String assigneeOid, PrismObject<? extends ProcessInstanceState> instanceState, String decision) {
         WorkflowEventCreator workflowEventCreator = notificationManager.getWorkflowEventCreator(instanceState);
-        WorkItemEvent event = workflowEventCreator.createWorkItemCompleteEvent(workItemName, assigneeOid, processInstanceName, instanceState, decision);
+        WorkItemEvent event = workflowEventCreator.createWorkItemCompleteEvent(workItemName, assigneeOid, instanceState, decision);
         processEvent(event);
     }
 

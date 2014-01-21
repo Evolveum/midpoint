@@ -24,6 +24,7 @@ import com.evolveum.midpoint.common.crypto.Protector;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluator;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluatorFactory;
+import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
@@ -37,14 +38,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.SearchObjectExpress
  * @author semancik
  *
  */
-public class AssociationExpressionEvaluatorFactory implements ExpressionEvaluatorFactory {
+public class AssignmentTargetSearchExpressionEvaluatorFactory implements ExpressionEvaluatorFactory {
 	
 	private PrismContext prismContext;
 	private Protector protector;
 	private ObjectResolver objectResolver;
 	private ModelService modelService;
 
-	public AssociationExpressionEvaluatorFactory(PrismContext prismContext, Protector protector, ObjectResolver objectResolver, ModelService modelService) {
+	public AssignmentTargetSearchExpressionEvaluatorFactory(PrismContext prismContext, Protector protector, ObjectResolver objectResolver, ModelService modelService) {
 		super();
 		this.prismContext = prismContext;
 		this.protector = protector;
@@ -57,7 +58,7 @@ public class AssociationExpressionEvaluatorFactory implements ExpressionEvaluato
 	 */
 	@Override
 	public QName getElementName() {
-		return new ObjectFactory().createAssociationExpression(new SearchObjectExpressionEvaluatorType()).getName();
+		return new ObjectFactory().createAssignmentTargetSearch(new SearchObjectExpressionEvaluatorType()).getName();
 	}
 
 	/* (non-Javadoc)
@@ -80,11 +81,11 @@ public class AssociationExpressionEvaluatorFactory implements ExpressionEvaluato
         	evaluatorTypeObject = evaluatorElement.getValue();
         }
         if (evaluatorTypeObject != null && !(evaluatorTypeObject instanceof SearchObjectExpressionEvaluatorType)) {
-            throw new SchemaException("Association expression evaluator cannot handle elements of type " + evaluatorTypeObject.getClass().getName()+" in "+contextDescription);
+            throw new SchemaException("assignment expression evlauator cannot handle elements of type " + evaluatorTypeObject.getClass().getName()+" in "+contextDescription);
         }
-        AssociationExpressionEvaluator evaluator = new AssociationExpressionEvaluator((SearchObjectExpressionEvaluatorType)evaluatorTypeObject, 
+        AssignmentTargetSearchExpressionEvaluator expressionEvaluator = new AssignmentTargetSearchExpressionEvaluator((SearchObjectExpressionEvaluatorType)evaluatorTypeObject, 
         		outputDefinition, protector, objectResolver, modelService, prismContext);
-        return (ExpressionEvaluator<V>) evaluator;
+        return (ExpressionEvaluator<V>) expressionEvaluator;
 	}
 
 }

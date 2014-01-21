@@ -295,7 +295,7 @@ public class FocusPolicyProcessor {
 			
 			ItemDelta<? extends PrismValue> itemDelta = LensUtil.consolidateTripleToDelta(itemPath, (DeltaSetTriple)outputTriple,
 					userDefinition.findItemDefinition(itemPath), apropriItemDelta, userOdo.getNewObject(), null, 
-					true, true, "user template "+userTemplate, true);
+					true, true, false, "user template "+userTemplate, true);
 			
 			itemDelta.simplify();
 			itemDelta.validate("user template "+userTemplate);
@@ -356,7 +356,8 @@ public class FocusPolicyProcessor {
 		for (ObjectReferenceType includeRef: objectTemplateType.getIncludeRef()) {
 			PrismObject<ObjectTemplateType> includeObject = includeRef.asReferenceValue().getObject();
 			if (includeObject == null) {
-				ObjectTemplateType includeObjectType = modelObjectResolver.resolve(includeRef, ObjectTemplateType.class, "include reference in "+objectTemplateType + " in " + contextDesc, result);
+				ObjectTemplateType includeObjectType = modelObjectResolver.resolve(includeRef, ObjectTemplateType.class, 
+						null, "include reference in "+objectTemplateType + " in " + contextDesc, result);
 				includeObject = includeObjectType.asPrismObject();
 				// Store resolved object for future use (e.g. next waves).
 				includeRef.asReferenceValue().setObject(includeObject);
@@ -491,7 +492,8 @@ public class FocusPolicyProcessor {
 							if (object != null && object instanceof GenerateExpressionEvaluatorType && ((GenerateExpressionEvaluatorType) object).getValuePolicyRef() != null){
 								ObjectReferenceType ref = ((GenerateExpressionEvaluatorType) object).getValuePolicyRef();
 								try{
-								ValuePolicyType valuePolicyType = mappingFactory.getObjectResolver().resolve(ref, ValuePolicyType.class, "resolving value policy for generate attribute "+ outputDefinition.getName()+"value", new OperationResult("Resolving value policy"));
+								ValuePolicyType valuePolicyType = mappingFactory.getObjectResolver().resolve(ref, ValuePolicyType.class, 
+										null, "resolving value policy for generate attribute "+ outputDefinition.getName()+" value", new OperationResult("Resolving value policy"));
 								if (valuePolicyType != null){
 									return valuePolicyType.getStringPolicy();
 								}

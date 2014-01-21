@@ -941,6 +941,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		params.setDefaultSource(defaultSource);
 		params.setDefaultTargetContext(getTargetContext());
 		params.setRefinedObjectClassDefinition(getRefinedObjectClassDefinition());
+		params.setMappingQName(mappingQName);
 		conditionOutputTriple = expression.evaluate(params);
 	}
 
@@ -961,6 +962,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		params.setExpressionFactory(expressionFactory);
 		params.setDefaultTargetContext(getTargetContext());
 		params.setRefinedObjectClassDefinition(getRefinedObjectClassDefinition());
+		params.setMappingQName(mappingQName);
 		outputTriple = expression.evaluate(params);
 		
 		if (outputTriple == null) {
