@@ -5,7 +5,8 @@
 	<property name="ireport.y" value="0"/>
 	<property name="net.sf.jasperreports.awt.ignore.missing.font" value="true"/>
 	<property name="net.sf.jasperreports.export.pdf.force.linebreak.policy" value="true"/>
-	<style name="Detail" isDefault="false" fontName="DejaVu Sans" fontSize="10" isBold="false" isItalic="false" isUnderline="false" isStrikeThrough="false" pdfFontName="DejaVuSans.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+	<template><![CDATA[$P{BaseTemplateStyles}]]></template>
+	<parameter name="BaseTemplateStyles" class="java.lang.String"/>
 	<parameter name="USER_OID" class="java.lang.String"/>
 	<queryString language="hql">
 		<![CDATA[select r.name.orig as roleName from RAssignment as a, RRole as r where a.targetRef.type = 10 and a.targetRef.targetOid = r.oid and a.owner.oid = $P{USER_OID}]]>

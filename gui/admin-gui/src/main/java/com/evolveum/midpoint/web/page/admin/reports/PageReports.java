@@ -280,7 +280,37 @@ public class PageReports extends PageAdminReports {
         params.put("DATE_TO", dateTo);
         params.put("EVENT_TYPE", auditEventTypeId);
         params.put("EVENT_TYPE_DESC", auditEventTypeName);
-        String theQuery = auditEventTypeId != -1 ? "select aer.timestamp as timestamp, aer.initiatorName as initiator, aer.eventType as eventType, aer.eventStage as eventStage, aer.targetName as targetName, aer.targetType as targetType, aer.targetOwnerName as targetOwnerName, aer.outcome as outcome, aer.message as message from RAuditEventRecord as aer where aer.eventType = $P{EVENT_TYPE} and aer.timestamp >= $P{DATE_FROM} and aer.timestamp <= $P{DATE_TO} order by aer.timestamp" : "select aer.timestamp as timestamp, aer.initiatorName as initiator, aer.eventType as eventType, aer.eventStage as eventStage, aer.targetName as targetName, aer.targetType as targetType, aer.targetOwnerName as targetOwnerName, aer.outcome as outcome, aer.message as message from RAuditEventRecord as aer where aer.timestamp >= $P{DATE_FROM} and aer.timestamp <= $P{DATE_TO} order by aer.timestamp";;
+        //String theQuery = auditEventTypeId != -1 ? "select aer.timestamp as timestamp, aer.initiatorName as initiator, aer.eventType as eventType, aer.eventStage as eventStage, aer.targetName as targetName, aer.targetType as targetType, aer.targetOwnerName as targetOwnerName, aer.outcome as outcome, aer.message as message from RAuditEventRecord as aer where aer.eventType = $P{EVENT_TYPE} and aer.timestamp >= $P{DATE_FROM} and aer.timestamp <= $P{DATE_TO} order by aer.timestamp" : "select aer.timestamp as timestamp, aer.initiatorName as initiator, aer.eventType as eventType, aer.eventStage as eventStage, aer.targetName as targetName, aer.targetType as targetType, aer.targetOwnerName as targetOwnerName, aer.outcome as outcome, aer.message as message from RAuditEventRecord as aer where aer.timestamp >= $P{DATE_FROM} and aer.timestamp <= $P{DATE_TO} order by aer.timestamp";;
+        String theQuery = auditEventTypeId != -1 ? 
+	    		"select aer.timestamp as timestamp, " +
+	        	"aer.initiatorName as initiator, " +
+	        	"aer.eventType as eventType, " +
+	        	"aer.eventStage as eventStage, " +
+	        	"aer.targetName as targetName, " +
+	        	"aer.targetType as targetType, " +
+	        	"aer.targetOwnerName as targetOwnerName, " +
+	        	"aer.outcome as outcome, " +
+	        	"aer.message as message, " +
+	        	"odo.delta as delta " +
+	        	"from RObjectDeltaOperation as odo " +
+	        	"join odo.record as aer " +
+	        	"where aer.eventType = $P{EVENT_TYPE} and aer.timestamp >= $P{DATE_FROM} and aer.timestamp <= $P{DATE_TO} " +
+	        	"order by aer.timestamp" 
+	        	: 
+	        	"select aer.timestamp as timestamp, " +
+	        	"aer.initiatorName as initiator, " +
+	        	"aer.eventType as eventType, " +
+	        	"aer.eventStage as eventStage, " +
+	        	"aer.targetName as targetName, " +
+	        	"aer.targetType as targetType, " +
+	        	"aer.targetOwnerName as targetOwnerName, " +
+	        	"aer.outcome as outcome, " +
+	        	"aer.message as message, " +
+	        	"odo.delta as delta " +
+	        	"from RObjectDeltaOperation as odo " +
+	        	"join odo.record as aer " +
+	        	"where aer.timestamp >= $P{DATE_FROM} and aer.timestamp <= $P{DATE_TO} " +
+	        	"order by aer.timestamp";
         params.put("QUERY_STRING", theQuery);        
         return createReport("/reports/reportAuditLogs.jrxml", params);
     }
@@ -328,7 +358,8 @@ public class PageReports extends PageAdminReports {
     protected byte[] createReport(String jrxmlPath, Map params) {
         ServletContext servletContext = getMidpointApplication().getServletContext();
         params.put("LOGO_PATH", servletContext.getRealPath("/reports/logo.jpg"));
-
+        params.put("BaseTemplateStyles", servletContext.getRealPath("/styles/midpoint_base_styles.jrtx"));
+        
         byte[] generatedReport = new byte[]{};
         Session session = null;
         try {

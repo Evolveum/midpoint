@@ -6,6 +6,8 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRExpression;
 import net.sf.jasperreports.engine.JRStyle;
@@ -32,16 +34,25 @@ import net.sf.jasperreports.engine.type.SplitTypeEnum;
 import net.sf.jasperreports.engine.type.VerticalAlignEnum;
 import net.sf.jasperreports.engine.type.WhenNoDataTypeEnum;
 
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportFieldConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportParameterConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
+import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
+
 
 public class ReportUtils {
 
 	private static String MIDPOINT_HOME = System.getProperty("midpoint.home"); 
     private static String EXPORT_DIR = MIDPOINT_HOME + "export/";
     
-	
+   
+    
 	private static Class getClassType(QName clazz)
     {
     	//TODO
@@ -482,6 +493,21 @@ public class ReportUtils {
         }
     	
     	return output;
+    }
+    
+    public static String getDeltaAudit(String delta)
+    {
+    	String deltaAudit = null;
+    	try
+    	{
+    		PrismContext prismContext = PrismTestUtil.createPrismContext();
+    		ObjectDeltaType xmlDelta = prismContext.getPrismJaxbProcessor().unmarshalObject(delta, ObjectDeltaType.class);
+    		deltaAudit = xmlDelta.getChangeType().toString() + " - " + xmlDelta.getObjectType().getLocalPart().toString();
+    	} catch (Exception ex) {
+    		return ex.getMessage();
+    	}
+    	
+    	return deltaAudit;
     }
     
 }
