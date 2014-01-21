@@ -26,6 +26,8 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
+import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
@@ -37,7 +39,7 @@ public class TestJsonParsing {
 	// private PrismJasonProcessor jsonProcessor;
 
 	
-//	@Test
+	@Test
 	public void test000SerializeUserJson() throws Exception {
 		System.out.println("===[ testParseUserJson ]===");
 //		PrismContext prismContext = PrismInternalTestUtil.constructInitializedPrismContext();
@@ -55,7 +57,7 @@ public class TestJsonParsing {
 		
 		System.out.println("parsed");
 		
-		FileOutputStream fos = new FileOutputStream(new File("D:/file"+userType.asObjectable().getName()+"1.json"));
+		FileOutputStream fos = new FileOutputStream(new File("D:/file"+userType.asObjectable().getName()+"3.json"));
 		try{
 		jsonProcessor.serializeToJson(userType, fos);
 		}catch (Exception ex){
@@ -76,7 +78,7 @@ public class TestJsonParsing {
 		System.out.println("===[ testParseUserJson ]===");
 		PrismJasonProcessor jsonProcessor = new PrismJasonProcessor();
 		PrismContext prismContext = MidPointPrismContextFactory.FACTORY
-				.createEmptyPrismContext();
+				.createInitializedPrismContext();
 		prismContext.initialize();
 		jsonProcessor.setPrismContext(prismContext);
 		jsonProcessor.setSchemaRegistry(prismContext.getSchemaRegistry());
@@ -89,7 +91,7 @@ public class TestJsonParsing {
 //				UserType.class);
 //		
 		try{
-		PrismObject<UserType> userType = jsonProcessor.parseObject(new FileInputStream(new File("D:/filejack1.json")),
+		PrismObject<UserType> userType = jsonProcessor.parseObject(new FileInputStream(new File("D:/filejack3.json")),
 				UserType.class);
 		
 		System.out.println("parsed");
@@ -97,6 +99,12 @@ public class TestJsonParsing {
 //		PrismObject<UserType> user = userType.asPrismObject();
 		System.out.println("object");
 		System.out.println(userType.dump());
+	
+		
+		System.out.println("DOM: " + prismContext.getPrismDomProcessor().serializeObjectToString(userType));
+		System.out.println("JAXB:" + SchemaDebugUtil.dumpJaxbObject(userType.asObjectable(), "user", prismContext));
+		
+		
 		assertUserPrism(userType);
 		} catch (Exception ex){
 			System.out.println("exception " + ex);
@@ -122,9 +130,15 @@ public class TestJsonParsing {
 //				UserType.class);
 		
 PrismObject<ResourceType> resourceType = prismContext.parseObject(new File("src/test/resources/common/resource-opendj.xml"));
+
+System.out.println("=====================objectTYPE");
+//resourceType.asObjectable().getSchemaHandling().getObjectType();
+System.out.println(SchemaDebugUtil.dumpJaxbObject(resourceType.asObjectable(), "resource", prismContext));
+System.out.println(prismContext.getPrismDomProcessor().serializeObjectToString(resourceType));
 		
 		System.out.println("parsed");
-		resourceFileName = "D:/file"+resourceType.asObjectable().getName()+".json";
+		System.out.println(resourceType.dump());
+		resourceFileName = "D:/file"+resourceType.asObjectable().getName()+"3.json";
 		FileOutputStream fos = new FileOutputStream(new File(resourceFileName));
 		
 		jsonProcessor.serializeToJson(resourceType, fos);
@@ -146,7 +160,7 @@ PrismObject<ResourceType> resourceType = prismContext.parseObject(new File("src/
 		System.out.println("===[ testParseUserJson ]===");
 		PrismJasonProcessor jsonProcessor = new PrismJasonProcessor();
 		PrismContext prismContext = MidPointPrismContextFactory.FACTORY
-				.createEmptyPrismContext();
+				.createInitializedPrismContext();
 		prismContext.initialize();
 		jsonProcessor.setPrismContext(prismContext);
 		jsonProcessor.setSchemaRegistry(prismContext.getSchemaRegistry());
@@ -158,7 +172,8 @@ PrismObject<ResourceType> resourceType = prismContext.parseObject(new File("src/
 //		PrismObject<UserType> userType = jsonProcessor.parseObject(new File("D:/filejack.json"),
 //				UserType.class);
 //		
-		PrismObject<ResourceType> resourceType = jsonProcessor.parseObject(new FileInputStream(new File(resourceFileName)),
+		try{
+		PrismObject<ResourceType> resourceType = jsonProcessor.parseObject(new FileInputStream(new File("D:/fileEmbedded Test OpenDJ3.json")),
 				ResourceType.class);
 		
 		System.out.println("parsed");
@@ -166,6 +181,17 @@ PrismObject<ResourceType> resourceType = prismContext.parseObject(new File("src/
 //		PrismObject<UserType> user = userType.asPrismObject();
 		System.out.println("object");
 		System.out.println(resourceType.dump());
+		
+		
+		System.out.println("=====================objectTYPE");
+//		resourceType.asObjectable().getSchemaHandling().getObjectType();
+		System.out.println(SchemaDebugUtil.dumpJaxbObject(resourceType.asObjectable(), "resource", prismContext));
+		System.out.println(prismContext.getPrismDomProcessor().serializeObjectToString(resourceType));
+		} catch (Exception ex){
+			System.out.println("exception " + ex);
+			throw ex;
+		}
+		
 //		assertUserPrism(resourceType);
 	}
 	

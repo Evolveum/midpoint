@@ -221,7 +221,7 @@ public class PrismJaxbProcessor {
 	/**
 	 * Allow for pooling and other fancy stuff. Now it dumb, creates in every call.
 	 */
-	private Unmarshaller getUnmarshaller() throws JAXBException {
+	public Unmarshaller getUnmarshaller() throws JAXBException {
 		return createUnmarshaller();
 	}
 
