@@ -2588,6 +2588,8 @@
 
             <xsd:element name="activation" type="tns:ActivationType" minOccurs="0"/>
 
+			<xsd:element name="order" type="xsd:int" minOccurs="0"/>
+
         </xsd:sequence>
         <xsd:attribute name="id" type="xsd:long" use="optional"/>
     </xsd:complexType>
