@@ -40,10 +40,11 @@ public class SessionStorage implements Serializable {
      */
     private ConfigurationStorage configuration;
     /**
-     * Store session information for "users" pages
+     * Store sessions information for "users" and other pages
      */
     private UsersStorage users;
     private ReportsStorage reports;
+    private ResourcesStorage resources;
 
     public Class<? extends WebPage> getPreviousPage() {
         return previousPage;
@@ -80,5 +81,12 @@ public class SessionStorage implements Serializable {
             reports = new ReportsStorage();
         }
         return reports;
+    }
+
+    public ResourcesStorage getResources(){
+        if(resources == null){
+            resources = new ResourcesStorage();
+        }
+        return resources;
     }
 }
