@@ -8854,9 +8854,9 @@
         <xsd:complexContent>
             <xsd:extension base="c:ObjectType">
                 <xsd:sequence>
-                   	<xsd:element name="reportTemplate" type="tns:ReportTemplateType"/>
+                   	<xsd:element name="reportTemplate" type="tns:ReportTemplateType" minOccurs="0"/>
                     
-                	<xsd:element name="reportTemplateStyle" type="tns:ReportTemplateStyleType"/>
+                	<xsd:element name="reportTemplateStyle" type="tns:ReportTemplateStyleType" minOccurs="0"/>
                     
                     <xsd:element name="reportOrientation" type="tns:OrientationType" minOccurs="0" maxOccurs="1">
     				<xsd:annotation>
