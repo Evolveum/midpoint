@@ -19,6 +19,11 @@ package com.evolveum.midpoint.web.page.admin.resources;
 import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
+import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -33,6 +38,7 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.data.BaseSortableDataProvider;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
@@ -45,6 +51,7 @@ import com.evolveum.midpoint.web.page.admin.resources.component.ContentPanel;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageContentAccounts;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageContentEntitlements;
 import com.evolveum.midpoint.web.page.admin.resources.dto.*;
+import com.evolveum.midpoint.web.session.ResourcesStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorHostType;
@@ -55,12 +62,16 @@ import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
+import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.form.TextField;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
+import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.request.resource.ResourceReference;
@@ -85,17 +96,26 @@ public class PageResources extends PageAdminResources {
     private static final String OPERATION_DELETE_HOSTS = DOT_CLASS + "deleteHosts";
     private static final String OPERATION_CONNECTOR_DISCOVERY = DOT_CLASS + "connectorDiscovery";
 
+    private static final String ID_SEARCH_FORM = "searchForm";
+    private static final String ID_SEARCH_BUTTON = "searchButton";
+    private static final String ID_SEARCH_TEXT = "searchText";
     private static final String ID_DELETE_RESOURCES_POPUP = "deleteResourcesPopup";
     private static final String ID_DELETE_HOSTS_POPUP = "deleteHostsPopup";
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_TABLE = "table";
     private static final String ID_CONNECTOR_TABLE = "connectorTable";
 
+    private IModel<ResourceSearchDto> searchModel;
+
     public PageResources() {
         initLayout();
     }
 
     private void initLayout() {
+        Form searchForm = new Form(ID_SEARCH_FORM);
+        add(searchForm);
+        initSearchForm(searchForm);
+
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
@@ -132,6 +152,26 @@ public class PageResources extends PageAdminResources {
                 deleteHostConfirmedPerformed(target);
             }
         });
+    }
+
+    private void initSearchForm(Form searchForm){
+        TextField search = new TextField(ID_SEARCH_TEXT, new PropertyModel(searchModel, ResourceSearchDto.F_TEXT));
+        searchForm.add(search);
+
+        AjaxSubmitButton searchButton = new AjaxSubmitButton(ID_SEARCH_BUTTON,
+                new StringResourceModel("pageResources.button.search", this, null)) {
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form){
+                target.add(getFeedbackPanel());
+            }
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form){
+                searchPerformed(target);
+            }
+        };
+        searchForm.add(searchButton);
     }
 
     private BaseSortableDataProvider initResourceDataProvider() {
@@ -516,5 +556,47 @@ public class PageResources extends PageAdminResources {
             showResult(result);
             target.add(getFeedbackPanel());
         }
+    }
+
+    private  ObjectQuery createQuery(){
+        ResourceSearchDto dto = searchModel.getObject();
+        ObjectQuery query = null;
+        String searchText = dto.getText();
+
+        if(StringUtils.isEmpty(dto.getText())){
+            return null;
+        }
+
+        try{
+            PolyStringNormalizer normalizer = getPrismContext().getDefaultPolyStringNormalizer();
+            String normalizedString = normalizer.normalize(searchText);
+
+            ObjectFilter substring = SubstringFilter.createSubstring(ResourceType.F_NAME, ResourceType.class,
+                    getPrismContext(), PolyStringNormMatchingRule.NAME, normalizedString);
+            query = new ObjectQuery();
+            query.setFilter(substring);
+
+        } catch(Exception e){
+            error(getString("pageResources.message.queryError") + " " + e.getMessage());
+            LoggingUtils.logException(LOGGER, "Couldn't create query filter.", e);
+        }
+
+        return query;
+    }
+
+    private void searchPerformed(AjaxRequestTarget target){
+        ObjectQuery query = createQuery();
+        target.add(getFeedbackPanel());
+
+        TablePanel panel = getResourceTable();
+        DataTable table = panel.getDataTable();
+        ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
+        provider.setQuery(query);
+
+        ResourcesStorage storage = getSessionStorage().getResources();
+        storage.setResourceSearch(searchModel.getObject());
+        panel.setCurrentPage(storage.getResourcePaging());
+
+        target.add(panel);
     }
 }
