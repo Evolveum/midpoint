@@ -16,11 +16,13 @@
 
 package com.evolveum.midpoint.report;
 
+import static com.evolveum.midpoint.schema.util.MiscSchemaUtil.getDefaultImportOptions;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -159,6 +161,13 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 			+ "test011CleanupReports";
 	private static final String AUDIT_REPORT = CLASS_NAME_WITH_DOT
 			+ "test012AudtReportWithDeltas";
+	private static final String CREATE_RECONCILIATION_REPORT_FROM_FILE = CLASS_NAME_WITH_DOT
+			+ "test013CreateReconiciliationReportFromFile";
+	private static final String CREATE_AUDITLOGS_REPORT_FROM_FILE = CLASS_NAME_WITH_DOT
+			+ "test014CreateAuditLogsReportFromFile";
+	private static final String CREATE_USERLIST_REPORT_FROM_FILE = CLASS_NAME_WITH_DOT
+			+ "test015CreateUserListReportFromFile";
+	
 	private static final Trace LOGGER = TraceManager
 			.getTrace(BasicReportTest.class);
 
@@ -180,11 +189,18 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	private static final File REPORT_DATASOURCE_TEST = new File(REPORTS_DIR + "/reportDataSourceTest.jrxml");
 	private static final File STYLE_TEMPLATE_DEFAULT = new File(STYLES_DIR	+ "/midpoint_base_styles.jrtx");
 	private static final File REPORT_AUDIT_TEST = new File(REPORTS_DIR + "/reportAuditLogs.jrxml");
+	private static final File RECONICILIATION_REPORT_FILE = new File(REPORTS_DIR + "/reportReconiciliation.xml");
+	private static final File AUDITLOGS_REPORT_FILE = new File(REPORTS_DIR + "/reportAuditLogs.xml");
+	private static final File USERLIST_REPORT_FILE = new File(REPORTS_DIR + "/reportUserList.xml");
+	private static final File USERROLES_REPORT_FILE = new File(REPORTS_DIR + "/reportUserRoles.xml");
+	private static final File USERACCOUNTS_REPORT_FILE = new File(REPORTS_DIR + "/reportUserAccounts.xml");
+	private static final File USERORGS_REPORT_FILE = new File(REPORTS_DIR + "/reportUserOrgs.xml");
 	
 	private static final String REPORT_OID_001 = "00000000-3333-3333-0000-100000000001";
 	private static final String REPORT_OID_002 = "00000000-3333-3333-0000-100000000002";
 	private static final String REPORT_OID_TEST = "00000000-3333-3333-TEST-10000000000";
 	private static final String TASK_REPORT_OID = "00000000-3333-3333-TASK-10000000000";
+	private static final String AUDITLOGS_REPORT_OID = "AUDITLOG-3333-3333-TEST-10000000000";
 	
 	@Autowired
 	private PrismContext prismContext;
@@ -532,10 +548,9 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		reportType = getReport(REPORT_OID_001).asObjectable();
 
 		// export xml structure of report type
-		/*String xmlReportType = prismContext.getPrismDomProcessor()
-				.serializeObjectToString(reportType.asPrismObject());
-		LOGGER.warn(xmlReportType);
-*/
+		//String xmlReportType = prismContext.getPrismDomProcessor().serializeObjectToString(reportType.asPrismObject());
+		//LOGGER.warn(xmlReportType);
+
 		// check reportType
 		AssertJUnit.assertNotNull(reportType);
 		AssertJUnit.assertEquals("Test report - Datasource1", reportType
@@ -543,22 +558,22 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		AssertJUnit.assertEquals("TEST Report with DataSource parameter.",
 				reportType.getDescription());
 		
-		/*
-		LOGGER.warn("reportTemplate orig ::::::::: " + DOMUtil.serializeDOMToString((Node)reportTemplate.getAny()));
-		LOGGER.warn("reportTemplate DB ::::::::: " + DOMUtil.serializeDOMToString((Node)reportType.getReportTemplate().getAny()));
 		
-		LOGGER.warn("reportTemplateStyle orig ::::::::: " + DOMUtil.serializeDOMToString((Node)reportTemplateStyle.getAny()));
-		LOGGER.warn("reportTemplateStyle DB ::::::::: " + DOMUtil.serializeDOMToString((Node)reportType.getReportTemplateStyle().getAny()));
+		//LOGGER.warn("reportTemplate orig ::::::::: " + DOMUtil.serializeDOMToString((Node)reportTemplate.getAny()));
+		//LOGGER.warn("reportTemplate DB ::::::::: " + DOMUtil.serializeDOMToString((Node)reportType.getReportTemplate().getAny()));
+		
+		//LOGGER.warn("reportTemplateStyle orig ::::::::: " + DOMUtil.serializeDOMToString((Node)reportTemplateStyle.getAny()));
+		//LOGGER.warn("reportTemplateStyle DB ::::::::: " + DOMUtil.serializeDOMToString((Node)reportType.getReportTemplateStyle().getAny()));
 		
 		
-		String reportTemplateRepoString = DOMUtil.serializeDOMToString((Node)reportType.getReportTemplate().getAny());
-   	 	InputStream inputStreamJRXML = new ByteArrayInputStream(reportTemplateRepoString.getBytes());
-   	 	JasperDesign jasperDesignRepo = JRXmlLoader.load(inputStreamJRXML);
+		//String reportTemplateRepoString = DOMUtil.serializeDOMToString((Node)reportType.getReportTemplate().getAny());
+   	 	//InputStream inputStreamJRXML = new ByteArrayInputStream(reportTemplateRepoString.getBytes());
+   	 	//JasperDesign jasperDesignRepo = JRXmlLoader.load(inputStreamJRXML);
    	 	
-   	 	String reportTemplateString = DOMUtil.serializeDOMToString((Node)reportTemplate.getAny());
-	 	inputStreamJRXML = new ByteArrayInputStream(reportTemplateString.getBytes());
-	 	JasperDesign jasperDesign = JRXmlLoader.load(inputStreamJRXML);
-	 	*/
+   	 	//String reportTemplateString = DOMUtil.serializeDOMToString((Node)reportTemplate.getAny());
+	 	//inputStreamJRXML = new ByteArrayInputStream(reportTemplateString.getBytes());
+	 	//JasperDesign jasperDesign = JRXmlLoader.load(inputStreamJRXML);
+	 	
 	 	//AssertJUnit.assertEquals(jasperDesign, jasperDesignRepo);
 		//AssertJUnit.assertEquals(reportTemplateStyle.getAny(), reportType.getReportTemplateStyle().getAny());
 		AssertJUnit.assertEquals(OrientationType.LANDSCAPE,
@@ -613,35 +628,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 					parameterRepo.getClassTypeParameter());
 		}
 	}
-	/*
-	private   <P extends Object> void validateObject(String xmlObject, final Holder<P> objectHolder,
-            boolean validateSchema, OperationResult result) {
-	EventHandler handler = new EventHandler() {
 
-		@Override
-		public EventResult preMarshall(Element objectElement, Node postValidationTree, OperationResult objectResult) {
-			return EventResult.cont();
-		}
-
-		@Override
-		public <T extends Objectable> EventResult postMarshall(PrismObject<T> object, Element objectElement,
-                                             OperationResult objectResult) {
-			objectHolder.setValue((P) object);
-			return EventResult.cont();
-		}
-
-		@Override
-		public void handleGlobalError(OperationResult currentResult) {
-		}	
-	};
-	Validator validator = new Validator(prismContext, handler);
-	validator.setVerbose(true);
-	validator.setValidateSchema(validateSchema);
-	validator.validateObject(xmlObject, result);
-
-	result.computeStatus();
-	}
-	*/
 	@Test 
 	public void test002CreateReportFromFile() throws Exception {
 		
@@ -650,10 +637,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	
 		Task task = taskManager.createTaskInstance(CREATE_REPORT_FROM_FILE);
 		OperationResult result = task.getResult();
-		/*
-		Holder<PrismObject<ReportType>> objectHolder = new Holder<PrismObject<ReportType>>(null);
-	    validateObject(FileUtils.readFileToString(TEST_REPORT_FILE, "UTF-8"), objectHolder, true, result);
-		*/
+
 		PrismObject<? extends Objectable> reportType =  prismContext.getPrismDomProcessor().parseObject(TEST_REPORT_FILE);
 
 		ObjectDelta<ReportType> objectDelta = 
@@ -671,9 +655,8 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
         display(result);
         TestUtil.assertSuccess(result);
 		AssertJUnit.assertEquals(REPORT_OID_TEST, objectDelta.getOid());
-		
-		
 	}
+
 	@Test
 	public void test003CopyReportWithoutDesign() throws Exception {
 		final String TEST_NAME = "test003CopyReportWithoutDesign";
@@ -705,7 +688,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		TestUtil.assertSuccess(result);
 		AssertJUnit.assertEquals(REPORT_OID_002, objectDelta.getOid());
 	}
-	
+	/*
 	@Test
 	public void test004RunReport() throws Exception {
 		final String TEST_NAME = "test004RunReport";
@@ -813,12 +796,12 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
         assertEquals("Unexpected number of users", 11, count-5);
 	}
 	
-	/*
-	 * import report from xml file without design
-	 * import task from xml file
-	 * run task
-	 * parse output file
-	 */
+	
+	 //import report from xml file without design
+	 //import task from xml file
+	 //run task
+	 //parse output file
+	 
 	
 	@Test
 	public void test006RunTask() throws Exception {
@@ -961,6 +944,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 			TestUtil.assertSuccess(result);		
 			assertEquals("Unexpected number of searching reports", 4, listReportType.size());
 		}
+		
 
 		@Test
 		public void test009ModifyReport() throws Exception {
@@ -1111,6 +1095,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	        AssertJUnit.assertEquals(2, reportOutputs.size());
 
 	    }
+		
 		@Test
 		public void test012AuditReportWithDeltas() throws Exception {
 			
@@ -1185,9 +1170,112 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	        String output =  EXPORT_DIR + "AuditReport.pdf";
 	        JasperExportManager.exportReportToPdfFile(jasperPrint, output);
 	        
+	      // waitForTaskFinish(task.getOid(), false);
 	        
-
 	       session.getTransaction().commit();
 	       session.close();			
+		}*/
+		/*
+		@Test 
+		public void test013CreateReconciliationReportFromFile() throws Exception {
+			
+			final String TEST_NAME = "test013CreateReconciliationReportFromFile";
+	        TestUtil.displayTestTile(this, TEST_NAME);
+		
+	        // GIVEN
+			Task task = taskManager.createTaskInstance(CREATE_RECONCILIATION_REPORT_FROM_FILE);
+			OperationResult result = task.getResult();
+			FileInputStream stream = new FileInputStream(RECONICILIATION_REPORT_FILE);
+			
+			//WHEN 	
+			TestUtil.displayWhen(TEST_NAME);
+			modelService.importObjectsFromStream(stream, getDefaultImportOptions(), task, result);
+
+			// THEN
+			result.computeStatus();
+			display("Result after good import", result);
+			TestUtil.assertSuccess("Import has failed (result)", result);	
+			
 		}
+		*/
+		@Test 
+		public void test014CreateAuditLogsReportFromFile() throws Exception {
+			
+			final String TEST_NAME = "test014CreateAuditLogsReportFromFile";
+	        TestUtil.displayTestTile(this, TEST_NAME);
+		
+	        // GIVEN
+	        Task task = createTask(CREATE_AUDITLOGS_REPORT_FROM_FILE);
+			OperationResult result = task.getResult();
+			
+			//WHEN 	
+			TestUtil.displayWhen(TEST_NAME);
+			importObjectFromFile(AUDITLOGS_REPORT_FILE);
+
+			// THEN
+			result.computeStatus();
+			display("Result after good import", result);
+			TestUtil.assertSuccess("Import has failed (result)", result);
+			
+			ReportType reportType = getReport(AUDITLOGS_REPORT_OID).asObjectable();
+			
+			//WHEN 	
+			TestUtil.displayWhen(TEST_NAME);
+			reportManager.runReport(reportType.asPrismObject(), task, result);
+			
+			// THEN
+	        TestUtil.displayThen(TEST_NAME);
+	        
+	        waitForTaskFinish(task.getOid(), false);
+	        
+	     // Task result
+	        PrismObject<TaskType> reportTaskAfter = getTask(task.getOid());
+	        OperationResultType reportTaskResult = reportTaskAfter.asObjectable().getResult();
+	        display("Report task result", reportTaskResult);
+	        TestUtil.assertSuccess(reportTaskResult);
+			
+		}		
+
+		/*
+		@Test 
+		public void test015CreateUserListReportFromFile() throws Exception {
+			
+			final String TEST_NAME = "test015CreateUserListReportFromFile";
+	        TestUtil.displayTestTile(this, TEST_NAME);
+		
+	        // GIVEN
+			Task task = taskManager.createTaskInstance(CREATE_USERLIST_REPORT_FROM_FILE);
+			OperationResult result = task.getResult();
+			/*
+			// GIVEN
+			OperationResult subResult = result.createSubresult("Create ");
+						
+						
+						FileInputStream stream = new FileInputStream(USERLIST_REPORT_FILE);
+						
+						//WHEN 	
+						TestUtil.displayWhen(TEST_NAME);
+						modelService.importObjectsFromStream(stream, getDefaultImportOptions(), task, result);
+
+						// THEN
+						result.computeStatus();
+						display("Result after good import", result);
+						TestUtil.assertSuccess("Import has failed (result)", result);	
+						
+			
+			*/
+		/*
+			FileInputStream stream = new FileInputStream(USERLIST_REPORT_FILE);
+			
+			//WHEN 	
+			TestUtil.displayWhen(TEST_NAME);
+			modelService.importObjectsFromStream(stream, getDefaultImportOptions(), task, result);
+
+			// THEN
+			result.computeStatus();
+			display("Result after good import", result);
+			TestUtil.assertSuccess("Import has failed (result)", result);	
+			
+		}		*/
+
 }
