@@ -87,7 +87,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Dumpabl
 	private AssignmentPath assignmentPath;
 	private ConstructionType constructionType;
 	private ObjectType source;
-	private ObjectType varThisObject;
+	private ObjectType orderOneObject;
 	private OriginType originType;
 	private String channel;
 	private LensContext<F> lensContext;
@@ -158,12 +158,12 @@ public class Construction<F extends FocusType> implements DebugDumpable, Dumpabl
 		this.objectResolver = objectResolver;
 	}
 
-	public ObjectType getVarThisObject() {
-		return varThisObject;
+	public ObjectType getOrderOneObject() {
+		return orderOneObject;
 	}
 
-	public void setVarThisObject(ObjectType varThisObject) {
-		this.varThisObject = varThisObject;
+	public void setOrderOneObject(ObjectType orderOneObject) {
+		this.orderOneObject = orderOneObject;
 	}
 
 	PrismContext getPrismContext() {
@@ -502,7 +502,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Dumpabl
 		mapping.setRefinedObjectClassDefinition(refinedObjectClassDefinition);
 		
 		mapping.addVariableDefinition(ExpressionConstants.VAR_CONTAINING_OBJECT, source);
-		mapping.addVariableDefinition(ExpressionConstants.VAR_THIS_OBJECT, varThisObject);
+		mapping.addVariableDefinition(ExpressionConstants.VAR_ORDER_ONE_OBJECT, orderOneObject);
 		if (assocTargetObjectClassDefinition != null) {
 			mapping.addVariableDefinition(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION, assocTargetObjectClassDefinition);
 		}
