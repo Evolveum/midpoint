@@ -28,6 +28,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.channels.FileChannel;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -66,6 +68,7 @@ import org.opends.server.util.ModifyChangeRecordEntry;
 import org.opends.server.util.ModifyDNChangeRecordEntry;
 import org.testng.AssertJUnit;
 
+import com.evolveum.midpoint.test.util.MidPointAsserts;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -457,17 +460,42 @@ public class OpenDJController extends AbstractResourceController {
 		return entry;
 	}
 	
-	public SearchResultEntry searchByUid(String string) throws DirectoryException {
+	public SearchResultEntry searchSingle(String filter) throws DirectoryException {
 		InternalSearchOperation op = getInternalConnection().processSearch(
-				"dc=example,dc=com", SearchScope.WHOLE_SUBTREE, DereferencePolicy.NEVER_DEREF_ALIASES, 100,
-				100, false, "(uid=" + string + ")", getSearchAttributes());
+				getSuffix(), SearchScope.WHOLE_SUBTREE, DereferencePolicy.NEVER_DEREF_ALIASES, 100,
+				100, false, filter, getSearchAttributes());
 
 		if (op.getEntriesSent() == 0) {
 			return null;
 		} else if (op.getEntriesSent() > 1) {
-			AssertJUnit.fail("Found too many entries ("+op.getEntriesSent()+") for uid "+string);
+			AssertJUnit.fail("Found too many entries ("+op.getEntriesSent()+") for filter "+filter);
 		}
 		return op.getSearchEntries().get(0);
+	}
+	
+	public SearchResultEntry searchByUid(String string) throws DirectoryException {
+		return searchSingle("(uid=" + string + ")");
+	}
+	
+	public SearchResultEntry fetchEntry(String dn) throws DirectoryException {
+		InternalSearchOperation op = getInternalConnection().processSearch(
+				dn, SearchScope.BASE_OBJECT, DereferencePolicy.NEVER_DEREF_ALIASES, 100,
+				100, false, "(objectclass=*)", getSearchAttributes());
+
+		if (op.getEntriesSent() == 0) {
+			return null;
+		} else if (op.getEntriesSent() > 1) {
+			AssertJUnit.fail("Found too many entries ("+op.getEntriesSent()+") for dn "+dn);
+		}
+		return op.getSearchEntries().get(0);
+	}
+	
+	public SearchResultEntry fetchAndAssertEntry(String dn, String objectClass) throws DirectoryException {
+		SearchResultEntry entry = fetchEntry(dn);
+		AssertJUnit.assertNotNull("No entry for DN "+dn, entry);
+		assertDn(entry, dn);
+		assertObjectClass(entry, objectClass);
+		return entry;
 	}
 
 	private LinkedHashSet<String> getSearchAttributes() {
@@ -490,10 +518,32 @@ public class OpenDJController extends AbstractResourceController {
 		if (attrs == null || attrs.size() == 0) {
 			return null;
 		}
-		assertEquals("Too many values for attribute "+name+": ",
+		assertEquals("Too many attributes for name "+name+": ",
 				1, attrs.size());
-		Attribute attribute = response.getAttribute(name.toLowerCase()).get(0);
+		Attribute attribute = attrs.get(0);
 		return attribute.iterator().next().getValue().toString();
+	}
+	
+	public static Collection<String> getAttributeValues(SearchResultEntry response, String name) {
+		List<Attribute> attrs = response.getAttribute(name.toLowerCase());
+		if (attrs == null || attrs.size() == 0) {
+			return null;
+		}
+		assertEquals("Too many attributes for name "+name+": ",
+				1, attrs.size());
+		Attribute attribute = attrs.get(0);
+		Collection<String> values = new ArrayList<String>(attribute.size());
+		Iterator<AttributeValue> iterator = attribute.iterator();
+		while (iterator.hasNext()) {
+			AttributeValue attributeValue = iterator.next();
+			values.add(attributeValue.getValue().toString());
+		}
+		return values;
+	}
+
+	public static String getDn(SearchResultEntry response) {
+		DN dn = response.getDN();
+		return dn.toString();
 	}
 	
 	public static void assertDn(SearchResultEntry response, String expected) throws DirectoryException {
@@ -501,6 +551,18 @@ public class OpenDJController extends AbstractResourceController {
 		if (actualDn.compareTo(DN.decode(expected)) != 0) {
 			AssertJUnit.fail("Wrong DN, expected "+expected+" but was "+actualDn.toString());
 		}
+	}
+	
+	public static void assertObjectClass(SearchResultEntry response, String expected) throws DirectoryException {
+		Collection<String> objectClassValues = getAttributeValues(response, "objectClass");
+		AssertJUnit.assertTrue("Wrong objectclass for entry "+getDn(response)+", expected "+expected+" but got "+objectClassValues,
+				objectClassValues.contains(expected));
+	}
+
+	public void assertUniqueMember(SearchResultEntry groupEntry, String accountDn) {
+		Collection<String> members = getAttributeValues(groupEntry, "uniqueMember");
+		MidPointAsserts.assertContainsCaseIgnore("No member "+accountDn+" in group "+getDn(groupEntry),
+				members, accountDn);
 	}
 
 	public static void assertAttribute(SearchResultEntry response, String name, String... values) {

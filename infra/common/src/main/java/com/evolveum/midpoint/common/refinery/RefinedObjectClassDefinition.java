@@ -758,5 +758,13 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
     protected String getDebugDumpClassName() {
         return "rOCD";
     }
+
+	public String getHumanReadableName() {
+		if (getDisplayName() != null) {
+			return getDisplayName();
+		} else {
+			return getKind()+":"+getIntent();
+		}
+	}
     
 }

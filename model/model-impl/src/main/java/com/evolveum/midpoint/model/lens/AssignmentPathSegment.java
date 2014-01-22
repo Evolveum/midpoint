@@ -28,6 +28,9 @@ public class AssignmentPathSegment {
 	private Assignment evaluatedAssignment;
 	private ObjectType target;
 	private ObjectType source;
+	private boolean evaluateConstructions = true;
+	private int evaluationOrder;
+	private ObjectType varThisObject;
 	
 	AssignmentPathSegment(AssignmentType assignmentType, ObjectType target) {
 		super();
@@ -65,6 +68,29 @@ public class AssignmentPathSegment {
 
 	public void setSource(ObjectType source) {
 		this.source = source;
+	}
+
+	public boolean isEvaluateConstructions() {
+		return evaluateConstructions;
+	}
+
+	public void setEvaluateConstructions(boolean evaluateConstructions) {
+		this.evaluateConstructions = evaluateConstructions;
+	}
+	public int getEvaluationOrder() {
+		return evaluationOrder;
+	}
+
+	public void setEvaluationOrder(int evaluationOrder) {
+		this.evaluationOrder = evaluationOrder;
+	}
+
+	public ObjectType getVarThisObject() {
+		return varThisObject;
+	}
+
+	public void setVarThisObject(ObjectType varThisObject) {
+		this.varThisObject = varThisObject;
 	}
 
 	@Override
@@ -112,7 +138,20 @@ public class AssignmentPathSegment {
 
 	@Override
 	public String toString() {
-		return "AssignmentPathSegment(" + assignmentType + " -> " + target + ")";
+		StringBuilder sb = new StringBuilder("AssignmentPathSegment(");
+		sb.append(evaluationOrder).append(":");
+		if (evaluateConstructions) {
+			sb.append("C:");
+		};
+		sb.append(" ");
+		sb.append(source).append(" ");
+		if (assignmentType.getConstruction() != null) {
+			sb.append("Constr '"+assignmentType.getConstruction().getDescription()+"' ");
+		}
+		if (target != null) {
+			sb.append("-> ").append(target);
+		}
+		sb.append(")");
+		return sb.toString();
 	}
-	
 }

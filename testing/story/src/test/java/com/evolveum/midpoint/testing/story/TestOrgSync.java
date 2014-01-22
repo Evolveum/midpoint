@@ -32,8 +32,10 @@ import com.evolveum.midpoint.notifications.api.transports.Message;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.opends.server.types.DirectoryException;
 import org.opends.server.types.Entry;
 import org.opends.server.types.LDIFImportConfig;
+import org.opends.server.types.SearchResultEntry;
 import org.opends.server.util.LDIFException;
 import org.opends.server.util.LDIFReader;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -147,6 +149,7 @@ public class TestOrgSync extends AbstractStoryTest {
 	protected static final File RESOURCE_OPENDJ_FILE = new File(TEST_DIR, "resource-opendj.xml");
 	protected static final String RESOURCE_OPENDJ_OID = "10000000-0000-0000-0000-000000000003";
 	protected static final String RESOURCE_OPENDJ_NAMESPACE = MidPointConstants.NS_RI;
+	protected static final QName OPENDJ_ASSOCIATION_GROUP_NAME = new QName(RESOURCE_OPENDJ_NAMESPACE, "group"); 
 	
 	private static final String DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME = "firstname";
 	private static final String DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME = "lastname";
@@ -571,7 +574,7 @@ public class TestOrgSync extends AbstractStoryTest {
 				firstName, lastName);
 	}
 
-	private PrismObject<OrgType> getAndAssertReplicatedOrg(String orgName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+	private PrismObject<OrgType> getAndAssertReplicatedOrg(String orgName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException {
 		PrismObject<OrgType> org = getOrg(orgName);
 		PrismAsserts.assertPropertyValue(org, OrgType.F_ORG_TYPE, "replicated");
 		assertAssignedRole(org, ROLE_META_REPLICATED_ORG_OID);
@@ -580,7 +583,12 @@ public class TestOrgSync extends AbstractStoryTest {
 		PrismObject<ShadowType> shadow = getShadowModel(linkRef.getOid());
 		display("Org "+orgName+" shadow", shadow);
 		// TODO assert shadow content
-		
+
+		SearchResultEntry ouEntry = openDJController.searchSingle("ou="+orgName);
+		assertNotNull("No ou LDAP entry for "+orgName);
+		display("OU entry", ouEntry);
+		openDJController.assertObjectClass(ouEntry, "organizationalUnit");
+
 		return org;
 	}
 	
@@ -600,7 +608,7 @@ public class TestOrgSync extends AbstractStoryTest {
 		// TODO assert shadow content
 	}
 	
-	private String assertResponsibility(PrismObject<UserType> user, String respName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+	private String assertResponsibility(PrismObject<UserType> user, String respName) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException, DirectoryException {
 		String respRoleName = "R_"+respName;
 		PrismObject<RoleType> respRole = searchObjectByName(RoleType.class, respRoleName);
 		assertNotNull("No role for responsibility "+respName);
@@ -612,7 +620,16 @@ public class TestOrgSync extends AbstractStoryTest {
 		display("Role "+respRoleName+" shadow", shadow);
 		// TODO assert shadow content
 		
-		// TODO: assert membership in group
+		String groupDn = "cn="+respRoleName+",ou=groups,"+openDJController.getSuffix();
+		SearchResultEntry groupEntry = openDJController.fetchAndAssertEntry(groupDn, "groupOfUniqueNames");
+		display("Group entry", groupEntry);
+		
+		PrismReferenceValue accountLinkRef = getLinkRef(user, RESOURCE_OPENDJ_OID);
+		PrismObject<ShadowType> accountShadow = getShadowModel(accountLinkRef.getOid());
+		String accountDn = IntegrationTestTools.getIcfsNameAttribute(accountShadow);
+		openDJController.assertUniqueMember(groupEntry, accountDn);
+		
+		IntegrationTestTools.assertAssociation(accountShadow, OPENDJ_ASSOCIATION_GROUP_NAME, shadow.getOid());
 		
 		return respRole.getOid();
 	}

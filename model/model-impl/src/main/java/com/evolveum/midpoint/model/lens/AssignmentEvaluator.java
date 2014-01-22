@@ -155,8 +155,14 @@ public class AssignmentEvaluator<F extends FocusType> {
 		AssignmentPath assignmentPath = new AssignmentPath();
 		AssignmentPathSegment assignmentPathSegment = new AssignmentPathSegment(assignmentType, null);
 		assignmentPathSegment.setSource(source);
+		assignmentPathSegment.setEvaluationOrder(1);
+		assignmentPathSegment.setEvaluateConstructions(true);
 		
 		evaluateAssignment(assignment, assignmentPathSegment, source, sourceDescription, assignmentPath, task, result);
+		
+		if (LOGGER.isTraceEnabled()) {
+			LOGGER.trace("Assignment evaluation finished:\n{}", assignment.debugDump());
+		}
 		
 		return assignment;
 	}
@@ -166,6 +172,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		assertSource(source, assignment);
 		
 		assignmentPath.add(assignmentPathSegment);
+		LOGGER.trace("Evaluate assignment {} (eval costr: {})", assignmentPath, assignmentPathSegment.isEvaluateConstructions());
 		
 		AssignmentType assignmentType = assignmentPathSegment.getAssignmentType();
 		
@@ -173,8 +180,9 @@ public class AssignmentEvaluator<F extends FocusType> {
 		
 		if (assignmentType.getAccountConstruction() != null || assignmentType.getConstruction() != null) {
 			
-			if (evaluateConstructions) {
-				evaluateConstruction(assignment, assignmentPathSegment, source, sourceDescription, assignmentPath, task, result);
+			if (evaluateConstructions && assignmentPathSegment.isEvaluateConstructions()) {
+				evaluateConstruction(assignment, assignmentPathSegment, source, sourceDescription, 
+						assignmentPath, assignmentPathSegment.getVarThisObject(), task, result);
 			}
 			
 		} else if (assignmentType.getTarget() != null) {
@@ -195,8 +203,9 @@ public class AssignmentEvaluator<F extends FocusType> {
 	}
 
 	private void evaluateConstruction(Assignment assignment, AssignmentPathSegment assignmentPathSegment, ObjectType source, String sourceDescription,
-			AssignmentPath assignmentPath, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+			AssignmentPath assignmentPath, ObjectType varThisObject, Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		assertSource(source, assignment);
+		
 		
 		AssignmentType assignmentType = assignmentPathSegment.getAssignmentType();
 		ConstructionType constructionType = assignmentType.getConstruction();
@@ -206,20 +215,24 @@ public class AssignmentEvaluator<F extends FocusType> {
 				constructionType.setKind(ShadowKindType.ACCOUNT);
 			}
 		}
-		Construction<F> accContruction = new Construction<F>(constructionType, source);
+		
+		LOGGER.trace("Evaluate construction '{}' in {}", constructionType.getDescription(), source);
+
+		Construction<F> construction = new Construction<F>(constructionType, source);
 		// We have to clone here as the path is constantly changing during evaluation
-		accContruction.setAssignmentPath(assignmentPath.clone());
-		accContruction.setUserOdo(userOdo);
-		accContruction.setLensContext(lensContext);
-		accContruction.setObjectResolver(objectResolver);
-		accContruction.setPrismContext(prismContext);
-		accContruction.setMappingFactory(mappingFactory);
-		accContruction.setOriginType(OriginType.ASSIGNMENTS);
-		accContruction.setChannel(channel);
+		construction.setAssignmentPath(assignmentPath.clone());
+		construction.setUserOdo(userOdo);
+		construction.setLensContext(lensContext);
+		construction.setObjectResolver(objectResolver);
+		construction.setPrismContext(prismContext);
+		construction.setMappingFactory(mappingFactory);
+		construction.setOriginType(OriginType.ASSIGNMENTS);
+		construction.setChannel(channel);
+		construction.setVarThisObject(varThisObject);
 		
-		accContruction.evaluate(task, result);
+		construction.evaluate(task, result);
 		
-		assignment.addAccountConstruction(accContruction);
+		assignment.addAccountConstruction(construction);
 		assignmentPathSegment.setEvaluatedAssignment(assignment);
 	}
 
@@ -281,13 +294,57 @@ public class AssignmentEvaluator<F extends FocusType> {
 		}
 	}
 
-	private void evaluateAbstractRole(Assignment assignment, AssignmentPathSegment assignmentPathSegment, AbstractRoleType role, ObjectType source, String sourceDescription,
+	private void evaluateAbstractRole(Assignment assignment, AssignmentPathSegment assignmentPathSegment, 
+			AbstractRoleType role, ObjectType source, String sourceDescription,
 			AssignmentPath assignmentPath, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 		assertSource(source, assignment);
+		int evaluationOrder = assignmentPath.getEvaluationOrder();
 		for (AssignmentType roleInducement : role.getInducement()) {
 			AssignmentPathSegment roleAssignmentPathSegment = new AssignmentPathSegment(roleInducement, null);
 			roleAssignmentPathSegment.setSource(role);
 			String subSourceDescription = role+" in "+sourceDescription;
+			Integer inducementOrder = roleInducement.getOrder();
+			if (inducementOrder == null) {
+				inducementOrder = 1;
+			}
+			if (inducementOrder == evaluationOrder) {
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("E{}: evaluate inducement({}) {} in {}",
+						new Object[]{evaluationOrder, inducementOrder, dumpAssignment(roleInducement), role});
+				}
+				ObjectType varThisObject = source;
+				AssignmentPathSegment last = assignmentPath.last();
+				if (last != null && last.getVarThisObject() != null) {
+					varThisObject = last.getVarThisObject();
+				}
+				roleAssignmentPathSegment.setEvaluateConstructions(true);
+				roleAssignmentPathSegment.setEvaluationOrder(evaluationOrder);
+				roleAssignmentPathSegment.setVarThisObject(varThisObject);
+				evaluateAssignment(assignment, roleAssignmentPathSegment, role, subSourceDescription, assignmentPath, task, result);
+//			} else if (inducementOrder < assignmentPath.getEvaluationOrder()) {
+//				LOGGER.trace("Follow({}) inducement({}) in role {}",
+//						new Object[]{evaluationOrder, inducementOrder, source});
+//				roleAssignmentPathSegment.setEvaluateConstructions(false);
+//				roleAssignmentPathSegment.setEvaluationOrder(evaluationOrder+1);
+//				evaluateAssignment(assignment, roleAssignmentPathSegment, role, subSourceDescription, assignmentPath, task, result);
+			} else {
+				if (LOGGER.isTraceEnabled()) {
+					LOGGER.trace("E{}: NOT evaluate inducement({}) {} in {}",
+						new Object[]{evaluationOrder, inducementOrder, dumpAssignment(roleInducement), role});
+				}
+			}
+		}
+		for (AssignmentType roleAssignment : role.getAssignment()) {
+			if (LOGGER.isTraceEnabled()) {
+				LOGGER.trace("E{}: follow assignment {} in {}",
+					new Object[]{evaluationOrder, dumpAssignment(roleAssignment), role});
+			}
+			AssignmentPathSegment roleAssignmentPathSegment = new AssignmentPathSegment(roleAssignment, null);
+			roleAssignmentPathSegment.setSource(role);
+			String subSourceDescription = role+" in "+sourceDescription;
+			roleAssignmentPathSegment.setEvaluateConstructions(false);
+			roleAssignmentPathSegment.setEvaluationOrder(evaluationOrder+1);
+			roleAssignmentPathSegment.setVarThisObject(role);
 			evaluateAssignment(assignment, roleAssignmentPathSegment, role, subSourceDescription, assignmentPath, task, result);
 		}
 		for(AuthorizationType authorizationType: role.getAuthorization()) {
@@ -295,6 +352,18 @@ public class AssignmentEvaluator<F extends FocusType> {
 			assignment.addAuthorization(authorization);
 		}
 	}
+	
+	public static String dumpAssignment(AssignmentType assignmentType) { 
+		StringBuilder sb = new StringBuilder();
+		if (assignmentType.getConstruction() != null) {
+			sb.append("Constr '"+assignmentType.getConstruction().getDescription()+"' ");
+		}
+		if (assignmentType.getTargetRef() != null) {
+			sb.append("-> ").append(assignmentType.getTargetRef().getOid());
+		}
+		return sb.toString();
+	}
+
 
 	private Authorization createAuthorization(AuthorizationType authorizationType) {
 		Authorization authorization = new Authorization(authorizationType);

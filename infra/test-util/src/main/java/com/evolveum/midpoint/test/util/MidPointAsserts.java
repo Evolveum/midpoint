@@ -18,8 +18,11 @@ package com.evolveum.midpoint.test.util;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertTrue;
 
+import java.util.Collection;
+
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.StringUtils;
 import org.testng.AssertJUnit;
 
 import com.evolveum.midpoint.prism.PrismObject;
@@ -159,4 +162,13 @@ public class MidPointAsserts {
 		assertEquals("Wrong OID for "+object, expectedOid, object.getOid());
 	}
 
+	public static void assertContainsCaseIgnore(String message, Collection<String> actualValues, String expectedValue) {
+		AssertJUnit.assertNotNull(message+", expected "+expectedValue+", got null", actualValues);
+		for (String actualValue: actualValues) {
+			if (StringUtils.equalsIgnoreCase(actualValue, expectedValue)) {
+				return;
+			}
+		}
+		AssertJUnit.fail(message+", expected "+expectedValue+", got "+actualValues);
+	}
 }

@@ -103,6 +103,7 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	
 	public static final String RESOURCE_DUMMY_FILENAME = ProvisioningTestUtil.COMMON_TEST_DIR_FILENAME + "resource-dummy.xml";
 	public static final String RESOURCE_DUMMY_OID = "ef2bc95b-76e0-59e2-86d6-9999dddddddd";
+	public static final String RESOURCE_DUMMY_NS = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-9999dddddddd";
 	
 	protected static final String RESOURCE_DUMMY_NONEXISTENT_OID = "ef2bc95b-000-000-000-009900dddddd";
 
@@ -145,6 +146,9 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 	protected static final String OBJECTCLAS_PRIVILEGE_LOCAL_NAME = "CustomprivilegeObjectClass";
 	
 	private static final Trace LOGGER = TraceManager.getTrace(AbstractDummyTest.class);
+
+	private static final QName ASSOCIATION_GROUP_NAME = new QName(RESOURCE_DUMMY_NS, "group");
+	private static final QName ASSOCIATION_PRIV_NAME = new QName(RESOURCE_DUMMY_NS, "priv");
 	
 	protected PrismObject<ResourceType> resource;
 	protected ResourceType resourceType;
@@ -384,19 +388,13 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		IntegrationTestTools.assertNoGroupMember(group, accountId);
 	}
 	
-	protected void assertEntitlement(PrismObject<ShadowType> account, String entitlementOid) {
-		ShadowType accountType = account.asObjectable();
-		List<ShadowAssociationType> associations = accountType.getAssociation();
-		assertNotNull("Null associations in "+account, associations);
-		assertFalse("Empty associations in "+account, associations.isEmpty());
-		for (ShadowAssociationType association: associations) {
-			if (entitlementOid.equals(association.getShadowRef().getOid())) {
-				return;
-			}
-		}
-		AssertJUnit.fail("No association for entitlement "+entitlementOid+" in "+account);
+	protected void assertEntitlementGroup(PrismObject<ShadowType> account, String entitlementOid) {
+		IntegrationTestTools.assertAssociation(account, ASSOCIATION_GROUP_NAME, entitlementOid);
 	}
-
+	
+	protected void assertEntitlementPriv(PrismObject<ShadowType> account, String entitlementOid) {
+		IntegrationTestTools.assertAssociation(account, ASSOCIATION_PRIV_NAME, entitlementOid);
+	}
 	
 	protected <T extends ObjectType> void assertVersion(PrismObject<T> object, String expectedVersion) {
 		assertEquals("Wrong version of "+object, expectedVersion, object.asObjectable().getVersion());
