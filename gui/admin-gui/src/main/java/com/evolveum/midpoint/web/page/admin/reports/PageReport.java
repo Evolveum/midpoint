@@ -121,6 +121,7 @@ public class PageReport<T extends Serializable> extends PageAdminReports{
             PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
             String xml = domProcessor.serializeObjectToString(prismReport);
             dto = new ReportDto(report.getName().getNorm(), report.getDescription(), xml, report.getReportExport());
+            dto.setObject(prismReport);
             result.recordSuccess();
         } catch (Exception e){
             result.recordFatalError("Couldn't load report from repository.", e);
@@ -278,7 +279,6 @@ public class PageReport<T extends Serializable> extends PageAdminReports{
         //TODO - add functionality to run report
     }
 
-    //TODO - fix problems with validation
     protected void onSavePerformed(AjaxRequestTarget target) {
         ReportDto dto = model.getObject();
 
@@ -295,6 +295,10 @@ public class PageReport<T extends Serializable> extends PageAdminReports{
         try{
             Task task = createSimpleTask(OPERATION_SAVE_REPORT);
             PrismObject<ReportType> newReport = objectHolder.getValue();
+
+            //newReport.asObjectable().setName(new PolyStringType(dto.getName()));
+            //newReport.asObjectable().setDescription(dto.getDescription());
+            //newReport.asObjectable().setReportExport(dto.getExportType());
 
             PrismObject<ReportType> oldReport = dto.getObject();
             ObjectDelta<ReportType> delta = oldReport.diff(newReport);

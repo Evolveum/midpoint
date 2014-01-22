@@ -171,7 +171,7 @@ public class PageCreatedReports extends PageAdminReports {
 
         IModel<Map<String, String>> options = new Model(null);
         DropDownMultiChoice searchType = new DropDownMultiChoice<ReportOutputDto.SearchType>(ID_SEARCH_TYPE,
-                new PropertyModel<List<ReportOutputDto.SearchType>>(filterModel, ReportSearchDto.F_FILE_TYPE),
+                new PropertyModel<List<ReportOutputDto.SearchType>>(filterModel, ReportSearchDto.F_SEARCH_TEXT),
                 WebMiscUtil.createReadonlyModelFromEnum(ReportOutputDto.SearchType.class),
                 new IChoiceRenderer<ReportOutputDto.SearchType>() {
 
@@ -345,8 +345,19 @@ public class PageCreatedReports extends PageAdminReports {
 
             @Override
             public String getObject() {
-                return createStringResource("pageCreatedReports.message.deleteOutputConfirmed",
-                        getSelectedData().size()).getString();
+                ReportDeleteDialogDto dto = deleteModel.getObject();
+
+                switch (dto.getOperation()){
+                    case DELETE_SINGLE:
+                        ReportOutputType report = dto.getObjects().get(0);
+                        return createStringResource("pageCreatedReports.message.deleteOutputSingle",
+                                report.getName().getOrig()).getString();
+                    case DELETE_ALL:
+                        return createStringResource("pageCreatedReports.message.deleteAll").getString();
+                    default:
+                        return createStringResource("pageCreatedReports.message.deleteOutputConfirmed",
+                                getSelectedData().size()).getString();
+                }
             }
         };
     }
