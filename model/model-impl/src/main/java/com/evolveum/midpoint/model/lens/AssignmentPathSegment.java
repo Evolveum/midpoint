@@ -85,11 +85,11 @@ public class AssignmentPathSegment {
 		this.evaluationOrder = evaluationOrder;
 	}
 
-	public ObjectType getVarThisObject() {
+	public ObjectType getOrderOneObject() {
 		return varThisObject;
 	}
 
-	public void setVarThisObject(ObjectType varThisObject) {
+	public void setOrderOneObject(ObjectType varThisObject) {
 		this.varThisObject = varThisObject;
 	}
 

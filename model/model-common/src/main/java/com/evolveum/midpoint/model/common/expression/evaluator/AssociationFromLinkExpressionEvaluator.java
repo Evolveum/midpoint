@@ -103,14 +103,15 @@ public class AssociationFromLinkExpressionEvaluator
 			ExpressionEvaluationException, ObjectNotFoundException {
 				            
 		String desc = params.getContextDescription();
-		Object thisObject = params.getVariables().get(ExpressionConstants.VAR_THIS_OBJECT);
-		if (thisObject == null) {
-			throw new ExpressionEvaluationException("No thisObject variable in "+desc+"; the expression may be used in a wrong place. It is only supposed to work in a role.");
+		Object orderOneObject = params.getVariables().get(ExpressionConstants.VAR_ORDER_ONE_OBJECT);
+		if (orderOneObject == null) {
+			throw new ExpressionEvaluationException("No order one object variable in "+desc+"; the expression may be used in a wrong place. It is only supposed to work in a role.");
 		}
-		if (!(thisObject instanceof AbstractRoleType)) {
-			throw new ExpressionEvaluationException("thisObject variable in "+desc+" is not a role; the expression may be used in a wrong place. It is only supposed to work in a role.");
+		if (!(orderOneObject instanceof AbstractRoleType)) {
+			throw new ExpressionEvaluationException("Order one object variable in "+desc+" is not a role, it is "+orderOneObject.getClass().getName()
+					+"; the expression may be used in a wrong place. It is only supposed to work in a role.");
 		}
-		AbstractRoleType thisRole = (AbstractRoleType)thisObject;
+		AbstractRoleType thisRole = (AbstractRoleType)orderOneObject;
 		
 		RefinedObjectClassDefinition rAssocTargetDef = (RefinedObjectClassDefinition) params.getVariables().get(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION);
 		if (rAssocTargetDef == null) {
