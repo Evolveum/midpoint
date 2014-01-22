@@ -2613,7 +2613,7 @@ public class TestDummy extends AbstractDummyTest {
 		display(result);
 		TestUtil.assertSuccess(result);
 		
-		assertEntitlement(account, GROUP_PIRATES_OID);
+		assertEntitlementGroup(account, GROUP_PIRATES_OID);
 		
 		// Just make sure nothing has changed
 		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
@@ -2692,8 +2692,8 @@ public class TestDummy extends AbstractDummyTest {
 		display(result);
 		TestUtil.assertSuccess(result);
 		
-		assertEntitlement(account, GROUP_PIRATES_OID);
-		assertEntitlement(account, PRIVILEGE_PILLAGE_OID);
+		assertEntitlementGroup(account, GROUP_PIRATES_OID);
+		assertEntitlementPriv(account, PRIVILEGE_PILLAGE_OID);
 		
 		// Just make sure nothing has changed
 		DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, willIcfUid);
@@ -2874,8 +2874,8 @@ public class TestDummy extends AbstractDummyTest {
 			assertAttribute(provisioningAccountType, ConnectorFactoryIcfImpl.ICFS_UID, dummyAccount.getId());
 		}
 		
-		assertEntitlement(account, GROUP_PIRATES_OID);
-		assertEntitlement(account, PRIVILEGE_PILLAGE_OID);
+		assertEntitlementGroup(account, GROUP_PIRATES_OID);
+		assertEntitlementPriv(account, PRIVILEGE_PILLAGE_OID);
 
 		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
 				provisioningAccountType, new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "password")));

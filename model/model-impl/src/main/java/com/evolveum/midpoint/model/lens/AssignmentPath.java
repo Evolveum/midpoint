@@ -62,6 +62,22 @@ public class AssignmentPath {
 		return segments.isEmpty();
 	}
 	
+	public int getEvaluationOrder() {
+		if (isEmpty()) {
+			return 0;
+		} else {
+			return segments.get(segments.size()-1).getEvaluationOrder();
+		}
+	}
+	
+	public AssignmentPathSegment last() {
+		if (isEmpty()) {
+			return null;
+		} else {
+			return segments.get(segments.size()-1);
+		}
+	}
+	
 	/**
 	 * Shallow clone.
 	 */

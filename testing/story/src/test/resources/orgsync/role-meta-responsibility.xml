@@ -21,17 +21,43 @@
         xmlns="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
         xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
         xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
-        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance/10000000-0000-0000-0000-000000000004"
+        xmlns:ri="http://midpoint.evolveum.com/xml/ns/public/resource/instance-2"
         xmlns:piracy="http://midpoint.evolveum.com/xml/ns/samples/piracy">
     <name>Responsibility Metarole</name>
     
     <inducement>
+    	<description>RM-I</description>
     	<construction>
+    		<description>RM-I</description>
     		<!-- OpenDJ resource -->
     		<resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>
     		<kind>entitlement</kind>
             <intent>ldapGroup</intent>
     	</construction>
     </inducement>
-    
+ 
+    <inducement>
+    	<description>RM-I2</description>
+    	<construction>
+    		<description>RM-I2</description>
+    		<resourceRef oid="10000000-0000-0000-0000-000000000003" type="c:ResourceType"/>
+    		<kind>account</kind>
+    		<intent>default</intent>
+    		<association>
+            	<ref>ri:group</ref>
+            	<outbound>
+            		<expression>
+            			<associationFromLink>
+            				<projectionDiscriminator>
+	            				<kind>entitlement</kind>
+	            				<intent>ldapGroup</intent>
+            				</projectionDiscriminator>
+            			</associationFromLink>
+            		</expression>
+            	</outbound>
+            </association>
+    	</construction>  
+    	<order>2</order>
+    </inducement>
+
 </role>

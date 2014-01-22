@@ -87,6 +87,7 @@ public class Construction<F extends FocusType> implements DebugDumpable, Dumpabl
 	private AssignmentPath assignmentPath;
 	private ConstructionType constructionType;
 	private ObjectType source;
+	private ObjectType varThisObject;
 	private OriginType originType;
 	private String channel;
 	private LensContext<F> lensContext;
@@ -155,6 +156,14 @@ public class Construction<F extends FocusType> implements DebugDumpable, Dumpabl
 
 	public void setObjectResolver(ObjectResolver objectResolver) {
 		this.objectResolver = objectResolver;
+	}
+
+	public ObjectType getVarThisObject() {
+		return varThisObject;
+	}
+
+	public void setVarThisObject(ObjectType varThisObject) {
+		this.varThisObject = varThisObject;
 	}
 
 	PrismContext getPrismContext() {
@@ -461,6 +470,10 @@ public class Construction<F extends FocusType> implements DebugDumpable, Dumpabl
 				"for association " + PrettyPrinter.prettyPrint(assocName)  + " in " + source);
 		
 		RefinedAssociationDefinition rAssocDef = refinedObjectClassDefinition.findAssociation(assocName);
+		if (rAssocDef == null) {
+			throw new SchemaException("No association "+assocName+" in object class "+refinedObjectClassDefinition.getHumanReadableName()
+					+" in construction in "+source);
+		}
 		
 		Mapping<PrismContainerValue<ShadowAssociationType>> evaluatedMapping = evaluateMapping(mapping, assocName, outputDefinition, 
 				rAssocDef.getAssociationTarget(), task, result);
@@ -488,7 +501,8 @@ public class Construction<F extends FocusType> implements DebugDumpable, Dumpabl
 		mapping.setOriginObject(source);
 		mapping.setRefinedObjectClassDefinition(refinedObjectClassDefinition);
 		
-		mapping.addVariableDefinition(ExpressionConstants.VAR_THIS_OBJECT, source);
+		mapping.addVariableDefinition(ExpressionConstants.VAR_CONTAINING_OBJECT, source);
+		mapping.addVariableDefinition(ExpressionConstants.VAR_THIS_OBJECT, varThisObject);
 		if (assocTargetObjectClassDefinition != null) {
 			mapping.addVariableDefinition(ExpressionConstants.VAR_ASSOCIATION_TARGET_OBJECT_CLASS_DEFINITION, assocTargetObjectClassDefinition);
 		}

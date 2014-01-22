@@ -229,6 +229,14 @@ public class IntegrationTestTools {
 	public static <T> void assertEqualsCollection(String message, T[] expectedValues, Collection<T> actualValues) {
 		assertEqualsCollection(message, Arrays.asList(expectedValues), actualValues);
 	}
+
+	public static String getIcfsNameAttribute(PrismObject<ShadowType> shadow) {
+		return getIcfsNameAttribute(shadow.asObjectable());
+	}
+
+	public static String getIcfsNameAttribute(ShadowType shadowType) {
+		return getAttributeValue(shadowType, SchemaTestConstants.ICFS_NAME);
+	}
 	
 	public static void assertIcfsNameAttribute(ShadowType repoShadow, String value) {
 		assertAttribute(repoShadow, SchemaTestConstants.ICFS_NAME, value);
@@ -841,5 +849,19 @@ public class IntegrationTestTools {
 	public static void assertNoGroupMembers(DummyGroup group) {
 		Collection<String> members = group.getMembers();
 		assertTrue("Group "+group.getName()+" has members while not expecting it, members: "+members, members == null || members.isEmpty());
+	}
+	
+	public static void assertAssociation(PrismObject<ShadowType> shadow, QName associationName, String entitlementOid) {
+		ShadowType accountType = shadow.asObjectable();
+		List<ShadowAssociationType> associations = accountType.getAssociation();
+		assertNotNull("Null associations in "+shadow, associations);
+		assertFalse("Empty associations in "+shadow, associations.isEmpty());
+		for (ShadowAssociationType association: associations) {
+			if (associationName.equals(association.getName()) &&
+					entitlementOid.equals(association.getShadowRef().getOid())) {
+				return;
+			}
+		}
+		AssertJUnit.fail("No association for entitlement "+entitlementOid+" in "+shadow);
 	}
 }
