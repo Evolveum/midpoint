@@ -60,3 +60,5 @@ ALTER TABLE m_report_output
     ADD CONSTRAINT fk_reportoutput 
     FOREIGN KEY (id, oid) 
     REFERENCES m_object;
+
+ALTER TABLE m_assignment ADD orderValue NUMBER(10,0);

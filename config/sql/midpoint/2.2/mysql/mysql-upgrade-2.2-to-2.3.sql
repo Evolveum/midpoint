@@ -64,3 +64,5 @@ ALTER TABLE m_report_output
     ADD CONSTRAINT fk_reportoutput 
     FOREIGN KEY (id, oid) 
     REFERENCES m_object (id, oid);
+
+ALTER TABLE m_assignment ADD orderValue INTEGER;

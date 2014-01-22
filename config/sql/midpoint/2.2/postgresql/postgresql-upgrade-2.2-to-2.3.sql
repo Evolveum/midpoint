@@ -61,3 +61,4 @@ ALTER TABLE m_report_output
     FOREIGN KEY (id, oid) 
     REFERENCES m_object;
 
+ALTER TABLE m_assignment ADD orderValue INT4;
