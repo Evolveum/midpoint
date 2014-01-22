@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.web.page.admin.reports.dto;
 
 import com.evolveum.midpoint.web.component.util.Selectable;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExportType;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -27,9 +28,9 @@ import java.util.Collection;
 public class ReportOutputDto extends Selectable implements Serializable{
 
     public static enum SearchType{
-        NAME("SearchType.NAME"),
-        DESCRIPTION("SearchType.DESCRIPTION"),
-        AUTHOR("SearchType.AUTHOR");
+        NAME("SearchType.NAME");
+        //DESCRIPTION("SearchType.DESCRIPTION");
+        //AUTHOR("SearchType.AUTHOR");
 
         private String key;
 
@@ -38,32 +39,30 @@ public class ReportOutputDto extends Selectable implements Serializable{
         private String getKey(){return key;}
     }
 
+    public static final String F_FILE_TYPE = "fileType";
     public static final String F_TYPE = "type";
     public static final String F_DESCRIPTION = "description";
     public static final String F_TEXT = "text";
     public static final String F_NAME = "name";
 
-    private ReportDto.Type reportType;
     private String name;
     private String description;
     private String time;
     private String author;
-    private String fileType;
+    private ExportType fileType;
     private String text;
 
     private Collection<SearchType> type;
 
     public ReportOutputDto(){}
 
-    public ReportOutputDto(ReportDto.Type type, String name, String description){
-        this.reportType = type;
+    public ReportOutputDto(String name, String description){
         this.name = name;
         this.description = description;
     }
 
-    public ReportOutputDto(ReportDto.Type type, String name, String description,
+    public ReportOutputDto(String name, String description,
                            String author, String time){
-        this.reportType = type;
         this.name = name;
         this.description = description;
         this.author = author;
@@ -95,14 +94,6 @@ public class ReportOutputDto extends Selectable implements Serializable{
 
     public void setText(String text) {
         this.text = text;
-    }
-
-    public ReportDto.Type getReportType() {
-        return reportType;
-    }
-
-    public void setReportType(ReportDto.Type reportType) {
-        this.reportType = reportType;
     }
 
     public String getName() {
@@ -137,11 +128,13 @@ public class ReportOutputDto extends Selectable implements Serializable{
         this.author = author;
     }
 
-    public String getFileType() {
+    public ExportType getFileType() {
+        if(fileType == null)
+            return ExportType.PDF;
         return fileType;
     }
 
-    public void setFileType(String fileType) {
+    public void setFileType(ExportType fileType) {
         this.fileType = fileType;
     }
 }

@@ -17,7 +17,14 @@
 package com.evolveum.midpoint.web.page.admin.reports;
 
 import com.evolveum.midpoint.common.security.AuthorizationConstants;
+import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
+import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.query.OrFilter;
+import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
@@ -34,14 +41,15 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDeleteDialogDto;
-import com.evolveum.midpoint.web.page.admin.reports.dto.ReportSearchDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportOutputDto;
+import com.evolveum.midpoint.web.session.ReportsStorage;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportOutputType;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.DataTable;
@@ -84,14 +92,14 @@ public class PageCreatedReports extends PageAdminReports {
 
     private final String BUTTON_CAPTION_DOWNLOAD = createStringResource("pageCreatedReports.button.download").getString();
 
-    private IModel<ReportSearchDto> filterModel;
+    private IModel<ReportOutputDto> filterModel;
     private IModel<ReportDeleteDialogDto> deleteModel = new Model<ReportDeleteDialogDto>();
 
     public PageCreatedReports(){
 
-        filterModel = new LoadableModel<ReportSearchDto>() {
+        filterModel = new LoadableModel<ReportOutputDto>() {
             @Override
-            protected ReportSearchDto load() {
+            protected ReportOutputDto load() {
                 return loadReportFilterDto();
             }
         };
@@ -99,8 +107,8 @@ public class PageCreatedReports extends PageAdminReports {
         initLayout();
     }
 
-    private ReportSearchDto loadReportFilterDto(){
-        ReportSearchDto dto = new ReportSearchDto();
+    private ReportOutputDto loadReportFilterDto(){
+        ReportOutputDto dto = new ReportOutputDto();
         return dto;
     }
 
@@ -137,7 +145,6 @@ public class PageCreatedReports extends PageAdminReports {
         table.setOutputMarkupId(true);
         mainForm.add(table);
 
-        //TODO - show name of report in Confirmation Delete dialog, id deleting single report
         add(new ConfirmationDialog(ID_CONFIRM_DELETE, createStringResource("pageCreatedReports.dialog.title.confirmDelete"),
                 createDeleteConfirmString()){
 
@@ -166,12 +173,12 @@ public class PageCreatedReports extends PageAdminReports {
         add(searchForm);
 
         TextField searchText = new TextField(ID_SEARCH_TEXT, new PropertyModel<String>(filterModel,
-                ReportSearchDto.F_SEARCH_TEXT));
+                ReportOutputDto.F_TEXT));
         searchForm.add(searchText);
 
         IModel<Map<String, String>> options = new Model(null);
         DropDownMultiChoice searchType = new DropDownMultiChoice<ReportOutputDto.SearchType>(ID_SEARCH_TYPE,
-                new PropertyModel<List<ReportOutputDto.SearchType>>(filterModel, ReportSearchDto.F_SEARCH_TEXT),
+                new PropertyModel<List<ReportOutputDto.SearchType>>(filterModel, ReportOutputDto.F_TYPE),
                 WebMiscUtil.createReadonlyModelFromEnum(ReportOutputDto.SearchType.class),
                 new IChoiceRenderer<ReportOutputDto.SearchType>() {
 
@@ -203,7 +210,7 @@ public class PageCreatedReports extends PageAdminReports {
         searchForm.add(searchButton);
 
         DropDownChoice filetypeSelect = new DropDownChoice(ID_FILTER_FILE_TYPE,
-                new PropertyModel(filterModel, ReportSearchDto.F_FILE_TYPE),
+                new PropertyModel(filterModel, ReportOutputDto.F_FILE_TYPE),
                 new AbstractReadOnlyModel<List<ExportType>>() {
 
                     @Override
@@ -212,7 +219,13 @@ public class PageCreatedReports extends PageAdminReports {
                     }
                 },
                 new EnumChoiceRenderer(PageCreatedReports.this));
-        filetypeSelect.add(createFilterAjaxBehaviour());
+        filetypeSelect.add(new OnChangeAjaxBehavior() {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                fileTypeFilterPerformed(target);
+            }
+        });
         filetypeSelect.setOutputMarkupId(true);
 
         if(filetypeSelect.getModel().getObject() == null){
@@ -227,6 +240,7 @@ public class PageCreatedReports extends PageAdminReports {
         return list;
     }
 
+    /*
     private AjaxFormComponentUpdatingBehavior createFilterAjaxBehaviour(){
         return new AjaxFormComponentUpdatingBehavior("onchange") {
 
@@ -236,6 +250,7 @@ public class PageCreatedReports extends PageAdminReports {
             }
         };
     }
+    */
 
     //TODO - consider adding Author name, File Type and ReportType to columns
     private List<IColumn<ReportOutputDto, String>> initColumns(final AjaxDownloadBehaviorFromStream ajaxDownloadBehavior){
@@ -252,13 +267,7 @@ public class PageCreatedReports extends PageAdminReports {
         column = new PropertyColumn(createStringResource("pageCreatedReports.table.description"), "value.description");
         columns.add(column);
 
-        //column = new PropertyColumn(createStringResource("pageCreatedReports.table.reportType"), "value.metadata.creatorRef");
-        //columns.add(column);
-
-        //column = new PropertyColumn(createStringResource("pageCreatedReports.table.author"), "value.metadata.creatorRef");
-        //columns.add(column);
-
-        column = new PropertyColumn<ReportOutputDto, String>(createStringResource("pageCreatedReports.table.time"), "value.metadata.createTimestamp");
+        column = new PropertyColumn<ReportOutputDto, String>(createStringResource("pageCreatedReports.table.time"), "value.metadata.createTimestamp", "value.metadata.createTimestamp");
         columns.add(column);
 
         //column = new PropertyColumn<ReportOutputDto, String>(createStringResource("pageCreatedReports.table.filetype"), "value.reportRef");
@@ -464,17 +473,65 @@ public class PageCreatedReports extends PageAdminReports {
         target.add(getFeedbackPanel());
     }
 
+    private ObjectQuery createQuery(){
+        ReportOutputDto dto = filterModel.getObject();
+        ObjectQuery query = null;
+
+        if(StringUtils.isEmpty(dto.getText())){
+            return null;
+        }
+
+        try{
+            List<ObjectFilter> filters = new ArrayList<ObjectFilter>();
+
+            PolyStringNormalizer normalizer = getPrismContext().getDefaultPolyStringNormalizer();
+            String normalizedString = normalizer.normalize(dto.getText());
+
+            if(dto.hasType(ReportOutputDto.SearchType.NAME)){
+                filters.add(SubstringFilter.createSubstring(ReportOutputType.F_NAME, ReportOutputType.class,
+                        getPrismContext(), PolyStringNormMatchingRule.NAME, normalizedString));
+            }
+            //if(dto.hasType(ReportOutputDto.SearchType.AUTHOR)){
+                //TODO - search based on author, get to author of ReportAuthor via ObjectReferenceType in ReportOutputType
+            //}
+
+            if(filters.size() == 1){
+                query = ObjectQuery.createObjectQuery(filters.get(0));
+            } else if(filters.size() > 1){
+                query = ObjectQuery.createObjectQuery(OrFilter.createOr(filters));
+            }
+
+        } catch(Exception e){
+            error(getString("pageCreatedReports.message.queryError") + " " + e.getMessage());
+            LoggingUtils.logException(LOGGER, "Couldn't create query filter.", e);
+        }
+
+        return query;
+    }
+
     private byte[] createReport(){
         //TODO - create report from ReportType
         return null;
     }
 
-    private void filterPerformed(AjaxRequestTarget target){
-        //TODO - perform some fancy search here
+    private void fileTypeFilterPerformed(AjaxRequestTarget target){
+        //TODO - perform filtering based on file type - need to wait for schema update (ReportOutputType)
     }
 
     private void searchPerformed(AjaxRequestTarget target){
-        //TODO - perform search based on search model
+        ObjectQuery query = createQuery();
+        target.add(getFeedbackPanel());
+
+        TablePanel panel = getReportOutputTable();
+        DataTable table = panel.getDataTable();
+        ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
+        provider.setQuery(query);
+
+        ReportsStorage storage = getSessionStorage().getReports();
+        storage.setReportsSearch(filterModel.getObject());
+        panel.setCurrentPage(storage.getReportsPaging());
+
+        target.add(panel);
     }
 
     private void downloadPerformed(AjaxRequestTarget target, ReportOutputType report,
