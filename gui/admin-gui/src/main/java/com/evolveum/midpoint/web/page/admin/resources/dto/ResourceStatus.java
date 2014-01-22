@@ -20,13 +20,13 @@ package com.evolveum.midpoint.web.page.admin.resources.dto;
  */
 public enum ResourceStatus {
 
-    SUCCESS("accept.png"),
+    SUCCESS("fa fa-fw fa-check-circle fa-lg text-success"),
 
-    WARNING("error.png"),
+    WARNING("fa fa-fw fa-exclamation-circle fa-lg text-danger"),
 
-    ERROR("exclamation.png"),
+    ERROR("fa fa-fw fa-minus-circle fa-lg text-info"),
 
-    NOT_TESTED("help.png");
+    NOT_TESTED("fa fa-fw fa-question-circle fa-lg text-warning");
 
     private String icon;
 

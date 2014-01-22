@@ -22,7 +22,6 @@ import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulato
 import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.IModel;
-import org.apache.wicket.request.resource.ResourceReference;
 
 import java.io.Serializable;
 
@@ -50,7 +49,7 @@ public class LinkIconColumn<T extends Serializable> extends AbstractColumn<T, St
         return null;
     }
 
-    protected IModel<ResourceReference> createIconModel(final IModel<T> rowModel) {
+    protected IModel<String> createIconModel(final IModel<T> rowModel) {
         throw new UnsupportedOperationException("Not implemented, please implement in your column.");
     }
 

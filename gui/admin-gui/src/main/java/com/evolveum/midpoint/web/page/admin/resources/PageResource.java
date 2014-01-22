@@ -150,62 +150,60 @@ public class PageResource extends PageAdminResources {
         };
     }
 
+    private Label createImageLabel(String id, IModel<String> title, IModel<String> cssClass) {
+        Label label = new Label(id);
+        label.add(AttributeModifier.replace("class", cssClass));
+        label.add(AttributeModifier.replace("title", title));
+
+        return label;
+    }
+
     private void initConnectorDetails(Form mainForm) {
         WebMarkupContainer container = new WebMarkupContainer("connectors");
         container.setOutputMarkupId(true);
-
-        Image image = new Image("overallStatus", new AbstractReadOnlyModel() {
-
-            @Override
-            public Object getObject() {
-                return new PackageResourceReference(PageResource.class, model.getObject().getState()
-                        .getOverall().getIcon());
-            }
-        });
-        image.add(new AttributeModifier("title", createTestConnectionStateTooltip("state.overall")));
-        container.add(image);
-
-        image = new Image("confValidation", new AbstractReadOnlyModel() {
-            @Override
-            public Object getObject() {
-                return new PackageResourceReference(PageResource.class, model.getObject().getState()
-                        .getConfValidation().getIcon());
-            }
-        });
-        image.add(new AttributeModifier("title", createTestConnectionStateTooltip("state.confValidation")));
-        container.add(image);
-
-        image = new Image("conInitialization", new AbstractReadOnlyModel() {
-            @Override
-            public Object getObject() {
-
-                return new PackageResourceReference(PageResource.class, model.getObject().getState()
-                        .getConInitialization().getIcon());
-            }
-        });
-        image.add(new AttributeModifier("title", createTestConnectionStateTooltip("state.conInitialization")));
-        container.add(image);
-
-        image = new Image("conConnection", new AbstractReadOnlyModel() {
-            @Override
-            public Object getObject() {
-                return new PackageResourceReference(PageResource.class, model.getObject().getState()
-                        .getConConnection().getIcon());
-            }
-        });
-        image.add(new AttributeModifier("title", createTestConnectionStateTooltip("state.conConnection")));
-        container.add(image);
-
-        image = new Image("conSchema", new AbstractReadOnlyModel() {
-            @Override
-            public Object getObject() {
-                return new PackageResourceReference(PageResource.class, model.getObject().getState()
-                        .getConSchema().getIcon());
-            }
-        });
-        container.add(image);
-        image.add(new AttributeModifier("title", createTestConnectionStateTooltip("state.conSchema")));
         mainForm.add(container);
+
+        container.add(createImageLabel("overallStatus", createTestConnectionStateTooltip("state.overall"),
+                new AbstractReadOnlyModel<String>() {
+
+                    @Override
+                    public String getObject() {
+                        return model.getObject().getState().getOverall().getIcon();
+                    }
+                }));
+        container.add(createImageLabel("confValidation", createTestConnectionStateTooltip("state.confValidation"),
+                new AbstractReadOnlyModel<String>() {
+
+                    @Override
+                    public String getObject() {
+                        return model.getObject().getState().getConfValidation().getIcon();
+                    }
+                }));
+        container.add(createImageLabel("conInitialization", createTestConnectionStateTooltip("state.conInitialization"),
+                new AbstractReadOnlyModel<String>() {
+
+                    @Override
+                    public String getObject() {
+                        return model.getObject().getState().getConInitialization().getIcon();
+                    }
+                }));
+        container.add(createImageLabel("conConnection", createTestConnectionStateTooltip("state.conConnection"),
+                new AbstractReadOnlyModel<String>() {
+
+                    @Override
+                    public String getObject() {
+                        return model.getObject().getState().getConConnection().getIcon();
+                    }
+                }));
+
+        container.add(createImageLabel("conSchema", createTestConnectionStateTooltip("state.conSchema"),
+                new AbstractReadOnlyModel<String>() {
+
+                    @Override
+                    public String getObject() {
+                        return model.getObject().getState().getConSchema().getIcon();
+                    }
+                }));
     }
 
     private List<String> initCapabilities(ResourceType resource) {

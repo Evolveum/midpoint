@@ -188,17 +188,16 @@ public class PageResources extends PageAdminResources {
         column = new LinkIconColumn<ResourceDto>(createStringResource("pageResources.status")) {
 
             @Override
-            protected IModel<ResourceReference> createIconModel(final IModel<ResourceDto> rowModel) {
-                return new AbstractReadOnlyModel<ResourceReference>() {
+            protected IModel<String> createIconModel(final IModel<ResourceDto> rowModel) {
+                return new AbstractReadOnlyModel<String>() {
 
                     @Override
-                    public ResourceReference getObject() {
+                    public String getObject() {
                         ResourceDto dto = rowModel.getObject();
                         ResourceController.updateLastAvailabilityState(dto.getState(),
                                 dto.getLastAvailabilityStatus());
                         ResourceState state = dto.getState();
-                        return new PackageResourceReference(PageResources.class, state
-                                .getLastAvailability().getIcon());
+                        return state.getLastAvailability().getIcon();
                     }
                 };
             }
