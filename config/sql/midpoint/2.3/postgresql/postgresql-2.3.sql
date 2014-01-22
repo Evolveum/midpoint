@@ -123,6 +123,7 @@
         assignmentOwner int4,
         construction text,
         description text,
+        orderValue int4,
         owner_id int8 not null,
         owner_oid varchar(36) not null,
         targetRef_description text,

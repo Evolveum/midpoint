@@ -123,6 +123,7 @@
         assignmentOwner integer,
         construction clob,
         description clob,
+        orderValue integer,
         owner_id bigint not null,
         owner_oid varchar(36) not null,
         targetRef_description clob,

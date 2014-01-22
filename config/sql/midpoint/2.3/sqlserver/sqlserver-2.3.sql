@@ -123,6 +123,7 @@
         assignmentOwner int,
         construction nvarchar(MAX),
         description nvarchar(MAX),
+        orderValue int,
         owner_id bigint not null,
         owner_oid nvarchar(36) not null,
         targetRef_description nvarchar(MAX),

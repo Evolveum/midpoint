@@ -133,6 +133,7 @@
         assignmentOwner integer,
         construction longtext,
         description longtext,
+        orderValue integer,
         owner_id bigint not null,
         owner_oid varchar(36) not null,
         targetRef_description longtext,

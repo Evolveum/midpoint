@@ -125,6 +125,7 @@
         assignmentOwner number(10,0),
         construction clob,
         description clob,
+        orderValue number(10,0),
         owner_id number(19,0) not null,
         owner_oid varchar2(36 char) not null,
         targetRef_description clob,
