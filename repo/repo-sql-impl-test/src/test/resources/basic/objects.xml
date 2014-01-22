@@ -65,6 +65,7 @@
                 <resourceRef oid="c0c010c0-d34d-b33f-f00d-333bbbbbbbb2" type="c:ResourceType"/>
                 <intent>default</intent>
             </construction>
+            <order>10</order>
         </assignment>
 
         <fullName>
