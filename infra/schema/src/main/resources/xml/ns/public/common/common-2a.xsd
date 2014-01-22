@@ -8905,12 +8905,48 @@
                                 Parameters definition. Name, type, value.                            
                             </xsd:documentation>
                         </xsd:annotation>
-                    </xsd:element>              
+                    </xsd:element>
+
+                    <xsd:element name="configuration" type="tns:ReportConfigurationType" minOccurs="0"/>
+                    <xsd:element name="configurationSchema" minOccurs="0">
+                        <xsd:complexType>
+                            <xsd:sequence>
+                                <xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="strict">
+                                    <xsd:annotation>
+                                        <xsd:appinfo>
+                                            <jaxb:dom/>
+                                        </xsd:appinfo>
+                                    </xsd:annotation>
+                                </xsd:any>
+                            </xsd:sequence>
+                        </xsd:complexType>
+                    </xsd:element>
             	</xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
     <xsd:element name="report" type="tns:ReportType"/>
+
+    <xsd:complexType name="ReportConfigurationType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Report configuration based on report configuration schema.
+                TODO
+
+                This element belongs to ReportType and should
+                not be used elsewhere. This is a top-level
+                element to make the implementation (JAXB
+                marshall/unmarshall) easier.
+            </xsd:documentation>
+            <xsd:appinfo>
+                <a:container/>
+            </xsd:appinfo>
+        </xsd:annotation>
+        <xsd:sequence>
+            <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax">
+            </xsd:any>
+        </xsd:sequence>
+    </xsd:complexType>
 
 	<xsd:complexType name="ReportOutputType">
     	<xsd:annotation>

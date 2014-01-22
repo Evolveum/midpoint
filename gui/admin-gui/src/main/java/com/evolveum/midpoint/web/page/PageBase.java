@@ -28,6 +28,7 @@ import com.evolveum.midpoint.model.api.TaskService;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.report.api.ReportManager;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
@@ -118,14 +119,18 @@ public abstract class PageBase extends WebPage {
     private WorkflowManager workflowManager;
     @SpringBean(name = "midpointConfiguration")
     private MidpointConfiguration midpointConfiguration;
+    @SpringBean(name = "reportManager")
+    private ReportManager reportManager;
 
     private PageBase previousPage;                  // experimental -- where to return e.g. when 'Back' button is clicked [NOT a class, in order to eliminate reinitialization when it is not needed]
     private boolean reinitializePreviousPages;      // experimental -- should we reinitialize all the chain of previous pages?
 
     public PageBase() {
         Injector.get().inject(this);
-        validateInjection(modelService, "Model service was not injected.");
-        validateInjection(taskManager, "Task manager was not injected.");
+        Validate.notNull(modelService, "Model service was not injected.");
+        Validate.notNull(taskManager, "Task manager was not injected.");
+        Validate.notNull(reportManager, "Report manager was not injected.");
+
         initLayout();
     }
 
@@ -269,17 +274,11 @@ public abstract class PageBase extends WebPage {
     }
 
     protected List<MenuBarItem> createMenuItems() {
-        return new ArrayList<MenuBarItem>();
+        return new ArrayList<>();
     }
 
     public WebMarkupContainer getFeedbackPanel() {
         return (WebMarkupContainer) get(ID_FEEDBACK_CONTAINER);
-    }
-
-    private void validateInjection(Object object, String message) {
-        if (object == null) {
-            throw new IllegalStateException(message);
-        }
     }
 
     public SessionStorage getSessionStorage() {
@@ -309,6 +308,10 @@ public abstract class PageBase extends WebPage {
 
     protected IModel<String> createPageTitleModel() {
         return createStringResource("page.title");
+    }
+
+    public ReportManager getReportManager() {
+        return reportManager;
     }
 
     public ModelService getModelService() {

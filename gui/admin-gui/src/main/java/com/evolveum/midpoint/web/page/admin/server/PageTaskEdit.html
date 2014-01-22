@@ -56,7 +56,7 @@
                         <td><span wicket:id="execution"/> <span wicket:id="node"/></td>
                     </tr>
                 </table>
-                <h2>Some title, todo i18n</h2>
+                <h2><wicket:message key="pageTaskEdit.threadAction"/></h2>
                 <table class="table table-condensed table-striped">
                     <wicket:remove>
                     <!-- <tr>
@@ -166,8 +166,13 @@
             <span class="button-group">
                 <a class="btn btn-default" wicket:id="backButton" />
             </span>
-            <a class="btn btn-primary" wicket:id="saveButton"/>
-            <a class="btn btn-primary" wicket:id="editButton"/>
+            <span class="button-group">
+                <a class="btn btn-primary" wicket:id="saveButton"/>
+                <a class="btn btn-primary" wicket:id="editButton"/>
+            </span>
+
+            <a class="btn btn-danger" wicket:id="suspend" />
+            <a class="btn btn-success" wicket:id="resume" />
         </div>
     </form>
 </wicket:extend>

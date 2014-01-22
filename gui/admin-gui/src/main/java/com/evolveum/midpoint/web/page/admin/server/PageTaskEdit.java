@@ -23,6 +23,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskBinding;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -60,6 +61,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ThreadStopActionType;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
@@ -92,10 +94,7 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.util.string.StringValue;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author lazyman
@@ -126,6 +125,8 @@ public class PageTaskEdit extends PageAdminTasks {
     private static final String ID_DESCRIPTION_LABEL = "descriptionLabel";
     private static final String ID_PARENT = "parent";
     private static final String ID_OPERATION_RESULT_PANEL = "operationResultPanel";
+    private static final String ID_SUSPEND = "suspend";
+    private static final String ID_RESUME = "resume";
 
     private IModel<TaskDto> model;
 	private static boolean edit = false;
@@ -694,6 +695,38 @@ public class PageTaskEdit extends PageAdminTasks {
 			}
 		});
 		mainForm.add(editButton);
+
+        AjaxButton suspend = new AjaxButton(ID_SUSPEND, createStringResource("pageTaskEdit.button.suspend")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                suspendPerformed(target);
+            }
+        };
+        suspend.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return isRunning();
+            }
+        });
+        mainForm.add(suspend);
+
+        AjaxButton resume = new AjaxButton(ID_RESUME, createStringResource("pageTaskEdit.button.resume")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                resumePerformed(target);
+            }
+        };
+        resume.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return !isRunning();
+            }
+        });
+        mainForm.add(resume);
 	}
 
 	private List<IColumn<OperationResult, String>> initResultColumns() {
@@ -786,6 +819,37 @@ public class PageTaskEdit extends PageAdminTasks {
         existingTask.setThreadStopAction(tsa);
 		return existingTask;
 	}
+
+    private void suspendPerformed(AjaxRequestTarget target) {
+        String oid = model.getObject().getOid();
+        if (StringUtils.isEmpty(oid)) {
+            target.add(getFeedbackPanel());
+            return;
+        }
+
+//        OperationResult result = new OperationResult(OPERATION_SUSPEND_TASKS);
+//        try {
+//
+//            boolean suspended = getTaskService().suspendTasks(Collections.singleton(oid),
+//                    PageTasks.WAIT_FOR_TASK_STOP, result);
+//
+//            result.computeStatus();
+//            if (result.isSuccess()) {
+//                if (suspended) {
+//                    result.recordStatus(OperationResultStatus.SUCCESS, "The task(s) have been successfully suspended.");
+//                } else {
+//                    result.recordWarning("Task(s) suspension has been successfully requested; please check for its completion using task list.");
+//                }
+//            }
+//        } catch (RuntimeException e) {
+//            result.recordFatalError("Couldn't suspend the task(s) due to an unexpected exception", e);
+//        }
+//        showResult(result);
+    }
+
+    private void resumePerformed(AjaxRequestTarget target) {
+
+    }
 
 	private static class EmptyOnBlurAjaxFormUpdatingBehaviour extends AjaxFormComponentUpdatingBehavior {
 
