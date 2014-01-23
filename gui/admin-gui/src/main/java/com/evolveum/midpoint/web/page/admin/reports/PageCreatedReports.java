@@ -100,16 +100,18 @@ public class PageCreatedReports extends PageAdminReports {
         filterModel = new LoadableModel<ReportOutputDto>() {
             @Override
             protected ReportOutputDto load() {
-                return loadReportFilterDto();
+                ReportsStorage storage = getSessionStorage().getReports();
+                ReportOutputDto dto = storage.getReportsSearch();
+
+                if(dto == null){
+                    dto = new ReportOutputDto();
+                }
+
+                return dto;
             }
         };
 
         initLayout();
-    }
-
-    private ReportOutputDto loadReportFilterDto(){
-        ReportOutputDto dto = new ReportOutputDto();
-        return dto;
     }
 
     @Override
