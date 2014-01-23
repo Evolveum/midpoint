@@ -45,6 +45,7 @@ import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.resources.component.ContentPanel;
@@ -108,6 +109,22 @@ public class PageResources extends PageAdminResources {
     private IModel<ResourceSearchDto> searchModel;
 
     public PageResources() {
+
+        searchModel = new LoadableModel<ResourceSearchDto>() {
+
+            @Override
+            protected ResourceSearchDto load() {
+                ResourcesStorage storage = getSessionStorage().getResources();
+                ResourceSearchDto dto = storage.getResourceSearch();
+
+                if(dto == null){
+                    dto = new ResourceSearchDto();
+                }
+
+                return dto;
+            }
+        };
+
         initLayout();
     }
 
