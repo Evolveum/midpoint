@@ -248,10 +248,20 @@ public class DebugUtil {
 	}
 
 	public static <K, V> void debugDumpMapMultiLine(StringBuilder sb, Map<K, V> map, int indent) {
+		debugDumpMapMultiLine(sb, map, indent, false);
+	}
+	
+	public static <K, V> void debugDumpMapMultiLine(StringBuilder sb, Map<K, V> map, int indent, boolean openCloseSymbols) {
+		int inindent = indent;
+		if (openCloseSymbols) {
+			indentDebugDump(sb,indent);
+			sb.append("(\n");
+			inindent++;
+		}
 		Iterator<Entry<K, V>> i = map.entrySet().iterator();
 		while (i.hasNext()) {
 			Entry<K,V> entry = i.next();
-			indentDebugDump(sb,indent);
+			indentDebugDump(sb,inindent);
 			sb.append(PrettyPrinter.prettyPrint(entry.getKey()));
 			sb.append(" => ");
 			V value = entry.getValue();
@@ -259,13 +269,18 @@ public class DebugUtil {
 				sb.append("null");
 			} else if (value instanceof DebugDumpable) {
 				sb.append("\n");
-				sb.append(((DebugDumpable)value).debugDump(indent+1));
+				sb.append(((DebugDumpable)value).debugDump(inindent+1));
 			} else {
 				sb.append(value);
 			}
 			if (i.hasNext()) {
 				sb.append("\n");
 			}
+		}
+		if (openCloseSymbols) {
+			sb.append("\n");
+			indentDebugDump(sb,indent);
+			sb.append(")");
 		}
 	}
 

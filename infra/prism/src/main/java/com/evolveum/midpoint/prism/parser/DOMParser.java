@@ -32,6 +32,7 @@ import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.ValueParser;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 
 public class DOMParser {
 	
@@ -43,12 +44,12 @@ public class DOMParser {
 	public RootXNode parse(Document document) {
 		Element element = DOMUtil.getFirstChildElement(document);
 		RootXNode root = new RootXNode(DOMUtil.getQName(element));
-		XNode xnode = parse(element);
+		XNode xnode = parseElement(element);
 		root.setSubnode(xnode);
 		return root;
 	}
 
-	public XNode parse(Element element) {
+	public XNode parseElement(Element element) {
 		if (DOMUtil.hasChildElements(element)) {
 			return parseSubElemets(element);
 		} else {
@@ -65,19 +66,27 @@ public class DOMParser {
 			if (childQName.equals(lastElementQName)) {
 				lastElements.add(childElement);
 			} else {
-				if (lastElements != null) {
-					ListXNode xlist = parseElementList(lastElements); 
-					xmap.put(lastElementQName, xlist);
-				}
+				parseElementGroup(xmap, lastElementQName, lastElements);
 				lastElementQName = childQName;
 				lastElements = new ArrayList<Element>();
+				lastElements.add(childElement);
 			}
 		}
-		if (lastElements != null) {
-			ListXNode xlist = parseElementList(lastElements); 
-			xmap.put(lastElementQName, xlist);
-		}
+		parseElementGroup(xmap, lastElementQName, lastElements);
 		return xmap;
+	}
+
+	private void parseElementGroup(MapXNode xmap, QName elementQName, List<Element> elements) {
+		if (elements == null || elements.isEmpty()) {
+			return;
+		}
+		if (elements.size() == 1) {
+			XNode xsub = parseElement(elements.get(0));
+			xmap.put(elementQName, xsub);
+		} else {
+			ListXNode xlist = parseElementList(elements); 
+			xmap.put(elementQName, xlist);
+		}
 	}
 
 	/**
@@ -86,7 +95,7 @@ public class DOMParser {
 	private ListXNode parseElementList(List<Element> elements) {
 		ListXNode xlist = new ListXNode();
 		for (Element element: elements) {
-			XNode xnode = parse(element);
+			XNode xnode = parseElement(element);
 			xlist.add(xnode);
 		}
 		return xlist;
@@ -98,6 +107,10 @@ public class DOMParser {
 			@Override
 			public T parse(PrismPropertyDefinition<T> definition) {
 				return parsePrimitiveElementValue(element, definition);
+			}
+			@Override
+			public String toString() {
+				return "ValueParser(DOM, "+PrettyPrinter.prettyPrint(DOMUtil.getQName(element))+": "+element.getTextContent()+")";
 			}
 		};
 		xnode.setValueParser(valueParser);

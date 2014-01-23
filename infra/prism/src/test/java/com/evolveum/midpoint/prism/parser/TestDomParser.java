@@ -24,6 +24,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Collection;
 
+import javax.xml.namespace.QName;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamReader;
 
@@ -45,6 +46,7 @@ import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.xnode.ListXNode;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
@@ -58,7 +60,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author semancik
  *
  */
-public class TestDOM {
+public class TestDomParser {
 	
 	@BeforeSuite
 	public void setupDebug() throws SchemaException, SAXException, IOException {
@@ -67,8 +69,8 @@ public class TestDOM {
 	}
 	
 	@Test
-    public void testPropertyDeltaMerge01() throws Exception {
-		final String TEST_NAME = "";
+    public void testParseUserToXNode() throws Exception {
+		final String TEST_NAME = "testParseUserToXNode";
 		displayTestTitle(TEST_NAME);
 		
 		// GIVEN
@@ -82,15 +84,26 @@ public class TestDOM {
 		System.out.println(xnode.dump());
 
 		assertTrue("Root node is "+xnode.getClass(), xnode instanceof RootXNode);
-		RootXNode root = (RootXNode)xnode;
-		XNode rootSubnode = root.getSubnode();
-		assertTrue("Root subnode node is "+rootSubnode.getClass(), rootSubnode instanceof MapXNode);
-		MapXNode rootMap = (MapXNode)rootSubnode;
+		RootXNode root = getAssertXNode("root node", xnode, RootXNode.class);
+		MapXNode rootMap = getAssertXNode("root subnode", root.getSubnode(), MapXNode.class);
+		PrimitiveXNode<String> xname = getAssertXMapSubnode("root map", rootMap, UserType.F_NAME, PrimitiveXNode.class);
+		// TODO: assert value
 		
-		XNode nameXNode = rootMap.get(UserType.F_NAME);
-		assertTrue("name xnode node is "+nameXNode.getClass(), nameXNode instanceof PrimitiveXNode<?>);
-		// TODO: assert
+		ListXNode xass = getAssertXMapSubnode("root map", rootMap, UserType.F_ASSIGNMENT, ListXNode.class);
+		assertEquals("assignment size", 2, xass.size());
+		// TODO: asserts
 	}
 
-
+	private <X extends XNode> X getAssertXNode(String message, XNode xnode, Class<X> expectedClass) {
+		assertNotNull(message+" is null", xnode);
+		assertTrue(message+", expected "+expectedClass.getSimpleName()+", was "+xnode.getClass().getSimpleName(),
+				expectedClass.isAssignableFrom(xnode.getClass()));
+		return (X) xnode;
+	}
+	
+	private <X extends XNode> X getAssertXMapSubnode(String message, MapXNode xmap, QName key, Class<X> expectedClass) {
+		XNode xsubnode = xmap.get(key);
+		assertNotNull(message+" no key "+key, xsubnode);
+		return getAssertXNode(message+" key "+key, xsubnode, expectedClass);
+	}
 }

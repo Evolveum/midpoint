@@ -17,6 +17,7 @@ package com.evolveum.midpoint.prism.xnode;
 
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 
 public class PrimitiveXNode<T> extends XNode {
 	
@@ -57,11 +58,10 @@ public class PrimitiveXNode<T> extends XNode {
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("V: ");
 		if (value == null) {
 			sb.append("parser ").append(valueParser);
 		} else {
-			sb.append(value);
+			sb.append(PrettyPrinter.prettyPrint(value));
 		}
 		return sb.toString();
 	}
