@@ -270,7 +270,7 @@ public class PrismJasonProcessor {
 		module.addSerializer(QName.class, new QNameSerializer());
 		module.addSerializer(PolyString.class, new PolyStringSerializer());
 //		module.addSerializer(Node.class, new DOMSerializer());
-		module.addSerializer(Element.class, new DOMSerializer());
+//		module.addSerializer(Element.class, new DOMSerializer());
 		
 		JaxbElementSerializer jaxbSerializer = new JaxbElementSerializer();
 		module.addSerializer(JAXBElement.class, jaxbSerializer);
@@ -285,6 +285,7 @@ public class PrismJasonProcessor {
 		mapper.setAnnotationIntrospector(new JaxbAnnotationIntrospector());
 //		mapper.registerModule(jaxbModule);
 //		mapper.configure(com.fasterxml.jackson.c, state)
+//		Feature.
 		mapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
 		mapper.setSerializationInclusion(Include.NON_NULL);
 //		mapper.configure(SerializationFeature.WRITE_NULL_PROPERTIES, false);
@@ -616,14 +617,14 @@ generator.close();
 	    	ObjectMapper mapper = new ObjectMapper();
 	    	SimpleModule module = new SimpleModule("asd", new Version(0, 0, 0, "vvv"));
 	    	module.addDeserializer(QName.class, new QNameDeserializer());
-//	    	module.addDeserializer(Element.class, new DomElementJsonDeserializer());
+	    	module.addDeserializer(Element.class, new DomElementJsonDeserializer());
 //	    	module.addDeserializer(, deser)
 	    	JaxbElementDeserializer jaxbDeserializer = new JaxbElementDeserializer();
 	    	jaxbDeserializer.setExpectedClass(expectedJavaType);
 	    	jaxbDeserializer.setNode(valueElement);
 	    	jaxbDeserializer.setPrismSchema(prismSchema);
 	    	module.addDeserializer(JAXBElement.class, jaxbDeserializer);
-	    	module.addDeserializer(Element.class, new DOMDeserializer());
+//	    	module.addDeserializer(Element.class, new DOMDeserializer());
 	    	mapper.setAnnotationIntrospector(new JaxbAnnotationIntrospector());
 	    	mapper.registerModule(module);
 //	    	JaxbAnnotationModule jaxbModule = new JaxbAnnotationModule();
