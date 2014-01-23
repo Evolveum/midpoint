@@ -28,7 +28,10 @@ import javax.xml.namespace.QName;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamReader;
 
+import com.evolveum.midpoint.prism.Objectable;
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismInternalTestUtil;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectReferenceType;
 
@@ -91,6 +94,31 @@ public class TestDomParser {
 		
 		ListXNode xass = getAssertXMapSubnode("root map", rootMap, UserType.F_ASSIGNMENT, ListXNode.class);
 		assertEquals("assignment size", 2, xass.size());
+		// TODO: asserts
+		
+		MapXNode xextension = getAssertXMapSubnode("root map", rootMap, UserType.F_EXTENSION, MapXNode.class);
+		
+	}
+
+	@Test
+    public void testParseUserToPrism() throws Exception {
+		final String TEST_NAME = "testParseUserToPrism";
+		displayTestTitle(TEST_NAME);
+		
+		// GIVEN
+		DOMParser parser = new DOMParser();
+		XNodeProcessor processor = new XNodeProcessor();
+		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		processor.setPrismContext(prismContext);
+		
+		XNode xnode = parser.parse(USER_JACK_FILE);
+		
+		// WHEN
+		PrismObject<UserType> user = processor.parseObject(xnode);
+		
+		// THEN
+		System.out.println("Parsed user:");
+		System.out.println(user.dump());
 		// TODO: asserts
 	}
 

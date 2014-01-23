@@ -15,10 +15,12 @@
  */
 package com.evolveum.midpoint.prism.xnode;
 
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 public interface ValueParser<T> {
 
-	T parse(PrismPropertyDefinition<T> definition);
+	T parse(QName typeName) throws SchemaException;
 	
 }

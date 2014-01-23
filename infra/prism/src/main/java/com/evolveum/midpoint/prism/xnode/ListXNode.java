@@ -145,8 +145,13 @@ public class ListXNode extends XNode implements List<XNode> {
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
-		DebugUtil.debugDump(sb, (Collection)this, indent, true);
+		DebugUtil.debugDump(sb, (Collection)this, indent, true, dumpSuffix());
 		return sb.toString();
+	}
+
+	@Override
+	public String getDesc() {
+		return "list";
 	}
 
 }

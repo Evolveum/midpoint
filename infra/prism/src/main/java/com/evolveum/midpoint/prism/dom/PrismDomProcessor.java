@@ -54,6 +54,7 @@ import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismUtil;
@@ -856,7 +857,7 @@ public class PrismDomProcessor {
 		}
 		Element filterElement = DOMUtil.getChildElement(element, PrismConstants.ELEMENT_FILTER_LOCAL_NAME);
 		if (filterElement != null) {
-			refVal.setFilter(DOMUtil.getFirstChildElement(filterElement));
+			refVal.setFilter((ObjectFilter) DOMUtil.getFirstChildElement(filterElement));
 		}
 
 		return refVal;
@@ -936,14 +937,14 @@ public class PrismDomProcessor {
 				if (filterElementList != null) {
 					Object firstElement = filterElementList.get(0);
 					if (firstElement instanceof Element) {
-						refVal.setFilter((Element) firstElement);
+						refVal.setFilter((ObjectFilter) firstElement);
 					} else {
 						throw new SchemaException("Unknown type of filter element " + firstElement.getClass());
 					}
 				}
 			} else if (ReflectionUtil.hasJavaProperty(filterType, JAVA_PROPERTY_FILTER)) {
 				Element filterElement = ReflectionUtil.getJavaProperty(filterType, JAVA_PROPERTY_FILTER, Element.class);
-				refVal.setFilter(filterElement);
+				refVal.setFilter((ObjectFilter) filterElement);
 			} else {
 				throw new SchemaException("JAXB bean of type " + referenceObject.getClass().getName()
 						+ " representing prism reference" + " does not contain '" + JAVA_JAXB_PROPERTY_ANY

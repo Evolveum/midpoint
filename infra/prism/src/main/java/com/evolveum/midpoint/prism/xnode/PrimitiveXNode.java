@@ -15,18 +15,21 @@
  */
 package com.evolveum.midpoint.prism.xnode;
 
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class PrimitiveXNode<T> extends XNode {
 	
 	private T value;
 	private ValueParser<T> valueParser;
 	
-	public void parseValue(PrismPropertyDefinition<T> definition) {
+	public void parseValue(QName typeName) throws SchemaException {
 		if (valueParser != null) {
-			value = valueParser.parse(definition);
+			value = valueParser.parse(typeName);
 		}
 	}
 	
@@ -46,6 +49,11 @@ public class PrimitiveXNode<T> extends XNode {
 		this.value = value;
 	}
 	
+	public boolean isParsed() {
+		return value != null;
+	}
+
+	
 	/**
 	 * Returns a value that is correctly string-formatted according
 	 * to its type definition. Works properly only if definition is set.
@@ -63,7 +71,16 @@ public class PrimitiveXNode<T> extends XNode {
 		} else {
 			sb.append(PrettyPrinter.prettyPrint(value));
 		}
+		String dumpSuffix = dumpSuffix();
+		if (dumpSuffix != null) {
+			sb.append(dumpSuffix);
+		}
 		return sb.toString();
+	}
+	
+	@Override
+	public String getDesc() {
+		return "primitive";
 	}
 
 }

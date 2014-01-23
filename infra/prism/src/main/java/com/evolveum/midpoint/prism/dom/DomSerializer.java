@@ -339,7 +339,7 @@ public class DomSerializer {
 			Document doc = element.getOwnerDocument();
 			Element filterElement = doc.createElementNS(namespace, PrismConstants.ELEMENT_FILTER_LOCAL_NAME);
 			element.appendChild(filterElement);
-			Element adoptedElement = (Element)doc.adoptNode(value.getFilter().cloneNode(true));
+			Element adoptedElement = (Element) doc.adoptNode(((Element) value.getFilter()).cloneNode(true));
 			filterElement.appendChild(adoptedElement);
 		}
 		

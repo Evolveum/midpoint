@@ -17,6 +17,8 @@ package com.evolveum.midpoint.prism.xnode;
 
 import java.io.File;
 
+import javax.xml.namespace.QName;
+
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
@@ -27,6 +29,14 @@ import com.evolveum.midpoint.util.Dumpable;
  */
 public abstract class XNode implements Dumpable, DebugDumpable {
 	
+	public static final QName KEY_OID = new QName(null, "oid");
+	public static final QName KEY_VERSION = new QName(null, "version");
+	public static final QName KEY_CONTAINER_ID = new QName(null, "id");
+	public static final QName KEY_REFERENCE_TYPE = new QName(null, "type");
+	public static final QName KEY_REFERENCE_RELATION = new QName(null, "relation");
+	public static final QName KEY_REFERENCE_DESCRIPTION = new QName(null, "description");
+	public static final QName KEY_REFERENCE_FILTER = new QName(null, "filter");
+
 	// Common fields
 	private XNode parent;
 
@@ -35,8 +45,58 @@ public abstract class XNode implements Dumpable, DebugDumpable {
 	private String originDescription;
 	private int lineNumber;
 	
-	// These are used for serialization
-	private ItemDefinition definition;
+	// These may be deteceted in parsed file and
+	// are also used for serialization
+	private QName typeQName;
+	private Integer maxOccurs;
+
+	public XNode getParent() {
+		return parent;
+	}
+
+	public void setParent(XNode parent) {
+		this.parent = parent;
+	}
+
+	public File getOriginFile() {
+		return originFile;
+	}
+
+	public void setOriginFile(File originFile) {
+		this.originFile = originFile;
+	}
+
+	public String getOriginDescription() {
+		return originDescription;
+	}
+
+	public void setOriginDescription(String originDescription) {
+		this.originDescription = originDescription;
+	}
+
+	public int getLineNumber() {
+		return lineNumber;
+	}
+
+	public void setLineNumber(int lineNumber) {
+		this.lineNumber = lineNumber;
+	}
+
+	public QName getTypeQName() {
+		return typeQName;
+	}
+
+	public void setTypeQName(QName typeQName) {
+		this.typeQName = typeQName;
+	}
+
+	public Integer getMaxOccurs() {
+		return maxOccurs;
+	}
+
+	public void setMaxOccurs(Integer maxOccurs) {
+		this.maxOccurs = maxOccurs;
+	}
 
 	@Override
 	public String debugDump() {
@@ -48,4 +108,16 @@ public abstract class XNode implements Dumpable, DebugDumpable {
 		return debugDump();
 	}
 	
+	public abstract String getDesc();
+	
+	protected String dumpSuffix() {
+		StringBuilder sb = new StringBuilder();
+		if (typeQName != null) {
+			sb.append(" type=").append(typeQName);
+		}
+		if (maxOccurs != null) {
+			sb.append(" maxOccurs=").append(maxOccurs);
+		}
+		return sb.toString();
+	}
 }

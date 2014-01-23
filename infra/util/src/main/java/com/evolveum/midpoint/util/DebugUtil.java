@@ -62,6 +62,10 @@ public class DebugUtil {
 	}
 	
 	public static void debugDump(StringBuilder sb, Collection<?> dumpables, int indent, boolean openCloseSymbols) {
+		debugDump(sb, dumpables, indent, openCloseSymbols, null);
+	}
+	
+	public static void debugDump(StringBuilder sb, Collection<?> dumpables, int indent, boolean openCloseSymbols, String dumpSuffix) {
         if (dumpables == null) {
             return;
         }
@@ -69,6 +73,9 @@ public class DebugUtil {
 		if (openCloseSymbols) {
 			indentDebugDump(sb, indent);
 			sb.append(getCollectionOpeningSymbol(dumpables));
+			if (dumpSuffix != null) {
+				sb.append(dumpSuffix);
+			}
 			sb.append("\n");
 		}
 		Iterator<?> iterator = dumpables.iterator();
@@ -252,10 +259,18 @@ public class DebugUtil {
 	}
 	
 	public static <K, V> void debugDumpMapMultiLine(StringBuilder sb, Map<K, V> map, int indent, boolean openCloseSymbols) {
+		debugDumpMapMultiLine(sb, map, indent, openCloseSymbols, null);
+	}
+	
+	public static <K, V> void debugDumpMapMultiLine(StringBuilder sb, Map<K, V> map, int indent, boolean openCloseSymbols, String dumpSuffix) {
 		int inindent = indent;
 		if (openCloseSymbols) {
 			indentDebugDump(sb,indent);
-			sb.append("(\n");
+			sb.append("(");
+			if (dumpSuffix != null) {
+				sb.append(dumpSuffix);
+			}
+			sb.append("\n");
 			inindent++;
 		}
 		Iterator<Entry<K, V>> i = map.entrySet().iterator();

@@ -75,4 +75,21 @@ public class QNameUtil {
 	public static boolean compareQName(QName qname, Node node) {
 		return (qname.getNamespaceURI().equals(node.getNamespaceURI()) && qname.getLocalPart().equals(node.getLocalName()));
 	}
+
+	/**
+	 * Matching with considering wildcard namespace (null).
+	 */
+	public static boolean match(QName a, QName b) {
+		if (a == null && b == null) {
+			return true;
+		}
+		if (a == null || b == null) {
+			return false;
+		}
+		if (a.getNamespaceURI() == null || b.getNamespaceURI() == null) {
+			return a.getLocalPart().equals(b.getLocalPart());
+		} else {
+			return a.equals(b);
+		}
+	}
 }

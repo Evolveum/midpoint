@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.dom.ElementPrismReferenceImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -46,7 +47,7 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
     private QName targetType = null;
     private QName relation = null;
     private String description = null;
-    private Element filter = null;
+    private ObjectFilter filter = null;
     
     public PrismReferenceValue() {
         this(null,null,null);
@@ -144,11 +145,11 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
 		this.description = description;
 	}
 
-	public Element getFilter() {
+	public ObjectFilter getFilter() {
 		return filter;
 	}
 
-	public void setFilter(Element filter) {
+	public void setFilter(ObjectFilter filter) {
 		this.filter = filter;
 	}
 	

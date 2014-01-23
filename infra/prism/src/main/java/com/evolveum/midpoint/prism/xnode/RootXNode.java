@@ -58,6 +58,10 @@ public class RootXNode extends XNode {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, indent);
 		sb.append("ROOT ").append(rootElementName);
+		String dumpSuffix = dumpSuffix();
+		if (dumpSuffix != null) {
+			sb.append(dumpSuffix);
+		}
 		if (subnode == null) {
 			sb.append(": null");
 		} else {
@@ -67,4 +71,8 @@ public class RootXNode extends XNode {
 		return sb.toString();
 	}
 	
+	@Override
+	public String getDesc() {
+		return "root";
+	}
 }

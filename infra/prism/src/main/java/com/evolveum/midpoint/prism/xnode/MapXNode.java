@@ -88,8 +88,12 @@ public class MapXNode extends XNode implements Map<QName,XNode> {
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
-		DebugUtil.debugDumpMapMultiLine(sb, this, indent, true);
+		DebugUtil.debugDumpMapMultiLine(sb, this, indent, true, dumpSuffix());
 		return sb.toString();
 	}
 
+	@Override
+	public String getDesc() {
+		return "map";
+	}
 }

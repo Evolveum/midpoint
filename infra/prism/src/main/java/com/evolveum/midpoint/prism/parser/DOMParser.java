@@ -21,10 +21,14 @@ import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.util.PrismUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xnode.ListXNode;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
@@ -33,23 +37,58 @@ import com.evolveum.midpoint.prism.xnode.ValueParser;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class DOMParser {
 	
-	public XNode parse(File file) {
+	public XNode parse(File file) throws SchemaException {
 		Document document = DOMUtil.parseFile(file);
 		return parse(document);
 	}
 	
-	public RootXNode parse(Document document) {
-		Element element = DOMUtil.getFirstChildElement(document);
-		RootXNode root = new RootXNode(DOMUtil.getQName(element));
-		XNode xnode = parseElement(element);
-		root.setSubnode(xnode);
-		return root;
+	public RootXNode parse(Document document) throws SchemaException {
+		Element rootElement = DOMUtil.getFirstChildElement(document);
+		RootXNode xroot = new RootXNode(DOMUtil.getQName(rootElement));
+		extractCommonMetadata(rootElement, xroot);
+		XNode xnode = parseElement(rootElement);
+		xroot.setSubnode(xnode);
+		return xroot;
+	}
+	
+	private void extractCommonMetadata(Element element, XNode xnode) throws SchemaException {
+		QName xsiType = DOMUtil.resolveXsiType(element);
+		if (xsiType != null) {
+			xnode.setTypeQName(xsiType);
+		}
+
+		String maxOccursString = element.getAttributeNS(
+				PrismConstants.A_MAX_OCCURS.getNamespaceURI(),
+				PrismConstants.A_MAX_OCCURS.getLocalPart());
+		if (!StringUtils.isBlank(maxOccursString)) {
+			int maxOccurs = parseMultiplicity(maxOccursString, element);
+			xnode.setMaxOccurs(maxOccurs);
+		}
+	}
+	
+	private int parseMultiplicity(String maxOccursString, Element element) throws SchemaException {
+		if (PrismConstants.MULTIPLICITY_UNBONUNDED.equals(maxOccursString)) {
+			return -1;
+		}
+		if (maxOccursString.startsWith("-")) {
+			return -1;
+		}
+		if (StringUtils.isNumeric(maxOccursString)) {
+			return Integer.valueOf(maxOccursString);
+		} else {
+			throw new SchemaException("Expecetd numeric value for " + PrismConstants.A_MAX_OCCURS.getLocalPart()
+					+ " attribute on " + DOMUtil.getQName(element) + " but got " + maxOccursString);
+		}
 	}
 
-	public XNode parseElement(Element element) {
+	public XNode parseElement(Element element) throws SchemaException {
+		if (DOMUtil.isNil(element)) {
+			return null;
+		}
 		if (DOMUtil.hasChildElements(element)) {
 			return parseSubElemets(element);
 		} else {
@@ -57,8 +96,9 @@ public class DOMParser {
 		}
 	}
 
-	private MapXNode parseSubElemets(Element element) {
+	private MapXNode parseSubElemets(Element element) throws SchemaException {
 		MapXNode xmap = new MapXNode();
+		extractCommonMetadata(element, xmap);
 		QName lastElementQName = null;
 		List<Element> lastElements = null;
 		for (Element childElement: DOMUtil.listChildElements(element)) {
@@ -76,7 +116,7 @@ public class DOMParser {
 		return xmap;
 	}
 
-	private void parseElementGroup(MapXNode xmap, QName elementQName, List<Element> elements) {
+	private void parseElementGroup(MapXNode xmap, QName elementQName, List<Element> elements) throws SchemaException {
 		if (elements == null || elements.isEmpty()) {
 			return;
 		}
@@ -92,7 +132,7 @@ public class DOMParser {
 	/**
 	 * Parses elements that all have the same element name. 
 	 */
-	private ListXNode parseElementList(List<Element> elements) {
+	private ListXNode parseElementList(List<Element> elements) throws SchemaException {
 		ListXNode xlist = new ListXNode();
 		for (Element element: elements) {
 			XNode xnode = parseElement(element);
@@ -101,12 +141,13 @@ public class DOMParser {
 		return xlist;
 	}
 
-	private <T> PrimitiveXNode<T> parsePrimitiveElement(final Element element) {
+	private <T> PrimitiveXNode<T> parsePrimitiveElement(final Element element) throws SchemaException {
 		PrimitiveXNode<T> xnode = new PrimitiveXNode<T>();
+		extractCommonMetadata(element, xnode);
 		ValueParser<T> valueParser = new ValueParser<T>() {
 			@Override
-			public T parse(PrismPropertyDefinition<T> definition) {
-				return parsePrimitiveElementValue(element, definition);
+			public T parse(QName typeName) throws SchemaException {
+				return parsePrimitiveElementValue(element, typeName);
 			}
 			@Override
 			public String toString() {
@@ -117,8 +158,12 @@ public class DOMParser {
 		return xnode;
 	}
 	
-	private <T> T parsePrimitiveElementValue(Element element, PrismPropertyDefinition<T> definition) {
-		return null;
+	private <T> T parsePrimitiveElementValue(Element element, QName typeName) throws SchemaException {
+		if (XmlTypeConverter.canConvert(typeName)) {
+			return (T) XmlTypeConverter.toJavaValue(element, typeName);
+		} else {
+			throw new SchemaException("Cannot convert '"+element+"' to "+typeName);
+		}
 	}
 	
 }
