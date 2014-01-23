@@ -229,5 +229,9 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 		visitable.accept(visitor, path, recursive);
 		assertEquals("Wrong number of visits for path "+path, expectedVisits, visits.size());
 	}
+	
+	public static void displayTestTitle(String testName) {
+		System.out.println("\n\n===[ "+testName+" ]===\n");
+	}
 
 }
