@@ -114,10 +114,14 @@ public class QueryConvertor {
 
 		ObjectFilter filter = query.getFilter();
 		try{
-		Document doc = DOMUtil.getDocument();
-		Element filterType = createFilterType(filter, doc, prismContext);
-		QueryType queryType = new QueryType();
-		queryType.setFilter(filterType);
+			QueryType queryType = new QueryType();
+			Document doc = DOMUtil.getDocument();
+			if (filter != null){
+				Element filterType = createFilterType(filter, doc, prismContext);
+				queryType.setFilter(filterType);
+			}
+		
+		
 		queryType.setPaging(PagingConvertor.createPagingType(query.getPaging()));
 		queryType.setCondition(query.getCondition());
 		return queryType;
