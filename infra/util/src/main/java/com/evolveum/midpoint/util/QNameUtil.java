@@ -16,7 +16,11 @@
 
 package com.evolveum.midpoint.util;
 
+import java.util.Arrays;
+import java.util.Collection;
+
 import javax.xml.namespace.QName;
+
 import org.w3c.dom.Node;
 
 /**
@@ -91,5 +95,21 @@ public class QNameUtil {
 		} else {
 			return a.equals(b);
 		}
+	}
+	
+	public static boolean matchAny(QName a, Collection<QName> col) {
+		if (col == null) {
+			return false;
+		}
+		for (QName b: col) {
+			if (match(a, b)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public static Collection<QName> createCollection(QName... qnames) {
+		return Arrays.asList(qnames);
 	}
 }

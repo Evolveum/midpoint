@@ -22,6 +22,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
+import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -89,7 +90,7 @@ public class DOMParser {
 		if (DOMUtil.isNil(element)) {
 			return null;
 		}
-		if (DOMUtil.hasChildElements(element)) {
+		if (DOMUtil.hasChildElements(element) || DOMUtil.hasApplicationAttributes(element)) {
 			return parseSubElemets(element);
 		} else {
 			return parsePrimitiveElement(element);
@@ -99,6 +100,8 @@ public class DOMParser {
 	private MapXNode parseSubElemets(Element element) throws SchemaException {
 		MapXNode xmap = new MapXNode();
 		extractCommonMetadata(element, xmap);
+		
+		// Subelements
 		QName lastElementQName = null;
 		List<Element> lastElements = null;
 		for (Element childElement: DOMUtil.listChildElements(element)) {
@@ -113,9 +116,17 @@ public class DOMParser {
 			}
 		}
 		parseElementGroup(xmap, lastElementQName, lastElements);
+		
+		// Attributes
+		for (Attr attr: DOMUtil.listApplicationAttributes(element)) {
+			QName attrQName = DOMUtil.getQName(attr);
+			XNode subnode = parseAttributeValue(attr);
+			xmap.put(attrQName, subnode);
+		}
+		
 		return xmap;
 	}
-
+	
 	private void parseElementGroup(MapXNode xmap, QName elementQName, List<Element> elements) throws SchemaException {
 		if (elements == null || elements.isEmpty()) {
 			return;
@@ -151,19 +162,47 @@ public class DOMParser {
 			}
 			@Override
 			public String toString() {
-				return "ValueParser(DOM, "+PrettyPrinter.prettyPrint(DOMUtil.getQName(element))+": "+element.getTextContent()+")";
+				return "ValueParser(DOMe, "+PrettyPrinter.prettyPrint(DOMUtil.getQName(element))+": "+element.getTextContent()+")";
 			}
 		};
 		xnode.setValueParser(valueParser);
 		return xnode;
 	}
-	
+		
 	private <T> T parsePrimitiveElementValue(Element element, QName typeName) throws SchemaException {
 		if (XmlTypeConverter.canConvert(typeName)) {
 			return (T) XmlTypeConverter.toJavaValue(element, typeName);
 		} else {
-			throw new SchemaException("Cannot convert '"+element+"' to "+typeName);
+			throw new SchemaException("Cannot convert element '"+element+"' to "+typeName);
 		}
 	}
 	
+	private <T> PrimitiveXNode<T> parseAttributeValue(final Attr attr) {
+		PrimitiveXNode<T> xnode = new PrimitiveXNode<T>();
+		ValueParser<T> valueParser = new ValueParser<T>() {
+			@Override
+			public T parse(QName typeName) throws SchemaException {
+				return parsePrimitiveAttrValue(attr, typeName);
+			}
+			@Override
+			public String toString() {
+				return "ValueParser(DOMa, "+PrettyPrinter.prettyPrint(DOMUtil.getQName(attr))+": "+attr.getTextContent()+")";
+			}
+		};
+		xnode.setValueParser(valueParser);
+		return xnode;
+	}
+
+	private <T> T parsePrimitiveAttrValue(Attr attr, QName typeName) throws SchemaException {
+		if (DOMUtil.XSD_QNAME.equals(typeName)) {
+			return (T) DOMUtil.getQNameValue(attr);
+		}
+		if (XmlTypeConverter.canConvert(typeName)) {
+			String stringValue = attr.getTextContent();
+			return XmlTypeConverter.toJavaValue(stringValue, typeName);
+		} else {
+			throw new SchemaException("Cannot convert attribute '"+attr+"' to "+typeName);
+		}
+	}
+
 }
