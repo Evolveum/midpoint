@@ -37,7 +37,6 @@ import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceController;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceObjectTypeDto;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceStatus;
-import com.evolveum.midpoint.web.page.admin.roles.PageAdminRoles;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import org.apache.commons.lang.StringUtils;
@@ -51,15 +50,12 @@ import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvid
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.request.resource.PackageResourceReference;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -78,6 +74,7 @@ public class PageResource extends PageAdminResources {
     private static final String DOT_CLASS = PageResource.class.getName() + ".";
     private static final String OPERATION_IMPORT_FROM_RESOURCE = DOT_CLASS + "importFromResource";
     private static final String TEST_CONNECTION = DOT_CLASS + "testConnection";
+    private static final String ID_BUTTON_DELETE_TOKEN = "deleteSyncToken";
 
     private IModel<ResourceDto> model;
 
@@ -300,6 +297,14 @@ public class PageResource extends PageAdminResources {
             }
         };
         mainForm.add(link);
+
+        AjaxButton deleteToken = new AjaxButton(ID_BUTTON_DELETE_TOKEN, createStringResource("pageResource.deleteSyncToken")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                deleteSyncTokenPerformed(target, model);
+            }
+        };
+        mainForm.add(deleteToken);
     }
 
     private void testConnectionPerformed(AjaxRequestTarget target) {

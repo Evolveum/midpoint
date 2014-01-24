@@ -74,8 +74,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.request.resource.PackageResourceReference;
-import org.apache.wicket.request.resource.ResourceReference;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -217,6 +215,16 @@ public class PageResources extends PageAdminResources {
                         ResourceDto rowDto = getRowModel().getObject();
                         deleteResourcePerformed(target, rowDto);
                     }
+                }));
+
+        dto.getMenuItems().add(new InlineMenuItem(createStringResource("pageResources.inlineMenuItem.deleteSyncToken"),
+                new ColumnMenuAction<ResourceDto>(){
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target){
+                        deleteResourceSyncTokenPerformed(target, getRowModel());
+                    }
+
                 }));
 
         return dto;
@@ -615,5 +623,9 @@ public class PageResources extends PageAdminResources {
         panel.setCurrentPage(storage.getResourcePaging());
 
         target.add(panel);
+    }
+
+    private void deleteResourceSyncTokenPerformed(AjaxRequestTarget target, IModel<ResourceDto> model){
+        deleteSyncTokenPerformed(target, model);
     }
 }
