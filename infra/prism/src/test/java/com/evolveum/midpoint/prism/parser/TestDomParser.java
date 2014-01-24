@@ -106,6 +106,5 @@ public class TestDomParser extends AbstractParserTest {
 		// TODO: asserts
 		
 		MapXNode xextension = getAssertXMapSubnode("root map", rootMap, UserType.F_EXTENSION, MapXNode.class);
-		
 	}
 }

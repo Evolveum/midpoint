@@ -221,7 +221,7 @@ public final class JAXBUtil {
 		return null;
 	}
 
-	public static Class findClassForType(QName typeName, Package pkg) {
+	public static <T> Class<T> findClassForType(QName typeName, Package pkg) {
 		XmlSchema xmlSchemaAnnotation = pkg.getAnnotation(XmlSchema.class);
 		String namespace = xmlSchemaAnnotation.namespace();
 		if (namespace == null) {

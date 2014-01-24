@@ -15,19 +15,24 @@
  */
 package com.evolveum.midpoint.prism.xnode;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 
 public class MapXNode extends XNode implements Map<QName,XNode> {
 	
-	// TODO: change hashmap to something that maintains order
-	private Map<QName,XNode> subnodes = new HashMap<QName, XNode>();
+	// We want to maintain ordering, hence the List
+	private List<Entry> subnodes = new ArrayList<Entry>();
 
 	public int size() {
 		return subnodes.size();
@@ -38,27 +43,47 @@ public class MapXNode extends XNode implements Map<QName,XNode> {
 	}
 
 	public boolean containsKey(Object key) {
-		return subnodes.containsKey(key);
+		if (!(key instanceof QName)) {
+			throw new IllegalArgumentException("Key must be QName, but it is "+key);
+		}
+		return findEntry((QName)key) != null;
 	}
 
 	public boolean containsValue(Object value) {
-		return subnodes.containsValue(value);
+		if (!(value instanceof XNode)) {
+			throw new IllegalArgumentException("Value must be XNode, but it is "+value);
+		}
+		return findEntry((XNode)value) != null;
 	}
 
 	public XNode get(Object key) {
-		return subnodes.get(key);
+		if (!(key instanceof QName)) {
+			throw new IllegalArgumentException("Key must be QName, but it is "+key);
+		}
+		Entry entry = findEntry((QName)key);
+		if (entry == null) {
+			return null;
+		}
+		return entry.getValue();
 	}
 
 	public XNode put(QName key, XNode value) {
-		return subnodes.put(key, value);
+		removeEntry(key);
+		subnodes.add(new Entry(key, value));
+		return value;
 	}
 
 	public XNode remove(Object key) {
-		return subnodes.remove(key);
+		if (!(key instanceof QName)) {
+			throw new IllegalArgumentException("Key must be QName, but it is "+key);
+		}
+		return removeEntry((QName)key);
 	}
 
 	public void putAll(Map<? extends QName, ? extends XNode> m) {
-		subnodes.putAll(m);
+		for (Map.Entry<?, ?> entry: m.entrySet()) {
+			put((QName)entry.getKey(), (XNode)entry.getValue());
+		}
 	}
 
 	public void clear() {
@@ -66,15 +91,27 @@ public class MapXNode extends XNode implements Map<QName,XNode> {
 	}
 
 	public Set<QName> keySet() {
-		return subnodes.keySet();
+		Set<QName> keySet = new HashSet<QName>();
+		for (Entry entry: subnodes) {
+			keySet.add(entry.getKey());
+		}
+		return keySet;
 	}
 
 	public Collection<XNode> values() {
-		return subnodes.values();
+		Collection<XNode> values = new ArrayList<XNode>(subnodes.size());
+		for (Entry entry: subnodes) {
+			values.add(entry.getValue());
+		}
+		return values;
 	}
 
 	public Set<java.util.Map.Entry<QName, XNode>> entrySet() {
-		return subnodes.entrySet();
+		Set<java.util.Map.Entry<QName, XNode>> entries = new HashSet<Map.Entry<QName,XNode>>();
+		for (Entry entry: subnodes) {
+			entries.add(entry);
+		}
+		return entries;
 	}
 
 	public boolean equals(Object o) {
@@ -100,5 +137,69 @@ public class MapXNode extends XNode implements Map<QName,XNode> {
 	@Override
 	public String toString() {
 		return "XNode(map:"+subnodes.size()+" entries)";
+	}
+
+	private Entry findEntry(QName qname) {
+		for (Entry entry: subnodes) {
+			if (QNameUtil.match(qname,entry.getKey())) {
+				return entry;
+			}
+		}
+		return null;
+	}
+
+	private Entry findEntry(XNode xnode) {
+		for (Entry entry: subnodes) {
+			if (entry.getValue().equals(xnode)) {
+				return entry;
+			}
+		}
+		return null;
+	}
+
+	private XNode removeEntry(QName key) {
+		Iterator<Entry> iterator = subnodes.iterator();
+		while (iterator.hasNext()) {
+			Entry entry = iterator.next();
+			if (QNameUtil.match(key,entry.getKey())) {
+				iterator.remove();
+				return entry.getValue();
+			}
+		}
+		return null;
+	}
+	
+	private class Entry implements Map.Entry<QName, XNode> {
+
+		private QName key;
+		private XNode value;
+		
+		public Entry(QName key) {
+			super();
+			this.key = key;
+		}
+
+		public Entry(QName key, XNode value) {
+			super();
+			this.key = key;
+			this.value = value;
+		}
+
+		@Override
+		public QName getKey() {
+			return key;
+		}
+
+		@Override
+		public XNode getValue() {
+			return value;
+		}
+
+		@Override
+		public XNode setValue(XNode value) {
+			this.value = value;
+			return value;
+		}
+		
 	}
 }

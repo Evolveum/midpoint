@@ -21,6 +21,7 @@ import java.util.Collection;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Node;
 
 /**
@@ -90,7 +91,7 @@ public class QNameUtil {
 		if (a == null || b == null) {
 			return false;
 		}
-		if (a.getNamespaceURI() == null || b.getNamespaceURI() == null) {
+		if (StringUtils.isBlank(a.getNamespaceURI()) || StringUtils.isBlank(b.getNamespaceURI())) {
 			return a.getLocalPart().equals(b.getLocalPart());
 		} else {
 			return a.equals(b);
@@ -111,5 +112,9 @@ public class QNameUtil {
 	
 	public static Collection<QName> createCollection(QName... qnames) {
 		return Arrays.asList(qnames);
+	}
+
+	public static QName nullNamespace(QName qname) {
+		return new QName(null, qname.getLocalPart(), qname.getPrefix());
 	}
 }

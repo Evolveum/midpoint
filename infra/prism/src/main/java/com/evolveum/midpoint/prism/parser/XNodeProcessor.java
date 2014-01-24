@@ -131,10 +131,7 @@ public class XNodeProcessor {
 			throw new SchemaException("Expected that field "+key+" will be primitive, but it is "+xnode.getDesc());
 		}
 		PrimitiveXNode<T> xprim = (PrimitiveXNode<T>)xnode;
-		if (!xprim.isParsed()) {
-			xprim.parseValue(typeName);
-		}
-		return xprim.getValue();
+		return xprim.getParsedValue(typeName);
 	}
 	
 	public <C extends Containerable> PrismContainer<C> parsePrismContainer(XNode xnode, QName elementName, 
@@ -144,7 +141,8 @@ public class XNodeProcessor {
 		} else if (xnode instanceof ListXNode) {
 			PrismContainer<C> container = containerDef.instantiate(elementName);
 			for (XNode xsubnode: (ListXNode)xnode) {
-				parsePrismContainerValue(xsubnode, container);
+				PrismContainerValue<C> containerValue = parsePrismContainerValue(xsubnode, container);
+				container.add(containerValue);
 			}
 			return container;
 		} else {
@@ -366,10 +364,26 @@ public class XNodeProcessor {
 	}
 	
 	private <T> T parsePrismPropertyRealValueFromMap(MapXNode xmap, PrismPropertyDefinition<T> propertyDefinition) throws SchemaException {
-		// TODO: polystring
-		return null;
+		QName typeName = propertyDefinition.getTypeName();
+		if (PolyStringType.COMPLEX_TYPE.equals(typeName)) {
+			PolyString polyString = parsePolyString(xmap);
+			return (T) polyString;
+		} else if (prismContext.getBeanConverter().canConvert(typeName)) {
+			return prismContext.getBeanConverter().unmarshall(xmap, typeName);
+		} else {
+			throw new SchemaException("Cannot parse type "+propertyDefinition.getTypeName()+" from "+xmap);
+		}
 	}
 	
+	private PolyString parsePolyString(MapXNode xmap) throws SchemaException {
+		String orig = getValue(xmap, QNameUtil.nullNamespace(PolyString.F_ORIG), DOMUtil.XSD_STRING);
+		if (orig == null) {
+			throw new SchemaException("Null polystring orig in "+xmap);
+		}
+		String norm = getValue(xmap, QNameUtil.nullNamespace(PolyString.F_NORM), DOMUtil.XSD_STRING);
+		return new PolyString(orig, norm);
+	}
+
 	private <T> PrismProperty<T> parsePrismPropertyRaw(XNode xnode, QName itemName)
 			throws SchemaException {
 		if (xnode instanceof ListXNode) {

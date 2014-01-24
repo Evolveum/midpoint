@@ -37,6 +37,13 @@ public class PrimitiveXNode<T> extends XNode {
 		return value;
 	}
 
+	public T getParsedValue(QName typeName) throws SchemaException {
+		if (!isParsed()) {
+			parseValue(typeName);
+		}
+		return value;
+	}
+	
 	public ValueParser<T> getValueParser() {
 		return valueParser;
 	}
