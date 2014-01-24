@@ -96,4 +96,9 @@ public class MapXNode extends XNode implements Map<QName,XNode> {
 	public String getDesc() {
 		return "map";
 	}
+	
+	@Override
+	public String toString() {
+		return "XNode(map:"+subnodes.size()+" entries)";
+	}
 }

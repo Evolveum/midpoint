@@ -75,4 +75,9 @@ public class RootXNode extends XNode {
 	public String getDesc() {
 		return "root";
 	}
+	
+	@Override
+	public String toString() {
+		return "XNode(root:"+subnode+")";
+	}
 }

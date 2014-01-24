@@ -153,5 +153,10 @@ public class ListXNode extends XNode implements List<XNode> {
 	public String getDesc() {
 		return "list";
 	}
+	
+	@Override
+	public String toString() {
+		return "XNode(list:"+subnodes.size()+" elements)";
+	}
 
 }

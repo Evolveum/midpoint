@@ -215,8 +215,18 @@ public class XNodeProcessor {
 	private ItemDefinition resolveDynamicItemDefinition(ItemDefinition parentDefinition, QName elementName,
 			XNode xnode) throws SchemaException {
 		QName typeName = xnode.getTypeQName();
-		// FIXME: now the definition assumes property, may also be property
-		// container?
+		if (typeName == null) {
+			if (xnode instanceof ListXNode) {
+				// there may be type definitions in individual list members
+				for (XNode subnode: ((ListXNode)xnode)) {
+					ItemDefinition subdef = resolveDynamicItemDefinition(parentDefinition, elementName, subnode);
+					// TODO: make this smarter, e.g. detect conflicting type definitions
+					if (subdef != null) {
+						return subdef;
+					}
+				}
+			}
+		}
 		if (typeName == null) {
 			return null;
 		}
@@ -224,6 +234,9 @@ public class XNodeProcessor {
 		Integer maxOccurs = xnode.getMaxOccurs();
 		if (maxOccurs != null) {
 			propDef.setMaxOccurs(maxOccurs);
+		} else {
+			// Make this multivalue by default, this is more "open"
+			propDef.setMaxOccurs(-1);
 		}
 		propDef.setDynamic(true);
 		return propDef;

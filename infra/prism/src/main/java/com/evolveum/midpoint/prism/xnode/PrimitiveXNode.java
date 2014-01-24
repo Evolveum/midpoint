@@ -66,11 +66,7 @@ public class PrimitiveXNode<T> extends XNode {
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, indent);
-		if (value == null) {
-			sb.append("parser ").append(valueParser);
-		} else {
-			sb.append(PrettyPrinter.prettyPrint(value));
-		}
+		valueToString(sb);
 		String dumpSuffix = dumpSuffix();
 		if (dumpSuffix != null) {
 			sb.append(dumpSuffix);
@@ -81,6 +77,22 @@ public class PrimitiveXNode<T> extends XNode {
 	@Override
 	public String getDesc() {
 		return "primitive";
+	}
+	
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder("XNode(primitive:");
+		valueToString(sb);
+		sb.append(")");
+		return sb.toString();
+	}
+
+	private void valueToString(StringBuilder sb) {
+		if (value == null) {
+			sb.append("parser ").append(valueParser);
+		} else {
+			sb.append(PrettyPrinter.prettyPrint(value));
+		}
 	}
 
 }
