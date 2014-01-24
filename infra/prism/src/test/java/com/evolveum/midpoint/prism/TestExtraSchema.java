@@ -114,7 +114,7 @@ public class TestExtraSchema {
 	@Test
 	public void testUserExtensionSchemaParseUser() throws SAXException, IOException, SchemaException {
 		System.out.println("===[ testUserExtensionSchemaParseUser ]===");
-		Document dataDoc = DOMUtil.parseFile(USER_JACK_FILE);
+		Document dataDoc = DOMUtil.parseFile(USER_JACK_FILE_XML);
 		
 		PrismContext context = constructPrismContext();
 		SchemaRegistry reg = context.getSchemaRegistry();

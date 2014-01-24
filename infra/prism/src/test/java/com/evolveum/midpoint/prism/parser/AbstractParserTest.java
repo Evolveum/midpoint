@@ -20,13 +20,12 @@ import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Collection;
 
 import javax.xml.namespace.QName;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamReader;
 
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
@@ -54,7 +53,6 @@ import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -63,49 +61,62 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author semancik
  *
  */
-public class TestDomParser extends AbstractParserTest {
+public abstract class AbstractParserTest {
 	
-	@Override
-	protected String getSubdirName() {
-		return "xml";
+	@BeforeSuite
+	public void setupDebug() throws SchemaException, SAXException, IOException {
+		PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
+		PrismTestUtil.resetPrismContext(new PrismInternalTestUtil());
 	}
-
-	@Override
-	protected String getFilenameSuffix() {
-		return "xml";
+	
+	protected abstract String getSubdirName();
+	
+	protected abstract String getFilenameSuffix();
+	
+	protected File getCommonSubdir() {
+		return new File(COMMON_DIR_PATH, getSubdirName());
 	}
-
-	@Override
-	protected Parser createParser() {
-		return new DOMParser();
+	
+	protected File getFile(String baseName) {
+		return new File(getCommonSubdir(), baseName+"."+getFilenameSuffix());
 	}
+	
+	protected abstract Parser createParser();
+	
 
 	@Test
-    public void testParseUserToXNode() throws Exception {
-		final String TEST_NAME = "testParseUserToXNode";
+    public void testParseUserToPrism() throws Exception {
+		final String TEST_NAME = "testParseUserToPrism";
 		displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		Parser parser = createParser();
+		XNodeProcessor processor = new XNodeProcessor();
+		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		processor.setPrismContext(prismContext);
 		
-		// WHEN
 		XNode xnode = parser.parse(getFile(USER_JACK_FILE_BASENAME));
 		
+		// WHEN
+		PrismObject<UserType> user = processor.parseObject(xnode);
+		
 		// THEN
-		System.out.println("Parsed XNode:");
-		System.out.println(xnode.dump());
-
-		assertTrue("Root node is "+xnode.getClass(), xnode instanceof RootXNode);
-		RootXNode root = getAssertXNode("root node", xnode, RootXNode.class);
-		MapXNode rootMap = getAssertXNode("root subnode", root.getSubnode(), MapXNode.class);
-		PrimitiveXNode<String> xname = getAssertXMapSubnode("root map", rootMap, UserType.F_NAME, PrimitiveXNode.class);
-		// TODO: assert value
-		
-		ListXNode xass = getAssertXMapSubnode("root map", rootMap, UserType.F_ASSIGNMENT, ListXNode.class);
-		assertEquals("assignment size", 2, xass.size());
+		System.out.println("Parsed user:");
+		System.out.println(user.dump());
 		// TODO: asserts
-		
-		MapXNode xextension = getAssertXMapSubnode("root map", rootMap, UserType.F_EXTENSION, MapXNode.class);
-		
+		assertUserJack(user);
+	}
+
+	protected <X extends XNode> X getAssertXNode(String message, XNode xnode, Class<X> expectedClass) {
+		assertNotNull(message+" is null", xnode);
+		assertTrue(message+", expected "+expectedClass.getSimpleName()+", was "+xnode.getClass().getSimpleName(),
+				expectedClass.isAssignableFrom(xnode.getClass()));
+		return (X) xnode;
+	}
+	
+	protected <X extends XNode> X getAssertXMapSubnode(String message, MapXNode xmap, QName key, Class<X> expectedClass) {
+		XNode xsubnode = xmap.get(key);
+		assertNotNull(message+" no key "+key, xsubnode);
+		return getAssertXNode(message+" key "+key, xsubnode, expectedClass);
 	}
 }

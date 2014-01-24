@@ -155,7 +155,8 @@ public class XNodeProcessor {
 	private <C extends Containerable> PrismContainer<C> parsePrismContainerFromMap(MapXNode xmap, QName elementName, 
 			PrismContainerDefinition<C> containerDef, Collection<QName> ignoredItems) throws SchemaException {
 		PrismContainer<C> container = containerDef.instantiate(elementName);
-		parsePrismContainerValueFromMap(xmap, container, ignoredItems);
+		PrismContainerValue<C> cval = parsePrismContainerValueFromMap(xmap, container, ignoredItems);
+		container.add(cval);
 		return container;
 	}
 	
@@ -191,7 +192,9 @@ public class XNodeProcessor {
 				}
 			}
 			Item<?> item = parseItem(xentry.getValue(), itemQName, itemDef);
-			cval.add(item);
+			// Merge must be here, not just add. Some items (e.g. references) have alternative
+			// names and representations and these cannot be processed as one map or list
+			cval.merge(item);
 		}
 		return cval;
 	}

@@ -266,7 +266,7 @@ public class TestFind {
 
 	
 	public PrismObject<UserType> createUser() throws SchemaException, SAXException, IOException {
-		PrismObject<UserType> user = PrismTestUtil.parseObject(USER_JACK_FILE);
+		PrismObject<UserType> user = PrismTestUtil.parseObject(USER_JACK_FILE_XML);
 		return user;
 	}
 

@@ -54,7 +54,7 @@ public class TestDom {
 		System.out.println("===[ testAsDom ]===");
 		
 		// GIVEN
-		Document document = DOMUtil.parseFile(USER_JACK_FILE);
+		Document document = DOMUtil.parseFile(USER_JACK_FILE_XML);
 		Element userElement = DOMUtil.getFirstChildElement(document);
 				
 		PrismContext prismContext = constructInitializedPrismContext();
@@ -79,7 +79,7 @@ public class TestDom {
 		System.out.println("===[ testSerializeToDom ]===");
 		
 		// GIVEN
-		Document document = DOMUtil.parseFile(USER_JACK_FILE);
+		Document document = DOMUtil.parseFile(USER_JACK_FILE_XML);
 		Element userElement = DOMUtil.getFirstChildElement(document);
 				
 		PrismContext prismContext = constructInitializedPrismContext();

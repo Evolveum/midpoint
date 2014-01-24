@@ -265,6 +265,20 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
     }
 
     /**
+     * Merges the provided item into this item. The values are joined together.
+     */
+	public <V extends PrismValue> void merge(Item<V> item) throws SchemaException {
+		Item<V> exisingItem = findItem(item.getElementName(), Item.class);
+		if (exisingItem == null) {
+			add(item);
+		} else {
+			for (V newVal: item.getValues()) {
+				exisingItem.add((V) newVal.clone());
+			}
+		}
+	}
+
+    /**
      * Adds an item to a property container. Existing value will be replaced.
      *
      * @param item item to add.
@@ -1179,4 +1193,5 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
             throw new SystemException("Unexpected SchemaException when copying definition from original object to its clone", e);
         }
     }
+
 }

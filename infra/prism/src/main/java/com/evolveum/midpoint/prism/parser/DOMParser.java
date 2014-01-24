@@ -40,8 +40,9 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-public class DOMParser {
+public class DOMParser implements Parser {
 	
+	@Override
 	public XNode parse(File file) throws SchemaException {
 		Document document = DOMUtil.parseFile(file);
 		return parse(document);

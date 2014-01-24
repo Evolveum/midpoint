@@ -66,7 +66,7 @@ public class TestCompare {
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();
 		
-		Document document = DOMUtil.parseFile(USER_JACK_FILE);
+		Document document = DOMUtil.parseFile(USER_JACK_FILE_XML);
 		Element userElement = DOMUtil.getFirstChildElement(document);
 		
 		PrismObject<UserType> user1 = prismContext.parseObject(userElement);
@@ -96,7 +96,7 @@ public class TestCompare {
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();
 		
-		Document document = DOMUtil.parseFile(USER_JACK_FILE);
+		Document document = DOMUtil.parseFile(USER_JACK_FILE_XML);
 		Element userElement = DOMUtil.getFirstChildElement(document);		
 		PrismObject<UserType> jackOriginal = prismContext.parseObject(userElement);
 		
@@ -152,7 +152,7 @@ public class TestCompare {
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();
 		
-		Document document = DOMUtil.parseFile(USER_JACK_FILE);
+		Document document = DOMUtil.parseFile(USER_JACK_FILE_XML);
 		Element userElement = DOMUtil.getFirstChildElement(document);		
 		PrismObject<UserType> jackOriginal = prismContext.parseObject(userElement);
 		
@@ -195,7 +195,7 @@ public class TestCompare {
 		PrismReferenceValue val23 = new PrismReferenceValue();
 		// No type
 		
-		PrismObject<UserType> user = prismContext.parseObject(USER_JACK_FILE);
+		PrismObject<UserType> user = prismContext.parseObject(USER_JACK_FILE_XML);
 		
 		PrismReferenceValue val31 = new PrismReferenceValue();
 		val31.setObject(user);
