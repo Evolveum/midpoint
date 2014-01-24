@@ -85,7 +85,6 @@ public class PageCreatedReports extends PageAdminReports {
     private static final String ID_CREATED_REPORTS_TABLE = "table";
     private static final String ID_SEARCH_FORM = "searchForm";
     private static final String ID_SEARCH_TEXT = "searchText";
-    private static final String ID_SEARCH_TYPE = "searchType";
     private static final String ID_SEARCH_BUTTON = "searchButton";
     private static final String ID_FILTER_FILE_TYPE = "filetype";
     private static final String ID_CONFIRM_DELETE = "confirmDeletePopup";
@@ -177,24 +176,6 @@ public class PageCreatedReports extends PageAdminReports {
         TextField searchText = new TextField(ID_SEARCH_TEXT, new PropertyModel<String>(filterModel,
                 ReportOutputDto.F_TEXT));
         searchForm.add(searchText);
-
-        IModel<Map<String, String>> options = new Model(null);
-        DropDownMultiChoice searchType = new DropDownMultiChoice<ReportOutputDto.SearchType>(ID_SEARCH_TYPE,
-                new PropertyModel<List<ReportOutputDto.SearchType>>(filterModel, ReportOutputDto.F_TYPE),
-                WebMiscUtil.createReadonlyModelFromEnum(ReportOutputDto.SearchType.class),
-                new IChoiceRenderer<ReportOutputDto.SearchType>() {
-
-                    @Override
-                    public Object getDisplayValue(ReportOutputDto.SearchType object) {
-                        return WebMiscUtil.createLocalizedModelForEnum(object, PageCreatedReports.this).getObject();
-                    }
-
-                    @Override
-                    public String getIdValue(ReportOutputDto.SearchType object, int index) {
-                        return Integer.toString(index);
-                    }
-                }, options);
-        searchForm.add(searchType);
 
         AjaxSubmitButton searchButton = new AjaxSubmitButton(ID_SEARCH_BUTTON,
                 createStringResource("pageCreatedReports.button.searchButton")) {
@@ -484,24 +465,13 @@ public class PageCreatedReports extends PageAdminReports {
         }
 
         try{
-            List<ObjectFilter> filters = new ArrayList<ObjectFilter>();
-
             PolyStringNormalizer normalizer = getPrismContext().getDefaultPolyStringNormalizer();
             String normalizedString = normalizer.normalize(dto.getText());
 
-            if(dto.hasType(ReportOutputDto.SearchType.NAME)){
-                filters.add(SubstringFilter.createSubstring(ReportOutputType.F_NAME, ReportOutputType.class,
-                        getPrismContext(), PolyStringNormMatchingRule.NAME, normalizedString));
-            }
-            //if(dto.hasType(ReportOutputDto.SearchType.AUTHOR)){
-                //TODO - search based on author, get to author of ReportAuthor via ObjectReferenceType in ReportOutputType
-            //}
+            SubstringFilter substring = SubstringFilter.createSubstring(ReportOutputType.F_NAME, ReportOutputType.class,
+                    getPrismContext(), PolyStringNormMatchingRule.NAME, normalizedString);
 
-            if(filters.size() == 1){
-                query = ObjectQuery.createObjectQuery(filters.get(0));
-            } else if(filters.size() > 1){
-                query = ObjectQuery.createObjectQuery(OrFilter.createOr(filters));
-            }
+            query = ObjectQuery.createObjectQuery(substring);
 
         } catch(Exception e){
             error(getString("pageCreatedReports.message.queryError") + " " + e.getMessage());
