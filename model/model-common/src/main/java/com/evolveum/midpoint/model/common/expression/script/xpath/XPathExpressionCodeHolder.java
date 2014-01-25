@@ -22,7 +22,7 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import com.evolveum.midpoint.schema.holder.TrivialXPathParser;
+import com.evolveum.midpoint.prism.parser.TrivialXPathParser;
 
 /**
  * @author Radovan Semancik

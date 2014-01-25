@@ -29,10 +29,10 @@ import org.springframework.util.CollectionUtils;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
+import com.evolveum.midpoint.prism.parser.XPathHolder;
+import com.evolveum.midpoint.prism.parser.XPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.holder.XPathHolder;
-import com.evolveum.midpoint.schema.holder.XPathSegment;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.PropertyReferenceListType;
@@ -57,7 +57,7 @@ public class Utils {
 	}
 
 	public static Element fillPropertyReference(String resolve) {
-		com.evolveum.midpoint.schema.holder.XPathHolder xpath = new com.evolveum.midpoint.schema.holder.XPathHolder(
+		com.evolveum.midpoint.prism.parser.XPathHolder xpath = new com.evolveum.midpoint.prism.parser.XPathHolder(
 				Utils.getPropertyName(resolve));
 		return xpath.toElement(SchemaConstants.NS_C, "property");
 	}

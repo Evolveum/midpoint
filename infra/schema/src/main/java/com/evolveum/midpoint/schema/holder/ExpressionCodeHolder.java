@@ -18,12 +18,15 @@ package com.evolveum.midpoint.schema.holder;
 
 import java.util.HashMap;
 import java.util.Map;
+
 import javax.xml.namespace.QName;
+
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import com.evolveum.midpoint.prism.parser.TrivialXPathParser;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 
 /**

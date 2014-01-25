@@ -515,7 +515,7 @@ public class XNodeProcessor {
 		if (xnode == null) {
 			return null;
 		}
-		return QueryConvertor.parseFilter(xnode);
+		return QueryConvertor.parseFilter(xnode, prismContext);
 	}
 	
 	private String getOid(MapXNode xmap) throws SchemaException {

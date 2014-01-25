@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.schema.holder;
+package com.evolveum.midpoint.prism.parser;
 
 import java.util.HashMap;
 import java.util.Map;

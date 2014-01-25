@@ -28,6 +28,7 @@ import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xnode.ListXNode;
@@ -171,13 +172,15 @@ public class DOMParser implements Parser {
 	}
 		
 	private <T> T parsePrimitiveElementValue(Element element, QName typeName) throws SchemaException {
-		if (XmlTypeConverter.canConvert(typeName)) {
+		if (ItemPath.XSD_TYPE.equals(typeName)) {
+			return (T) parsePath(element);
+		} else if (XmlTypeConverter.canConvert(typeName)) {
 			return (T) XmlTypeConverter.toJavaValue(element, typeName);
 		} else {
 			throw new SchemaException("Cannot convert element '"+element+"' to "+typeName);
 		}
 	}
-	
+
 	private <T> PrimitiveXNode<T> parseAttributeValue(final Attr attr) {
 		PrimitiveXNode<T> xnode = new PrimitiveXNode<T>();
 		ValueParser<T> valueParser = new ValueParser<T>() {
@@ -206,4 +209,8 @@ public class DOMParser implements Parser {
 		}
 	}
 
+	private ItemPath parsePath(Element element) {
+		XPathHolder holder = new XPathHolder(element);
+		return holder.toItemPath();
+	}
 }

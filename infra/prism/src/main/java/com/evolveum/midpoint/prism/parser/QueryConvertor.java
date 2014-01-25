@@ -141,42 +141,43 @@ public class QueryConvertor {
 	/**
 	 * Used by XNodeProcessor and similar code that does not have complete schema for the filter 
 	 */
-	public static ObjectFilter parseFilter(XNode xnode) throws SchemaException {
+	public static ObjectFilter parseFilter(XNode xnode, PrismContext prismContext) throws SchemaException {
 		MapXNode xmap = toMap(xnode);
-		return parseFilter(xmap, null);
+		return parseFilterContainer(xmap, null, prismContext);
 	}
 	
 	public static <O extends Objectable> ObjectFilter parseFilter(MapXNode xmap, PrismObjectDefinition<O> objDef) throws SchemaException {
 		if (xmap == null) {
 			return null;
 		}
-		
-		return parseFilterContainer(xmap, objDef);
+		return parseFilterContainer(xmap, objDef, objDef.getPrismContext());
 	}
 
-	private static <C extends Containerable> ObjectFilter parseFilterContainer(MapXNode xmap, PrismContainerDefinition<C> pcd) throws SchemaException {
+	private static <C extends Containerable> ObjectFilter parseFilterContainer(MapXNode xmap, PrismContainerDefinition<C> pcd,
+			PrismContext prismContext) throws SchemaException {
 		Entry<QName, XNode> entry = singleSubEntry(xmap);
 		QName filterQName = entry.getKey();
-		XNode xsubnode = entry.getValue();		
-		return parseFilterContainer(xsubnode, filterQName, pcd);
+		XNode xsubnode = entry.getValue();
+		return parseFilterContainer(xsubnode, filterQName, pcd, prismContext);
 	}
 
-	private static <C extends Containerable> ObjectFilter parseFilterContainer(XNode xsubnode, QName filterQName, PrismContainerDefinition<C> pcd) throws SchemaException {
+	private static <C extends Containerable> ObjectFilter parseFilterContainer(XNode xsubnode, QName filterQName, 
+			PrismContainerDefinition<C> pcd, PrismContext prismContext) throws SchemaException {
 		
 		if (QNameUtil.match(filterQName, KEY_FILTER_AND)) {
-			return parseAndFilter(xsubnode, pcd);
+			return parseAndFilter(xsubnode, pcd, prismContext);
 		}
 		
 		if (QNameUtil.match(filterQName, KEY_FILTER_OR)) {
-			return parseOrFilter(xsubnode, pcd);
+			return parseOrFilter(xsubnode, pcd, prismContext);
 		}
 		
 		if (QNameUtil.match(filterQName, KEY_FILTER_NOT)) {
-			return parseNotFilter(xsubnode, pcd);
+			return parseNotFilter(xsubnode, pcd, prismContext);
 		}
 		
 		if (QNameUtil.match(filterQName, KEY_FILTER_EQUAL)) {
-			return parseEqualFilter(xsubnode, pcd);
+			return parseEqualFilter(xsubnode, pcd, prismContext);
 		}
 
 		if (QNameUtil.match(filterQName, KEY_FILTER_REF)) {
@@ -195,36 +196,39 @@ public class QueryConvertor {
 
 	}
 
-	private static <C extends Containerable> AndFilter parseAndFilter(XNode xnode, PrismContainerDefinition<C> pcd) throws SchemaException {
+	private static <C extends Containerable> AndFilter parseAndFilter(XNode xnode, PrismContainerDefinition<C> pcd,
+			PrismContext prismContext) throws SchemaException {
 		List<ObjectFilter> subfilters = new ArrayList<ObjectFilter>();
 		MapXNode xmap = toMap(xnode);
 		for (Entry<QName, XNode> entry : xmap.entrySet()) {
-			ObjectFilter subfilter = parseFilterContainer(entry.getValue(), entry.getKey(), pcd);
+			ObjectFilter subfilter = parseFilterContainer(entry.getValue(), entry.getKey(), pcd, prismContext);
 			subfilters.add(subfilter);
 		}
 		return AndFilter.createAnd(subfilters);
 	}
 
-	private static <C extends Containerable> OrFilter parseOrFilter(XNode xnode, PrismContainerDefinition<C> pcd) throws SchemaException {
+	private static <C extends Containerable> OrFilter parseOrFilter(XNode xnode, PrismContainerDefinition<C> pcd,
+			PrismContext prismContext) throws SchemaException {
 		List<ObjectFilter> subfilters = new ArrayList<ObjectFilter>();
 		MapXNode xmap = toMap(xnode);
 		for (Entry<QName, XNode> entry : xmap.entrySet()) {
-			ObjectFilter subfilter = parseFilterContainer(entry.getValue(), entry.getKey(), pcd);
+			ObjectFilter subfilter = parseFilterContainer(entry.getValue(), entry.getKey(), pcd, prismContext);
 			subfilters.add(subfilter);
 		}
 		return OrFilter.createOr(subfilters);
 	}
 
-	private static <C extends Containerable> NotFilter parseNotFilter(XNode xnode, PrismContainerDefinition<C> pcd) throws SchemaException {
+	private static <C extends Containerable> NotFilter parseNotFilter(XNode xnode, PrismContainerDefinition<C> pcd,
+			PrismContext prismContext) throws SchemaException {
 		List<ObjectFilter> subfilters = new ArrayList<ObjectFilter>();
 		MapXNode xmap = toMap(xnode);
 		Entry<QName, XNode> entry = singleSubEntry(xmap);
-		ObjectFilter subfilter = parseFilterContainer(entry.getValue(), entry.getKey(), pcd);
+		ObjectFilter subfilter = parseFilterContainer(entry.getValue(), entry.getKey(), pcd, prismContext);
 		return NotFilter.createNot(subfilter);
 	}
 	
 	private static <T,C extends Containerable> EqualsFilter<PrismPropertyDefinition<T>> parseEqualFilter(XNode xnode,
-			PrismContainerDefinition<C> pcd) throws SchemaException {
+			PrismContainerDefinition<C> pcd, PrismContext prismContext) throws SchemaException {
 		MapXNode xmap = toMap(xnode);
 		ItemPath itemPath = getPath(xmap);
 
@@ -254,7 +258,7 @@ public class QueryConvertor {
 		XNode valueXnode = xmap.get(KEY_FILTER_EQUALS_VALUE);
 		
 		if (valueXnode != null) {
-			Item<PrismValue> item = pcd.getPrismContext().getXnodeProcessor().parseItem(valueXnode, itemName, itemDefinition);
+			Item<PrismValue> item = prismContext.getXnodeProcessor().parseItem(valueXnode, itemName, itemDefinition);
 
 			if (item.getValues().size() < 1 ) {
 				throw new IllegalStateException("No values to search specified for item " + itemName);

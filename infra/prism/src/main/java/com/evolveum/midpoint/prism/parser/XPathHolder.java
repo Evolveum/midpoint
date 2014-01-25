@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.schema.holder;
+package com.evolveum.midpoint.prism.parser;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,6 +31,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
+
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -41,7 +42,6 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.xml.GlobalDynamicNamespacePrefixMapper;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -170,7 +170,7 @@ public class XPathHolder {
             if (qnameArray.length == 1 || qnameArray[1] == null || qnameArray[1].isEmpty()) {
                 // default namespace <= empty prefix
                 String namespace = findNamespace(null, domNode, namespaceMap);
-                qname = new QName(namespace, qnameArray[0], SchemaConstants.NS_C_PREFIX);
+                qname = new QName(namespace, qnameArray[0]);
             } else {
                 String namespace = findNamespace(qnameArray[0], domNode, namespaceMap);
                 if (namespace == null) {
@@ -227,16 +227,6 @@ public class XPathHolder {
 			}
 		}
 
-		// TODO: workaround is described in method: addPureXpath()
-		// Note: this check is needed if some calls XPathType constructor with
-		// parameter xpath as a String.
-		if (ns == null) {
-			if (SchemaConstants.NS_C_PREFIX.equals(prefix) || (null == prefix)) {
-				return SchemaConstants.NS_C;
-			}
-		}
-		// TODO: workaround end
-
 		return ns;
 	}
 
@@ -249,8 +239,7 @@ public class XPathHolder {
         for (XPathSegment segment : segments) {
             if (segment.getQName() != null && StringUtils.isEmpty(segment.getQName().getPrefix())) {
                 QName qname = segment.getQName();
-                this.segments.add(new XPathSegment(new QName(qname.getNamespaceURI(), qname.getLocalPart(),
-                        SchemaConstants.NS_C_PREFIX)));
+                this.segments.add(new XPathSegment(new QName(qname.getNamespaceURI(), qname.getLocalPart())));
             } else {
                 this.segments.add(segment);
             }
@@ -465,13 +454,6 @@ public class XPathHolder {
 				sb.append("default namespace '");
 				sb.append(explicitNamespaceDeclarations.get(prefix));
 				sb.append("'; ");
-				// TODO: workaround is described in method: addPureXpath()
-				sb.append("declare namespace ");
-				sb.append(SchemaConstants.NS_C_PREFIX);
-				sb.append("='");
-				sb.append(explicitNamespaceDeclarations.get(prefix));
-				sb.append("'; ");
-				// TODO: workaround end
 			} else {
 				sb.append("namespace ");
 				sb.append(prefix);
