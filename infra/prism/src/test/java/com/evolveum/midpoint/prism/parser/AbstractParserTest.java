@@ -103,7 +103,10 @@ public abstract class AbstractParserTest {
 		// THEN
 		System.out.println("Parsed user:");
 		System.out.println(user.dump());
-		// TODO: asserts
+
+		System.out.println("XNode after parsing:");
+		System.out.println(xnode.dump());
+		
 		assertUserJack(user);
 	}
 

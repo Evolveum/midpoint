@@ -28,6 +28,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class MapXNode extends XNode implements Map<QName,XNode> {
 	
@@ -112,6 +113,18 @@ public class MapXNode extends XNode implements Map<QName,XNode> {
 			entries.add(entry);
 		}
 		return entries;
+	}
+	
+	public <T> T getParsedPrimitiveValue(QName key, QName typeName) throws SchemaException {
+		XNode xnode = get(key);
+		if (xnode == null) {
+			return null;
+		}
+		if (!(xnode instanceof PrimitiveXNode<?>)) {
+			throw new SchemaException("Expected that field "+key+" will be primitive, but it is "+xnode.getDesc());
+		}
+		PrimitiveXNode<T> xprim = (PrimitiveXNode<T>)xnode;
+		return xprim.getParsedValue(typeName);
 	}
 
 	public boolean equals(Object o) {

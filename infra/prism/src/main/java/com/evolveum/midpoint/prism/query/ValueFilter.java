@@ -35,6 +35,7 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 public abstract class ValueFilter<T extends PrismValue> extends ObjectFilter {
@@ -62,14 +63,14 @@ public abstract class ValueFilter<T extends PrismValue> extends ObjectFilter {
 		this.matchingRule = matchingRule;
 	}
 	
-	public ValueFilter(ItemPath parentPath, ItemDefinition definition, QName matchingRule, Element expression){
+	public ValueFilter(ItemPath parentPath, ItemDefinition definition, QName matchingRule, XNode expression){
 		super(expression);
 		this.fullPath = parentPath;
 		this.definition = definition;
 		this.matchingRule = matchingRule;
 	}
 	
-	public ValueFilter(ItemPath parentPath, ItemDefinition definition, Element expression){
+	public ValueFilter(ItemPath parentPath, ItemDefinition definition, XNode expression){
 		super(expression);
 		this.fullPath = parentPath;
 		this.definition = definition;

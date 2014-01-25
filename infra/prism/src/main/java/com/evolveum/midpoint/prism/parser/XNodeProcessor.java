@@ -64,6 +64,12 @@ public class XNodeProcessor {
 	
 	private PrismContext prismContext;
 	
+	public XNodeProcessor() { }
+	
+	public XNodeProcessor(PrismContext prismContext) {
+		this.prismContext = prismContext;
+	}
+
 	public SchemaRegistry getSchemaRegistry() {
 		return prismContext.getSchemaRegistry();
 	}
@@ -120,18 +126,6 @@ public class XNodeProcessor {
 		object.setOid(getOid(xnode));
 		object.setVersion(getVersion(xnode));
 		return object;
-	}
-	
-	private <T> T getValue(MapXNode xmap, QName key, QName typeName) throws SchemaException {
-		XNode xnode = xmap.get(key);
-		if (xnode == null) {
-			return null;
-		}
-		if (!(xnode instanceof PrimitiveXNode<?>)) {
-			throw new SchemaException("Expected that field "+key+" will be primitive, but it is "+xnode.getDesc());
-		}
-		PrimitiveXNode<T> xprim = (PrimitiveXNode<T>)xnode;
-		return xprim.getParsedValue(typeName);
 	}
 	
 	public <C extends Containerable> PrismContainer<C> parsePrismContainer(XNode xnode, QName elementName, 
@@ -376,11 +370,11 @@ public class XNodeProcessor {
 	}
 	
 	private PolyString parsePolyString(MapXNode xmap) throws SchemaException {
-		String orig = getValue(xmap, QNameUtil.nullNamespace(PolyString.F_ORIG), DOMUtil.XSD_STRING);
+		String orig = xmap.getParsedPrimitiveValue(QNameUtil.nullNamespace(PolyString.F_ORIG), DOMUtil.XSD_STRING);
 		if (orig == null) {
 			throw new SchemaException("Null polystring orig in "+xmap);
 		}
-		String norm = getValue(xmap, QNameUtil.nullNamespace(PolyString.F_NORM), DOMUtil.XSD_STRING);
+		String norm = xmap.getParsedPrimitiveValue(QNameUtil.nullNamespace(PolyString.F_NORM), DOMUtil.XSD_STRING);
 		return new PolyString(orig, norm);
 	}
 
@@ -467,13 +461,13 @@ public class XNodeProcessor {
 		String oid = getOid(xmap);
 		PrismReferenceValue refVal = new PrismReferenceValue(oid);
 
-		QName type = getValue(xmap, XNode.KEY_REFERENCE_TYPE, DOMUtil.XSD_QNAME);
+		QName type = xmap.getParsedPrimitiveValue(XNode.KEY_REFERENCE_TYPE, DOMUtil.XSD_QNAME);
 		refVal.setTargetType(type);
 
-		QName relationAttribute = getValue(xmap, XNode.KEY_REFERENCE_RELATION, DOMUtil.XSD_QNAME);
+		QName relationAttribute = xmap.getParsedPrimitiveValue(XNode.KEY_REFERENCE_RELATION, DOMUtil.XSD_QNAME);
 		refVal.setRelation(relationAttribute);
 
-		refVal.setDescription((String) getValue(xmap, XNode.KEY_REFERENCE_DESCRIPTION, DOMUtil.XSD_STRING));
+		refVal.setDescription((String) xmap.getParsedPrimitiveValue(XNode.KEY_REFERENCE_DESCRIPTION, DOMUtil.XSD_STRING));
 
 		refVal.setFilter(parseFilter(xmap.get(XNode.KEY_REFERENCE_FILTER)));
 
@@ -517,20 +511,22 @@ public class XNodeProcessor {
 		return refVal;
 	}
 
-	private ObjectFilter parseFilter(XNode xNode) {
-		// TODO
-		return null;
+	private ObjectFilter parseFilter(XNode xnode) throws SchemaException {
+		if (xnode == null) {
+			return null;
+		}
+		return QueryConvertor.parseFilter(xnode);
 	}
 	
 	private String getOid(MapXNode xmap) throws SchemaException {
-		return getValue(xmap, XNode.KEY_OID, DOMUtil.XSD_STRING);
+		return xmap.getParsedPrimitiveValue(XNode.KEY_OID, DOMUtil.XSD_STRING);
 	}
 	
 	private String getVersion(MapXNode xmap) throws SchemaException {
-		return getValue(xmap, XNode.KEY_VERSION, DOMUtil.XSD_STRING);
+		return xmap.getParsedPrimitiveValue(XNode.KEY_VERSION, DOMUtil.XSD_STRING);
 	}
 
 	private Long getContainerId(MapXNode xmap) throws SchemaException {
-		return getValue(xmap, XNode.KEY_CONTAINER_ID, DOMUtil.XSD_LONG);
+		return xmap.getParsedPrimitiveValue(XNode.KEY_CONTAINER_ID, DOMUtil.XSD_LONG);
 	}
 }
