@@ -19,27 +19,8 @@
 <wicket:panel>
     <div class="form-group" wicket:id="name"/>
     <div class="form-group" wicket:id="description"/>
-
-    <div class="form-group">
-        <label class="col-md-3 control-label"><wicket:message key="NameStep.connectorHost"/></label>
-
-        <div class="col-md-3">
-            <select wicket:id="location" class="form-control input-sm"/>
-        </div>
-    </div>
-    <div class="form-group">
-        <label class="col-md-3 control-label"><wicket:message key="NameStep.connectorType"/></label>
-
-        <div class="col-md-3">
-            <select wicket:id="connectorType" class="form-control input-sm"/>
-        </div>
-    </div>
-    <div class="form-group">
-        <label class="col-md-3 control-label"><wicket:message key="NameStep.connectorVersion"/></label>
-
-        <div class="col-md-3">
-            <select wicket:id="connectorVersion" class="form-control input-sm"/>
-        </div>
-    </div>
+    <div class="form-group" wicket:id="location"/>
+    <div class="form-group" wicket:id="connectorType"/>
+    <div class="form-group" wicket:id="connectorVersion"/>
 </wicket:panel>
 </html>
