@@ -19,11 +19,13 @@ package com.evolveum.midpoint.wf.processes.itemApproval;
 import com.evolveum.midpoint.model.common.expression.Expression;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
+import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -32,9 +34,10 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.activiti.SpringApplicationContextHolder;
+import com.evolveum.midpoint.wf.processes.common.LightweightObjectRef;
 import com.evolveum.midpoint.wf.processes.common.LightweightObjectRefImpl;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
-import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
+import com.evolveum.midpoint.wf.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 
 import org.activiti.engine.delegate.DelegateExecution;
@@ -62,8 +65,9 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
         }
 
         OperationResult result = new OperationResult("dummy");
+        Task task = null;
 
-        Map<QName, Object> expressionVariables = null;
+        ExpressionVariables expressionVariables = null;
 
         ApprovalLevelImpl level = (ApprovalLevelImpl) execution.getVariable(ProcessVariableNames.LEVEL);
         Validate.notNull(level, "Variable " + ProcessVariableNames.LEVEL + " is undefined");
@@ -75,7 +79,7 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
         if (level.getAutomaticallyApproved() != null) {
             try {
                 expressionVariables = getDefaultVariables(execution, result);
-                preApproved = evaluateBooleanExpression(level.getAutomaticallyApproved(), expressionVariables, execution, result);
+                preApproved = evaluateBooleanExpression(level.getAutomaticallyApproved(), expressionVariables, execution, task, result);
                 if (LOGGER.isTraceEnabled()) {
                     LOGGER.trace("Pre-approved = " + preApproved + " for level " + level);
                 }
@@ -92,7 +96,7 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
             if (!level.getApproverExpressions().isEmpty()) {
                 try {
                     expressionVariables = getDefaultVariablesIfNeeded(expressionVariables, execution, result);
-                    approverRefs.addAll(evaluateExpressions(level.getApproverExpressions(), expressionVariables, execution, result));
+                    approverRefs.addAll(evaluateExpressions(level.getApproverExpressions(), expressionVariables, execution, task, result));
                 } catch (Exception e) {     // todo
                     throw new SystemException("Couldn't evaluate approvers expressions", e);
                 }
@@ -118,15 +122,17 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
         execution.setVariableLocal(ProcessVariableNames.LOOP_APPROVERS_IN_LEVEL_STOP, stop);
     }
 
-    private Collection<? extends LightweightObjectRef> evaluateExpressions(List<ExpressionType> approverExpressionList, Map<QName, Object> expressionVariables, DelegateExecution execution, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+    private Collection<? extends LightweightObjectRef> evaluateExpressions(List<ExpressionType> approverExpressionList, 
+    		ExpressionVariables expressionVariables, DelegateExecution execution, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
         List<LightweightObjectRef> retval = new ArrayList<LightweightObjectRef>();
         for (ExpressionType approverExpression : approverExpressionList) {
-            retval.addAll(evaluateExpression(approverExpression, expressionVariables, execution, result));
+            retval.addAll(evaluateExpression(approverExpression, expressionVariables, execution, task, result));
         }
         return retval;
     }
 
-    private Collection<LightweightObjectRef> evaluateExpression(ExpressionType approverExpression, Map<QName, Object> expressionVariables, DelegateExecution execution, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+    private Collection<LightweightObjectRef> evaluateExpression(ExpressionType approverExpression, ExpressionVariables expressionVariables, 
+    		DelegateExecution execution, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
 
         if (expressionFactory == null) {
             expressionFactory = getExpressionFactory();
@@ -136,7 +142,7 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
         QName approverOidName = new QName(SchemaConstants.NS_C, "approverOid");
         PrismPropertyDefinition approverOidDef = new PrismPropertyDefinition(approverOidName, DOMUtil.XSD_STRING, prismContext);
         Expression<PrismPropertyValue<String>> expression = expressionFactory.makeExpression(approverExpression, approverOidDef, "approverExpression", result);
-        ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, "approverExpression", result);
+        ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, "approverExpression", task, result);
         PrismValueDeltaSetTriple<PrismPropertyValue<String>> exprResult = expression.evaluate(params);
 
         List<LightweightObjectRef> retval = new ArrayList<LightweightObjectRef>();
@@ -148,7 +154,8 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 
     }
 
-    private boolean evaluateBooleanExpression(ExpressionType expressionType, Map<QName, Object> expressionVariables, DelegateExecution execution, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
+    private boolean evaluateBooleanExpression(ExpressionType expressionType, ExpressionVariables expressionVariables, 
+    		DelegateExecution execution, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, ExpressionEvaluationException {
 
         if (expressionFactory == null) {
             expressionFactory = getExpressionFactory();
@@ -158,7 +165,8 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
         QName resultName = new QName(SchemaConstants.NS_C, "result");
         PrismPropertyDefinition resultDef = new PrismPropertyDefinition(resultName, DOMUtil.XSD_BOOLEAN, prismContext);
         Expression<PrismPropertyValue<Boolean>> expression = expressionFactory.makeExpression(expressionType, resultDef, "automatic approval expression", result);
-        ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, "automatic approval expression", result);
+        ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, expressionVariables, 
+        		"automatic approval expression", task, result);
         PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> exprResultTriple = expression.evaluate(params);
 
         Collection<PrismPropertyValue<Boolean>> exprResult = exprResultTriple.getZeroSet();
@@ -181,7 +189,7 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
     }
 
 
-    private Map<QName, Object> getDefaultVariablesIfNeeded(Map<QName, Object> variables, DelegateExecution execution, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    private ExpressionVariables getDefaultVariablesIfNeeded(ExpressionVariables variables, DelegateExecution execution, OperationResult result) throws SchemaException, ObjectNotFoundException {
         if (variables != null) {
             return variables;
         } else {
@@ -189,16 +197,16 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
         }
     }
 
-    private Map<QName, Object> getDefaultVariables(DelegateExecution execution, OperationResult result) throws SchemaException, ObjectNotFoundException {
+    private ExpressionVariables getDefaultVariables(DelegateExecution execution, OperationResult result) throws SchemaException, ObjectNotFoundException {
 
         RepositoryService repositoryService = SpringApplicationContextHolder.getRepositoryService();
         MiscDataUtil miscDataUtil = SpringApplicationContextHolder.getMiscDataUtil();
         PrismContext prismContext = SpringApplicationContextHolder.getPrismContext();
 
-        Map<QName, Object> variables = new HashMap<QName, Object>();
+        ExpressionVariables variables = new ExpressionVariables();
 
         try {
-            variables.put(SchemaConstants.C_REQUESTER, miscDataUtil.getRequester(execution.getVariables(), result));
+            variables.addVariableDefinition(SchemaConstants.C_REQUESTER, miscDataUtil.getRequester(execution.getVariables(), result));
         } catch (SchemaException e) {
             throw new SchemaException("Couldn't get requester object due to schema exception", e);  // todo do we really want to skip the whole processing? perhaps yes, otherwise we could get NPEs
         } catch (ObjectNotFoundException e) {
@@ -207,12 +215,12 @@ public class InitializeLoopThroughApproversInLevel implements JavaDelegate {
 
         PrismObject<? extends ObjectType> objectToBeAdded = (PrismObject<? extends ObjectType>) execution.getVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_TO_BE_ADDED);
         if (objectToBeAdded != null) {
-            variables.put(SchemaConstants.C_OBJECT, objectToBeAdded);
+            variables.addVariableDefinition(SchemaConstants.C_OBJECT, objectToBeAdded);
         } else {
             String objectOid = (String) execution.getVariable(CommonProcessVariableNames.VARIABLE_MIDPOINT_OBJECT_OID);
             if (objectOid != null) {
                 try {
-                    variables.put(SchemaConstants.C_OBJECT, miscDataUtil.getObjectBefore(execution.getVariables(), prismContext, result));
+                    variables.addVariableDefinition(SchemaConstants.C_OBJECT, miscDataUtil.getObjectBefore(execution.getVariables(), prismContext, result));
                 } catch (SchemaException e) {
                     throw new SchemaException("Couldn't get requester object due to schema exception", e);  // todo do we really want to skip the whole processing? perhaps yes, otherwise we could get NPEs
                 } catch (ObjectNotFoundException e) {

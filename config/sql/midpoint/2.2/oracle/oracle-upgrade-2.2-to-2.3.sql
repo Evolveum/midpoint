@@ -6,6 +6,10 @@ ALTER TABLE m_task ADD expectedTotal NUMBER(19, 0);
 ALTER TABLE m_assignment ADD disableReason VARCHAR2(255 CHAR);
 ALTER TABLE m_focus ADD disableReason VARCHAR2(255 CHAR);
 ALTER TABLE m_shadow ADD disableReason VARCHAR2(255 CHAR);
+ALTER TABLE m_audit_delta ADD context CLOB;
+ALTER TABLE m_audit_delta ADD returns CLOB;
+ALTER TABLE m_operation_result ADD context CLOB;
+ALTER TABLE m_operation_result ADD returns CLOB;
 
 CREATE TABLE m_report (
     name_norm VARCHAR2(255 CHAR),
@@ -56,3 +60,5 @@ ALTER TABLE m_report_output
     ADD CONSTRAINT fk_reportoutput 
     FOREIGN KEY (id, oid) 
     REFERENCES m_object;
+
+ALTER TABLE m_assignment ADD orderValue NUMBER(10,0);

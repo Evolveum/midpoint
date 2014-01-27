@@ -22,11 +22,14 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
+import com.evolveum.midpoint.prism.parser.PrismBeanConverter;
+import com.evolveum.midpoint.prism.parser.XNodeProcessor;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
@@ -48,6 +51,8 @@ public class PrismContext {
 	private SchemaRegistry schemaRegistry;
 	private PrismJaxbProcessor prismJaxbProcessor;
 	private PrismDomProcessor prismDomProcessor;
+	private XNodeProcessor xnodeProcessor;
+	private PrismBeanConverter beanConverter;
 	private SchemaDefinitionFactory definitionFactory;
 	private PolyStringNormalizer defaultPolyStringNormalizer;
 
@@ -67,6 +72,9 @@ public class PrismContext {
 		PrismDomProcessor prismDomProcessor = new PrismDomProcessor(schemaRegistry);
 		prismDomProcessor.setPrismContext(prismContext);
 		prismContext.prismDomProcessor = prismDomProcessor;
+		
+		prismContext.xnodeProcessor = new XNodeProcessor(prismContext);
+		prismContext.beanConverter = new PrismBeanConverter(schemaRegistry);
 
 		return prismContext;
 	}
@@ -108,6 +116,14 @@ public class PrismContext {
 
 	public void setPrismDomProcessor(PrismDomProcessor prismDomProcessor) {
 		this.prismDomProcessor = prismDomProcessor;
+	}
+
+	public XNodeProcessor getXnodeProcessor() {
+		return xnodeProcessor;
+	}
+
+	public PrismBeanConverter getBeanConverter() {
+		return beanConverter;
 	}
 
 	public SchemaDefinitionFactory getDefinitionFactory() {

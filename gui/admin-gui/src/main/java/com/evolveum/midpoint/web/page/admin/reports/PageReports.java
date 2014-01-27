@@ -19,27 +19,27 @@ package com.evolveum.midpoint.web.page.admin.reports;
 import com.evolveum.midpoint.audit.api.AuditEventType;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromStream;
+import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
+import com.evolveum.midpoint.web.component.data.column.DoubleButtonColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
-import com.evolveum.midpoint.web.component.util.ListDataProvider;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
-import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.ResourceItemDto;
-import com.evolveum.midpoint.web.page.admin.reports.component.AuditPopupPanel;
-import com.evolveum.midpoint.web.page.admin.reports.component.ReconciliationPopupPanel;
-import com.evolveum.midpoint.web.page.admin.reports.component.ReportButtonPanel;
+import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditReportDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReconciliationReportDto;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 import net.sf.jasperreports.engine.*;
@@ -49,16 +49,13 @@ import net.sf.jasperreports.engine.xml.JRXmlLoader;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
-import org.apache.wicket.extensions.markup.html.repeater.data.grid.ICellPopulator;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.AbstractColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.PropertyColumn;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.repeater.Item;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
+import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.spring.injection.annot.SpringBean;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -71,12 +68,16 @@ import java.util.*;
 /**
  * @author lazyman
  */
+@PageDescriptor(url = "/admin/reports", action = {
+        PageAdminReports.AUTHORIZATION_REPORTS_ALL,
+        AuthorizationConstants.NS_AUTHORIZATION + "#reports"})
 public class PageReports extends PageAdminReports {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageReports.class);
 
     private static final ArrayList<ReportDto> REPORTS = new ArrayList<ReportDto>();
 
+    /*
     static {
         REPORTS.add(new ReportDto(ReportDto.Type.AUDIT, "PageReports.report.auditName",
                 "PageReports.report.auditDescription"));
@@ -85,32 +86,23 @@ public class PageReports extends PageAdminReports {
         REPORTS.add(new ReportDto(ReportDto.Type.USERS, "PageReports.report.usersName",
                 "PageReports.report.usersDescription"));
     }
+    */
 
     private static final String DOT_CLASS = PageReports.class.getName() + ".";
-    private static final String OPERATION_LOAD_RESOURCES = DOT_CLASS + "loadResources";
     private static final String OPERATION_LOAD_RESOURCE = DOT_CLASS + "loadResource";
-    private static final String OPERATION_LOAD_AUDITEVENTTYPES = DOT_CLASS + "loadAuditEventTypes";
-    private static final String OPERATION_LOAD_AUDITEVENTTYPE = DOT_CLASS + "loadAuditEventType";
 
     private static final String ID_MAIN_FORM = "mainForm";
-    private static final String ID_AUDIT_POPUP = "auditPopup";
-    private static final String ID_RECONCILIATION_POPUP = "reconciliationPopup";
     private static final String ID_REPORTS_TABLE = "reportsTable";
 
-    private final IModel<List<ResourceItemDto>> resources;
+    private final String BUTTON_CAPTION_RUN = createStringResource("PageReports.button.run").getString();
+    private final String BUTTON_CAPTION_CONFIGURE = createStringResource("PageReports.button.configure").getString();
+
     private final IModel reportParamsModel = new Model();
 
     @SpringBean(name = "sessionFactory")
     private SessionFactory sessionFactory;
 
     public PageReports() {
-        resources = new LoadableModel<List<ResourceItemDto>>(false) {
-
-            @Override
-            protected List<ResourceItemDto> load() {
-                return loadResources();
-            }
-        };
         initLayout();
     }
 
@@ -123,38 +115,6 @@ public class PageReports extends PageAdminReports {
                 return createStringResource("page.subTitle").getString();
             }
         };
-    }
-
-    private List<ResourceItemDto> loadResources() {
-        List<ResourceItemDto> resources = new ArrayList<ResourceItemDto>();
-
-        OperationResult result = new OperationResult(OPERATION_LOAD_RESOURCES);
-        try {
-            List<PrismObject<ResourceType>> objects = getModelService().searchObjects(ResourceType.class, null, null,
-                    createSimpleTask(OPERATION_LOAD_RESOURCES), result);
-
-            if (objects != null) {
-                for (PrismObject<ResourceType> object : objects) {
-                    resources.add(new ResourceItemDto(object.getOid(), WebMiscUtil.getName(object)));
-                }
-            }
-        } catch (Exception ex) {
-            LoggingUtils.logException(LOGGER, "Couldn't load resources", ex);
-            result.recordFatalError("Couldn't load resources, reason: " + ex.getMessage(), ex);
-        } finally {
-            if (result.isUnknown()) {
-                result.recomputeStatus();
-            }
-        }
-
-        Collections.sort(resources);
-
-        if (!WebMiscUtil.isSuccessOrHandledError(result)) {
-            showResultInSession(result);
-            throw new RestartResponseException(PageDashboard.class);
-        }
-
-        return resources;
     }
    
     private void initLayout() {
@@ -171,90 +131,58 @@ public class PageReports extends PageAdminReports {
         ajaxDownloadBehavior.setContentType("application/pdf; charset=UTF-8");
         mainForm.add(ajaxDownloadBehavior);
 
-        TablePanel table = new TablePanel<ReportDto>(ID_REPORTS_TABLE,
-                new ListDataProvider<ReportDto>(this, new Model(REPORTS)), initColumns(ajaxDownloadBehavior));
+        //TablePanel table = new TablePanel<ReportDto>(ID_REPORTS_TABLE,
+        //        new ListDataProvider<ReportDto>(this, new Model(REPORTS)), initColumns(ajaxDownloadBehavior));
+        TablePanel table = new TablePanel<>(ID_REPORTS_TABLE, new ObjectDataProvider(PageReports.this, ReportType.class),
+                initColumns(ajaxDownloadBehavior));
         table.setShowPaging(false);
         table.setOutputMarkupId(true);
         mainForm.add(table);
-
-        ModalWindow auditPopup = createModalWindow(ID_AUDIT_POPUP,
-                createStringResource("PageReports.title.auditPopup"), 570, 350);
-        auditPopup.setContent(new AuditPopupPanel(auditPopup.getContentId(), reportParamsModel) {
-
-            @Override
-            protected void onRunPerformed(AjaxRequestTarget target) {
-                ajaxDownloadBehavior.initiate(target);
-
-                ModalWindow window = (ModalWindow) PageReports.this.get(ID_AUDIT_POPUP);
-                window.close(target);
-            }
-        });
-        add(auditPopup);
-
-        ModalWindow reconciliationPopup = createModalWindow(ID_RECONCILIATION_POPUP,
-                createStringResource("PageReports.title.reconciliationPopup"), 570, 350);
-        reconciliationPopup.setContent(new ReconciliationPopupPanel(reconciliationPopup.getContentId(),
-                reportParamsModel, resources) {
-
-            @Override
-            protected void onRunPerformed(AjaxRequestTarget target) {
-                ajaxDownloadBehavior.initiate(target);
-
-                ModalWindow window = (ModalWindow) PageReports.this.get(ID_RECONCILIATION_POPUP);
-                window.close(target);
-            }
-        });
-        add(reconciliationPopup);
     }
 
-    private List<IColumn<ReportDto, String>> initColumns(final AjaxDownloadBehaviorFromStream ajaxDownloadBehavior) {
-        List<IColumn<ReportDto, String>> columns = new ArrayList<IColumn<ReportDto, String>>();
+    private List<IColumn<ReportType, String>> initColumns(final AjaxDownloadBehaviorFromStream ajaxDownloadBehavior) {
+        List<IColumn<ReportType, String>> columns = new ArrayList<IColumn<ReportType, String>>();
 
         IColumn column;
-        column = new PropertyColumn<ReportDto, String>(createStringResource("PageReports.table.name"), null){
+        column = new LinkColumn<SelectableBean<ReportType>>(createStringResource("PageReports.table.name"),
+                ReportType.F_NAME.getLocalPart(), "value.name"){
 
             @Override
-            public IModel<Object> getDataModel(IModel<ReportDto> rowModel){
-                ReportDto dto = rowModel.getObject();
-
-                return (IModel)createStringResource(dto.getName());
+            public void onClick(AjaxRequestTarget target, IModel<SelectableBean<ReportType>> rowModel){
+                ReportType report = rowModel.getObject().getValue();
+                reportTypeFilterPerformed(target, report.getOid());
             }
         };
         columns.add(column);
 
-        column = new PropertyColumn<ReportDto, String>(createStringResource("PageReports.table.description"), null) {
-
-            @Override
-            public IModel<Object> getDataModel(IModel<ReportDto> rowModel) {
-                ReportDto dto = rowModel.getObject();
-
-                return (IModel) createStringResource(dto.getDescription());
-            }
-        };
+        column = new PropertyColumn(createStringResource("PageReports.table.description"), "value.description");
         columns.add(column);
 
-        column = new AbstractColumn<ReportDto, String>(new Model(), null) {
+        column = new DoubleButtonColumn<SelectableBean<ReportType>>(new Model(), null){
 
             @Override
-            public String getCssClass(){
-                return "debug-list-buttons";
+            public String getFirstCap(){
+                return BUTTON_CAPTION_RUN;
             }
 
             @Override
-            public void populateItem(Item<ICellPopulator<ReportDto>> cellItem, String componentId,
-                                     IModel<ReportDto> rowModel) {
-                cellItem.add(new ReportButtonPanel<ReportDto>(componentId, rowModel){
+            public String getSecondCap(){
+                return BUTTON_CAPTION_CONFIGURE;
+            }
 
-                    @Override
-                    public void runPerformed(AjaxRequestTarget target, IModel<ReportDto> model){
-                        runClickPerformed(target, model.getObject(), ajaxDownloadBehavior);
-                    }
+            @Override
+            public String getFirstColorCssClass(){
+                return BUTTON_COLOR_CLASS.PRIMARY.toString();
+            }
 
-                    @Override
-                    public void configurePerformed(AjaxRequestTarget target, IModel<ReportDto> model){
-                        //TODO - what to do here?
-                    }
-                });
+            @Override
+            public void firstClicked(AjaxRequestTarget target, IModel<SelectableBean<ReportType>> model){
+                runReportPerformed(target, model.getObject().getValue(), ajaxDownloadBehavior);
+            }
+
+            @Override
+            public void secondClicked(AjaxRequestTarget target, IModel<SelectableBean<ReportType>> model){
+                configurePerformed(target, model.getObject().getValue());
             }
         };
         columns.add(column);
@@ -262,34 +190,20 @@ public class PageReports extends PageAdminReports {
         return columns;
     }
 
-    private void showModalWindow(String id, AjaxRequestTarget target) {
-        ModalWindow window = (ModalWindow) get(id);
-        window.show(target);
+    private void reportTypeFilterPerformed(AjaxRequestTarget target, String oid){
+        //TODO - navigate to CreatedReportsPage and set report type filter.
     }
 
-    private void runClickPerformed(AjaxRequestTarget target, ReportDto report,
-                                      AjaxDownloadBehaviorFromStream ajaxDownloadBehavior) {
-        switch (report.getType()) {
-            case AUDIT:
-                if (!(reportParamsModel.getObject() instanceof AuditReportDto)) {
-                    reportParamsModel.setObject(new AuditReportDto());
-                }
-                showModalWindow(ID_AUDIT_POPUP, target);
-                break;
-            case RECONCILIATION:
-                if (!(reportParamsModel.getObject() instanceof ReconciliationReportDto)) {
-                    reportParamsModel.setObject(new ReconciliationReportDto());
-                }
-                showModalWindow(ID_RECONCILIATION_POPUP, target);
-                break;
-            case USERS:
-                reportParamsModel.setObject(null);
-                ajaxDownloadBehavior.initiate(target);
-                break;
-            default:
-                error(getString("PageReports.message.unknownReport"));
-                target.add(getFeedbackPanel());
-        }
+    private void runReportPerformed(AjaxRequestTarget target, ReportType model,
+                                    AjaxDownloadBehaviorFromStream ajaxDownloadBehavior){
+        //ajaxDownloadBehavior.initiate(target);
+        //TODO - create report based on current configuration
+    }
+
+    private void configurePerformed(AjaxRequestTarget target, ReportType report){
+        PageParameters params = new PageParameters();
+        params.add(OnePageParameterEncoder.PARAMETER, report.getOid());
+        setResponsePage(PageReport.class, params);
     }
 
     private byte[] createReport() {
@@ -351,7 +265,37 @@ public class PageReports extends PageAdminReports {
         params.put("DATE_TO", dateTo);
         params.put("EVENT_TYPE", auditEventTypeId);
         params.put("EVENT_TYPE_DESC", auditEventTypeName);
-        String theQuery = auditEventTypeId != -1 ? "select aer.timestamp as timestamp, aer.initiatorName as initiator, aer.eventType as eventType, aer.eventStage as eventStage, aer.targetName as targetName, aer.targetType as targetType, aer.targetOwnerName as targetOwnerName, aer.outcome as outcome, aer.message as message from RAuditEventRecord as aer where aer.eventType = $P{EVENT_TYPE} and aer.timestamp >= $P{DATE_FROM} and aer.timestamp <= $P{DATE_TO} order by aer.timestamp" : "select aer.timestamp as timestamp, aer.initiatorName as initiator, aer.eventType as eventType, aer.eventStage as eventStage, aer.targetName as targetName, aer.targetType as targetType, aer.targetOwnerName as targetOwnerName, aer.outcome as outcome, aer.message as message from RAuditEventRecord as aer where aer.timestamp >= $P{DATE_FROM} and aer.timestamp <= $P{DATE_TO} order by aer.timestamp";;
+        //String theQuery = auditEventTypeId != -1 ? "select aer.timestamp as timestamp, aer.initiatorName as initiator, aer.eventType as eventType, aer.eventStage as eventStage, aer.targetName as targetName, aer.targetType as targetType, aer.targetOwnerName as targetOwnerName, aer.outcome as outcome, aer.message as message from RAuditEventRecord as aer where aer.eventType = $P{EVENT_TYPE} and aer.timestamp >= $P{DATE_FROM} and aer.timestamp <= $P{DATE_TO} order by aer.timestamp" : "select aer.timestamp as timestamp, aer.initiatorName as initiator, aer.eventType as eventType, aer.eventStage as eventStage, aer.targetName as targetName, aer.targetType as targetType, aer.targetOwnerName as targetOwnerName, aer.outcome as outcome, aer.message as message from RAuditEventRecord as aer where aer.timestamp >= $P{DATE_FROM} and aer.timestamp <= $P{DATE_TO} order by aer.timestamp";;
+        String theQuery = auditEventTypeId != -1 ? 
+	    		"select aer.timestamp as timestamp, " +
+	        	"aer.initiatorName as initiator, " +
+	        	"aer.eventType as eventType, " +
+	        	"aer.eventStage as eventStage, " +
+	        	"aer.targetName as targetName, " +
+	        	"aer.targetType as targetType, " +
+	        	"aer.targetOwnerName as targetOwnerName, " +
+	        	"aer.outcome as outcome, " +
+	        	"aer.message as message, " +
+	        	"odo.delta as delta " +
+	        	"from RObjectDeltaOperation as odo " +
+	        	"join odo.record as aer " +
+	        	"where aer.eventType = $P{EVENT_TYPE} and aer.timestamp >= $P{DATE_FROM} and aer.timestamp <= $P{DATE_TO} " +
+	        	"order by aer.timestamp" 
+	        	: 
+	        	"select aer.timestamp as timestamp, " +
+	        	"aer.initiatorName as initiator, " +
+	        	"aer.eventType as eventType, " +
+	        	"aer.eventStage as eventStage, " +
+	        	"aer.targetName as targetName, " +
+	        	"aer.targetType as targetType, " +
+	        	"aer.targetOwnerName as targetOwnerName, " +
+	        	"aer.outcome as outcome, " +
+	        	"aer.message as message, " +
+	        	"odo.delta as delta " +
+	        	"from RObjectDeltaOperation as odo " +
+	        	"join odo.record as aer " +
+	        	"where aer.timestamp >= $P{DATE_FROM} and aer.timestamp <= $P{DATE_TO} " +
+	        	"order by aer.timestamp";
         params.put("QUERY_STRING", theQuery);        
         return createReport("/reports/reportAuditLogs.jrxml", params);
     }
@@ -399,7 +343,8 @@ public class PageReports extends PageAdminReports {
     protected byte[] createReport(String jrxmlPath, Map params) {
         ServletContext servletContext = getMidpointApplication().getServletContext();
         params.put("LOGO_PATH", servletContext.getRealPath("/reports/logo.jpg"));
-
+        params.put("BaseTemplateStyles", servletContext.getRealPath("/styles/midpoint_base_styles.jrtx"));
+        
         byte[] generatedReport = new byte[]{};
         Session session = null;
         try {

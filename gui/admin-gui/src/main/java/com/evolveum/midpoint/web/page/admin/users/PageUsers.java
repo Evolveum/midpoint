@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.users;
 
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReference;
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.DropDownMultiChoice;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
@@ -43,11 +45,13 @@ import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
+import com.evolveum.midpoint.web.page.admin.home.PageAdminHome;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserListItemDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
 import com.evolveum.midpoint.web.session.UsersStorage;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.apache.commons.lang.StringUtils;
@@ -73,6 +77,9 @@ import java.util.Map;
 /**
  * @author lazyman
  */
+@PageDescriptor(url = "/admin/users", action = {
+        PageAdminUsers.AUTHORIZATION_USERS_ALL,
+        AuthorizationConstants.NS_AUTHORIZATION + "#users"})
 public class PageUsers extends PageAdminUsers {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageUsers.class);
@@ -394,7 +401,7 @@ public class PageUsers extends PageAdminUsers {
 
     private void userDetailsPerformed(AjaxRequestTarget target, String oid) {
         PageParameters parameters = new PageParameters();
-        parameters.add(PageUser.PARAM_USER_ID, oid);
+        parameters.add(OnePageParameterEncoder.PARAMETER, oid);
         setResponsePage(PageUser.class, parameters);
     }
 

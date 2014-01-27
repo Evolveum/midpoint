@@ -685,7 +685,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		return determineCompileTimeClass(complexTypeDefinition.getTypeName());
 	}
 		
-	public Class<?> determineCompileTimeClass(QName typeName) {
+	public <T> Class<T> determineCompileTimeClass(QName typeName) {
 		if (typeName.getNamespaceURI() == null) {
 			throw new IllegalArgumentException("XSD type "+typeName+" has no namespace, cannot determine schema");
 		}
@@ -697,7 +697,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		if (pkg == null) {
 			return null;
 		}
-		Class<?> compileTimeClass = JAXBUtil.findClassForType(typeName, pkg);
+		Class<T> compileTimeClass = JAXBUtil.findClassForType(typeName, pkg);
 		return compileTimeClass;
 	}
 

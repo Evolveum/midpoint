@@ -39,15 +39,14 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.WfConfiguration;
 import com.evolveum.midpoint.wf.activiti.TestAuthenticationInfoHolder;
-import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
-import com.evolveum.midpoint.wf.processes.StringHolder;
+import com.evolveum.midpoint.wf.processes.common.CommonProcessVariableNames;
+import com.evolveum.midpoint.wf.processes.common.StringHolder;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 import org.activiti.engine.form.FormProperty;
-import org.apache.commons.lang.Validate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -161,16 +160,16 @@ public class MiscDataUtil {
         return object;
     }
 
-    public ObjectDelta getObjectDelta(Map<String, Object> variables, OperationResult result) throws JAXBException, SchemaException {
-        return getObjectDelta(variables, result, false);
+    public ObjectDelta getObjectDelta(Map<String, Object> variables) throws JAXBException, SchemaException {
+        return getObjectDelta(variables, false);
     }
 
-    public ObjectDelta getObjectDelta(Map<String, Object> variables, OperationResult result, boolean mayBeNull) throws JAXBException, SchemaException {
-        ObjectDeltaType objectDeltaType = getObjectDeltaType(variables, result, mayBeNull);
+    public ObjectDelta getObjectDelta(Map<String, Object> variables, boolean mayBeNull) throws JAXBException, SchemaException {
+        ObjectDeltaType objectDeltaType = getObjectDeltaType(variables, mayBeNull);
         return objectDeltaType != null ? DeltaConvertor.createObjectDelta(objectDeltaType, prismContext) : null;
     }
 
-    public ObjectDeltaType getObjectDeltaType(Map<String, Object> variables, OperationResult result, boolean mayBeNull) throws JAXBException, SchemaException {
+    public ObjectDeltaType getObjectDeltaType(Map<String, Object> variables, boolean mayBeNull) throws JAXBException, SchemaException {
         StringHolder deltaXml = (StringHolder) variables.get(CommonProcessVariableNames.VARIABLE_MIDPOINT_DELTA);
         if (deltaXml == null) {
             if (mayBeNull) {
@@ -188,7 +187,7 @@ public class MiscDataUtil {
         if (deltaType != null) {
             delta = DeltaConvertor.createObjectDelta(deltaType, prismContext);
         } else {
-            delta = getObjectDelta(variables, result, true);
+            delta = getObjectDelta(variables, true);
         }
 
         if (delta == null) {
@@ -260,7 +259,10 @@ public class MiscDataUtil {
         }
     }
 
-    public static String getObjectName(ModelContext<? extends ObjectType> modelContext) {
+    /**
+     * Retrieves focus object name from the model context.
+     */
+    public static String getFocusObjectName(ModelContext<? extends ObjectType> modelContext) {
         ModelElementContext<? extends ObjectType> fc = modelContext.getFocusContext();
         PrismObject<? extends ObjectType> prism = fc.getObjectNew() != null ? fc.getObjectNew() : fc.getObjectOld();
         if (prism == null) {

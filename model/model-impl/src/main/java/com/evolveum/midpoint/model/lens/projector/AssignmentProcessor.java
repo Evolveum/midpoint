@@ -25,7 +25,7 @@ import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.common.mapping.Mapping;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.controller.ModelUtils;
-import com.evolveum.midpoint.model.lens.AccountConstruction;
+import com.evolveum.midpoint.model.lens.Construction;
 import com.evolveum.midpoint.model.lens.AccountConstructionPack;
 import com.evolveum.midpoint.model.lens.Assignment;
 import com.evolveum.midpoint.model.lens.AssignmentEvaluator;
@@ -116,7 +116,7 @@ public class AssignmentProcessor {
     private PrismContext prismContext;
 
     @Autowired(required = true)
-    private MappingFactory valueConstructionFactory;
+    private MappingFactory mappingFactory;
     
     @Autowired(required = true)
     private ProvisioningService provisioningService;
@@ -182,7 +182,7 @@ public class AssignmentProcessor {
         assignmentEvaluator.setChannel(context.getChannel());
         assignmentEvaluator.setObjectResolver(objectResolver);
         assignmentEvaluator.setPrismContext(prismContext);
-        assignmentEvaluator.setValueConstructionFactory(valueConstructionFactory);
+        assignmentEvaluator.setMappingFactory(mappingFactory);
 
         // We will be collecting the evaluated account constructions into these three sets. 
         // It forms a kind of delta set triple for the account constructions.
@@ -432,15 +432,15 @@ public class AssignmentProcessor {
                 throw new IllegalStateException("Projection " + rat + " went looney");
             }
 
-            PrismValueDeltaSetTriple<PrismPropertyValue<AccountConstruction>> accountDeltaSetTriple = 
-            		new PrismValueDeltaSetTriple<PrismPropertyValue<AccountConstruction>>(
+            PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> accountDeltaSetTriple = 
+            		new PrismValueDeltaSetTriple<PrismPropertyValue<Construction>>(
             				getConstructions(zeroAccountMap.get(rat)),
             				getConstructions(plusAccountMap.get(rat)),
             				getConstructions(minusAccountMap.get(rat)));
             LensProjectionContext accountContext = context.findProjectionContext(rat);
             if (accountContext != null) {
             	// This can be null in a exotic case if we delete already deleted account
-            	accountContext.setAccountConstructionDeltaSetTriple(accountDeltaSetTriple);
+            	accountContext.setConstructionDeltaSetTriple(accountDeltaSetTriple);
             	if (isForceRecon(zeroAccountMap.get(rat)) || isForceRecon(plusAccountMap.get(rat)) || isForceRecon(minusAccountMap.get(rat))) {
             		accountContext.setDoReconciliation(true);
             	}
@@ -517,7 +517,7 @@ public class AssignmentProcessor {
 		throw new IllegalArgumentException("Construction not defined in the assigment.");
 	}
 
-	private Collection<PrismPropertyValue<AccountConstruction>> getConstructions(AccountConstructionPack accountConstructionPack) {
+	private Collection<PrismPropertyValue<Construction>> getConstructions(AccountConstructionPack accountConstructionPack) {
 		if (accountConstructionPack == null) {
 			return null;
 		}
@@ -719,7 +719,7 @@ public class AssignmentProcessor {
     private <F extends ObjectType> void collectToAccountMap(LensContext<F> context,
             Map<ResourceShadowDiscriminator, AccountConstructionPack> accountMap, Assignment evaluatedAssignment, 
             boolean forceRecon, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-        for (AccountConstruction accountConstruction : evaluatedAssignment.getAccountConstructions()) {
+        for (Construction accountConstruction : evaluatedAssignment.getAccountConstructions()) {
             String resourceOid = accountConstruction.getResource(result).getOid();
             String intent = accountConstruction.getIntent();
             ShadowKindType kind = accountConstruction.getKind();
@@ -733,7 +733,7 @@ public class AssignmentProcessor {
                 constructionPack = new AccountConstructionPack();
                 accountMap.put(rat, constructionPack);
             }
-            constructionPack.add(new PrismPropertyValue<AccountConstruction>(accountConstruction));
+            constructionPack.add(new PrismPropertyValue<Construction>(accountConstruction));
             if (forceRecon) {
             	constructionPack.setForceRecon(true);
             }
@@ -791,15 +791,15 @@ public class AssignmentProcessor {
 			// Same thing, this cannot exclude itself
 			return;
 		}
-		for(AccountConstruction constructionA: assignmentA.getAccountConstructions()) {
-			for(AccountConstruction constructionB: assignmentB.getAccountConstructions()) {
+		for(Construction constructionA: assignmentA.getAccountConstructions()) {
+			for(Construction constructionB: assignmentB.getAccountConstructions()) {
 				checkExclusion(constructionA, assignmentA, constructionB, assignmentB);
 			}
 		}
 	}
 
-	private void checkExclusion(AccountConstruction constructionA, Assignment assignmentA,
-			AccountConstruction constructionB, Assignment assignmentB) throws PolicyViolationException {
+	private void checkExclusion(Construction constructionA, Assignment assignmentA,
+			Construction constructionB, Assignment assignmentB) throws PolicyViolationException {
 		AssignmentPath pathA = constructionA.getAssignmentPath();
 		AssignmentPath pathB = constructionB.getAssignmentPath();
 		for (AssignmentPathSegment segmentA: pathA.getSegments()) {

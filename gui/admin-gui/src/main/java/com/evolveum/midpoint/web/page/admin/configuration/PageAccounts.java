@@ -19,6 +19,7 @@ package com.evolveum.midpoint.web.page.admin.configuration;
 import com.evolveum.midpoint.common.configuration.api.MidpointConfiguration;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.query.*;
@@ -29,6 +30,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxDownloadBehaviorFromFile;
 import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
@@ -67,6 +69,9 @@ import java.util.*;
 /**
  * @author lazyman
  */
+@PageDescriptor(url = "/admin/config/sync/accounts", action = {
+        PageAdminConfiguration.AUTHORIZATION_CONFIGURATION_ALL,
+        AuthorizationConstants.NS_AUTHORIZATION + "#configSyncAccounts"})
 public class PageAccounts extends PageAdminConfiguration {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageAccounts.class);

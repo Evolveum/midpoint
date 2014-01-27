@@ -29,6 +29,10 @@ import java.io.Serializable;
 public interface OperationResult extends Serializable {
 
     String getParams();
+    
+    String getContext();
+    
+    String getReturns();
 
     String getPartialResults();
 
@@ -47,6 +51,10 @@ public interface OperationResult extends Serializable {
     String getOperation();
 
     void setParams(String params);
+    
+    void setContext(String context);
+    
+    void setReturns(String returns);
 
     void setPartialResults(String partialResults);
 

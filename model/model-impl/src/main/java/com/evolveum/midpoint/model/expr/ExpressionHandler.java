@@ -37,6 +37,7 @@ import com.evolveum.midpoint.model.common.expression.Expression;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpression;
 import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFactory;
 import com.evolveum.midpoint.model.common.expression.script.xpath.XPathScriptEvaluator;
@@ -48,6 +49,7 @@ import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -94,21 +96,21 @@ public class ExpressionHandler {
 	}
 
 	public String evaluateExpression(ShadowType shadow, ExpressionType expressionType,
-			String shortDesc, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			String shortDesc, Task task, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		Validate.notNull(shadow, "Resource object shadow must not be null.");
 		Validate.notNull(expressionType, "Expression must not be null.");
 		Validate.notNull(result, "Operation result must not be null.");
 
 		ResourceType resource = resolveResource(shadow, result);
 		
-		Map<QName, Object> variables = getDefaultXPathVariables(null, shadow, resource);
+		ExpressionVariables variables = getDefaultXPathVariables(null, shadow, resource);
 		
 		PrismPropertyDefinition outputDefinition = new PrismPropertyDefinition(ExpressionConstants.OUTPUT_ELMENT_NAME, 
 				DOMUtil.XSD_STRING, prismContext);
 		Expression<PrismPropertyValue<String>> expression = expressionFactory.makeExpression(expressionType,
 				outputDefinition, shortDesc, result);
 
-		ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, result);
+		ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, task, result);
 		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = expression.evaluate(params);
 		if (outputTriple == null) {
 			return null;
@@ -124,14 +126,15 @@ public class ExpressionHandler {
 	}
 
 	public boolean evaluateConfirmationExpression(UserType user, ShadowType shadow,
-			ExpressionType expressionType, OperationResult result) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+			ExpressionType expressionType, Task task, OperationResult result) 
+					throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		Validate.notNull(user, "User must not be null.");
 		Validate.notNull(shadow, "Resource object shadow must not be null.");
 		Validate.notNull(expressionType, "Expression must not be null.");
 		Validate.notNull(result, "Operation result must not be null.");
 
 		ResourceType resource = resolveResource(shadow, result);
-		Map<QName, Object> variables = getDefaultXPathVariables(user, shadow, resource);
+		ExpressionVariables variables = getDefaultXPathVariables(user, shadow, resource);
 		String shortDesc = "confirmation expression for "+resource.asPrismObject();
 		
 		PrismPropertyDefinition outputDefinition = new PrismPropertyDefinition(ExpressionConstants.OUTPUT_ELMENT_NAME, 
@@ -139,7 +142,7 @@ public class ExpressionHandler {
 		Expression<PrismPropertyValue<Boolean>> expression = expressionFactory.makeExpression(expressionType, 
 				outputDefinition, shortDesc, result);
 
-		ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, result);
+		ExpressionEvaluationContext params = new ExpressionEvaluationContext(null, variables, shortDesc, task, result);
 		PrismValueDeltaSetTriple<PrismPropertyValue<Boolean>> outputTriple = expression.evaluate(params);
 		Collection<PrismPropertyValue<Boolean>> nonNegativeValues = outputTriple.getNonNegativeValues();
 		if (nonNegativeValues == null || nonNegativeValues.isEmpty()) {
@@ -177,20 +180,20 @@ public class ExpressionHandler {
 		return modelObjectResolver.getObjectSimple(ResourceType.class, ref.getOid(), null, null, result);
 	}
 
-	public static Map<QName, Object> getDefaultXPathVariables(UserType user,
+	public static ExpressionVariables getDefaultXPathVariables(UserType user,
 			ShadowType shadow, ResourceType resource) {
 		
-		Map<QName, Object> variables = new HashMap<QName, Object>();
+		ExpressionVariables variables = new ExpressionVariables();
 		if (user != null) {
-			variables.put(ExpressionConstants.VAR_USER, user.asPrismObject());
+			variables.addVariableDefinition(ExpressionConstants.VAR_USER, user.asPrismObject());
 		}
 
 		if (shadow != null) {
-			variables.put(ExpressionConstants.VAR_ACCOUNT, shadow.asPrismObject());
+			variables.addVariableDefinition(ExpressionConstants.VAR_ACCOUNT, shadow.asPrismObject());
 		}
 
 		if (resource != null) {
-			variables.put(ExpressionConstants.VAR_RESOURCE, resource.asPrismObject());
+			variables.addVariableDefinition(ExpressionConstants.VAR_RESOURCE, resource.asPrismObject());
 		}
 
 		return variables;

@@ -123,6 +123,7 @@
         assignmentOwner integer,
         construction clob,
         description clob,
+        orderValue integer,
         owner_id bigint not null,
         owner_oid varchar(36) not null,
         targetRef_description clob,
@@ -142,6 +143,7 @@
     create table m_audit_delta (
         checksum varchar(32) not null,
         record_id bigint not null,
+        context clob,
         delta clob,
         deltaOid varchar(36),
         deltaType integer,
@@ -152,6 +154,7 @@
         operation clob,
         params clob,
         partialResults clob,
+        returns clob,
         status integer,
         token bigint,
         primary key (checksum, record_id)
@@ -350,6 +353,7 @@
     create table m_operation_result (
         owner_oid varchar(36) not null,
         owner_id bigint not null,
+        context clob,
         details clob,
         localizedMessage clob,
         message clob,
@@ -357,6 +361,7 @@
         operation clob,
         params clob,
         partialResults clob,
+        returns clob,
         status integer,
         token bigint,
         primary key (owner_oid, owner_id)

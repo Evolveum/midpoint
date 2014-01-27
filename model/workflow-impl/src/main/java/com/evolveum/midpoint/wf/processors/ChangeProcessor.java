@@ -28,7 +28,10 @@ import com.evolveum.midpoint.wf.jobs.Job;
 import com.evolveum.midpoint.wf.messages.ProcessEvent;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
+import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.WorkItemContents;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessInstanceState;
 
+import javax.xml.bind.JAXBException;
 import java.util.Map;
 
 /**
@@ -75,14 +78,40 @@ public interface ChangeProcessor {
      */
     void onProcessEnd(ProcessEvent event, Job job, OperationResult result) throws SchemaException, ObjectAlreadyExistsException, ObjectNotFoundException;
 
-    PrismObject<? extends ObjectType> getRequestSpecificData(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException;
-    PrismObject<? extends ObjectType> getRelatedObject(org.activiti.engine.task.Task task, Map<String, Object> variables, OperationResult result) throws SchemaException, ObjectNotFoundException;
-
-    String getProcessInstanceDetailsPanelName(WfProcessInstanceType processInstance);
-
     /**
      * Checks whether this change processor is enabled (typically, using the midpoint configuration file).
      * @return true if enabled, false if not
      */
     boolean isEnabled();
+
+    /**
+     * Externalizes internal state of the process instance. Typically, uninteresting (auxiliary) data elements
+     * are thrown away, internal representation suitable for workflow processing is replaced by "clean" prism
+     * object structure, and untyped Map[String,Object] is replaced by typed prism data.
+     *
+     * @param variables internal process state represented by a map
+     * @return external representation in the form of PrismObject
+     */
+    PrismObject<? extends ProcessInstanceState> externalizeInstanceState(Map<String, Object> variables) throws JAXBException, SchemaException;
+
+    /**
+     * Prepares a displayable work item contents. For example, in case of primary change processor,
+     * it returns a GeneralChangeApprovalWorkItemContents containing original object state
+     * (objectOld), to-be object state (objectNew), delta, additional object, and a wrapper-specific
+     * question form.
+     *
+     * @param task activiti task corresponding to the work item for which the contents is to be prepared
+     * @param processInstanceVariables variables of the process instance of which this task is a part
+     * @param result here the method stores its result
+     * @return
+     * @throws JAXBException
+     * @throws ObjectNotFoundException
+     * @throws SchemaException
+     */
+    PrismObject<? extends WorkItemContents> prepareWorkItemContents(org.activiti.engine.task.Task task, Map<String, Object> processInstanceVariables, OperationResult result) throws JAXBException, ObjectNotFoundException, SchemaException;
+
+    // TODO explain or remove this
+    String getProcessInstanceDetailsPanelName(WfProcessInstanceType processInstance);
+
 }
+

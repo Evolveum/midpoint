@@ -39,15 +39,22 @@
             			schemaLocation="../../public/connector/icf-1/resource-schema-2.xsd"/>
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/connector-schema-2" 
             			schemaLocation="../../public/connector/icf-1/connector-schema-2.xsd"/>
+            <!--
 			<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/communication/workflow-1.xsd" 
 						schemaLocation="../../public/communication/workflow-1.xsd"/>
+		    -->
             <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/model/workflow/common-forms-2"
                         schemaLocation="../../public/model/workflow/common-forms-2.xsd"/>
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/model/workflow/process-instance-state-2"
+                        schemaLocation="../../public/model/workflow/process-instance-state-2.xsd"/>
 
             <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-2" 
             			schemaLocation="http://prism.evolveum.com/xml/ns/public/query-2"/>
             <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-2" 
             			schemaLocation="http://prism.evolveum.com/xml/ns/public/types-2"/>
+
+            <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/gui/admin-1"
+                        schemaLocation="../../public/gui/admin-1.xsd"/>
         </xsd:schema>
     </types>
 

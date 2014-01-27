@@ -711,7 +711,7 @@ public class ActivationProcessor {
 
 	private PrismObjectDefinition<UserType> getUserDefinition() {
 		if (userDefinition == null) {
-			userDefinition = prismContext.getSchemaRegistry().getObjectSchema()
+			userDefinition = prismContext.getSchemaRegistry()
 				.findObjectDefinitionByCompileTimeClass(UserType.class);
 		}
 		return userDefinition;

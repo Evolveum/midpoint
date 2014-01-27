@@ -23,6 +23,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
 
 /**
  * @author semancik
@@ -30,6 +31,7 @@ import com.evolveum.midpoint.util.DebugUtil;
  */
 public class ItemPath implements Serializable {
 	
+	public static final QName XSD_TYPE = ItemPathType.COMPLEX_TYPE;
 	public static final ItemPath EMPTY_PATH = new ItemPath();
 	
 	private List<ItemPathSegment> segments;

@@ -16,16 +16,19 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow;
 
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.LinkColumn;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.*;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
@@ -50,6 +53,9 @@ import java.util.List;
 /**
  * @author lazyman
  */
+@PageDescriptor(url = "/admin/workItems", action = {
+        PageAdminWorkItems.AUTHORIZATION_WORK_ITEMS_ALL,
+        AuthorizationConstants.NS_AUTHORIZATION + "#workItems"})
 public class PageWorkItems extends PageAdminWorkItems {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageWorkItems.class);
@@ -236,7 +242,7 @@ public class PageWorkItems extends PageAdminWorkItems {
 
     private void itemDetailsPerformed(AjaxRequestTarget target, String taskid) {
         PageParameters parameters = new PageParameters();
-        parameters.add(PageWorkItem.PARAM_TASK_ID, taskid);
+        parameters.add(OnePageParameterEncoder.PARAMETER, taskid);
         setResponsePage(new PageWorkItem(parameters, this));
     }
 

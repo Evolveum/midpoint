@@ -39,6 +39,7 @@ import net.sf.jasperreports.engine.xml.JRXmlLoader;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.model.api.ModelService;
@@ -90,7 +91,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ThreadStopActionTyp
 /**
  * @author lazyman, garbika
  */
-@Component
+@Service(value = "reportManager")
 public class ReportManagerImpl implements ReportManager, ChangeHook {
 	
     public static final String HOOK_URI = "http://midpoint.evolveum.com/model/report-hook-1";
@@ -329,5 +330,10 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
         	result.recordFatalError("Cannot delete the report output because of a exception.", e);
             throw e;
         }
-    } 
+    }
+
+    @Override
+    public InputStream getReportOutputData(String reportOutputOid, OperationResult parentResult) {
+        return null;
+    }
 }

@@ -203,7 +203,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 				LOGGER.trace("Synchronization is enabled, focus class: {}, found applicable policy: {}", focusType, Utils.getPolicyDesc(synchronizationPolicy));
 			}
 			
-			SynchronizationSituation situation = determineSituation(focusType, change, synchronizationPolicy, subResult);
+			SynchronizationSituation situation = determineSituation(focusType, change, synchronizationPolicy, task, subResult);
 			if (logDebug) {
 				LOGGER.debug("SYNCHRONIZATION: SITUATION: '{}', {}", situation.getSituation().value(), situation.getCorrelatedOwner());
 			} else {
@@ -357,8 +357,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 	 * {@link SynchronizationSituationType#DISPUTED} situation
 	 */
 	private <F extends FocusType> SynchronizationSituation determineSituation(Class<F> focusType, 
-			ResourceObjectShadowChangeDescription change, 
-			ObjectSynchronizationType synchronizationPolicy, OperationResult result) {
+			ResourceObjectShadowChangeDescription change, ObjectSynchronizationType synchronizationPolicy, 
+			Task task, OperationResult result) {
 
 		OperationResult subResult = result.createSubresult(CHECK_SITUATION);
 		LOGGER.trace("Determining situation for resource object shadow.");
@@ -393,7 +393,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 				situation = new SynchronizationSituation<F>(ownerType, null, state);
 			} else {
 				LOGGER.trace("Resource object shadow doesn't have owner.");
-				situation = determineSituationWithCorrelation(focusType, change, synchronizationPolicy, owner, result);
+				situation = determineSituationWithCorrelation(focusType, change, synchronizationPolicy, owner, task, result);
 			}
 		} catch (Exception ex) {
 			LOGGER.error("Error occurred during resource object shadow owner lookup.");
@@ -427,10 +427,12 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 	/**
 	 * Tries to match specified focus and shadow. Return true if it matches, false otherwise.  
 	 */
-	public <F extends FocusType> boolean matchUserCorrelationRule(PrismObject<ShadowType> shadow, PrismObject<F> focus, ResourceType resourceType, OperationResult result) throws ConfigurationException{
+	public <F extends FocusType> boolean matchUserCorrelationRule(PrismObject<ShadowType> shadow, PrismObject<F> focus, 
+			ResourceType resourceType, Task task, OperationResult result) throws ConfigurationException{
 		ObjectSynchronizationType synchronizationPolicy = determineSynchronizationPolicy(resourceType, shadow);
 		Class<F> focusClass = determineFocusClass(synchronizationPolicy, resourceType);
-		return correlationConfirmationEvaluator.matchUserCorrelationRule(focusClass, shadow, focus, synchronizationPolicy, resourceType, result);
+		return correlationConfirmationEvaluator.matchUserCorrelationRule(focusClass, shadow, focus, synchronizationPolicy, resourceType, 
+				task, result);
 	}
 	
 	/**
@@ -442,8 +444,9 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 	 * correlation/confirmation
 	 */
 	private <F extends FocusType> SynchronizationSituation determineSituationWithCorrelation(
-			Class<F> focusType, ResourceObjectShadowChangeDescription change,
-			ObjectSynchronizationType synchronizationPolicy, PrismObject<F> owner, OperationResult result) throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
+			Class<F> focusType, ResourceObjectShadowChangeDescription change, ObjectSynchronizationType synchronizationPolicy, 
+			PrismObject<F> owner, Task task, OperationResult result) 
+					throws SchemaException, ObjectNotFoundException, ExpressionEvaluationException {
 
 		if (ChangeType.DELETE.equals(getModificationType(change))) {
 			// account was deleted and we know it didn't have owner
@@ -469,8 +472,7 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 		SynchronizationSituationType state = null;
 		LOGGER.trace("SYNCHRONIZATION: CORRELATION: Looking for list of {} objects based on correlation rule.", focusType.getSimpleName());
 		List<PrismObject<F>> users = correlationConfirmationEvaluator.findFocusesByCorrelationRule(
-				focusType, resourceShadow.asObjectable(),
-				synchronizationPolicy.getCorrelation(), resource, result);
+				focusType, resourceShadow.asObjectable(), synchronizationPolicy.getCorrelation(), resource, task, result);
 		if (users == null) {
 			users = new ArrayList<PrismObject<F>>();
 		}
@@ -480,8 +482,8 @@ public class SynchronizationService implements ResourceObjectChangeListener {
 				LOGGER.trace("SYNCHRONIZATION: CONFIRMATION: no confirmation defined.");
 			} else {
 				LOGGER.debug("SYNCHRONIZATION: CONFIRMATION: Checking objects from correlation with confirmation rule.");
-				users = correlationConfirmationEvaluator.findUserByConfirmationRule(focusType, users, resourceShadow.asObjectable(), resource, 
-						synchronizationPolicy.getConfirmation(), result);
+				users = correlationConfirmationEvaluator.findUserByConfirmationRule(focusType, users, resourceShadow.asObjectable(), 
+						resource, synchronizationPolicy.getConfirmation(), task, result);
 			}
 		}
 

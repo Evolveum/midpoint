@@ -23,7 +23,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.WorkflowManagerImpl;
 import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
-import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
+import com.evolveum.midpoint.wf.processes.common.CommonProcessVariableNames;
 import org.activiti.engine.ActivitiException;
 import org.activiti.engine.HistoryService;
 import org.activiti.engine.RuntimeService;

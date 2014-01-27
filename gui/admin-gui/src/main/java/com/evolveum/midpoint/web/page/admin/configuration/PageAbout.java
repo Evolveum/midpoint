@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.schema.LabeledString;
 import com.evolveum.midpoint.schema.RepositoryDiag;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -23,9 +24,12 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
+import org.apache.commons.collections.ListUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.list.ListItem;
@@ -34,12 +38,18 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
 import java.io.Serializable;
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
  * @author lazyman
  */
+@PageDescriptor(url = "/admin/config/about", action = {
+        PageAdminConfiguration.AUTHORIZATION_CONFIGURATION_ALL,
+        AuthorizationConstants.NS_AUTHORIZATION + "#configAbout"})
 public class PageAbout extends PageAdminConfiguration {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageAbout.class);
@@ -63,6 +73,7 @@ public class PageAbout extends PageAdminConfiguration {
     private static final String ID_ADDITIONAL_DETAILS = "additionalDetails";
     private static final String ID_DETAIL_NAME = "detailName";
     private static final String ID_DETAIL_VALUE = "detailValue";
+    private static final String ID_JVM_PROPERTIES = "jvmProperties";
 
     private static final String[] PROPERTIES = new String[]{"file.separator", "java.class.path",
             "java.home", "java.vendor", "java.vendor.url", "java.version", "line.separator", "os.arch",
@@ -128,6 +139,23 @@ public class PageAbout extends PageAdminConfiguration {
         };
         add(additionalDetails);
 
+        Label jvmProperties = new Label(ID_JVM_PROPERTIES, new LoadableModel<String>(false) {
+
+            @Override
+            protected String load() {
+                try {
+                    RuntimeMXBean runtimeMxBean = ManagementFactory.getRuntimeMXBean();
+                    List<String> arguments = runtimeMxBean.getInputArguments();
+
+                    return StringUtils.join(arguments, "<br/>");
+                } catch (Exception ex) {
+                    return PageAbout.this.getString("PageAbout.message.couldntObtainJvmParams");
+                }
+            }
+        });
+        jvmProperties.setEscapeModelStrings(false);
+        add(jvmProperties);
+
         initButtons();
     }
 
@@ -147,7 +175,7 @@ public class PageAbout extends PageAdminConfiguration {
             }
         };
         add(testRepository);
-        
+
         AjaxButton testProvisioning = new AjaxButton(ID_TEST_PROVISIONING,
                 createStringResource("PageAbout.button.testProvisioning")) {
 
@@ -202,7 +230,7 @@ public class PageAbout extends PageAdminConfiguration {
 
         target.add(getFeedbackPanel());
     }
-    
+
     private void testProvisioningPerformed(AjaxRequestTarget target) {
         Task task = createSimpleTask(OPERATION_TEST_REPOSITORY);
 

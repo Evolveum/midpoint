@@ -17,35 +17,37 @@
 package com.evolveum.midpoint.web.page.admin.reports.component;
 
 import com.evolveum.midpoint.audit.api.AuditEventType;
-import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.DateInput;
+import com.evolveum.midpoint.web.component.form.DateFormGroup;
+import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
+import com.evolveum.midpoint.web.component.form.TextFormGroup;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditReportDto;
 import com.evolveum.midpoint.web.util.DateValidator;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExportType;
 import org.apache.wicket.Component;
-import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.apache.wicket.markup.html.panel.FeedbackPanel;
+import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
+import javax.xml.datatype.XMLGregorianCalendar;
 
-import java.util.Date;
 
 /**
+ *  TODO - add proper date validator
+ *
  * @author lazyman
  */
 public class AuditPopupPanel extends SimplePanel<AuditReportDto> {
 
-    private static final String ID_FORM = "form";
+    private static final String ID_NAME = "name";
     private static final String ID_DATE_FROM = "dateFrom";
     private static final String ID_DATE_TO = "dateTo";
-    private static final String ID_FEEDBACK = "feedback";
     private static final String ID_AUDITEVENTTYPE = "auditEventType";
-    private static final String ID_RUN = "run";
+    private static final String ID_DESCRIPTION = "description";
+    private static final String ID_EXPORT_TYPE = "exportType";
+
+    private static final String ID_LABEL_SIZE = "col-md-4";
+    private static final String ID_INPUT_SIZE = "col-md-6";
 
     public AuditPopupPanel(String id, IModel<AuditReportDto> model) {
         super(id, model);
@@ -55,67 +57,33 @@ public class AuditPopupPanel extends SimplePanel<AuditReportDto> {
 
     @SuppressWarnings("serial")
     protected void initLayout(final Component component) {
-        Form form = new Form(ID_FORM);
-        add(form);
 
-        final FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK);
-        feedback.setOutputMarkupId(true);
-        form.add(feedback);
+        TextFormGroup name = new TextFormGroup(ID_NAME, new PropertyModel<String>(getModel(), AuditReportDto.F_NAME),
+                createStringResource("ObjectType.name"), ID_LABEL_SIZE, ID_INPUT_SIZE, true);
+        add(name);
 
-        IChoiceRenderer<AuditEventType> renderer = new IChoiceRenderer<AuditEventType>() {
+        TextFormGroup description = new TextFormGroup(ID_DESCRIPTION, new PropertyModel<String>(getModel(), AuditReportDto.F_DESCRIPTION),
+                createStringResource("ObjectType.description"), ID_LABEL_SIZE, ID_INPUT_SIZE, true);
+        add(description);
 
-            @Override
-            public Object getDisplayValue(AuditEventType object) {
-                return WebMiscUtil.createLocalizedModelForEnum(object, component).getObject();
-            }
+        IModel choices = WebMiscUtil.createReadonlyModelFromEnum(ExportType.class);
+        IChoiceRenderer renderer = new EnumChoiceRenderer();
+        DropDownFormGroup exportType = new DropDownFormGroup(ID_EXPORT_TYPE, new PropertyModel<ExportType>(getModel(), AuditReportDto.F_EXPORT_TYPE),
+                choices, renderer, createStringResource("AuditPopulPanel.exportType.label"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+        add(exportType);
 
-            @Override
-            public String getIdValue(AuditEventType object, int index) {
-                return Integer.toString(index);
-            }
-        };
+        choices = WebMiscUtil.createReadonlyModelFromEnum(AuditEventType.class);
+        DropDownFormGroup auditEventType = new DropDownFormGroup(ID_AUDITEVENTTYPE, new PropertyModel<AuditEventType>(getModel(), AuditReportDto.F_AUDITEVENTTYPE),
+                choices, renderer, createStringResource("AuditPopupPanel.auditEventType"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+        add(auditEventType);
 
-        DropDownChoice dropDown = new DropDownChoice(ID_AUDITEVENTTYPE, new PropertyModel<AuditEventType>(getModel(),
-                AuditReportDto.F_AUDITEVENTTYPE), WebMiscUtil.createReadonlyModelFromEnum(AuditEventType.class),
-                renderer) {
+        DateFormGroup dateFrom = new DateFormGroup(ID_DATE_FROM, new PropertyModel<XMLGregorianCalendar>(getModel(), AuditReportDto.F_FROM_GREG),
+                createStringResource("AuditPopupPanel.dateFrom"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+        add(dateFrom);
 
-            @Override
-            protected String getNullValidDisplayValue() {
-                return AuditPopupPanel.this.getString("AuditEventType.null");
-            }
-        };
-        dropDown.setNullValid(true);
-
-
-        form.add(dropDown);
-
-        DateInput dateFrom = new DateInput(ID_DATE_FROM, new PropertyModel<Date>(getModel(), AuditReportDto.F_FROM));
-        dateFrom.setRequired(true);
-        form.add(dateFrom);
-
-        DateInput dateTo = new DateInput(ID_DATE_TO, new PropertyModel<Date>(getModel(), AuditReportDto.F_TO));
-        dateTo.setRequired(true);
-        form.add(dateTo);
-
-        form.add(new DateValidator(dateFrom, dateTo));
-
-        AjaxSubmitButton run = new AjaxSubmitButton(ID_RUN, createStringResource("PageBase.button.run")) {
-
-            @Override
-            protected void onError(AjaxRequestTarget target, Form<?> form) {
-                target.add(feedback);
-            }
-
-            @Override
-            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                onRunPerformed(target);
-            }
-        };
-        form.add(run);
+        DateFormGroup dateTo = new DateFormGroup(ID_DATE_TO, new PropertyModel<XMLGregorianCalendar>(getModel(), AuditReportDto.F_TO_GREG),
+                createStringResource("AuditPopupPanel.dateTo"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+        add(dateTo);
     }
 
-
-    protected void onRunPerformed(AjaxRequestTarget target) {
-
-    }
 }

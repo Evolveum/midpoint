@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.users;
 
 
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 
 /**
@@ -24,4 +25,6 @@ import com.evolveum.midpoint.web.page.admin.PageAdmin;
  */
 public class PageAdminUsers extends PageAdmin {
 
+    public static final String AUTHORIZATION_USERS_ALL = AuthorizationConstants.NS_AUTHORIZATION + "#usersAll";
+    public static final String AUTHORIZATION_ORG_ALL = AuthorizationConstants.NS_AUTHORIZATION + "#orgAll";
 }

@@ -22,6 +22,7 @@ import java.util.Map.Entry;
 import javax.xml.bind.JAXBElement;
 
 import com.evolveum.midpoint.prism.util.CloneUtil;
+
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -89,6 +90,7 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 	public static final String PARAM_OPTIONS = "options";
 	public static final String PARAM_TASK = "task";
 	public static final String PARAM_OBJECT = "object";
+	public static final String PARAM_QUERY = "query";
 	
 	public static final String RETURN_COUNT = "count";
 	
@@ -160,8 +162,15 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 		this(operation, params, status, token, messageCode, message, localizationMessage, null, cause,
 				subresults);
 	}
-
+	
 	public OperationResult(String operation, Map<String, Serializable> params, OperationResultStatus status,
+			long token, String messageCode, String message, String localizationMessage,
+			List<Serializable> localizationArguments, Throwable cause, List<OperationResult> subresults) {
+		this(operation, params, null, null, status, token, messageCode, message, localizationMessage, null, cause,
+				subresults);
+	}
+
+	public OperationResult(String operation, Map<String, Serializable> params, Map<String, Serializable> context, Map<String, Serializable> returns, OperationResultStatus status,
 			long token, String messageCode, String message, String localizationMessage,
 			List<Serializable> localizationArguments, Throwable cause, List<OperationResult> subresults) {
 		if (StringUtils.isEmpty(operation)) {
@@ -172,6 +181,8 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 		}
 		this.operation = operation;
 		this.params = params;
+		this.context = context;
+		this.returns = returns;
 		this.status = status;
 		this.token = token;
 		this.messageCode = messageCode;
@@ -923,6 +934,22 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 				params.put(entry.getKey(), (Serializable) entry.getAny());
 			}
 		}
+		
+		Map<String, Serializable> context = null;
+		if (result.getContext() != null) {
+			context = new HashMap<String, Serializable>();
+			for (EntryType entry : result.getContext().getEntry()) {
+				context.put(entry.getKey(), (Serializable) entry.getAny());
+			}
+		}
+		
+		Map<String, Serializable> returns = null;
+		if (result.getReturns() != null) {
+			returns = new HashMap<String, Serializable>();
+			for (EntryType entry : result.getReturns().getEntry()) {
+				returns.put(entry.getKey(), (Serializable) entry.getAny());
+			}
+		}
 
 		List<OperationResult> subresults = null;
 		if (!result.getPartialResults().isEmpty()) {
@@ -936,7 +963,7 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 		String localizedMessage = message == null ? null : message.getKey();
 		List<Serializable> localizedArguments = message == null ? null : (List<Serializable>) (List) message.getArgument();         // FIXME: brutal hack
 
-		return new OperationResult(result.getOperation(), params,
+		return new OperationResult(result.getOperation(), params, context, returns, 
 				OperationResultStatus.parseStatusType(result.getStatus()), result.getToken(),
 				result.getMessageCode(), result.getMessage(), localizedMessage, localizedArguments, null,
 				subresults);
@@ -997,6 +1024,26 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 			result.setParams(paramsType);
 
 			for (Entry<String, Serializable> entry : params) {
+				paramsType.getEntry().add(createEntryElement(entry.getKey(),entry.getValue()));
+			}
+		}
+
+		Set<Entry<String, Serializable>> context = opResult.getContext().entrySet();
+		if (!context.isEmpty()) {
+			ParamsType paramsType = new ParamsType();
+			result.setContext(paramsType);
+
+			for (Entry<String, Serializable> entry : context) {
+				paramsType.getEntry().add(createEntryElement(entry.getKey(),entry.getValue()));
+			}
+		}
+
+		Set<Entry<String, Serializable>> returns = opResult.getReturns().entrySet();
+		if (!returns.isEmpty()) {
+			ParamsType paramsType = new ParamsType();
+			result.setReturns(paramsType);
+
+			for (Entry<String, Serializable> entry : returns) {
 				paramsType.getEntry().add(createEntryElement(entry.getKey(),entry.getValue()));
 			}
 		}

@@ -32,13 +32,14 @@ import javax.annotation.PostConstruct;
 import java.util.Date;
 
 /**
+ * Default implementation of a notifier dealing with workflow events (related to both work items and process instances).
+ *
  * @author mederly
  */
 @Component
 public class SimpleWorkflowNotifier extends GeneralNotifier {
 
     private static final Trace LOGGER = TraceManager.getTrace(SimpleWorkflowNotifier.class);
-    private static final Integer LEVEL_TECH_INFO = 10;
 
     @PostConstruct
     public void init() {
@@ -84,27 +85,25 @@ public class SimpleWorkflowNotifier extends GeneralNotifier {
         body.append(getSubject(event, generalNotifierType, transport, result));
         body.append("\n\n");
 
-        body.append("Process instance name: " + workflowEvent.getProcessName() + "\n");
+        body.append("Process instance name: " + workflowEvent.getProcessInstanceName() + "\n");
         if (workflowEvent instanceof WorkItemEvent) {
             WorkItemEvent workItemEvent = (WorkItemEvent) workflowEvent;
-            body.append("Work item: " + workItemEvent.getWorkItemName() + "\n");
+            body.append("Work item: ").append(workItemEvent.getWorkItemName()).append("\n");
             ObjectType assigneeType = notificationsUtil.getObjectType(workItemEvent.getAssignee(), result);
             if (assigneeType != null) {
-                body.append("Assignee: " + assigneeType.getName() + "\n");
+                body.append("Assignee: ").append(assigneeType.getName()).append("\n");
             }
         }
         body.append("\n");
         if (event.isDelete() && workflowEvent.isResultKnown()) {
-            body.append("Result: " + (workflowEvent.isApproved() ? "APPROVED" : "REJECTED") + "\n\n");
+            body.append("Result: ").append(workflowEvent.isApproved() ? "APPROVED" : "REJECTED").append("\n\n");
         }
-        body.append("Notification created on: " + new Date() + "\n\n");
+        body.append("Notification created on: ").append(new Date()).append("\n\n");
 
         if (techInfo) {
             body.append("----------------------------------------\n");
             body.append("Technical information:\n\n");
-            for (String key : workflowEvent.getVariables().keySet()) {
-                body.append(key + " = " + workflowEvent.getVariables().get(key) + "\n");
-            }
+            body.append(workflowEvent.getProcessInstanceState().debugDump());
         }
 
         return body.toString();

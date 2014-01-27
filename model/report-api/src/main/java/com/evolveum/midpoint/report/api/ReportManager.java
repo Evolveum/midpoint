@@ -19,8 +19,11 @@ package com.evolveum.midpoint.report.api;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
+
+import java.io.InputStream;
 
 /**
  * todo comments [lazyman]
@@ -46,5 +49,13 @@ public interface ReportManager {
      * @param parentResult
      */
     void cleanupReports(CleanupPolicyType cleanupPolicy, OperationResult parentResult);
-	
+
+    /**
+     * todo comments [lazyman]
+     *
+     * @param reportOutputOid
+     * @param parentResult
+     * @return
+     */
+    InputStream getReportOutputData(String reportOutputOid, OperationResult parentResult) throws ObjectNotFoundException;
 }

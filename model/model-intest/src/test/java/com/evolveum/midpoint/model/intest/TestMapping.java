@@ -716,7 +716,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
 		PrismObject<UserType> userJack = getUser(USER_JACK_OID);
 		assertUserJack(userJack, "Captain Jack Sparrow", "Jack", "Sparrow");
 		
-		String accountRedOid = getLinkRef(userJack, RESOURCE_DUMMY_RED_OID);
+		String accountRedOid = getLinkRefOid(userJack, RESOURCE_DUMMY_RED_OID);
 		PrismObject<ShadowType> accountRed = getShadowModel(accountRedOid);
 		
 		XMLGregorianCalendar trigStart = clock.currentTimeXMLGregorianCalendar();
@@ -759,7 +759,7 @@ public class TestMapping extends AbstractInitializedModelIntegrationTest {
         dummyAuditService.clear();
         
         PrismObject<UserType> userJack = getUser(USER_JACK_OID);
-        String acccountRedOid = getLinkRef(userJack, RESOURCE_DUMMY_RED_OID);
+        String acccountRedOid = getLinkRefOid(userJack, RESOURCE_DUMMY_RED_OID);
         
         Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
         ObjectDelta<ShadowType> shadowDelta = ObjectDelta.createDeleteDelta(ShadowType.class, acccountRedOid, prismContext);

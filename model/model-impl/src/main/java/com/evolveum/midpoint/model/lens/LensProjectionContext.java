@@ -62,6 +62,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectTypeDefinitionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectTypeDependencyType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowDiscriminatorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
@@ -163,13 +164,14 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
      * Intermediary computation result. It is stored to allow re-computing of account constructions during
      * iterative computations.
      */
-    private transient PrismValueDeltaSetTriple<PrismPropertyValue<AccountConstruction>> accountConstructionDeltaSetTriple;
+    private transient PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> constructionDeltaSetTriple;
     
-    private transient AccountConstruction outboundAccountConstruction;
+    private transient Construction outboundConstruction;
     
     private transient Collection<ResourceObjectTypeDependencyType> dependencies = null;
     
-    private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> squeezedAttributes;
+    private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>>>> squeezedAttributes;
+    private transient Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>>>> squeezedAssociations;
     
     private ValuePolicyType accountPasswordPolicy;
 
@@ -445,31 +447,40 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		return ShadowKindType.ACCOUNT;
 	}
 	
-	public PrismValueDeltaSetTriple<PrismPropertyValue<AccountConstruction>> getAccountConstructionDeltaSetTriple() {
-		return accountConstructionDeltaSetTriple;
+	public PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> getConstructionDeltaSetTriple() {
+		return constructionDeltaSetTriple;
 	}
 
-	public void setAccountConstructionDeltaSetTriple(
-			PrismValueDeltaSetTriple<PrismPropertyValue<AccountConstruction>> accountConstructionDeltaSetTriple) {
-		this.accountConstructionDeltaSetTriple = accountConstructionDeltaSetTriple;
+	public void setConstructionDeltaSetTriple(
+			PrismValueDeltaSetTriple<PrismPropertyValue<Construction>> constructionDeltaSetTriple) {
+		this.constructionDeltaSetTriple = constructionDeltaSetTriple;
 	}
 	
-	public AccountConstruction getOutboundAccountConstruction() {
-		return outboundAccountConstruction;
+	public Construction getOutboundConstruction() {
+		return outboundConstruction;
 	}
 
-	public void setOutboundAccountConstruction(AccountConstruction outboundAccountConstruction) {
-		this.outboundAccountConstruction = outboundAccountConstruction;
+	public void setOutboundConstruction(Construction outboundConstruction) {
+		this.outboundConstruction = outboundConstruction;
 	}
 
-    public Map<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> getSqueezedAttributes() {
+    public Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>>>> getSqueezedAttributes() {
 		return squeezedAttributes;
 	}
 
-	public void setSqueezedAttributes(Map<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> squeezedAttributes) {
+	public void setSqueezedAttributes(Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>>>> squeezedAttributes) {
 		this.squeezedAttributes = squeezedAttributes;
 	}
 	
+	public Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>>>> getSqueezedAssociations() {
+		return squeezedAssociations;
+	}
+
+	public void setSqueezedAssociations(
+			Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismContainerValue<ShadowAssociationType>>>> squeezedAssociations) {
+		this.squeezedAssociations = squeezedAssociations;
+	}
+
 	public ResourceObjectTypeDefinitionType getResourceAccountTypeDefinitionType() {
 		if (synchronizationPolicyDecision == SynchronizationPolicyDecision.BROKEN) {
 			return null;
@@ -603,8 +614,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     }
     
 	public void clearIntermediateResults() {
-		accountConstructionDeltaSetTriple = null;
-		outboundAccountConstruction = null;
+		constructionDeltaSetTriple = null;
+		outboundConstruction = null;
 		squeezedAttributes = null;
 	}
 	
@@ -786,8 +797,8 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		isAssigned = false;
 		isActive = false;
 		synchronizationPolicyDecision = null;
-		accountConstructionDeltaSetTriple = null;
-		outboundAccountConstruction = null;
+		constructionDeltaSetTriple = null;
+		outboundConstruction = null;
 		dependencies = null;
 		squeezedAttributes = null;
 		accountPasswordPolicy = null;
@@ -818,7 +829,7 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		clone.isAssigned = this.isAssigned;
 		clone.iteration = this.iteration;
 		clone.iterationToken = this.iterationToken;
-		clone.outboundAccountConstruction = this.outboundAccountConstruction;
+		clone.outboundConstruction = this.outboundConstruction;
 		clone.synchronizationPolicyDecision = this.synchronizationPolicyDecision;
 		clone.resource = this.resource;
 		clone.resourceShadowDiscriminator = this.resourceShadowDiscriminator;
@@ -829,19 +840,19 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		clone.wave = this.wave;
 	}
 
-	private Map<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> cloneSqueezedAttributes() {
+	private Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>>>> cloneSqueezedAttributes() {
 		if (squeezedAttributes == null) {
 			return null;
 		}
-		Map<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> clonedMap 
-		= new HashMap<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>>();
-		Cloner<ItemValueWithOrigin<? extends PrismPropertyValue<?>>> cloner = new Cloner<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>() {
+		Map<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>>>> clonedMap 
+		= new HashMap<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>>>>();
+		Cloner<ItemValueWithOrigin<PrismPropertyValue<?>>> cloner = new Cloner<ItemValueWithOrigin<PrismPropertyValue<?>>>() {
 			@Override
-			public ItemValueWithOrigin<? extends PrismPropertyValue<?>> clone(ItemValueWithOrigin<? extends PrismPropertyValue<?>> original) {
+			public ItemValueWithOrigin<PrismPropertyValue<?>> clone(ItemValueWithOrigin<PrismPropertyValue<?>> original) {
 				return original.clone();
 			}
 		};
-		for (Entry<QName, DeltaSetTriple<ItemValueWithOrigin<? extends PrismPropertyValue<?>>>> entry: squeezedAttributes.entrySet()) {
+		for (Entry<QName, DeltaSetTriple<ItemValueWithOrigin<PrismPropertyValue<?>>>> entry: squeezedAttributes.entrySet()) {
 			clonedMap.put(entry.getKey(), entry.getValue().clone(cloner));
 		}
 		return clonedMap;
@@ -861,12 +872,12 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
 		return false;
 	}
 
-	private boolean hasValueForAttribute(QName attributeName, Collection<PrismPropertyValue<AccountConstruction>> acPpvSet) {
+	private boolean hasValueForAttribute(QName attributeName, Collection<PrismPropertyValue<Construction>> acPpvSet) {
 		if (acPpvSet == null) {
 			return false;
 		}
-		for (PrismPropertyValue<AccountConstruction> acPpv: acPpvSet) {
-			AccountConstruction ac = acPpv.getValue();
+		for (PrismPropertyValue<Construction> acPpv: acPpvSet) {
+			Construction ac = acPpv.getValue();
 			if (ac.hasValueForAttribute(attributeName)) {
 				return true;
 			}
@@ -1023,13 +1034,16 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
         if (showTriples) {
         	
         	sb.append("\n");
-        	DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("accountConstructionDeltaSetTriple"), accountConstructionDeltaSetTriple, indent + 1);
+        	DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("constructionDeltaSetTriple"), constructionDeltaSetTriple, indent + 1);
         	
 	        sb.append("\n");
-	        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("outbound account construction"), outboundAccountConstruction, indent + 1);
+	        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("outbound account construction"), outboundConstruction, indent + 1);
 	        
 	        sb.append("\n");
 	        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("squeezed attributes"), squeezedAttributes, indent + 1);
+	        
+	        sb.append("\n");
+	        DebugUtil.debugDumpWithLabel(sb, getDebugDumpTitle("squeezed associations"), squeezedAssociations, indent + 1);
 
 	        // This is just a debug thing
 //	        sb.append("\n");

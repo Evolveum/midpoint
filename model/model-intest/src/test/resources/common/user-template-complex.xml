@@ -99,16 +99,20 @@
 		</condition>
     </mapping>
 
-	<!-- WORK IN PROGRESS  -->
-
     <mapping>
     	<name>Org mapping</name>
+    	<description>
+    		Look for appropriate Org objects by using the user's organizationalUnit property
+    		as the name of the org object. When no such object is found we want to create it on
+    		demand. We want to populate new Org object with a name and description derived from
+    		the user.
+    	</description>
     	<authoritative>true</authoritative>
     	<source>
     		<path>organizationalUnit</path>
     	</source>
     	<expression>
-            <assignmentExpression>
+            <assignmentTargetSearch>
             	<targetType>c:OrgType</targetType>
         		<query>
 					<q:equal>
@@ -119,14 +123,32 @@
 					</q:equal>
 				</query>
 				<createOnDemand>true</createOnDemand>
-            </assignmentExpression>    	
+				<populateObject>
+					<populateItem>
+						<expression>
+							<path>$organizationalUnit</path>
+						</expression>
+						<target>
+							<path>$focus/name</path>
+						</target>
+					</populateItem>
+					<populateItem>
+						<expression>
+							<script>
+								<code>'Created on demand from user '+user.getName()</code>
+							</script>
+						</expression>
+						<target>
+							<path>$focus/description</path>
+						</target>
+					</populateItem>
+				</populateObject>
+            </assignmentTargetSearch>    	
     	</expression>
     	<target>
     		<path>assignment</path>
     	</target>
     </mapping>
-
-	<!-- END -->
     
     <mapping>
     	<strength>weak</strength>

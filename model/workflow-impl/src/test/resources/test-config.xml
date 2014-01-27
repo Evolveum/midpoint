@@ -51,15 +51,17 @@
                                 <c:script>
                                     <c:code><![CDATA[
                                         context.getState() == com.evolveum.midpoint.model.api.context.ModelState.SECONDARY &&
-                                        context.findProjectionContext(new com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator("10000000-0000-0000-0000-000000000004", null)) != null
+                                        context.findProjectionContext(new com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator("10000000-0000-0000-0000-000000000004", com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType.ACCOUNT, null)) != null
                                         ]]></c:code>
                                 </c:script>
                             </c:activationCondition>
-                            <c:processName>ApprovingDummyGreenResourceChangesProcess</c:processName>
+                            <c:processName>ApprovingDummyResourceChangesProcess</c:processName>
+                            <c:processWrapper>approvingDummyResourceChangesProcessWrapper</c:processWrapper>
                         </c:scenario>
                     </c:generalChangeProcessorConfiguration>
                 </generalChangeProcessor>
                 <primaryUserChangeProcessor>
+                    <enabled>true</enabled>
                     <wrapper>addRoleAssignmentWrapper</wrapper>
                     <wrapper>changePasswordWrapper</wrapper>
                 </primaryUserChangeProcessor>

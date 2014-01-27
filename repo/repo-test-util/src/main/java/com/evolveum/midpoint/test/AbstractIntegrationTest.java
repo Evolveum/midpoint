@@ -556,6 +556,10 @@ public abstract class AbstractIntegrationTest extends AbstractTestNGSpringContex
         assertShadowRepo(accountShadow, oid, username, resourceType, getAccountObjectClass(resourceType), null);
     }
 	
+    protected void assertAccountShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType, MatchingRule<String> matchingRule) {
+        assertShadowRepo(accountShadow, oid, username, resourceType, getAccountObjectClass(resourceType), matchingRule);
+    }
+    
 	protected void assertShadowRepo(PrismObject<ShadowType> accountShadow, String oid, String username, ResourceType resourceType,
                                     QName objectClass, MatchingRule<String> nameMatchingRule) {
 		assertShadowCommon(accountShadow, oid, username, resourceType, objectClass, nameMatchingRule);

@@ -133,6 +133,7 @@
         assignmentOwner integer,
         construction longtext,
         description longtext,
+        orderValue integer,
         owner_id bigint not null,
         owner_oid varchar(36) not null,
         targetRef_description longtext,
@@ -152,6 +153,7 @@
     create table m_audit_delta (
         checksum varchar(32) not null,
         record_id bigint not null,
+        context longtext,
         delta longtext,
         deltaOid varchar(36),
         deltaType integer,
@@ -162,6 +164,7 @@
         operation longtext,
         params longtext,
         partialResults longtext,
+        returns longtext,
         status integer,
         token bigint,
         primary key (checksum, record_id)
@@ -360,6 +363,7 @@
     create table m_operation_result (
         owner_oid varchar(36) not null,
         owner_id bigint not null,
+        context longtext,
         details longtext,
         localizedMessage longtext,
         message longtext,
@@ -367,6 +371,7 @@
         operation longtext,
         params longtext,
         partialResults longtext,
+        returns longtext,
         status integer,
         token bigint,
         primary key (owner_oid, owner_id)

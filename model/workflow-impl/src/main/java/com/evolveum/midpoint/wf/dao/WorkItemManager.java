@@ -25,7 +25,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.wf.WorkflowManagerImpl;
 import com.evolveum.midpoint.wf.activiti.ActivitiEngine;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
-import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
+import com.evolveum.midpoint.wf.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.util.MiscDataUtil;
 import org.activiti.engine.FormService;
 import org.activiti.engine.form.FormProperty;

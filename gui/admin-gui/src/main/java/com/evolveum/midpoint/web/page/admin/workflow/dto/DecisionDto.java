@@ -16,44 +16,57 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow.dto;
 
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.web.component.util.Selectable;
-import com.evolveum.midpoint.wf.processes.itemApproval.Decision;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.DecisionType;
 
-import java.io.Serializable;
+import java.util.Date;
 
 /**
  * @author lazyman
  */
-public class DecisionDto<I extends Serializable> extends Selectable {
+public class DecisionDto extends Selectable {
 
     public static final String F_USER = "user";
     public static final String F_RESULT = "result";
     public static final String F_COMMENT = "comment";
     public static final String F_TIME = "time";
 
-    private Decision<I> decision;
+    private String user;
+    private String result;
+    private String comment;
+    private Date time;
 
-    public DecisionDto(Decision<I> decision) {
-        this.decision = decision;
-    }
-
-    public Decision<I> getDecision() {
-        return decision;
-    }
-
-    public String getUser() {
-        return decision.getApproverName();
-    }
-
-    public String getResult() {
-        return decision.isApproved() ? "APPROVED" : "REJECTED";     // todo i18n
+    public DecisionDto(DecisionType decision) {
+        if (decision.getApprover() != null && decision.getApprover().getName() != null) {
+            this.user = decision.getApprover().getName().getOrig();
+        } else {
+            this.user = decision.getApproverRef().getOid();
+        }
+        if (Boolean.TRUE.equals(decision.isApproved())) {
+            this.result = "APPROVED";
+        } else if (Boolean.FALSE.equals(decision.isApproved())) {
+            this.result = "REJECTED";     // todo i18n
+        } else {
+            this.result = "-";
+        }
+        this.comment = decision.getComment();
+        this.time = XmlTypeConverter.toDate(decision.getDateTime());
     }
 
     public String getTime() {
-        return decision.getDate().toLocaleString();      // todo formatting
+        return time.toLocaleString();      // todo formatting
+    }
+
+    public String getUser() {
+        return user;
+    }
+
+    public String getResult() {
+        return result;
     }
 
     public String getComment() {
-        return decision.getComment();
+        return comment;
     }
 }

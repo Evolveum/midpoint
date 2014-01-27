@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.web.component.wizard.resource.component;
 
 import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.component.xml.ace.AceEditor;
+import com.evolveum.midpoint.web.component.AceEditor;
 import org.apache.wicket.model.IModel;
 
 /**

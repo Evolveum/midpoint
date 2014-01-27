@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (c) 2010-2013 Evolveum
+  ~ Copyright (c) 2010-2014 Evolveum
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -53,7 +53,9 @@
 	<logger name="com.evolveum.midpoint.model.common.expression" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.common.expression.Expression" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.common.mapping" level="DEBUG" />
-	<logger name="com.evolveum.midpoint.model.common.expression.evaluator.AssignmentExpressionEvaluator" level="TRACE" />
+	<logger name="com.evolveum.midpoint.model.common.expression.evaluator.AbstractSearchExpressionEvaluator" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.model.common.expression.evaluator.AssignmentExpressionEvaluator" level="DEBUG" />
+	<logger name="com.evolveum.midpoint.model.common.expression.evaluator.AssociationExpressionEvaluator" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.common.monitor" level="DEBUG" />
 	<logger name="com.evolveum.midpoint.model.controller.SystemConfigurationHandler" level="DEBUG" />
     <logger name="com.evolveum.midpoint.notifications" level="DEBUG" />

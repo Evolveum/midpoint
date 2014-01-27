@@ -22,11 +22,14 @@ import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.net.ConnectException;
 import java.util.Collection;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
+import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.icf.dummy.resource.DummyResource;
 import com.evolveum.midpoint.model.common.mapping.MappingFactory;
 import com.evolveum.midpoint.model.intest.util.ProfilingLensDebugListener;
@@ -368,6 +371,16 @@ public class AbstractInitializedModelIntegrationTest extends AbstractConfiguredM
         PrismObject<OrgType> orgScummBar = modelService.getObject(OrgType.class, ORG_SCUMM_BAR_OID, null, task, result);
         List<AssignmentType> scummBarInducements = orgScummBar.asObjectable().getInducement();
         assertEquals("Unexpected number of scumm bar inducements: "+scummBarInducements,  1, scummBarInducements.size());
+	}
+	
+	protected void assertGroupMember(String dummyGroupName, String accountId) throws ConnectException, FileNotFoundException {
+		DummyGroup group = dummyResource.getGroupByName(dummyGroupName);
+		IntegrationTestTools.assertGroupMember(group, accountId);
+	}
+
+	protected void assertNoGroupMember(String dummyGroupName, String accountId) throws ConnectException, FileNotFoundException {
+		DummyGroup group = dummyResource.getGroupByName(dummyGroupName);
+		IntegrationTestTools.assertNoGroupMember(group, accountId);
 	}
      	
 }

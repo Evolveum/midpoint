@@ -230,7 +230,7 @@
             </attribute>
             
             <association>
-            	<name>ri:group</name>
+            	<ref>ri:group</ref>
             	<kind>entitlement</kind>
             	<intent>group</intent>
             	<direction>objectToSubject</direction>
@@ -239,7 +239,7 @@
             </association>
             
             <association>
-            	<name>ri:priv</name>
+            	<ref>ri:priv</ref>
             	<kind>entitlement</kind>
             	<intent>privilege</intent>
             	<direction>subjectToObject</direction>
@@ -347,7 +347,17 @@
 			</attribute>
             
             <association>
-            	<name>ri:group</name>
+            	<ref>ri:group</ref>
+            	<outbound>
+            		<expression>
+            			<value>
+            				<association>
+            					<!-- "testers" group -->
+            					<shadowRef oid="20000000-0000-0000-3333-000000000002"/>
+            				</association>
+            			</value>
+            		</expression>
+            	</outbound>
             	<kind>entitlement</kind>
             	<intent>group</intent>
             	<direction>objectToSubject</direction>
@@ -356,7 +366,7 @@
             </association>
             
             <association>
-            	<name>ri:priv</name>
+            	<ref>ri:priv</ref>
             	<kind>entitlement</kind>
             	<intent>privilege</intent>
             	<direction>subjectToObject</direction>
@@ -392,6 +402,7 @@
         	<attribute>
 				<ref>icfs:name</ref>
 				<displayName>Groupname</displayName>
+				<exclusiveStrong>true</exclusiveStrong>
 				<outbound>
 				    <source>
 				    	<path>$focus/name</path>

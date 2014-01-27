@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.wf.processes.itemApproval;
 
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.wf.processes.common.LightweightObjectRef;
 import com.evolveum.midpoint.wf.processes.common.LightweightObjectRefImpl;
 import com.evolveum.midpoint.wf.util.SerializationSafeContainer;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ApprovalLevelType;
@@ -144,6 +145,23 @@ public class ApprovalLevelImpl implements ApprovalLevel, Serializable {
     @Override
     public void setPrismContext(PrismContext prismContext) {
         this.prismContext = prismContext;
+    }
+
+    @Override
+    public ApprovalLevelType toApprovalLevelType(PrismContext prismContext) {
+        ApprovalLevelType levelType = new ApprovalLevelType();          // is this ok?
+        levelType.setName(getName());
+        levelType.setDescription(getDescription());
+        levelType.setAutomaticallyApproved(getAutomaticallyApproved());
+        levelType.setEvaluationStrategy(getEvaluationStrategy());
+        for (LightweightObjectRef approverRef : approverRefs) {
+            levelType.getApproverRef().add(approverRef.toObjectReferenceType());
+        }
+        for (SerializationSafeContainer<ExpressionType> approverExpression : approverExpressions) {
+            approverExpression.setPrismContext(prismContext);
+            levelType.getApproverExpression().add(approverExpression.getValue());
+        }
+        return levelType;
     }
 
     public void addApproverRef(ObjectReferenceType approverRef) {

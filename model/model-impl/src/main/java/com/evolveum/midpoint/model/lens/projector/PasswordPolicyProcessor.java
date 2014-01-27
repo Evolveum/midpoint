@@ -49,7 +49,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
 @Component
 public class PasswordPolicyProcessor {
 	
-	private static final Trace LOGGER = TraceManager.getTrace(UserPolicyProcessor.class);
+	private static final Trace LOGGER = TraceManager.getTrace(FocusPolicyProcessor.class);
 	
 	@Autowired(required = true)
 	Protector protector;

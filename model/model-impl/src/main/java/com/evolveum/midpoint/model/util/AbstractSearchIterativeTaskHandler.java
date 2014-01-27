@@ -151,7 +151,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
                 throw new IllegalStateException("Unexpected ObjectAlreadyExistsException when updating task progress/expectedTotal", e);
             }
 
-            modelObjectResolver.searchIterative(type, query, resultHandler, opResult);
+            modelObjectResolver.searchIterative(type, query, null, resultHandler, opResult);
 			
 		} catch (ObjectNotFoundException ex) {
             LOGGER.error("{}: Object not found: {}", new Object[]{taskName, ex.getMessage(), ex});

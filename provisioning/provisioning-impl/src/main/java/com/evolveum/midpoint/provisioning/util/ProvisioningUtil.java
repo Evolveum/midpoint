@@ -20,6 +20,8 @@ import com.evolveum.midpoint.common.StaticExpressionUtil;
 import com.evolveum.midpoint.common.refinery.RefinedAttributeDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.parser.XPathHolder;
+import com.evolveum.midpoint.prism.parser.XPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AndFilter;
@@ -34,8 +36,6 @@ import com.evolveum.midpoint.provisioning.ucf.api.ExecuteScriptArgument;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.holder.XPathHolder;
-import com.evolveum.midpoint.schema.holder.XPathSegment;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
@@ -213,9 +213,9 @@ public class ProvisioningUtil {
 	
 	@SuppressWarnings("rawtypes")
 	public static <T> T getValueFromFilter(List<? extends ObjectFilter> conditions, QName propertyName) throws SchemaException{
-		
+			ItemPath propertyPath = new ItemPath(propertyName);
 			for (ObjectFilter f : conditions){
-				if (f instanceof EqualsFilter && propertyName.equals(((EqualsFilter) f).getDefinition().getName())){
+				if (f instanceof EqualsFilter && propertyPath.equals(((EqualsFilter) f).getFullPath())){
 					List<? extends PrismValue> values = ((EqualsFilter) f).getValues();
 					if (values.size() > 1){
 						throw new SchemaException("More than one "+propertyName+" defined in the search query.");

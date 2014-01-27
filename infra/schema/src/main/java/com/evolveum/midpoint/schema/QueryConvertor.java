@@ -40,6 +40,7 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AndFilter;
@@ -55,7 +56,6 @@ import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
-import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -114,10 +114,14 @@ public class QueryConvertor {
 
 		ObjectFilter filter = query.getFilter();
 		try{
-		Document doc = DOMUtil.getDocument();
-		Element filterType = createFilterType(filter, doc, prismContext);
-		QueryType queryType = new QueryType();
-		queryType.setFilter(filterType);
+			QueryType queryType = new QueryType();
+			Document doc = DOMUtil.getDocument();
+			if (filter != null){
+				Element filterType = createFilterType(filter, doc, prismContext);
+				queryType.setFilter(filterType);
+			}
+		
+		
 		queryType.setPaging(PagingConvertor.createPagingType(query.getPaging()));
 		queryType.setCondition(query.getCondition());
 		return queryType;

@@ -16,7 +16,12 @@
 
 package com.evolveum.midpoint.util;
 
+import java.util.Arrays;
+import java.util.Collection;
+
 import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Node;
 
 /**
@@ -74,5 +79,42 @@ public class QNameUtil {
 	
 	public static boolean compareQName(QName qname, Node node) {
 		return (qname.getNamespaceURI().equals(node.getNamespaceURI()) && qname.getLocalPart().equals(node.getLocalName()));
+	}
+
+	/**
+	 * Matching with considering wildcard namespace (null).
+	 */
+	public static boolean match(QName a, QName b) {
+		if (a == null && b == null) {
+			return true;
+		}
+		if (a == null || b == null) {
+			return false;
+		}
+		if (StringUtils.isBlank(a.getNamespaceURI()) || StringUtils.isBlank(b.getNamespaceURI())) {
+			return a.getLocalPart().equals(b.getLocalPart());
+		} else {
+			return a.equals(b);
+		}
+	}
+	
+	public static boolean matchAny(QName a, Collection<QName> col) {
+		if (col == null) {
+			return false;
+		}
+		for (QName b: col) {
+			if (match(a, b)) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	public static Collection<QName> createCollection(QName... qnames) {
+		return Arrays.asList(qnames);
+	}
+
+	public static QName nullNamespace(QName qname) {
+		return new QName(null, qname.getLocalPart(), qname.getPrefix());
 	}
 }

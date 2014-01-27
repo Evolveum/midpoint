@@ -16,12 +16,14 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.PolyStringNormMatchingRule;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
+import com.evolveum.midpoint.prism.query.InOidFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
@@ -34,6 +36,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.data.RepositoryObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
@@ -82,7 +85,9 @@ import java.util.*;
 /**
  * @author lazyman
  */
-
+@PageDescriptor(url = "/admin/config/debugs", action = {
+        PageAdminConfiguration.AUTHORIZATION_CONFIGURATION_ALL,
+        AuthorizationConstants.NS_AUTHORIZATION + "#debugs"})
 public class PageDebugList extends PageAdminConfiguration {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageDebugList.class);
@@ -178,30 +183,14 @@ public class PageDebugList extends PageAdminConfiguration {
         main.add(ajaxDownloadBehavior);
     }
 
-    private void initDownload(PageDebugDownloadBehaviour downloadBehaviour, AjaxRequestTarget target, boolean all) {
-        Class<? extends ObjectType> type = all ? ObjectType.class : getExportType();
-        downloadBehaviour.setType(type);
+    private void initDownload(AjaxRequestTarget target, Class<? extends ObjectType> type, ObjectQuery query) {
+        List<PageDebugDownloadBehaviour> list = get(ID_MAIN_FORM).getBehaviors(PageDebugDownloadBehaviour.class);
+        PageDebugDownloadBehaviour downloadBehaviour = list.get(0);
 
-        downloadBehaviour.setQuery(createExportQuery());
+        downloadBehaviour.setType(type);
+        downloadBehaviour.setQuery(query);
         downloadBehaviour.setUseZip(hasToZip());
         downloadBehaviour.initiate(target);
-    }
-
-    private Class<? extends ObjectType> getExportType() {
-        Class type = getTableDataProvider().getType();
-        return type == null ? ObjectType.class : type;
-    }
-
-    private ObjectQuery createExportQuery() {
-        ObjectQuery query = getTableDataProvider().getQuery();
-
-        ObjectQuery clonedQuery = null;
-        if (query != null) {
-            clonedQuery = new ObjectQuery();
-            clonedQuery.setFilter(query.getFilter());
-        }
-
-        return clonedQuery;
     }
 
     private void addOrReplaceTable(RepositoryObjectDataProvider provider) {
@@ -295,7 +284,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
                     @Override
                     public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                        exportAllSelected(target);
+                        exportAllType(target);
                     }
                 }));
 
@@ -639,21 +628,29 @@ public class PageDebugList extends PageAdminConfiguration {
     }
 
     private void exportSelected(AjaxRequestTarget target, DebugObjectItem item) {
-        //todo implement [lazyman]
-        List<PageDebugDownloadBehaviour> list = get(ID_MAIN_FORM).getBehaviors(PageDebugDownloadBehaviour.class);
-        initDownload(list.get(0), target, false);
+        List<DebugObjectItem> selected = getSelectedData(target, item);
+        if (selected.isEmpty()) {
+            return;
+        }
+
+        List<String> oids = new ArrayList<>();
+        for (DebugObjectItem dItem : selected) {
+            oids.add(dItem.getOid());
+        }
+
+        ObjectFilter filter = InOidFilter.createInOid(oids);
+
+        DebugSearchDto searchDto = searchModel.getObject();
+        initDownload(target, searchDto.getType().getClassDefinition(), ObjectQuery.createObjectQuery(filter));
+    }
+
+    private void exportAllType(AjaxRequestTarget target) {
+        DebugSearchDto searchDto = searchModel.getObject();
+        initDownload(target, searchDto.getType().getClassDefinition(), null);
     }
 
     private void exportAll(AjaxRequestTarget target) {
-        //todo implement [lazyman]
-        List<PageDebugDownloadBehaviour> list = get(ID_MAIN_FORM).getBehaviors(PageDebugDownloadBehaviour.class);
-        initDownload(list.get(0), target, true);
-    }
-
-    private void exportAllSelected(AjaxRequestTarget target) {
-        //todo implement [lazyman]
-        warn("Not implemented yet, will be implemented as background task.");
-        target.add(getFeedbackPanel());
+        initDownload(target, ObjectType.class, null);
     }
 
     private void deleteAllType(AjaxRequestTarget target) {
@@ -669,7 +666,7 @@ public class PageDebugList extends PageAdminConfiguration {
     private List<DebugObjectItem> getSelectedData(AjaxRequestTarget target, DebugObjectItem item) {
         List<DebugObjectItem> items;
         if (item != null) {
-            items = new ArrayList<DebugObjectItem>();
+            items = new ArrayList<>();
             items.add(item);
             return items;
         }

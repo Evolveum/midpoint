@@ -36,6 +36,7 @@ import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -50,7 +51,7 @@ public class RefFilter extends PropertyValueFilter<PrismReferenceValue>{
 		super(path, definition, matchingRule, values);
 	}
 		
-	RefFilter(ItemPath path, PrismReferenceDefinition definition, Element expression) {
+	RefFilter(ItemPath path, PrismReferenceDefinition definition, XNode expression) {
 		super(path, definition, expression);
 	}
 	
@@ -66,11 +67,11 @@ public class RefFilter extends PropertyValueFilter<PrismReferenceValue>{
 		return new RefFilter(path, definition, null, Arrays.asList(values));
 	}
 	
-	public static RefFilter createReferenceEqual(ItemPath path, PrismReference item, Element expression){
+	public static RefFilter createReferenceEqual(ItemPath path, PrismReference item, XNode expression){
 		return new RefFilter(path, item.getDefinition(), expression);
 	}
 	
-	public static RefFilter createReferenceEqual(ItemPath path, PrismReferenceDefinition definition, Element expression){
+	public static RefFilter createReferenceEqual(ItemPath path, PrismReferenceDefinition definition, XNode expression){
 		return new RefFilter(path, definition, expression);
 	}
 		

@@ -21,6 +21,8 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.BooleanUtils;
+
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.schema.SchemaProcessorUtil;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -47,6 +49,7 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
     private String displayName;
     private String description;
     private boolean tolerant = true;
+    private boolean isExclusiveStrong = false;
     private List<String> intolerantValuePattern;
     private List<String> tolerantValuePattern;
     private ResourceAttributeDefinition attributeDefinition;
@@ -258,7 +261,15 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
     	return limitationsMap.get(layer).getMaxOccurs() == 1;
     }
 
-    public PropertyLimitations getLimitations(LayerType layer) {
+	public boolean isExlusiveStrong() {
+		return isExclusiveStrong;
+	}
+
+    public void setExclusiveStrong(boolean isExclusiveStrong) {
+		this.isExclusiveStrong = isExclusiveStrong;
+	}
+
+	public PropertyLimitations getLimitations(LayerType layer) {
     	return limitationsMap.get(layer);
     }
 
@@ -340,6 +351,8 @@ public class RefinedAttributeDefinition extends ResourceAttributeDefinition impl
         	
         	rAttrDef.tolerantValuePattern = schemaHandlingAttrDefType.getTolerantValuePattern();
         	rAttrDef.intolerantValuePattern = schemaHandlingAttrDefType.getIntolerantValuePattern();
+        	
+        	rAttrDef.isExclusiveStrong = BooleanUtils.isTrue(schemaHandlingAttrDefType.isExclusiveStrong());
         	
             if (schemaHandlingAttrDefType.getOutbound() != null) {
                 rAttrDef.setOutboundMappingType(schemaHandlingAttrDefType.getOutbound());

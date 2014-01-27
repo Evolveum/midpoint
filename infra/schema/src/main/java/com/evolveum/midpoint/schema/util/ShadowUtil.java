@@ -21,6 +21,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainerDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
+import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
@@ -358,5 +359,21 @@ public class ShadowUtil {
     public static boolean isDead(ShadowType shadow){
     	return shadow.isDead() != null && shadow.isDead();
     }
+
+	public static boolean matches(ShadowType shadowType, String resourceOid, ShadowKindType kind, String intent) {
+		if (shadowType == null) {
+			return false;
+		}
+		if (!resourceOid.equals(shadowType.getResourceRef().getOid())) {
+			return false;
+		}
+		if (!MiscUtil.equals(kind, shadowType.getKind())) {
+			return false;
+		}
+		if (intent == null) {
+			return true;
+		}
+		return MiscUtil.equals(intent, shadowType.getIntent());
+	}
 	
 }

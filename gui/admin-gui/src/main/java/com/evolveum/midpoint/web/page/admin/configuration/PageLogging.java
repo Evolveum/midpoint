@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -23,6 +24,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.accordion.Accordion;
@@ -60,6 +62,9 @@ import java.util.List;
 /**
  * @author lazyman
  */
+@PageDescriptor(url = "/admin/config/logging", action = {
+        PageAdminConfiguration.AUTHORIZATION_CONFIGURATION_ALL,
+        AuthorizationConstants.NS_AUTHORIZATION + "#configLogging"})
 public class PageLogging extends PageAdminConfiguration {
 
 	private static final String DOT_CLASS = PageLogging.class.getName() + ".";

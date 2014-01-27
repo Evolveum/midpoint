@@ -42,7 +42,7 @@ import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.wf.activiti.ActivitiUtil;
-import com.evolveum.midpoint.wf.processes.CommonProcessVariableNames;
+import com.evolveum.midpoint.wf.processes.common.CommonProcessVariableNames;
 import com.evolveum.midpoint.wf.processors.ChangeProcessor;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScheduleType;
@@ -66,27 +66,25 @@ public class JobCreationInstruction implements DebugDumpable {
     private ChangeProcessor changeProcessor;
 
     private String processDefinitionKey;     // name of wf process to be started (e.g. ItemApproval)
-    private PolyStringType taskName;         // name of task to be created/updated (applies only if the task has no name already) - e.g. "Approve adding role R to U"
 
-    private Map<String,Serializable> processVariables = new HashMap<String,Serializable>();     // values of process variables
-    private Map<QName,Item> taskVariables = new HashMap<QName,Item>();                          // items to be put into task extension
+    private Map<String,Serializable> processVariables = new HashMap<>();     // values of process variables
+    private Map<QName,Item> taskVariables = new HashMap<>();                          // items to be put into task extension
     private PrismObject taskObject;          // object to be attached to the task; this object must have its definition available
     private PrismObject<UserType> taskOwner; // if null, owner from parent task will be taken (if there's no parent task, exception will be thrown)
+    private PolyStringType taskName;         // name of task to be created/updated (applies only if the task has no name already) - e.g. "Approve adding role R to U"
 
     private boolean executeModelOperationHandler;       // should the job contain model operation to be executed?
     private boolean noProcess;                          // should the job provide no wf process (only direct execution of model operation)?
 
-    private boolean executeApprovedChangeImmediately;     // should the child job execute approved change immediately (i.e. executeModelOperationHandler must be set as well!)
-
     private boolean simple;                             // is workflow task simple? (i.e. such that requires periodic watching of its state)
 
-    private boolean createSuspended;                // should the task be created in SUSPENDED state?
-    private boolean createWaiting;                  // should the task be created in WAITING state?
+    private boolean createTaskAsSuspended;                // should the task be created in SUSPENDED state?
+    private boolean createTaskAsWaiting;                  // should the task be created in WAITING state?
 
     // what should be executed at a given occasion (in the order of being in this list)
-    private List<UriStackEntry> handlersAfterModelOperation = new ArrayList<UriStackEntry>();
-    private List<UriStackEntry> handlersBeforeModelOperation = new ArrayList<UriStackEntry>();
-    private List<UriStackEntry> handlersAfterWfProcess = new ArrayList<UriStackEntry>();
+    private List<UriStackEntry> handlersAfterModelOperation = new ArrayList<>();
+    private List<UriStackEntry> handlersBeforeModelOperation = new ArrayList<>();
+    private List<UriStackEntry> handlersAfterWfProcess = new ArrayList<>();
 
     //region Constructors
     protected JobCreationInstruction(ChangeProcessor changeProcessor) {
@@ -114,17 +112,20 @@ public class JobCreationInstruction implements DebugDumpable {
     }
 
     public static JobCreationInstruction createWfProcessChildJob(ChangeProcessor changeProcessor) {
-        return createWfProcessChildJobInternal(new JobCreationInstruction(changeProcessor));
+        JobCreationInstruction jci = new JobCreationInstruction(changeProcessor);
+        prepareWfProcessChildJobInternal(jci);
+        return jci;
     }
 
     public static JobCreationInstruction createWfProcessChildJob(Job parentJob) {
-        return createWfProcessChildJobInternal(new JobCreationInstruction(parentJob));
+        JobCreationInstruction jci = new JobCreationInstruction(parentJob);
+        prepareWfProcessChildJobInternal(jci);
+        return jci;
     }
 
-    private static JobCreationInstruction createWfProcessChildJobInternal(JobCreationInstruction instruction) {
+    protected static void prepareWfProcessChildJobInternal(JobCreationInstruction instruction) {
         instruction.setNoProcess(false);
         instruction.initializeCommonProcessVariables();
-        return instruction;
     }
 
     public static JobCreationInstruction createModelOperationChildJob(Job parentJob, ModelContext modelContext) throws SchemaException {
@@ -177,14 +178,6 @@ public class JobCreationInstruction implements DebugDumpable {
         this.taskName = new PolyStringType(taskName);
     }
 
-    public boolean isExecuteApprovedChangeImmediately() {
-        return executeApprovedChangeImmediately;
-    }
-
-    public void setExecuteApprovedChangeImmediately(boolean executeApprovedChangeImmediately) {
-        this.executeApprovedChangeImmediately = executeApprovedChangeImmediately;
-    }
-
     public boolean isNoProcess() {
         return noProcess;
     }
@@ -197,12 +190,12 @@ public class JobCreationInstruction implements DebugDumpable {
         this.noProcess = noProcess;
     }
 
-    public void setCreateSuspended(boolean createSuspended) {
-        this.createSuspended = createSuspended;
+    public void setCreateTaskAsSuspended(boolean createTaskAsSuspended) {
+        this.createTaskAsSuspended = createTaskAsSuspended;
     }
 
-    public boolean isCreateSuspended() {
-        return createSuspended;
+    public boolean isCreateTaskAsSuspended() {
+        return createTaskAsSuspended;
     }
 
     public List<UriStackEntry> getHandlersAfterModelOperation() {
@@ -237,12 +230,12 @@ public class JobCreationInstruction implements DebugDumpable {
         return taskObject;
     }
 
-    public void setCreateWaiting(boolean createWaiting) {
-        this.createWaiting = createWaiting;
+    public void setCreateTaskAsWaiting(boolean createTaskAsWaiting) {
+        this.createTaskAsWaiting = createTaskAsWaiting;
     }
 
-    public boolean isCreateWaiting() {
-        return createWaiting;
+    public boolean isCreateTaskAsWaiting() {
+        return createTaskAsWaiting;
     }
 
     public ChangeProcessor getChangeProcessor() {
@@ -390,25 +383,26 @@ public class JobCreationInstruction implements DebugDumpable {
         DebugUtil.indentDebugDump(sb, indent);
         sb.append("JobCreationInstruction: process: " + processDefinitionKey + " (" +
                 (simple ? "simple" : "smart") + ", " +
-                (executeApprovedChangeImmediately ? "execute-immediately" : "execute-at-end") + ", " +
                 (noProcess ? "no-process" : "with-process") +
                 "), task = " + taskName + "\n");
 
-        DebugUtil.indentDebugDump(sb, indent);
-        sb.append("Process variables:\n");
-
-        for (Map.Entry<String, Serializable> entry : processVariables.entrySet()) {
+        if (!noProcess) {
             DebugUtil.indentDebugDump(sb, indent);
-            sb.append(" - " + entry.getKey() + " = ");
-            Object value = entry.getValue();
-            if (value instanceof DebugDumpable) {
-                sb.append("\n" + ((DebugDumpable) value).debugDump(indent+1));
-            } else if (value instanceof Dumpable) {
-                sb.append("\n" + ((Dumpable) value).dump());
-            } else {
-                sb.append(value != null ? value.toString() : "null");
+            sb.append("Process variables:\n");
+
+            for (Map.Entry<String, Serializable> entry : processVariables.entrySet()) {
+                DebugUtil.indentDebugDump(sb, indent);
+                sb.append(" - " + entry.getKey() + " = ");
+                Object value = entry.getValue();
+                if (value instanceof DebugDumpable) {
+                    sb.append("\n" + ((DebugDumpable) value).debugDump(indent+1));
+                } else if (value instanceof Dumpable) {
+                    sb.append("\n" + ((Dumpable) value).dump());
+                } else {
+                    sb.append(value != null ? value.toString() : "null");
+                }
+                sb.append("\n");
             }
-            sb.append("\n");
         }
         return sb.toString();
 

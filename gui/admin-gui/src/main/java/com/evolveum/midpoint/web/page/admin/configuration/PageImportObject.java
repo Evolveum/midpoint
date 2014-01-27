@@ -16,16 +16,18 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration;
 
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.component.xml.ace.AceEditor;
+import com.evolveum.midpoint.web.component.AceEditor;
 import com.evolveum.midpoint.web.page.admin.configuration.component.ImportOptionsPanel;
 import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.security.WebApplicationConfiguration;
@@ -55,6 +57,9 @@ import java.io.InputStreamReader;
  * @author lazyman
  * @author mserbak
  */
+@PageDescriptor(url = "/admin/config/import", action = {
+        PageAdminConfiguration.AUTHORIZATION_CONFIGURATION_ALL,
+        AuthorizationConstants.NS_AUTHORIZATION + "#configImport"})
 public class PageImportObject extends PageAdminConfiguration {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageImportObject.class);

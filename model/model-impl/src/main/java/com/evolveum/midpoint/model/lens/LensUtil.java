@@ -26,6 +26,8 @@ import java.util.List;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.mutable.MutableBoolean;
+
 import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
@@ -160,15 +162,16 @@ public class LensUtil {
 	
 	
 	/**
-	 * Consolidate the mappings of a single property to a delta. It takes the convenient structure of ItemValueWithOrigin triple.
+	 * Consolidate the mappings of a single item to a delta. It takes the convenient structure of ItemValueWithOrigin triple.
 	 * It produces the delta considering the mapping exclusion, authoritativeness and strength.
      *
      * filterExistingValues: if true, then values that already exist in the item are not added (and those that don't exist are not removed)
 	 */
-	public static <V extends PrismValue> ItemDelta<V> consolidateTripleToDelta(ItemPath itemPath, 
-    		DeltaSetTriple<? extends ItemValueWithOrigin<V>> triple, ItemDefinition itemDefinition, 
+	public static <V extends PrismValue, I extends ItemValueWithOrigin<V>> ItemDelta<V> consolidateTripleToDelta(ItemPath itemPath, 
+    		DeltaSetTriple<I> triple, ItemDefinition itemDefinition, 
     		ItemDelta<V> aprioriItemDelta, PrismContainer<?> itemContainer, ValueMatcher<?> valueMatcher,
-    		boolean addUnchangedValues, boolean filterExistingValues, String contextDescription, boolean applyWeak) throws ExpressionEvaluationException, PolicyViolationException, SchemaException {
+    		boolean addUnchangedValues, boolean filterExistingValues, boolean isExclusiveStrong, 
+    		String contextDescription, boolean applyWeak) throws ExpressionEvaluationException, PolicyViolationException, SchemaException {
     	
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Consolidating {} triple:\n{}", itemPath, triple.dump());
@@ -181,8 +184,22 @@ public class LensUtil {
             itemExisting = itemContainer.findItem(itemPath);
 		}
 		
-		// We will process each attribute individually.
         Collection<V> allValues = collectAllValues(triple);
+        
+        final MutableBoolean itemHasStrongMutable = new MutableBoolean(false);
+        SimpleVisitor<I> visitor = new SimpleVisitor<I>() {
+			@Override
+			public void visit(I pvwo) {
+				if (pvwo.getMapping().getStrength() == MappingStrengthType.STRONG) {
+					itemHasStrongMutable.setValue(true);
+				}
+			}
+		};
+		triple.accept(visitor);
+        boolean ignoreNormalMappings = itemHasStrongMutable.booleanValue() && isExclusiveStrong;
+        
+        // We will process each value individually. I really mean each value. This whole method deals with
+        // a single item (e.g. attribute). But this loop iterates over every potential value of that item.
         for (V value : allValues) {
         	
         	// Check what to do with the value using the usual "triple routine". It means that if a value is
@@ -255,6 +272,11 @@ public class LensUtil {
                 if (weakOnly) {
                     // Postpone processing of weak values until we process all other values
                     LOGGER.trace("Value {} mapping is weak in item {}, postponing processing in {}",
+                    		new Object[]{value, itemPath, contextDescription});
+                    continue;
+                }
+                if (!hasStrong && ignoreNormalMappings) {
+                	LOGGER.trace("Value {} mapping is normal in item {} and we have exclusiveStrong, skipping processing in {}",
                     		new Object[]{value, itemPath, contextDescription});
                     continue;
                 }
@@ -504,7 +526,7 @@ public class LensUtil {
 		ModelExpressionThreadLocalHolder.pushCurrentResult(parentResult);
 		ModelExpressionThreadLocalHolder.pushCurrentTask(task);
 		try {
-			mapping.evaluate(parentResult);
+			mapping.evaluate(task, parentResult);
 		} finally {
 			ModelExpressionThreadLocalHolder.popLensContext();
 			ModelExpressionThreadLocalHolder.popCurrentResult();

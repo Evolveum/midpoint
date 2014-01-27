@@ -6,11 +6,9 @@
 	<property name="ireport.y" value="0"/>
 	<property name="net.sf.jasperreports.awt.ignore.missing.font" value="true"/>
 	<property name="net.sf.jasperreports.export.pdf.force.linebreak.policy" value="true"/>
-	<style name="Title" forecolor="#FFFFFF" fontName="DejaVu Sans" fontSize="26" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
-	<style name="Page header" forecolor="#000000" fontName="DejaVu Sans" fontSize="12" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
-	<style name="Column header" mode="Opaque" forecolor="#FFFFFF" backcolor="#333333" fontName="DejaVu Sans" fontSize="12" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
-	<style name="Detail" isDefault="false" fontName="DejaVu Sans" fontSize="10" pdfFontName="DejaVuSans.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
-	<style name="Page footer" forecolor="#000000" fontName="DejaVu Sans" fontSize="9" isBold="true" pdfFontName="DejaVuSans.ttf" pdfEncoding="Identity-H" isPdfEmbedded="true"/>
+	<property name="net.sf.jasperreports.export.csv.exclude.origin.band.1" value="title"/>
+	<template><![CDATA[$P{BaseTemplateStyles}]]></template>
+	<parameter name="BaseTemplateStyles" class="java.lang.String"/>
 	<parameter name="LOGO_PATH" class="java.lang.String"/>
 	<parameter name="roleReport" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
 	<parameter name="orgReport" class="net.sf.jasperreports.engine.JasperReport" isForPrompting="false"/>
@@ -31,36 +29,36 @@
 	<title>
 		<band height="110" splitType="Stretch">
 			<frame>
-				<reportElement uuid="44bedacc-fa23-4fe1-b71f-e5afa943f553" style="Title" mode="Opaque" x="1" y="0" width="799" height="67" backcolor="#267994"/>
+				<reportElement style="Title" mode="Opaque" x="1" y="0" width="799" height="67" backcolor="#267994" uuid="44bedacc-fa23-4fe1-b71f-e5afa943f553"/>
 				<staticText>
-					<reportElement uuid="f2d99cad-9d84-4f50-b455-453c87f62c4c" style="Title" x="10" y="13" width="266" height="38"/>
+					<reportElement style="Title" x="10" y="13" width="266" height="38" uuid="f2d99cad-9d84-4f50-b455-453c87f62c4c"/>
 					<textElement verticalAlignment="Middle"/>
 					<text><![CDATA[User Report]]></text>
 				</staticText>
 				<image>
-					<reportElement uuid="b0a76e6a-8f61-4d60-8dcd-3e51adb4cd4c" style="Title" x="589" y="13" width="203" height="45"/>
-					<imageExpression><![CDATA[$P{LOGO_PATH}]]></imageExpression> 
+					<reportElement style="Title" x="589" y="13" width="203" height="45" uuid="b0a76e6a-8f61-4d60-8dcd-3e51adb4cd4c"/>
+					<imageExpression><![CDATA[$P{LOGO_PATH}]]></imageExpression>
 				</image>
 			</frame>
 			<staticText>
-				<reportElement uuid="3ff78fbf-8fce-4072-b691-7af047ea92a7" style="Page header" x="400" y="87" width="150" height="20"/>
+				<reportElement style="Page header" x="400" y="87" width="150" height="20" uuid="3ff78fbf-8fce-4072-b691-7af047ea92a7"/>
 				<textElement verticalAlignment="Middle"/>
 				<text><![CDATA[Number of records:]]></text>
 			</staticText>
 			<textField pattern="EEEEE dd MMMMM yyyy, HH:mm:ss">
-				<reportElement uuid="09a7e272-204e-4078-8a5e-e472757424c1" style="Page header" x="550" y="67" width="250" height="20"/>
+				<reportElement style="Page header" x="550" y="67" width="250" height="20" uuid="09a7e272-204e-4078-8a5e-e472757424c1"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
 					<font isBold="false"/>
 				</textElement>
 				<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
 			</textField>
 			<staticText>
-				<reportElement uuid="b0b9714f-96f5-4f58-824b-c81fd4d321f7" style="Page header" x="400" y="67" width="150" height="20"/>
+				<reportElement style="Page header" x="400" y="67" width="150" height="20" uuid="b0b9714f-96f5-4f58-824b-c81fd4d321f7"/>
 				<textElement verticalAlignment="Middle"/>
 				<text><![CDATA[Report generated on:]]></text>
 			</staticText>
 			<textField evaluationTime="Report" isBlankWhenNull="true">
-				<reportElement uuid="89251211-3f49-471d-b88d-5564c1bd04d1" style="Page header" x="550" y="87" width="250" height="20"/>
+				<reportElement style="Page header" x="550" y="87" width="250" height="20" uuid="89251211-3f49-471d-b88d-5564c1bd04d1"/>
 				<textElement textAlignment="Right" verticalAlignment="Middle">
 					<font isBold="false"/>
 				</textElement>
@@ -74,39 +72,39 @@
 	<columnHeader>
 		<band height="24" splitType="Stretch">
 			<frame>
-				<reportElement uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a" style="Column header" mode="Transparent" x="1" y="5" width="800" height="19" isRemoveLineWhenBlank="true"/>
+				<reportElement style="Column header" mode="Transparent" x="1" y="5" width="800" height="19" isRemoveLineWhenBlank="true" uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a"/>
 				<staticText>
-					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" x="0" y="0" width="119" height="18"/>
+					<reportElement style="Column header" x="0" y="0" width="119" height="18" uuid="86c74beb-bddd-48cc-945a-167b261b1e0b"/>
 					<textElement verticalAlignment="Middle"/>
 					<text><![CDATA[Name]]></text>
 				</staticText>
 				<staticText>
-					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" x="119" y="0" width="100" height="18"/>
+					<reportElement style="Column header" x="119" y="0" width="100" height="18" uuid="86c74beb-bddd-48cc-945a-167b261b1e0b"/>
 					<textElement verticalAlignment="Middle"/>
 					<text><![CDATA[First name]]></text>
 				</staticText>
 				<staticText>
-					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" x="219" y="0" width="100" height="18"/>
+					<reportElement style="Column header" x="219" y="0" width="100" height="18" uuid="86c74beb-bddd-48cc-945a-167b261b1e0b"/>
 					<textElement verticalAlignment="Middle"/>
 					<text><![CDATA[Last name]]></text>
 				</staticText>
 				<staticText>
-					<reportElement uuid="86c74beb-bddd-48cc-945a-167b261b1e0b" style="Column header" x="319" y="0" width="100" height="18"/>
+					<reportElement style="Column header" x="319" y="0" width="100" height="18" uuid="86c74beb-bddd-48cc-945a-167b261b1e0b"/>
 					<textElement verticalAlignment="Middle"/>
 					<text><![CDATA[Activation]]></text>
 				</staticText>
 				<staticText>
-					<reportElement uuid="2ffd228b-8b87-4bc6-a9d2-31e8a2d5dbb7" style="Column header" x="419" y="0" width="100" height="18"/>
+					<reportElement style="Column header" x="419" y="0" width="100" height="18" uuid="2ffd228b-8b87-4bc6-a9d2-31e8a2d5dbb7"/>
 					<textElement verticalAlignment="Middle"/>
 					<text><![CDATA[Role]]></text>
 				</staticText>
 				<staticText>
-					<reportElement uuid="2c4faeb3-d19c-4c1e-bfbf-1b10cece8ae8" style="Column header" x="519" y="0" width="100" height="18"/>
+					<reportElement style="Column header" x="519" y="0" width="100" height="18" uuid="2c4faeb3-d19c-4c1e-bfbf-1b10cece8ae8"/>
 					<textElement verticalAlignment="Middle"/>
 					<text><![CDATA[Organization]]></text>
 				</staticText>
 				<staticText>
-					<reportElement uuid="442eeb24-6e46-48f7-8aa0-cb3ab3b8cb83" style="Column header" x="619" y="0" width="181" height="18"/>
+					<reportElement style="Column header" x="619" y="0" width="181" height="18" uuid="442eeb24-6e46-48f7-8aa0-cb3ab3b8cb83"/>
 					<textElement verticalAlignment="Middle"/>
 					<text><![CDATA[Accounts]]></text>
 				</staticText>
@@ -116,33 +114,36 @@
 	<detail>
 		<band height="20" splitType="Prevent">
 			<frame>
-				<reportElement uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a" style="Detail" x="0" y="1" width="800" height="19"/>
+				<reportElement style="Detail" x="0" y="1" width="800" height="19" uuid="3e8fdd6d-a6ff-4407-9a1e-5d6b4706300a"/>
 				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-					<reportElement uuid="ebaef16d-2903-4029-9a6b-d4d244558ae9" style="Detail" x="0" y="1" width="120" height="18"/>
+					<reportElement style="Detail" x="0" y="1" width="120" height="18" uuid="ebaef16d-2903-4029-9a6b-d4d244558ae9"/>
 					<textElement verticalAlignment="Middle"/>
 					<textFieldExpression><![CDATA[$F{name}]]></textFieldExpression>
 				</textField>
 				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="120" y="1" width="100" height="18"/>
+					<reportElement style="Detail" x="120" y="1" width="100" height="18" uuid="28bb9b47-a69c-48e1-9073-d54d926242e8"/>
 					<textElement verticalAlignment="Middle"/>
 					<textFieldExpression><![CDATA[$F{firstName}]]></textFieldExpression>
 				</textField>
 				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="220" y="1" width="100" height="18"/>
+					<reportElement style="Detail" x="220" y="1" width="100" height="18" uuid="28bb9b47-a69c-48e1-9073-d54d926242e8"/>
 					<textElement verticalAlignment="Middle"/>
 					<textFieldExpression><![CDATA[$F{lastName}]]></textFieldExpression>
 				</textField>
 				<textField isStretchWithOverflow="true" isBlankWhenNull="true">
-					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Detail" x="320" y="1" width="100" height="18">
+					<reportElement style="Detail" x="320" y="1" width="100" height="18" uuid="28bb9b47-a69c-48e1-9073-d54d926242e8">
 						<printWhenExpression><![CDATA[!$F{activation}.getAdministrativeStatus().getSchemaValue().value().isEmpty()]]></printWhenExpression>
 					</reportElement>
 					<textElement verticalAlignment="Middle"/>
 					<textFieldExpression><![CDATA[$F{activation}.getAdministrativeStatus().getSchemaValue()]]></textFieldExpression>
 				</textField>
 				<subreport>
-					<reportElement uuid="6028233e-7e6e-4c96-b46c-abfadbd936f9" positionType="Float" style="Detail" x="420" y="0" width="100" height="18" isPrintWhenDetailOverflows="true"/>
+					<reportElement style="Detail" positionType="Float" x="420" y="0" width="100" height="18" isPrintWhenDetailOverflows="true" uuid="6028233e-7e6e-4c96-b46c-abfadbd936f9"/>
+					<subreportParameter name="BaseTemplateStyles">
+						<subreportParameterExpression><![CDATA[$P{BaseTemplateStyles}]]></subreportParameterExpression>
+					</subreportParameter>
 					<subreportParameter name="USER_OID">
-					<subreportParameterExpression><![CDATA[$F{oid}]]></subreportParameterExpression>
+						<subreportParameterExpression><![CDATA[$F{oid}]]></subreportParameterExpression>
 					</subreportParameter>
 					<subreportParameter name="HIBERNATE_SESSION">
 						<subreportParameterExpression><![CDATA[$P{HIBERNATE_SESSION}]]></subreportParameterExpression>
@@ -151,7 +152,10 @@
 					<subreportExpression><![CDATA[$P{roleReport}]]></subreportExpression>
 				</subreport>
 				<subreport>
-					<reportElement uuid="6028233e-7e6e-4c96-b46c-abfadbd936f9" positionType="Float" style="Detail" x="520" y="0" width="100" height="18" isPrintWhenDetailOverflows="true"/>
+					<reportElement style="Detail" positionType="Float" x="520" y="0" width="100" height="18" isPrintWhenDetailOverflows="true" uuid="6028233e-7e6e-4c96-b46c-abfadbd936f9"/>
+					<subreportParameter name="BaseTemplateStyles">
+						<subreportParameterExpression><![CDATA[$P{BaseTemplateStyles}]]></subreportParameterExpression>
+					</subreportParameter>
 					<subreportParameter name="USER_OID">
 						<subreportParameterExpression><![CDATA[$F{oid}]]></subreportParameterExpression>
 					</subreportParameter>
@@ -162,7 +166,10 @@
 					<subreportExpression><![CDATA[$P{orgReport}]]></subreportExpression>
 				</subreport>
 				<subreport>
-					<reportElement uuid="6028233e-7e6e-4c96-b46c-abfadbd936f9" positionType="Float" style="Detail" x="620" y="0" width="180" height="18" isPrintWhenDetailOverflows="true"/>
+					<reportElement style="Detail" positionType="Float" x="620" y="0" width="180" height="18" isPrintWhenDetailOverflows="true" uuid="6028233e-7e6e-4c96-b46c-abfadbd936f9"/>
+					<subreportParameter name="BaseTemplateStyles">
+						<subreportParameterExpression><![CDATA[$P{BaseTemplateStyles}]]></subreportParameterExpression>
+					</subreportParameter>
 					<subreportParameter name="USER_OID">
 						<subreportParameterExpression><![CDATA[$F{oid}]]></subreportParameterExpression>
 					</subreportParameter>
@@ -173,7 +180,7 @@
 					<subreportExpression><![CDATA[$P{accountReport}]]></subreportExpression>
 				</subreport>
 				<line>
-					<reportElement uuid="a591d4c1-1cad-4da2-9f9d-081f539e9043" positionType="FixRelativeToBottom" x="0" y="17" width="800" height="1"/>
+					<reportElement positionType="FixRelativeToBottom" x="0" y="17" width="800" height="1" uuid="a591d4c1-1cad-4da2-9f9d-081f539e9043"/>
 					<graphicElement>
 						<pen lineWidth="0.5" lineColor="#999999"/>
 					</graphicElement>
@@ -184,7 +191,7 @@
 	<columnFooter>
 		<band height="7" splitType="Stretch">
 			<line>
-				<reportElement uuid="a591d4c1-1cad-4da2-9f9d-081f539e9043" positionType="FixRelativeToBottom" x="0" y="3" width="800" height="1"/>
+				<reportElement positionType="FixRelativeToBottom" x="0" y="3" width="800" height="1" uuid="a591d4c1-1cad-4da2-9f9d-081f539e9043"/>
 				<graphicElement>
 					<pen lineWidth="0.5" lineColor="#999999"/>
 				</graphicElement>
@@ -194,19 +201,19 @@
 	<pageFooter>
 		<band height="32" splitType="Stretch">
 			<frame>
-				<reportElement uuid="fbe8aae4-6500-468a-b1e8-700b569139a1" style="Page footer" mode="Transparent" x="0" y="1" width="800" height="24"/>
+				<reportElement style="Page footer" mode="Transparent" x="0" y="1" width="800" height="24" uuid="fbe8aae4-6500-468a-b1e8-700b569139a1"/>
 				<textField>
-					<reportElement uuid="5c062c66-ba45-4288-9dcd-246e28c5af75" style="Page footer" x="680" y="1" width="80" height="20"/>
+					<reportElement style="Page footer" x="680" y="1" width="80" height="20" uuid="5c062c66-ba45-4288-9dcd-246e28c5af75"/>
 					<textElement textAlignment="Right" verticalAlignment="Middle"/>
 					<textFieldExpression><![CDATA["Page "+$V{PAGE_NUMBER}+" of"]]></textFieldExpression>
 				</textField>
 				<textField pattern="EEEEE dd MMMMM yyyy">
-					<reportElement uuid="28bb9b47-a69c-48e1-9073-d54d926242e8" style="Page footer" x="2" y="1" width="197" height="20"/>
+					<reportElement style="Page footer" x="2" y="1" width="197" height="20" uuid="28bb9b47-a69c-48e1-9073-d54d926242e8"/>
 					<textElement verticalAlignment="Middle"/>
 					<textFieldExpression><![CDATA[new java.util.Date()]]></textFieldExpression>
 				</textField>
 				<textField evaluationTime="Report">
-					<reportElement uuid="934b16e8-c3eb-4017-866a-0b7735bf2917" style="Page footer" x="760" y="1" width="40" height="20"/>
+					<reportElement style="Page footer" x="760" y="1" width="40" height="20" uuid="934b16e8-c3eb-4017-866a-0b7735bf2917"/>
 					<textElement verticalAlignment="Middle"/>
 					<textFieldExpression><![CDATA[" " + $V{PAGE_NUMBER}]]></textFieldExpression>
 				</textField>

@@ -16,10 +16,13 @@
 
 package com.evolveum.midpoint.web.page.admin.resources.content;
 
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.resources.PageAdminResources;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import org.apache.wicket.RestartResponseException;
@@ -29,11 +32,12 @@ import org.apache.wicket.model.StringResourceModel;
 /**
  * @author lazyman
  */
+@PageDescriptor(url = "/admin/resources/content/entitlements", encoder = OnePageParameterEncoder.class, action = {
+        AuthorizationConstants.AUTZ_DENY_ALL
+})
 public class PageContentEntitlements extends PageAdminResources {
 
     private IModel<PrismObject<ResourceType>> resourceModel;
-
-    public static final String PARAM_RESOURCE_ID = "entResourceOid";
 
     public PageContentEntitlements() {
         resourceModel = new LoadableModel<PrismObject<ResourceType>>(false) {

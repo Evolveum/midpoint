@@ -22,6 +22,7 @@ import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.ajax.markup.html.AjaxLink;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.CheckBox;
@@ -41,6 +42,7 @@ public class CheckTableHeader extends SimplePanel<ObjectWrapper> {
     private static final String ID_NAME = "name";
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_MENU = "menu";
+    private static final String ID_LINK = "link";
 
     public CheckTableHeader(String id, IModel<ObjectWrapper> model) {
         super(id, model);
@@ -62,6 +64,15 @@ public class CheckTableHeader extends SimplePanel<ObjectWrapper> {
         Label icon = new Label(ID_ICON);
         add(icon);
 
+        AjaxLink link = new AjaxLink(ID_LINK) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                onClickPerformed(target);
+            }
+        };
+        add(link);
+
         Label name = new Label(ID_NAME, new AbstractReadOnlyModel<String>() {
 
             @Override
@@ -69,7 +80,7 @@ public class CheckTableHeader extends SimplePanel<ObjectWrapper> {
                 return getDisplayName();
             }
         });
-        add(name);
+        link.add(name);
 
         Label description = new Label(ID_DESCRIPTION, new AbstractReadOnlyModel<String>() {
 
@@ -114,6 +125,13 @@ public class CheckTableHeader extends SimplePanel<ObjectWrapper> {
     }
 
     protected List<InlineMenuItem> createMenuItems() {
-        return new ArrayList<InlineMenuItem>();
+        return new ArrayList<>();
+    }
+
+    protected void onClickPerformed(AjaxRequestTarget target) {
+        ObjectWrapper wrapper = getModelObject();
+        wrapper.setMinimalized(!wrapper.isMinimalized());
+
+        target.add(findParent(PrismObjectPanel.class));
     }
 }

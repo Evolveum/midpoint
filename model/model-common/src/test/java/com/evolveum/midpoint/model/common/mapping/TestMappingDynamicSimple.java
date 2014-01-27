@@ -607,7 +607,7 @@ public class TestMappingDynamicSimple {
     	OperationResult opResult = new OperationResult("testScriptExtraVariablesRef");
     	    	
     	// WHEN
-		mapping.evaluate(opResult);
+		mapping.evaluate(null, opResult);
     	
     	// THEN
 		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = mapping.getOutputTriple();
@@ -634,7 +634,7 @@ public class TestMappingDynamicSimple {
     	OperationResult opResult = new OperationResult(TEST_NAME);
     	    	
     	// WHEN
-		mapping.evaluate(opResult);
+		mapping.evaluate(null, opResult);
     	
     	// THEN
 		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = mapping.getOutputTriple();
@@ -694,7 +694,7 @@ public class TestMappingDynamicSimple {
     	OperationResult opResult = new OperationResult(TEST_NAME);
     	
     	// WHEN
-		mapping.evaluate(opResult);
+		mapping.evaluate(null, opResult);
     	
     	// THEN
 		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
@@ -724,7 +724,7 @@ public class TestMappingDynamicSimple {
     	OperationResult opResult = new OperationResult(TEST_NAME);
     	
     	// WHEN
-		mapping.evaluate(opResult);
+		mapping.evaluate(null, opResult);
     	
     	// THEN
 		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
@@ -752,7 +752,7 @@ public class TestMappingDynamicSimple {
     	OperationResult opResult = new OperationResult(TEST_NAME);
     	
     	// WHEN
-		mapping.evaluate(opResult);
+		mapping.evaluate(null, opResult);
     	
     	// THEN
 		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
@@ -815,7 +815,7 @@ public class TestMappingDynamicSimple {
     	OperationResult opResult = new OperationResult(TEST_NAME);
     	    	
     	// WHEN
-		mapping.evaluate(opResult);
+		mapping.evaluate(null, opResult);
     	
     	// THEN
 		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = mapping.getOutputTriple();
@@ -838,7 +838,7 @@ public class TestMappingDynamicSimple {
     	OperationResult opResult = new OperationResult(TEST_NAME);
     	    	
     	// WHEN
-		mapping.evaluate(opResult);
+		mapping.evaluate(null, opResult);
     	
     	// THEN
 		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = mapping.getOutputTriple();
@@ -963,7 +963,7 @@ public class TestMappingDynamicSimple {
     	OperationResult opResult = new OperationResult(TEST_NAME);
     	    	
     	// WHEN
-		mapping.evaluate(opResult);
+		mapping.evaluate(null, opResult);
     	
     	// THEN
 		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
@@ -990,7 +990,7 @@ public class TestMappingDynamicSimple {
     	OperationResult opResult = new OperationResult(TEST_NAME);
     	    	
     	// WHEN
-		mapping.evaluate(opResult);
+		mapping.evaluate(null, opResult);
     	
     	// THEN
 		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
@@ -1014,7 +1014,7 @@ public class TestMappingDynamicSimple {
     	OperationResult opResult = new OperationResult(TEST_NAME);
     	    	
     	// WHEN
-		mapping.evaluate(opResult);
+		mapping.evaluate(null, opResult);
     	
     	// THEN
 		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
@@ -1043,7 +1043,7 @@ public class TestMappingDynamicSimple {
     	OperationResult opResult = new OperationResult(TEST_NAME);
     	    	
     	// WHEN
-		mapping.evaluate(opResult);
+		mapping.evaluate(null, opResult);
     	
     	// THEN
 		PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
@@ -1061,12 +1061,12 @@ public class TestMappingDynamicSimple {
     	Item oldItem = account.findItem(new ItemPath(ShadowType.F_ATTRIBUTES, SchemaTestConstants.ICFS_NAME));
     	ItemDelta delta = PropertyDelta.createModificationAddProperty(SchemaTestConstants.ICFS_NAME_PATH, (PrismPropertyDefinition) oldItem.getDefinition(), ((PrismPropertyValue) oldItem.getValue(0)).getValue());
     	
-    	UserType user = new UserType();
+    	PrismObject<UserType> user = evaluator.getUserDefinition().instantiate();
     	
-    	Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createInboudMapping("mapping-inbound.xml", TEST_NAME, delta, user, account.asObjectable(), null, null);
+    	Mapping<PrismPropertyValue<PolyString>> mapping = evaluator.createInboudMapping("mapping-inbound.xml", TEST_NAME, delta, user.asObjectable(), account.asObjectable(), null, null);
     	
     	OperationResult opResult = new OperationResult(TEST_NAME);
-    	mapping.evaluate(opResult);
+    	mapping.evaluate(null, opResult);
     	
     	PrismValueDeltaSetTriple<PrismPropertyValue<PolyString>> outputTriple = mapping.getOutputTriple();
     	assertTripleZero(outputTriple, PrismTestUtil.createPolyString("pavolr"));
@@ -1109,7 +1109,7 @@ public class TestMappingDynamicSimple {
 		OperationResult opResult = new OperationResult(TEST_NAME);
     	
 		// WHEN (1)
-    	mapping.evaluate(opResult);
+    	mapping.evaluate(null, opResult);
 
 		// THEN (1)
 		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = mapping.getOutputTriple();
@@ -1121,7 +1121,7 @@ public class TestMappingDynamicSimple {
 		assertGeneratedValue(value1, stringPolicy, null, false);
 
 		// WHEN (2)
-		mapping.evaluate(opResult);
+		mapping.evaluate(null, opResult);
 
 		// THEN (2)
 		outputTriple = mapping.getOutputTriple();
@@ -1173,7 +1173,7 @@ public class TestMappingDynamicSimple {
 		OperationResult opResult = new OperationResult(TEST_NAME);
     	
 		// WHEN (1)
-    	mapping.evaluate(opResult);
+    	mapping.evaluate(null, opResult);
 
 		// THEN (1)
 		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = mapping.getOutputTriple();
@@ -1186,7 +1186,7 @@ public class TestMappingDynamicSimple {
 		assertGeneratedValue(value1, stringPolicy, pattern, false);
 
 		// WHEN (2)
-		mapping.evaluate(opResult);
+		mapping.evaluate(null, opResult);
 
 		// THEN (2)
 		outputTriple = mapping.getOutputTriple();
@@ -1253,7 +1253,7 @@ public class TestMappingDynamicSimple {
 		OperationResult opResult = new OperationResult(TEST_NAME);
     	
 		// WHEN (1)
-    	mapping.evaluate(opResult);
+    	mapping.evaluate(null, opResult);
 
 		// THEN (1)
 		PrismValueDeltaSetTriple<PrismPropertyValue<T>> outputTriple = mapping.getOutputTriple();
@@ -1267,7 +1267,7 @@ public class TestMappingDynamicSimple {
 		assertGeneratedValue(value1.toString(), stringPolicy, PATTERN_NUMERIC, true);
 
 		// WHEN (2)
-		mapping.evaluate(opResult);
+		mapping.evaluate(null, opResult);
 
 		// THEN (2)
 		outputTriple = mapping.getOutputTriple();
@@ -1291,7 +1291,7 @@ public class TestMappingDynamicSimple {
     	OperationResult opResult = new OperationResult(TEST_NAME);
     	
 		// WHEN
-    	mapping.evaluate(opResult);
+    	mapping.evaluate(null, opResult);
 
 		// THEN
     	PrismValueDeltaSetTriple<PrismPropertyValue<ProtectedStringType>> outputTriple = mapping.getOutputTriple();

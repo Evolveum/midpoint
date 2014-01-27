@@ -27,7 +27,7 @@ import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
  */
 public class AccountConstructionPack {
 	
-	private Collection<PrismPropertyValue<AccountConstruction>> constructions = new ArrayList<PrismPropertyValue<AccountConstruction>>();
+	private Collection<PrismPropertyValue<Construction>> constructions = new ArrayList<PrismPropertyValue<Construction>>();
 	private boolean forceRecon;
 	
 	public boolean isForceRecon() {
@@ -38,11 +38,11 @@ public class AccountConstructionPack {
 		this.forceRecon = forceRecon;
 	}
 	
-	public Collection<PrismPropertyValue<AccountConstruction>> getConstructions() {
+	public Collection<PrismPropertyValue<Construction>> getConstructions() {
 		return constructions;
 	}
 
-	public void add(PrismPropertyValue<AccountConstruction> construction) {
+	public void add(PrismPropertyValue<Construction> construction) {
 		constructions.add(construction);
 	}
 

@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.test;
 
+import com.evolveum.icf.dummy.resource.DummyGroup;
 import com.evolveum.icf.dummy.resource.ScriptHistoryEntry;
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.prism.ItemDefinition;
@@ -26,7 +27,9 @@ import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.match.MatchingRule;
+import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.AndFilter;
@@ -41,7 +44,6 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.cache.RepositoryCache;
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeContainer;
@@ -171,6 +173,12 @@ public class IntegrationTestTools {
 				new QName(ResourceTypeUtil.getResourceNamespace(resource), name), expectedValues);
 	}
 	
+	public static <T> void assertAttribute(PrismObject<? extends ShadowType> shadow, ResourceType resource, String name,
+			T... expectedValues) {
+		assertAttribute("Wrong attribute " + name + " in "+shadow, shadow,
+				new QName(ResourceTypeUtil.getResourceNamespace(resource), name), expectedValues);
+	}
+	
 	public static <T> void assertAttribute(ShadowType shadowType, QName name, T... expectedValues) {
 		assertAttribute(shadowType.asPrismObject(), name, expectedValues);
 	}
@@ -181,6 +189,11 @@ public class IntegrationTestTools {
 	}
 
 	public static <T> void assertAttribute(String message, ShadowType repoShadow, QName name, T... expectedValues) {
+		Collection<T> values = getAttributeValues(repoShadow, name);
+		assertEqualsCollection(message, expectedValues, values);
+	}
+	
+	public static <T> void assertAttribute(String message, PrismObject<? extends ShadowType> repoShadow, QName name, T... expectedValues) {
 		Collection<T> values = getAttributeValues(repoShadow, name);
 		assertEqualsCollection(message, expectedValues, values);
 	}
@@ -215,6 +228,14 @@ public class IntegrationTestTools {
 
 	public static <T> void assertEqualsCollection(String message, T[] expectedValues, Collection<T> actualValues) {
 		assertEqualsCollection(message, Arrays.asList(expectedValues), actualValues);
+	}
+
+	public static String getIcfsNameAttribute(PrismObject<ShadowType> shadow) {
+		return getIcfsNameAttribute(shadow.asObjectable());
+	}
+
+	public static String getIcfsNameAttribute(ShadowType shadowType) {
+		return getAttributeValue(shadowType, SchemaTestConstants.ICFS_NAME);
 	}
 	
 	public static void assertIcfsNameAttribute(ShadowType repoShadow, String value) {
@@ -785,5 +806,62 @@ public class IntegrationTestTools {
 	public static void displayXml(String message, PrismObject<? extends ObjectType> object) throws SchemaException {
 		String xml = PrismTestUtil.serializeObjectToString(object);
 		display(message, xml);
+	}
+
+	public static ObjectDelta<ShadowType> createEntitleDelta(String accountOid, QName associationName, String groupOid, PrismContext prismContext) throws SchemaException {
+		ShadowAssociationType association = new ShadowAssociationType();
+		association.setName(associationName);
+		ObjectReferenceType shadowRefType = new ObjectReferenceType();
+		shadowRefType.setOid(groupOid);
+		association.setShadowRef(shadowRefType);
+		ItemPath entitlementAssociationPath = new ItemPath(ShadowType.F_ASSOCIATION);
+		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationAddContainer(ShadowType.class, 
+				accountOid, entitlementAssociationPath, prismContext, association);
+		return delta;
+	}
+
+	public static ObjectDelta<ShadowType> createDetitleDelta(String accountOid, QName associationName, String groupOid, PrismContext prismContext) throws SchemaException {
+		ShadowAssociationType association = new ShadowAssociationType();
+		association.setName(associationName);
+		ObjectReferenceType shadowRefType = new ObjectReferenceType();
+		shadowRefType.setOid(groupOid);
+		association.setShadowRef(shadowRefType);
+		ItemPath entitlementAssociationPath = new ItemPath(ShadowType.F_ASSOCIATION);
+		ObjectDelta<ShadowType> delta = ObjectDelta.createModificationDeleteContainer(ShadowType.class, 
+				accountOid, entitlementAssociationPath, prismContext, association);
+		return delta;
+	}
+	
+	public static void assertGroupMember(DummyGroup group, String accountId) {
+		Collection<String> members = group.getMembers();
+		assertNotNull("No members in group "+group.getName()+", expected that "+accountId+" will be there", members);
+		assertTrue("Account "+accountId+" is not member of group "+group.getName()+", members: "+members, members.contains(accountId));
+	}
+	
+	public static void assertNoGroupMember(DummyGroup group, String accountId) {
+		Collection<String> members = group.getMembers();
+		if (members == null) {
+			return;
+		}
+		assertFalse("Account "+accountId+" IS member of group "+group.getName()+" while not expecting it, members: "+members, members.contains(accountId));
+	}
+	
+	public static void assertNoGroupMembers(DummyGroup group) {
+		Collection<String> members = group.getMembers();
+		assertTrue("Group "+group.getName()+" has members while not expecting it, members: "+members, members == null || members.isEmpty());
+	}
+	
+	public static void assertAssociation(PrismObject<ShadowType> shadow, QName associationName, String entitlementOid) {
+		ShadowType accountType = shadow.asObjectable();
+		List<ShadowAssociationType> associations = accountType.getAssociation();
+		assertNotNull("Null associations in "+shadow, associations);
+		assertFalse("Empty associations in "+shadow, associations.isEmpty());
+		for (ShadowAssociationType association: associations) {
+			if (associationName.equals(association.getName()) &&
+					entitlementOid.equals(association.getShadowRef().getOid())) {
+				return;
+			}
+		}
+		AssertJUnit.fail("No association for entitlement "+entitlementOid+" in "+shadow);
 	}
 }

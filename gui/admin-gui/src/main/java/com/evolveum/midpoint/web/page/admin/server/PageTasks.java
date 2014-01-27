@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.server;
 
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
@@ -28,6 +29,7 @@ import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.*;
@@ -38,6 +40,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAc
 import com.evolveum.midpoint.web.page.admin.server.dto.*;
 import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstance;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.NodeType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
@@ -66,6 +69,9 @@ import java.util.*;
 /**
  * @author lazyman
  */
+@PageDescriptor(url = "/admin/tasks", action = {
+        PageAdminTasks.AUTHORIZATION_TASKS_ALL,
+        AuthorizationConstants.NS_AUTHORIZATION + "#tasks"})
 public class PageTasks extends PageAdminTasks {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageTasks.class);
@@ -439,7 +445,7 @@ public class PageTasks extends PageAdminTasks {
 
             private void taskDetailsPerformed(AjaxRequestTarget target, String oid) {
                 PageParameters parameters = new PageParameters();
-                parameters.add(PageTaskEdit.PARAM_TASK_EDIT_ID, oid);
+                parameters.add(OnePageParameterEncoder.PARAMETER, oid);
                 component.setResponsePage(new PageTaskEdit(parameters, (PageBase) component.getPage()));
             }
 
@@ -499,7 +505,7 @@ public class PageTasks extends PageAdminTasks {
                 private void taskDetailsPerformed(AjaxRequestTarget target, TaskDto task) {
                     if (task.getWorkflowProcessInstanceId() != null) {
                         PageParameters parameters = new PageParameters();
-                        parameters.add(PageProcessInstance.PARAM_PROCESS_INSTANCE_ID, task.getWorkflowProcessInstanceId());
+                        parameters.add(OnePageParameterEncoder.PARAMETER, task.getWorkflowProcessInstanceId());
                         parameters.add(PageProcessInstance.PARAM_PROCESS_INSTANCE_FINISHED, task.isWorkflowProcessInstanceFinished());
                         component.setResponsePage(new PageProcessInstance(parameters, (PageBase) component.getPage()));
                     }

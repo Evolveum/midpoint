@@ -34,6 +34,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.AndFilter;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismContextFactory;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -47,6 +48,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.GenericObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.prism.xml.ns._public.query_2.PagingType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
@@ -235,5 +237,19 @@ public class TestQueryConvertor {
 				throw ex;
 			}
 		}
+	}
+	
+	@Test
+	public void testConvertQueryNullFilter() throws Exception{
+		ObjectQuery query = ObjectQuery.createObjectQuery(ObjectPaging.createPaging(0, 10));
+		QueryType queryType = QueryConvertor.createQueryType(query, prismContext);
+		
+		AssertJUnit.assertNotNull(queryType);
+		AssertJUnit.assertNull(queryType.getFilter());
+		PagingType paging = queryType.getPaging();
+		AssertJUnit.assertNotNull(paging);
+		AssertJUnit.assertEquals(new Integer(0), paging.getOffset());
+		AssertJUnit.assertEquals(new Integer(10), paging.getMaxSize());
+		
 	}
 }

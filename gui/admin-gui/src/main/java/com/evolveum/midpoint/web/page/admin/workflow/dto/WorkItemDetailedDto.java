@@ -24,6 +24,7 @@ import com.evolveum.midpoint.web.component.model.delta.ContainerValueDto;
 import com.evolveum.midpoint.web.component.model.delta.DeltaDto;
 import com.evolveum.midpoint.web.component.util.Selectable;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
+import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.GeneralChangeApprovalWorkItemContents;
 
 /**
  * @author lazyman
@@ -41,8 +42,11 @@ public class WorkItemDetailedDto extends Selectable {
 
     public WorkItemDetailedDto(WorkItemType workItem, PrismContext prismContext) throws SchemaException {
         this.workItem = workItem;
-        if (workItem.getObjectDelta() != null) {
-            deltaDto = new DeltaDto(DeltaConvertor.createObjectDelta(workItem.getObjectDelta(), prismContext));
+        if (workItem.getContents() instanceof GeneralChangeApprovalWorkItemContents) {
+            GeneralChangeApprovalWorkItemContents wic = (GeneralChangeApprovalWorkItemContents) workItem.getContents();
+            if (wic.getObjectDelta() != null) {
+                deltaDto = new DeltaDto(DeltaConvertor.createObjectDelta(wic.getObjectDelta(), prismContext));
+            }
         }
     }
 
@@ -70,25 +74,33 @@ public class WorkItemDetailedDto extends Selectable {
         }
     }
 
+    private GeneralChangeApprovalWorkItemContents getWic() {
+        if (workItem.getContents() instanceof GeneralChangeApprovalWorkItemContents) {
+            return (GeneralChangeApprovalWorkItemContents) workItem.getContents();
+        } else {
+            return null;
+        }
+    }
+
     public ContainerValueDto getObjectOld() {
-        if (workItem.getObjectOld() != null) {
-            return new ContainerValueDto(workItem.getObjectOld().asPrismObject());
+        if (getWic() != null && getWic().getObjectOld() != null) {
+            return new ContainerValueDto(getWic().getObjectOld().asPrismObject());
         } else {
             return null;
         }
     }
 
     public ContainerValueDto getObjectNew() {
-        if (workItem.getObjectNew() != null) {
-            return new ContainerValueDto(workItem.getObjectNew().asPrismObject());
+        if (getWic() != null && getWic().getObjectNew() != null) {
+            return new ContainerValueDto(getWic().getObjectNew().asPrismObject());
         } else {
             return null;
         }
     }
 
     public ContainerValueDto getRelatedObject() {
-        if (workItem.getRelatedObject() != null) {
-            return new ContainerValueDto(workItem.getRelatedObject().asPrismObject());
+        if (getWic() != null && getWic().getRelatedObject() != null) {
+            return new ContainerValueDto(getWic().getRelatedObject().asPrismObject());
         } else {
             return null;
         }

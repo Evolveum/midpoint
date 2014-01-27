@@ -20,7 +20,11 @@ import java.util.Map;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 
 /**
  * Simple DTO used to contain all the parameters of expression execution.
@@ -32,31 +36,36 @@ import com.evolveum.midpoint.schema.result.OperationResult;
  */
 public class ExpressionEvaluationContext {
 
-	private Collection<Source<?>> sources;
+	private Collection<Source<? extends PrismValue>> sources;
 	private Source<?> defaultSource;
-	private Map<QName, Object> variables;
+	private ExpressionVariables variables;
 	private boolean skipEvaluationPlus = false;
 	private boolean skipEvaluationMinus = false;
 	private StringPolicyResolver stringPolicyResolver;
 	private ExpressionFactory expressionFactory;
+	private PrismObjectDefinition<?> defaultTargetContext;
+	private RefinedObjectClassDefinition refinedObjectClassDefinition;
+	private QName mappingQName;
 	private String contextDescription;
+	private Task task;
 	private OperationResult result;
 	
-	public ExpressionEvaluationContext(Collection<Source<?>> sources,
-			Map<QName, Object> variables, String contextDescription,
+	public ExpressionEvaluationContext(Collection<Source<? extends PrismValue>> sources,
+			ExpressionVariables variables, String contextDescription, Task task,
 			OperationResult result) {
 		super();
 		this.sources = sources;
 		this.variables = variables;
 		this.contextDescription = contextDescription;
+		this.task = task;
 		this.result = result;
 	}
 
-	public Collection<Source<?>> getSources() {
+	public Collection<Source<? extends PrismValue>> getSources() {
 		return sources;
 	}
 	
-	public void setSources(Collection<Source<?>> sources) {
+	public void setSources(Collection<Source<? extends PrismValue>> sources) {
 		this.sources = sources;
 	}
 	
@@ -68,11 +77,11 @@ public class ExpressionEvaluationContext {
 		this.defaultSource = defaultSource;
 	}
 
-	public Map<QName, Object> getVariables() {
+	public ExpressionVariables getVariables() {
 		return variables;
 	}
 	
-	public void setVariables(Map<QName, Object> variables) {
+	public void setVariables(ExpressionVariables variables) {
 		this.variables = variables;
 	}
 	
@@ -108,6 +117,30 @@ public class ExpressionEvaluationContext {
 		this.expressionFactory = expressionFactory;
 	}
 
+	public PrismObjectDefinition<?> getDefaultTargetContext() {
+		return defaultTargetContext;
+	}
+
+	public void setDefaultTargetContext(PrismObjectDefinition<?> defaultTargetContext) {
+		this.defaultTargetContext = defaultTargetContext;
+	}
+
+	public RefinedObjectClassDefinition getRefinedObjectClassDefinition() {
+		return refinedObjectClassDefinition;
+	}
+
+	public void setRefinedObjectClassDefinition(RefinedObjectClassDefinition refinedObjectClassDefinition) {
+		this.refinedObjectClassDefinition = refinedObjectClassDefinition;
+	}
+
+	public QName getMappingQName() {
+		return mappingQName;
+	}
+
+	public void setMappingQName(QName mappingQName) {
+		this.mappingQName = mappingQName;
+	}
+
 	public String getContextDescription() {
 		return contextDescription;
 	}
@@ -116,6 +149,14 @@ public class ExpressionEvaluationContext {
 		this.contextDescription = contextDescription;
 	}
 	
+	public Task getTask() {
+		return task;
+	}
+
+	public void setTask(Task task) {
+		this.task = task;
+	}
+
 	public OperationResult getResult() {
 		return result;
 	}
@@ -125,12 +166,14 @@ public class ExpressionEvaluationContext {
 	}
 	
 	public ExpressionEvaluationContext shallowClone() {
-		ExpressionEvaluationContext clone = new ExpressionEvaluationContext(sources, variables, contextDescription, result);
+		ExpressionEvaluationContext clone = new ExpressionEvaluationContext(sources, variables, contextDescription, task, result);
 		clone.skipEvaluationMinus = this.skipEvaluationMinus;
 		clone.skipEvaluationPlus = this.skipEvaluationPlus;
 		clone.stringPolicyResolver = this.stringPolicyResolver;
 		clone.expressionFactory = this.expressionFactory;
 		clone.defaultSource = this.defaultSource;
+		clone.refinedObjectClassDefinition = this.refinedObjectClassDefinition;
+		clone.mappingQName = this.mappingQName;
 		return clone;
 	}
 

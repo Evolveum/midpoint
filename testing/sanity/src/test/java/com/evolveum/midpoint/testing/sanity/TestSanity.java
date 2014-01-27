@@ -90,6 +90,7 @@ import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.EqualsFilter;
@@ -105,7 +106,6 @@ import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
@@ -417,8 +417,9 @@ public class TestSanity extends AbstractModelIntegrationTest {
      * @throws CommunicationException
      */
     @Test
-    public void test000Integrity() throws ObjectNotFoundException, SchemaException, CommunicationException {
-        TestUtil.displayTestTile(this, "test000Integrity");
+    public void test000Integrity() throws Exception {
+    	final String TEST_NAME = "test000Integrity";
+        TestUtil.displayTestTile(this, TEST_NAME);
         assertNotNull(modelWeb);
         assertNotNull(modelService);
         assertNotNull(repositoryService);
@@ -456,12 +457,37 @@ public class TestSanity extends AbstractModelIntegrationTest {
     }
 
     /**
+     * Repeat self-test when we have all the dependencies on the classpath.
+     */
+    @Test
+    public void test001SelfTests() throws Exception {
+    	final String TEST_NAME = "test001SelfTests";
+        TestUtil.displayTestTile(TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestSanity.class.getName()+"."+TEST_NAME);
+
+        // WHEN
+        OperationResult repositorySelfTestResult = modelDiagnosticService.repositorySelfTest(task);
+
+        // THEN
+        assertSuccess("Repository self test", repositorySelfTestResult);
+
+        // WHEN
+        OperationResult provisioningSelfTestResult = modelDiagnosticService.provisioningSelfTest(task);
+
+        // THEN
+        assertSuccess("Provisioning self test", provisioningSelfTestResult);
+}
+
+    
+    /**
      * Test the testResource method. Expect a complete success for now.
      */
     @Test
-    public void test001TestConnectionOpenDJ() throws FaultMessage, JAXBException, ObjectNotFoundException,
-            SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-        TestUtil.displayTestTile("test001TestConnectionOpenDJ");
+    public void test001TestConnectionOpenDJ() throws Exception {
+    	final String TEST_NAME = "test001TestConnectionOpenDJ";
+        TestUtil.displayTestTile(TEST_NAME);
 
         // GIVEN
 
@@ -508,7 +534,6 @@ public class TestSanity extends AbstractModelIntegrationTest {
         // TODO: model web
 
     }
-
     
     private void checkRepoOpenDjResource() throws ObjectNotFoundException, SchemaException {
     	OperationResult result = new OperationResult(TestSanity.class.getName()+".checkRepoOpenDjResource");

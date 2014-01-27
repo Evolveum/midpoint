@@ -21,7 +21,17 @@
 	<div wicket:id="deleteResourcesPopup" />
     <div wicket:id="deleteHostsPopup" />
 
-    <form wicket:id="mainForm">
+    <form wicket:id="searchForm" class="form-inline pull-right search-form">
+        <div class="form-group">
+            <label class="sr-only"><wicket:message key="pageResources.searchText.placeholder" /></label>
+            <input class="form-control input-sm" wicket:id="searchText"
+                   wicket:message="placeholder:pageResources.searchText.placeholder">
+        </div>
+
+        <a class="btn btn-default btn-sm" wicket:id="searchButton"/>
+    </form>
+
+    <form wicket:id="mainForm" class="clearfix form-horizontal">
         <h3><wicket:message key="pageResources.resources"/></h3>
         <div wicket:id="table"/>
 

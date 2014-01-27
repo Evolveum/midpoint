@@ -17,9 +17,13 @@
 package com.evolveum.midpoint.notifications.api;
 
 import com.evolveum.midpoint.notifications.api.events.Event;
+import com.evolveum.midpoint.notifications.api.events.WorkflowEventCreator;
 import com.evolveum.midpoint.notifications.api.transports.Transport;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.EventHandlerType;
+import com.evolveum.midpoint.xml.ns.model.workflow.process_instance_state_2.ProcessInstanceState;
 
 /**
  * @author mederly
@@ -32,14 +36,18 @@ public interface NotificationManager {
     void registerTransport(String name, Transport transport);
     Transport getTransport(String name);
 
+    void registerWorkflowEventCreator(Class<? extends ProcessInstanceState> clazz, WorkflowEventCreator workflowEventCreator);
+
+    WorkflowEventCreator getWorkflowEventCreator(PrismObject<? extends ProcessInstanceState> instanceState);
+
     // event may be null
     void processEvent(Event event);
 
     // event may be null
-    void processEvent(Event event, OperationResult result);
+    void processEvent(Event event, Task task, OperationResult result);
 
 
-    boolean processEvent(Event event, EventHandlerType eventHandlerType, OperationResult result);
+    boolean processEvent(Event event, EventHandlerType eventHandlerType, Task task, OperationResult result);
 
     boolean isDisabled();
     void setDisabled(boolean disabled);

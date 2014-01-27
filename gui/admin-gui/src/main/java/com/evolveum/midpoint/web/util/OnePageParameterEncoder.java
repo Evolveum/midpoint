@@ -16,8 +16,6 @@
 
 package com.evolveum.midpoint.web.util;
 
-import org.apache.commons.lang.Validate;
-import org.apache.wicket.request.Request;
 import org.apache.wicket.request.Url;
 import org.apache.wicket.request.mapper.parameter.IPageParametersEncoder;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
@@ -29,16 +27,11 @@ import java.util.List;
  */
 public class OnePageParameterEncoder implements IPageParametersEncoder {
 
-    private String parameterName;
-
-    public OnePageParameterEncoder(String parameterName) {
-        Validate.notEmpty(parameterName, "Parameter name must not be empty.");
-        this.parameterName = parameterName;
-    }
+    public static final String PARAMETER = "parameter";
 
     /**
-     * Decodes URL like this: /mountpoint/paramValue1
-     * Parameter value is in URL with name defined in contructor
+     * Decodes URL like this: /mountPoint/paramValue1
+     * Parameter value is in URL with name defined in constructor
      */
     @Override
     public PageParameters decodePageParameters(Url url) {
@@ -47,21 +40,21 @@ public class OnePageParameterEncoder implements IPageParametersEncoder {
         List<String> segments = url.getSegments();
         if (!segments.isEmpty()) {
             String value = segments.get(0);
-            parameters.add(parameterName, value);
+            parameters.add(PARAMETER, value);
         }
 
         return parameters.isEmpty() ? null : parameters;
     }
 
     /**
-     * Encodes URL like this: /mountpoint/paramValue1
+     * Encodes URL like this: /mountPoint/paramValue1
      */
     @Override
     public Url encodePageParameters(PageParameters pageParameters) {
         Url url = new Url();
 
         for (PageParameters.NamedPair pair : pageParameters.getAllNamed()) {
-            if (!parameterName.equals(pair.getKey())) {
+            if (!PARAMETER.equals(pair.getKey())) {
                 continue;
             }
 

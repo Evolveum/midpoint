@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.resources.content;
 
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -25,6 +26,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
@@ -34,6 +36,7 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.resources.PageAdminResources;
 import com.evolveum.midpoint.web.page.admin.resources.PageResources;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
@@ -54,9 +57,10 @@ import java.util.Collection;
 /**
  * @author lazyman
  */
+@PageDescriptor(url = "/admin/resources/account", encoder = OnePageParameterEncoder.class, action = {
+        PageAdminResources.AUTHORIZATION_RESOURCE_ALL,
+        AuthorizationConstants.NS_AUTHORIZATION + "#resourcesAccount"})
 public class PageAccount extends PageAdminResources {
-
-    public static final String PARAM_ACCOUNT_ID = "accountOid";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageAccount.class);
     private static final String DOT_CLASS = PageAccount.class.getName() + ".";
@@ -84,7 +88,7 @@ public class PageAccount extends PageAdminResources {
             Collection<SelectorOptions<GetOperationOptions>> options = SelectorOptions.createCollection(
                     ShadowType.F_RESOURCE, GetOperationOptions.createResolve());
 
-            StringValue userOid = getPageParameters().get(PARAM_ACCOUNT_ID);
+            StringValue userOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
             account = getModelService().getObject(ShadowType.class, userOid.toString(), options, task, result);
             result.recordSuccess();
         } catch (Exception ex) {
@@ -213,7 +217,7 @@ public class PageAccount extends PageAdminResources {
         ResourceType resource = account.asObjectable().getResource();
 
         PageParameters parameters = new PageParameters();
-        parameters.add(PageContentAccounts.PARAM_RESOURCE_ID, resource.getOid());
+        parameters.add(OnePageParameterEncoder.PARAMETER, resource.getOid());
         setResponsePage(PageContentAccounts.class, parameters);
     }
 }

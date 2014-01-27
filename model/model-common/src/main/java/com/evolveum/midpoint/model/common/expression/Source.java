@@ -23,13 +23,16 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.PrettyPrinter;
 
 /**
  * @author semancik
  *
  */
-public class Source<V extends PrismValue> extends ItemDeltaItem<V> {
+public class Source<V extends PrismValue> extends ItemDeltaItem<V> implements Dumpable, DebugDumpable {
 
 	private QName name;
 
@@ -66,6 +69,30 @@ public class Source<V extends PrismValue> extends ItemDeltaItem<V> {
 	
 	public String shortDebugDump() {
 		return PrettyPrinter.prettyPrint(name) + ": old=" + itemOld + ", delta=" + delta + ", new=" + itemNew;
+	}
+
+	@Override
+	public String debugDump() {
+		return debugDump(0);
+	}
+
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append("Source ").append(PrettyPrinter.prettyPrint(name));
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "old", itemOld, indent +1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "delta", delta, indent +1);
+		sb.append("\n");
+		DebugUtil.debugDumpWithLabel(sb, "new", itemNew, indent +1);
+		return sb.toString();
+	}
+
+	@Override
+	public String dump() {
+		return debugDump();
 	}
 	
 }

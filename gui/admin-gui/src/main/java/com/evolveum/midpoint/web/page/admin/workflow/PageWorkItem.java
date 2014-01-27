@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.workflow;
 
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -27,6 +28,7 @@ import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.accordion.Accordion;
@@ -43,12 +45,14 @@ import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.ProcessInstanceDto;
 import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDetailedDto;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.wf.api.WorkflowManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WfProcessInstanceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.WorkItemType;
+import com.evolveum.midpoint.xml.ns.model.workflow.common_forms_2.GeneralChangeApprovalWorkItemContents;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -63,35 +67,30 @@ import org.apache.wicket.request.resource.PackageResourceReference;
 /**
  * @author mederly
  */
+@PageDescriptor(url = "/admin/workItem", encoder = OnePageParameterEncoder.class, action = {
+        PageAdminWorkItems.AUTHORIZATION_WORK_ITEMS_ALL,
+        AuthorizationConstants.NS_AUTHORIZATION + "#workItem"})
 public class PageWorkItem extends PageAdminWorkItems {
 
-    public static final String PARAM_TASK_ID = "taskId";
     private static final String DOT_CLASS = PageWorkItem.class.getName() + ".";
     private static final String OPERATION_LOAD_WORK_ITEM = DOT_CLASS + "loadWorkItem";
     private static final String OPERATION_LOAD_PROCESS_INSTANCE = DOT_CLASS + "loadProcessInstance";
     private static final String OPERATION_SAVE_WORK_ITEM = DOT_CLASS + "saveWorkItem";
 
     private static final String ID_ACCORDION = "accordion";
-    private static final String ID_ADDITIONAL_INFO = "additionalInfo";
     private static final String ID_DELTA_PANEL = "deltaPanel";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageWorkItem.class);
-    private static final String ID_DELTA_ACCORDION = "deltaAccordion";
     private static final String ID_DELTA_INFO = "deltaInfo";
 
-    private static final String ID_REQUESTER_ACCORDION = "requesterAccordion";
     private static final String ID_REQUESTER_ACCORDION_INFO = "requesterAccordionInfo";
     private static final String ID_REQUESTER_PANEL = "requesterPanel";
-    private static final String ID_OBJECT_OLD_ACCORDION = "objectOldAccordion";
     private static final String ID_OBJECT_OLD_ACCORDION_INFO = "objectOldAccordionInfo";
     private static final String ID_OBJECT_OLD_PANEL = "objectOldPanel";
-    private static final String ID_OBJECT_NEW_ACCORDION = "objectNewAccordion";
     private static final String ID_OBJECT_NEW_ACCORDION_INFO = "objectNewAccordionInfo";
     private static final String ID_OBJECT_NEW_PANEL = "objectNewPanel";
-    private static final String ID_ADDITIONAL_DATA_ACCORDION = "additionalDataAccordion";
     private static final String ID_ADDITIONAL_DATA_ACCORDION_INFO = "additionalDataAccordionInfo";
     private static final String ID_ADDITIONAL_DATA_PANEL = "additionalDataPanel";
-    private static final String ID_PROCESS_INSTANCE_ACCORDION = "processInstanceAccordion";
     private static final String ID_PROCESS_INSTANCE_ACCORDION_INFO = "processInstanceAccordionInfo";
     private static final String ID_PROCESS_INSTANCE_PANEL = "processInstancePanel";
     private static final String ID_SHOW_TECHNICAL_INFORMATION = "showTechnicalInformation";
@@ -111,7 +110,6 @@ public class PageWorkItem extends PageAdminWorkItems {
 
     private IModel<Boolean> showTechnicalInformationModel = new Model<Boolean>();
     private Accordion additionalInfoAccordion;
-    private AccordionItem additionalInfoAccordionItem;
 
     public PageWorkItem() {
         this(new PageParameters(), null);
@@ -186,6 +184,17 @@ public class PageWorkItem extends PageAdminWorkItems {
         initLayout();
     }
 
+    @Override
+    protected IModel<String> createPageTitleModel() {
+        return new LoadableModel<String>(false) {
+
+            @Override
+            protected String load() {
+                return new PropertyModel<String>(workItemDtoModel, "name").getObject();
+            }
+        };
+    }
+
     private ObjectWrapper getRequesterWrapper() {
         PrismObject<UserType> prism = workItemDtoModel.getObject().getWorkItem().getRequester().asPrismObject();
 
@@ -206,7 +215,8 @@ public class PageWorkItem extends PageAdminWorkItems {
     }
 
     private ObjectWrapper getObjectOldWrapper() {
-        ObjectType objectOld = workItemDtoModel.getObject().getWorkItem().getObjectOld();
+        GeneralChangeApprovalWorkItemContents wic = getGeneralChangeApprovalWorkItemContents();
+        ObjectType objectOld = wic.getObjectOld();
 
         PrismObject<? extends ObjectType> prism;
         if (objectOld != null) {
@@ -231,8 +241,18 @@ public class PageWorkItem extends PageAdminWorkItems {
         return wrapper;
     }
 
+    private GeneralChangeApprovalWorkItemContents getGeneralChangeApprovalWorkItemContents() {
+        ObjectType contents = workItemDtoModel.getObject().getWorkItem().getContents();
+        if (contents instanceof GeneralChangeApprovalWorkItemContents) {
+            return (GeneralChangeApprovalWorkItemContents) contents;
+        } else {
+            return null;
+        }
+    }
+
     private ObjectWrapper getObjectNewWrapper() {
-        ObjectType objectNew = workItemDtoModel.getObject().getWorkItem().getObjectNew();
+        GeneralChangeApprovalWorkItemContents wic = getGeneralChangeApprovalWorkItemContents();
+        ObjectType objectNew = wic.getObjectNew();
 
         PrismObject<? extends ObjectType> prism;
         if (objectNew != null) {
@@ -269,10 +289,11 @@ public class PageWorkItem extends PageAdminWorkItems {
     }
 
     private ObjectWrapper getRequestSpecificWrapper() {
-        PrismObject<?> prism = workItemDtoModel.getObject().getWorkItem().getRequestSpecificData().asPrismObject();
+        GeneralChangeApprovalWorkItemContents wic = getGeneralChangeApprovalWorkItemContents();
+        PrismObject<?> prism = wic.getQuestionForm().asPrismObject();
 
         ContainerStatus status = ContainerStatus.MODIFYING;
-        ObjectWrapper wrapper = new ObjectWrapper(null, null, prism, status);
+        ObjectWrapper wrapper = new ObjectWrapper("pageWorkItem.requestSpecifics", null, prism, status);
         if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
             showResultInSession(wrapper.getResult());
         }
@@ -285,7 +306,8 @@ public class PageWorkItem extends PageAdminWorkItems {
 
 
     private ObjectWrapper getAdditionalDataWrapper() {
-        ObjectType relatedObject = workItemDtoModel.getObject().getWorkItem().getRelatedObject();
+        GeneralChangeApprovalWorkItemContents wic = getGeneralChangeApprovalWorkItemContents();
+        ObjectType relatedObject = wic.getRelatedObject();
         PrismObject<? extends ObjectType> prism;
         if (relatedObject != null) {
             prism = relatedObject.asPrismObject();
@@ -312,7 +334,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         PrismObject<? extends ObjectType> prism = workItemDtoModel.getObject().getWorkItem().getTrackingData().asPrismObject();
 
         ContainerStatus status = ContainerStatus.MODIFYING;
-        ObjectWrapper wrapper = new ObjectWrapper(null, null, prism, status);
+        ObjectWrapper wrapper = new ObjectWrapper("pageWorkItem.trackingData", null, prism, status);
         if (wrapper.getResult() != null && !WebMiscUtil.isSuccessOrHandledError(wrapper.getResult())) {
             showResultInSession(wrapper.getResult());
         }
@@ -334,7 +356,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         WorkItemType workItem = null;
         try {
             WorkflowManager wfm = getWorkflowManager();
-            workItem = wfm.getWorkItemDetailsById(parameters.get(PARAM_TASK_ID).toString(), result);
+            workItem = wfm.getWorkItemDetailsById(parameters.get(OnePageParameterEncoder.PARAMETER).toString(), result);
             workItemDetailedDto = new WorkItemDetailedDto(workItem, getPrismContext());
             result.recordSuccessIfUnknown();
         } catch (Exception ex) {
@@ -354,7 +376,7 @@ public class PageWorkItem extends PageAdminWorkItems {
         OperationResult result = new OperationResult(OPERATION_LOAD_PROCESS_INSTANCE);
         WfProcessInstanceType processInstance;
         try {
-            String taskId = parameters.get(PARAM_TASK_ID).toString();
+            String taskId = parameters.get(OnePageParameterEncoder.PARAMETER).toString();
             LOGGER.trace("Loading process instance for task {}", taskId);
             WorkflowManager wfm = getWorkflowManager();
             processInstance = wfm.getProcessInstanceByWorkItemId(taskId, result);
@@ -374,13 +396,9 @@ public class PageWorkItem extends PageAdminWorkItems {
         }
     }
 
-
     private void initLayout() {
         Form mainForm = new Form("mainForm");
         add(mainForm);
-
-        Label title = new Label("title", new PropertyModel(workItemDtoModel, "name"));
-        mainForm.add(title);
 
         Label requestedBy = new Label("requestedBy", new PropertyModel(requesterModel, "object.asObjectable.name"));
         mainForm.add(requestedBy);
@@ -426,7 +444,7 @@ public class PageWorkItem extends PageAdminWorkItems {
 
             @Override
             protected IModel<String> createDescription(IModel<ObjectWrapper> model) {
-                return new Model<String>("");
+                return new Model<>("");
             }
         };
         mainForm.add(requestSpecificForm);
@@ -434,18 +452,8 @@ public class PageWorkItem extends PageAdminWorkItems {
         additionalInfoAccordion = new Accordion(ID_ACCORDION);
         additionalInfoAccordion.setOutputMarkupId(true);
         additionalInfoAccordion.setMultipleSelect(true);
-        additionalInfoAccordion.setExpanded(true);
+        additionalInfoAccordion.setExpanded(false);
         mainForm.add(additionalInfoAccordion);
-
-        additionalInfoAccordionItem = new AccordionItem(ID_ADDITIONAL_INFO, new AbstractReadOnlyModel<String>() {
-
-            @Override
-            public String getObject() {
-                return getString("pageWorkItem.additionalInfo");
-            }
-        });
-        additionalInfoAccordionItem.setOutputMarkupId(true);
-        additionalInfoAccordion.getBodyContainer().add(additionalInfoAccordionItem);
 
         PrismObjectPanel requesterForm = new PrismObjectPanel("requesterForm", requesterModel,
                 new PackageResourceReference(ImgResources.class, ImgResources.USER_PRISM), mainForm);
@@ -455,31 +463,31 @@ public class PageWorkItem extends PageAdminWorkItems {
                 return requesterModel != null && !requesterModel.getObject().getObject().isEmpty();
             }
         });
-        additionalInfoAccordionItem.getBodyContainer().add(requesterForm);
+        mainForm.add(requesterForm);
 
         PrismObjectPanel objectOldForm = new PrismObjectPanel("objectOldForm", objectOldModel,
                 new PackageResourceReference(ImgResources.class, ImgResources.USER_PRISM), mainForm);
         objectOldForm.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {
-                return workItemDtoModel.getObject().getWorkItem().getObjectOld() != null;
+                return getGeneralChangeApprovalWorkItemContents() != null && getGeneralChangeApprovalWorkItemContents().getObjectOld() != null;
             }
         });
-        additionalInfoAccordionItem.getBodyContainer().add(objectOldForm);
+        mainForm.add(objectOldForm);
 
         PrismObjectPanel objectNewForm = new PrismObjectPanel("objectNewForm", objectNewModel,
                 new PackageResourceReference(ImgResources.class, ImgResources.USER_PRISM), mainForm);
         objectNewForm.add(new VisibleEnableBehaviour() {
             @Override
             public boolean isVisible() {
-                return workItemDtoModel.getObject().getWorkItem().getObjectNew() != null;
+                return getGeneralChangeApprovalWorkItemContents() != null && getGeneralChangeApprovalWorkItemContents().getObjectNew() != null;
             }
         });
-        additionalInfoAccordionItem.getBodyContainer().add(objectNewForm);
+        mainForm.add(objectNewForm);
 
         PrismObjectPanel additionalDataForm = new PrismObjectPanel("additionalDataForm", additionalDataModel,
                 new PackageResourceReference(ImgResources.class, ImgResources.ROLE_PRISM), mainForm);
-        additionalInfoAccordionItem.getBodyContainer().add(additionalDataForm);
+        mainForm.add(additionalDataForm);
 
         PrismObjectPanel trackingDataForm = new PrismObjectPanel("trackingDataForm", trackingDataModel,
                 new PackageResourceReference(ImgResources.class, ImgResources.TRACKING_PRISM), mainForm) {
@@ -494,53 +502,40 @@ public class PageWorkItem extends PageAdminWorkItems {
                 return new Model("");
             }
         };
-        additionalInfoAccordionItem.getBodyContainer().add(trackingDataForm);
+        mainForm.add(trackingDataForm);
 
-        Accordion deltaAccordion = new Accordion(ID_DELTA_ACCORDION);
-        deltaAccordion.setOutputMarkupId(true);
-        deltaAccordion.setMultipleSelect(true);
-        deltaAccordion.setExpanded(false);
-        additionalInfoAccordionItem.getBodyContainer().add(deltaAccordion);
 
         AccordionItem deltaInfo = new AccordionItem(ID_DELTA_INFO, new ResourceModel("pageWorkItem.delta"));
         deltaInfo.setOutputMarkupId(true);
-        deltaAccordion.getBodyContainer().add(deltaInfo);
+        additionalInfoAccordion.getBodyContainer().add(deltaInfo);
 
         DeltaPanel deltaPanel = new DeltaPanel(ID_DELTA_PANEL, deltaModel);
         deltaInfo.getBodyContainer().add(deltaPanel);
 
-        additionalInfoAccordionItem.getBodyContainer().add(createObjectAccordion(ID_REQUESTER_ACCORDION, ID_REQUESTER_ACCORDION_INFO, ID_REQUESTER_PANEL, "pageWorkItem.accordionLabel.requester", new PropertyModel(workItemDtoModel, WorkItemDetailedDto.F_REQUESTER), true));
-        additionalInfoAccordionItem.getBodyContainer().add(createObjectAccordion(ID_OBJECT_OLD_ACCORDION, ID_OBJECT_OLD_ACCORDION_INFO, ID_OBJECT_OLD_PANEL, "pageWorkItem.accordionLabel.objectOld", new PropertyModel(workItemDtoModel, WorkItemDetailedDto.F_OBJECT_OLD), true));
-        additionalInfoAccordionItem.getBodyContainer().add(createObjectAccordion(ID_OBJECT_NEW_ACCORDION, ID_OBJECT_NEW_ACCORDION_INFO, ID_OBJECT_NEW_PANEL, "pageWorkItem.accordionLabel.objectNew", new PropertyModel(workItemDtoModel, WorkItemDetailedDto.F_OBJECT_NEW), true));
-        additionalInfoAccordionItem.getBodyContainer().add(createObjectAccordion(ID_ADDITIONAL_DATA_ACCORDION, ID_ADDITIONAL_DATA_ACCORDION_INFO, ID_ADDITIONAL_DATA_PANEL, "pageWorkItem.accordionLabel.additionalData", new PropertyModel(workItemDtoModel, WorkItemDetailedDto.F_RELATED_OBJECT), true));
+        additionalInfoAccordion.getBodyContainer().add(createObjectAccordionItem(ID_REQUESTER_ACCORDION_INFO, ID_REQUESTER_PANEL, "pageWorkItem.accordionLabel.requester", new PropertyModel(workItemDtoModel, WorkItemDetailedDto.F_REQUESTER), true));
+        additionalInfoAccordion.getBodyContainer().add(createObjectAccordionItem(ID_OBJECT_OLD_ACCORDION_INFO, ID_OBJECT_OLD_PANEL, "pageWorkItem.accordionLabel.objectOld", new PropertyModel(workItemDtoModel, WorkItemDetailedDto.F_OBJECT_OLD), true));
+        additionalInfoAccordion.getBodyContainer().add(createObjectAccordionItem(ID_OBJECT_NEW_ACCORDION_INFO, ID_OBJECT_NEW_PANEL, "pageWorkItem.accordionLabel.objectNew", new PropertyModel(workItemDtoModel, WorkItemDetailedDto.F_OBJECT_NEW), true));
+        additionalInfoAccordion.getBodyContainer().add(createObjectAccordionItem(ID_ADDITIONAL_DATA_ACCORDION_INFO, ID_ADDITIONAL_DATA_PANEL, "pageWorkItem.accordionLabel.additionalData", new PropertyModel(workItemDtoModel, WorkItemDetailedDto.F_RELATED_OBJECT), true));
 
         LOGGER.trace("processInstanceDtoModel = {}, loaded = {}", processInstanceDtoModel, processInstanceDtoModel.isLoaded());
         ProcessInstanceDto processInstanceDto = processInstanceDtoModel.getObject();
         WfProcessInstanceType processInstance = processInstanceDto.getProcessInstance();
         String detailsPageClassName = getWorkflowManager().getProcessInstanceDetailsPanelName(processInstance);
 
-        additionalInfoAccordionItem.getBodyContainer().add(createAccordion(ID_PROCESS_INSTANCE_ACCORDION,
-                ID_PROCESS_INSTANCE_ACCORDION_INFO,
+        additionalInfoAccordion.getBodyContainer().add(createAccordionItem(ID_PROCESS_INSTANCE_ACCORDION_INFO,
                 "pageWorkItem.accordionLabel.processInstance",
                 new ProcessInstancePanel(ID_PROCESS_INSTANCE_PANEL, processInstanceDtoModel, detailsPageClassName), true));
         initButtons(mainForm);
     }
 
-    private Component createAccordion(String idAccordion, String idAccordionInfo, String key, Panel panel, boolean isTechnical) {
-
-        Accordion accordion = new Accordion(idAccordion);
-        accordion.setOutputMarkupId(true);
-        accordion.setMultipleSelect(true);
-        accordion.setExpanded(false);
-
+    private Component createAccordionItem(String idAccordionInfo, String key, Panel panel, boolean isTechnical) {
         AccordionItem info = new AccordionItem(idAccordionInfo, new ResourceModel(key));
         info.setOutputMarkupId(true);
-        accordion.getBodyContainer().add(info);
-
         info.getBodyContainer().add(panel);
 
         if (isTechnical) {
-            accordion.add(new VisibleEnableBehaviour() {
+            info.add(new VisibleEnableBehaviour() {
+
                 @Override
                 public boolean isVisible() {
                     return Boolean.TRUE.equals(showTechnicalInformationModel.getObject());
@@ -548,24 +543,17 @@ public class PageWorkItem extends PageAdminWorkItems {
             });
         }
 
-        return accordion;
+        return info;
     }
 
-    private Component createObjectAccordion(String idAccordion, String idAccordionInfo, String idPanel, String key, IModel model, boolean isTechnical) {
-        Accordion accordion = new Accordion(idAccordion);
-        accordion.setOutputMarkupId(true);
-        accordion.setMultipleSelect(true);
-        accordion.setExpanded(false);
-
+    private Component createObjectAccordionItem(String idAccordionInfo, String idPanel, String key, IModel model, boolean isTechnical) {
         AccordionItem info = new AccordionItem(idAccordionInfo, new ResourceModel(key));
         info.setOutputMarkupId(true);
-        accordion.getBodyContainer().add(info);
-
         ContainerValuePanel panel = new ContainerValuePanel(idPanel, model);
         info.getBodyContainer().add(panel);
 
         if (isTechnical) {
-            accordion.add(new VisibleEnableBehaviour() {
+            info.add(new VisibleEnableBehaviour() {
                 @Override
                 public boolean isVisible() {
                     return Boolean.TRUE.equals(showTechnicalInformationModel.getObject());
@@ -573,7 +561,7 @@ public class PageWorkItem extends PageAdminWorkItems {
             });
         }
 
-        return accordion;
+        return info;
     }
 
 

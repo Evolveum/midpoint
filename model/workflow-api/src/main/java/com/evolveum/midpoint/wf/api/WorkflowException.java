@@ -17,11 +17,7 @@
 package com.evolveum.midpoint.wf.api;
 
 /**
- * Created with IntelliJ IDEA.
- * User: mederly
- * Date: 4.10.2012
- * Time: 16:41
- * To change this template use File | Settings | File Templates.
+ * @author mederly
  */
 public class WorkflowException extends Exception {
 

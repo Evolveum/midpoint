@@ -36,10 +36,12 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.common.InternalsConfig;
 import com.evolveum.midpoint.common.filter.Filter;
 import com.evolveum.midpoint.common.filter.FilterManager;
+import com.evolveum.midpoint.common.refinery.RefinedObjectClassDefinition;
 import com.evolveum.midpoint.model.common.expression.Expression;
 import com.evolveum.midpoint.model.common.expression.ExpressionEvaluationContext;
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
+import com.evolveum.midpoint.model.common.expression.ExpressionVariables;
 import com.evolveum.midpoint.model.common.expression.ItemDeltaItem;
 import com.evolveum.midpoint.model.common.expression.ObjectDeltaObject;
 import com.evolveum.midpoint.model.common.expression.Source;
@@ -61,15 +63,16 @@ import com.evolveum.midpoint.prism.Visitable;
 import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
+import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
+import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
@@ -105,7 +108,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 	private static final QName CONDITION_OUTPUT_NAME = new QName(SchemaConstants.NS_C, "condition");
 	
 	private ExpressionFactory expressionFactory;
-	private Map<QName,Object> variables = new HashMap<QName,Object>();
+	private ExpressionVariables variables = new ExpressionVariables();
 	private String contextDescription;
 	private String mappingContextDescription = null;
 	private MappingType mappingType;
@@ -132,6 +135,10 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 	private boolean profiling = false;
 	private Long evaluationStartTime = null;
 	private Long evaluationEndTime = null;
+	// This is sometimes used to identify the element that mapping produces
+	// if it is different from itemName. E.g. this happens with associations.
+	private QName mappingQName;
+	private RefinedObjectClassDefinition refinedObjectClassDefinition;
 	
 	// This is single-use only. Once evaluated it is not used any more
 	// it is remembered only for tracing purposes.
@@ -234,6 +241,10 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		return mappingContextDescription;
 	}
 
+	public MappingType getMappingType() {
+		return mappingType;
+	}
+
 	public void setRootNode(ObjectReferenceType objectRef) {
 		addVariableDefinition(null,(Object)objectRef);
 	}
@@ -294,17 +305,11 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 	}
 
 	public void addVariableDefinitions(Map<QName, Object> extraVariables) {
-		for (Entry<QName, Object> entry : extraVariables.entrySet()) {
-			variables.put(entry.getKey(), entry.getValue());
-		}
+		variables.addVariableDefinitions(extraVariables);
 	}
 	
 	public void addVariableDefinition(QName name, Object value) {
-		if (variables.containsKey(name)) {
-			LOGGER.warn("Duplicate definition of variable {} in {}, ignoring it",name,getMappingContextDescription());
-			return;
-		}
-		variables.put(name, value);
+		variables.addVariableDefinition(name, value);
 	}
 	
 	public boolean hasVariableDefinition(QName varName) {
@@ -438,9 +443,24 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		}
 		return evaluationEndTime - evaluationStartTime;
 	}
-	
 
-	public void evaluate(OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
+	public QName getMappingQName() {
+		return mappingQName;
+	}
+
+	public void setMappingQName(QName mappingQName) {
+		this.mappingQName = mappingQName;
+	}
+
+	public RefinedObjectClassDefinition getRefinedObjectClassDefinition() {
+		return refinedObjectClassDefinition;
+	}
+
+	public void setRefinedObjectClassDefinition(RefinedObjectClassDefinition refinedObjectClassDefinition) {
+		this.refinedObjectClassDefinition = refinedObjectClassDefinition;
+	}
+
+	public void evaluate(Task task, OperationResult parentResult) throws ExpressionEvaluationException, ObjectNotFoundException, SchemaException {
 		
 		OperationResult result = parentResult.createMinorSubresult(Mapping.class.getName()+".evaluate");
 		
@@ -463,7 +483,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 				throw new IllegalArgumentException("No output definition, cannot evaluate "+getMappingContextDescription());
 			}
 			
-			evaluateCondition(result);
+			evaluateCondition(task, result);
 			
 			boolean conditionOutputOld = computeConditionResult(conditionOutputTriple.getNonPositiveValues());
 			boolean conditionResultOld = conditionOutputOld && conditionMaskOld;
@@ -477,7 +497,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 				return;
 			}
 			// TODO: input filter
-			evaluateExpression(result, conditionResultOld, conditionResultNew);
+			evaluateExpression(task, result, conditionResultOld, conditionResultNew);
 			fixDefinition();
 			recomputeValues();
 			setOrigin();
@@ -903,7 +923,7 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		}
 	}
 	
-	private void evaluateCondition(OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+	private void evaluateCondition(Task task, OperationResult result) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		ExpressionType conditionExpressionType = mappingType.getCondition();
 		if (conditionExpressionType == null) {
 			// True -> True
@@ -914,27 +934,35 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		ItemDefinition conditionOutput = new PrismPropertyDefinition(CONDITION_OUTPUT_NAME, DOMUtil.XSD_BOOLEAN, expressionFactory.getPrismContext());
 		Expression<PrismPropertyValue<Boolean>> expression = expressionFactory.makeExpression(conditionExpressionType, 
 				conditionOutput, "condition in "+getMappingContextDescription(), result);
-		ExpressionEvaluationContext params = new ExpressionEvaluationContext(sources, variables, "condition in "+getMappingContextDescription(), result);
+		ExpressionEvaluationContext params = new ExpressionEvaluationContext(sources, variables, 
+				"condition in "+getMappingContextDescription(), task, result);
 		params.setStringPolicyResolver(stringPolicyResolver);
 		params.setExpressionFactory(expressionFactory);
 		params.setDefaultSource(defaultSource);
+		params.setDefaultTargetContext(getTargetContext());
+		params.setRefinedObjectClassDefinition(getRefinedObjectClassDefinition());
+		params.setMappingQName(mappingQName);
 		conditionOutputTriple = expression.evaluate(params);
 	}
 
 	
-	private void evaluateExpression(OperationResult result, boolean conditionResultOld, boolean conditionResultNew) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
+	private void evaluateExpression(Task task, OperationResult result, boolean conditionResultOld, boolean conditionResultNew) throws SchemaException, ExpressionEvaluationException, ObjectNotFoundException {
 		ExpressionType expressionType = null;
 		if (mappingType != null) {
 			expressionType = mappingType.getExpression();
 		}
 		expression = expressionFactory.makeExpression(expressionType, outputDefinition, 
 				"expression in "+getMappingContextDescription(), result);
-		ExpressionEvaluationContext params = new ExpressionEvaluationContext(sources, variables, "expression in "+getMappingContextDescription(), result);
+		ExpressionEvaluationContext params = new ExpressionEvaluationContext(sources, variables, 
+				"expression in "+getMappingContextDescription(), task, result);
 		params.setDefaultSource(defaultSource);
 		params.setSkipEvaluationMinus(!conditionResultOld);
 		params.setSkipEvaluationPlus(!conditionResultNew);
 		params.setStringPolicyResolver(stringPolicyResolver);
 		params.setExpressionFactory(expressionFactory);
+		params.setDefaultTargetContext(getTargetContext());
+		params.setRefinedObjectClassDefinition(getRefinedObjectClassDefinition());
+		params.setMappingQName(mappingQName);
 		outputTriple = expression.evaluate(params);
 		
 		if (outputTriple == null) {
@@ -1162,10 +1190,13 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 
 	@Override
 	public String toString() {
-		return "M(" + getOutputDefName() + " = " + outputTriple + toStringStrength() + ")";
+		return "M(" + getMappingDisplayName() + " = " + outputTriple + toStringStrength() + ")";
 	}
 
-	private String getOutputDefName() {
+	private String getMappingDisplayName() {
+		if (mappingQName != null) {
+			return SchemaDebugUtil.prettyPrint(mappingQName);
+		}
 		if (outputDefinition == null) {
 			return null;
 		}

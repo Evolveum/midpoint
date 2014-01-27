@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -766,6 +767,46 @@ public class DOMUtil {
 		return attr.getValue();
 	}
 
+	public static Collection<Attr> listApplicationAttributes(Element element) {
+		Collection<Attr> attrs = new ArrayList<Attr>();
+		NamedNodeMap attributes = element.getAttributes();
+		for(int i=0; i<attributes.getLength(); i++) {
+			Attr attr = (Attr)attributes.item(i);
+			if (isApplicationAttribute(attr)) {
+				attrs.add(attr);
+			}
+		}
+		return attrs;
+	}
+
+	
+	public static boolean hasApplicationAttributes(Element element) {
+		NamedNodeMap attributes = element.getAttributes();
+		for(int i=0; i<attributes.getLength(); i++) {
+			Attr attr = (Attr)attributes.item(i);
+			if (isApplicationAttribute(attr)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static boolean isApplicationAttribute(Attr attr) {
+		String namespaceURI = attr.getNamespaceURI();
+		if (namespaceURI == null) {
+			return true;
+		}
+		if (W3C_XML_SCHEMA_XMLNS_URI.equals(namespaceURI)) {
+			return false;
+		}
+		if (W3C_XML_XML_URI.equals(namespaceURI)) {
+			return false;
+		}
+		if (W3C_XML_SCHEMA_INSTANCE_NS_URI.equals(namespaceURI)) {
+			return false;
+		}
+		return true;
+	}
 
 	private static boolean comparePrefix(String prefixA, String prefixB) {
 		if (StringUtils.isBlank(prefixA) && StringUtils.isBlank(prefixB)) {
@@ -834,6 +875,10 @@ public class DOMUtil {
 			return null;
 		}
 		return resolveQName(element, attrContent);
+	}
+	
+	public static QName getQNameValue(Attr attr) {
+		return resolveQName(attr, attr.getTextContent());
 	}
 	
 	public static Integer getIntegerValue(Element element) {
@@ -1115,4 +1160,5 @@ public class DOMUtil {
         String restXml = completeXml.replaceFirst("^\\s*<[^>]>", "");
         return restXml.replaceFirst("</[^>]>\\s*$", "");
     }
+
 }

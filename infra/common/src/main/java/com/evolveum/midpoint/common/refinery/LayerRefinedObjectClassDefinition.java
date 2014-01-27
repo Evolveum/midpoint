@@ -311,8 +311,6 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 		return refinedObjectClassDefinition.getPasswordPolicy();
 	}
 
-	
-
 	public Class<?> getCompileTimeClass() {
 		return refinedObjectClassDefinition.getCompileTimeClass();
 	}
@@ -349,11 +347,11 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 		return refinedObjectClassDefinition.isRuntimeSchema();
 	}
 
-	public Collection<ResourceObjectAssociationType> getAssociations() {
+	public Collection<RefinedAssociationDefinition> getAssociations() {
 		return refinedObjectClassDefinition.getAssociations();
 	}
 
-	public Collection<ResourceObjectAssociationType> getAssociations(ShadowKindType kind) {
+	public Collection<RefinedAssociationDefinition> getAssociations(ShadowKindType kind) {
 		return refinedObjectClassDefinition.getAssociations(kind);
 	}
 
@@ -381,8 +379,42 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 		return refinedObjectClassDefinition.getActivationFetchStrategy(propertyName);
 	}
 
-	public Collection<ResourceObjectAssociationType> getEntitlementAssociations() {
+	public Collection<RefinedAssociationDefinition> getEntitlementAssociations() {
 		return refinedObjectClassDefinition.getEntitlementAssociations();
+	}
+	
+	
+
+	public boolean isAbstract() {
+		return refinedObjectClassDefinition.isAbstract();
+	}
+
+	public boolean isDeprecated() {
+		return refinedObjectClassDefinition.isDeprecated();
+	}
+
+	public String getDocumentation() {
+		return refinedObjectClassDefinition.getDocumentation();
+	}
+
+	public String getDocumentationPreview() {
+		return refinedObjectClassDefinition.getDocumentationPreview();
+	}
+
+	public RefinedAssociationDefinition findAssociation(QName name) {
+		return refinedObjectClassDefinition.findAssociation(name);
+	}
+
+	public RefinedAssociationDefinition findEntitlementAssociation(QName name) {
+		return refinedObjectClassDefinition.findEntitlementAssociation(name);
+	}
+
+	public Collection<? extends QName> getNamesOfAssociationsWithOutboundExpressions() {
+		return refinedObjectClassDefinition.getNamesOfAssociationsWithOutboundExpressions();
+	}
+
+	public String getDocClassName() {
+		return refinedObjectClassDefinition.getDocClassName();
 	}
 
 	@Override
@@ -439,5 +471,10 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
     protected String getDebugDumpClassName() {
         return "LRObjectClassDef";
     }
+
+	public String getHumanReadableName() {
+		return refinedObjectClassDefinition.getHumanReadableName();
+	}
 	
+    
 }

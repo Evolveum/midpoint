@@ -444,6 +444,12 @@ public interface ProvisioningService {
 		throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException;
 	
 	/**
+	 * Applies appropriate definition to the query.
+	 */
+	public <T extends ObjectType> void applyDefinition(Class<T> type, ObjectQuery query, OperationResult parentResult) 
+		throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException;
+	
+	/**
 	 * Runs a short, non-destructive internal provisioning test. It tests provisioning framework and
 	 * general setup. Use ModelService.testResource for testing individual resource configurations.
 	 */

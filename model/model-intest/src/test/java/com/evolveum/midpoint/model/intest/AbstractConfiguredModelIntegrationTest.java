@@ -44,6 +44,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfiguration
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.testng.IHookCallBack;
 import org.testng.ITestResult;
@@ -178,7 +179,7 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	protected static final String USER_GUYBRUSH_USERNAME = "guybrush";
 	
 	// Largo does not have a full name set, employeeType=PIRATE
-	protected static final String USER_LARGO_FILENAME = COMMON_DIR_NAME + "/user-largo.xml";
+	protected static final File USER_LARGO_FILE = new File(COMMON_DIR, "user-largo.xml");
 	protected static final String USER_LARGO_OID = "c0c010c0-d34d-b33f-f00d-111111111118";
 	protected static final String USER_LARGO_USERNAME = "largo";
 	
@@ -251,6 +252,11 @@ public class AbstractConfiguredModelIntegrationTest extends AbstractModelIntegra
 	public static final File GROUP_PIRATE_DUMMY_FILE = new File(COMMON_DIR, "group-pirate-dummy.xml");
 	public static final String GROUP_PIRATE_DUMMY_NAME = "pirate";
 	public static final String GROUP_PIRATE_DUMMY_DESCRIPTION = "Scurvy pirates";
+	
+	public static final File SHADOW_GROUP_DUMMY_TESTERS_FILE = new File(COMMON_DIR, "group-testers-dummy.xml");
+	public static final String SHADOW_GROUP_DUMMY_TESTERS_OID = "20000000-0000-0000-3333-000000000002";
+	public static final String GROUP_DUMMY_TESTERS_NAME = "testers";
+	public static final String GROUP_DUMMY_TESTERS_DESCRIPTION = "To boldly go where no pirate has gone before";
 	
 	protected static final String PASSWORD_POLICY_GLOBAL_FILENAME = COMMON_DIR_NAME + "/password-policy-global.xml";
 	protected static final String PASSWORD_POLICY_GLOBAL_OID = "12344321-0000-0000-0000-000000000003";

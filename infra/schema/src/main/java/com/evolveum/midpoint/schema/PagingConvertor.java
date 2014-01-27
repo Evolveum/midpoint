@@ -20,10 +20,10 @@ import javax.xml.namespace.QName;
 
 import org.w3c.dom.Element;
 
+import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.OrderDirection;
-import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.prism.xml.ns._public.query_2.OrderDirectionType;

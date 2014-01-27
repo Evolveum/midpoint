@@ -16,28 +16,21 @@
 
 package com.evolveum.midpoint.web.page.admin.server.workflowInformation;
 
-import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.LinkPanel;
-import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
-import com.evolveum.midpoint.web.component.wf.deltas.WfDeltasPanel;
-import com.evolveum.midpoint.web.component.wf.history.WfHistoryEventDto;
-import com.evolveum.midpoint.web.component.wf.history.WfHistoryPanel;
+import com.evolveum.midpoint.web.component.wf.WfDeltasPanel;
+import com.evolveum.midpoint.web.component.wf.WfHistoryEventDto;
+import com.evolveum.midpoint.web.component.wf.WfHistoryPanel;
 import com.evolveum.midpoint.web.page.PageBase;
-import com.evolveum.midpoint.web.page.admin.server.PageTaskEdit;
-import com.evolveum.midpoint.web.page.admin.server.PageTasks;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDto;
 import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstance;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.ajax.markup.html.AjaxLink;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
-import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -62,7 +55,7 @@ public class WorkflowInformationPanel extends SimplePanel<TaskDto> {
                 String pid = WorkflowInformationPanel.this.getModel().getObject().getWorkflowProcessInstanceId();
                 boolean finished = WorkflowInformationPanel.this.getModel().getObject().isWorkflowProcessInstanceFinished();
                 PageParameters parameters = new PageParameters();
-                parameters.add(PageProcessInstance.PARAM_PROCESS_INSTANCE_ID, pid);
+                parameters.add(OnePageParameterEncoder.PARAMETER, pid);
                 parameters.add(PageProcessInstance.PARAM_PROCESS_INSTANCE_FINISHED, finished);
                 WorkflowInformationPanel.this.setResponsePage(new PageProcessInstance(parameters, (PageBase) WorkflowInformationPanel.this.getPage()));
             }

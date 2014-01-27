@@ -51,6 +51,7 @@ import com.evolveum.midpoint.web.page.admin.users.dto.OrgTableDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.OrgTreeDto;
 import com.evolveum.midpoint.web.page.admin.users.dto.TreeStateSet;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
@@ -321,11 +322,11 @@ public class TreeTablePanel extends SimplePanel<String> {
                 OrgTableDto dto = rowModel.getObject();
                 if (UserType.class.equals(dto.getType())) {
                     PageParameters parameters = new PageParameters();
-                    parameters.add(PageUser.PARAM_USER_ID, dto.getOid());
+                    parameters.add(OnePageParameterEncoder.PARAMETER, dto.getOid());
                     setResponsePage(PageUser.class, parameters);
                 } else if (OrgType.class.equals(dto.getType())) {
                     PageParameters parameters = new PageParameters();
-                    parameters.add(PageOrgUnit.PARAM_ORG_ID, dto.getOid());
+                    parameters.add(OnePageParameterEncoder.PARAMETER, dto.getOid());
                     setResponsePage(PageOrgUnit.class, parameters);
                 }
             }

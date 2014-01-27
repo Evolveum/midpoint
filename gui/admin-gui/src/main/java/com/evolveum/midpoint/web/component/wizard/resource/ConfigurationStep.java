@@ -25,9 +25,8 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.prism.ContainerStatus;
-import com.evolveum.midpoint.web.component.prism.ContainerWrapper;
 import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
 import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
@@ -37,6 +36,7 @@ import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.model.IModel;
 
 /**
@@ -80,14 +80,19 @@ public class ConfigurationStep extends WizardStep {
     }
 
     private void initLayout() {
-        PrismObjectPanel configuration = new PrismObjectPanel(ID_CONFIGURATION, configurationProperties, null, null);
+        final PrismObjectPanel configuration = new PrismObjectPanel(ID_CONFIGURATION, configurationProperties, null, null);
         add(configuration);
 
-        AjaxButton testConnection = new AjaxButton(ID_TEST_CONNECTION,
+        AjaxSubmitButton testConnection = new AjaxSubmitButton(ID_TEST_CONNECTION,
                 createStringResource("ConfigurationStep.button.testConnection")) {
 
             @Override
-            public void onClick(AjaxRequestTarget target) {
+            protected void onError(final AjaxRequestTarget target, Form<?> form) {
+                WebMiscUtil.refreshFeedbacks(form, target);
+            }
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form) {
                 testConnectionPerformed(target);
             }
         };

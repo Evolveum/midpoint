@@ -49,6 +49,7 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.provisioning.api.GenericConnectorException;
 import com.evolveum.midpoint.provisioning.api.ProvisioningOperationOptions;
@@ -954,12 +955,13 @@ public class ResourceManager {
         
    
 	}
-
-	
-
 	
 	public void applyDefinition(PrismObject<ResourceType> resource, OperationResult parentResult) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException {
 		applyConnectorSchemaToResource(resource, parentResult);
+	}
+
+	public void applyDefinition(ObjectQuery query, OperationResult result) {
+		// TODO: not implemented yet
 	}
 
 	public Object executeScript(String resourceOid, ProvisioningScriptType script, Task task, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
@@ -974,4 +976,5 @@ public class ResourceManager {
 			throw new SystemException("Generic provisioning framework error: " + e.getMessage(), e);
 		}
 	}
+
 }

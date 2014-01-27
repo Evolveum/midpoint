@@ -15,14 +15,36 @@
  */
 package com.evolveum.midpoint.prism;
 
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.ACTIVATION_TYPE_QNAME;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_BAR_ELEMENT;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_INDEXED_STRING_TYPE_ELEMENT;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_MULTI_ELEMENT;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_NUM_ELEMENT;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_SINGLE_STRING_TYPE_ELEMENT;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.NS_FOO;
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.NS_USER_EXT;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.USER_ACCOUNTREF_QNAME;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.USER_ASSIGNMENT_1_ID;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.USER_ASSIGNMENT_2_ID;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.USER_ENABLED_PATH;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.USER_ENABLED_QNAME;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.USER_JACK_OID;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.USER_JACK_VALID_FROM;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.USER_QNAME;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.USER_TYPE_QNAME;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.USER_VALID_FROM_PATH;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.assertPathVisitor;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.assertVisitor;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertNull;
+import static org.testng.AssertJUnit.assertTrue;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.GregorianCalendar;
 import java.util.List;
 import java.util.Set;
@@ -33,16 +55,24 @@ import javax.xml.namespace.QName;
 import org.testng.AssertJUnit;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.prism.foo.ActivationType;
+import com.evolveum.midpoint.prism.foo.AssignmentType;
 import com.evolveum.midpoint.prism.foo.ObjectFactory;
 import com.evolveum.midpoint.prism.foo.UserType;
+import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismContextFactory;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.prism.xml.GlobalDynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 /**
  * @author semancik
@@ -52,11 +82,15 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 
 	// Files
 	public static final String COMMON_DIR_PATH = "src/test/resources/common";
+	public static final File COMMON_DIR = new File(COMMON_DIR_PATH);
 	public static File SCHEMA_DIR = new File("src/test/resources/schema");
 	public static File EXTRA_SCHEMA_DIR = new File("src/test/resources/schema-extra");
 	
+	public static final File COMMON_DIR_XML = new File(COMMON_DIR, "xml");
+	
 	// User: jack
-	public static final File USER_JACK_FILE = new File(COMMON_DIR_PATH, "user-jack.xml");
+	public static final String USER_JACK_FILE_BASENAME = "user-jack";
+	public static final File USER_JACK_FILE_XML = new File(COMMON_DIR_XML, USER_JACK_FILE_BASENAME+".xml");
 	public static final File USER_JACK_OBJECT_FILE = new File(COMMON_DIR_PATH, "user-jack-object.xml");
 	public static final File USER_JACK_MODIFIED_FILE = new File(COMMON_DIR_PATH, "user-jack-modified.xml");
 	public static final File USER_JACK_ADHOC_FILE = new File(COMMON_DIR_PATH, "user-jack-adhoc.xml");
@@ -229,5 +263,168 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 		visitable.accept(visitor, path, recursive);
 		assertEquals("Wrong number of visits for path "+path, expectedVisits, visits.size());
 	}
+	
+	public static void displayTestTitle(String testName) {
+		System.out.println("\n\n===[ "+testName+" ]===\n");
+	}
 
+	public static void assertUserJack(PrismObject<UserType> user) throws SchemaException {
+		user.checkConsistence();
+		user.assertDefinitions("test");
+		assertUserJackContent(user);
+		assertUserJackExtension(user);
+		assertVisitor(user,51);
+		
+		assertPathVisitor(user, new ItemPath(UserType.F_ASSIGNMENT), true, 9);
+		assertPathVisitor(user, new ItemPath(
+				new NameItemPathSegment(UserType.F_ASSIGNMENT),
+				new IdItemPathSegment(USER_ASSIGNMENT_1_ID)), true, 3);
+		assertPathVisitor(user, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ENABLED), true, 2);
+		assertPathVisitor(user, new ItemPath(UserType.F_EXTENSION), true, 15);
+		
+		assertPathVisitor(user, new ItemPath(UserType.F_ASSIGNMENT), false, 1);
+		assertPathVisitor(user, new ItemPath(
+				new NameItemPathSegment(UserType.F_ASSIGNMENT),
+				new IdItemPathSegment(USER_ASSIGNMENT_1_ID)), false, 1);
+		assertPathVisitor(user, new ItemPath(
+				new NameItemPathSegment(UserType.F_ASSIGNMENT),
+				IdItemPathSegment.WILDCARD), false, 2);
+		assertPathVisitor(user, new ItemPath(UserType.F_ACTIVATION, ActivationType.F_ENABLED), false, 1);
+		assertPathVisitor(user, new ItemPath(UserType.F_EXTENSION), false, 1);
+		assertPathVisitor(user, new ItemPath(
+				new NameItemPathSegment(UserType.F_EXTENSION),
+				NameItemPathSegment.WILDCARD), false, 5);
+	}
+	
+	public static void assertUserJackContent(PrismObject<UserType> user) {
+		
+		assertEquals("Wrong oid", USER_JACK_OID, user.getOid());
+		assertEquals("Wrong version", "42", user.getVersion());
+		PrismAsserts.assertObjectDefinition(user.getDefinition(), USER_QNAME, USER_TYPE_QNAME, UserType.class);
+		PrismAsserts.assertParentConsistency(user);
+		
+		assertPropertyValue(user, "fullName", "cpt. Jack Sparrow");
+		assertPropertyDefinition(user, "fullName", DOMUtil.XSD_STRING, 1, 1);
+		assertPropertyValue(user, "givenName", "Jack");
+		assertPropertyDefinition(user, "givenName", DOMUtil.XSD_STRING, 0, 1);
+		assertPropertyValue(user, "familyName", "Sparrow");
+		assertPropertyDefinition(user, "familyName", DOMUtil.XSD_STRING, 0, 1);
+		assertPropertyValue(user, "name", new PolyString("jack", "jack"));
+		assertPropertyDefinition(user, "name", PolyStringType.COMPLEX_TYPE, 0, 1);
+		
+		assertPropertyValue(user, "polyName", new PolyString("Džek Sperou","dzek sperou"));
+		assertPropertyDefinition(user, "polyName", PolyStringType.COMPLEX_TYPE, 0, 1);
+		
+		ItemPath enabledPath = USER_ENABLED_PATH;
+		PrismProperty<Boolean> enabledProperty1 = user.findProperty(enabledPath);
+		assertNotNull("No enabled property", enabledProperty1);
+		PrismAsserts.assertDefinition(enabledProperty1.getDefinition(), USER_ENABLED_QNAME, DOMUtil.XSD_BOOLEAN, 1, 1);
+		assertNotNull("Property "+enabledPath+" not found", enabledProperty1);
+		PrismAsserts.assertPropertyValue(enabledProperty1, true);
+		
+		PrismProperty<XMLGregorianCalendar> validFromProperty = user.findProperty(USER_VALID_FROM_PATH);
+		assertNotNull("Property "+USER_VALID_FROM_PATH+" not found", validFromProperty);
+		PrismAsserts.assertPropertyValue(validFromProperty, USER_JACK_VALID_FROM);
+				
+		QName actName = new QName(NS_FOO,"activation");
+		// Use path
+		ItemPath actPath = new ItemPath(actName);
+		PrismContainer<ActivationType> actContainer1 = user.findContainer(actPath);
+		assertContainerDefinition(actContainer1, "activation", ACTIVATION_TYPE_QNAME, 0, 1);
+		assertNotNull("Property "+actPath+" not found", actContainer1);
+		assertEquals("Wrong activation name",actName,actContainer1.getElementName());
+		// Use name
+		PrismContainer<ActivationType> actContainer2 = user.findContainer(actName);
+		assertNotNull("Property "+actName+" not found", actContainer2);
+		assertEquals("Wrong activation name",actName,actContainer2.getElementName());
+		// Compare
+		assertEquals("Eh?",actContainer1,actContainer2);
+		
+		PrismProperty<Boolean> enabledProperty2 = actContainer1.findProperty(new QName(NS_FOO,"enabled"));
+		assertNotNull("Property enabled not found", enabledProperty2);
+		PrismAsserts.assertPropertyValue(enabledProperty2, true);
+		assertEquals("Eh?",enabledProperty1,enabledProperty2);
+		
+		QName assName = new QName(NS_FOO,"assignment");
+		QName descriptionName = new QName(NS_FOO,"description");
+		PrismContainer<AssignmentType> assContainer = user.findContainer(assName);
+		assertEquals("Wrong assignement values", 2, assContainer.getValues().size());
+		PrismProperty<String> a2DescProperty = assContainer.getValue(USER_ASSIGNMENT_2_ID).findProperty(descriptionName);
+		assertEquals("Wrong assigment 2 description", "Assignment 2", a2DescProperty.getValue().getValue());
+		
+		ItemPath a1Path = new ItemPath(
+				new NameItemPathSegment(assName),
+				new IdItemPathSegment(USER_ASSIGNMENT_1_ID),
+				new NameItemPathSegment(descriptionName));
+		PrismProperty a1Property = user.findProperty(a1Path);
+		assertNotNull("Property "+a1Path+" not found", a1Property);
+		PrismAsserts.assertPropertyValue(a1Property, "Assignment 1");
+		
+		PrismReference accountRef = user.findReference(USER_ACCOUNTREF_QNAME);
+		assertNotNull("Reference "+USER_ACCOUNTREF_QNAME+" not found", accountRef);
+		assertEquals("Wrong number of accountRef values", 3, accountRef.getValues().size());
+		PrismAsserts.assertReferenceValue(accountRef, "c0c010c0-d34d-b33f-f00d-aaaaaaaa1111");
+		PrismAsserts.assertReferenceValue(accountRef, "c0c010c0-d34d-b33f-f00d-aaaaaaaa1112");
+		PrismAsserts.assertReferenceValue(accountRef, "c0c010c0-d34d-b33f-f00d-aaaaaaaa1113");
+		PrismReferenceValue accountRefVal2 = accountRef.findValueByOid("c0c010c0-d34d-b33f-f00d-aaaaaaaa1112");
+		assertEquals("Wrong oid for accountRef", "c0c010c0-d34d-b33f-f00d-aaaaaaaa1112", accountRefVal2.getOid());
+		assertEquals("Wrong accountRef description", "This is a reference with a filter", accountRefVal2.getDescription());
+		assertNotNull("No filter in accountRef", accountRefVal2.getFilter());
+		
+	}
+	
+	private static void assertUserJackExtension(PrismObject<UserType> user) {
+		
+		PrismContainer<?> extension = user.getExtension();
+		assertContainerDefinition(extension, "extension", DOMUtil.XSD_ANY, 0, 1);
+		PrismContainerValue<?> extensionValue = extension.getValue();
+		assertTrue("Extension parent", extensionValue.getParent() == extension);
+		assertNull("Extension ID", extensionValue.getId());
+		PrismAsserts.assertPropertyValue(extension, EXTENSION_BAR_ELEMENT, "BAR");
+		PrismAsserts.assertPropertyValue(extension, EXTENSION_NUM_ELEMENT, 42);
+		Collection<PrismPropertyValue<Object>> multiPVals = extension.findProperty(EXTENSION_MULTI_ELEMENT).getValues();
+		assertEquals("Multi",3,multiPVals.size());
+
+        PrismProperty<?> singleStringType = extension.findProperty(EXTENSION_SINGLE_STRING_TYPE_ELEMENT);
+        PrismPropertyDefinition singleStringTypePropertyDef = singleStringType.getDefinition();
+        PrismAsserts.assertDefinition(singleStringTypePropertyDef, EXTENSION_SINGLE_STRING_TYPE_ELEMENT, DOMUtil.XSD_STRING, 0, 1);
+        assertNull("'Indexed' attribute on 'singleStringType' property is not null", singleStringTypePropertyDef.isIndexed());
+
+        PrismProperty<?> indexedString = extension.findProperty(EXTENSION_INDEXED_STRING_TYPE_ELEMENT);
+        PrismPropertyDefinition indexedStringPropertyDef = indexedString.getDefinition();
+        PrismAsserts.assertDefinition(indexedStringPropertyDef, EXTENSION_SINGLE_STRING_TYPE_ELEMENT, DOMUtil.XSD_STRING, 0, -1);
+        assertEquals("'Indexed' attribute on 'singleStringType' property is wrong", Boolean.FALSE, indexedStringPropertyDef.isIndexed());
+		
+		ItemPath barPath = new ItemPath(new QName(NS_FOO,"extension"), EXTENSION_BAR_ELEMENT);
+		PrismProperty<String> barProperty = user.findProperty(barPath);
+		assertNotNull("Property "+barPath+" not found", barProperty);
+		PrismAsserts.assertPropertyValue(barProperty, "BAR");
+		PrismPropertyDefinition barPropertyDef = barProperty.getDefinition();
+		assertNotNull("No definition for bar", barPropertyDef);
+		PrismAsserts.assertDefinition(barPropertyDef, EXTENSION_BAR_ELEMENT, DOMUtil.XSD_STRING, 1, -1);
+		assertNull("'Indexed' attribute on 'bar' property is not null", barPropertyDef.isIndexed());
+
+        PrismProperty<?> multi = extension.findProperty(EXTENSION_MULTI_ELEMENT);
+        PrismPropertyDefinition multiPropertyDef = multi.getDefinition();
+        PrismAsserts.assertDefinition(multiPropertyDef, EXTENSION_MULTI_ELEMENT, DOMUtil.XSD_STRING, 1, -1);
+        assertNull("'Indexed' attribute on 'multi' property is not null", multiPropertyDef.isIndexed());
+
+    }
+
+	public static void assertPropertyValue(PrismContainer<?> container, String propName, Object propValue) {
+		QName propQName = new QName(NS_FOO, propName);
+		PrismAsserts.assertPropertyValue(container, propQName, propValue);
+	}
+
+	public static void assertPropertyDefinition(PrismContainer<?> container, String propName, QName xsdType, int minOccurs,
+			int maxOccurs) {
+		QName propQName = new QName(NS_FOO, propName);
+		PrismAsserts.assertPropertyDefinition(container, propQName, xsdType, minOccurs, maxOccurs);
+	}
+
+	public static void assertContainerDefinition(PrismContainer container, String contName, QName xsdType, int minOccurs,
+			int maxOccurs) {
+		QName qName = new QName(NS_FOO, contName);
+		PrismAsserts.assertDefinition(container.getDefinition(), qName, xsdType, minOccurs, maxOccurs);
+	}
 }

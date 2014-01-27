@@ -16,22 +16,13 @@
 
 package com.evolveum.midpoint.web.page.admin.configuration.component;
 
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.AEPlevel;
-import com.evolveum.midpoint.web.page.admin.configuration.dto.LoggingDto;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.SystemConfigurationDto;
 import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectTemplateType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemObjectsType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValuePolicyType;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.TextField;
@@ -73,6 +64,10 @@ public class SystemConfigPanel extends SimplePanel<SystemConfigurationDto> {
                 new PropertyModel<AEPlevel>(getModel(), "aepLevel"),
                 WebMiscUtil.createReadonlyModelFromEnum(AEPlevel.class),
                 new EnumChoiceRenderer<AEPlevel>(SystemConfigPanel.this));
+        aepLevel.setOutputMarkupId(true);
+        if(aepLevel.getModel().getObject() == null){
+            aepLevel.getModel().setObject(null);
+        }
         add(aepLevel);
 
         TextField<String> auditRecordsField = new TextField<String>(ID_CLEANUP_AUDIT_RECORDS, new PropertyModel<String>(getModel(), "auditCleanupValue"));

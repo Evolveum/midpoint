@@ -72,6 +72,7 @@ public class RAssignment extends RContainer implements ROwnable {
     private String construction;
     private REmbeddedReference targetRef;
     private RMetadata metadata;
+    private Integer order;
 
     public RAssignment() {
         this(null, null);
@@ -161,6 +162,15 @@ public class RAssignment extends RContainer implements ROwnable {
         return description;
     }
 
+    @Column(name = "orderValue")
+    public Integer getOrder() {
+        return order;
+    }
+
+    public void setOrder(Integer order) {
+        this.order = order;
+    }
+
     public void setDescription(String description) {
         this.description = description;
     }
@@ -230,6 +240,8 @@ public class RAssignment extends RContainer implements ROwnable {
         if (targetRef != null ? !targetRef.equals(that.targetRef) : that.targetRef != null) return false;
         if (assignmentOwner != null ? !assignmentOwner.equals(that.assignmentOwner) : that.assignmentOwner != null)
             return false;
+        if (order != null ? !order.equals(that.order) : that.order != null)
+            return false;
 
         return true;
     }
@@ -240,6 +252,7 @@ public class RAssignment extends RContainer implements ROwnable {
         result = 31 * result + (activation != null ? activation.hashCode() : 0);
         result = 31 * result + (accountConstruction != null ? accountConstruction.hashCode() : 0);
         result = 31 * result + (construction != null ? construction.hashCode() : 0);
+        result = 31 * result + (order != null ? order.hashCode() : 0);
         return result;
     }
 
@@ -250,6 +263,7 @@ public class RAssignment extends RContainer implements ROwnable {
 
         jaxb.setId(repo.getId());
         jaxb.setDescription(repo.getDescription());
+        jaxb.setOrder(repo.getOrder());
 
         if (repo.getExtension() != null) {
             ExtensionType extension = new ExtensionType();
@@ -284,6 +298,7 @@ public class RAssignment extends RContainer implements ROwnable {
         repo.setOid(parent.getOid());
         repo.setId(jaxb.getId());
         repo.setDescription(jaxb.getDescription());
+        repo.setOrder(jaxb.getOrder());
 
         if (jaxb.getExtension() != null) {
             RAnyContainer extension = new RAnyContainer();

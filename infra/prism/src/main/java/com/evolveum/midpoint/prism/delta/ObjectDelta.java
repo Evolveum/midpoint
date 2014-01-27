@@ -247,7 +247,7 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
     	}
     }
     
-    public ItemDelta<?> findItemDelta(ItemPath propertyPath) {
+    public <V extends PrismValue> ItemDelta<V> findItemDelta(ItemPath propertyPath) {
     	return findItemDelta(propertyPath, ItemDelta.class, Item.class);
     }
     

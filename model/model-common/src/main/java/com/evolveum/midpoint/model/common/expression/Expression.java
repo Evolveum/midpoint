@@ -34,9 +34,9 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
+import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.util.DebugUtil;
@@ -143,7 +143,7 @@ public class Expression<V extends PrismValue> {
 	public PrismValueDeltaSetTriple<V> evaluate(ExpressionEvaluationContext context) throws SchemaException,
 			ExpressionEvaluationException, ObjectNotFoundException {
 		
-		Map<QName, Object> processedVariables = null;
+		ExpressionVariables processedVariables = null;
 		
 		try {
 		
@@ -177,7 +177,7 @@ public class Expression<V extends PrismValue> {
 		}
 	}
 	
-	private void traceSuccess(ExpressionEvaluationContext context, Map<QName, Object> processedVariables, PrismValueDeltaSetTriple<V> outputTriple) {
+	private void traceSuccess(ExpressionEvaluationContext context, ExpressionVariables processedVariables, PrismValueDeltaSetTriple<V> outputTriple) {
 		if (!LOGGER.isTraceEnabled()) {
 			return;
 		}
@@ -194,7 +194,7 @@ public class Expression<V extends PrismValue> {
 		LOGGER.trace(sb.toString());
 	}
 	
-	private void traceFailure(ExpressionEvaluationContext context, Map<QName, Object> processedVariables, Exception e) {
+	private void traceFailure(ExpressionEvaluationContext context, ExpressionVariables processedVariables, Exception e) {
 		LOGGER.error("Error evaluating expression in {}: {}", new Object[]{context.getContextDescription(), e.getMessage(), e});
 		if (!LOGGER.isTraceEnabled()) {
 			return;
@@ -207,12 +207,27 @@ public class Expression<V extends PrismValue> {
 		LOGGER.trace(sb.toString());
 	}
 
-	private void appendTraceHeader(StringBuilder sb, ExpressionEvaluationContext context, Map<QName, Object> processedVariables) {
+	private void appendTraceHeader(StringBuilder sb, ExpressionEvaluationContext context, ExpressionVariables processedVariables) {
 		sb.append("---[ EXPRESSION in ");
 		sb.append(context.getContextDescription());
 		sb.append("]---------------------------");
+		sb.append("\nSources:");
+		Collection<Source<? extends PrismValue>> sources = context.getSources();
+		if (sources == null) {
+			sb.append(" null");
+		} else {
+			for (Source<? extends PrismValue> source: sources) {
+				sb.append("\n");
+				sb.append(source.debugDump(1));
+			}
+		}
 		sb.append("\nVariables:");
-		DebugUtil.debugDumpMapMultiLine(sb, processedVariables, 1);
+		if (processedVariables == null) {
+			sb.append(" null");
+		} else {
+			sb.append("\n");
+			sb.append(processedVariables.debugDump(1));
+		}
 		sb.append("\nOutput definition: ").append(MiscUtil.toString(outputDefinition));
 		sb.append("\nEvaluators: ");
 		sb.append(shortDebugDump());
@@ -222,15 +237,15 @@ public class Expression<V extends PrismValue> {
 		sb.append("\n------------------------------------------------------");
 	}
 
-	private Map<QName, Object> processInnerVariables(Map<QName, Object> variables, String contextDescription,
+	private ExpressionVariables processInnerVariables(ExpressionVariables variables, String contextDescription,
 			OperationResult result) throws SchemaException, ObjectNotFoundException {
 		if (expressionType == null || expressionType.getVariable() == null || expressionType.getVariable().isEmpty()) {
 			// shortcut
 			return variables;
 		}
-		Map<QName, Object> newVariables = new HashMap<QName, Object>();
+		ExpressionVariables newVariables = new ExpressionVariables();
 		for(Entry<QName,Object> entry: variables.entrySet()) {
-			newVariables.put(entry.getKey(), entry.getValue());
+			newVariables.addVariableDefinition(entry.getKey(), entry.getValue());
 		}
 		for (ExpressionVariableDefinitionType variableDefType: expressionType.getVariable()) {
 			QName varName = variableDefType.getName();
@@ -238,15 +253,15 @@ public class Expression<V extends PrismValue> {
 				throw new SchemaException("No variable name in expression in "+contextDescription);
 			}
 			if (variableDefType.getObjectRef() != null) {
-				ObjectType varObject = objectResolver.resolve(variableDefType.getObjectRef(), ObjectType.class, "variable "+varName+" in "+contextDescription, result);
-				newVariables.put(varName, varObject);
+				ObjectType varObject = objectResolver.resolve(variableDefType.getObjectRef(), ObjectType.class, null, "variable "+varName+" in "+contextDescription, result);
+				newVariables.addVariableDefinition(varName, varObject);
 			} else if (variableDefType.getValue() != null) {
 				// Only string is supported now
 				Object valueObject = variableDefType.getValue();
 				if (valueObject instanceof String) {
-					newVariables.put(varName, valueObject);
+					newVariables.addVariableDefinition(varName, valueObject);
 				} else if (valueObject instanceof Element) {
-					newVariables.put(varName, ((Element)valueObject).getTextContent());
+					newVariables.addVariableDefinition(varName, ((Element)valueObject).getTextContent());
 				} else {
 					throw new SchemaException("Unexpected type "+valueObject.getClass()+" in variable definition "+varName+" in "+contextDescription);
 				}
@@ -254,7 +269,7 @@ public class Expression<V extends PrismValue> {
 				XPathHolder xPathHolder = new XPathHolder(variableDefType.getPath());
 				ItemPath itemPath = xPathHolder.toItemPath();
 				Object resolvedValue = ExpressionUtil.resolvePath(itemPath, variables, null, objectResolver, contextDescription, result);
-				newVariables.put(varName, resolvedValue);
+				newVariables.addVariableDefinition(varName, resolvedValue);
 			} else {
 				throw new SchemaException("No value for variable "+varName+" in "+contextDescription);
 			}

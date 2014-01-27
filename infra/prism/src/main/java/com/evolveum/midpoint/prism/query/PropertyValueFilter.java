@@ -44,6 +44,7 @@ import com.evolveum.midpoint.prism.match.MatchingRule;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismUtil;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
@@ -71,11 +72,11 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 		this.values = null;
 	}
 	
-	PropertyValueFilter(ItemPath path, ItemDefinition definition, Element expression) {
+	PropertyValueFilter(ItemPath path, ItemDefinition definition, XNode expression) {
 		super(path, definition, expression);
 	}
 	
-	PropertyValueFilter(ItemPath path, ItemDefinition definition, QName matchingRule, Element expression) {
+	PropertyValueFilter(ItemPath path, ItemDefinition definition, QName matchingRule, XNode expression) {
 		super(path, definition, matchingRule, expression);
 	}
 	
@@ -180,20 +181,32 @@ public abstract class PropertyValueFilter<T extends PrismValue> extends ValueFil
 	
 	@Override
 	public <T extends Objectable> boolean match(PrismObject<T> object, MatchingRuleRegistry matchingRuleRegistry){
-		if (getObjectItem(object) == null && getValues() == null) {
-			return true;
-		}
-		
+//		if (getObjectItem(object) == null && getValues() == null) {
+//			return true;
+//		}
+//		
 		Item filterItem = getFilterItem();
 		MatchingRule matching = getMatchingRuleFromRegistry(matchingRuleRegistry, filterItem);
 		
 		Item item = getObjectItem(object);
 		
-		if (item == null && getValues() == null) {
-			return true;
+		if (item == null){
+			return false;
 		}
 		
-		if (item != null && !item.isEmpty() && getValues() == null){
+//		if (item == null && getValues() == null) {
+//			return true;
+//		}
+//		
+//		if (item == null && getValues() != null) {
+//			return false;
+//		}
+		
+		if (!item.isEmpty() && (getValues() == null || getValues().isEmpty())){
+			return false;
+		}
+		
+		if (item.isEmpty() && (getValues() != null && !getValues().isEmpty())){
 			return false;
 		}
 		

@@ -121,7 +121,7 @@ public class NotificationChangeHook implements ChangeHook {
 //        }
 
         Event event = createRequest(object, task, context);
-        notificationManager.processEvent(event, result);
+        notificationManager.processEvent(event, task, result);
 
         return HookOperationMode.FOREGROUND;
     }

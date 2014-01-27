@@ -33,51 +33,51 @@ import com.evolveum.midpoint.util.Dumpable;
  */
 public class ItemValueWithOrigin<V extends PrismValue> implements Dumpable, DebugDumpable {
 	
-	private V propertyValue;
+	private V itemValue;
 	private Mapping<V> mapping;
-	private AccountConstruction accountConstruction;
+	private Construction construction;
 	
 	public ItemValueWithOrigin(V propertyValue,
-			Mapping<V> mapping, AccountConstruction accountConstruction) {
+			Mapping<V> mapping, Construction accountConstruction) {
 		super();
-		this.propertyValue = propertyValue;
+		this.itemValue = propertyValue;
 		this.mapping = mapping;
-		this.accountConstruction = accountConstruction;
+		this.construction = accountConstruction;
 	}
 	
 	public V getPropertyValue() {
-		return propertyValue;
+		return itemValue;
 	}
 	
 	public Mapping<?> getMapping() {
 		return mapping;
 	}
 	
-	public AccountConstruction getAccountConstruction() {
-		return accountConstruction;
+	public Construction getConstruction() {
+		return construction;
 	}
 
 	public boolean equalsRealValue(V pvalue) {
-		if (propertyValue == null) {
+		if (itemValue == null) {
 			return false;
 		}
-		return propertyValue.equalsRealValue(pvalue);
+		return itemValue.equalsRealValue(pvalue);
 	}
 	
 	public ItemValueWithOrigin<V> clone() {
-		ItemValueWithOrigin<V> clone = new ItemValueWithOrigin<V>(propertyValue, mapping, accountConstruction);
+		ItemValueWithOrigin<V> clone = new ItemValueWithOrigin<V>(itemValue, mapping, construction);
 		copyValues(clone);
 		return clone;
 	}
 
 	protected void copyValues(ItemValueWithOrigin<V> clone) {
-		if (this.propertyValue != null) {
-			clone.propertyValue = (V) this.propertyValue.clone();
+		if (this.itemValue != null) {
+			clone.itemValue = (V) this.itemValue.clone();
 		}
 		if (this.mapping != null) {
 			clone.mapping = this.mapping.clone();
 		}
-		clone.accountConstruction = this.accountConstruction;
+		clone.construction = this.construction;
 	}
 	
 	public static <V extends PrismValue> DeltaSetTriple<ItemValueWithOrigin<V>> createOutputTriple(Mapping<V> mapping) {
@@ -113,12 +113,12 @@ public class ItemValueWithOrigin<V extends PrismValue> implements Dumpable, Debu
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.indentDebugDump(sb, indent);
-		sb.append("PropertyValueWithOrigin:\n");
-		DebugUtil.debugDumpWithLabel(sb, "propertyValue", propertyValue, indent +1);
+		sb.append("ItemValueWithOrigin:\n");
+		DebugUtil.debugDumpWithLabel(sb, "itemValue", itemValue, indent +1);
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabelToString(sb, "mapping", mapping, indent +1);
 		sb.append("\n");
-		DebugUtil.debugDumpWithLabelToString(sb, "accountConstruction", accountConstruction, indent +1);
+		DebugUtil.debugDumpWithLabelToString(sb, "construction", construction, indent +1);
 		return sb.toString();
 	}
 
@@ -129,8 +129,8 @@ public class ItemValueWithOrigin<V extends PrismValue> implements Dumpable, Debu
 
 	@Override
 	public String toString() {
-		return "PropertyValueWithOrigin(" + propertyValue + ", M="
-				+ mapping + ", AC=" + accountConstruction + ")";
+		return "ItemValueWithOrigin(" + itemValue + ", M="
+				+ mapping + ", C=" + construction + ")";
 	}
 
 }

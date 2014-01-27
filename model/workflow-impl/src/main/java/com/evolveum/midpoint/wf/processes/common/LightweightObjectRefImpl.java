@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.wf.processes.common;
 
-import com.evolveum.midpoint.wf.processes.itemApproval.LightweightObjectRef;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 
 import javax.xml.namespace.QName;
@@ -73,6 +72,14 @@ public class LightweightObjectRefImpl implements LightweightObjectRef, Serializa
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public ObjectReferenceType toObjectReferenceType() {
+        ObjectReferenceType retval = new ObjectReferenceType();
+        retval.setOid(oid);
+        retval.setDescription(description);
+        retval.setType(type);
+        return retval;
     }
 
     @Override

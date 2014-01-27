@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.component.wizard.resource.component;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -35,14 +36,14 @@ import java.util.List;
 /**
  * @author lazyman
  */
-public class SchemaListPanel extends SimplePanel<ResourceType> {
+public class SchemaListPanel extends SimplePanel<PrismObject<ResourceType>> {
 
     private static final String ID_OBJECT_CLASS = "objectClass";
     private static final String ID_PANEL = "panel";
 
     private LoadableModel<List<ObjectClassDto>> objectsModel;
 
-    public SchemaListPanel(String id, IModel model) {
+    public SchemaListPanel(String id, IModel<PrismObject<ResourceType>> model) {
         super(id, model);
     }
 
@@ -70,9 +71,9 @@ public class SchemaListPanel extends SimplePanel<ResourceType> {
     }
 
     private List<ObjectClassDto> createObjectClassList() {
-        List<ObjectClassDto> classes = new ArrayList<ObjectClassDto>();
+        List<ObjectClassDto> classes = new ArrayList<>();
 
-        ResourceType resource = getModel().getObject();
+        PrismObject<ResourceType> resource = getModel().getObject();
         Element xsdSchema = ResourceTypeUtil.getResourceXsdSchema(resource);
         if (xsdSchema == null) {
             return classes;

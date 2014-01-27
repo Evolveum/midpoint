@@ -38,6 +38,7 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -96,6 +97,11 @@ public class XmlTypeConverter {
     
     public static <T> T toJavaValue(String stringContent, Class<T> type) {
     	return toJavaValue(stringContent, type, false);
+    }
+    
+    public static <T> T toJavaValue(String stringContent, QName typeQName) {
+    	Class<T> javaClass = XsdTypeMapper.getXsdToJavaMapping(typeQName);
+    	return toJavaValue(stringContent, javaClass, false);
     }
 
 	@SuppressWarnings("unchecked")

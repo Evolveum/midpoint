@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.home;
 
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -23,10 +24,11 @@ import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDtoType;
 import com.evolveum.midpoint.web.component.async.CallableResult;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
-import com.evolveum.midpoint.web.component.wf.workItems.WorkItemsPanel;
+import com.evolveum.midpoint.web.component.wf.WorkItemsPanel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.home.component.*;
 import com.evolveum.midpoint.web.page.admin.home.dto.*;
@@ -34,7 +36,6 @@ import com.evolveum.midpoint.web.page.admin.workflow.dto.WorkItemDto;
 import com.evolveum.midpoint.web.security.SecurityUtils;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
-import com.evolveum.midpoint.wf.api.WorkflowException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -51,6 +52,9 @@ import java.util.concurrent.Callable;
 /**
  * @author lazyman
  */
+@PageDescriptor(url = {"/admin/dashboard", "/admin"}, action = {
+        PageAdminHome.AUTHORIZATION_HOME_ALL,
+        AuthorizationConstants.NS_AUTHORIZATION + "#dashboard"})
 public class PageDashboard extends PageAdminHome {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageDashboard.class);
@@ -146,7 +150,7 @@ public class PageDashboard extends PageAdminHome {
 
     private void initPersonalInfo() {
         DashboardPanel personalInfo = new DashboardPanel(ID_PERSONAL_INFO, null,
-                createStringResource("PageDashboard.personalInfo"), "silk-user", DashboardColor.GRAY) {
+                createStringResource("PageDashboard.personalInfo"), "fa fa-fw fa-male", DashboardColor.GRAY) {
 
             @Override
             protected Component getMainComponent(String componentId) {
@@ -197,7 +201,7 @@ public class PageDashboard extends PageAdminHome {
     private void initSystemInfo() {
         AsyncDashboardPanel<Object, SystemInfoDto> systemInfo =
                 new AsyncDashboardPanel<Object, SystemInfoDto>(ID_SYSTEM_INFO, createStringResource("PageDashboard.systemInfo"),
-                        "silk-application_osx_terminal", DashboardColor.GREEN) {
+                        "fa fa-fw fa-tachometer", DashboardColor.GREEN) {
 
                     @Override
                     protected Callable<CallableResult<SystemInfoDto>> createCallable(IModel callableParameterModel) {
@@ -233,7 +237,7 @@ public class PageDashboard extends PageAdminHome {
     private void initMyWorkItems() {
         AsyncDashboardPanel<Object, List<WorkItemDto>> workItems =
                 new AsyncDashboardPanel<Object, List<WorkItemDto>>(ID_WORK_ITEMS, createStringResource("PageDashboard.workItems"),
-                        "silk-script", DashboardColor.RED) {
+                        "fa fa-fw fa-tasks", DashboardColor.RED) {
 
                     @Override
                     protected Callable<CallableResult<List<WorkItemDto>>> createCallable(IModel callableParameterModel) {
@@ -264,7 +268,7 @@ public class PageDashboard extends PageAdminHome {
     private void initMyAccounts() {
         AsyncDashboardPanel<Object, List<SimpleAccountDto>> accounts =
                 new AsyncDashboardPanel<Object, List<SimpleAccountDto>>(ID_ACCOUNTS, createStringResource("PageDashboard.accounts"),
-                        "silk-user_suit", DashboardColor.BLUE) {
+                        "fa fa-fw fa-external-link", DashboardColor.BLUE) {
 
                     @Override
                     protected Callable<CallableResult<List<SimpleAccountDto>>> createCallable(
@@ -315,7 +319,7 @@ public class PageDashboard extends PageAdminHome {
     private void initAssignments() {
         AsyncDashboardPanel<Object, List<AssignmentItemDto>> assignedOrgUnits =
                 new AsyncDashboardPanel<Object, List<AssignmentItemDto>>(ID_ASSIGNMENTS, createStringResource("PageDashboard.assignments"),
-                        "silk-medal_silver_1", DashboardColor.YELLOW) {
+                        "fa fa-fw fa-star", DashboardColor.YELLOW) {
 
                     @Override
                     protected Callable<CallableResult<List<AssignmentItemDto>>> createCallable(IModel callableParameterModel) {

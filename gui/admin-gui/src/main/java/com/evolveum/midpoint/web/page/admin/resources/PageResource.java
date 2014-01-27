@@ -16,6 +16,7 @@
 
 package com.evolveum.midpoint.web.page.admin.resources;
 
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
@@ -27,6 +28,7 @@ import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
@@ -35,6 +37,8 @@ import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceController;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceObjectTypeDto;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceStatus;
+import com.evolveum.midpoint.web.page.admin.roles.PageAdminRoles;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
@@ -64,6 +68,9 @@ import java.util.List;
  * @author lazyman
  * @author Michal Serbak
  */
+@PageDescriptor(url = "/admin/resource", encoder = OnePageParameterEncoder.class, action = {
+        PageAdminResources.AUTHORIZATION_RESOURCE_ALL,
+        AuthorizationConstants.NS_AUTHORIZATION + "#resource"})
 public class PageResource extends PageAdminResources {
 
     private static final Trace LOGGER = TraceManager.getTrace(PageResource.class);
@@ -143,62 +150,60 @@ public class PageResource extends PageAdminResources {
         };
     }
 
+    private Label createImageLabel(String id, IModel<String> title, IModel<String> cssClass) {
+        Label label = new Label(id);
+        label.add(AttributeModifier.replace("class", cssClass));
+        label.add(AttributeModifier.replace("title", title));
+
+        return label;
+    }
+
     private void initConnectorDetails(Form mainForm) {
         WebMarkupContainer container = new WebMarkupContainer("connectors");
         container.setOutputMarkupId(true);
-
-        Image image = new Image("overallStatus", new AbstractReadOnlyModel() {
-
-            @Override
-            public Object getObject() {
-                return new PackageResourceReference(PageResource.class, model.getObject().getState()
-                        .getOverall().getIcon());
-            }
-        });
-        image.add(new AttributeModifier("title", createTestConnectionStateTooltip("state.overall")));
-        container.add(image);
-
-        image = new Image("confValidation", new AbstractReadOnlyModel() {
-            @Override
-            public Object getObject() {
-                return new PackageResourceReference(PageResource.class, model.getObject().getState()
-                        .getConfValidation().getIcon());
-            }
-        });
-        image.add(new AttributeModifier("title", createTestConnectionStateTooltip("state.confValidation")));
-        container.add(image);
-
-        image = new Image("conInitialization", new AbstractReadOnlyModel() {
-            @Override
-            public Object getObject() {
-
-                return new PackageResourceReference(PageResource.class, model.getObject().getState()
-                        .getConInitialization().getIcon());
-            }
-        });
-        image.add(new AttributeModifier("title", createTestConnectionStateTooltip("state.conInitialization")));
-        container.add(image);
-
-        image = new Image("conConnection", new AbstractReadOnlyModel() {
-            @Override
-            public Object getObject() {
-                return new PackageResourceReference(PageResource.class, model.getObject().getState()
-                        .getConConnection().getIcon());
-            }
-        });
-        image.add(new AttributeModifier("title", createTestConnectionStateTooltip("state.conConnection")));
-        container.add(image);
-
-        image = new Image("conSchema", new AbstractReadOnlyModel() {
-            @Override
-            public Object getObject() {
-                return new PackageResourceReference(PageResource.class, model.getObject().getState()
-                        .getConSchema().getIcon());
-            }
-        });
-        container.add(image);
-        image.add(new AttributeModifier("title", createTestConnectionStateTooltip("state.conSchema")));
         mainForm.add(container);
+
+        container.add(createImageLabel("overallStatus", createTestConnectionStateTooltip("state.overall"),
+                new AbstractReadOnlyModel<String>() {
+
+                    @Override
+                    public String getObject() {
+                        return model.getObject().getState().getOverall().getIcon();
+                    }
+                }));
+        container.add(createImageLabel("confValidation", createTestConnectionStateTooltip("state.confValidation"),
+                new AbstractReadOnlyModel<String>() {
+
+                    @Override
+                    public String getObject() {
+                        return model.getObject().getState().getConfValidation().getIcon();
+                    }
+                }));
+        container.add(createImageLabel("conInitialization", createTestConnectionStateTooltip("state.conInitialization"),
+                new AbstractReadOnlyModel<String>() {
+
+                    @Override
+                    public String getObject() {
+                        return model.getObject().getState().getConInitialization().getIcon();
+                    }
+                }));
+        container.add(createImageLabel("conConnection", createTestConnectionStateTooltip("state.conConnection"),
+                new AbstractReadOnlyModel<String>() {
+
+                    @Override
+                    public String getObject() {
+                        return model.getObject().getState().getConConnection().getIcon();
+                    }
+                }));
+
+        container.add(createImageLabel("conSchema", createTestConnectionStateTooltip("state.conSchema"),
+                new AbstractReadOnlyModel<String>() {
+
+                    @Override
+                    public String getObject() {
+                        return model.getObject().getState().getConSchema().getIcon();
+                    }
+                }));
     }
 
     private List<String> initCapabilities(ResourceType resource) {
@@ -290,7 +295,7 @@ public class PageResource extends PageAdminResources {
             @Override
             public void onClick(AjaxRequestTarget target) {
                 PageParameters parameters = new PageParameters();
-                parameters.add(PageResourceEdit.PARAM_RESOURCE_ID, model.getObject().getOid());
+                parameters.add(OnePageParameterEncoder.PARAMETER, model.getObject().getOid());
                 setResponsePage(PageResourceEdit.class, parameters);
             }
         };

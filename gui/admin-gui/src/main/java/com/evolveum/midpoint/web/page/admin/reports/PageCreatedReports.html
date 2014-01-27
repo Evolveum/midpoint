@@ -17,7 +17,28 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <form wicket:id="mainForm">
+    <div wicket:id="confirmDeletePopup" />
+
+    <form wicket:id="searchForm" class="form-inline pull-right search-form">
+        <div class="form-group">
+            <label class="sr-only">
+                <wicket:message key="pageCreatedReports.filter.filetype"/>
+            </label>
+            <select class="form-control input-sm" wicket:id="filetype" />
+        </div>
+
+        <div class="form-group">
+            <label class="sr-only"><wicket:message key="searchForm.searchTextPlaceholder" /></label>
+            <input class="form-control input-sm" wicket:id="searchText"
+                    wicket:message="placeholder:searchForm.searchTextPlaceholder">
+        </div>
+
+        <select multiple="multiple" class="multiselect" wicket:id="searchType"/>
+
+        <a class="btn btn-default btn-sm" wicket:id="searchButton"/>
+    </form>
+
+    <form wicket:id="mainForm" class="clearfix">
         <div wicket:id="table"/>
     </form>
 </wicket:extend>

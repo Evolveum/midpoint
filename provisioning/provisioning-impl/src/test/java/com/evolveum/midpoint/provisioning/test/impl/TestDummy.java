@@ -86,6 +86,7 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.provisioning.ProvisioningTestUtil;
 import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescription;
+import com.evolveum.midpoint.provisioning.test.ucf.TestUcfDummy;
 import com.evolveum.midpoint.provisioning.ucf.api.ConnectorInstance;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.CapabilityUtil;
@@ -893,6 +894,24 @@ public class TestDummy extends AbstractDummyTest {
 		TestUtil.assertSuccess("applyDefinition(add delta) result", result);
 		
 		assertSteadyResource();
+	}
+	
+	@Test
+	public void test050SelfTest() throws Exception {
+		final String TEST_NAME = "test050SelfTest";
+		TestUtil.displayTestTile(this, TEST_NAME);
+		
+		// GIVEN
+		Task task = taskManager.createTaskInstance();
+		OperationResult testResult = new OperationResult(TestUcfDummy.class + "." + TEST_NAME);
+		
+		// WHEN
+		provisioningService.provisioningSelfTest(testResult, task);
+		
+		// THEN
+		testResult.computeStatus();
+		IntegrationTestTools.display(testResult);
+		TestUtil.assertSuccess(testResult);
 	}
 
 	// The account must exist to test this with modify delta. So we postpone the
@@ -2336,7 +2355,7 @@ public class TestDummy extends AbstractDummyTest {
 
 	@Test
 	public void test202GetGroup() throws Exception {
-		final String TEST_NAME = "test200AddGroup";
+		final String TEST_NAME = "test202GetGroup";
 		TestUtil.displayTestTile(TEST_NAME);
 		// GIVEN
 		OperationResult result = new OperationResult(TestDummy.class.getName()
@@ -2546,7 +2565,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		syncServiceMock.reset();
 
-		ObjectDelta<ShadowType> delta = ProvisioningTestUtil.createEntitleDelta(ACCOUNT_WILL_OID, 
+		ObjectDelta<ShadowType> delta = IntegrationTestTools.createEntitleDelta(ACCOUNT_WILL_OID, 
 				dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
 				GROUP_PIRATES_OID, prismContext);
 		display("ObjectDelta", delta);
@@ -2594,7 +2613,7 @@ public class TestDummy extends AbstractDummyTest {
 		display(result);
 		TestUtil.assertSuccess(result);
 		
-		assertEntitlement(account, GROUP_PIRATES_OID);
+		assertEntitlementGroup(account, GROUP_PIRATES_OID);
 		
 		// Just make sure nothing has changed
 		DummyGroup group = getDummyGroupAssert(GROUP_PIRATES_NAME, piratesIcfUid);
@@ -2614,7 +2633,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		syncServiceMock.reset();
 
-		ObjectDelta<ShadowType> delta = ProvisioningTestUtil.createEntitleDelta(ACCOUNT_WILL_OID, 
+		ObjectDelta<ShadowType> delta = IntegrationTestTools.createEntitleDelta(ACCOUNT_WILL_OID, 
 				dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_PRIVILEGE_NAME),
 				PRIVILEGE_PILLAGE_OID, prismContext);
 		display("ObjectDelta", delta);
@@ -2673,8 +2692,8 @@ public class TestDummy extends AbstractDummyTest {
 		display(result);
 		TestUtil.assertSuccess(result);
 		
-		assertEntitlement(account, GROUP_PIRATES_OID);
-		assertEntitlement(account, PRIVILEGE_PILLAGE_OID);
+		assertEntitlementGroup(account, GROUP_PIRATES_OID);
+		assertEntitlementPriv(account, PRIVILEGE_PILLAGE_OID);
 		
 		// Just make sure nothing has changed
 		DummyAccount dummyAccount = getDummyAccountAssert(ACCOUNT_WILL_USERNAME, willIcfUid);
@@ -2703,7 +2722,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		syncServiceMock.reset();
 
-		ObjectDelta<ShadowType> delta = ProvisioningTestUtil.createDetitleDelta(ACCOUNT_WILL_OID,
+		ObjectDelta<ShadowType> delta = IntegrationTestTools.createDetitleDelta(ACCOUNT_WILL_OID,
 				dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_GROUP_NAME),
 				GROUP_PIRATES_OID, prismContext);
 		display("ObjectDelta", delta);
@@ -2747,7 +2766,7 @@ public class TestDummy extends AbstractDummyTest {
 		
 		syncServiceMock.reset();
 
-		ObjectDelta<ShadowType> delta = ProvisioningTestUtil.createDetitleDelta(ACCOUNT_WILL_OID, 
+		ObjectDelta<ShadowType> delta = IntegrationTestTools.createDetitleDelta(ACCOUNT_WILL_OID, 
 				dummyResourceCtl.getAttributeQName(DummyResourceContoller.DUMMY_ENTITLEMENT_PRIVILEGE_NAME),
 				PRIVILEGE_PILLAGE_OID, prismContext);
 		display("ObjectDelta", delta);
@@ -2855,8 +2874,8 @@ public class TestDummy extends AbstractDummyTest {
 			assertAttribute(provisioningAccountType, ConnectorFactoryIcfImpl.ICFS_UID, dummyAccount.getId());
 		}
 		
-		assertEntitlement(account, GROUP_PIRATES_OID);
-		assertEntitlement(account, PRIVILEGE_PILLAGE_OID);
+		assertEntitlementGroup(account, GROUP_PIRATES_OID);
+		assertEntitlementPriv(account, PRIVILEGE_PILLAGE_OID);
 
 		assertNull("The _PASSSWORD_ attribute sneaked into shadow", ShadowUtil.getAttributeValues(
 				provisioningAccountType, new QName(ConnectorFactoryIcfImpl.NS_ICF_SCHEMA, "password")));

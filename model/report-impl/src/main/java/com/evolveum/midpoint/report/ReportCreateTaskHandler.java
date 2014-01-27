@@ -47,8 +47,12 @@ import net.sf.jasperreports.engine.export.oasis.JROdtExporter;
 import net.sf.jasperreports.engine.export.ooxml.JRDocxExporter;
 import net.sf.jasperreports.engine.export.ooxml.JRPptxExporter;
 import net.sf.jasperreports.engine.export.ooxml.JRXlsxExporter;
+import net.sf.jasperreports.engine.query.JRHibernateQueryExecuterFactory;
 import net.sf.jasperreports.engine.xml.JRXmlLoader;
 
+import org.apache.commons.lang.StringUtils;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.w3c.dom.Node;
@@ -98,12 +102,13 @@ public class ReportCreateTaskHandler implements TaskHandler {
     private static final String CLASS_NAME_WITH_DOT = ReportCreateTaskHandler.class
 			.getName() + ".";
     
-    private static final String CREATE_DATASOURCE = CLASS_NAME_WITH_DOT + "createDatasource";
+    private static final String CREATE_REPORT = CLASS_NAME_WITH_DOT + "createReport";
     
     private static final String CREATE_REPORT_OUTPUT_TYPE = CLASS_NAME_WITH_DOT + "createReportOutputType";
     private static final String MODIFY_REPORT_OUTPUT_TYPE = CLASS_NAME_WITH_DOT + "modifyReportOutputType";
     private static final String SEARCH_REPORT_OUTPUT_TYPE = CLASS_NAME_WITH_DOT + "searchReportOutputType";
-    
+
+    private static final String AUDITLOGS_REPORT_OID = "AUDITLOG-3333-3333-TEST-10000000000";
 
     @Autowired
     private TaskManager taskManager;
@@ -116,6 +121,9 @@ public class ReportCreateTaskHandler implements TaskHandler {
 
     @Autowired
     private ReportManager reportManager;
+    
+    @Autowired
+	private SessionFactory sessionFactory;
 
     @PostConstruct
     private void initialize() {
@@ -172,13 +180,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
     	JasperDesign jasperDesign;
     	try
     	{    
-    		OperationResult subResult = opResult.createSubresult(CREATE_DATASOURCE);
-    		
-    		LOGGER.trace("create report datasource : {}", reportOid);
-    		DataSourceReport reportDataSource = new DataSourceReport(reportType, subResult, prismContext, modelService);
-    		
-    		params.putAll(getReportParams(reportType, opResult));
-    		params.put(JRParameter.REPORT_DATA_SOURCE, reportDataSource);
+    		OperationResult subResult = opResult.createSubresult(CREATE_REPORT);	
     		
     		LOGGER.trace("create report params : {}", params);
     		if (reportType.getReportTemplate() == null || reportType.getReportTemplate().getAny() == null)
@@ -194,9 +196,26 @@ public class ReportCreateTaskHandler implements TaskHandler {
            	 	LOGGER.trace("load jasper design : {}", jasperDesign);
             }
     		
-            // Compile template
+    		params.putAll(getReportParams(reportType, opResult));
+            
+    		// Compile template
     		JasperReport jasperReport = JasperCompileManager.compileReport(jasperDesign);
     		LOGGER.trace("compile jasper design, create jasper report : {}", jasperReport);
+    		
+    		Session session = sessionFactory.openSession();
+	        session.beginTransaction();
+	        
+    		if (!StringUtils.equals(reportOid, AUDITLOGS_REPORT_OID))
+    		{
+    			LOGGER.trace("create report datasource : {}", reportOid);
+    			DataSourceReport reportDataSource = new DataSourceReport(reportType, subResult, prismContext, modelService);
+    		
+    			params.put(JRParameter.REPORT_DATA_SOURCE, reportDataSource);
+    		}   
+    		else
+    		{
+    			params.put(JRHibernateQueryExecuterFactory.PARAMETER_HIBERNATE_SESSION, session);
+    		}
     		
     		JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, params);
     		LOGGER.trace("fill report : {}", jasperPrint);
@@ -204,6 +223,9 @@ public class ReportCreateTaskHandler implements TaskHandler {
     		String reportFilePath = generateReport(reportType, jasperPrint);
     		LOGGER.trace("generate report : {}", reportFilePath);
     		
+    		session.getTransaction().commit();
+ 	       	session.close();
+ 	       	
     		saveReportOutputType(reportFilePath, reportType, task, subResult);
     		LOGGER.trace("create report output type : {}", reportFilePath);
     		

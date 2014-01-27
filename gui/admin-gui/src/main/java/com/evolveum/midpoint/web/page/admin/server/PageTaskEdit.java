@@ -16,12 +16,14 @@
 
 package com.evolveum.midpoint.web.page.admin.server;
 
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskBinding;
 import com.evolveum.midpoint.task.api.TaskManager;
@@ -31,6 +33,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.DateInput;
@@ -49,13 +52,16 @@ import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoExecutionStatus;
 import com.evolveum.midpoint.web.page.admin.server.dto.TaskDtoProviderOptions;
 import com.evolveum.midpoint.web.page.admin.server.subtasks.SubtasksPanel;
 import com.evolveum.midpoint.web.page.admin.server.workflowInformation.WorkflowInformationPanel;
+import com.evolveum.midpoint.web.page.admin.users.PageAdminUsers;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
+import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MisfireActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ScheduleType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ThreadStopActionType;
+import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
@@ -88,21 +94,19 @@ import org.apache.wicket.request.mapper.parameter.PageParameters;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.util.string.StringValue;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author lazyman
  * @author mserbak
  */
+@PageDescriptor(url = "/admin/task", encoder = OnePageParameterEncoder.class, action = {
+        PageAdminTasks.AUTHORIZATION_TASKS_ALL,
+        AuthorizationConstants.NS_AUTHORIZATION + "#task"})
 public class PageTaskEdit extends PageAdminTasks {
-	private static final long serialVersionUID = -5933030498922903813L;
 
 	private static final Trace LOGGER = TraceManager.getTrace(PageTaskEdit.class);
 	private static final String DOT_CLASS = PageTaskAdd.class.getName() + ".";
-	public static final String PARAM_TASK_EDIT_ID = "taskEditOid";
 	private static final String OPERATION_LOAD_TASK = DOT_CLASS + "loadTask";
 	private static final String OPERATION_SAVE_TASK = DOT_CLASS + "saveTask";
 
@@ -121,6 +125,8 @@ public class PageTaskEdit extends PageAdminTasks {
     private static final String ID_DESCRIPTION_LABEL = "descriptionLabel";
     private static final String ID_PARENT = "parent";
     private static final String ID_OPERATION_RESULT_PANEL = "operationResultPanel";
+    private static final String ID_SUSPEND = "suspend";
+    private static final String ID_RESUME = "resume";
 
     private IModel<TaskDto> model;
 	private static boolean edit = false;
@@ -162,7 +168,7 @@ public class PageTaskEdit extends PageAdminTasks {
 		OperationResult result = new OperationResult(OPERATION_LOAD_TASK);
         Task operationTask = getTaskManager().createTaskInstance(OPERATION_LOAD_TASK);
 
-        StringValue taskOid = parameters.get(PARAM_TASK_EDIT_ID);
+        StringValue taskOid = parameters.get(OnePageParameterEncoder.PARAMETER);
 
         TaskDto taskDto = null;
 		try {
@@ -346,7 +352,7 @@ public class PageTaskEdit extends PageAdminTasks {
                 String oid = model.getObject().getParentTaskOid();
                 if (oid != null) {
                     PageParameters parameters = new PageParameters();
-                    parameters.add(PageTaskEdit.PARAM_TASK_EDIT_ID, oid);
+                    parameters.add(OnePageParameterEncoder.PARAMETER, oid);
                     setResponsePage(new PageTaskEdit(parameters, PageTaskEdit.this));
                 }
             }
@@ -689,6 +695,38 @@ public class PageTaskEdit extends PageAdminTasks {
 			}
 		});
 		mainForm.add(editButton);
+
+        AjaxButton suspend = new AjaxButton(ID_SUSPEND, createStringResource("pageTaskEdit.button.suspend")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                suspendPerformed(target);
+            }
+        };
+        suspend.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return isRunning();
+            }
+        });
+        mainForm.add(suspend);
+
+        AjaxButton resume = new AjaxButton(ID_RESUME, createStringResource("pageTaskEdit.button.resume")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                resumePerformed(target);
+            }
+        };
+        resume.add(new VisibleEnableBehaviour() {
+
+            @Override
+            public boolean isVisible() {
+                return !isRunning();
+            }
+        });
+        mainForm.add(resume);
 	}
 
 	private List<IColumn<OperationResult, String>> initResultColumns() {
@@ -781,6 +819,37 @@ public class PageTaskEdit extends PageAdminTasks {
         existingTask.setThreadStopAction(tsa);
 		return existingTask;
 	}
+
+    private void suspendPerformed(AjaxRequestTarget target) {
+        String oid = model.getObject().getOid();
+        if (StringUtils.isEmpty(oid)) {
+            target.add(getFeedbackPanel());
+            return;
+        }
+
+//        OperationResult result = new OperationResult(OPERATION_SUSPEND_TASKS);
+//        try {
+//
+//            boolean suspended = getTaskService().suspendTasks(Collections.singleton(oid),
+//                    PageTasks.WAIT_FOR_TASK_STOP, result);
+//
+//            result.computeStatus();
+//            if (result.isSuccess()) {
+//                if (suspended) {
+//                    result.recordStatus(OperationResultStatus.SUCCESS, "The task(s) have been successfully suspended.");
+//                } else {
+//                    result.recordWarning("Task(s) suspension has been successfully requested; please check for its completion using task list.");
+//                }
+//            }
+//        } catch (RuntimeException e) {
+//            result.recordFatalError("Couldn't suspend the task(s) due to an unexpected exception", e);
+//        }
+//        showResult(result);
+    }
+
+    private void resumePerformed(AjaxRequestTarget target) {
+
+    }
 
 	private static class EmptyOnBlurAjaxFormUpdatingBehaviour extends AjaxFormComponentUpdatingBehavior {
 

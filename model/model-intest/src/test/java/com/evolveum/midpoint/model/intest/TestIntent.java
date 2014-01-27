@@ -78,6 +78,8 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
     public void initSystem(Task initTask, OperationResult initResult) throws Exception {
         super.initSystem(initTask, initResult);
         
+        addObject(SHADOW_GROUP_DUMMY_TESTERS_FILE, initTask, initResult);
+        
         rememberSteadyResources();
     }
 
@@ -174,8 +176,8 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack);
 		assertLinks(userJack, 2);
-		String accountOidDefault = getLinkRef(userJack, RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
-		String accountOidTest = getLinkRef(userJack, RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, ACCOUNT_INTENT_TEST);
+		String accountOidDefault = getLinkRefOid(userJack, RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
+		String accountOidTest = getLinkRefOid(userJack, RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, ACCOUNT_INTENT_TEST);
         
 		// Check shadow: intent=default
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOidDefault, null, result);
@@ -200,6 +202,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
         
         // Check account in dummy resource: intent=test
         assertDummyAccount("T"+ACCOUNT_JACK_DUMMY_USERNAME, "Jack Sparrow (test)", true);
+        assertGroupMember(GROUP_DUMMY_TESTERS_NAME, "T"+ACCOUNT_JACK_DUMMY_USERNAME);
         
         // Check audit
         display("Audit", dummyAuditService);
@@ -239,8 +242,8 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "cpt. Jack Sparrow", "Jack", "Sparrow");
 		assertLinks(userJack, 2);
-		String accountOidDefault = getLinkRef(userJack, RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
-		String accountOidTest = getLinkRef(userJack, RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, ACCOUNT_INTENT_TEST);
+		String accountOidDefault = getLinkRefOid(userJack, RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, SchemaConstants.INTENT_DEFAULT);
+		String accountOidTest = getLinkRefOid(userJack, RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, ACCOUNT_INTENT_TEST);
         
 		// Check shadow: intent=default
         PrismObject<ShadowType> accountShadow = repositoryService.getObject(ShadowType.class, accountOidDefault, null, result);
@@ -310,7 +313,7 @@ public class TestIntent extends AbstractInitializedModelIntegrationTest {
 		display("User after change execution", userJack);
 		assertUserJack(userJack, "cpt. Jack Sparrow", "Jack", "Sparrow");
 		assertLinks(userJack, 1);
-		String accountOidTest = getLinkRef(userJack, RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, ACCOUNT_INTENT_TEST);
+		String accountOidTest = getLinkRefOid(userJack, RESOURCE_DUMMY_OID, ShadowKindType.ACCOUNT, ACCOUNT_INTENT_TEST);
         
         // Check shadow: intent=test
         PrismObject<ShadowType> accountShadowTest = repositoryService.getObject(ShadowType.class, accountOidTest, null, result);

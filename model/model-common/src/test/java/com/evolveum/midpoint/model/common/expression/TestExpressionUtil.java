@@ -42,6 +42,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -49,7 +50,6 @@ import com.evolveum.midpoint.schema.MidPointPrismContextFactory;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
-import com.evolveum.midpoint.schema.holder.XPathHolder;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -192,16 +192,16 @@ public class TestExpressionUtil {
     }
 
     private <T> T resolvePath(String path, final String TEST_NAME) throws SchemaException, ObjectNotFoundException {
-    	Map<QName, Object> variables = createVariables();
+    	ExpressionVariables variables = createVariables();
     	return resolvePath(path, variables, TEST_NAME);
     }
     
     private <T> T resolvePathOdo(String path, final String TEST_NAME) throws SchemaException, ObjectNotFoundException {
-    	Map<QName, Object> variables = createVariablesOdo();
+    	ExpressionVariables variables = createVariablesOdo();
     	return resolvePath(path, variables, TEST_NAME);
     }
     
-    private <T> T resolvePath(String path, Map<QName, Object> variables, final String TEST_NAME) throws SchemaException, ObjectNotFoundException {
+    private <T> T resolvePath(String path, ExpressionVariables variables, final String TEST_NAME) throws SchemaException, ObjectNotFoundException {
     	OperationResult result = new OperationResult(TestExpressionUtil.class.getName() + "." + TEST_NAME);
 		ItemPath itemPath = toItemPath(path);
 		
@@ -215,21 +215,21 @@ public class TestExpressionUtil {
     	return (T) resolved;
     }
 
-	private Map<QName, Object> createVariables() throws SchemaException {
-		Map<QName, Object> variables = new HashMap<QName, Object>();
-		variables.put(ExpressionConstants.VAR_USER, createUser());
+	private ExpressionVariables createVariables() throws SchemaException {
+		ExpressionVariables variables = new ExpressionVariables();
+		variables.addVariableDefinition(ExpressionConstants.VAR_USER, createUser());
 		return variables;
 	}
 	
-	private Map<QName, Object> createVariablesOdo() throws SchemaException {
-		Map<QName, Object> variables = new HashMap<QName, Object>();
+	private ExpressionVariables createVariablesOdo() throws SchemaException {
+		ExpressionVariables variables = new ExpressionVariables();
 		PrismObject<UserType> userOld = createUser();
 		ObjectDelta<UserType> delta = ObjectDelta.createModificationReplaceProperty(UserType.class,
 				userOld.getOid(), UserType.F_FULL_NAME, PrismTestUtil.getPrismContext(),
 				PrismTestUtil.createPolyString("Captain Jack Sparrow"));
 		ObjectDeltaObject<UserType> odo = new ObjectDeltaObject<UserType>(userOld, delta, null);
 		odo.recompute();
-		variables.put(ExpressionConstants.VAR_USER, odo);
+		variables.addVariableDefinition(ExpressionConstants.VAR_USER, odo);
 		return variables;
 	}
 

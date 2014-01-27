@@ -16,13 +16,13 @@
 
 package com.evolveum.midpoint.web.page.admin.home;
 
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.web.page.admin.PageAdmin;
 
 /**
- * Marker page class for {@link com.evolveum.midpoint.web.component.menu.top.TopMenu}
- *
  * @author lazyman
  */
 public class PageAdminHome extends PageAdmin {
 
+    public static final String AUTHORIZATION_HOME_ALL = AuthorizationConstants.NS_AUTHORIZATION + "#home";
 }
