@@ -80,18 +80,24 @@ public class XNodeSerializer {
 
 	
 	public <O extends Objectable> XNode serializeObject(PrismObject<O> object) throws SchemaException {
-		MapXNode xmap = serializeContainerValue(object.getValue(), object.getDefinition());
+		MapXNode xmap = new MapXNode();
 		if (object.getOid() != null) {
 			xmap.put(XNode.KEY_OID, createPrimitiveXNodeStringAttr(object.getOid()));
 		}
 		if (object.getVersion() != null) {
 			xmap.put(XNode.KEY_VERSION, createPrimitiveXNodeStringAttr(object.getVersion()));
 		}
+		serializeContainerValue(xmap, object.getValue(), object.getDefinition());
 		return xmap;
 	}
 	
 	private <C extends Containerable> MapXNode serializeContainerValue(PrismContainerValue<C> containerVal, PrismContainerDefinition<C> containerDefinition) throws SchemaException {
 		MapXNode xmap = new MapXNode();
+		serializeContainerValue(xmap, containerVal, containerDefinition);
+		return xmap;
+	}
+	
+	private <C extends Containerable> void serializeContainerValue(MapXNode xmap, PrismContainerValue<C> containerVal, PrismContainerDefinition<C> containerDefinition) throws SchemaException {
 		Long id = containerVal.getId();
 		if (id != null) {
 			xmap.put(XNode.KEY_CONTAINER_ID, createPrimitiveXNodeAttr(id, DOMUtil.XSD_LONG));
@@ -101,7 +107,6 @@ public class XNodeSerializer {
 			XNode xsubnode = serializeItem(item);
 			xmap.put(elementName, xsubnode);
 		}
-		return xmap;
 	}
 	
 	private <V extends PrismValue> XNode serializeItem(Item<V> item) throws SchemaException {

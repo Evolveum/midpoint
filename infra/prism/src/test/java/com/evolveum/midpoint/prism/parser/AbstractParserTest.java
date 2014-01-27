@@ -24,6 +24,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Collection;
+import java.util.Iterator;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.xml.namespace.QName;
 
@@ -108,14 +111,9 @@ public abstract class AbstractParserTest {
 		System.out.println("XNode after parsing:");
 		System.out.println(xnode.dump());
 		
-		assertUserJack(user);
+		assertUserJackXNodeOrdering("serialized xnode", xnode);
 		
-		// WHEN (re-serialize to XNode)
-		XNode serializedXNode = processor.serializeObject(user);
-		
-		// THEN
-		System.out.println("XNode after re-serialization:");
-		System.out.println(serializedXNode.dump());
+		assertUserJack(user);		
 	}
 
 	@Test
@@ -149,19 +147,25 @@ public abstract class AbstractParserTest {
 		System.out.println("\nRe-serialized string:");
 		System.out.println(serializedString);
 		
+		assertUserJackXNodeOrdering("serialized xnode", serializedXNode);
+		
 		// WHEN (re-parse)
 		XNode reparsedXnode = parser.parse(serializedString);
 		PrismObject<UserType> reparsedUser = processor.parseObject(reparsedXnode);
 		
 		// THEN
+		System.out.println("\nXNode after re-parsing:");
+		System.out.println(reparsedXnode.dump());
 		System.out.println("\nRe-parsed user:");
 		System.out.println(reparsedUser.dump());
+		
+		assertUserJackXNodeOrdering("serialized xnode", reparsedXnode);
 		
 		ObjectDelta<UserType> diff = DiffUtil.diff(user, reparsedUser);
 		System.out.println("\nDiff:");
 		System.out.println(diff.dump());
 		
-		assertTrue("Re-parsed user does not mathc: "+diff, diff.isEmpty());
+		assertTrue("Re-parsed user does not match: "+diff, diff.isEmpty());
 	}
 
 	protected <X extends XNode> X getAssertXNode(String message, XNode xnode, Class<X> expectedClass) {
@@ -175,5 +179,23 @@ public abstract class AbstractParserTest {
 		XNode xsubnode = xmap.get(key);
 		assertNotNull(message+" no key "+key, xsubnode);
 		return getAssertXNode(message+" key "+key, xsubnode, expectedClass);
+	}
+	
+	protected void assertUserJackXNodeOrdering(String message, XNode xnode) {
+		if (xnode instanceof RootXNode) {
+			xnode = ((RootXNode)xnode).getSubnode();
+		}
+		MapXNode xmap = getAssertXNode(message+": top", xnode, MapXNode.class);
+		Set<Entry<QName, XNode>> reTopMapEntrySet = xmap.entrySet();
+		Iterator<Entry<QName, XNode>> reTopMapEntrySetIter = reTopMapEntrySet.iterator();
+		Entry<QName, XNode> reTopMapEntry0 = reTopMapEntrySetIter.next();
+		assertEquals(message+": Wrong entry 0, the xnodes were shuffled", "oid", reTopMapEntry0.getKey().getLocalPart());
+		Entry<QName, XNode> reTopMapEntry1 = reTopMapEntrySetIter.next();
+		assertEquals(message+": Wrong entry 1, the xnodes were shuffled", "version", reTopMapEntry1.getKey().getLocalPart());
+		Entry<QName, XNode> reTopMapEntry2 = reTopMapEntrySetIter.next();
+		assertEquals(message+": Wrong entry 2, the xnodes were shuffled", UserType.F_NAME, reTopMapEntry2.getKey());
+		Entry<QName, XNode> reTopMapEntry3 = reTopMapEntrySetIter.next();
+		assertEquals(message+": Wrong entry 3, the xnodes were shuffled", UserType.F_DESCRIPTION, reTopMapEntry3.getKey());
+
 	}
 }

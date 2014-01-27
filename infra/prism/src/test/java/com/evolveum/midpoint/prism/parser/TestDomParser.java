@@ -95,7 +95,6 @@ public class TestDomParser extends AbstractParserTest {
 		System.out.println("Parsed XNode:");
 		System.out.println(xnode.dump());
 
-		assertTrue("Root node is "+xnode.getClass(), xnode instanceof RootXNode);
 		RootXNode root = getAssertXNode("root node", xnode, RootXNode.class);
 		MapXNode rootMap = getAssertXNode("root subnode", root.getSubnode(), MapXNode.class);
 		PrimitiveXNode<String> xname = getAssertXMapSubnode("root map", rootMap, UserType.F_NAME, PrimitiveXNode.class);

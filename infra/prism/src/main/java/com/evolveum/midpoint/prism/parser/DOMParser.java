@@ -118,6 +118,13 @@ public class DOMParser implements Parser {
 		MapXNode xmap = new MapXNode();
 		extractCommonMetadata(element, xmap);
 		
+		// Attributes
+		for (Attr attr: DOMUtil.listApplicationAttributes(element)) {
+			QName attrQName = DOMUtil.getQName(attr);
+			XNode subnode = parseAttributeValue(attr);
+			xmap.put(attrQName, subnode);
+		}
+
 		// Subelements
 		QName lastElementQName = null;
 		List<Element> lastElements = null;
@@ -133,14 +140,7 @@ public class DOMParser implements Parser {
 			}
 		}
 		parseElementGroup(xmap, lastElementQName, lastElements);
-		
-		// Attributes
-		for (Attr attr: DOMUtil.listApplicationAttributes(element)) {
-			QName attrQName = DOMUtil.getQName(attr);
-			XNode subnode = parseAttributeValue(attr);
-			xmap.put(attrQName, subnode);
-		}
-		
+				
 		return xmap;
 	}
 	
