@@ -911,7 +911,13 @@ public class DOMUtil {
     }
 
 	public static Element createElement(Document document, QName qname) {
-		Element element = document.createElementNS(qname.getNamespaceURI(), qname.getLocalPart());
+		Element element;
+		String namespaceURI = qname.getNamespaceURI();
+		if (StringUtils.isBlank(namespaceURI)) {
+			element = document.createElement(qname.getLocalPart());
+		} else {
+			element = document.createElementNS(qname.getNamespaceURI(), qname.getLocalPart());
+		}
 		if (qname.getPrefix() != null) {
 			element.setPrefix(qname.getPrefix());
 		}

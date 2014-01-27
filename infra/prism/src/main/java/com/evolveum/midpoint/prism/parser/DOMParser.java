@@ -47,6 +47,11 @@ public class DOMParser implements Parser {
 	
 	private SchemaRegistry schemaRegistry;
 
+	public DOMParser(SchemaRegistry schemaRegistry) {
+		super();
+		this.schemaRegistry = schemaRegistry;
+	}
+
 	@Override
 	public XNode parse(File file) throws SchemaException {
 		Document document = DOMUtil.parseFile(file);
@@ -239,6 +244,27 @@ public class DOMParser implements Parser {
 			return false;
 		}
 		return dataString.startsWith("<?xml");
+	}
+
+	@Override
+	public String serializeToString(XNode xnode, QName rootElementName) throws SchemaException {
+		DomSerializer serializer = new DomSerializer(this, schemaRegistry);
+		RootXNode xroot;
+		if (xnode instanceof RootXNode) {
+			xroot = (RootXNode) xnode;
+		} else {
+			xroot = new RootXNode(rootElementName);
+			xroot.setSubnode(xnode);
+		}
+		Element element = serializer.serialize(xroot);
+		return DOMUtil.serializeDOMToString(element);
+	}
+	
+	@Override
+	public String serializeToString(RootXNode xnode) throws SchemaException {
+		DomSerializer serializer = new DomSerializer(this, schemaRegistry);
+		Element element = serializer.serialize(xnode);
+		return DOMUtil.serializeDOMToString(element);
 	}
 
 	public Element serializeValueToDom(PrismReferenceValue rval, QName elementName, Document document) {

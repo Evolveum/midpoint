@@ -85,7 +85,7 @@ public class PrismContext {
 		prismContext.beanConverter = new PrismBeanConverter(schemaRegistry);
 
 		prismContext.parserMap = new HashMap<String, Parser>();
-		DOMParser parserDom = new DOMParser();
+		DOMParser parserDom = new DOMParser(schemaRegistry);
 		prismContext.parserMap.put(LANG_XML, parserDom);
 		prismContext.parserDom = parserDom;
 		

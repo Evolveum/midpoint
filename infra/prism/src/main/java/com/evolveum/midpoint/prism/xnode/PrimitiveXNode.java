@@ -18,6 +18,7 @@ package com.evolveum.midpoint.prism.xnode;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -33,7 +34,7 @@ public class PrimitiveXNode<T> extends XNode {
 	 * is capable of representing attributes)
 	 */
 	private boolean isAttribute = false;
-	
+		
 	public void parseValue(QName typeName) throws SchemaException {
 		if (valueParser != null) {
 			value = valueParser.parse(typeName);
@@ -79,9 +80,16 @@ public class PrimitiveXNode<T> extends XNode {
 	 * Returns a value that is correctly string-formatted according
 	 * to its type definition. Works properly only if definition is set.
 	 */
-//	public String getValueAsString() {
-//		
-//	}
+	public String getFormattedValue() {
+		if (getTypeQName() == null) {
+			throw new IllegalStateException("Cannot fetch formatted value if type definition is not set");
+		}
+		if (!isParsed()) {
+			throw new IllegalStateException("Cannot fetch formatted value if the xnode is not parsed");
+		}
+		T value = getValue();
+		return XmlTypeConverter.toXmlTextContent(value, null);
+	}
 	
 	@Override
 	public String debugDump(int indent) {

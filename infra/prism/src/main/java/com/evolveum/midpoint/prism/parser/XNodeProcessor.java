@@ -539,5 +539,9 @@ public class XNodeProcessor {
 	// -- SERIALIZATION
 	// --------------------------
 	
+	public <O extends Objectable> XNode serializeObject(PrismObject<O> object) throws SchemaException {
+		XNodeSerializer serializer = new XNodeSerializer(prismContext.getBeanConverter());
+		return serializer.serializeObject(object);
+	}
 
 }

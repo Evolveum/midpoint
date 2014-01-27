@@ -16,11 +16,15 @@
 package com.evolveum.midpoint.prism.parser;
 
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.StringUtils;
+import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -44,8 +48,14 @@ import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.prism.xnode.ListXNode;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
+import com.evolveum.midpoint.prism.xnode.RootXNode;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 
 /**
  * @author semancik
@@ -78,58 +88,107 @@ public class DomSerializer {
 		return schemaRegistry.getNamespacePrefixMapper();
 	}
 
-	public Element serialize(PrismObject<?> object) throws SchemaException {
-		initialize();		
-		Element topElement = createElement(object.getElementName());
-		serialize(object, topElement);
-		return topElement;
-	}
-		
-	private void serialize(PrismObject<?> object, QName elementName, Element parentElement) throws SchemaException {
-		Element topElement = createElement(elementName);
-		parentElement.appendChild(topElement);
-		serialize(object, topElement);
-	}
-	
-	private void serialize(PrismObject<?> object, Element topElement) throws SchemaException {
-		serializeItems(object.getValue().getItems(), object.getDefinition(), topElement);
-		if (object.getOid() != null) {
-			topElement.setAttribute(PrismConstants.ATTRIBUTE_OID_LOCAL_NAME, object.getOid());
-		}
-		if (object.getVersion() != null) {
-			topElement.setAttribute(PrismConstants.ATTRIBUTE_VERSION_LOCAL_NAME, object.getVersion());
-		}
-        QName elementQName = new QName(topElement.getNamespaceURI(), topElement.getLocalName());
-		if (object.getDefinition() != null &&
-//				!prismContext.getSchemaRegistry().hasImplicitTypeDefinition(object.getName(), object.getDefinition().getTypeName())) {
-                !schemaRegistry.hasImplicitTypeDefinition(elementQName, object.getDefinition().getTypeName())) {
-			DOMUtil.setXsiType(topElement, object.getDefinition().getTypeName());
-		}
-	}
-	
 	private void initialize() {
 		doc = DOMUtil.getDocument();
 		topElement = null;
 	}
 
-    public Element serializeContainerValue(PrismContainerValue<?> value, Element parentElement) throws SchemaException {
-        initialize();
-        doc = parentElement.getOwnerDocument();
-        
-        serialize(value, parentElement);
-        return parentElement;
-    }
-
-	private void serialize(PrismContainerValue<?> value, Element parentElement) throws SchemaException {
-		PrismContainerable<?> parent = value.getParent();
-		QName elementQName = parent.getElementName();
-		Element element = createElement(elementQName);
-		parentElement.appendChild(element);
-		serializeItems(value.getItems(), parent.getDefinition(), element);
-		if (value.getId() != null) {
-			element.setAttribute(PrismConstants.ATTRIBUTE_ID_LOCAL_NAME, value.getId().toString());
+	public Element serialize(RootXNode rootxnode) throws SchemaException {
+		initialize();
+		QName rootElementName = rootxnode.getRootElementName();
+		Element topElement = createElement(rootxnode.getRootElementName());
+		QName typeQName = rootxnode.getTypeQName();
+		if (typeQName != null && !schemaRegistry.hasImplicitTypeDefinition(rootElementName, typeQName)) {
+			DOMUtil.setXsiType(topElement, rootxnode.getTypeQName());
+		}
+		XNode subnode = rootxnode.getSubnode();
+		if (!(subnode instanceof MapXNode)) {
+			throw new SchemaException("Sub-root xnode is not map, cannot serialize to XML (it is "+subnode+")");
+		}
+		serializeMap((MapXNode)subnode, topElement);
+		return topElement;
+	}
+			
+	private void serializeMap(MapXNode xmap, Element topElement) throws SchemaException {
+		for (Entry<QName,XNode> entry: xmap.entrySet()) {
+			QName elementQName = entry.getKey();
+			XNode xsubnode = entry.getValue();
+			if (xsubnode instanceof ListXNode) {
+				ListXNode xlist = (ListXNode)xsubnode;
+				for (XNode xsubsubnode: xlist) {
+					serializeSubnode(xsubsubnode, topElement, elementQName);
+				}
+			} else {
+				serializeSubnode(xsubnode, topElement, elementQName);
+			}
+		}		
+	}
+	
+	private void serializeSubnode(XNode xsubnode, Element parentElement, QName elementName) throws SchemaException {
+		if (xsubnode instanceof MapXNode) {
+			Element element = createElement(elementName);
+			parentElement.appendChild(element);
+			serializeMap((MapXNode)xsubnode, element);
+		} else if (xsubnode instanceof PrimitiveXNode<?>) {
+			PrimitiveXNode<?> xprim = (PrimitiveXNode<?>)xsubnode;
+			if (xprim.isAttribute()) {
+				serializePrimitiveAttribute(xprim, parentElement, elementName);
+			} else {
+				serializePrimitiveElement(xprim, parentElement, elementName);
+			}
+		} else if (xsubnode instanceof ListXNode) {
+			ListXNode xlist = (ListXNode)xsubnode;
+			for (XNode xsubsubnode: xlist) {
+				serializeSubnode(xsubsubnode, parentElement, elementName);
+			}
 		}
 	}
+	
+    private <T> void serializePrimitiveAttribute(PrimitiveXNode<T> xprim, Element parentElement, QName attributeName) {
+    	QName typeQName = xprim.getTypeQName();
+    	if (typeQName.equals(DOMUtil.XSD_QNAME)) {
+    		QName value = (QName) xprim.getValue();
+    		try {
+    			DOMUtil.setQNameAttribute(parentElement, attributeName.getLocalPart(), value);
+    		} catch (DOMException e) {
+    			throw new DOMException(e.code, e.getMessage() + "; setting attribute "+attributeName.getLocalPart()+" in element "+DOMUtil.getQName(parentElement)+" to QName value "+value);
+    		}
+    	} else {
+    		String value = xprim.getFormattedValue();
+    		parentElement.setAttribute(attributeName.getLocalPart(), value);
+    	}		
+	}
+
+	private void serializePrimitiveElement(PrimitiveXNode<?> xprim, Element parentElement, QName elementName) {
+		Element element;
+		try {
+			element = createElement(elementName);
+		} catch (DOMException e) {
+			throw new DOMException(e.code, e.getMessage() + "; creating element "+elementName+" in element "+DOMUtil.getQName(parentElement));
+		}
+		parentElement.appendChild(element);
+		
+		QName typeQName = xprim.getTypeQName();
+		if (xprim.isExplicitTypeDeclaration()) {
+			DOMUtil.setXsiType(element, typeQName);
+		}
+		
+    	if (typeQName.equals(DOMUtil.XSD_QNAME)) {
+    		QName value = (QName) xprim.getValue();
+			DOMUtil.setQNameValue(element, value);
+    	} else {
+    		String value = xprim.getFormattedValue();
+    		element.setTextContent(value);
+    	}
+	}
+    
+
+	
+	
+	
+	
+	// OLD CODE
+	
 	
 	private void serialize(PrismPropertyValue<?> value, Element parentElement) throws SchemaException {
 		Itemable parent = value.getParent();
@@ -218,22 +277,7 @@ public class DomSerializer {
 			throw new SchemaException("Cannot serialize composite object in "+DOMUtil.getQName(parentElement)+" because the composite element" +
 					"name for reference "+definition+" is not defined");
 		}
-		serialize(value.getObject(), compositeObjectElementName, parentElement);
-	}
-
-	private void serializeItems(List<Item<?>> items, PrismContainerDefinition definition, Element parentElement) throws SchemaException {
-		if (definition != null && !definition.isDynamic()) {
-			ComplexTypeDefinition complexTypeDefinition = definition.getComplexTypeDefinition();
-			if (complexTypeDefinition != null) {
-				serializeItemsUsingDefinition(items, complexTypeDefinition, parentElement);
-				return;
-			}
-		}
-		// We have no choice here. Just follow the "natural" order of items
-		for (Item<?> item: items) {
-			serialize(item, parentElement);
-		}
-
+//		serialize(value.getObject(), compositeObjectElementName, parentElement);
 	}
 	
 	private void serializeItemsUsingDefinition(List<Item<?>> items, ComplexTypeDefinition definition, Element parentElement) throws SchemaException {
@@ -369,6 +413,10 @@ public class DomSerializer {
 	 * @return created DOM element
 	 */
 	private Element createElement(QName qname) {
+		String namespaceURI = qname.getNamespaceURI();
+		if (StringUtils.isBlank(namespaceURI)) {
+			return doc.createElement(qname.getLocalPart());
+		}
 		QName qnameWithPrefix = getNamespacePrefixMapper().setQNamePrefix(qname);
 		if (topElement != null) {
 			return DOMUtil.createElement(doc, qnameWithPrefix, topElement, topElement);

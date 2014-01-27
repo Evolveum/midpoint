@@ -1076,14 +1076,16 @@ public class PrismDomProcessor {
 	public Element serializeToDom(PrismObject<?> object, boolean serializeCompositeObjects) throws SchemaException {
 		DomSerializer domSerializer = null;
 		domSerializer.setSerializeCompositeObjects(serializeCompositeObjects);
-		return domSerializer.serialize(object);
+//		return domSerializer.serialize(object);
+		return null;
 	}
 
 	public <T extends Containerable> Element serializeToDom(PrismContainerValue<T> object, Element parentElement)
 			throws SchemaException {
 
 		DomSerializer domSerializer = null;
-		return domSerializer.serializeContainerValue(object, parentElement);
+//		return domSerializer.serializeContainerValue(object, parentElement);
+		return null;
 	}
 
 	public <T extends Objectable> String serializeObjectToString(PrismObject<T> object) throws SchemaException {

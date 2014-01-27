@@ -41,6 +41,14 @@ public abstract class XNode implements Dumpable, DebugDumpable {
 
 	// Common fields
 	private XNode parent;
+	
+	/**
+	 * If set to true that the element came from the explicit type definition
+	 * (e.g. xsi:type in XML) on the parsing side; or that it the explicit type
+	 * definition should be included on the serialization side.
+	 */
+	private boolean explicitTypeDeclaration = false;
+
 
 	// These are set when parsing a file
 	private File originFile;
@@ -98,6 +106,14 @@ public abstract class XNode implements Dumpable, DebugDumpable {
 
 	public void setMaxOccurs(Integer maxOccurs) {
 		this.maxOccurs = maxOccurs;
+	}
+
+	public boolean isExplicitTypeDeclaration() {
+		return explicitTypeDeclaration;
+	}
+
+	public void setExplicitTypeDeclaration(boolean explicitTypeDeclaration) {
+		this.explicitTypeDeclaration = explicitTypeDeclaration;
 	}
 
 	@Override

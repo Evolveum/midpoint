@@ -157,7 +157,7 @@ public class PrismBeanConverter {
 			
 			Field field;
 			try {
-				field = beanClass.getField(fieldName);
+				field = beanClass.getDeclaredField(fieldName);
 			} catch (NoSuchFieldException | SecurityException e) {
 				throw new SystemException("Cannot accesss field "+fieldName+" in "+beanClass+": "+e.getMessage(), e);
 			}

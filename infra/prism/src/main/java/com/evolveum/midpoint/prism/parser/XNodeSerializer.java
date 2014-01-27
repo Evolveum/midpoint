@@ -133,16 +133,20 @@ public class XNodeSerializer {
 	}
 	
 	private <V extends PrismValue> XNode serializeItemValue(V itemValue, ItemDefinition definition) throws SchemaException {
-		// special handling for reference values (account vs accountRef).
+		XNode xnode;
 		if (itemValue instanceof PrismReferenceValue) {
-			return serializeReferenceValue((PrismReferenceValue)itemValue, (PrismReferenceDefinition) definition);
+			xnode = serializeReferenceValue((PrismReferenceValue)itemValue, (PrismReferenceDefinition) definition);
 		} else if (itemValue instanceof PrismPropertyValue<?>) {
-			return serializePropertyValue((PrismPropertyValue<?>)itemValue, (PrismPropertyDefinition)definition);
+			xnode = serializePropertyValue((PrismPropertyValue<?>)itemValue, (PrismPropertyDefinition)definition);
 		} else if (itemValue instanceof PrismContainerValue<?>) {
-			return serializeContainerValue((PrismContainerValue<?>)itemValue, (PrismContainerDefinition)definition);
+			xnode = serializeContainerValue((PrismContainerValue<?>)itemValue, (PrismContainerDefinition)definition);
 		} else {
 			throw new IllegalArgumentException("Unsupported value type "+itemValue.getClass());
 		}
+		if (definition.isDynamic()) {
+			xnode.setExplicitTypeDeclaration(true);
+		}
+		return xnode;
 	}
 	
 	private XNode serializeReferenceValue(PrismReferenceValue value, PrismReferenceDefinition definition) throws SchemaException {
