@@ -3,15 +3,10 @@ package com.evolveum.midpoint.repo.sql.data.common;
 import java.util.Collection;
 import java.util.List;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.Lob;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
+import javax.persistence.*;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.repo.sql.data.common.embedded.RDataSource;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.apache.commons.lang.StringUtils;
 import org.hibernate.annotations.Columns;
@@ -37,232 +32,281 @@ import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 @ForeignKey(name = "fk_report")
 public class RReport extends RObject<ReportType> {
 
-	private RPolyString name;
-	private String reportTemplate;
-	private String reportTemplateStyle;
-	private ROrientationType reportOrientation;
-	private RExportType reportExport;
-	private String query;
-	private QName objectClass;
-	private String reportFields;
-	private String reportParameters;
+    private RPolyString name;
+    private String reportTemplate;
+    private String reportTemplateStyle;
+    private ROrientationType reportOrientation;
+    private RExportType reportExport;
+    private String reportFields;
+    private Boolean parent;
+    private String subReport;
+    private Boolean useHibernateSession;
+    private RDataSource dataSource;
+    private String configuration;
+    private String configurationSchema;
 
-	public RPolyString getName() {
-		return name;
-	}
+    public RPolyString getName() {
+        return name;
+    }
 
-	public void setName(RPolyString name) {
-		this.name = name;
-	}
-	
-	@Lob
-	@Type(type = RUtil.LOB_STRING_TYPE)
-	public String getReportTemplate() {
-		return reportTemplate;
-	}
+    public void setName(RPolyString name) {
+        this.name = name;
+    }
 
-	public void setReportTemplate(String reportTemplate) {
-		this.reportTemplate = reportTemplate;
-	}
+    @Lob
+    @Type(type = RUtil.LOB_STRING_TYPE)
+    public String getReportTemplate() {
+        return reportTemplate;
+    }
 
-	@Lob
-	@Type(type = RUtil.LOB_STRING_TYPE)
-	public String getReportTemplateStyle() {
-		return reportTemplateStyle;
-	}
+    public void setReportTemplate(String reportTemplate) {
+        this.reportTemplate = reportTemplate;
+    }
 
-	public void setReportTemplateStyle(String reportTemplateStyle) {
-		this.reportTemplateStyle = reportTemplateStyle;
-	}
-	
-	@Enumerated(EnumType.ORDINAL)
-	@Column(nullable = true)
-	public ROrientationType getReportOrientation() {
-		return reportOrientation;
-	}
+    @Lob
+    @Type(type = RUtil.LOB_STRING_TYPE)
+    public String getReportTemplateStyle() {
+        return reportTemplateStyle;
+    }
 
-	public void setReportOrientation(ROrientationType reportOrientation) {
-		this.reportOrientation = reportOrientation;
-	}
+    public void setReportTemplateStyle(String reportTemplateStyle) {
+        this.reportTemplateStyle = reportTemplateStyle;
+    }
 
-	@Enumerated(EnumType.ORDINAL)
-	@Column(nullable = true)
-	public RExportType getReportExport() {
-		return reportExport;
-	}
+    @Enumerated(EnumType.ORDINAL)
+    @Column(nullable = true)
+    public ROrientationType getReportOrientation() {
+        return reportOrientation;
+    }
 
-	public void setReportExport(RExportType reportExport) {
-		this.reportExport = reportExport;
-	}
+    public void setReportOrientation(ROrientationType reportOrientation) {
+        this.reportOrientation = reportOrientation;
+    }
 
-	@Lob
-	@Type(type = RUtil.LOB_STRING_TYPE)
-	public String getQuery()
-	{
-		return query;	
-	}
-	
-	public void setQuery(String query)
-	{
-		this.query = query;
-	}
-	@Columns(columns = {
-			@Column(name = "class_namespace"),
-	        @Column(name = "class_localPart", length = RUtil.COLUMN_LENGTH_LOCALPART)
-	})
-	public QName getObjectClass()
-	{
-		return objectClass;
-	}
-	
-	public void setObjectClass(QName objectClass)
-	{
-		this.objectClass = objectClass;
-	}
-	
-	@Lob
-	@Type(type = RUtil.LOB_STRING_TYPE)
-	public String getReportFields()
-	{
-		return reportFields;
-	}
-		
-	public void setReportFields(String reportFields)
-	{
-		this.reportFields = reportFields;
-	}
-	
-	@Lob
-	@Type(type = RUtil.LOB_STRING_TYPE)
-	public String getReportParameters() {
-		return reportParameters;
-	}
+    @Enumerated(EnumType.ORDINAL)
+    @Column(nullable = true)
+    public RExportType getReportExport() {
+        return reportExport;
+    }
 
-	public void setReportParameters(String reportParameters) {
-		this.reportParameters = reportParameters;
-	}
+    public void setReportExport(RExportType reportExport) {
+        this.reportExport = reportExport;
+    }
 
-	@Override
-	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (o == null || getClass() != o.getClass()) return false;
-		if (!super.equals(o)) return false;
+    @Lob
+    @Type(type = RUtil.LOB_STRING_TYPE)
+    public String getReportFields() {
+        return reportFields;
+    }
 
-		RReport rReport = (RReport) o;
+    public void setReportFields(String reportFields) {
+        this.reportFields = reportFields;
+    }
 
-		if (name != null ? !name.equals(rReport.name) : rReport.name != null) 
-			return false;
-	    if (reportTemplate != null ? !reportTemplate.equals(rReport.reportTemplate) : rReport.reportTemplate != null) 
-	    	return false;
-	    if (reportTemplateStyle != null ? !reportTemplateStyle.equals(rReport.reportTemplateStyle) : rReport.reportTemplateStyle != null) 
-	    	return false;
-	    if (reportOrientation != null ? !reportOrientation.equals(rReport.reportOrientation) : rReport.reportOrientation != null) 
-	    	return false;
-	    if (reportExport != null ? !reportExport.equals(rReport.reportExport) : rReport.reportExport != null) 
-	    	return false;
-	    if (query != null ? !query.equals(rReport.query) : rReport.query != null) 
-	    	return false;
-	    if (objectClass != null ? !objectClass.equals(rReport.objectClass) : rReport.objectClass != null) 
-	    	return false;      
-	    if (reportFields != null ? !reportFields.equals(rReport.reportFields) : rReport.reportFields != null) 
-	    	return false;
-	    if (reportParameters != null ? !reportParameters.equals(rReport.reportParameters) : rReport.reportParameters != null) 
-	    	return false;
-	    return true;
-	}
-	
-	@Override
-	public int hashCode() {
-		int result = super.hashCode();
-	      	result = 31 * result + (name != null ? name.hashCode() : 0);
-	        result = 31 * result + (reportTemplate != null ? reportTemplate.hashCode() : 0);
-	        result = 31 * result + (reportTemplateStyle != null ? reportTemplateStyle.hashCode() : 0);
-	        result = 31 * result + (reportOrientation != null ? reportOrientation.hashCode() : 0);
-	        result = 31 * result + (reportExport != null ? reportExport.hashCode() : 0);
-	        result = 31 * result + (query != null ? query.hashCode() : 0);
-	        result = 31 * result + (objectClass != null ? objectClass.hashCode() : 0);
-	        result = 31 * result + (reportFields != null ? reportFields.hashCode() : 0);
-	        result = 31 * result + (reportParameters != null ? reportParameters.hashCode() : 0);
-	        
-	    return result;
-	}
-	
-    public static void copyFromJAXB(ReportType jaxb, RReport repo, PrismContext prismContext) throws
-    DtoTranslationException {
-    	RObject.copyFromJAXB(jaxb, repo, prismContext);
+    @Index(name = "iReportParent")
+    public Boolean getParent() {
+        return parent;
+    }
 
-    	repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
-    	repo.setReportOrientation(RUtil.getRepoEnumValue(jaxb.getReportOrientation(), ROrientationType.class));
-    	repo.setReportExport(RUtil.getRepoEnumValue(jaxb.getReportExport(), RExportType.class));
-    	repo.setObjectClass(jaxb.getObjectClass());
-    	try
-    	{
-    		repo.setReportTemplate(RUtil.toRepo(jaxb.getReportTemplate(), prismContext));
-        	repo.setReportTemplateStyle(RUtil.toRepo(jaxb.getReportTemplateStyle(), prismContext));
-    		repo.setReportFields(RUtil.toRepo(jaxb.getReportField(),prismContext));
-    		repo.setReportParameters(RUtil.toRepo(jaxb.getReportParameter(), prismContext));
-    		repo.setQuery(RUtil.toRepo(jaxb.getQuery(), prismContext));
-    	}
-    	catch (Exception ex) {
-    		throw new DtoTranslationException(ex.getMessage(), ex);
-    	}
+    @Lob
+    @Type(type = RUtil.LOB_STRING_TYPE)
+    public String getSubReport() {
+        return subReport;
+    }
+
+    public Boolean getUseHibernateSession() {
+        return useHibernateSession;
+    }
+
+    @Embedded
+    public RDataSource getDataSource() {
+        return dataSource;
+    }
+
+    @Lob
+    @Type(type = RUtil.LOB_STRING_TYPE)
+    public String getConfiguration() {
+        return configuration;
+    }
+
+    @Lob
+    @Type(type = RUtil.LOB_STRING_TYPE)
+    public String getConfigurationSchema() {
+        return configurationSchema;
+    }
+
+    public void setParent(Boolean parent) {
+        this.parent = parent;
+    }
+
+    public void setSubReport(String subReport) {
+        this.subReport = subReport;
+    }
+
+    public void setUseHibernateSession(Boolean useHibernateSession) {
+        this.useHibernateSession = useHibernateSession;
+    }
+
+    public void setDataSource(RDataSource dataSource) {
+        this.dataSource = dataSource;
+    }
+
+    public void setConfiguration(String configuration) {
+        this.configuration = configuration;
+    }
+
+    public void setConfigurationSchema(String configurationSchema) {
+        this.configurationSchema = configurationSchema;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+
+        RReport rReport = (RReport) o;
+
+        if (name != null ? !name.equals(rReport.name) : rReport.name != null)
+            return false;
+        if (reportTemplate != null ? !reportTemplate.equals(rReport.reportTemplate) : rReport.reportTemplate != null)
+            return false;
+        if (reportTemplateStyle != null ? !reportTemplateStyle.equals(rReport.reportTemplateStyle) : rReport.reportTemplateStyle != null)
+            return false;
+        if (reportOrientation != null ? !reportOrientation.equals(rReport.reportOrientation) : rReport.reportOrientation != null)
+            return false;
+        if (reportExport != null ? !reportExport.equals(rReport.reportExport) : rReport.reportExport != null)
+            return false;
+        if (subReport != null ? !subReport.equals(rReport.subReport) : rReport.subReport != null)
+            return false;
+        if (dataSource != null ? !dataSource.equals(rReport.dataSource) : rReport.dataSource != null)
+            return false;
+        if (reportFields != null ? !reportFields.equals(rReport.reportFields) : rReport.reportFields != null)
+            return false;
+        if (configuration != null ? !configuration.equals(rReport.configuration) : rReport.configuration != null)
+            return false;
+        if (configurationSchema != null ? !configurationSchema.equals(rReport.configurationSchema) : rReport.configurationSchema != null)
+            return false;
+        if (parent != null ? !parent.equals(rReport.parent) : rReport.parent != null)
+            return false;
+        if (useHibernateSession != null ? !useHibernateSession.equals(rReport.useHibernateSession) : rReport.useHibernateSession != null)
+            return false;
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = super.hashCode();
+        result = 31 * result + (name != null ? name.hashCode() : 0);
+        result = 31 * result + (reportTemplate != null ? reportTemplate.hashCode() : 0);
+        result = 31 * result + (reportTemplateStyle != null ? reportTemplateStyle.hashCode() : 0);
+        result = 31 * result + (reportOrientation != null ? reportOrientation.hashCode() : 0);
+        result = 31 * result + (reportExport != null ? reportExport.hashCode() : 0);
+        result = 31 * result + (reportFields != null ? reportFields.hashCode() : 0);
+        result = 31 * result + (subReport != null ? subReport.hashCode() : 0);
+        result = 31 * result + (dataSource != null ? dataSource.hashCode() : 0);
+        result = 31 * result + (configuration != null ? configuration.hashCode() : 0);
+        result = 31 * result + (configurationSchema != null ? configurationSchema.hashCode() : 0);
+        result = 31 * result + (parent != null ? parent.hashCode() : 0);
+        result = 31 * result + (useHibernateSession != null ? useHibernateSession.hashCode() : 0);
+
+        return result;
+    }
+
+    public static void copyFromJAXB(ReportType jaxb, RReport repo, PrismContext prismContext)
+            throws DtoTranslationException {
+
+        RObject.copyFromJAXB(jaxb, repo, prismContext);
+
+        repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
+        repo.setReportOrientation(RUtil.getRepoEnumValue(jaxb.getOrientation(), ROrientationType.class));
+        repo.setReportExport(RUtil.getRepoEnumValue(jaxb.getExport(), RExportType.class));
+        repo.setParent(jaxb.isParent());
+        repo.setUseHibernateSession(jaxb.isUseHibernateSession());
+        if (jaxb.getDataSource() != null) {
+            RDataSource source = new RDataSource();
+            RDataSource.copyFromJAXB(jaxb.getDataSource(), source, prismContext);
+            repo.setDataSource(source);
+        }
+
+        try {
+            repo.setReportTemplate(RUtil.toRepo(jaxb.getTemplate(), prismContext));
+            repo.setReportTemplateStyle(RUtil.toRepo(jaxb.getTemplateStyle(), prismContext));
+            repo.setReportFields(RUtil.toRepo(jaxb.getReportField(), prismContext));
+
+            repo.setConfiguration(RUtil.toRepo(jaxb.getConfiguration(), prismContext));
+            repo.setConfigurationSchema(RUtil.toRepo(jaxb.getConfigurationSchema(), prismContext));
+            repo.setSubReport(RUtil.toRepo(jaxb.getSubReport(), prismContext));
+        } catch (Exception ex) {
+            throw new DtoTranslationException(ex.getMessage(), ex);
+        }
     }
 
     public static void copyToJAXB(RReport repo, ReportType jaxb, PrismContext prismContext,
-                          Collection<SelectorOptions<GetOperationOptions>> options) throws
-    DtoTranslationException {
-    	RObject.copyToJAXB(repo, jaxb, prismContext, options);
+                                  Collection<SelectorOptions<GetOperationOptions>> options)
+            throws DtoTranslationException {
 
-    	jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
-    	if (repo.getReportOrientation() != null) {
-             jaxb.setReportOrientation(repo.getReportOrientation().getSchemaValue());
-         }
-    	if (repo.getReportExport() != null) {
-            jaxb.setReportExport(repo.getReportExport().getSchemaValue());
+        RObject.copyToJAXB(repo, jaxb, prismContext, options);
+
+        jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
+        jaxb.setParent(repo.getParent());
+        jaxb.setUseHibernateSession(repo.getUseHibernateSession());
+        if (repo.getDataSource() != null) {
+            jaxb.setDataSource(repo.getDataSource().toJAXB(prismContext));
         }
-    	
-    	jaxb.setObjectClass(repo.getObjectClass());
-    	try
-    	{
-    		if (StringUtils.isNotEmpty(repo.getReportTemplate())) {
-    			jaxb.setReportTemplate(RUtil.toJAXB(ReportType.class, new ItemPath(ReportType.F_REPORT_TEMPLATE),
-    					repo.getReportTemplate(), ReportTemplateType.class, prismContext));
-    		}
-    		if (StringUtils.isNotEmpty(repo.getReportTemplateStyle())) {
-                jaxb.setReportTemplateStyle(RUtil.toJAXB(ReportType.class, new ItemPath(ReportType.F_REPORT_TEMPLATE_STYLE),
+        if (repo.getReportOrientation() != null) {
+            jaxb.setOrientation(repo.getReportOrientation().getSchemaValue());
+        }
+        if (repo.getReportExport() != null) {
+            jaxb.setExport(repo.getReportExport().getSchemaValue());
+        }
+
+        try {
+            if (StringUtils.isNotEmpty(repo.getReportTemplate())) {
+                jaxb.setTemplate(RUtil.toJAXB(ReportType.class, new ItemPath(ReportType.F_TEMPLATE),
+                        repo.getReportTemplate(), ReportTemplateType.class, prismContext));
+            }
+            if (StringUtils.isNotEmpty(repo.getReportTemplateStyle())) {
+                jaxb.setTemplateStyle(RUtil.toJAXB(ReportType.class, new ItemPath(ReportType.F_TEMPLATE_STYLE),
                         repo.getReportTemplateStyle(), ReportTemplateStyleType.class, prismContext));
-    		}
-    		 if (StringUtils.isNotEmpty(repo.getReportFields())) {
-    			 List<ReportFieldConfigurationType> reportField = RUtil.toJAXB(ReportType.class, null, repo.getReportFields(), List.class, null,
-                         prismContext);
-                 jaxb.getReportField().addAll(reportField);
-             }
-    		 
-    		 if (StringUtils.isNotEmpty(repo.getReportParameters())) {
-    			 List<ReportParameterConfigurationType> reportParameter = RUtil.toJAXB(ReportType.class, null, repo.getReportParameters(), List.class, null,
-                         prismContext);
-                 jaxb.getReportParameter().addAll(reportParameter);
-             }
-    		 
-    		 jaxb.setQuery(RUtil.toJAXB(ReportType.class, new ItemPath(ReportType.F_QUERY), repo.getQuery(), QueryType.class, prismContext));
-    	}
-    	catch (Exception ex)
-    	{
-    		throw new DtoTranslationException(ex.getMessage(), ex);
-    	}
-    }	 
+            }
+            if (StringUtils.isNotEmpty(repo.getReportFields())) {
+                List<ReportFieldConfigurationType> reportField = RUtil.toJAXB(ReportType.class, null, repo.getReportFields(), List.class, null,
+                        prismContext);
+                jaxb.getReportField().addAll(reportField);
+            }
 
-	@Override
-	public ReportType toJAXB(PrismContext prismContext,
-			Collection<SelectorOptions<GetOperationOptions>> options)
-			throws DtoTranslationException {
-		
-		 ReportType object = new ReportType();
-	     RUtil.revive(object, prismContext);
-	     RReport.copyToJAXB(this, object, prismContext, options);
+            if (StringUtils.isNotEmpty(repo.getConfigurationSchema())) {
+                jaxb.setConfigurationSchema(RUtil.toJAXB(ReportType.class, new ItemPath(ReportType.F_CONFIGURATION_SCHEMA),
+                        repo.getConfigurationSchema(), XmlSchemaType.class, prismContext));
+            }
 
-	     return object;
-	}
-	
-	
+            if (StringUtils.isNotEmpty(repo.getConfiguration())) {
+                jaxb.setConfiguration(RUtil.toJAXB(ReportType.class, new ItemPath(ReportType.F_CONFIGURATION),
+                        repo.getConfiguration(), ReportConfigurationType.class, prismContext));
+            }
+
+            if (StringUtils.isNotEmpty(repo.getSubReport())) {
+                List<SubReportType> reportParameter = RUtil.toJAXB(ReportType.class, null, repo.getSubReport(), List.class, null,
+                        prismContext);
+                jaxb.getSubReport().addAll(reportParameter);
+            }
+        } catch (Exception ex) {
+            throw new DtoTranslationException(ex.getMessage(), ex);
+        }
+    }
+
+    @Override
+    public ReportType toJAXB(PrismContext prismContext,
+                             Collection<SelectorOptions<GetOperationOptions>> options)
+            throws DtoTranslationException {
+
+        ReportType object = new ReportType();
+        RUtil.revive(object, prismContext);
+        RReport.copyToJAXB(this, object, prismContext, options);
+
+        return object;
+    }
+
+
 }
