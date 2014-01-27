@@ -28,5 +28,11 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 public interface Parser {
 	
 	XNode parse(File file) throws SchemaException, IOException;
+	
+	XNode parse(String dataString) throws SchemaException;
+	
+	boolean canParse(File file) throws IOException;
+	
+	boolean canParse(String dataString);
 
 }

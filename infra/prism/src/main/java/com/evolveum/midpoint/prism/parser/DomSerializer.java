@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.prism.dom;
+package com.evolveum.midpoint.prism.parser;
 
 import java.util.List;
 
@@ -39,6 +39,7 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
@@ -52,15 +53,17 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  */
 public class DomSerializer {
 	
-	private PrismContext prismContext;
 	private Document doc;
 	private Element topElement;
 	private boolean serializeCompositeObjects = false;
-	private boolean fortifyNamespaces = false; 
+	private boolean fortifyNamespaces = false;
+	private DOMParser parser;
+	private SchemaRegistry schemaRegistry;
 	
-	DomSerializer(PrismContext prismContext) {
+	DomSerializer(DOMParser parser, SchemaRegistry schemaRegistry) {
 		super();
-		this.prismContext = prismContext;
+		this.parser = parser;
+		this.schemaRegistry = schemaRegistry;
 	}
 	
 	public boolean isSerializeCompositeObjects() {
@@ -72,7 +75,7 @@ public class DomSerializer {
 	}
 
 	private DynamicNamespacePrefixMapper getNamespacePrefixMapper() {
-		return prismContext.getSchemaRegistry().getNamespacePrefixMapper();
+		return schemaRegistry.getNamespacePrefixMapper();
 	}
 
 	public Element serialize(PrismObject<?> object) throws SchemaException {
@@ -99,7 +102,7 @@ public class DomSerializer {
         QName elementQName = new QName(topElement.getNamespaceURI(), topElement.getLocalName());
 		if (object.getDefinition() != null &&
 //				!prismContext.getSchemaRegistry().hasImplicitTypeDefinition(object.getName(), object.getDefinition().getTypeName())) {
-                !prismContext.getSchemaRegistry().hasImplicitTypeDefinition(elementQName, object.getDefinition().getTypeName())) {
+                !schemaRegistry.hasImplicitTypeDefinition(elementQName, object.getDefinition().getTypeName())) {
 			DOMUtil.setXsiType(topElement, object.getDefinition().getTypeName());
 		}
 	}
@@ -167,7 +170,7 @@ public class DomSerializer {
 
 		} else {
 			// JAXB value
-			PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
+			PrismJaxbProcessor jaxbProcessor = null;
 			if (jaxbProcessor.canConvert(type)) {
 				try {
 					jaxbProcessor.marshalObjectToDom(value.getValue(), elementName, parentElement);
@@ -193,7 +196,7 @@ public class DomSerializer {
 			Element adoptedElement = (Element) ownerDocument.adoptNode((Element)rawElement);
 			parentElement.appendChild(adoptedElement);
 		} else if (rawElement instanceof JAXBElement){
-			PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
+			PrismJaxbProcessor jaxbProcessor = null;
 			try {
 				jaxbProcessor.marshalElementToDom((JAXBElement)rawElement, parentElement);
 			} catch (JAXBException e) {
@@ -326,7 +329,7 @@ public class DomSerializer {
 			}
 		}
 		if (value.getDescription() != null) {
-			String namespace = prismContext.getPrismDomProcessor().determineElementNamespace(parent,
+			String namespace = determineElementNamespace(parent,
 					PrismConstants.ELEMENT_DESCRIPTION_LOCAL_NAME);
 			Document doc = element.getOwnerDocument();
 			Element descriptionElement = doc.createElementNS(namespace, PrismConstants.ELEMENT_DESCRIPTION_LOCAL_NAME);
@@ -334,7 +337,7 @@ public class DomSerializer {
 			descriptionElement.setTextContent(value.getDescription());
 		}
 		if (value.getFilter() != null) {
-			String namespace = prismContext.getPrismDomProcessor().determineElementNamespace(parent,
+			String namespace = determineElementNamespace(parent,
 					PrismConstants.ELEMENT_FILTER_LOCAL_NAME);
 			Document doc = element.getOwnerDocument();
 			Element filterElement = doc.createElementNS(namespace, PrismConstants.ELEMENT_FILTER_LOCAL_NAME);
@@ -373,6 +376,20 @@ public class DomSerializer {
 			// This is needed otherwise the root element itself could not be created
 			return DOMUtil.createElement(doc, qnameWithPrefix);
 		}
+	}
+
+	/**
+	 * Determines proper name for the element with specified local name.
+	 */
+	public String determineElementNamespace(Itemable parent, String elementDescriptionLocalName) {
+		ItemDefinition definition = parent.getDefinition();
+		if (definition == null) {
+			return parent.getElementName().getNamespaceURI();
+		}
+		// This is very simplistic now, it assumes that all elements are in the
+		// "tns" namespace.
+		// TODO: Improve it later.
+		return definition.getTypeName().getNamespaceURI();
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,13 @@
 
 package com.evolveum.midpoint.prism.xjc;
 
+import java.util.AbstractList;
+import java.util.Collection;
+
+import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.Validate;
+
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.PrismContainer;
@@ -23,46 +30,36 @@ import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContainerable;
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismProperty;
-import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismValue;
-import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 
-import org.apache.commons.lang.Validate;
-import org.w3c.dom.Document;
-
-import java.util.AbstractList;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-
-import javax.xml.namespace.QName;
-
 /**
+ * A list used for JAXB getAny() methods.
+ * It is not used for normal prism operation, not even if compilte-time (JAXB) classes are used.
+ * It is quite a bad way to use getAny() methods from the JAXB classes, it is much better to use
+ * prism facet instead. However we need this to be fully JAXB compliant and therefore support
+ * XML marshalling/unmarshalling. This is important e.g. for JAX-WS.
  * 
  * @author Radovan Semancik
  */
-public class AnyArrayList<T extends Containerable> extends AbstractList<Object> {
+public class AnyArrayList<C extends Containerable> extends AbstractList<Object> {
 
-    private PrismContainerValue<T> containerValue;
-    private Document document;
+    private PrismContainerValue<C> containerValue;
 
-    public AnyArrayList(PrismContainerValue<T> containerValue) {
+    public AnyArrayList(PrismContainerValue<C> containerValue) {
         Validate.notNull(containerValue, "Container value must not be null.");
         this.containerValue = containerValue;
-        this.document = DOMUtil.getDocument();
     }
 
     @Override
     public int size() {
     	if (isSchemaless()) {
-    		return getRawElements().size();
+    		return containerValue.getRawElements().size();
     	} else {
 	    	// Each item and each value are presented as one list entry
+    		// (multi-valued items are represented as multiple occurrences of the same element)
 	    	int size = 0;
 	    	for (Item<?> item: containerValue.getItems()) {
 	    		size += item.getValues().size();
@@ -74,7 +71,7 @@ public class AnyArrayList<T extends Containerable> extends AbstractList<Object> 
     @Override
     public Object get(int index) {
     	if (isSchemaless()) {
-    		return getRawElements().get(index);
+    		return containerValue.getRawElements().get(index);
     	} else {
 	    	for (Item<?> item: containerValue.getItems()) {
 	    		if (index < item.getValues().size()) {
@@ -109,23 +106,12 @@ public class AnyArrayList<T extends Containerable> extends AbstractList<Object> 
 
     @Override
     public boolean add(Object element) {
-    	if (isSchemaless()) {
-    		return getRawElements().add(element);
-    	} else {
-	    	QName elementName = JAXBUtil.getElementQName(element);
-	    	Item<?> item;
-			try {
-				item = containerValue.findOrCreateItem(elementName);
-			} catch (SchemaException e1) {
-				// this should not happen
-				throw new IllegalStateException("Internal schema error: "+e1.getMessage(),e1);
-			}
-	    	try {
-				return getPrismContext().getPrismDomProcessor().addItemValue(item, element, getContainer());
-			} catch (SchemaException e) {
-				throw new IllegalArgumentException("Element "+elementName+" cannot be added because is violates object schema: "+e.getMessage(),e);
-			}
-    	}
+    	try {
+    		return containerValue.addRawElement(element);
+		} catch (SchemaException e) {
+			QName elementName = JAXBUtil.getElementQName(element);
+			throw new IllegalArgumentException("Element "+elementName+" cannot be added because is violates object schema: "+e.getMessage(),e);
+		}
     }
 
 	@Override
@@ -136,7 +122,7 @@ public class AnyArrayList<T extends Containerable> extends AbstractList<Object> 
     @Override
     public Object remove(int index) {
     	if (isSchemaless()) {
-    		return getRawElements().remove(index);
+    		return containerValue.getRawElements().remove(index);
     	} else {
     		for (Item<?> item: containerValue.getItems()) {
 	    		if (index < item.getValues().size()) {
@@ -152,13 +138,12 @@ public class AnyArrayList<T extends Containerable> extends AbstractList<Object> 
     @Override
     public boolean remove(Object element) {
     	if (isSchemaless()) {
-    		return getRawElements().remove(element);
+    		return containerValue.removeRawElement(element);
     	} else {
-    		QName elementName = JAXBUtil.getElementQName(element);
-        	Item<?> item = containerValue.findItem(elementName);
         	try {
-				return getPrismContext().getPrismDomProcessor().deleteItemValue(item, element, getContainer());
+        		return containerValue.deleteRawElement(element);
 			} catch (SchemaException e) {
+	    		QName elementName = JAXBUtil.getElementQName(element);
 				throw new IllegalArgumentException("Element "+elementName+" cannot be removed because is violates object schema: "+e.getMessage(),e);
 			}
     	}
@@ -178,7 +163,7 @@ public class AnyArrayList<T extends Containerable> extends AbstractList<Object> 
     }
     
     private PrismContainerDefinition getDefinition() {
-    	PrismContainerable<T> parent = containerValue.getParent();
+    	PrismContainerable<C> parent = containerValue.getParent();
     	if (parent == null) {
     		return null;
     	}
@@ -188,12 +173,8 @@ public class AnyArrayList<T extends Containerable> extends AbstractList<Object> 
     private boolean isSchemaless() {
     	return getDefinition() == null;
     }
-    
-    private List<Object> getRawElements() {
-    	return containerValue.getRawElements();
-    }
-    
-    private PrismContainer<T> getContainer() {
+        
+    private PrismContainer<C> getContainer() {
     	return containerValue.getContainer();
     }
     
@@ -207,7 +188,7 @@ public class AnyArrayList<T extends Containerable> extends AbstractList<Object> 
             throw new IllegalStateException("prismContext is null in " + containerValue);
         }
 		try {
-			return prismContext.getPrismJaxbProcessor().toAny(itemValue, document);
+			return prismContext.getJaxbDomHack().toAny(itemValue);
 		} catch (SchemaException e) {
 			throw new SystemException("Unexpected schema problem: "+e.getMessage(),e);
 		}

@@ -333,4 +333,18 @@ public class DebugUtil {
 		return PrettyPrinter.prettyPrint(date);
 	}
 
+	public static String excerpt(String input, int maxChars) {
+		if (input == null) {
+			return null;
+		}
+		int eolIndex = input.indexOf('\n');
+		if (eolIndex >= 0) {
+			maxChars = eolIndex;
+		}
+		if (input.length() <= maxChars) {
+			return input;
+		}
+		return input.substring(0, maxChars)+"...";
+	}
+
 }

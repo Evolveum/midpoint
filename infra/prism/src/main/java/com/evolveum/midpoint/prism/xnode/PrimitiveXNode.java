@@ -27,6 +27,13 @@ public class PrimitiveXNode<T> extends XNode {
 	private T value;
 	private ValueParser<T> valueParser;
 	
+	/**
+	 * If set to true then this primitive value either came from an attribute
+	 * or we prefer this to be represented as an attribute (if the target format
+	 * is capable of representing attributes)
+	 */
+	private boolean isAttribute = false;
+	
 	public void parseValue(QName typeName) throws SchemaException {
 		if (valueParser != null) {
 			value = valueParser.parse(typeName);
@@ -60,7 +67,14 @@ public class PrimitiveXNode<T> extends XNode {
 		return value != null;
 	}
 
-	
+	public boolean isAttribute() {
+		return isAttribute;
+	}
+
+	public void setAttribute(boolean isAttribute) {
+		this.isAttribute = isAttribute;
+	}
+
 	/**
 	 * Returns a value that is correctly string-formatted according
 	 * to its type definition. Works properly only if definition is set.
@@ -90,6 +104,9 @@ public class PrimitiveXNode<T> extends XNode {
 	public String toString() {
 		StringBuilder sb = new StringBuilder("XNode(primitive:");
 		valueToString(sb);
+		if (isAttribute) {
+			sb.append(",attr");
+		}
 		sb.append(")");
 		return sb.toString();
 	}

@@ -135,7 +135,7 @@ public class XNodeProcessor {
 		} else if (xnode instanceof ListXNode) {
 			PrismContainer<C> container = containerDef.instantiate(elementName);
 			for (XNode xsubnode: (ListXNode)xnode) {
-				PrismContainerValue<C> containerValue = parsePrismContainerValue(xsubnode, container);
+				PrismContainerValue<C> containerValue = parsePrismContainerValue(xsubnode, containerDef);
 				container.add(containerValue);
 			}
 			return container;
@@ -147,25 +147,24 @@ public class XNodeProcessor {
 	private <C extends Containerable> PrismContainer<C> parsePrismContainerFromMap(MapXNode xmap, QName elementName, 
 			PrismContainerDefinition<C> containerDef, Collection<QName> ignoredItems) throws SchemaException {
 		PrismContainer<C> container = containerDef.instantiate(elementName);
-		PrismContainerValue<C> cval = parsePrismContainerValueFromMap(xmap, container, ignoredItems);
+		PrismContainerValue<C> cval = parsePrismContainerValueFromMap(xmap, containerDef, ignoredItems);
 		container.add(cval);
 		return container;
 	}
 	
-	public <C extends Containerable> PrismContainerValue<C> parsePrismContainerValue(XNode xnode, PrismContainer<C> container)
+	public <C extends Containerable> PrismContainerValue<C> parsePrismContainerValue(XNode xnode, PrismContainerDefinition<C> containerDef)
 			throws SchemaException {
 		if (xnode instanceof MapXNode) {
-			return parsePrismContainerValueFromMap((MapXNode)xnode, container, null);
+			return parsePrismContainerValueFromMap((MapXNode)xnode, containerDef, null);
 		} else {
 			throw new IllegalArgumentException("Cannot parse container value from "+xnode);
 		}
 	}
 
-	private <C extends Containerable> PrismContainerValue<C> parsePrismContainerValueFromMap(MapXNode xmap, PrismContainer<C> container,
+	private <C extends Containerable> PrismContainerValue<C> parsePrismContainerValueFromMap(MapXNode xmap, PrismContainerDefinition<C> containerDef,
 			Collection<QName> ignoredItems) throws SchemaException {
 		Long id = getContainerId(xmap);
-		PrismContainerValue<C> cval = new PrismContainerValue<C>(null, null, container, id);
-		PrismContainerDefinition<C> containerDef = container.getDefinition();
+		PrismContainerValue<C> cval = new PrismContainerValue<C>(null, null, null, id);
 		for (Entry<QName,XNode> xentry: xmap.entrySet()) {
 			QName itemQName = xentry.getKey();
 			if (QNameUtil.match(itemQName, XNode.KEY_CONTAINER_ID)) {
@@ -458,7 +457,7 @@ public class XNodeProcessor {
 	}
 	
 	public PrismReferenceValue parseReferenceValue(MapXNode xmap) throws SchemaException {
-		String oid = getOid(xmap);
+		String oid = xmap.getParsedPrimitiveValue(XNode.KEY_REFERENCE_OID, DOMUtil.XSD_STRING);
 		PrismReferenceValue refVal = new PrismReferenceValue(oid);
 
 		QName type = xmap.getParsedPrimitiveValue(XNode.KEY_REFERENCE_TYPE, DOMUtil.XSD_QNAME);
@@ -470,6 +469,12 @@ public class XNodeProcessor {
 		refVal.setDescription((String) xmap.getParsedPrimitiveValue(XNode.KEY_REFERENCE_DESCRIPTION, DOMUtil.XSD_STRING));
 
 		refVal.setFilter(parseFilter(xmap.get(XNode.KEY_REFERENCE_FILTER)));
+		
+		XNode xrefObject = xmap.get(XNode.KEY_REFERENCE_OBJECT);
+		if (xrefObject != null) {
+			PrismObject<Objectable> object = parseObject(xrefObject);
+			refVal.setObject(object);
+		}
 
 		return refVal;
 	}
@@ -529,4 +534,10 @@ public class XNodeProcessor {
 	private Long getContainerId(MapXNode xmap) throws SchemaException {
 		return xmap.getParsedPrimitiveValue(XNode.KEY_CONTAINER_ID, DOMUtil.XSD_LONG);
 	}
+	
+	// --------------------------
+	// -- SERIALIZATION
+	// --------------------------
+	
+
 }

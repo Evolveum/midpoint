@@ -230,26 +230,6 @@ public class PrismObject<T extends Objectable> extends PrismContainer<T> {
 	}
 	
 	/**
-	 * Returns a live DOM representation of the object.
-	 * 
-	 * Although the representation should be DOM-compliant, current implementation is only somehow compliant.
-	 * E.g. it cannot provide owner document and the parent links may be broken in JAXB objects. But it may be
-	 * good for some uses.
-	 * 
-	 * For a full DOM representation see {@link PrismJaxbProcessor} (serializeToDom).
-	 */
-	public Element asDomElement() {
-		// TODO: OID
-		return getValue().asDomElement();
-	}
-
-	private Collection<ItemPath> listItemPaths() {
-		List<ItemPath> list = new ArrayList<ItemPath>();
-		addItemPathsToList(new ItemPath(), list);
-		return list;
-	}
-
-	/**
 	 * Note: hashcode and equals compare the objects in the "java way". That means the objects must be
 	 * almost preciselly equal to match (e.g. including source demarcation in values and other "annotations").
 	 * For a method that compares the "meaningful" parts of the objects see equivalent().

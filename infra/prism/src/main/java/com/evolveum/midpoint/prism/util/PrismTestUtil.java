@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,6 +54,8 @@ public class PrismTestUtil {
 
     private static PrismContext prismContext;
     private static PrismContextFactory prismContextFactory;
+    // This is just for testing
+    private static PrismJaxbProcessor prismJaxbProcessor;
     
     public static void resetPrismContext(PrismContextFactory newPrismContextFactory) throws SchemaException, SAXException, IOException {
     	if (prismContextFactory == newPrismContextFactory) {
@@ -100,20 +102,21 @@ public class PrismTestUtil {
     // == parsing
     // ==========================
     
-    public static <T extends Objectable> PrismObject<T> parseObject(File file) throws SchemaException {
-    	return getPrismContext().getPrismDomProcessor().parseObject(file);
+    public static <T extends Objectable> PrismObject<T> parseObject(File file) throws SchemaException, IOException {
+    	return getPrismContext().parseObject(file);
     }
     
     public static <T extends Objectable> PrismObject<T> parseObject(String xmlString) throws SchemaException {
     	return getPrismContext().parseObject(xmlString);
     }
     
+    @Deprecated
     public static <T extends Objectable> PrismObject<T> parseObject(Element element) throws SchemaException {
     	return getPrismContext().parseObject(element);
     }
     
     public static List<PrismObject<? extends Objectable>> parseObjects(File file) throws SchemaException {
-    	return getPrismContext().getPrismDomProcessor().parseObjects(file);
+    	return getPrismContext().parseObjects(file);
     }
     
     public static <T extends Objectable> ObjectDelta<T> parseDelta(File file) throws SchemaException {
@@ -126,8 +129,8 @@ public class PrismTestUtil {
     // == Serializing
     // ==========================
 
-    public static String serializeObjectToString(PrismObject<? extends Objectable> object) throws SchemaException {
-    	return getPrismContext().getPrismDomProcessor().serializeObjectToString(object);
+    public static String serializeObjectToString(PrismObject<? extends Objectable> object, String language) throws SchemaException {
+    	return getPrismContext().serializeObjectToString(object, language);
     }
     
     // ==========================
@@ -190,12 +193,11 @@ public class PrismTestUtil {
     }
 
 	private static PrismJaxbProcessor getPrismJaxbProcessor() {
-		if (prismContext == null) {
-			throw new IllegalStateException("No prism context in Prism test util");
-		}
-		PrismJaxbProcessor prismJaxbProcessor = prismContext.getPrismJaxbProcessor();
 		if (prismJaxbProcessor == null) {
-			throw new IllegalStateException("No prism JAXB processor in Prism test util");
+			if (prismContext == null) {
+				throw new IllegalStateException("No prism context in Prism test util");
+			}
+			prismJaxbProcessor = new PrismJaxbProcessor(prismContext);
 		}
 		return prismJaxbProcessor;
 	}

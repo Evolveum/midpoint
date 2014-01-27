@@ -17,8 +17,14 @@ package com.evolveum.midpoint.prism;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -27,7 +33,9 @@ import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
+import com.evolveum.midpoint.prism.parser.DOMParser;
+import com.evolveum.midpoint.prism.parser.JaxbDomHack;
+import com.evolveum.midpoint.prism.parser.Parser;
 import com.evolveum.midpoint.prism.parser.PrismBeanConverter;
 import com.evolveum.midpoint.prism.parser.XNodeProcessor;
 import com.evolveum.midpoint.prism.path.ItemPath;
@@ -36,9 +44,10 @@ import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
 import com.evolveum.midpoint.prism.schema.SchemaDefinitionFactory;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 /**
@@ -46,15 +55,22 @@ import javax.xml.namespace.QName;
  *
  */
 public class PrismContext {
+	
+	public static final String LANG_XML = "xml";
+	public static final String LANG_JSON = "json";
+	public static final String LANG_YAML = "yaml";
 
     private static final Trace LOGGER = TraceManager.getTrace(PrismContext.class);
 	private SchemaRegistry schemaRegistry;
-	private PrismJaxbProcessor prismJaxbProcessor;
-	private PrismDomProcessor prismDomProcessor;
 	private XNodeProcessor xnodeProcessor;
 	private PrismBeanConverter beanConverter;
 	private SchemaDefinitionFactory definitionFactory;
 	private PolyStringNormalizer defaultPolyStringNormalizer;
+	private Map<String, Parser> parserMap;
+	
+	// We need to keep this because of deprecated methods and various hacks
+	private DOMParser parserDom;
+	private JaxbDomHack jaxbDomHack;
 
 	private PrismContext() {
 		// empty
@@ -65,17 +81,16 @@ public class PrismContext {
 		prismContext.schemaRegistry = schemaRegistry;
 		schemaRegistry.setPrismContext(prismContext);
 
-		PrismJaxbProcessor prismJaxbProcessor = new PrismJaxbProcessor(prismContext);
-		prismJaxbProcessor.initialize();
-		prismContext.prismJaxbProcessor = prismJaxbProcessor;
-
-		PrismDomProcessor prismDomProcessor = new PrismDomProcessor(schemaRegistry);
-		prismDomProcessor.setPrismContext(prismContext);
-		prismContext.prismDomProcessor = prismDomProcessor;
-		
 		prismContext.xnodeProcessor = new XNodeProcessor(prismContext);
 		prismContext.beanConverter = new PrismBeanConverter(schemaRegistry);
 
+		prismContext.parserMap = new HashMap<String, Parser>();
+		DOMParser parserDom = new DOMParser();
+		prismContext.parserMap.put(LANG_XML, parserDom);
+		prismContext.parserDom = parserDom;
+		
+		prismContext.jaxbDomHack = new JaxbDomHack(parserDom);
+		
 		return prismContext;
 	}
 	
@@ -102,28 +117,23 @@ public class PrismContext {
 		this.schemaRegistry = schemaRegistry;
 	}
 
-	public PrismJaxbProcessor getPrismJaxbProcessor() {
-		return prismJaxbProcessor;
-	}
-
-	public void setPrismJaxbProcessor(PrismJaxbProcessor prismJaxbProcessor) {
-		this.prismJaxbProcessor = prismJaxbProcessor;
-	}
-
-	public PrismDomProcessor getPrismDomProcessor() {
-		return prismDomProcessor;
-	}
-
-	public void setPrismDomProcessor(PrismDomProcessor prismDomProcessor) {
-		this.prismDomProcessor = prismDomProcessor;
-	}
-
 	public XNodeProcessor getXnodeProcessor() {
 		return xnodeProcessor;
 	}
 
+	/**
+	 * WARNING! This is not really public method. It should NOT not used outside the prism implementation.
+	 */
+	public DOMParser getParserDom() {
+		return parserDom;
+	}
+
 	public PrismBeanConverter getBeanConverter() {
 		return beanConverter;
+	}
+
+	public JaxbDomHack getJaxbDomHack() {
+		return jaxbDomHack;
 	}
 
 	public SchemaDefinitionFactory getDefinitionFactory() {
@@ -144,28 +154,81 @@ public class PrismContext {
 	public void setDefaultPolyStringNormalizer(PolyStringNormalizer defaultPolyStringNormalizer) {
 		this.defaultPolyStringNormalizer = defaultPolyStringNormalizer;
 	}
+	
+	private Parser getParser(String language) {
+		return parserMap.get(language);
+	}
 
 	/**
 	 * Parses a DOM object and creates a prism from it. It copies data from the original object to the prism.
 	 */
+	@Deprecated
 	public <T extends Objectable> PrismObject<T> parseObject(Element objectElement) throws SchemaException {
-		return prismDomProcessor.parseObject(objectElement);
+		XNode xnode = parserDom.parseElement(objectElement);
+		return xnodeProcessor.parseObject(xnode);
 	}
 
+	/**
+	 * Parses a file and creates a prism from it. Autodetect language.
+	 * @throws IOException 
+	 */
+	public <T extends Objectable> PrismObject<T> parseObject(File file) throws SchemaException, IOException {
+		Parser parser = null;
+		for (Entry<String,Parser> entry: parserMap.entrySet()) {
+			Parser aParser = entry.getValue();
+			if (aParser.canParse(file)) {
+				parser = aParser;
+				break;
+			}
+		}
+		if (parser == null) {
+			throw new SystemException("No parser for file '"+file+"' (autodetect)");
+		}
+		XNode xnode = parser.parse(file);
+		return xnodeProcessor.parseObject(xnode);
+	}
 	/**
 	 * Parses a file and creates a prism from it.
 	 */
-	public <T extends Objectable> PrismObject<T> parseObject(File file) throws SchemaException {
-		// Use DOM now. We will switch to StAX later.
-		return prismDomProcessor.parseObject(file);
+	public <T extends Objectable> PrismObject<T> parseObject(File file, String language) throws SchemaException, IOException {
+		Parser parser = getParser(language);
+		if (parser == null) {
+			throw new SystemException("No parser for language '"+language+"'");
+		}
+		XNode xnode = parser.parse(file);
+		return xnodeProcessor.parseObject(xnode);
 	}
 
 	/**
-	 * Parses a string and creates a prism from it.
+	 * Parses a string and creates a prism from it. Autodetect language. 
+	 * Used mostly for testing, but can also be used for built-in editors, etc.
 	 */
-	public <T extends Objectable> PrismObject<T> parseObject(String xmlString) throws SchemaException {
-		// Use DOM now. We will switch to StAX later.
-		return prismDomProcessor.parseObject(xmlString);
+	public <T extends Objectable> PrismObject<T> parseObject(String dataString) throws SchemaException {
+		Parser parser = null;
+		for (Entry<String,Parser> entry: parserMap.entrySet()) {
+			Parser aParser = entry.getValue();
+			if (aParser.canParse(dataString)) {
+				parser = aParser;
+				break;
+			}
+		}
+		if (parser == null) {
+			throw new SystemException("No parser for data '"+DebugUtil.excerpt(dataString,16)+"' (autodetect)");
+		}
+		XNode xnode = parser.parse(dataString);
+		return xnodeProcessor.parseObject(xnode);
+	}
+	
+	/**
+	 * Parses a string and creates a prism from it. Used mostly for testing, but can also be used for built-in editors, etc.
+	 */
+	public <T extends Objectable> PrismObject<T> parseObject(String dataString, String language) throws SchemaException {
+		Parser parser = getParser(language);
+		if (parser == null) {
+			throw new SystemException("No parser for language '"+language+"'");
+		}
+		XNode xnode = parser.parse(dataString);
+		return xnodeProcessor.parseObject(xnode);
 	}
 
 	/**
@@ -204,29 +267,47 @@ public class PrismContext {
 		getSchemaRegistry().applyDefinition(prismContainerValue, typeName, path, false);
 	}
 
+	public List<PrismObject<? extends Objectable>> parseObjects(File file) {
+		throw new UnsupportedOperationException();
+	}
+
+	public <O extends Objectable> String serializeObjectToString(PrismObject<O> object, String language) {
+		Parser parser = getParser(language);
+		if (parser == null) {
+			throw new SystemException("No parser for language '"+language+"'");
+		}
+		throw new UnsupportedOperationException();
+	}
+
+	@Deprecated
+	public <O extends Objectable> Element serializeToDom(PrismObject<O> object) {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException();
+	}
+
     /**
      * Method used to marshal objects to xml in debug messages.
      * @param object
      * @return xml as string
      */
-    public String silentMarshalObject(Object object, Trace logger) {
-        String xml = null;
-        try {
-            QName fakeQName=new QName(PrismConstants.NS_PREFIX + "debug", "debugPrintObject");
-            if (object instanceof Objectable) {
-                xml = prismDomProcessor.serializeObjectToString(((Objectable) object).asPrismObject());
-            } else if (object instanceof Containerable) {
-                Element fakeParent = DOMUtil.createElement(DOMUtil.getDocument(), fakeQName);
-                xml = prismDomProcessor.serializeObjectToString(((Containerable) object).asPrismContainerValue(),
-                        fakeParent);
-            } else {
-                xml = prismJaxbProcessor.marshalElementToString(new JAXBElement<Object>(fakeQName, Object.class, object));
-            }
-        } catch (Exception ex) {
-            Trace log = logger != null ? logger : LOGGER;
-            LoggingUtils.logException(log, "Couldn't marshal element to string {}", ex, object);
-        }
-        return xml;
-    }
+//    public String silentMarshalObject(Object object, Trace logger) {
+//        String xml = null;
+//        try {
+//            QName fakeQName=new QName(PrismConstants.NS_PREFIX + "debug", "debugPrintObject");
+//            if (object instanceof Objectable) {
+//                xml = prismDomProcessor.serializeObjectToString(((Objectable) object).asPrismObject());
+//            } else if (object instanceof Containerable) {
+//                Element fakeParent = DOMUtil.createElement(DOMUtil.getDocument(), fakeQName);
+//                xml = prismDomProcessor.serializeObjectToString(((Containerable) object).asPrismContainerValue(),
+//                        fakeParent);
+//            } else {
+//                xml = prismJaxbProcessor.marshalElementToString(new JAXBElement<Object>(fakeQName, Object.class, object));
+//            }
+//        } catch (Exception ex) {
+//            Trace log = logger != null ? logger : LOGGER;
+//            LoggingUtils.logException(log, "Couldn't marshal element to string {}", ex, object);
+//        }
+//        return xml;
+//    }
 
 }

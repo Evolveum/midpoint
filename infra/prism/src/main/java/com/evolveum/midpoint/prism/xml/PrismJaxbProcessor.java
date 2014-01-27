@@ -86,7 +86,7 @@ public class PrismJaxbProcessor {
 	}
 	
 	private PrismDomProcessor getPrismDomProcessor() {
-		return prismContext.getPrismDomProcessor();
+		return null;
 	}
 	
 	public void initialize() {

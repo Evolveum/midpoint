@@ -331,7 +331,7 @@ public class TestPrismObjectConstruction {
 	}
 		
 	private void serializeAndValidate(PrismObject<UserType> user, PrismContext prismContext) throws SchemaException, SAXException, IOException {
-		String xmlString = prismContext.getPrismDomProcessor().serializeObjectToString(user, true);
+		String xmlString = prismContext.serializeObjectToString(user, PrismContext.LANG_XML);
 		System.out.println("Serialized XML");
 		System.out.println(xmlString);
 		Document xmlDocument = DOMUtil.parseDocument(xmlString);

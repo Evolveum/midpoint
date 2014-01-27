@@ -32,10 +32,12 @@ public abstract class XNode implements Dumpable, DebugDumpable {
 	public static final QName KEY_OID = new QName(null, "oid");
 	public static final QName KEY_VERSION = new QName(null, "version");
 	public static final QName KEY_CONTAINER_ID = new QName(null, "id");
+	public static final QName KEY_REFERENCE_OID = new QName(null, "oid");
 	public static final QName KEY_REFERENCE_TYPE = new QName(null, "type");
 	public static final QName KEY_REFERENCE_RELATION = new QName(null, "relation");
 	public static final QName KEY_REFERENCE_DESCRIPTION = new QName(null, "description");
 	public static final QName KEY_REFERENCE_FILTER = new QName(null, "filter");
+	public static final QName KEY_REFERENCE_OBJECT = new QName(null, "object");
 
 	// Common fields
 	private XNode parent;
