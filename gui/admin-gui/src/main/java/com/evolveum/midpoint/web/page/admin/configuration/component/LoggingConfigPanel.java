@@ -347,7 +347,7 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
             @Override
             protected InputPanel createInputPanel(String componentId, IModel<LoggerConfiguration> model) {
                 ListMultipleChoicePanel panel = new ListMultipleChoicePanel<String>(componentId,
-                        new PropertyModel<List<String>>(model, getPropertyExpression()), createAppendersListModel());
+                        new PropertyModel<List<String>>(model, getPropertyExpression()), createNewLoggerAppendersListModel());
 
                 ListMultipleChoice choice = (ListMultipleChoice) panel.getBaseFormComponent();
                 choice.setMaxRows(3);
@@ -359,6 +359,26 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
         });
 
         return columns;
+    }
+
+    private IModel<List<String>> createNewLoggerAppendersListModel(){
+        return new AbstractReadOnlyModel<List<String>>() {
+
+            @Override
+            public List<String> getObject() {
+                List<String> list = new ArrayList<String>();
+
+                LoggingDto dto = getModel().getObject();
+
+                //list.add("(default - root appender)");
+                list.add("");
+                for(AppenderConfiguration appender: dto.getAppenders()){
+                    list.add(appender.getName());
+                }
+
+                return list;
+            }
+        };
     }
 
     private IModel<List<String>> createAppendersListModel() {
