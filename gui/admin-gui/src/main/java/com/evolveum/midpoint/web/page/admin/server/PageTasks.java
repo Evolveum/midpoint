@@ -31,6 +31,8 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -38,7 +40,10 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.server.dto.*;
+import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
 import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstance;
+import com.evolveum.midpoint.web.session.TasksStorage;
+import com.evolveum.midpoint.web.session.UsersStorage;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
@@ -99,6 +104,7 @@ public class PageTasks extends PageAdminTasks {
     private static final String ID_SHOW_SUBTASKS = "showSubtasks";
     private static final String ID_TASK_TABLE = "taskTable";
     private static final String ID_NODE_TABLE = "nodeTable";
+    private static final String ID_SEARCH_CLEAR = "searchClear";
 
     private IModel<TasksSearchDto> searchModel;
 
@@ -124,6 +130,7 @@ public class PageTasks extends PageAdminTasks {
 
     private void initLayout() {
         Form searchForm = new Form(ID_SEARCH_FORM);
+        searchForm.setOutputMarkupId(true);
         add(searchForm);
         initSearchForm(searchForm);
 
@@ -210,6 +217,20 @@ public class PageTasks extends PageAdminTasks {
                 new PropertyModel(searchModel, TasksSearchDto.F_SHOW_SUBTASKS));
         showSubtasks.add(createFilterAjaxBehaviour());
         searchForm.add(showSubtasks);
+
+        AjaxSubmitButton clearButton = new AjaxSubmitButton(ID_SEARCH_CLEAR) {
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form){
+                clearSearchPerformed(target);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(getFeedbackPanel());
+            }
+        };
+        searchForm.add(clearButton);
     }
 
     private AjaxFormComponentUpdatingBehavior createFilterAjaxBehaviour() {
@@ -1023,5 +1044,21 @@ public class PageTasks extends PageAdminTasks {
             LoggingUtils.logException(LOGGER, "Couldn't create task filter", ex);
         }
         return query;
+    }
+
+    private void clearSearchPerformed(AjaxRequestTarget target){
+        searchModel.setObject(new TasksSearchDto());
+
+        TablePanel panel = getTaskTable();
+        DataTable table = panel.getDataTable();
+        TaskDtoProvider provider = (TaskDtoProvider) table.getDataProvider();
+        provider.setQuery(null);
+
+        TasksStorage storage = getSessionStorage().getTasks();
+        storage.setTasksSearch(searchModel.getObject());
+        panel.setCurrentPage(storage.getTasksPaging());
+
+        target.add(get(ID_SEARCH_FORM));
+        target.add(panel);
     }
 }

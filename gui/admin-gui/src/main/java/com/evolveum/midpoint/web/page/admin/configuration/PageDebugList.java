@@ -38,6 +38,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
+import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.RepositoryObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
@@ -53,7 +54,9 @@ import com.evolveum.midpoint.web.page.admin.configuration.component.PageDebugDow
 import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugConfDialogDto;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugObjectItem;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.DebugSearchDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
 import com.evolveum.midpoint.web.session.ConfigurationStorage;
+import com.evolveum.midpoint.web.session.UsersStorage;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
@@ -107,6 +110,7 @@ public class PageDebugList extends PageAdminConfiguration {
     private static final String ID_SEARCH_FORM = "searchForm";
     private static final String ID_SEARCH_TEXT = "searchText";
     private static final String ID_SEARCH_BUTTON = "searchButton";
+    private static final String ID_SEARCH_CLEAR = "searchClear";
 
     private static final String PRINT_LABEL_USER = "User ";
     private static final String PRINT_LABEL_SHADOW = "Shadow ";
@@ -162,6 +166,7 @@ public class PageDebugList extends PageAdminConfiguration {
 
         Form searchForm = new Form(ID_SEARCH_FORM);
         add(searchForm);
+        searchForm.setOutputMarkupId(true);
         initSearchForm(searchForm);
 
         Form main = new Form(ID_MAIN_FORM);
@@ -381,6 +386,20 @@ public class PageDebugList extends PageAdminConfiguration {
             }
         };
         searchForm.add(searchButton);
+
+        AjaxSubmitButton clearButton = new AjaxSubmitButton(ID_SEARCH_CLEAR) {
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form){
+                clearSearchPerformed(target);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(getFeedbackPanel());
+            }
+        };
+        searchForm.add(clearButton);
     }
 
     private IModel<List<ObjectTypes>> createChoiceModel(final IChoiceRenderer<ObjectTypes> renderer) {
@@ -733,5 +752,23 @@ public class PageDebugList extends PageAdminConfiguration {
 
         target.add(getListTable());
         target.add(getFeedbackPanel());
+    }
+
+    private void clearSearchPerformed(AjaxRequestTarget target){
+        DebugSearchDto dto = new DebugSearchDto();
+
+        TablePanel panel = getListTable();
+        DataTable table = panel.getDataTable();
+        RepositoryObjectDataProvider provider = (RepositoryObjectDataProvider) table.getDataProvider();
+        provider.setQuery(null);
+
+        provider.setType(dto.getType().getClassDefinition());
+        searchModel.setObject(new DebugSearchDto());
+
+        ConfigurationStorage storage = getSessionStorage().getConfiguration();
+        storage.setDebugSearchDto(searchModel.getObject());
+
+        target.add(get(ID_SEARCH_FORM));
+        target.add(panel);
     }
 }

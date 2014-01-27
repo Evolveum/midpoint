@@ -52,7 +52,9 @@ import com.evolveum.midpoint.web.page.admin.resources.component.ContentPanel;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageContentAccounts;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageContentEntitlements;
 import com.evolveum.midpoint.web.page.admin.resources.dto.*;
+import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
 import com.evolveum.midpoint.web.session.ResourcesStorage;
+import com.evolveum.midpoint.web.session.UsersStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorHostType;
@@ -103,6 +105,7 @@ public class PageResources extends PageAdminResources {
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_TABLE = "table";
     private static final String ID_CONNECTOR_TABLE = "connectorTable";
+    private static final String ID_SEARCH_CLEAR = "searchClear";
 
     private IModel<ResourceSearchDto> searchModel;
 
@@ -129,6 +132,7 @@ public class PageResources extends PageAdminResources {
     private void initLayout() {
         Form searchForm = new Form(ID_SEARCH_FORM);
         add(searchForm);
+        searchForm.setOutputMarkupId(true);
         initSearchForm(searchForm);
 
         Form mainForm = new Form(ID_MAIN_FORM);
@@ -187,6 +191,20 @@ public class PageResources extends PageAdminResources {
             }
         };
         searchForm.add(searchButton);
+
+        AjaxSubmitButton clearButton = new AjaxSubmitButton(ID_SEARCH_CLEAR) {
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form){
+                clearSearchPerformed(target);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(getFeedbackPanel());
+            }
+        };
+        searchForm.add(clearButton);
     }
 
     private BaseSortableDataProvider initResourceDataProvider() {
@@ -627,5 +645,21 @@ public class PageResources extends PageAdminResources {
 
     private void deleteResourceSyncTokenPerformed(AjaxRequestTarget target, IModel<ResourceDto> model){
         deleteSyncTokenPerformed(target, model);
+    }
+
+    private void clearSearchPerformed(AjaxRequestTarget target){
+        searchModel.setObject(new ResourceSearchDto());
+
+        TablePanel panel = getResourceTable();
+        DataTable table = panel.getDataTable();
+        ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
+        provider.setQuery(null);
+
+        ResourcesStorage storage = getSessionStorage().getResources();
+        storage.setResourceSearch(searchModel.getObject());
+        panel.setCurrentPage(storage.getResourcePaging());
+
+        target.add(get(ID_SEARCH_FORM));
+        target.add(panel);
     }
 }

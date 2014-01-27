@@ -101,6 +101,7 @@ public class PageUsers extends PageAdminUsers {
     private static final String ID_SEARCH_TEXT = "searchText";
     private static final String ID_SEARCH_TYPE = "searchType";
     private static final String ID_SEARCH_BUTTON = "searchButton";
+    private static final String ID_SEARCH_CLEAR = "searchClear";
 
     private LoadableModel<UsersDto> model;
     private LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel;
@@ -358,8 +359,9 @@ public class PageUsers extends PageAdminUsers {
     }
 
     private void initSearch() {
-        Form searchForm = new Form(ID_SEARCH_FORM);
+        final Form searchForm = new Form(ID_SEARCH_FORM);
         add(searchForm);
+        searchForm.setOutputMarkupId(true);
 
         TextField searchText = new TextField(ID_SEARCH_TEXT, new PropertyModel<String>(model,
                 UsersDto.F_TEXT));
@@ -397,6 +399,20 @@ public class PageUsers extends PageAdminUsers {
             }
         };
         searchForm.add(searchButton);
+
+        AjaxSubmitButton clearButton = new AjaxSubmitButton(ID_SEARCH_CLEAR) {
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form){
+                clearSearchPerformed(target);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(getFeedbackPanel());
+            }
+        };
+        searchForm.add(clearButton);
     }
 
     private void userDetailsPerformed(AjaxRequestTarget target, String oid) {
@@ -625,5 +641,21 @@ public class PageUsers extends PageAdminUsers {
         showResult(result);
         target.add(getFeedbackPanel());
         target.add(getTable());
+    }
+
+    private void clearSearchPerformed(AjaxRequestTarget target){
+        model.setObject(new UsersDto());
+
+        TablePanel panel = getTable();
+        DataTable table = panel.getDataTable();
+        ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
+        provider.setQuery(null);
+
+        UsersStorage storage = getSessionStorage().getUsers();
+        storage.setUsersSearch(model.getObject());
+        panel.setCurrentPage(storage.getUsersPaging());
+
+        target.add(get(ID_SEARCH_FORM));
+        target.add(panel);
     }
 }
