@@ -34,7 +34,9 @@
             </label>
         </div>
 
-        <a href="#" class="btn btn-xs fa fa-times-circle fa-lg" rel="tooltip" style="color:red" data-original-title="Clear Search" wicket:id="searchClear" />
+        <a class="btn btn-danger btn-sm" wicket:message="title:PageBase.button.tooltip.clearSearch" wicket:id="searchClear">
+            <i class="fa fa-trash-o"/>
+        </a>
     </form>
 
     <form wicket:id="mainForm" class="clearfix form-horizontal">
