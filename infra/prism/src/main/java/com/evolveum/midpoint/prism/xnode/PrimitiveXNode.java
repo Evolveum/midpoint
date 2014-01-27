@@ -18,9 +18,11 @@ package com.evolveum.midpoint.prism.xnode;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class PrimitiveXNode<T> extends XNode {
@@ -88,6 +90,12 @@ public class PrimitiveXNode<T> extends XNode {
 			throw new IllegalStateException("Cannot fetch formatted value if the xnode is not parsed");
 		}
 		T value = getValue();
+		if (value instanceof PolyString) {
+			return ((PolyString)value).getOrig();
+		}
+		if (value instanceof QName) {
+			return QNameUtil.qNameToUri((QName)value);
+		}
 		return XmlTypeConverter.toXmlTextContent(value, null);
 	}
 	
@@ -124,6 +132,7 @@ public class PrimitiveXNode<T> extends XNode {
 			sb.append("parser ").append(valueParser);
 		} else {
 			sb.append(PrettyPrinter.prettyPrint(value));
+			sb.append(" (").append(value.getClass()).append(")");
 		}
 	}
 
