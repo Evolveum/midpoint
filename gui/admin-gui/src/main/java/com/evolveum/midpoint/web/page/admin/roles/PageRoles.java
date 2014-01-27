@@ -40,7 +40,9 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.roles.dto.RolesSearchDto;
+import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
 import com.evolveum.midpoint.web.session.RolesStorage;
+import com.evolveum.midpoint.web.session.UsersStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
@@ -80,6 +82,7 @@ public class PageRoles extends PageAdminRoles {
     private static final String ID_SEARCH_TEXT = "searchText";
     private static final String ID_SEARCH_REQUESTABLE = "choice";
     private static final String ID_SEARCH_BUTTON = "searchButton";
+    private static final String ID_SEARCH_CLEAR = "searchClear";
 
     private IModel<RolesSearchDto> searchModel;
 
@@ -105,6 +108,7 @@ public class PageRoles extends PageAdminRoles {
 
     private void initLayout() {
         Form searchForm = new Form(ID_SEARCH_FORM);
+        searchForm.setOutputMarkupId(true);
         add(searchForm);
         initSearchForm(searchForm);
 
@@ -171,6 +175,20 @@ public class PageRoles extends PageAdminRoles {
 
         };
        searchForm.add(searchButton);
+
+        AjaxSubmitButton clearButton = new AjaxSubmitButton(ID_SEARCH_CLEAR) {
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form){
+                clearSearchPerformed(target);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(getFeedbackPanel());
+            }
+        };
+        searchForm.add(clearButton);
     }
 
     private IModel<List<RolesSearchDto.Requestable>> createChoiceModel(final IChoiceRenderer<RolesSearchDto.Requestable> renderer){
@@ -380,5 +398,21 @@ public class PageRoles extends PageAdminRoles {
         TablePanel table = getRoleTable();
         target.add(table);
         target.add(getFeedbackPanel());
+    }
+
+    private void clearSearchPerformed(AjaxRequestTarget target){
+        searchModel.setObject(new RolesSearchDto());
+
+        TablePanel panel = getRoleTable();
+        DataTable table = panel.getDataTable();
+        ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
+        provider.setQuery(null);
+
+        RolesStorage storage = getSessionStorage().getRoles();
+        storage.setRolesSearch(searchModel.getObject());
+        panel.setCurrentPage(storage.getRolesPaging());
+
+        target.add(get(ID_SEARCH_FORM));
+        target.add(panel);
     }
 }

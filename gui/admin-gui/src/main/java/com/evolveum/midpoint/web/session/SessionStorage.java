@@ -46,6 +46,7 @@ public class SessionStorage implements Serializable {
     private ReportsStorage reports;
     private ResourcesStorage resources;
     private RolesStorage roles;
+    private TasksStorage tasks;
 
     public Class<? extends WebPage> getPreviousPage() {
         return previousPage;
@@ -96,5 +97,12 @@ public class SessionStorage implements Serializable {
             roles = new RolesStorage();
         }
         return roles;
+    }
+
+    public TasksStorage getTasks(){
+        if(tasks == null){
+            tasks = new TasksStorage();
+        }
+        return tasks;
     }
 }
