@@ -12,22 +12,27 @@ ALTER TABLE m_operation_result ADD context TEXT;
 ALTER TABLE m_operation_result ADD returns TEXT;
 
 CREATE TABLE m_report (
-    name_norm VARCHAR(255),
-    name_orig VARCHAR(255),
-    class_namespace VARCHAR(255),
-    class_localPart VARCHAR(100),
-    query TEXT,
-    reportExport INT4,
-    reportFields TEXT,
-    reportOrientation INT4,
-    reportParameters TEXT,
-    reportTemplate TEXT,
-    reportTemplateStyle TEXT,
-    id INT8 NOT NULL,
-    oid VARCHAR(36) NOT NULL,
-    PRIMARY KEY (id, oid),
-    UNIQUE (name_norm)
+  configuration            TEXT,
+  configurationSchema      TEXT,
+  dataSource_providerClass VARCHAR(255),
+  dataSource_springBean    BOOLEAN     NOT NULL,
+  name_norm                VARCHAR(255),
+  name_orig                VARCHAR(255),
+  parent                   BOOLEAN,
+  reportExport             INT4,
+  reportFields             TEXT,
+  reportOrientation        INT4,
+  reportTemplate           TEXT,
+  reportTemplateStyle      TEXT,
+  subReport                TEXT,
+  useHibernateSession      BOOLEAN,
+  id                       INT8        NOT NULL,
+  oid                      VARCHAR(36) NOT NULL,
+  PRIMARY KEY (id, oid),
+  UNIQUE (name_norm)
 );
+
+CREATE INDEX iReportParent ON m_report (parent);
 
 CREATE INDEX iReportName ON m_report (name_orig);
 

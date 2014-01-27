@@ -11,25 +11,28 @@ ALTER TABLE m_audit_delta ADD returns NVARCHAR(MAX);
 ALTER TABLE m_operation_result ADD context NVARCHAR(MAX);
 ALTER TABLE m_operation_result ADD returns NVARCHAR(MAX);
 
-
 CREATE TABLE m_report (
-    name_norm NVARCHAR(255),
-    name_orig NVARCHAR(255),
-    class_namespace NVARCHAR(255),
-    class_localPart NVARCHAR(100),
-    query NVARCHAR(MAX),
-    reportExport INT,
-    reportFields NVARCHAR(MAX),
-    reportOrientation INT,
-    reportParameters NVARCHAR(MAX),
-    reportTemplate NVARCHAR(MAX),
-    reportTemplateStyle NVARCHAR(MAX),
-    id BIGINT NOT NULL,
-    oid NVARCHAR(36) NOT NULL,
-    PRIMARY KEY (id, oid),
-    UNIQUE (name_norm)
+  configuration            NVARCHAR(MAX),
+  configurationSchema      NVARCHAR(MAX),
+  dataSource_providerClass NVARCHAR(255),
+  dataSource_springBean    BIT          NOT NULL,
+  name_norm                NVARCHAR(255),
+  name_orig                NVARCHAR(255),
+  parent                   BIT,
+  reportExport             INT,
+  reportFields             NVARCHAR(MAX),
+  reportOrientation        INT,
+  reportTemplate           NVARCHAR(MAX),
+  reportTemplateStyle      NVARCHAR(MAX),
+  subReport                NVARCHAR(MAX),
+  useHibernateSession      BIT,
+  id                       BIGINT       NOT NULL,
+  oid                      NVARCHAR(36) NOT NULL,
+  PRIMARY KEY (id, oid),
+  UNIQUE (name_norm)
 );
 
+CREATE INDEX iReportParent ON m_report (parent);
 
 CREATE INDEX iReportName ON m_report (name_orig);
 
