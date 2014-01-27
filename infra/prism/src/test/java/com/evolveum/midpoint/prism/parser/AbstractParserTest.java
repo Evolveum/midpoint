@@ -95,9 +95,10 @@ public abstract class AbstractParserTest {
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 		processor.setPrismContext(prismContext);
 		
+		// WHEN (parse to xnode)
 		XNode xnode = parser.parse(getFile(USER_JACK_FILE_BASENAME));
 		
-		// WHEN
+		// WHEN (parse to prism)
 		PrismObject<UserType> user = processor.parseObject(xnode);
 		
 		// THEN
@@ -108,6 +109,59 @@ public abstract class AbstractParserTest {
 		System.out.println(xnode.dump());
 		
 		assertUserJack(user);
+		
+		// WHEN (re-serialize to XNode)
+		XNode serializedXNode = processor.serializeObject(user);
+		
+		// THEN
+		System.out.println("XNode after re-serialization:");
+		System.out.println(serializedXNode.dump());
+	}
+
+	@Test
+    public void testParseUserRoundTrip() throws Exception {
+		final String TEST_NAME = "testParseUserRoundTrip";
+		displayTestTitle(TEST_NAME);
+		
+		// GIVEN
+		Parser parser = createParser();
+		XNodeProcessor processor = new XNodeProcessor();
+		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		processor.setPrismContext(prismContext);
+		
+		// WHEN (parse)
+		XNode xnode = parser.parse(getFile(USER_JACK_FILE_BASENAME));
+		PrismObject<UserType> user = processor.parseObject(xnode);
+		
+		// THEN
+		System.out.println("\nParsed user:");
+		System.out.println(user.dump());
+		
+		assertUserJack(user);
+		
+		// WHEN (re-serialize to XNode)
+		XNode serializedXNode = processor.serializeObject(user);
+		String serializedString = parser.serializeToString(serializedXNode, new QName(NS_FOO, "user"));
+		
+		// THEN
+		System.out.println("\nXNode after re-serialization:");
+		System.out.println(serializedXNode.dump());
+		System.out.println("\nRe-serialized string:");
+		System.out.println(serializedString);
+		
+		// WHEN (re-parse)
+		XNode reparsedXnode = parser.parse(serializedString);
+		PrismObject<UserType> reparsedUser = processor.parseObject(reparsedXnode);
+		
+		// THEN
+		System.out.println("\nRe-parsed user:");
+		System.out.println(reparsedUser.dump());
+		
+		ObjectDelta<UserType> diff = DiffUtil.diff(user, reparsedUser);
+		System.out.println("\nDiff:");
+		System.out.println(diff.dump());
+		
+		assertTrue("Re-parsed user does not mathc: "+diff, diff.isEmpty());
 	}
 
 	protected <X extends XNode> X getAssertXNode(String message, XNode xnode, Class<X> expectedClass) {

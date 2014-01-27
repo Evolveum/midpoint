@@ -411,14 +411,6 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     	}
     }
 
-    public List<Element> asDomElements() {
-    	List<Element> elements = new ArrayList<Element>();
-    	for (PrismValue pval: getValues()) {
-    		elements.add(pval.asDomElement());
-    	}
-    	return elements;
-    }
-    
     public abstract Object find(ItemPath path);
     
     public abstract <X extends PrismValue> PartiallyResolvedValue<X> findPartial(ItemPath path);

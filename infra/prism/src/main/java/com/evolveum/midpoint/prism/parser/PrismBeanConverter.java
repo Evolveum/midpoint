@@ -18,15 +18,19 @@ package com.evolveum.midpoint.prism.parser;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Collection;
 import java.util.Map.Entry;
 
+import javax.xml.bind.annotation.XmlSchema;
 import javax.xml.bind.annotation.XmlSchemaType;
+import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
+import com.evolveum.midpoint.prism.xnode.ListXNode;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
@@ -44,6 +48,10 @@ public class PrismBeanConverter {
 
 	public boolean canConvert(QName typeName) {
 		return schemaRegistry.determineCompileTimeClass(typeName) != null; 
+	}
+	
+	public boolean canConvert(Class<?> clazz) {
+		return clazz.getAnnotation(XmlType.class) != null;
 	}
 	
 	public <T> T unmarshall(MapXNode xnode, QName typeQName) throws SchemaException {
@@ -73,23 +81,9 @@ public class PrismBeanConverter {
 			Method setter = findSetter(classType, field);
 			Class<?> setterParamType = setter.getParameterTypes()[0];
 			
-			QName propTypeQname = null;
-			XmlSchemaType xmlSchemaType = field.getAnnotation(XmlSchemaType.class);
-			if (xmlSchemaType != null) {
-				String propTypeLocalPart = xmlSchemaType.name();
-				if (propTypeLocalPart != null) {
-					String propTypeNamespace = xmlSchemaType.namespace();
-					if (propTypeNamespace == null) {
-						propTypeNamespace = DOMUtil.W3C_XML_SCHEMA_XMLNS_URI;
-					}
-					propTypeQname = new QName(propTypeNamespace, propTypeLocalPart);
-				}
-			}
+			QName propTypeQname = findFieldTypeName(field, setterParamType);
 			if (propTypeQname == null) {
-				propTypeQname = XsdTypeMapper.getJavaToXsdMapping(setterParamType);
-				if (propTypeQname == null) {
-					throw new SchemaException("No mapping for class "+setterParamType+" while processing field "+field+" of "+classType);
-				}
+				throw new SchemaException("No mapping for class "+setterParamType+" while processing field "+field+" of "+classType);
 			}
 			
 			Object propValue;
@@ -115,7 +109,99 @@ public class PrismBeanConverter {
 		
 		return bean;
 	}
+	
+	public <T> MapXNode marshall(T bean) {
+		if (bean == null) {
+			return null;
+		}
+		
+		MapXNode xmap = new MapXNode();
+		
+		Class<? extends Object> beanClass = bean.getClass();
+		XmlType xmlType = beanClass.getAnnotation(XmlType.class);
+		if (xmlType == null) {
+			throw new IllegalArgumentException("Cannot marshall "+beanClass+" it does not have @XmlType annotation");
+		}
+		
+		String namespace = xmlType.namespace();
+		if (namespace == null) {
+			XmlSchema xmlSchema = beanClass.getPackage().getAnnotation(XmlSchema.class);
+			namespace = xmlSchema.namespace();
+		}
+		if (namespace == null) {
+			throw new IllegalArgumentException("Cannot marshall "+beanClass+": cannot determine namespace");
+		}
+		
+		String[] propOrder = xmlType.propOrder();
+		for (String fieldName: propOrder) {
+			QName elementName = new QName(namespace, fieldName);
+			String getterName = getGetterName(fieldName);
+			Method getter;
+			try {
+				getter = beanClass.getMethod(getterName);
+			} catch (NoSuchMethodException e) {
+				throw new IllegalStateException("No getter "+getterName+" for field "+fieldName+" in "+beanClass, e);
+			} catch (SecurityException e) {
+				throw new SystemException("Cannot accesss method "+getterName+" in "+beanClass+": "+e.getMessage(), e);
+			}
+			Object getterResult;
+			try {
+				getterResult = getter.invoke(bean);
+			} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+				throw new SystemException("Cannot invoke method "+getterName+" in "+beanClass+": "+e.getMessage(), e);
+			}
+			
+			if (getterResult == null) {
+				continue;
+			}
+			
+			Field field;
+			try {
+				field = beanClass.getDeclaredField(fieldName);
+			} catch (NoSuchFieldException | SecurityException e) {
+				throw new SystemException("Cannot accesss field "+fieldName+" in "+beanClass+": "+e.getMessage(), e);
+			}
+			
+			if (getterResult instanceof Collection<?>) {
+				Collection col = (Collection)getterResult;
+				if (col.isEmpty()) {
+					continue;
+				}
+				QName fieldTypeName = findFieldTypeName(field, col.iterator().next().getClass());
+				ListXNode xlist = new ListXNode();
+				for (Object element: col) {
+					xlist.add(marshallValue(element, fieldTypeName));
+				}
+				xmap.put(elementName, xlist);
+			} else {
+				QName fieldTypeName = findFieldTypeName(field, getterResult.getClass());
+				xmap.put(elementName, marshallValue(getterResult, fieldTypeName));
+			}
+		}
+		
+		return xmap;
+	}
 
+	private <T> XNode marshallValue(T value, QName fieldTypeName) {
+		if (value == null) {
+			return null;
+		}
+		if (canConvert(value.getClass())) {
+			// This must be a bean
+			return marshall(value);
+		} else {
+			// primitive value
+			PrimitiveXNode<T> xprim = new PrimitiveXNode<T>();
+			xprim.setValue(value);
+			xprim.setTypeQName(fieldTypeName);
+			return xprim;
+		}
+	}
+
+	private String getGetterName(String fieldName) {
+		return "get"+StringUtils.capitalize(fieldName);
+	}
+	
 	private <T> Method findSetter(Class<T> classType, Field field) {
 		String setterName = getSetterName(field);
 		for(Method method: classType.getMethods()) {
@@ -136,5 +222,24 @@ public class PrismBeanConverter {
 	private String getSetterName(Field field) {
 		return "set"+StringUtils.capitalize(field.getName());
 	}
-	
+
+	private QName findFieldTypeName(Field field, Class fieldType) {
+		QName propTypeQname = null;
+		XmlSchemaType xmlSchemaType = field.getAnnotation(XmlSchemaType.class);
+		if (xmlSchemaType != null) {
+			String propTypeLocalPart = xmlSchemaType.name();
+			if (propTypeLocalPart != null) {
+				String propTypeNamespace = xmlSchemaType.namespace();
+				if (propTypeNamespace == null) {
+					propTypeNamespace = DOMUtil.W3C_XML_SCHEMA_XMLNS_URI;
+				}
+				propTypeQname = new QName(propTypeNamespace, propTypeLocalPart);
+			}
+		}
+		if (propTypeQname == null) {
+			propTypeQname = XsdTypeMapper.getJavaToXsdMapping(fieldType);
+		}
+		return propTypeQname;
+	}
+
 }

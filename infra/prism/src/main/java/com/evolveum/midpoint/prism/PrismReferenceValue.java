@@ -16,7 +16,6 @@
 
 package com.evolveum.midpoint.prism;
 
-import com.evolveum.midpoint.prism.dom.ElementPrismReferenceImpl;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
@@ -238,11 +237,6 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
 		// Nothing to do
 	}
 
-	@Override
-	protected Element createDomElement() {
-		return new ElementPrismReferenceImpl(this);
-	}
-	
 	@Override
 	public void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw) {
 		ItemPath myPath = getPath();

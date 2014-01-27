@@ -30,7 +30,6 @@
 			<class name="com.evolveum.midpoint.prism.TestPrismObjectConstruction"/>
 			<class name="com.evolveum.midpoint.prism.TestPrismSchemaConstruction"/>
 			<class name="com.evolveum.midpoint.prism.TestExtraSchema"/>
-			<class name="com.evolveum.midpoint.prism.TestDom"/>
 			<class name="com.evolveum.midpoint.prism.TestPolyString"/>
 			<class name="com.evolveum.midpoint.prism.TestDiff"/>
 <!-- 			<class name="com.evolveum.midpoint.prism.TestJsonParser"/> -->

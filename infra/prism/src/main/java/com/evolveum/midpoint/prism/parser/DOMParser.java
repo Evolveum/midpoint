@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.prism.parser;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,9 +28,10 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.PrismConstants;
-import com.evolveum.midpoint.prism.PrismPropertyDefinition;
+import com.evolveum.midpoint.prism.PrismContainerValue;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.util.PrismUtil;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xnode.ListXNode;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
@@ -43,12 +45,25 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class DOMParser implements Parser {
 	
+	private SchemaRegistry schemaRegistry;
+
+	public DOMParser(SchemaRegistry schemaRegistry) {
+		super();
+		this.schemaRegistry = schemaRegistry;
+	}
+
 	@Override
 	public XNode parse(File file) throws SchemaException {
 		Document document = DOMUtil.parseFile(file);
 		return parse(document);
 	}
-	
+
+	@Override
+	public XNode parse(String dataString) throws SchemaException {
+		Document document = DOMUtil.parseDocument(dataString);
+		return parse(document);
+	}
+
 	public RootXNode parse(Document document) throws SchemaException {
 		Element rootElement = DOMUtil.getFirstChildElement(document);
 		RootXNode xroot = new RootXNode(DOMUtil.getQName(rootElement));
@@ -194,6 +209,7 @@ public class DOMParser implements Parser {
 			}
 		};
 		xnode.setValueParser(valueParser);
+		xnode.setAttribute(true);
 		return xnode;
 	}
 
@@ -213,4 +229,57 @@ public class DOMParser implements Parser {
 		XPathHolder holder = new XPathHolder(element);
 		return holder.toItemPath();
 	}
+
+	@Override
+	public boolean canParse(File file) throws IOException {
+		if (file == null) {
+			return false;
+		}
+		return file.getName().endsWith(".xml");
+	}
+
+	@Override
+	public boolean canParse(String dataString) {
+		if (dataString == null) {
+			return false;
+		}
+		return dataString.startsWith("<?xml");
+	}
+
+	@Override
+	public String serializeToString(XNode xnode, QName rootElementName) throws SchemaException {
+		DomSerializer serializer = new DomSerializer(this, schemaRegistry);
+		RootXNode xroot;
+		if (xnode instanceof RootXNode) {
+			xroot = (RootXNode) xnode;
+		} else {
+			xroot = new RootXNode(rootElementName);
+			xroot.setSubnode(xnode);
+		}
+		Element element = serializer.serialize(xroot);
+		return DOMUtil.serializeDOMToString(element);
+	}
+	
+	@Override
+	public String serializeToString(RootXNode xnode) throws SchemaException {
+		DomSerializer serializer = new DomSerializer(this, schemaRegistry);
+		Element element = serializer.serialize(xnode);
+		return DOMUtil.serializeDOMToString(element);
+	}
+
+	public Element serializeValueToDom(PrismReferenceValue rval, QName elementName, Document document) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public Element serializeValueToDom(PrismContainerValue<?> pval, QName elementName, Document document) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+//	public Element serializeToElement(XNode xnode) throws SchemaException {
+//		DomSerializer serializer = new DomSerializer(this, schemaRegistry);
+//	}
+	
+	
 }

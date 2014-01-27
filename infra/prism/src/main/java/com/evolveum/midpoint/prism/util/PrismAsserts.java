@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.prism.util;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -27,6 +28,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.prism.ComplexTypeDefinition;
@@ -607,7 +609,7 @@ public class PrismAsserts {
 		assertEquals(elementToPrism(expected), elementToPrism(actual));
     }
 	
-	public static void assertEquals(File fileNewXml, String objectString) throws SchemaException {
+	public static void assertEquals(File fileNewXml, String objectString) throws SchemaException, IOException {
 		assertEquals(toPrism(fileNewXml), toPrism(objectString));
     }
 	
@@ -615,11 +617,11 @@ public class PrismAsserts {
 		assertEquals(actual.asPrismObject(), actual.asPrismObject());
     }
 	
-	public static void assertEquals(File fileNewXml, Objectable objectable) throws SchemaException {
+	public static void assertEquals(File fileNewXml, Objectable objectable) throws SchemaException, IOException {
 		assertEquals(toPrism(fileNewXml), objectable.asPrismObject());
     }
 	
-	public static <O extends Objectable> void assertEquals(File fileNewXml, PrismObject<O> actual) throws SchemaException {
+	public static <O extends Objectable> void assertEquals(File fileNewXml, PrismObject<O> actual) throws SchemaException, IOException {
 		PrismObject<O> expected = toPrism(fileNewXml);
 		assertEquals(expected, actual);
     }
@@ -655,11 +657,11 @@ public class PrismAsserts {
 		assert false: message + ": " + suffix;
 	}
 	
-	public static <O extends Objectable> void assertEquivalent(File expectedFile, PrismObject<O> actual) throws SchemaException {
+	public static <O extends Objectable> void assertEquivalent(File expectedFile, PrismObject<O> actual) throws SchemaException, IOException {
 		assertEquivalent("Object "+actual+" not equivalent to that from file "+expectedFile,expectedFile,actual);
 	}
 	
-	public static <O extends Objectable> void assertEquivalent(String message, File expectedFile, PrismObject<O> actual) throws SchemaException {
+	public static <O extends Objectable> void assertEquivalent(String message, File expectedFile, PrismObject<O> actual) throws SchemaException, IOException {
 		PrismObject<O> expected = toPrism(expectedFile);
 		assertEquivalent(message, expected, actual);
 	}
@@ -740,21 +742,20 @@ public class PrismAsserts {
 	}
 	
 	private static <O extends Objectable> PrismObject<O> toPrism(String objectString) throws SchemaException {
-		return getDomProcessor().parseObject(objectString);
+		return PrismTestUtil.parseObject(objectString);
 	}
 
-	private static <O extends Objectable> PrismObject<O> toPrism(File objectFile) throws SchemaException {
-		return getDomProcessor().parseObject(objectFile);
+	private static <O extends Objectable> PrismObject<O> toPrism(File objectFile) throws SchemaException, IOException {
+		return PrismTestUtil.parseObject(objectFile);
 	}
 	
-	private static <O extends Objectable> PrismObject<O> toPrism(Node domNode) throws SchemaException {
-		return getDomProcessor().parseObject(domNode);
+	private static <O extends Objectable> PrismObject<O> toPrism(Element domNode) throws SchemaException {
+		return PrismTestUtil.parseObject(domNode);
 	}
 
-
 	private static <O extends Objectable> PrismObject<O> elementToPrism(Object element) throws SchemaException {
-		if (element instanceof Node) {
-			return toPrism((Node)element);
+		if (element instanceof Element) {
+			return toPrism((Element)element);
 		} else if (element instanceof JAXBElement<?>) {
 			JAXBElement<?> jaxbElement = (JAXBElement)element;
 			Object value = jaxbElement.getValue();
@@ -766,14 +767,6 @@ public class PrismAsserts {
 		} else {
 			throw new IllegalArgumentException("Unknown element type "+element);
 		}
-	}
-
-	private static PrismDomProcessor getDomProcessor() {
-		return PrismTestUtil.getPrismContext().getPrismDomProcessor();
-	}
-
-	private static PrismJaxbProcessor getJaxbProcessor() {
-		return PrismTestUtil.getPrismContext().getPrismJaxbProcessor();
 	}
 	
 	// Local version of JUnit assers to avoid pulling JUnit dependecy to main

@@ -428,7 +428,10 @@ public class QueryConvertor {
 
 
 	
-	
+	public static XNode serializeFilter(ObjectFilter filter) {
+		// TODO
+		return null;
+	}
 	
 	
 	

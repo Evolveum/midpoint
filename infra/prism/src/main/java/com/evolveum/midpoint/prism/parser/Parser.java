@@ -18,6 +18,9 @@
 import java.io.File;
 import java.io.IOException;
 
+import javax.xml.namespace.QName;
+
+import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -28,5 +31,15 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 public interface Parser {
 	
 	XNode parse(File file) throws SchemaException, IOException;
+	
+	XNode parse(String dataString) throws SchemaException;
+	
+	boolean canParse(File file) throws IOException;
+	
+	boolean canParse(String dataString);
+
+	String serializeToString(XNode xnode, QName rootElementName) throws SchemaException;
+	
+	String serializeToString(RootXNode xnode) throws SchemaException;
 
 }

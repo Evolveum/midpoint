@@ -152,7 +152,7 @@ public class TestPrismParsing {
 		
 		// WHEN
 		// We need to serialize with composite objects during roundtrip, otherwise the result will not be equal
-		String userXml = prismContext.getPrismDomProcessor().serializeObjectToString(originalUser, true);
+		String userXml = prismContext.serializeObjectToString(originalUser, PrismContext.LANG_XML);
 	
 		// THEN
 		System.out.println("Serialized user:");
@@ -232,7 +232,7 @@ public class TestPrismParsing {
 		
 		// WHEN
 		// We need to serialize with composite objects during roundtrip, otherwise the result will not be equal
-		String userXml = prismContext.getPrismDomProcessor().serializeObjectToString(originalUser, true);
+		String userXml = prismContext.serializeObjectToString(originalUser, PrismContext.LANG_XML);
 	
 		// THEN
 		System.out.println("Serialized user:");
@@ -274,7 +274,7 @@ public class TestPrismParsing {
 		System.out.println(userJack.dump());
 		
 		// WHEN
-		Element elementJack = prismContext.getPrismDomProcessor().serializeToDom(userJack);
+		Element elementJack = prismContext.serializeToDom(userJack);
 		
 		// THEN
 		System.out.println("Serialized user jack:");
@@ -349,7 +349,7 @@ public class TestPrismParsing {
 		assertUserWill(user);
 		
 		// WHEN
-		Element serialized = prismContext.getPrismDomProcessor().serializeToDom(user);
+		Element serialized = prismContext.serializeToDom(user);
 		
 		// THEN
 		assertNotNull(serialized);

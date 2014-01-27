@@ -76,8 +76,8 @@ public class TestDomParser extends AbstractParserTest {
 	}
 
 	@Override
-	protected Parser createParser() {
-		return new DOMParser();
+	protected DOMParser createParser() {
+		return new DOMParser(PrismTestUtil.getSchemaRegistry());
 	}
 
 	@Test
@@ -86,7 +86,7 @@ public class TestDomParser extends AbstractParserTest {
 		displayTestTitle(TEST_NAME);
 		
 		// GIVEN
-		Parser parser = createParser();
+		DOMParser parser = createParser();
 		
 		// WHEN
 		XNode xnode = parser.parse(getFile(USER_JACK_FILE_BASENAME));
@@ -106,5 +106,8 @@ public class TestDomParser extends AbstractParserTest {
 		// TODO: asserts
 		
 		MapXNode xextension = getAssertXMapSubnode("root map", rootMap, UserType.F_EXTENSION, MapXNode.class);
+		
+		// WHEN (re-serialize)
+//		parser.s
 	}
 }

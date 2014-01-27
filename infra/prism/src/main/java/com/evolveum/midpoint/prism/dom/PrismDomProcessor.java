@@ -53,6 +53,7 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.parser.DomSerializer;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
@@ -95,7 +96,7 @@ public class PrismDomProcessor {
 	}
 
 	private PrismJaxbProcessor getJaxbProcessor() {
-		return getPrismContext().getPrismJaxbProcessor();
+		return null;
 	}
 
 	public <T extends Objectable> PrismObject<T> parseObject(File file, Class<T> type) throws SchemaException {
@@ -504,8 +505,8 @@ public class PrismDomProcessor {
 		QName propertyName = JAXBUtil.getElementQName(firstElement);
 		PrismProperty<T> property = new PrismProperty<T>(itemName);
 		for (Object valueElement : valueElements) {
-			PrismPropertyValue<T> pval = PrismPropertyValue.createRaw(valueElement);
-			property.add(pval);
+//			PrismPropertyValue<T> pval = PrismPropertyValue.createRaw(valueElement);
+//			property.add(pval);
 		}
 		return property;
 	}
@@ -1073,16 +1074,18 @@ public class PrismDomProcessor {
 	}
 
 	public Element serializeToDom(PrismObject<?> object, boolean serializeCompositeObjects) throws SchemaException {
-		DomSerializer domSerializer = new DomSerializer(getPrismContext());
+		DomSerializer domSerializer = null;
 		domSerializer.setSerializeCompositeObjects(serializeCompositeObjects);
-		return domSerializer.serialize(object);
+//		return domSerializer.serialize(object);
+		return null;
 	}
 
 	public <T extends Containerable> Element serializeToDom(PrismContainerValue<T> object, Element parentElement)
 			throws SchemaException {
 
-		DomSerializer domSerializer = new DomSerializer(getPrismContext());
-		return domSerializer.serializeContainerValue(object, parentElement);
+		DomSerializer domSerializer = null;
+//		return domSerializer.serializeContainerValue(object, parentElement);
+		return null;
 	}
 
 	public <T extends Objectable> String serializeObjectToString(PrismObject<T> object) throws SchemaException {
@@ -1117,8 +1120,8 @@ public class PrismDomProcessor {
 	}
 
 	public void serializeValueToDom(PrismValue pval, Element parentElement) throws SchemaException {
-		DomSerializer domSerializer = new DomSerializer(getPrismContext());
-		domSerializer.serialize(pval, parentElement);
+		DomSerializer domSerializer = null;
+//		domSerializer.serialize(pval, parentElement);
 	}
 
 	public List<Element> serializeItemToDom(Item<?> item) throws SchemaException {
@@ -1157,9 +1160,9 @@ public class PrismDomProcessor {
     }
 
     public void serializeItemToDom(Item<?> item, Element parentElement, boolean serializeCompositeObjects) throws SchemaException {
-		DomSerializer domSerializer = new DomSerializer(getPrismContext());
-        domSerializer.setSerializeCompositeObjects(serializeCompositeObjects);
-		domSerializer.serialize(item, parentElement);
+//		DomSerializer domSerializer = new DomSerializer(getPrismContext());
+//        domSerializer.setSerializeCompositeObjects(serializeCompositeObjects);
+//		domSerializer.serialize(item, parentElement);
 	}
 
 	/**
