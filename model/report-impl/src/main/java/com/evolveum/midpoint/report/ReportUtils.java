@@ -36,12 +36,14 @@ import net.sf.jasperreports.engine.type.WhenNoDataTypeEnum;
 
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
+import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportFieldConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportParameterConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 
@@ -51,14 +53,22 @@ public class ReportUtils {
 	private static String MIDPOINT_HOME = System.getProperty("midpoint.home"); 
     private static String EXPORT_DIR = MIDPOINT_HOME + "export/";
     
+    
    
-    
-	private static Class getClassType(QName clazz)
+	public static Class getClassType(QName clazz)
     {
-    	//TODO
-    	return java.lang.String.class;
+		Class classType = java.lang.String.class; 
+    	try
+    	{
+    		classType = XsdTypeMapper.getXsdToJavaMapping(clazz);
+    		classType = (classType == null) ? java.lang.String.class : classType ;
+    	} catch (Exception ex){
+    		classType = java.lang.String.class;
+    	}
+    	return classType;
+    	
     }
-    
+    /*
 	private static JRDesignParameter createParameter(ReportParameterConfigurationType parameterRepo)
 	{
 		JRDesignParameter parameter = new JRDesignParameter();
@@ -66,7 +76,7 @@ public class ReportUtils {
 		parameter.setValueClass(getClassType(parameterRepo.getClassTypeParameter()));
 		return parameter;
 	}
-    
+    */
 	private static JRDesignTextField createField(ReportFieldConfigurationType fieldRepo, int x, int width, int frameWidth)
 	{
 		JRDesignTextField textField = new JRDesignTextField();
@@ -260,8 +270,8 @@ public class ReportUtils {
 		JRDesignStyle pageFooterStyle = createStyle("Page footer", true, baseStyle, 9);
 		jasperDesign.addStyle(pageFooterStyle);
 	}
-	
-	private static JRDesignBand createTitleBand(int height, int reportColumn, int secondColumn, List<ReportParameterConfigurationType> parameters)
+
+	private static JRDesignBand createTitleBand(int height, int reportColumn, int secondColumn/*, List<ReportParameterConfigurationType> parameters*/)
 	{
 		JRDesignBand titleBand = createBand(height);
 		JRDesignFrame frame = createFrame(0, 0, 70, reportColumn, "Title");
@@ -284,7 +294,7 @@ public class ReportUtils {
 	
 		textField = createTextField(secondColumn + 150, 90, 20, 250, "Page header", false, EvaluationTimeEnum.REPORT, new JRDesignExpression("$V{REPORT_COUNT}"));
 		titleBand.addElement(textField);
-	
+	/*
 		parameters.remove(0);
 		parameters.remove(0);
 		int y = 70;
@@ -297,7 +307,7 @@ public class ReportUtils {
 			titleBand.addElement(textField);
 
 			y = y + 20;
-		}
+		}*/
 		return titleBand;
 	}
 	
@@ -319,6 +329,7 @@ public class ReportUtils {
 		columnHeaderBand.addElement(frame);
 		return columnHeaderBand;
 	}
+	
 	private static JRDesignBand createDetailBand(int height, int reportColumn, List<ReportFieldConfigurationType> reportFields)
 	{ 
 		JRDesignBand detailBand = createBand(height);
@@ -341,6 +352,7 @@ public class ReportUtils {
 		detailBand.addElement(frame);
 		return detailBand;
 	}
+	
 	private static JRDesignBand createColumnFooterBand(int height, int reportColumn)
 	{
 		JRDesignBand columnFooterBand = createBand(height);
@@ -349,7 +361,6 @@ public class ReportUtils {
 		columnFooterBand.addElement(line);
 		return columnFooterBand;
 	}
-
 	
 	private static JRDesignBand createPageFooterBand(int height, int reportColumn)
 	{
@@ -375,7 +386,7 @@ public class ReportUtils {
 		String reportName = reportType.getName().getOrig(); 
 		jasperDesign.setName(reportName.replace("\\s", ""));
 		
-		switch (reportType.getReportOrientation())
+		switch (reportType.getOrientation())
 		{
 			case LANDSCAPE :
 			default: setOrientation(jasperDesign, OrientationEnum.LANDSCAPE, 842, 595, 802);
@@ -393,9 +404,9 @@ public class ReportUtils {
 		
 		//Parameters
 		//two parameters are there every time - template styles and logo image and will be excluded
-		List<ReportParameterConfigurationType> parameters = new ArrayList<ReportParameterConfigurationType>();
+		boolean isTemplateStyle = true;
+		/*List<ReportParameterConfigurationType> parameters = new ArrayList<ReportParameterConfigurationType>();
 		parameters.addAll(reportType.getReportParameter());
-		boolean isTemplateStyle = false;
 		
 		for(ReportParameterConfigurationType parameterRepo : parameters)
 		{
@@ -403,7 +414,7 @@ public class ReportUtils {
 			jasperDesign.addParameter(parameter);
 			isTemplateStyle = isTemplateStyle || parameter.getName().equals("BaseTemplateStyles");			
 		}
-				
+		 */			
 		//Template Style or Styles
 		if (isTemplateStyle)
 		{
@@ -430,9 +441,10 @@ public class ReportUtils {
 		//two pre-defined parameters were excluded
 		int reportColumn = jasperDesign.getColumnWidth() - 2;
 		int secondColumn = Math.round(jasperDesign.getColumnWidth()/2 - 1);
-		int height = 70 + Math.max(40, parameters.size()*20);
-				
-		JRDesignBand titleBand = createTitleBand(height, reportColumn, secondColumn, parameters);
+		//int height = 70 + Math.max(40, parameters.size()*20);
+		int height = 70 + Math.max(40, 20);
+		
+		JRDesignBand titleBand = createTitleBand(height, reportColumn, secondColumn/*, parameters*/);
 		jasperDesign.setTitle(titleBand);
 	
 		//Column header
@@ -458,7 +470,7 @@ public class ReportUtils {
     public static String getReportOutputFilePath(ReportType reportType){
     	
     	String output =  EXPORT_DIR + reportType.getName().getOrig();
-    	switch (reportType.getReportExport())
+    	switch (reportType.getExport())
         {
         	case PDF : output = output + ".pdf";
         		break;

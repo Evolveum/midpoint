@@ -66,7 +66,7 @@ public class DataSourceReport implements JRDataSource
 		paging = new PagingType();
 		paging.setOffset(0);
 		paging.setMaxSize(50);
-		reportType.getQuery().setPaging(paging);
+		//reportType.getQuery().setPaging(paging);
 		rowCount = paging.getMaxSize();
 		rowCounter = rowCount - 1;
 		fieldsPair = getFieldsPair();
@@ -90,11 +90,11 @@ public class DataSourceReport implements JRDataSource
 		List<PrismObject<T>> listReportObjects =  new ArrayList<PrismObject<T>>();;
 		try
 		{
-			Class<T> clazz = (Class<T>) ObjectTypes.getObjectTypeFromTypeQName(reportType.getObjectClass()).getClassDefinition();
-			ObjectQuery objectQuery = QueryConvertor.createObjectQuery(clazz, reportType.getQuery(), prismContext);
+			//Class<T> clazz = (Class<T>) ObjectTypes.getObjectTypeFromTypeQName(reportType.getObjectClass()).getClassDefinition();
+			//ObjectQuery objectQuery = QueryConvertor.createObjectQuery(clazz, reportType.getQuery(), prismContext);
 			LOGGER.trace("Search report objects {}:", reportType);
 			
-			listReportObjects = modelService.searchObjects(clazz, objectQuery, SelectorOptions.createCollection(GetOperationOptions.createRaw()), null, result);
+			//listReportObjects = modelService.searchObjects(clazz, objectQuery, SelectorOptions.createCollection(GetOperationOptions.createRaw()), null, result);
 			return listReportObjects;
 		}
 		catch (Exception ex) 
@@ -116,7 +116,7 @@ public class DataSourceReport implements JRDataSource
 				LOGGER.trace("Select next report objects {}:", data);
 				pageOffset += paging.getMaxSize();
 				paging.setOffset(pageOffset);
-				reportType.getQuery().setPaging(paging);
+				//reportType.getQuery().setPaging(paging);
 				rowCounter = 0;
 				rowCount  = Math.min(paging.getMaxSize(), data.size());
 				LOGGER.trace("Set next select paging {}:", paging);

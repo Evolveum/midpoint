@@ -200,14 +200,14 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
          try {
              ReportType reportType = (ReportType) object.asObjectable();
              JasperDesign jasperDesign = null;
-             if (reportType.getReportTemplate() == null || reportType.getReportTemplate().getAny() == null)
+             if (reportType.getTemplate() == null || reportType.getTemplate().getAny() == null)
              {
             	 jasperDesign = ReportUtils.createJasperDesign(reportType);
             	 LOGGER.trace("create jasper design : {}", jasperDesign);
              }
              else
              {
-            	 String reportTemplate = DOMUtil.serializeDOMToString((Node)reportType.getReportTemplate().getAny());
+            	 String reportTemplate = DOMUtil.serializeDOMToString((Node)reportType.getTemplate().getAny());
             	 InputStream inputStreamJRXML = new ByteArrayInputStream(reportTemplate.getBytes());
             	 jasperDesign = JRXmlLoader.load(inputStreamJRXML);
             	 LOGGER.trace("load jasper design : {}", jasperDesign);
@@ -276,7 +276,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
         	ReportOutputType reportOutput = reportOutputPrism.asObjectable();
         	
         	LOGGER.trace("Removing report output {} along with {} file.", reportOutput.getName().getOrig(), 
-        			reportOutput.getReportFilePath());
+        			reportOutput.getFilePath());
         	boolean problem = false;
         	try {
                     deleteReportOutput(reportOutput, result);
@@ -316,7 +316,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
 
         result.addParam("oid", oid);
         try {
-            File reportFile = new File(reportOutput.getReportFilePath());
+            File reportFile = new File(reportOutput.getFilePath());
             reportFile.delete();
             
 			ObjectDelta<ReportOutputType> delta = ObjectDelta.createDeleteDelta(ReportOutputType.class, oid, prismContext);
