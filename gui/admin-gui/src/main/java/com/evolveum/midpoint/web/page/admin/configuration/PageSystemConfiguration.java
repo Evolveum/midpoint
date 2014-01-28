@@ -393,8 +393,7 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 
     private void resetPerformed(AjaxRequestTarget target) {
         model.reset();
-        target.add(get(ID_MAIN_FORM));
-        target.appendJavaScript("init();");
+        setResponsePage(PageSystemConfiguration.class);
     }
 
     private void cancelPerformed(AjaxRequestTarget target) {

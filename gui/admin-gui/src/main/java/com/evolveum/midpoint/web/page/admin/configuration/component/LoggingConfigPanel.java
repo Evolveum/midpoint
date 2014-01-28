@@ -373,6 +373,9 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
                     }
                 }, options);
 
+                FormComponent<String> input = panel.getBaseFormComponent();
+                input.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+
                 return panel;
             }
         });
