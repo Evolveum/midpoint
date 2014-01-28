@@ -198,11 +198,17 @@ public class TestOrgSync extends AbstractStoryTest {
 	private static final String ACCOUNT_LARGO_USERNAME = "largo";
 	private static final String ACCOUNT_LARGO_FIST_NAME = "Largo";
 	private static final String ACCOUNT_LARGO_LAST_NAME = "LaGrande";
+	
+	private static final String ACCOUNT_STAN_USERNAME = "stan";
+	private static final String ACCOUNT_STAN_FIST_NAME = "Stan";
+	private static final String ACCOUNT_STAN_LAST_NAME = "Salesman";
 
 	private static final String ORGPATH_MONKEY_ISLAND = "Monkey Island";
 	private static final String ORGPATH_FREELANCE = "Freelance/Ministry of Rum";
 	private static final String ORGPATH_SCUMM_BAR = "Scumm Bar/Ministry of Rum";
 	private static final String ORGPATH_BRUTE = "Brute Office/Violence Section/Department of Mischief/Ministry of Offense";
+	private static final String ORGPATH_MELEE_ISLAND = "Mêlée Island";
+	private static final String ORGPATH_DOCKS = "Docks/Mêlée Island";
 	
 	private static final String RESP_CANIBALISM = "canibalism";
 	
@@ -289,6 +295,8 @@ public class TestOrgSync extends AbstractStoryTest {
         waitForTaskStart(TASK_TRIGGER_SCANNER_OID, true);
         waitForTaskStart(TASK_VALIDITY_SCANNER_OID, true);
         waitForTaskStart(TASK_LIVE_SYNC_DUMMY_HR_OID, false);
+        
+        dumpOrgTree();
 	}
 	
 	/**
@@ -316,11 +324,16 @@ public class TestOrgSync extends AbstractStoryTest {
         assertUserHerman(user);
         assertAccount(user, RESOURCE_DUMMY_HR_OID);
         
+        dumpOrgTree();
+        
         PrismObject<OrgType> org = getAndAssertReplicatedOrg(ORGPATH_MONKEY_ISLAND);
         orgMonkeyIslandOid = org.getOid();
         assertAssignedOrg(user, org.getOid());
         assertHasOrg(user, org.getOid());
         assertHasOrg(org, ORG_TOP_OID);
+        
+        assertSubOrgs(org,0);
+        assertSubOrgs(ORG_TOP_OID,1);
         
         assertBasicRoleAndResources(user);
         assertAssignments(user, 2);
@@ -351,11 +364,16 @@ public class TestOrgSync extends AbstractStoryTest {
         display("User", user);
         assertUser(user, ACCOUNT_LEMONHEAD_USERNAME, ACCOUNT_LEMONHEAD_FIST_NAME, ACCOUNT_LEMONHEAD_LAST_NAME);
         assertAccount(user, RESOURCE_DUMMY_HR_OID);
+
+        dumpOrgTree();
         
         PrismObject<OrgType> org = getAndAssertReplicatedOrg(ORGPATH_MONKEY_ISLAND);
         assertAssignedOrg(user, org.getOid());
         assertHasOrg(user, org.getOid());
         assertHasOrg(org, ORG_TOP_OID);
+        
+        assertSubOrgs(org,0);
+        assertSubOrgs(ORG_TOP_OID,1);
         
         assertEquals("Monkey island Org OID has changed", orgMonkeyIslandOid, org.getOid());
         
@@ -390,11 +408,16 @@ public class TestOrgSync extends AbstractStoryTest {
         assertUser(user, ACCOUNT_SHARPTOOTH_USERNAME, ACCOUNT_SHARPTOOTH_FIST_NAME, ACCOUNT_SHARPTOOTH_LAST_NAME);
         assertAccount(user, RESOURCE_DUMMY_HR_OID);
         
+        dumpOrgTree();
+        
         PrismObject<OrgType> org = getAndAssertReplicatedOrg(ORGPATH_MONKEY_ISLAND);
         assertAssignedOrg(user, org.getOid());
         assertHasOrg(user, org.getOid());
         assertHasOrg(org, ORG_TOP_OID);
         assertEquals("Monkey island Org OID has changed", orgMonkeyIslandOid, org.getOid());
+        
+        assertSubOrgs(org,0);
+        assertSubOrgs(ORG_TOP_OID,1);
         
         assertBasicRoleAndResources(user);
         String thisRoleCanibalismOid = assertResponsibility(user, RESP_CANIBALISM);
@@ -427,6 +450,8 @@ public class TestOrgSync extends AbstractStoryTest {
         assertUserGuybrush(user);
         assertAccount(user, RESOURCE_DUMMY_HR_OID);
         
+        dumpOrgTree();        
+        
         PrismObject<OrgType> orgFreelance = getAndAssertReplicatedOrg("Freelance");
         PrismObject<OrgType> orgMoR = getAndAssertReplicatedOrg("Ministry of Rum");
         orgMoROid = orgMoR.getOid();
@@ -435,6 +460,11 @@ public class TestOrgSync extends AbstractStoryTest {
         assertHasOrg(user, orgFreelance.getOid());
         assertHasOrg(orgFreelance, orgMoR.getOid());
         assertHasOrg(orgMoR, ORG_TOP_OID);
+        
+        assertSubOrgs(orgFreelance,0);
+        assertSubOrgs(orgMoR,1);
+        assertSubOrgs(orgMonkeyIslandOid,0);
+        assertSubOrgs(ORG_TOP_OID,2);
         
         assertBasicRoleAndResources(user);
         assertAssignments(user, 2);
@@ -464,6 +494,8 @@ public class TestOrgSync extends AbstractStoryTest {
         display("User", user);
         assertUser(user, ACCOUNT_MANCOMB_USERNAME, ACCOUNT_MANCOMB_FIST_NAME, ACCOUNT_MANCOMB_LAST_NAME);
         assertAccount(user, RESOURCE_DUMMY_HR_OID);
+
+        dumpOrgTree();
         
         PrismObject<OrgType> orgScummBar = getAndAssertReplicatedOrg("Scumm Bar");
         orgScummBarOid = orgScummBar.getOid();
@@ -473,6 +505,11 @@ public class TestOrgSync extends AbstractStoryTest {
         assertHasOrg(user, orgScummBar.getOid());
         assertHasOrg(orgScummBar, orgMoR.getOid());
         assertHasOrg(orgMoR, ORG_TOP_OID);
+        
+        assertSubOrgs(orgScummBar,0);
+        assertSubOrgs(orgMoR,2);
+        assertSubOrgs(orgMonkeyIslandOid,0);
+        assertSubOrgs(ORG_TOP_OID,2);
         
         assertEquals("MoR Org OID has changed", orgMoROid, orgMoR.getOid());
         
@@ -504,6 +541,8 @@ public class TestOrgSync extends AbstractStoryTest {
         display("User", user);
         assertUser(user, ACCOUNT_COBB_USERNAME, ACCOUNT_COBB_FIST_NAME, ACCOUNT_COBB_LAST_NAME);
         assertAccount(user, RESOURCE_DUMMY_HR_OID);
+
+        dumpOrgTree();
         
         PrismObject<OrgType> orgScummBar = getAndAssertReplicatedOrg("Scumm Bar");
         PrismObject<OrgType> orgMoR = getAndAssertReplicatedOrg("Ministry of Rum");
@@ -515,6 +554,11 @@ public class TestOrgSync extends AbstractStoryTest {
         
         assertEquals("MoR Org OID has changed", orgMoROid, orgMoR.getOid());
         assertEquals("Scumm bar Org OID has changed", orgScummBarOid, orgScummBar.getOid());
+        
+        assertSubOrgs(orgScummBar,0);
+        assertSubOrgs(orgMoR,2);
+        assertSubOrgs(orgMonkeyIslandOid,0);
+        assertSubOrgs(ORG_TOP_OID,2);
         
         assertBasicRoleAndResources(user);
         assertAssignments(user, 2);
@@ -544,6 +588,8 @@ public class TestOrgSync extends AbstractStoryTest {
         display("User", user);
         assertUser(user, ACCOUNT_LARGO_USERNAME, ACCOUNT_LARGO_FIST_NAME, ACCOUNT_LARGO_LAST_NAME);
         assertAccount(user, RESOURCE_DUMMY_HR_OID);
+
+        dumpOrgTree();
         
         PrismObject<OrgType> orgMoO = getAndAssertReplicatedOrg("Ministry of Offense");
         PrismObject<OrgType> orgDoM = getAndAssertReplicatedOrg("Department of Mischief");
@@ -556,6 +602,61 @@ public class TestOrgSync extends AbstractStoryTest {
         assertHasOrg(orgVSec, orgDoM.getOid());
         assertHasOrg(orgDoM, orgMoO.getOid());
         assertHasOrg(orgMoO, ORG_TOP_OID);
+        
+        assertSubOrgs(orgBOff,0);
+        assertSubOrgs(orgVSec,1);
+        assertSubOrgs(orgDoM,1);
+        assertSubOrgs(orgMoO,1);
+        assertSubOrgs(orgScummBarOid,0);
+        assertSubOrgs(orgMoROid,2);
+        assertSubOrgs(orgMonkeyIslandOid,0);
+        assertSubOrgs(ORG_TOP_OID,3);
+        
+        assertBasicRoleAndResources(user);
+        assertAssignments(user, 2);
+	}
+	
+	/**
+	 * Some national characters there.
+	 */
+	@Test
+    public void test140AddHrAccountStan() throws Exception {
+		final String TEST_NAME = "test140AddHrAccountStan";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        
+        DummyAccount newAccount = new DummyAccount(ACCOUNT_STAN_USERNAME);
+        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_STAN_FIST_NAME);
+        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME, ACCOUNT_STAN_LAST_NAME);
+        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_ORGPATH, ORGPATH_DOCKS);
+		
+        // WHEN
+        dummyResourceHr.addAccount(newAccount);
+        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        
+        // THEN
+        PrismObject<UserType> user = findUserByUsername(ACCOUNT_STAN_USERNAME);
+        assertNotNull("No largo user", user);
+        display("User", user);
+        assertUser(user, ACCOUNT_STAN_USERNAME, ACCOUNT_STAN_FIST_NAME, ACCOUNT_STAN_LAST_NAME);
+        assertAccount(user, RESOURCE_DUMMY_HR_OID);
+        
+        dumpOrgTree();
+        
+        PrismObject<OrgType> orgDocks = getAndAssertReplicatedOrg("Docks");
+        PrismObject<OrgType> orgMelee = getAndAssertReplicatedOrg(ORGPATH_MELEE_ISLAND);
+        
+        assertAssignedOrg(user, orgDocks.getOid());
+        assertHasOrg(user, orgDocks.getOid());
+        assertHasOrg(orgDocks, orgMelee.getOid());
+        assertHasOrg(orgMelee, ORG_TOP_OID);
+        
+        assertSubOrgs(orgDocks,0);
+        assertSubOrgs(orgMelee,1);
+        assertSubOrgs(orgScummBarOid,0);
+        assertSubOrgs(orgMoROid,2);
+        assertSubOrgs(orgMonkeyIslandOid,0);
+        assertSubOrgs(ORG_TOP_OID,4);
         
         assertBasicRoleAndResources(user);
         assertAssignments(user, 2);
@@ -634,6 +735,9 @@ public class TestOrgSync extends AbstractStoryTest {
 		return respRole.getOid();
 	}
 
+	private void dumpOrgTree() throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+		display("Org tree", dumpOrgTree(ORG_TOP_OID));
+	}
 
 	
 }
