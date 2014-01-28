@@ -70,6 +70,8 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
     private static final String ID_CANCEL = "cancel";
     private static final String ID_SAVE = "save";
 
+    public static final String ROOT_APPENDER_INHERITANCE_CHOICE = "(Inherit root)";
+
     LoggingConfigPanel loggingConfigPanel;
     SystemConfigPanel systemConfigPanel;
 
@@ -234,7 +236,7 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
         ClassLoggerConfigurationType type = new ClassLoggerConfigurationType();
         type.setPackage(name);
         type.setLevel(level);
-        if (StringUtils.isNotEmpty(appender)) {
+        if (StringUtils.isNotEmpty(appender) || !(ROOT_APPENDER_INHERITANCE_CHOICE.equals(appender))) {
             type.getAppender().add(appender);
         }
 

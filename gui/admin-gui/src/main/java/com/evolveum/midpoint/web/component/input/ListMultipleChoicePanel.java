@@ -16,12 +16,15 @@
 
 package com.evolveum.midpoint.web.component.input;
 
+import com.evolveum.midpoint.web.component.DropDownMultiChoice;
 import com.evolveum.midpoint.web.component.prism.InputPanel;
 import org.apache.wicket.markup.html.form.FormComponent;
+import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.markup.html.form.ListMultipleChoice;
 import org.apache.wicket.model.IModel;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author lazyman
@@ -32,6 +35,13 @@ public class ListMultipleChoicePanel<T> extends InputPanel {
         super(id);
         ListMultipleChoice<T> multiple = new ListMultipleChoice<T>("input", model, choices);
         add(multiple);
+    }
+
+    public ListMultipleChoicePanel(String id, IModel<List<T>> model, IModel<List<T>> choices, IChoiceRenderer renderer,
+                                   IModel<Map<String, String>> options){
+        super(id);
+        DropDownMultiChoice multiChoice = new DropDownMultiChoice<T>("input", model, choices, renderer, options);
+        add(multiChoice);
     }
 
     @Override
