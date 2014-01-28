@@ -202,6 +202,10 @@ public class TestOrgSync extends AbstractStoryTest {
 	private static final String ACCOUNT_STAN_USERNAME = "stan";
 	private static final String ACCOUNT_STAN_FIST_NAME = "Stan";
 	private static final String ACCOUNT_STAN_LAST_NAME = "Salesman";
+	
+	private static final String ACCOUNT_TELEKE_USERNAME = "tőlőkë";
+	private static final String ACCOUNT_TELEKE_FIST_NAME = "Félix";
+	private static final String ACCOUNT_TELEKE_LAST_NAME = "Tőlőkë";
 
 	private static final String ORGPATH_MONKEY_ISLAND = "Monkey Island";
 	private static final String ORGPATH_FREELANCE = "Freelance/Ministry of Rum";
@@ -209,6 +213,9 @@ public class TestOrgSync extends AbstractStoryTest {
 	private static final String ORGPATH_BRUTE = "Brute Office/Violence Section/Department of Mischief/Ministry of Offense";
 	private static final String ORGPATH_MELEE_ISLAND = "Mêlée Island";
 	private static final String ORGPATH_DOCKS = "Docks/Mêlée Island";
+	private static final String ORGPATH_KARPATULA = "Karpátulæ";
+	private static final String HRAD = "Čórtúv Hrád";
+	private static final String ORGPATH_HRAD = HRAD+"/"+ORGPATH_KARPATULA;
 	
 	private static final String RESP_CANIBALISM = "canibalism";
 	
@@ -657,6 +664,52 @@ public class TestOrgSync extends AbstractStoryTest {
         assertSubOrgs(orgMoROid,2);
         assertSubOrgs(orgMonkeyIslandOid,0);
         assertSubOrgs(ORG_TOP_OID,4);
+        
+        assertBasicRoleAndResources(user);
+        assertAssignments(user, 2);
+	}
+	
+	/**
+	 * Lot of national characters here.
+	 */
+	@Test
+    public void test150AddHrAccountTeleke() throws Exception {
+		final String TEST_NAME = "test150AddHrAccountToloko";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        
+        DummyAccount newAccount = new DummyAccount(ACCOUNT_TELEKE_USERNAME);
+        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_TELEKE_FIST_NAME);
+        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME, ACCOUNT_TELEKE_LAST_NAME);
+        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_ORGPATH, ORGPATH_HRAD);
+		
+        // WHEN
+        dummyResourceHr.addAccount(newAccount);
+        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        
+        // THEN
+        PrismObject<UserType> user = findUserByUsername(ACCOUNT_TELEKE_USERNAME);
+        assertNotNull("No largo user", user);
+        display("User", user);
+        assertUser(user, ACCOUNT_TELEKE_USERNAME, ACCOUNT_TELEKE_FIST_NAME, ACCOUNT_TELEKE_LAST_NAME);
+        assertAccount(user, RESOURCE_DUMMY_HR_OID);
+        
+        dumpOrgTree();
+        
+        PrismObject<OrgType> orgHrad = getAndAssertReplicatedOrg(HRAD);
+        PrismObject<OrgType> orgKarpatula = getAndAssertReplicatedOrg(ORGPATH_KARPATULA);
+        
+        assertAssignedOrg(user, orgHrad.getOid());
+        assertHasOrg(user, orgHrad.getOid());
+        assertHasOrg(orgHrad, orgKarpatula.getOid());
+        assertHasOrg(orgKarpatula, ORG_TOP_OID);
+        
+        assertSubOrgs(orgHrad,0);
+        assertSubOrgs(orgKarpatula,1);
+        assertSubOrgs(orgScummBarOid,0);
+        assertSubOrgs(orgMoROid,2);
+        assertSubOrgs(orgMonkeyIslandOid,0);
+        assertSubOrgs(ORG_TOP_OID,5);
         
         assertBasicRoleAndResources(user);
         assertAssignments(user, 2);
