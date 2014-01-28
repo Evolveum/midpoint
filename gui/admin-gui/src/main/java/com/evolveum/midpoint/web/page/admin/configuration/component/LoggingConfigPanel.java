@@ -20,6 +20,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.DropDownMultiChoice;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
 import com.evolveum.midpoint.web.component.data.column.EditableLinkColumn;
@@ -32,6 +33,7 @@ import com.evolveum.midpoint.web.component.util.Editable;
 import com.evolveum.midpoint.web.component.util.ListDataProvider;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
+import com.evolveum.midpoint.web.page.admin.configuration.PageSystemConfiguration;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.*;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
@@ -39,6 +41,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
+import org.apache.wicket.ajax.form.OnChangeAjaxBehavior;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.ISortableDataProvider;
@@ -51,6 +54,7 @@ import org.apache.wicket.model.PropertyModel;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author lazyman
@@ -169,6 +173,13 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
         DropDownChoice<String> rootAppender = new DropDownChoice<String>(ID_ROOT_APPENDER,
                 new PropertyModel<String>(getModel(), LoggingDto.F_ROOT_APPENDER), createAppendersListModel());
         rootAppender.setNullValid(true);
+        rootAppender.add(new OnChangeAjaxBehavior() {
+
+            @Override
+            protected void onUpdate(AjaxRequestTarget target) {
+                rootAppenderChangePerformed(target);
+            }
+        });
         add(rootAppender);
     }
 
@@ -346,13 +357,21 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
 
             @Override
             protected InputPanel createInputPanel(String componentId, IModel<LoggerConfiguration> model) {
+                IModel<Map<String, String>> options = new Model(null);
                 ListMultipleChoicePanel panel = new ListMultipleChoicePanel<String>(componentId,
-                        new PropertyModel<List<String>>(model, getPropertyExpression()), createNewLoggerAppendersListModel());
+                        new PropertyModel<List<String>>(model, getPropertyExpression()),
+                        createNewLoggerAppendersListModel(), new IChoiceRenderer<String>() {
 
-                ListMultipleChoice choice = (ListMultipleChoice) panel.getBaseFormComponent();
-                choice.setMaxRows(3);
+                    @Override
+                    public String getDisplayValue(String o) {
+                        return o;
+                    }
 
-                panel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+                    @Override
+                    public String getIdValue(String o, int index) {
+                        return Integer.toString(index);
+                    }
+                }, options);
 
                 return panel;
             }
@@ -370,10 +389,12 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
 
                 LoggingDto dto = getModel().getObject();
 
-                //list.add("(default - root appender)");
-                list.add("");
+                list.add(PageSystemConfiguration.ROOT_APPENDER_INHERITANCE_CHOICE);
                 for(AppenderConfiguration appender: dto.getAppenders()){
-                    list.add(appender.getName());
+
+                    if(!appender.getName().equals(dto.getRootAppender())){
+                        list.add(appender.getName());
+                    }
                 }
 
                 return list;
@@ -463,5 +484,9 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
             panel.add(new InputStringValidator());
             return panel;
         }
+    }
+
+    private void rootAppenderChangePerformed(AjaxRequestTarget target){
+        target.add(getLoggersTable());
     }
 }
