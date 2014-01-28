@@ -52,9 +52,7 @@ import com.evolveum.midpoint.web.page.admin.resources.component.ContentPanel;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageContentAccounts;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageContentEntitlements;
 import com.evolveum.midpoint.web.page.admin.resources.dto.*;
-import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
 import com.evolveum.midpoint.web.session.ResourcesStorage;
-import com.evolveum.midpoint.web.session.UsersStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorHostType;
@@ -138,18 +136,18 @@ public class PageResources extends PageAdminResources {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
-        TablePanel resources = new TablePanel<ResourceDto>(ID_TABLE, initResourceDataProvider(), initResourceColumns());
+        TablePanel resources = new TablePanel<>(ID_TABLE, initResourceDataProvider(), initResourceColumns());
         resources.setOutputMarkupId(true);
         mainForm.add(resources);
 
-        TablePanel connectorHosts = new TablePanel<ConnectorHostType>(ID_CONNECTOR_TABLE,
+        TablePanel connectorHosts = new TablePanel<>(ID_CONNECTOR_TABLE,
                 new ObjectDataProvider(PageResources.this, ConnectorHostType.class), initConnectorHostsColumns());
         connectorHosts.setShowPaging(false);
         connectorHosts.setOutputMarkupId(true);
         mainForm.add(connectorHosts);
 
         add(new ConfirmationDialog(ID_DELETE_RESOURCES_POPUP,
-                createStringResource("pageResources.dialog.title.confirmDeleteResource"),
+                createStringResource("pageResources.dialog.title.confirmDelete"),
                 createDeleteConfirmString("pageResources.message.deleteResourceConfirm",
                         "pageResources.message.deleteResourcesConfirm", true)) {
 
@@ -529,7 +527,7 @@ public class PageResources extends PageAdminResources {
         }
 
         TablePanel resourceTable = getResourceTable();
-        ResourceDtoProvider provider = (ResourceDtoProvider) resourceTable.getDataTable().getDataProvider();
+        ObjectDataProvider provider = (ObjectDataProvider) resourceTable.getDataTable().getDataProvider();
         provider.clearCache();
 
         showResult(result);
