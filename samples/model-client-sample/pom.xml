@@ -99,7 +99,7 @@
 		<dependency>
 			<groupId>com.evolveum.midpoint.model</groupId>
 			<artifactId>model-client</artifactId>
-			<version>2.2.1</version>
+			<version>2.2.2-SNAPSHOT</version>
 		</dependency>
 		<dependency>
             <groupId>org.apache.cxf</groupId>
