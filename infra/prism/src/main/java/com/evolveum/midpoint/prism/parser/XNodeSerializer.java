@@ -37,6 +37,7 @@ import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContainerable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
@@ -52,6 +53,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xnode.ListXNode;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
+import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -79,7 +81,15 @@ public class XNodeSerializer {
 	}
 
 	
-	public <O extends Objectable> XNode serializeObject(PrismObject<O> object) throws SchemaException {
+	public <O extends Objectable> RootXNode serializeObject(PrismObject<O> object) throws SchemaException {
+		RootXNode xroot = new RootXNode();
+		xroot.setSubnode(serializeObjectContent(object));
+		xroot.setTypeQName(object.getDefinition().getTypeName());
+		xroot.setRootElementName(object.getElementName());
+		return xroot;
+	}
+	
+	private <O extends Objectable> MapXNode serializeObjectContent(PrismObject<O> object) throws SchemaException {
 		MapXNode xmap = new MapXNode();
 		if (object.getOid() != null) {
 			xmap.put(XNode.KEY_OID, createPrimitiveXNodeStringAttr(object.getOid()));
@@ -87,7 +97,8 @@ public class XNodeSerializer {
 		if (object.getVersion() != null) {
 			xmap.put(XNode.KEY_VERSION, createPrimitiveXNodeStringAttr(object.getVersion()));
 		}
-		serializeContainerValue(xmap, object.getValue(), object.getDefinition());
+		PrismObjectDefinition<O> objectDefinition = object.getDefinition();
+		serializeContainerValue(xmap, object.getValue(), objectDefinition);
 		return xmap;
 	}
 	
@@ -180,7 +191,7 @@ public class XNodeSerializer {
 			isComposite = definition.isComposite();
 		}
 		if ((serializeCompositeObjects || isComposite) && value.getObject() != null) {
-			XNode xobjnode = serializeObject(value.getObject());
+			XNode xobjnode = serializeObjectContent(value.getObject());
 			xmap.put(XNode.KEY_REFERENCE_OBJECT, xobjnode);
 		}
 		

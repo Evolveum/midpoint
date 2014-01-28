@@ -298,10 +298,10 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
 		if (!super.equalsComplex(other, ignoreMetadata, isLiteral)) {
 			return false;
 		}
-		if (this.oid == null) {
-			if (other.oid != null)
+		if (this.getOid() == null) {
+			if (other.getOid() != null)
 				return false;
-		} else if (!this.oid.equals(other.oid))
+		} else if (!this.getOid().equals(other.getOid()))
 			return false;
 		// Special handling: if both oids are null we need to compare embedded objects
 		if (this.oid == null && other.oid == null) {
@@ -315,10 +315,10 @@ public class PrismReferenceValue extends PrismValue implements Dumpable, DebugDu
 				}
 			}
 		}
-		if (this.targetType == null) {
-			if (other.targetType != null)
+		if (this.getTargetType() == null) {
+			if (other.getTargetType() != null)
 				return false;
-		} else if (!this.targetType.equals(other.targetType))
+		} else if (!this.getTargetType().equals(other.getTargetType()))
 			return false;
 		if (this.relation == null) {
 			if (other.relation != null)

@@ -116,6 +116,16 @@ public class XNodeProcessor {
 		return parseObject((MapXNode)subnode, rootElementName, objectDefinition);
 	}
 	
+	public <O extends Objectable> PrismObject<O> parseObject(MapXNode xmap) throws SchemaException {
+		// There is no top-level element to detect type. We have only one chance ...
+		QName typeQName = xmap.getTypeQName();
+		if (typeQName == null) {
+			throw new SchemaException("No type specified in top-level xnode, cannot determine object type");
+		}
+		PrismObjectDefinition<O> objectDefinition = getSchemaRegistry().findObjectDefinitionByType(typeQName);
+		return parseObject(xmap, objectDefinition);
+	}
+	
 	public <O extends Objectable> PrismObject<O> parseObject(MapXNode xnode, PrismObjectDefinition<O> objectDefinition) throws SchemaException {
 		return parseObject(xnode, new QName(null, "object"), objectDefinition);
 	}
@@ -424,7 +434,7 @@ public class XNodeProcessor {
 		for (XNode subnode : xlist) {
 			if (itemName.equals(referenceDefinition.getName())) {
 				// This is "real" reference (oid type and nothing more)
-				ref.add(parseReferenceValue(subnode));
+				ref.add(parseReferenceValue(subnode, referenceDefinition));
 			} else {
 				// This is a composite object (complete object stored inside
 				// reference)
@@ -439,7 +449,7 @@ public class XNodeProcessor {
 		PrismReference ref = referenceDefinition.instantiate();
 		if (itemName.equals(referenceDefinition.getName())) {
 			// This is "real" reference (oid type and nothing more)
-			ref.add(parseReferenceValue(xmap));
+			ref.add(parseReferenceValue(xmap, referenceDefinition));
 		} else {
 			// This is a composite object (complete object stored inside
 			// reference)
@@ -448,19 +458,34 @@ public class XNodeProcessor {
 		return ref;
 	}
 
-	public PrismReferenceValue parseReferenceValue(XNode xnode) throws SchemaException {
+	public PrismReferenceValue parseReferenceValue(XNode xnode, PrismReferenceDefinition referenceDefinition) throws SchemaException {
 		if (xnode instanceof MapXNode) {
-			return parseReferenceValue((MapXNode)xnode);
+			return parseReferenceValue((MapXNode)xnode, referenceDefinition);
 		} else {
 			throw new IllegalArgumentException("Cannot parse reference from "+xnode);
 		}
 	}
 	
-	public PrismReferenceValue parseReferenceValue(MapXNode xmap) throws SchemaException {
+	public PrismReferenceValue parseReferenceValue(MapXNode xmap, PrismReferenceDefinition referenceDefinition) throws SchemaException {
 		String oid = xmap.getParsedPrimitiveValue(XNode.KEY_REFERENCE_OID, DOMUtil.XSD_STRING);
 		PrismReferenceValue refVal = new PrismReferenceValue(oid);
 
 		QName type = xmap.getParsedPrimitiveValue(XNode.KEY_REFERENCE_TYPE, DOMUtil.XSD_QNAME);
+		if (type == null) {
+			type = referenceDefinition.getTargetTypeName();
+			if (type == null) {
+				throw new SchemaException("Target type specified neither in reference nor in the schema");
+			}
+		} else {
+			QName defTargetType = referenceDefinition.getTargetTypeName();
+			if (defTargetType != null && !type.equals(defTargetType)) {
+				throw new SchemaException("Target type specified in reference ("+type+") does not match target type in schema ("+defTargetType+")");
+			}
+		}
+		PrismObjectDefinition<Objectable> objectDefinition = getSchemaRegistry().findObjectDefinitionByType(type);
+		if (objectDefinition == null) {
+			throw new SchemaException("No definition for type "+type+" in reference");
+		}
 		refVal.setTargetType(type);
 
 		QName relationAttribute = xmap.getParsedPrimitiveValue(XNode.KEY_REFERENCE_RELATION, DOMUtil.XSD_QNAME);
@@ -472,11 +497,35 @@ public class XNodeProcessor {
 		
 		XNode xrefObject = xmap.get(XNode.KEY_REFERENCE_OBJECT);
 		if (xrefObject != null) {
-			PrismObject<Objectable> object = parseObject(xrefObject);
-			refVal.setObject(object);
+			if (!(xrefObject instanceof MapXNode)) {
+				throw new SchemaException("Cannot parse object from "+xrefObject);
+			}
+			PrismObject<Objectable> object = parseObject((MapXNode)xrefObject, objectDefinition);
+			setReferenceObject(refVal, object);
 		}
 
 		return refVal;
+	}
+
+	private void setReferenceObject(PrismReferenceValue refVal, PrismObject<Objectable> object) throws SchemaException {
+		refVal.setObject(object);
+		if (object.getOid() != null) {
+			if (refVal.getOid() == null) {
+				refVal.setOid(object.getOid());
+			} else {
+				if (!refVal.getOid().equals(object.getOid())) {
+					throw new SchemaException("OID in reference ("+refVal.getOid()+") does not match OID in composite object ("+object.getOid()+")");
+				}
+			}
+		}
+		QName objectTypeName = object.getDefinition().getTypeName();
+		if (refVal.getTargetType() == null) {
+			refVal.setTargetType(objectTypeName);
+		} else {
+			if (!refVal.getTargetType().equals(objectTypeName)) {
+				throw new SchemaException("Target type in reference ("+refVal.getTargetType()+") does not match OID in composite object ("+objectTypeName+")");
+			}
+		}
 	}
 
 	private PrismReferenceValue parseReferenceAsCompositeObject(XNode xnode,
@@ -512,7 +561,7 @@ public class XNodeProcessor {
 		}
 
 		PrismReferenceValue refVal = new PrismReferenceValue();
-		refVal.setObject(compositeObject);
+		setReferenceObject(refVal, compositeObject);
 		return refVal;
 	}
 
@@ -544,4 +593,9 @@ public class XNodeProcessor {
 		return serializer.serializeObject(object);
 	}
 
+	public <O extends Objectable> XNode serializeObject(PrismObject<O> object, boolean serializeCompositeObjects) throws SchemaException {
+		XNodeSerializer serializer = new XNodeSerializer(prismContext.getBeanConverter());
+		serializer.setSerializeCompositeObjects(serializeCompositeObjects);
+		return serializer.serializeObject(object);
+	}
 }

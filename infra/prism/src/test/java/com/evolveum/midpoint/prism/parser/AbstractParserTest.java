@@ -25,6 +25,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -34,6 +35,7 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismInternalTestUtil;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectReferenceType;
 
@@ -138,7 +140,7 @@ public abstract class AbstractParserTest {
 		assertUserJack(user);
 		
 		// WHEN (re-serialize to XNode)
-		XNode serializedXNode = processor.serializeObject(user);
+		XNode serializedXNode = processor.serializeObject(user, true);
 		String serializedString = parser.serializeToString(serializedXNode, new QName(NS_FOO, "user"));
 		
 		// THEN
@@ -160,12 +162,30 @@ public abstract class AbstractParserTest {
 		System.out.println(reparsedUser.dump());
 		
 		assertUserJackXNodeOrdering("serialized xnode", reparsedXnode);
-		
+				
 		ObjectDelta<UserType> diff = DiffUtil.diff(user, reparsedUser);
 		System.out.println("\nDiff:");
 		System.out.println(diff.dump());
 		
+		PrismObject accountRefObjOrig = findObjectFromAccountRef(user);
+		PrismObject accountRefObjRe = findObjectFromAccountRef(reparsedUser);
+		
+		ObjectDelta<UserType> accountRefObjDiff = DiffUtil.diff(accountRefObjOrig, accountRefObjRe);
+		System.out.println("\naccountRef object diff:");
+		System.out.println(accountRefObjDiff.dump());
+		
+		assertTrue("Re-parsed object in accountRef does not match: "+accountRefObjDiff, accountRefObjDiff.isEmpty());
+		
 		assertTrue("Re-parsed user does not match: "+diff, diff.isEmpty());
+	}
+
+	private PrismObject findObjectFromAccountRef(PrismObject<UserType> user) {
+		for (PrismReferenceValue rval: user.findReference(UserType.F_ACCOUNT_REF).getValues()) {
+			if (rval.getObject() != null) {
+				return rval.getObject();
+			}
+		}
+		return null;
 	}
 
 	protected <X extends XNode> X getAssertXNode(String message, XNode xnode, Class<X> expectedClass) {
