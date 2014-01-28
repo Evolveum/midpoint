@@ -70,6 +70,10 @@ public class PageError extends PageBase {
 
             @Override
             public String getObject() {
+                if (exClass == null) {
+                    return null;
+                }
+
                 SimpleDateFormat df = new SimpleDateFormat();
                 return df.format(new Date()) + "\t" + exClass + ": " + exMessage;
             }
