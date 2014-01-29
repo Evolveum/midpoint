@@ -108,10 +108,73 @@ public class MapXNode extends XNode implements Map<QName,XNode> {
 	}
 
 	public Set<java.util.Map.Entry<QName, XNode>> entrySet() {
-		Set<java.util.Map.Entry<QName, XNode>> entries = new HashSet<Map.Entry<QName,XNode>>();
-		for (Entry entry: subnodes) {
-			entries.add(entry);
-		}
+		Set<java.util.Map.Entry<QName, XNode>> entries = new Set<Map.Entry<QName,XNode>>() {
+
+			@Override
+			public int size() {
+				return subnodes.size();
+			}
+
+			@Override
+			public boolean isEmpty() {
+				return subnodes.isEmpty();
+			}
+
+			@Override
+			public boolean contains(Object o) {
+				return subnodes.contains(o);
+			}
+
+			@Override
+			public Iterator<java.util.Map.Entry<QName, XNode>> iterator() {
+				return (Iterator)subnodes.iterator();
+			}
+
+			@Override
+			public Object[] toArray() {
+				return subnodes.toArray();
+			}
+			@Override
+			public <T> T[] toArray(T[] a) {
+				return subnodes.toArray(a);
+			}
+			@Override
+			public boolean add(java.util.Map.Entry<QName, XNode> e) {
+				throw new UnsupportedOperationException();
+//				put(e.getKey(), e.getValue());
+//				return true;
+			}
+
+			@Override
+			public boolean remove(Object o) {
+				throw new UnsupportedOperationException();
+			}
+
+			@Override
+			public boolean containsAll(Collection<?> c) {
+				return subnodes.containsAll(c);
+			}
+
+			@Override
+			public boolean addAll(Collection<? extends java.util.Map.Entry<QName, XNode>> c) {
+				throw new UnsupportedOperationException();
+			}
+
+			@Override
+			public boolean retainAll(Collection<?> c) {
+				throw new UnsupportedOperationException();
+			}
+
+			@Override
+			public boolean removeAll(Collection<?> c) {
+				throw new UnsupportedOperationException();
+			}
+
+			@Override
+			public void clear() {
+				throw new UnsupportedOperationException();
+			}
+		};
 		return entries;
 	}
 	
@@ -212,6 +275,11 @@ public class MapXNode extends XNode implements Map<QName,XNode> {
 		public XNode setValue(XNode value) {
 			this.value = value;
 			return value;
+		}
+
+		@Override
+		public String toString() {
+			return "E(" + key + ": " + value + ")";
 		}
 		
 	}

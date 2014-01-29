@@ -73,9 +73,6 @@ public class TestDomParser extends AbstractParserTest {
 		System.out.println("Parsed XNode:");
 		System.out.println(xnode.dump());
 
-		
-		
-		assertTrue("Root node is "+xnode.getClass(), xnode instanceof RootXNode);
 		RootXNode root = getAssertXNode("root node", xnode, RootXNode.class);
 		
 		FileOutputStream out = new FileOutputStream(new File("D:/user-jack.json"));
