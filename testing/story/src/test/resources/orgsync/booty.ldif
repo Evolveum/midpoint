@@ -1,0 +1,5 @@
+dn: ou=Booty Island,dc=example,dc=com
+ou: Booty Island
+objectclass: top
+objectclass: organizationalUnit
+description: This was here before

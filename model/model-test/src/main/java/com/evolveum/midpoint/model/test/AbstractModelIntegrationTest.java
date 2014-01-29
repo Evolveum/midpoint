@@ -1094,7 +1094,8 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected String dumpOrgTree(PrismObject<OrgType> topOrg, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
 		StringBuilder sb = new StringBuilder();
-		sb.append(topOrg).append("\n");
+		dumpOrg(sb, topOrg, 0);
+		sb.append("\n");
 		dumpSubOrgs(sb, topOrg.getOid(), 1, task, result);
 		return sb.toString();
 	}
@@ -1102,11 +1103,17 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	private void dumpSubOrgs(StringBuilder sb, String baseOrgOid, int indent, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
 		List<PrismObject<OrgType>> subOrgs = getSubOrgs(baseOrgOid, task, result);
 		for (PrismObject<OrgType> suborg: subOrgs) {
-			DebugUtil.indentDebugDump(sb, indent);
-			sb.append(suborg);
+			dumpOrg(sb, suborg, indent);
 			sb.append("\n");
 			dumpSubOrgs(sb, suborg.getOid(), indent + 1, task, result);
 		}
+	}
+	
+	private void dumpOrg(StringBuilder sb, PrismObject<OrgType> org, int indent) {
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append(org);
+		List<ObjectReferenceType> linkRefs = org.asObjectable().getLinkRef();
+		sb.append(": ").append(linkRefs.size()).append(" links");
 	}
 
 	protected <F extends FocusType> void assertAssignments(PrismObject<F> user, int expectedNumber) {
