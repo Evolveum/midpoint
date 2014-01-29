@@ -332,27 +332,32 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
         });
 
         //appender editing column
-        columns.add(new EditablePropertyColumn<LoggerConfiguration>(createStringResource("LoggingConfigPanel.loggersAppender"),
+        columns.add(new EditableLinkColumn<LoggerConfiguration>(createStringResource("LoggingConfigPanel.loggersAppender"),
                 "appenders") {
 
             @Override
-            public IModel<Object> getDataModel(final IModel rowModel) {
-                return new LoadableModel<Object>() {
+            protected IModel<String> createLinkModel(IModel<LoggerConfiguration> rowModel){
+                final LoggerConfiguration configuration = rowModel.getObject();
 
-                    @Override
-                    protected Object load() {
-                        LoggerConfiguration config = (LoggerConfiguration) rowModel.getObject();
-                        StringBuilder builder = new StringBuilder();
-                        for (String appender : config.getAppenders()) {
-                            if (config.getAppenders().indexOf(appender) != 0) {
-                                builder.append(", ");
+                if(configuration.getAppenders().isEmpty()){
+                    return createStringResource("LoggingConfigPanel.appenders.Inherit");
+                } else{
+                    return new LoadableModel<String>() {
+
+                        @Override
+                        protected String load() {
+                            StringBuilder builder = new StringBuilder();
+                            for (String appender : configuration.getAppenders()) {
+                                if (configuration.getAppenders().indexOf(appender) != 0) {
+                                    builder.append(", ");
+                                }
+                                builder.append(appender);
                             }
-                            builder.append(appender);
-                        }
 
-                        return builder.toString();
-                    }
-                };
+                            return builder.toString();
+                        }
+                    };
+                }
             }
 
             @Override
@@ -378,6 +383,10 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
 
                 return panel;
             }
+
+            public void onClick(AjaxRequestTarget target, IModel<LoggerConfiguration> rowModel) {
+                loggerEditPerformed(target, rowModel);
+            }
         });
 
         return columns;
@@ -392,7 +401,7 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
 
                 LoggingDto dto = getModel().getObject();
 
-                list.add(PageSystemConfiguration.ROOT_APPENDER_INHERITANCE_CHOICE);
+                //list.add(PageSystemConfiguration.ROOT_APPENDER_INHERITANCE_CHOICE);
                 for(AppenderConfiguration appender: dto.getAppenders()){
 
                     if(!appender.getName().equals(dto.getRootAppender())){
