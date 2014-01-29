@@ -5,12 +5,14 @@ function initInlineMenu(menuId, hideByDefault) {
     var menu = $('#' + menuId).find('ul.cog');
 
     var parent = menu.parent().parent();     //this is inline menu div
-    if (!hideByDefault && (!parent.hasClass('cog') || parent[0].tagName.toLowerCase() != 'td')) {
+    if (!hideByDefault && !isCogInTable(parent)) {
         return;
     }
 
-    //we now look for <tr> element
-    parent = parent.parent('tr');
+    if (isCogInTable(parent)) {
+        //we're in table, we now look for <tr> element
+        parent = parent.parent('tr');
+    }
 
     // we only want to hide inline menus that are in table <td> element,
     // inline menu in header must be visible all the time, or every menu
@@ -24,6 +26,10 @@ function initInlineMenu(menuId, hideByDefault) {
         //out
         menu.hide();
     })
+}
+
+function isCogInTable(inlineMenuDiv) {
+    return inlineMenuDiv.hasClass('cog') && inlineMenuDiv[0].tagName.toLowerCase() == 'td';
 }
 
 /**
