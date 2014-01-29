@@ -1,0 +1,5 @@
+dn: ou=Lookout,ou=Booty Island,dc=example,dc=com
+ou: Lookout
+objectclass: top
+objectclass: organizationalUnit
+description: This was here before

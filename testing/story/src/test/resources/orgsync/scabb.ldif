@@ -1,0 +1,5 @@
+dn: ou=Scabb Island,dc=example,dc=com
+ou: Scabb Island
+objectclass: top
+objectclass: organizationalUnit
+description: This was here before

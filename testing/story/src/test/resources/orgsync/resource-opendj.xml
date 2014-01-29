@@ -238,6 +238,12 @@
                 		<path>$focus/name</path>
                 	</source>
                 </outbound>
+                <inbound>
+                	<strength>weak</strength>
+                	<target>
+                		<path>$focus/name</path>
+                	</target>
+                </inbound>
             </attribute>
             <attribute>
                 <ref>ri:description</ref>
@@ -263,23 +269,18 @@
 		</configured>
     </capabilities>
 
-    <c:synchronization>
+    <synchronization>
     	<objectSynchronization>
-	        <c:enabled>true</c:enabled>
-	        <c:correlation>
+    		<objectClass>ri:AccountObjectClass</objectClass>
+	        <enabled>true</enabled>
+	        <correlation>
 	            <q:equal>
 	                <q:path>c:name</q:path>
 	                <expression>
-	                	<ref>c:name</ref>
-	                	<script>
-	                		<language>http://www.w3.org/TR/xpath/</language>
-		                    <code>
-		                        $c:account/c:attributes/dj:uid
-		                    </code>
-						</script>
+	                	<path>$shadow/attributes/ri:uid</path>
 	                </expression>
 	            </q:equal>
-	        </c:correlation>
+	        </correlation>
 
             <objectTemplateRef oid="c0c010c0-d34d-b33f-f00d-777111111111"/>
 
@@ -309,6 +310,45 @@
 	            </action>
 	        </reaction>
 		</objectSynchronization>
-    </c:synchronization>
+		
+		<objectSynchronization>
+			<name>org sync</name>
+			<objectClass>ri:CustomorganizationalUnitObjectClass</objectClass>
+			<kind>generic</kind>
+			<intent>ou</intent>
+			<focusType>c:OrgType</focusType>
+	        <enabled>true</enabled>
+	        <correlation>
+	            <q:equal>
+	                <q:path>c:name</q:path>
+	                <expression>
+	                	<path>$shadow/attributes/ri:ou</path>
+	                </expression>
+	            </q:equal>
+	        </correlation>
+
+	        <reaction>
+	            <situation>linked</situation>
+	            <synchronize>true</synchronize>
+	        </reaction>
+	        <reaction>
+	            <situation>deleted</situation>
+	            <synchronize>true</synchronize>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlink</handlerUri>
+	            </action>
+	        </reaction>
+	        <reaction>
+	            <situation>unlinked</situation>
+	            <synchronize>true</synchronize>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#link</handlerUri>
+	            </action>
+	        </reaction>
+	        <reaction>
+	            <situation>unmatched</situation>
+	        </reaction>
+		</objectSynchronization>
+    </synchronization>
 
 </resource>
