@@ -1,1 +1,58 @@
-TODO
+{
+  "user" : {
+    "@ns" : "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd",
+    "accountRef" : [ {
+      "_type" : {
+        "namespace" : "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd",
+        "localPart" : "AccountType"
+      },
+      "_oid" : "c0c010c0-d34d-b33f-f00d-aaaaaaaa1113"
+    }, {
+      "_type" : {
+        "namespace" : "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd",
+        "localPart" : "AccountShadowType"
+      },
+      "_oid" : "c0c010c0-d34d-b33f-f00d-aaaaaaaa1111"
+    }, {
+      "_type" : {
+        "namespace" : "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd",
+        "localPart" : "AccountShadowType"
+      },
+      "_oid" : "c0c010c0-d34d-b33f-f00d-aaaaaaaa1112",
+      "description" : "This is a reference with a filter"
+    } ],
+    "description" : "This must be the best pirate the world has ever seen",
+    "extension" : {
+      "indexedString" : [ "alpha", "bravo" ],
+      "num" : [ 42 ],
+      "singleStringType" : "foobar",
+      "multi" : [ "raz", "dva", "tri" ],
+      "bar" : [ "BAR" ],
+      "@ns" : "http://midpoint.evolveum.com/xml/ns/test/extension"
+    },
+    "_version" : "42",
+    "assignment" : [ {
+      "description" : "Assignment 1",
+      "_id" : 1111
+    }, {
+      "_id" : 1112,
+      "accountConstruction" : {
+        "howto" : "Just do it",
+        "when" : 1330080532000,
+        "@ns" : "##default"
+      },
+      "description" : "Assignment 2"
+    } ],
+    "activation" : {
+      "enabled" : true,
+      "validFrom" : 170717400000
+    },
+    "oid" : "c0c010c0-d34d-b33f-f00d-111111111111",
+    "polyName" : "Džek Sperou",
+    "fullName" : "cpt. Jack Sparrow",
+    "additionalNames" : [ "Captain", "Jackie" ],
+    "name" : "jack",
+    "familyName" : "Sparrow",
+    "givenName" : "Jack"
+  }
+}

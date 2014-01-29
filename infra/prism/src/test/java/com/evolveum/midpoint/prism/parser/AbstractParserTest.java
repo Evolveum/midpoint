@@ -22,6 +22,7 @@ import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Collection;
 
@@ -42,6 +43,7 @@ import org.xml.sax.SAXException;
 import com.evolveum.midpoint.prism.foo.ActivationType;
 import com.evolveum.midpoint.prism.foo.AssignmentType;
 import com.evolveum.midpoint.prism.foo.UserType;
+import com.evolveum.midpoint.prism.json.PrismJsonSerializer;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
@@ -97,6 +99,9 @@ public abstract class AbstractParserTest {
 		
 		// WHEN (parse to xnode)
 		XNode xnode = parser.parse(getFile(USER_JACK_FILE_BASENAME));
+		System.out.println("XNode after parsing:");
+		System.out.println(xnode.dump());
+		
 		
 		// WHEN (parse to prism)
 		PrismObject<UserType> user = processor.parseObject(xnode);
@@ -105,14 +110,29 @@ public abstract class AbstractParserTest {
 		System.out.println("Parsed user:");
 		System.out.println(user.dump());
 
-		System.out.println("XNode after parsing:");
-		System.out.println(xnode.dump());
+		
 		
 		assertUserJack(user);
 		
 		// WHEN (re-serialize to XNode)
 		XNode serializedXNode = processor.serializeObject(user);
+		try{
+		FileOutputStream out = new FileOutputStream(new File("D:/user-jack-prism.json"));
+		PrismJsonSerializer jsonSer = new PrismJsonSerializer();
+		String s = jsonSer.serializeToString(serializedXNode, new QName("http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", "user"));
+		System.out.println("JSON: \n" + s);
 		
+		FileInputStream in = new FileInputStream(new File("D:/user-jack-prism.json"));
+		XNode afterJson = jsonSer.parseObject(in);
+		
+		// THEN
+				System.out.println("AFTER JSON XNode:");
+				System.out.println(afterJson.dump());
+		
+		} catch (Exception ex){
+			System.out.println( ex);
+			throw ex;
+		}
 		// THEN
 		System.out.println("XNode after re-serialization:");
 		System.out.println(serializedXNode.dump());

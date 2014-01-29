@@ -15,49 +15,27 @@
  */
 package com.evolveum.midpoint.prism.parser;
 
-import static org.testng.AssertJUnit.assertTrue;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.USER_JACK_FILE_BASENAME;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.displayTestTitle;
 import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
+import static org.testng.AssertJUnit.assertTrue;
 
+import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
-import java.util.Collection;
+import java.io.FileOutputStream;
 
 import javax.xml.namespace.QName;
-import javax.xml.stream.XMLInputFactory;
-import javax.xml.stream.XMLStreamReader;
 
-import com.evolveum.midpoint.prism.Objectable;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismInternalTestUtil;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.delta.*;
-import com.evolveum.prism.xml.ns._public.types_2.ObjectReferenceType;
-
-import org.testng.AssertJUnit;
-import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
-import org.xml.sax.SAXException;
 
-import com.evolveum.midpoint.prism.foo.ActivationType;
-import com.evolveum.midpoint.prism.foo.AssignmentType;
 import com.evolveum.midpoint.prism.foo.UserType;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
-import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
-import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.prism.json.PrismJsonSerializer;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xnode.ListXNode;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.PrettyPrinter;
-import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
  * @author semancik
@@ -95,8 +73,24 @@ public class TestDomParser extends AbstractParserTest {
 		System.out.println("Parsed XNode:");
 		System.out.println(xnode.dump());
 
+		
+		
 		assertTrue("Root node is "+xnode.getClass(), xnode instanceof RootXNode);
 		RootXNode root = getAssertXNode("root node", xnode, RootXNode.class);
+		
+		FileOutputStream out = new FileOutputStream(new File("D:/user-jack.json"));
+		PrismJsonSerializer jsonSer = new PrismJsonSerializer();
+		String s = jsonSer.serializeToString(xnode, new QName("http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", "user"));
+		System.out.println("JSON: \n" + s);
+		
+		FileInputStream in = new FileInputStream(new File("D:/user-jack.json"));
+		XNode afterJson = jsonSer.parseObject(in);
+		
+		// THEN
+				System.out.println("AFTER JSON XNode:");
+				System.out.println(afterJson.dump());
+
+		
 		MapXNode rootMap = getAssertXNode("root subnode", root.getSubnode(), MapXNode.class);
 		PrimitiveXNode<String> xname = getAssertXMapSubnode("root map", rootMap, UserType.F_NAME, PrimitiveXNode.class);
 		// TODO: assert value

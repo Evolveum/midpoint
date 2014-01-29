@@ -147,11 +147,11 @@ public class JaxbElementDeserializer extends JsonDeserializer<JAXBElement>{
     	if (expectedJavaType == null){
     		continue;
     	}
-    		if (prismSchema.getPrismContext().getPrismJaxbProcessor().canConvert(expectedJavaType)){
-    			this.setExpectedClass(expectedJavaType);
-    			this.node = field.getValue();
-    			jp.readValueAs(JAXBElement.class);
-    		}
+//    		if (prismSchema.getPrismContext().getPrismJaxbProcessor().canConvert(expectedJavaType)){
+//    			this.setExpectedClass(expectedJavaType);
+//    			this.node = field.getValue();
+//    			jp.readValueAs(JAXBElement.class);
+//    		}
 //    		jp.readValueAs(expectedJavaType);
     	}
 		}

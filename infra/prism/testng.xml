@@ -39,6 +39,7 @@
 			<class name="com.evolveum.midpoint.prism.TestObjectQuery"/>
 			<class name="com.evolveum.midpoint.prism.match.TestMatchingRule"/>
 			<class name="com.evolveum.midpoint.prism.parser.TestDomParser"/>
+			<class name="com.evolveum.midpoint.prism.parser.TestJsonParser"/>
         </classes>
     </test>
 </suite>

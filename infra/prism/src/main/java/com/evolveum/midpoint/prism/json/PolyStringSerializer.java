@@ -14,10 +14,10 @@ public class PolyStringSerializer extends JsonSerializer<PolyString>{
 	public void serialize(PolyString value, JsonGenerator jgen, SerializerProvider provider)
 			throws IOException, JsonProcessingException {
 		System.out.println("wualaaaa polystring serialization");
-		jgen.writeStartObject();
-		jgen.writeStringField("orig", value.getOrig());
-		jgen.writeStringField("norm", value.getNorm());
-		jgen.writeEndObject();
+//		jgen.writeStartObject();
+		jgen.writeString(value.getOrig());
+//		jgen.writeStringField("norm", value.getNorm());
+//		jgen.writeEndObject();
 		
 	}
 
