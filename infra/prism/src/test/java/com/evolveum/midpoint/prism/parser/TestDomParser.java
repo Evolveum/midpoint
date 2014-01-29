@@ -75,17 +75,17 @@ public class TestDomParser extends AbstractParserTest {
 
 		RootXNode root = getAssertXNode("root node", xnode, RootXNode.class);
 		
-		FileOutputStream out = new FileOutputStream(new File("D:/user-jack.json"));
-		PrismJsonSerializer jsonSer = new PrismJsonSerializer();
-		String s = jsonSer.serializeToString(xnode, new QName("http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", "user"));
-		System.out.println("JSON: \n" + s);
-		
-		FileInputStream in = new FileInputStream(new File("D:/user-jack.json"));
-		XNode afterJson = jsonSer.parseObject(in);
-		
-		// THEN
-				System.out.println("AFTER JSON XNode:");
-				System.out.println(afterJson.dump());
+//		FileOutputStream out = new FileOutputStream(new File("D:/user-jack.json"));
+//		PrismJsonSerializer jsonSer = new PrismJsonSerializer();
+//		String s = jsonSer.serializeToString(xnode, new QName("http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", "user"));
+//		System.out.println("JSON: \n" + s);
+//		
+//		FileInputStream in = new FileInputStream(new File("D:/user-jack.json"));
+//		XNode afterJson = jsonSer.parseObject(in);
+//		
+//		// THEN
+//				System.out.println("AFTER JSON XNode:");
+//				System.out.println(afterJson.dump());
 
 		
 		MapXNode rootMap = getAssertXNode("root subnode", root.getSubnode(), MapXNode.class);
