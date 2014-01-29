@@ -119,26 +119,7 @@ public abstract class AbstractParserTest {
 		assertUserJackXNodeOrdering("serialized xnode", xnode);
 		
 		assertUserJack(user);		
-		try{
-		FileOutputStream out = new FileOutputStream(new File("D:/user-jack-prism.json"));
-		PrismJsonSerializer jsonSer = new PrismJsonSerializer();
-		String s = jsonSer.serializeToString(serializedXNode, new QName("http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", "user"));
-		System.out.println("JSON: \n" + s);
 		
-		FileInputStream in = new FileInputStream(new File("D:/user-jack-prism.json"));
-		XNode afterJson = jsonSer.parseObject(in);
-		
-		// THEN
-				System.out.println("AFTER JSON XNode:");
-				System.out.println(afterJson.dump());
-		
-		} catch (Exception ex){
-			System.out.println( ex);
-			throw ex;
-		}
-		// THEN
-		System.out.println("XNode after re-serialization:");
-		System.out.println(serializedXNode.dump());
 	}
 
 	@Test
