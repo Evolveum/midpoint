@@ -407,7 +407,22 @@ public class PageTasks extends PageAdminTasks {
             }
         });
 
-        columns.add(createTaskResultStatusColumn(this, "pageTasks.task.status"));
+        columns.add(new IconColumn<TaskDto>(createStringResource("pageTasks.task.status")){
+
+            @Override
+            protected IModel<String> createIconModel(final IModel<TaskDto> rowModel){
+                return new AbstractReadOnlyModel<String>() {
+
+                    @Override
+                    public String getObject() {
+                        if(rowModel != null && rowModel.getObject() != null && rowModel.getObject().getStatus() != null){
+                            return TaskStatus.parseOperationalResultStatus(rowModel.getObject().getStatus().createStatusType()).getIcon();
+                        } else
+                            return "fa fa-fw fa-question-circle fa-lg text-warning";
+                    }
+                };
+            }
+        });
 
         columns.add(new InlineMenuHeaderColumn(createTasksInlineMenu()));
 
