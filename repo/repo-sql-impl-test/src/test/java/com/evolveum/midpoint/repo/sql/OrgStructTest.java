@@ -34,6 +34,12 @@ import com.evolveum.midpoint.repo.sql.data.common.type.RParentOrgRef;
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.task.api.Task;
+import com.evolveum.midpoint.util.exception.CommunicationException;
+import com.evolveum.midpoint.util.exception.ConfigurationException;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
@@ -865,6 +871,30 @@ public class OrgStructTest extends BaseSQLRepoTest {
         } catch (Exception ex) {
             LOGGER.error("Exception occurred.", ex);
             throw ex;
+        }
+    }
+    
+    @Test
+    public void test011OrgFilter() throws Exception {
+        LOGGER.info("===[ test sorting org filter ]===");
+        
+        OperationResult opResult = new OperationResult("===[ test sorting org filter  ]===");
+
+        ObjectQuery query = new ObjectQuery();
+    	PrismReferenceValue baseOrgRef = new PrismReferenceValue(ORG_F001_OID);
+    	ObjectFilter filter = OrgFilter.createOrg(baseOrgRef, null, 1);
+    	ObjectPaging paging = ObjectPaging.createEmptyPaging();
+        paging.setOrderBy(ObjectType.F_NAME);
+    	query.setFilter(filter);
+    	query.setPaging(paging);
+    	
+    	List<PrismObject<OrgType>> orgClosure = repositoryService.searchObjects(OrgType.class, query, null, opResult);
+         
+        AssertJUnit.assertEquals(3, orgClosure.size());
+         
+        for (PrismObject<OrgType> u : orgClosure)
+        {
+             LOGGER.info("ORG000 ======> {}", ObjectTypeUtil.toShortString(u.asObjectable()));
         }
     }
 
