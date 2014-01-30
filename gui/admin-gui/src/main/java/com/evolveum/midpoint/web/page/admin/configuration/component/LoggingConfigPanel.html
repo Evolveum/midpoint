@@ -227,36 +227,18 @@
             </div>
         </div>
 
-
     </div>
 </div>
 <div class="row">
     <div class="col-md-12">
         <h3><wicket:message key="LoggingConfigPanel.appenders"/></h3>
-        <table class="table table-striped">
-            <thead>
-            <th><input type="checkbox" class="form-control input-sm"/></th>
-            <th>Name</th>
-            <th>Pattern</th>
-            <th>File path</th>
-            <th>File pattern</th>
-            <th>Max. history</th>
-            <th>Max. file size</th>
-            <th>Appending</th>
-            </thead>
-            <tbody>
-            <tr>
-                <td><input type="checkbox"/></td>
-                <td><a href="#">IDM_LOG</a></td>
-                <td>%date [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</td>
-                <td>${catalina.base}/logs/idm.log</td>
-                <td>${catalina.base}/logs/idm-%d{yyyy-MM-dd}.%i.log</td>
-                <td>10</td>
-                <td>100MB</td>
-                <td><input type="checkbox" disabled="true" checked/></td>
-            </tr>
-            </tbody>
-        </table>
+
+        <div wicket:id="appendersTable" />
+
+        <a class="btn btn-success btn-sm" wicket:id="addConsoleAppender"/>
+        <a class="btn btn-success btn-sm" wicket:id="addFileAppender"/>
+        <a class="btn btn-danger btn-sm" wicket:id="deleteAppender"/>
+
     </div>
 </div>
 </wicket:panel>

@@ -410,6 +410,24 @@ public class PageTasks extends PageAdminTasks {
         columns.add(new IconColumn<TaskDto>(createStringResource("pageTasks.task.status")){
 
             @Override
+            protected  IModel<String> createTitleModel(final IModel<TaskDto> rowModel){
+
+                return new AbstractReadOnlyModel<String>() {
+
+                    @Override
+                    public String getObject() {
+                        TaskDto dto = rowModel.getObject();
+
+                        if(dto != null && dto.getStatus() != null){
+                            return createStringResourceStatic(PageTasks.this, dto.getStatus()).getString();
+                        } else {
+                            return createStringResourceStatic(PageTasks.this, OperationResultStatus.UNKNOWN).getString();
+                        }
+                    }
+                };
+            }
+
+            @Override
             protected IModel<String> createIconModel(final IModel<TaskDto> rowModel){
                 return new AbstractReadOnlyModel<String>() {
 
@@ -418,7 +436,7 @@ public class PageTasks extends PageAdminTasks {
                         if(rowModel != null && rowModel.getObject() != null && rowModel.getObject().getStatus() != null){
                             return TaskStatus.parseOperationalResultStatus(rowModel.getObject().getStatus().createStatusType()).getIcon();
                         } else
-                            return "fa fa-fw fa-question-circle fa-lg text-warning";
+                            return TaskStatus.UNKNOWN.getIcon();
                     }
                 };
             }

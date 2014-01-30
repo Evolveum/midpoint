@@ -22,9 +22,7 @@ import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.DropDownMultiChoice;
 import com.evolveum.midpoint.web.component.data.TablePanel;
-import com.evolveum.midpoint.web.component.data.column.CheckBoxHeaderColumn;
-import com.evolveum.midpoint.web.component.data.column.EditableLinkColumn;
-import com.evolveum.midpoint.web.component.data.column.EditablePropertyColumn;
+import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.input.DropDownChoicePanel;
 import com.evolveum.midpoint.web.component.input.ListMultipleChoicePanel;
 import com.evolveum.midpoint.web.component.input.TextPanel;
@@ -38,6 +36,7 @@ import com.evolveum.midpoint.web.page.admin.configuration.dto.*;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.apache.commons.lang.StringUtils;
+import org.apache.wicket.AttributeModifier;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
@@ -50,6 +49,7 @@ import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.w3c.dom.html.HTMLTableElement;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -68,6 +68,10 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
     private static final String ID_LOGGERS_TABLE = "loggersTable";
     private static final String ID_ROOT_LEVEL = "rootLevel";
     private static final String ID_ROOT_APPENDER = "rootAppender";
+    private static final String ID_TABLE_APPENDERS = "appendersTable";
+    private static final String ID_BUTTON_ADD_CONSOLE_APPENDER = "addConsoleAppender";
+    private static final String ID_BUTTON_ADD_FILE_APPENDER = "addFileAppender";
+    private static final String ID_BUTTON_DELETE_APPENDER = "deleteAppender";
 
     public LoggingConfigPanel(String id) {
         super(id, null);
@@ -118,6 +122,7 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
         initLoggers();
         initAudit();
         initProfiling();
+        initAppenders();
     }
 
     private void initLoggers() {
@@ -254,6 +259,10 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
 
     private TablePanel getLoggersTable() {
         return (TablePanel) get(ID_LOGGERS_TABLE);
+    }
+
+    private TablePanel getAppendersTable(){
+        return (TablePanel) get(ID_TABLE_APPENDERS);
     }
 
     private List<IColumn<LoggerConfiguration, String>> initLoggerColumns() {
@@ -442,6 +451,144 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
         target.add(getLoggersTable());
     }
 
+    private void initAppenders(){
+        ISortableDataProvider<AppenderConfiguration, String> provider = new ListDataProvider<AppenderConfiguration>(
+                this, new PropertyModel<List<AppenderConfiguration>>(getModel(), LoggingDto.F_APPENDERS));
+
+        TablePanel table = new TablePanel<AppenderConfiguration>(ID_TABLE_APPENDERS, provider, initAppenderColumns());
+        table.setOutputMarkupId(true);
+        table.setShowPaging(false);
+        add(table);
+
+        AjaxButton addConsoleAppender = new AjaxButton(ID_BUTTON_ADD_CONSOLE_APPENDER,
+                createStringResource("LoggingConfigPanel.button.addConsoleAppender")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                addConsoleAppenderPerformed(target);
+            }
+        };
+        add(addConsoleAppender);
+
+        AjaxButton addFileAppender = new AjaxButton(ID_BUTTON_ADD_FILE_APPENDER,
+                createStringResource("LoggingConfigPanel.button.addFileAppender")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                addFileAppenderPerformed(target);
+            }
+        };
+        add(addFileAppender);
+
+        AjaxButton deleteAppender = new AjaxButton(ID_BUTTON_DELETE_APPENDER,
+                createStringResource("LoggingConfigPanel.button.deleteAppender")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                deleteAppenderPerformed(target);
+            }
+        };
+        add(deleteAppender);
+    }
+
+    private List<IColumn<AppenderConfiguration, String>> initAppenderColumns(){
+        List<IColumn<AppenderConfiguration, String>> columns = new ArrayList<>();
+
+        IColumn column = new CheckBoxHeaderColumn<AppenderConfiguration>();
+        columns.add(column);
+
+        //name columns (editable)
+        column = new EditableLinkColumn<AppenderConfiguration>(createStringResource("LoggingConfigPanel.appenders.name"), "name"){
+
+            @Override
+            public void onClick(AjaxRequestTarget target, IModel<AppenderConfiguration> rowModel){
+                appenderEditPerformed(target, rowModel);
+            }
+
+            @Override
+            protected Component createInputPanel(String componentId, IModel<AppenderConfiguration> model){
+                TextPanel<String> panel = new TextPanel<String>(componentId, new PropertyModel(model, getPropertyExpression()));
+                panel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+                panel.add(new InputStringValidator());
+                return panel;
+            }
+
+        };
+        columns.add(column);
+
+        //pattern column (editable)
+        column = new EditablePropertyColumn(createStringResource("LoggingConfigPanel.appenders.pattern"),
+                "pattern") {
+
+            @Override
+            protected InputPanel createInputPanel(String componentId, IModel model) {
+                InputPanel panel = super.createInputPanel(componentId, model);
+                panel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+                panel.add(new InputStringValidator());
+                return panel;
+            }
+        };
+        columns.add(column);
+
+        //file path column (editable)
+        column = new FileAppenderColumn(createStringResource("LoggingConfigPanel.appenders.filePath"), "filePath");
+        columns.add(column);
+
+        //file pattern column (editable)                                                                               jj
+        column = new FileAppenderColumn(createStringResource("LoggingConfigPanel.appenders.filePattern"),
+                "filePattern");
+        columns.add(column);
+
+        //max history column (editable)
+        column = new FileAppenderColumn(createStringResource("LoggingConfigPanel.appenders.maxHistory"),
+                "maxHistory") {
+
+            @Override
+            protected InputPanel createInputPanel(String componentId, IModel model) {
+                TextPanel panel = new TextPanel(componentId, new PropertyModel(model, getPropertyExpression()));
+                FormComponent component = panel.getBaseFormComponent();
+                component.add(new AttributeModifier("size", 5));
+                component.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+                return panel;
+            }
+        };
+        columns.add(column);
+
+        //max file size column (editable)
+        column = new FileAppenderColumn(createStringResource("LoggingConfigPanel.appenders.maxFileSize"),
+                "maxFileSize") {
+
+            @Override
+            protected InputPanel createInputPanel(String componentId, IModel model) {
+                TextPanel<String> panel = new TextPanel(componentId, new PropertyModel(model,
+                        getPropertyExpression()));
+                FormComponent component = panel.getBaseFormComponent();
+                component.add(new AttributeModifier("size", 5));
+                component.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+                component.add(new InputStringValidator());
+                return panel;
+            }
+        };
+        columns.add(column);
+
+        CheckBoxColumn check = new EditableCheckboxColumn(createStringResource("LoggingConfigPanel.appenders.appending"),
+                "appending") {
+
+            @Override
+            protected InputPanel createInputPanel(String componentId, IModel model) {
+                InputPanel panel = super.createInputPanel(componentId, model);
+                panel.getBaseFormComponent().add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+                panel.add(new InputStringValidator());
+                return panel;
+            }
+        };
+        check.setEnabled(false);
+        columns.add(check);
+
+
+        return columns;
+    }
+
     private IModel<LoggingComponentType> createFilterModel(final IModel<FilterConfiguration> model) {
         return new Model<LoggingComponentType>() {
 
@@ -500,5 +647,40 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
 
     private void rootAppenderChangePerformed(AjaxRequestTarget target){
         target.add(getLoggersTable());
+    }
+
+    private void addConsoleAppenderPerformed(AjaxRequestTarget target){
+        LoggingDto dto = getModel().getObject();
+        AppenderConfiguration appender = new AppenderConfiguration(new AppenderConfigurationType());
+        appender.setEditing(true);
+        dto.getAppenders().add(appender);
+
+        target.add(getAppendersTable());
+    }
+
+    private void addFileAppenderPerformed(AjaxRequestTarget target){
+        LoggingDto dto = getModel().getObject();
+        FileAppenderConfig appender = new FileAppenderConfig(new FileAppenderConfigurationType());
+        appender.setEditing(true);
+        dto.getAppenders().add(appender);
+
+        target.add(getAppendersTable());
+    }
+
+    private void deleteAppenderPerformed(AjaxRequestTarget target){
+        Iterator<AppenderConfiguration> iterator = getModel().getObject().getAppenders().iterator();
+        while (iterator.hasNext()) {
+            AppenderConfiguration item = iterator.next();
+            if (item.isSelected()) {
+                iterator.remove();
+            }
+        }
+        target.add(getAppendersTable());
+    }
+
+    private void appenderEditPerformed(AjaxRequestTarget target, IModel<AppenderConfiguration> model){
+        AppenderConfiguration config = model.getObject();
+        config.setEditing(true);
+        target.add(getAppendersTable());
     }
 }
