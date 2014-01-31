@@ -79,6 +79,8 @@ public class PrismJsonSerializer implements Parser{
 	
 	private SchemaRegistry schemaRegistry;
 	private PrismContext prismContext;
+	
+	private static final String PROP_NAMESPACE = "@ns";
 //	private PrismSchema prismSchema;
 	
 	
@@ -154,13 +156,9 @@ public class PrismJsonSerializer implements Parser{
 		generator.setPrettyPrinter(pp);
 		generator.setCodec(mapper);
 		globalNamespace = rootElement.getNamespaceURI();
-//		objectNs = globalNamespace;
-//		generator.writeObjectFieldStart(rootElement.getLocalPart());
-//		generator.writeStringField("@ns", rootElement.getNamespaceURI());
 		generator.writeStartObject();
 		serializeToJson(node, rootElement,  generator);
 		generator.writeEndObject();
-//		generator.writeEndObject();
 		
 		generator.flush();
 		generator.close();
@@ -173,37 +171,19 @@ public class PrismJsonSerializer implements Parser{
 	String objectNs = null;
 	private <T> void  serializeToJson(XNode node, QName nodeName, JsonGenerator generator) throws JsonGenerationException, IOException{
 		
-		
-//		if (globalNamespace == null && nodeName != null){
-//			globalNamespace = nodeName.getNamespaceURI();
-//			objectNs = globalNamespace;
-//		}
-		
-//		if (node instanceof RootXNode){
-//			RootXNode root = (RootXNode) node;
-//			generator.writeObjectFieldStart(nodeName.getLocalPart());
-//			generator.writeStringField("G@ns", globalNamespace);
-//			serializeToJson(root.getSubnode(), root.getRootElementName(),  generator);
-//			generator.writeEndObject();
-//			
-//		}
-		
 		if (node instanceof MapXNode){
 			
 			
 			MapXNode mapNode = (MapXNode) node;
 			if (nodeName == null){
-//				generator.writeObjectFieldStart("thereShouldBeName");
 				generator.writeStartObject();
 			} else{
-				
-			generator.writeObjectFieldStart(nodeName.getLocalPart());
-			
+				generator.writeObjectFieldStart(nodeName.getLocalPart());
 			}
 			
 			if (StringUtils.isBlank(objectNs)){
 				objectNs = globalNamespace;
-				generator.writeStringField("@ns", objectNs);
+				generator.writeStringField(PROP_NAMESPACE, objectNs);
 			}
 			
 			Iterator<Entry<QName, XNode>> subnodes = mapNode.entrySet().iterator();
@@ -213,10 +193,10 @@ public class PrismJsonSerializer implements Parser{
 				serializeToJson(subNode.getValue(), subNode. getKey(), generator);
 				
 			}
+			
 			if (nodeName != null && StringUtils.isNotEmpty(nodeName.getNamespaceURI()) && !nodeName.getNamespaceURI().equals(objectNs)){
-//				objectNs = nodeName.getNamespaceURI();
 				if (!objectNs.equals(globalNamespace)){
-				generator.writeStringField("@ns", objectNs);
+					generator.writeStringField(PROP_NAMESPACE, objectNs);
 				}
 			}
 			generator.writeEndObject();
@@ -278,18 +258,10 @@ public class PrismJsonSerializer implements Parser{
 		sm.addDeserializer(ItemPath.class, new ItemPathDeserializer());
 		
 		mapper.registerModule(sm);
-//		mapper.configure(Feature., state)
 		JsonNode obj = null;
 		try {
-//			JsonParser parser = null;
-//			JsonFactory facotry = new JsonFactory();
-//			parser =  facotry.createParser(inputStream);
 			parser.setCodec(mapper);
-			ObjectReader reader = mapper.reader();
-//			reader.
-			
 			obj = parser.readValueAs(JsonNode.class);
-//			obj = mapper.readValue(inputStream, JsonNode.class);
 			
 			RootXNode xmap = new RootXNode();
 			
@@ -327,7 +299,7 @@ public class PrismJsonSerializer implements Parser{
 	}
 	
 	private String getNamespace(JsonNode obj, String ns){
-		JsonNode objNsNode = obj.get("@ns");
+		JsonNode objNsNode = obj.get(PROP_NAMESPACE);
 		String objNs = null;
 		if (objNsNode != null){
 			objNs = objNsNode.asText();
@@ -350,7 +322,7 @@ public class PrismJsonSerializer implements Parser{
 			
 			while (nextFields.hasNext()){
 				String str = nextFields.next();
-				if (str.startsWith("@") && !str.equals("@ns")){
+				if (str.startsWith("@") && !str.equals(PROP_NAMESPACE)){
 					
 					return true;
 				}
@@ -417,22 +389,25 @@ if (xmap instanceof MapXNode){
 			String nsToUse = getNamespace(obj, ns);
 			
 			MapXNode subMap = new MapXNode();
-			boolean iterate = true;
-			if (xmap instanceof MapXNode){
-				if (fieldName == null){
-					subMap = (MapXNode) xmap;
-				} 
-				((MapXNode) xmap).put(new QName(ns, fieldName), subMap);
-			} else if (xmap instanceof ListXNode){
-				((ListXNode) xmap).add(subMap);
-			} if (xmap instanceof RootXNode){
-				JsonNode globalNsNode = obj.get("@ns");
+	
+//			if (xmap instanceof MapXNode){
+//				if (fieldName == null){
+//					subMap = (MapXNode) xmap;
+//				} 
+//				((MapXNode) xmap).put(new QName(ns, fieldName), subMap);
+//			} else if (xmap instanceof ListXNode){
+//				((ListXNode) xmap).add(subMap);
+//			} 
+			if (xmap instanceof RootXNode){
+				JsonNode globalNsNode = obj.get(PROP_NAMESPACE);
 				
 				if (globalNsNode != null){
 					globalNs = globalNsNode.asText();
 				}
 				((RootXNode) xmap).setRootElementName(new QName(globalNs, fieldName));
 				((RootXNode) xmap).setSubnode(subMap);
+			} else {
+				addXNode(new QName(ns, fieldName), xmap, subMap);
 			}
 			
 			while (fields.hasNext()){
@@ -448,11 +423,12 @@ if (xmap instanceof MapXNode){
 			if (obj.isArray()){
 				Iterator<JsonNode> elements = obj.elements();
 				ListXNode listNode = new ListXNode();
-				if (xmap instanceof MapXNode){
-					((MapXNode) xmap).put(new QName(ns, fieldName), listNode);
-				} else if (xmap instanceof ListXNode){
-					((ListXNode) xmap).add(listNode);
-				}
+				addXNode(new QName(ns, fieldName), xmap, listNode);
+//				if (xmap instanceof MapXNode){
+//					((MapXNode) xmap).put(new QName(ns, fieldName), listNode);
+//				} else if (xmap instanceof ListXNode){
+//					((ListXNode) xmap).add(listNode);
+//				}
 				while (elements.hasNext()){
 					JsonNode element = elements.next();
 					if (isSpecial(element)){
@@ -463,7 +439,7 @@ if (xmap instanceof MapXNode){
 				}
 			} else {
 
-				if (fieldName.equals("@ns")){
+				if (fieldName.equals(PROP_NAMESPACE)){
 					return;
 				}
 				PrimitiveXNode primitive = new PrimitiveXNode();
@@ -472,23 +448,24 @@ if (xmap instanceof MapXNode){
 				ValueParser vp = new JsonValueParser(parser, obj);
 				primitive.setValueParser(vp);
 				
-				if (xmap instanceof MapXNode){
-					if (fieldName.startsWith("_")){
-						fieldName = fieldName.replaceFirst("_", "");
-						primitive.setAttribute(true);
-						((MapXNode) xmap).put(new QName(fieldName), primitive);
-					} else {
-						((MapXNode) xmap).put(new QName(ns, fieldName), primitive);
-					}
-				} else if (xmap instanceof ListXNode){
-					((ListXNode) xmap).add(primitive);
-				}
+				addXNode(new QName(ns, fieldName), xmap, primitive);
+//				if (xmap instanceof MapXNode){
+//						((MapXNode) xmap).put(new QName(ns, fieldName), primitive);
+//				} else if (xmap instanceof ListXNode){
+//					((ListXNode) xmap).add(primitive);
+//				}
 				
 			}
 		} 
 		
-		
-		
+	}
+	
+	private void addXNode(QName fieldName, XNode parent, XNode children){
+		if (parent instanceof MapXNode){
+			((MapXNode) parent).put(fieldName, children);
+	} else if (parent instanceof ListXNode){
+		((ListXNode) parent).add(children);
+	}
 	}
 
 	private Object getRealValue(JsonNode obj) {
