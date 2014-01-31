@@ -19,7 +19,7 @@ public class TestJsonParser  extends AbstractParserTest {
 
 	@Override
 	protected PrismJsonSerializer createParser() {
-		return new PrismJsonSerializer(PrismTestUtil.getSchemaRegistry());
+		return new PrismJsonSerializer();
 	}
 
 	@Test
