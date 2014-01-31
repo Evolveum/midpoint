@@ -16,8 +16,8 @@ public class QNameSerializer extends JsonSerializer<QName>{
 			JsonProcessingException {
 		System.out.println("wualaaa QName serialization");
 		jgen.writeStartObject();
-		jgen.writeStringField("namespace", value.getNamespaceURI());
-		jgen.writeStringField("localPart", value.getLocalPart());
+		jgen.writeStringField("@namespace", value.getNamespaceURI());
+		jgen.writeStringField("@localPart", value.getLocalPart());
 		jgen.writeEndObject();
 	}
 

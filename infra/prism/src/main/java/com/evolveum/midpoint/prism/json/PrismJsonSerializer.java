@@ -203,7 +203,7 @@ public class PrismJsonSerializer implements Parser{
 			
 			if (StringUtils.isBlank(objectNs)){
 				objectNs = globalNamespace;
-				generator.writeStringField("O@ns", objectNs);
+				generator.writeStringField("@ns", objectNs);
 			}
 			
 			Iterator<Entry<QName, XNode>> subnodes = mapNode.entrySet().iterator();
@@ -216,7 +216,7 @@ public class PrismJsonSerializer implements Parser{
 			if (nodeName != null && StringUtils.isNotEmpty(nodeName.getNamespaceURI()) && !nodeName.getNamespaceURI().equals(objectNs)){
 //				objectNs = nodeName.getNamespaceURI();
 				if (!objectNs.equals(globalNamespace)){
-				generator.writeStringField("O@ns", objectNs);
+				generator.writeStringField("@ns", objectNs);
 				}
 			}
 			generator.writeEndObject();
@@ -235,6 +235,15 @@ public class PrismJsonSerializer implements Parser{
 		if (node instanceof PrimitiveXNode){
 			PrimitiveXNode<T> primitiveNode = (PrimitiveXNode<T>) node;
 			
+			if (primitiveNode.isExplicitTypeDeclaration()){
+				generator.writeStartObject();
+				generator.writeFieldName("@typeDef");
+				generator.writeObject(primitiveNode.getTypeQName());
+				
+				generator.writeObjectField("@value", primitiveNode.getValue());
+				generator.writeEndObject();
+			} else {
+			
 			if (nodeName == null){
 			generator.writeObject(primitiveNode.getValue());
 			} else {
@@ -252,6 +261,7 @@ public class PrismJsonSerializer implements Parser{
 					generator.writeObjectField(nodeName.getLocalPart(), primitiveNode.getValue());
 //				}
 			}
+			}
 		}
 			}
 	
@@ -260,7 +270,7 @@ public class PrismJsonSerializer implements Parser{
 	
 	
 	String globalNs = null;
-	public XNode parseObject(InputStream inputStream) throws IOException, SchemaException{
+	public XNode parseObject(JsonParser parser) throws SchemaException{
 		
 		ObjectMapper mapper = new ObjectMapper();
 		SimpleModule sm = new SimpleModule();
@@ -271,9 +281,9 @@ public class PrismJsonSerializer implements Parser{
 //		mapper.configure(Feature., state)
 		JsonNode obj = null;
 		try {
-			JsonParser parser = null;
-			JsonFactory facotry = new JsonFactory();
-			parser =  facotry.createParser(inputStream);
+//			JsonParser parser = null;
+//			JsonFactory facotry = new JsonFactory();
+//			parser =  facotry.createParser(inputStream);
 			parser.setCodec(mapper);
 			ObjectReader reader = mapper.reader();
 //			reader.
@@ -301,15 +311,15 @@ public class PrismJsonSerializer implements Parser{
 		} catch (JsonParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			throw e;
+			throw new SchemaException("Cannot parse from JSON: " + e.getMessage(), e);
 		} catch (JsonMappingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			throw e;
+			throw new SchemaException("Cannot parse from JSON: " + e.getMessage(), e);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-			throw e;
+			throw new SchemaException("Cannot parse from JSON: " + e.getMessage(), e);
 		}
 		
 //		return null;
@@ -1017,14 +1027,28 @@ if (xmap instanceof MapXNode){
 
 		@Override
 		public XNode parse(File file) throws SchemaException, IOException {
-			return parseObject(new FileInputStream(file));
+			JsonFactory factory = new JsonFactory();
+			JsonParser parser = null;
+			try {
+				parser = factory.createParser(new FileInputStream(file));
+			} catch (IOException e) {
+				throw e;
+//				throw new SchemaException("Cannot create JSON parser: " + e.getMessage(), e);
+			}
+			return parseObject(parser);
 //			return null;
 		}
 
 		@Override
 		public XNode parse(String dataString) throws SchemaException {
-			// TODO Auto-generated method stub
-			return null;
+			JsonFactory factory = new JsonFactory();
+			JsonParser parser = null;
+			try {
+				parser = factory.createParser(dataString);
+			} catch (IOException e) {
+				throw new SchemaException("Cannot create JSON parser: " + e.getMessage(), e);
+			}
+			return parseObject(parser);
 		}
 
 		@Override
@@ -1041,6 +1065,9 @@ if (xmap instanceof MapXNode){
 
 		@Override
 		public String serializeToString(XNode xnode, QName rootElementName) throws SchemaException {
+			if (xnode instanceof RootXNode){
+				xnode = ((RootXNode) xnode).getSubnode();
+			}
 			return serializeToJson(xnode, rootElementName);
 		}
 
