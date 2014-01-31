@@ -24,7 +24,9 @@
 		<norm xmlns="http://prism.evolveum.com/xml/ns/public/types-2">Audit logs report</norm>
 	</name>
 	<description>Report made from audit records.</description>
-	<reportTemplate>
+	<!-- flag if this report is "parent" report, used for gui -->
+	<parent>true</parent>
+	<template>
 		<jasperReport 
 			xmlns="http://jasperreports.sourceforge.net/jasperreports" 
 			xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
@@ -47,7 +49,7 @@
 			<parameter name="BaseTemplateStyles" class="java.lang.String"/>
 			<parameter name="LOGO_PATH" class="java.lang.String"/>
 			<queryString language="hql">
-			<![CDATA[select aer.timestamp as timestamp, 
+				<![CDATA[select aer.timestamp as timestamp, 
 							aer.initiatorName as initiator, 
 							aer.eventType as eventType, 
 							aer.eventStage as eventStage, 
@@ -272,17 +274,101 @@
 				<band splitType="Stretch"/>
 			</summary>
 		</jasperReport>
-	</reportTemplate>
-	<reportOrientation>landscape</reportOrientation>
-	<reportExport>pdf</reportExport>
-	 <reportParameter>
-        <nameParameter>LOGO_PATH</nameParameter>
-        <valueParameter>src/test/resources/reports/logo.jpg</valueParameter>
-        <classTypeParameter>xsd:string</classTypeParameter>
-    </reportParameter>
-    <reportParameter>
-        <nameParameter>BaseTemplateStyles</nameParameter>
-        <valueParameter>src/test/resources/styles/midpoint_base_styles.jrtx</valueParameter>
-        <classTypeParameter>xsd:string</classTypeParameter>
-    </reportParameter>
+	</template>
+	<orientation>landscape</orientation>
+	<export>pdf</export>
+	<!-- set to true if report needs hibernate session (e.g. hql query is used) -->
+	<useHibernateSession>true</useHibernateSession>
+	<!-- datasource sample, provider instance is obtained from spring context -->
+	<dataSource>
+		<providerClass>com.evolveum.midpoint.report.SomeCustomSuperProvider</providerClass>
+		<springBean>true</springBean>
+	</dataSource>
+	<reportField>
+		<nameReportField>timestamp</nameReportField>
+		<nameHeaderField>Timestamp</nameHeaderField>
+		<itemPathField>c:timestamp</itemPathField>
+		<sortOrderNumber>1</sortOrderNumber>
+		<sortOrder>ascending</sortOrder>
+		<widthField>12</widthField>
+		<classTypeField>xsd:dateTime</classTypeField>
+	</reportField>
+	<reportField>
+		<nameReportField>initiatorName</nameReportField>
+		<nameHeaderField>Initiator</nameHeaderField>
+		<itemPathField>c:initiatorName</itemPathField>
+		<widthField>10</widthField>
+		<classTypeField>xsd:string</classTypeField>
+	</reportField>
+	<reportField>
+		<nameReportField>eventType</nameReportField>
+		<nameHeaderField>Event Type</nameHeaderField>
+		<itemPathField>c:eventType</itemPathField>
+		<widthField>12</widthField>
+		<classTypeField>c:AuditEventType</classTypeField>
+	</reportField>
+	<reportField>
+		<nameReportField>eventStage</nameReportField>
+		<nameHeaderField>Event Stage</nameHeaderField>
+		<itemPathField>c:eventStage</itemPathField>
+		<widthField>12</widthField>
+		<classTypeField>c:AuditEventStage</classTypeField>
+	</reportField>
+	<reportField>
+		<nameReportField>targetName</nameReportField>
+		<nameHeaderField>Target</nameHeaderField>
+		<itemPathField>c:targetName</itemPathField>
+		<widthField>10</widthField>
+		<classTypeField>xsd:string</classTypeField>
+	</reportField>
+	<reportField>
+		<nameReportField>outcome</nameReportField>
+		<nameHeaderField>Outcome</nameHeaderField>
+		<itemPathField>c:outcome</itemPathField>
+		<widthField>12</widthField>
+		<classTypeField>c:OperationResultStatusType</classTypeField>
+	</reportField>
+	<reportField>
+		<nameReportField>message</nameReportField>
+		<nameHeaderField>Message</nameHeaderField>
+		<itemPathField>c:message</itemPathField>
+		<widthField>20</widthField>
+		<classTypeField>xsd:string</classTypeField>
+	</reportField>
+	<reportField>
+		<nameReportField>delta</nameReportField>
+		<nameHeaderField>Delta</nameHeaderField>
+		<itemPathField>c:delta</itemPathField>
+		<widthField>12</widthField>
+		<classTypeField>xsd:string</classTypeField>
+	</reportField>
+	<!-- configuration properties -->
+	<configuration xmlns:r="http://midpoint.evolveum.com/xml/ns/public/report">
+		<r:LOGO_PATH>src/test/resources/reports/logo.jpg</r:LOGO_PATH>
+		<r:BaseTemplateStyles>src/test/resources/styles/midpoint_base_styles.jrtx</r:BaseTemplateStyles>
+		<r:from>2000-01-01T00:00:00</r:from>
+		<r:to>2020-12-31T00:00:00</r:to>
+	</configuration>
+	<!-- report parameters configuration schema sample with different options -->
+	<configurationSchema>
+		<definition>
+			<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+                    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
+                    xmlns:r="http://midpoint.evolveum.com/xml/ns/public/report"
+                    elementFormDefault="qualified"
+                    targetNamespace="http://midpoint.evolveum.com/xml/ns/public/report">
+
+				<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"/>
+				<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-2"/>
+
+				<!-- sample how audit configuration probably should look like -->
+				<xsd:element name="LOGO_PATH" type="xsd:string"/>
+				<xsd:element name="BaseTemplateStyles" type="xsd:string"/>
+				<xsd:element name="from" type="xsd:dateTime"/>
+				<xsd:element name="to" type="xsd:dateTime"/>
+				
+			</xsd:schema>
+		</definition>
+	</configurationSchema>
 </report>

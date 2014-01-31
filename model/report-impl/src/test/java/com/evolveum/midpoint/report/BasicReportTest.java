@@ -64,6 +64,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 /**
@@ -207,7 +208,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	private PrismObject<ReportType> getReport(String reportOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
 		Task task = taskManager.createTaskInstance(GET_REPORT);
         OperationResult result = task.getResult();
-		PrismObject<ReportType> report = modelService.getObject(ReportType.class, reportOid, null, task, result);
+		PrismObject<ReportType> report = modelService.getObject(ReportType.class, reportOid, SelectorOptions.createCollection(GetOperationOptions.createRaw()), task, result);
 		result.computeStatus();
 		TestUtil.assertSuccess("getObject(Report) result not success", result);
 		return report;
@@ -1109,7 +1110,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	       session.getTransaction().commit();
 	       session.close();			
 		}*/
-/*			
+			
 		@Test 
 		public void test013CreateAuditLogsReportFromFile() throws Exception {
 			
@@ -1129,8 +1130,12 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 			display("Result after good import", result);
 			TestUtil.assertSuccess("Import has failed (result)", result);
 			
+			
+			
 			ReportType reportType = getReport(AUDITLOGS_REPORT_OID).asObjectable();
 			
+			Class clazz = ReportUtils.getObjectTypeClass(reportType, prismContext);
+			/*
 			//WHEN 	
 			TestUtil.displayWhen(TEST_NAME);
 			reportManager.runReport(reportType.asPrismObject(), task, result);
@@ -1145,9 +1150,9 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	        OperationResultType reportTaskResult = reportTaskAfter.asObjectable().getResult();
 	        display("Report task result", reportTaskResult);
 	        TestUtil.assertSuccess(reportTaskResult);
-			
-		}		*/
-
+			*/
+		}		
+/*
 		@Test 
 		public void test014CreateAuditLogsReportWithDatasource() throws Exception {
 			final String TEST_NAME = "test014CreateAuditLogsReportWithDatasource";
@@ -1168,6 +1173,8 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 			
 			ReportType reportType = getReport(AUDITLOGS_DATASOURCE_REPORT_OID).asObjectable();
 			
+			
+			
 			//WHEN 	
 			TestUtil.displayWhen(TEST_NAME);
 			reportManager.runReport(reportType.asPrismObject(), task, result);
@@ -1184,7 +1191,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	        TestUtil.assertSuccess(reportTaskResult);
 			
 			
-		}
+		}*/
 		
 		/*
 		@Test 

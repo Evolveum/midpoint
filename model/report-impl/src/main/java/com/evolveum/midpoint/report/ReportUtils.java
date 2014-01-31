@@ -7,6 +7,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.w3c.dom.Element;
 
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRExpression;
@@ -34,17 +35,37 @@ import net.sf.jasperreports.engine.type.SplitTypeEnum;
 import net.sf.jasperreports.engine.type.VerticalAlignEnum;
 import net.sf.jasperreports.engine.type.WhenNoDataTypeEnum;
 
+import com.evolveum.midpoint.common.monitor.InternalMonitor;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.DeltaConvertor;
+import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
+import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
+import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
+import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorConfigurationType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportFieldConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectDeltaType;
 
 
@@ -54,7 +75,9 @@ public class ReportUtils {
     private static String EXPORT_DIR = MIDPOINT_HOME + "export/";
     
     
-   
+    private static final Trace LOGGER = TraceManager
+			.getTrace(ReportUtils.class);
+
 	public static Class getClassType(QName clazz)
     {
 		Class classType = java.lang.String.class; 
@@ -68,6 +91,65 @@ public class ReportUtils {
     	return classType;
     	
     }
+		
+	public static Element getParametersXsdSchema(ReportType reportType) {
+		XmlSchemaType xmlSchemaType = reportType.getConfigurationSchema();
+		if (xmlSchemaType == null) {
+			return null;
+		}
+		return ObjectTypeUtil.findXsdElement(xmlSchemaType);
+	}
+	
+	public static PrismSchema getParametersSchema(ReportType reportType, PrismContext prismContext) throws SchemaException {
+		Element parametersSchemaElement = getParametersXsdSchema(reportType);
+		if (parametersSchemaElement == null) {
+			return null;
+		}
+		PrismSchema parametersSchema = PrismSchema.parse(parametersSchemaElement, true, "schema for " + reportType, prismContext);
+		if (parametersSchema == null) {
+			throw new SchemaException("No parameters schema in "+ reportType);
+		}
+		return parametersSchema;
+	}
+	
+	public static PrismContainer<Containerable> getParametersContainer(ReportType reportType, PrismContext prismContext)
+			throws SchemaException, ObjectNotFoundException {
+		
+		PrismContainer<Containerable> parametersContainer = reportType.asPrismObject().findContainer(ReportType.F_CONFIGURATION);
+		if (parametersContainer == null) {
+			throw new SchemaException("No configuration container in " + reportType);
+		}
+		LOGGER.trace("Parameters container : {}", parametersContainer.dump());
+		
+		PrismSchema parametersSchema = getParametersSchema(reportType, prismContext);
+		if (parametersSchema == null) {
+			throw new SchemaException("No parameters schema in " + reportType);
+		}
+		
+		LOGGER.trace("Parameters schema : {}", parametersSchema.dump());
+		
+		PrismContainerDefinition<ReportConfigurationType> configurationContainerDefinition = 
+				parametersSchema.findContainerDefinitionByElementName(ReportType.F_CONFIGURATION_SCHEMA);	
+		
+		if (configurationContainerDefinition == null) {
+			throw new SchemaException("No configuration container definition in " + reportType);
+		}
+		
+		
+		parametersContainer.applyDefinition(configurationContainerDefinition, true);
+		return parametersContainer;
+		
+	}
+	public static Class getObjectTypeClass(ReportType reportType, PrismContext prismContext)
+			throws SchemaException, ObjectNotFoundException {
+
+		PrismContainer<Containerable> parametersContainer = getParametersContainer(reportType, prismContext);
+	
+		
+		
+		//Class clazz = ObjectTypes.getObjectTypeFromTypeQName("").getClassDefinition();
+		return ObjectType.class;
+	}
     /*
 	private static JRDesignParameter createParameter(ReportParameterConfigurationType parameterRepo)
 	{

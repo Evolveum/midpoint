@@ -106,6 +106,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectSynchronizati
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
@@ -1197,7 +1198,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			}
 			Class<T> type = object.getCompileTimeClass();
 			boolean tolerateRaw = false;
-			if (type == ResourceType.class || ShadowType.class.isAssignableFrom(type)) {
+			if (type == ResourceType.class || ShadowType.class.isAssignableFrom(type) || type == ReportType.class) {
 				// We tolarate raw values for resource and shadows in case the user has requested so
 				tolerateRaw = options.isRaw(options);
 				if (hasError(object, result)) {
