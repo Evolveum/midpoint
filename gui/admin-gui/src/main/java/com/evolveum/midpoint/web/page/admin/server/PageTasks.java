@@ -32,7 +32,6 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxButton;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
-import com.evolveum.midpoint.web.component.data.ObjectDataProvider;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
@@ -40,10 +39,8 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.server.dto.*;
-import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
 import com.evolveum.midpoint.web.page.admin.workflow.PageProcessInstance;
 import com.evolveum.midpoint.web.session.TasksStorage;
-import com.evolveum.midpoint.web.session.UsersStorage;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
@@ -434,9 +431,9 @@ public class PageTasks extends PageAdminTasks {
                     @Override
                     public String getObject() {
                         if(rowModel != null && rowModel.getObject() != null && rowModel.getObject().getStatus() != null){
-                            return TaskStatus.parseOperationalResultStatus(rowModel.getObject().getStatus().createStatusType()).getIcon();
+                            return OperationResultStatusIcon.parseOperationalResultStatus(rowModel.getObject().getStatus().createStatusType()).getIcon();
                         } else
-                            return TaskStatus.UNKNOWN.getIcon();
+                            return OperationResultStatusIcon.UNKNOWN.getIcon();
                     }
                 };
             }

@@ -52,6 +52,7 @@ import com.evolveum.midpoint.web.page.admin.resources.component.ContentPanel;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageContentAccounts;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageContentEntitlements;
 import com.evolveum.midpoint.web.page.admin.resources.dto.*;
+import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusIcon;
 import com.evolveum.midpoint.web.session.ResourcesStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
@@ -278,7 +279,7 @@ public class PageResources extends PageAdminResources {
                         ResourceController.updateLastAvailabilityState(dto.getState(),
                                 dto.getLastAvailabilityStatus());
                         ResourceState state = dto.getState();
-                        return state.getLastAvailability().getIcon();
+                        return OperationResultStatusIcon.parseOperationalResultStatus(state.getLastAvailability()).getIcon();
                     }
                 };
             }
@@ -290,7 +291,7 @@ public class PageResources extends PageAdminResources {
                     @Override
                     public String getObject() {
                         ResourceState state = rowModel.getObject().getState();
-                        return PageResources.this.getString(ResourceStatus.class.getSimpleName() + "." + state
+                        return PageResources.this.getString(OperationResultStatus.class.getSimpleName() + "." + state
                                 .getLastAvailability().name());
                     }
                 };

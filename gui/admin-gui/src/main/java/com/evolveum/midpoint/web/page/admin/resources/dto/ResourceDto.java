@@ -21,6 +21,7 @@ import java.util.Collection;
 import java.util.List;
 
 import com.evolveum.midpoint.prism.PrismReference;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.web.component.data.column.InlineMenuable;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
@@ -153,9 +154,9 @@ public class ResourceDto extends Selectable implements InlineMenuable {
 		return state;
 	}
     
-    public ResourceStatus getOverallStatus() {
+    public OperationResultStatus getOverallStatus() {
 		if (state == null) {
-			return ResourceStatus.NOT_TESTED;
+			return OperationResultStatus.UNKNOWN;
 		}
 		return state.getOverall();
 	}

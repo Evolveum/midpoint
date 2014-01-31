@@ -22,6 +22,7 @@ import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -36,7 +37,7 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceController;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceObjectTypeDto;
-import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceStatus;
+import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusIcon;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import org.apache.commons.lang.StringUtils;
@@ -136,13 +137,13 @@ public class PageResource extends PageAdminResources {
 
             @Override
             public String getObject() {
-                PropertyModel<ResourceStatus> pModel = new PropertyModel<ResourceStatus>(model, expression);
-                ResourceStatus status = pModel.getObject();
+                PropertyModel<OperationResultStatus> pModel = new PropertyModel<OperationResultStatus>(model, expression);
+                OperationResultStatus status = pModel.getObject();
                 if (status == null) {
                     return "";
                 }
 
-                return PageResource.this.getString(ResourceStatus.class.getSimpleName() + "." + status.name());
+                return PageResource.this.getString(OperationResultStatus.class.getSimpleName() + "." + status.name());
             }
         };
     }
@@ -165,7 +166,7 @@ public class PageResource extends PageAdminResources {
 
                     @Override
                     public String getObject() {
-                        return model.getObject().getState().getOverall().getIcon();
+                        return OperationResultStatusIcon.parseOperationalResultStatus(model.getObject().getState().getOverall()).getIcon();
                     }
                 }));
         container.add(createImageLabel("confValidation", createTestConnectionStateTooltip("state.confValidation"),
@@ -173,7 +174,7 @@ public class PageResource extends PageAdminResources {
 
                     @Override
                     public String getObject() {
-                        return model.getObject().getState().getConfValidation().getIcon();
+                        return OperationResultStatusIcon.parseOperationalResultStatus(model.getObject().getState().getConfValidation()).getIcon();
                     }
                 }));
         container.add(createImageLabel("conInitialization", createTestConnectionStateTooltip("state.conInitialization"),
@@ -181,7 +182,7 @@ public class PageResource extends PageAdminResources {
 
                     @Override
                     public String getObject() {
-                        return model.getObject().getState().getConInitialization().getIcon();
+                        return OperationResultStatusIcon.parseOperationalResultStatus(model.getObject().getState().getConInitialization()).getIcon();
                     }
                 }));
         container.add(createImageLabel("conConnection", createTestConnectionStateTooltip("state.conConnection"),
@@ -189,7 +190,7 @@ public class PageResource extends PageAdminResources {
 
                     @Override
                     public String getObject() {
-                        return model.getObject().getState().getConConnection().getIcon();
+                        return OperationResultStatusIcon.parseOperationalResultStatus(model.getObject().getState().getConConnection()).getIcon();
                     }
                 }));
 
@@ -198,7 +199,7 @@ public class PageResource extends PageAdminResources {
 
                     @Override
                     public String getObject() {
-                        return model.getObject().getState().getConSchema().getIcon();
+                        return OperationResultStatusIcon.parseOperationalResultStatus(model.getObject().getState().getConSchema()).getIcon();
                     }
                 }));
     }

@@ -15,12 +15,13 @@
  */
 package com.evolveum.midpoint.web.page.admin.server.dto;
 
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultStatusType;
 
 /**
  *  @author shood
  * */
-public enum TaskStatus {
+public enum OperationResultStatusIcon {
 
     UNKNOWN("fa fa-fw fa-question-circle fa-lg text-warning"),
     SUCCESS("fa fa-fw fa-check-circle fa-lg text-success"),
@@ -33,7 +34,7 @@ public enum TaskStatus {
 
     private String icon;
 
-    private TaskStatus(String icon){
+    private OperationResultStatusIcon(String icon){
         this.icon = icon;
     }
 
@@ -41,7 +42,32 @@ public enum TaskStatus {
         return icon;
     }
 
-    public static TaskStatus parseOperationalResultStatus(OperationResultStatusType statusType){
+    public static OperationResultStatusIcon parseOperationalResultStatus(OperationResultStatusType statusType){
+        if (statusType == null) {
+            return UNKNOWN;
+        }
+
+        switch (statusType) {
+            case FATAL_ERROR:
+                return FATAL_ERROR;
+            case PARTIAL_ERROR:
+                return PARTIAL_ERROR;
+            case HANDLED_ERROR:
+                return HANDLED_ERROR;
+            case SUCCESS:
+                return SUCCESS;
+            case WARNING:
+                return WARNING;
+            case NOT_APPLICABLE:
+                return NOT_APPLICABLE;
+            case IN_PROGRESS:
+                return IN_PROGRESS;
+            default:
+                return UNKNOWN;
+        }
+    }
+
+    public static OperationResultStatusIcon parseOperationalResultStatus(OperationResultStatus statusType){
         if (statusType == null) {
             return UNKNOWN;
         }
