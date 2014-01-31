@@ -350,35 +350,39 @@ public class PrismJsonSerializer implements Parser{
 			
 			final JsonNode value = obj.get("@value");
 			
-			ValueParser vParser = new JsonValueParser(parser, value);
-			PrimitiveXNode primitive = new PrimitiveXNode<>();
-			primitive.setValueParser(vParser);
-			if (typeDefinition != null){
-				primitive.setExplicitTypeDeclaration(true);
-				primitive.setTypeQName(typeDefinition);
-			}
-			if (xmap instanceof MapXNode){
-					((MapXNode) xmap).put(propertyName, primitive);
-			} else if (xmap instanceof ListXNode){
-				((ListXNode) xmap).add(primitive);
-			}
+//			ValueParser vParser = new JsonValueParser(parser, value);
+//			PrimitiveXNode primitive = new PrimitiveXNode<>();
+//			primitive.setValueParser(vParser);
+//			if (typeDefinition != null){
+//				primitive.setExplicitTypeDeclaration(true);
+//				primitive.setTypeQName(typeDefinition);
+//			}
+			PrimitiveXNode primitive = createPrimitiveXNode(value, parser, typeDefinition);
+			addXNode(propertyName, xmap, primitive);
+//			if (xmap instanceof MapXNode){
+//					((MapXNode) xmap).put(propertyName, primitive);
+//			} else if (xmap instanceof ListXNode){
+//				((ListXNode) xmap).add(primitive);
+//			}
 			return;
 		}
 		
-		ValueParser vParser = new JsonValueParser(parser, obj);
-	
-
-PrimitiveXNode primitive = new PrimitiveXNode<>();
-primitive.setValueParser(vParser);
-if (typeDefinition != null){
-	primitive.setExplicitTypeDeclaration(true);
-	primitive.setTypeQName(typeDefinition);
-}
-if (xmap instanceof MapXNode){
-		((MapXNode) xmap).put(propertyName, primitive);
-} else if (xmap instanceof ListXNode){
-	((ListXNode) xmap).add(primitive);
-}
+//		ValueParser vParser = new JsonValueParser(parser, obj);
+//	
+//
+//PrimitiveXNode primitive = new PrimitiveXNode<>();
+//primitive.setValueParser(vParser);
+//if (typeDefinition != null){
+//	primitive.setExplicitTypeDeclaration(true);
+//	primitive.setTypeQName(typeDefinition);
+//}
+		PrimitiveXNode primitive = createPrimitiveXNode(obj, parser, typeDefinition);
+		addXNode(propertyName, xmap, primitive);
+//if (xmap instanceof MapXNode){
+//		((MapXNode) xmap).put(propertyName, primitive);
+//} else if (xmap instanceof ListXNode){
+//	((ListXNode) xmap).add(primitive);
+//}
 	}
 	
 	private <T> void parseJsonObject(XNode xmap, String ns, String fieldName, final JsonNode obj, final JsonParser parser) throws SchemaException {
@@ -442,12 +446,12 @@ if (xmap instanceof MapXNode){
 				if (fieldName.equals(PROP_NAMESPACE)){
 					return;
 				}
-				PrimitiveXNode primitive = new PrimitiveXNode();
-				
-				Object val = getRealValue(obj);
-				ValueParser vp = new JsonValueParser(parser, obj);
-				primitive.setValueParser(vp);
-				
+//				PrimitiveXNode primitive = new PrimitiveXNode();
+//				
+//				Object val = getRealValue(obj);
+//				ValueParser vp = new JsonValueParser(parser, obj);
+//				primitive.setValueParser(vp);
+				PrimitiveXNode primitive = createPrimitiveXNode(obj, parser);
 				addXNode(new QName(ns, fieldName), xmap, primitive);
 //				if (xmap instanceof MapXNode){
 //						((MapXNode) xmap).put(new QName(ns, fieldName), primitive);
@@ -458,6 +462,23 @@ if (xmap instanceof MapXNode){
 			}
 		} 
 		
+	}
+	
+	private PrimitiveXNode createPrimitiveXNode(JsonNode node, JsonParser parser, QName typeDefinition){
+		PrimitiveXNode primitive = new PrimitiveXNode();
+		
+//		Object val = getRealValue(node);
+		ValueParser vp = new JsonValueParser(parser, node);
+		primitive.setValueParser(vp);
+		if (typeDefinition != null){
+			primitive.setExplicitTypeDeclaration(true);
+			primitive.setTypeQName(typeDefinition);
+		}
+		return primitive;
+	}
+	
+	private PrimitiveXNode createPrimitiveXNode(JsonNode node, JsonParser parser){
+		return createPrimitiveXNode(node, parser, null);
 	}
 	
 	private void addXNode(QName fieldName, XNode parent, XNode children){
