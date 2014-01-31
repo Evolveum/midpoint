@@ -387,8 +387,8 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
                     }
                 }, options);
 
-                FormComponent<String> input = panel.getBaseFormComponent();
-                input.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+                FormComponent<AppenderConfigurationType> input = panel.getBaseFormComponent();
+                input.add(new EmptyOnChangeAjaxFormUpdatingBehavior());
 
                 return panel;
             }
@@ -612,6 +612,18 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
         LoggerConfiguration config = rowModel.getObject();
         config.setEditing(true);
         target.add(getLoggersTable());
+    }
+
+    private static class EmptyOnChangeAjaxFormUpdatingBehavior extends AjaxFormComponentUpdatingBehavior {
+
+        public EmptyOnChangeAjaxFormUpdatingBehavior(){
+            super("onChange");
+        }
+
+        @Override
+        protected void onUpdate(AjaxRequestTarget target){
+
+        }
     }
 
     private static class EmptyOnBlurAjaxFormUpdatingBehaviour extends AjaxFormComponentUpdatingBehavior {
