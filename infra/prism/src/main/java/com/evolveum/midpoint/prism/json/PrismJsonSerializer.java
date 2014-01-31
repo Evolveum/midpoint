@@ -377,23 +377,8 @@ public class PrismJsonSerializer implements Parser{
 			}
 			
 			final JsonNode value = obj.get("@value");
-			ValueParser<?> vParser = new ValueParser<T>() {
-				
-				@Override
-				public T parse(QName typeName) throws SchemaException {
-					ObjectMapper mapper = (ObjectMapper) parser.getCodec();
-					
-					Class clazz = XsdTypeMapper.toJavaType(typeName);
-					ObjectReader r = mapper.reader(clazz);
-					try {
-						return r.readValue(value);
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						throw new SchemaException("Cannot parse value: " + e.getMessage(), e);
-					}
-				}
-			};
 			
+			ValueParser vParser = new JsonValueParser(parser, value);
 			PrimitiveXNode primitive = new PrimitiveXNode<>();
 			primitive.setValueParser(vParser);
 			if (typeDefinition != null){
@@ -408,22 +393,7 @@ public class PrismJsonSerializer implements Parser{
 			return;
 		}
 		
-		ValueParser<?> vParser = new ValueParser<T>() {
-	
-	@Override
-	public T parse(QName typeName) throws SchemaException {
-		ObjectMapper mapper = (ObjectMapper) parser.getCodec();
-		
-		Class clazz = XsdTypeMapper.toJavaType(typeName);
-		ObjectReader r = mapper.reader(clazz);
-		try {
-			return r.readValue(obj);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			throw new SchemaException("Cannot parse value: " + e.getMessage(), e);
-		}
-	}
-};
+		ValueParser vParser = new JsonValueParser(parser, obj);
 	
 
 PrimitiveXNode primitive = new PrimitiveXNode<>();
@@ -440,15 +410,6 @@ if (xmap instanceof MapXNode){
 	}
 	
 	private <T> void parseJsonObject(XNode xmap, String ns, String fieldName, final JsonNode obj, final JsonParser parser) throws SchemaException {
-		
-//		JsonSchemaFactory f= new JsonSchemaFactory();
-//		SchemaFactoryWrapper w = new SchemaFactoryWrapper();
-//		w.
-//		
-//		
-//		expectObjectFormat(TypeFactory.defaultInstance().uncheckedSimpleType(QName.class));
-//		JsonSchema s = w.finalSchema();
-//		s.
 		
 		
 		if (obj.isObject()){
@@ -480,11 +441,7 @@ if (xmap instanceof MapXNode){
 					setSpecial(subMap, new QName(nsToUse, field.getKey()), field.getValue(), parser);
 					continue;
 				} 
-//				else {
-					
-				
 				parseJsonObject(subMap, nsToUse, field.getKey(), field.getValue(), parser);
-//				}
 			}
 							
 		} else {
@@ -505,38 +462,14 @@ if (xmap instanceof MapXNode){
 					parseJsonObject(listNode, ns, fieldName, element, parser);
 				}
 			} else {
-//				String text = obj.asText();
+
 				if (fieldName.equals("@ns")){
 					return;
 				}
 				PrimitiveXNode primitive = new PrimitiveXNode();
 				
 				Object val = getRealValue(obj);
-//				if (obj.getNodeType() == JsonNodeType.STRING){
-//					primitive.setValue(val);
-//				}
-//				
-				
-				ValueParser vp = new ValueParser() {
-		
-					@Override
-					public Object parse(QName typeName) throws SchemaException {
-						ObjectMapper mapper = (ObjectMapper) parser.getCodec();
-						Class clazz = XsdTypeMapper.toJavaType(typeName);
-						
-//						if (clazz == null){
-//							clazz = schemaRegistry.determineCompileTimeClass(typeName);
-//						}
-						
-						ObjectReader r = mapper.reader(clazz);
-					    try {
-							return r.readValue(obj);
-						} catch (IOException e) {
-							// TODO Auto-generated catch block
-							throw new SchemaException("Cannot parse value: " + e.getMessage(), e);
-						}
-					}
-				};
+				ValueParser vp = new JsonValueParser(parser, obj);
 				primitive.setValueParser(vp);
 				
 				if (xmap instanceof MapXNode){
