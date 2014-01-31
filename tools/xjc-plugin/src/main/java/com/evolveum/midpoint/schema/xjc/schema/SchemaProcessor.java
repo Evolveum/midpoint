@@ -102,6 +102,8 @@ public class SchemaProcessor implements Processor {
     private static final String METHOD_PRISM_UTIL_GET_REFERENCE_VALUE = "getReferenceValue";
     private static final String METHOD_PRISM_UTIL_SET_REFERENCE_VALUE_AS_REF = "setReferenceValueAsRef";
     private static final String METHOD_PRISM_UTIL_SET_REFERENCE_VALUE_AS_OBJECT = "setReferenceValueAsObject";
+    private static final String METHOD_PRISM_UTIL_GET_REFERENCE_FILTER_ELEMENT = "getReferenceFilterElement";
+    private static final String METHOD_PRISM_UTIL_SET_REFERENCE_FILTER_ELEMENT = "setReferenceFilterElement";
     private static final String METHOD_PRISM_UTIL_OBJECTABLE_AS_REFERENCE_VALUE = "objectableAsReferenceValue";
 	private static final String METHOD_PRISM_UTIL_SETUP_CONTAINER_VALUE = "setupContainerValue";
     
@@ -272,23 +274,27 @@ public class SchemaProcessor implements Processor {
         invocation.arg(setDescription.listParams()[0]);
     }
     
-    private void updateObjectReferenceFilter(JDefinedClass definedClass, JMethod getReference) {
+    private void updateObjectReferenceFilter(JDefinedClass definedClass, JMethod asReferenceValue) {
         JFieldVar filterField = definedClass.fields().get("filter");
+        
         JMethod getFilter = recreateMethod(findMethod(definedClass, "getFilter"), definedClass);
         copyAnnotations(getFilter, filterField);
         definedClass.removeField(filterField);
         JBlock body = getFilter.body();
         JType innerFilterType = getFilter.type();
         JVar filterClassVar = body.decl(innerFilterType, "filter", JExpr._new(innerFilterType));
-        JInvocation getFilterElementInvocation = JExpr.invoke(JExpr.invoke(getReference), getFilter.name());
+        JInvocation getFilterElementInvocation =CLASS_MAP.get(PrismForJAXBUtil.class).staticInvoke(METHOD_PRISM_UTIL_GET_REFERENCE_FILTER_ELEMENT);
+        getFilterElementInvocation.arg(JExpr.invoke(asReferenceValue));
         JInvocation setFilterInvocation = body.invoke(filterClassVar, "setFilter");
         setFilterInvocation.arg(getFilterElementInvocation);
         body._return(filterClassVar);
 
         JMethod setFilter = recreateMethod(findMethod(definedClass, "setFilter"), definedClass);
         body = setFilter.body();
-        JInvocation invocation = body.invoke(JExpr.invoke(getReference), setFilter.name());
+        JInvocation invocation = CLASS_MAP.get(PrismForJAXBUtil.class).staticInvoke(METHOD_PRISM_UTIL_SET_REFERENCE_FILTER_ELEMENT);
+        invocation.arg(JExpr.invoke(asReferenceValue));
         invocation.arg(JExpr.invoke(setFilter.listParams()[0],"getFilter"));
+        body.add(invocation);
     }
 
     private JMethod findMethod(JDefinedClass definedClass, String methodName) {

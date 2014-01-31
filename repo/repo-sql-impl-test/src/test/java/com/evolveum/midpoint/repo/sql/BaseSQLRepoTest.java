@@ -23,7 +23,7 @@ import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.repo.sql.query.QueryInterpreter;
 import com.evolveum.midpoint.repo.sql.util.HibernateToSqlTranslator;
 import com.evolveum.midpoint.repo.sql.util.RUtil;
-import com.evolveum.midpoint.schema.QueryConvertor;
+import com.evolveum.midpoint.schema.QueryJaxbConvertor;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -192,7 +192,7 @@ public class BaseSQLRepoTest extends AbstractTestNGSpringContextTests {
 
         ObjectQuery query = null;
         try {
-            query = QueryConvertor.createObjectQuery(type, queryType, prismContext);
+            query = QueryJaxbConvertor.createObjectQuery(type, queryType, prismContext);
         } catch (Exception ex) {
             LOGGER.info("error while converting query: " + ex.getMessage(), ex);
         }

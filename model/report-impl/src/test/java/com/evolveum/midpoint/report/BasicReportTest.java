@@ -81,7 +81,7 @@ import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.report.api.ReportManager;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.PagingConvertor;
-import com.evolveum.midpoint.schema.QueryConvertor;
+import com.evolveum.midpoint.schema.QueryJaxbConvertor;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -419,7 +419,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		ObjectQuery query = ObjectQuery.createObjectQuery(paging);
 		QueryType queryType = new QueryType();
 		try {
-			queryType = QueryConvertor.createQueryType(query, prismContext);
+			queryType = QueryJaxbConvertor.createQueryType(query, prismContext);
 		} catch (Exception ex) {
 			LOGGER.error("Exception occurred. QueryType", ex);
 		}

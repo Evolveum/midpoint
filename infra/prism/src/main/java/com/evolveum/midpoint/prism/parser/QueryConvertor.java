@@ -89,6 +89,9 @@ public class QueryConvertor {
 	public static final QName KEY_FILTER_ORG_REF_OID = new QName(null, "oid");
 	public static final QName KEY_FILTER_ORG_MIN_DEPTH = new QName(null, "minDepth");
 	public static final QName KEY_FILTER_ORG_MAX_DEPTH = new QName(null, "maxDepth");
+	
+	public static final String NS_QUERY = "http://prism.evolveum.com/xml/ns/public/query-2";
+	public static final QName FILTER_ELEMENT_NAME = new QName(NS_QUERY, "filter");
 
 	public static <O extends Objectable> ObjectQuery parseQuery(MapXNode xmap, Class<O> clazz, PrismContext prismContext)
 			throws SchemaException {
@@ -428,7 +431,7 @@ public class QueryConvertor {
 
 
 	
-	public static XNode serializeFilter(ObjectFilter filter) {
+	public static MapXNode serializeFilter(ObjectFilter filter) {
 		// TODO
 		return null;
 	}

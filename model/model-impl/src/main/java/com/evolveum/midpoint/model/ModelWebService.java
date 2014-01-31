@@ -49,7 +49,7 @@ import com.evolveum.midpoint.provisioning.api.ResourceObjectShadowChangeDescript
 import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.PagingConvertor;
-import com.evolveum.midpoint.schema.QueryConvertor;
+import com.evolveum.midpoint.schema.QueryJaxbConvertor;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
@@ -201,7 +201,7 @@ public class ModelWebService implements ModelPortType, ModelPort {
 		auditLogin(task);
 		OperationResult operationResult = task.getResult();
 		try {
-			ObjectQuery q = QueryConvertor.createObjectQuery(ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), query, prismContext);
+			ObjectQuery q = QueryJaxbConvertor.createObjectQuery(ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), query, prismContext);
 			List<PrismObject<? extends ObjectType>> list = (List)model.searchObjects(
 					ObjectTypes.getObjectTypeFromUri(objectTypeUri).getClassDefinition(), q,
                     MiscSchemaUtil.optionsTypeToOptions(options), task, operationResult);

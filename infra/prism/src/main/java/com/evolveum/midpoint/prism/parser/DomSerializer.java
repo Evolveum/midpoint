@@ -67,12 +67,10 @@ public class DomSerializer {
 	private Element topElement;
 	private boolean serializeCompositeObjects = false;
 	private boolean fortifyNamespaces = false;
-	private DOMParser parser;
 	private SchemaRegistry schemaRegistry;
 	
 	DomSerializer(DOMParser parser, SchemaRegistry schemaRegistry) {
 		super();
-		this.parser = parser;
 		this.schemaRegistry = schemaRegistry;
 	}
 	
@@ -85,6 +83,9 @@ public class DomSerializer {
 	}
 
 	private DynamicNamespacePrefixMapper getNamespacePrefixMapper() {
+		if (schemaRegistry == null) {
+			return null;
+		}
 		return schemaRegistry.getNamespacePrefixMapper();
 	}
 
@@ -108,7 +109,20 @@ public class DomSerializer {
 		serializeMap((MapXNode)subnode, topElement);
 		return topElement;
 	}
+	
+	private boolean hasImplicitTypeDefinition(QName elementName, QName typeName) {
+		if (schemaRegistry == null) {
+			return false;
+		}
+		return schemaRegistry.hasImplicitTypeDefinition(elementName, typeName);
+	}
 			
+	public Element serializeToElement(MapXNode xmap, QName elementName) throws SchemaException {
+		Element element = createElement(elementName);
+		serializeMap(xmap, element);
+		return element;
+	}
+	
 	private void serializeMap(MapXNode xmap, Element topElement) throws SchemaException {
 		for (Entry<QName,XNode> entry: xmap.entrySet()) {
 			QName elementQName = entry.getKey();
@@ -355,7 +369,7 @@ public class DomSerializer {
 		element.setAttribute(PrismConstants.ATTRIBUTE_OID_LOCAL_NAME, value.getOid());
 		if (value.getRelation() != null) {
 			QName relation = value.getRelation();
-			relation = getNamespacePrefixMapper().setQNamePrefixExplicit(relation);
+			relation = setQNamePrefixExplicit(relation);
 			try {
 				DOMUtil.setQNameAttribute(element, PrismConstants.ATTRIBUTE_RELATION_LOCAL_NAME, relation);
 			} catch (IllegalArgumentException e) {
@@ -365,7 +379,7 @@ public class DomSerializer {
 		if (value.getTargetType() != null) {
 			// Make the namespace prefix explicit due to JAXB bug
 			QName targetType = value.getTargetType();
-			targetType = getNamespacePrefixMapper().setQNamePrefixExplicit(targetType);
+			targetType = setQNamePrefixExplicit(targetType);
 			try {
 				DOMUtil.setQNameAttribute(element, PrismConstants.ATTRIBUTE_REF_TYPE_LOCAL_NAME, targetType);
 			} catch (IllegalArgumentException e) {
@@ -417,7 +431,7 @@ public class DomSerializer {
 		if (StringUtils.isBlank(namespaceURI)) {
 			return doc.createElement(qname.getLocalPart());
 		}
-		QName qnameWithPrefix = getNamespacePrefixMapper().setQNamePrefix(qname);
+		QName qnameWithPrefix = setQNamePrefix(qname);
 		if (topElement != null) {
 			return DOMUtil.createElement(doc, qnameWithPrefix, topElement, topElement);
 		} else {
@@ -438,6 +452,22 @@ public class DomSerializer {
 		// "tns" namespace.
 		// TODO: Improve it later.
 		return definition.getTypeName().getNamespaceURI();
+	}
+	
+	QName setQNamePrefix(QName qname) {
+		DynamicNamespacePrefixMapper namespacePrefixMapper = getNamespacePrefixMapper();
+		if (namespacePrefixMapper == null) {
+			return qname;
+		}
+		return namespacePrefixMapper.setQNamePrefix(qname);
+	}
+	
+	QName setQNamePrefixExplicit(QName qname) {
+		DynamicNamespacePrefixMapper namespacePrefixMapper = getNamespacePrefixMapper();
+		if (namespacePrefixMapper == null) {
+			return qname;
+		}
+		return namespacePrefixMapper.setQNamePrefixExplicit(qname);
 	}
 
 }

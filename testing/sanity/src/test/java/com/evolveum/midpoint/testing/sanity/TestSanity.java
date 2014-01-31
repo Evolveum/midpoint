@@ -101,7 +101,7 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.QueryConvertor;
+import com.evolveum.midpoint.schema.QueryJaxbConvertor;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -3901,7 +3901,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 //        QueryType query = new QueryType();
 //        query.setFilter(filter);
     	ObjectQuery q = ObjectQueryUtil.createNameQuery(UserType.class, prismContext, name);
-    	QueryType query = QueryConvertor.createQueryType(q, prismContext);
+    	QueryType query = QueryJaxbConvertor.createQueryType(q, prismContext);
         OperationResultType resultType = new OperationResultType();
         Holder<OperationResultType> resultHolder = new Holder<OperationResultType>(resultType);
         Holder<ObjectListType> listHolder = new Holder<ObjectListType>();

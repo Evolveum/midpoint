@@ -221,9 +221,6 @@
 
     <xsd:complexType name="ItemPathType" mixed="true">
         <xsd:annotation>
-            <xsd:appinfo>
-                <jaxb:dom/>
-            </xsd:appinfo>
             <xsd:documentation>
                 Defines a type for XPath-like item pointer. It points to a specific part
                 of the prism object.

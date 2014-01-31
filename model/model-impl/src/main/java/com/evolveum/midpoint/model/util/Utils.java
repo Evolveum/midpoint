@@ -50,7 +50,7 @@ import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.provisioning.api.ProvisioningService;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.QueryConvertor;
+import com.evolveum.midpoint.schema.QueryJaxbConvertor;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -227,7 +227,7 @@ public final class Utils {
 	        ObjectFilter objFilter =  null;
 	        try{
 	        	PrismObjectDefinition objDef = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(type);
-	        	objFilter = QueryConvertor.parseFilter(objDef, filter);
+	        	objFilter = QueryJaxbConvertor.parseFilter(objDef, filter);
 	        } catch (SchemaException ex){
 	        	LOGGER.error("Failed to convert object filter from filter: "+ DOMUtil.printDom(filter) + " Reason: "+ ex.getMessage(), ex);
 	        	throw new SystemException("Failed to convert object filter from filter. Reason: " + ex.getMessage(), ex);

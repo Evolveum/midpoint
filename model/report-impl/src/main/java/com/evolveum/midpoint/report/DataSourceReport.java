@@ -16,7 +16,7 @@ import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.QueryConvertor;
+import com.evolveum.midpoint.schema.QueryJaxbConvertor;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -91,7 +91,7 @@ public class DataSourceReport implements JRDataSource
 		try
 		{
 			Class<T> clazz = (Class<T>) ObjectTypes.getObjectTypeFromTypeQName(reportType.getObjectClass()).getClassDefinition();
-			ObjectQuery objectQuery = QueryConvertor.createObjectQuery(clazz, reportType.getQuery(), prismContext);
+			ObjectQuery objectQuery = QueryJaxbConvertor.createObjectQuery(clazz, reportType.getQuery(), prismContext);
 			LOGGER.trace("Search report objects {}:", reportType);
 			
 			listReportObjects = modelService.searchObjects(clazz, objectQuery, SelectorOptions.createCollection(GetOperationOptions.createRaw()), null, result);

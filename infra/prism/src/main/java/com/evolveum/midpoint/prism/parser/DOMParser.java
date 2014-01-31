@@ -277,9 +277,10 @@ public class DOMParser implements Parser {
 		return null;
 	}
 	
-//	public Element serializeToElement(XNode xnode) throws SchemaException {
-//		DomSerializer serializer = new DomSerializer(this, schemaRegistry);
-//	}
+	public Element serializeToElement(MapXNode xmap, QName elementName) throws SchemaException {
+		DomSerializer serializer = new DomSerializer(this, schemaRegistry);
+		return serializer.serializeToElement(xmap, elementName);
+	}
 	
 	
 }

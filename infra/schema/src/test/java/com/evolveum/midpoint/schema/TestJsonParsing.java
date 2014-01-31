@@ -101,8 +101,8 @@ public class TestJsonParsing {
 		System.out.println(userType.dump());
 	
 		
-		System.out.println("DOM: " + prismContext.getPrismDomProcessor().serializeObjectToString(userType));
-		System.out.println("JAXB:" + SchemaDebugUtil.dumpJaxbObject(userType.asObjectable(), "user", prismContext));
+//		System.out.println("DOM: " + prismContext.getPrismDomProcessor().serializeObjectToString(userType));
+//		System.out.println("JAXB:" + SchemaDebugUtil.dumpJaxbObject(userType.asObjectable(), "user", prismContext));
 		
 		
 		assertUserPrism(userType);
@@ -133,8 +133,8 @@ PrismObject<ResourceType> resourceType = prismContext.parseObject(new File("src/
 
 System.out.println("=====================objectTYPE");
 //resourceType.asObjectable().getSchemaHandling().getObjectType();
-System.out.println(SchemaDebugUtil.dumpJaxbObject(resourceType.asObjectable(), "resource", prismContext));
-System.out.println(prismContext.getPrismDomProcessor().serializeObjectToString(resourceType));
+//System.out.println(SchemaDebugUtil.dumpJaxbObject(resourceType.asObjectable(), "resource", prismContext));
+//System.out.println(prismContext.getPrismDomProcessor().serializeObjectToString(resourceType));
 		
 		System.out.println("parsed");
 		System.out.println(resourceType.dump());
@@ -185,8 +185,8 @@ System.out.println(prismContext.getPrismDomProcessor().serializeObjectToString(r
 		
 		System.out.println("=====================objectTYPE");
 //		resourceType.asObjectable().getSchemaHandling().getObjectType();
-		System.out.println(SchemaDebugUtil.dumpJaxbObject(resourceType.asObjectable(), "resource", prismContext));
-		System.out.println(prismContext.getPrismDomProcessor().serializeObjectToString(resourceType));
+//		System.out.println(SchemaDebugUtil.dumpJaxbObject(resourceType.asObjectable(), "resource", prismContext));
+//		System.out.println(prismContext.getPrismDomProcessor().serializeObjectToString(resourceType));
 		} catch (Exception ex){
 			System.out.println("exception " + ex);
 			throw ex;

@@ -17,10 +17,16 @@
 package com.evolveum.midpoint.prism.xjc;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.prism.parser.DOMParser;
+import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
-
 import com.evolveum.midpoint.util.exception.SystemException;
+
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Element;
 
@@ -406,5 +412,41 @@ public final class PrismForJAXBUtil {
 			throw new IllegalStateException("Internal schema error: "+e.getMessage(),e);
 		}
 	}
+	
+	public static void setReferenceFilterElement(PrismReferenceValue rval, Element filterElement) {
+		DOMParser parser = getDomParser(rval);
+		try {
+			XNode filterXNode = parser.parseElement(filterElement);
+			ObjectFilter filter = QueryConvertor.parseFilter(filterXNode, rval.getPrismContext());
+			rval.setFilter(filter);
+		} catch (SchemaException e) {
+			throw new SystemException("Error parsing filter: "+e.getMessage(),e);
+		}
+	}
 
+	public static Element getReferenceFilterElement(PrismReferenceValue rval) {
+		Element filterElement;
+		DOMParser parser = getDomParser(rval);
+		try {
+			ObjectFilter filter = rval.getFilter();
+			MapXNode filterXmap = QueryConvertor.serializeFilter(filter);
+			filterElement = parser.serializeToElement(filterXmap, QueryConvertor.FILTER_ELEMENT_NAME);
+		} catch (SchemaException e) {
+			throw new SystemException("Error serializing filter: "+e.getMessage(),e);
+		}
+		return filterElement;
+	}
+
+	private static DOMParser getDomParser(PrismValue pval) {
+		PrismContext prismContext = pval.getPrismContext();
+		if (prismContext != null) {
+			return prismContext.getParserDom();
+		} else {
+			SchemaRegistry schemaRegistry = prismContext.getSchemaRegistry();
+			DOMParser parser = new DOMParser(schemaRegistry);
+			return parser;
+		}
+	}
+
+	
 }

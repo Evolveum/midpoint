@@ -56,15 +56,6 @@ public class SchemaDebugUtil {
 
 	private static int SHOW_LIST_MEMBERS = 3;
 	
-	public static String dumpJaxbObject(Object jaxbObject, String elementLocalName, PrismContext prismContext) {
-		QName elementQName = new QName(SchemaConstants.NS_C, elementLocalName);
-		try {
-			return prismContext.getPrismJaxbProcessor().marshalElementToString(jaxbObject, elementQName);
-		} catch (JAXBException e) {
-			throw new IllegalStateException("Error marshalling JAXB object "+jaxbObject+": "+e.getMessage(),e);
-		}
-	}
-	
 	public static String debugDump(Collection<? extends DebugDumpable> dumpables) {
 		return debugDump(dumpables,0);
 	}

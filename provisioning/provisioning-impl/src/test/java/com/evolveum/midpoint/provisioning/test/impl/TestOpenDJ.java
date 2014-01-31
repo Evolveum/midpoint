@@ -76,7 +76,7 @@ import com.evolveum.midpoint.provisioning.ucf.impl.ConnectorFactoryIcfImpl;
 import com.evolveum.midpoint.repo.api.RepositoryService;
 import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.DeltaConvertor;
-import com.evolveum.midpoint.schema.QueryConvertor;
+import com.evolveum.midpoint.schema.QueryJaxbConvertor;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
@@ -977,7 +977,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 		QueryType queryType = PrismTestUtil.unmarshalObject(new File(
 				"src/test/resources/impl/query-filter-all-accounts.xml"), QueryType.class);
-		ObjectQuery query = QueryConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
+		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
 		
 		provisioningService.searchObjectsIterative(ShadowType.class, query, null, new ResultHandler<ShadowType>() {
 
@@ -1017,7 +1017,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 		QueryType queryType = PrismTestUtil.unmarshalObject(new File("src/test/resources/impl/query-filter-all-accounts.xml"), 
 				QueryType.class);
-		ObjectQuery query = QueryConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
+		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
 
 		List<PrismObject<ShadowType>> objListType = 
 			provisioningService.searchObjects(ShadowType.class, query, null, result);
@@ -1040,7 +1040,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 
 		QueryType queryType = PrismTestUtil.unmarshalObject(new File("src/test/resources/impl/query-complex-filter.xml"), 
 				QueryType.class);
-		ObjectQuery query = QueryConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
+		ObjectQuery query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
 
 		List<PrismObject<ShadowType>> objListType = 
 			provisioningService.searchObjects(ShadowType.class, query, null, result);

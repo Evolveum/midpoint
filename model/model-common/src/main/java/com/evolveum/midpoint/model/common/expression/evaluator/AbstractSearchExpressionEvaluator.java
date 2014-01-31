@@ -46,7 +46,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.QueryConvertor;
+import com.evolveum.midpoint.schema.QueryJaxbConvertor;
 import com.evolveum.midpoint.schema.ResultHandler;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
@@ -144,7 +144,7 @@ public abstract class AbstractSearchExpressionEvaluator<V extends PrismValue>
 			if (queryType == null) {
 				throw new SchemaException("No query in "+shortDebugDump());
 			}
-			query = QueryConvertor.createObjectQuery(targetTypeClass, queryType, prismContext);
+			query = QueryJaxbConvertor.createObjectQuery(targetTypeClass, queryType, prismContext);
 			query = ExpressionUtil.evaluateQueryExpressions(query, variables, params.getExpressionFactory(), 
 					prismContext, params.getContextDescription(), task, result);
 			query = extendQuery(query, params);

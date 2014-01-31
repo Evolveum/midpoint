@@ -50,7 +50,7 @@ import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.PropertyValueFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.repo.api.RepositoryService;
-import com.evolveum.midpoint.schema.QueryConvertor;
+import com.evolveum.midpoint.schema.QueryJaxbConvertor;
 import com.evolveum.midpoint.schema.constants.ExpressionConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
@@ -191,7 +191,7 @@ public class CorrelationConfirmationEvaluator {
 			
 			ObjectQuery q = null;
 			try {
-				q = QueryConvertor.createObjectQuery(focusType, query, prismContext);
+				q = QueryJaxbConvertor.createObjectQuery(focusType, query, prismContext);
 				q = updateFilterWithAccountValues(currentShadow, resourceType, q, "Correlation expression", task, result);
 				LOGGER.trace("XXX: {}",q.dump());
 				if (q == null) {
@@ -260,7 +260,7 @@ private <F extends FocusType> boolean matchUserCorrelationRule(Class<F> focusTyp
 
 	ObjectQuery q = null;
 	try {
-		q = QueryConvertor.createObjectQuery(focusType, query, prismContext);
+		q = QueryJaxbConvertor.createObjectQuery(focusType, query, prismContext);
 		q = updateFilterWithAccountValues(currentShadow.asObjectable(), resourceType, q, "Correlation expression", task, result);
 		LOGGER.debug("Start matching user {} with correlation eqpression {}", userType, q.dump());
 		if (q == null) {
