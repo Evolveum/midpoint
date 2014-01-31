@@ -34,6 +34,7 @@ import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -49,43 +50,56 @@ public class PrismJsonSerializer implements Parser{
 	
 	String globalNamespace = null;
 	public String serializeToJson(XNode node, QName rootElement) throws SchemaException{
-		ObjectMapper mapper = new ObjectMapper();
-		SimpleModule module = new SimpleModule("MidpointModule", new Version(0, 0, 0, "aa")); 
-		module.addSerializer(QName.class, new QNameSerializer());
-		module.addSerializer(PolyString.class, new PolyStringSerializer());
-		
-		JaxbElementSerializer jaxbSerializer = new JaxbElementSerializer();
-		module.addSerializer(JAXBElement.class, jaxbSerializer);
-		mapper.registerModule(module);
-		
-		mapper.setAnnotationIntrospector(new JaxbAnnotationIntrospector());
-		mapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
-		mapper.setSerializationInclusion(Include.NON_NULL);
-		
-		ObjectWriter writer = mapper.writer();
-		JsonFactory factory = new JsonFactory();
-		StringWriter out = new StringWriter();
-		try {
-		JsonGenerator generator = factory.createGenerator(out);
-		
-		
-		PrettyPrinter pp = new DefaultPrettyPrinter();
-
-		generator.setPrettyPrinter(pp);
-		generator.setCodec(mapper);
-		globalNamespace = rootElement.getNamespaceURI();
-		generator.writeStartObject();
-		serializeToJson(node, rootElement,  generator);
-		generator.writeEndObject();
-		
-		generator.flush();
-		generator.close();
+		try { 
+			globalNamespace = rootElement.getNamespaceURI();
+			StringWriter out = new StringWriter();
+			JsonGenerator generator = createJsonGenerator(out);
+			return writeObject(node, rootElement, generator, out);
 		} catch (IOException ex){
 			throw new SchemaException("Schema error during serializing to JSON.", ex);
 		}
+
+	}
+	
+	private String writeObject(XNode node, QName rootElement, JsonGenerator generator, StringWriter out) throws JsonGenerationException, IOException{
+		generator.writeStartObject();
+		serializeToJson(node, rootElement,  generator);
+		generator.writeEndObject();
+		generator.flush();
+		generator.close();
 		return out.toString();
 	}
 	
+
+	private JsonGenerator createJsonGenerator(StringWriter out) throws SchemaException{
+		try {
+			JsonFactory factory = new JsonFactory();
+			JsonGenerator generator = factory.createGenerator(out);
+			generator.setPrettyPrinter(new DefaultPrettyPrinter());
+			generator.setCodec(configureMapperForSerialization());
+			return generator;
+		} catch (IOException ex){
+			throw new SchemaException("Schema error during serializing to JSON.", ex);
+		}
+
+	}
+	
+	private ObjectMapper configureMapperForSerialization(){
+		ObjectMapper mapper = new ObjectMapper();
+//		mapper.setAnnotationIntrospector(new JaxbAnnotationIntrospector());
+		mapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
+		mapper.setSerializationInclusion(Include.NON_NULL);
+		mapper.registerModule(createSerializerModule());
+		return mapper;
+	}
+	
+	private Module createSerializerModule(){
+		SimpleModule module = new SimpleModule("MidpointModule", new Version(0, 0, 0, "aa")); 
+		module.addSerializer(QName.class, new QNameSerializer());
+		module.addSerializer(PolyString.class, new PolyStringSerializer());
+		module.addSerializer(JAXBElement.class, new JaxbElementSerializer());
+		return module;
+	}
 	String objectNs = null;
 	private <T> void  serializeToJson(XNode node, QName nodeName, JsonGenerator generator) throws JsonGenerationException, IOException{
 		
@@ -180,12 +194,19 @@ public class PrismJsonSerializer implements Parser{
 				Entry<String, JsonNode> field = fields.next();
 				String fieldName = field.getKey();
 				
-				if (fieldName != null){
-					((RootXNode) xmap).setRootElementName(new QName(globalNs, fieldName));
+				JsonNode globalNsNode = field.getValue().get(PROP_NAMESPACE);
+				if (globalNsNode == null){
+					throw new SchemaException("No ");
 				}
+				String globalNs = globalNsNode.asText();
 				
+				if (fieldName == null){
+					throw new SchemaException("cannot obtain type");
+				}
+		
+				((RootXNode) xmap).setRootElementName(new QName(globalNs, fieldName));
 				
-				parseJsonObject(xmap, globalNs, field.getKey(), field.getValue(), parser);
+				parseJsonObject(xmap, globalNs, fieldName, field.getValue(), parser);
 				
 			}
 			 return xmap;
@@ -214,13 +235,16 @@ public class PrismJsonSerializer implements Parser{
 			objNs = objNsNode.asText();
 		}
 		
-		String nsToUse = globalNs;
+//		String nsToUse = globalNs;
 		if (objNs != null && !objNs.equals(ns)){
-			nsToUse = objNs;
-		} else {
-			nsToUse = ns;
+//			nsToUse = objNs;
+			return objNs;
 		}
-		return nsToUse;
+//		} else {
+//			nsToUse = ns;
+			return ns;
+//		}
+//		return nsToUse;
 	}
 	
 	private boolean isSpecial(JsonNode next){
@@ -270,57 +294,112 @@ public class PrismJsonSerializer implements Parser{
 		
 		
 		if (obj.isObject()){
-			Iterator<Entry<String, JsonNode>> fields = obj.fields();
-			String nsToUse = getNamespace(obj, ns);
-			
-			MapXNode subMap = new MapXNode();
-			if (xmap instanceof RootXNode){
-				JsonNode globalNsNode = obj.get(PROP_NAMESPACE);
-				
-				if (globalNsNode != null){
-					globalNs = globalNsNode.asText();
-				}
-				((RootXNode) xmap).setRootElementName(new QName(globalNs, fieldName));
-				((RootXNode) xmap).setSubnode(subMap);
-			} else {
-				addXNode(new QName(ns, fieldName), xmap, subMap);
-			}
-			
-			while (fields.hasNext()){
-				Entry<String, JsonNode> field = fields.next();
-				if (isSpecial(field.getValue())){
-					setSpecial(subMap, new QName(nsToUse, field.getKey()), field.getValue(), parser);
-					continue;
-				} 
-				parseJsonObject(subMap, nsToUse, field.getKey(), field.getValue(), parser);
-			}
+			parseToMap(obj, ns, fieldName, xmap, parser);
+//			Iterator<Entry<String, JsonNode>> fields = obj.fields();
+//			String nsToUse = getNamespace(obj, ns);
+//			
+//			MapXNode subMap = new MapXNode();
+//			if (xmap instanceof RootXNode){
+//				JsonNode globalNsNode = obj.get(PROP_NAMESPACE);
+//				
+//				if (globalNsNode != null){
+//					globalNs = globalNsNode.asText();
+//				}
+//				((RootXNode) xmap).setRootElementName(new QName(globalNs, fieldName));
+//				((RootXNode) xmap).setSubnode(subMap);
+//			} else {
+//				addXNode(new QName(ns, fieldName), xmap, subMap);
+//			}
+//			
+//			while (fields.hasNext()){
+//				Entry<String, JsonNode> field = fields.next();
+//				if (isSpecial(field.getValue())){
+//					setSpecial(subMap, new QName(nsToUse, field.getKey()), field.getValue(), parser);
+//					continue;
+//				} 
+//				parseJsonObject(subMap, nsToUse, field.getKey(), field.getValue(), parser);
+//			}
 							
 		} else {
 			if (obj.isArray()){
-				Iterator<JsonNode> elements = obj.elements();
-				ListXNode listNode = new ListXNode();
-				addXNode(new QName(ns, fieldName), xmap, listNode);
-				while (elements.hasNext()){
-					JsonNode element = elements.next();
-					if (isSpecial(element)){
-						setSpecial(listNode, new QName(ns, fieldName), element, parser);
-						continue;
-					}
-					parseJsonObject(listNode, ns, fieldName, element, parser);
-				}
+				parseToList(obj, ns, fieldName, xmap, parser);
+//				Iterator<JsonNode> elements = obj.elements();
+//				ListXNode listNode = new ListXNode();
+//				addXNode(new QName(ns, fieldName), xmap, listNode);
+//				while (elements.hasNext()){
+//					JsonNode element = elements.next();
+//					if (isSpecial(element)){
+//						setSpecial(listNode, new QName(ns, fieldName), element, parser);
+//						continue;
+//					}
+//					parseJsonObject(listNode, ns, fieldName, element, parser);
+//				}
 			} else {
+				parseToPrimitive(obj, ns, fieldName, xmap, parser);
 
-				if (fieldName.equals(PROP_NAMESPACE)){
-					return;
-				}
-				PrimitiveXNode primitive = createPrimitiveXNode(obj, parser);
-				addXNode(new QName(ns, fieldName), xmap, primitive);
+//				if (fieldName.equals(PROP_NAMESPACE)){
+//					return;
+//				}
+//				PrimitiveXNode primitive = createPrimitiveXNode(obj, parser);
+//				addXNode(new QName(ns, fieldName), xmap, primitive);
 				
 			}
 		} 
 		
 	}
 	
+	private void parseToMap(JsonNode node, String namespace, String fieldName, XNode parent, JsonParser parser) throws SchemaException{
+		Iterator<Entry<String, JsonNode>> fields = node.fields();
+		String nsToUse = getNamespace(node, namespace);
+		
+		MapXNode subMap = new MapXNode();
+		if (parent instanceof RootXNode){
+//			JsonNode globalNsNode = node.get(PROP_NAMESPACE);
+//			
+////			String globalNsValue = null;
+//			if (globalNsNode == null){
+//				throw new SchemaException("No global namespace specified. Please add '@ns' declaration to the JSON file.");
+//			}
+////			if (globalNsNode != null){
+////				globalNsValue = globalNsNode.asText();
+////			}
+//			((RootXNode) parent).setRootElementName(new QName(globalNsNode.asText(), fieldName));
+			((RootXNode) parent).setSubnode(subMap);
+		} else {
+			addXNode(new QName(namespace, fieldName), parent, subMap);
+		}
+		
+		while (fields.hasNext()){
+			Entry<String, JsonNode> field = fields.next();
+			if (isSpecial(field.getValue())){
+				setSpecial(subMap, new QName(nsToUse, field.getKey()), field.getValue(), parser);
+				continue;
+			} 
+			parseJsonObject(subMap, nsToUse, field.getKey(), field.getValue(), parser);
+		}
+	}
+	
+	private void parseToList(JsonNode node, String namespace, String fieldName, XNode parent, JsonParser parser) throws SchemaException{
+		Iterator<JsonNode> elements = node.elements();
+		ListXNode listNode = new ListXNode();
+		addXNode(new QName(namespace, fieldName), parent, listNode);
+		while (elements.hasNext()){
+			JsonNode element = elements.next();
+			if (isSpecial(element)){
+				setSpecial(listNode, new QName(namespace, fieldName), element, parser);
+				continue;
+			}
+			parseJsonObject(listNode, namespace, fieldName, element, parser);
+		}
+	}
+	
+	private void parseToPrimitive(JsonNode node, String namespace, String fieldName, XNode parent, JsonParser parser){
+		if (fieldName.equals(PROP_NAMESPACE)){
+			return;
+		}
+		PrimitiveXNode primitive = createPrimitiveXNode(node, parser);
+		addXNode(new QName(namespace, fieldName), parent, primitive);
+	}
 	private PrimitiveXNode createPrimitiveXNode(JsonNode node, JsonParser parser, QName typeDefinition){
 		PrimitiveXNode primitive = new PrimitiveXNode();
 		
@@ -344,20 +423,6 @@ public class PrismJsonSerializer implements Parser{
 		((ListXNode) parent).add(children);
 	}
 	}
-
-	private Object getRealValue(JsonNode obj) {
-		switch (obj.getNodeType()) {
-			case BOOLEAN:
-				return obj.asBoolean();
-			case NUMBER:
-					return obj.asLong();
-			default:
-				return obj.asText();
-		}
-//		return null;
-	}
-
-	  
 	
 		@Override
 		public XNode parse(File file) throws SchemaException, IOException {
