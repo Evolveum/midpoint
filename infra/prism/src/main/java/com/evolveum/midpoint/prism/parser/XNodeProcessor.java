@@ -356,13 +356,22 @@ public class XNodeProcessor {
 			xprim.parseValue(typeName);
 		}
 		T realValue = xprim.getValue();
-		if (realValue != null && realValue instanceof PolyStringType) {
+		
+		if (realValue == null){
+			return realValue;
+		}
+		
+		if (realValue instanceof PolyStringType) {
 			PolyStringType polyStringType = (PolyStringType)realValue;
 			realValue = (T) new PolyString(polyStringType.getOrig(), polyStringType.getNorm());
 		}
-		if (realValue != null) {
-			PrismUtil.recomputeRealValue(realValue, prismContext);
+		
+		if ((!(realValue instanceof PolyStringType) || !(realValue instanceof PolyString)) && typeName.equals(PolyStringType.COMPLEX_TYPE)){
+			String val = (String) realValue;
+			realValue = (T) new PolyString(val);
 		}
+		
+		PrismUtil.recomputeRealValue(realValue, prismContext);
 		return realValue;
 	}
 	

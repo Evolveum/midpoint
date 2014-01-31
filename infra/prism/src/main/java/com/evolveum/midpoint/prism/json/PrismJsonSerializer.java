@@ -46,6 +46,7 @@ import com.evolveum.midpoint.prism.xnode.ListXNode;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
+import com.evolveum.midpoint.prism.xnode.ValueParser;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
@@ -55,18 +56,22 @@ import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonParser.Feature;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.ObjectCodec;
 import com.fasterxml.jackson.core.PrettyPrinter;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.node.JsonNodeType;
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
 import com.fasterxml.jackson.module.jaxb.deser.DomElementJsonDeserializer;
 
@@ -255,14 +260,22 @@ public class PrismJsonSerializer implements Parser{
 	public XNode parseObject(InputStream inputStream) throws IOException, SchemaException{
 		
 		ObjectMapper mapper = new ObjectMapper();
+		SimpleModule sm = new SimpleModule();
+		sm.addDeserializer(QName.class, new QNameDeserializer());
+		
+		mapper.registerModule(sm);
+//		mapper.configure(Feature., state)
 		JsonNode obj = null;
 		try {
 			JsonParser parser = null;
 			JsonFactory facotry = new JsonFactory();
-			parser =  facotry.createJsonParser(inputStream);
+			parser =  facotry.createParser(inputStream);
 			parser.setCodec(mapper);
+			ObjectReader reader = mapper.reader();
+//			reader.
 			
 			obj = parser.readValueAs(JsonNode.class);
+//			obj = mapper.readValue(inputStream, JsonNode.class);
 			
 			RootXNode xmap = new RootXNode();
 			
@@ -299,7 +312,120 @@ public class PrismJsonSerializer implements Parser{
 		
 	}
 	
-	private void parseJsonObject(XNode xmap, String ns, String fieldName, JsonNode obj, JsonParser parser) throws JsonProcessingException, IOException {
+	private String getNamespace(JsonNode obj, String ns){
+		JsonNode objNsNode = obj.get("@ns");
+		String objNs = null;
+		if (objNsNode != null){
+			objNs = objNsNode.asText();
+		}
+		
+		String nsToUse = globalNs;
+		if (objNs != null && !objNs.equals(ns)){
+			nsToUse = objNs;
+		} else {
+			nsToUse = ns;
+		}
+		return nsToUse;
+	}
+	
+	private boolean isSpecial(JsonNode next){
+		boolean isSpecial = false;
+//		JsonNode next = field.getValue();
+		if (next.isObject()){
+			Iterator<String> nextFields = next.fieldNames();
+			
+			while (nextFields.hasNext()){
+				String str = nextFields.next();
+				if (str.startsWith("@") && !str.equals("@ns")){
+					
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+	
+	private <T> void setSpecial(XNode xmap, QName propertyName, final JsonNode obj, final JsonParser parser) throws SchemaException{
+		System.out.println("special");
+		QName typeDefinition = null;
+		if (obj.has("@typeDef")){
+			System.out.println("has type def");
+			JsonNode typeDef =  obj.get("@typeDef");
+			ObjectMapper m = (ObjectMapper) parser.getCodec();
+			ObjectReader r = m.reader(QName.class);
+			
+			try {
+				typeDefinition = r.readValue(typeDef);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				throw new SchemaException("Cannot extract type definition " + e.getMessage(), e);
+			}
+			
+			final JsonNode value = obj.get("@value");
+			ValueParser<?> vParser = new ValueParser<T>() {
+				
+				@Override
+				public T parse(QName typeName) throws SchemaException {
+					ObjectMapper mapper = (ObjectMapper) parser.getCodec();
+					
+					Class clazz = XsdTypeMapper.toJavaType(typeName);
+					ObjectReader r = mapper.reader(clazz);
+					try {
+						return r.readValue(value);
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						throw new SchemaException("Cannot parse value: " + e.getMessage(), e);
+					}
+				}
+			};
+			
+			PrimitiveXNode primitive = new PrimitiveXNode<>();
+			primitive.setValueParser(vParser);
+			if (typeDefinition != null){
+				primitive.setExplicitTypeDeclaration(true);
+				primitive.setTypeQName(typeDefinition);
+			}
+			if (xmap instanceof MapXNode){
+					((MapXNode) xmap).put(propertyName, primitive);
+			} else if (xmap instanceof ListXNode){
+				((ListXNode) xmap).add(primitive);
+			}
+			return;
+		}
+		
+		ValueParser<?> vParser = new ValueParser<T>() {
+	
+	@Override
+	public T parse(QName typeName) throws SchemaException {
+		ObjectMapper mapper = (ObjectMapper) parser.getCodec();
+		
+		Class clazz = XsdTypeMapper.toJavaType(typeName);
+		ObjectReader r = mapper.reader(clazz);
+		try {
+			return r.readValue(obj);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			throw new SchemaException("Cannot parse value: " + e.getMessage(), e);
+		}
+	}
+};
+	
+
+PrimitiveXNode primitive = new PrimitiveXNode<>();
+primitive.setValueParser(vParser);
+if (typeDefinition != null){
+	primitive.setExplicitTypeDeclaration(true);
+	primitive.setTypeQName(typeDefinition);
+}
+if (xmap instanceof MapXNode){
+		((MapXNode) xmap).put(propertyName, primitive);
+} else if (xmap instanceof ListXNode){
+	((ListXNode) xmap).add(primitive);
+}
+	}
+	
+	private <T> void parseJsonObject(XNode xmap, String ns, String fieldName, final JsonNode obj, final JsonParser parser) throws SchemaException {
 		
 //		JsonSchemaFactory f= new JsonSchemaFactory();
 //		SchemaFactoryWrapper w = new SchemaFactoryWrapper();
@@ -312,70 +438,41 @@ public class PrismJsonSerializer implements Parser{
 		
 		
 		if (obj.isObject()){
+			Iterator<Entry<String, JsonNode>> fields = obj.fields();
+			String nsToUse = getNamespace(obj, ns);
+			
 			MapXNode subMap = new MapXNode();
 			boolean iterate = true;
 			if (xmap instanceof MapXNode){
 				if (fieldName == null){
-//					((MapXNode) xmap).put(new QName("ReplaceWithName"), subMap);
 					subMap = (MapXNode) xmap;
-				} else{
-//					if (fieldName.startsWith("_")){
-//						fieldName = fieldName.replaceFirst("_", "");
-//						if (isQName(obj)){
-//							PrimitiveXNode primitive = new PrimitiveXNode();
-//							primitive.setValue(readQName(obj));
-//							primitive.setAttribute(true);
-//							((MapXNode) xmap).put(new QName(fieldName), primitive);
-//							iterate = false;
-//							
-//						}
-//					}else {
-						((MapXNode) xmap).put(new QName(ns, fieldName), subMap);
-//					}
-				}
+				} 
+				((MapXNode) xmap).put(new QName(ns, fieldName), subMap);
 			} else if (xmap instanceof ListXNode){
 				((ListXNode) xmap).add(subMap);
 			} if (xmap instanceof RootXNode){
-//				if (fieldName != null){
 				JsonNode globalNsNode = obj.get("@ns");
 				
 				if (globalNsNode != null){
 					globalNs = globalNsNode.asText();
 				}
-					((RootXNode) xmap).setRootElementName(new QName(globalNs, fieldName));
-//					((RootXNode) xmap).setSubnode(subMap);
-//				}
+				((RootXNode) xmap).setRootElementName(new QName(globalNs, fieldName));
 				((RootXNode) xmap).setSubnode(subMap);
 			}
 			
-			Iterator<Entry<String, JsonNode>> fields = obj.fields();
-			JsonNode objNsNode = obj.get("@ns");
-			String objNs = null;
-			if (objNsNode != null){
-				objNs = objNsNode.asText();
-			}
-			
-			String nsToUse = globalNs;
-			if (objNs != null && !objNs.equals(ns)){
-				nsToUse = objNs;
-			} else {
-				nsToUse = ns;
-			}
-			
-//			if (glo)
-			if (iterate){
-				
 			while (fields.hasNext()){
 				Entry<String, JsonNode> field = fields.next();
-				
-				
+				if (isSpecial(field.getValue())){
+					setSpecial(subMap, new QName(nsToUse, field.getKey()), field.getValue(), parser);
+					continue;
+				} 
+//				else {
+					
 				
 				parseJsonObject(subMap, nsToUse, field.getKey(), field.getValue(), parser);
-//				subMap.put(new QName(field.getKey()), )
-				
-			}}
-			
-					
+//				}
+			}
+							
 		} else {
 			if (obj.isArray()){
 				Iterator<JsonNode> elements = obj.elements();
@@ -387,6 +484,10 @@ public class PrismJsonSerializer implements Parser{
 				}
 				while (elements.hasNext()){
 					JsonNode element = elements.next();
+					if (isSpecial(element)){
+						setSpecial(listNode, new QName(ns, fieldName), element, parser);
+						continue;
+					}
 					parseJsonObject(listNode, ns, fieldName, element, parser);
 				}
 			} else {
@@ -397,8 +498,27 @@ public class PrismJsonSerializer implements Parser{
 				PrimitiveXNode primitive = new PrimitiveXNode();
 				
 				Object val = getRealValue(obj);
+				if (obj.getNodeType() == JsonNodeType.STRING){
+					primitive.setValue(val);
+				}
+//				
 				
-				primitive.setValue(val);
+				ValueParser vp = new ValueParser() {
+		
+					@Override
+					public Object parse(QName typeName) throws SchemaException {
+						ObjectMapper mapper = (ObjectMapper) parser.getCodec();
+						Class clazz = XsdTypeMapper.toJavaType(typeName);
+						ObjectReader r = mapper.reader(clazz);
+					    try {
+							return r.readValue(obj);
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							throw new SchemaException("Cannot parse value: " + e.getMessage(), e);
+						}
+					}
+				};
+				primitive.setValueParser(vp);
 				
 				if (xmap instanceof MapXNode){
 					if (fieldName.startsWith("_")){
@@ -429,50 +549,6 @@ public class PrismJsonSerializer implements Parser{
 				return obj.asText();
 		}
 //		return null;
-	}
-
-	private boolean isQName(JsonNode obj) {
-		if (obj.isObject()){
-			if (obj.size() != 2){
-				return false;
-			}
-			Iterator<String> fieldNames = obj.fieldNames();
-			boolean containsNs = false;
-			boolean containsLocal = false;
-			while (fieldNames.hasNext()){
-				String fName = fieldNames.next();
-				if (fName.equals("namespace")){
-					containsNs = true;
-				} 
-				if (fName.equals("localPart")){
-					containsLocal = true;
-				}
-			}
-			return containsLocal && containsNs;
-		}
-		return false;
-	}
-
-	private QName readQName(JsonNode obj) {
-		if (obj.isObject()){
-			if (obj.size() != 2){
-				return null;
-			}
-			Iterator<Entry<String, JsonNode>> fieldNames = obj.fields();
-			String ns = null;
-			String local = null;
-			while (fieldNames.hasNext()){
-				Entry<String, JsonNode> fName = fieldNames.next();
-				if (fName.getKey().equals("namespace")){
-					ns = fName.getValue().asText();
-				} 
-				if (fName.getKey().equals("localPart")){
-					local = fName.getValue().asText();
-				}
-			}
-			return new QName(ns, local);
-		}
-		return null;
 	}
 
 	private <T extends Objectable> PrismObject<T> parseObject(JsonNode jsonObject, QName itemName, String defaultNamespace, 

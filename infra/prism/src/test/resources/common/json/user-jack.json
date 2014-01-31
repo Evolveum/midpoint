@@ -2,40 +2,77 @@
   "user" : {
     "@ns" : "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd",
     "accountRef" : [ {
-      "_type" : {
-        "namespace" : "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd",
-        "localPart" : "AccountType"
+      "type" : {
+        "@namespace" : "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd",
+        "@localPart" : "AccountType"
       },
-      "_oid" : "c0c010c0-d34d-b33f-f00d-aaaaaaaa1113"
+      "oid" : "c0c010c0-d34d-b33f-f00d-aaaaaaaa1113"
     }, {
-      "_type" : {
-        "namespace" : "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd",
-        "localPart" : "AccountShadowType"
+      "type" : {
+        "@namespace" : "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd",
+        "@localPart" : "AccountType"
       },
-      "_oid" : "c0c010c0-d34d-b33f-f00d-aaaaaaaa1111"
+      "oid" : "c0c010c0-d34d-b33f-f00d-aaaaaaaa1111"
     }, {
-      "_type" : {
-        "namespace" : "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd",
-        "localPart" : "AccountShadowType"
+      "type" : {
+        "@namespace" : "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd",
+        "@localPart" : "AccountType"
       },
-      "_oid" : "c0c010c0-d34d-b33f-f00d-aaaaaaaa1112",
+      "oid" : "c0c010c0-d34d-b33f-f00d-aaaaaaaa1112",
       "description" : "This is a reference with a filter"
     } ],
     "description" : "This must be the best pirate the world has ever seen",
     "extension" : {
       "indexedString" : [ "alpha", "bravo" ],
-      "num" : [ 42 ],
+      "num" : [ 
+      	{ 
+      		"@typeDef" : {
+        		"@namespace" : "http://www.w3.org/2001/XMLSchema",
+        		"@localPart" : "int"
+      		},
+      		"@value" : 42
+      	}  ],
       "singleStringType" : "foobar",
-      "multi" : [ "raz", "dva", "tri" ],
-      "bar" : [ "BAR" ],
+      "multi" : [ 
+      	{ 
+      		"@typeDef" : {
+        		"@namespace" : "http://www.w3.org/2001/XMLSchema",
+        		"@localPart" : "string"
+      		},
+      		"@value" : "raz"
+      	}, 
+      		{ 
+      		"@typeDef" : {
+        		"@namespace" : "http://www.w3.org/2001/XMLSchema",
+        		"@localPart" : "string"
+      		},
+      		"@value" : "dva"
+      	},
+      		{ 
+      		"@typeDef" : {
+        		"@namespace" : "http://www.w3.org/2001/XMLSchema",
+        		"@localPart" : "string"
+      		},
+      		"@value" : "tri"
+      	}
+      ],
+      "bar" : [ 
+      	{
+      		"@typeDef" : {
+        		"@namespace" : "http://www.w3.org/2001/XMLSchema",
+        		"@localPart" : "string"
+      		},
+      		"@value" : "BAR" 
+      	}
+      ],
       "@ns" : "http://midpoint.evolveum.com/xml/ns/test/extension"
     },
-    "_version" : "42",
+    "version" : "42",
     "assignment" : [ {
       "description" : "Assignment 1",
-      "_id" : 1111
+      "id" : 1111
     }, {
-      "_id" : 1112,
+      "id" : 1112,
       "accountConstruction" : {
         "howto" : "Just do it",
         "when" : 1330080532000,
