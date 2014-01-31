@@ -170,9 +170,7 @@ public class PrismJsonSerializer implements Parser{
 			}
 		}
 	}
-	
-	
-	String globalNs = null;
+
 	public XNode parseObject(JsonParser parser) throws SchemaException{
 		
 		ObjectMapper mapper = new ObjectMapper();
@@ -204,51 +202,38 @@ public class PrismJsonSerializer implements Parser{
 					throw new SchemaException("cannot obtain type");
 				}
 		
-				((RootXNode) xmap).setRootElementName(new QName(globalNs, fieldName));
+				QName rootElement = new QName(globalNs, fieldName);
+				((RootXNode) xmap).setRootElementName(rootElement);
 				
-				parseJsonObject(xmap, globalNs, fieldName, field.getValue(), parser);
+				parseJsonObject(xmap, rootElement, field.getValue(), parser);
 				
 			}
 			 return xmap;
 		} catch (JsonParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 			throw new SchemaException("Cannot parse from JSON: " + e.getMessage(), e);
 		} catch (JsonMappingException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 			throw new SchemaException("Cannot parse from JSON: " + e.getMessage(), e);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 			throw new SchemaException("Cannot parse from JSON: " + e.getMessage(), e);
 		}
-		
-//		return null;
-		
 	}
 	
 	private String getNamespace(JsonNode obj, String ns){
 		JsonNode objNsNode = obj.get(PROP_NAMESPACE);
-		String objNs = null;
-		if (objNsNode != null){
-			objNs = objNsNode.asText();
+		
+		if (objNsNode == null){
+			return ns;
 		}
 		
-//		String nsToUse = globalNs;
-		if (objNs != null && !objNs.equals(ns)){
-//			nsToUse = objNs;
+		String objNs = objNsNode.asText();
+		
+		if (!objNs.equals(ns)){
 			return objNs;
 		}
-//		} else {
-//			nsToUse = ns;
-			return ns;
-//		}
-//		return nsToUse;
+		return ns;
 	}
 	
 	private boolean isSpecial(JsonNode next){
-		boolean isSpecial = false;
 		if (next.isObject()){
 			Iterator<String> nextFields = next.fieldNames();
 			
@@ -290,115 +275,63 @@ public class PrismJsonSerializer implements Parser{
 		addXNode(propertyName, xmap, primitive);
 	}
 	
-	private <T> void parseJsonObject(XNode xmap, String ns, String fieldName, final JsonNode obj, final JsonParser parser) throws SchemaException {
+	private <T> void parseJsonObject(XNode xmap, QName propertyName, final JsonNode obj, final JsonParser parser) throws SchemaException {
 		
-		
-		if (obj.isObject()){
-			parseToMap(obj, ns, fieldName, xmap, parser);
-//			Iterator<Entry<String, JsonNode>> fields = obj.fields();
-//			String nsToUse = getNamespace(obj, ns);
-//			
-//			MapXNode subMap = new MapXNode();
-//			if (xmap instanceof RootXNode){
-//				JsonNode globalNsNode = obj.get(PROP_NAMESPACE);
-//				
-//				if (globalNsNode != null){
-//					globalNs = globalNsNode.asText();
-//				}
-//				((RootXNode) xmap).setRootElementName(new QName(globalNs, fieldName));
-//				((RootXNode) xmap).setSubnode(subMap);
-//			} else {
-//				addXNode(new QName(ns, fieldName), xmap, subMap);
-//			}
-//			
-//			while (fields.hasNext()){
-//				Entry<String, JsonNode> field = fields.next();
-//				if (isSpecial(field.getValue())){
-//					setSpecial(subMap, new QName(nsToUse, field.getKey()), field.getValue(), parser);
-//					continue;
-//				} 
-//				parseJsonObject(subMap, nsToUse, field.getKey(), field.getValue(), parser);
-//			}
-							
-		} else {
-			if (obj.isArray()){
-				parseToList(obj, ns, fieldName, xmap, parser);
-//				Iterator<JsonNode> elements = obj.elements();
-//				ListXNode listNode = new ListXNode();
-//				addXNode(new QName(ns, fieldName), xmap, listNode);
-//				while (elements.hasNext()){
-//					JsonNode element = elements.next();
-//					if (isSpecial(element)){
-//						setSpecial(listNode, new QName(ns, fieldName), element, parser);
-//						continue;
-//					}
-//					parseJsonObject(listNode, ns, fieldName, element, parser);
-//				}
-			} else {
-				parseToPrimitive(obj, ns, fieldName, xmap, parser);
-
-//				if (fieldName.equals(PROP_NAMESPACE)){
-//					return;
-//				}
-//				PrimitiveXNode primitive = createPrimitiveXNode(obj, parser);
-//				addXNode(new QName(ns, fieldName), xmap, primitive);
-				
-			}
-		} 
+		switch (obj.getNodeType()){
+			case OBJECT:
+				parseToMap(obj, propertyName, xmap, parser);
+				break;
+			case ARRAY:
+				parseToList(obj, propertyName, xmap, parser);
+				break;
+			default:
+				parseToPrimitive(obj, propertyName, xmap, parser);
+		}
 		
 	}
 	
-	private void parseToMap(JsonNode node, String namespace, String fieldName, XNode parent, JsonParser parser) throws SchemaException{
+	private void parseToMap(JsonNode node, QName propertyName, XNode parent, JsonParser parser) throws SchemaException{
 		Iterator<Entry<String, JsonNode>> fields = node.fields();
-		String nsToUse = getNamespace(node, namespace);
+		String nsToUse = getNamespace(node, propertyName.getNamespaceURI());
 		
 		MapXNode subMap = new MapXNode();
 		if (parent instanceof RootXNode){
-//			JsonNode globalNsNode = node.get(PROP_NAMESPACE);
-//			
-////			String globalNsValue = null;
-//			if (globalNsNode == null){
-//				throw new SchemaException("No global namespace specified. Please add '@ns' declaration to the JSON file.");
-//			}
-////			if (globalNsNode != null){
-////				globalNsValue = globalNsNode.asText();
-////			}
-//			((RootXNode) parent).setRootElementName(new QName(globalNsNode.asText(), fieldName));
 			((RootXNode) parent).setSubnode(subMap);
 		} else {
-			addXNode(new QName(namespace, fieldName), parent, subMap);
+			addXNode(propertyName, parent, subMap);
 		}
 		
 		while (fields.hasNext()){
 			Entry<String, JsonNode> field = fields.next();
+			QName childrenName = new QName(nsToUse, field.getKey());
 			if (isSpecial(field.getValue())){
-				setSpecial(subMap, new QName(nsToUse, field.getKey()), field.getValue(), parser);
+				setSpecial(subMap, childrenName, field.getValue(), parser);
 				continue;
 			} 
-			parseJsonObject(subMap, nsToUse, field.getKey(), field.getValue(), parser);
+			parseJsonObject(subMap, childrenName, field.getValue(), parser);
 		}
 	}
 	
-	private void parseToList(JsonNode node, String namespace, String fieldName, XNode parent, JsonParser parser) throws SchemaException{
+	private void parseToList(JsonNode node, QName propertyName, XNode parent, JsonParser parser) throws SchemaException{
 		Iterator<JsonNode> elements = node.elements();
 		ListXNode listNode = new ListXNode();
-		addXNode(new QName(namespace, fieldName), parent, listNode);
+		addXNode(propertyName, parent, listNode);
 		while (elements.hasNext()){
 			JsonNode element = elements.next();
 			if (isSpecial(element)){
-				setSpecial(listNode, new QName(namespace, fieldName), element, parser);
+				setSpecial(listNode, propertyName, element, parser);
 				continue;
 			}
-			parseJsonObject(listNode, namespace, fieldName, element, parser);
+			parseJsonObject(listNode, propertyName, element, parser);
 		}
 	}
 	
-	private void parseToPrimitive(JsonNode node, String namespace, String fieldName, XNode parent, JsonParser parser){
-		if (fieldName.equals(PROP_NAMESPACE)){
+	private void parseToPrimitive(JsonNode node, QName propertyName, XNode parent, JsonParser parser){
+		if (propertyName.getLocalPart().equals(PROP_NAMESPACE)){
 			return;
 		}
 		PrimitiveXNode primitive = createPrimitiveXNode(node, parser);
-		addXNode(new QName(namespace, fieldName), parent, primitive);
+		addXNode(propertyName, parent, primitive);
 	}
 	private PrimitiveXNode createPrimitiveXNode(JsonNode node, JsonParser parser, QName typeDefinition){
 		PrimitiveXNode primitive = new PrimitiveXNode();

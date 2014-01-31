@@ -6,6 +6,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.prism.xnode.ValueParser;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -38,6 +40,11 @@ public class JsonValueParser<T> implements ValueParser<T> {
 			// TODO Auto-generated catch block
 			throw new SchemaException("Cannot parse value: " + e.getMessage(), e);
 		}
+	}
+	
+	@Override
+	public String toString() {
+		return "ValueParser(JSON value: "+node+")";
 	}
 
 }
