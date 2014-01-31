@@ -108,6 +108,8 @@ public abstract class AbstractParserTest {
 		System.out.println(xnode.dump());
 		
 		
+		
+		
 		// WHEN (parse to prism)
 		PrismObject<UserType> user = processor.parseObject(xnode);
 		
@@ -146,6 +148,24 @@ public abstract class AbstractParserTest {
 		// WHEN (re-serialize to XNode)
 		XNode serializedXNode = processor.serializeObject(user, true);
 		String serializedString = parser.serializeToString(serializedXNode, new QName(NS_FOO, "user"));
+		
+//		try{
+//			FileOutputStream out = new FileOutputStream(new File("D:/user-jack-prism.json"));
+//			PrismJsonSerializer jsonSer = new PrismJsonSerializer(PrismTestUtil.getSchemaRegistry());
+//			String s = jsonSer.serializeToString((RootXNode) serializedXNode);
+//			System.out.println("JSON: \n" + s);
+//			
+////			FileInputStream in = new FileInputStream(new File("D:/user-jack-prism.json"));
+////			XNode afterJson = jsonSer.parseObject(in);
+////			
+////			// THEN
+////					System.out.println("AFTER JSON XNode:");
+////					System.out.println(afterJson.dump());
+//			
+//			} catch (Exception ex){
+//				System.out.println( ex);
+//				throw ex;
+//			}
 		
 		// THEN
 		System.out.println("\nXNode after re-serialization:");

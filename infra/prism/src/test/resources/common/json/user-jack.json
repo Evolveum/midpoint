@@ -1,27 +1,10 @@
 {
   "user" : {
     "@ns" : "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd",
-    "accountRef" : [ {
-      "type" : {
-        "@namespace" : "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd",
-        "@localPart" : "AccountType"
-      },
-      "oid" : "c0c010c0-d34d-b33f-f00d-aaaaaaaa1113"
-    }, {
-      "type" : {
-        "@namespace" : "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd",
-        "@localPart" : "AccountType"
-      },
-      "oid" : "c0c010c0-d34d-b33f-f00d-aaaaaaaa1111"
-    }, {
-      "type" : {
-        "@namespace" : "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd",
-        "@localPart" : "AccountType"
-      },
-      "oid" : "c0c010c0-d34d-b33f-f00d-aaaaaaaa1112",
-      "description" : "This is a reference with a filter"
-    } ],
-    "description" : "This must be the best pirate the world has ever seen",
+	"oid" : "c0c010c0-d34d-b33f-f00d-111111111111",
+	"version" : "42",
+	"name" : "jack",
+	"description" : "This must be the best pirate the world has ever seen",
     "extension" : {
       "indexedString" : [ "alpha", "bravo" ],
       "num" : [ 
@@ -67,8 +50,12 @@
       ],
       "@ns" : "http://midpoint.evolveum.com/xml/ns/test/extension"
     },
-    "version" : "42",
-    "assignment" : [ {
+	"fullName" : "cpt. Jack Sparrow",
+    "givenName" : "Jack",
+	"familyName" : "Sparrow",
+	"additionalNames" : [ "Captain", "Jackie" ],
+	"polyName" : "Džek Sperou",
+	"assignment" : [ {
       "description" : "Assignment 1",
       "id" : 1111
     }, {
@@ -84,12 +71,31 @@
       "enabled" : true,
       "validFrom" : 170717400000
     },
-    "oid" : "c0c010c0-d34d-b33f-f00d-111111111111",
-    "polyName" : "Džek Sperou",
-    "fullName" : "cpt. Jack Sparrow",
-    "additionalNames" : [ "Captain", "Jackie" ],
-    "name" : "jack",
-    "familyName" : "Sparrow",
-    "givenName" : "Jack"
+	"accountRef" : [ {
+      "type" : {
+        "@namespace" : "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd",
+        "@localPart" : "AccountType"
+      },
+      "oid" : "c0c010c0-d34d-b33f-f00d-aaaaaaaa1113"
+    }, {
+      "type" : {
+        "@namespace" : "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd",
+        "@localPart" : "AccountType"
+      },
+      "oid" : "c0c010c0-d34d-b33f-f00d-aaaaaaaa1111"
+    }, {
+      "type" : {
+        "@namespace" : "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd",
+        "@localPart" : "AccountType"
+      },
+      "oid" : "c0c010c0-d34d-b33f-f00d-aaaaaaaa1112",
+      "description" : "This is a reference with a filter",
+      "filter" : {
+      	"equal" : {
+      		"path" : "name",
+      		"value" : "captain"
+      	}
+      }
+    } ]  
   }
 }

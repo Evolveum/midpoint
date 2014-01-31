@@ -82,6 +82,9 @@ public class PrismJsonSerializer implements Parser{
 //	private PrismSchema prismSchema;
 	
 	
+	public PrismJsonSerializer(SchemaRegistry schemaRegistry2) {
+		this.schemaRegistry = schemaRegistry;
+	}
 	public PrismSchema getPrismSchema(Class clazz) {
 
 		return schemaRegistry.findSchemaByCompileTimeClass(clazz);
@@ -262,6 +265,7 @@ public class PrismJsonSerializer implements Parser{
 		ObjectMapper mapper = new ObjectMapper();
 		SimpleModule sm = new SimpleModule();
 		sm.addDeserializer(QName.class, new QNameDeserializer());
+		sm.addDeserializer(ItemPath.class, new ItemPathDeserializer());
 		
 		mapper.registerModule(sm);
 //		mapper.configure(Feature., state)
@@ -498,9 +502,9 @@ if (xmap instanceof MapXNode){
 				PrimitiveXNode primitive = new PrimitiveXNode();
 				
 				Object val = getRealValue(obj);
-				if (obj.getNodeType() == JsonNodeType.STRING){
-					primitive.setValue(val);
-				}
+//				if (obj.getNodeType() == JsonNodeType.STRING){
+//					primitive.setValue(val);
+//				}
 //				
 				
 				ValueParser vp = new ValueParser() {
@@ -509,6 +513,11 @@ if (xmap instanceof MapXNode){
 					public Object parse(QName typeName) throws SchemaException {
 						ObjectMapper mapper = (ObjectMapper) parser.getCodec();
 						Class clazz = XsdTypeMapper.toJavaType(typeName);
+						
+//						if (clazz == null){
+//							clazz = schemaRegistry.determineCompileTimeClass(typeName);
+//						}
+						
 						ObjectReader r = mapper.reader(clazz);
 					    try {
 							return r.readValue(obj);
@@ -1037,7 +1046,8 @@ if (xmap instanceof MapXNode){
 
 		@Override
 		public String serializeToString(RootXNode xnode) throws SchemaException {
-			// TODO Auto-generated method stub
-			return null;
+			QName rootElementName = xnode.getRootElementName();
+			return serializeToJson(xnode.getSubnode(), rootElementName);
+//			return null;
 		}
 }

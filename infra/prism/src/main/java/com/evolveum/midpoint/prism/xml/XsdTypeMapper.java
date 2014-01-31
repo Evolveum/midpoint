@@ -32,6 +32,7 @@ import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -83,9 +84,12 @@ public class XsdTypeMapper {
         addMapping(XMLGregorianCalendar.class, DOMUtil.XSD_DATETIME, true);
         addMapping(Duration.class, DOMUtil.XSD_DURATION, true);
         
+        addMapping(ItemPath.class, ItemPath.XSD_TYPE, true);
         addMapping(QName.class, DOMUtil.XSD_QNAME, true);
         
         addMapping(PolyString.class, PrismConstants.POLYSTRING_TYPE_QNAME, true);
+        
+        
 
         xsdToJavaTypeMap.put(DOMUtil.XSD_ANYURI, String.class);
     }

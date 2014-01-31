@@ -366,7 +366,7 @@ public class XNodeProcessor {
 			realValue = (T) new PolyString(polyStringType.getOrig(), polyStringType.getNorm());
 		}
 		
-		if ((!(realValue instanceof PolyStringType) || !(realValue instanceof PolyString)) && typeName.equals(PolyStringType.COMPLEX_TYPE)){
+		if (!(realValue instanceof PolyString) && typeName.equals(PolyStringType.COMPLEX_TYPE)){
 			String val = (String) realValue;
 			realValue = (T) new PolyString(val);
 		}
@@ -374,6 +374,7 @@ public class XNodeProcessor {
 		PrismUtil.recomputeRealValue(realValue, prismContext);
 		return realValue;
 	}
+	
 	
 	private <T> T parsePrismPropertyRealValueFromMap(MapXNode xmap, PrismPropertyDefinition<T> propertyDefinition) throws SchemaException {
 		QName typeName = propertyDefinition.getTypeName();
