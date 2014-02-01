@@ -105,10 +105,10 @@ public class PrismJsonSerializer implements Parser{
 	
 	
 	// ------------------- METHODS FOR SERIALIZATION ------------------------------
-	String globalNamespace = null;
+//	String globalNamespace = null;
 	public String serializeToJson(XNode node, QName rootElement) throws SchemaException{
 		try { 
-			globalNamespace = rootElement.getNamespaceURI();
+//			globalNamespace = rootElement.getNamespaceURI();
 			StringWriter out = new StringWriter();
 			JsonGenerator generator = createJsonGenerator(out);
 			return writeObject(node, rootElement, generator, out);
@@ -120,7 +120,7 @@ public class PrismJsonSerializer implements Parser{
 	
 	private String writeObject(XNode node, QName rootElement, JsonGenerator generator, StringWriter out) throws JsonGenerationException, IOException{
 		generator.writeStartObject();
-		serializeToJson(node, rootElement,  generator);
+		serializeToJson(node, rootElement, null, generator);
 		generator.writeEndObject();
 		generator.flush();
 		generator.close();
@@ -129,49 +129,47 @@ public class PrismJsonSerializer implements Parser{
 		
 	
 	String objectNs = null;
-	private <T> void  serializeToJson(XNode node, QName nodeName, JsonGenerator generator) throws JsonGenerationException, IOException{
+	private <T> void  serializeToJson(XNode node, QName nodeName, String globalNamespace, JsonGenerator generator) throws JsonGenerationException, IOException{
 		
 		if (node instanceof MapXNode){
-			serializerFromMap((MapXNode) node, nodeName, generator);
+			serializerFromMap((MapXNode) node, nodeName, globalNamespace, generator);
 		} else if (node instanceof ListXNode){
-			serializeFromList((ListXNode) node, nodeName, generator);
+			serializeFromList((ListXNode) node, nodeName, globalNamespace, generator);
 		} else if (node instanceof PrimitiveXNode){
 			serializeFromPrimitive((PrimitiveXNode) node, nodeName, generator);
 		}
 	}
 	
 	
-	private void serializerFromMap(MapXNode map, QName nodeName, JsonGenerator generator) throws JsonGenerationException, IOException{
+	private void serializerFromMap(MapXNode map, QName nodeName, String globalNamespace, JsonGenerator generator) throws JsonGenerationException, IOException{
 		if (nodeName == null){
 			generator.writeStartObject();
 		} else{
 			generator.writeObjectFieldStart(nodeName.getLocalPart());
 		}
 		
-		if (StringUtils.isBlank(objectNs)){
-			objectNs = globalNamespace;
-			generator.writeStringField(PROP_NAMESPACE, objectNs);
+		// this is used only by first iteration..we need to set namespace right after the root element
+		if (StringUtils.isBlank(globalNamespace)){
+			globalNamespace = nodeName.getNamespaceURI();
+			generator.writeStringField(PROP_NAMESPACE, globalNamespace);
 		}
+		
+		
 		
 		Iterator<Entry<QName, XNode>> subnodes = map.entrySet().iterator();
 		while (subnodes.hasNext()){
 			Entry<QName, XNode> subNode = subnodes.next();
-			serializeToJson(subNode.getValue(), subNode. getKey(), generator);
-		}
-		
-		if (nodeName != null && StringUtils.isNotEmpty(nodeName.getNamespaceURI()) && !nodeName.getNamespaceURI().equals(objectNs)){
-			if (!objectNs.equals(globalNamespace)){
-				generator.writeStringField(PROP_NAMESPACE, objectNs);
-			}
+			globalNamespace = serializeNsIfNeeded(subNode.getKey(), globalNamespace, generator);
+			serializeToJson(subNode.getValue(), subNode. getKey(), globalNamespace, generator);
 		}
 		generator.writeEndObject();
 	}
 	
-	private void serializeFromList(ListXNode list, QName nodeName, JsonGenerator generator) throws JsonGenerationException, IOException{
+	private void serializeFromList(ListXNode list, QName nodeName, String globalNamespace, JsonGenerator generator) throws JsonGenerationException, IOException{
 		ListIterator<XNode> sublist = list.listIterator();
 		generator.writeArrayFieldStart(nodeName.getLocalPart());
 		while (sublist.hasNext()){
-			serializeToJson(sublist.next(), null, generator);
+			serializeToJson(sublist.next(), null, globalNamespace, generator);
 		}
 		generator.writeEndArray();
 	}
@@ -190,13 +188,28 @@ public class PrismJsonSerializer implements Parser{
 			if (nodeName == null) {
 				generator.writeObject(primitive.getValue());
 			} else {
-				if (StringUtils.isNotBlank(nodeName.getNamespaceURI())
-						&& !nodeName.getNamespaceURI().equals(objectNs)) {
-					objectNs = nodeName.getNamespaceURI();
-				}
+//				if (StringUtils.isNotBlank(nodeName.getNamespaceURI())
+//						&& !nodeName.getNamespaceURI().equals(objectNs)) {
+//					objectNs = nodeName.getNamespaceURI();
+//				}
 				generator.writeObjectField(nodeName.getLocalPart(), primitive.getValue());
 			}
 		}
+	}
+	
+	private String serializeNsIfNeeded(QName subNodeName, String globalNamespace, JsonGenerator generator) throws JsonGenerationException, IOException{
+		if (subNodeName == null){
+			return globalNamespace;
+		}
+		String subNodeNs = subNodeName.getNamespaceURI();
+		if (StringUtils.isNotEmpty(subNodeNs)){
+			if (!subNodeNs.equals(globalNamespace)){
+				globalNamespace = subNodeNs;
+				generator.writeStringField(PROP_NAMESPACE, globalNamespace);
+				
+			}
+		}
+		return globalNamespace;
 	}
 	//------------------------END OF METHODS FOR SERIALIZATION -------------------------------
 	
