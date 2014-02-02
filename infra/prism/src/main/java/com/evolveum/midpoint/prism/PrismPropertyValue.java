@@ -22,6 +22,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.CloneUtil;
 import com.evolveum.midpoint.prism.util.PrismUtil;
+import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
@@ -101,6 +102,12 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
     				if (rawElement instanceof Element) {
         				// Do the most stupid thing possible. Assume string value. And there will be no definition.
     					value = (T) ((Element)rawElement).getTextContent();
+    				} else if (rawElement instanceof PrimitiveXNode){
+    					try{
+    					value = (T) ((PrimitiveXNode) rawElement).getParsedValue(DOMUtil.XSD_STRING);
+    					} catch (SchemaException ex){
+    						throw new IllegalStateException("Cannot fetch value from raw element. " + ex.getMessage(), ex);
+    					}
     				} else {
     					throw new IllegalStateException("No parent or prism context in property value "+this+", cannot create default definition." +
     							"The element is also not a DOM element but it is "+rawElement.getClass()+". Epic fail.");

@@ -148,8 +148,11 @@ public class XNodeSerializer {
 		}
 	}
 	
-	private <V extends PrismValue> XNode serializeItemValue(V itemValue, ItemDefinition definition) throws SchemaException {
+	protected <V extends PrismValue> XNode serializeItemValue(V itemValue, ItemDefinition definition) throws SchemaException {
 		XNode xnode;
+		if (definition == null){
+			return serializePropertyRawValue((PrismPropertyValue<?>) itemValue);
+		}
 		if (itemValue instanceof PrismReferenceValue) {
 			xnode = serializeReferenceValue((PrismReferenceValue)itemValue, (PrismReferenceDefinition) definition);
 		} else if (itemValue instanceof PrismPropertyValue<?>) {
@@ -165,7 +168,7 @@ public class XNodeSerializer {
 		return xnode;
 	}
 	
-	protected XNode serializeReferenceValue(PrismReferenceValue value, PrismReferenceDefinition definition) throws SchemaException {
+	private XNode serializeReferenceValue(PrismReferenceValue value, PrismReferenceDefinition definition) throws SchemaException {
 		MapXNode xmap = new MapXNode();
 		xmap.put(XNode.KEY_REFERENCE_OID, createPrimitiveXNodeStringAttr(value.getOid()));
 		QName relation = value.getRelation();
@@ -198,7 +201,7 @@ public class XNodeSerializer {
 		return xmap;
 	}
 		
-	protected <T> XNode serializePropertyValue(PrismPropertyValue<T> value, PrismPropertyDefinition<T> definition) throws SchemaException {
+	private <T> XNode serializePropertyValue(PrismPropertyValue<T> value, PrismPropertyDefinition<T> definition) throws SchemaException {
 		QName typeQName = definition.getTypeName();
 		T realValue = value.getValue();
 		if (beanConverter.canConvert(typeQName)) {
@@ -207,6 +210,11 @@ public class XNodeSerializer {
 			// primitive value
 			return createPrimitiveXNode(realValue, typeQName);
 		}
+	}
+	
+	private <T> XNode serializePropertyRawValue(PrismPropertyValue<T> value) throws SchemaException {
+		T realValue = value.getValue();
+		return createPrimitiveXNode(realValue, DOMUtil.XSD_STRING);
 	}
 
 	private PrimitiveXNode<String> createPrimitiveXNodeStringAttr(String val) {

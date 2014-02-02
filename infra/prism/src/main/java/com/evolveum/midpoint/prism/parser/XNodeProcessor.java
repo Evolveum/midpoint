@@ -503,7 +503,7 @@ public class XNodeProcessor {
 
 		refVal.setDescription((String) xmap.getParsedPrimitiveValue(XNode.KEY_REFERENCE_DESCRIPTION, DOMUtil.XSD_STRING));
 
-		refVal.setFilter(parseFilter(xmap.get(XNode.KEY_REFERENCE_FILTER), objectDefinition));
+		refVal.setFilter(parseFilter(xmap.get(XNode.KEY_REFERENCE_FILTER)));
 		
 		XNode xrefObject = xmap.get(XNode.KEY_REFERENCE_OBJECT);
 		if (xrefObject != null) {
@@ -580,17 +580,6 @@ public class XNodeProcessor {
 			return null;
 		}
 		return QueryConvertor.parseFilter(xnode, prismContext);
-	}
-	
-	private ObjectFilter parseFilter(XNode xnode, PrismObjectDefinition objDefinition) throws SchemaException {
-		if (xnode == null) {
-			return null;
-		}
-		if (!(xnode instanceof MapXNode)){
-			throw new SchemaException("Filter must be represented as map but it is " + xnode);
-		}
-		
-		return QueryConvertor.parseFilter((MapXNode) xnode, objDefinition);
 	}
 	
 	private String getOid(MapXNode xmap) throws SchemaException {

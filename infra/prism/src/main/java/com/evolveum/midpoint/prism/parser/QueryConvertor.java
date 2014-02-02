@@ -511,13 +511,9 @@ public class QueryConvertor {
 				val.setParent(filter);
 			}
 			XNode valNode = null;
-			if (val instanceof PrismPropertyValue){
-				valNode = xnodeSerializer.serializePropertyValue((PrismPropertyValue) val, (PrismPropertyDefinition)filter.getDefinition());
-				
-			} else if (val instanceof PrismReferenceValue){
-				valNode = xnodeSerializer.serializeReferenceValue((PrismReferenceValue) val, (PrismReferenceDefinition) filter.getDefinition()); 
-			} else 
-				throw new IllegalStateException("Property is neither prism property, nor prism reference. Something really strange happened.");
+			
+			valNode = xnodeSerializer.serializeItemValue(val, filter.getDefinition());
+			
 			valuesNode.add(valNode);
 		}
 		
