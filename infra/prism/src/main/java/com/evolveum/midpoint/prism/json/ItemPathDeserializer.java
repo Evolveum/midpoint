@@ -17,7 +17,8 @@ public class ItemPathDeserializer extends JsonDeserializer<ItemPath>{
 			JsonProcessingException {
 		// TODO Auto-generated method stub
 		System.out.println("there will be Item path deserializer");
-		return new ItemPath(new QName("name"));
+		// TODO : implement..this is only for test
+		return new ItemPath(new QName("http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", "name"));
 	}
 
 }

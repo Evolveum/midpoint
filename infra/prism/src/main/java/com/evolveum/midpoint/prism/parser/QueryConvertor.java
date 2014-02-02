@@ -58,7 +58,9 @@ import com.evolveum.midpoint.prism.query.RefFilter;
 import com.evolveum.midpoint.prism.query.SubstringFilter;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
+import com.evolveum.midpoint.prism.xnode.ListXNode;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.QNameUtil;
@@ -431,148 +433,107 @@ public class QueryConvertor {
 
 
 	
-	public static MapXNode serializeFilter(ObjectFilter filter) {
-		// TODO
-		return null;
+	public static MapXNode serializeFilter(ObjectFilter filter, XNodeSerializer xnodeSerilizer) throws SchemaException{
+	
+		if (filter instanceof AndFilter) {
+			return serializeAndFilter((AndFilter) filter, xnodeSerilizer);
+		}
+		if (filter instanceof OrFilter) {
+			return serializeOrFilter((OrFilter) filter, xnodeSerilizer);
+		}
+		if (filter instanceof NotFilter) {
+			return serializeNotFilter((NotFilter) filter, xnodeSerilizer);
+		}
+		if (filter instanceof EqualsFilter) {
+			return serializeEqualsFilter((EqualsFilter) filter, xnodeSerilizer);
+		}
+		if (filter instanceof RefFilter) {
+			return serializeRefFilter((RefFilter) filter, xnodeSerilizer);
+		}
+
+		if (filter instanceof SubstringFilter) {
+			return serializeSubstringFilter((SubstringFilter) filter, xnodeSerilizer);
+		}
+
+		if (filter instanceof OrgFilter) {
+			return serializeOrgFilter((OrgFilter) filter, xnodeSerilizer);
+		}
+
+		throw new UnsupportedOperationException("Unsupported filter type: " + filter);
 	}
 	
 	
+	private static MapXNode serializeAndFilter(AndFilter filter, XNodeSerializer xnodeSerilizer) throws SchemaException{
+		MapXNode map = new MapXNode();
+		map.put(KEY_FILTER_AND, serializeNaryLogicalSubfilters(filter.getCondition(), xnodeSerilizer));
+		return map;
+	}
+
+	private static MapXNode serializeOrFilter(OrFilter filter, XNodeSerializer xnodeSerilizer) throws SchemaException{
+		MapXNode map = new MapXNode();
+		map.put(KEY_FILTER_OR, serializeNaryLogicalSubfilters(filter.getCondition(), xnodeSerilizer));
+		return map;	
+	}
 	
+	private static ListXNode serializeNaryLogicalSubfilters(List<ObjectFilter> objectFilters, XNodeSerializer xnodeSerilizer) throws SchemaException{
+		ListXNode filters = new ListXNode();
+		for (ObjectFilter of : objectFilters) {
+			MapXNode subFilter = serializeFilter(of, xnodeSerilizer);
+			filters.add(subFilter);
+			
+		}
+		return filters;
+	}
+
+	private static MapXNode serializeNotFilter(NotFilter filter, XNodeSerializer xnodeSerializer) throws SchemaException{
+		MapXNode map = new MapXNode();
+		map.put(KEY_FILTER_NOT, serializeFilter(filter.getFilter(), xnodeSerializer));
+		return map;
+	}
+
+	private static <T> MapXNode serializeEqualsFilter(EqualsFilter<T> filter, XNodeSerializer xnodeSerializer) throws SchemaException{
+
+		MapXNode map = new MapXNode();
+		map.put(KEY_FILTER_EQUAL, serializeValueFilter(filter, xnodeSerializer));
+		return map;
+	}
 	
+	private static <T extends PrismValue> MapXNode serializeValueFilter(PropertyValueFilter<T> filter, XNodeSerializer xnodeSerializer) throws SchemaException{
+		MapXNode map = new MapXNode();
+		serializeMatchingRule(filter, map);
+		
+		serializePath(filter, map);
+
+		ListXNode valuesNode = new ListXNode();
+		
+		for (T val : filter.getValues()) {
+			if (val.getParent() == null) {
+				val.setParent(filter);
+			}
+			XNode valNode = null;
+			if (val instanceof PrismPropertyValue){
+				valNode = xnodeSerializer.serializePropertyValue((PrismPropertyValue) val, (PrismPropertyDefinition)filter.getDefinition());
+				
+			} else if (val instanceof PrismReferenceValue){
+				valNode = xnodeSerializer.serializeReferenceValue((PrismReferenceValue) val, (PrismReferenceDefinition) filter.getDefinition()); 
+			} else 
+				throw new IllegalStateException("Property is neither prism property, nor prism reference. Something really strange happened.");
+			valuesNode.add(valNode);
+		}
+		
+		map.put(KEY_FILTER_EQUALS_VALUE, valuesNode);
+		
+		return map;
+	}
 	
-	
-	
-	
-	
-	
-	
-	
-//	
-//	
-//	
-//	
-//	
-//	private static Element createFilterType(ObjectFilter filter, Document doc, PrismContext prismContext) throws SchemaException{
-//
-//		if (filter instanceof AndFilter) {
-//			return createAndFilterType((AndFilter) filter, doc, prismContext);
-//		}
-//		if (filter instanceof OrFilter) {
-//			return createOrFilterType((OrFilter) filter, doc, prismContext);
-//		}
-//		if (filter instanceof NotFilter) {
-//			return createNotFilterType((NotFilter) filter, doc, prismContext);
-//		}
-//		if (filter instanceof EqualsFilter) {
-//			return createEqualsFilterType((EqualsFilter) filter, doc, prismContext);
-//		}
-//		if (filter instanceof RefFilter) {
-//			return createRefFilterType((RefFilter) filter, doc, prismContext);
-//		}
-//
-//		if (filter instanceof SubstringFilter) {
-//			return createSubstringFilterType((SubstringFilter) filter, doc, prismContext);
-//		}
-//
-//		if (filter instanceof OrgFilter) {
-//			return createOrgFilterType((OrgFilter) filter, doc, prismContext);
-//		}
-//
-//		throw new UnsupportedOperationException("Unsupported filter type: " + filter);
-//	}
-//
-//	private static Element createAndFilterType(AndFilter filter, Document doc, PrismContext prismContext) throws SchemaException{
-//
-//		Element and = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_AND);
-//
-//		for (ObjectFilter of : filter.getCondition()) {
-//			Element element = createFilterType(of, doc, prismContext);
-//			and.appendChild(element);
-//		}
-//		return and;
-//	}
-//
-//	private static Element createOrFilterType(OrFilter filter, Document doc, PrismContext prismContext) throws SchemaException{
-//
-//		Element or = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_OR);
-//		for (ObjectFilter of : filter.getCondition()) {
-//			Element element = createFilterType(of, doc, prismContext);
-//			or.appendChild(element);
-//		}
-//		return or;
-//	}
-//
-//	private static Element createNotFilterType(NotFilter filter, Document doc, PrismContext prismContext) throws SchemaException{
-//
-//		Element not = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_NOT);
-//
-//		Element element = createFilterType(filter.getFilter(), doc, prismContext);
-//		not.appendChild(element);
-//		return not;
-//	}
-//
-//	private static <T> Element createEqualsFilterType(EqualsFilter<T> filter, Document doc , PrismContext prismContext) throws SchemaException{
-//
-//		Element equal = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_EQUAL);
+	private static MapXNode serializeRefFilter(RefFilter filter, XNodeSerializer xnodeSerializer) throws SchemaException {
+
+		MapXNode map = new MapXNode();
+		
+		map.put(KEY_FILTER_REF, serializeValueFilter(filter, xnodeSerializer));
+		
+//		serializePath(filter, map);
 //		
-////		equal.appendChild(value);
-//		
-//		createMatchingRuleElement(filter, equal, doc);
-//		
-////		if (filter.getMatchingRule() != null){
-////			Element matching = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_MATCHING);
-////			matching.setTextContent(filter.getMatchingRule().getLocalPart());
-////			equal.appendChild(matching);
-//		// }
-//		//
-//		Element path = createPathElement(filter, doc);
-//		equal.appendChild(path);
-//
-//		QName propertyName = filter.getDefinition().getName();
-//		
-//		if (filter.getValues() == null || filter.getValues().isEmpty()){
-//			equal.appendChild(DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_VALUE));
-//		}
-//		
-//		for (PrismPropertyValue<T> val : filter.getValues()) {
-//			if (val.getParent() == null) {
-//				val.setParent(filter);
-//			}
-//			Element value = createValueElement(val, propertyName, doc, filter, prismContext);
-//			equal.appendChild(value);
-//		}
-//		return equal;
-//	}
-//	
-//	
-//	private static Element createValueElement(PrismPropertyValue val, QName propertyName, Document doc, PropertyValueFilter filter, PrismContext prismContext) throws SchemaException{
-//		Element value = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_VALUE);
-//		Element element = prismContext.getPrismDomProcessor().serializeValueToDom(val, propertyName, doc);
-//		if (PolyString.class.equals(filter.getDefinition().getTypeClass()) || PolyStringType.class.equals(filter.getDefinition().getTypeClass())) {
-//			for (Element e : DOMUtil.listChildElements(element)){
-//				value.appendChild(e);
-//			}
-//		} else{
-//			value.setTextContent(element.getTextContent());
-//		}
-////		if (XmlTypeConverter.canConvert(val.getClass())){
-////			Element propVal = val.asDomElement();
-////			value.setTextContent(propVal.getTextContent());
-////		} else {
-////			value.setTextContent(String.valueOf(((PrismPropertyValue)val).getValue()));
-////		}
-////		value.setTextContent();
-//		return value;
-//
-//	}
-//	
-//	private static Element createRefFilterType(RefFilter filter, Document doc, PrismContext prismContext) throws SchemaException {
-//
-//		Element ref = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_REF);
-//
-//		Element path = createPathElement(filter, doc);
-//		ref.appendChild(path);
-//
 //		List<PrismReferenceValue> values = (List<PrismReferenceValue>) filter.getValues();
 //		if (values.size() < 1) {
 //			throw new SchemaException("No values for search in the ref filter.");
@@ -581,8 +542,12 @@ public class QueryConvertor {
 //		if (values.size() > 1) {
 //			throw new SchemaException("More than one prism reference value not allowed in the ref filter");
 //		}
+//	
 //
 //		PrismReferenceValue val = values.get(0);
+//		
+//		XNode refVal = xnodeSerializer.serializeReferenceValue(val, filter.getDefinition());
+//		map.put(KEY_FILTER_EQUALS_VALUE, refVal);
 //		if (val.getOid() != null) {
 //			Element oid = DOMUtil.createElement(doc, PrismConstants.Q_OID);
 //			oid.setTextContent(String.valueOf(val.getOid()));
@@ -600,54 +565,58 @@ public class QueryConvertor {
 //			relation.setTextContent(xrelation.getXPath());
 //			ref.appendChild(relation);
 //		}
-//
-//		return ref;
-//	}
-//
-//	private static <T> Element createSubstringFilterType(SubstringFilter<T> filter, Document doc, PrismContext prismContext) throws SchemaException {
+
+		return map;
+	}
+
+	private static <T> MapXNode serializeSubstringFilter(SubstringFilter<T> filter, XNodeSerializer xnodeSerializer) throws SchemaException{
 //		Element substring = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_SUBSTRING);
-////		Element value = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_VALUE);
-////		substring.appendChild(value);
-//
+//		Element value = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_VALUE);
+//		substring.appendChild(value);
+		MapXNode map = new MapXNode();
+		map.put(KEY_FILTER_SUBSTRING, serializeValueFilter(filter, xnodeSerializer));
+//		serializePath(filter, map);
 //		Element path = createPathElement(filter, doc);
 //		substring.appendChild(path);
 //		
+//		
+//		serializeMatchingRule(filter, map);
+//		
 //		createMatchingRuleElement(filter, substring, doc);
 //		
-////		if (filter.getMatchingRule() != null){
-////			Element matching = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_MATCHING);
-////			matching.setTextContent(filter.getMatchingRule().getLocalPart());
-////			substring.appendChild(matching);
-////		}
+//		if (filter.getMatchingRule() != null){
+//			Element matching = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_MATCHING);
+//			matching.setTextContent(filter.getMatchingRule().getLocalPart());
+//			substring.appendChild(matching);
+//		}
 //
 //		QName propertyName = filter.getDefinition().getName();
 //		if (filter.getValues() == null || filter.getValues().isEmpty()){
 //			substring.appendChild(DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_VALUE));
 //		}
 //		
+//		ListXNode values = new ListXNode();
+//		
 //		for (PrismPropertyValue<T> val : filter.getValues()) {
 //			if (val.getParent() == null) {
 //				val.setParent(filter);
 //			}
+//			XNode valNode = xnodeSerializer.serializePropertyValue(val, filter.getDefinition());
+//			values.add(valNode);
 //			Element value = createValueElement(val, propertyName, doc, filter, prismContext);
 //			substring.appendChild(value);
 //		}
+//		map.put(KEY_FILTER_EQUALS_VALUE, values);
 //		
-////		Element propValue = DOMUtil.createElement(doc, propertyName);
-//		
-//		return substring;
-//	}
-//	
-//	private static void createMatchingRuleElement(ValueFilter filter, Element filterType, Document doc){
-//		if (filter.getMatchingRule() != null){
-//			Element matching = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_MATCHING);
-//			matching.setTextContent(filter.getMatchingRule().getLocalPart());
-//			filterType.appendChild(matching);
-//		}
-//
-//	}
-//
-//	private static Element createOrgFilterType(OrgFilter filter, Document doc, PrismContext prismContext) {
+//		Element propValue = DOMUtil.createElement(doc, propertyName);
+		
+		return map;
+	}
+	
+
+	private static MapXNode serializeOrgFilter(OrgFilter filter, XNodeSerializer xnodeSerializer) {
+		// TODO
+		return null;
 //		Element org = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_ORG);
 //
 //		Element orgRef = null;
@@ -672,19 +641,79 @@ public class QueryConvertor {
 //		}
 //
 //		return org;
-//	}
-//
-//	private static Element createPathElement(ValueFilter filter, Document doc) {
-//		Element path = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_PATH);
-//		XPathHolder xpath = null;
-//		if (filter.getFullPath() != null) {
-//			xpath = new XPathHolder(filter.getFullPath());
-//		} else {
-//			xpath = new XPathHolder(filter.getDefinition().getName());
+	}
+
+//	
+//	
+//	private static Element createValueElement(PrismPropertyValue val, QName propertyName, Document doc, PropertyValueFilter filter, PrismContext prismContext) throws SchemaException{
+//		Element value = DOMUtil.createElement(doc, SchemaConstantsGenerated.Q_VALUE);
+//		Element element = prismContext.getPrismDomProcessor().serializeValueToDom(val, propertyName, doc);
+//		if (PolyString.class.equals(filter.getDefinition().getTypeClass()) || PolyStringType.class.equals(filter.getDefinition().getTypeClass())) {
+//			for (Element e : DOMUtil.listChildElements(element)){
+//				value.appendChild(e);
+//			}
+//		} else{
+//			value.setTextContent(element.getTextContent());
 //		}
-//		path.setTextContent(xpath.getXPath());
-//		return path;
+////		if (XmlTypeConverter.canConvert(val.getClass())){
+////			Element propVal = val.asDomElement();
+////			value.setTextContent(propVal.getTextContent());
+////		} else {
+////			value.setTextContent(String.valueOf(((PrismPropertyValue)val).getValue()));
+////		}
+////		value.setTextContent();
+//		return value;
+//
 //	}
+//	
+
+//	
+	private static void serializeMatchingRule(ValueFilter filter, MapXNode map){
+		if (filter.getMatchingRule() != null){
+//			PrimitiveXNode<String> matchingNode = new PrimitiveXNode<String>();
+//			matchingNode.setValue(filter.getMatchingRule().getLocalPart());
+//			matchingNode.setTypeQName(DOMUtil.XSD_STRING);
+			PrimitiveXNode<String> matchingNode = createPrimitiveXNode(filter.getMatchingRule().getLocalPart(), DOMUtil.XSD_STRING);
+			map.put(KEY_FILTER_EQUALS_MATCHING, matchingNode);
+		}
+
+	}
+	
+	private static void serializePath(ValueFilter filter, MapXNode map) {
+//		PrimitiveXNode<String> pathNode = new PrimitiveXNode<String>();
+//		pathNode.setTypeQName(ItemPath.XSD_TYPE);
+
+		if (filter.getFullPath() == null){
+			throw new IllegalStateException("Cannot serialize filter " + filter +" because it does not contain path");
+		}
+		XPathHolder xpath = new XPathHolder(filter.getFullPath());
+		String path = xpath.getXPathWithDeclarations();
+		
+		PrimitiveXNode<String> pathNode = createPrimitiveXNode(path, ItemPath.XSD_TYPE);
+		
+		map.put(KEY_FILTER_EQUALS_PATH, pathNode);
+	}
+	
+	private static <T> XNode serializePropertyValue(PrismPropertyValue<T> value, PrismPropertyDefinition<T> definition, PrismBeanConverter beanConverter) throws SchemaException {
+			QName typeQName = definition.getTypeName();
+			T realValue = value.getValue();
+			if (beanConverter.canConvert(typeQName)) {
+				return beanConverter.marshall(realValue);
+			} else {
+				// primitive value
+				return createPrimitiveXNode(realValue, typeQName);
+			}
+		}
+	
+	private static <T> PrimitiveXNode<T> createPrimitiveXNode(T val, QName type) {
+		PrimitiveXNode<T> xprim = new PrimitiveXNode<T>();
+		xprim.setValue(val);
+		xprim.setTypeQName(type);
+		return xprim;
+	}
+	
+
+
 //	
 //	
 	

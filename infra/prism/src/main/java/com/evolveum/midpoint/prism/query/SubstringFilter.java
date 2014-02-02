@@ -205,5 +205,11 @@ public class SubstringFilter<T> extends PropertyValueFilter<PrismPropertyValue<T
 	public ItemPath getPath() {
 		return getFullPath();
 	}
+	
+	@Override
+	public PrismPropertyDefinition getDefinition() {
+		// TODO Auto-generated method stub
+		return (PrismPropertyDefinition) super.getDefinition();
+	}
 
 }

@@ -186,6 +186,12 @@ public class RefFilter extends PropertyValueFilter<PrismReferenceValue>{
 	public ItemPath getPath() {
 		return getFullPath();
 	}
+	
+	@Override
+	public PrismReferenceDefinition getDefinition() {
+		// TODO Auto-generated method stub
+		return (PrismReferenceDefinition) super.getDefinition();
+	}
 
 
 }

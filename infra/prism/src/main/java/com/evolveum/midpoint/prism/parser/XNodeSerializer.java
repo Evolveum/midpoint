@@ -165,7 +165,7 @@ public class XNodeSerializer {
 		return xnode;
 	}
 	
-	private XNode serializeReferenceValue(PrismReferenceValue value, PrismReferenceDefinition definition) throws SchemaException {
+	protected XNode serializeReferenceValue(PrismReferenceValue value, PrismReferenceDefinition definition) throws SchemaException {
 		MapXNode xmap = new MapXNode();
 		xmap.put(XNode.KEY_REFERENCE_OID, createPrimitiveXNodeStringAttr(value.getOid()));
 		QName relation = value.getRelation();
@@ -182,7 +182,7 @@ public class XNodeSerializer {
 		}
 		ObjectFilter filter = value.getFilter();
 		if (filter != null) {
-			XNode xsubnode = QueryConvertor.serializeFilter(filter);
+			XNode xsubnode = QueryConvertor.serializeFilter(filter, this);
 			xmap.put(XNode.KEY_REFERENCE_FILTER, xsubnode);
 		}
 		
@@ -198,7 +198,7 @@ public class XNodeSerializer {
 		return xmap;
 	}
 		
-	private <T> XNode serializePropertyValue(PrismPropertyValue<T> value, PrismPropertyDefinition<T> definition) throws SchemaException {
+	protected <T> XNode serializePropertyValue(PrismPropertyValue<T> value, PrismPropertyDefinition<T> definition) throws SchemaException {
 		QName typeQName = definition.getTypeName();
 		T realValue = value.getValue();
 		if (beanConverter.canConvert(typeQName)) {
