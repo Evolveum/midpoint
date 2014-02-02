@@ -30,29 +30,43 @@ public class QNameDeserializer extends JsonDeserializer<QName>{
 		if (jp.getCurrentToken() == JsonToken.START_OBJECT){
 			
 		}
+//		jp.
 		ObjectMapper m = new ObjectMapper();
 		JsonNode node = m.readValue(jp, JsonNode.class);
 //		JsonNode node = jp.readValueAsTree();
 //		jp.
-		
-		String nameSpace = null;
-		String localPart = null;
-		if (node.isObject()){
-			Iterator<Entry<String,JsonNode>> obj = node.fields();
-			while (obj.hasNext()){
-				
-				Entry<String, JsonNode> o = obj.next();
-				if ("@namespace".equals(o.getKey())){
-					nameSpace = o.getValue().asText();
-				} else if ("@localPart".equals(o.getKey())){
-					localPart = o.getValue().asText();
-				}
-//				o.get
-			}
+		switch (node.getNodeType()) {
+			case OBJECT:
+				return deserializeFromObject(node);
+//				break;
+			case STRING:
+				return deserializeFromString(node);
+//				break;
+			default:
+				throw new IllegalStateException();
+//				break;
 		}
-		return new QName(nameSpace, localPart);
-////		jp.;
-//		return null;
+		
+	}
+	
+	private QName deserializeFromObject(JsonNode node){
+		JsonNode qnameNode = node.get("@namespace");
+		String namespace = null;
+		if (qnameNode != null){
+			namespace = qnameNode.asText();
+		}
+		
+		qnameNode = node.get("@localPart");
+		String localPart = null;
+		if (qnameNode != null){
+			localPart = qnameNode.asText();
+		}
+		
+		return new QName(namespace, localPart);
+	}
+	
+	private QName deserializeFromString(JsonNode node){
+		return new QName(node.asText());
 	}
 	
 	@Override
