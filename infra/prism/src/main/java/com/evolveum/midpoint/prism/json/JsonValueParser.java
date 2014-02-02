@@ -44,7 +44,7 @@ public class JsonValueParser<T> implements ValueParser<T> {
 	
 	@Override
 	public String toString() {
-		return "ValueParser(JSON value: "+node+")";
+		return "JsonValueParser(JSON value: "+node+")";
 	}
 
 }
