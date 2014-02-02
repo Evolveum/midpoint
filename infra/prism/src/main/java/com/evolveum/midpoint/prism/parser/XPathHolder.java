@@ -270,6 +270,7 @@ public class XPathHolder {
             }
             this.segments.add(xsegment);
         }
+        this.explicitNamespaceDeclarations = propertyPath.getNamespaceMap();
 
         this.absolute = false;
     }
@@ -285,9 +286,19 @@ public class XPathHolder {
 	}
 
 	public String getXPathWithDeclarations() {
+//		StringBuilder sb = new StringBuilder();
+//
+//		addExplicitNsDeclarations(sb);
+//		addPureXpath(sb);
+
+		return getXPathWithDeclarations(false);
+//		return sb.toString();
+	}
+	
+	public String getXPathWithDeclarations(boolean forceExplicitDeclaration) {
 		StringBuilder sb = new StringBuilder();
 
-		addExplicitNsDeclarations(sb);
+		addExplicitNsDeclarations(sb, forceExplicitDeclaration);
 		addPureXpath(sb);
 
 		return sb.toString();
@@ -410,7 +421,9 @@ public class XPathHolder {
                 segments.add(new NameItemPathSegment(qName, variable));
             }
         }
-        return new ItemPath(segments);
+        ItemPath path = new ItemPath(segments);
+        path.setNamespaceMap(explicitNamespaceDeclarations);
+        return path;
     }
 
     // Part 3: Various
@@ -442,26 +455,40 @@ public class XPathHolder {
 		allSegments.addAll(toSegments());
 		return new XPathHolder(allSegments);
 	}
+	
+	
 
-	private void addExplicitNsDeclarations(StringBuilder sb) {
+	private void addExplicitNsDeclarations(StringBuilder sb, boolean forceExplicitDeclaration) {
+		boolean emptyExplicit = false;
 		if (explicitNamespaceDeclarations == null || explicitNamespaceDeclarations.isEmpty()) {
+//			if (!forceExplicitDeclaration){
 			return;
+//			}
+//			throw new IllegalStateException("Expecting explicit namespace declaration.");
 		}
 
-		for (String prefix : explicitNamespaceDeclarations.keySet()) {
-			sb.append("declare ");
-			if (prefix.equals("")) {
-				sb.append("default namespace '");
-				sb.append(explicitNamespaceDeclarations.get(prefix));
-				sb.append("'; ");
-			} else {
-				sb.append("namespace ");
-				sb.append(prefix);
-				sb.append("='");
-				sb.append(explicitNamespaceDeclarations.get(prefix));
-				sb.append("'; ");
+//		if (!emptyExplicit){
+			for (String prefix : explicitNamespaceDeclarations.keySet()) {
+				sb.append("declare ");
+				if (prefix.equals("")) {
+					sb.append("default namespace '");
+					sb.append(explicitNamespaceDeclarations.get(prefix));
+					sb.append("'; ");
+				} else {
+					sb.append("namespace ");
+					sb.append(prefix);
+					sb.append("='");
+					sb.append(explicitNamespaceDeclarations.get(prefix));
+					sb.append("'; ");
+				}
 			}
-		}
+//		} else{
+//			for (XPathSegment segment : this.toSegments()){
+//				sb.append("declare ");
+//				QName s = segment.getQName();
+//				if (s.getPrefix()
+//			}
+//		}
 	}
 
 	public boolean isEmpty() {

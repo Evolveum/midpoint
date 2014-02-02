@@ -682,10 +682,10 @@ public class QueryConvertor {
 		if (filter.getFullPath() == null){
 			throw new IllegalStateException("Cannot serialize filter " + filter +" because it does not contain path");
 		}
-		XPathHolder xpath = new XPathHolder(filter.getFullPath());
-		String path = xpath.getXPathWithDeclarations();
+//		XPathHolder xpath = new XPathHolder(filter.getFullPath());
+//		String path = xpath.getXPathWithDeclarations();
 		
-		PrimitiveXNode<String> pathNode = createPrimitiveXNode(path, ItemPath.XSD_TYPE);
+		PrimitiveXNode<ItemPath> pathNode = createPrimitiveXNode(filter.getFullPath(), ItemPath.XSD_TYPE);
 		
 		map.put(KEY_FILTER_EQUALS_PATH, pathNode);
 	}

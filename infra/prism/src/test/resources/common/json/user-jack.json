@@ -96,7 +96,7 @@
       "description" : "This is a reference with a filter",
       "filter" : {
       	"equal" : {
-      		"path" : "name",
+      		"path" : "declare namespace c='http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd'; c:name",
       		"value" : "captain"
       	}
       }

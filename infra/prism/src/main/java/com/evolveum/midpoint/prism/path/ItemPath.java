@@ -19,6 +19,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.namespace.QName;
 
@@ -35,6 +36,15 @@ public class ItemPath implements Serializable {
 	public static final ItemPath EMPTY_PATH = new ItemPath();
 	
 	private List<ItemPathSegment> segments;
+	private Map<String, String> namespaceMap;
+	
+	public void setNamespaceMap(Map<String, String> namespaceMap) {
+		this.namespaceMap = namespaceMap;
+	}
+	
+	public Map<String, String> getNamespaceMap() {
+		return namespaceMap;
+	}
 
 	public ItemPath() {
 		segments = new ArrayList<ItemPathSegment>(0);

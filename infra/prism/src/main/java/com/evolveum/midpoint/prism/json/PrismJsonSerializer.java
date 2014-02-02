@@ -429,6 +429,7 @@ public class PrismJsonSerializer implements Parser{
 		SimpleModule module = new SimpleModule("MidpointModule", new Version(0, 0, 0, "aa")); 
 		module.addSerializer(QName.class, new QNameSerializer());
 		module.addSerializer(PolyString.class, new PolyStringSerializer());
+		module.addSerializer(ItemPath.class, new ItemPathSerializer());
 		module.addSerializer(JAXBElement.class, new JaxbElementSerializer());
 		return module;
 	}
