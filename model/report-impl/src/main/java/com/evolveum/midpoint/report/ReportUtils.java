@@ -2,10 +2,12 @@ package com.evolveum.midpoint.report;
 
 import java.awt.Color;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.Element;
 
@@ -36,11 +38,6 @@ import net.sf.jasperreports.engine.type.VerticalAlignEnum;
 import net.sf.jasperreports.engine.type.WhenNoDataTypeEnum;
 
 import com.evolveum.midpoint.common.monitor.InternalMonitor;
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
@@ -115,31 +112,50 @@ public class ReportUtils {
 	public static PrismContainer<Containerable> getParametersContainer(ReportType reportType, PrismContext prismContext)
 			throws SchemaException, ObjectNotFoundException {
 		
-		PrismContainer<Containerable> parametersContainer = reportType.asPrismObject().findContainer(ReportType.F_CONFIGURATION);
-		if (parametersContainer == null) {
+		PrismContainer<Containerable> configuration = reportType.asPrismObject().findContainer(ReportType.F_CONFIGURATION);
+		if (configuration == null) {
 			throw new SchemaException("No configuration container in " + reportType);
 		}
-		LOGGER.trace("Parameters container : {}", parametersContainer.dump());
+		LOGGER.trace("Parameters container : {}", configuration.dump());
 		
-		PrismSchema parametersSchema = getParametersSchema(reportType, prismContext);
-		if (parametersSchema == null) {
+		PrismSchema schema = getParametersSchema(reportType, prismContext);
+		if (schema == null) {
 			throw new SchemaException("No parameters schema in " + reportType);
 		}
 		
-		LOGGER.trace("Parameters schema : {}", parametersSchema.dump());
-		
-		PrismContainerDefinition<ReportConfigurationType> configurationContainerDefinition = 
-				parametersSchema.findContainerDefinitionByElementName(ReportType.F_CONFIGURATION_SCHEMA);	
-		
-		if (configurationContainerDefinition == null) {
-			throw new SchemaException("No configuration container definition in " + reportType);
-		}
-		
-		
-		parametersContainer.applyDefinition(configurationContainerDefinition, true);
-		return parametersContainer;
-		
+		LOGGER.trace("Parameters schema : {}", schema.dump());
+
+        PrismContainerDefinition def = findConfigurationDefinition(schema);
+        configuration.applyDefinition(def, true);
+
+		return configuration;
 	}
+
+    /**
+     * Look for report configuration definition.
+     * 1/ check PrismContainerDefinition count in schema
+     * 2/ if there is only one container definition return it
+     * 3/ find container definition with ReportType.F_CONFIGURATION.getLocalPart() localPart name
+     * 4/ otherwise return null
+     *
+     * @param schema
+     * @return
+     */
+    private static PrismContainerDefinition findConfigurationDefinition(PrismSchema schema) {
+        Collection<PrismContainerDefinition> definitions = schema.getDefinitions(PrismContainerDefinition.class);
+        if (definitions.size() == 1) {
+            return definitions.iterator().next();
+        }
+
+        for (PrismContainerDefinition def : definitions) {
+            if (def.getName().getLocalPart().equals(ReportType.F_CONFIGURATION.getLocalPart())) {
+                return def;
+            }
+        }
+
+        return null;
+    }
+
 	public static Class getObjectTypeClass(ReportType reportType, PrismContext prismContext)
 			throws SchemaException, ObjectNotFoundException {
 

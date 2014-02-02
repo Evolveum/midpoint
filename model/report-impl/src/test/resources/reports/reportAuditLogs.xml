@@ -344,10 +344,10 @@
 	</reportField>
 	<!-- configuration properties -->
 	<configuration xmlns:r="http://midpoint.evolveum.com/xml/ns/public/report">
-		<r:LOGO_PATH>src/test/resources/reports/logo.jpg</r:LOGO_PATH>
-		<r:BaseTemplateStyles>src/test/resources/styles/midpoint_base_styles.jrtx</r:BaseTemplateStyles>
-		<r:from>2000-01-01T00:00:00</r:from>
-		<r:to>2020-12-31T00:00:00</r:to>
+        <r:LOGO_PATH>src/test/resources/reports/logo.jpg</r:LOGO_PATH>
+        <r:BaseTemplateStyles>src/test/resources/styles/midpoint_base_styles.jrtx</r:BaseTemplateStyles>
+        <r:from>2000-01-01T00:00:00</r:from>
+        <r:to>2020-12-31T00:00:00</r:to>
 	</configuration>
 	<!-- report parameters configuration schema sample with different options -->
 	<configurationSchema>
@@ -355,19 +355,30 @@
 			<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                     xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
+                    xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
                     xmlns:r="http://midpoint.evolveum.com/xml/ns/public/report"
                     elementFormDefault="qualified"
                     targetNamespace="http://midpoint.evolveum.com/xml/ns/public/report">
 
 				<xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"/>
+                <xsd:import namespace="http://prism.evolveum.com/xml/ns/public/annotation-2"/>
 				<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/query-2"/>
 
-				<!-- sample how audit configuration probably should look like -->
-				<xsd:element name="LOGO_PATH" type="xsd:string"/>
-				<xsd:element name="BaseTemplateStyles" type="xsd:string"/>
-				<xsd:element name="from" type="xsd:dateTime"/>
-				<xsd:element name="to" type="xsd:dateTime"/>
-				
+                <xsd:complexType name="ConfigurationType">
+                    <xsd:annotation>
+                        <xsd:appinfo>
+                            <a:container/>
+                        </xsd:appinfo>
+                    </xsd:annotation>
+                    <xsd:sequence>
+                        <xsd:element name="LOGO_PATH" type="xsd:string"/>
+                        <xsd:element name="BaseTemplateStyles" type="xsd:string"/>
+                        <xsd:element name="from" type="xsd:dateTime"/>
+                        <xsd:element name="to" type="xsd:dateTime"/>
+                    </xsd:sequence>
+                </xsd:complexType>
+
+                <xsd:element name="configuration" type="r:ConfigurationType"/>
 			</xsd:schema>
 		</definition>
 	</configurationSchema>
