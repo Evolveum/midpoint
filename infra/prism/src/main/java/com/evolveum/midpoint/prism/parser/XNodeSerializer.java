@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.prism.parser;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import javax.xml.bind.JAXBElement;
@@ -125,8 +127,28 @@ public class XNodeSerializer {
 		if (id != null) {
 			xmap.put(XNode.KEY_CONTAINER_ID, createPrimitiveXNodeAttr(id, DOMUtil.XSD_LONG));
 		}
+		Collection<QName> serializedItems = new ArrayList<>();
+		if (containerDefinition != null) {
+			// We have to serialize in the definition order. Some data formats (XML) are
+			// ordering-sensitive. We need to keep that ordering otherwise the resulting
+			// document won't pass schema validation
+			for (ItemDefinition itemDef: containerDefinition.getDefinitions()) {
+				QName elementName = itemDef.getName();
+				Item<?> item = containerVal.findItem(elementName);
+				if (item != null) {
+					XNode xsubnode = serializeItem(item);
+					xmap.put(elementName, xsubnode);
+					serializedItems.add(elementName);
+				}
+			}
+		}
+		// There are some cases when we do not have list of all elements in a container.
+		// E.g. in run-time schema. Therefore we must also iterate over items and not just item definitions.
 		for (Item<?> item: containerVal.getItems()) {
 			QName elementName = item.getElementName();
+			if (serializedItems.contains(elementName)) {
+				continue;
+			}
 			XNode xsubnode = serializeItem(item);
 			xmap.put(elementName, xsubnode);
 		}

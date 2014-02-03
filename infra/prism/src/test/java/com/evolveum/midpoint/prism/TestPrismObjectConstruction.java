@@ -62,8 +62,9 @@ public class TestPrismObjectConstruction {
 	 * All the items in the object should have proper definition. 
 	 */
 	@Test
-	public void testConstructionWithSchema() throws SchemaException, SAXException, IOException {
-		System.out.println("===[ testConstructionWithSchema ]===");
+	public void testConstructionWithSchema() throws Exception {
+		final String TEST_NAME = "testConstructionWithSchema";
+		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		PrismContext ctx = constructInitializedPrismContext();
@@ -86,8 +87,9 @@ public class TestPrismObjectConstruction {
 	 * the working downwards. 
 	 */
 	@Test
-	public void testDefinitionlessConstruction() throws SchemaException, SAXException, IOException {
-		System.out.println("===[ testDefinitionlessConstruction ]===");
+	public void testDefinitionlessConstruction() throws Exception {
+		final String TEST_NAME = "testDefinitionlessConstruction";
+		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		// No context needed
@@ -110,8 +112,9 @@ public class TestPrismObjectConstruction {
 	 * the working downwards. Then apply the schema. Check definitions.
 	 */
 	@Test
-	public void testDefinitionlessConstructionAndSchemaApplication() throws SchemaException, SAXException, IOException {
-		System.out.println("===[ testDefinitionlessConstructionAndSchemaApplication ]===");
+	public void testDefinitionlessConstructionAndSchemaApplication() throws Exception {
+		final String TEST_NAME = "testDefinitionlessConstructionAndSchemaApplication";
+		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 
 		// GIVEN
 		// No context needed (yet)
@@ -139,14 +142,17 @@ public class TestPrismObjectConstruction {
 	}
 	
 	@Test
-	public void testClone() throws SchemaException, SAXException, IOException {
-		System.out.println("===[ testClone ]===");
+	public void testClone() throws Exception {
+		final String TEST_NAME = "testClone";
+		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		PrismContext ctx = constructInitializedPrismContext();
 		PrismObjectDefinition<UserType> userDefinition = getFooSchema(ctx).findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
 		PrismObject<UserType> user = userDefinition.instantiate();
 		fillInUserDrake(user, true);
+		// precondition
+		assertUserDrake(user, true, ctx);
 
 		// WHEN
 		PrismObject<UserType> clone = user.clone();
@@ -159,8 +165,9 @@ public class TestPrismObjectConstruction {
 	}
 
 	@Test
-	public void testCloneEquals() throws SchemaException, SAXException, IOException {
-		System.out.println("===[ testCloneEquals ]===");
+	public void testCloneEquals() throws Exception {
+		final String TEST_NAME = "testCloneEquals";
+		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		PrismContext ctx = constructInitializedPrismContext();
