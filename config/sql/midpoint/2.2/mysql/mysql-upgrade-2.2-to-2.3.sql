@@ -15,7 +15,7 @@ CREATE TABLE m_report (
   configuration            LONGTEXT,
   configurationSchema      LONGTEXT,
   dataSource_providerClass VARCHAR(255),
-  dataSource_springBean    BIT         NOT NULL,
+  dataSource_springBean    BIT,
   name_norm                VARCHAR(255),
   name_orig                VARCHAR(255),
   parent                   BIT,

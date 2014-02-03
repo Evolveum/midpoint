@@ -424,7 +424,7 @@
         configuration clob,
         configurationSchema clob,
         dataSource_providerClass varchar2(255 char),
-        dataSource_springBean number(1,0) not null,
+        dataSource_springBean number(1,0),
         name_norm varchar2(255 char),
         name_orig varchar2(255 char),
         parent number(1,0),

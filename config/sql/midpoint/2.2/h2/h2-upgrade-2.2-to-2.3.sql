@@ -15,7 +15,7 @@ CREATE TABLE m_report (
   configuration            CLOB,
   configurationSchema      CLOB,
   dataSource_providerClass VARCHAR(255),
-  dataSource_springBean    BOOLEAN     NOT NULL,
+  dataSource_springBean    BOOLEAN,
   name_norm                VARCHAR(255),
   name_orig                VARCHAR(255),
   parent                   BOOLEAN,

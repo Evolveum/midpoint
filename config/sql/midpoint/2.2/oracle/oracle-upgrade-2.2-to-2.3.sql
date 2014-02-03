@@ -15,7 +15,7 @@ CREATE TABLE m_report (
   configuration            CLOB,
   configurationSchema      CLOB,
   dataSource_providerClass VARCHAR2(255 CHAR),
-  dataSource_springBean    NUMBER(1, 0)      NOT NULL,
+  dataSource_springBean    NUMBER(1, 0),
   name_norm                VARCHAR2(255 CHAR),
   name_orig                VARCHAR2(255 CHAR),
   parent                   NUMBER(1, 0),

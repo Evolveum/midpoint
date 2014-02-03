@@ -422,7 +422,7 @@
         configuration text,
         configurationSchema text,
         dataSource_providerClass varchar(255),
-        dataSource_springBean boolean not null,
+        dataSource_springBean boolean,
         name_norm varchar(255),
         name_orig varchar(255),
         parent boolean,

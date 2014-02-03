@@ -432,7 +432,7 @@
         configuration longtext,
         configurationSchema longtext,
         dataSource_providerClass varchar(255),
-        dataSource_springBean bit not null,
+        dataSource_springBean bit,
         name_norm varchar(255),
         name_orig varchar(255),
         parent bit,

@@ -33,21 +33,21 @@ import java.io.Serializable;
 public class RDataSource implements Serializable {
 
     private String providerClass;
-    private boolean springBean;
+    private Boolean springBean;
 
     public String getProviderClass() {
         return providerClass;
     }
-
+			
     public void setProviderClass(String providerClass) {
         this.providerClass = providerClass;
     }
 
-    public boolean isSpringBean() {
+    public Boolean isSpringBean() {
         return springBean;
     }
 
-    public void setSpringBean(boolean springBean) {
+    public void setSpringBean(Boolean springBean) {
         this.springBean = springBean;
     }
 

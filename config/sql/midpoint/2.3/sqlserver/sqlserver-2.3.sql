@@ -422,7 +422,7 @@
         configuration nvarchar(MAX),
         configurationSchema nvarchar(MAX),
         dataSource_providerClass nvarchar(255),
-        dataSource_springBean bit not null,
+        dataSource_springBean bit,
         name_norm nvarchar(255),
         name_orig nvarchar(255),
         parent bit,
