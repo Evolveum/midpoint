@@ -230,6 +230,15 @@ public class PrismContext {
 		XNode xnode = parser.parse(dataString);
 		return xnodeProcessor.parseObject(xnode);
 	}
+	
+	public <C extends Containerable> PrismContainer<C> parseContainer(File file, Class<C> type, String language) throws SchemaException, IOException {
+		Parser parser = getParser(language);
+		if (parser == null) {
+			throw new SystemException("No parser for language '"+language+"'");
+		}
+		XNode xnode = parser.parse(file);
+		return xnodeProcessor.parseContainer(xnode, type);
+	}
 
 	/**
 	 * Set up the specified object with prism context instance and schema definition.

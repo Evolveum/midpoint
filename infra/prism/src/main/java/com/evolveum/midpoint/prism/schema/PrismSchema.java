@@ -26,6 +26,7 @@ import java.util.Set;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+
 import org.apache.commons.lang.StringUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -219,7 +220,7 @@ public class PrismSchema implements Dumpable, DebugDumpable {
 		return null;
 	}
 	
-	public PrismContainerDefinition findContainerDefinitionByElementName(QName elementName) {
+	public <C extends Containerable> PrismContainerDefinition<C> findContainerDefinitionByElementName(QName elementName) {
 		return findContainerDefinitionByElementName(elementName, PrismContainerDefinition.class);
 	}
 
@@ -232,6 +233,18 @@ public class PrismSchema implements Dumpable, DebugDumpable {
 			if (type.isAssignableFrom(definition.getClass())
 					&& elementName.equals(((PrismContainerDefinition)definition).getName())) {
 				return (T) definition;
+			}
+		}
+		return null;
+	}
+	
+	public <C extends Containerable> PrismContainerDefinition<C> findContainerDefinitionByCompileTimeClass(Class<C> type) {
+		for (Definition def: getDefinitions()) {
+			if (def instanceof PrismContainerDefinition<?>) {
+				PrismContainerDefinition<C> contDef = (PrismContainerDefinition<C>)def;
+				if (type.equals(contDef.getCompileTimeClass())) {
+					return contDef;
+				}
 			}
 		}
 		return null;

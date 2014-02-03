@@ -67,14 +67,15 @@ public class TestParseModelContext {
 	
 	
 	@Test
-	public void testParseModelContextJaxb() throws Exception {
-		System.out.println("===[ testParseModelContextJaxb ]===");
+	public void testParseModelContextPrism() throws Exception {
+		System.out.println("===[ testParseModelContextPrism ]===");
 
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 		
 		// WHEN
-        PrismContainer<LensContextType> lensContextType = prismContext.getPrismJaxbProcessor().unmarshalSingleValueContainer(MODEL_CONTEXT_FILE, LensContextType.class);
+        PrismContainer<LensContextType> lensContextType = prismContext.parseContainer(MODEL_CONTEXT_FILE, 
+        		LensContextType.class, PrismContext.LANG_XML);
 
         // THEN
         System.out.println("Parsed LensContextType: " + lensContextType.getValue().asContainerable());

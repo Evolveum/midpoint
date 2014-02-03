@@ -59,14 +59,14 @@ public class TestParseTask {
 	
 	
 	@Test
-	public void testParseTaskFile() throws SchemaException {
+	public void testParseTaskFile() throws Exception {
 		System.out.println("===[ testParseTaskFile ]===");
 
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 		
 		// WHEN
-		PrismObject<TaskType> task = prismContext.parseObject(TASK_FILE);
+		PrismObject<TaskType> task = prismContext.parseObject(TASK_FILE, PrismContext.LANG_XML);
 		
 		// THEN
 		System.out.println("Parsed task:");

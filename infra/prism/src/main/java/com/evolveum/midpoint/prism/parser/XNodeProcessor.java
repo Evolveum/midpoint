@@ -138,7 +138,43 @@ public class XNodeProcessor {
 		return object;
 	}
 	
-	public <C extends Containerable> PrismContainer<C> parsePrismContainer(XNode xnode, QName elementName, 
+	public <C extends Containerable> PrismContainer<C> parseContainer(XNode xnode, Class<C> type) throws SchemaException {
+		PrismContainerDefinition<C> definition = getSchemaRegistry().findContainerDefinitionByCompileTimeClass(type);
+		if (xnode instanceof RootXNode) {
+			RootXNode xroot = (RootXNode)xnode;
+			return parsePrismContainer(xroot.getSubnode(), xroot.getRootElementName(), definition);
+		} else if (xnode instanceof MapXNode) {
+			return parsePrismContainer((MapXNode)xnode, definition.getName(), definition);
+		} else {
+			throw new SchemaException("Cannot parse container from "+xnode);
+		}
+	}
+	
+	public <C extends Containerable> PrismContainer<C> parseContainer(RootXNode rootXnode) throws SchemaException {
+		QName rootElementName = rootXnode.getRootElementName();
+		PrismContainerDefinition<C> definition = null;
+		if (rootXnode.getTypeQName() != null) {
+			definition = getSchemaRegistry().findContainerDefinitionByType(rootXnode.getTypeQName());
+			if (definition == null) {
+				throw new SchemaException("No container definition for type "+rootXnode.getTypeQName());
+			}
+		} else {
+			definition = getSchemaRegistry().findContainerDefinitionByElementName(rootElementName);
+			if (definition == null) {
+				throw new SchemaException("No container definition for element name "+rootElementName);
+			}
+		}
+		if (definition == null) {
+			throw new SchemaException("Cannot locate container definition (unspecified reason)");
+		}
+		XNode subnode = rootXnode.getSubnode();
+		if (!(subnode instanceof MapXNode)) {
+			throw new IllegalArgumentException("Cannot parse object from "+subnode.getClass().getSimpleName()+", we need a map");
+		}
+		return parsePrismContainer(subnode, rootElementName, definition);
+	}
+	
+	private <C extends Containerable> PrismContainer<C> parsePrismContainer(XNode xnode, QName elementName, 
 			PrismContainerDefinition<C> containerDef) throws SchemaException {
 		if (xnode instanceof MapXNode) {
 			return parsePrismContainerFromMap((MapXNode)xnode, elementName, containerDef, null);

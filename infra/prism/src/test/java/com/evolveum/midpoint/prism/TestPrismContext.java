@@ -130,12 +130,12 @@ public class TestPrismContext {
 		System.out.println("Schema registry:");
 		System.out.println(schemaRegistry.dump());
 
-		PrismSchema objectSchema = schemaRegistry.getObjectSchema();
-		System.out.println("Object schema:");
-		System.out.println(objectSchema.dump());
+		PrismSchema fooSchema = schemaRegistry.findSchemaByNamespace(NS_FOO);
+		System.out.println("Foo schema:");
+		System.out.println(fooSchema.dump());
 		
 		// Assert USER definition
-		PrismObjectDefinition<UserType> userDefinition = objectSchema.findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
+		PrismObjectDefinition<UserType> userDefinition = fooSchema.findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
 		assertNotNull("No user definition", userDefinition);
 		System.out.println("User definition:");
 		System.out.println(userDefinition.dump());
@@ -146,7 +146,7 @@ public class TestPrismContext {
 		assertUserDefinition(userDefinition);
 		
 		// Assert ACCOUNT definition
-		PrismObjectDefinition<AccountType> accountDefinition = objectSchema.findObjectDefinitionByElementName(new QName(NS_FOO,"account"));
+		PrismObjectDefinition<AccountType> accountDefinition = fooSchema.findObjectDefinitionByElementName(new QName(NS_FOO,"account"));
 		assertNotNull("No account definition", accountDefinition);
 		System.out.println("Account definition:");
 		System.out.println(accountDefinition.dump());

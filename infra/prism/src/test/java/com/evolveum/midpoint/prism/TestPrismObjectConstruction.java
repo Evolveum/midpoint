@@ -67,7 +67,7 @@ public class TestPrismObjectConstruction {
 		
 		// GIVEN
 		PrismContext ctx = constructInitializedPrismContext();
-		PrismObjectDefinition<UserType> userDefinition = ctx.getSchemaRegistry().getObjectSchema().findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
+		PrismObjectDefinition<UserType> userDefinition = getFooSchema(ctx).findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
 		
 		// WHEN
 		PrismObject<UserType> user = userDefinition.instantiate();
@@ -124,7 +124,7 @@ public class TestPrismObjectConstruction {
 		
 		
 		PrismObjectDefinition<UserType> userDefinition =
-			ctx.getSchemaRegistry().getObjectSchema().findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
+				getFooSchema(ctx).findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
 		
 		// WHEN
 		user.applyDefinition(userDefinition);
@@ -144,7 +144,7 @@ public class TestPrismObjectConstruction {
 		
 		// GIVEN
 		PrismContext ctx = constructInitializedPrismContext();
-		PrismObjectDefinition<UserType> userDefinition = ctx.getSchemaRegistry().getObjectSchema().findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
+		PrismObjectDefinition<UserType> userDefinition = getFooSchema(ctx).findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
 		PrismObject<UserType> user = userDefinition.instantiate();
 		fillInUserDrake(user, true);
 
@@ -164,7 +164,7 @@ public class TestPrismObjectConstruction {
 		
 		// GIVEN
 		PrismContext ctx = constructInitializedPrismContext();
-		PrismObjectDefinition<UserType> userDefinition = ctx.getSchemaRegistry().getObjectSchema().findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
+		PrismObjectDefinition<UserType> userDefinition = getFooSchema(ctx).findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
 		PrismObject<UserType> user = userDefinition.instantiate();
 		fillInUserDrake(user, true);
 		PrismObject<UserType> clone = user.clone();
