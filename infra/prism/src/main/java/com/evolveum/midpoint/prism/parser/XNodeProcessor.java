@@ -241,7 +241,12 @@ public class XNodeProcessor {
 					throw new SchemaException("Item " + itemQName + " has no definition", itemQName);
 				}
 			}
-			Item<?> item = parseItem(xentry.getValue(), itemDef.getName(), itemDef);
+			// FIXME: should there bw itemDef.getName() or itemQName???
+			// itemDef.getName() relaced with itemQName ---> TestDomParser fails
+			// when there is a itemDef.getName()..it does not recognize between
+			// <account> and <accountRef> and handle <account> as <accountRef>
+			// and the embeded object is not processed
+			Item<?> item = parseItem(xentry.getValue(), itemQName, itemDef);
 			// Merge must be here, not just add. Some items (e.g. references) have alternative
 			// names and representations and these cannot be processed as one map or list
 			cval.merge(item);
