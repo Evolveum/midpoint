@@ -190,6 +190,14 @@ public class XNodeProcessor {
 				container.add(containerValue);
 			}
 			return container;
+		} else if (xnode instanceof PrimitiveXNode<?>) {
+			PrimitiveXNode<?> xprim = (PrimitiveXNode<?>)xnode;
+			if (xprim.isEmpty()) {
+				PrismContainer<C> container = containerDef.instantiate(elementName);
+				return container;
+			} else {
+				throw new IllegalArgumentException("Cannot parse container from (non-empty) "+xnode);
+			}
 		} else {
 			throw new IllegalArgumentException("Cannot parse container from "+xnode);
 		}
@@ -233,7 +241,7 @@ public class XNodeProcessor {
 					throw new SchemaException("Item " + itemQName + " has no definition", itemQName);
 				}
 			}
-			Item<?> item = parseItem(xentry.getValue(), itemQName, itemDef);
+			Item<?> item = parseItem(xentry.getValue(), itemDef.getName(), itemDef);
 			// Merge must be here, not just add. Some items (e.g. references) have alternative
 			// names and representations and these cannot be processed as one map or list
 			cval.merge(item);
