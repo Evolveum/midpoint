@@ -22,7 +22,6 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
@@ -34,6 +33,7 @@ import org.xml.sax.SAXException;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -55,7 +55,7 @@ public class PrismTestUtil {
     private static PrismContext prismContext;
     private static PrismContextFactory prismContextFactory;
     // This is just for testing
-    private static PrismJaxbProcessor prismJaxbProcessor;
+    private static JaxbTestUtil jaxbUtil;
     
     public static void resetPrismContext(PrismContextFactory newPrismContextFactory) throws SchemaException, SAXException, IOException {
     	if (prismContextFactory == newPrismContextFactory) {
@@ -138,52 +138,52 @@ public class PrismTestUtil {
     // ==========================
     
     public static void marshalElementToDom(JAXBElement<?> jaxbElement, Node parentNode) throws JAXBException {
-        getPrismJaxbProcessor().marshalElementToDom(jaxbElement, parentNode);
+        getJaxbUtil().marshalElementToDom(jaxbElement, parentNode);
     }
 
     public static <T> JAXBElement<T> unmarshalElement(String xmlString, Class<T> type) throws JAXBException, SchemaException {
-        return getPrismJaxbProcessor().unmarshalElement(xmlString, type);
+        return getJaxbUtil().unmarshalElement(xmlString, type);
     }
     
     public static <T> T unmarshalObject(File file, Class<T> type) throws JAXBException, SchemaException, FileNotFoundException {
-    	return getPrismJaxbProcessor().unmarshalObject(file, type);
+    	return getJaxbUtil().unmarshalObject(file, type);
     }
     
     public static <T> T unmarshalObject(String stringXml, Class<T> type) throws JAXBException, SchemaException {
-    	return getPrismJaxbProcessor().unmarshalObject(stringXml, type);
+    	return getJaxbUtil().unmarshalObject(stringXml, type);
     }
     
     public static <T> JAXBElement<T> unmarshalElement(File xmlFile, Class<T> type) throws JAXBException, SchemaException, FileNotFoundException {
-        return getPrismJaxbProcessor().unmarshalElement(xmlFile, type);
+        return getJaxbUtil().unmarshalElement(xmlFile, type);
     }
     
     public static <T> Element marshalObjectToDom(T jaxbObject, QName elementQName, Document doc) throws JAXBException {
-    	return getPrismJaxbProcessor().marshalObjectToDom(jaxbObject, elementQName, doc);
+    	return getJaxbUtil().marshalObjectToDom(jaxbObject, elementQName, doc);
     }
     
     public static Element toDomElement(Object element) throws JAXBException {
-    	return getPrismJaxbProcessor().toDomElement(element);
+    	return getJaxbUtil().toDomElement(element);
     }
     
     public static Element toDomElement(Object jaxbElement, Document doc) throws JAXBException {
-    	return getPrismJaxbProcessor().toDomElement(jaxbElement, doc);
+    	return getJaxbUtil().toDomElement(jaxbElement, doc);
     }
     
     public static Element toDomElement(Object jaxbElement, Document doc, boolean adopt, boolean clone, boolean deep) throws JAXBException {
-    	return getPrismJaxbProcessor().toDomElement(jaxbElement, doc, adopt, clone, deep);
+    	return getJaxbUtil().toDomElement(jaxbElement, doc, adopt, clone, deep);
     }
 
     public static String marshalToString(Objectable objectable) throws JAXBException {
-        return getPrismJaxbProcessor().marshalToString(objectable);
+        return getJaxbUtil().marshalToString(objectable);
     }
 
 	public static String marshalElementToString(JAXBElement<?> jaxbElement) throws JAXBException {
-        return getPrismJaxbProcessor().marshalElementToString(jaxbElement);
+        return getJaxbUtil().marshalElementToString(jaxbElement);
     }
     
     // Works both on JAXB and DOM elements
     public static String marshalElementToString(Object element) throws JAXBException {
-        return getPrismJaxbProcessor().marshalElementToString(element);
+        return getJaxbUtil().marshalElementToString(element);
     }
 
     // Compatibility
@@ -192,14 +192,14 @@ public class PrismTestUtil {
         return marshalElementToString(jaxbElement);
     }
 
-	private static PrismJaxbProcessor getPrismJaxbProcessor() {
-		if (prismJaxbProcessor == null) {
+	public static JaxbTestUtil getJaxbUtil() {
+		if (jaxbUtil == null) {
 			if (prismContext == null) {
 				throw new IllegalStateException("No prism context in Prism test util");
 			}
-			prismJaxbProcessor = new PrismJaxbProcessor(prismContext);
+			jaxbUtil = new JaxbTestUtil(prismContext);
 		}
-		return prismJaxbProcessor;
+		return jaxbUtil;
 	}
 
 	public static <T extends Objectable> PrismObjectDefinition<T> getObjectDefinition(Class<T> compileTimeClass) {

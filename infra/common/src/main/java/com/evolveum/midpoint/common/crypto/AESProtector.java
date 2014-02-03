@@ -16,7 +16,7 @@
 package com.evolveum.midpoint.common.crypto;
 
 import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
+import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -43,6 +43,7 @@ import javax.net.ssl.TrustManagerFactory;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -492,7 +493,7 @@ public class AESProtector implements Protector {
         return trustManagers;
     }
 
-    private PrismJaxbProcessor getJaxbProcessor() {
+    private JaxbTestUtil getJaxbProcessor() {
         return prismContext.getPrismJaxbProcessor();
     }
 

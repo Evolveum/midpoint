@@ -19,8 +19,8 @@ import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
@@ -47,6 +47,7 @@ import org.xml.sax.SAXException;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
@@ -111,7 +112,7 @@ public class TestParseUser {
 		
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
+		JaxbTestUtil jaxbProcessor = prismContext.getPrismJaxbProcessor();
 		
 		// WHEN
 		UserType userType = jaxbProcessor.unmarshalObject(USER_FILE, UserType.class);
@@ -133,7 +134,7 @@ public class TestParseUser {
 		
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
+		JaxbTestUtil jaxbProcessor = prismContext.getPrismJaxbProcessor();
 		
 		// WHEN
 		ObjectType userType = jaxbProcessor.unmarshalObject(USER_FILE, ObjectType.class);
@@ -154,7 +155,7 @@ public class TestParseUser {
 		
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
+		JaxbTestUtil jaxbProcessor = prismContext.getPrismJaxbProcessor();
 		
 		// WHEN
 		JAXBElement<UserType> jaxbElement = jaxbProcessor.unmarshalElement(USER_FILE, UserType.class);
@@ -176,7 +177,7 @@ public class TestParseUser {
 		
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
+		JaxbTestUtil jaxbProcessor = prismContext.getPrismJaxbProcessor();
 		
 		// WHEN
 		JAXBElement<ObjectType> jaxbElement = jaxbProcessor.unmarshalElement(USER_FILE, ObjectType.class);

@@ -17,8 +17,8 @@ package com.evolveum.midpoint.schema;
 
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -28,6 +28,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskExecutionStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
@@ -37,6 +38,7 @@ import org.xml.sax.SAXException;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
+
 import java.io.File;
 import java.io.IOException;
 
@@ -101,7 +103,7 @@ public class TestParseTask {
 		
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
+		JaxbTestUtil jaxbProcessor = PrismTestUtil.getJaxbUtil();
 		
 		// WHEN
 		TaskType taskType = jaxbProcessor.unmarshalObject(TASK_FILE, TaskType.class);
@@ -123,7 +125,7 @@ public class TestParseTask {
 		
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
+		JaxbTestUtil jaxbProcessor = PrismTestUtil.getJaxbUtil();
 		
 		// WHEN
 		ObjectType taskType = jaxbProcessor.unmarshalObject(TASK_FILE, ObjectType.class);
@@ -144,7 +146,7 @@ public class TestParseTask {
 		
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
+		JaxbTestUtil jaxbProcessor = PrismTestUtil.getJaxbUtil();
 		
 		// WHEN
 		JAXBElement<TaskType> jaxbElement = jaxbProcessor.unmarshalElement(TASK_FILE, TaskType.class);
@@ -166,7 +168,7 @@ public class TestParseTask {
 		
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
+		JaxbTestUtil jaxbProcessor = PrismTestUtil.getJaxbUtil();
 		
 		// WHEN
 		JAXBElement<ObjectType> jaxbElement = jaxbProcessor.unmarshalElement(TASK_FILE, ObjectType.class);

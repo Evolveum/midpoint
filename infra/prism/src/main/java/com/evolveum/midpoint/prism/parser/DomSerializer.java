@@ -44,9 +44,9 @@ import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
-import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xnode.ListXNode;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
@@ -243,7 +243,7 @@ public class DomSerializer {
 
 		} else {
 			// JAXB value
-			PrismJaxbProcessor jaxbProcessor = null;
+			JaxbTestUtil jaxbProcessor = null;
 			if (jaxbProcessor.canConvert(type)) {
 				try {
 					jaxbProcessor.marshalObjectToDom(value.getValue(), elementName, parentElement);
@@ -269,7 +269,7 @@ public class DomSerializer {
 			Element adoptedElement = (Element) ownerDocument.adoptNode((Element)rawElement);
 			parentElement.appendChild(adoptedElement);
 		} else if (rawElement instanceof JAXBElement){
-			PrismJaxbProcessor jaxbProcessor = null;
+			JaxbTestUtil jaxbProcessor = null;
 			try {
 				jaxbProcessor.marshalElementToDom((JAXBElement)rawElement, parentElement);
 			} catch (JAXBException e) {

@@ -23,7 +23,7 @@ import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.query.ValueFilter;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
+import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import com.evolveum.midpoint.repo.sql.data.audit.RObjectDeltaOperation;
 import com.evolveum.midpoint.repo.sql.data.common.*;
 import com.evolveum.midpoint.repo.sql.data.common.any.*;
@@ -45,6 +45,7 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
@@ -62,6 +63,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.namespace.QName;
+
 import java.lang.reflect.Field;
 import java.util.*;
 
@@ -136,7 +138,7 @@ public final class RUtil {
         Element root = document.getDocumentElement();
 
         PrismDomProcessor domProcessor = prismContext.getPrismDomProcessor();
-        PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
+        JaxbTestUtil jaxbProcessor = prismContext.getPrismJaxbProcessor();
         if (List.class.isAssignableFrom(clazz)) {
             List<Element> objects = DOMUtil.getChildElements(root, CUSTOM_OBJECT);
 
@@ -216,7 +218,7 @@ public final class RUtil {
         }
 
         Object valueForMarshall = value;
-        PrismJaxbProcessor jaxbProcessor = prismContext.getPrismJaxbProcessor();
+        JaxbTestUtil jaxbProcessor = prismContext.getPrismJaxbProcessor();
         if (value instanceof List) {
             List valueList = (List) value;
             if (valueList.isEmpty()) {

@@ -29,8 +29,8 @@ import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -344,7 +344,7 @@ public class TestDeltaConverter {
         final QName CUSTOM_OBJECT = new QName("http://delta.example.com", "object");
 
         PrismContext context = PrismTestUtil.getPrismContext();
-        PrismJaxbProcessor jaxbProcessor = context.getPrismJaxbProcessor();
+        JaxbTestUtil jaxbProcessor = context.getPrismJaxbProcessor();
 
         // WHEN
         ObjectDeltaType xmlDelta = DeltaConvertor.toObjectDeltaType(delta);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.prism.xml;
+package com.evolveum.midpoint.prism.util;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -38,6 +38,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
@@ -55,6 +56,8 @@ import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.prism.schema.SchemaDescription;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -63,17 +66,22 @@ import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
 /**
- * @author semancik
- *
+ * JAXB testing util. Only for use in tests. DO NOT USE IN PRODUCTION CODE.
+ * This util is used to test the ablility of prism JAXB representation to be used by
+ * native (Sun) JAXB code.
+ * 
+ * Note: this is what used to be PrismJaxbProcessor. Therefore there may be still a lot of junk to clean up.
+ * 
+ * @author Radovan Semancik
  */
-public class PrismJaxbProcessor {
+public class JaxbTestUtil {
 	
-	private static final Trace LOGGER = TraceManager.getTrace(PrismJaxbProcessor.class);
+	private static final Trace LOGGER = TraceManager.getTrace(JaxbTestUtil.class);
 	
 	private PrismContext prismContext;
 	private JAXBContext context;
 
-	public PrismJaxbProcessor(PrismContext prismContext) {
+	public JaxbTestUtil(PrismContext prismContext) {
 		this.prismContext = prismContext;
 	}
 	
