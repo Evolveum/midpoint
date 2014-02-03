@@ -19,6 +19,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.namespace.QName;
 
@@ -246,7 +248,15 @@ public class DomParser implements Parser {
 		if (dataString == null) {
 			return false;
 		}
-		return dataString.startsWith("<?xml");
+		if (dataString.startsWith("<?xml")) {
+			return true;
+		}
+		Pattern p = Pattern.compile("\\A\\s*?<\\w+");
+		Matcher m = p.matcher(dataString);
+		if (m.find()) {
+			return true;
+		}
+		return false;
 	}
 
 	@Override

@@ -67,8 +67,9 @@ public class TestPrismParsing {
 	}
 	
 	@Test
-	public void testPrismParseFile() throws SchemaException, SAXException, IOException {
-		System.out.println("===[ testPrismParseFile ]===");
+	public void testPrismParseFile() throws Exception {
+		final String TEST_NAME = "testPrismParseFile";
+		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();
@@ -85,8 +86,9 @@ public class TestPrismParsing {
 	}
 	
 	@Test
-	public void testPrismParseFileObject() throws SchemaException, SAXException, IOException {
-		System.out.println("===[ testPrismParseFileObject ]===");
+	public void testPrismParseFileObject() throws Exception {
+		final String TEST_NAME = "testPrismParseFileObject";
+		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();
@@ -103,8 +105,9 @@ public class TestPrismParsing {
 	}
 	
 	@Test
-	public void testPrismParseDom() throws SchemaException, SAXException, IOException {
-		System.out.println("===[ testPrismParseDom ]===");
+	public void testPrismParseDom() throws Exception {
+		final String TEST_NAME = "testPrismParseDom";
+		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		Document document = DOMUtil.parseFile(USER_JACK_FILE_XML);
@@ -176,8 +179,9 @@ public class TestPrismParsing {
 	}
 	
 	@Test
-	public void testPrismParseFileAdhoc() throws SchemaException, SAXException, IOException {
-		System.out.println("===[ testPrismParseFileAdhoc ]===");
+	public void testPrismParseFileAdhoc() throws Exception {
+		final String TEST_NAME = "testPrismParseFileAdhoc";
+		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();
@@ -194,8 +198,9 @@ public class TestPrismParsing {
 	}
 	
 	@Test
-	public void testPrismParseDomAdhoc() throws SchemaException, SAXException, IOException {
-		System.out.println("===[ testPrismParseDomAdhoc ]===");
+	public void testPrismParseDomAdhoc() throws Exception {
+		final String TEST_NAME = "testPrismParseDomAdhoc";
+		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		Document document = DOMUtil.parseFile(USER_JACK_ADHOC_FILE);
@@ -215,8 +220,9 @@ public class TestPrismParsing {
 	}
 	
 	@Test
-	public void testRoundTripAdhoc() throws SchemaException, SAXException, IOException {
-		System.out.println("===[ testRoundTripAdhoc ]===");
+	public void testRoundTripAdhoc() throws Exception {
+		final String TEST_NAME = "testRoundTripAdhoc";
+		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		
 		roundTripAdhoc(USER_JACK_ADHOC_FILE);
 	}
@@ -257,8 +263,9 @@ public class TestPrismParsing {
 	
 
 	@Test
-	public void testMeleeContext() throws SchemaException, SAXException, IOException {
-		System.out.println("===[ testMeleeContext ]===");
+	public void testMeleeContext() throws Exception {
+		final String TEST_NAME = "testMeleeContext";
+		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();
@@ -317,8 +324,9 @@ public class TestPrismParsing {
 	}
 	
 	@Test
-	public void testUserWill() throws SchemaException, SAXException, IOException {
-		System.out.println("===[ testUserWill ]===");
+	public void testUserWill() throws Exception {
+		final String TEST_NAME = "testUserWill";
+		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();
@@ -335,8 +343,9 @@ public class TestPrismParsing {
 	}
 	
 	@Test
-	public void testUserWillRoundTrip() throws SchemaException, SAXException, IOException {
-		System.out.println("===[ testUserWillRoundTrip ]===");
+	public void testUserWillRoundTrip() throws Exception {
+		final String TEST_NAME = "testUserWillRoundTrip";
+		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();

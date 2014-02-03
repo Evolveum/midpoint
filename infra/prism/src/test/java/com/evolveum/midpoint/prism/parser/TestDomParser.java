@@ -23,11 +23,18 @@ import static org.testng.AssertJUnit.assertTrue;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 
 import javax.xml.namespace.QName;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.validation.Schema;
+import javax.xml.validation.Validator;
 
 import org.testng.annotations.Test;
+import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.prism.json.PrismJsonSerializer;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -36,6 +43,7 @@ import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.util.DOMUtil;
 
 /**
  * @author semancik
@@ -100,5 +108,14 @@ public class TestDomParser extends AbstractParserTest {
 		
 		// WHEN (re-serialize)
 //		parser.s
+	}
+	
+	@Override
+	protected void validateUserSchema(String xmlString, PrismContext prismContext) throws SAXException, IOException {
+		Document xmlDocument = DOMUtil.parseDocument(xmlString);
+		Schema javaxSchema = prismContext.getSchemaRegistry().getJavaxSchema();
+		Validator validator = javaxSchema.newValidator();
+		validator.setResourceResolver(prismContext.getSchemaRegistry());
+		validator.validate(new DOMSource(xmlDocument));
 	}
 }

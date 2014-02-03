@@ -175,6 +175,8 @@ public abstract class AbstractParserTest {
 		
 		assertUserJackXNodeOrdering("serialized xnode", serializedXNode);
 		
+		validateUserSchema(serializedString, prismContext);
+		
 		// WHEN (re-parse)
 		XNode reparsedXnode = parser.parse(serializedString);
 		PrismObject<UserType> reparsedUser = processor.parseObject(reparsedXnode);
@@ -241,5 +243,9 @@ public abstract class AbstractParserTest {
 		Entry<QName, XNode> reTopMapEntry3 = reTopMapEntrySetIter.next();
 		assertEquals(message+": Wrong entry 3, the xnodes were shuffled", UserType.F_DESCRIPTION, reTopMapEntry3.getKey());
 
+	}
+	
+	protected void validateUserSchema(String dataString, PrismContext prismContext) throws SAXException, IOException {
+		// Nothing to do by default
 	}
 }

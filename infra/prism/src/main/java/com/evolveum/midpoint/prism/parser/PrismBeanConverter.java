@@ -40,6 +40,8 @@ import com.evolveum.midpoint.util.exception.SystemException;
 
 public class PrismBeanConverter {
 	
+	public static final String DEFAULT_NAMESPACE_PLACEHOLDER = "##default";
+	
 	private SchemaRegistry schemaRegistry;
 
 	public PrismBeanConverter(SchemaRegistry schemaRegistry) {
@@ -124,12 +126,12 @@ public class PrismBeanConverter {
 		}
 		
 		String namespace = xmlType.namespace();
-		if (namespace == null) {
+		if (namespace == null || DEFAULT_NAMESPACE_PLACEHOLDER.equals(namespace)) {
 			XmlSchema xmlSchema = beanClass.getPackage().getAnnotation(XmlSchema.class);
 			namespace = xmlSchema.namespace();
 		}
-		if (namespace == null) {
-			throw new IllegalArgumentException("Cannot marshall "+beanClass+": cannot determine namespace");
+		if (StringUtils.isBlank(namespace) || DEFAULT_NAMESPACE_PLACEHOLDER.equals(namespace)) {
+			throw new IllegalArgumentException("Cannot marshall "+beanClass+": cannot determine namespace ("+namespace+")");
 		}
 		
 		String[] propOrder = xmlType.propOrder();
