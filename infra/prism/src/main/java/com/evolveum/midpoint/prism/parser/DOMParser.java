@@ -19,6 +19,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.namespace.QName;
 
@@ -43,11 +45,11 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-public class DOMParser implements Parser {
+public class DomParser implements Parser {
 	
 	private SchemaRegistry schemaRegistry;
 
-	public DOMParser(SchemaRegistry schemaRegistry) {
+	public DomParser(SchemaRegistry schemaRegistry) {
 		super();
 		this.schemaRegistry = schemaRegistry;
 	}
@@ -130,6 +132,9 @@ public class DOMParser implements Parser {
 		List<Element> lastElements = null;
 		for (Element childElement: DOMUtil.listChildElements(element)) {
 			QName childQName = DOMUtil.getQName(childElement);
+			if (childQName == null) {
+				throw new IllegalArgumentException("Null qname in element "+childElement+", subelement of "+element);
+			}
 			if (childQName.equals(lastElementQName)) {
 				lastElements.add(childElement);
 			} else {
@@ -243,7 +248,15 @@ public class DOMParser implements Parser {
 		if (dataString == null) {
 			return false;
 		}
-		return dataString.startsWith("<?xml");
+		if (dataString.startsWith("<?xml")) {
+			return true;
+		}
+		Pattern p = Pattern.compile("\\A\\s*?<\\w+");
+		Matcher m = p.matcher(dataString);
+		if (m.find()) {
+			return true;
+		}
+		return false;
 	}
 
 	@Override
@@ -282,5 +295,8 @@ public class DOMParser implements Parser {
 		return serializer.serializeToElement(xmap, elementName);
 	}
 	
-	
+	public Element serializeToElement(RootXNode xroot) throws SchemaException {
+		DomSerializer serializer = new DomSerializer(this, schemaRegistry);
+		return serializer.serialize(xroot);
+	}
 }
