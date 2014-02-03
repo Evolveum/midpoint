@@ -18,6 +18,7 @@ package com.evolveum.midpoint.schema;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
@@ -70,7 +71,7 @@ public class TestParseUser {
 	
 	
 	@Test
-	public void testParseUserFile() throws SchemaException {
+	public void testParseUserFile() throws Exception {
 		System.out.println("===[ testParseUserFile ]===");
 
 		// GIVEN
@@ -112,7 +113,7 @@ public class TestParseUser {
 		
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		JaxbTestUtil jaxbProcessor = prismContext.getPrismJaxbProcessor();
+		JaxbTestUtil jaxbProcessor = PrismTestUtil.getJaxbUtil();
 		
 		// WHEN
 		UserType userType = jaxbProcessor.unmarshalObject(USER_FILE, UserType.class);
@@ -134,7 +135,7 @@ public class TestParseUser {
 		
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		JaxbTestUtil jaxbProcessor = prismContext.getPrismJaxbProcessor();
+		JaxbTestUtil jaxbProcessor = PrismTestUtil.getJaxbUtil();
 		
 		// WHEN
 		ObjectType userType = jaxbProcessor.unmarshalObject(USER_FILE, ObjectType.class);
@@ -155,7 +156,7 @@ public class TestParseUser {
 		
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		JaxbTestUtil jaxbProcessor = prismContext.getPrismJaxbProcessor();
+		JaxbTestUtil jaxbProcessor = PrismTestUtil.getJaxbUtil();
 		
 		// WHEN
 		JAXBElement<UserType> jaxbElement = jaxbProcessor.unmarshalElement(USER_FILE, UserType.class);
@@ -177,7 +178,7 @@ public class TestParseUser {
 		
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
-		JaxbTestUtil jaxbProcessor = prismContext.getPrismJaxbProcessor();
+		JaxbTestUtil jaxbProcessor = PrismTestUtil.getJaxbUtil();
 		
 		// WHEN
 		JAXBElement<ObjectType> jaxbElement = jaxbProcessor.unmarshalElement(USER_FILE, ObjectType.class);
@@ -271,14 +272,18 @@ public class TestParseUser {
 		assertEquals("Wrong ref3 oid (prism)",  USER_ACCOUNT_REF_3_OID, accountRef3Val.getOid());
 		assertEquals("Wrong ref3 type (prism)", ShadowType.COMPLEX_TYPE, accountRef3Val.getTargetType());
 		assertEquals("Wrong ref3 description (prism)", "This is third accountRef", accountRef3Val.getDescription());
-		Element accountRef3ValFilterElement = accountRef3Val.getFilter();
+		ObjectFilter accountRef3ValFilterElement = accountRef3Val.getFilter();
 		assertFilter("ref3", accountRef3ValFilterElement);
 	}
 	
-	private void assertFilter(String message, Element filterElement) {
+	private void assertFilterElement(String message, Element filterElement) {
 		assertNotNull("No "+message+" filter", filterElement);
 		assertEquals("Wrong "+message+" filter namespace", PrismConstants.NS_QUERY, filterElement.getNamespaceURI());
 		assertEquals("Wrong "+message+" filter localName", "equal", filterElement.getLocalName());
+	}
+	
+	private void assertFilter(String message, ObjectFilter filter) {
+		assertNotNull("No "+message+" filter", filter);
 	}
 
 	private void assertUserJaxb(UserType userType) {
@@ -311,7 +316,7 @@ public class TestParseUser {
 		assertEquals("Wrong ref3 type (jaxb)", ShadowType.COMPLEX_TYPE, ref3.getType());
 		Filter ref3Filter = ref3.getFilter();
 		assertNotNull("No ref3 filter (jaxb,class)", ref3Filter);
-		assertFilter("ref filter (jaxb)", ref3Filter.getFilter());
+		assertFilterElement("ref filter (jaxb)", ref3Filter.getFilter());
 	}
 
 	private void assertPropertyDefinition(PrismContainer<?> container, String propName, QName xsdType, int minOccurs,
@@ -337,7 +342,7 @@ public class TestParseUser {
 
         // GIVEN
         PrismContext ctx = PrismTestUtil.getPrismContext();
-        PrismObjectDefinition<UserType> userDefinition = ctx.getSchemaRegistry().getObjectSchema().findObjectDefinitionByCompileTimeClass(UserType.class);
+        PrismObjectDefinition<UserType> userDefinition = ctx.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(UserType.class);
 
         // WHEN
         PrismObject<UserType> user = userDefinition.instantiate();

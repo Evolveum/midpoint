@@ -19,7 +19,6 @@ import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNotNull;
-
 import static com.evolveum.midpoint.schema.TestConstants.*;
 
 import java.io.IOException;
@@ -36,6 +35,7 @@ import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
@@ -150,9 +150,9 @@ public class TestJaxbConstruction {
 		PrismReference accountRef = user.findReference(UserType.F_LINK_REF);
         assertEquals("1/ Wrong accountRef values", 1, accountRef.getValues().size());
         PrismReferenceValue accountRefVal0 = accountRef.getValue(0);
-        Element prismFilterElement = accountRefVal0.getFilter();
-        assertNotNull("Filter have not passed", prismFilterElement);
-        assertEquals("Difference filter", filterElement, prismFilterElement);
+        ObjectFilter prismFilter = accountRefVal0.getFilter();
+        assertNotNull("Filter have not passed", prismFilter);
+        assertEquals("Difference filter", filterElement, prismFilter);
 
         ShadowType accountShadowType = new ShadowType();
         accountShadowType.setOid(USER_ACCOUNT_REF_1_OID);
@@ -246,9 +246,9 @@ public class TestJaxbConstruction {
 		PrismAsserts.assertReferenceValues(accountRef, USER_ACCOUNT_REF_1_OID, USER_ACCOUNT_REF_2_OID);
 		
         PrismReferenceValue accountRefVal0 = accountRef.getValue(0);
-        Element prismFilterElement = accountRefVal0.getFilter();
-        assertNotNull("Filter have not passed", prismFilterElement);
-        assertEquals("Difference filter", filterElement, prismFilterElement);
+        ObjectFilter prismFilter = accountRefVal0.getFilter();
+        assertNotNull("Filter have not passed", prismFilter);
+        assertEquals("Difference filter", filterElement, prismFilter);
 		
 		assertAccountRefs(userType, USER_ACCOUNT_REF_1_OID, USER_ACCOUNT_REF_2_OID);
 

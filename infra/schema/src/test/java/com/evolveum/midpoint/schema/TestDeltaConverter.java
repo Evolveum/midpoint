@@ -106,7 +106,7 @@ public class TestDeltaConverter {
     }
     
     @Test
-    public void testPasswordChange() throws SchemaException, FileNotFoundException, JAXBException {
+    public void testPasswordChange() throws Exception {
     	System.out.println("===[ testPasswordChange ]====");
     	
     	ObjectModificationType objectChange = PrismTestUtil.unmarshalObject(new File(TEST_DIR, "user-modify-password.xml"),
@@ -170,7 +170,7 @@ public class TestDeltaConverter {
     
     
     @Test
-    public void testAddAssignment() throws SchemaException, FileNotFoundException, JAXBException {
+    public void testAddAssignment() throws Exception {
     	System.out.println("===[ testAddAssignment ]====");
     	
     	ObjectModificationType objectChange = PrismTestUtil.unmarshalObject(new File(TEST_DIR, "user-modify-add-role-pirate.xml"),
@@ -344,7 +344,7 @@ public class TestDeltaConverter {
         final QName CUSTOM_OBJECT = new QName("http://delta.example.com", "object");
 
         PrismContext context = PrismTestUtil.getPrismContext();
-        JaxbTestUtil jaxbProcessor = context.getPrismJaxbProcessor();
+        JaxbTestUtil jaxbProcessor = PrismTestUtil.getJaxbUtil();
 
         // WHEN
         ObjectDeltaType xmlDelta = DeltaConvertor.toObjectDeltaType(delta);
@@ -425,7 +425,7 @@ public class TestDeltaConverter {
     	System.out.println("Serialized");
     	System.out.println(itemDeltaTypes);
     	ItemDeltaType itemDeltaType = itemDeltaTypes.iterator().next();
-    	String xml = PrismTestUtil.getPrismContext().getPrismJaxbProcessor().marshalObjectToString(itemDeltaType, new QName("wherever","whatever"));
+    	String xml = PrismTestUtil.getJaxbUtil().marshalObjectToString(itemDeltaType, new QName("wherever","whatever"));
     	System.out.println(xml);
     	
     	// WHEN

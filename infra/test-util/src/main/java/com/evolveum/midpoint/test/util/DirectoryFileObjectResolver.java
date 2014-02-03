@@ -17,6 +17,7 @@ package com.evolveum.midpoint.test.util;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.Collection;
 
 import javax.xml.bind.JAXBElement;
@@ -37,6 +38,7 @@ import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 
@@ -59,7 +61,11 @@ public class DirectoryFileObjectResolver implements ObjectResolver {
 			OperationResult result) throws ObjectNotFoundException, SchemaException {
 		File file = new File( directory, oidToFilename(ref.getOid()));
 		if (file.exists()) {
-			return (T)PrismTestUtil.parseObject(file).asObjectable();
+			try {
+				return (T)PrismTestUtil.parseObject(file).asObjectable();
+			} catch (IOException e) {
+				throw new SystemException(e.getMessage(), e);
+			}
 		} else {
 			throw new ObjectNotFoundException("Object "+ref.getOid()+" does not exists");
 		}

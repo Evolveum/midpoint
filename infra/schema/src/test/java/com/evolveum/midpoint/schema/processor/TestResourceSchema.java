@@ -219,7 +219,7 @@ public class TestResourceSchema {
 		
 		// WHEN
 		
-		String marshalledResource = prismContext.getPrismDomProcessor().serializeObjectToString(resource);
+		String marshalledResource = prismContext.serializeObjectToString(resource, PrismContext.LANG_XML);
 		
 		System.out.println("Marshalled resource");
 		System.out.println(marshalledResource); 
@@ -289,7 +289,7 @@ public class TestResourceSchema {
 		Element xsdElement = DOMUtil.getFirstChildElement(xsdDocument);
 		
 		PrismObject<ResourceType> resource = wrapInResource(xsdElement);
-		String resourceXmlString = PrismTestUtil.getPrismContext().getPrismDomProcessor().serializeObjectToString(resource);
+		String resourceXmlString = PrismTestUtil.getPrismContext().serializeObjectToString(resource, PrismContext.LANG_XML);
 		
 		System.out.println("Serialized resource");
 		System.out.println(resourceXmlString);

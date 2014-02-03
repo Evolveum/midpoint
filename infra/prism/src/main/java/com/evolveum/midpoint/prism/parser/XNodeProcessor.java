@@ -140,6 +140,10 @@ public class XNodeProcessor {
 	
 	public <C extends Containerable> PrismContainer<C> parseContainer(XNode xnode, Class<C> type) throws SchemaException {
 		PrismContainerDefinition<C> definition = getSchemaRegistry().findContainerDefinitionByCompileTimeClass(type);
+		return parseContainer(xnode, definition);
+	}
+	
+	public <C extends Containerable> PrismContainer<C> parseContainer(XNode xnode, PrismContainerDefinition<C> definition) throws SchemaException {
 		if (xnode instanceof RootXNode) {
 			RootXNode xroot = (RootXNode)xnode;
 			return parsePrismContainer(xroot.getSubnode(), xroot.getRootElementName(), definition);
@@ -643,6 +647,11 @@ public class XNodeProcessor {
 		XNodeSerializer serializer = createSerializer();
 		serializer.setSerializeCompositeObjects(serializeCompositeObjects);
 		return serializer.serializeObject(object);
+	}
+	
+	public <C extends Containerable> RootXNode serializeContainerValueRoot(PrismContainerValue<C> cval) throws SchemaException {
+		XNodeSerializer serializer = createSerializer();
+		return serializer.serializeContainerValueRoot(cval);
 	}
 
 	public XNodeSerializer createSerializer() {

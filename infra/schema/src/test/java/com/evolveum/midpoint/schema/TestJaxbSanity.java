@@ -99,7 +99,7 @@ public class TestJaxbSanity {
 	}
 
 	@Test
-	public void testUnmarshallAndEqualsUserJaxb() throws JAXBException, SchemaException, FileNotFoundException {
+	public void testUnmarshallAndEqualsUserJaxb() throws Exception {
 		System.out.println("\n\n ===[ testUnmarshallAndEqualsUserJaxb ]===\n");
 		
 		// GIVEN
@@ -133,7 +133,7 @@ public class TestJaxbSanity {
 	}
 	
 	@Test
-	public void testUnmarshallAndEqualsUserPrism() throws SchemaException {
+	public void testUnmarshallAndEqualsUserPrism() throws Exception {
 		System.out.println("\n\n ===[testUnmarshallAndEqualsUserPrism]===\n");
 		
 		// GIVEN
@@ -183,7 +183,7 @@ public class TestJaxbSanity {
 	}
 
 	@Test
-	public void testUnmarshallAndEqualsUserMixed() throws SchemaException, JAXBException, FileNotFoundException {
+	public void testUnmarshallAndEqualsUserMixed() throws Exception {
 		System.out.println("\n\n ===[testUnmarshallAndEqualsUserMixed]===\n");
 		
 		// GIVEN

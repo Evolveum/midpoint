@@ -102,6 +102,18 @@ public class XNodeSerializer {
 		return xmap;
 	}
 	
+	public <C extends Containerable> RootXNode serializeContainerValueRoot(PrismContainerValue<C> containerVal) throws SchemaException {
+		PrismContainerable<C> parent = containerVal.getParent();
+		if (parent == null) {
+			throw new IllegalArgumentException("Container value "+containerVal+" does not have a parent, cannot serialize");
+		}
+		PrismContainerDefinition<C> definition = parent.getDefinition();
+		MapXNode xmap = serializeContainerValue(containerVal, definition);
+		RootXNode xroot = new RootXNode(definition.getName());
+		xroot.setSubnode(xmap);
+		return xroot;
+	}
+	
 	private <C extends Containerable> MapXNode serializeContainerValue(PrismContainerValue<C> containerVal, PrismContainerDefinition<C> containerDefinition) throws SchemaException {
 		MapXNode xmap = new MapXNode();
 		serializeContainerValue(xmap, containerVal, containerDefinition);
