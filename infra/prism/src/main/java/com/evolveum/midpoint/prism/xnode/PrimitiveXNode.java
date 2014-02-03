@@ -17,6 +17,8 @@ package com.evolveum.midpoint.prism.xnode;
 
 import javax.xml.namespace.QName;
 
+import org.apache.commons.lang.StringUtils;
+
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -76,6 +78,16 @@ public class PrimitiveXNode<T> extends XNode {
 
 	public void setAttribute(boolean isAttribute) {
 		this.isAttribute = isAttribute;
+	}
+	
+	public boolean isEmpty() {
+		if (value == null) {
+			return true;
+		}
+		if (value instanceof String) {
+			return StringUtils.isBlank((String)value);
+		}
+		return false;
 	}
 
 	/**
