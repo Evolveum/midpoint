@@ -109,7 +109,10 @@ public class PageTaskEdit extends PageAdminTasks {
 	private static final String DOT_CLASS = PageTaskAdd.class.getName() + ".";
 	private static final String OPERATION_LOAD_TASK = DOT_CLASS + "loadTask";
 	private static final String OPERATION_SAVE_TASK = DOT_CLASS + "saveTask";
+    private static final String OPERATION_SUSPEND_TASKS = DOT_CLASS + "suspendTask";
+    private static final String OPERATION_RESUME_TASK = DOT_CLASS + "resumeTask";
 
+    private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_IDENTIFIER = "identifier";
     private static final String ID_HANDLER_URI_LIST = "handlerUriList";
     private static final String ID_HANDLER_URI = "handlerUri";
@@ -203,7 +206,7 @@ public class PageTaskEdit extends PageAdminTasks {
     }
 
     private void initLayout() {
-		Form mainForm = new Form("mainForm");
+		Form mainForm = new Form(ID_MAIN_FORM);
 		add(mainForm);
 
 		initMainInfo(mainForm);
@@ -707,7 +710,7 @@ public class PageTaskEdit extends PageAdminTasks {
 
             @Override
             public boolean isVisible() {
-                return isRunning();
+                return isRunnableOrRunning();
             }
         });
         mainForm.add(suspend);
@@ -827,28 +830,58 @@ public class PageTaskEdit extends PageAdminTasks {
             return;
         }
 
-//        OperationResult result = new OperationResult(OPERATION_SUSPEND_TASKS);
-//        try {
-//
-//            boolean suspended = getTaskService().suspendTasks(Collections.singleton(oid),
-//                    PageTasks.WAIT_FOR_TASK_STOP, result);
-//
-//            result.computeStatus();
-//            if (result.isSuccess()) {
-//                if (suspended) {
-//                    result.recordStatus(OperationResultStatus.SUCCESS, "The task(s) have been successfully suspended.");
-//                } else {
-//                    result.recordWarning("Task(s) suspension has been successfully requested; please check for its completion using task list.");
-//                }
-//            }
-//        } catch (RuntimeException e) {
-//            result.recordFatalError("Couldn't suspend the task(s) due to an unexpected exception", e);
-//        }
-//        showResult(result);
+        OperationResult result = new OperationResult(OPERATION_SUSPEND_TASKS);
+        try {
+
+            boolean suspended = getTaskService().suspendTasks(Collections.singleton(oid),
+                    PageTasks.WAIT_FOR_TASK_STOP, result);
+
+            result.computeStatus();
+            if (result.isSuccess()) {
+                if (suspended) {
+                    result.recordStatus(OperationResultStatus.SUCCESS, "The task have been successfully suspended.");
+                } else {
+                    result.recordWarning("Task suspension has been successfully requested; please check for its completion using task list.");
+                }
+            }
+        } catch (RuntimeException e) {
+            result.recordFatalError("Couldn't suspend the task due to an unexpected exception", e);
+        }
+        showResult(result);
+
+        showResultInSession(result);
+        PageParameters parameters = new PageParameters();
+        parameters.add(OnePageParameterEncoder.PARAMETER, oid);
+        setResponsePage(new PageTaskEdit(parameters, (PageBase) getPage()));
     }
 
     private void resumePerformed(AjaxRequestTarget target) {
+        String oid = model.getObject().getOid();
+        List<String> oidCollection = Arrays.asList(oid);
 
+        if (StringUtils.isEmpty(oid)) {
+            target.add(getFeedbackPanel());
+            return;
+        }
+
+        OperationResult result = new OperationResult(OPERATION_RESUME_TASK);
+
+        try{
+            getTaskService().resumeTasks(oidCollection, result);
+            result.computeStatus();
+
+            if(result.isSuccess()){
+                result.recordStatus(OperationResultStatus.SUCCESS, "The task has been successfully resumed.");
+            }
+        } catch (RuntimeException e){
+            result.recordFatalError("Couldn't resume the task due to an unexpected exception");
+        }
+        showResult(result);
+
+        showResultInSession(result);
+        PageParameters parameters = new PageParameters();
+        parameters.add(OnePageParameterEncoder.PARAMETER, oid);
+        setResponsePage(new PageTaskEdit(parameters, (PageBase) getPage()));
     }
 
 	private static class EmptyOnBlurAjaxFormUpdatingBehaviour extends AjaxFormComponentUpdatingBehavior {
