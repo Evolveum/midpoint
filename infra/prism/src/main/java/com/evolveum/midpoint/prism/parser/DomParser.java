@@ -43,11 +43,11 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-public class DOMParser implements Parser {
+public class DomParser implements Parser {
 	
 	private SchemaRegistry schemaRegistry;
 
-	public DOMParser(SchemaRegistry schemaRegistry) {
+	public DomParser(SchemaRegistry schemaRegistry) {
 		super();
 		this.schemaRegistry = schemaRegistry;
 	}
@@ -130,6 +130,9 @@ public class DOMParser implements Parser {
 		List<Element> lastElements = null;
 		for (Element childElement: DOMUtil.listChildElements(element)) {
 			QName childQName = DOMUtil.getQName(childElement);
+			if (childQName == null) {
+				throw new IllegalArgumentException("Null qname in element "+childElement+", subelement of "+element);
+			}
 			if (childQName.equals(lastElementQName)) {
 				lastElements.add(childElement);
 			} else {

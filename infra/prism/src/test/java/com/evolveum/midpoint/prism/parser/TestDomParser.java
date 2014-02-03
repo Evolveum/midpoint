@@ -54,8 +54,8 @@ public class TestDomParser extends AbstractParserTest {
 	}
 
 	@Override
-	protected DOMParser createParser() {
-		return new DOMParser(PrismTestUtil.getSchemaRegistry());
+	protected DomParser createParser() {
+		return new DomParser(PrismTestUtil.getSchemaRegistry());
 	}
 
 	@Test
@@ -64,7 +64,7 @@ public class TestDomParser extends AbstractParserTest {
 		displayTestTitle(TEST_NAME);
 		
 		// GIVEN
-		DOMParser parser = createParser();
+		DomParser parser = createParser();
 		
 		// WHEN
 		XNode xnode = parser.parse(getFile(USER_JACK_FILE_BASENAME));

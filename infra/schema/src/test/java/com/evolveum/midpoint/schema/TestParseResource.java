@@ -22,7 +22,7 @@ import static org.testng.AssertJUnit.assertTrue;
 import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
-import com.evolveum.midpoint.prism.parser.DOMParser;
+import com.evolveum.midpoint.prism.parser.DomParser;
 import com.evolveum.midpoint.prism.parser.XNodeProcessor;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
@@ -451,7 +451,7 @@ public class TestParseResource {
 	
 	// Try to serialize it to DOM using just DOM processor. See if it does not fail.
 	private void serializeDom(PrismObject<ResourceType> resource) throws SchemaException {
-		DOMParser domParser = PrismTestUtil.getPrismContext().getParserDom();
+		DomParser domParser = PrismTestUtil.getPrismContext().getParserDom();
 		XNodeProcessor xnodeProcessor = PrismTestUtil.getPrismContext().getXnodeProcessor();
 		RootXNode xnode = xnodeProcessor.serializeObject(resource);
 		Element domElement = domParser.serializeToElement(xnode);

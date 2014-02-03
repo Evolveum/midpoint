@@ -16,6 +16,7 @@
 package com.evolveum.midpoint.prism.xml;
 
 import com.evolveum.midpoint.prism.PrismConstants;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.ClassPathUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -152,6 +153,8 @@ public class XmlTypeConverter {
         	return (T) getDatatypeFactory().newDuration(stringContent);
         } else if (type.equals(PolyString.class)) {
         	return (T) new PolyString(stringContent);
+        } else if (type.equals(ItemPath.class)) {
+        	throw new UnsupportedOperationException("Path conversion not supported yet");
         } else {
         	if (exceptionOnUnknown) {
         		throw new IllegalArgumentException("Unknown conversion type "+type);
@@ -316,6 +319,8 @@ public class XmlTypeConverter {
         	return ((XMLGregorianCalendar) val).toXMLFormat();
         } else if (Duration.class.isAssignableFrom(type)) {
         	return ((Duration) val).toString();
+        } else if (ItemPath.class.isAssignableFrom(type)) {
+        	throw new UnsupportedOperationException("Path conversion not supported yet"); 
         } else {
             throw new IllegalArgumentException("Unknown type for conversion: " + type + "(element " + elementName + ")");
         }

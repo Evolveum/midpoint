@@ -18,7 +18,6 @@ package com.evolveum.midpoint.prism;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
-
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -49,6 +48,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -125,20 +125,23 @@ public class TestPrismParsing {
 
 	
 	@Test
-	public void testRoundTrip() throws SchemaException, SAXException, IOException {
-		System.out.println("===[ testRoundTrip ]===");
+	public void testRoundTrip() throws Exception {
+		final String TEST_NAME = "testRoundTrip";
+		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		
 		roundTrip(USER_JACK_FILE_XML);
 	}
 
 	@Test
-	public void testRoundTripObject() throws SchemaException, SAXException, IOException {
-		System.out.println("===[ testRoundTripObject ]===");
+	public void testRoundTripObject() throws Exception {
+		final String TEST_NAME = "testRoundTripObject";
+		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		
 		roundTrip(USER_JACK_OBJECT_FILE);
 	}
 
 	private void roundTrip(File file) throws SchemaException, SAXException, IOException {
+		
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();
 		PrismObject<UserType> originalUser = prismContext.parseObject(file);

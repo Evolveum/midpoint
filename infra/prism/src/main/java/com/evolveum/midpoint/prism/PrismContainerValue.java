@@ -28,7 +28,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
-import com.evolveum.midpoint.prism.parser.DOMParser;
+import com.evolveum.midpoint.prism.parser.DomParser;
 import com.evolveum.midpoint.prism.parser.JaxbDomHack;
 import com.evolveum.midpoint.prism.parser.XNodeProcessor;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;

@@ -33,7 +33,7 @@ import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.parser.DOMParser;
+import com.evolveum.midpoint.prism.parser.DomParser;
 import com.evolveum.midpoint.prism.parser.JaxbDomHack;
 import com.evolveum.midpoint.prism.parser.Parser;
 import com.evolveum.midpoint.prism.parser.PrismBeanConverter;
@@ -44,6 +44,7 @@ import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
 import com.evolveum.midpoint.prism.schema.SchemaDefinitionFactory;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.JaxbTestUtil;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -70,7 +71,7 @@ public class PrismContext {
 	private Map<String, Parser> parserMap;
 	
 	// We need to keep this because of deprecated methods and various hacks
-	private DOMParser parserDom;
+	private DomParser parserDom;
 	private JaxbDomHack jaxbDomHack;
 
 	private PrismContext() {
@@ -86,7 +87,7 @@ public class PrismContext {
 		prismContext.beanConverter = new PrismBeanConverter(schemaRegistry);
 
 		prismContext.parserMap = new HashMap<String, Parser>();
-		DOMParser parserDom = new DOMParser(schemaRegistry);
+		DomParser parserDom = new DomParser(schemaRegistry);
 		prismContext.parserMap.put(LANG_XML, parserDom);
 		prismContext.parserDom = parserDom;
 		
@@ -125,7 +126,7 @@ public class PrismContext {
 	/**
 	 * WARNING! This is not really public method. It should NOT not used outside the prism implementation.
 	 */
-	public DOMParser getParserDom() {
+	public DomParser getParserDom() {
 		return parserDom;
 	}
 
@@ -169,12 +170,22 @@ public class PrismContext {
 	}
 
 	/**
-	 * Parses a DOM object and creates a prism from it. It copies data from the original object to the prism.
+	 * Parses a DOM object and creates a prism from it.
 	 */
 	@Deprecated
 	public <T extends Objectable> PrismObject<T> parseObject(Element objectElement) throws SchemaException {
 		XNode xnode = parserDom.parseElement(objectElement);
-		return xnodeProcessor.parseObject(xnode);
+		RootXNode xroot;
+		if (xnode instanceof RootXNode) {
+			xroot = (RootXNode)xnode;
+		} else if (xnode instanceof MapXNode) {
+			MapXNode xmap = (MapXNode)xnode;
+			xroot = new RootXNode(DOMUtil.getQName(objectElement));
+			xroot.setSubnode(xmap);
+		} else {
+			throw new SchemaException("Cannot parse object from "+xnode);
+		}
+		return xnodeProcessor.parseObject(xroot);
 	}
 
 	/**
@@ -312,9 +323,9 @@ public class PrismContext {
 	}
 
 	@Deprecated
-	public <O extends Objectable> Element serializeToDom(PrismObject<O> object) {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException();
+	public <O extends Objectable> Element serializeToDom(PrismObject<O> object) throws SchemaException {
+		RootXNode xroot = xnodeProcessor.serializeObject(object);
+		return parserDom.serializeToElement(xroot);
 	}
 
     /**

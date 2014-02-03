@@ -33,6 +33,7 @@ import javax.xml.parsers.ParserConfigurationException;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 
 import org.apache.commons.lang.StringUtils;
+import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
@@ -43,6 +44,7 @@ import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.xml.GlobalDynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -392,16 +394,25 @@ public class XPathHolder {
 	}
 
 	public Element toElement(String elementNamespace, String localElementName, Document document) {
-		Element e = document.createElementNS(elementNamespace, localElementName);
-		e.setPrefix(GlobalDynamicNamespacePrefixMapper.getPreferredPrefix(elementNamespace));
-		e.setTextContent(getXPath());
+		Element element = document.createElementNS(elementNamespace, localElementName);
+		if (!StringUtils.isBlank(elementNamespace)) {
+			String prefix = GlobalDynamicNamespacePrefixMapper.getPreferredPrefix(elementNamespace);
+			if (!StringUtils.isBlank(prefix)) {
+				try {
+					element.setPrefix(prefix);
+				} catch (DOMException e) {
+					throw new SystemException("Error setting XML prefix '"+prefix+"' to element {"+elementNamespace+"}"+localElementName+": "+e.getMessage(), e);
+				}
+			}
+		}
+		element.setTextContent(getXPath());
 		Map<String, String> namespaceMap = getNamespaceMap();
 		if (namespaceMap != null) {
 			for (Entry<String, String> entry : namespaceMap.entrySet()) {
-				DOMUtil.setNamespaceDeclaration(e, entry.getKey(), entry.getValue());
+				DOMUtil.setNamespaceDeclaration(element, entry.getKey(), entry.getValue());
 			}
 		}
-		return e;
+		return element;
 	}
 
 	public List<XPathSegment> toSegments() {

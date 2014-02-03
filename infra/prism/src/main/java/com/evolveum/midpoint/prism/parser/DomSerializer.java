@@ -43,6 +43,7 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import com.evolveum.midpoint.prism.util.PrismUtil;
@@ -69,7 +70,7 @@ public class DomSerializer {
 	private boolean fortifyNamespaces = false;
 	private SchemaRegistry schemaRegistry;
 	
-	DomSerializer(DOMParser parser, SchemaRegistry schemaRegistry) {
+	DomSerializer(DomParser parser, SchemaRegistry schemaRegistry) {
 		super();
 		this.schemaRegistry = schemaRegistry;
 	}
@@ -174,26 +175,33 @@ public class DomSerializer {
 	}
 
 	private void serializePrimitiveElement(PrimitiveXNode<?> xprim, Element parentElement, QName elementName) {
-		Element element;
-		try {
-			element = createElement(elementName);
-		} catch (DOMException e) {
-			throw new DOMException(e.code, e.getMessage() + "; creating element "+elementName+" in element "+DOMUtil.getQName(parentElement));
-		}
-		parentElement.appendChild(element);
-		
 		QName typeQName = xprim.getTypeQName();
-		if (xprim.isExplicitTypeDeclaration()) {
-			DOMUtil.setXsiType(element, typeQName);
+		if (typeQName.equals(ItemPath.XSD_TYPE)) {
+    		ItemPath itemPath = (ItemPath)xprim.getValue();
+    		XPathHolder holder = new XPathHolder(itemPath);
+    		Element element = holder.toElement(elementName, parentElement.getOwnerDocument());
+    		parentElement.appendChild(element);
+		} else {
+			Element element;
+			try {
+				element = createElement(elementName);
+			} catch (DOMException e) {
+				throw new DOMException(e.code, e.getMessage() + "; creating element "+elementName+" in element "+DOMUtil.getQName(parentElement));
+			}
+			parentElement.appendChild(element);
+			
+			if (xprim.isExplicitTypeDeclaration()) {
+				DOMUtil.setXsiType(element, typeQName);
+			}
+			
+	    	if (typeQName.equals(DOMUtil.XSD_QNAME)) {
+	    		QName value = (QName) xprim.getValue();
+				DOMUtil.setQNameValue(element, value);
+	    	} else {
+	    		String value = xprim.getFormattedValue();
+	    		element.setTextContent(value);
+	    	}
 		}
-		
-    	if (typeQName.equals(DOMUtil.XSD_QNAME)) {
-    		QName value = (QName) xprim.getValue();
-			DOMUtil.setQNameValue(element, value);
-    	} else {
-    		String value = xprim.getFormattedValue();
-    		element.setTextContent(value);
-    	}
 	}
     
 

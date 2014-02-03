@@ -72,10 +72,10 @@ public class JaxbDomHack {
 	private static final Trace LOGGER = TraceManager.getTrace(JaxbDomHack.class);
 	
 	private PrismContext prismContext;
-	private DOMParser domParser;
+	private DomParser domParser;
 	private JAXBContext jaxbContext;
 
-	public JaxbDomHack(DOMParser domParser, PrismContext prismContext) {
+	public JaxbDomHack(DomParser domParser, PrismContext prismContext) {
 		super();
 		this.domParser = domParser;
 		this.prismContext = prismContext;
@@ -119,7 +119,7 @@ public class JaxbDomHack {
 		Item<V> subItem;
 		if (element instanceof Element) {
 			// DOM Element
-			DOMParser domParser = prismContext.getParserDom();
+			DomParser domParser = prismContext.getParserDom();
 			XNode xnode = domParser.parseElement((Element)element);
 			subItem = prismContext.getXnodeProcessor().parseItem(xnode, elementName, itemDefinition);
 		} else if (element instanceof JAXBElement<?>) {
