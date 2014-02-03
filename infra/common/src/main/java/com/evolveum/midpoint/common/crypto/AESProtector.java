@@ -493,10 +493,6 @@ public class AESProtector implements Protector {
         return trustManagers;
     }
 
-    private JaxbTestUtil getJaxbProcessor() {
-        return prismContext.getPrismJaxbProcessor();
-    }
-
 	@Override
 	public KeyStore getKeyStore() {
 		return keyStore;
