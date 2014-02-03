@@ -1,1 +1,77 @@
-TODO
+---
+user:
+  '@ns': "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd"
+  oid: "c0c010c0-d34d-b33f-f00d-111111111111"
+  version: "42"
+  name: "jack"
+  description: "This must be the best pirate the world has ever seen"
+  extension:
+    '@ns': "http://midpoint.evolveum.com/xml/ns/test/extension"
+    singleStringType: "foobar"
+    indexedString:
+    - "alpha"
+    - "bravo"
+    bar:
+    - '@typeDef':
+        '@namespace': "http://www.w3.org/2001/XMLSchema"
+        '@localPart': "string"
+      '@value': "BAR"
+    num:
+    - '@typeDef':
+        '@namespace': "http://www.w3.org/2001/XMLSchema"
+        '@localPart': "int"
+      '@value': 42
+    multi:
+    - '@typeDef':
+        '@namespace': "http://www.w3.org/2001/XMLSchema"
+        '@localPart': "string"
+      '@value': "raz"
+    - '@typeDef':
+        '@namespace': "http://www.w3.org/2001/XMLSchema"
+        '@localPart': "string"
+      '@value': "dva"
+    - '@typeDef':
+        '@namespace': "http://www.w3.org/2001/XMLSchema"
+        '@localPart': "string"
+      '@value': "tri"
+  fullName: "cpt. Jack Sparrow"
+  givenName: "Jack"
+  familyName: "Sparrow"
+  additionalNames:
+  - "Captain"
+  - "Jackie"
+  polyName: "Džek Sperou"
+  assignment:
+  - id: 1111
+    description: "Assignment 1"
+  - id: 1112
+    description: "Assignment 2"
+    accountConstruction:
+      '@ns': "##default"
+      howto: "Just do it"
+      when: 1330080532000
+  activation:
+    enabled: true
+    validFrom: 170717400000
+  accountRef:
+  - oid: "c0c010c0-d34d-b33f-f00d-aaaaaaaa1113"
+    type:
+      '@namespace': "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd"
+      '@localPart': "AccountType"
+    object:
+      oid: "c0c010c0-d34d-b33f-f00d-aaaaaaaa1113"
+      name: "jsparrow"
+  - oid: "c0c010c0-d34d-b33f-f00d-aaaaaaaa1111"
+    type:
+      '@namespace': "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd"
+      '@localPart': "AccountType"
+  - oid: "c0c010c0-d34d-b33f-f00d-aaaaaaaa1112"
+    type:
+      '@namespace': "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd"
+      '@localPart': "AccountType"
+    description: "This is a reference with a filter"
+    filter:
+      equal:
+        path: "declare namespace c='http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd'; c:name"
+        value:
+        - "captain"

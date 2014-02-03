@@ -151,9 +151,9 @@ public abstract class AbstractParserTest {
 		
 //		try{
 //			FileOutputStream out = new FileOutputStream(new File("D:/user-jack-prism.json"));
-//			PrismJsonSerializer jsonSer = new PrismJsonSerializer(PrismTestUtil.getSchemaRegistry());
+//			YamlParser jsonSer = new YamlParser();
 //			String s = jsonSer.serializeToString((RootXNode) serializedXNode);
-//			System.out.println("JSON: \n" + s);
+//			System.out.println("YAML: \n" + s);
 //			
 ////			FileInputStream in = new FileInputStream(new File("D:/user-jack-prism.json"));
 ////			XNode afterJson = jsonSer.parseObject(in);
