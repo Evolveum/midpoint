@@ -89,7 +89,7 @@ public class PrismContext {
 		prismContext.parserMap.put(LANG_XML, parserDom);
 		prismContext.parserDom = parserDom;
 		
-		prismContext.jaxbDomHack = new JaxbDomHack(parserDom);
+		prismContext.jaxbDomHack = new JaxbDomHack(parserDom, prismContext);
 		
 		return prismContext;
 	}

@@ -431,7 +431,9 @@ public class QueryConvertor {
 
 
 
-
+	public static MapXNode serializeFilter(ObjectFilter filter, PrismContext prismContext) throws SchemaException{
+		return serializeFilter(filter, prismContext.getXnodeProcessor().createSerializer());
+	}
 	
 	public static MapXNode serializeFilter(ObjectFilter filter, XNodeSerializer xnodeSerilizer) throws SchemaException{
 	

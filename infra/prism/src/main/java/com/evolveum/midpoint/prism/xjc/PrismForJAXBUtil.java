@@ -426,10 +426,14 @@ public final class PrismForJAXBUtil {
 
 	public static Element getReferenceFilterElement(PrismReferenceValue rval) {
 		Element filterElement;
+		PrismContext prismContext = rval.getPrismContext();
+		if (prismContext == null) {
+			throw new IllegalStateException("Cannot retrieve filter element value from prism that has not been adopted");
+		}
 		DOMParser parser = getDomParser(rval);
 		try {
 			ObjectFilter filter = rval.getFilter();
-			MapXNode filterXmap = QueryConvertor.serializeFilter(filter);
+			MapXNode filterXmap = QueryConvertor.serializeFilter(filter, prismContext);
 			filterElement = parser.serializeToElement(filterXmap, QueryConvertor.FILTER_ELEMENT_NAME);
 		} catch (SchemaException e) {
 			throw new SystemException("Error serializing filter: "+e.getMessage(),e);

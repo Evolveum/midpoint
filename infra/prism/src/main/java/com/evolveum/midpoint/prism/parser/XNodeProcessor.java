@@ -598,14 +598,18 @@ public class XNodeProcessor {
 	// -- SERIALIZATION
 	// --------------------------
 	
-	public <O extends Objectable> XNode serializeObject(PrismObject<O> object) throws SchemaException {
-		XNodeSerializer serializer = new XNodeSerializer(prismContext.getBeanConverter());
+	public <O extends Objectable> RootXNode serializeObject(PrismObject<O> object) throws SchemaException {
+		XNodeSerializer serializer = createSerializer();
 		return serializer.serializeObject(object);
 	}
 
-	public <O extends Objectable> XNode serializeObject(PrismObject<O> object, boolean serializeCompositeObjects) throws SchemaException {
-		XNodeSerializer serializer = new XNodeSerializer(prismContext.getBeanConverter());
+	public <O extends Objectable> RootXNode serializeObject(PrismObject<O> object, boolean serializeCompositeObjects) throws SchemaException {
+		XNodeSerializer serializer = createSerializer();
 		serializer.setSerializeCompositeObjects(serializeCompositeObjects);
 		return serializer.serializeObject(object);
+	}
+
+	public XNodeSerializer createSerializer() {
+		return new XNodeSerializer(prismContext.getBeanConverter());
 	}
 }

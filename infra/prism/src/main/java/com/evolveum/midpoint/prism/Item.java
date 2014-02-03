@@ -410,6 +410,17 @@ public abstract class Item<V extends PrismValue> implements Itemable, Dumpable, 
     		}
     	}
     }
+    
+    /**
+     * Merge all the values of other item to this item.
+     */
+    public void merge(Item<V> otherItem) throws SchemaException {
+    	for (V otherValue: otherItem.getValues()) {
+    		if (!contains(otherValue)) {
+    			add((V) otherValue.clone());
+    		}
+    	}
+    }
 
     public abstract Object find(ItemPath path);
     

@@ -282,5 +282,8 @@ public class DOMParser implements Parser {
 		return serializer.serializeToElement(xmap, elementName);
 	}
 	
-	
+	public Element serializeToElement(RootXNode xroot) throws SchemaException {
+		DomSerializer serializer = new DomSerializer(this, schemaRegistry);
+		return serializer.serialize(xroot);
+	}
 }
