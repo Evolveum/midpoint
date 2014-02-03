@@ -94,9 +94,9 @@ public class DeltaConvertor {
         if (objectDeltaType.getChangeType() == ChangeTypeType.ADD) {
         	ObjectDelta<T> objectDelta = new ObjectDelta<T>(type, ChangeType.ADD, prismContext);
             objectDelta.setOid(objectDeltaType.getOid());
-            Object element = objectDeltaType.getObjectToAdd().getAny();
-            T objectable = prismContext.getPrismJaxbProcessor().unmarshalObject(element, type);
-            objectDelta.setObjectToAdd(objectable.asPrismObject());
+            Object objectToAddElement = objectDeltaType.getObjectToAdd().getAny();
+            PrismObject<T> objectToAdd = prismContext.getJaxbDomHack().parseObjectFromJaxb(objectToAddElement);
+            objectDelta.setObjectToAdd(objectToAdd);
             return objectDelta;
         } else if (objectDeltaType.getChangeType() == ChangeTypeType.MODIFY) {
         	ObjectDelta<T> objectDelta = new ObjectDelta<T>(type, ChangeType.MODIFY, prismContext);
@@ -185,8 +185,7 @@ public class DeltaConvertor {
 		if (objectDelta.getChangeType() == ChangeType.ADD) {
 			PrismObject<? extends Objectable> prismObject = objectDelta.getObjectToAdd();
 			if (prismObject != null) {
-				PrismDomProcessor domProcessor = prismObject.getPrismContext().getPrismDomProcessor();
-				Element objectElement = domProcessor.serializeToDom(prismObject);
+				Element objectElement = prismObject.getPrismContext().getJaxbDomHack().serializeObjectToJaxb(prismObject);
 				ObjectDeltaType.ObjectToAdd objectToAdd = new ObjectDeltaType.ObjectToAdd();
 				objectToAdd.setAny(objectElement);
 				objectDeltaType.setObjectToAdd(objectToAdd);
@@ -213,7 +212,7 @@ public class DeltaConvertor {
 
     public static String toObjectDeltaTypeXml(ObjectDelta<? extends Objectable> delta) throws SchemaException, JAXBException {
         ObjectDeltaType objectDeltaType = toObjectDeltaType(delta);
-        Element element = delta.getPrismContext().getPrismJaxbProcessor().marshalObjectToDom(objectDeltaType, SchemaConstants.T_OBJECT_DELTA);
+        Element element = delta.getPrismContext().getJaxbDomHack().marshalJaxbObjectToDom(objectDeltaType, SchemaConstants.T_OBJECT_DELTA);
         return DOMUtil.serializeDOMToString(element);
     }
 
@@ -264,8 +263,8 @@ public class DeltaConvertor {
         if (containingPcd == null) {
             throw new SchemaException("No container definition for " + parentPath + " (while creating delta for " + pcDef + ")");
         }
-        Collection<? extends Item<V>> items = pcDef.getPrismContext().getPrismDomProcessor().
-        						parseContainerItems(containingPcd, propMod.getValue().getAny());
+        Collection<Item<V>> items = pcDef.getPrismContext().getJaxbDomHack().fromAny(propMod.getValue().getAny(), 
+        		containingPcd);
         if (items.size() > 1) {
             throw new SchemaException("Expected presence of a single item (path " + propMod.getPath() + ") in a object modification, but found " + items.size() + " instead");
         }
@@ -356,7 +355,7 @@ public class DeltaConvertor {
 	private static Object toAny(ItemDelta delta, PrismValue value, Document document) throws SchemaException {
 		PrismContext prismContext = delta.getPrismContext();
 		if (prismContext != null) {
-			return delta.getPrismContext().getPrismJaxbProcessor().toAny(value, document);
+			return delta.getPrismContext().getJaxbDomHack().toAny(value);
 		}
 		if (value instanceof PrismPropertyValue<?>) {
 			PrismPropertyValue<?> pval = (PrismPropertyValue<?>)value;

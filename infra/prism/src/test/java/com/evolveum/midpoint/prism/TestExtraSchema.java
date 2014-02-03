@@ -140,35 +140,6 @@ public class TestExtraSchema {
 //		System.out.println(DOMUtil.serializeDOMToString(validationResult.getNode()));
 		
 	}
-	
-	@Test
-	public void testUserExtensionSchemaAsObjectSchema() throws SAXException, IOException, SchemaException {
-		System.out.println("===[ testUserExtensionSchemaAsObjectSchema ]===");
-
-		PrismContext context = constructPrismContext();
-		SchemaRegistry reg = context.getSchemaRegistry();
-		reg.registerPrismSchemasFromDirectory(EXTRA_SCHEMA_DIR);
-		context.initialize();
-
-		// Try to fetch object schema, the extension of UserType should be there
-		PrismSchema schema = reg.getObjectSchema();
-		System.out.println("Object schema:");
-		System.out.println(schema.dump());
-		
-		PrismObjectDefinition<UserType> userDef = schema.findObjectDefinitionByType(USER_TYPE_QNAME);
-		
-		System.out.println("User definition:");
-		System.out.println(userDef.dump());
-		
-		assertUserDefinition(userDef);
-		
-		PrismObjectDefinition<UserType> usedDefByClass = schema.findObjectDefinitionByCompileTimeClass(UserType.class);
-		assertUserDefinition(usedDefByClass);
-		
-		PrismObjectDefinition<UserType> userDefByElement = schema.findObjectDefinitionByElementName(USER_QNAME);
-		assertUserDefinition(userDefByElement);
-		
-	}
 
 	@Test
 	public void testUserExtensionSchemaSchemaRegistry() throws SAXException, IOException, SchemaException {

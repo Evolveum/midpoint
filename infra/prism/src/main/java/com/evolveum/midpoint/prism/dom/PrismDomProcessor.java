@@ -58,8 +58,8 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import com.evolveum.midpoint.prism.util.PrismUtil;
-import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -95,7 +95,7 @@ public class PrismDomProcessor {
 		this.prismContext = prismContext;
 	}
 
-	private PrismJaxbProcessor getJaxbProcessor() {
+	private JaxbTestUtil getJaxbProcessor() {
 		return null;
 	}
 
@@ -534,7 +534,7 @@ public class PrismDomProcessor {
 	public <T> T parsePrismPropertyRealValue(Object valueElement, PrismPropertyDefinition<T> propertyDefinition)
 			throws SchemaException {
 		QName typeName = propertyDefinition.getTypeName();
-		PrismJaxbProcessor jaxbProcessor = getJaxbProcessor();
+		JaxbTestUtil jaxbProcessor = getJaxbProcessor();
 		Object realValue = null;
 		if (valueElement instanceof JAXBElement<?>) {
 			Object jaxbElementValue = ((JAXBElement<?>)valueElement).getValue();

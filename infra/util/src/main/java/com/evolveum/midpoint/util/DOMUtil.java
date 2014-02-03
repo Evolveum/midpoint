@@ -849,7 +849,11 @@ public class DOMUtil {
 
 	public static QName getQName(Node node) {
 		if (node.getLocalName() == null) {
-			return null;
+			if (node.getNodeName() == null) {
+				return null;
+			} else {
+				return new QName(null, node.getNodeName());
+			}
 		}
 		if (node.getPrefix() == null) {
 			return new QName(node.getNamespaceURI(), node.getLocalName());

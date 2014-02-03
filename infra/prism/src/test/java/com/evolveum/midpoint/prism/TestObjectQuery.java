@@ -58,7 +58,7 @@ public class TestObjectQuery {
 	
 	@Test
 	public void testMatchAndFilter() throws Exception{
-		PrismObject user = PrismTestUtil.parseObject(new File("src/test/resources/common/user-jack.xml"));
+		PrismObject user = PrismTestUtil.parseObject(PrismInternalTestUtil.USER_JACK_FILE_XML);
 		ObjectFilter filter = 
 				AndFilter.createAnd(
 						EqualsFilter.createEqual(UserType.F_GIVEN_NAME, user.findProperty(UserType.F_GIVEN_NAME).getDefinition(), StringIgnoreCaseMatchingRule.NAME, "Jack"), 
@@ -70,7 +70,7 @@ public class TestObjectQuery {
 	
 	@Test
 	public void testMatchOrFilter() throws Exception{
-		PrismObject user = PrismTestUtil.parseObject(new File("src/test/resources/common/user-jack.xml"));
+		PrismObject user = PrismTestUtil.parseObject(PrismInternalTestUtil.USER_JACK_FILE_XML);
 		ObjectFilter filter = OrFilter.createOr(
 				EqualsFilter.createEqual(UserType.F_GIVEN_NAME, user.findProperty(UserType.F_GIVEN_NAME).getDefinition(), null, "Jack"), 
 				EqualsFilter.createEqual(UserType.F_GIVEN_NAME, user.findProperty(UserType.F_GIVEN_NAME).getDefinition(), null, "Jackie"));
@@ -81,7 +81,7 @@ public class TestObjectQuery {
 	
 	@Test
 	public void testDontMatchEqualFilter() throws Exception{
-		PrismObject user = PrismTestUtil.parseObject(new File("src/test/resources/common/user-jack.xml"));
+		PrismObject user = PrismTestUtil.parseObject(PrismInternalTestUtil.USER_JACK_FILE_XML);
 		ObjectFilter filter = EqualsFilter.createEqual(UserType.F_GIVEN_NAME, user.findProperty(UserType.F_GIVEN_NAME).getDefinition(), null, "Jackie");
 
 		boolean match = ObjectQuery.match(user, filter, matchingRuleRegistry);
@@ -90,7 +90,7 @@ public class TestObjectQuery {
 	
 	@Test
 	public void testComplexMatch() throws Exception{
-		PrismObject user = PrismTestUtil.parseObject(new File("src/test/resources/common/user-jack.xml"));
+		PrismObject user = PrismTestUtil.parseObject(PrismInternalTestUtil.USER_JACK_FILE_XML);
 //		System.out.println("user given name" + user.asObjectable().getGivenName());
 		System.out.println("definition: " +user.findItem(UserType.F_FAMILY_NAME).getDefinition().dump());
 		ObjectFilter filter = 
@@ -107,7 +107,7 @@ public class TestObjectQuery {
 	
 	@Test
 	public void testPolystringMatchEqualFilter() throws Exception{
-		PrismObject user = PrismTestUtil.parseObject(new File("src/test/resources/common/user-jack.xml"));
+		PrismObject user = PrismTestUtil.parseObject(PrismInternalTestUtil.USER_JACK_FILE_XML);
 		PolyString name = new PolyString("jack", "jack");
 		ObjectFilter filter = EqualsFilter.createEqual(UserType.F_NAME, user.findProperty(UserType.F_NAME).getDefinition(), null, name);
 

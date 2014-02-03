@@ -241,7 +241,7 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		resource.checkConsistence(true, true);
 		
 		// Try to marshal using pure JAXB as a rough test that it is OK JAXB-wise
-		Element resourceDomElement = prismContext.getPrismJaxbProcessor().marshalObjectToDom(resource.asObjectable(), new QName(SchemaConstants.NS_C, "resource"),
+		Element resourceDomElement = prismContext.getPrismJaxbProcessor().marshalJaxbObjectToDom(resource.asObjectable(), new QName(SchemaConstants.NS_C, "resource"),
 				DOMUtil.getDocument());
 		display("Resouce DOM element after JAXB marshall", resourceDomElement);
 	}

@@ -220,6 +220,14 @@
                 	</xsd:sequence>
                 </xsd:complexType>
             </xsd:element>
+            <xsd:element name="object" minOccurs="0" maxOccurs="1">
+                <xsd:complexType>
+                	<xsd:sequence>
+                		<xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+                	</xsd:sequence>
+                	<xsd:anyAttribute namespace="##any" processContents="lax"/>
+                </xsd:complexType>
+            </xsd:element>
         </xsd:sequence>
         <xsd:attribute name="oid" type="xsd:string" use="optional">
             <xsd:annotation>

@@ -132,7 +132,7 @@ public class QueryJaxbConvertor {
 		try{
 			QueryType queryType = new QueryType();
 			if (filter != null){
-				MapXNode filterXnode = QueryConvertor.serializeFilter(filter);
+				MapXNode filterXnode = QueryConvertor.serializeFilter(filter, prismContext);
 				Element filterElement = prismContext.getParserDom().serializeToElement(filterXnode, QueryConvertor.FILTER_ELEMENT_NAME);
 				queryType.setFilter(filterElement);
 			}

@@ -82,10 +82,9 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 	private List<SchemaDescription> schemaDescriptions;
 	private Map<String,SchemaDescription> parsedSchemas;
 	private Map<QName,ComplexTypeDefinition> extensionSchemas;
-	private PrismSchema objectSchema = null;
 	private boolean initialized = false;
-	private String objectSchemaNamespace;
 	private DynamicNamespacePrefixMapper namespacePrefixMapper;
+	private String defaultNamespace;
     @Autowired(required = true)
 	private PrismContext prismContext;
 	
@@ -96,14 +95,6 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		this.schemaDescriptions = new ArrayList<SchemaDescription>();
 		this.parsedSchemas = new HashMap<String, SchemaDescription>();
 		this.extensionSchemas = new HashMap<QName, ComplexTypeDefinition>();
-	}
-	
-	public String getObjectSchemaNamespace() {
-		return objectSchemaNamespace;
-	}
-
-	public void setObjectSchemaNamespace(String objectSchemaNamespace) {
-		this.objectSchemaNamespace = objectSchemaNamespace;
 	}
 	
 	public DynamicNamespacePrefixMapper getNamespacePrefixMapper() {
@@ -128,6 +119,14 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 
 	public void setBuiltinSchemaResolver(EntityResolver builtinSchemaResolver) {
 		this.builtinSchemaResolver = builtinSchemaResolver;
+	}
+
+	public String getDefaultNamespace() {
+		return defaultNamespace;
+	}
+
+	public void setDefaultNamespace(String defaultNamespace) {
+		this.defaultNamespace = defaultNamespace;
 	}
 
 	/**
@@ -410,33 +409,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		}
 		return schemas;
 	}
-	
-	/**
-	 * Returns a schema that contains all the object definitions augmented with
-	 * extension definitions as appropriate. This is the method intended for common
-	 * usage in the code.
-	 * 
-	 * The returned schema is considered to be immutable. Any attempt to change it
-	 * may lead to unexpected results. 
-	 */
-	@Deprecated
-	public PrismSchema getObjectSchema() {
-		if (!initialized) {
-			throw new IllegalStateException("Attempt to get common schema from uninitialized Schema Registry");
-		}
-		if (objectSchema == null) {
-			initializeObjectSchema();
-		}
-		return objectSchema;
-	}
-	
-	private void initializeObjectSchema() {
-		if (objectSchemaNamespace == null) {
-			throw new IllegalArgumentException("Object schema namespace is not set");
-		}
-		objectSchema = parsedSchemas.get(objectSchemaNamespace).getSchema();
-	}
-	
+		
 	public Collection<Package> getCompileTimePackages() {
 		Collection<Package> compileTimePackages = new ArrayList<Package>(schemaDescriptions.size());
 		for (SchemaDescription desc : schemaDescriptions) {
@@ -701,14 +674,11 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		return compileTimeClass;
 	}
 
-	public PrismSchema findSchemaByCompileTimeClass(Class<? extends Objectable> compileTimeClass) {
+	public PrismSchema findSchemaByCompileTimeClass(Class<?> compileTimeClass) {
 		Package compileTimePackage = compileTimeClass.getPackage();
 		for (SchemaDescription desc: schemaDescriptions) {
 			if (compileTimePackage.equals(desc.getCompileTimeClassesPackage())) {
 				PrismSchema schema = desc.getSchema();
-				if (schema.getNamespace().equals(objectSchemaNamespace)) {
-					return getObjectSchema();
-				}
 				return schema;
 			}
 		}
@@ -789,7 +759,7 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		return schema.findObjectDefinitionByElementName(elementName);
 	}
 	
-	public PrismContainerDefinition findContainerDefinitionByType(QName typeName) {
+	public <C extends Containerable> PrismContainerDefinition<C> findContainerDefinitionByType(QName typeName) {
 		PrismSchema schema = findSchemaByNamespace(typeName.getNamespaceURI());
 		if (schema == null) {
 			return null;
@@ -797,12 +767,20 @@ public class SchemaRegistry implements LSResourceResolver, EntityResolver, Dumpa
 		return schema.findContainerDefinitionByType(typeName);
 	}
 	
-	public PrismContainerDefinition findContainerDefinitionByElementName(QName elementName) {
+	public <C extends Containerable> PrismContainerDefinition<C> findContainerDefinitionByElementName(QName elementName) {
 		PrismSchema schema = findSchemaByNamespace(elementName.getNamespaceURI());
 		if (schema == null) {
 			return null;
 		}
 		return schema.findContainerDefinitionByElementName(elementName);
+	}
+	
+	public <C extends Containerable> PrismContainerDefinition<C> findContainerDefinitionByCompileTimeClass(Class<C> compileTimeClass) {
+		PrismSchema schema = findSchemaByCompileTimeClass(compileTimeClass);
+		if (schema == null) {
+			return null;
+		}
+		return schema.findContainerDefinitionByCompileTimeClass(compileTimeClass);
 	}
 
     public ItemDefinition findItemDefinitionByElementName(QName elementName) {

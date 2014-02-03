@@ -63,6 +63,7 @@ import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismContextFactory;
@@ -221,7 +222,6 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 		schemaRegistry.registerPrismSchemasFromDirectory(SCHEMA_DIR);
 		prefixMapper.registerPrefix(PrismConstants.NS_ANNOTATION, PrismConstants.PREFIX_NS_ANNOTATION, false);
 		prefixMapper.registerPrefix(PrismInternalTestUtil.NS_WEAPONS, PrismInternalTestUtil.NS_WEAPONS_PREFIX, false);
-		schemaRegistry.setObjectSchemaNamespace(NS_FOO);
 		PrismContext context = PrismContext.create(schemaRegistry);
 		return context;
 	}
@@ -426,5 +426,9 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 			int maxOccurs) {
 		QName qName = new QName(NS_FOO, contName);
 		PrismAsserts.assertDefinition(container.getDefinition(), qName, xsdType, minOccurs, maxOccurs);
+	}
+	
+	public static PrismSchema getFooSchema(PrismContext prismContext) {
+		return prismContext.getSchemaRegistry().findSchemaByNamespace(NS_FOO);
 	}
 }

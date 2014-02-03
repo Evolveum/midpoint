@@ -18,7 +18,6 @@ package com.evolveum.midpoint.prism;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
-
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertFalse;
 import static org.testng.AssertJUnit.assertNotNull;
@@ -49,6 +48,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
@@ -67,8 +67,9 @@ public class TestPrismParsing {
 	}
 	
 	@Test
-	public void testPrismParseFile() throws SchemaException, SAXException, IOException {
-		System.out.println("===[ testPrismParseFile ]===");
+	public void testPrismParseFile() throws Exception {
+		final String TEST_NAME = "testPrismParseFile";
+		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();
@@ -85,8 +86,9 @@ public class TestPrismParsing {
 	}
 	
 	@Test
-	public void testPrismParseFileObject() throws SchemaException, SAXException, IOException {
-		System.out.println("===[ testPrismParseFileObject ]===");
+	public void testPrismParseFileObject() throws Exception {
+		final String TEST_NAME = "testPrismParseFileObject";
+		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();
@@ -103,8 +105,9 @@ public class TestPrismParsing {
 	}
 	
 	@Test
-	public void testPrismParseDom() throws SchemaException, SAXException, IOException {
-		System.out.println("===[ testPrismParseDom ]===");
+	public void testPrismParseDom() throws Exception {
+		final String TEST_NAME = "testPrismParseDom";
+		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		Document document = DOMUtil.parseFile(USER_JACK_FILE_XML);
@@ -125,20 +128,23 @@ public class TestPrismParsing {
 
 	
 	@Test
-	public void testRoundTrip() throws SchemaException, SAXException, IOException {
-		System.out.println("===[ testRoundTrip ]===");
+	public void testRoundTrip() throws Exception {
+		final String TEST_NAME = "testRoundTrip";
+		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		
 		roundTrip(USER_JACK_FILE_XML);
 	}
 
 	@Test
-	public void testRoundTripObject() throws SchemaException, SAXException, IOException {
-		System.out.println("===[ testRoundTripObject ]===");
+	public void testRoundTripObject() throws Exception {
+		final String TEST_NAME = "testRoundTripObject";
+		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		
 		roundTrip(USER_JACK_OBJECT_FILE);
 	}
 
 	private void roundTrip(File file) throws SchemaException, SAXException, IOException {
+		
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();
 		PrismObject<UserType> originalUser = prismContext.parseObject(file);
@@ -173,8 +179,9 @@ public class TestPrismParsing {
 	}
 	
 	@Test
-	public void testPrismParseFileAdhoc() throws SchemaException, SAXException, IOException {
-		System.out.println("===[ testPrismParseFileAdhoc ]===");
+	public void testPrismParseFileAdhoc() throws Exception {
+		final String TEST_NAME = "testPrismParseFileAdhoc";
+		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();
@@ -191,8 +198,9 @@ public class TestPrismParsing {
 	}
 	
 	@Test
-	public void testPrismParseDomAdhoc() throws SchemaException, SAXException, IOException {
-		System.out.println("===[ testPrismParseDomAdhoc ]===");
+	public void testPrismParseDomAdhoc() throws Exception {
+		final String TEST_NAME = "testPrismParseDomAdhoc";
+		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		Document document = DOMUtil.parseFile(USER_JACK_ADHOC_FILE);
@@ -212,8 +220,9 @@ public class TestPrismParsing {
 	}
 	
 	@Test
-	public void testRoundTripAdhoc() throws SchemaException, SAXException, IOException {
-		System.out.println("===[ testRoundTripAdhoc ]===");
+	public void testRoundTripAdhoc() throws Exception {
+		final String TEST_NAME = "testRoundTripAdhoc";
+		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		
 		roundTripAdhoc(USER_JACK_ADHOC_FILE);
 	}
@@ -254,8 +263,9 @@ public class TestPrismParsing {
 	
 
 	@Test
-	public void testMeleeContext() throws SchemaException, SAXException, IOException {
-		System.out.println("===[ testMeleeContext ]===");
+	public void testMeleeContext() throws Exception {
+		final String TEST_NAME = "testMeleeContext";
+		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();
@@ -314,8 +324,9 @@ public class TestPrismParsing {
 	}
 	
 	@Test
-	public void testUserWill() throws SchemaException, SAXException, IOException {
-		System.out.println("===[ testUserWill ]===");
+	public void testUserWill() throws Exception {
+		final String TEST_NAME = "testUserWill";
+		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();
@@ -332,8 +343,9 @@ public class TestPrismParsing {
 	}
 	
 	@Test
-	public void testUserWillRoundTrip() throws SchemaException, SAXException, IOException {
-		System.out.println("===[ testUserWillRoundTrip ]===");
+	public void testUserWillRoundTrip() throws Exception {
+		final String TEST_NAME = "testUserWillRoundTrip";
+		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();
@@ -399,7 +411,7 @@ public class TestPrismParsing {
 		user.checkConsistence();
 		user.assertDefinitions("test");
 		assertUserWillExtension(user);
-		assertVisitor(user,44);
+		assertVisitor(user,55);
 	}
 	
 private void assertUserWillExtension(PrismObject<UserType> user) {
@@ -458,12 +470,9 @@ private void assertUserWillExtension(PrismObject<UserType> user) {
         PrismAsserts.assertDefinition(durationTypePropertyDef, EXTENSION_DURATION_TYPE_ELEMENT, DOMUtil.XSD_DURATION, 0, -1);
         assertNull("'Indexed' attribute on 'longType' property is not null", durationTypePropertyDef.isIndexed());
         
-        PrismProperty<?> locationsType = extension.findProperty(EXTENSION_LOCATIONS_ELEMENT);
-//        TODO
-//        PrismAsserts.assertPropertyValue(locationsType, XmlTypeConverter.createXMLGregorianCalendar(1975, 5, 30, 22, 30, 0));
-        PrismPropertyDefinition localtionsPropertyDef = locationsType.getDefinition();
-        PrismAsserts.assertDefinition(localtionsPropertyDef, EXTENSION_LOCATIONS_ELEMENT, EXTENSION_LOCATIONS_TYPE_QNAME, 0, -1);
-        assertNull("'Indexed' attribute on 'locations' property is not null", localtionsPropertyDef.isIndexed());
+        PrismContainer<?> locationsType = extension.findContainer(EXTENSION_LOCATIONS_ELEMENT);
+        PrismContainerDefinition<?> localtionsDef = locationsType.getDefinition();
+        PrismAsserts.assertDefinition(localtionsDef, EXTENSION_LOCATIONS_ELEMENT, EXTENSION_LOCATIONS_TYPE_QNAME, 0, -1);
         
         PrismProperty<String> ignoredType = extension.findProperty(EXTENSION_IGNORED_TYPE_ELEMENT);
 		PrismAsserts.assertPropertyValue(ignoredType, "this is just a fiction");

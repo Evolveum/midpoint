@@ -75,15 +75,14 @@
     </credentials>
      -->
      
-    <accountRef oid="c0c010c0-d34d-b33f-f00d-aaaaaaaa1111" type="AccountShadowType"/>
+    <accountRef oid="c0c010c0-d34d-b33f-f00d-aaaaaaaa1111" type="AccountType"/>
     
-    <accountRef oid="c0c010c0-d34d-b33f-f00d-aaaaaaaa1112" type="AccountShadowType">
+    <accountRef oid="c0c010c0-d34d-b33f-f00d-aaaaaaaa1112" type="AccountType">
     	<description>This is a reference with a filter</description>
     	<filter>
     		<equal>
-    			<value>
-    				<name>captain</name>
-    			</value>
+    			<path>name</path>
+    			<value>captain</value>
     		</equal>
     	</filter>
     </accountRef>

@@ -17,7 +17,7 @@
 package com.evolveum.midpoint.prism.xjc;
 
 import com.evolveum.midpoint.prism.*;
-import com.evolveum.midpoint.prism.parser.DOMParser;
+import com.evolveum.midpoint.prism.parser.DomParser;
 import com.evolveum.midpoint.prism.parser.QueryConvertor;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
@@ -414,7 +414,7 @@ public final class PrismForJAXBUtil {
 	}
 	
 	public static void setReferenceFilterElement(PrismReferenceValue rval, Element filterElement) {
-		DOMParser parser = getDomParser(rval);
+		DomParser parser = getDomParser(rval);
 		try {
 			XNode filterXNode = parser.parseElement(filterElement);
 			ObjectFilter filter = QueryConvertor.parseFilter(filterXNode, rval.getPrismContext());
@@ -426,10 +426,14 @@ public final class PrismForJAXBUtil {
 
 	public static Element getReferenceFilterElement(PrismReferenceValue rval) {
 		Element filterElement;
-		DOMParser parser = getDomParser(rval);
+		PrismContext prismContext = rval.getPrismContext();
+		if (prismContext == null) {
+			throw new IllegalStateException("Cannot retrieve filter element value from prism that has not been adopted");
+		}
+		DomParser parser = getDomParser(rval);
 		try {
 			ObjectFilter filter = rval.getFilter();
-			MapXNode filterXmap = QueryConvertor.serializeFilter(filter);
+			MapXNode filterXmap = QueryConvertor.serializeFilter(filter, prismContext);
 			filterElement = parser.serializeToElement(filterXmap, QueryConvertor.FILTER_ELEMENT_NAME);
 		} catch (SchemaException e) {
 			throw new SystemException("Error serializing filter: "+e.getMessage(),e);
@@ -437,13 +441,13 @@ public final class PrismForJAXBUtil {
 		return filterElement;
 	}
 
-	private static DOMParser getDomParser(PrismValue pval) {
+	private static DomParser getDomParser(PrismValue pval) {
 		PrismContext prismContext = pval.getPrismContext();
 		if (prismContext != null) {
 			return prismContext.getParserDom();
 		} else {
 			SchemaRegistry schemaRegistry = prismContext.getSchemaRegistry();
-			DOMParser parser = new DOMParser(schemaRegistry);
+			DomParser parser = new DomParser(schemaRegistry);
 			return parser;
 		}
 	}

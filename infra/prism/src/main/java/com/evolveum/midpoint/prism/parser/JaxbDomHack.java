@@ -16,43 +16,97 @@
 package com.evolveum.midpoint.prism.parser;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
+import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.Validate;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
 import com.evolveum.midpoint.prism.ItemDefinition;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContainer;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContainerValue;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.midpoint.util.logging.Trace;
+import com.evolveum.midpoint.util.logging.TraceManager;
 
+/**
+ * A set of ugly hacks that are needed for prism and "real" JAXB to coexist. We hate it be we need it.
+ * This is a mix of DOM and JAXB code that allows the use of "any" methods on JAXB-generated objects.
+ * Prism normally does not use of of that. But JAXB code (such as JAX-WS) can invoke it and therefore
+ * it has to return correct DOM/JAXB elements as expected.
+ *  
+ * @author Radovan Semancik
+ */
 public class JaxbDomHack {
 	
-	private DOMParser domParser;
+	private static final Trace LOGGER = TraceManager.getTrace(JaxbDomHack.class);
+	
+	private PrismContext prismContext;
+	private DomParser domParser;
+	private JAXBContext jaxbContext;
 
-	public JaxbDomHack(DOMParser domParser) {
+	public JaxbDomHack(DomParser domParser, PrismContext prismContext) {
 		super();
 		this.domParser = domParser;
+		this.prismContext = prismContext;
+		initializeJaxbContext();
 	}
 
+	private void initializeJaxbContext() {
+		StringBuilder sb = new StringBuilder();
+		Iterator<Package> iterator = prismContext.getSchemaRegistry().getCompileTimePackages().iterator();
+		while (iterator.hasNext()) {
+			Package jaxbPackage = iterator.next();
+			sb.append(jaxbPackage.getName());
+			if (iterator.hasNext()) {
+				sb.append(":");
+			}
+		}
+		String jaxbPaths = sb.toString();
+		if (jaxbPaths.isEmpty()) {
+			LOGGER.debug("No JAXB paths, skipping creation of JAXB context");
+		} else {
+			try {
+				jaxbContext = JAXBContext.newInstance(jaxbPaths);
+			} catch (JAXBException ex) {
+				throw new SystemException("Couldn't create JAXBContext for: " + jaxbPaths, ex);
+			}
+		}
+	}
+	
+	/**
+	 * This is used in a form of "fromAny" to parse elements from a JAXB getAny method to prism. 
+	 */
 	public <V extends PrismValue,C extends Containerable> Item<V> parseRawElement(Object element, PrismContainerDefinition<C> definition) throws SchemaException {
 		Validate.notNull(definition, "Attempt to parse raw element in a container without definition");
 		
@@ -65,7 +119,7 @@ public class JaxbDomHack {
 		Item<V> subItem;
 		if (element instanceof Element) {
 			// DOM Element
-			DOMParser domParser = prismContext.getParserDom();
+			DomParser domParser = prismContext.getParserDom();
 			XNode xnode = domParser.parseElement((Element)element);
 			subItem = prismContext.getXnodeProcessor().parseItem(xnode, elementName, itemDefinition);
 		} else if (element instanceof JAXBElement<?>) {
@@ -99,7 +153,29 @@ public class JaxbDomHack {
 		}	
 		return subItem;
 	}
+	
+	public <V extends PrismValue, C extends Containerable> Collection<Item<V>> fromAny(List<Object> anyObjects, PrismContainerDefinition<C> definition) throws SchemaException {
+		Collection<Item<V>> items = new ArrayList<>();
+		for (Object anyObject: anyObjects) {
+			Item<V> newItem = parseRawElement(anyObject, definition);
+			boolean merged = false;
+			for (Item<V> existingItem: items) {
+				if (newItem.getElementName().equals(existingItem.getElementName())) {
+					existingItem.merge(newItem);
+					merged = true;
+					break;
+				}
+			}
+			if (!merged) {
+				items.add(newItem);
+			}
+		}
+		return items;
+	}
 
+	/**
+	 * Serializes prism value to JAXB "any" format as returned by JAXB getAny() methods. 
+	 */
 	public Object toAny(PrismValue value) throws SchemaException {
 		Document document = DOMUtil.getDocument();
 		if (value == null) {
@@ -135,5 +211,62 @@ public class JaxbDomHack {
     	}
         return xmlValue;
 	}
+
+	public <O extends Objectable> PrismObject<O> parseObjectFromJaxb(Object objectElement) throws SchemaException {
+		if (objectElement instanceof Element) {
+			// DOM
+			XNode objectXNode = domParser.parseElement((Element)objectElement);
+			return prismContext.getXnodeProcessor().parseObject(objectXNode);
+		} else if (objectElement instanceof JAXBElement<?>) {
+			O jaxbValue = ((JAXBElement<O>)objectElement).getValue();
+			prismContext.adopt(jaxbValue);
+			return jaxbValue.asPrismObject();
+		} else {
+			throw new IllegalArgumentException("Unknown element type "+objectElement.getClass());
+		}
+	}
 		
+	public <O extends Objectable> Element serializeObjectToJaxb(PrismObject<O> object) throws SchemaException {
+		RootXNode xroot = prismContext.getXnodeProcessor().serializeObject(object);
+		return domParser.serializeToElement(xroot);
+	}
+	
+	public <T> Element marshalJaxbObjectToDom(T jaxbObject, QName elementQName) throws JAXBException {
+        return marshalJaxbObjectToDom(jaxbObject, elementQName, (Document) null);
+    }
+	
+	public <T> Element marshalJaxbObjectToDom(T jaxbObject, QName elementQName, Document doc) throws JAXBException {
+		if (doc == null) {
+			doc = DOMUtil.getDocument();
+		}
+
+		JAXBElement<T> jaxbElement = new JAXBElement<T>(elementQName, (Class<T>) jaxbObject.getClass(),
+				jaxbObject);
+		Element element = doc.createElementNS(elementQName.getNamespaceURI(), elementQName.getLocalPart());
+		marshalElementToDom(jaxbElement, element);
+
+		return (Element) element.getFirstChild();
+	}
+	
+	private void marshalElementToDom(JAXBElement<?> jaxbElement, Node parentNode) throws JAXBException {
+		createMarshaller(null).marshal(jaxbElement, parentNode);		
+	}
+	
+	private Marshaller createMarshaller(Map<String, Object> jaxbProperties) throws JAXBException {
+		Marshaller marshaller = jaxbContext.createMarshaller();
+		// set default properties
+		marshaller.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
+		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+		DynamicNamespacePrefixMapper namespacePrefixMapper = prismContext.getSchemaRegistry().getNamespacePrefixMapper().clone();
+		namespacePrefixMapper.setAlwaysExplicit(true);
+		marshaller.setProperty("com.sun.xml.bind.namespacePrefixMapper", namespacePrefixMapper);
+		// set custom properties
+		if (jaxbProperties != null) {
+			for (Entry<String, Object> property : jaxbProperties.entrySet()) {
+				marshaller.setProperty(property.getKey(), property.getValue());
+			}
+		}
+
+		return marshaller;
+	}
 }

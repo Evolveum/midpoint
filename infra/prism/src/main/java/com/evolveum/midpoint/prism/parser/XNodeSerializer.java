@@ -15,6 +15,8 @@
  */
 package com.evolveum.midpoint.prism.parser;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import javax.xml.bind.JAXBElement;
@@ -46,9 +48,9 @@ import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
+import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
-import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.prism.xnode.ListXNode;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
@@ -102,6 +104,18 @@ public class XNodeSerializer {
 		return xmap;
 	}
 	
+	public <C extends Containerable> RootXNode serializeContainerValueRoot(PrismContainerValue<C> containerVal) throws SchemaException {
+		PrismContainerable<C> parent = containerVal.getParent();
+		if (parent == null) {
+			throw new IllegalArgumentException("Container value "+containerVal+" does not have a parent, cannot serialize");
+		}
+		PrismContainerDefinition<C> definition = parent.getDefinition();
+		MapXNode xmap = serializeContainerValue(containerVal, definition);
+		RootXNode xroot = new RootXNode(definition.getName());
+		xroot.setSubnode(xmap);
+		return xroot;
+	}
+	
 	private <C extends Containerable> MapXNode serializeContainerValue(PrismContainerValue<C> containerVal, PrismContainerDefinition<C> containerDefinition) throws SchemaException {
 		MapXNode xmap = new MapXNode();
 		serializeContainerValue(xmap, containerVal, containerDefinition);
@@ -113,8 +127,28 @@ public class XNodeSerializer {
 		if (id != null) {
 			xmap.put(XNode.KEY_CONTAINER_ID, createPrimitiveXNodeAttr(id, DOMUtil.XSD_LONG));
 		}
+		Collection<QName> serializedItems = new ArrayList<>();
+		if (containerDefinition != null) {
+			// We have to serialize in the definition order. Some data formats (XML) are
+			// ordering-sensitive. We need to keep that ordering otherwise the resulting
+			// document won't pass schema validation
+			for (ItemDefinition itemDef: containerDefinition.getDefinitions()) {
+				QName elementName = itemDef.getName();
+				Item<?> item = containerVal.findItem(elementName);
+				if (item != null) {
+					XNode xsubnode = serializeItem(item);
+					xmap.put(elementName, xsubnode);
+					serializedItems.add(elementName);
+				}
+			}
+		}
+		// There are some cases when we do not have list of all elements in a container.
+		// E.g. in run-time schema. Therefore we must also iterate over items and not just item definitions.
 		for (Item<?> item: containerVal.getItems()) {
 			QName elementName = item.getElementName();
+			if (serializedItems.contains(elementName)) {
+				continue;
+			}
 			XNode xsubnode = serializeItem(item);
 			xmap.put(elementName, xsubnode);
 		}

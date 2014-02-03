@@ -45,8 +45,14 @@
 		<ext:durationType>P17Y3M2D</ext:durationType>
 		
 		<ext:locations>
-			<ext:location key="sk">Slovakia</ext:location>
-			<ext:location key="hr">Croatia</ext:location>
+			<ext:location>
+				<ext:key>sk</ext:key>
+				<ext:value>Slovakia</ext:value>
+			</ext:location>
+			<ext:location>
+				<ext:key>hr</ext:key>
+				<ext:value>Croatia</ext:value>
+			</ext:location>
 		</ext:locations>
 		
 		<ext:ignoredType>this is just a fiction</ext:ignoredType>

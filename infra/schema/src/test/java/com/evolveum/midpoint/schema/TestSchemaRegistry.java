@@ -90,7 +90,7 @@ public class TestSchemaRegistry {
 		PrismContext context = factory.createInitializedPrismContext();
 		SchemaRegistry schemaRegistry = context.getSchemaRegistry();
 		
-		PrismSchema commonSchema = schemaRegistry.getObjectSchema();
+		PrismSchema commonSchema = schemaRegistry.findSchemaByNamespace(SchemaConstants.NS_C);
 		assertNotNull("No parsed common schema", commonSchema);
 		System.out.println("Parsed common schema:");
 		System.out.println(commonSchema.dump());

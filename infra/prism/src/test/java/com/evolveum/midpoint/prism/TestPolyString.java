@@ -82,7 +82,7 @@ public class TestPolyString {
 		
 		// GIVEN
 		PrismContext ctx = constructInitializedPrismContext();
-		PrismObjectDefinition<UserType> userDefinition = ctx.getSchemaRegistry().getObjectSchema().findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
+		PrismObjectDefinition<UserType> userDefinition = getFooSchema(ctx).findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
 		PrismObject<UserType> user = userDefinition.instantiate();
 
 		String orig = "Ľala ho papľuha";

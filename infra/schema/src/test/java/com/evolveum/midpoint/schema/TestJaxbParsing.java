@@ -223,7 +223,7 @@ public class TestJaxbParsing {
         PrismContext prismContext = PrismTestUtil.getPrismContext();
         Map<String, Object> properties = new HashMap<String, Object>();
         properties.put(Marshaller.JAXB_FORMATTED_OUTPUT, false);
-        String xml = prismContext.getPrismJaxbProcessor().marshalElementToString(
+        String xml = PrismTestUtil.getJaxbUtil().marshalElementToString(
                 new JAXBElement<Object>(new QName("http://www.example.com", "custom"), Object.class, delta), properties);
         assertNotNull(xml);
     }

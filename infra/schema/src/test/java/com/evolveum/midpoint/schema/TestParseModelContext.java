@@ -22,8 +22,8 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
+import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
-import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -34,6 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskExecutionStatus
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
 import org.w3c.dom.Document;
@@ -43,6 +44,7 @@ import org.xml.sax.SAXException;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.namespace.QName;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -67,14 +69,15 @@ public class TestParseModelContext {
 	
 	
 	@Test
-	public void testParseModelContextJaxb() throws Exception {
-		System.out.println("===[ testParseModelContextJaxb ]===");
+	public void testParseModelContextPrism() throws Exception {
+		System.out.println("===[ testParseModelContextPrism ]===");
 
 		// GIVEN
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 		
 		// WHEN
-        PrismContainer<LensContextType> lensContextType = prismContext.getPrismJaxbProcessor().unmarshalSingleValueContainer(MODEL_CONTEXT_FILE, LensContextType.class);
+        PrismContainer<LensContextType> lensContextType = prismContext.parseContainer(MODEL_CONTEXT_FILE, 
+        		LensContextType.class, PrismContext.LANG_XML);
 
         // THEN
         System.out.println("Parsed LensContextType: " + lensContextType.getValue().asContainerable());

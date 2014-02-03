@@ -33,7 +33,7 @@ import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.parser.DOMParser;
+import com.evolveum.midpoint.prism.parser.DomParser;
 import com.evolveum.midpoint.prism.parser.JaxbDomHack;
 import com.evolveum.midpoint.prism.parser.Parser;
 import com.evolveum.midpoint.prism.parser.PrismBeanConverter;
@@ -43,7 +43,9 @@ import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
 import com.evolveum.midpoint.prism.schema.SchemaDefinitionFactory;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
+import com.evolveum.midpoint.prism.util.JaxbTestUtil;
+import com.evolveum.midpoint.prism.xnode.MapXNode;
+import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -69,7 +71,7 @@ public class PrismContext {
 	private Map<String, Parser> parserMap;
 	
 	// We need to keep this because of deprecated methods and various hacks
-	private DOMParser parserDom;
+	private DomParser parserDom;
 	private JaxbDomHack jaxbDomHack;
 
 	private PrismContext() {
@@ -85,11 +87,11 @@ public class PrismContext {
 		prismContext.beanConverter = new PrismBeanConverter(schemaRegistry);
 
 		prismContext.parserMap = new HashMap<String, Parser>();
-		DOMParser parserDom = new DOMParser(schemaRegistry);
+		DomParser parserDom = new DomParser(schemaRegistry);
 		prismContext.parserMap.put(LANG_XML, parserDom);
 		prismContext.parserDom = parserDom;
 		
-		prismContext.jaxbDomHack = new JaxbDomHack(parserDom);
+		prismContext.jaxbDomHack = new JaxbDomHack(parserDom, prismContext);
 		
 		return prismContext;
 	}
@@ -124,7 +126,7 @@ public class PrismContext {
 	/**
 	 * WARNING! This is not really public method. It should NOT not used outside the prism implementation.
 	 */
-	public DOMParser getParserDom() {
+	public DomParser getParserDom() {
 		return parserDom;
 	}
 
@@ -154,18 +156,36 @@ public class PrismContext {
 	public void setDefaultPolyStringNormalizer(PolyStringNormalizer defaultPolyStringNormalizer) {
 		this.defaultPolyStringNormalizer = defaultPolyStringNormalizer;
 	}
-	
+
 	private Parser getParser(String language) {
 		return parserMap.get(language);
 	}
 
+	private Parser getParserNotNull(String language) {
+		Parser parser = getParser(language);		
+		if (parser == null) {
+			throw new SystemException("No parser for language '"+language+"'");
+		}
+		return parser;
+	}
+
 	/**
-	 * Parses a DOM object and creates a prism from it. It copies data from the original object to the prism.
+	 * Parses a DOM object and creates a prism from it.
 	 */
 	@Deprecated
 	public <T extends Objectable> PrismObject<T> parseObject(Element objectElement) throws SchemaException {
 		XNode xnode = parserDom.parseElement(objectElement);
-		return xnodeProcessor.parseObject(xnode);
+		RootXNode xroot;
+		if (xnode instanceof RootXNode) {
+			xroot = (RootXNode)xnode;
+		} else if (xnode instanceof MapXNode) {
+			MapXNode xmap = (MapXNode)xnode;
+			xroot = new RootXNode(DOMUtil.getQName(objectElement));
+			xroot.setSubnode(xmap);
+		} else {
+			throw new SchemaException("Cannot parse object from "+xnode);
+		}
+		return xnodeProcessor.parseObject(xroot);
 	}
 
 	/**
@@ -191,10 +211,7 @@ public class PrismContext {
 	 * Parses a file and creates a prism from it.
 	 */
 	public <T extends Objectable> PrismObject<T> parseObject(File file, String language) throws SchemaException, IOException {
-		Parser parser = getParser(language);
-		if (parser == null) {
-			throw new SystemException("No parser for language '"+language+"'");
-		}
+		Parser parser = getParserNotNull(language);
 		XNode xnode = parser.parse(file);
 		return xnodeProcessor.parseObject(xnode);
 	}
@@ -223,14 +240,35 @@ public class PrismContext {
 	 * Parses a string and creates a prism from it. Used mostly for testing, but can also be used for built-in editors, etc.
 	 */
 	public <T extends Objectable> PrismObject<T> parseObject(String dataString, String language) throws SchemaException {
-		Parser parser = getParser(language);
-		if (parser == null) {
-			throw new SystemException("No parser for language '"+language+"'");
-		}
+		Parser parser = getParserNotNull(language);
 		XNode xnode = parser.parse(dataString);
 		return xnodeProcessor.parseObject(xnode);
 	}
-
+	
+	public <C extends Containerable> PrismContainer<C> parseContainer(File file, Class<C> type, String language) throws SchemaException, IOException {
+		Parser parser = getParserNotNull(language);
+		XNode xnode = parser.parse(file);
+		return xnodeProcessor.parseContainer(xnode, type);
+	}
+	
+	public <C extends Containerable> PrismContainer<C> parseContainer(File file, PrismContainerDefinition<C> containerDef, String language) throws SchemaException, IOException {
+		Parser parser = getParserNotNull(language);
+		XNode xnode = parser.parse(file);
+		return xnodeProcessor.parseContainer(xnode, containerDef);
+	}
+	
+	public <C extends Containerable> PrismContainer<C> parseContainer(String dataString, Class<C> type, String language) throws SchemaException {
+		Parser parser = getParserNotNull(language);
+		XNode xnode = parser.parse(dataString);
+		return xnodeProcessor.parseContainer(xnode, type);
+	}
+	
+	public <C extends Containerable> PrismContainer<C> parseContainer(String dataString, PrismContainerDefinition<C> containerDef, String language) throws SchemaException {
+		Parser parser = getParserNotNull(language);
+		XNode xnode = parser.parse(dataString);
+		return xnodeProcessor.parseContainer(xnode, containerDef);
+	}
+	
 	/**
 	 * Set up the specified object with prism context instance and schema definition.
 	 */
@@ -271,18 +309,23 @@ public class PrismContext {
 		throw new UnsupportedOperationException();
 	}
 
-	public <O extends Objectable> String serializeObjectToString(PrismObject<O> object, String language) {
-		Parser parser = getParser(language);
-		if (parser == null) {
-			throw new SystemException("No parser for language '"+language+"'");
-		}
-		throw new UnsupportedOperationException();
+	public <O extends Objectable> String serializeObjectToString(PrismObject<O> object, String language) throws SchemaException {
+		Parser parser = getParserNotNull(language);
+		RootXNode xroot = xnodeProcessor.serializeObject(object);
+		return parser.serializeToString(xroot);
+	}
+	
+	public <C extends Containerable> String serializeContainerValueToString(PrismContainerValue<C> cval, QName elementName, String language) throws SchemaException {
+		Parser parser = getParserNotNull(language);
+		
+		RootXNode xroot = xnodeProcessor.serializeContainerValueRoot(cval);
+		return parser.serializeToString(xroot);
 	}
 
 	@Deprecated
-	public <O extends Objectable> Element serializeToDom(PrismObject<O> object) {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException();
+	public <O extends Objectable> Element serializeToDom(PrismObject<O> object) throws SchemaException {
+		RootXNode xroot = xnodeProcessor.serializeObject(object);
+		return parserDom.serializeToElement(xroot);
 	}
 
     /**

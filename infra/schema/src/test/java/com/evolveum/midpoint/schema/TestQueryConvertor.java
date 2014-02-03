@@ -37,6 +37,7 @@ import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.util.PrismContextFactory;
+import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.schema.constants.MidPointConstants;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -78,7 +79,7 @@ public class TestQueryConvertor {
 
 		for (File file : queriesToTest) {
 			LOGGER.info("Start to convert query {} ", file.getName());
-			QueryType queryType = prismContext.getPrismJaxbProcessor().unmarshalObject(file, QueryType.class);
+			QueryType queryType = PrismTestUtil.getJaxbUtil().unmarshalObject(file, QueryType.class);
 			LOGGER.info("===[ query type parsed ]===");
 			ObjectQuery query = null;
 			try {
@@ -109,7 +110,7 @@ public class TestQueryConvertor {
 	public void testConnectorQuery() throws Exception {
 		LOGGER.info("===[ testConnectorQuery ]===");
 		File connectorQueryToTest = new File(TEST_DIR + "/query-connector-by-type.xml");
-		QueryType queryType = prismContext.getPrismJaxbProcessor().unmarshalObject(connectorQueryToTest,
+		QueryType queryType = PrismTestUtil.getJaxbUtil().unmarshalObject(connectorQueryToTest,
 				QueryType.class);
 		LOGGER.info("===[ query type parsed ]===");
 		ObjectQuery query = null;
@@ -153,7 +154,7 @@ public class TestQueryConvertor {
 	public void testGenericQuery() throws Exception {
 		LOGGER.info("===[ testGenericQuery ]===");
 		File genericsQueryToTest = new File(TEST_DIR + "/query-and-generic.xml");
-		QueryType queryType = prismContext.getPrismJaxbProcessor()
+		QueryType queryType = PrismTestUtil.getJaxbUtil()
 				.unmarshalObject(genericsQueryToTest, QueryType.class);
 		LOGGER.info("===[ query type parsed ]===");
 		ObjectQuery query = null;
@@ -212,7 +213,7 @@ public class TestQueryConvertor {
 				new File(TEST_DIR + "/query-user-substring-fullName.xml") };
 		// prismContext.silentMarshalObject(queryTypeNew, LOGGER);
 		for (File file : userQueriesToTest) {
-			QueryType queryType = prismContext.getPrismJaxbProcessor().unmarshalObject(file, QueryType.class);
+			QueryType queryType = PrismTestUtil.getJaxbUtil().unmarshalObject(file, QueryType.class);
 			LOGGER.info("===[ query type parsed ]===");
 			ObjectQuery query = null;
 			try {

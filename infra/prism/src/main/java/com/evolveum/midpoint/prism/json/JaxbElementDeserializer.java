@@ -12,7 +12,7 @@ import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.PrismConstants;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.prism.xml.PrismJaxbProcessor;
+import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -29,7 +29,7 @@ import com.sun.tools.jxc.gen.config.Schema;
 public class JaxbElementDeserializer extends JsonDeserializer<JAXBElement>{
 
 	private Class expectedClass = null;
-	private PrismJaxbProcessor jaxbProcessor;
+	private JaxbTestUtil jaxbProcessor;
 	private JsonNode node;
 	private PrismSchema prismSchema;
 	

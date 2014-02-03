@@ -391,8 +391,9 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 	
 	private static ResourceObjectPattern convertToPattern(ResourceObjectPatternType protectedType, RefinedObjectClassDefinition rAccountDef) throws SchemaException {
 		ResourceObjectPattern resourceObjectPattern = new ResourceObjectPattern(rAccountDef);
-		Collection<? extends Item<?>> items = rAccountDef.getPrismContext().getPrismDomProcessor().parseContainerItems(
-				rAccountDef.toResourceAttributeContainerDefinition(), protectedType.getAny());
+		// TODO: avoid the use of the hack here
+		Collection<? extends Item<?>> items = rAccountDef.getPrismContext().getJaxbDomHack().fromAny(protectedType.getAny(),
+				rAccountDef.toResourceAttributeContainerDefinition());
 		for(Item<?> item: items) {
 			if (item instanceof ResourceAttribute<?>) {
 				resourceObjectPattern.addIdentifier((ResourceAttribute<?>)item);
