@@ -58,6 +58,7 @@ import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 public class XNodeProcessor {
@@ -424,7 +425,11 @@ public class XNodeProcessor {
 		} else if (prismContext.getBeanConverter().canConvert(typeName)) {
 			return prismContext.getBeanConverter().unmarshall(xmap, typeName);
 		} else {
-			throw new SchemaException("Cannot parse type "+propertyDefinition.getTypeName()+" from "+xmap);
+			if (propertyDefinition.isRuntimeSchema()) {
+				throw new SchemaException("Complex run-time properties are not supported: type "+propertyDefinition.getTypeName()+" from "+xmap);
+			} else {
+				throw new SystemException("Cannot parse compile-time property type "+propertyDefinition.getTypeName()+" from "+xmap);
+			}
 		}
 	}
 	

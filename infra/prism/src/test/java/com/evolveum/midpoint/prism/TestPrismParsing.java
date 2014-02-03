@@ -411,7 +411,7 @@ public class TestPrismParsing {
 		user.checkConsistence();
 		user.assertDefinitions("test");
 		assertUserWillExtension(user);
-		assertVisitor(user,44);
+		assertVisitor(user,55);
 	}
 	
 private void assertUserWillExtension(PrismObject<UserType> user) {
@@ -470,12 +470,9 @@ private void assertUserWillExtension(PrismObject<UserType> user) {
         PrismAsserts.assertDefinition(durationTypePropertyDef, EXTENSION_DURATION_TYPE_ELEMENT, DOMUtil.XSD_DURATION, 0, -1);
         assertNull("'Indexed' attribute on 'longType' property is not null", durationTypePropertyDef.isIndexed());
         
-        PrismProperty<?> locationsType = extension.findProperty(EXTENSION_LOCATIONS_ELEMENT);
-//        TODO
-//        PrismAsserts.assertPropertyValue(locationsType, XmlTypeConverter.createXMLGregorianCalendar(1975, 5, 30, 22, 30, 0));
-        PrismPropertyDefinition localtionsPropertyDef = locationsType.getDefinition();
-        PrismAsserts.assertDefinition(localtionsPropertyDef, EXTENSION_LOCATIONS_ELEMENT, EXTENSION_LOCATIONS_TYPE_QNAME, 0, -1);
-        assertNull("'Indexed' attribute on 'locations' property is not null", localtionsPropertyDef.isIndexed());
+        PrismContainer<?> locationsType = extension.findContainer(EXTENSION_LOCATIONS_ELEMENT);
+        PrismContainerDefinition<?> localtionsDef = locationsType.getDefinition();
+        PrismAsserts.assertDefinition(localtionsDef, EXTENSION_LOCATIONS_ELEMENT, EXTENSION_LOCATIONS_TYPE_QNAME, 0, -1);
         
         PrismProperty<String> ignoredType = extension.findProperty(EXTENSION_IGNORED_TYPE_ELEMENT);
 		PrismAsserts.assertPropertyValue(ignoredType, "this is just a fiction");
