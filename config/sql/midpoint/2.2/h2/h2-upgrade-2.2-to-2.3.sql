@@ -68,3 +68,5 @@ ALTER TABLE m_report_output
 
 
 ALTER TABLE m_assignment ADD orderValue INTEGER;
+
+ALTER TABLE m_user ADD jpegPhoto BLOB;

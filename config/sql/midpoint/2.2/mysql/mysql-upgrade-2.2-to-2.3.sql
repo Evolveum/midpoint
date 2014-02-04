@@ -73,3 +73,5 @@ ALTER TABLE m_report_output
     REFERENCES m_object (id, oid);
 
 ALTER TABLE m_assignment ADD orderValue INTEGER;
+
+ALTER TABLE m_user ADD jpegPhoto LONGBLOB;

@@ -67,3 +67,5 @@ ALTER TABLE m_report_output
     REFERENCES m_object;
 
 ALTER TABLE m_assignment ADD orderValue INT4;
+
+ALTER TABLE m_user ADD jpegPhoto OID;
