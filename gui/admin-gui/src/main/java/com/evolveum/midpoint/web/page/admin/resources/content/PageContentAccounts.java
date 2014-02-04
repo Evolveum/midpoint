@@ -323,6 +323,35 @@ public class PageContentAccounts extends PageAdminResources {
     private List<InlineMenuItem> createHeaderMenuItems() {
         List<InlineMenuItem> items = new ArrayList<InlineMenuItem>();
 
+        items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.enableAccount"), true,
+                new HeaderMenuAction(this){
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target, Form<?> form){
+                        updateAccountStatusPerformed(target, null, true);
+                    }
+                }));
+
+        items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.disableAccount"), true,
+                new HeaderMenuAction(this){
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target, Form<?> form){
+                        updateAccountStatusPerformed(target, null, false);
+                    }
+                }));
+
+        items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.deleteAccount"), true,
+                new HeaderMenuAction(this){
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target, Form<?> form){
+                        deleteAccountPerformed(target, null);
+                    }
+                }));
+
+        items.add(new InlineMenuItem());
+
         items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.importAccount"), true,
                 new HeaderMenuAction(this) {
 
@@ -331,7 +360,9 @@ public class PageContentAccounts extends PageAdminResources {
                         importAccount(target, null);
                     }
                 }));
+
         items.add(new InlineMenuItem());
+
         items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.removeOwner"), true,
                 new HeaderMenuAction(this) {
 
@@ -341,63 +372,10 @@ public class PageContentAccounts extends PageAdminResources {
                     }
                 }));
 
-        items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.enableAccounts"), true,
-                new HeaderMenuAction(this){
-
-                    @Override
-                    public void onSubmit(AjaxRequestTarget target, Form<?> form){
-                        updateAccountStatusPerformed(target, null, true);
-                    }
-                }));
-
-        items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.disableAccounts"), true,
-                new HeaderMenuAction(this){
-
-                    @Override
-                    public void onSubmit(AjaxRequestTarget target, Form<?> form){
-                        updateAccountStatusPerformed(target, null, false);
-                    }
-                }));
-
-        items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.deleteAccounts"), true,
-                new HeaderMenuAction(this){
-
-                    @Override
-                    public void onSubmit(AjaxRequestTarget target, Form<?> form){
-                        deleteAccountPerformed(target, null);
-                    }
-                }));
-
         return items;
     }
 
     private void addRowMenuToTable(final AccountContentDto dto) {
-        dto.getMenuItems().add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.importAccount"),
-                new ColumnMenuAction<UserListItemDto>() {
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        importAccount(target, dto);
-                    }
-                }));
-        dto.getMenuItems().add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.changeOwner"),
-                new ColumnMenuAction<UserListItemDto>() {
-
-                    @Override
-                    public void onClick(AjaxRequestTarget target) {
-                        changeOwnerPerformed(target, dto);
-                    }
-                }));
-        dto.getMenuItems().add(new InlineMenuItem());
-        dto.getMenuItems().add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.removeOwner"), true,
-                new HeaderMenuAction(this) {
-
-                    @Override
-                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
-                        removeOwnerPerformed(target, dto);
-                    }
-                }));
-
         dto.getMenuItems().add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.enableAccount"), true,
                 new HeaderMenuAction(this){
 
@@ -422,6 +400,37 @@ public class PageContentAccounts extends PageAdminResources {
                     @Override
                     public void onSubmit(AjaxRequestTarget target, Form<?> form){
                         deleteAccountPerformed(target, dto);
+                    }
+                }));
+
+        dto.getMenuItems().add(new InlineMenuItem());
+
+        dto.getMenuItems().add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.importAccount"),
+                new ColumnMenuAction<UserListItemDto>() {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        importAccount(target, dto);
+                    }
+                }));
+
+        dto.getMenuItems().add(new InlineMenuItem());
+
+        dto.getMenuItems().add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.changeOwner"),
+                new ColumnMenuAction<UserListItemDto>() {
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target) {
+                        changeOwnerPerformed(target, dto);
+                    }
+                }));
+
+        dto.getMenuItems().add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.removeOwner"), true,
+                new HeaderMenuAction(this) {
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target, Form<?> form) {
+                        removeOwnerPerformed(target, dto);
                     }
                 }));
     }
