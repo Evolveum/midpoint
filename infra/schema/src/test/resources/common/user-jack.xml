@@ -72,9 +72,8 @@
     	<filter>
     		<!-- Following filter is a logical nonsense. It is there just to test parsing of filters. -->
             <q:equal>
-                <q:value>
-                    <connectorType>org.identityconnectors.ldap.LdapConnector</connectorType>
-                </q:value>
+            	<q:path>connectorType</q:path>
+                <q:value>>org.identityconnectors.ldap.LdapConnector</q:value>
             </q:equal>
     	</filter>
     </linkRef>

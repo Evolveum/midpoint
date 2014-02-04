@@ -241,11 +241,6 @@ public class XNodeProcessor {
 					throw new SchemaException("Item " + itemQName + " has no definition", itemQName);
 				}
 			}
-			// FIXME: should there bw itemDef.getName() or itemQName???
-			// itemDef.getName() relaced with itemQName ---> TestDomParser fails
-			// when there is a itemDef.getName()..it does not recognize between
-			// <account> and <accountRef> and handle <account> as <accountRef>
-			// and the embeded object is not processed
 			Item<?> item = parseItem(xentry.getValue(), itemQName, itemDef);
 			// Merge must be here, not just add. Some items (e.g. references) have alternative
 			// names and representations and these cannot be processed as one map or list
@@ -406,10 +401,16 @@ public class XNodeProcessor {
 	
 	private <T> T parsePrismPropertyRealValueFromPrimitive(PrimitiveXNode<T> xprim, PrismPropertyDefinition<T> propertyDefinition) throws SchemaException {
 		QName typeName = propertyDefinition.getTypeName();
-		if (!xprim.isParsed()) {
-			xprim.parseValue(typeName);
+		T realValue;
+		if (prismContext.getBeanConverter().canConvert(typeName) && !typeName.equals(PolyStringType.COMPLEX_TYPE)) {
+			// Primitive elements may also have complex Java representations (e.g. enums)
+			return prismContext.getBeanConverter().unmarshallPrimitive(xprim, typeName);
+		} else {
+			if (!xprim.isParsed()) {
+				xprim.parseValue(typeName);
+			}
+			realValue = xprim.getValue();
 		}
-		T realValue = xprim.getValue();
 		
 		if (realValue == null){
 			return realValue;
@@ -418,7 +419,7 @@ public class XNodeProcessor {
 		if (realValue instanceof PolyStringType) {
 			PolyStringType polyStringType = (PolyStringType)realValue;
 			realValue = (T) new PolyString(polyStringType.getOrig(), polyStringType.getNorm());
-		}
+		} 
 		
 		if (!(realValue instanceof PolyString) && typeName.equals(PolyStringType.COMPLEX_TYPE)){
 			String val = (String) realValue;

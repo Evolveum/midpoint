@@ -80,6 +80,8 @@
 				child element is present then the text entire text content of this element is
 				considered as if it was present in the "orig" element. That's the reason for making
 				this type "mixed".
+				
+				This is considered to be primitive built-in type for prism objects.
 			</xsd:documentation>
 		</xsd:annotation>
 		<xsd:sequence>
@@ -113,6 +115,138 @@
 					</xsd:documentation>
 				</xsd:annotation>
 			</xsd:any>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="ProtectedStringType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Specific subtype for protected STRING data.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:ProtectedDataType">
+				<xsd:sequence>
+					<xsd:element name="clearValue" type="xsd:string" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Clear unprotected value.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	
+	<xsd:complexType name="ProtectedByteArrayType">
+		<xsd:annotation>
+			<xsd:documentation>
+				Specific subtype for protected binary byte array data.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:complexContent>
+			<xsd:extension base="tns:ProtectedDataType">
+				<xsd:sequence>
+					<xsd:element name="clearValue" type="xsd:base64Binary" minOccurs="0">
+						<xsd:annotation>
+							<xsd:documentation>
+								Clear unprotected value.
+							</xsd:documentation>
+						</xsd:annotation>
+					</xsd:element>
+				</xsd:sequence>
+			</xsd:extension>
+		</xsd:complexContent>
+	</xsd:complexType>
+	
+	<xsd:complexType name="ProtectedDataType" mixed="true" abstract="true">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+				May be either encrypted or hashed or provided in the clear (e.g. for debugging).
+				
+				This type is marked as "mixed" because it may have alternative representation where
+				just the plaintext value is presented as the only value.
+				
+				This is considered to be primitive built-in type for prism objects.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="encryptedData" type="tns:EncryptedDataType" minOccurs="0"/>
+			<!-- TODO: hashing -->
+			
+			<xsd:any namespace="##other">
+				<xsd:annotation>
+					<xsd:documentation>
+						DEPRECATED. Only for compatibility with older versions.
+						Used to match legacy xenc:EncryptedData
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:any>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="EncryptedDataType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+				Contains data protected by (reversible) encryption.
+				
+				Loosely based on XML encryption standard. But we cannot use full
+				standard as we are not bound to XML. We need this to work also for
+				JSON and YAML and other languages.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="encryptionMethod" type="tns:EncryptionMethodType" minOccurs="0"/>
+			<xsd:element name="keyInfo" type="tns:KeyInfoType" minOccurs="0"/>
+			<xsd:element name="cipherData" type="tns:CipherDataType" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="EncryptionMethodType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+				
+				Loosely based on XML encryption standard. But we cannot use full
+				standard as we are not bound to XML. We need this to work also for
+				JSON and YAML and other languages.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="algorithm" type="xsd:anyURI" minOccurs="1"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="KeyInfoType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+				
+				Loosely based on XML digital signature standard. But we cannot use full
+				standard as we are not bound to XML. We need this to work also for
+				JSON and YAML and other languages.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="keyName" type="xsd:string" minOccurs="0"/>
+		</xsd:sequence>
+	</xsd:complexType>
+	
+	<xsd:complexType name="CipherDataType">
+		<xsd:annotation>
+			<xsd:documentation>
+				TODO
+				
+				Loosely based on XML encryption standard. But we cannot use full
+				standard as we are not bound to XML. We need this to work also for
+				JSON and YAML and other languages.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="cipherValue" type="xsd:base64Binary" minOccurs="1"/>
 		</xsd:sequence>
 	</xsd:complexType>
 

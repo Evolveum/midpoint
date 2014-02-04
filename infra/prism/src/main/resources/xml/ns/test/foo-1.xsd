@@ -168,6 +168,7 @@
 		            		</xsd:appinfo>
 		            	</xsd:annotation>
                     </xsd:element>
+                    <xsd:element name="password" type="t:ProtectedStringType" minOccurs="0"/>
                     <xsd:element name="account" type="tns:AccountType" minOccurs="0" maxOccurs="unbounded">
                     	<xsd:annotation>
                     		<xsd:appinfo>

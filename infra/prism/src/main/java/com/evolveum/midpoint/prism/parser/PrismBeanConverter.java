@@ -21,6 +21,9 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Map.Entry;
 
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlEnumValue;
 import javax.xml.bind.annotation.XmlSchema;
 import javax.xml.bind.annotation.XmlSchemaType;
 import javax.xml.bind.annotation.XmlType;
@@ -74,22 +77,19 @@ public class PrismBeanConverter {
 			QName key = entry.getKey();
 			XNode xsubnode = entry.getValue();
 			String propName = key.getLocalPart();
-			Field field;
-			try {
-				field = classType.getDeclaredField(propName);
-			} catch (NoSuchFieldException e) {
-				throw new SchemaException("No field "+propName+" in class "+classType, e);
+			Field field = findPropertyField(classType, propName);
+			if (field == null) {
+				throw new SchemaException("No field "+propName+" in class "+classType);
 			}
 			Method setter = findSetter(classType, field);
 			Class<?> setterParamType = setter.getParameterTypes()[0];
 			
-			QName propTypeQname = findFieldTypeName(field, setterParamType);
-			if (propTypeQname == null) {
-				throw new SchemaException("No mapping for class "+setterParamType+" while processing field "+field+" of "+classType);
-			}
-			
 			Object propValue;
 			if (xsubnode instanceof PrimitiveXNode<?>) {
+				QName propTypeQname = findFieldTypeName(field, setterParamType);
+				if (propTypeQname == null) {
+					throw new SchemaException("No mapping for class "+setterParamType+" while processing field "+field+" of "+classType);
+				}
 				propValue = ((PrimitiveXNode<?>)xsubnode).getParsedValue(propTypeQname);
 			} else if (xsubnode instanceof MapXNode) {
 				propValue = unmarshall((MapXNode)xsubnode, setterParamType);
@@ -108,6 +108,72 @@ public class PrismBeanConverter {
 				throw new SystemException("Cannot invoke setter "+setter+" on bean of type "+classType+": "+e.getMessage(), e);
 			}
 		}
+		
+		return bean;
+	}
+	
+	private <T> Field findPropertyField(Class<T> classType, String propName) throws SchemaException {
+		for (Field field: classType.getDeclaredFields()) {
+			XmlElement xmlElement = field.getAnnotation(XmlElement.class);
+			if (xmlElement != null && xmlElement.name() != null && xmlElement.name().equals(propName)) {
+				return field;
+			}
+			XmlAttribute xmlAttribute = field.getAnnotation(XmlAttribute.class);
+			if (xmlAttribute != null && xmlAttribute.name() != null && xmlAttribute.name().equals(propName)) {
+				return field;
+			}
+		}
+		try {
+			return classType.getDeclaredField(propName);
+		} catch (NoSuchFieldException e) {
+			// nothing found
+		}
+		Class<? super T> superclass = classType.getSuperclass();
+		if (superclass.equals(Object.class)) {
+			return null;
+		}
+		return findPropertyField(superclass, propName);
+	}
+
+	public <T> T unmarshallPrimitive(PrimitiveXNode<?> xprim, QName typeQName) throws SchemaException {
+		Class<T> classType = schemaRegistry.determineCompileTimeClass(typeQName);
+		return unmarshallPrimitive(xprim, classType);
+	}
+	
+	public <T> T unmarshallPrimitive(PrimitiveXNode<?> xprim, Class<T> classType) throws SchemaException {
+		if (!classType.isEnum()) {
+			throw new SystemException("Cannot convert primitive value to non-enum bean of type "+classType);
+		}
+		// Assume string, maybe TODO extend later
+		String primValue = (String) xprim.getParsedValue(DOMUtil.XSD_STRING);
+		if (StringUtils.isBlank(primValue)) {
+			return null;
+		}
+		primValue = StringUtils.trim(primValue);
+		
+		String javaEnumString = null;
+		for (Field field: classType.getDeclaredFields()) {
+			XmlEnumValue xmlEnumValue = field.getAnnotation(XmlEnumValue.class);
+			if (xmlEnumValue != null && xmlEnumValue.value() != null && xmlEnumValue.value().equals(primValue)) {
+				javaEnumString = field.getName();
+				break;
+			}
+		}
+		
+		if (javaEnumString == null) {
+			for (Field field: classType.getDeclaredFields()) {
+				if (field.getName().equals(primValue)) {
+					javaEnumString = field.getName();
+					break;
+				}
+			}
+		}
+		
+		if (javaEnumString == null) {
+			throw new SchemaException("Cannot find enum value for string '"+primValue+"' in "+classType);
+		}
+		
+		T bean = (T) Enum.valueOf((Class<Enum>)classType, javaEnumString);
 		
 		return bean;
 	}

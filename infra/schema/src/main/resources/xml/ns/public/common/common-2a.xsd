@@ -903,9 +903,9 @@
                     <xsd:documentation>
                         Use of XML Encryption standard EncryptionData element.
                     </xsd:documentation>
-                    <!-- <xsd:appinfo>
+                    <xsd:appinfo>
 						<jaxb:dom />
-					</xsd:appinfo> -->
+					</xsd:appinfo>
                 </xsd:annotation>
             </xsd:element>
             <xsd:element name="clearValue" type="xsd:string">
