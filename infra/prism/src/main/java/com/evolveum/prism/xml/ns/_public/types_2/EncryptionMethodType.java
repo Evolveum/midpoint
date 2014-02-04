@@ -78,4 +78,34 @@ public class EncryptionMethodType  implements Serializable {
         this.algorithm = value;
     }
 
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((algorithm == null) ? 0 : algorithm.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		EncryptionMethodType other = (EncryptionMethodType) obj;
+		if (algorithm == null) {
+			if (other.algorithm != null)
+				return false;
+		} else if (!algorithm.equals(other.algorithm))
+			return false;
+		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "EncryptionMethodType(algorithm=" + algorithm + ")";
+	}
+
 }

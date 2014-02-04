@@ -71,6 +71,19 @@
       "enabled" : true,
       "validFrom" : 170717400000
     },
+    "password" : {
+	    "encryptedData" : {
+	        "encryptionMethod" : {
+	        	 "algorithm" : "http://www.w3.org/2001/04/xmlenc#aes256-cbc"
+	       	},
+	        "keyInfo" : {
+	            "keyName" : "HF6JRsNMeJt6alihT44CXKgpe0c="
+			},
+	        "cipherData" : {
+	            "cipherValue" : "blc5OXO2Z4vJW7o/XXhqZzg/rkwsIOwRBK7KLgMqwcrVcYpeZZOjxzgRgFiNw4IB"
+	        }
+	    }
+    },
 	"accountRef" : [ {
       "type" : {
         "@namespace" : "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd",

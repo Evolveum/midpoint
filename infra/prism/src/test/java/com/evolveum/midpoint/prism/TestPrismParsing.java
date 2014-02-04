@@ -40,6 +40,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
+import com.evolveum.midpoint.prism.delta.DiffUtil;
+import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.foo.ActivationType;
 import com.evolveum.midpoint.prism.foo.AssignmentType;
 import com.evolveum.midpoint.prism.foo.UserType;
@@ -174,6 +176,12 @@ public class TestPrismParsing {
 		assertNotNull(parsedUser);
 
 		assertUserJack(parsedUser);
+		
+		ObjectDelta<UserType> diff = DiffUtil.diff(originalUser, parsedUser);
+		System.out.println("Diff:");
+		System.out.println(diff.dump());
+		
+		assertTrue("Diff: "+diff, diff.isEmpty());
 		
 		assertTrue("Users not equal", originalUser.equals(parsedUser));
 	}

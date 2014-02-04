@@ -9,6 +9,7 @@
 package com.evolveum.prism.xml.ns._public.types_2;
 
 import java.io.Serializable;
+import java.util.Arrays;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
@@ -73,5 +74,32 @@ public class CipherDataType  implements Serializable {
     public void setCipherValue(byte[] value) {
         this.cipherValue = value;
     }
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + Arrays.hashCode(cipherValue);
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		CipherDataType other = (CipherDataType) obj;
+		if (!Arrays.equals(cipherValue, other.cipherValue))
+			return false;
+		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "CipherDataType(cipherValue=" + (cipherValue==null?"null":"["+cipherValue.length+" bytes]") + ")";
+	}
 
 }

@@ -128,5 +128,48 @@ public class EncryptedDataType implements Serializable {
     public void setCipherData(CipherDataType value) {
         this.cipherData = value;
     }
+    
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((cipherData == null) ? 0 : cipherData.hashCode());
+		result = prime * result + ((encryptionMethod == null) ? 0 : encryptionMethod.hashCode());
+		result = prime * result + ((keyInfo == null) ? 0 : keyInfo.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		EncryptedDataType other = (EncryptedDataType) obj;
+		if (cipherData == null) {
+			if (other.cipherData != null)
+				return false;
+		} else if (!cipherData.equals(other.cipherData))
+			return false;
+		if (encryptionMethod == null) {
+			if (other.encryptionMethod != null)
+				return false;
+		} else if (!encryptionMethod.equals(other.encryptionMethod))
+			return false;
+		if (keyInfo == null) {
+			if (other.keyInfo != null)
+				return false;
+		} else if (!keyInfo.equals(other.keyInfo))
+			return false;
+		return true;
+	}
+
+	@Override
+	public String toString() {
+		return "EncryptedDataType(encryptionMethod=" + encryptionMethod + ", keyInfo=" + keyInfo
+				+ ", cipherData=" + cipherData + ")";
+	}
 
 }

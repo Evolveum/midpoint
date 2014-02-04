@@ -235,6 +235,55 @@ public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializ
     	}
     	return encryptedDataType;
 	}
+    
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((clearValue == null) ? 0 : clearValue.hashCode());
+		result = prime * result + ((encryptedDataType == null) ? 0 : encryptedDataType.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		ProtectedDataType other = (ProtectedDataType) obj;
+		if (clearValue == null) {
+			if (other.clearValue != null)
+				return false;
+		} else if (!clearValue.equals(other.clearValue))
+			return false;
+		if (encryptedDataType == null) {
+			if (other.encryptedDataType != null)
+				return false;
+		} else if (!encryptedDataType.equals(other.encryptedDataType))
+			return false;
+		return true;
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder(getClass().getSimpleName());
+		sb.append("(");
+		if (encryptedDataType != null) {
+			sb.append("encrypted=");
+			sb.append(encryptedDataType);
+		}
+		if (clearValue != null) {
+			sb.append("clearValue=");
+			sb.append(clearValue);
+		}
+		sb.append(")");
+		return sb.toString();
+	}
+
+
 
 	class ContentList implements List<Object> {
 

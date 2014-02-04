@@ -471,22 +471,24 @@ public class XNodeProcessor {
 		} else {
 			// Check for legacy EncryptedData
 			XNode xLegacyEncryptedData = xmap.get(ProtectedDataType.F_XML_ENC_ENCRYPTED_DATA);
-			if (!(xLegacyEncryptedData instanceof MapXNode)) {
-				throw new SchemaException("Cannot parse EncryptedData from "+xEncryptedData);
-			}
-			MapXNode xConvertedEncryptedData = (MapXNode) xLegacyEncryptedData.cloneTransformKeys(new Transformer<QName>() {
-				@Override
-				public QName transform(QName in) {
-					String elementName = StringUtils.uncapitalize(in.getLocalPart());
-					if (elementName.equals("type")) {
-						// this is rubbish, we don't need it, we don't want it
-						return null;
-					}
-					return new QName(null, elementName);
+			if (xLegacyEncryptedData != null) {
+				if (!(xLegacyEncryptedData instanceof MapXNode)) {
+					throw new SchemaException("Cannot parse EncryptedData from "+xEncryptedData);
 				}
-			});
-			EncryptedDataType encryptedDataType = prismContext.getBeanConverter().unmarshall(xConvertedEncryptedData, EncryptedDataType.class);
-			protectedType.setEncryptedData(encryptedDataType);
+				MapXNode xConvertedEncryptedData = (MapXNode) xLegacyEncryptedData.cloneTransformKeys(new Transformer<QName>() {
+					@Override
+					public QName transform(QName in) {
+						String elementName = StringUtils.uncapitalize(in.getLocalPart());
+						if (elementName.equals("type")) {
+							// this is rubbish, we don't need it, we don't want it
+							return null;
+						}
+						return new QName(null, elementName);
+					}
+				});
+				EncryptedDataType encryptedDataType = prismContext.getBeanConverter().unmarshall(xConvertedEncryptedData, EncryptedDataType.class);
+				protectedType.setEncryptedData(encryptedDataType);
+			}
 		}
 		// TODO: clearValue
 	}
