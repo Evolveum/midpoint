@@ -650,6 +650,7 @@
         honorificPrefix_orig varchar2(255 char),
         honorificSuffix_norm varchar2(255 char),
         honorificSuffix_orig varchar2(255 char),
+        jpegPhoto blob,
         locale varchar2(255 char),
         locality_norm varchar2(255 char),
         locality_orig varchar2(255 char),

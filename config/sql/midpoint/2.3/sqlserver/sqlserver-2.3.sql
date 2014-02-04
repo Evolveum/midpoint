@@ -648,6 +648,7 @@
         honorificPrefix_orig nvarchar(255),
         honorificSuffix_norm nvarchar(255),
         honorificSuffix_orig nvarchar(255),
+        jpegPhoto varbinary(MAX),
         locale nvarchar(255),
         locality_norm nvarchar(255),
         locality_orig nvarchar(255),
