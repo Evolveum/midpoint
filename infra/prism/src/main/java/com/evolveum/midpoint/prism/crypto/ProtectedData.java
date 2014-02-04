@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2010-2013 Evolveum
+/**
+ * Copyright (c) 2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.common.crypto;
+package com.evolveum.midpoint.prism.crypto;
 
-public class EncryptionException extends Exception {
+import com.evolveum.prism.xml.ns._public.types_2.EncryptedDataType;
 
-	private static final long serialVersionUID = 8289563205061329615L;
+/**
+ * @author Radovan Semancik
+ *
+ */
+public interface ProtectedData<T> {
+	
+	abstract byte[] getClearBytes();
+	
+	abstract void setClearBytes(byte[] bytes);
+	
+	abstract void destroyCleartext();
 
-	public EncryptionException(String message) {
-		super(message);
-	}
+	EncryptedDataType getEncryptedDataType();
 
-	public EncryptionException(String message, Throwable throwable) {
-		super(message, throwable);
-	}
-
-	public EncryptionException(Throwable throwable) {
-		super(throwable);
-	}
+	void setEncryptedData(EncryptedDataType encryptedDataType);
+	
+	boolean isEncrypted();
+	
 }

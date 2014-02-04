@@ -176,7 +176,7 @@
 			<xsd:element name="encryptedData" type="tns:EncryptedDataType" minOccurs="0"/>
 			<!-- TODO: hashing -->
 			
-			<xsd:any namespace="##other">
+			<xsd:any namespace="##other" minOccurs="0">
 				<xsd:annotation>
 					<xsd:documentation>
 						DEPRECATED. Only for compatibility with older versions.

@@ -65,15 +65,20 @@
 	<activation>
 		<enabled>false</enabled>
 	</activation>
-<!--     
-    <credentials>
-        <password>
-        	<value>
-	            <clearValue>deadjacktellnotales</clearValue>
-            </value>
-        </password>
-    </credentials>
-     -->
+	
+	<password>
+	    <t:encryptedData>
+	        <t:encryptionMethod>
+	        	 <t:algorithm>http://www.w3.org/2001/04/xmlenc#aes256-cbc</t:algorithm>
+	        </t:encryptionMethod>
+	        <t:keyInfo>
+	            <t:keyName>HF6JRsNMeJt6alihT44CXKgpe0c=</t:keyName>
+			</t:keyInfo>
+	        <t:cipherData>
+	            <t:cipherValue>blc5OXO2Z4vJW7o/XXhqZzg/rkwsIOwRBK7KLgMqwcrVcYpeZZOjxzgRgFiNw4IB</t:cipherValue>
+	        </t:cipherData>
+	    </t:encryptedData>
+    </password>
      
     <accountRef oid="c0c010c0-d34d-b33f-f00d-aaaaaaaa1111" type="AccountType"/>
     

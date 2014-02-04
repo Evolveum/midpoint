@@ -383,7 +383,7 @@ public class TestPrismParsing {
 		user.checkConsistence();
 		assertUserJackContent(user);
 		assertUserExtensionAdhoc(user);
-		assertVisitor(user, 38);
+		assertVisitor(user, 40);
 	}
 	
 

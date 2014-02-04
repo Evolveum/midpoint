@@ -16,12 +16,16 @@
 package com.evolveum.midpoint.prism.xnode;
 
 import java.io.File;
+import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
+
+import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.Dumpable;
+import com.evolveum.midpoint.util.Transformer;
 
 /**
  * @author semancik
@@ -114,6 +118,37 @@ public abstract class XNode implements Dumpable, DebugDumpable {
 
 	public void setExplicitTypeDeclaration(boolean explicitTypeDeclaration) {
 		this.explicitTypeDeclaration = explicitTypeDeclaration;
+	}
+	
+	public XNode cloneTransformKeys(Transformer<QName> keyTransformer) {
+		return cloneTransformKeys(keyTransformer, this);
+	}
+	
+	private <X extends XNode> X cloneTransformKeys(Transformer<QName> keyTransformer, X xnode) {
+		if (xnode instanceof PrimitiveXNode<?>) {
+			return xnode;
+		} else if (xnode instanceof MapXNode) {
+			MapXNode xmap = (MapXNode)xnode;
+			MapXNode xclone = new MapXNode();
+			for (Entry<QName,XNode> entry: xmap.entrySet()) {
+				QName key = entry.getKey();
+				QName newKey = keyTransformer.transform(key);
+				if (newKey != null) {
+					XNode value = entry.getValue();
+					XNode newValue = cloneTransformKeys(keyTransformer, value);
+					xclone.put(newKey, newValue);
+				}
+			}
+			return (X) xclone;
+		} else if (xnode instanceof ListXNode) {
+			ListXNode xclone = new ListXNode();
+			for (XNode xsubnode: ((ListXNode)xnode)) {
+				xclone.add(cloneTransformKeys(keyTransformer, xsubnode));
+			}
+			return (X) xclone;
+		} else {
+			throw new IllegalArgumentException("Unknown xnode "+xnode);
+		}
 	}
 
 	@Override

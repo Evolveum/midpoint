@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,36 +61,19 @@ import java.util.List;
  * @author lazyman
  */
 public class AESProtector implements Protector {
-
-    private static final Trace LOGGER = TraceManager.getTrace(AESProtector.class);
-    private static final QName QNAME_KEY_NAME = new QName("http://www.w3.org/2000/09/xmldsig#", "KeyName");
-    private static final QName QNAME_ENCRYPTED_DATA = new QName("http://www.w3.org/2001/04/xmlenc#",
-            "EncryptedData");
-    private static final String KEY_DIGEST_TYPE = "SHA1";
-    private static final char[] KEY_PASSWORD = "midpoint".toCharArray();
-    private static final String ENCRYPTED_ELEMENT_NAME = "value";
-
-    private String keyStorePath;
-    private String keyStorePassword;
-    private String encryptionKeyAlias = "default";
-    private String xmlCipher;
-
-    private List<TrustManager> trustManagers;
+	
+	private List<TrustManager> trustManagers;
 
     private static final KeyStore keyStore;
-
-    @Autowired(required = true)
-    private PrismContext prismContext;
-
+    
     static {
-        Init.init();
         try {
             keyStore = KeyStore.getInstance("jceks");
         } catch (KeyStoreException ex) {
             throw new SystemException(ex.getMessage(), ex);
         }
     }
-
+    
     /**
      * @throws SystemException if jceks keystore is not available on {@link AESProtector#getKeyStorePath}
      */
@@ -142,6 +125,61 @@ public class AESProtector implements Protector {
         } catch (Exception ex) {
             LOGGER.error("Unable to work with keystore {}, reason {}.",
                     new Object[]{getKeyStorePath(), ex.getMessage()}, ex);
+            throw new SystemException(ex.getMessage(), ex);
+        }
+    }
+	
+	@Override
+	public <T> T decrypt(ProtectedData<T> protectedData) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public <T> ProtectedData<T> encrypt(T clearValue) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	@Override
+	public List<TrustManager> getTrustManagers() {
+		return trustManagers;
+	}
+
+	@Override
+	public KeyStore getKeyStore() {
+		return keyStore;
+	}
+	
+	
+	
+	
+	
+	
+
+    private static final Trace LOGGER = TraceManager.getTrace(AESProtector.class);
+    private static final QName QNAME_KEY_NAME = new QName("http://www.w3.org/2000/09/xmldsig#", "KeyName");
+    private static final QName QNAME_ENCRYPTED_DATA = new QName("http://www.w3.org/2001/04/xmlenc#",
+            "EncryptedData");
+    private static final String KEY_DIGEST_TYPE = "SHA1";
+    private static final char[] KEY_PASSWORD = "midpoint".toCharArray();
+    private static final String ENCRYPTED_ELEMENT_NAME = "value";
+
+    private String keyStorePath;
+    private String keyStorePassword;
+    private String encryptionKeyAlias = "default";
+    private String xmlCipher;
+
+    
+
+    @Autowired(required = true)
+    private PrismContext prismContext;
+
+    static {
+        Init.init();
+        try {
+            keyStore = KeyStore.getInstance("jceks");
+        } catch (KeyStoreException ex) {
             throw new SystemException(ex.getMessage(), ex);
         }
     }
@@ -488,13 +526,7 @@ public class AESProtector implements Protector {
         return true;
     }
 
-    @Override
-    public List<TrustManager> getTrustManagers() {
-        return trustManagers;
-    }
+	
 
-	@Override
-	public KeyStore getKeyStore() {
-		return keyStore;
-	}
+	
 }

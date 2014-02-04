@@ -22,7 +22,6 @@ import static org.testng.AssertJUnit.assertFalse;
 import static com.evolveum.midpoint.model.common.mapping.MappingTestEvaluator.*;
 import static com.evolveum.midpoint.prism.util.PrismAsserts.*;
 
-import com.evolveum.midpoint.common.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
@@ -30,6 +29,7 @@ import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
+import com.evolveum.midpoint.prism.crypto.EncryptionException;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.PrismValueDeltaSetTriple;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;

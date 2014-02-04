@@ -57,9 +57,14 @@ import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.QNameUtil;
+import com.evolveum.midpoint.util.Transformer;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
+import com.evolveum.prism.xml.ns._public.types_2.EncryptedDataType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedByteArrayType;
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedDataType;
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
 
 public class XNodeProcessor {
 	
@@ -436,6 +441,14 @@ public class XNodeProcessor {
 		if (PolyStringType.COMPLEX_TYPE.equals(typeName)) {
 			PolyString polyString = parsePolyString(xmap);
 			return (T) polyString;
+		} else if (ProtectedStringType.COMPLEX_TYPE.equals(typeName)) {
+			ProtectedStringType protectedType = new ProtectedStringType();
+			parseProtectedType(protectedType, xmap);
+			return (T) protectedType;
+		} else if (ProtectedByteArrayType.COMPLEX_TYPE.equals(typeName)) {
+			ProtectedByteArrayType protectedType = new ProtectedByteArrayType();
+			parseProtectedType(protectedType, xmap);
+			return (T) protectedType;
 		} else if (prismContext.getBeanConverter().canConvert(typeName)) {
 			return prismContext.getBeanConverter().unmarshall(xmap, typeName);
 		} else {
@@ -445,6 +458,37 @@ public class XNodeProcessor {
 				throw new SystemException("Cannot parse compile-time property type "+propertyDefinition.getTypeName()+" from "+xmap);
 			}
 		}
+	}
+	
+	private <T> void parseProtectedType(ProtectedDataType<T> protectedType, MapXNode xmap) throws SchemaException {
+		XNode xEncryptedData = xmap.get(ProtectedDataType.F_ENCRYPTED_DATA);
+		if (xEncryptedData != null) {
+			if (!(xEncryptedData instanceof MapXNode)) {
+				throw new SchemaException("Cannot parse encryptedData from "+xEncryptedData);
+			}
+			EncryptedDataType encryptedDataType = prismContext.getBeanConverter().unmarshall((MapXNode)xEncryptedData, EncryptedDataType.class);
+			protectedType.setEncryptedData(encryptedDataType);
+		} else {
+			// Check for legacy EncryptedData
+			XNode xLegacyEncryptedData = xmap.get(ProtectedDataType.F_XML_ENC_ENCRYPTED_DATA);
+			if (!(xLegacyEncryptedData instanceof MapXNode)) {
+				throw new SchemaException("Cannot parse EncryptedData from "+xEncryptedData);
+			}
+			MapXNode xConvertedEncryptedData = (MapXNode) xLegacyEncryptedData.cloneTransformKeys(new Transformer<QName>() {
+				@Override
+				public QName transform(QName in) {
+					String elementName = StringUtils.uncapitalize(in.getLocalPart());
+					if (elementName.equals("type")) {
+						// this is rubbish, we don't need it, we don't want it
+						return null;
+					}
+					return new QName(null, elementName);
+				}
+			});
+			EncryptedDataType encryptedDataType = prismContext.getBeanConverter().unmarshall(xConvertedEncryptedData, EncryptedDataType.class);
+			protectedType.setEncryptedData(encryptedDataType);
+		}
+		// TODO: clearValue
 	}
 	
 	private PolyString parsePolyString(MapXNode xmap) throws SchemaException {

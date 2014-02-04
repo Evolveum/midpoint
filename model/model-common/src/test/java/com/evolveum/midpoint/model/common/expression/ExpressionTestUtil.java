@@ -18,7 +18,6 @@ package com.evolveum.midpoint.model.common.expression;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import com.evolveum.midpoint.common.crypto.AESProtector;
 import com.evolveum.midpoint.model.common.expression.ExpressionFactory;
 import com.evolveum.midpoint.model.common.expression.ExpressionUtil;
 import com.evolveum.midpoint.model.common.expression.evaluator.AsIsExpressionEvaluatorFactory;
@@ -31,6 +30,7 @@ import com.evolveum.midpoint.model.common.expression.script.ScriptExpressionFact
 import com.evolveum.midpoint.model.common.expression.script.jsr223.Jsr223ScriptEvaluator;
 import com.evolveum.midpoint.model.common.expression.script.xpath.XPathScriptEvaluator;
 import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.crypto.AESProtector;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.test.util.MidPointTestConstants;
 

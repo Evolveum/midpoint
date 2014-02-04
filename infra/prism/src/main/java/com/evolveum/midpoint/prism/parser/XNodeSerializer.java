@@ -59,6 +59,8 @@ import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
+import com.evolveum.prism.xml.ns._public.types_2.EncryptedDataType;
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedDataType;
 
 /**
  * @author semancik
@@ -238,7 +240,9 @@ public class XNodeSerializer {
 	private <T> XNode serializePropertyValue(PrismPropertyValue<T> value, PrismPropertyDefinition<T> definition) throws SchemaException {
 		QName typeQName = definition.getTypeName();
 		T realValue = value.getValue();
-		if (beanConverter.canConvert(typeQName)) {
+		if (realValue instanceof ProtectedDataType<?>) {
+			return serializeProtectedDataType((ProtectedDataType<?>) realValue);
+		} else if (beanConverter.canConvert(typeQName)) {
 			return beanConverter.marshall(realValue);
 		} else {
 			// primitive value
@@ -246,6 +250,17 @@ public class XNodeSerializer {
 		}
 	}
 	
+	private <T> XNode serializeProtectedDataType(ProtectedDataType<T> protectedType) {
+		MapXNode xmap = new MapXNode();
+		if (protectedType.getEncryptedDataType() != null) {
+			EncryptedDataType encryptedDataType = protectedType.getEncryptedDataType();
+			MapXNode xEncryptedDataType = beanConverter.marshall(encryptedDataType);
+			xmap.put(ProtectedDataType.F_ENCRYPTED_DATA, xEncryptedDataType);
+		}
+		// TODO: clearValue
+		return xmap;
+	}
+
 	private <T> XNode serializePropertyRawValue(PrismPropertyValue<T> value) throws SchemaException {
 		T realValue = value.getValue();
 		return createPrimitiveXNode(realValue, DOMUtil.XSD_STRING);
