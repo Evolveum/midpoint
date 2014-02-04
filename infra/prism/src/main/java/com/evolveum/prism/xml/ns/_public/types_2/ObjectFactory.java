@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,6 +50,9 @@ import javax.xml.namespace.QName;
 public class ObjectFactory implements Serializable {
 
     private final static QName _ObjectDelta_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/types-2", "objectDelta");
+    private final static QName _PolyStringTypeNorm_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/types-2", "norm");
+    private final static QName _PolyStringTypeOrig_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/types-2", "orig");
+    private final static QName _ProtectedDataTypeEncryptedData_QNAME = new QName("http://prism.evolveum.com/xml/ns/public/types-2", "encryptedData");
 
     /**
      * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: com.evolveum.prism.xml.ns._public.types_2
@@ -82,6 +85,63 @@ public class ObjectFactory implements Serializable {
         return new ObjectDeltaType();
     }
 
+    /**
+     * Create an instance of {@link KeyInfoType }
+     * 
+     */
+    public KeyInfoType createKeyInfoType() {
+        return new KeyInfoType();
+    }
+
+    /**
+     * Create an instance of {@link ProtectedByteArrayType }
+     * 
+     */
+    public ProtectedByteArrayType createProtectedByteArrayType() {
+        return new ProtectedByteArrayType();
+    }
+    
+    /**
+     * Create an instance of {@link EncryptedDataType }
+     * 
+     */
+    public EncryptedDataType createEncryptedDataType() {
+        return new EncryptedDataType();
+    }
+
+    /**
+     * Create an instance of {@link CipherDataType }
+     * 
+     */
+    public CipherDataType createCipherDataType() {
+        return new CipherDataType();
+    }
+
+    /**
+     * Create an instance of {@link ProtectedStringType }
+     * 
+     */
+    public ProtectedStringType createProtectedStringType() {
+        return new ProtectedStringType();
+    }
+
+    /**
+     * Create an instance of {@link EncryptionMethodType }
+     * 
+     */
+    public EncryptionMethodType createEncryptionMethodType() {
+        return new EncryptionMethodType();
+    }
+
+    /**
+     * Create an instance of {@link ItemPathType }
+     * 
+     */
+    public ItemPathType createItemPathType() {
+        return new ItemPathType();
+    }
+
+    
     /**
      * Create an instance of {@link Extension }
      * 
@@ -137,6 +197,33 @@ public class ObjectFactory implements Serializable {
     @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/types-2", name = "objectDelta")
     public JAXBElement<ObjectDeltaType> createObjectDelta(ObjectDeltaType value) {
         return new JAXBElement<ObjectDeltaType>(_ObjectDelta_QNAME, ObjectDeltaType.class, null, value);
+    }
+    
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/types-2", name = "norm", scope = PolyStringType.class)
+    public JAXBElement<String> createPolyStringTypeNorm(String value) {
+        return new JAXBElement<String>(_PolyStringTypeNorm_QNAME, String.class, PolyStringType.class, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/types-2", name = "orig", scope = PolyStringType.class)
+    public JAXBElement<String> createPolyStringTypeOrig(String value) {
+        return new JAXBElement<String>(_PolyStringTypeOrig_QNAME, String.class, PolyStringType.class, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link EncryptedDataType }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "http://prism.evolveum.com/xml/ns/public/types-2", name = "encryptedData", scope = ProtectedDataType.class)
+    public JAXBElement<EncryptedDataType> createProtectedDataTypeEncryptedData(EncryptedDataType value) {
+        return new JAXBElement<EncryptedDataType>(_ProtectedDataTypeEncryptedData_QNAME, EncryptedDataType.class, ProtectedDataType.class, value);
     }
 
 }

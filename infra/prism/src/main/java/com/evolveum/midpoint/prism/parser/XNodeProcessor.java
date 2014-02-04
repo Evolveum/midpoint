@@ -455,7 +455,7 @@ public class XNodeProcessor {
 			if (propertyDefinition.isRuntimeSchema()) {
 				throw new SchemaException("Complex run-time properties are not supported: type "+propertyDefinition.getTypeName()+" from "+xmap);
 			} else {
-				throw new SystemException("Cannot parse compile-time property type "+propertyDefinition.getTypeName()+" from "+xmap);
+				throw new SystemException("Cannot parse compile-time property "+propertyDefinition.getName()+" type "+propertyDefinition.getTypeName()+" from "+xmap);
 			}
 		}
 	}

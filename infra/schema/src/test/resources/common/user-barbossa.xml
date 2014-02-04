@@ -28,6 +28,17 @@
     	<t:norm>barbossa</t:norm>
     </name>
     
+    <extension>
+		<foo:bar xsi:type="xsd:string">BAR</foo:bar>
+		<foo:num xsi:type="xsd:int">42</foo:num>
+		<foo:multi xsi:type="xsd:string">raz</foo:multi>
+		<foo:multi xsi:type="xsd:string">dva</foo:multi>
+		<foo:multi xsi:type="xsd:string">tri</foo:multi>
+		<foo:password xsi:type="t:ProtectedStringType">
+			<clearValue>openS3zam3</clearValue>
+		</foo:password>
+	</extension>
+    
     <linkRef oid="c0c010c0-d34d-b33f-f00d-222211111112" type="AccountShadowType"/>
 
     <assignment>
@@ -41,16 +52,6 @@
 		</construction>
 	</assignment>
     
-    <extension>
-		<foo:bar xsi:type="xsd:string">BAR</foo:bar>
-		<foo:num xsi:type="xsd:int">42</foo:num>
-		<foo:multi xsi:type="xsd:string">raz</foo:multi>
-		<foo:multi xsi:type="xsd:string">dva</foo:multi>
-		<foo:multi xsi:type="xsd:string">tri</foo:multi>
-		<foo:password xsi:type="ProtectedStringType">
-			<clearValue>openS3zam3</clearValue>
-		</foo:password>
-	</extension>
     <fullName>
         <t:orig>Hector Barbossa</t:orig>
         <t:norm>hector barbossa</t:norm>

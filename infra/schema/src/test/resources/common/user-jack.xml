@@ -39,7 +39,7 @@
 		<foo:multi xsi:type="xsd:string">raz</foo:multi>
 		<foo:multi xsi:type="xsd:string">dva</foo:multi>
 		<foo:multi xsi:type="xsd:string">tri</foo:multi>
-		<foo:password xsi:type="ProtectedStringType">
+		<foo:password xsi:type="t:ProtectedStringType">
 			<clearValue>openS3zam3</clearValue>
 		</foo:password>
 	</extension>

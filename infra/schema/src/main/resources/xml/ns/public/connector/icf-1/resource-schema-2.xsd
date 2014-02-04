@@ -21,6 +21,9 @@
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
             elementFormDefault="qualified">
 
+	<xsd:import namespace="http://prism.evolveum.com/xml/ns/public/types-2"
+                schemaLocation="http://prism.evolveum.com/xml/ns/public/types-2"/>
+
     <xsd:import namespace="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
                 schemaLocation="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"/>
 
