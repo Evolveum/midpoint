@@ -17,6 +17,7 @@
 <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             targetNamespace="http://midpoint.evolveum.com/xml/ns/public/connector/icf-1/resource-schema-2"
             xmlns:c="http://midpoint.evolveum.com/xml/ns/public/common/common-2a"
+            xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
             xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
             elementFormDefault="qualified">
 
@@ -53,7 +54,7 @@
         </xsd:annotation>
     </xsd:element>
 
-    <xsd:element name="password" type="c:ProtectedStringType">
+    <xsd:element name="password" type="t:ProtectedStringType">
         <xsd:annotation>
             <xsd:documentation>
                 __PASSWORD__ attribute
@@ -133,7 +134,7 @@
         </xsd:annotation>
     </xsd:element>
 
-    <xsd:element name="currentPassword" type="c:ProtectedStringType">
+    <xsd:element name="currentPassword" type="t:ProtectedStringType">
         <xsd:annotation>
             <xsd:documentation>
                 __CURRENT_PASSWORD__ attribute

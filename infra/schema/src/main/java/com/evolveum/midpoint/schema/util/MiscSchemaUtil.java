@@ -52,8 +52,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.CredentialsType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.PasswordType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ProtectedStringType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
 
 /**
  * @author Radovan Semancik
@@ -115,7 +115,7 @@ public class MiscSchemaUtil {
 	}
 
 	public static boolean isNullOrEmpty(ProtectedStringType ps) {
-		return (ps == null || (ps.getClearValue() == null && ps.getEncryptedData() == null));
+		return (ps == null || ps.isEmpty());
 	}
 
 	public static void setPassword(CredentialsType credentials, ProtectedStringType password) {

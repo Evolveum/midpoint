@@ -154,11 +154,11 @@ public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializ
 		return encryptedDataType != null;
 	}
     
-    protected T getClearValue() {
+    public T getClearValue() {
     	return clearValue;
     }
     
-    protected void setClearValue(T clearValue) {
+    public void setClearValue(T clearValue) {
     	this.clearValue = clearValue;
     }
     
@@ -235,6 +235,10 @@ public abstract class ProtectedDataType<T> implements ProtectedData<T>, Serializ
     	}
     	return encryptedDataType;
 	}
+    
+    public boolean isEmpty() {
+    	return encryptedDataType == null && clearValue == null;
+    }
     
 	@Override
 	public int hashCode() {

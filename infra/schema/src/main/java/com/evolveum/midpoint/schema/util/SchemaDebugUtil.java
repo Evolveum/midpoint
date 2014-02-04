@@ -34,6 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.prism.xml.ns._public.query_2.PagingType;
 import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
+import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
 
 import org.apache.commons.beanutils.PropertyUtils;
 import org.w3c.dom.*;
@@ -346,7 +347,7 @@ public class SchemaDebugUtil {
 		}
 		StringBuilder sb = new StringBuilder("ProtectedStringType(");
 		
-		if (protectedStringType.getEncryptedData() != null) {
+		if (protectedStringType.getEncryptedDataType() != null) {
 			sb.append("[encrypted data]");
 		}
 
