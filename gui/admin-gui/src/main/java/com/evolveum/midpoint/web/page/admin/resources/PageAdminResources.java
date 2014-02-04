@@ -159,12 +159,14 @@ public class PageAdminResources extends PageAdmin {
                 PropertyDelta.createModificationDeleteProperty(new ItemPath(TaskType.F_EXTENSION, SchemaConstants.SYNC_TOKEN), property.getDefinition(), value),
                 TaskType.class, getPrismContext());
 
-        LOGGER.info(delta.debugDump());
+        if(LOGGER.isTraceEnabled()){
+            LOGGER.trace(delta.debugDump());
+        }
 
         try {
             getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
         } catch (Exception e){
-            LoggingUtils.logException(LOGGER, "Some problem.", e);
+            LoggingUtils.logException(LOGGER, "Couldn't save task.", e);
             result.recordFatalError("Couldn't save task.", e);
         }
         result.recomputeStatus();
