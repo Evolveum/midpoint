@@ -202,7 +202,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
              JasperDesign jasperDesign = null;
              if (reportType.getTemplate() == null || reportType.getTemplate().getAny() == null)
              {
-            	 jasperDesign = ReportUtils.createJasperDesign(reportType);
+            	 jasperDesign = ReportUtils.createJasperDesign(reportType, prismContext);
             	 LOGGER.trace("create jasper design : {}", jasperDesign);
              }
              else
@@ -334,6 +334,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
 
     @Override
     public InputStream getReportOutputData(String reportOutputOid, OperationResult parentResult) {
+    	//nacitat z db, nacitat filepath, vyplut inputstream
         return null;
     }
 }

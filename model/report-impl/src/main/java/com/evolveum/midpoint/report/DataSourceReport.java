@@ -26,6 +26,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportFieldConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
 import com.evolveum.prism.xml.ns._public.query_2.PagingType;
 
 
@@ -90,7 +91,9 @@ public class DataSourceReport implements JRDataSource
 		List<PrismObject<T>> listReportObjects =  new ArrayList<PrismObject<T>>();;
 		try
 		{
-			//Class<T> clazz = (Class<T>) ObjectTypes.getObjectTypeFromTypeQName(reportType.getObjectClass()).getClassDefinition();
+			
+			
+			//Class<T> clazz = ReportUtils.getObjectTypeClass(reportType);
 			//ObjectQuery objectQuery = QueryConvertor.createObjectQuery(clazz, reportType.getQuery(), prismContext);
 			LOGGER.trace("Search report objects {}:", reportType);
 			

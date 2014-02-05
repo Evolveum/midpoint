@@ -31,10 +31,12 @@ import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
+import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
+import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -64,7 +66,6 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 /**
@@ -568,35 +569,29 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 					parameterRepo.getClassTypeParameter());
 		}
 	}
-
+*//*
 	@Test 
 	public void test002CreateReportFromFile() throws Exception {
 		
 		final String TEST_NAME = "test002CreateReportFromFile";
         TestUtil.displayTestTile(this, TEST_NAME);
 	
+        //GIVEN
 		Task task = taskManager.createTaskInstance(CREATE_REPORT_FROM_FILE);
 		OperationResult result = task.getResult();
-
-		PrismObject<? extends Objectable> reportType =  prismContext.getPrismDomProcessor().parseObject(TEST_REPORT_FILE);
-
-		ObjectDelta<ReportType> objectDelta = 
-		ObjectDelta.createAddDelta((PrismObject<ReportType>) reportType);
-		Collection<ObjectDelta<? extends ObjectType>> deltas =
-		MiscSchemaUtil.createCollection(objectDelta);
-		
+      
 		//WHEN 	
 		TestUtil.displayWhen(TEST_NAME);
-		modelService.executeChanges(deltas, null, task, result);
+		importObjectFromFile(TEST_REPORT_FILE);
+
 		
 		//THEN  
 		TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         display(result);
         TestUtil.assertSuccess(result);
-		AssertJUnit.assertEquals(REPORT_OID_TEST, objectDelta.getOid());
-	}
-
+	}*/
+/*
 	@Test
 	public void test003CopyReportWithoutDesign() throws Exception {
 		final String TEST_NAME = "test003CopyReportWithoutDesign";
@@ -1130,12 +1125,9 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 			display("Result after good import", result);
 			TestUtil.assertSuccess("Import has failed (result)", result);
 			
-			
-			
 			ReportType reportType = getReport(AUDITLOGS_REPORT_OID).asObjectable();
 			
-			Class clazz = ReportUtils.getObjectTypeClass(reportType, prismContext);
-			/*
+			
 			//WHEN 	
 			TestUtil.displayWhen(TEST_NAME);
 			reportManager.runReport(reportType.asPrismObject(), task, result);
@@ -1150,8 +1142,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	        OperationResultType reportTaskResult = reportTaskAfter.asObjectable().getResult();
 	        display("Report task result", reportTaskResult);
 	        TestUtil.assertSuccess(reportTaskResult);
-			*/
-		}		
+		}	
 /*
 		@Test 
 		public void test014CreateAuditLogsReportWithDatasource() throws Exception {
