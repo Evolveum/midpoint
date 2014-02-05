@@ -56,6 +56,9 @@ public class AnyArrayList<C extends Containerable> extends AbstractList<Object> 
     @Override
     public int size() {
     	if (isSchemaless()) {
+    		if (containerValue.getRawElements() == null) {
+    			return 0;
+    		}
     		return containerValue.getRawElements().size();
     	} else {
 	    	// Each item and each value are presented as one list entry

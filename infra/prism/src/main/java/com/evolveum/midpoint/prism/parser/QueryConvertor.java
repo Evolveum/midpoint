@@ -69,32 +69,32 @@ import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 public class QueryConvertor {
 	
-	public static QName KEY_FILTER = new QName(null, "filter");
-	public static QName KEY_PAGING = new QName(null, "paging");
-	public static QName KEY_CONDITION = new QName(null, "condition");
-	
-	public static final QName KEY_FILTER_AND = new QName(null, "and");
-	public static final QName KEY_FILTER_OR = new QName(null, "or");
-	public static final QName KEY_FILTER_NOT = new QName(null, "not");
-	public static final QName KEY_FILTER_EQUAL = new QName(null, "equal");
-	public static final QName KEY_FILTER_REF = new QName(null, "ref");
-	public static final QName KEY_FILTER_SUBSTRING = new QName(null, "substring");
-	public static final QName KEY_FILTER_ORG = new QName(null, "org");
-	
-	private static final QName KEY_FILTER_EQUALS_PATH = new QName(null, "path");
-	private static final QName KEY_FILTER_EQUALS_MATCHING = new QName(null, "matching");
-	private static final QName KEY_FILTER_EQUALS_VALUE = new QName(null, "value");
-	private static final QName KEY_FILTER_EQUALS_EXPRESSION = new QName(null, "expression");
-	private static final QName KEY_FILTER_EQUALS_VALUE_EXPRESSION = new QName(null, "valueExpression"); // deprecated
-	
-	public static final QName KEY_FILTER_ORG_REF = new QName(null, "orgRef");
-	public static final QName KEY_FILTER_ORG_REF_OID = new QName(null, "oid");
-	public static final QName KEY_FILTER_ORG_MIN_DEPTH = new QName(null, "minDepth");
-	public static final QName KEY_FILTER_ORG_MAX_DEPTH = new QName(null, "maxDepth");
-	
 	public static final String NS_QUERY = "http://prism.evolveum.com/xml/ns/public/query-2";
 	public static final QName FILTER_ELEMENT_NAME = new QName(NS_QUERY, "filter");
 
+	public static QName KEY_FILTER = new QName(NS_QUERY, "filter");
+	public static QName KEY_PAGING = new QName(NS_QUERY, "paging");
+	public static QName KEY_CONDITION = new QName(NS_QUERY, "condition");
+	
+	public static final QName KEY_FILTER_AND = new QName(NS_QUERY, "and");
+	public static final QName KEY_FILTER_OR = new QName(NS_QUERY, "or");
+	public static final QName KEY_FILTER_NOT = new QName(NS_QUERY, "not");
+	public static final QName KEY_FILTER_EQUAL = new QName(NS_QUERY, "equal");
+	public static final QName KEY_FILTER_REF = new QName(NS_QUERY, "ref");
+	public static final QName KEY_FILTER_SUBSTRING = new QName(NS_QUERY, "substring");
+	public static final QName KEY_FILTER_ORG = new QName(NS_QUERY, "org");
+	
+	private static final QName KEY_FILTER_EQUALS_PATH = new QName(NS_QUERY, "path");
+	private static final QName KEY_FILTER_EQUALS_MATCHING = new QName(NS_QUERY, "matching");
+	private static final QName KEY_FILTER_EQUALS_VALUE = new QName(NS_QUERY, "value");
+	private static final QName KEY_FILTER_EQUALS_EXPRESSION = new QName(NS_QUERY, "expression");
+	private static final QName KEY_FILTER_EQUALS_VALUE_EXPRESSION = new QName(NS_QUERY, "valueExpression"); // deprecated
+	
+	public static final QName KEY_FILTER_ORG_REF = new QName(NS_QUERY, "orgRef");
+	public static final QName KEY_FILTER_ORG_REF_OID = new QName(NS_QUERY, "oid");
+	public static final QName KEY_FILTER_ORG_MIN_DEPTH = new QName(NS_QUERY, "minDepth");
+	public static final QName KEY_FILTER_ORG_MAX_DEPTH = new QName(NS_QUERY, "maxDepth");
+	
 	public static <O extends Objectable> ObjectQuery parseQuery(MapXNode xmap, Class<O> clazz, PrismContext prismContext)
 			throws SchemaException {
 

@@ -119,6 +119,7 @@ public class DomSerializer {
 	}
 			
 	public Element serializeToElement(MapXNode xmap, QName elementName) throws SchemaException {
+		initialize();
 		Element element = createElement(elementName);
 		serializeMap(xmap, element);
 		return element;
@@ -321,7 +322,7 @@ public class DomSerializer {
 		return null;
 	}
 
-	<V extends PrismValue> void serialize(Item<V> item, Element parentElement) throws SchemaException {
+	private <V extends PrismValue> void serialize(Item<V> item, Element parentElement) throws SchemaException {
 		// special handling for reference values (account vs accountRef).
 		if (item instanceof PrismReference) {
 			serialize((PrismReference)item, parentElement);
@@ -414,7 +415,7 @@ public class DomSerializer {
 		
 	}
 
-	void serialize(PrismValue pval, Element parentElement) throws SchemaException {
+	private void serialize(PrismValue pval, Element parentElement) throws SchemaException {
 		if (doc == null) {
 			doc = parentElement.getOwnerDocument();
 		}
@@ -451,7 +452,7 @@ public class DomSerializer {
 	/**
 	 * Determines proper name for the element with specified local name.
 	 */
-	public String determineElementNamespace(Itemable parent, String elementDescriptionLocalName) {
+	private String determineElementNamespace(Itemable parent, String elementDescriptionLocalName) {
 		ItemDefinition definition = parent.getDefinition();
 		if (definition == null) {
 			return parent.getElementName().getNamespaceURI();
@@ -462,7 +463,7 @@ public class DomSerializer {
 		return definition.getTypeName().getNamespaceURI();
 	}
 	
-	QName setQNamePrefix(QName qname) {
+	private QName setQNamePrefix(QName qname) {
 		DynamicNamespacePrefixMapper namespacePrefixMapper = getNamespacePrefixMapper();
 		if (namespacePrefixMapper == null) {
 			return qname;
@@ -470,7 +471,7 @@ public class DomSerializer {
 		return namespacePrefixMapper.setQNamePrefix(qname);
 	}
 	
-	QName setQNamePrefixExplicit(QName qname) {
+	private QName setQNamePrefixExplicit(QName qname) {
 		DynamicNamespacePrefixMapper namespacePrefixMapper = getNamespacePrefixMapper();
 		if (namespacePrefixMapper == null) {
 			return qname;

@@ -198,6 +198,7 @@ public class PrismTestUtil {
 				throw new IllegalStateException("No prism context in Prism test util");
 			}
 			jaxbUtil = new JaxbTestUtil(prismContext);
+			jaxbUtil.initialize();
 		}
 		return jaxbUtil;
 	}

@@ -37,6 +37,7 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map.Entry;
 
 /**
  * @author lazyman
@@ -434,7 +435,12 @@ public final class PrismForJAXBUtil {
 		try {
 			ObjectFilter filter = rval.getFilter();
 			MapXNode filterXmap = QueryConvertor.serializeFilter(filter, prismContext);
-			filterElement = parser.serializeToElement(filterXmap, QueryConvertor.FILTER_ELEMENT_NAME);
+			if (filterXmap.size() != 1) {
+				// This is supposed to be a map with just a single entry. This is an internall error
+				throw new IllegalArgumentException("Unexpected map in filter processing, it has "+filterXmap.size()+" entries");
+			}
+			Entry<QName, XNode> entry = filterXmap.entrySet().iterator().next();
+			filterElement = parser.serializeToElement((MapXNode) entry.getValue(), entry.getKey());
 		} catch (SchemaException e) {
 			throw new SystemException("Error serializing filter: "+e.getMessage(),e);
 		}
@@ -446,8 +452,7 @@ public final class PrismForJAXBUtil {
 		if (prismContext != null) {
 			return prismContext.getParserDom();
 		} else {
-			SchemaRegistry schemaRegistry = prismContext.getSchemaRegistry();
-			DomParser parser = new DomParser(schemaRegistry);
+			DomParser parser = new DomParser(null);
 			return parser;
 		}
 	}

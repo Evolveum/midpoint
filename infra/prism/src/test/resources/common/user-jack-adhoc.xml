@@ -20,6 +20,7 @@
 		xmlns='http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd'
 		xmlns:a="http://prism.evolveum.com/xml/ns/public/annotation-2"
 		xmlns:t="http://prism.evolveum.com/xml/ns/public/types-2"
+		xmlns:q="http://prism.evolveum.com/xml/ns/public/query-2"
 		xmlns:adhoc="http://midpoint.evolveum.com/xml/ns/test/adhoc-1.xsd"
 		xmlns:ext="http://example.com/xml/ns/user-extension">
     <name>jack</name>
@@ -78,10 +79,10 @@
     <accountRef oid="c0c010c0-d34d-b33f-f00d-aaaaaaaa1112" type="AccountType">
     	<description>This is a reference with a filter</description>
     	<filter>
-    		<equal>
-    			<path>name</path>
-    			<value>captain</value>
-    		</equal>
+    		<q:equal>
+    			<q:path>name</q:path>
+    			<q:value>captain</q:value>
+    		</q:equal>
     	</filter>
     </accountRef>
     
