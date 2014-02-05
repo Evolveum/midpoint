@@ -107,6 +107,7 @@ public class PageResources extends PageAdminResources {
     private static final String ID_SEARCH_CLEAR = "searchClear";
 
     private IModel<ResourceSearchDto> searchModel;
+    private ResourceDto toDelete;
 
     public PageResources() {
 
@@ -433,6 +434,11 @@ public class PageResources extends PageAdminResources {
 
     private void deleteResourcePerformed(AjaxRequestTarget target, ResourceDto single) {
         List<ResourceDto> selected = isAnyResourceSelected(target, single);
+
+        if(single != null){
+            toDelete = single;
+        }
+
         if (selected.isEmpty()) {
             return;
         }
@@ -462,6 +468,11 @@ public class PageResources extends PageAdminResources {
             public String getObject() {
                 TablePanel table = resources ? getResourceTable() : getConnectorHostTable();
                 List selected = WebMiscUtil.getSelectedData(table);
+
+                if(toDelete != null && !selected.contains(toDelete)){
+                    selected.add(toDelete);
+                }
+
                 switch (selected.size()) {
                     case 1:
                         Object first = selected.get(0);
@@ -507,6 +518,10 @@ public class PageResources extends PageAdminResources {
 
     private void deleteResourceConfirmedPerformed(AjaxRequestTarget target) {
         List<ResourceDto> selected = isAnyResourceSelected(target, null);
+
+        if(toDelete != null && !selected.contains(toDelete)){
+            selected.add(toDelete);
+        }
 
         OperationResult result = new OperationResult(OPERATION_DELETE_RESOURCES);
         for (ResourceDto resource : selected) {
