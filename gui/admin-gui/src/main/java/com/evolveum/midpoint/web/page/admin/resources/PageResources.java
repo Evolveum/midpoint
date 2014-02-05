@@ -517,7 +517,7 @@ public class PageResources extends PageAdminResources {
     }
 
     private void deleteResourceConfirmedPerformed(AjaxRequestTarget target) {
-        List<ResourceDto> selected = isAnyResourceSelected(target, null);
+        List<ResourceDto> selected = WebMiscUtil.getSelectedData(getResourceTable());
 
         if(toDelete != null && !selected.contains(toDelete)){
             selected.add(toDelete);
