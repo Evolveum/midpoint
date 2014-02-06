@@ -20,6 +20,7 @@ import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.List;
@@ -117,6 +118,8 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 			+ "test015CreateUserListReportFromFile";
 	private static final String CREATE_RECONCILIATION_REPORT_FROM_FILE = CLASS_NAME_WITH_DOT
 			+ "test016CreateReconiciliationReportFromFile";
+	private static final String GET_REPORT_DATA = CLASS_NAME_WITH_DOT
+			+ "test017GetReportData";
 	
 	private static final Trace LOGGER = TraceManager
 			.getTrace(BasicReportTest.class);
@@ -1127,7 +1130,6 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 			
 			ReportType reportType = getReport(AUDITLOGS_REPORT_OID).asObjectable();
 			
-			
 			//WHEN 	
 			TestUtil.displayWhen(TEST_NAME);
 			reportManager.runReport(reportType.asPrismObject(), task, result);
@@ -1135,7 +1137,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 			// THEN
 	        TestUtil.displayThen(TEST_NAME);
 	        
-	        waitForTaskFinish(task.getOid(), false);
+	        waitForTaskFinish(task.getOid(), false, 2500000);
 	        
 	     // Task result
 	        PrismObject<TaskType> reportTaskAfter = getTask(task.getOid());
@@ -1249,6 +1251,32 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 			
 		}
 		*/
+		
+		@Test 
+		public void test017GetReportData() throws Exception {
+			
+			final String TEST_NAME = "test017GetReportData";
+	        TestUtil.displayTestTile(this, TEST_NAME);
+		
+	        // GIVEN
+	        Task task = createTask(GET_REPORT_DATA);
+			OperationResult result = task.getResult();
+			
+			//WHEN 	
+			TestUtil.displayWhen(TEST_NAME);
+			
+			ReportType reportType = getReport(AUDITLOGS_REPORT_OID).asObjectable();			
+			ReportOutputType reportOutputType = searchReportOutput(reportType.getOid()).get(0).asObjectable();
+			AssertJUnit.assertNotNull(reportOutputType);
+
+			InputStream reportData = reportManager.getReportOutputData(reportOutputType.getOid(), result);
+			
+			// THEN
+			result.computeStatus();
+			display("Result after read report data", result);
+			TestUtil.assertSuccess("Read report data has failed (result)", result);
+			
+		}	
 
 
 }

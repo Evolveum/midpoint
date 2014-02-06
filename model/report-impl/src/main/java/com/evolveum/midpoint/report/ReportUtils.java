@@ -80,32 +80,6 @@ public class ReportUtils {
     private static final Trace LOGGER = TraceManager
 			.getTrace(ReportUtils.class);
 
-    private static PrismSchema reportSchema;
-    
-    private static PrismContainer<Containerable> parameterConfiguration;
-    
-    
-    public static void setSchema(PrismSchema schema)
-    {
-    	reportSchema = schema;
-    }
-    
-    public static void setConfiguration(PrismContainer<Containerable> configuration)
-    {
-    	parameterConfiguration = configuration;
-    }
-    
-    
-    public static PrismSchema getSchema()
-    {
-    	return reportSchema;
-    }
-    
-    public static PrismContainer<Containerable> getConfiguration()
-    {
-    	return parameterConfiguration;	
-    }
-    
     
 	public static Class getClassType(QName clazz)
     {
@@ -123,8 +97,8 @@ public class ReportUtils {
     	return classType;
     	
     }
-		
-	public static Element getParametersXsdSchema(ReportType reportType) {
+
+    public static Element getParametersXsdSchema(ReportType reportType) {
 		XmlSchemaType xmlSchemaType = reportType.getConfigurationSchema();
 		if (xmlSchemaType == null) {
 			return null;
@@ -144,7 +118,8 @@ public class ReportUtils {
 		return parametersSchema;
 	}
 	
-	public static void createParametersContainer(ReportType reportType, PrismContext prismContext)
+	
+    public static PrismContainer<Containerable> getParametersContainer(ReportType reportType, PrismSchema schema)
 			throws SchemaException, ObjectNotFoundException {
 		
 		PrismContainer<Containerable> configuration = reportType.asPrismObject().findContainer(ReportType.F_CONFIGURATION);
@@ -153,16 +128,6 @@ public class ReportUtils {
 		}
 		
 		LOGGER.trace("Parameters container : {}", configuration.dump());
-		
-		PrismSchema schema = getParametersSchema(reportType, prismContext);
-		
-		if (schema == null) {
-			throw new SchemaException("No parameters schema in " + reportType);
-		}
-		
-		LOGGER.trace("Parameters schema : {}", schema.dump());
-		
-		setSchema(schema);
 		
 		QName configContainerQName = new QName(schema.getNamespace(), ReportType.F_CONFIGURATION.getLocalPart());
 		PrismContainerDefinition<ReportConfigurationType> configurationContainerDefinition = schema.findContainerDefinitionByElementName(configContainerQName);
@@ -177,38 +142,39 @@ public class ReportUtils {
 		
 		LOGGER.trace("Parameters container with definitions : {}", configuration.dump());
 		 
-		setConfiguration(configuration);
+		return configuration;
 	}
-
-    /**
-     * Look for report configuration definition.
-     * 1/ check PrismContainerDefinition count in schema
-     * 2/ if there is only one container definition return it
-     * 3/ find container definition with ReportType.F_CONFIGURATION.getLocalPart() localPart name
-     * 4/ otherwise return null
-     *
-     * @param schema
-     * @return
-     */
-    private static PrismContainerDefinition findConfigurationDefinition(PrismSchema schema) {
-        Collection<PrismContainerDefinition> definitions = schema.getDefinitions(PrismContainerDefinition.class);
-        if (definitions.size() == 1) {
-            return definitions.iterator().next();
-        }
-
-        for (PrismContainerDefinition def : definitions) {
-            if (def.getName().getLocalPart().equals(ReportType.F_CONFIGURATION.getLocalPart())) {
-                return def;
-            }
-        }
-
-        return null;
-    }
-
-	public static Class getObjectTypeClass(ReportType reportType)
+    
+    public static Map<String, Object> getReportParams(ReportType reportType, PrismContainer<Containerable> parameterConfiguration, OperationResult parentResult)
+	{
+		Map<String, Object> params = new HashMap<String, Object>();
+		 	
+		OperationResult subResult = parentResult.createSubresult("get report parameters");
+		if (parameterConfiguration != null) 	
+		{
+			for(PrismProperty parameter : parameterConfiguration.getValue().getProperties())
+			{
+				LOGGER.trace("parameter {} --- {}", parameter.getElementName().getLocalPart(), parameter.getRealValue());
+				if ((parameter.getElementName().getLocalPart() != PARAMETER_OBJECT_TYPE) && (parameter.getElementName().getLocalPart() != PARAMETER_QUERY_FILTER))
+				{
+					params.put(parameter.getElementName().getLocalPart(), parameter.getRealValue());
+					Class classType = ReportUtils.getClassType(parameter.getDefinition().getTypeName());
+					if (classType == java.sql.Timestamp.class) {
+						params.put(parameter.getElementName().getLocalPart(), ReportUtils.convertDateTime((XMLGregorianCalendar)parameter.getRealValue(XMLGregorianCalendar.class)));
+					}
+				}
+			}
+		}
+		  	
+		subResult.computeStatus();	
+		 
+		return params;
+	}
+    
+	public static Class getObjectTypeClass(ReportType reportType, PrismContainer<Containerable> parameterConfiguration, String namespace)
 			throws SchemaException, ObjectNotFoundException {
 		
-		PrismProperty objectTypeProp = getParameter(PARAMETER_OBJECT_TYPE);
+		PrismProperty objectTypeProp = getParameter(PARAMETER_OBJECT_TYPE, parameterConfiguration, namespace);
 		Class clazz = ObjectType.class;
 		if (objectTypeProp != null)
 		{
@@ -229,9 +195,9 @@ public class ReportUtils {
 		return clazz;
 	}
 	
-	private static PrismProperty getParameter(String parameterName)
+	private static PrismProperty getParameter(String parameterName, PrismContainer<Containerable> parameterConfiguration, String namespace)
 	{
-		PrismProperty property = parameterConfiguration.findProperty(new QName(reportSchema.getNamespace(), parameterName));	
+		PrismProperty property = parameterConfiguration.findProperty(new QName(namespace, parameterName));	
 		for(PrismProperty parameter : parameterConfiguration.getValue().getProperties())
 		{
 			LOGGER.trace("Parameter : {} ", parameter);
@@ -257,32 +223,6 @@ public class ReportUtils {
 		}
 		
 		return timestamp;
-	}
-	
-	public static Map<String, Object> getReportParams(ReportType reportType, OperationResult parentResult)
-	{
-		Map<String, Object> params = new HashMap<String, Object>();
-		 	
-		OperationResult subResult = parentResult.createSubresult("get report parameters");
-		if (parameterConfiguration != null) 	
-		{
-			for(PrismProperty parameter : parameterConfiguration.getValue().getProperties())
-			{
-				LOGGER.trace("parameter {} --- {}", parameter.getElementName().getLocalPart(), parameter.getRealValue());
-				if ((parameter.getElementName().getLocalPart() != PARAMETER_OBJECT_TYPE) && (parameter.getElementName().getLocalPart() != PARAMETER_QUERY_FILTER))
-				{
-					params.put(parameter.getElementName().getLocalPart(), parameter.getRealValue());
-					Class classType = ReportUtils.getClassType(parameter.getDefinition().getTypeName());
-					if (classType == java.sql.Timestamp.class) {
-						params.put(parameter.getElementName().getLocalPart(), convertDateTime((XMLGregorianCalendar)parameter.getRealValue(XMLGregorianCalendar.class)));
-					}
-				}
-			}
-		}
-		  	
-		subResult.computeStatus();	
-		 
-		return params;
 	}
 	
 	private static JRDesignParameter createParameter(PrismProperty parameterConfig)
@@ -487,7 +427,7 @@ public class ReportUtils {
 		jasperDesign.addStyle(pageFooterStyle);
 	}
 
-	private static JRDesignBand createTitleBand(int height, int reportColumn, int secondColumn)
+	private static JRDesignBand createTitleBand(int height, int reportColumn, int secondColumn, PrismContainer<Containerable> parameterConfiguration, PrismSchema prismSchema)
 	{
 		JRDesignBand titleBand = createBand(height);
 		JRDesignFrame frame = createFrame(0, 0, 70, reportColumn, "Title");
@@ -495,7 +435,7 @@ public class ReportUtils {
 	
 		JRDesignStaticText staticText = createStaticText(10, 15, 40, 266, "Title", VerticalAlignEnum.MIDDLE, "DataSource Report");
 		frame.addElement(staticText);
-		if (getParameter(PARAMETER_LOGO) != null) 
+		if (getParameter(PARAMETER_LOGO, parameterConfiguration, prismSchema.getNamespace()) != null) 
 		{
 			JRDesignImage image = createImage(589, 15, 40, 203, "Title", new JRDesignExpression("$P{" + PARAMETER_LOGO + "}"));
 			frame.addElement(image);
@@ -608,14 +548,9 @@ public class ReportUtils {
 		return pageFooterBand;
 	}
 	
-    public static JasperDesign createJasperDesign(ReportType reportType, PrismContext prismContext) throws JRException
+    public static JasperDesign createJasperDesign(ReportType reportType, PrismContainer<Containerable> parameterConfiguration, PrismSchema prismSchema) throws JRException
 	{
-    	try 
-    	{
-    		createParametersContainer(reportType, prismContext);
-    	} catch (Exception ex) {
-    		
-    	}
+    	
 		//JasperDesign
 		JasperDesign jasperDesign = new JasperDesign();
 		String reportName = reportType.getName().getOrig(); 
@@ -647,7 +582,7 @@ public class ReportUtils {
 			}
 		}	 
 		//Template Style or Styles
-		if (getParameter(PARAMETER_TEMPLATE_STYLES) != null)
+		if (getParameter(PARAMETER_TEMPLATE_STYLES, parameterConfiguration, prismSchema.getNamespace()) != null)
 		{
 			JRDesignReportTemplate templateStyle = new JRDesignReportTemplate(new JRDesignExpression("$P{" + PARAMETER_TEMPLATE_STYLES + "}"));
 			jasperDesign.addTemplate(templateStyle);
@@ -674,7 +609,7 @@ public class ReportUtils {
 		//int height = 70 + Math.max(40, parameters.size()*20);
 		int height = 70 + Math.max(40, 20);
 		
-		JRDesignBand titleBand = createTitleBand(height, reportColumn, secondColumn/*, parameters*/);
+		JRDesignBand titleBand = createTitleBand(height, reportColumn, secondColumn, parameterConfiguration, prismSchema);
 		jasperDesign.setTitle(titleBand);
 	
 		//Column header

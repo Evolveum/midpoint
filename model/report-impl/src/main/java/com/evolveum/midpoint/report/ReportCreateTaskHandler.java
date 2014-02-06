@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRExporterParameter;
@@ -56,13 +58,19 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.report.api.ReportManager;
@@ -73,6 +81,7 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskHandler;
@@ -86,8 +95,10 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 /**
@@ -110,8 +121,10 @@ public class ReportCreateTaskHandler implements TaskHandler {
     private static final String MODIFY_REPORT_OUTPUT_TYPE = CLASS_NAME_WITH_DOT + "modifyReportOutputType";
     private static final String SEARCH_REPORT_OUTPUT_TYPE = CLASS_NAME_WITH_DOT + "searchReportOutputType";
 
-    private static final String AUDITLOGS_REPORT_OID = "AUDITLOG-3333-3333-TEST-10000000000";
-    private static final String AUDITLOGS_DATASOURCE_REPORT_OID = "AUDITLOG-3333-3333-TEST-1DATASOURCE";
+    // parameters define objectQuery
+    private static String PARAMETER_OBJECT_TYPE = "type";
+    private static String PARAMETER_QUERY_FILTER = "filter";
+    
 
     @Autowired
     private TaskManager taskManager;
@@ -128,6 +141,33 @@ public class ReportCreateTaskHandler implements TaskHandler {
     @Autowired
 	private SessionFactory sessionFactory;
 
+    private PrismSchema reportSchema;
+    
+    private PrismContainer<Containerable> parameterConfiguration;
+    
+    
+    public void setSchema(PrismSchema schema)
+    {
+    	reportSchema = schema;
+    }
+    
+    public void setConfiguration(PrismContainer<Containerable> configuration)
+    {
+    	parameterConfiguration = configuration;
+    }
+    
+    
+    public PrismSchema getSchema()
+    {
+    	return reportSchema;
+    }
+    
+    public PrismContainer<Containerable> getConfiguration()
+    {
+    	return parameterConfiguration;	
+    }
+    
+    
     @PostConstruct
     private void initialize() {
         if (LOGGER.isTraceEnabled()) {
@@ -135,6 +175,9 @@ public class ReportCreateTaskHandler implements TaskHandler {
         }
         taskManager.registerHandler(REPORT_CREATE_TASK_URI, this);
     }
+
+   
+	
     
     @Override
     public TaskRunResult run(Task task) {
@@ -184,13 +227,14 @@ public class ReportCreateTaskHandler implements TaskHandler {
     	try
     	{    
     		OperationResult subResult = opResult.createSubresult(CREATE_REPORT);	
-    		//DO TASKU
-    		ReportUtils.createParametersContainer(reportType, prismContext);
+    	
+    		setSchema(ReportUtils.getParametersSchema(reportType, prismContext));
+    		setConfiguration(ReportUtils.getParametersContainer(reportType, getSchema()));
+    		
     		
     		if (reportType.getTemplate() == null || reportType.getTemplate().getAny() == null)
             {
-    			// NOVY PARAMETER CONFIGURACIU
-           	 	jasperDesign = ReportUtils.createJasperDesign(reportType, prismContext);
+           	 	jasperDesign = ReportUtils.createJasperDesign(reportType, getConfiguration(), getSchema());
            	 	LOGGER.trace("create jasper design : {}", jasperDesign);
             }
             else
@@ -204,8 +248,8 @@ public class ReportCreateTaskHandler implements TaskHandler {
     		// Compile template
     		JasperReport jasperReport = JasperCompileManager.compileReport(jasperDesign);
     		LOGGER.trace("compile jasper design, create jasper report : {}", jasperReport);
-    		//DO TASKU
-    		params.putAll(ReportUtils.getReportParams(reportType, opResult));
+
+    		params.putAll(ReportUtils.getReportParams(reportType, getConfiguration(), opResult));
     		LOGGER.trace("create report params : {}", params);
     	
     		Session session = sessionFactory.openSession();
