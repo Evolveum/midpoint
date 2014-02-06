@@ -105,7 +105,15 @@ public class DomParser implements Parser {
 		}
 	}
 
-	// TODO: parseElementAsRoot ?
+	/**
+	 * Parses the element into a RootXNode. 
+	 */
+	public RootXNode parseElementAsRoot(Element element) throws SchemaException {
+		RootXNode xroot = new RootXNode(DOMUtil.getQName(element));
+		extractCommonMetadata(element, xroot);
+		xroot.setSubnode(parseElementContent(element));
+		return xroot;
+	}
 	
 	/**
 	 * Parses the element in a single-entry MapXNode. 

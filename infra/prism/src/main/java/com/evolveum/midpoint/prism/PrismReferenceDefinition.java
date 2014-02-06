@@ -21,6 +21,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.QNameUtil;
 
 
 /**
@@ -89,10 +90,10 @@ public class PrismReferenceDefinition extends ItemDefinition {
 		if (!clazz.isAssignableFrom(this.getClass())) {
     		return false;
     	}
-        if (elementQName.equals(getName())) {
+        if (QNameUtil.match(elementQName, getName())) {
         	return true;
         }
-        if (elementQName.equals(getCompositeObjectElementName())) {
+        if (QNameUtil.match(elementQName, getCompositeObjectElementName())) {
         	return true;
         }
         return false;
