@@ -226,4 +226,12 @@ public class ObjectFactory implements Serializable {
         return new JAXBElement<EncryptedDataType>(_ProtectedDataTypeEncryptedData_QNAME, EncryptedDataType.class, ProtectedDataType.class, value);
     }
 
+    /**
+     * Create an instance of {@link SchemaDefinitionType }
+     * 
+     */
+    public SchemaDefinitionType createSchemaDefinitionType() {
+        return new SchemaDefinitionType();
+    }
+
 }

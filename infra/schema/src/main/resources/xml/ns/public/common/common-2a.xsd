@@ -3036,6 +3036,8 @@
 
                 Note: xsd:any is here, but maybe a stricter type would be preferable.
                 However xsd:any seems to be a common practice (e.g. SPML, WSDL).
+                
+                TODO: rename to CachedSchemaType
             </xsd:documentation>
             <xsd:appinfo>
             	<a:container/>
@@ -3044,19 +3046,7 @@
         <xsd:sequence>
             <xsd:element ref="tns:cachingMetadata" minOccurs="0"/>
             <xsd:element name="generationConstraints" type="tns:SchemaGenerationConstraintsType" minOccurs="0"/>
-            <xsd:element name="definition" minOccurs="0">
-            	<xsd:complexType>
-            		<xsd:sequence>
-			            <xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="strict">
-			                <xsd:annotation>
-			                    <xsd:appinfo>
-			                        <jaxb:dom/>
-			                    </xsd:appinfo>
-			                </xsd:annotation>
-			            </xsd:any>
-		            </xsd:sequence>
-	          	</xsd:complexType>
-            </xsd:element>
+            <xsd:element name="definition" type="t:SchemaDefinitionType" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="schema" type="tns:XmlSchemaType"/>
