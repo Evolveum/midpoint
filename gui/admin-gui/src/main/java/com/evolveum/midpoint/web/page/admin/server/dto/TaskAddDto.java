@@ -27,6 +27,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ThreadStopActionTyp
  */
 public class TaskAddDto implements Serializable {
 
+    public static final String F_DRY_RUN = "dryRun";
+
 	private String category;
 	private TaskAddResourcesDto resource;
 	private String name;
@@ -45,6 +47,8 @@ public class TaskAddDto implements Serializable {
 	private boolean suspendedState;
 	private ThreadStopActionType threadStop;
 	private MisfireActionType misfireAction = MisfireActionType.EXECUTE_IMMEDIATELY;
+
+    private boolean dryRun;
 	
 	public String getCategory() {
 		return category;
@@ -149,5 +153,12 @@ public class TaskAddDto implements Serializable {
 	public void setMisfireAction(MisfireActionType misfireAction) {
 		this.misfireAction = misfireAction;
 	}
-    
+
+    public boolean isDryRun() {
+        return dryRun;
+    }
+
+    public void setDryRun(boolean dryRun) {
+        this.dryRun = dryRun;
+    }
 }

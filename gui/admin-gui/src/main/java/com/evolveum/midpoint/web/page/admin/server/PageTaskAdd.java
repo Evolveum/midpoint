@@ -19,12 +19,18 @@ package com.evolveum.midpoint.web.page.admin.server;
 import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.common.security.MidPointPrincipal;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
@@ -72,6 +78,8 @@ import java.util.List;
 public class PageTaskAdd extends PageAdminTasks {
 
     private static final long serialVersionUID = 2317887071933841581L;
+
+    private static final String ID_DRY_RUN = "dryRun";
 
     private static final Trace LOGGER = TraceManager.getTrace(PageTaskAdd.class);
     private static final String DOT_CLASS = PageTaskAdd.class.getName() + ".";
@@ -169,6 +177,9 @@ public class PageTaskAdd extends PageAdminTasks {
 
         initScheduling(mainForm);
         initAdvanced(mainForm);
+
+        CheckBox dryRun = new CheckBox(ID_DRY_RUN, new PropertyModel<Boolean>(model, TaskAddDto.F_DRY_RUN));
+        mainForm.add(dryRun);
 
         initButtons(mainForm);
     }
@@ -430,10 +441,11 @@ public class PageTaskAdd extends PageAdminTasks {
         LOGGER.debug("Saving new task.");
         OperationResult result = new OperationResult(OPERATION_SAVE_TASK);
         TaskAddDto dto = model.getObject();
-        TaskType task = createTask(dto);
-        Task operationTask = createSimpleTask(OPERATION_SAVE_TASK);
 
+        Task operationTask = createSimpleTask(OPERATION_SAVE_TASK);
         try {
+            TaskType task = createTask(dto);
+
             getPrismContext().adopt(task);
             if (LOGGER.isTraceEnabled()) {
                 LOGGER.trace("Adding new task.");
@@ -456,7 +468,7 @@ public class PageTaskAdd extends PageAdminTasks {
         return retval;
     }
 
-    private TaskType createTask(TaskAddDto dto) {
+    private TaskType createTask(TaskAddDto dto) throws SchemaException {
         TaskType task = new TaskType();
         MidPointPrincipal owner = SecurityUtils.getPrincipalUser();
 
@@ -508,6 +520,17 @@ public class PageTaskAdd extends PageAdminTasks {
             } else {
                 task.setThreadStopAction(ThreadStopActionType.RESTART);
             }
+        }
+
+        if (dto.isDryRun()) {
+            PrismObject<TaskType> prismTask = task.asPrismObject();
+            ItemPath path = new ItemPath(TaskType.F_EXTENSION,SchemaConstants.MODEL_EXTENSION_DRY_RUN);
+            PrismProperty dryRun = prismTask.findOrCreateProperty(path);
+
+            SchemaRegistry registry = getPrismContext().getSchemaRegistry();
+            PrismPropertyDefinition def = registry.findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_DRY_RUN);
+            dryRun.setDefinition(def);
+            dryRun.setRealValue(true);
         }
 
         return task;

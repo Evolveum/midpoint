@@ -85,6 +85,7 @@ public class TaskDto extends Selectable {
     public static final String F_WORKFLOW_HISTORY = "workflowHistory";
     public static final String F_TASK_OPERATION_RESULT = "taskOperationResult";
     public static final String F_PROGRESS_DESCRIPTION = "progressDescription";
+    public static final String F_DRY_RUN = "dryRun";
 
     private List<String> handlerUriList;
     private String parentTaskName;
@@ -121,6 +122,8 @@ public class TaskDto extends Selectable {
     private List<DeltaDto> workflowDeltasIn, workflowDeltasOut;
     private List<WfHistoryEventDto> workflowHistory;
 
+    private boolean dryRun;
+
     private TaskType taskType;
 
     //region Construction
@@ -146,6 +149,24 @@ public class TaskDto extends Selectable {
         }
         fillInWorkflowAttributes(taskType);
         thisOpResult.computeStatusIfUnknown();
+
+        fillDryRun(taskType);
+    }
+
+    private void fillDryRun(TaskType taskType) {
+        PrismObject<TaskType> task = taskType.asPrismObject();
+        if (task.getExtension() == null) {
+            dryRun = false;
+            return;
+        }
+
+        PrismProperty<Boolean> item = task.getExtension().findProperty(SchemaConstants.MODEL_EXTENSION_DRY_RUN);
+        if (item == null || item.getRealValue() == null) {
+            dryRun = false;
+            return;
+        }
+
+        dryRun = item.getRealValue();
     }
 
     private void fillInTimestamps(TaskType taskType) {
@@ -641,5 +662,13 @@ public class TaskDto extends Selectable {
 
     public Long getStalledSince() {
         return xgc2long(taskType.getStalledSince());
+    }
+
+    public boolean isDryRun() {
+        return dryRun;
+    }
+
+    public void setDryRun(boolean dryRun) {
+        this.dryRun = dryRun;
     }
 }
