@@ -16,82 +16,43 @@
 
 package com.evolveum.midpoint.report;
 
-import static com.evolveum.midpoint.schema.util.MiscSchemaUtil.getDefaultImportOptions;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertEquals;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.sql.Timestamp;
-import java.util.ArrayList;
+import java.io.InputStream;
 import java.util.Calendar;
 import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.Duration;
 
-import net.sf.jasperreports.engine.JasperCompileManager;
-import net.sf.jasperreports.engine.JasperExportManager;
-import net.sf.jasperreports.engine.JasperFillManager;
-import net.sf.jasperreports.engine.JasperPrint;
-import net.sf.jasperreports.engine.JasperReport;
-import net.sf.jasperreports.engine.design.JasperDesign;
-import net.sf.jasperreports.engine.query.JRHibernateQueryExecuterFactory;
-import net.sf.jasperreports.engine.xml.JRXmlLoader;
-
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
-import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
 
-import com.evolveum.midpoint.audit.api.AuditEventType;
-import com.evolveum.midpoint.common.validator.EventHandler;
-import com.evolveum.midpoint.common.validator.EventResult;
-import com.evolveum.midpoint.common.validator.Validator;
 import com.evolveum.midpoint.model.api.ModelService;
 import com.evolveum.midpoint.model.test.AbstractModelIntegrationTest;
-import com.evolveum.midpoint.prism.ItemDefinition;
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismObjectDefinition;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.parser.XPathHolder;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
-import com.evolveum.midpoint.prism.query.ObjectPaging;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
-import com.evolveum.midpoint.prism.schema.SchemaRegistry;
-import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.report.api.ReportManager;
 import com.evolveum.midpoint.schema.GetOperationOptions;
-import com.evolveum.midpoint.schema.PagingConvertor;
-import com.evolveum.midpoint.schema.QueryJaxbConvertor;
 import com.evolveum.midpoint.schema.SelectorOptions;
-import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
-import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
-import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
@@ -100,24 +61,14 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExportType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OperationResultType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrientationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportFieldConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportOutputType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportParameterConfigurationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportTemplateStyleType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportTemplateType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SystemConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
-import com.evolveum.prism.xml.ns._public.query_2.OrderDirectionType;
-import com.evolveum.prism.xml.ns._public.query_2.QueryType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 /**
@@ -161,12 +112,16 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 			+ "test011CleanupReports";
 	private static final String AUDIT_REPORT = CLASS_NAME_WITH_DOT
 			+ "test012AudtReportWithDeltas";
-	private static final String CREATE_RECONCILIATION_REPORT_FROM_FILE = CLASS_NAME_WITH_DOT
-			+ "test013CreateReconiciliationReportFromFile";
 	private static final String CREATE_AUDITLOGS_REPORT_FROM_FILE = CLASS_NAME_WITH_DOT
-			+ "test014CreateAuditLogsReportFromFile";
+			+ "test013CreateAuditLogsReportFromFile";
+	private static final String CREATE_AUDITLOGS_REPORT_WITH_DATASOURCE = CLASS_NAME_WITH_DOT
+			+ "test014CreateAuditLogsReportWithDatasource";
 	private static final String CREATE_USERLIST_REPORT_FROM_FILE = CLASS_NAME_WITH_DOT
 			+ "test015CreateUserListReportFromFile";
+	private static final String CREATE_RECONCILIATION_REPORT_FROM_FILE = CLASS_NAME_WITH_DOT
+			+ "test016CreateReconiciliationReportFromFile";
+	private static final String GET_REPORT_DATA = CLASS_NAME_WITH_DOT
+			+ "test017GetReportData";
 	
 	private static final Trace LOGGER = TraceManager
 			.getTrace(BasicReportTest.class);
@@ -191,6 +146,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	private static final File REPORT_AUDIT_TEST = new File(REPORTS_DIR + "/reportAuditLogs.jrxml");
 	private static final File RECONICILIATION_REPORT_FILE = new File(REPORTS_DIR + "/reportReconiciliation.xml");
 	private static final File AUDITLOGS_REPORT_FILE = new File(REPORTS_DIR + "/reportAuditLogs.xml");
+	private static final File AUDITLOGS_WITH_DATASOURCE_REPORT_FILE = new File(REPORTS_DIR + "/reportAuditLogs-with-datasource.xml");
 	private static final File USERLIST_REPORT_FILE = new File(REPORTS_DIR + "/reportUserList.xml");
 	private static final File USERROLES_REPORT_FILE = new File(REPORTS_DIR + "/reportUserRoles.xml");
 	private static final File USERACCOUNTS_REPORT_FILE = new File(REPORTS_DIR + "/reportUserAccounts.xml");
@@ -201,6 +157,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	private static final String REPORT_OID_TEST = "00000000-3333-3333-TEST-10000000000";
 	private static final String TASK_REPORT_OID = "00000000-3333-3333-TASK-10000000000";
 	private static final String AUDITLOGS_REPORT_OID = "AUDITLOG-3333-3333-TEST-10000000000";
+	private static final String AUDITLOGS_DATASOURCE_REPORT_OID = "AUDITLOG-3333-3333-TEST-1DATASOURCE";
 	
 	@Autowired
 	private PrismContext prismContext;
@@ -257,7 +214,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	private PrismObject<ReportType> getReport(String reportOid) throws ObjectNotFoundException, SchemaException, SecurityViolationException, CommunicationException, ConfigurationException {
 		Task task = taskManager.createTaskInstance(GET_REPORT);
         OperationResult result = task.getResult();
-		PrismObject<ReportType> report = modelService.getObject(ReportType.class, reportOid, null, task, result);
+		PrismObject<ReportType> report = modelService.getObject(ReportType.class, reportOid, SelectorOptions.createCollection(GetOperationOptions.createRaw()), task, result);
 		result.computeStatus();
 		TestUtil.assertSuccess("getObject(Report) result not success", result);
 		return report;
@@ -376,7 +333,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
         return policy;
     }
 
-
+/*
 	@Test
 	public void test001CreateReport() throws Exception {
 		// import vo for cycle cez usertype zrusit vsetky RTable
@@ -417,6 +374,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		// object query
 		ObjectPaging paging = ObjectPaging.createPaging(0, 10);
 		ObjectQuery query = ObjectQuery.createObjectQuery(paging);
+<<<<<<< HEAD
 		QueryType queryType = new QueryType();
 		try {
 			queryType = QueryJaxbConvertor.createQueryType(query, prismContext);
@@ -429,6 +387,9 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		} catch (Exception ex) {
 			LOGGER.error("Exception occurred. QueryType pagging", ex);
 		}
+=======
+		QueryType queryType = QueryConvertor.createQueryType(query, prismContext);		
+>>>>>>> master
 		reportType.setQuery(queryType);
 
 		// fields
@@ -628,35 +589,29 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 					parameterRepo.getClassTypeParameter());
 		}
 	}
-
+*//*
 	@Test 
 	public void test002CreateReportFromFile() throws Exception {
 		
 		final String TEST_NAME = "test002CreateReportFromFile";
         TestUtil.displayTestTile(this, TEST_NAME);
 	
+        //GIVEN
 		Task task = taskManager.createTaskInstance(CREATE_REPORT_FROM_FILE);
 		OperationResult result = task.getResult();
-
-		PrismObject<? extends Objectable> reportType =  prismContext.getPrismDomProcessor().parseObject(TEST_REPORT_FILE);
-
-		ObjectDelta<ReportType> objectDelta = 
-		ObjectDelta.createAddDelta((PrismObject<ReportType>) reportType);
-		Collection<ObjectDelta<? extends ObjectType>> deltas =
-		MiscSchemaUtil.createCollection(objectDelta);
-		
+      
 		//WHEN 	
 		TestUtil.displayWhen(TEST_NAME);
-		modelService.executeChanges(deltas, null, task, result);
+		importObjectFromFile(TEST_REPORT_FILE);
+
 		
 		//THEN  
 		TestUtil.displayThen(TEST_NAME);
         result.computeStatus();
         display(result);
         TestUtil.assertSuccess(result);
-		AssertJUnit.assertEquals(REPORT_OID_TEST, objectDelta.getOid());
-	}
-
+	}*/
+/*
 	@Test
 	public void test003CopyReportWithoutDesign() throws Exception {
 		final String TEST_NAME = "test003CopyReportWithoutDesign";
@@ -688,7 +643,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 		TestUtil.assertSuccess(result);
 		AssertJUnit.assertEquals(REPORT_OID_002, objectDelta.getOid());
 	}
-	/*
+	
 	@Test
 	public void test004RunReport() throws Exception {
 		final String TEST_NAME = "test004RunReport";
@@ -1102,11 +1057,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 			final String TEST_NAME = "test012AuditReportWithDeltas";
 	        TestUtil.displayTestTile(this, TEST_NAME);
 			
-	        // GIVEN
-	        Task task = taskManager.createTaskInstance(AUDIT_REPORT);
-			OperationResult result = task.getResult();
-			
-			
+	      
 			AuditEventType auditEventType = null;//AuditEventType.ADD_OBJECT;
 			int auditEventTypeId = auditEventType != null ? auditEventType.ordinal() : -1;
 			String auditEventTypeName = auditEventType == null ? "AuditEventType.null" : auditEventType.toString();
@@ -1170,38 +1121,15 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	        String output =  EXPORT_DIR + "AuditReport.pdf";
 	        JasperExportManager.exportReportToPdfFile(jasperPrint, output);
 	        
-	      // waitForTaskFinish(task.getOid(), false);
-	        
+	      
 	       session.getTransaction().commit();
 	       session.close();			
 		}*/
-		/*
+			
 		@Test 
-		public void test013CreateReconciliationReportFromFile() throws Exception {
+		public void test013CreateAuditLogsReportFromFile() throws Exception {
 			
-			final String TEST_NAME = "test013CreateReconciliationReportFromFile";
-	        TestUtil.displayTestTile(this, TEST_NAME);
-		
-	        // GIVEN
-			Task task = taskManager.createTaskInstance(CREATE_RECONCILIATION_REPORT_FROM_FILE);
-			OperationResult result = task.getResult();
-			FileInputStream stream = new FileInputStream(RECONICILIATION_REPORT_FILE);
-			
-			//WHEN 	
-			TestUtil.displayWhen(TEST_NAME);
-			modelService.importObjectsFromStream(stream, getDefaultImportOptions(), task, result);
-
-			// THEN
-			result.computeStatus();
-			display("Result after good import", result);
-			TestUtil.assertSuccess("Import has failed (result)", result);	
-			
-		}
-		*/
-		@Test 
-		public void test014CreateAuditLogsReportFromFile() throws Exception {
-			
-			final String TEST_NAME = "test014CreateAuditLogsReportFromFile";
+			final String TEST_NAME = "test013CreateAuditLogsReportFromFile";
 	        TestUtil.displayTestTile(this, TEST_NAME);
 		
 	        // GIVEN
@@ -1226,6 +1154,44 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 			// THEN
 	        TestUtil.displayThen(TEST_NAME);
 	        
+	        waitForTaskFinish(task.getOid(), false, 2500000);
+	        
+	     // Task result
+	        PrismObject<TaskType> reportTaskAfter = getTask(task.getOid());
+	        OperationResultType reportTaskResult = reportTaskAfter.asObjectable().getResult();
+	        display("Report task result", reportTaskResult);
+	        TestUtil.assertSuccess(reportTaskResult);
+		}	
+/*
+		@Test 
+		public void test014CreateAuditLogsReportWithDatasource() throws Exception {
+			final String TEST_NAME = "test014CreateAuditLogsReportWithDatasource";
+	        TestUtil.displayTestTile(this, TEST_NAME);
+		
+	        // GIVEN
+			Task task = createTask(CREATE_AUDITLOGS_REPORT_WITH_DATASOURCE);
+			OperationResult result = task.getResult();
+			
+			//WHEN 	
+			TestUtil.displayWhen(TEST_NAME);
+			importObjectFromFile(AUDITLOGS_WITH_DATASOURCE_REPORT_FILE);
+
+			// THEN
+			result.computeStatus();
+			display("Result after good import", result);
+			TestUtil.assertSuccess("Import has failed (result)", result);
+			
+			ReportType reportType = getReport(AUDITLOGS_DATASOURCE_REPORT_OID).asObjectable();
+			
+			
+			
+			//WHEN 	
+			TestUtil.displayWhen(TEST_NAME);
+			reportManager.runReport(reportType.asPrismObject(), task, result);
+			
+			// THEN
+	        TestUtil.displayThen(TEST_NAME);
+	        
 	        waitForTaskFinish(task.getOid(), false);
 	        
 	     // Task result
@@ -1234,8 +1200,9 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	        display("Report task result", reportTaskResult);
 	        TestUtil.assertSuccess(reportTaskResult);
 			
-		}		
-
+			
+		}*/
+		
 		/*
 		@Test 
 		public void test015CreateUserListReportFromFile() throws Exception {
@@ -1277,5 +1244,56 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 			TestUtil.assertSuccess("Import has failed (result)", result);	
 			
 		}		*/
+		
+		/*
+		@Test 
+		public void test016CreateReconciliationReportFromFile() throws Exception {
+			
+			final String TEST_NAME = "test016CreateReconciliationReportFromFile";
+	        TestUtil.displayTestTile(this, TEST_NAME);
+		
+	        // GIVEN
+			Task task = taskManager.createTaskInstance(CREATE_RECONCILIATION_REPORT_FROM_FILE);
+			OperationResult result = task.getResult();
+			FileInputStream stream = new FileInputStream(RECONICILIATION_REPORT_FILE);
+			
+			//WHEN 	
+			TestUtil.displayWhen(TEST_NAME);
+			modelService.importObjectsFromStream(stream, getDefaultImportOptions(), task, result);
+
+			// THEN
+			result.computeStatus();
+			display("Result after good import", result);
+			TestUtil.assertSuccess("Import has failed (result)", result);	
+			
+		}
+		*/
+		
+		@Test 
+		public void test017GetReportData() throws Exception {
+			
+			final String TEST_NAME = "test017GetReportData";
+	        TestUtil.displayTestTile(this, TEST_NAME);
+		
+	        // GIVEN
+	        Task task = createTask(GET_REPORT_DATA);
+			OperationResult result = task.getResult();
+			
+			//WHEN 	
+			TestUtil.displayWhen(TEST_NAME);
+			
+			ReportType reportType = getReport(AUDITLOGS_REPORT_OID).asObjectable();			
+			ReportOutputType reportOutputType = searchReportOutput(reportType.getOid()).get(0).asObjectable();
+			AssertJUnit.assertNotNull(reportOutputType);
+
+			InputStream reportData = reportManager.getReportOutputData(reportOutputType.getOid(), result);
+			
+			// THEN
+			result.computeStatus();
+			display("Result after read report data", result);
+			TestUtil.assertSuccess("Read report data has failed (result)", result);
+			
+		}	
+
 
 }

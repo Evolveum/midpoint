@@ -101,7 +101,9 @@ public class PageUsers extends PageAdminUsers {
     private static final String ID_SEARCH_TEXT = "searchText";
     private static final String ID_SEARCH_TYPE = "searchType";
     private static final String ID_SEARCH_BUTTON = "searchButton";
+    private static final String ID_SEARCH_CLEAR = "searchClear";
 
+    private UserListItemDto singleDelete;
     private LoadableModel<UsersDto> model;
     private LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel;
 
@@ -140,8 +142,7 @@ public class PageUsers extends PageAdminUsers {
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
                 close(target);
-                //todo get here selected user dto row!!!!
-                deleteConfirmedPerformed(target, null);
+                deleteConfirmedPerformed(target);
             }
         });
 
@@ -156,8 +157,13 @@ public class PageUsers extends PageAdminUsers {
 
             @Override
             public String getObject() {
-                return createStringResource("pageUsers.message.deleteUserConfirm",
+                if(singleDelete == null){
+                    return createStringResource("pageUsers.message.deleteUserConfirm",
                         WebMiscUtil.getSelectedData(getTable()).size()).getString();
+                } else {
+                    return createStringResource("pageUsers.message.deleteUserConfirmSingle",
+                            singleDelete.getName()).getString();
+                }
             }
         };
     }
@@ -358,8 +364,9 @@ public class PageUsers extends PageAdminUsers {
     }
 
     private void initSearch() {
-        Form searchForm = new Form(ID_SEARCH_FORM);
+        final Form searchForm = new Form(ID_SEARCH_FORM);
         add(searchForm);
+        searchForm.setOutputMarkupId(true);
 
         TextField searchText = new TextField(ID_SEARCH_TEXT, new PropertyModel<String>(model,
                 UsersDto.F_TEXT));
@@ -397,6 +404,20 @@ public class PageUsers extends PageAdminUsers {
             }
         };
         searchForm.add(searchButton);
+
+        AjaxSubmitButton clearButton = new AjaxSubmitButton(ID_SEARCH_CLEAR) {
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form){
+                clearSearchPerformed(target);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(getFeedbackPanel());
+            }
+        };
+        searchForm.add(clearButton);
     }
 
     private void userDetailsPerformed(AjaxRequestTarget target, String oid) {
@@ -470,6 +491,7 @@ public class PageUsers extends PageAdminUsers {
     }
 
     private void deletePerformed(AjaxRequestTarget target, UserListItemDto selectedUser) {
+        singleDelete = selectedUser;
         List<UserListItemDto> users = isAnythingSelected(target, selectedUser);
         if (users.isEmpty()) {
             return;
@@ -479,8 +501,15 @@ public class PageUsers extends PageAdminUsers {
         dialog.show(target);
     }
 
-    private void deleteConfirmedPerformed(AjaxRequestTarget target, UserListItemDto selectedUser) {
-        List<UserListItemDto> users = isAnythingSelected(target, selectedUser);
+    private void deleteConfirmedPerformed(AjaxRequestTarget target) {
+        List<UserListItemDto> users = new  ArrayList<UserListItemDto>();
+
+        if(singleDelete == null){
+            users = isAnythingSelected(target, null);
+        } else {
+            users.add(singleDelete);
+        }
+
         if (users.isEmpty()) {
             return;
         }
@@ -625,5 +654,21 @@ public class PageUsers extends PageAdminUsers {
         showResult(result);
         target.add(getFeedbackPanel());
         target.add(getTable());
+    }
+
+    private void clearSearchPerformed(AjaxRequestTarget target){
+        model.setObject(new UsersDto());
+
+        TablePanel panel = getTable();
+        DataTable table = panel.getDataTable();
+        ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
+        provider.setQuery(null);
+
+        UsersStorage storage = getSessionStorage().getUsers();
+        storage.setUsersSearch(model.getObject());
+        panel.setCurrentPage(storage.getUsersPaging());
+
+        target.add(get(ID_SEARCH_FORM));
+        target.add(panel);
     }
 }

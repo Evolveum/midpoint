@@ -41,6 +41,7 @@ public class ConfirmationDialog extends ModalWindow {
         }
         setCssClassName(ModalWindow.CSS_CLASS_GRAY);
         setCookieName(ConfirmationDialog.class.getSimpleName() + ((int) (Math.random() * 100)));
+        showUnloadConfirmation(false);
         setResizable(false);
         setInitialWidth(350);
         setInitialHeight(150);

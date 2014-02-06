@@ -129,8 +129,6 @@ public class ReportOutputDto extends Selectable implements Serializable{
     }
 
     public ExportType getFileType() {
-        if(fileType == null)
-            return ExportType.PDF;
         return fileType;
     }
 

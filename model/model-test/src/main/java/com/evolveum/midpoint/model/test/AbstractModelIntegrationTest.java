@@ -83,6 +83,7 @@ import com.evolveum.midpoint.test.DummyResourceContoller;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.MidPointAsserts;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
@@ -1053,6 +1054,66 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 	
 	protected <O extends ObjectType> void assertHasOrgs(PrismObject<O> user, int expectedNumber) {
 		MidPointAsserts.assertHasOrgs(user, expectedNumber);
+	}
+	
+	protected void assertSubOrgs(String baseOrgOid, int expected) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class+".assertSubOrgs");
+		OperationResult result = task.getResult();
+		List<PrismObject<OrgType>> subOrgs = getSubOrgs(baseOrgOid, task, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		assertEquals("Unexpected number of suborgs of org "+baseOrgOid+", has suborgs "+subOrgs, expected, subOrgs.size());
+	}
+
+	protected void assertSubOrgs(PrismObject<OrgType> baseOrg, int expected) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class+".assertSubOrgs");
+		OperationResult result = task.getResult();
+		List<PrismObject<OrgType>> subOrgs = getSubOrgs(baseOrg.getOid(), task, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		assertEquals("Unexpected number of suborgs of"+baseOrg+", has suborgs "+subOrgs, expected, subOrgs.size());
+	}
+
+	protected List<PrismObject<OrgType>> getSubOrgs(String baseOrgOid, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+		ObjectQuery query = new ObjectQuery();
+		PrismReferenceValue baseOrgRef = new PrismReferenceValue(baseOrgOid);
+		ObjectFilter filter = OrgFilter.createOrg(baseOrgRef, 1, 1);
+		query.setFilter(filter);
+		return modelService.searchObjects(OrgType.class, query, null, task, result);
+	}
+	
+	protected String dumpOrgTree(String topOrgOid) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+		Task task = taskManager.createTaskInstance(AbstractModelIntegrationTest.class+".assertSubOrgs");
+		OperationResult result = task.getResult();
+		PrismObject<OrgType> topOrg = modelService.getObject(OrgType.class, topOrgOid, null, task, result);
+		String dump = dumpOrgTree(topOrg, task, result);
+		result.computeStatus();
+		TestUtil.assertSuccess(result);
+		return dump;
+	}
+	
+	protected String dumpOrgTree(PrismObject<OrgType> topOrg, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+		StringBuilder sb = new StringBuilder();
+		dumpOrg(sb, topOrg, 0);
+		sb.append("\n");
+		dumpSubOrgs(sb, topOrg.getOid(), 1, task, result);
+		return sb.toString();
+	}
+
+	private void dumpSubOrgs(StringBuilder sb, String baseOrgOid, int indent, Task task, OperationResult result) throws SchemaException, ObjectNotFoundException, SecurityViolationException, CommunicationException, ConfigurationException {
+		List<PrismObject<OrgType>> subOrgs = getSubOrgs(baseOrgOid, task, result);
+		for (PrismObject<OrgType> suborg: subOrgs) {
+			dumpOrg(sb, suborg, indent);
+			sb.append("\n");
+			dumpSubOrgs(sb, suborg.getOid(), indent + 1, task, result);
+		}
+	}
+	
+	private void dumpOrg(StringBuilder sb, PrismObject<OrgType> org, int indent) {
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append(org);
+		List<ObjectReferenceType> linkRefs = org.asObjectable().getLinkRef();
+		sb.append(": ").append(linkRefs.size()).append(" links");
 	}
 
 	protected <F extends FocusType> void assertAssignments(PrismObject<F> user, int expectedNumber) {

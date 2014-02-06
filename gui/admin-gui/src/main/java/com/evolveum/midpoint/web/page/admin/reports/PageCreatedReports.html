@@ -33,9 +33,12 @@
                     wicket:message="placeholder:searchForm.searchTextPlaceholder">
         </div>
 
-        <select multiple="multiple" class="multiselect" wicket:id="searchType"/>
-
-        <a class="btn btn-default btn-sm" wicket:id="searchButton"/>
+        <span class="btn-group">
+            <a class="btn btn-default btn-sm" wicket:id="searchButton"/>
+            <a class="btn btn-danger btn-sm" wicket:message="title:PageBase.button.tooltip.clearSearch" wicket:id="searchClear">
+                <i class="fa fa-trash-o"/>
+            </a>
+        </span>
     </form>
 
     <form wicket:id="mainForm" class="clearfix">

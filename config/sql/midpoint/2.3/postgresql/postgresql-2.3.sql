@@ -419,17 +419,20 @@
     );
 
     create table m_report (
+        configuration text,
+        configurationSchema text,
+        dataSource_providerClass varchar(255),
+        dataSource_springBean boolean,
         name_norm varchar(255),
         name_orig varchar(255),
-        class_namespace varchar(255),
-        class_localPart varchar(100),
-        query text,
+        parent boolean,
         reportExport int4,
         reportFields text,
         reportOrientation int4,
-        reportParameters text,
         reportTemplate text,
         reportTemplateStyle text,
+        subReport text,
+        useHibernateSession boolean,
         id int8 not null,
         oid varchar(36) not null,
         primary key (id, oid),
@@ -645,6 +648,7 @@
         honorificPrefix_orig varchar(255),
         honorificSuffix_norm varchar(255),
         honorificSuffix_orig varchar(255),
+        jpegPhoto oid,
         locale varchar(255),
         locality_norm varchar(255),
         locality_orig varchar(255),
@@ -881,6 +885,8 @@
         add constraint fk_reference_owner 
         foreign key (owner_id, owner_oid) 
         references m_container;
+
+    create index iReportParent on m_report (parent);
 
     create index iReportName on m_report (name_orig);
 

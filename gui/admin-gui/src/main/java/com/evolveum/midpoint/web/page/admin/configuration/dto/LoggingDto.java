@@ -29,6 +29,7 @@ public class LoggingDto implements Serializable {
 
     public static String F_ROOT_LEVEL = "rootLevel";
     public static String F_ROOT_APPENDER = "rootAppender";
+    public static String F_APPENDERS = "appenders";
 
     public static final String LOGGER_PROFILING = "PROFILING";
     public static final Map<String, LoggingComponentType> componentMap = new HashMap<String, LoggingComponentType>();

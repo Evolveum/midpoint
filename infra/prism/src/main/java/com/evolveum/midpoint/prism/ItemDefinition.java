@@ -199,6 +199,15 @@ public abstract class ItemDefinition extends Definition implements Serializable 
         }
         return false;
 	}
+	
+	public void adoptElementDefinitionFrom(ItemDefinition otherDef) {
+		if (otherDef == null) {
+			return;
+		}
+		setName(otherDef.getName());
+		setMinOccurs(otherDef.getMinOccurs());
+		setMaxOccurs(otherDef.getMaxOccurs());
+	}    
 
 	/**
 	 * Create an item instance. Definition name or default name will

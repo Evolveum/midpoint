@@ -20,6 +20,7 @@
 package com.evolveum.midpoint.provisioning.ucf.impl;
 
 import java.io.FileNotFoundException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.ConnectException;
 import java.sql.SQLException;
 import java.sql.SQLSyntaxErrorException;
@@ -33,6 +34,7 @@ import javax.naming.directory.InvalidAttributeValueException;
 import javax.naming.directory.NoSuchAttributeException;
 import javax.naming.directory.SchemaViolationException;
 
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import org.identityconnectors.framework.common.exceptions.AlreadyExistsException;
 import org.identityconnectors.framework.common.exceptions.ConfigurationException;
 import org.identityconnectors.framework.common.exceptions.ConnectionBrokenException;
@@ -56,6 +58,7 @@ import com.evolveum.midpoint.util.exception.SecurityViolationException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import org.identityconnectors.framework.impl.api.remote.RemoteWrappedException;
 
 /**
  * Set of utility methods that work around some of the ICF problems.
@@ -111,6 +114,18 @@ class IcfUtil {
 		
 		LOGGER.error("ICF Exception {} in {}: {}",new Object[]{icfException.getClass().getName(),
 				desc, icfException.getMessage(),icfException});
+
+        if (icfException instanceof RemoteWrappedException) {
+            // brutal hack, for now
+            RemoteWrappedException remoteWrappedException = (RemoteWrappedException) icfException;
+            String className = remoteWrappedException.getExceptionClass();
+            try {
+                icfException = (Throwable) Class.forName(className).getConstructor(String.class, Throwable.class).newInstance(
+                        remoteWrappedException.getMessage(), remoteWrappedException);
+            } catch (InstantiationException|IllegalAccessException|ClassNotFoundException|NoSuchMethodException|InvocationTargetException e) {
+                LoggingUtils.logException(LOGGER, "Couldn't unwrap remote ICF exception, continuing with original one {}", e, icfException);
+            }
+        }
 		
 		if (icfException instanceof NullPointerException && icfException.getMessage() != null) {
 			// NPE with a message text is in fact not a NPE but an application exception

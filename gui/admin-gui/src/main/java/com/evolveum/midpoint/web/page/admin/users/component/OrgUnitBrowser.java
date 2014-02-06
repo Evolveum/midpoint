@@ -85,6 +85,7 @@ public class OrgUnitBrowser extends ModalWindow {
         setTitle(createStringResource("OrgUnitBrowser.title"));
         setCssClassName(ModalWindow.CSS_CLASS_GRAY);
         setCookieName(OrgUnitBrowser.class.getSimpleName() + ((int) (Math.random() * 100)));
+        showUnloadConfirmation(false);
         setInitialWidth(900);
         setInitialHeight(530);
         setWidthUnit("px");

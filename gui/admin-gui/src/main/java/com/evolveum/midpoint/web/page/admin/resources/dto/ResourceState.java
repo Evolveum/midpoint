@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.resources.dto;
 
 import java.io.Serializable;
 
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import org.apache.commons.lang.StringUtils;
 
 /**
@@ -25,87 +26,87 @@ import org.apache.commons.lang.StringUtils;
  */
 public class ResourceState implements Serializable {
 
-	private ResourceStatus lastAvailability;
-	private ResourceStatus overall;
-	private ResourceStatus confValidation;
-	private ResourceStatus conInitialization;
-	private ResourceStatus conConnection;
-	private ResourceStatus conSanity;
-	private ResourceStatus conSchema;
-	private ResourceStatus extra;
+	private OperationResultStatus lastAvailability;
+	private OperationResultStatus overall;
+	private OperationResultStatus confValidation;
+	private OperationResultStatus conInitialization;
+	private OperationResultStatus conConnection;
+	private OperationResultStatus conSanity;
+	private OperationResultStatus conSchema;
+	private OperationResultStatus extra;
 	private String extraName;
 
-	public ResourceStatus getOverall() {
+	public OperationResultStatus getOverall() {
 		overall = updateOverallStatus();
 		if (overall == null) {
-			return ResourceStatus.NOT_TESTED;
+			return OperationResultStatus.UNKNOWN;
 		}
 		return overall;
 	}
 
-	public ResourceStatus getConfValidation() {
+	public OperationResultStatus getConfValidation() {
 		if (confValidation == null) {
-			return ResourceStatus.NOT_TESTED;
+			return OperationResultStatus.UNKNOWN;
 		}
 		return confValidation;
 	}
 
-	public void setConfValidation(ResourceStatus confValidation) {
+	public void setConfValidation(OperationResultStatus confValidation) {
 		this.confValidation = confValidation;
 	}
 
-	public ResourceStatus getConInitialization() {
+	public OperationResultStatus getConInitialization() {
 		if (conInitialization == null) {
-			return ResourceStatus.NOT_TESTED;
+			return OperationResultStatus.UNKNOWN;
 		}
 		return conInitialization;
 	}
 
-	public void setConInitialization(ResourceStatus conInitialization) {
+	public void setConInitialization(OperationResultStatus conInitialization) {
 		this.conInitialization = conInitialization;
 	}
 
-	public ResourceStatus getConConnection() {
+	public OperationResultStatus getConConnection() {
 		if (conConnection == null) {
-			return ResourceStatus.NOT_TESTED;
+			return OperationResultStatus.UNKNOWN;
 		}
 		return conConnection;
 	}
 
-	public void setConConnection(ResourceStatus conConnection) {
+	public void setConConnection(OperationResultStatus conConnection) {
 		this.conConnection = conConnection;
 	}
 
-	public ResourceStatus getConSanity() {
+	public OperationResultStatus getConSanity() {
 		if (conSanity == null) {
-			return ResourceStatus.NOT_TESTED;
+			return OperationResultStatus.UNKNOWN;
 		}
 		return conSanity;
 	}
 
-	public void setConSanity(ResourceStatus conSanity) {
+	public void setConSanity(OperationResultStatus conSanity) {
 		this.conSanity = conSanity;
 	}
 
-	public ResourceStatus getConSchema() {
+	public OperationResultStatus getConSchema() {
 		if (conSchema == null) {
-			return ResourceStatus.NOT_TESTED;
+			return OperationResultStatus.UNKNOWN;
 		}
 		return conSchema;
 	}
 
-	public void setConSchema(ResourceStatus conSchema) {
+	public void setConSchema(OperationResultStatus conSchema) {
 		this.conSchema = conSchema;
 	}
 
-	public ResourceStatus getExtra() {
+	public OperationResultStatus getExtra() {
 		if (extra == null) {
-			return ResourceStatus.NOT_TESTED;
+			return OperationResultStatus.UNKNOWN;
 		}
 		return extra;
 	}
 
-	public void setExtra(ResourceStatus extra) {
+	public void setExtra(OperationResultStatus extra) {
 		this.extra = extra;
 	}
 
@@ -120,19 +121,19 @@ public class ResourceState implements Serializable {
 		this.extraName = extraName;
 	}
 	
-	public ResourceStatus getLastAvailability() {
+	public OperationResultStatus getLastAvailability() {
 		if (lastAvailability == null) {
-			return ResourceStatus.NOT_TESTED;
+			return OperationResultStatus.UNKNOWN;
 		}
 		return lastAvailability;
 	}
 
-	public void setLastAvailability(ResourceStatus lastAvailability) {
+	public void setLastAvailability(OperationResultStatus lastAvailability) {
 		this.lastAvailability = lastAvailability;
 	}
 
-	private ResourceStatus updateOverallStatus() {
-		ResourceStatus overall = ResourceStatus.NOT_TESTED;
+	private OperationResultStatus updateOverallStatus() {
+        OperationResultStatus overall = OperationResultStatus.UNKNOWN;
 		overall = getOverallBasedOnPartialStatus(overall, getConConnection());
 		overall = getOverallBasedOnPartialStatus(overall, getConfValidation());
 		overall = getOverallBasedOnPartialStatus(overall, getConInitialization());
@@ -143,20 +144,27 @@ public class ResourceState implements Serializable {
 		return overall;
 	}
 
-	private ResourceStatus getOverallBasedOnPartialStatus(ResourceStatus overall, ResourceStatus partial) {
+	private OperationResultStatus getOverallBasedOnPartialStatus(OperationResultStatus overall, OperationResultStatus partial) {
 		switch (overall) {
-			case NOT_TESTED:
+			case UNKNOWN:
 			case SUCCESS:
-				if (!ResourceStatus.NOT_TESTED.equals(partial)) {
+				if (!OperationResultStatus.UNKNOWN.equals(partial)) {
 					overall = partial;
 				}
 				break;
 			case WARNING:
-				if (!ResourceStatus.NOT_TESTED.equals(partial) && !ResourceStatus.SUCCESS.equals(partial)) {
+				if (!OperationResultStatus.UNKNOWN.equals(partial) && !OperationResultStatus.SUCCESS.equals(partial)) {
 					overall = partial;
 				}
 				break;
-			case ERROR:
+			case FATAL_ERROR:
+                break;
+            case PARTIAL_ERROR:
+                break;
+            case HANDLED_ERROR:
+                break;
+            case IN_PROGRESS:
+                break;
 		}
 
 		return overall;

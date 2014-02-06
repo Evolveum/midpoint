@@ -193,7 +193,6 @@ public class CorrelationConfirmationEvaluator {
 			try {
 				q = QueryJaxbConvertor.createObjectQuery(focusType, query, prismContext);
 				q = updateFilterWithAccountValues(currentShadow, resourceType, q, "Correlation expression", task, result);
-				LOGGER.trace("XXX: {}",q.dump());
 				if (q == null) {
 					// Null is OK here, it means that the value in the filter
 					// evaluated

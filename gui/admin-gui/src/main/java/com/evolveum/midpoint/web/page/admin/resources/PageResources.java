@@ -45,12 +45,14 @@ import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.*;
 import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
+import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SelectableBean;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.resources.component.ContentPanel;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageContentAccounts;
 import com.evolveum.midpoint.web.page.admin.resources.content.PageContentEntitlements;
 import com.evolveum.midpoint.web.page.admin.resources.dto.*;
+import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusIcon;
 import com.evolveum.midpoint.web.session.ResourcesStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
@@ -73,8 +75,6 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.request.resource.PackageResourceReference;
-import org.apache.wicket.request.resource.ResourceReference;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -104,33 +104,52 @@ public class PageResources extends PageAdminResources {
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_TABLE = "table";
     private static final String ID_CONNECTOR_TABLE = "connectorTable";
+    private static final String ID_SEARCH_CLEAR = "searchClear";
 
     private IModel<ResourceSearchDto> searchModel;
+    private ResourceDto singleDelete;
 
     public PageResources() {
+
+        searchModel = new LoadableModel<ResourceSearchDto>() {
+
+            @Override
+            protected ResourceSearchDto load() {
+                ResourcesStorage storage = getSessionStorage().getResources();
+                ResourceSearchDto dto = storage.getResourceSearch();
+
+                if(dto == null){
+                    dto = new ResourceSearchDto();
+                }
+
+                return dto;
+            }
+        };
+
         initLayout();
     }
 
     private void initLayout() {
         Form searchForm = new Form(ID_SEARCH_FORM);
         add(searchForm);
+        searchForm.setOutputMarkupId(true);
         initSearchForm(searchForm);
 
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
-        TablePanel resources = new TablePanel<ResourceDto>(ID_TABLE, initResourceDataProvider(), initResourceColumns());
+        TablePanel resources = new TablePanel<>(ID_TABLE, initResourceDataProvider(), initResourceColumns());
         resources.setOutputMarkupId(true);
         mainForm.add(resources);
 
-        TablePanel connectorHosts = new TablePanel<ConnectorHostType>(ID_CONNECTOR_TABLE,
+        TablePanel connectorHosts = new TablePanel<>(ID_CONNECTOR_TABLE,
                 new ObjectDataProvider(PageResources.this, ConnectorHostType.class), initConnectorHostsColumns());
         connectorHosts.setShowPaging(false);
         connectorHosts.setOutputMarkupId(true);
         mainForm.add(connectorHosts);
 
         add(new ConfirmationDialog(ID_DELETE_RESOURCES_POPUP,
-                createStringResource("pageResources.dialog.title.confirmDeleteResource"),
+                createStringResource("pageResources.dialog.title.confirmDelete"),
                 createDeleteConfirmString("pageResources.message.deleteResourceConfirm",
                         "pageResources.message.deleteResourcesConfirm", true)) {
 
@@ -172,6 +191,20 @@ public class PageResources extends PageAdminResources {
             }
         };
         searchForm.add(searchButton);
+
+        AjaxSubmitButton clearButton = new AjaxSubmitButton(ID_SEARCH_CLEAR) {
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form){
+                clearSearchPerformed(target);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(getFeedbackPanel());
+            }
+        };
+        searchForm.add(clearButton);
     }
 
     private BaseSortableDataProvider initResourceDataProvider() {
@@ -200,6 +233,16 @@ public class PageResources extends PageAdminResources {
                         ResourceDto rowDto = getRowModel().getObject();
                         deleteResourcePerformed(target, rowDto);
                     }
+                }));
+
+        dto.getMenuItems().add(new InlineMenuItem(createStringResource("pageResources.inlineMenuItem.deleteSyncToken"),
+                new ColumnMenuAction<ResourceDto>(){
+
+                    @Override
+                    public void onClick(AjaxRequestTarget target){
+                        deleteResourceSyncTokenPerformed(target, getRowModel());
+                    }
+
                 }));
 
         return dto;
@@ -237,7 +280,7 @@ public class PageResources extends PageAdminResources {
                         ResourceController.updateLastAvailabilityState(dto.getState(),
                                 dto.getLastAvailabilityStatus());
                         ResourceState state = dto.getState();
-                        return state.getLastAvailability().getIcon();
+                        return OperationResultStatusIcon.parseOperationalResultStatus(state.getLastAvailability()).getIcon();
                     }
                 };
             }
@@ -249,7 +292,7 @@ public class PageResources extends PageAdminResources {
                     @Override
                     public String getObject() {
                         ResourceState state = rowModel.getObject().getState();
-                        return PageResources.this.getString(ResourceStatus.class.getSimpleName() + "." + state
+                        return PageResources.this.getString(OperationResultStatus.class.getSimpleName() + "." + state
                                 .getLastAvailability().name());
                     }
                 };
@@ -391,6 +434,8 @@ public class PageResources extends PageAdminResources {
 
     private void deleteResourcePerformed(AjaxRequestTarget target, ResourceDto single) {
         List<ResourceDto> selected = isAnyResourceSelected(target, single);
+        singleDelete = single;
+
         if (selected.isEmpty()) {
             return;
         }
@@ -419,7 +464,14 @@ public class PageResources extends PageAdminResources {
             @Override
             public String getObject() {
                 TablePanel table = resources ? getResourceTable() : getConnectorHostTable();
-                List selected = WebMiscUtil.getSelectedData(table);
+                List selected = new ArrayList();
+
+                if(singleDelete != null){
+                    selected.add(singleDelete);
+                } else {
+                    selected = WebMiscUtil.getSelectedData(table);
+                }
+
                 switch (selected.size()) {
                     case 1:
                         Object first = selected.get(0);
@@ -464,7 +516,13 @@ public class PageResources extends PageAdminResources {
     }
 
     private void deleteResourceConfirmedPerformed(AjaxRequestTarget target) {
-        List<ResourceDto> selected = isAnyResourceSelected(target, null);
+        List<ResourceDto> selected = new ArrayList<ResourceDto>();
+
+        if(singleDelete != null){
+            selected.add(singleDelete);
+        } else {
+            selected = WebMiscUtil.getSelectedData(getResourceTable());
+        }
 
         OperationResult result = new OperationResult(OPERATION_DELETE_RESOURCES);
         for (ResourceDto resource : selected) {
@@ -486,7 +544,7 @@ public class PageResources extends PageAdminResources {
         }
 
         TablePanel resourceTable = getResourceTable();
-        ResourceDtoProvider provider = (ResourceDtoProvider) resourceTable.getDataTable().getDataProvider();
+        ObjectDataProvider provider = (ObjectDataProvider) resourceTable.getDataTable().getDataProvider();
         provider.clearCache();
 
         showResult(result);
@@ -597,6 +655,26 @@ public class PageResources extends PageAdminResources {
         storage.setResourceSearch(searchModel.getObject());
         panel.setCurrentPage(storage.getResourcePaging());
 
+        target.add(panel);
+    }
+
+    private void deleteResourceSyncTokenPerformed(AjaxRequestTarget target, IModel<ResourceDto> model){
+        deleteSyncTokenPerformed(target, model);
+    }
+
+    private void clearSearchPerformed(AjaxRequestTarget target){
+        searchModel.setObject(new ResourceSearchDto());
+
+        TablePanel panel = getResourceTable();
+        DataTable table = panel.getDataTable();
+        ObjectDataProvider provider = (ObjectDataProvider) table.getDataProvider();
+        provider.setQuery(null);
+
+        ResourcesStorage storage = getSessionStorage().getResources();
+        storage.setResourceSearch(searchModel.getObject());
+        panel.setCurrentPage(storage.getResourcePaging());
+
+        target.add(get(ID_SEARCH_FORM));
         target.add(panel);
     }
 }

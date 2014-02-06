@@ -19,6 +19,7 @@ package com.evolveum.midpoint.report;
 import java.io.ByteArrayInputStream;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -30,6 +31,7 @@ import java.util.List;
 import javax.annotation.PostConstruct;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JasperCompileManager;
@@ -40,6 +42,7 @@ import net.sf.jasperreports.engine.xml.JRXmlLoader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.model.api.ModelService;
@@ -50,6 +53,9 @@ import com.evolveum.midpoint.model.api.context.ModelState;
 import com.evolveum.midpoint.model.api.hooks.ChangeHook;
 import com.evolveum.midpoint.model.api.hooks.HookOperationMode;
 import com.evolveum.midpoint.model.api.hooks.HookRegistry;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
@@ -59,6 +65,7 @@ import com.evolveum.midpoint.prism.query.EqualsFilter;
 import com.evolveum.midpoint.prism.query.LessFilter;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
 import com.evolveum.midpoint.prism.query.RefFilter;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.report.api.ReportManager;
 import com.evolveum.midpoint.schema.result.OperationResult;
@@ -82,10 +89,12 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.CleanupPolicyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MetadataType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportOutputType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.TaskType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ThreadStopActionType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
 
 
 /**
@@ -100,6 +109,8 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
     
     private static final String CLASS_NAME_WITH_DOT = ReportManagerImpl.class + ".";
     private static final String CLEANUP_REPORT_OUTPUTS = CLASS_NAME_WITH_DOT + "cleanupReportOutputs";
+    private static final String DELETE_REPORT_OUTPUT = CLASS_NAME_WITH_DOT + "deleteReportOutput";
+    private static final String REPORT_OUTPUT_DATA = CLASS_NAME_WITH_DOT + "getReportOutputData";
     
 	@Autowired
     private HookRegistry hookRegistry;
@@ -113,6 +124,8 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
 	@Autowired
 	private ModelService modelService;
 	
+	
+    
 	
 	@PostConstruct
     public void init() {   	
@@ -200,14 +213,27 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
          try {
              ReportType reportType = (ReportType) object.asObjectable();
              JasperDesign jasperDesign = null;
-             if (reportType.getReportTemplate() == null || reportType.getReportTemplate().getAny() == null)
+             if (reportType.getTemplate() == null || reportType.getTemplate().getAny() == null)
              {
-            	 jasperDesign = ReportUtils.createJasperDesign(reportType);
+            	 PrismSchema reportSchema = null;
+            	 PrismContainer<Containerable> parameterConfiguration = null;  
+            	 try
+            	 {
+            		reportSchema = ReportUtils.getParametersSchema(reportType, prismContext);
+            		parameterConfiguration = ReportUtils.getParametersContainer(reportType, reportSchema);
+             		
+            	 } catch (Exception ex){
+            		 String message = "Cannot create parameter configuration: " + ex.getMessage();
+            		 LOGGER.error(message);
+            		 result.recordFatalError(message, ex);
+            	 }
+            	 
+            	 jasperDesign = ReportUtils.createJasperDesign(reportType, parameterConfiguration, reportSchema) ;
             	 LOGGER.trace("create jasper design : {}", jasperDesign);
              }
              else
              {
-            	 String reportTemplate = DOMUtil.serializeDOMToString((Node)reportType.getReportTemplate().getAny());
+            	 String reportTemplate = DOMUtil.serializeDOMToString((Node)reportType.getTemplate().getAny());
             	 InputStream inputStreamJRXML = new ByteArrayInputStream(reportTemplate.getBytes());
             	 jasperDesign = JRXmlLoader.load(inputStreamJRXML);
             	 LOGGER.trace("load jasper design : {}", jasperDesign);
@@ -276,7 +302,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
         	ReportOutputType reportOutput = reportOutputPrism.asObjectable();
         	
         	LOGGER.trace("Removing report output {} along with {} file.", reportOutput.getName().getOrig(), 
-        			reportOutput.getReportFilePath());
+        			reportOutput.getFilePath());
         	boolean problem = false;
         	try {
                     deleteReportOutput(reportOutput, result);
@@ -310,13 +336,13 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
     private void deleteReportOutput(ReportOutputType reportOutput, OperationResult parentResult) throws Exception {
     	String oid = reportOutput.getOid();
 
-    	Task task = taskManager.createTaskInstance(CLASS_NAME_WITH_DOT + "deleteReportOutput");
+    	Task task = taskManager.createTaskInstance(DELETE_REPORT_OUTPUT);
     	parentResult.addSubresult(task.getResult());
-    	OperationResult result = parentResult.createSubresult(CLASS_NAME_WITH_DOT + "deleteReportOutput");
+    	OperationResult result = parentResult.createSubresult(DELETE_REPORT_OUTPUT);
 
         result.addParam("oid", oid);
         try {
-            File reportFile = new File(reportOutput.getReportFilePath());
+            File reportFile = new File(reportOutput.getFilePath());
             reportFile.delete();
             
 			ObjectDelta<ReportOutputType> delta = ObjectDelta.createDeleteDelta(ReportOutputType.class, oid, prismContext);
@@ -331,9 +357,27 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
             throw e;
         }
     }
-
+	
+   
     @Override
     public InputStream getReportOutputData(String reportOutputOid, OperationResult parentResult) {
-        return null;
+   
+    	Task task = taskManager.createTaskInstance(REPORT_OUTPUT_DATA);
+    	OperationResult result = parentResult.createSubresult(REPORT_OUTPUT_DATA);
+    	InputStream reportData = null;
+        result.addParam("oid", reportOutputOid);
+        try {
+        	ReportOutputType reportOutput = modelService.getObject(ReportOutputType.class, reportOutputOid, null, task, result).asObjectable();
+            reportData = new FileInputStream(reportOutput.getFilePath());	
+            
+            LOGGER.trace("Report Data : {} ", reportData.toString());
+            result.recordSuccessIfUnknown();
+        }
+        catch (Exception e) {
+        	result.recordFatalError("Cannot read the report data.", e);
+        	LOGGER.trace("Cannot read the report data : {}", e.getMessage());
+        }
+        return reportData;
     }
+   
 }

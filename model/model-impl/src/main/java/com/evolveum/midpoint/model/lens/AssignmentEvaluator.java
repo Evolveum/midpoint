@@ -232,7 +232,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		
 		construction.evaluate(task, result);
 		
-		assignment.addAccountConstruction(construction);
+		assignment.addConstruction(construction);
 		assignmentPathSegment.setEvaluatedAssignment(assignment);
 	}
 
@@ -283,7 +283,7 @@ public class AssignmentEvaluator<F extends FocusType> {
 		if (target instanceof AbstractRoleType) {
 			evaluateAbstractRole(assignment, assignmentPathSegment, (AbstractRoleType)target, source, sourceDescription, 
 					assignmentPath, task, result);
-			if (target instanceof OrgType) {
+			if (target instanceof OrgType && assignmentPath.getEvaluationOrder() == 1) {
 				PrismReferenceValue refVal = new PrismReferenceValue();
 				refVal.setObject(target.asPrismObject());
 				refVal.setRelation(relation);

@@ -33,6 +33,7 @@ import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 
 import org.w3c.dom.Element;
@@ -64,12 +65,12 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
     }
 
     /**
-     * Private constructor just for clonning. 
+     * Private constructor just for clonning.
      */
     private PrismPropertyValue(OriginType type, Objectable source) {
     	super(type,source);
     }
-    
+
     private PrismPropertyValue() {
     }
 
@@ -124,7 +125,7 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
     	}
         return value;
     }
-    
+
     public static <T> Collection<T> getValues(Collection<PrismPropertyValue<T>> pvals) {
     	Collection<T> realValues = new ArrayList<T>(pvals.size());
 		for (PrismPropertyValue<T> pval: pvals) {
@@ -132,7 +133,7 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 		}
 		return realValues;
     }
-    
+
     public Object getRawElement() {
 		return rawElement;
 	}
@@ -140,12 +141,12 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 	public void setRawElement(XNode rawElement) {
 		this.rawElement = rawElement;
 	}
-	
+
 	@Override
 	public boolean isRaw() {
 		return rawElement != null;
 	}
-	
+
 	@Override
 	public void applyDefinition(ItemDefinition definition) throws SchemaException {
 		if (definition != null && rawElement !=null) {
@@ -153,7 +154,7 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 			rawElement = null;
 		}
 	}
-	
+
 	@Override
 	public void applyDefinition(ItemDefinition definition, boolean force) throws SchemaException {
 		applyDefinition(definition);
@@ -222,7 +223,7 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 		}
 		throw new IllegalArgumentException("Unsupported value "+value+" ("+valueClass+") in "+this);
 	}
-	
+
     @Override
 	public void checkConsistenceInternal(Itemable rootItem, boolean requireDefinitions, boolean prohibitRaw) {
     	ItemPath myPath = getPath();
@@ -257,13 +258,13 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
         copyValues(clone);
         return clone;
     }
-	
+
 	protected void copyValues(PrismPropertyValue clone) {
 		super.copyValues(clone);
 		clone.value = CloneUtil.clone(this.value);
 		clone.rawElement = this.rawElement;
 	}
-	
+
 	public static boolean containsRealValue(Collection<PrismPropertyValue<?>> collection, PrismPropertyValue<?> value) {
 		for (PrismPropertyValue<?> colVal: collection) {
 			if (value.equalsRealValue(colVal)) {
@@ -272,7 +273,7 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 		}
 		return false;
 	}
-	
+
 	public static <T> Collection<PrismPropertyValue<T>> createCollection(Collection<T> realValueCollection) {
 		Collection<PrismPropertyValue<T>> pvalCol = new ArrayList<PrismPropertyValue<T>>(realValueCollection.size());
 		for (T realValue: realValueCollection) {
@@ -297,12 +298,12 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 	 */
 	private PrismPropertyValue<T> parseRawElementToNewValue(PrismPropertyValue<T> origValue, PrismPropertyValue<T> definitionSource) throws SchemaException {
 		if (definitionSource.getParent() != null && definitionSource.getParent().getDefinition() != null) {
-			T parsedRealValue = parseRawElementToNewRealValue(origValue, 
+			T parsedRealValue = parseRawElementToNewRealValue(origValue,
 					(PrismPropertyDefinition) definitionSource.getParent().getDefinition());
 			PrismPropertyValue<T> newPVal = new PrismPropertyValue<T>(parsedRealValue);
 			return newPVal;
 		} else {
-			throw new IllegalArgumentException("Attempt to use property " + origValue.getParent() + 
+			throw new IllegalArgumentException("Attempt to use property " + origValue.getParent() +
 					" values in a raw parsing state (raw elements) with parsed value that has no definition");
 		}
 	}
@@ -322,16 +323,16 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 		}
 		return equalsComplex((PrismPropertyValue<?>)other, ignoreMetadata, isLiteral);
 	}
-	
+
 	public boolean equalsComplex(PrismPropertyValue<?> other, boolean ignoreMetadata, boolean isLiteral) {
 		if (!super.equalsComplex(other, ignoreMetadata, isLiteral)) {
 			return false;
 		}
-		
+
         if (this.rawElement != null && other.rawElement != null) {
         	return equalsRawElements((PrismPropertyValue<T>)other);
         }
-        
+
         PrismPropertyValue<T> otherProcessed = (PrismPropertyValue<T>) other;
 		PrismPropertyValue<T> thisProcessed = this;
 		if (this.rawElement != null || other.rawElement != null) {
@@ -347,7 +348,7 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 						"during a compare: "+e.getMessage(),e);
 			}
 		}
-        
+
         T otherRealValue = otherProcessed.getValue();
         T thisRealValue = thisProcessed.getValue();
         if (otherRealValue == null && thisRealValue == null) {
@@ -357,20 +358,25 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
         	return false;
         }
 
-		if (thisRealValue instanceof Element && 
+		if (thisRealValue instanceof Element &&
 				otherRealValue instanceof Element) {
 			return DOMUtil.compareElement((Element)thisRealValue, (Element)otherRealValue, isLiteral);
 		}
+
+        if (thisRealValue instanceof byte[] && otherRealValue instanceof byte[]) {
+            return Arrays.equals((byte[]) thisRealValue, (byte[]) otherRealValue);
+        }
+
 		return thisRealValue.equals(otherRealValue);
 	}
-	
+
 	private boolean equalsRawElements(PrismPropertyValue<T> other) {
 		if (this.rawElement instanceof Element && other.rawElement instanceof Element) {
 			return DOMUtil.compareElement((Element)this.rawElement, (Element)other.rawElement, false);
 		}
 		return this.rawElement.equals(other.rawElement);
 	}
-	
+
 
 	@Override
 	public boolean match(PrismValue otherValue) {
@@ -381,15 +387,15 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 	}
 
 	private boolean matchComplex(PrismPropertyValue<?> otherValue, boolean ignoreMetadata, boolean isLiteral) {
-		
+
 		if (!super.equalsComplex(otherValue, ignoreMetadata, isLiteral)) {
 			return false;
 		}
-		
+
         if (this.rawElement != null && otherValue.rawElement != null) {
         	return equalsRawElements((PrismPropertyValue<T>)otherValue);
         }
-        
+
         PrismPropertyValue<T> otherProcessed = (PrismPropertyValue<T>) otherValue;
 		PrismPropertyValue<T> thisProcessed = this;
 		if (this.rawElement != null || otherValue.rawElement != null) {
@@ -405,7 +411,7 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 						"during a compare: "+e.getMessage(),e);
 			}
 		}
-        
+
         T otherRealValue = otherProcessed.getValue();
         T thisRealValue = thisProcessed.getValue();
         if (otherRealValue == null && thisRealValue == null) {
@@ -415,17 +421,17 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
         	return false;
         }
 
-		if (thisRealValue instanceof Element && 
+		if (thisRealValue instanceof Element &&
 				otherRealValue instanceof Element) {
 			return DOMUtil.compareElement((Element)thisRealValue, (Element)otherRealValue, isLiteral);
 		}
-		
+
 		if (otherRealValue instanceof Matchable && thisRealValue instanceof Matchable){
 			Matchable thisMatchableValue = (Matchable) thisRealValue;
 			Matchable otherMatchableValue = (Matchable) otherRealValue;
 			return thisMatchableValue.match(otherMatchableValue);
 		}
-		
+
 		return thisRealValue.equals(otherRealValue);
 
 	}
@@ -441,7 +447,7 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 		PrismPropertyValue other = (PrismPropertyValue) obj;
 		return equalsComplex(other, false, false);
 	}
-	
+
     @Override
 	public int hashCode() {
 		final int prime = 31;
@@ -453,8 +459,8 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
 			result = prime * result + ((value == null) ? 0 : value.hashCode());
 		}
 		return result;
-	}  
-	
+	}
+
 	@Override
     public String debugDump() {
         return toString();
@@ -466,7 +472,7 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
         for (int i = 0; i < indent; i++) {
             sb.append(INDENT_STRING);
         }
-                
+
         sb.append("PPV(");
         dumpSuffix(sb);
         sb.append("):");
@@ -482,7 +488,7 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
         } else {
             sb.append("null");
         }
-        
+
         return sb.toString();
     }
 
@@ -490,7 +496,7 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
     public String dump() {
         return toString();
     }
-    
+
 	@Override
 	public String toString() {
         StringBuilder builder = new StringBuilder();

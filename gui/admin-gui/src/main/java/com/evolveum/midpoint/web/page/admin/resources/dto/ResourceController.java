@@ -18,6 +18,7 @@ package com.evolveum.midpoint.web.page.admin.resources.dto;
 
 import java.util.List;
 
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import org.apache.commons.lang.Validate;
 
 import com.evolveum.midpoint.schema.constants.ConnectorTestOperation;
@@ -43,9 +44,9 @@ public class ResourceController {
         state.setConSchema(getStatusFromResultType(ConnectorTestOperation.CONNECTOR_SCHEMA, subResults));
     }
 
-    private static ResourceStatus getStatusFromResultType(ConnectorTestOperation operation,
+    private static OperationResultStatus getStatusFromResultType(ConnectorTestOperation operation,
                                                           List<OperationResult> results) {
-        ResourceStatus status = ResourceStatus.NOT_TESTED;
+        OperationResultStatus status = OperationResultStatus.UNKNOWN;
 
         OperationResult resultFound = null;
         for (OperationResult result : results) {
@@ -64,54 +65,69 @@ public class ResourceController {
         }
 
         switch (resultFound.getStatus()) {
+            case UNKNOWN:
+                status = OperationResultStatus.UNKNOWN;
+                break;
             case SUCCESS:
-                status = ResourceStatus.SUCCESS;
+                status = OperationResultStatus.SUCCESS;
                 break;
             case WARNING:
-                status = ResourceStatus.WARNING;
+                status = OperationResultStatus.WARNING;
                 break;
             case FATAL_ERROR:
+                status = OperationResultStatus.FATAL_ERROR;
+                break;
             case PARTIAL_ERROR:
-                status = ResourceStatus.ERROR;
+                status = OperationResultStatus.PARTIAL_ERROR;
+                break;
+            case HANDLED_ERROR:
+                status = OperationResultStatus.HANDLED_ERROR;
+                break;
+            case IN_PROGRESS:
+                status = OperationResultStatus.IN_PROGRESS;
                 break;
             default:
-                status = ResourceStatus.NOT_TESTED;
+                status = OperationResultStatus.UNKNOWN;
         }
         return status;
     }
 
     public static void updateLastAvailabilityState(ResourceState state, AvailabilityStatusType lastAvailabilityStatus) {
-        ResourceStatus lastAvailability = ResourceStatus.NOT_TESTED;
+        OperationResultStatus lastAvailability = OperationResultStatus.UNKNOWN;
 
         if (lastAvailabilityStatus == null) {
-            if (state.getOverall().equals(ResourceStatus.SUCCESS)) {
-                lastAvailability = ResourceStatus.SUCCESS;
-            } else if (state.getOverall().equals(ResourceStatus.ERROR)) {
-                lastAvailability = ResourceStatus.ERROR;
+            if (state.getOverall().equals(OperationResultStatus.SUCCESS)) {
+                lastAvailability = OperationResultStatus.SUCCESS;
+            } else if ((state.getOverall().equals(OperationResultStatus.PARTIAL_ERROR)
+                    || state.getOverall().equals(OperationResultStatus.FATAL_ERROR)
+                    || state.getOverall().equals(OperationResultStatus.HANDLED_ERROR))) {
+                lastAvailability = OperationResultStatus.PARTIAL_ERROR;
             }
             state.setLastAvailability(lastAvailability);
             return;
         }
 
-        if (state.getOverall().equals(ResourceStatus.SUCCESS)
+        if (state.getOverall().equals(OperationResultStatus.SUCCESS)
                 && !lastAvailabilityStatus.equals(AvailabilityStatusType.UP)) {
-            lastAvailability = ResourceStatus.SUCCESS;
-        } else if (state.getOverall().equals(ResourceStatus.ERROR)
+            lastAvailability = OperationResultStatus.SUCCESS;
+        } else if ((state.getOverall().equals(OperationResultStatus.PARTIAL_ERROR)
+                || state.getOverall().equals(OperationResultStatus.FATAL_ERROR)
+                || state.getOverall().equals(OperationResultStatus.HANDLED_ERROR))
                 && !lastAvailabilityStatus.equals(AvailabilityStatusType.DOWN)) {
-            lastAvailability = ResourceStatus.ERROR;
+            lastAvailability = OperationResultStatus.PARTIAL_ERROR;
         }
 
-        if (!lastAvailability.equals(ResourceStatus.NOT_TESTED)) {
+        if (!lastAvailability.equals(OperationResultStatus.UNKNOWN)) {
             state.setLastAvailability(lastAvailability);
             return;
         }
 
         switch (lastAvailabilityStatus) {
             case UP:
-                lastAvailability = ResourceStatus.SUCCESS;
+                lastAvailability = OperationResultStatus.SUCCESS;
                 break;
             case DOWN:
-                lastAvailability = ResourceStatus.ERROR;
+                lastAvailability = OperationResultStatus.PARTIAL_ERROR;
                 break;
         }
         state.setLastAvailability(lastAvailability);

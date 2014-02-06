@@ -24,8 +24,13 @@ public abstract class AjaxSubmitButton extends AjaxSubmitLink {
 
     @Override
     public void onComponentTagBody(final MarkupStream markupStream, final ComponentTag openTag) {
-        String text = label != null ? label.getObject() : "";
-        replaceComponentTagBody(markupStream, openTag, text);
+        if (label != null) {
+            String text = label.getObject();
+            replaceComponentTagBody(markupStream, openTag, text);
+            return;
+        }
+
+        super.onComponentTagBody(markupStream, openTag);
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,28 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.evolveum.midpoint.web.page.admin.resources.dto;
 
-/**
- * @author lazyman
- */
-public enum ResourceStatus {
+.capability {
+  .cap-header {
+    font-size: ceil(@font-size-base * 1.25);
+  }
 
-    SUCCESS("fa fa-fw fa-check-circle fa-lg text-success"),
+  .cap-body {
+    padding: 0 @padding-base-horizontal;
+  }
 
-    WARNING("fa fa-fw fa-exclamation-circle fa-lg text-danger"),
-
-    ERROR("fa fa-fw fa-minus-circle fa-lg text-info"),
-
-    NOT_TESTED("fa fa-fw fa-question-circle fa-lg text-warning");
-
-    private String icon;
-
-    private ResourceStatus(String icon) {
-        this.icon = icon;
-    }
-
-    public String getIcon() {
-        return icon;
-    }
+  .cap-dl-multivalue {
+    margin-bottom: @padding-base-vertical;
+  }
 }
