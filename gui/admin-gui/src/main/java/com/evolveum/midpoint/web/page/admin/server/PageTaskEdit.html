@@ -18,7 +18,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:wicket="http://wicket.apache.org">
 <body>
 <wicket:extend>
-    <form wicket:id="mainForm">
+    <form wicket:id="mainForm" class="form-horizontal">
         <div class="row">
             <div class="col-md-6">
                 <h2><wicket:message key="pageTaskEdit.basic"/></h2>
@@ -161,6 +161,19 @@
 
         <h2><wicket:message key="pageTaskEdit.opResult"/></h2>
         <div wicket:id="operationResult"/>
+
+        <div class="form-group">
+            <label class="col-lg-2 control-label"><wicket:message key="pageTaskEdit.options"/></label>
+
+            <div class="col-lg-8">
+                <div>
+                    <label class="col-lg-2 checkbox-inline">
+                        <input type="checkbox" wicket:id="dryRun">
+                        <wicket:message key="pageTaskEdit.dryRun" />
+                    </label>
+                </div>
+            </div>
+        </div>
 
         <div class="main-button-bar">
             <span class="button-group">

@@ -18,10 +18,14 @@ package com.evolveum.midpoint.web.page.admin.server;
 
 import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
@@ -76,12 +80,7 @@ import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
-import org.apache.wicket.markup.html.form.DropDownChoice;
-import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
-import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.form.RequiredTextField;
-import org.apache.wicket.markup.html.form.TextArea;
-import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
@@ -130,6 +129,7 @@ public class PageTaskEdit extends PageAdminTasks {
     private static final String ID_OPERATION_RESULT_PANEL = "operationResultPanel";
     private static final String ID_SUSPEND = "suspend";
     private static final String ID_RESUME = "resume";
+    private static final String ID_DRY_RUN = "dryRun";
 
     private IModel<TaskDto> model;
 	private static boolean edit = false;
@@ -292,6 +292,15 @@ public class PageTaskEdit extends PageAdminTasks {
 		mainForm.add(threadStop);
 
 		//mainForm.add(new TsaValidator(runUntilNodeDown, threadStop));
+
+        CheckBox dryRun = new CheckBox(ID_DRY_RUN, new PropertyModel<Boolean>(model, TaskDto.F_DRY_RUN));
+        dryRun.add(new VisibleEnableBehaviour() {
+            @Override
+            public boolean isEnabled() {
+                return edit;
+            }
+        });
+        mainForm.add(dryRun);
 
 		initButtons(mainForm);
 	}
@@ -778,7 +787,7 @@ public class PageTaskEdit extends PageAdminTasks {
         return retval;
     }
 
-    private Task updateTask(TaskDto dto, Task existingTask) {
+    private Task updateTask(TaskDto dto, Task existingTask) throws SchemaException {
 
         if (!existingTask.getName().equals(dto.getName())) {
 		    existingTask.setName(WebMiscUtil.createPolyFromOrigString(dto.getName()));
@@ -820,6 +829,21 @@ public class PageTaskEdit extends PageAdminTasks {
 //            tsa = dto.getRunUntilNodeDown() ? ThreadStopActionType.CLOSE : ThreadStopActionType.RESTART;
 //        }
         existingTask.setThreadStopAction(tsa);
+
+        if (dto.isDryRun()) {
+            SchemaRegistry registry = getPrismContext().getSchemaRegistry();
+            PrismPropertyDefinition def = registry.findPropertyDefinitionByElementName(SchemaConstants.MODEL_EXTENSION_DRY_RUN);
+            PrismProperty dryRun = new PrismProperty(SchemaConstants.MODEL_EXTENSION_DRY_RUN);
+            dryRun.setDefinition(def);
+            dryRun.setRealValue(true);
+
+            existingTask.addExtensionProperty(dryRun);
+        } else {
+            PrismProperty dryRun = existingTask.getExtensionProperty(SchemaConstants.MODEL_EXTENSION_DRY_RUN);
+            if (dryRun != null) {
+                existingTask.deleteExtensionProperty(dryRun);
+            }
+        }
 		return existingTask;
 	}
 
