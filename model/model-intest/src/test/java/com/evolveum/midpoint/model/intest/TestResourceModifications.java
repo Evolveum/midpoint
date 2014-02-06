@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Random;
 
 import javax.xml.bind.JAXBException;
+import javax.xml.namespace.QName;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
@@ -33,8 +34,14 @@ import org.testng.annotations.Test;
 import com.evolveum.midpoint.model.api.ModelExecuteOptions;
 import com.evolveum.midpoint.model.api.PolicyViolationException;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismObjectDefinition;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.delta.PropertyDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.repo.sql.testing.CarefulAnt;
 import com.evolveum.midpoint.repo.sql.testing.ResourceCarefulAntUtil;
 import com.evolveum.midpoint.repo.sql.testing.SqlRepoTestUtil;
@@ -45,6 +52,7 @@ import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.IntegrationTestTools;
 import com.evolveum.midpoint.test.util.TestUtil;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.CommunicationException;
 import com.evolveum.midpoint.util.exception.ConfigurationException;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
@@ -167,6 +175,34 @@ public class TestResourceModifications extends AbstractInitializedModelIntegrati
         IntegrationTestTools.assertNoRepoCache();
         
         ant.assertModification(resourceAfter, iteration);
+    }
+    
+    @Test
+    public void test100ModifyConfiguration() throws Exception {
+		final String TEST_NAME = "test020SingleDescriptionModify";
+        TestUtil.displayTestTile(this, TEST_NAME);
+    	
+        Task task = taskManager.createTaskInstance(TestResourceModifications.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        
+        ItemPath propPath = new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION, 
+        		IntegrationTestTools.RESOURCE_DUMMY_CONFIGURATION_USELESS_STRING_ELEMENT_NAME);
+		PrismPropertyDefinition<String> propDef = new PrismPropertyDefinition<String>(IntegrationTestTools.RESOURCE_DUMMY_CONFIGURATION_USELESS_STRING_ELEMENT_NAME,
+				DOMUtil.XSD_STRING, prismContext);
+		PropertyDelta<String> propDelta = PropertyDelta.createModificationReplaceProperty(propPath, propDef, "whatever wherever");
+    	ObjectDelta<ResourceType> resourceDelta = ObjectDelta.createModifyDelta(RESOURCE_DUMMY_OID, propDelta, ResourceType.class, prismContext);
+    	Collection<ObjectDelta<? extends ObjectType>> deltas = MiscSchemaUtil.createCollection(resourceDelta);
+    	
+    	// WHEN
+    	modelService.executeChanges(deltas, null, task, result);
+    	
+    	// THEN
+    	result.computeStatus();
+    	TestUtil.assertSuccess(result);
+    	
+    	PrismObject<ResourceType> resourceAfter = modelService.getObject(ResourceType.class, RESOURCE_DUMMY_OID, null, task, result);
+    	PrismAsserts.assertPropertyValue(resourceAfter, propPath, "whatever wherever");
+    	
     }
 
 }

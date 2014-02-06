@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,6 +60,7 @@ import com.evolveum.midpoint.model.api.context.ModelContext;
 import com.evolveum.midpoint.model.common.expression.evaluator.LiteralExpressionEvaluatorFactory;
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.PrismPropertyDefinition;
@@ -232,11 +233,13 @@ public class TestModelServiceContract extends AbstractInitializedModelIntegratio
 		display("Resource def", resource.getDefinition());
 		PrismContainer<ConnectorConfigurationType> configurationContainer = resource.findContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
 		assertNotNull("No Resource connector configuration def", configurationContainer);
-		display("Resource connector configuration def", configurationContainer.getDefinition());
-		display("Resource connector configuration def complex type def", configurationContainer.getDefinition().getComplexTypeDefinition());
+		PrismContainerDefinition<ConnectorConfigurationType> configurationContainerDefinition = configurationContainer.getDefinition();
+		display("Resource connector configuration def", configurationContainerDefinition);
+		display("Resource connector configuration def complex type def", configurationContainerDefinition.getComplexTypeDefinition());
 		assertNotNull("Empty Resource connector configuration def", configurationContainer.isEmpty());
 		assertEquals("Wrong compile-time class in Resource connector configuration in "+resource, ConnectorConfigurationType.class, 
 				configurationContainer.getCompileTimeClass());
+		assertEquals("configurationContainer maxOccurs", 1, configurationContainerDefinition.getMaxOccurs());
 		
 		resource.checkConsistence(true, true);
 		

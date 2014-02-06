@@ -518,13 +518,17 @@ public class ResourceManager {
 		PrismContainerDefinition<ConnectorConfigurationType> configurationContainerDefintion = ConnectorTypeUtil
 				.findConfigurationContainerDefintion(connectorType, connectorSchema);
 		if (configurationContainerDefintion == null) {
-			throw new SchemaException("No configuration container definition in " + connectorType);
+			throw new SchemaException("No configuration container definition in schema of " + connectorType);
 		}
 		PrismContainer<Containerable> configurationContainer = ResourceTypeUtil
 				.getConfigurationContainer(resource);
 		if (configurationContainer == null) {
 			throw new SchemaException("No configuration container in " + resource);
 		}
+		configurationContainerDefintion = configurationContainerDefintion.clone();
+		// We want element name, minOccurs/maxOccurs and similar definition to be taken from the original, not the schema
+		// the element is global in the connector schema. therefore it does not have correct maxOccurs
+		configurationContainerDefintion.adoptElementDefinitionFrom(configurationContainer.getDefinition());
 		configurationContainer.applyDefinition(configurationContainerDefintion, true);
 	}
 

@@ -497,6 +497,5 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
 		if (isRuntimeSchema) {
 			sb.append(",runtime");
 		}
-	}    
-
+	}
 }
