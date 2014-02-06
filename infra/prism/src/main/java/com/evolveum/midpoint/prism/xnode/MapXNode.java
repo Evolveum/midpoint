@@ -27,6 +27,7 @@ import java.util.Set;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.DebugUtil;
+import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -245,6 +246,19 @@ public class MapXNode extends XNode implements Map<QName,XNode> {
 		return null;
 	}
 	
+	public String dumpKeyNames() {
+		StringBuilder sb = new StringBuilder();
+		Iterator<Entry> iterator = subnodes.iterator();
+		while (iterator.hasNext()) {
+			Entry entry = iterator.next();
+			sb.append(PrettyPrinter.prettyPrint(entry.getKey()));
+			if (iterator.hasNext()) {
+				sb.append(",");
+			}
+		}
+		return sb.toString();
+	}
+	
 	private class Entry implements Map.Entry<QName, XNode> {
 
 		private QName key;
@@ -283,4 +297,5 @@ public class MapXNode extends XNode implements Map<QName,XNode> {
 		}
 		
 	}
+
 }

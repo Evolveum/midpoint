@@ -67,12 +67,12 @@ public class QueryJaxbConvertor {
 					throw new SchemaException("Bad condition specified.");
 				}
 				Element conditionElement = (Element) condition;
-				XNode conditionXNode = prismContext.getParserDom().parseElement(conditionElement);
+				XNode conditionXNode = prismContext.getParserDom().parseElementContent(conditionElement);
 				query.setCondition(conditionXNode);
 			}
 			
 			if (filterDom != null) {
-				XNode filterXNode = prismContext.getParserDom().parseElement(filterDom);
+				XNode filterXNode = prismContext.getParserDom().parseElementContent(filterDom);
 				ObjectFilter filter = QueryConvertor.parseFilter(filterXNode, prismContext);
 				query.setFilter(filter);
 			}

@@ -417,7 +417,7 @@ public final class PrismForJAXBUtil {
 	public static void setReferenceFilterElement(PrismReferenceValue rval, Element filterElement) {
 		DomParser parser = getDomParser(rval);
 		try {
-			XNode filterXNode = parser.parseElement(filterElement);
+			MapXNode filterXNode = parser.parseElementAsMap(filterElement);
 			ObjectFilter filter = QueryConvertor.parseFilter(filterXNode, rval.getPrismContext());
 			rval.setFilter(filter);
 		} catch (SchemaException e) {

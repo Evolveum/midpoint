@@ -112,20 +112,20 @@ public class JaxbDomHack {
 		
 		QName elementName = JAXBUtil.getElementQName(element);
 		ItemDefinition itemDefinition = definition.findItemDefinition(elementName);
-		if (itemDefinition == null) {
-			throw new SchemaException("No definition for item "+elementName+" in container "+definition+" (parsed from raw element)", elementName);
-		}
 		PrismContext prismContext = definition.getPrismContext();
 		Item<V> subItem;
 		if (element instanceof Element) {
 			// DOM Element
 			DomParser domParser = prismContext.getParserDom();
-			XNode xnode = domParser.parseElement((Element)element);
+			XNode xnode = domParser.parseElementContent((Element)element);
 			subItem = prismContext.getXnodeProcessor().parseItem(xnode, elementName, itemDefinition);
 		} else if (element instanceof JAXBElement<?>) {
 			// JAXB Element
 			JAXBElement<?> jaxbElement = (JAXBElement<?>)element;
 			Object jaxbBean = jaxbElement.getValue();
+			if (itemDefinition == null) {
+				throw new SchemaException("No definition for item "+elementName+" in container "+definition+" (parsed from raw element)", elementName);
+			}
 			if (itemDefinition instanceof PrismPropertyDefinition<?>) {
 				// property
 				PrismProperty<?> property = ((PrismPropertyDefinition<?>)itemDefinition).instantiate();
@@ -215,7 +215,7 @@ public class JaxbDomHack {
 	public <O extends Objectable> PrismObject<O> parseObjectFromJaxb(Object objectElement) throws SchemaException {
 		if (objectElement instanceof Element) {
 			// DOM
-			XNode objectXNode = domParser.parseElement((Element)objectElement);
+			XNode objectXNode = domParser.parseElementContent((Element)objectElement);
 			return prismContext.getXnodeProcessor().parseObject(objectXNode);
 		} else if (objectElement instanceof JAXBElement<?>) {
 			O jaxbValue = ((JAXBElement<O>)objectElement).getValue();

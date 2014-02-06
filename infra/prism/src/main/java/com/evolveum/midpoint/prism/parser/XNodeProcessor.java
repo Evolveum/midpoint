@@ -502,7 +502,7 @@ public class XNodeProcessor {
 		return new PolyString(orig, norm);
 	}
 
-	private <T> PrismProperty<T> parsePrismPropertyRaw(XNode xnode, QName itemName)
+	public static <T> PrismProperty<T> parsePrismPropertyRaw(XNode xnode, QName itemName)
 			throws SchemaException {
 		if (xnode instanceof ListXNode) {
 			return parsePrismPropertyRaw((ListXNode)xnode, itemName);
@@ -514,7 +514,7 @@ public class XNodeProcessor {
 		}
 	}
 	
-	private <T> PrismProperty<T> parsePrismPropertyRaw(ListXNode xlist, QName itemName)
+	private static <T> PrismProperty<T> parsePrismPropertyRaw(ListXNode xlist, QName itemName)
 			throws SchemaException {
 		PrismProperty<T> property = new PrismProperty<T>(itemName);
 		for (XNode xsubnode : xlist) {

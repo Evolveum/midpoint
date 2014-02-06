@@ -70,7 +70,7 @@ public class DomParser implements Parser {
 		Element rootElement = DOMUtil.getFirstChildElement(document);
 		RootXNode xroot = new RootXNode(DOMUtil.getQName(rootElement));
 		extractCommonMetadata(rootElement, xroot);
-		XNode xnode = parseElement(rootElement);
+		XNode xnode = parseElementContent(rootElement);
 		xroot.setSubnode(xnode);
 		return xroot;
 	}
@@ -105,7 +105,22 @@ public class DomParser implements Parser {
 		}
 	}
 
-	public XNode parseElement(Element element) throws SchemaException {
+	// TODO: parseElementAsRoot ?
+	
+	/**
+	 * Parses the element in a single-entry MapXNode. 
+	 */
+	public MapXNode parseElementAsMap(Element element) throws SchemaException {
+		MapXNode xmap = new MapXNode();
+		extractCommonMetadata(element, xmap);
+		xmap.put(DOMUtil.getQName(element), parseElementContent(element));
+		return xmap;
+	}
+	
+	/**
+	 * Parses the content of the element (the name of the provided element is ignored, only the content is parsed).
+	 */
+	public XNode parseElementContent(Element element) throws SchemaException {
 		if (DOMUtil.isNil(element)) {
 			return null;
 		}
@@ -154,7 +169,7 @@ public class DomParser implements Parser {
 			return;
 		}
 		if (elements.size() == 1) {
-			XNode xsub = parseElement(elements.get(0));
+			XNode xsub = parseElementContent(elements.get(0));
 			xmap.put(elementQName, xsub);
 		} else {
 			ListXNode xlist = parseElementList(elements); 
@@ -168,7 +183,7 @@ public class DomParser implements Parser {
 	private ListXNode parseElementList(List<Element> elements) throws SchemaException {
 		ListXNode xlist = new ListXNode();
 		for (Element element: elements) {
-			XNode xnode = parseElement(element);
+			XNode xnode = parseElementContent(element);
 			xlist.add(xnode);
 		}
 		return xlist;

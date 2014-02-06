@@ -174,7 +174,7 @@ public class PrismContext {
 	 */
 	@Deprecated
 	public <T extends Objectable> PrismObject<T> parseObject(Element objectElement) throws SchemaException {
-		XNode xnode = parserDom.parseElement(objectElement);
+		XNode xnode = parserDom.parseElementContent(objectElement);
 		RootXNode xroot;
 		if (xnode instanceof RootXNode) {
 			xroot = (RootXNode)xnode;
