@@ -203,6 +203,10 @@ public class TestOrgSync extends AbstractStoryTest {
 	private static final String ACCOUNT_STAN_FIST_NAME = "Stan";
 	private static final String ACCOUNT_STAN_LAST_NAME = "Salesman";
 	
+	private static final String ACCOUNT_CAPSIZE_USERNAME = "capsize";
+	private static final String ACCOUNT_CAPSIZE_FIST_NAME = "Kate";
+	private static final String ACCOUNT_CAPSIZE_LAST_NAME = "Capsize";
+	
 	private static final String ACCOUNT_WALLY_USERNAME = "wally";
 	private static final String ACCOUNT_WALLY_FIST_NAME = "Wally";
 	private static final String ACCOUNT_WALLY_LAST_NAME = "Feed";
@@ -210,6 +214,10 @@ public class TestOrgSync extends AbstractStoryTest {
 	private static final String ACCOUNT_AUGUSTUS_USERNAME = "augustus";
 	private static final String ACCOUNT_AUGUSTUS_FIST_NAME = "Augustus";
 	private static final String ACCOUNT_AUGUSTUS_LAST_NAME = "DeWaat";
+	
+	private static final String ACCOUNT_ROGERSSR_USERNAME = "rogers,sr";
+	private static final String ACCOUNT_ROGERSSR_FIST_NAME = "Rum";
+	private static final String ACCOUNT_ROGERSSR_LAST_NAME = "Rogers, Sr.";
 	
 	private static final String ACCOUNT_TELEKE_USERNAME = "tőlőkë";
 	private static final String ACCOUNT_TELEKE_FIST_NAME = "Félix";
@@ -225,6 +233,7 @@ public class TestOrgSync extends AbstractStoryTest {
 	private static final String ORGPATH_CARTOGRAPHY = "Cartography/Scabb Island";
 	private static final String ORGPATH_BOOTY_ISLAND = "Booty Island";
 	private static final String ORGPATH_BOOTY_ISLAND_LOOKOUT = "Lookout/Booty Island";
+	private static final String ORGPATH_CAPSIZE = "Cruises, Charter and Capsize/Tourist Industries, Tri-Island Area";
 	
 	private static final String ORGPATH_KARPATULA = "Karpátulæ";
 	private static final String HRAD = "Čórtúv Hrád";
@@ -780,6 +789,99 @@ public class TestOrgSync extends AbstractStoryTest {
 	}
 	
 	/**
+	 * Commas in the org structure.
+	 */
+	@Test
+    public void test186AddHrAccountCapsize() throws Exception {
+		final String TEST_NAME = "test186AddHrAccountCapsize";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        
+        DummyAccount newAccount = new DummyAccount(ACCOUNT_CAPSIZE_USERNAME);
+        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_CAPSIZE_FIST_NAME);
+        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME, ACCOUNT_CAPSIZE_LAST_NAME);
+        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_ORGPATH, ORGPATH_CAPSIZE);
+		
+        // WHEN
+        dummyResourceHr.addAccount(newAccount);
+        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        
+        // THEN
+        PrismObject<UserType> user = findUserByUsername(ACCOUNT_CAPSIZE_USERNAME);
+        assertNotNull("No largo user", user);
+        display("User", user);
+        assertUser(user, ACCOUNT_CAPSIZE_USERNAME, ACCOUNT_CAPSIZE_FIST_NAME, ACCOUNT_CAPSIZE_LAST_NAME);
+        assertAccount(user, RESOURCE_DUMMY_HR_OID);
+        
+        dumpOrgTree();
+        
+        PrismObject<OrgType> orgCapsize = getAndAssertReplicatedOrg("Cruises, Charter and Capsize");
+        PrismObject<OrgType> orgTour = getAndAssertReplicatedOrg("Tourist Industries, Tri-Island Area");
+        
+        assertAssignedOrg(user, orgCapsize.getOid());
+        assertHasOrg(user, orgCapsize.getOid());
+        assertHasOrg(orgCapsize, orgTour.getOid());
+        assertHasOrg(orgTour, ORG_TOP_OID);
+        
+        assertSubOrgs(orgCapsize,0);
+        assertSubOrgs(orgTour,1);
+        assertSubOrgs(orgScummBarOid,0);
+        assertSubOrgs(orgMoROid,2);
+        assertSubOrgs(orgMonkeyIslandOid,0);
+        assertSubOrgs(ORG_TOP_OID,7);
+        
+        assertBasicRoleAndResources(user);
+        assertAssignments(user, 2);
+	}
+
+	/**
+	 * Comma in username
+	 */
+	@Test
+    public void test187AddHrAccountRogersSr() throws Exception {
+		final String TEST_NAME = "test187AddHrAccountRogersSr";
+        TestUtil.displayTestTile(this, TEST_NAME);
+        Task task = taskManager.createTaskInstance(TestTrafo.class.getName() + "." + TEST_NAME);
+        
+        DummyAccount newAccount = new DummyAccount(ACCOUNT_ROGERSSR_USERNAME);
+        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_FIRST_NAME, ACCOUNT_ROGERSSR_FIST_NAME);
+        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_LAST_NAME, ACCOUNT_ROGERSSR_LAST_NAME);
+        newAccount.addAttributeValue(DUMMY_ACCOUNT_ATTRIBUTE_HR_ORGPATH, ORGPATH_SCUMM_BAR);
+		
+        // WHEN
+        dummyResourceHr.addAccount(newAccount);
+        waitForTaskNextRun(TASK_LIVE_SYNC_DUMMY_HR_OID, true);
+        
+        // THEN
+        PrismObject<UserType> user = findUserByUsername(ACCOUNT_ROGERSSR_USERNAME);
+        assertNotNull("No largo user", user);
+        display("User", user);
+        assertUser(user, ACCOUNT_ROGERSSR_USERNAME, ACCOUNT_ROGERSSR_FIST_NAME, ACCOUNT_ROGERSSR_LAST_NAME);
+        assertAccount(user, RESOURCE_DUMMY_HR_OID);
+        
+        dumpOrgTree();
+        
+        PrismObject<OrgType> orgScummBar = getAndAssertReplicatedOrg("Scumm Bar");
+        PrismObject<OrgType> orgMoR = getAndAssertReplicatedOrg("Ministry of Rum");
+        
+        assertAssignedOrg(user, orgScummBar.getOid());
+        assertHasOrg(user, orgScummBar.getOid());
+        assertHasOrg(orgScummBar, orgMoR.getOid());
+        assertHasOrg(orgMoR, ORG_TOP_OID);
+        
+        assertEquals("MoR Org OID has changed", orgMoROid, orgMoR.getOid());
+        assertEquals("Scumm bar Org OID has changed", orgScummBarOid, orgScummBar.getOid());
+        
+        assertSubOrgs(orgScummBarOid,0);
+        assertSubOrgs(orgMoROid,2);
+        assertSubOrgs(orgMonkeyIslandOid,0);
+        assertSubOrgs(ORG_TOP_OID,7);
+        
+        assertBasicRoleAndResources(user);
+        assertAssignments(user, 2);
+	}
+
+	/**
 	 * Lot of national characters here.
 	 */
 	@Test
@@ -819,7 +921,7 @@ public class TestOrgSync extends AbstractStoryTest {
         assertSubOrgs(orgScummBarOid,0);
         assertSubOrgs(orgMoROid,2);
         assertSubOrgs(orgMonkeyIslandOid,0);
-        assertSubOrgs(ORG_TOP_OID,7);
+        assertSubOrgs(ORG_TOP_OID,8);
         
         assertBasicRoleAndResources(user);
         assertAssignments(user, 2);
