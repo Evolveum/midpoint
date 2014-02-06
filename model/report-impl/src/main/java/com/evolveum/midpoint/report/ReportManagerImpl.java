@@ -124,29 +124,8 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
 	@Autowired
 	private ModelService modelService;
 	
-	private PrismSchema reportSchema;
-    
-    private PrismContainer<Containerable> parameterConfiguration;  
-    public void setSchema(PrismSchema schema)
-    {
-    	reportSchema = schema;
-    }
-    
-    public void setConfiguration(PrismContainer<Containerable> configuration)
-    {
-    	parameterConfiguration = configuration;
-    }    
-    
-    public PrismSchema getSchema()
-    {
-    	return reportSchema;
-    }
-    
-    public PrismContainer<Containerable> getConfiguration()
-    {
-    	return parameterConfiguration;	
-    }
 	
+    
 	
 	@PostConstruct
     public void init() {   	
@@ -236,10 +215,12 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
              JasperDesign jasperDesign = null;
              if (reportType.getTemplate() == null || reportType.getTemplate().getAny() == null)
              {
+            	 PrismSchema reportSchema = null;
+            	 PrismContainer<Containerable> parameterConfiguration = null;  
             	 try
             	 {
-            		setSchema(ReportUtils.getParametersSchema(reportType, prismContext));
-             		setConfiguration(ReportUtils.getParametersContainer(reportType, getSchema()));
+            		reportSchema = ReportUtils.getParametersSchema(reportType, prismContext);
+            		parameterConfiguration = ReportUtils.getParametersContainer(reportType, reportSchema);
              		
             	 } catch (Exception ex){
             		 String message = "Cannot create parameter configuration: " + ex.getMessage();
@@ -247,7 +228,7 @@ public class ReportManagerImpl implements ReportManager, ChangeHook {
             		 result.recordFatalError(message, ex);
             	 }
             	 
-            	 jasperDesign = ReportUtils.createJasperDesign(reportType, getConfiguration(), getSchema()) ;
+            	 jasperDesign = ReportUtils.createJasperDesign(reportType, parameterConfiguration, reportSchema) ;
             	 LOGGER.trace("create jasper design : {}", jasperDesign);
              }
              else
