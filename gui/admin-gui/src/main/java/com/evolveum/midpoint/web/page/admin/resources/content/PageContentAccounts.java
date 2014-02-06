@@ -110,7 +110,7 @@ public class PageContentAccounts extends PageAdminResources {
     private IModel<PrismObject<ResourceType>> resourceModel;
     private IModel<AccountContentSearchDto> model;
     private LoadableModel<AccountOwnerChangeDto> ownerChangeModel;
-    private AccountContentDto toDelete;
+    private AccountContentDto singleDelete;
 
     public PageContentAccounts() {
         model = new LoadableModel<AccountContentSearchDto>() {
@@ -178,10 +178,10 @@ public class PageContentAccounts extends PageAdminResources {
         return new AbstractReadOnlyModel<String>() {
             @Override
             public String getObject() {
-                if(getSelectedAccounts(null).size() != 0){
+                if(singleDelete == null){
                     return createStringResource("pageContentAccounts.message.deleteConfirmation", getSelectedAccounts(null).size()).getString();
                 } else{
-                    return createStringResource("pageContentAccounts.message.deleteConfirmationSingle", toDelete.getAccountName()).getString();
+                    return createStringResource("pageContentAccounts.message.deleteConfirmationSingle", singleDelete.getAccountName()).getString();
                 }
             }
         };
@@ -718,29 +718,24 @@ public class PageContentAccounts extends PageAdminResources {
     }
 
     private void deleteAccountPerformed(AjaxRequestTarget target, AccountContentDto dto){
-        if(dto != null){
-            toDelete = dto;
-        } else{
-            List<AccountContentDto> accounts = isAnythingSelected(target, dto);
+        singleDelete = dto;
+        List<AccountContentDto> accounts = isAnythingSelected(target, dto);
 
-            if (accounts.isEmpty()) {
-                return;
-            }
+        if (accounts.isEmpty()) {
+            return;
         }
 
         showModalWindow(MODAL_ID_CONFIRM_DELETE, target);
     }
 
     private void deleteConfirmedPerformed(AjaxRequestTarget target){
-//        List<AccountContentDto> selected = new ArrayList<AccountContentDto>();
-//        if(toDelete == null){
-//            selected = isAnythingSelected(target, null);
-//        }
-//
-//        if(selected.size() == 0 && toDelete != null){
-//            selected.add(toDelete);
-//        }
-        List<AccountContentDto> selected = isAnythingSelected(target, toDelete);
+        List<AccountContentDto> selected = new ArrayList<AccountContentDto>();
+
+        if(singleDelete != null){
+            selected.add(singleDelete);
+        } else {
+            selected = isAnythingSelected(target, null);
+        }
 
         OperationResult result = new OperationResult(OPERATION_DELETE_ACCOUNT_FROM_RESOURCE);
 

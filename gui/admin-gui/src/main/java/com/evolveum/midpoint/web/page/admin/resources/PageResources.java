@@ -107,7 +107,7 @@ public class PageResources extends PageAdminResources {
     private static final String ID_SEARCH_CLEAR = "searchClear";
 
     private IModel<ResourceSearchDto> searchModel;
-    private ResourceDto toDelete;
+    private ResourceDto singleDelete;
 
     public PageResources() {
 
@@ -434,10 +434,7 @@ public class PageResources extends PageAdminResources {
 
     private void deleteResourcePerformed(AjaxRequestTarget target, ResourceDto single) {
         List<ResourceDto> selected = isAnyResourceSelected(target, single);
-
-        if(single != null){
-            toDelete = single;
-        }
+        singleDelete = single;
 
         if (selected.isEmpty()) {
             return;
@@ -467,10 +464,12 @@ public class PageResources extends PageAdminResources {
             @Override
             public String getObject() {
                 TablePanel table = resources ? getResourceTable() : getConnectorHostTable();
-                List selected = WebMiscUtil.getSelectedData(table);
+                List selected = new ArrayList();
 
-                if(toDelete != null && !selected.contains(toDelete)){
-                    selected.add(toDelete);
+                if(singleDelete != null){
+                    selected.add(singleDelete);
+                } else {
+                    selected = WebMiscUtil.getSelectedData(table);
                 }
 
                 switch (selected.size()) {
@@ -517,10 +516,12 @@ public class PageResources extends PageAdminResources {
     }
 
     private void deleteResourceConfirmedPerformed(AjaxRequestTarget target) {
-        List<ResourceDto> selected = WebMiscUtil.getSelectedData(getResourceTable());
+        List<ResourceDto> selected = new ArrayList<ResourceDto>();
 
-        if(toDelete != null && !selected.contains(toDelete)){
-            selected.add(toDelete);
+        if(singleDelete != null){
+            selected.add(singleDelete);
+        } else {
+            selected = WebMiscUtil.getSelectedData(getResourceTable());
         }
 
         OperationResult result = new OperationResult(OPERATION_DELETE_RESOURCES);

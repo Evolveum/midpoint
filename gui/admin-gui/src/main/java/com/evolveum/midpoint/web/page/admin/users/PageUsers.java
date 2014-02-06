@@ -103,6 +103,7 @@ public class PageUsers extends PageAdminUsers {
     private static final String ID_SEARCH_BUTTON = "searchButton";
     private static final String ID_SEARCH_CLEAR = "searchClear";
 
+    private UserListItemDto singleDelete;
     private LoadableModel<UsersDto> model;
     private LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel;
 
@@ -141,8 +142,7 @@ public class PageUsers extends PageAdminUsers {
             @Override
             public void yesPerformed(AjaxRequestTarget target) {
                 close(target);
-                //todo get here selected user dto row!!!!
-                deleteConfirmedPerformed(target, null);
+                deleteConfirmedPerformed(target);
             }
         });
 
@@ -157,8 +157,13 @@ public class PageUsers extends PageAdminUsers {
 
             @Override
             public String getObject() {
-                return createStringResource("pageUsers.message.deleteUserConfirm",
+                if(singleDelete == null){
+                    return createStringResource("pageUsers.message.deleteUserConfirm",
                         WebMiscUtil.getSelectedData(getTable()).size()).getString();
+                } else {
+                    return createStringResource("pageUsers.message.deleteUserConfirmSingle",
+                            singleDelete.getName()).getString();
+                }
             }
         };
     }
@@ -486,6 +491,7 @@ public class PageUsers extends PageAdminUsers {
     }
 
     private void deletePerformed(AjaxRequestTarget target, UserListItemDto selectedUser) {
+        singleDelete = selectedUser;
         List<UserListItemDto> users = isAnythingSelected(target, selectedUser);
         if (users.isEmpty()) {
             return;
@@ -495,8 +501,15 @@ public class PageUsers extends PageAdminUsers {
         dialog.show(target);
     }
 
-    private void deleteConfirmedPerformed(AjaxRequestTarget target, UserListItemDto selectedUser) {
-        List<UserListItemDto> users = isAnythingSelected(target, selectedUser);
+    private void deleteConfirmedPerformed(AjaxRequestTarget target) {
+        List<UserListItemDto> users = new  ArrayList<UserListItemDto>();
+
+        if(singleDelete == null){
+            users = isAnythingSelected(target, null);
+        } else {
+            users.add(singleDelete);
+        }
+
         if (users.isEmpty()) {
             return;
         }
