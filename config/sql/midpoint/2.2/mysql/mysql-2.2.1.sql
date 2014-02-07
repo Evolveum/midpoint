@@ -191,6 +191,7 @@ CREATE TABLE m_assignment (
 CREATE TABLE m_audit_delta (
   checksum         VARCHAR(32) NOT NULL,
   record_id        BIGINT      NOT NULL,
+  context          LONGTEXT,
   delta            LONGTEXT,
   deltaOid         VARCHAR(36),
   deltaType        INTEGER,
@@ -201,6 +202,7 @@ CREATE TABLE m_audit_delta (
   operation        LONGTEXT,
   params           LONGTEXT,
   partialResults   LONGTEXT,
+  returns          LONGTEXT,
   status           INTEGER,
   token            BIGINT,
   PRIMARY KEY (checksum, record_id)
@@ -444,6 +446,7 @@ CREATE TABLE m_object_template (
 CREATE TABLE m_operation_result (
   owner_oid        VARCHAR(36) NOT NULL,
   owner_id         BIGINT      NOT NULL,
+  context          LONGTEXT,
   details          LONGTEXT,
   localizedMessage LONGTEXT,
   message          LONGTEXT,
@@ -451,6 +454,7 @@ CREATE TABLE m_operation_result (
   operation        LONGTEXT,
   params           LONGTEXT,
   partialResults   LONGTEXT,
+  returns          LONGTEXT,
   status           INTEGER,
   token            BIGINT,
   PRIMARY KEY (owner_oid, owner_id)
@@ -1000,6 +1004,8 @@ ADD INDEX fk_org (id, oid),
 ADD CONSTRAINT fk_org
 FOREIGN KEY (id, oid)
 REFERENCES m_abstract_role (id, oid);
+
+CREATE INDEX iAncestorDepth ON m_org_closure (ancestor_id, ancestor_oid, depthValue);
 
 ALTER TABLE m_org_closure
 ADD INDEX fk_descendant (descendant_id, descendant_oid),

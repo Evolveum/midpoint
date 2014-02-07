@@ -150,6 +150,7 @@ CREATE TABLE m_assignment (
 CREATE TABLE m_audit_delta (
   checksum         VARCHAR(32) NOT NULL,
   record_id        BIGINT      NOT NULL,
+  context          CLOB,
   delta            CLOB,
   deltaOid         VARCHAR(36),
   deltaType        INTEGER,
@@ -160,6 +161,7 @@ CREATE TABLE m_audit_delta (
   operation        CLOB,
   params           CLOB,
   partialResults   CLOB,
+  returns          CLOB,
   status           INTEGER,
   token            BIGINT,
   PRIMARY KEY (checksum, record_id)
@@ -358,6 +360,7 @@ CREATE TABLE m_object_template (
 CREATE TABLE m_operation_result (
   owner_oid        VARCHAR(36) NOT NULL,
   owner_id         BIGINT      NOT NULL,
+  context          CLOB,
   details          CLOB,
   localizedMessage CLOB,
   message          CLOB,
@@ -365,6 +368,7 @@ CREATE TABLE m_operation_result (
   operation        CLOB,
   params           CLOB,
   partialResults   CLOB,
+  returns          CLOB,
   status           INTEGER,
   token            BIGINT,
   PRIMARY KEY (owner_oid, owner_id)
@@ -831,6 +835,8 @@ ADD CONSTRAINT fk_org
 FOREIGN KEY (id, oid)
 REFERENCES m_abstract_role;
 
+CREATE INDEX iAncestorDepth ON m_org_closure (ancestor_id, ancestor_oid, depthValue);
+
 ALTER TABLE m_org_closure
 ADD CONSTRAINT fk_descendant
 FOREIGN KEY (descendant_id, descendant_oid)
@@ -969,4 +975,6 @@ ADD CONSTRAINT fk_value_policy
 FOREIGN KEY (id, oid)
 REFERENCES m_object;
 
-CREATE SEQUENCE hibernate_sequence START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE hibernate_sequence
+    START WITH 1
+    INCREMENT BY 1;
