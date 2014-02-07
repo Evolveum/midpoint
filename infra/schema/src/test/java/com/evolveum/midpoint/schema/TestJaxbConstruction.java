@@ -54,8 +54,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectReferenceType.Filter;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType.Definition;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_2.SchemaDefinitionType;
 
 /**
  * @author semancik
@@ -480,7 +480,7 @@ public class TestJaxbConstruction {
 		
 		resourceType.setSchema(xmlSchemaType);
 		
-		Definition schemaDefinition = new Definition();
+		SchemaDefinitionType schemaDefinition = new SchemaDefinitionType();
 		Element xsdSchemaElement = DOMUtil.createElement(DOMUtil.XSD_SCHEMA_ELEMENT); 
 		schemaDefinition.getAny().add(xsdSchemaElement);
 		xmlSchemaType.setDefinition(schemaDefinition);

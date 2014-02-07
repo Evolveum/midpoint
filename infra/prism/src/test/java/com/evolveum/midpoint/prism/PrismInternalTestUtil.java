@@ -107,6 +107,9 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	// User: will (has all the extensions)
 	public static final File USER_WILL_FILE = new File(COMMON_DIR_PATH, "user-will.xml");
 
+	public static final String RESOURCE_RUM_FILE_BASENAME = "resource-rum";
+	public static final String RESOURCE_RUM_OID = "c0c010c0-d34d-b33f-f00d-222222220001";
+	
 	// Namespaces
 	public static final String DEFAULT_NAMESPACE_PREFIX = "http://midpoint.evolveum.com/xml/ns";
 	public static final String NS_FOO = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd";
@@ -167,7 +170,10 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	public static final QName ATTRIBUTES_TYPE_QNAME = new QName(NS_FOO,"AttributesType");
 	
 	public static final QName DUMMY_PROTECTED_STRING_TYPE = new QName(NS_FOO, "DummyProtectedStringType");
-	
+
+	public static final QName RESOURCE_QNAME = new QName(NS_FOO,"resource");
+	public static final QName RESOURCE_TYPE_QNAME = new QName(NS_FOO,"ResourceType");
+
 	// extension.xsd
 	public static final QName EXTENSION_STRING_TYPE_ELEMENT = new QName(NS_EXTENSION, "stringType");
 	public static final QName EXTENSION_SINGLE_STRING_TYPE_ELEMENT = new QName(NS_EXTENSION, "singleStringType");

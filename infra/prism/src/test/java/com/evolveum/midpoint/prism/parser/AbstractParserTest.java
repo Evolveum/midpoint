@@ -39,6 +39,7 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectReferenceType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
@@ -47,6 +48,7 @@ import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.foo.ActivationType;
 import com.evolveum.midpoint.prism.foo.AssignmentType;
+import com.evolveum.midpoint.prism.foo.ResourceType;
 import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.prism.json.PrismJsonSerializer;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
@@ -60,6 +62,7 @@ import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -203,6 +206,49 @@ public abstract class AbstractParserTest {
 		assertTrue("Re-parsed object in accountRef does not match: "+accountRefObjDiff, accountRefObjDiff.isEmpty());
 		
 		assertTrue("Re-parsed user does not match: "+diff, diff.isEmpty());
+	}	
+	
+	@Test
+    public void testParseResourceRumToPrism() throws Exception {
+		final String TEST_NAME = "testParseResourceRumToPrism";
+		displayTestTitle(TEST_NAME);
+		
+		// GIVEN
+		Parser parser = createParser();
+		XNodeProcessor processor = new XNodeProcessor();
+		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		processor.setPrismContext(prismContext);
+		
+		// WHEN (parse to xnode)
+		XNode xnode = parser.parse(getFile(RESOURCE_RUM_FILE_BASENAME));
+		System.out.println("XNode after parsing:");
+		System.out.println(xnode.dump());
+		
+		// WHEN (parse to prism)
+		PrismObject<ResourceType> resource = processor.parseObject(xnode);
+		
+		// THEN
+		System.out.println("Parsed user:");
+		System.out.println(resource.dump());
+
+		
+		assertUserJackXNodeOrdering("serialized xnode", xnode);
+		
+		assertResourceRum(resource);		
+		
+	}
+
+
+	private void assertResourceRum(PrismObject<ResourceType> resource) throws SchemaException {
+		resource.checkConsistence();
+		resource.assertDefinitions("test");
+		
+		assertEquals("Wrong oid", RESOURCE_RUM_OID, resource.getOid());
+		PrismAsserts.assertObjectDefinition(resource.getDefinition(), RESOURCE_QNAME, RESOURCE_TYPE_QNAME, ResourceType.class);
+		PrismAsserts.assertParentConsistency(resource);
+		
+		assertPropertyValue(resource, "name", new PolyString("Rum Delivery System", "rum delivery system"));
+		assertPropertyDefinition(resource, "name", PolyStringType.COMPLEX_TYPE, 0, 1);
 	}
 
 	private PrismObject findObjectFromAccountRef(PrismObject<UserType> user) {

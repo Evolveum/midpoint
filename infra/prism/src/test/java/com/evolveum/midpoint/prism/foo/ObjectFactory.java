@@ -1,6 +1,6 @@
 
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlElementDecl;
 import javax.xml.bind.annotation.XmlRegistry;
 import javax.xml.namespace.QName;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 
 /**
@@ -42,14 +43,25 @@ public class ObjectFactory {
 
     private final static QName _Object_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", "object");
     private final static QName _Name_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", "name");
-    private final static QName _Description_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", "description");
+    private final static QName _Resource_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", "resource");
+    private final static QName _User_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", "user");
     private final static QName _DisplayName_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", "displayName");
+    private final static QName _Account_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", "account");
+    private final static QName _Description_QNAME = new QName("http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", "description");
 
     /**
      * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: com.evolveum.midpoint.xml.ns.test.foo_1
      * 
      */
     public ObjectFactory() {
+    }
+
+    /**
+     * Create an instance of {@link ObjectReferenceType }
+     * 
+     */
+    public ObjectReferenceType createObjectReferenceType() {
+        return new ObjectReferenceType();
     }
 
     /**
@@ -61,11 +73,91 @@ public class ObjectFactory {
     }
 
     /**
+     * Create an instance of {@link ResourceType }
+     * 
+     */
+    public ResourceType createResourceType() {
+        return new ResourceType();
+    }
+
+    /**
+     * Create an instance of {@link AccountType }
+     * 
+     */
+    public AccountType createAccountType() {
+        return new AccountType();
+    }
+
+    /**
      * Create an instance of {@link UserType }
      * 
      */
     public UserType createUserType() {
         return new UserType();
+    }
+
+    /**
+     * Create an instance of {@link FooObjectClass }
+     * 
+     */
+    public FooObjectClass createFooObjectClass() {
+        return new FooObjectClass();
+    }
+
+    /**
+     * Create an instance of {@link ActivationType }
+     * 
+     */
+    public ActivationType createActivationType() {
+        return new ActivationType();
+    }
+
+    /**
+     * Create an instance of {@link AttributesType }
+     * 
+     */
+    public AttributesType createAttributesType() {
+        return new AttributesType();
+    }
+
+    /**
+     * Create an instance of {@link AccountConstructionType }
+     * 
+     */
+    public AccountConstructionType createAccountConstructionType() {
+        return new AccountConstructionType();
+    }
+
+    /**
+     * Create an instance of {@link DummyProtectedStringType }
+     * 
+     */
+    public DummyProtectedStringType createDummyProtectedStringType() {
+        return new DummyProtectedStringType();
+    }
+
+    /**
+     * Create an instance of {@link AssignmentType }
+     * 
+     */
+    public AssignmentType createAssignmentType() {
+        return new AssignmentType();
+    }
+
+    /**
+     * Create an instance of {@link ObjectReferenceType.Filter }
+     * 
+     */
+    public ObjectReferenceType.Filter createObjectReferenceTypeFilter() {
+        return new ObjectReferenceType.Filter();
+    }
+
+    /**
+     * Create an instance of {@link ObjectReferenceType.Object }
+     * 
+     */
+    public ObjectReferenceType.Object createObjectReferenceTypeObject() {
+        return new ObjectReferenceType.Object();
     }
 
     /**
@@ -78,21 +170,30 @@ public class ObjectFactory {
     }
 
     /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
+     * Create an instance of {@link JAXBElement }{@code <}{@link PolyStringType }{@code >}}
      * 
      */
     @XmlElementDecl(namespace = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", name = "name")
-    public JAXBElement<String> createName(String value) {
-        return new JAXBElement<String>(_Name_QNAME, String.class, null, value);
+    public JAXBElement<PolyStringType> createName(PolyStringType value) {
+        return new JAXBElement<PolyStringType>(_Name_QNAME, PolyStringType.class, null, value);
     }
 
     /**
-     * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
+     * Create an instance of {@link JAXBElement }{@code <}{@link ResourceType }{@code >}}
      * 
      */
-    @XmlElementDecl(namespace = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", name = "description")
-    public JAXBElement<String> createDescription(String value) {
-        return new JAXBElement<String>(_Description_QNAME, String.class, null, value);
+    @XmlElementDecl(namespace = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", name = "resource")
+    public JAXBElement<ResourceType> createResource(ResourceType value) {
+        return new JAXBElement<ResourceType>(_Resource_QNAME, ResourceType.class, null, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link UserType }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", name = "user")
+    public JAXBElement<UserType> createUser(UserType value) {
+        return new JAXBElement<UserType>(_User_QNAME, UserType.class, null, value);
     }
 
     /**
@@ -102,6 +203,24 @@ public class ObjectFactory {
     @XmlElementDecl(namespace = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", name = "displayName")
     public JAXBElement<String> createDisplayName(String value) {
         return new JAXBElement<String>(_DisplayName_QNAME, String.class, null, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link AccountType }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", name = "account")
+    public JAXBElement<AccountType> createAccount(AccountType value) {
+        return new JAXBElement<AccountType>(_Account_QNAME, AccountType.class, null, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link String }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", name = "description")
+    public JAXBElement<String> createDescription(String value) {
+        return new JAXBElement<String>(_Description_QNAME, String.class, null, value);
     }
 
 }

@@ -44,8 +44,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectTypeD
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SchemaHandlingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType.Definition;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_2.SchemaDefinitionType;
 
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -434,7 +434,7 @@ public class TestParseResource {
     		assertNull("SchemaHandling sneaked in", schemaHandling);
     	} else {
 	    	assertNotNull("No schema element (JAXB)", xmlSchemaType);
-	    	XmlSchemaType.Definition definition = xmlSchemaType.getDefinition();
+	    	SchemaDefinitionType definition = xmlSchemaType.getDefinition();
 	    	assertNotNull("No definition element in schema (JAXB)", definition);
 	    	List<Element> anyElements = definition.getAny();
 	    	assertNotNull("Null element list in definition element in schema (JAXB)", anyElements);
