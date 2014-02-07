@@ -1,21 +1,18 @@
 package com.evolveum.midpoint.prism.json;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.util.Iterator;
 import java.util.ListIterator;
 import java.util.Map.Entry;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.prism.parser.Parser;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.xnode.ListXNode;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
@@ -23,22 +20,19 @@ import com.evolveum.midpoint.prism.xnode.RootXNode;
 import com.evolveum.midpoint.prism.xnode.ValueParser;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.Version;
-import com.fasterxml.jackson.core.base.GeneratorBase;
-import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
+import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.core.JsonTokenId;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.fasterxml.jackson.databind.util.TokenBuffer;
+import com.fasterxml.jackson.dataformat.yaml.YAMLParser;
 
 public abstract class AbstractParser implements Parser {
 	
@@ -116,7 +110,8 @@ public abstract class AbstractParser implements Parser {
 	
 	private String writeObject(XNode node, QName rootElement, JsonGenerator generator, StringWriter out) throws JsonGenerationException, IOException{
 		generator.writeStartObject();
-		serializeToJson(node, rootElement, null, generator);
+		generator.writeStringField(PROP_NAMESPACE, rootElement.getNamespaceURI());
+		serializeToJson(node, rootElement, rootElement.getNamespaceURI(), generator);
 		generator.writeEndObject();
 		generator.flush();
 		generator.close();
@@ -210,7 +205,6 @@ public abstract class AbstractParser implements Parser {
 	//------------------------END OF METHODS FOR SERIALIZATION -------------------------------
 	
 	//------------------------ METHODS FOR PARSING -------------------------------------------
-	
 	public XNode parseObject(JsonParser parser) throws SchemaException{
 		
 		ObjectMapper mapper = new ObjectMapper();
@@ -219,35 +213,66 @@ public abstract class AbstractParser implements Parser {
 		sm.addDeserializer(ItemPath.class, new ItemPathDeserializer());
 		
 		mapper.registerModule(sm);
+		
 		JsonNode obj = null;
 		try {
+//			String globalNs = (String) parser.getObjectId();
 			parser.setCodec(mapper);
-			obj = parser.readValueAs(JsonNode.class);
+			
+//			TokenBuffer tb = parser.readValueAs(TokenBuffer.class);
+//			JsonParser p = tb.asParser();
+//			System.out.println("======================== " + p.getObjectId());
+//			System.out.println("======================== " + p.getTypeId());
+//			tb.
+//			tb.firstToken().asParser().getCurrentTokenId();
+//			JsonToken.
+//			YAMLFactory f = new YAMLFactory();
+//			f.
+			
+			int i = parser.getCurrentTokenId();
+			System.out.println("id token : " + i);
+//			Object o =parser.readValueAsTree();
+			
+			System.out.println("id: " + JsonTokenId.ID_START_OBJECT);
+			JsonToken t = parser.getCurrentToken();
+			System.out.println("cuurent: " + t);
+			
+			JsonToken nt = parser.nextToken();
+			System.out.println("cuurent: " + nt);
+			
+//			JsonToken t = parser.getCurrentToken();
+//			System.out.println("cuurent: " + t);
+//			mapper.readTree(jp)
+//			obj = ((YAMLParser)parser).readValueAs(JsonNode.class);
+			
+			
 			
 			RootXNode xmap = new RootXNode();
 			
-			Iterator<Entry<String, JsonNode>> fields = obj.fields();
+//			Iterator<Entry<String, JsonNode>> fields = obj.fields();
+//			obj.
 			
-			while (fields.hasNext()){
-				Entry<String, JsonNode> field = fields.next();
-				String fieldName = field.getKey();
+//			nt.
+//			while (fields.hasNext()){
+//				Entry<String, JsonNode> field = fields.next();
+//				String fieldName = field.getKey();
+//				
+//				JsonNode globalNsNode = field.getValue().get(PROP_NAMESPACE);
+//				if (globalNsNode == null){
+//					throw new SchemaException("No global ns");
+//				}
+//				String globalNs = globalNsNode.asText();
+//				
+//				if (fieldName == null){
+//					throw new SchemaException("cannot obtain type");
+//				}
+//		
+				QName rootElement = new QName("http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", "user");
+//				((RootXNode) xmap).setRootElementName(rootElement);
 				
-				JsonNode globalNsNode = field.getValue().get(PROP_NAMESPACE);
-				if (globalNsNode == null){
-					throw new SchemaException("No ");
-				}
-				String globalNs = globalNsNode.asText();
+				parseJsonObject(xmap, rootElement, null, parser);
 				
-				if (fieldName == null){
-					throw new SchemaException("cannot obtain type");
-				}
-		
-				QName rootElement = new QName(globalNs, fieldName);
-				((RootXNode) xmap).setRootElementName(rootElement);
-				
-				parseJsonObject(xmap, rootElement, field.getValue(), parser);
-				
-			}
+//			}
 			 return xmap;
 		} catch (JsonParseException e) {
 			throw new SchemaException("Cannot parse from JSON: " + e.getMessage(), e);
@@ -259,17 +284,40 @@ public abstract class AbstractParser implements Parser {
 	}
 	
 	private <T> void parseJsonObject(XNode xmap, QName propertyName, final JsonNode obj, final JsonParser parser) throws SchemaException {
-		
-		switch (obj.getNodeType()){
-			case OBJECT:
+		try{
+			JsonToken token = parser.nextToken();
+			System.out.println("token " + token);
+			JsonToken current = parser.getCurrentToken();
+			System.out.println("current " + current);
+			JsonToken value = parser.nextValue();
+			System.out.println("value " + value);
+			if (token == null){
+				token = parser.nextToken();
+			}
+		switch (token){
+			case START_OBJECT:
 				parseToMap(obj, propertyName, xmap, parser);
 				break;
-			case ARRAY:
+			case START_ARRAY:
 				parseToList(obj, propertyName, xmap, parser);
 				break;
 			default:
 				parseToPrimitive(obj, propertyName, xmap, parser);
 		}
+		} catch (Exception e){
+			//TODO: 
+			throw new SchemaException("Error ", e);
+		}
+//		switch (obj.getNodeType()){
+//			case OBJECT:
+//				parseToMap(obj, propertyName, xmap, parser);
+//				break;
+//			case ARRAY:
+//				parseToList(obj, propertyName, xmap, parser);
+//				break;
+//			default:
+//				parseToPrimitive(obj, propertyName, xmap, parser);
+//		}
 		
 	}
 	
@@ -338,6 +386,15 @@ public abstract class AbstractParser implements Parser {
 	
 	private PrimitiveXNode createPrimitiveXNode(JsonNode node, JsonParser parser, QName typeDefinition){
 		PrimitiveXNode primitive = new PrimitiveXNode();
+		boolean f = parser.canReadObjectId();
+		System.out.println("can read obj id: " + f);
+		try{
+		System.out.println("obj id: " + parser.getObjectId());
+		System.out.println("type id: " + parser.getTypeId());
+		
+		} catch (Exception e){
+			throw new IllegalStateException(e);
+		}
 		ValueParser vp = new JsonValueParser(parser, node);
 		primitive.setValueParser(vp);
 		if (typeDefinition != null){

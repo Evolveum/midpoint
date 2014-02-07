@@ -4,45 +4,36 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.StringWriter;
-import java.util.Iterator;
-import java.util.ListIterator;
-import java.util.Map.Entry;
 
 import javax.xml.bind.JAXBElement;
+import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.StringUtils;
-
-import com.evolveum.midpoint.prism.json.AbstractParser;
+import com.evolveum.midpoint.prism.json.AbstractParser2;
 import com.evolveum.midpoint.prism.json.ItemPathSerializer;
 import com.evolveum.midpoint.prism.json.JaxbElementSerializer;
 import com.evolveum.midpoint.prism.json.PolyStringSerializer;
 import com.evolveum.midpoint.prism.json.QNameSerializer;
+import com.evolveum.midpoint.prism.json.XmlGregorialCalendarSerializer;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.xnode.ListXNode;
-import com.evolveum.midpoint.prism.xnode.MapXNode;
-import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
-import com.evolveum.midpoint.prism.xnode.RootXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.core.JsonFactory;
-import com.fasterxml.jackson.core.JsonGenerationException;
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.annotation.JsonTypeInfo.As;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper.DefaultTyping;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 //import com.fasterxml.jackson.core.YAMLGenerator;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 import com.fasterxml.jackson.dataformat.yaml.YAMLParser;
+import com.fasterxml.jackson.dataformat.yaml.YAMLParser.Feature;
 
-public class YamlParser extends AbstractParser{
+public class YamlParser extends AbstractParser2{
 	
 //	private static final String PROP_NAMESPACE = "@ns";
 //	private static final String TYPE_DEFINITION = "@typeDef";
@@ -202,11 +193,13 @@ public class YamlParser extends AbstractParser{
 	
 	public YAMLGenerator createGenerator(StringWriter out) throws SchemaException{
 		try {
-			YAMLFactory factory = new YAMLFactory();
-			YAMLGenerator generator = factory.createGenerator(out);
+			MidpointYAMLFactory factory = new MidpointYAMLFactory();
+			MidpoinYAMLGenerator generator = (MidpoinYAMLGenerator) factory.createGenerator(out);
 			generator.setPrettyPrinter(new DefaultPrettyPrinter());
 			generator.setCodec(configureMapperForSerialization());
+//			MidpoinYAMLGenerator myg = new MidpoinYAMLGenerator(generator., jsonFeatures, yamlFeatures, codec, out, version)
 //			generator.
+			generator.configure(com.fasterxml.jackson.dataformat.yaml.YAMLGenerator.Feature.CANONICAL_OUTPUT, false);
 			YAMLParser parser = factory.createParser(out.toString());
 //			parser.
 			return generator;
@@ -220,8 +213,15 @@ public class YamlParser extends AbstractParser{
 	private ObjectMapper configureMapperForSerialization(){
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.configure(SerializationFeature.WRITE_NULL_MAP_VALUES, false);
-		mapper.setSerializationInclusion(Include.NON_NULL);
+//		mapper.enableDefaultTyping(DefaultTyping.NON_CONCRETE_AND_ARRAYS, As.EXISTING_PROPERTY);
+//		mapper.configure(SerializationFeaCture.);
+//		mapper.setSerializationInclusion(Include.NON_NULL);
 		mapper.registerModule(createSerializerModule());
+		mapper.enableDefaultTyping(DefaultTyping.NON_CONCRETE_AND_ARRAYS);
+		mapper.enableDefaultTyping(DefaultTyping.NON_FINAL, As.EXISTING_PROPERTY);
+		mapper.enableDefaultTyping(DefaultTyping.NON_FINAL, As.EXTERNAL_PROPERTY);
+		mapper.enableDefaultTyping(DefaultTyping.NON_FINAL, As.PROPERTY);
+		
 		return mapper;
 	}
 	
@@ -231,25 +231,29 @@ public class YamlParser extends AbstractParser{
 		module.addSerializer(PolyString.class, new PolyStringSerializer());
 		module.addSerializer(ItemPath.class, new ItemPathSerializer());
 		module.addSerializer(JAXBElement.class, new JaxbElementSerializer());
+		module.addSerializer(XMLGregorianCalendar.class, new XmlGregorialCalendarSerializer());
 		return module;
 	}
 	
 	@Override
-	protected YAMLParser createParser(File file) throws SchemaException, IOException {
-		YAMLFactory factory = new YAMLFactory();
+	protected MidpointYAMLParser createParser(File file) throws SchemaException, IOException {
+		MidpointYAMLFactory factory = new MidpointYAMLFactory();
 		try {
-			return factory.createParser(new FileInputStream(file));
+			MidpointYAMLParser p = (MidpointYAMLParser) factory.createParser(new FileInputStream(file));
+//			p.enable(Feature.BOGUS);
+			String oid = p.getObjectId();
+			p.enable(com.fasterxml.jackson.core.JsonParser.Feature.ALLOW_YAML_COMMENTS);
+			return p;
 		} catch (IOException e) {
 			throw e;
 		}
-//		return parser;
 	}
 
 	@Override
-	protected YAMLParser createParser(String dataString) throws SchemaException {
-		YAMLFactory factory = new YAMLFactory();
+	protected MidpointYAMLParser createParser(String dataString) throws SchemaException {
+		MidpointYAMLFactory factory = new MidpointYAMLFactory();
 		try {
-			return factory.createParser(dataString);
+			return (MidpointYAMLParser) factory.createParser(dataString);
 		} catch (IOException e) {
 			throw new SchemaException("Cannot create JSON parser: " + e.getMessage(), e);
 		}

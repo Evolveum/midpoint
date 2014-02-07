@@ -43,7 +43,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
 
-public class PrismJsonSerializer extends AbstractParser{
+public class PrismJsonSerializer extends AbstractParser2{
 	
 //	private static final String PROP_NAMESPACE = "@ns";
 //	private static final String TYPE_DEFINITION = "@typeDef";

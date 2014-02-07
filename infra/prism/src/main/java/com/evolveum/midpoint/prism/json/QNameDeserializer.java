@@ -6,6 +6,7 @@ import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.QNameUtil;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.JsonToken;
@@ -27,9 +28,9 @@ public class QNameDeserializer extends JsonDeserializer<QName>{
 //		JsonNode node = jp.getCodec().readTree(jp);
 //		JsonNode node = (JsonNode) ob;
 //		TreeTraversingParser treeParser = (TreeTraversingParser) jp;
-		if (jp.getCurrentToken() == JsonToken.START_OBJECT){
+//		if (jp.getCurrentToken() == JsonToken.START_OBJECT){
 			
-		}
+//		}
 //		jp.
 		ObjectMapper m = new ObjectMapper();
 		JsonNode node = m.readValue(jp, JsonNode.class);
@@ -60,13 +61,14 @@ public class QNameDeserializer extends JsonDeserializer<QName>{
 		String localPart = null;
 		if (qnameNode != null){
 			localPart = qnameNode.asText();
-		}
-		
+		} 
 		return new QName(namespace, localPart);
 	}
 	
 	private QName deserializeFromString(JsonNode node){
-		return new QName(node.asText());
+		String qnameUri = node.asText();
+		return QNameUtil.uriToQName(qnameUri);
+//		return new QName(node.asText());
 	}
 	
 	@Override

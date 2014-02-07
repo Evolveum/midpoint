@@ -8,6 +8,7 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.jsontype.TypeSerializer;
 
 public class ItemPathSerializer extends JsonSerializer<ItemPath>{
 
@@ -19,6 +20,13 @@ public class ItemPathSerializer extends JsonSerializer<ItemPath>{
 //		value.
 		jgen.writeObject(path);
 		
+	}
+	
+	@Override
+	public void serializeWithType(ItemPath value, JsonGenerator jgen, SerializerProvider provider,
+			TypeSerializer typeSer) throws IOException, JsonProcessingException {
+		// TODO Auto-generated method stub
+		serialize(value, jgen, provider);
 	}
 
 }
