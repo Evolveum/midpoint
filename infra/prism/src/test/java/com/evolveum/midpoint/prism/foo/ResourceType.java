@@ -9,9 +9,12 @@
 package com.evolveum.midpoint.prism.foo;
 
 import java.io.Serializable;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlType;
+import javax.xml.namespace.QName;
+
 import com.evolveum.prism.xml.ns._public.types_2.SchemaDefinitionType;
 
 
@@ -38,12 +41,11 @@ import com.evolveum.prism.xml.ns._public.types_2.SchemaDefinitionType;
 @XmlType(name = "ResourceType", propOrder = {
     "schema"
 })
-public class ResourceType
-    extends ObjectType
-    implements Serializable
-{
-
+public class ResourceType extends ObjectType implements Serializable {
     private final static long serialVersionUID = 201202081233L;
+    
+    public final static QName F_SCHEMA = new QName(NS_FOO, "schema");
+    
     protected SchemaDefinitionType schema;
 
     /**

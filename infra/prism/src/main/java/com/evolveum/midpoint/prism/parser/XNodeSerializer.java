@@ -56,11 +56,13 @@ import com.evolveum.midpoint.prism.xnode.ListXNode;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
+import com.evolveum.midpoint.prism.xnode.SchemaXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_2.EncryptedDataType;
 import com.evolveum.prism.xml.ns._public.types_2.ProtectedDataType;
+import com.evolveum.prism.xml.ns._public.types_2.SchemaDefinitionType;
 
 /**
  * @author semancik
@@ -240,7 +242,9 @@ public class XNodeSerializer {
 	private <T> XNode serializePropertyValue(PrismPropertyValue<T> value, PrismPropertyDefinition<T> definition) throws SchemaException {
 		QName typeQName = definition.getTypeName();
 		T realValue = value.getValue();
-		if (realValue instanceof ProtectedDataType<?>) {
+		if (realValue instanceof SchemaDefinitionType) {
+			return serializeSchemaDefinition((SchemaDefinitionType)realValue);
+		} else if (realValue instanceof ProtectedDataType<?>) {
 			return serializeProtectedDataType((ProtectedDataType<?>) realValue);
 		} else if (beanConverter.canConvert(typeQName)) {
 			return beanConverter.marshall(realValue);
@@ -249,7 +253,7 @@ public class XNodeSerializer {
 			return createPrimitiveXNode(realValue, typeQName);
 		}
 	}
-	
+
 	private <T> XNode serializeProtectedDataType(ProtectedDataType<T> protectedType) {
 		MapXNode xmap = new MapXNode();
 		if (protectedType.getEncryptedDataType() != null) {
@@ -258,6 +262,14 @@ public class XNodeSerializer {
 			xmap.put(ProtectedDataType.F_ENCRYPTED_DATA, xEncryptedDataType);
 		}
 		// TODO: clearValue
+		return xmap;
+	}
+
+	private XNode serializeSchemaDefinition(SchemaDefinitionType schemaDefinitionType) {
+		SchemaXNode xschema = new SchemaXNode();
+		xschema.setSchemaElement(schemaDefinitionType.getSchema());
+		MapXNode xmap = new MapXNode();
+		xmap.put(DOMUtil.XSD_SCHEMA_ELEMENT,xschema);
 		return xmap;
 	}
 

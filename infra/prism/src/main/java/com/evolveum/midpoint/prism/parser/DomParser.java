@@ -39,6 +39,7 @@ import com.evolveum.midpoint.prism.xnode.ListXNode;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
+import com.evolveum.midpoint.prism.xnode.SchemaXNode;
 import com.evolveum.midpoint.prism.xnode.ValueParser;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
@@ -46,6 +47,8 @@ import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 public class DomParser implements Parser {
+	
+	private static final QName SCHEMA_ELEMENT_QNAME = DOMUtil.XSD_SCHEMA_ELEMENT;
 	
 	private SchemaRegistry schemaRegistry;
 
@@ -176,13 +179,21 @@ public class DomParser implements Parser {
 		if (elements == null || elements.isEmpty()) {
 			return;
 		}
-		if (elements.size() == 1) {
-			XNode xsub = parseElementContent(elements.get(0));
-			xmap.put(elementQName, xsub);
+		XNode xsub;
+		// We really want to have equals here, not match
+		// we want to be very explicit about namespace here
+		if (elementQName.equals(SCHEMA_ELEMENT_QNAME)) {
+			if (elements.size() == 1) {
+				xsub = parseSchemaElement(elements.iterator().next());
+			} else {
+				throw new SchemaException("Too many schema elements");
+			}
+		} else if (elements.size() == 1) {
+			xsub = parseElementContent(elements.get(0));
 		} else {
-			ListXNode xlist = parseElementList(elements); 
-			xmap.put(elementQName, xlist);
+			xsub = parseElementList(elements); 
 		}
+		xmap.put(elementQName, xsub);
 	}
 
 	/**
@@ -256,6 +267,12 @@ public class DomParser implements Parser {
 	private ItemPath parsePath(Element element) {
 		XPathHolder holder = new XPathHolder(element);
 		return holder.toItemPath();
+	}
+
+	private SchemaXNode parseSchemaElement(Element schemaElement) {
+		SchemaXNode xschema = new SchemaXNode();
+		xschema.setSchemaElement(schemaElement);
+		return xschema;
 	}
 
 	@Override

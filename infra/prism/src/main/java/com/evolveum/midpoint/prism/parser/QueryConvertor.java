@@ -399,13 +399,7 @@ public class QueryConvertor {
 		if (xmap == null || xmap.isEmpty()) {
 			return null;
 		}
-		
-		if (xmap.size() > 1) {
-			throw new SchemaException("More than one element in search filter "+filterName+" : "+xmap.dumpKeyNames());
-		}
-		
-		Entry<QName, XNode> entry = xmap.entrySet().iterator().next();
-		return entry;
+		return xmap.getSingleSubEntry("search filter "+filterName);
 	}
 
 	private static MapXNode toMap(XNode xnode) throws SchemaException {

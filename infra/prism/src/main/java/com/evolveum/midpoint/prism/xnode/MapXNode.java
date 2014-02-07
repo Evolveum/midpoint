@@ -23,6 +23,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Map.Entry;
 
 import javax.xml.namespace.QName;
 
@@ -106,6 +107,18 @@ public class MapXNode extends XNode implements Map<QName,XNode> {
 			values.add(entry.getValue());
 		}
 		return values;
+	}
+	
+	public java.util.Map.Entry<QName, XNode> getSingleSubEntry(String errorContext) throws SchemaException {
+		if (isEmpty()) {
+			return null;
+		}
+		
+		if (size() > 1) {
+			throw new SchemaException("More than one element in " + errorContext +" : "+dumpKeyNames());
+		}
+		
+		return subnodes.get(0);
 	}
 
 	public Set<java.util.Map.Entry<QName, XNode>> entrySet() {

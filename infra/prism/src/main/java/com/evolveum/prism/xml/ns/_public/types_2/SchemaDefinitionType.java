@@ -20,8 +20,11 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.XmlType;
+import javax.xml.namespace.QName;
 
 import org.w3c.dom.Element;
+
+import com.evolveum.midpoint.util.DOMUtil;
 
 
 /**
@@ -55,6 +58,8 @@ import org.w3c.dom.Element;
 })
 public class SchemaDefinitionType implements Serializable {
 
+	public static final QName COMPLEX_TYPE = new QName("http://prism.evolveum.com/xml/ns/public/types-2", "SchemaDefinitionType");
+	
     @XmlAnyElement
     protected List<Element> any;
 
@@ -284,4 +289,28 @@ public class SchemaDefinitionType implements Serializable {
         return this.any;
     }
 
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((schema == null) ? 0 : schema.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		SchemaDefinitionType other = (SchemaDefinitionType) obj;
+		if (schema == null) {
+			if (other.schema != null)
+				return false;
+		} else if (!DOMUtil.compareElement(schema, other.schema, false))
+			return false;
+		return true;
+	}
 }

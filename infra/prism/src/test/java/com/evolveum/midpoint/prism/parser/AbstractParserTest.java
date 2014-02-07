@@ -30,20 +30,25 @@ import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import javax.xml.XMLConstants;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismInternalTestUtil;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
+import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.*;
 import com.evolveum.prism.xml.ns._public.types_2.ObjectReferenceType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_2.SchemaDefinitionType;
 
 import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
+import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.foo.ActivationType;
@@ -73,6 +78,9 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  */
 public abstract class AbstractParserTest {
 	
+	private static final QName XSD_COMPLEX_TYPE_ELEMENT_NAME 
+			= new QName(XMLConstants.W3C_XML_SCHEMA_NS_URI, "complexType");
+
 	@BeforeSuite
 	public void setupDebug() throws SchemaException, SAXException, IOException {
 		PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
@@ -228,15 +236,62 @@ public abstract class AbstractParserTest {
 		PrismObject<ResourceType> resource = processor.parseObject(xnode);
 		
 		// THEN
-		System.out.println("Parsed user:");
+		System.out.println("Parsed resource:");
 		System.out.println(resource.dump());
-
-		
-		assertUserJackXNodeOrdering("serialized xnode", xnode);
 		
 		assertResourceRum(resource);		
 		
 	}
+
+	@Test
+    public void testParseResourceRoundTrip() throws Exception {
+		final String TEST_NAME = "testParseResourceRoundTrip";
+		displayTestTitle(TEST_NAME);
+		
+		// GIVEN
+		Parser parser = createParser();
+		XNodeProcessor processor = new XNodeProcessor();
+		PrismContext prismContext = PrismTestUtil.getPrismContext();
+		processor.setPrismContext(prismContext);
+		
+		// WHEN (parse)
+		XNode xnode = parser.parse(getFile(RESOURCE_RUM_FILE_BASENAME));
+		PrismObject<ResourceType> resource = processor.parseObject(xnode);
+		
+		// THEN
+		System.out.println("\nParsed resource:");
+		System.out.println(resource.dump());
+		
+		assertResourceRum(resource);
+		
+		// WHEN (re-serialize to XNode)
+		XNode serializedXNode = processor.serializeObject(resource, true);
+		String serializedString = parser.serializeToString(serializedXNode, new QName(NS_FOO, "user"));
+				
+		// THEN
+		System.out.println("\nXNode after re-serialization:");
+		System.out.println(serializedXNode.dump());
+		System.out.println("\nRe-serialized string:");
+		System.out.println(serializedString);
+		
+		validateResourceSchema(serializedString, prismContext);
+		
+		// WHEN (re-parse)
+		XNode reparsedXnode = parser.parse(serializedString);
+		PrismObject<ResourceType> reparsedResource = processor.parseObject(reparsedXnode);
+		
+		// THEN
+		System.out.println("\nXNode after re-parsing:");
+		System.out.println(reparsedXnode.dump());
+		System.out.println("\nRe-parsed resource:");
+		System.out.println(reparsedResource.dump());
+		
+		ObjectDelta<ResourceType> diff = DiffUtil.diff(resource, reparsedResource);
+		System.out.println("\nDiff:");
+		System.out.println(diff.dump());
+				
+		assertTrue("Re-parsed user does not match: "+diff, diff.isEmpty());
+	}	
 
 
 	private void assertResourceRum(PrismObject<ResourceType> resource) throws SchemaException {
@@ -249,6 +304,21 @@ public abstract class AbstractParserTest {
 		
 		assertPropertyValue(resource, "name", new PolyString("Rum Delivery System", "rum delivery system"));
 		assertPropertyDefinition(resource, "name", PolyStringType.COMPLEX_TYPE, 0, 1);
+		
+		PrismProperty<SchemaDefinitionType> propSchema = resource.findProperty(ResourceType.F_SCHEMA);
+		assertNotNull("No schema property in resource", propSchema);
+		PrismPropertyDefinition<SchemaDefinitionType> propSchemaDef = propSchema.getDefinition();
+		assertNotNull("No definition of schema property in resource", propSchemaDef);
+		SchemaDefinitionType schemaDefinitionType = propSchema.getRealValue();
+		assertNotNull("No value of schema property in resource", schemaDefinitionType);
+		
+		Element schemaElement = schemaDefinitionType.getSchema();
+		assertNotNull("No schema element in schema property in resource", schemaElement);
+		System.out.println("Resource schema:");
+		System.out.println(DOMUtil.serializeDOMToString(schemaElement));
+		assertEquals("Bad schema element name", DOMUtil.XSD_SCHEMA_ELEMENT, DOMUtil.getQName(schemaElement));
+		Element complexTypeElement = DOMUtil.getChildElement(schemaElement, XSD_COMPLEX_TYPE_ELEMENT_NAME);
+		assertNotNull("No complexType element in schema element in schema property in resource", complexTypeElement);
 	}
 
 	private PrismObject findObjectFromAccountRef(PrismObject<UserType> user) {
@@ -292,6 +362,10 @@ public abstract class AbstractParserTest {
 	}
 	
 	protected void validateUserSchema(String dataString, PrismContext prismContext) throws SAXException, IOException {
+		// Nothing to do by default
+	}
+	
+	protected void validateResourceSchema(String dataString, PrismContext prismContext) throws SAXException, IOException {
 		// Nothing to do by default
 	}
 }

@@ -83,19 +83,6 @@ public class TestDomParser extends AbstractParserTest {
 
 		RootXNode root = getAssertXNode("root node", xnode, RootXNode.class);
 		
-//		FileOutputStream out = new FileOutputStream(new File("D:/user-jack.json"));
-//		PrismJsonSerializer jsonSer = new PrismJsonSerializer();
-//		String s = jsonSer.serializeToString(xnode, new QName("http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd", "user"));
-//		System.out.println("JSON: \n" + s);
-//		
-//		FileInputStream in = new FileInputStream(new File("D:/user-jack.json"));
-//		XNode afterJson = jsonSer.parseObject(in);
-//		
-//		// THEN
-//				System.out.println("AFTER JSON XNode:");
-//				System.out.println(afterJson.dump());
-
-		
 		MapXNode rootMap = getAssertXNode("root subnode", root.getSubnode(), MapXNode.class);
 		PrimitiveXNode<String> xname = getAssertXMapSubnode("root map", rootMap, UserType.F_NAME, PrimitiveXNode.class);
 		// TODO: assert value
@@ -106,16 +93,23 @@ public class TestDomParser extends AbstractParserTest {
 		
 		MapXNode xextension = getAssertXMapSubnode("root map", rootMap, UserType.F_EXTENSION, MapXNode.class);
 		
-		// WHEN (re-serialize)
-//		parser.s
 	}
 	
-	@Override
-	protected void validateUserSchema(String xmlString, PrismContext prismContext) throws SAXException, IOException {
+	private void validateSchemaCompliance(String xmlString, PrismContext prismContext)  throws SAXException, IOException {
 		Document xmlDocument = DOMUtil.parseDocument(xmlString);
 		Schema javaxSchema = prismContext.getSchemaRegistry().getJavaxSchema();
 		Validator validator = javaxSchema.newValidator();
 		validator.setResourceResolver(prismContext.getSchemaRegistry());
 		validator.validate(new DOMSource(xmlDocument));
+	}
+	
+	@Override
+	protected void validateUserSchema(String xmlString, PrismContext prismContext) throws SAXException, IOException {
+		validateSchemaCompliance(xmlString, prismContext);
+	}
+
+	@Override
+	protected void validateResourceSchema(String xmlString, PrismContext prismContext) throws SAXException, IOException {
+		validateSchemaCompliance(xmlString, prismContext);
 	}
 }
