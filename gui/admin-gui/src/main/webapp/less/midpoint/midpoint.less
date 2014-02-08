@@ -3,6 +3,7 @@
 @import "../bootstrap/mixins.less";
 @import "midpoint-variables.less";
 @import "../custom/midpoint-variables.less";
+
 @import "top-menu.less";
 @import "prism-container.less";
 @import "wizard.less";
@@ -11,6 +12,8 @@
 @import "page-user-details.less";
 @import "page-dashboard.less";
 @import "page-debugs.less";
+@import "capabilities.less";
+@import "tree-theme-basic.less";
 
 div.wicket-debug-buttons {
   border: 1px solid #000000;
@@ -170,4 +173,15 @@ h3.w_captionText {
  */
 div.multivalue-form {
   margin-top: @padding-base-vertical;
+}
+
+.user-thumbnail {
+  background-color: #FFFFFF;
+  border: 1px solid #DDDDDD;
+  border-radius: 4px;
+  height: auto;
+  line-height: 1.42857;
+  max-width: 100%;
+  padding: 4px;
+  transition: all 0.2s ease-in-out 0s;
 }

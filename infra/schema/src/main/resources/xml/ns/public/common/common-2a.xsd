@@ -2285,6 +2285,18 @@
                         </xsd:annotation>
                     </xsd:element>
 
+                    <xsd:element name="jpegPhoto" type="xsd:base64Binary" minOccurs="0" maxOccurs="1">
+                        <xsd:annotation>
+                            <xsd:documentation>
+                                Photo of the user.
+                            </xsd:documentation>
+                            <xsd:appinfo>
+                                <a:displayName>Jpeg photo</a:displayName>
+                                <a:displayOrder>460</a:displayOrder>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:element>
+
                     <xsd:element name="credentials" type="tns:CredentialsType" minOccurs="0" maxOccurs="1">
                         <xsd:annotation>
                             <xsd:documentation>
@@ -3024,6 +3036,8 @@
 
                 Note: xsd:any is here, but maybe a stricter type would be preferable.
                 However xsd:any seems to be a common practice (e.g. SPML, WSDL).
+                
+                TODO: rename to CachedSchemaType
             </xsd:documentation>
             <xsd:appinfo>
             	<a:container/>
@@ -3032,19 +3046,7 @@
         <xsd:sequence>
             <xsd:element ref="tns:cachingMetadata" minOccurs="0"/>
             <xsd:element name="generationConstraints" type="tns:SchemaGenerationConstraintsType" minOccurs="0"/>
-            <xsd:element name="definition" minOccurs="0">
-            	<xsd:complexType>
-            		<xsd:sequence>
-			            <xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="strict">
-			                <xsd:annotation>
-			                    <xsd:appinfo>
-			                        <jaxb:dom/>
-			                    </xsd:appinfo>
-			                </xsd:annotation>
-			            </xsd:any>
-		            </xsd:sequence>
-	          	</xsd:complexType>
-            </xsd:element>
+            <xsd:element name="definition" type="t:SchemaDefinitionType" minOccurs="0"/>
         </xsd:sequence>
     </xsd:complexType>
     <xsd:element name="schema" type="tns:XmlSchemaType"/>
@@ -8718,8 +8720,6 @@
         </xsd:restriction>
     </xsd:simpleType>
     
-    
-    
     <xsd:simpleType name="OrientationType">
         <xsd:annotation>
             <xsd:documentation>
@@ -8763,21 +8763,6 @@
     </xsd:complexType>
     <xsd:element name="reportFieldConfiguration" type="tns:ReportFieldConfigurationType"/>
     
-    <xsd:complexType name="ReportParameterConfigurationType">
-        <xsd:annotation>
-            <xsd:documentation>
-                Configuration of report parameters.
-            </xsd:documentation>
-        </xsd:annotation>
-        <xsd:sequence>
-            <xsd:element name="nameParameter" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-            <xsd:element name="descriptionParameter" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-            <xsd:element name="valueParameter" type="xsd:string" minOccurs="0" maxOccurs="1"/>
-            <xsd:element name="classTypeParameter" type="xsd:QName" minOccurs="0" maxOccurs="1"/>     
-        </xsd:sequence>
-    </xsd:complexType>
-    <xsd:element name="reportParameterConfiguration" type="tns:ReportParameterConfigurationType"/>
-
     <xsd:complexType name="ReportTemplateType">
         <xsd:sequence>
             <xsd:any namespace="##other" processContents="lax">
@@ -8802,6 +8787,20 @@
         </xsd:sequence>
     </xsd:complexType>
     
+    <xsd:complexType name="DataSourceType">
+        <xsd:sequence>
+            <xsd:element name="providerClass" type="xsd:string"/>
+            <xsd:element name="springBean" type="xsd:boolean" default="false" minOccurs="0"/>
+        </xsd:sequence>
+    </xsd:complexType>
+
+    <xsd:complexType name="SubReportType">
+        <xsd:sequence>
+            <xsd:element name="name" type="xsd:string"/>
+            <xsd:element name="reportRef" type="tns:ObjectReferenceType"/>
+        </xsd:sequence>
+    </xsd:complexType>
+    
 	<xsd:complexType name="ReportType">
 	    <xsd:annotation>
             <xsd:documentation>
@@ -8811,73 +8810,35 @@
         <xsd:complexContent>
             <xsd:extension base="c:ObjectType">
                 <xsd:sequence>
-                   	<xsd:element name="reportTemplate" type="tns:ReportTemplateType" minOccurs="0"/>
-                    
-                	<xsd:element name="reportTemplateStyle" type="tns:ReportTemplateStyleType" minOccurs="0"/>
-                    
-                    <xsd:element name="reportOrientation" type="tns:OrientationType" minOccurs="0" maxOccurs="1">
+                    <xsd:element name="parent" type="xsd:boolean" default="true" minOccurs="0"/>
+                    <xsd:element name="subReport" type="tns:SubReportType" minOccurs="0" maxOccurs="unbounded"/>
+                   	<xsd:element name="template" type="tns:ReportTemplateType" minOccurs="0"/>
+                	<xsd:element name="templateStyle" type="tns:ReportTemplateStyleType" minOccurs="0"/>
+                    <xsd:element name="orientation" type="tns:OrientationType" minOccurs="0">
+    				    <xsd:annotation>
+                            <xsd:documentation>
+                                Report page orientation.
+                            </xsd:documentation>
+                        </xsd:annotation>
+                    </xsd:element>
+                    <xsd:element name="export" type="tns:ExportType" minOccurs="0">
     				<xsd:annotation>
                             <xsd:documentation>
-                                Report orientation.                          
+                                File type which will be used during report export.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                    
-                    <xsd:element name="reportExport" type="tns:ExportType" minOccurs="0" maxOccurs="1">
-    				<xsd:annotation>
-                            <xsd:documentation>
-                                Report export type.                          
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-                    
-                 	<xsd:element name="query" type="q:QueryType" minOccurs="0" maxOccurs="1">
-                		<xsd:annotation>
-                    		<xsd:documentation>
-                        		Query expression with conditions for select data in the report.
-                    		</xsd:documentation>
-                		</xsd:annotation>
-            		</xsd:element>
-            		
-            		<xsd:element name="objectClass" type="xsd:QName" minOccurs="0" maxOccurs="1">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                The reference to a type definition for data in report. The reference should point
-                                to the complexType definition in the resource schema.                    
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-            	
+                    <xsd:element name="useHibernateSession" type="xsd:boolean" default="false" minOccurs="0"/>
+                    <xsd:element name="dataSource" type="tns:DataSourceType" minOccurs="0"/>
             		<xsd:element name="reportField" type="tns:ReportFieldConfigurationType" minOccurs="0" maxOccurs="unbounded">
                         <xsd:annotation>
                             <xsd:documentation>
-                                Columns user definition. Name, type, report field, column name.                            
+                                Columns user definition. Name, type, report field, column name.
                             </xsd:documentation>
                         </xsd:annotation>
                     </xsd:element>
-                                        
-                    <xsd:element name="reportParameter" type="tns:ReportParameterConfigurationType" minOccurs="0" maxOccurs="unbounded">
-                        <xsd:annotation>
-                            <xsd:documentation>
-                                Parameters definition. Name, type, value.                            
-                            </xsd:documentation>
-                        </xsd:annotation>
-                    </xsd:element>
-
                     <xsd:element name="configuration" type="tns:ReportConfigurationType" minOccurs="0"/>
-                    <xsd:element name="configurationSchema" minOccurs="0">
-                        <xsd:complexType>
-                            <xsd:sequence>
-                                <xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="strict">
-                                    <xsd:annotation>
-                                        <xsd:appinfo>
-                                            <jaxb:dom/>
-                                        </xsd:appinfo>
-                                    </xsd:annotation>
-                                </xsd:any>
-                            </xsd:sequence>
-                        </xsd:complexType>
-                    </xsd:element>
+                    <xsd:element name="configurationSchema" type="tns:XmlSchemaType" minOccurs="0"/>
             	</xsd:sequence>
             </xsd:extension>
         </xsd:complexContent>
@@ -8914,8 +8875,8 @@
         <xsd:complexContent>
             <xsd:extension base="c:ObjectType">
                 <xsd:sequence>
-            		<xsd:element name="reportFilePath" type="xsd:string" minOccurs="0" maxOccurs="1"/>  
-            		<xsd:element name="report" type="tns:ReportType" minOccurs="0" maxOccurs="1">
+            		<xsd:element name="filePath" type="xsd:string"/>
+            		<xsd:element name="report" type="tns:ReportType">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Report which is assigned. 
@@ -8925,7 +8886,7 @@
                             </xsd:appinfo>
                         </xsd:annotation>
                     </xsd:element>   
-                    <xsd:element name="reportRef" type="c:ObjectReferenceType" minOccurs="0" maxOccurs="1">
+                    <xsd:element name="reportRef" type="c:ObjectReferenceType">
                         <xsd:annotation>
                             <xsd:documentation>
                                 Report which is assigned.

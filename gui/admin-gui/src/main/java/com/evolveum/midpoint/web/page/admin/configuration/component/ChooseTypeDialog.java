@@ -51,6 +51,7 @@ public class ChooseTypeDialog<T extends Serializable> extends ModalWindow{
         objectType = type;
 
         setTitle(createStringResource("chooseTypeDialog.title"));
+        showUnloadConfirmation(false);
         setCssClassName(ModalWindow.CSS_CLASS_GRAY);
         setCookieName(ChooseTypeDialog.class.getSimpleName() + ((int) (Math.random() * 100)));
         setInitialWidth(500);

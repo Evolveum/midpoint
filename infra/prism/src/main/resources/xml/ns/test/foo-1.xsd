@@ -349,5 +349,16 @@
         </xsd:sequence>
     </xsd:complexType>
 
+    <xsd:complexType name="ResourceType">
+        <xsd:complexContent>
+            <xsd:extension base="tns:ObjectType">
+                <xsd:sequence>
+                	<xsd:element name="schema" type="t:SchemaDefinitionType" minOccurs="0" maxOccurs="1"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+    <xsd:element name="resource" type="tns:ResourceType"/>
+
 </xsd:schema>
 

@@ -155,11 +155,7 @@ public abstract class BaseEvent implements Event {
 
     public void createExpressionVariables(Map<QName, Object> variables, OperationResult result) {
         variables.put(SchemaConstants.C_EVENT, this);
-        if (requester != null) {
-            variables.put(SchemaConstants.C_REQUESTER, requester.resolveObjectType(result));
-        }
-        if (requestee != null) {
-            variables.put(SchemaConstants.C_REQUESTEE, requestee.resolveObjectType(result));
-        }
+        variables.put(SchemaConstants.C_REQUESTER, requester != null ? requester.resolveObjectType(result) : null);
+        variables.put(SchemaConstants.C_REQUESTEE, requestee != null ? requestee.resolveObjectType(result) : null);
     }
 }

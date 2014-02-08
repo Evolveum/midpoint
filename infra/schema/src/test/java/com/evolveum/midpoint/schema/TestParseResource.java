@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,8 +44,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectTypeD
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.SchemaHandlingType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType.Definition;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
+import com.evolveum.prism.xml.ns._public.types_2.SchemaDefinitionType;
 
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
@@ -71,8 +71,8 @@ import static org.testng.AssertJUnit.assertNotNull;
  */
 public class TestParseResource {
 	
-	public static final File RESOURCE_FILE = new File("src/test/resources/common/resource-opendj.xml");
-	public static final File RESOURCE_SIMPLE_FILE = new File("src/test/resources/common/resource-opendj-simple.xml");
+	public static final File RESOURCE_FILE = new File(TestConstants.COMMON_DIR, "resource-opendj.xml");
+	public static final File RESOURCE_SIMPLE_FILE = new File(TestConstants.COMMON_DIR, "resource-opendj-simple.xml");
 	private static final String RESOURCE_OID = "ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 	private static final String RESOURCE_NAMESPACE = "http://midpoint.evolveum.com/xml/ns/public/resource/instance/ef2bc95b-76e0-59e2-86d6-3d4f02d3ffff";
 	
@@ -434,7 +434,7 @@ public class TestParseResource {
     		assertNull("SchemaHandling sneaked in", schemaHandling);
     	} else {
 	    	assertNotNull("No schema element (JAXB)", xmlSchemaType);
-	    	XmlSchemaType.Definition definition = xmlSchemaType.getDefinition();
+	    	SchemaDefinitionType definition = xmlSchemaType.getDefinition();
 	    	assertNotNull("No definition element in schema (JAXB)", definition);
 	    	List<Element> anyElements = definition.getAny();
 	    	assertNotNull("Null element list in definition element in schema (JAXB)", anyElements);

@@ -616,6 +616,10 @@ public class OpenDJController extends AbstractResourceController {
 		assertEquals("Unexpected activation of entry "+response, active, isAccountEnabled(response));
 	}
 	
+	public Entry addEntryFromLdifFile(File file) throws IOException, LDIFException {
+		return addEntryFromLdifFile(file.getPath());
+	}
+	
 	public Entry addEntryFromLdifFile(String filename) throws IOException, LDIFException {
 		LDIFImportConfig importConfig = new LDIFImportConfig(filename);
         LDIFReader ldifReader = new LDIFReader(importConfig);

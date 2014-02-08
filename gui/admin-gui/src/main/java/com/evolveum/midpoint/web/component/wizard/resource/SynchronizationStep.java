@@ -17,10 +17,19 @@
 package com.evolveum.midpoint.web.component.wizard.resource;
 
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.wizard.WizardStep;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import org.apache.wicket.model.IModel;
 
 /**
  * @author lazyman
  */
 public class SynchronizationStep extends WizardStep {
+
+    private IModel<PrismObject<ResourceType>> resourceModel;
+
+    public SynchronizationStep(IModel<PrismObject<ResourceType>> resourceModel) {
+        this.resourceModel = resourceModel;
+    }
 }

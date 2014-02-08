@@ -421,17 +421,20 @@
     ) INITRANS 30;
 
     create table m_report (
+        configuration clob,
+        configurationSchema clob,
+        dataSource_providerClass varchar2(255 char),
+        dataSource_springBean number(1,0),
         name_norm varchar2(255 char),
         name_orig varchar2(255 char),
-        class_namespace varchar2(255 char),
-        class_localPart varchar2(100 char),
-        query clob,
+        parent number(1,0),
         reportExport number(10,0),
         reportFields clob,
         reportOrientation number(10,0),
-        reportParameters clob,
         reportTemplate clob,
         reportTemplateStyle clob,
+        subReport clob,
+        useHibernateSession number(1,0),
         id number(19,0) not null,
         oid varchar2(36 char) not null,
         primary key (id, oid),
@@ -647,6 +650,7 @@
         honorificPrefix_orig varchar2(255 char),
         honorificSuffix_norm varchar2(255 char),
         honorificSuffix_orig varchar2(255 char),
+        jpegPhoto blob,
         locale varchar2(255 char),
         locality_norm varchar2(255 char),
         locality_orig varchar2(255 char),
@@ -698,218 +702,220 @@
 
     create index iRequestable on m_abstract_role (requestable) INITRANS 30;
 
-    alter table m_abstract_role 
-        add constraint fk_abstract_role 
-        foreign key (id, oid) 
+    alter table m_abstract_role
+        add constraint fk_abstract_role
+        foreign key (id, oid)
         references m_focus;
 
-    alter table m_any_clob 
-        add constraint fk_any_clob 
-        foreign key (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type) 
+    alter table m_any_clob
+        add constraint fk_any_clob
+        foreign key (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type)
         references m_any;
 
     create index iDate on m_any_date (dateValue) INITRANS 30;
 
-    alter table m_any_date 
-        add constraint fk_any_date 
-        foreign key (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type) 
+    alter table m_any_date
+        add constraint fk_any_date
+        foreign key (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type)
         references m_any;
 
     create index iLong on m_any_long (longValue) INITRANS 30;
 
-    alter table m_any_long 
-        add constraint fk_any_long 
-        foreign key (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type) 
+    alter table m_any_long
+        add constraint fk_any_long
+        foreign key (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type)
         references m_any;
 
     create index iPolyString on m_any_poly_string (orig) INITRANS 30;
 
-    alter table m_any_poly_string 
-        add constraint fk_any_poly_string 
-        foreign key (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type) 
+    alter table m_any_poly_string
+        add constraint fk_any_poly_string
+        foreign key (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type)
         references m_any;
 
     create index iTargetOid on m_any_reference (targetoid) INITRANS 30;
 
-    alter table m_any_reference 
-        add constraint fk_any_reference 
-        foreign key (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type) 
+    alter table m_any_reference
+        add constraint fk_any_reference
+        foreign key (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type)
         references m_any;
 
     create index iString on m_any_string (stringValue) INITRANS 30;
 
-    alter table m_any_string 
-        add constraint fk_any_string 
-        foreign key (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type) 
+    alter table m_any_string
+        add constraint fk_any_string
+        foreign key (anyContainer_owner_id, anyContainer_owner_oid, anyContainer_owner_type)
         references m_any;
 
     create index iAssignmentAdministrative on m_assignment (administrativeStatus) INITRANS 30;
 
     create index iAssignmentEffective on m_assignment (effectiveStatus) INITRANS 30;
 
-    alter table m_assignment 
-        add constraint fk_assignment 
-        foreign key (id, oid) 
+    alter table m_assignment
+        add constraint fk_assignment
+        foreign key (id, oid)
         references m_container;
 
-    alter table m_assignment 
-        add constraint fk_assignment_owner 
-        foreign key (owner_id, owner_oid) 
+    alter table m_assignment
+        add constraint fk_assignment_owner
+        foreign key (owner_id, owner_oid)
         references m_object;
 
-    alter table m_audit_delta 
-        add constraint fk_audit_delta 
-        foreign key (record_id) 
+    alter table m_audit_delta
+        add constraint fk_audit_delta
+        foreign key (record_id)
         references m_audit_event;
 
-    alter table m_authorization 
-        add constraint fk_authorization 
-        foreign key (id, oid) 
+    alter table m_authorization
+        add constraint fk_authorization
+        foreign key (id, oid)
         references m_container;
 
-    alter table m_authorization 
-        add constraint fk_authorization_owner 
-        foreign key (owner_id, owner_oid) 
+    alter table m_authorization
+        add constraint fk_authorization_owner
+        foreign key (owner_id, owner_oid)
         references m_object;
 
-    alter table m_authorization_action 
-        add constraint fk_authorization_action 
-        foreign key (role_id, role_oid) 
+    alter table m_authorization_action
+        add constraint fk_authorization_action
+        foreign key (role_id, role_oid)
         references m_authorization;
 
     create index iConnectorNameNorm on m_connector (name_norm) INITRANS 30;
 
     create index iConnectorNameOrig on m_connector (name_orig) INITRANS 30;
 
-    alter table m_connector 
-        add constraint fk_connector 
-        foreign key (id, oid) 
+    alter table m_connector
+        add constraint fk_connector
+        foreign key (id, oid)
         references m_object;
 
     create index iConnectorHostName on m_connector_host (name_orig) INITRANS 30;
 
-    alter table m_connector_host 
-        add constraint fk_connector_host 
-        foreign key (id, oid) 
+    alter table m_connector_host
+        add constraint fk_connector_host
+        foreign key (id, oid)
         references m_object;
 
-    alter table m_connector_target_system 
-        add constraint fk_connector_target_system 
-        foreign key (connector_id, connector_oid) 
+    alter table m_connector_target_system
+        add constraint fk_connector_target_system
+        foreign key (connector_id, connector_oid)
         references m_connector;
 
-    alter table m_exclusion 
-        add constraint fk_exclusion 
-        foreign key (id, oid) 
+    alter table m_exclusion
+        add constraint fk_exclusion
+        foreign key (id, oid)
         references m_container;
 
-    alter table m_exclusion 
-        add constraint fk_exclusion_owner 
-        foreign key (owner_id, owner_oid) 
+    alter table m_exclusion
+        add constraint fk_exclusion_owner
+        foreign key (owner_id, owner_oid)
         references m_object;
 
     create index iFocusAdministrative on m_focus (administrativeStatus) INITRANS 30;
 
     create index iFocusEffective on m_focus (effectiveStatus) INITRANS 30;
 
-    alter table m_focus 
-        add constraint fk_focus 
-        foreign key (id, oid) 
+    alter table m_focus
+        add constraint fk_focus
+        foreign key (id, oid)
         references m_object;
 
     create index iGenericObjectName on m_generic_object (name_orig) INITRANS 30;
 
-    alter table m_generic_object 
-        add constraint fk_generic_object 
-        foreign key (id, oid) 
+    alter table m_generic_object
+        add constraint fk_generic_object
+        foreign key (id, oid)
         references m_object;
 
-    alter table m_metadata 
-        add constraint fk_metadata_owner 
-        foreign key (owner_id, owner_oid) 
+    alter table m_metadata
+        add constraint fk_metadata_owner
+        foreign key (owner_id, owner_oid)
         references m_container;
 
     create index iNodeName on m_node (name_orig) INITRANS 30;
 
-    alter table m_node 
-        add constraint fk_node 
-        foreign key (id, oid) 
+    alter table m_node
+        add constraint fk_node
+        foreign key (id, oid)
         references m_object;
 
-    alter table m_object 
-        add constraint fk_object 
-        foreign key (id, oid) 
+    alter table m_object
+        add constraint fk_object
+        foreign key (id, oid)
         references m_container;
 
     create index iObjectTemplate on m_object_template (name_orig) INITRANS 30;
 
-    alter table m_object_template 
-        add constraint fk_object_template 
-        foreign key (id, oid) 
+    alter table m_object_template
+        add constraint fk_object_template
+        foreign key (id, oid)
         references m_object;
 
-    alter table m_operation_result 
-        add constraint fk_result_owner 
-        foreign key (owner_id, owner_oid) 
+    alter table m_operation_result
+        add constraint fk_result_owner
+        foreign key (owner_id, owner_oid)
         references m_object;
 
     create index iOrgName on m_org (name_orig) INITRANS 30;
 
-    alter table m_org 
-        add constraint fk_org 
-        foreign key (id, oid) 
+    alter table m_org
+        add constraint fk_org
+        foreign key (id, oid)
         references m_abstract_role;
 
     create index iAncestorDepth on m_org_closure (ancestor_id, ancestor_oid, depthValue) INITRANS 30;
 
-    alter table m_org_closure 
-        add constraint fk_descendant 
-        foreign key (descendant_id, descendant_oid) 
+    alter table m_org_closure
+        add constraint fk_descendant
+        foreign key (descendant_id, descendant_oid)
         references m_object;
 
-    alter table m_org_closure 
-        add constraint fk_ancestor 
-        foreign key (ancestor_id, ancestor_oid) 
+    alter table m_org_closure
+        add constraint fk_ancestor
+        foreign key (ancestor_id, ancestor_oid)
         references m_object;
 
-    alter table m_org_org_type 
-        add constraint fk_org_org_type 
-        foreign key (org_id, org_oid) 
+    alter table m_org_org_type
+        add constraint fk_org_org_type
+        foreign key (org_id, org_oid)
         references m_org;
 
     create index iReferenceTargetOid on m_reference (targetOid) INITRANS 30;
 
-    alter table m_reference 
-        add constraint fk_reference_owner 
-        foreign key (owner_id, owner_oid) 
+    alter table m_reference
+        add constraint fk_reference_owner
+        foreign key (owner_id, owner_oid)
         references m_container;
+
+    create index iReportParent on m_report (parent) INITRANS 30;
 
     create index iReportName on m_report (name_orig) INITRANS 30;
 
-    alter table m_report 
-        add constraint fk_report 
-        foreign key (id, oid) 
+    alter table m_report
+        add constraint fk_report
+        foreign key (id, oid)
         references m_object;
 
     create index iReportOutputName on m_report_output (name_orig) INITRANS 30;
 
-    alter table m_report_output 
-        add constraint fk_reportoutput 
-        foreign key (id, oid) 
+    alter table m_report_output
+        add constraint fk_reportoutput
+        foreign key (id, oid)
         references m_object;
 
     create index iResourceName on m_resource (name_orig) INITRANS 30;
 
-    alter table m_resource 
-        add constraint fk_resource 
-        foreign key (id, oid) 
+    alter table m_resource
+        add constraint fk_resource
+        foreign key (id, oid)
         references m_object;
 
     create index iRoleName on m_role (name_orig) INITRANS 30;
 
-    alter table m_role 
-        add constraint fk_role 
-        foreign key (id, oid) 
+    alter table m_role
+        add constraint fk_role
+        foreign key (id, oid)
         references m_abstract_role;
 
     create index iShadowNameOrig on m_shadow (name_orig) INITRANS 30;
@@ -924,21 +930,21 @@
 
     create index iShadowEffective on m_shadow (effectiveStatus) INITRANS 30;
 
-    alter table m_shadow 
-        add constraint fk_shadow 
-        foreign key (id, oid) 
+    alter table m_shadow
+        add constraint fk_shadow
+        foreign key (id, oid)
         references m_object;
 
-    alter table m_sync_situation_description 
-        add constraint fk_shadow_sync_situation 
-        foreign key (shadow_id, shadow_oid) 
+    alter table m_sync_situation_description
+        add constraint fk_shadow_sync_situation
+        foreign key (shadow_id, shadow_oid)
         references m_shadow;
 
     create index iSystemConfigurationName on m_system_configuration (name_orig) INITRANS 30;
 
-    alter table m_system_configuration 
-        add constraint fk_system_configuration 
-        foreign key (id, oid) 
+    alter table m_system_configuration
+        add constraint fk_system_configuration
+        foreign key (id, oid)
         references m_object;
 
     create index iTaskNameNameNorm on m_task (name_norm) INITRANS 30;
@@ -947,26 +953,26 @@
 
     create index iTaskNameOrig on m_task (name_orig) INITRANS 30;
 
-    alter table m_task 
-        add constraint fk_task 
-        foreign key (id, oid) 
+    alter table m_task
+        add constraint fk_task
+        foreign key (id, oid)
         references m_object;
 
-    alter table m_task_dependent 
-        add constraint fk_task_dependent 
-        foreign key (task_id, task_oid) 
+    alter table m_task_dependent
+        add constraint fk_task_dependent
+        foreign key (task_id, task_oid)
         references m_task;
 
     create index iTriggerTimestamp on m_trigger (timestampValue) INITRANS 30;
 
-    alter table m_trigger 
-        add constraint fk_trigger 
-        foreign key (id, oid) 
+    alter table m_trigger
+        add constraint fk_trigger
+        foreign key (id, oid)
         references m_container;
 
-    alter table m_trigger 
-        add constraint fk_trigger_owner 
-        foreign key (owner_id, owner_oid) 
+    alter table m_trigger
+        add constraint fk_trigger_owner
+        foreign key (owner_id, owner_oid)
         references m_object;
 
     create index iFullName on m_user (fullName_orig) INITRANS 30;
@@ -987,24 +993,24 @@
 
     create index iUserName on m_user (name_orig) INITRANS 30;
 
-    alter table m_user 
-        add constraint fk_user 
-        foreign key (id, oid) 
+    alter table m_user
+        add constraint fk_user
+        foreign key (id, oid)
         references m_focus;
 
-    alter table m_user_employee_type 
-        add constraint fk_user_employee_type 
-        foreign key (user_id, user_oid) 
+    alter table m_user_employee_type
+        add constraint fk_user_employee_type
+        foreign key (user_id, user_oid)
         references m_user;
 
-    alter table m_user_organization 
-        add constraint fk_user_organization 
-        foreign key (user_id, user_oid) 
+    alter table m_user_organization
+        add constraint fk_user_organization
+        foreign key (user_id, user_oid)
         references m_user;
 
-    alter table m_user_organizational_unit 
-        add constraint fk_user_org_unit 
-        foreign key (user_id, user_oid) 
+    alter table m_user_organizational_unit
+        add constraint fk_user_org_unit
+        foreign key (user_id, user_oid)
         references m_user;
 
     create index iValuePolicy on m_value_policy (name_orig) INITRANS 30;

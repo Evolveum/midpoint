@@ -45,8 +45,8 @@ import com.evolveum.midpoint.util.JAXBUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.api_types_2.ObjectModificationType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType.Definition;
 import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
+import com.evolveum.prism.xml.ns._public.types_2.SchemaDefinitionType;
 
 /**
  * @author semancik
@@ -220,11 +220,11 @@ public class TestJaxbSanity {
 		// GIVEN
 		ResourceType resource1Type = PrismTestUtil.unmarshalObject(new File(RESOURCE_OPENDJ_FILENAME), ResourceType.class);
 		assertNotNull(resource1Type);
-		Definition schemaDefinition1 = resource1Type.getSchema().getDefinition();
+		SchemaDefinitionType schemaDefinition1 = resource1Type.getSchema().getDefinition();
 		
 		ResourceType resource2Type = PrismTestUtil.unmarshalObject(new File(RESOURCE_OPENDJ_FILENAME),ResourceType.class);
 		assertNotNull(resource2Type);
-		Definition schemaDefinition2 = resource2Type.getSchema().getDefinition();
+		SchemaDefinitionType schemaDefinition2 = resource2Type.getSchema().getDefinition();
 		
 		// WHEN
 		boolean equals = schemaDefinition1.equals(schemaDefinition2);

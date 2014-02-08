@@ -24,6 +24,7 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.PrettyPrinter;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
@@ -194,11 +195,20 @@ public abstract class ItemDefinition extends Definition implements Serializable 
 		if (!clazz.isAssignableFrom(this.getClass())) {
     		return false;
     	}
-        if (elementQName.equals(getName())) {
+        if (QNameUtil.match(elementQName, getName())) {
         	return true;
         }
         return false;
 	}
+	
+	public void adoptElementDefinitionFrom(ItemDefinition otherDef) {
+		if (otherDef == null) {
+			return;
+		}
+		setName(otherDef.getName());
+		setMinOccurs(otherDef.getMinOccurs());
+		setMaxOccurs(otherDef.getMaxOccurs());
+	}    
 
 	/**
 	 * Create an item instance. Definition name or default name will

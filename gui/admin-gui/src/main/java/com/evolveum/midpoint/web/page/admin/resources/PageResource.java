@@ -22,6 +22,7 @@ import com.evolveum.midpoint.schema.CapabilityUtil;
 import com.evolveum.midpoint.schema.GetOperationOptions;
 import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.*;
@@ -36,8 +37,7 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceController;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceDto;
 import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceObjectTypeDto;
-import com.evolveum.midpoint.web.page.admin.resources.dto.ResourceStatus;
-import com.evolveum.midpoint.web.page.admin.roles.PageAdminRoles;
+import com.evolveum.midpoint.web.page.admin.server.dto.OperationResultStatusIcon;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import org.apache.commons.lang.StringUtils;
@@ -51,15 +51,12 @@ import org.apache.wicket.extensions.markup.html.repeater.util.SortableDataProvid
 import org.apache.wicket.markup.html.WebMarkupContainer;
 import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
-import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 import org.apache.wicket.request.mapper.parameter.PageParameters;
-import org.apache.wicket.request.resource.PackageResourceReference;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -78,6 +75,7 @@ public class PageResource extends PageAdminResources {
     private static final String DOT_CLASS = PageResource.class.getName() + ".";
     private static final String OPERATION_IMPORT_FROM_RESOURCE = DOT_CLASS + "importFromResource";
     private static final String TEST_CONNECTION = DOT_CLASS + "testConnection";
+    private static final String ID_BUTTON_DELETE_TOKEN = "deleteSyncToken";
 
     private IModel<ResourceDto> model;
 
@@ -139,13 +137,13 @@ public class PageResource extends PageAdminResources {
 
             @Override
             public String getObject() {
-                PropertyModel<ResourceStatus> pModel = new PropertyModel<ResourceStatus>(model, expression);
-                ResourceStatus status = pModel.getObject();
+                PropertyModel<OperationResultStatus> pModel = new PropertyModel<OperationResultStatus>(model, expression);
+                OperationResultStatus status = pModel.getObject();
                 if (status == null) {
                     return "";
                 }
 
-                return PageResource.this.getString(ResourceStatus.class.getSimpleName() + "." + status.name());
+                return PageResource.this.getString(OperationResultStatus.class.getSimpleName() + "." + status.name());
             }
         };
     }
@@ -168,7 +166,7 @@ public class PageResource extends PageAdminResources {
 
                     @Override
                     public String getObject() {
-                        return model.getObject().getState().getOverall().getIcon();
+                        return OperationResultStatusIcon.parseOperationalResultStatus(model.getObject().getState().getOverall()).getIcon();
                     }
                 }));
         container.add(createImageLabel("confValidation", createTestConnectionStateTooltip("state.confValidation"),
@@ -176,7 +174,7 @@ public class PageResource extends PageAdminResources {
 
                     @Override
                     public String getObject() {
-                        return model.getObject().getState().getConfValidation().getIcon();
+                        return OperationResultStatusIcon.parseOperationalResultStatus(model.getObject().getState().getConfValidation()).getIcon();
                     }
                 }));
         container.add(createImageLabel("conInitialization", createTestConnectionStateTooltip("state.conInitialization"),
@@ -184,7 +182,7 @@ public class PageResource extends PageAdminResources {
 
                     @Override
                     public String getObject() {
-                        return model.getObject().getState().getConInitialization().getIcon();
+                        return OperationResultStatusIcon.parseOperationalResultStatus(model.getObject().getState().getConInitialization()).getIcon();
                     }
                 }));
         container.add(createImageLabel("conConnection", createTestConnectionStateTooltip("state.conConnection"),
@@ -192,7 +190,7 @@ public class PageResource extends PageAdminResources {
 
                     @Override
                     public String getObject() {
-                        return model.getObject().getState().getConConnection().getIcon();
+                        return OperationResultStatusIcon.parseOperationalResultStatus(model.getObject().getState().getConConnection()).getIcon();
                     }
                 }));
 
@@ -201,7 +199,7 @@ public class PageResource extends PageAdminResources {
 
                     @Override
                     public String getObject() {
-                        return model.getObject().getState().getConSchema().getIcon();
+                        return OperationResultStatusIcon.parseOperationalResultStatus(model.getObject().getState().getConSchema()).getIcon();
                     }
                 }));
     }
@@ -300,6 +298,14 @@ public class PageResource extends PageAdminResources {
             }
         };
         mainForm.add(link);
+
+        AjaxButton deleteToken = new AjaxButton(ID_BUTTON_DELETE_TOKEN, createStringResource("pageResource.deleteSyncToken")) {
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                deleteSyncTokenPerformed(target, model);
+            }
+        };
+        mainForm.add(deleteToken);
     }
 
     private void testConnectionPerformed(AjaxRequestTarget target) {

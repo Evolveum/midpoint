@@ -22,13 +22,13 @@ import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
 import com.evolveum.midpoint.schema.SchemaConstantsGenerated;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.wizard.WizardStep;
 import com.evolveum.midpoint.web.component.wizard.resource.component.SchemaListPanel;
 import com.evolveum.midpoint.web.component.wizard.resource.component.XmlEditorPanel;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import org.apache.wicket.ajax.AjaxRequestTarget;
-import org.apache.wicket.extensions.ajax.markup.html.tabs.AjaxTabbedPanel;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -44,7 +44,7 @@ import java.util.List;
  */
 public class SchemaStep extends WizardStep {
 
-    private static final String ID_TABPANEL = "tabpanel";
+    private static final String ID_TABPANEL = "tabPanel";
     private static final String ID_RELOAD = "reload";
     private IModel<PrismObject<ResourceType>> model;
 
@@ -59,7 +59,7 @@ public class SchemaStep extends WizardStep {
         tabs.add(createSimpleSchemaView());
         tabs.add(createSchemaEditor());
 
-        AjaxTabbedPanel tabpanel = new AjaxTabbedPanel(ID_TABPANEL, tabs);
+        TabbedPanel tabpanel = new TabbedPanel(ID_TABPANEL, tabs);
         tabpanel.setOutputMarkupId(true);
         add(tabpanel);
 

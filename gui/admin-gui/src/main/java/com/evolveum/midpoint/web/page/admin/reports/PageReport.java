@@ -120,7 +120,7 @@ public class PageReport<T extends Serializable> extends PageAdminReports{
 
             PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
             String xml = domProcessor.serializeObjectToString(prismReport);
-            dto = new ReportDto(report.getName().getNorm(), report.getDescription(), xml, report.getReportExport());
+            dto = new ReportDto(report.getName().getNorm(), report.getDescription(), xml, report.getExport());
             dto.setObject(prismReport);
             result.recordSuccess();
         } catch (Exception e){

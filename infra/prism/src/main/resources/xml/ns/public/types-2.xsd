@@ -329,6 +329,7 @@
         <xsd:annotation>
             <xsd:appinfo>
                 <jaxb:dom/>
+                <a:deprecated/>
             </xsd:appinfo>
             <xsd:documentation>
                 Defines a type for XPath pointer. It points to a specific part
@@ -348,6 +349,8 @@
                 not present, it should be assumed, but warning message
                 should be logged in such case.
                 
+                DEPRECATED. use ItemPathType instead
+                
                 cf. ExpressionType
             </xsd:documentation>
         </xsd:annotation>
@@ -362,6 +365,24 @@
         </xsd:annotation>
     </xsd:complexType>
     
+    <xsd:complexType name="SchemaDefinitionType">
+        <xsd:annotation>
+            <xsd:documentation>
+                Type for prism schema definition. It currently contains
+                XSD schema definition. But other languages may be supported
+                later.
+            </xsd:documentation>
+        </xsd:annotation>
+        <xsd:sequence>
+			<xsd:any namespace="##other" minOccurs="0" maxOccurs="unbounded" processContents="strict">
+				<xsd:annotation>
+				    <xsd:appinfo>
+				        <jaxb:dom/>
+				    </xsd:appinfo>
+				</xsd:annotation>
+			</xsd:any>
+		</xsd:sequence>
+    </xsd:complexType>
     
     <!-- ########################################### -->
     <!-- ##                DELTAS                 ## -->

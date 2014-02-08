@@ -80,12 +80,17 @@
                     <expression>
                     	<script>
 	                        <code>
+	                        	import javax.naming.ldap.Rdn
+	                        	import javax.naming.ldap.LdapName
+	                        	
+	                        	dn = new LdapName('dc=example,dc=com')
 	                        	if (orgpath) {
-	                        		oupath = 'ou='+orgpath.tokenize('/').join(',ou=')
+	                        		orgpath.tokenize('/').reverse().each { ouname -> dn.add(new Rdn('ou',ouname)) }
 	                        	} else {
-	                        		oupath = 'ou=people'
+	                        		dn.add(new Rdn('ou','people'));
 	                        	}
-	                            'uid=' + name + ',' + oupath + ',dc=example,dc=com'
+	                        	dn.add(new Rdn('uid',name.toString()))
+	                        	return dn.toString()
 	                        </code>
                         </script>
                     </expression>
@@ -173,7 +178,12 @@
                     <expression>
                     	<script>
 	                        <code>
-	                            'cn=' + name + ',ou=groups,dc=example,dc=com'
+	                        	import javax.naming.ldap.Rdn
+	                        	import javax.naming.ldap.LdapName
+	                        	
+	                        	dn = new LdapName('ou=groups,dc=example,dc=com')
+	                        	dn.add(new Rdn('cn', name.toString()))
+	                        	return dn.toString()
 	                        </code>
                         </script>
                     </expression>
@@ -220,8 +230,12 @@
                     <expression>
                     	<script>
 	                        <code>
-	                        	oupath = orgpath.tokenize('/').join(',ou=')
-	                            'ou=' + oupath + ',dc=example,dc=com'
+	                        	import javax.naming.ldap.Rdn
+	                        	import javax.naming.ldap.LdapName
+	                        	
+	                        	dn = new LdapName('dc=example,dc=com')
+                        		orgpath.tokenize('/').reverse().each { ouname -> dn.add(new Rdn('ou',ouname)) }
+	                        	return dn.toString()
 	                        </code>
                         </script>
                     </expression>
@@ -238,6 +252,12 @@
                 		<path>$focus/name</path>
                 	</source>
                 </outbound>
+                <inbound>
+                	<strength>weak</strength>
+                	<target>
+                		<path>$focus/name</path>
+                	</target>
+                </inbound>
             </attribute>
             <attribute>
                 <ref>ri:description</ref>
@@ -263,23 +283,18 @@
 		</configured>
     </capabilities>
 
-    <c:synchronization>
+    <synchronization>
     	<objectSynchronization>
-	        <c:enabled>true</c:enabled>
-	        <c:correlation>
+    		<objectClass>ri:AccountObjectClass</objectClass>
+	        <enabled>true</enabled>
+	        <correlation>
 	            <q:equal>
 	                <q:path>c:name</q:path>
 	                <expression>
-	                	<ref>c:name</ref>
-	                	<script>
-	                		<language>http://www.w3.org/TR/xpath/</language>
-		                    <code>
-		                        $c:account/c:attributes/dj:uid
-		                    </code>
-						</script>
+	                	<path>$shadow/attributes/ri:uid</path>
 	                </expression>
 	            </q:equal>
-	        </c:correlation>
+	        </correlation>
 
             <objectTemplateRef oid="c0c010c0-d34d-b33f-f00d-777111111111"/>
 
@@ -309,6 +324,45 @@
 	            </action>
 	        </reaction>
 		</objectSynchronization>
-    </c:synchronization>
+		
+		<objectSynchronization>
+			<name>org sync</name>
+			<objectClass>ri:CustomorganizationalUnitObjectClass</objectClass>
+			<kind>generic</kind>
+			<intent>ou</intent>
+			<focusType>c:OrgType</focusType>
+	        <enabled>true</enabled>
+	        <correlation>
+	            <q:equal>
+	                <q:path>c:name</q:path>
+	                <expression>
+	                	<path>$shadow/attributes/ri:ou</path>
+	                </expression>
+	            </q:equal>
+	        </correlation>
+
+	        <reaction>
+	            <situation>linked</situation>
+	            <synchronize>true</synchronize>
+	        </reaction>
+	        <reaction>
+	            <situation>deleted</situation>
+	            <synchronize>true</synchronize>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#unlink</handlerUri>
+	            </action>
+	        </reaction>
+	        <reaction>
+	            <situation>unlinked</situation>
+	            <synchronize>true</synchronize>
+	            <action>
+	            	<handlerUri>http://midpoint.evolveum.com/xml/ns/public/model/action-2#link</handlerUri>
+	            </action>
+	        </reaction>
+	        <reaction>
+	            <situation>unmatched</situation>
+	        </reaction>
+		</objectSynchronization>
+    </synchronization>
 
 </resource>

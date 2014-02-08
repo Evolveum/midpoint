@@ -24,6 +24,7 @@ import java.util.Set;
 import javax.xml.namespace.QName;
 
 import org.apache.commons.lang.StringUtils;
+import org.w3c.dom.Element;
 
 import com.evolveum.midpoint.prism.Containerable;
 import com.evolveum.midpoint.prism.Item;
@@ -53,6 +54,7 @@ import com.evolveum.midpoint.prism.xnode.ListXNode;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.RootXNode;
+import com.evolveum.midpoint.prism.xnode.SchemaXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.JAXBUtil;
@@ -65,6 +67,7 @@ import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_2.ProtectedByteArrayType;
 import com.evolveum.prism.xml.ns._public.types_2.ProtectedDataType;
 import com.evolveum.prism.xml.ns._public.types_2.ProtectedStringType;
+import com.evolveum.prism.xml.ns._public.types_2.SchemaDefinitionType;
 
 public class XNodeProcessor {
 	
@@ -243,7 +246,7 @@ public class XNodeProcessor {
 					// No definition for item, but the schema is runtime. the definition may come later.
 					// Null is OK here.
 				} else {
-					throw new SchemaException("Item " + itemQName + " has no definition", itemQName);
+					throw new SchemaException("Item " + itemQName + " has no definition (in container "+containerDef+")", itemQName);
 				}
 			}
 			Item<?> item = parseItem(xentry.getValue(), itemQName, itemDef);
@@ -449,6 +452,9 @@ public class XNodeProcessor {
 			ProtectedByteArrayType protectedType = new ProtectedByteArrayType();
 			parseProtectedType(protectedType, xmap);
 			return (T) protectedType;
+		} else if (SchemaDefinitionType.COMPLEX_TYPE.equals(typeName)) {
+			SchemaDefinitionType schemaDefType = parseSchemaDefinitionType(xmap);
+			return (T) schemaDefType;
 		} else if (prismContext.getBeanConverter().canConvert(typeName)) {
 			return prismContext.getBeanConverter().unmarshall(xmap, typeName);
 		} else {
@@ -501,8 +507,29 @@ public class XNodeProcessor {
 		String norm = xmap.getParsedPrimitiveValue(QNameUtil.nullNamespace(PolyString.F_NORM), DOMUtil.XSD_STRING);
 		return new PolyString(orig, norm);
 	}
+	
+	private SchemaDefinitionType parseSchemaDefinitionType(MapXNode xmap) throws SchemaException {
+		Entry<QName, XNode> subEntry = xmap.getSingleSubEntry("schema element");
+		if (subEntry == null) {
+			return null;
+		}
+		XNode xsub = subEntry.getValue();
+		if (xsub == null) {
+			return null;
+		}
+		if (!(xsub instanceof SchemaXNode)) {
+			throw new SchemaException("Cannot parse schema from "+xsub);
+		}
+		Element schemaElement = ((SchemaXNode)xsub).getSchemaElement();
+		if (schemaElement == null) {
+			throw new SchemaException("Empty schema in "+xsub);
+		}
+		SchemaDefinitionType schemaDefType = new SchemaDefinitionType();
+		schemaDefType.setSchema(schemaElement);
+		return schemaDefType;
+	}
 
-	private <T> PrismProperty<T> parsePrismPropertyRaw(XNode xnode, QName itemName)
+	public static <T> PrismProperty<T> parsePrismPropertyRaw(XNode xnode, QName itemName)
 			throws SchemaException {
 		if (xnode instanceof ListXNode) {
 			return parsePrismPropertyRaw((ListXNode)xnode, itemName);
@@ -514,7 +541,7 @@ public class XNodeProcessor {
 		}
 	}
 	
-	private <T> PrismProperty<T> parsePrismPropertyRaw(ListXNode xlist, QName itemName)
+	private static <T> PrismProperty<T> parsePrismPropertyRaw(ListXNode xlist, QName itemName)
 			throws SchemaException {
 		PrismProperty<T> property = new PrismProperty<T>(itemName);
 		for (XNode xsubnode : xlist) {

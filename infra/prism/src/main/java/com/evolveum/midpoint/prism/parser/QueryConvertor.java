@@ -160,7 +160,7 @@ public class QueryConvertor {
 
 	private static <C extends Containerable> ObjectFilter parseFilterContainer(MapXNode xmap, PrismContainerDefinition<C> pcd,
 			PrismContext prismContext) throws SchemaException {
-		Entry<QName, XNode> entry = singleSubEntry(xmap);
+		Entry<QName, XNode> entry = singleSubEntry(xmap, "top-level element");
 		QName filterQName = entry.getKey();
 		XNode xsubnode = entry.getValue();
 		return parseFilterContainer(xsubnode, filterQName, pcd, prismContext);
@@ -227,7 +227,7 @@ public class QueryConvertor {
 			PrismContext prismContext) throws SchemaException {
 		List<ObjectFilter> subfilters = new ArrayList<ObjectFilter>();
 		MapXNode xmap = toMap(xnode);
-		Entry<QName, XNode> entry = singleSubEntry(xmap);
+		Entry<QName, XNode> entry = singleSubEntry(xmap, "not");
 		ObjectFilter subfilter = parseFilterContainer(entry.getValue(), entry.getKey(), pcd, prismContext);
 		return NotFilter.createNot(subfilter);
 	}
@@ -263,7 +263,12 @@ public class QueryConvertor {
 		XNode valueXnode = xmap.get(KEY_FILTER_EQUALS_VALUE);
 		
 		if (valueXnode != null) {
-			Item<PrismValue> item = prismContext.getXnodeProcessor().parseItem(valueXnode, itemName, itemDefinition);
+			Item<PrismValue> item;
+			if (prismContext == null) {
+				item = (Item)XNodeProcessor.parsePrismPropertyRaw(valueXnode, itemName);
+			} else {
+				item = prismContext.getXnodeProcessor().parseItem(valueXnode, itemName, itemDefinition);
+			}
 
 			if (item.getValues().size() < 1 ) {
 				throw new IllegalStateException("No values to search specified for item " + itemName);
@@ -389,24 +394,12 @@ public class QueryConvertor {
 
 		return OrgFilter.createOrg(orgOid, min, max);
 	}
-
 	
-	
-	
-	
-	
-	
-	private static Entry<QName, XNode> singleSubEntry(MapXNode xmap) throws SchemaException {
+	private static Entry<QName, XNode> singleSubEntry(MapXNode xmap, String filterName) throws SchemaException {
 		if (xmap == null || xmap.isEmpty()) {
 			return null;
 		}
-		
-		if (xmap.size() > 1) {
-			throw new SchemaException("More than one element in search filter");
-		}
-		
-		Entry<QName, XNode> entry = xmap.entrySet().iterator().next();
-		return entry;
+		return xmap.getSingleSubEntry("search filter "+filterName);
 	}
 
 	private static MapXNode toMap(XNode xnode) throws SchemaException {

@@ -69,6 +69,7 @@ public class UserBrowserDialog extends ModalWindow {
         super(id);
 
         setTitle(createStringResource("userBrowserDialog.title"));
+        showUnloadConfirmation(false);
         setCssClassName(ModalWindow.CSS_CLASS_GRAY);
         setCookieName(UserBrowserDialog.class.getSimpleName() + ((int) (Math.random() * 100)));
         setInitialWidth(900);

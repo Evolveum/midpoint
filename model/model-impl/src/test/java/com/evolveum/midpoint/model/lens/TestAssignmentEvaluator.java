@@ -90,7 +90,7 @@ public class TestAssignmentEvaluator extends AbstractLensTest {
 		// THEN
 		assertNotNull(evaluatedAssignment);
 		display("Evaluated assignment",evaluatedAssignment.dump());
-		assertEquals(1,evaluatedAssignment.getAccountConstructions().size());
+		assertEquals(1,evaluatedAssignment.getConstructions().size());
 		PrismAsserts.assertParentConsistency(userTypeJack.asPrismObject());
 	}
 	

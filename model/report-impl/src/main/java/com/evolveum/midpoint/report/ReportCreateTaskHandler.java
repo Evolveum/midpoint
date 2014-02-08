@@ -26,6 +26,8 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
+import javax.xml.datatype.XMLGregorianCalendar;
+import javax.xml.namespace.QName;
 
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRExporterParameter;
@@ -51,25 +53,35 @@ import net.sf.jasperreports.engine.query.JRHibernateQueryExecuterFactory;
 import net.sf.jasperreports.engine.xml.JRXmlLoader;
 
 import org.apache.commons.lang.StringUtils;
+import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.model.api.ModelService;
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
 import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.query.ObjectQuery;
+import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
+import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
 import com.evolveum.midpoint.report.api.ReportManager;
-import com.evolveum.midpoint.schema.constants.SchemaConstants;
+import com.evolveum.midpoint.schema.GetOperationOptions;
+import com.evolveum.midpoint.schema.SelectorOptions;
 import com.evolveum.midpoint.schema.result.OperationConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.schema.util.ObjectQueryUtil;
+import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskCategory;
 import com.evolveum.midpoint.task.api.TaskHandler;
@@ -83,9 +95,10 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportOutputType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportParameterConfigurationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.XmlSchemaType;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 /**
@@ -108,7 +121,10 @@ public class ReportCreateTaskHandler implements TaskHandler {
     private static final String MODIFY_REPORT_OUTPUT_TYPE = CLASS_NAME_WITH_DOT + "modifyReportOutputType";
     private static final String SEARCH_REPORT_OUTPUT_TYPE = CLASS_NAME_WITH_DOT + "searchReportOutputType";
 
-    private static final String AUDITLOGS_REPORT_OID = "AUDITLOG-3333-3333-TEST-10000000000";
+    // parameters define objectQuery
+    private static String PARAMETER_OBJECT_TYPE = "type";
+    private static String PARAMETER_QUERY_FILTER = "filter";
+    
 
     @Autowired
     private TaskManager taskManager;
@@ -125,6 +141,33 @@ public class ReportCreateTaskHandler implements TaskHandler {
     @Autowired
 	private SessionFactory sessionFactory;
 
+    private PrismSchema reportSchema;
+    
+    private PrismContainer<Containerable> parameterConfiguration;
+    
+    
+    public void setSchema(PrismSchema schema)
+    {
+    	reportSchema = schema;
+    }
+    
+    public void setConfiguration(PrismContainer<Containerable> configuration)
+    {
+    	parameterConfiguration = configuration;
+    }
+    
+    
+    public PrismSchema getSchema()
+    {
+    	return reportSchema;
+    }
+    
+    public PrismContainer<Containerable> getConfiguration()
+    {
+    	return parameterConfiguration;	
+    }
+    
+    
     @PostConstruct
     private void initialize() {
         if (LOGGER.isTraceEnabled()) {
@@ -132,6 +175,9 @@ public class ReportCreateTaskHandler implements TaskHandler {
         }
         taskManager.registerHandler(REPORT_CREATE_TASK_URI, this);
     }
+
+   
+	
     
     @Override
     public TaskRunResult run(Task task) {
@@ -159,7 +205,7 @@ public class ReportCreateTaskHandler implements TaskHandler {
         PrismObject<ReportType> report = null;
         try {
         	LOGGER.trace("get report : {}", reportOid);
-    		report = modelService.getObject(ReportType.class, reportOid, null, task, opResult); 
+    		report = modelService.getObject(ReportType.class, reportOid, SelectorOptions.createCollection(GetOperationOptions.createRaw()), task, opResult); 
 		} catch (ObjectNotFoundException ex) {
 			LOGGER.error("Report does not exist: {}", ex.getMessage(), ex);
 			opResult.recordFatalError("Report does not exist: " + ex.getMessage(), ex);
@@ -181,41 +227,45 @@ public class ReportCreateTaskHandler implements TaskHandler {
     	try
     	{    
     		OperationResult subResult = opResult.createSubresult(CREATE_REPORT);	
+    	
+    		setSchema(ReportUtils.getParametersSchema(reportType, prismContext));
+    		setConfiguration(ReportUtils.getParametersContainer(reportType, getSchema()));
     		
-    		LOGGER.trace("create report params : {}", params);
-    		if (reportType.getReportTemplate() == null || reportType.getReportTemplate().getAny() == null)
+    		
+    		if (reportType.getTemplate() == null || reportType.getTemplate().getAny() == null)
             {
-           	 	jasperDesign = ReportUtils.createJasperDesign(reportType);
+           	 	jasperDesign = ReportUtils.createJasperDesign(reportType, getConfiguration(), getSchema());
            	 	LOGGER.trace("create jasper design : {}", jasperDesign);
             }
             else
             {
-           	 	String reportTemplate = DOMUtil.serializeDOMToString((Node)reportType.getReportTemplate().getAny());
+           	 	String reportTemplate = DOMUtil.serializeDOMToString((Node)reportType.getTemplate().getAny());
            	 	InputStream inputStreamJRXML = new ByteArrayInputStream(reportTemplate.getBytes());
            	 	jasperDesign = JRXmlLoader.load(inputStreamJRXML);
            	 	LOGGER.trace("load jasper design : {}", jasperDesign);
             }
-    		
-    		params.putAll(getReportParams(reportType, opResult));
-            
+    			
     		// Compile template
     		JasperReport jasperReport = JasperCompileManager.compileReport(jasperDesign);
     		LOGGER.trace("compile jasper design, create jasper report : {}", jasperReport);
-    		
+
+    		params.putAll(ReportUtils.getReportParams(reportType, getConfiguration(), opResult));
+    		LOGGER.trace("create report params : {}", params);
+    	
     		Session session = sessionFactory.openSession();
-	        session.beginTransaction();
-	        
-    		if (!StringUtils.equals(reportOid, AUDITLOGS_REPORT_OID))
+			session.beginTransaction();
+			
+    		if (reportType.isUseHibernateSession())
+    		{	        
+    			params.put(JRHibernateQueryExecuterFactory.PARAMETER_HIBERNATE_SESSION, session);
+    		}
+    		else
     		{
     			LOGGER.trace("create report datasource : {}", reportOid);
     			DataSourceReport reportDataSource = new DataSourceReport(reportType, subResult, prismContext, modelService);
     		
     			params.put(JRParameter.REPORT_DATA_SOURCE, reportDataSource);
-    		}   
-    		else
-    		{
-    			params.put(JRHibernateQueryExecuterFactory.PARAMETER_HIBERNATE_SESSION, session);
-    		}
+    		}	
     		
     		JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, params);
     		LOGGER.trace("fill report : {}", jasperPrint);
@@ -225,8 +275,8 @@ public class ReportCreateTaskHandler implements TaskHandler {
     		
     		session.getTransaction().commit();
  	       	session.close();
- 	       	
-    		saveReportOutputType(reportFilePath, reportType, task, subResult);
+    		
+ 	       	saveReportOutputType(reportFilePath, reportType, task, subResult);
     		LOGGER.trace("create report output type : {}", reportFilePath);
     		
     		subResult.computeStatus();
@@ -265,27 +315,13 @@ public class ReportCreateTaskHandler implements TaskHandler {
     	return TaskCategory.REPORT;
     }
         
-    private Map<String, Object> getReportParams(ReportType reportType, OperationResult parentResult)
-	{
-	 	Map<String, Object> params = new HashMap<String, Object>();
-	 	
-	 	OperationResult subResult = parentResult.createSubresult("get report parameters");
-	  	
-	  	for(ReportParameterConfigurationType parameterRepo : reportType.getReportParameter())
-		{
-    		params.put(parameterRepo.getNameParameter(), parameterRepo.getValueParameter());			
-    	}
-	  	
-	    subResult.computeStatus();	
-	 
-	    return params;
-	}
-    
+   
+
     // generate report - export
     private String generateReport(ReportType reportType, JasperPrint jasperPrint) throws JRException
     {
     	String output = ReportUtils.getReportOutputFilePath(reportType);
-    	switch (reportType.getReportExport())
+    	switch (reportType.getExport())
         {
         	case PDF : pdf(jasperPrint, output);
           		break;
@@ -481,17 +517,17 @@ public class ReportCreateTaskHandler implements TaskHandler {
     }
     
     
-    private void saveReportOutputType(String reportFilePath, ReportType reportType, Task task, OperationResult parentResult) throws Exception
+    private void saveReportOutputType(String filePath, ReportType reportType, Task task, OperationResult parentResult) throws Exception
     {
     	
-    	String reportOutputName = reportType.getName().getOrig() + " - " + reportType.getReportExport().value();
+    	String reportOutputName = reportType.getName().getOrig() + " - " + reportType.getExport().value();
 	
     	ReportOutputType reportOutputType = new ReportOutputType();
     	prismContext.adopt(reportOutputType);
-    	reportOutputType.setReportFilePath(reportFilePath);
+    	reportOutputType.setFilePath(filePath);
     	reportOutputType.setReportRef(MiscSchemaUtil.createObjectReference(reportType.getOid(), ReportType.COMPLEX_TYPE));
     	reportOutputType.setName(new PolyStringType(reportOutputName));
-    	reportOutputType.setDescription(reportType.getDescription() + " - " + reportType.getReportExport().value());
+    	reportOutputType.setDescription(reportType.getDescription() + " - " + reportType.getExport().value());
     	
    		ObjectQuery query = ObjectQueryUtil.createNameQuery(PrismTestUtil.createPolyString(reportOutputName), prismContext);
    		List<PrismObject<ReportOutputType>> reportOutputList = modelService.searchObjects(ReportOutputType.class, query, null, task, parentResult);

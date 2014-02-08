@@ -36,22 +36,22 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
  */
 public class Assignment implements DebugDumpable, Dumpable {
 
-	private Collection<Construction> accountConstructions;
+	private Collection<Construction> constructions;
 	private Collection<PrismReferenceValue> orgRefVals;
 	private Collection<Authorization> authorizations;
 
 	public Assignment() {
-		accountConstructions = new ArrayList<Construction>();
+		constructions = new ArrayList<Construction>();
 		orgRefVals = new ArrayList<PrismReferenceValue>();
 		authorizations = new ArrayList<Authorization>();
 	}
 	
-	public Collection<Construction> getAccountConstructions() {
-		return accountConstructions;
+	public Collection<Construction> getConstructions() {
+		return constructions;
 	}
 
-	public void addAccountConstruction(Construction accpuntContruction) {
-		accountConstructions.add(accpuntContruction);
+	public void addConstruction(Construction accpuntContruction) {
+		constructions.add(accpuntContruction);
 	}
 	
 	public Collection<PrismReferenceValue> getOrgRefVals() {
@@ -72,7 +72,7 @@ public class Assignment implements DebugDumpable, Dumpable {
 
 	public Collection<ResourceType> getResources(OperationResult result) throws ObjectNotFoundException, SchemaException {
 		Collection<ResourceType> resources = new ArrayList<ResourceType>();
-		for (Construction acctConstr: accountConstructions) {
+		for (Construction acctConstr: constructions) {
 			resources.add(acctConstr.getResource(result));
 		}
 		return resources;
@@ -92,10 +92,10 @@ public class Assignment implements DebugDumpable, Dumpable {
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
 		DebugUtil.debugDumpLabel(sb, "Assignment", indent);
-		if (!accountConstructions.isEmpty()) {
+		if (!constructions.isEmpty()) {
 			sb.append("\n");
-			DebugUtil.debugDumpLabel(sb, "Accounts", indent+1);
-			for (Construction ac: accountConstructions) {
+			DebugUtil.debugDumpLabel(sb, "Constructions", indent+1);
+			for (Construction ac: constructions) {
 				sb.append("\n");
 				sb.append(ac.debugDump(indent+2));
 			}
@@ -123,7 +123,7 @@ public class Assignment implements DebugDumpable, Dumpable {
 
 	@Override
 	public String toString() {
-		return "Assignment(acc=" + accountConstructions + "; org="+orgRefVals+"; autz="+authorizations+")";
+		return "Assignment(acc=" + constructions + "; org="+orgRefVals+"; autz="+authorizations+")";
 	}
 	
 }

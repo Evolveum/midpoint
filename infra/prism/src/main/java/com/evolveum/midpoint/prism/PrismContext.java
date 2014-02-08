@@ -174,17 +174,7 @@ public class PrismContext {
 	 */
 	@Deprecated
 	public <T extends Objectable> PrismObject<T> parseObject(Element objectElement) throws SchemaException {
-		XNode xnode = parserDom.parseElement(objectElement);
-		RootXNode xroot;
-		if (xnode instanceof RootXNode) {
-			xroot = (RootXNode)xnode;
-		} else if (xnode instanceof MapXNode) {
-			MapXNode xmap = (MapXNode)xnode;
-			xroot = new RootXNode(DOMUtil.getQName(objectElement));
-			xroot.setSubnode(xmap);
-		} else {
-			throw new SchemaException("Cannot parse object from "+xnode);
-		}
+		RootXNode xroot = parserDom.parseElementAsRoot(objectElement);
 		return xnodeProcessor.parseObject(xroot);
 	}
 

@@ -151,10 +151,6 @@
                 <name>PageAdmin.menu.top.configuration.timeTest</name>
                 <page>com.evolveum.midpoint.web.page.admin.configuration.PageTimeTest</page>
             </item>
-            <item>
-                <name>PageAdmin.menu.top.configuration.logging</name>
-                <page>com.evolveum.midpoint.web.page.admin.configuration.PageLogging</page>
-            </item>
             <divider/>
             <item>
                 <name>PageAdmin.menu.top.configuration.about</name>

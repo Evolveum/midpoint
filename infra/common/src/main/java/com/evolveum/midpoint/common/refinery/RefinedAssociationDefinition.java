@@ -24,7 +24,9 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectAssoc
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceObjectAssociationType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
 
-public class RefinedAssociationDefinition {
+import java.io.Serializable;
+
+public class RefinedAssociationDefinition implements Serializable {
 	
 	private ResourceObjectAssociationType resourceObjectAssociationType;
 	private RefinedObjectClassDefinition associationTarget;

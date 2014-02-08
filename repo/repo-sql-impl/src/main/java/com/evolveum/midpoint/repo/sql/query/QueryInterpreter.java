@@ -342,13 +342,19 @@ public class QueryInterpreter {
             propertyName += ".orig";
         }
 
-        switch (paging.getDirection()) {
-            case ASCENDING:
-                query = query.addOrder(Order.asc(propertyName));
-                break;
-            case DESCENDING:
-                query = query.addOrder(Order.desc(propertyName));
+        if (paging.getDirection() != null) {
+        	switch (paging.getDirection()) {
+            	case ASCENDING:
+            		query = query.addOrder(Order.asc(propertyName));
+            		break;
+            	case DESCENDING:
+            		query = query.addOrder(Order.desc(propertyName));
+            		break;
+        	}
+        } else { 
+        	query = query.addOrder(Order.asc(propertyName));
         }
+        	
 
         return query;
     }

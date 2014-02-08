@@ -74,6 +74,7 @@ public class RUser extends RFocus<UserType> {// implements FieldHandled {
     private String preferredLanguage;
     private Set<RPolyString> organization;
     private ROperationResult result;
+    private byte[] jpegPhoto;
 
 //    /**
 //     * Used for lazy loading properties (entities)
@@ -221,6 +222,16 @@ public class RUser extends RFocus<UserType> {// implements FieldHandled {
     @Embedded
     public RPolyString getTitle() {
         return title;
+    }
+
+    @Lob
+    @Basic(fetch = FetchType.LAZY)
+    public byte[] getJpegPhoto() {
+        return jpegPhoto;
+    }
+
+    public void setJpegPhoto(byte[] jpegPhoto) {
+        this.jpegPhoto = jpegPhoto;
     }
 
     public void setCostCenter(String costCenter) {
@@ -391,6 +402,7 @@ public class RUser extends RFocus<UserType> {// implements FieldHandled {
         repo.setPreferredLanguage(jaxb.getPreferredLanguage());
         repo.setTitle(RPolyString.copyFromJAXB(jaxb.getTitle()));
         repo.setNickName(RPolyString.copyFromJAXB(jaxb.getNickName()));
+        repo.setJpegPhoto(jaxb.getJpegPhoto());
 
         if (jaxb.getCredentials() != null) {
             RCredentials credentials = new RCredentials();
@@ -434,6 +446,9 @@ public class RUser extends RFocus<UserType> {// implements FieldHandled {
         jaxb.setPreferredLanguage(repo.getPreferredLanguage());
         jaxb.setTitle(RPolyString.copyToJAXB(repo.getTitle()));
         jaxb.setNickName(RPolyString.copyToJAXB(repo.getNickName()));
+        if (SelectorOptions.hasToLoadPath(UserType.F_JPEG_PHOTO, options)) {
+            jaxb.setJpegPhoto(repo.getJpegPhoto());
+        }
 
         if (repo.getCredentials() != null) {
             ItemPath path = new ItemPath(UserType.F_CREDENTIALS);

@@ -23,6 +23,8 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -35,6 +37,7 @@ import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.PrismPropertyModel;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.component.wizard.WizardStep;
+import com.evolveum.midpoint.web.component.wizard.resource.dto.ConnectorHostTypeComparator;
 import com.evolveum.midpoint.web.page.PageBase;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
@@ -45,12 +48,8 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
-import org.apache.wicket.feedback.ComponentFeedbackMessageFilter;
 import org.apache.wicket.markup.html.form.DropDownChoice;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
-import org.apache.wicket.markup.html.form.RequiredTextField;
-import org.apache.wicket.markup.html.form.TextArea;
-import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
 
 import java.util.*;
@@ -116,18 +115,18 @@ public class NameStep extends WizardStep {
         description.setRows(2);
         add(description);
 
-        DropDownChoice<PrismObject<ConnectorHostType>> location = createLocationDropDown();
+        DropDownFormGroup<PrismObject<ConnectorHostType>> location = createLocationDropDown();
         add(location);
 
-        DropDownChoice<PrismObject<ConnectorType>> connectorType = createConnectorTypeDropDown(location.getModel());
+        DropDownFormGroup<PrismObject<ConnectorType>> connectorType = createConnectorTypeDropDown(location.getModel());
         add(connectorType);
 
-        DropDownChoice<PrismObject<ConnectorType>> connectorVersion = createConnectorVersionDropDown(location.getModel(),
+        DropDownFormGroup<PrismObject<ConnectorType>> connectorVersion = createConnectorVersionDropDown(location.getModel(),
                 connectorType.getModel());
         add(connectorVersion);
     }
 
-    private DropDownChoice createConnectorVersionDropDown(final IModel<PrismObject<ConnectorHostType>> connectorHostTypeModel,
+    private DropDownFormGroup createConnectorVersionDropDown(final IModel<PrismObject<ConnectorHostType>> connectorHostTypeModel,
                                                           final IModel<PrismObject<ConnectorType>> connectorTypeModel) {
         connectorVersions = new LoadableModel<List<PrismObject<ConnectorType>>>(false) {
 
@@ -137,40 +136,50 @@ public class NameStep extends WizardStep {
             }
         };
 
-        DropDownChoice connectorVersion = new DropDownChoice(ID_CONNECTOR_VERSION, createUsedConnectorModel(),
-                connectorVersions, new IChoiceRenderer<PrismObject<ConnectorType>>() {
+        DropDownFormGroup<PrismObject<ConnectorType>> formGroup = new DropDownFormGroup<PrismObject<ConnectorType>>(
+                ID_CONNECTOR_VERSION, createUsedConnectorModel(), connectorVersions,
+                new IChoiceRenderer<PrismObject<ConnectorType>>() {
 
-            @Override
-            public Object getDisplayValue(PrismObject<ConnectorType> object) {
-                String version = object.getPropertyRealValue(ConnectorType.F_CONNECTOR_VERSION, String.class);
-                if (StringUtils.isEmpty(version)) {
-                    return NameStep.this.getString("NameStep.unknownVersion");
+                    @Override
+                    public Object getDisplayValue(PrismObject<ConnectorType> object) {
+                        String version = object.getPropertyRealValue(ConnectorType.F_CONNECTOR_VERSION, String.class);
+                        if (StringUtils.isEmpty(version)) {
+                            return NameStep.this.getString("NameStep.unknownVersion");
+                        }
+
+                        return version;
+                    }
+
+                    @Override
+                    public String getIdValue(PrismObject<ConnectorType> object, int index) {
+                        return Integer.toString(index);
+                    }
                 }
-
-                return version;
-            }
+                , createStringResource("NameStep.connectorVersion"), "col-md-3", "col-md-3", true) {
 
             @Override
-            public String getIdValue(PrismObject<ConnectorType> object, int index) {
-                return Integer.toString(index);
-            }
-        });
-        connectorVersion.add(new AjaxFormComponentUpdatingBehavior("onchange") {
+            protected DropDownChoice createDropDown(String id, IModel<List<PrismObject<ConnectorType>>> choices,
+                                                    IChoiceRenderer renderer, boolean required) {
+                DropDownChoice choice = super.createDropDown(id, choices, renderer, required);
+                choice.setOutputMarkupId(true);
+                choice.add(new AjaxFormComponentUpdatingBehavior("onchange") {
 
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-            }
-        });
-        connectorVersion.add(new VisibleEnableBehaviour() {
+                    @Override
+                    protected void onUpdate(AjaxRequestTarget target) {
+                    }
+                });
+                choice.add(new VisibleEnableBehaviour() {
 
-            @Override
-            public boolean isEnabled() {
-                return connectorTypeModel.getObject() != null;
+                    @Override
+                    public boolean isEnabled() {
+                        return connectorTypeModel.getObject() != null;
+                    }
+                });
+                return choice;
             }
-        });
-        connectorVersion.setOutputMarkupId(true);
+        };
 
-        return connectorVersion;
+        return formGroup;
     }
 
     private IModel<PrismObject<ConnectorHostType>> createConnectorHostModel() {
@@ -308,7 +317,8 @@ public class NameStep extends WizardStep {
         };
     }
 
-    private DropDownChoice createConnectorTypeDropDown(final IModel<PrismObject<ConnectorHostType>> hostModel) {
+    private DropDownFormGroup<PrismObject<ConnectorType>> createConnectorTypeDropDown(
+            final IModel<PrismObject<ConnectorHostType>> hostModel) {
         connectorTypes = new LoadableModel(false) {
 
             @Override
@@ -317,35 +327,44 @@ public class NameStep extends WizardStep {
             }
         };
 
-        DropDownChoice connectorName = new DropDownChoice(ID_CONNECTOR_TYPE, createReadonlyUsedConnectorModel(),
-                connectorTypes, new IChoiceRenderer<PrismObject<ConnectorType>>() {
+        DropDownFormGroup<PrismObject<ConnectorType>> formGroup = new DropDownFormGroup<PrismObject<ConnectorType>>(
+                ID_CONNECTOR_TYPE, createReadonlyUsedConnectorModel(), connectorTypes,
+                new IChoiceRenderer<PrismObject<ConnectorType>>() {
+
+                    @Override
+                    public Object getDisplayValue(PrismObject<ConnectorType> object) {
+                        return WebMiscUtil.getName(object);
+                    }
+
+                    @Override
+                    public String getIdValue(PrismObject<ConnectorType> object, int index) {
+                        return Integer.toString(index);
+                    }
+                }, createStringResource("NameStep.connectorType"), "col-md-3", "col-md-3", true) {
 
             @Override
-            public Object getDisplayValue(PrismObject<ConnectorType> object) {
-                return WebMiscUtil.getName(object);
-            }
+            protected DropDownChoice createDropDown(String id, IModel<List<PrismObject<ConnectorType>>> choices,
+                                                    IChoiceRenderer renderer, boolean required) {
+                DropDownChoice choice = super.createDropDown(id, choices, renderer, required);
+                choice.setOutputMarkupId(true);
+                choice.add(new AjaxFormComponentUpdatingBehavior("onchange") {
 
-            @Override
-            public String getIdValue(PrismObject<ConnectorType> object, int index) {
-                return Integer.toString(index);
+                    @Override
+                    protected void onUpdate(AjaxRequestTarget target) {
+                        changeConnectorTypePerformed(target);
+                    }
+                });
+                return choice;
             }
-        }
-        );
-        connectorName.setOutputMarkupId(true);
-        connectorName.add(new AjaxFormComponentUpdatingBehavior("onchange") {
+        };
 
-            @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                changeConnectorTypePerformed(target);
-            }
-        });
-
-        return connectorName;
+        return formGroup;
     }
 
-    private DropDownChoice createLocationDropDown() {
-        DropDownChoice location = new DropDownChoice(ID_LOCATION, createConnectorHostModel(),
-                connectorHostsModel, new IChoiceRenderer<PrismObject<ConnectorHostType>>() {
+    private DropDownFormGroup<PrismObject<ConnectorHostType>> createLocationDropDown() {
+        DropDownFormGroup<PrismObject<ConnectorHostType>> formGroup =
+                new DropDownFormGroup<PrismObject<ConnectorHostType>>(ID_LOCATION, createConnectorHostModel(),
+                        connectorHostsModel, new IChoiceRenderer<PrismObject<ConnectorHostType>>() {
 
             @Override
             public Object getDisplayValue(PrismObject<ConnectorHostType> object) {
@@ -359,17 +378,25 @@ public class NameStep extends WizardStep {
             public String getIdValue(PrismObject<ConnectorHostType> object, int index) {
                 return Integer.toString(index);
             }
-        });
-        location.setNullValid(true);
-        location.add(new AjaxFormComponentUpdatingBehavior("onchange") {
+        },
+                createStringResource("NameStep.connectorHost"), "col-md-3", "col-md-3", false) {
 
             @Override
-            protected void onUpdate(AjaxRequestTarget target) {
-                discoverConnectorsPerformed(target);
-            }
-        });
+            protected DropDownChoice createDropDown(String id, IModel<List<PrismObject<ConnectorHostType>>> choices,
+                                                    IChoiceRenderer renderer, boolean required) {
+                DropDownChoice choice = super.createDropDown(id, choices, renderer, required);
+                choice.add(new AjaxFormComponentUpdatingBehavior("onchange") {
 
-        return location;
+                    @Override
+                    protected void onUpdate(AjaxRequestTarget target) {
+                        discoverConnectorsPerformed(target);
+                    }
+                });
+                return choice;
+            }
+        };
+
+        return formGroup;
     }
 
     private List<PrismObject<ConnectorType>> loadConnectorTypes(PrismObject<ConnectorHostType> host) {
@@ -453,7 +480,8 @@ public class NameStep extends WizardStep {
     private void changeConnectorTypePerformed(AjaxRequestTarget target) {
         connectorVersions.reset();
 
-        target.add(get(ID_CONNECTOR_VERSION));
+        DropDownFormGroup group = (DropDownFormGroup) get(ID_CONNECTOR_VERSION);
+        target.add(group.getInput());
     }
 
     private void discoverConnectorsPerformed(AjaxRequestTarget target) {
@@ -470,7 +498,10 @@ public class NameStep extends WizardStep {
 
         PageBase page = (PageBase) getPage();
 
-        target.add(get(ID_CONNECTOR_TYPE), get(ID_CONNECTOR_VERSION), page.getFeedbackPanel());
+        DropDownFormGroup type = (DropDownFormGroup) get(ID_CONNECTOR_TYPE);
+        DropDownFormGroup version = (DropDownFormGroup) get(ID_CONNECTOR_VERSION);
+
+        target.add(type.getInput(), version.getInput(), page.getFeedbackPanel());
     }
 
     private void discoverConnectors(ConnectorHostType host) {
@@ -496,6 +527,8 @@ public class NameStep extends WizardStep {
         OperationResult result = new OperationResult(OPERATION_SAVE_RESOURCE);
         try {
             PrismObject<ResourceType> resource = resourceModel.getObject();
+            resource.findOrCreateContainer(ResourceType.F_CONNECTOR_CONFIGURATION);
+            resource.findOrCreateContainer(new ItemPath(ResourceType.F_CONNECTOR_CONFIGURATION, SchemaConstants.ICF_CONFIGURATION_PROPERTIES));
             page.getPrismContext().adopt(resource);
 
             ObjectDelta delta;

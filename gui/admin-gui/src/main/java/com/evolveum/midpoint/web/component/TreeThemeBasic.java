@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,19 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.component.wizard.resource;
+package com.evolveum.midpoint.web.component;
 
-import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ConnectorType;
-
-import java.util.Comparator;
+import org.apache.wicket.Component;
+import org.apache.wicket.behavior.Behavior;
+import org.apache.wicket.markup.ComponentTag;
 
 /**
  * @author lazyman
  */
-public class ConnectorTypeComparator implements Comparator<ConnectorType> {
+public class TreeThemeBasic extends Behavior {
 
     @Override
-    public int compare(ConnectorType c1, ConnectorType c2) {
-        //todo improve
-        return String.CASE_INSENSITIVE_ORDER.compare(WebMiscUtil.getName(c1), WebMiscUtil.getName(c2));
+    public void onComponentTag(Component component, ComponentTag tag) {
+        tag.append("class", "tree-theme-basic", " ");
     }
 }

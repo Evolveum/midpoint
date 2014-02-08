@@ -115,9 +115,9 @@ public class PageResourceWizard extends PageAdminResources {
         wizardModel.add(new NameStep(model));
         wizardModel.add(new ConfigurationStep(model));
         wizardModel.add(new SchemaStep(model));
-        wizardModel.add(new SchemaHandlingStep());
-        wizardModel.add(new CapabilityStep());
-        wizardModel.add(new SynchronizationStep());
+        wizardModel.add(new SchemaHandlingStep(model));
+        wizardModel.add(new CapabilityStep(model));
+        wizardModel.add(new SynchronizationStep(model));
 
         Wizard wizard = new Wizard(ID_WIZARD, new Model(wizardModel));
         add(wizard);

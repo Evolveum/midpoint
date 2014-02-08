@@ -719,7 +719,7 @@ public class AssignmentProcessor {
     private <F extends ObjectType> void collectToAccountMap(LensContext<F> context,
             Map<ResourceShadowDiscriminator, AccountConstructionPack> accountMap, Assignment evaluatedAssignment, 
             boolean forceRecon, OperationResult result) throws ObjectNotFoundException, SchemaException, CommunicationException, ConfigurationException, SecurityViolationException {
-        for (Construction accountConstruction : evaluatedAssignment.getAccountConstructions()) {
+        for (Construction accountConstruction : evaluatedAssignment.getConstructions()) {
             String resourceOid = accountConstruction.getResource(result).getOid();
             String intent = accountConstruction.getIntent();
             ShadowKindType kind = accountConstruction.getKind();
@@ -791,8 +791,8 @@ public class AssignmentProcessor {
 			// Same thing, this cannot exclude itself
 			return;
 		}
-		for(Construction constructionA: assignmentA.getAccountConstructions()) {
-			for(Construction constructionB: assignmentB.getAccountConstructions()) {
+		for(Construction constructionA: assignmentA.getConstructions()) {
+			for(Construction constructionB: assignmentB.getConstructions()) {
 				checkExclusion(constructionA, assignmentA, constructionB, assignmentB);
 			}
 		}

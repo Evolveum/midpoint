@@ -34,6 +34,7 @@ import com.evolveum.midpoint.prism.PrismPropertyDefinition;
 import com.evolveum.midpoint.prism.PrismPropertyValue;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.util.MiscUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
@@ -378,7 +379,7 @@ public class PropertyDelta<T extends Object> extends ItemDelta<PrismPropertyValu
     public static PropertyDelta findPropertyDelta(Collection<? extends ItemDelta> modifications, QName propertyName) {
     	for (ItemDelta delta: modifications) {
     		if (delta instanceof PropertyDelta && delta.getParentPath().isEmpty() &&
-    			delta.getElementName().equals(propertyName)) {
+    				QNameUtil.match(delta.getElementName(),propertyName)) {
     			return (PropertyDelta) delta;
     		}
     	}

@@ -18,8 +18,7 @@ package com.evolveum.midpoint.web.page.admin.resources.content;
 
 import com.evolveum.midpoint.common.refinery.RefinedResourceSchema;
 import com.evolveum.midpoint.common.security.AuthorizationConstants;
-import com.evolveum.midpoint.prism.PrismObject;
-import com.evolveum.midpoint.prism.PrismReferenceValue;
+import com.evolveum.midpoint.prism.*;
 import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
@@ -30,6 +29,7 @@ import com.evolveum.midpoint.schema.processor.ResourceAttribute;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceSchema;
 import com.evolveum.midpoint.schema.result.OperationResult;
+import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
@@ -40,9 +40,9 @@ import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.data.TablePanel;
 import com.evolveum.midpoint.web.component.data.column.*;
+import com.evolveum.midpoint.web.component.dialog.ConfirmationDialog;
 import com.evolveum.midpoint.web.component.dialog.UserBrowserDialog;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
-import com.evolveum.midpoint.web.component.option.OptionContent;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.page.admin.configuration.component.HeaderMenuAction;
 import com.evolveum.midpoint.web.page.admin.resources.PageAdminResources;
@@ -54,11 +54,10 @@ import com.evolveum.midpoint.web.page.admin.resources.content.dto.AccountOwnerCh
 import com.evolveum.midpoint.web.page.admin.users.PageUser;
 import com.evolveum.midpoint.web.page.admin.users.dto.UserListItemDto;
 import com.evolveum.midpoint.web.security.MidPointApplication;
+import com.evolveum.midpoint.web.session.ResourceContentStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -94,7 +93,10 @@ public class PageContentAccounts extends PageAdminResources {
     private static final String OPERATION_CHANGE_OWNER = DOT_CLASS + "changeOwner";
     private static final String OPERATION_CREATE_USER_FROM_ACCOUNTS = DOT_CLASS + "createUserFromAccounts";
     private static final String OPERATION_CREATE_USER_FROM_ACCOUNT = DOT_CLASS + "createUserFromAccount";
+    private static final String OPERATION_DELETE_ACCOUNT_FROM_RESOURCE = DOT_CLASS + "deleteAccountFromResource";
+    private static final String OPERATION_ADJUST_ACCOUNT_STATUS = "changeAccountActivationStatus";
     private static final String MODAL_ID_OWNER_CHANGE = "ownerChangePopup";
+    private static final String MODAL_ID_CONFIRM_DELETE = "confirmDeletePopup";
 
     private static final String ID_MAIN_FORM = "mainForm";
     private static final String ID_SEARCH_FORM = "searchForm";
@@ -103,12 +105,29 @@ public class PageContentAccounts extends PageAdminResources {
     private static final String ID_IDENTIFIERS_CHECK = "identifiersCheck";
     private static final String ID_SEARCH_BUTTON = "searchButton";
     private static final String ID_TABLE = "table";
+    private static final String ID_SEARCH_CLEAR = "searchClear";
 
     private IModel<PrismObject<ResourceType>> resourceModel;
-    private IModel<AccountContentSearchDto> model = new Model<>(new AccountContentSearchDto());
+    private IModel<AccountContentSearchDto> model;
     private LoadableModel<AccountOwnerChangeDto> ownerChangeModel;
+    private AccountContentDto singleDelete;
 
     public PageContentAccounts() {
+        model = new LoadableModel<AccountContentSearchDto>() {
+
+            @Override
+            protected AccountContentSearchDto load() {
+                ResourceContentStorage storage = getSessionStorage().getResourceContent();
+                AccountContentSearchDto dto = storage.getAccountContentSearch();
+
+                if(dto == null){
+                    dto = new AccountContentSearchDto();
+                }
+
+                return dto;
+            }
+        };
+
         resourceModel = new LoadableModel<PrismObject<ResourceType>>(false) {
 
             @Override
@@ -143,6 +162,29 @@ public class PageContentAccounts extends PageAdminResources {
             }
         };
         add(dialog);
+
+        add(new ConfirmationDialog(MODAL_ID_CONFIRM_DELETE, createStringResource("pageContentAccounts.dialog.title.confirmDelete"),
+                createDeleteConfirmString()){
+
+            @Override
+            public void yesPerformed(AjaxRequestTarget target){
+                close(target);
+                deleteConfirmedPerformed(target);
+            }
+        });
+    }
+
+    private IModel<String> createDeleteConfirmString(){
+        return new AbstractReadOnlyModel<String>() {
+            @Override
+            public String getObject() {
+                if(singleDelete == null){
+                    return createStringResource("pageContentAccounts.message.deleteConfirmation", getSelectedAccounts(null).size()).getString();
+                } else{
+                    return createStringResource("pageContentAccounts.message.deleteConfirmationSingle", singleDelete.getAccountName()).getString();
+                }
+            }
+        };
     }
 
     private void initLayout() {
@@ -169,6 +211,20 @@ public class PageContentAccounts extends PageAdminResources {
             }
         };
         searchForm.add(searchButton);
+
+        AjaxSubmitButton clearButton = new AjaxSubmitButton(ID_SEARCH_CLEAR) {
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form){
+                clearSearchPerformed(target);
+            }
+
+            @Override
+            protected void onError(AjaxRequestTarget target, Form<?> form) {
+                target.add(getFeedbackPanel());
+            }
+        };
+        searchForm.add(clearButton);
 
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
@@ -267,6 +323,35 @@ public class PageContentAccounts extends PageAdminResources {
     private List<InlineMenuItem> createHeaderMenuItems() {
         List<InlineMenuItem> items = new ArrayList<InlineMenuItem>();
 
+        items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.enableAccount"), true,
+                new HeaderMenuAction(this){
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target, Form<?> form){
+                        updateAccountStatusPerformed(target, null, true);
+                    }
+                }));
+
+        items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.disableAccount"), true,
+                new HeaderMenuAction(this){
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target, Form<?> form){
+                        updateAccountStatusPerformed(target, null, false);
+                    }
+                }));
+
+        items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.deleteAccount"), true,
+                new HeaderMenuAction(this){
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target, Form<?> form){
+                        deleteAccountPerformed(target, null);
+                    }
+                }));
+
+        items.add(new InlineMenuItem());
+
         items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.importAccount"), true,
                 new HeaderMenuAction(this) {
 
@@ -275,7 +360,9 @@ public class PageContentAccounts extends PageAdminResources {
                         importAccount(target, null);
                     }
                 }));
+
         items.add(new InlineMenuItem());
+
         items.add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.removeOwner"), true,
                 new HeaderMenuAction(this) {
 
@@ -289,6 +376,35 @@ public class PageContentAccounts extends PageAdminResources {
     }
 
     private void addRowMenuToTable(final AccountContentDto dto) {
+        dto.getMenuItems().add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.enableAccount"), true,
+                new HeaderMenuAction(this){
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target, Form<?> form){
+                        updateAccountStatusPerformed(target, dto, true);
+                    }
+                }));
+
+        dto.getMenuItems().add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.disableAccount"), true,
+                new HeaderMenuAction(this){
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target, Form<?> form){
+                        updateAccountStatusPerformed(target, dto, false);
+                    }
+                }));
+
+        dto.getMenuItems().add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.deleteAccount"), true,
+                new HeaderMenuAction(this){
+
+                    @Override
+                    public void onSubmit(AjaxRequestTarget target, Form<?> form){
+                        deleteAccountPerformed(target, dto);
+                    }
+                }));
+
+        dto.getMenuItems().add(new InlineMenuItem());
+
         dto.getMenuItems().add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.importAccount"),
                 new ColumnMenuAction<UserListItemDto>() {
 
@@ -297,6 +413,9 @@ public class PageContentAccounts extends PageAdminResources {
                         importAccount(target, dto);
                     }
                 }));
+
+        dto.getMenuItems().add(new InlineMenuItem());
+
         dto.getMenuItems().add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.changeOwner"),
                 new ColumnMenuAction<UserListItemDto>() {
 
@@ -305,7 +424,7 @@ public class PageContentAccounts extends PageAdminResources {
                         changeOwnerPerformed(target, dto);
                     }
                 }));
-        dto.getMenuItems().add(new InlineMenuItem());
+
         dto.getMenuItems().add(new InlineMenuItem(createStringResource("pageContentAccounts.menu.removeOwner"), true,
                 new HeaderMenuAction(this) {
 
@@ -503,6 +622,18 @@ public class PageContentAccounts extends PageAdminResources {
         setResponsePage(PageAccount.class, parameters);
     }
 
+    private List<AccountContentDto> getSelectedAccounts(AccountContentDto dto){
+        List<AccountContentDto> accounts;
+        if (dto != null) {
+            accounts = new ArrayList<>();
+            accounts.add(dto);
+        } else {
+            accounts = WebMiscUtil.getSelectedData(getTable());
+        }
+
+        return accounts;
+    }
+
     private List<AccountContentDto> isAnythingSelected(AjaxRequestTarget target, AccountContentDto dto) {
         List<AccountContentDto> accounts;
         if (dto != null) {
@@ -569,4 +700,106 @@ public class PageContentAccounts extends PageAdminResources {
         showResult(result);
         target.add(getFeedbackPanel());
     }
+
+    private void clearSearchPerformed(AjaxRequestTarget target){
+        model.setObject(new AccountContentSearchDto());
+
+        TablePanel panel = getTable();
+        DataTable table = panel.getDataTable();
+        AccountContentDataProvider provider = (AccountContentDataProvider)table.getDataProvider();
+        provider.setQuery(null);
+
+        ResourceContentStorage storage = getSessionStorage().getResourceContent();
+        storage.setAccountContentSearch(model.getObject());
+        panel.setCurrentPage(storage.getAccountContentPaging());
+
+        target.add(get(ID_SEARCH_FORM));
+        target.add(panel);
+    }
+
+    private void deleteAccountPerformed(AjaxRequestTarget target, AccountContentDto dto){
+        singleDelete = dto;
+        List<AccountContentDto> accounts = isAnythingSelected(target, dto);
+
+        if (accounts.isEmpty()) {
+            return;
+        }
+
+        showModalWindow(MODAL_ID_CONFIRM_DELETE, target);
+    }
+
+    private void deleteConfirmedPerformed(AjaxRequestTarget target){
+        List<AccountContentDto> selected = new ArrayList<AccountContentDto>();
+
+        if(singleDelete != null){
+            selected.add(singleDelete);
+        } else {
+            selected = isAnythingSelected(target, null);
+        }
+
+        OperationResult result = new OperationResult(OPERATION_DELETE_ACCOUNT_FROM_RESOURCE);
+
+        for(AccountContentDto acc: selected){
+            String accOid = acc.getAccountOid();
+
+            try{
+                Task task = createSimpleTask(OPERATION_DELETE_ACCOUNT_FROM_RESOURCE);
+
+                ObjectDelta delta = ObjectDelta.createDeleteDelta(ShadowType.class, accOid, getPrismContext());
+                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
+
+            } catch (Exception e){
+                result.recordPartialError("Couldn't delete account from resource.", e);
+                LoggingUtils.logException(LOGGER, "Couldn't delete account from resource", e);
+            }
+        }
+
+        if(result.isUnknown()){
+            result.recomputeStatus("Error occurred during resource account deletion.");
+        }
+
+        if(result.isSuccess()){
+            result.recordStatus(OperationResultStatus.SUCCESS, "Selected accounts have been successfully deleted.");
+        }
+
+        AccountContentDataProvider provider = (AccountContentDataProvider)getTable().getDataTable().getDataProvider();
+        provider.clearCache();
+
+        TablePanel table = getTable();
+        target.add(table);
+        showResult(result);
+        target.add(getFeedbackPanel());
+    }
+
+    private void updateAccountStatusPerformed(AjaxRequestTarget target, AccountContentDto dto, boolean enabled){
+        List<AccountContentDto> accounts = isAnythingSelected(target, dto);
+        OperationResult result = new OperationResult(OPERATION_ADJUST_ACCOUNT_STATUS);
+
+        if (accounts.isEmpty()) {
+            return;
+        }
+
+        ActivationStatusType status = enabled ? ActivationStatusType.ENABLED : ActivationStatusType.DISABLED;
+
+        for(AccountContentDto acc: accounts){
+
+            ObjectDelta delta = ObjectDelta.createModificationReplaceProperty(ShadowType.class, acc.getAccountOid(),
+                    new ItemPath(ShadowType.F_ACTIVATION, ActivationType.F_ADMINISTRATIVE_STATUS), getPrismContext(), status);
+
+            try{
+                Task task = createSimpleTask(OPERATION_ADJUST_ACCOUNT_STATUS);
+                getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
+            } catch(Exception e){
+                LoggingUtils.logException(LOGGER, "Couldn't enable/disable account(s) on resource", e);
+                result.recordPartialError("Couldn't enable/disable account(s) on resource", e);
+            }
+        }
+        result.recomputeStatus();
+        showResult(result);
+        target.add(getFeedbackPanel());
+    }
+
+
+
+
 }

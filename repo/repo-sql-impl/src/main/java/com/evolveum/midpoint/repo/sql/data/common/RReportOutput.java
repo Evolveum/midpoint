@@ -95,7 +95,7 @@ public class RReportOutput extends RObject<ReportOutputType> {
     	RObject.copyFromJAXB(jaxb, repo, prismContext);
 
     	repo.setName(RPolyString.copyFromJAXB(jaxb.getName()));
-    	repo.setReportFilePath(jaxb.getReportFilePath());
+    	repo.setReportFilePath(jaxb.getFilePath());
         repo.setReportRef(RUtil.jaxbRefToEmbeddedRepoRef(jaxb.getReportRef(), prismContext));
     }
 
@@ -105,7 +105,7 @@ public class RReportOutput extends RObject<ReportOutputType> {
     	RObject.copyToJAXB(repo, jaxb, prismContext, options);
 
     	jaxb.setName(RPolyString.copyToJAXB(repo.getName()));
-    	jaxb.setReportFilePath(repo.getReportFilePath());
+    	jaxb.setFilePath(repo.getReportFilePath());
     	if (repo.getReportRef() != null) {
              jaxb.setReportRef(repo.getReportRef().toJAXB(prismContext));
          }
@@ -122,8 +122,4 @@ public class RReportOutput extends RObject<ReportOutputType> {
 
 	     return object;
 	}
-
-	
-	
-	
 }

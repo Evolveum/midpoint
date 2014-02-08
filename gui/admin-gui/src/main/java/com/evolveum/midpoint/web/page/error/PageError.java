@@ -43,6 +43,8 @@ public class PageError extends PageBase {
     private static final String ID_BACK = "back";
 
     private Integer code;
+    private String exClass;
+    private String exMessage;
 
     public PageError() {
         this(500);
@@ -56,19 +58,24 @@ public class PageError extends PageBase {
         this(500, ex);
     }
 
-    public PageError(Integer code, final Exception ex) {
+    public PageError(Integer code, Exception ex) {
         this.code = code;
+
+        if (ex != null) {
+            exClass = ex.getClass().getName();
+            exMessage = ex.getMessage();
+        }
 
         final IModel<String> message = new AbstractReadOnlyModel<String>() {
 
             @Override
             public String getObject() {
-                if (ex == null) {
+                if (exClass == null) {
                     return null;
                 }
 
                 SimpleDateFormat df = new SimpleDateFormat();
-                return df.format(new Date()) + "\t" + ex.getClass() + ": " + ex.getMessage();
+                return df.format(new Date()) + "\t" + exClass + ": " + exMessage;
             }
         };
 

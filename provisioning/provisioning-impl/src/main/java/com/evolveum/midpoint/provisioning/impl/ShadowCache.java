@@ -1441,7 +1441,8 @@ public abstract class ShadowCache {
 		QName objectClass = shadow.asObjectable().getObjectClass();
 		if (kind != null) {
 			objectClassDefinition = refinedSchema.getRefinedDefinition(kind, intent);
-		} else {
+		} 
+		if (objectClassDefinition == null) {
 			// Fallback to objectclass only
 			if (objectClass == null) {
 				throw new SchemaException("No kind nor objectclass definied in "+shadow);
