@@ -106,6 +106,8 @@ public class JobExecutor implements InterruptableJob {
             return;
         }
 
+        boolean isRecovering = false;
+
         // if this is a restart, check whether the task is resilient
         if (context.isRecovering()) {
 
@@ -123,11 +125,14 @@ public class JobExecutor implements InterruptableJob {
             if (!processTaskRecovery(executionResult)) {
                 return;
             }
+            isRecovering = true;
         }
 		
         executingThread = Thread.currentThread();
-        
-		LOGGER.trace("execute called; task = {}, thread = {}", task, executingThread);
+
+        if (LOGGER.isTraceEnabled()) {
+		    LOGGER.trace("execute called; task = {}, thread = {}, isRecovering = {}", new Object[] {task, executingThread, isRecovering});
+        }
 
         TaskHandler handler = null;
 		try {
@@ -135,7 +140,8 @@ public class JobExecutor implements InterruptableJob {
             taskManagerImpl.registerRunningTask(task);
         
 			handler = taskManagerImpl.getHandler(task.getHandlerUri());
-            logRunStart(handler);
+            logThreadRunStart(handler);
+            taskManagerImpl.notifyTaskThreadStart(task, isRecovering);
 		
 			if (handler==null) {
 				LOGGER.error("No handler for URI '{}', task {} - closing it.", task.getHandlerUri(), task);
@@ -165,7 +171,8 @@ public class JobExecutor implements InterruptableJob {
                 processTaskStop(executionResult);
             }
 
-			logRunFinish(handler);
+			logThreadRunFinish(handler);
+            taskManagerImpl.notifyTaskThreadFinish(task);
 		}
 
 	}
@@ -494,16 +501,17 @@ mainCycle:
 		return new OperationResult(DOT_CLASS + methodName);
 	}
 	
-	private void logRunStart(TaskHandler handler) {
+	private void logThreadRunStart(TaskHandler handler) {
 		LOGGER.trace("Task thread run STARTING  " + task + ", handler = " + handler);
 	}
 	
-	private void logRunFinish(TaskHandler handler) {
+	private void logThreadRunFinish(TaskHandler handler) {
 		LOGGER.trace("Task thread run FINISHED " + task + ", handler = " + handler);
 	}
     
 	private void recordCycleRunStart(OperationResult result, TaskHandler handler) {
 		LOGGER.trace("Task cycle run STARTING " + task + ", handler = " + handler);
+        taskManagerImpl.notifyTaskStart(task);
         try {
             task.setLastRunStartTimestamp(System.currentTimeMillis());
             if (task.getCategory() == null) {
@@ -522,6 +530,7 @@ mainCycle:
 	 */
 	private boolean recordCycleRunFinish(TaskRunResult runResult, TaskHandler handler, OperationResult result) {
 		LOGGER.trace("Task cycle run FINISHED " + task + ", handler = " + handler);
+        taskManagerImpl.notifyTaskFinish(task, runResult);
 		try {
             task.setProgress(runResult.getProgress());
             task.setLastRunFinishTimestamp(System.currentTimeMillis());
