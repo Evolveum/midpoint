@@ -270,13 +270,36 @@ public abstract class AbstractParserTest {
 		
 		// WHEN (re-serialize to XNode)
 		XNode serializedXNode = processor.serializeObject(resource, true);
-		String serializedString = parser.serializeToString(serializedXNode, new QName(NS_FOO, "user"));
+		String serializedString = parser.serializeToString(serializedXNode, new QName(NS_FOO, "resource"));
 				
 		// THEN
 		System.out.println("\nXNode after re-serialization:");
 		System.out.println(serializedXNode.dump());
 		System.out.println("\nRe-serialized string:");
 		System.out.println(serializedString);
+		
+//		try{
+////			FileOutputStream out = new FileOutputStream(new File("D:/user-jack-prism.json"));
+//			PrismJsonSerializer jsonSer = new PrismJsonSerializer();
+//			String s = jsonSer.serializeToString((RootXNode) serializedXNode);
+//			System.out.println("JSON: \n" + s);
+//			
+////			FileOutputStream out = new FileOutputStream(new File("D:/user-jack-prism.json"));
+//			YamlParser yamlParser = new YamlParser();
+//			s = yamlParser.serializeToString((RootXNode) serializedXNode);
+//			System.out.println("YAML: \n" + s);
+//			
+////			FileInputStream in = new FileInputStream(new File("D:/user-jack-prism.json"));
+////			XNode afterJson = jsonSer.parseObject(in);
+////			
+////			// THEN
+////					System.out.println("AFTER JSON XNode:");
+////					System.out.println(afterJson.dump());
+//			
+//			} catch (Exception ex){
+//				System.out.println( ex);
+//				throw ex;
+//			}
 		
 		validateResourceSchema(serializedString, prismContext);
 		

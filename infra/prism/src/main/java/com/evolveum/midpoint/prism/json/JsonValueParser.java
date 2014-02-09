@@ -53,10 +53,10 @@ public class JsonValueParser<T> implements ValueParser<T> {
 //	    	System.out.println("TID: " + tb.asParser().getTypeId());
 	    	if (parser.getCurrentToken() == null){
 	    		JsonToken t = parser.nextToken();
-	    		System.out.println("token: " + t);
+//	    		System.out.println("token: " + t);
 	    		if (t == null){
 	    			t = parser.nextToken();
-		    		System.out.println("token: " + t);
+//		    		System.out.println("token: " + t);
 	    		}
 	    	}
 //	    	T val = (T) parser.readValueAs(clazz);

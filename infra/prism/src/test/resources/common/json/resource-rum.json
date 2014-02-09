@@ -1,0 +1,13 @@
+{
+  "@ns" : "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd",
+  "resource" : {
+    "@ns" : "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd",
+    "oid" : "c0c010c0-d34d-b33f-f00d-222222220001",
+    "name" : "Rum Delivery System",
+    "description" : "Where's the rum?",
+    "schema" : {
+      "@ns" : "http://www.w3.org/2001/XMLSchema",
+      "schema" : "<?xml version=\"1.0\" encoding=\"UTF-16\"?>\n<xsd:schema xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\">\n\t\t\t<xsd:complexType name=\"BarrelType\">\n\t\t\t\t<xsd:sequence>\n\t\t\t\t\t<xsd:element name=\"diameter\" type=\"xsd:int\"/>\n\t\t\t\t\t<xsd:element name=\"depth\" type=\"xsd:int\"/>\n\t\t\t\t\t<xsd:element minOccurs=\"0\" name=\"name\" type=\"xsd:string\"/>\n\t\t\t\t</xsd:sequence>\n\t\t\t</xsd:complexType>\n\t\t</xsd:schema>"
+    }
+  }
+}

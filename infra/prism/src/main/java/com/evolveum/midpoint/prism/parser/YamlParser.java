@@ -9,7 +9,10 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import org.w3c.dom.Element;
+
 import com.evolveum.midpoint.prism.json.AbstractParser2;
+import com.evolveum.midpoint.prism.json.DomElementSerializer;
 import com.evolveum.midpoint.prism.json.ItemPathSerializer;
 import com.evolveum.midpoint.prism.json.JaxbElementSerializer;
 import com.evolveum.midpoint.prism.json.PolyStringSerializer;
@@ -232,6 +235,7 @@ public class YamlParser extends AbstractParser2{
 		module.addSerializer(ItemPath.class, new ItemPathSerializer());
 		module.addSerializer(JAXBElement.class, new JaxbElementSerializer());
 		module.addSerializer(XMLGregorianCalendar.class, new XmlGregorialCalendarSerializer());
+		module.addSerializer(Element.class, new DomElementSerializer());
 		return module;
 	}
 	
