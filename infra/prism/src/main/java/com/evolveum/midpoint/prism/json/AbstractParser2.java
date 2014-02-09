@@ -14,7 +14,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-import com.evolveum.midpoint.prism.foo.ResourceType;
 import com.evolveum.midpoint.prism.parser.Parser;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
@@ -40,7 +39,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
-import com.fasterxml.jackson.module.jaxb.deser.DomElementJsonDeserializer;
 
 public abstract class AbstractParser2 implements Parser {
 	
