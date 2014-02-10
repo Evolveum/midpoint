@@ -26,4 +26,8 @@ public interface HookRegistry {
 	void registerChangeHook(String url, ChangeHook changeHook);
 
 	Collection<ChangeHook> getAllChangeHooks();
+
+    void registerReadHook(String url, ReadHook searchHook);
+
+    Collection<ReadHook> getAllReadHooks();
 }

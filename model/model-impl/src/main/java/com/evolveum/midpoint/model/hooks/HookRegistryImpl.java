@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.evolveum.midpoint.model.api.hooks.ReadHook;
 import org.springframework.stereotype.Component;
 
 import com.evolveum.midpoint.model.api.hooks.ChangeHook;
@@ -26,21 +27,30 @@ import com.evolveum.midpoint.model.api.hooks.HookRegistry;
 
 /**
  * @author semancik
- *
  */
 @Component
 public class HookRegistryImpl implements HookRegistry {
 
-	private Map<String,ChangeHook> changeHookMap = new HashMap<String, ChangeHook>();
-	
-	@Override
-	public void registerChangeHook(String url, ChangeHook changeHook) {
-		changeHookMap.put(url,changeHook);
-	}
+    private Map<String, ChangeHook> changeHookMap = new HashMap<>();
+    private Map<String, ReadHook> readHookMap = new HashMap<>();
 
-	@Override
-	public Collection<ChangeHook> getAllChangeHooks() {
-		return changeHookMap.values();
-	}
+    @Override
+    public void registerChangeHook(String url, ChangeHook changeHook) {
+        changeHookMap.put(url, changeHook);
+    }
 
+    @Override
+    public Collection<ChangeHook> getAllChangeHooks() {
+        return changeHookMap.values();
+    }
+
+    @Override
+    public void registerReadHook(String url, ReadHook searchHook) {
+        readHookMap.put(url, searchHook);
+    }
+
+    @Override
+    public Collection<ReadHook> getAllReadHooks() {
+        return readHookMap.values();
+    }
 }
