@@ -626,7 +626,6 @@ public class Clockwork {
 			return;
 		}
 		
-		
 		// a priori: sync delta
 		boolean hasSyncDelta = false;
 		for (LensProjectionContext projectionContext: context.getProjectionContexts()) {

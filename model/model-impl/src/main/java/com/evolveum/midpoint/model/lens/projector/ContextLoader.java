@@ -37,6 +37,7 @@ import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
+import com.evolveum.midpoint.model.lens.LensObjectDeltaOperation;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.lens.LensUtil;
 import com.evolveum.midpoint.model.lens.SynchronizationIntent;
@@ -184,6 +185,8 @@ public class ContextLoader {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Removing rotten context {}", projectionContext.getHumanReadableName());
 				}
+				List<LensObjectDeltaOperation<ShadowType>> executedDeltas = projectionContext.getExecutedDeltas();
+				context.getRottenExecutedDeltas().addAll(executedDeltas);
 				projectionIterator.remove();
 			}
 		}
