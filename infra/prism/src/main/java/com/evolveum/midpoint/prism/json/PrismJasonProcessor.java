@@ -34,6 +34,9 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.parser.json.PolyStringSerializer;
+import com.evolveum.midpoint.prism.parser.json.QNameDeserializer;
+import com.evolveum.midpoint.prism.parser.json.QNameSerializer;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
@@ -272,8 +275,8 @@ public class PrismJasonProcessor {
 //		module.addSerializer(Node.class, new DOMSerializer());
 //		module.addSerializer(Element.class, new DOMSerializer());
 		
-		JaxbElementSerializer jaxbSerializer = new JaxbElementSerializer();
-		module.addSerializer(JAXBElement.class, jaxbSerializer);
+//		JaxbElementSerializer jaxbSerializer = new JaxbElementSerializer();
+//		module.addSerializer(JAXBElement.class, jaxbSerializer);
 //		module.addSerializer(DataHandler.class, new DataHandlerJsonSerializer());
 //		module.addSerializer(Element.class, new DomElementJsonSerializer());
 		mapper.registerModule(module);
@@ -619,11 +622,11 @@ generator.close();
 	    	module.addDeserializer(QName.class, new QNameDeserializer());
 	    	module.addDeserializer(Element.class, new DomElementJsonDeserializer());
 //	    	module.addDeserializer(, deser)
-	    	JaxbElementDeserializer jaxbDeserializer = new JaxbElementDeserializer();
-	    	jaxbDeserializer.setExpectedClass(expectedJavaType);
-	    	jaxbDeserializer.setNode(valueElement);
-	    	jaxbDeserializer.setPrismSchema(prismSchema);
-	    	module.addDeserializer(JAXBElement.class, jaxbDeserializer);
+//	    	JaxbElementDeserializer jaxbDeserializer = new JaxbElementDeserializer();
+//	    	jaxbDeserializer.setExpectedClass(expectedJavaType);
+//	    	jaxbDeserializer.setNode(valueElement);
+//	    	jaxbDeserializer.setPrismSchema(prismSchema);
+//	    	module.addDeserializer(JAXBElement.class, jaxbDeserializer);
 //	    	module.addDeserializer(Element.class, new DOMDeserializer());
 	    	mapper.setAnnotationIntrospector(new JaxbAnnotationIntrospector());
 	    	mapper.registerModule(module);

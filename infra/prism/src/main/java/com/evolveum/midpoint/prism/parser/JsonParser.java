@@ -1,60 +1,59 @@
-package com.evolveum.midpoint.prism.json;
+package com.evolveum.midpoint.prism.parser;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.StringWriter;
-import java.util.Iterator;
-import java.util.ListIterator;
-import java.util.Map.Entry;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
-import org.apache.commons.lang.StringUtils;
-import org.w3c.dom.Element;
-
-import com.evolveum.midpoint.prism.parser.Parser;
+import com.evolveum.midpoint.prism.parser.json.ItemPathSerializer;
+import com.evolveum.midpoint.prism.parser.json.PolyStringSerializer;
+import com.evolveum.midpoint.prism.parser.json.QNameSerializer;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyString;
-import com.evolveum.midpoint.prism.xnode.ListXNode;
-import com.evolveum.midpoint.prism.xnode.MapXNode;
 import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
-import com.evolveum.midpoint.prism.xnode.RootXNode;
-import com.evolveum.midpoint.prism.xnode.ValueParser;
-import com.evolveum.midpoint.prism.xnode.XNode;
+import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.QNameUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.PrettyPrinter;
 import com.fasterxml.jackson.core.Version;
-import com.fasterxml.jackson.core.base.GeneratorBase;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.Module;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectReader;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.module.jaxb.JaxbAnnotationIntrospector;
-import com.fasterxml.jackson.module.jaxb.deser.DomElementJsonDeserializer;
-import com.fasterxml.jackson.module.jaxb.ser.DomElementJsonSerializer;
 
-public class PrismJsonSerializer extends AbstractParser2{
+public class JsonParser extends AbstractParser{
 	
 //	private static final String PROP_NAMESPACE = "@ns";
 //	private static final String TYPE_DEFINITION = "@typeDef";
 //	private static final String VALUE_FIELD = "@value";
 //	
 //	
+	
 	@Override
-	protected JsonParser createParser(File file) throws SchemaException, IOException {
+	public boolean canParse(File file) throws IOException {
+		if (file == null) {
+			return false;
+		}
+		return file.getName().endsWith(".json");
+	}
+
+	@Override
+	public boolean canParse(String dataString) {
+		if (dataString == null) {
+			return false;
+		}
+		return dataString.startsWith("{");
+	}
+	
+	@Override
+	protected com.fasterxml.jackson.core.JsonParser createParser(File file) throws SchemaException, IOException {
 		JsonFactory factory = new JsonFactory();
 		try {
 			return factory.createParser(new FileInputStream(file));
@@ -65,7 +64,7 @@ public class PrismJsonSerializer extends AbstractParser2{
 	}
 
 	@Override
-	protected JsonParser createParser(String dataString) throws SchemaException {
+	protected com.fasterxml.jackson.core.JsonParser createParser(String dataString) throws SchemaException {
 		JsonFactory factory = new JsonFactory();
 		try {
 			return factory.createParser(dataString);
@@ -109,6 +108,17 @@ public class PrismJsonSerializer extends AbstractParser2{
 //		module.addSerializer(JAXBElement.class, new JaxbElementSerializer());
 		return module;
 	}
+
+	@Override
+	protected void serializeExplicitType(PrimitiveXNode primitive, QName explicitType, JsonGenerator generator) throws JsonGenerationException, IOException {
+		if (explicitType != null) {
+				generator.writeStartObject();
+				generator.writeStringField(TYPE_DEFINITION, QNameUtil.qNameToUri(primitive.getTypeQName()));
+				generator.writeObjectField(VALUE_FIELD, primitive.getValue());
+				generator.writeEndObject();
+				return;
+			}
+		}
 	
 
 }

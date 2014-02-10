@@ -2,8 +2,6 @@ package com.evolveum.midpoint.prism.parser;
 
 import org.testng.annotations.Test;
 
-import com.evolveum.midpoint.prism.json.PrismJsonSerializer;
-
 public class TestYamlParser extends AbstractParserTest{
  
 	

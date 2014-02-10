@@ -12,6 +12,9 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.prism.parser.Parser;
+import com.evolveum.midpoint.prism.parser.json.ItemPathDeserializer;
+import com.evolveum.midpoint.prism.parser.json.JsonValueParser;
+import com.evolveum.midpoint.prism.parser.json.QNameDeserializer;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xnode.ListXNode;
 import com.evolveum.midpoint.prism.xnode.MapXNode;
