@@ -23,9 +23,11 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.web.component.input.*;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.PageBase;
+import com.evolveum.midpoint.web.security.MidPointApplication;
 import com.evolveum.midpoint.web.util.DateValidator;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
@@ -44,6 +46,7 @@ import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.TextField;
+import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.markup.html.panel.FeedbackPanel;
@@ -53,6 +56,8 @@ import org.apache.wicket.request.resource.PackageResourceReference;
 
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
+import java.io.File;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -369,6 +374,16 @@ public class PrismValuePanel extends Panel {
             if (ObjectType.F_NAME.equals(def.getName()) || UserType.F_FULL_NAME.equals(def.getName())) {
                 panel.getBaseFormComponent().setRequired(true);
             }
+        } else if(DOMUtil.XSD_BASE64BINARY.equals(valueType)){
+            panel = new UploadPanel(id){
+
+                @Override
+                public void uploadFilePerformed(AjaxRequestTarget target){
+                    FileUpload uploadedFile = getFileUpload();
+                    model.getObject().getValue().setValue(uploadedFile.getBytes());
+                }
+            };
+
         } else {
             Class type = XsdTypeMapper.getXsdToJavaMapping(valueType);
             if (type != null && type.isPrimitive()) {
