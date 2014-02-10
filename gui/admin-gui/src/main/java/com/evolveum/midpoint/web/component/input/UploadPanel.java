@@ -22,6 +22,7 @@ import org.apache.wicket.markup.html.form.Form;
 import org.apache.wicket.markup.html.form.FormComponent;
 import org.apache.wicket.markup.html.form.upload.FileUpload;
 import org.apache.wicket.markup.html.form.upload.FileUploadField;
+import org.apache.wicket.markup.html.panel.FeedbackPanel;
 import org.apache.wicket.model.IModel;
 
 /**
@@ -31,6 +32,7 @@ public class UploadPanel<T> extends InputPanel {
 
     private static final String ID_BUTTON_UPLOAD = "upload";
     private static final String ID_INPUT_FILE = "fileInput";
+    private static final String ID_FEEDBACK = "feedback";
 
     public UploadPanel(String id){
         super(id);
@@ -38,6 +40,11 @@ public class UploadPanel<T> extends InputPanel {
     }
 
     private void initLayout(){
+
+        final FeedbackPanel feedback = new FeedbackPanel(ID_FEEDBACK);
+        feedback.setOutputMarkupId(true);
+        add(feedback);
+
         FileUploadField fileUpload = new FileUploadField(ID_INPUT_FILE);
         add(fileUpload);
 
@@ -60,6 +67,10 @@ public class UploadPanel<T> extends InputPanel {
         final FileUpload uploadedFile = file.getFileUpload();
 
         return uploadedFile;
+    }
+
+    public FeedbackPanel getFeedbackPanel(){
+        return (FeedbackPanel)get(ID_FEEDBACK);
     }
 
     public void uploadFilePerformed(AjaxRequestTarget target){}

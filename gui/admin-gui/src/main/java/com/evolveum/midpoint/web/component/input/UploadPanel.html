@@ -16,14 +16,16 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
-    <div class="col-lg-2">
-        <a class="btn btn-primary btn-xs" wicket:id="upload" wicket:message="title:UploadPanel.upload.tooltip">
-            <i class="fa fa-upload"/>
-        </a>
-    </div>
+    <div wicket:id="feedback" class="messagePanel"/>
 
     <div class="col-lg-2">
         <input wicket:id="fileInput" type="file"/>
+    </div>
+
+    <div class="col-lg-2 pull-right">
+        <a class="btn btn-primary btn-sm" wicket:id="upload" wicket:message="title:UploadPanel.upload.tooltip">
+            <i class="fa fa-upload"/>
+        </a>
     </div>
 </wicket:panel>
 </html>
