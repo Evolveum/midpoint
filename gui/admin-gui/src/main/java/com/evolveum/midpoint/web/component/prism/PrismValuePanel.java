@@ -379,8 +379,16 @@ public class PrismValuePanel extends Panel {
 
                 @Override
                 public void uploadFilePerformed(AjaxRequestTarget target){
-                    FileUpload uploadedFile = getFileUpload();
-                    model.getObject().getValue().setValue(uploadedFile.getBytes());
+
+                    try{
+                        FileUpload uploadedFile = getFileUpload();
+                        model.getObject().getValue().setValue(uploadedFile.getBytes());
+                        success("Image upload was successful. Continue with editing and press 'Save' when done.");
+                        target.add(getFeedbackPanel());
+                    } catch (Exception e){
+                        error("Image upload was not successful. Try again please.");
+                        target.add(getFeedbackPanel());
+                    }
                 }
             };
 
