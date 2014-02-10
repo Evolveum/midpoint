@@ -29,9 +29,11 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
+import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.users.component.TreeTablePanel;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.OrgType;
+import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.extensions.markup.html.tabs.AbstractTab;
 import org.apache.wicket.extensions.markup.html.tabs.ITab;
 import org.apache.wicket.markup.html.WebMarkupContainer;
@@ -68,7 +70,7 @@ public class PageOrgTree extends PageAdminUsers {
     }
 
     private void initLayout() {
-        IModel<List<ITab>> tabModel = new LoadableModel<List<ITab>>(false) {
+        final IModel<List<ITab>> tabModel = new LoadableModel<List<ITab>>(false) {
 
             @Override
             protected List<ITab> load() {
@@ -89,11 +91,16 @@ public class PageOrgTree extends PageAdminUsers {
 
                 LOGGER.debug("Tab count is {}", new Object[]{tabs.size()});
 
+                if (tabs.isEmpty()) {
+                    getSession().warn(getString("PageOrgTree.message.noOrgStructDefined"));
+                    throw new RestartResponseException(PageUsers.class);
+                }
+
                 return tabs;
             }
         };
 
-        TabbedPanel tabbedPanel = new TabbedPanel(ID_TABS, tabModel, new Model<Integer>(0));
+        TabbedPanel tabbedPanel = new TabbedPanel(ID_TABS, tabModel, new Model<>(0));
         tabbedPanel.setOutputMarkupId(true);
         add(tabbedPanel);
     }
