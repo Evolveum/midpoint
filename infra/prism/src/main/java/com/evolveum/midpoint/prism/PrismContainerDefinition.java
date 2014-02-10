@@ -123,6 +123,20 @@ public class PrismContainerDefinition<V extends Containerable> extends ItemDefin
         }
         return false;
     }
+    
+    /**
+     * Returns true if the definition does not define specific items but it is just
+     * a "wildcard" for any kind of item (usually represented as xsd:any type).
+     */
+	public boolean isWildcard() {
+		if (getTypeName().equals(DOMUtil.XSD_ANY)) {
+			return true;
+		}
+		if (complexTypeDefinition != null && complexTypeDefinition.isXsdAnyMarker()) {
+			return true;
+		}
+		return false;
+	}
 
     @Override
 	void revive(PrismContext prismContext) {

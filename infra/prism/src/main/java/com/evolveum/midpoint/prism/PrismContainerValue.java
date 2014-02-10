@@ -1002,6 +1002,10 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
 	}
 
 	public void applyDefinition(PrismContainerDefinition<T> definition, boolean force) throws SchemaException {
+		if (definition.isWildcard()) {
+			// No point in aplying this. Nothing will change and there may be phantom errors.
+			return;
+		}
 		if (rawElements != null) {
 			for (Object rawElement: rawElements) {
 				Item<?> subitem = parseRawElement(rawElement, definition);

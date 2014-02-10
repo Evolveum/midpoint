@@ -47,6 +47,7 @@ import com.evolveum.midpoint.prism.PrismReference;
 import com.evolveum.midpoint.prism.PrismReferenceDefinition;
 import com.evolveum.midpoint.prism.PrismReferenceValue;
 import com.evolveum.midpoint.prism.PrismValue;
+import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.query.ObjectFilter;
 import com.evolveum.midpoint.prism.util.JaxbTestUtil;
 import com.evolveum.midpoint.prism.util.PrismUtil;
@@ -61,6 +62,7 @@ import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_2.EncryptedDataType;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import com.evolveum.prism.xml.ns._public.types_2.ProtectedDataType;
 import com.evolveum.prism.xml.ns._public.types_2.SchemaDefinitionType;
 
@@ -246,12 +248,21 @@ public class XNodeSerializer {
 			return serializeSchemaDefinition((SchemaDefinitionType)realValue);
 		} else if (realValue instanceof ProtectedDataType<?>) {
 			return serializeProtectedDataType((ProtectedDataType<?>) realValue);
+		} else if (realValue instanceof PolyString) {
+			return serializePolyString((PolyString) realValue);
 		} else if (beanConverter.canConvert(typeQName)) {
 			return beanConverter.marshall(realValue);
 		} else {
 			// primitive value
 			return createPrimitiveXNode(realValue, typeQName);
 		}
+	}
+
+	private XNode serializePolyString(PolyString realValue) {
+		PrimitiveXNode<PolyString> xprim = new PrimitiveXNode<>();
+		xprim.setValue(realValue);
+		xprim.setTypeQName(PolyStringType.COMPLEX_TYPE);
+		return xprim;
 	}
 
 	private <T> XNode serializeProtectedDataType(ProtectedDataType<T> protectedType) {

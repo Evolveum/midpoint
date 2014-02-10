@@ -169,7 +169,7 @@ public class TestJaxbParsing {
         PrismAsserts.assertEquals("Wrong number of approver expressions", 1, role.asObjectable().getApproverExpression().size());
         Object o = role.asObjectable().getApproverExpression().get(0).getExpressionEvaluator().get(0).getValue();
         PrismAsserts.assertEquals("Invalid evaluator type", ScriptExpressionEvaluatorType.class, o.getClass());
-        String code = ((ScriptExpressionEvaluatorType) o).getCode().getTextContent();
+        String code = ((ScriptExpressionEvaluatorType) o).getCode();
         PrismAsserts.assertEquals("Incorrect code parsed", "midpoint.oid2ort(user.getOid())", code);
     }
 

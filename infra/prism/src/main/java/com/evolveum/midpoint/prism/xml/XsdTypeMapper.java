@@ -37,6 +37,7 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.prism.xml.ns._public.types_2.ItemPathType;
 
 /**
  * Maintains mapping of XSD types (qnames) and Java types (classes)
@@ -88,8 +89,7 @@ public class XsdTypeMapper {
         addMapping(QName.class, DOMUtil.XSD_QNAME, true);
         
         addMapping(PolyString.class, PrismConstants.POLYSTRING_TYPE_QNAME, true);
-        
-        
+        addMapping(ItemPathType.class, ItemPathType.COMPLEX_TYPE, true);
 
         xsdToJavaTypeMap.put(DOMUtil.XSD_ANYURI, String.class);
     }
