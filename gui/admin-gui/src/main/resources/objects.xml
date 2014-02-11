@@ -87,6 +87,17 @@
                 <level>WARN</level>
                 <package>org.apache.wicket.resource.PropertiesFactory</package>
             </classLogger>
+            <classLogger>
+                <!-- Standard useful logger -->
+                <level>INFO</level>
+                <package>com.evolveum.midpoint.model.lens.projector.Projector</package>
+            </classLogger>
+            <classLogger>
+                <!-- Standard useful logger -->
+                <level>INFO</level>
+                <package>com.evolveum.midpoint.model.lens.Clockwork</package>
+            </classLogger>
+
             <appender xsi:type="c:FileAppenderConfigurationType" name="IDM_LOG"
                       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
                 <pattern>%date [%X{subsystem}] [%thread] %level \(%logger\): %msg%n</pattern>
