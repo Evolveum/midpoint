@@ -467,6 +467,10 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
         rOcDef.setKind(kind);
         rOcDef.schemaHandlingObjectTypeDefinitionType = schemaHandlingObjDefType;
 
+        if (intent == null && kind == ShadowKindType.ACCOUNT) {
+        	intent = SchemaConstants.INTENT_DEFAULT;
+        }
+        
         if (intent != null) {
             rOcDef.setIntent(intent);
         } else {
