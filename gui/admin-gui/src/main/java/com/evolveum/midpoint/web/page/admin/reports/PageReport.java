@@ -15,6 +15,7 @@
  */
 package com.evolveum.midpoint.web.page.admin.reports;
 
+import com.evolveum.midpoint.common.security.AuthorizationConstants;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.dom.PrismDomProcessor;
@@ -24,6 +25,7 @@ import com.evolveum.midpoint.util.Holder;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+import com.evolveum.midpoint.web.application.PageDescriptor;
 import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
@@ -64,7 +66,11 @@ import java.util.List;
 
 /**
  *  @author shood
- * */
+ *
+ */
+@PageDescriptor(url = "/admin/report", encoder = OnePageParameterEncoder.class, action = {
+        PageAdminReports.AUTHORIZATION_REPORTS_ALL,
+        AuthorizationConstants.NS_AUTHORIZATION + "#report"})
 public class PageReport<T extends Serializable> extends PageAdminReports{
 
     private static Trace LOGGER = TraceManager.getTrace(PageReport.class);

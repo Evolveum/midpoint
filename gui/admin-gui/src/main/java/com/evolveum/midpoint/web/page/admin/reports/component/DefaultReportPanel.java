@@ -16,12 +16,19 @@
 
 package com.evolveum.midpoint.web.page.admin.reports.component;
 
+import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
+import com.evolveum.midpoint.web.component.form.TextAreaFormGroup;
 import com.evolveum.midpoint.web.component.form.TextFormGroup;
+import com.evolveum.midpoint.web.component.prism.ContainerStatus;
+import com.evolveum.midpoint.web.component.prism.ObjectWrapper;
+import com.evolveum.midpoint.web.component.prism.PrismObjectPanel;
+import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.reports.dto.ReportDto;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExportType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
 import org.apache.wicket.markup.html.form.EnumChoiceRenderer;
 import org.apache.wicket.markup.html.form.IChoiceRenderer;
 import org.apache.wicket.model.IModel;
@@ -29,12 +36,13 @@ import org.apache.wicket.model.PropertyModel;
 
 /**
  *  @author shood
- * */
+ */
 public class DefaultReportPanel extends SimplePanel<ReportDto>{
 
     private static final String ID_NAME = "name";
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_EXPORT_TYPE = "exportType";
+    private static final String ID_PROPERTIES = "properties";
 
     private static final String ID_LABEL_SIZE = "col-md-4";
     private static final String ID_INPUT_SIZE = "col-md-6";
@@ -44,14 +52,13 @@ public class DefaultReportPanel extends SimplePanel<ReportDto>{
     }
 
     @Override
-    protected void initLayout(){
-
+    protected void initLayout() {
         TextFormGroup name = new TextFormGroup(ID_NAME, new PropertyModel<String>(getModel(), ReportDto.F_NAME),
                 createStringResource("ObjectType.name"), ID_LABEL_SIZE, ID_INPUT_SIZE, true);
         add(name);
 
-        TextFormGroup description = new TextFormGroup(ID_DESCRIPTION, new PropertyModel<String>(getModel(), ReportDto.F_DESCRIPTION),
-                createStringResource("ObjectType.description"), ID_LABEL_SIZE, ID_INPUT_SIZE, true);
+        TextAreaFormGroup description = new TextAreaFormGroup(ID_DESCRIPTION, new PropertyModel<String>(getModel(),
+                ReportDto.F_DESCRIPTION), createStringResource("ObjectType.description"), ID_LABEL_SIZE, ID_INPUT_SIZE, true);
         add(description);
 
         IModel choices = WebMiscUtil.createReadonlyModelFromEnum(ExportType.class);
@@ -60,8 +67,17 @@ public class DefaultReportPanel extends SimplePanel<ReportDto>{
                 PropertyModel<ExportType>(getModel(), ReportDto.F_EXPORT_TYPE), choices, renderer,
                 createStringResource("defaultReportPanel.exportType.label"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         add(exportType);
+
+        IModel<ObjectWrapper> wrapper = new LoadableModel<ObjectWrapper>(false) {
+
+            @Override
+            protected ObjectWrapper load() {
+                PrismObject<ReportType> report = getModel().getObject().getObject();
+
+                return new ObjectWrapper(null, null, report, ContainerStatus.MODIFYING);
+            }
+        };
+        PrismObjectPanel properties = new PrismObjectPanel(ID_PROPERTIES, wrapper, null, null);
+        add(properties);
     }
-
-
-
 }
