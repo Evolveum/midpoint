@@ -466,7 +466,7 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
         } else {
         	boolean multiline = false;
         	PrismPropertyValue<T> firstVal = values.iterator().next();
-        	if (firstVal != null && firstVal.getValue() != null) {
+        	if (firstVal != null && !firstVal.isRaw() && firstVal.getValue() != null) {
         		if (DebugUtil.isDetailedDebugDump() && firstVal.getValue() instanceof DebugDumpable) {
         			multiline = true;
         		} else {
@@ -480,15 +480,19 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
 	            Iterator<PrismPropertyValue<T>> iterator = getValues().iterator();
 	            while(iterator.hasNext()) {
 	            	PrismPropertyValue<T> value = iterator.next();
-	            	T realValue = value.getValue();
-	            	if (realValue instanceof DebugDumpable) {
-	            		sb.append(((DebugDumpable)realValue).debugDump(indent + 1));
+	            	if (value.isRaw()) {
+	            		sb.append("(raw)");
 	            	} else {
-	            		DebugUtil.indentDebugDump(sb, indent + 1);
-		            	if (DebugUtil.isDetailedDebugDump()) {
-		            		sb.append(PrettyPrinter.prettyPrint(value));
+		            	T realValue = value.getValue();
+		            	if (realValue instanceof DebugDumpable) {
+		            		sb.append(((DebugDumpable)realValue).debugDump(indent + 1));
 		            	} else {
-		            		sb.append(value.getValue());
+		            		DebugUtil.indentDebugDump(sb, indent + 1);
+			            	if (DebugUtil.isDetailedDebugDump()) {
+			            		sb.append(PrettyPrinter.prettyPrint(value));
+			            	} else {
+			            		sb.append(value.getValue());
+			            	}
 		            	}
 	            	}
 	                if (iterator.hasNext()) {
@@ -502,10 +506,14 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
 	            Iterator<PrismPropertyValue<T>> iterator = getValues().iterator();
 	            while(iterator.hasNext()) {
 	            	PrismPropertyValue<T> value = iterator.next();
-	            	if (DebugUtil.isDetailedDebugDump()) {
-	            		sb.append(PrettyPrinter.prettyPrint(value));
+	            	if (value.isRaw()) {
+	            		sb.append("(raw)");
 	            	} else {
-	            		sb.append(value.getValue());
+		            	if (DebugUtil.isDetailedDebugDump()) {
+		            		sb.append(PrettyPrinter.prettyPrint(value));
+		            	} else {
+		            		sb.append(value.getValue());
+		            	}
 	            	}
 	                if (iterator.hasNext()) {
 	                	sb.append(", ");
