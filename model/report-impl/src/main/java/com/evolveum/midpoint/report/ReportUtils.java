@@ -153,7 +153,7 @@ public class ReportUtils {
 			throw new SchemaException("No configuration container in " + reportType);
 		}
 		
-		LOGGER.trace("Parameters container : {}", configuration.dump());
+		LOGGER.trace("Parameters container : {}", configuration.debugDump());
 		
 		QName configContainerQName = new QName(schema.getNamespace(), ReportType.F_CONFIGURATION.getLocalPart());
 		PrismContainerDefinition<ReportConfigurationType> configurationContainerDefinition = schema.findContainerDefinitionByElementName(configContainerQName);
@@ -162,11 +162,11 @@ public class ReportUtils {
 			throw new SchemaException("No configuration container definition in " + reportType);
 		}
 		
-		LOGGER.trace("Parameters configuration definition: {}", configurationContainerDefinition.dump());
+		LOGGER.trace("Parameters configuration definition: {}", configurationContainerDefinition.debugDump());
 		
 		configuration.applyDefinition(configurationContainerDefinition, true);
 		
-		LOGGER.trace("Parameters container with definitions : {}", configuration.dump());
+		LOGGER.trace("Parameters container with definitions : {}", configuration.debugDump());
 		 
 		return configuration;
 	}

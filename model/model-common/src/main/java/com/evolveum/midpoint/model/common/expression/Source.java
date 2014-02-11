@@ -25,14 +25,13 @@ import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.PrettyPrinter;
 
 /**
  * @author semancik
  *
  */
-public class Source<V extends PrismValue> extends ItemDeltaItem<V> implements Dumpable, DebugDumpable {
+public class Source<V extends PrismValue> extends ItemDeltaItem<V> implements DebugDumpable {
 
 	private QName name;
 
@@ -88,11 +87,6 @@ public class Source<V extends PrismValue> extends ItemDeltaItem<V> implements Du
 		sb.append("\n");
 		DebugUtil.debugDumpWithLabel(sb, "new", itemNew, indent +1);
 		return sb.toString();
-	}
-
-	@Override
-	public String dump() {
-		return debugDump();
 	}
 	
 }

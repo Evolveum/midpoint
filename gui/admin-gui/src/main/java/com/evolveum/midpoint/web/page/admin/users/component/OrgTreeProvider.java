@@ -144,7 +144,7 @@ public class OrgTreeProvider extends SortableTreeProvider<OrgTreeDto, String> {
             result.computeStatus();
 
             root = createDto(null, object);
-            LOGGER.info("\n{}", result.dump());
+            LOGGER.info("\n{}", result.debugDump());
             LOGGER.debug("Finished roots loading.");
         }
 

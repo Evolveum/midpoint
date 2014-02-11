@@ -452,7 +452,7 @@ public class ContextLoader {
 			String oid = linkRefVal.getOid();
 			if (StringUtils.isBlank(oid)) {
 				LOGGER.trace("Null or empty OID in link reference {} in:\n{}", linkRef,
-						focus.dump());
+						focus.debugDump());
 				throw new SchemaException("Null or empty OID in link reference in " + focus);
 			}
 			LensProjectionContext existingAccountContext = findAccountContext(oid, context);

@@ -578,7 +578,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		if (credentialsProp == null) {
 			// The is the heisenbug we are looking for. Just dump the entire
 			// damn thing.
-			display("Configuration with the heisenbug", configurationContainer.dump());
+			display("Configuration with the heisenbug", configurationContainer.debugDump());
 		}
 		assertNotNull("No credentials property in " + resource + " from " + source, credentialsProp);
 		assertEquals("Wrong number of credentials property value in " + resource + " from " + source, 1,
@@ -718,7 +718,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		String oid = provisioningService.addObject(jackeAccount.asPrismObject(), null, null, task, parentResult);
 		PrismObject<ShadowType> jackFromRepo = repositoryService.getObject(ShadowType.class,
 				oid, null, parentResult);
-		LOGGER.debug("account jack after provisioning: {}", jackFromRepo.dump());
+		LOGGER.debug("account jack after provisioning: {}", jackFromRepo.debugDump());
 
 		PrismObject<UserType> jackUser = repositoryService.getObject(UserType.class, USER_JACK_OID,
 				null, parentResult);
@@ -862,7 +862,7 @@ public class ConsistencyTest extends AbstractModelIntegrationTest {
 		String accountRef = assertUserOneAccountRef(USER_JACK_OID);
 
 		PrismObject<ShadowType> jackUserAccount = repositoryService.getObject(ShadowType.class, accountRef, null, parentResult);
-		display("Jack's account: ", jackUserAccount.dump());
+		display("Jack's account: ", jackUserAccount.debugDump());
 					
 		// WHEN
 		requestToExecuteChanges(REQUEST_USER_MODIFY_ADD_ACCOUNT_ALERADY_EXISTS_LINKED_OPENDJ_FILENAME, USER_JACK2_OID, UserType.class, task, null, parentResult);

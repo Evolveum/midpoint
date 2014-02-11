@@ -41,7 +41,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ObjectResolver;
-import com.evolveum.midpoint.util.Dumpable;
+import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.TunnelException;
@@ -209,14 +209,14 @@ public class LazyXPathVariableResolver implements XPathVariableResolver {
 	        return variableValue;
 	        
     	} catch (SchemaException e) {
-    		if (variableValue != null && variableValue instanceof Dumpable) {
-    			LOGGER.trace("Value of variable {}:\n{}", variableName, ((Dumpable)variableValue).dump());
+    		if (variableValue != null && variableValue instanceof DebugDumpable) {
+    			LOGGER.trace("Value of variable {}:\n{}", variableName, ((DebugDumpable)variableValue).debugDump());
     		}
     		throw new SchemaException(e.getMessage() + " while processing variable "+variableName+" with value "+variableValue
     				+" in "+contextDescription, e);
     	} catch (RuntimeException e) {
-    		if (variableValue != null && variableValue instanceof Dumpable) {
-    			LOGGER.trace("Value of variable {}:\n{}", variableName, ((Dumpable)variableValue).dump());
+    		if (variableValue != null && variableValue instanceof DebugDumpable) {
+    			LOGGER.trace("Value of variable {}:\n{}", variableName, ((DebugDumpable)variableValue).debugDump());
     		}
     		throw new RuntimeException(e.getClass().getName()+ ": "+e.getMessage() + " while processing variable "+variableName
     				+" with value "+variableValue+" in "+contextDescription, e);

@@ -607,7 +607,7 @@ public class TestDummy extends AbstractDummyTest {
 		assertNotNull("No capabilities in repo, the capabilities were not cached", capabilitiesType);
 		CapabilityCollectionType nativeCapabilities = capabilitiesType.getNative();
 		System.out.println("Native capabilities: " + PrismTestUtil.marshalWrap(nativeCapabilities));
-		System.out.println("resource: " + resourceType.asPrismObject().dump());
+		System.out.println("resource: " + resourceType.asPrismObject().debugDump());
 		List<Object> nativeCapabilitiesList = nativeCapabilities.getAny();
 		assertFalse("Empty capabilities returned", nativeCapabilitiesList.isEmpty());
 		CredentialsCapabilityType capCred = CapabilityUtil.getCapability(nativeCapabilitiesList,
@@ -993,7 +993,7 @@ public class TestDummy extends AbstractDummyTest {
 		PrismObject<ShadowType> shadowFromRepo = repositoryService.getObject(ShadowType.class,
 				addedObjectOid, null, result);
 		assertNotNull("Shadow was not created in the repository", shadowFromRepo);
-		display("Repository shadow", shadowFromRepo.dump());
+		display("Repository shadow", shadowFromRepo.debugDump());
 
 		ProvisioningTestUtil.checkRepoAccountShadow(shadowFromRepo);
 
@@ -1062,7 +1062,7 @@ public class TestDummy extends AbstractDummyTest {
 		PrismObject<ShadowType> shadowFromRepo = repositoryService.getObject(ShadowType.class,
 				addedObjectOid, null, result);
 		assertNotNull("Shadow was not created in the repository", shadowFromRepo);
-		display("Repository shadow", shadowFromRepo.dump());
+		display("Repository shadow", shadowFromRepo.debugDump());
 
 		ProvisioningTestUtil.checkRepoAccountShadow(shadowFromRepo);
 
@@ -2153,7 +2153,7 @@ public class TestDummy extends AbstractDummyTest {
 		newAccount.setEnabled(true);
 		dummyResource.addAccount(newAccount);
 
-		IntegrationTestTools.display("dummy", dummyResource.dump());
+		IntegrationTestTools.display("dummy", dummyResource.debugDump());
 		
 		testSeachIterativeSingleAttrFilter(TEST_NAME, 
 				DummyResourceContoller.DUMMY_ACCOUNT_ATTRIBUTE_WEAPON_NAME, "cutlass", null, true,
@@ -2344,7 +2344,7 @@ public class TestDummy extends AbstractDummyTest {
 		PrismObject<ShadowType> shadowFromRepo = repositoryService.getObject(ShadowType.class,
 				addedObjectOid, null, result);
 		assertNotNull("Shadow was not created in the repository", shadowFromRepo);
-		display("Repository shadow", shadowFromRepo.dump());
+		display("Repository shadow", shadowFromRepo.debugDump());
 
 		ProvisioningTestUtil.checkRepoEntitlementShadow(shadowFromRepo);
 
@@ -2507,7 +2507,7 @@ public class TestDummy extends AbstractDummyTest {
 		PrismObject<ShadowType> shadowFromRepo = repositoryService.getObject(ShadowType.class,
 				addedObjectOid, null, result);
 		assertNotNull("Shadow was not created in the repository", shadowFromRepo);
-		display("Repository shadow", shadowFromRepo.dump());
+		display("Repository shadow", shadowFromRepo.debugDump());
 
 		ProvisioningTestUtil.checkRepoEntitlementShadow(shadowFromRepo);
 
@@ -3337,7 +3337,7 @@ public class TestDummy extends AbstractDummyTest {
 		dummyResource.addAccount(newAccount);
 		blackbeardIcfUid = newAccount.getId();
 
-		display("Resource before sync", dummyResource.dump());
+		display("Resource before sync", dummyResource.debugDump());
 
 		// WHEN
 		provisioningService.synchronize(RESOURCE_DUMMY_OID, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType), 
@@ -3396,7 +3396,7 @@ public class TestDummy extends AbstractDummyTest {
 		DummyAccount dummyAccount = getDummyAccountAssert(BLACKBEARD_USERNAME, blackbeardIcfUid);
 		dummyAccount.replaceAttributeValue("fullname", "Captain Blackbeard");
 
-		display("Resource before sync", dummyResource.dump());
+		display("Resource before sync", dummyResource.debugDump());
 
 		// WHEN
 		provisioningService.synchronize(RESOURCE_DUMMY_OID, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType), 
@@ -3473,7 +3473,7 @@ public class TestDummy extends AbstractDummyTest {
 		dummyResource.addAccount(newAccount);
 		drakeIcfUid = newAccount.getId();
 
-		display("Resource before sync", dummyResource.dump());
+		display("Resource before sync", dummyResource.debugDump());
 
 		// WHEN
 		provisioningService.synchronize(RESOURCE_DUMMY_OID, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType), 
@@ -3541,7 +3541,7 @@ public class TestDummy extends AbstractDummyTest {
 			dummyResource.deleteAccountById(drakeIcfUid);
 		}
 
-		display("Resource before sync", dummyResource.dump());
+		display("Resource before sync", dummyResource.debugDump());
 
 		// WHEN
 		provisioningService.synchronize(RESOURCE_DUMMY_OID, ProvisioningTestUtil.getDefaultAccountObjectClass(resourceType), 

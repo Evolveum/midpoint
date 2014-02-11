@@ -118,7 +118,7 @@ public class ControllerListObjectsTest extends AbstractTestNGSpringContextTests 
 					any(Collection.class), any(OperationResult.class));
 			testObjectList((List)expectedUserList, (List)returnedUserList);
 		} finally {
-			LOGGER.debug(task.getResult().dump());
+			LOGGER.debug(task.getResult().debugDump());
 		}
 	}
 

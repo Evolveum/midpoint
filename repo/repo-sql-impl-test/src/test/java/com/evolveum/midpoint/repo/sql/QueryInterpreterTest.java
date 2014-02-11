@@ -624,7 +624,7 @@ public class QueryInterpreterTest extends BaseSQLRepoTest {
         ObjectFilter greater = GreaterFilter.createGreater(triggerPath, objectDef, thisScanTimestamp, false);
         ObjectFilter lesser = LessFilter.createLess(triggerPath, objectDef, thisScanTimestamp, false);
         AndFilter and = AndFilter.createAnd(greater, lesser);
-        LOGGER.info(and.dump());
+        LOGGER.info(and.debugDump());
 
         ObjectQuery query = ObjectQuery.createObjectQuery(and);
         String real = getInterpretedQuery(session, ObjectType.class, query);

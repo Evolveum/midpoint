@@ -182,7 +182,7 @@ public class TestDummyUuidNonUniqueName extends TestDummyUuid {
 		PrismObject<ShadowType> shadowFromRepo = repositoryService.getObject(ShadowType.class,
 				addedObjectOid, null, result);
 		assertNotNull("Shadow was not created in the repository", shadowFromRepo);
-		display("Repository shadow", shadowFromRepo.dump());
+		display("Repository shadow", shadowFromRepo.debugDump());
 
 		ProvisioningTestUtil.checkRepoAccountShadow(shadowFromRepo);
 

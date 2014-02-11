@@ -406,7 +406,12 @@ public class SimpleTaskAdapter implements Task {
     }
 
     @Override
-    public String dump() {
+    public String debugDump() {
+        throw new UnsupportedOperationException("not implemented yet.");
+    }
+
+    @Override
+    public String debugDump(int indent) {
         throw new UnsupportedOperationException("not implemented yet.");
     }
 

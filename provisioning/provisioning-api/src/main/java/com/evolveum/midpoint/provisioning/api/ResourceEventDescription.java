@@ -7,11 +7,10 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 
-public class ResourceEventDescription implements Serializable, Dumpable, DebugDumpable{
+public class ResourceEventDescription implements Serializable, DebugDumpable{
 	
 	private PrismObject<ShadowType> oldShadow;
 	private PrismObject<ShadowType> currentShadow;
@@ -73,11 +72,6 @@ public class ResourceEventDescription implements Serializable, Dumpable, DebugDu
 					+ ")";
 		}
 	    
-	    @Override
-	    public String dump() {
-	    	return debugDump(0);
-	    }
-
 		/* (non-Javadoc)
 		 * @see com.evolveum.midpoint.util.DebugDumpable#debugDump()
 		 */

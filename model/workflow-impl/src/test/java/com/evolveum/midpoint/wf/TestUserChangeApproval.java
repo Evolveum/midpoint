@@ -925,7 +925,7 @@ public class TestUserChangeApproval extends AbstractInternalModelIntegrationTest
                     LOGGER.error("Exception during task refresh: {}", e,e);
                 }
                 OperationResult result = task.getResult();
-                LOGGER.debug("Result of timed-out task:\n{}", result.dump());
+                LOGGER.debug("Result of timed-out task:\n{}", result.debugDump());
                 assert false : "Timeout ("+timeout+") while waiting for "+task+" to finish. Last result "+result;
             }
         };

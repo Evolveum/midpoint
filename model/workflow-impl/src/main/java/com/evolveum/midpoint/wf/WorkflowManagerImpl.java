@@ -176,7 +176,7 @@ public class WorkflowManagerImpl implements WorkflowManager {
 
         String processor = ((ProcessInstanceState) processInstance.getState()).getMidPointChangeProcessor();
         if (processor == null) {
-            LOGGER.error("There's no change processor name among the process instance variables; processInstance = {}", processInstance.asPrismObject().dump());
+            LOGGER.error("There's no change processor name among the process instance variables; processInstance = {}", processInstance.asPrismObject().debugDump());
             throw new IllegalStateException("There's no change processor name among the process instance variables");
         }
         return wfConfiguration.findChangeProcessor(processor).getProcessInstanceDetailsPanelName(processInstance);

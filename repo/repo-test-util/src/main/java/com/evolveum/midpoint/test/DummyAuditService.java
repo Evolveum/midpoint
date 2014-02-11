@@ -38,7 +38,6 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import org.apache.commons.lang.Validate;
 
@@ -51,7 +50,7 @@ import javax.xml.datatype.Duration;
  * @author semancik
  *
  */
-public class DummyAuditService implements AuditService, Dumpable, DebugDumpable {
+public class DummyAuditService implements AuditService, DebugDumpable {
 
 	private static DummyAuditService instance = null;
 	
@@ -331,11 +330,6 @@ public class DummyAuditService implements AuditService, Dumpable, DebugDumpable 
 		sb.append("DummyAuditService: ").append(records.size()).append(" records\n");
 		DebugUtil.debugDump(sb, records, indent + 1, false);
 		return sb.toString();
-	}
-
-	@Override
-	public String dump() {
-		return debugDump();
 	}
 
 }

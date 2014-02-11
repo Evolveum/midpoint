@@ -711,9 +711,9 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
         }
         sb.append(DebugUtil.formatElementName(getElementName()));
         sb.append(": ");
+        sb.append(additionalDumpDescription());
         PrismContainerDefinition<V> def = getDefinition();
         if (DebugUtil.isDetailedDebugDump()) {
-        	sb.append(additionalDumpDescription());
 	        if (def != null) {
 	            sb.append(" def(");
 	            sb.append(PrettyPrinter.prettyPrint(def.getTypeName()));

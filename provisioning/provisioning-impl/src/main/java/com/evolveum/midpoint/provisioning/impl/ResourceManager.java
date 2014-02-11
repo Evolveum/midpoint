@@ -136,7 +136,7 @@ public class ResourceManager {
 		if (cachedResource != null) {
 			InternalMonitor.getResourceCacheStats().recordHit();
 			if (LOGGER.isTraceEnabled()){
-				LOGGER.trace("Returning resource from cache:\n{}", cachedResource.dump());
+				LOGGER.trace("Returning resource from cache:\n{}", cachedResource.debugDump());
 			}
 			return cachedResource;
 		}
@@ -157,7 +157,7 @@ public class ResourceManager {
 		PrismObject<ResourceType> completedResource = completeResource(repositoryObject, null, false, parentResult);
 
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Putting resource in cache:\n{}", completedResource.dump());
+			LOGGER.trace("Putting resource in cache:\n{}", completedResource.debugDump());
 			Element xsdSchemaElement = ResourceTypeUtil.getResourceXsdSchema(completedResource);
 			if (xsdSchemaElement == null) {
 				LOGGER.trace("Schema: null");

@@ -1409,7 +1409,7 @@ public class PageUser extends PageAdminUsers {
                     continue;
                 }
                 if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("Refined schema for {}\n{}", resource, refinedSchema.dump());
+                    LOGGER.trace("Refined schema for {}\n{}", resource, refinedSchema.debugDump());
                 }
 
                 QName objectClass = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT).getObjectClassDefinition()

@@ -621,7 +621,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
 		PrismProperty<Object> credentialsProp = configPropsContainer.findProperty(new QName(connectorNamespace,credentialsPropertyName));
 		if (credentialsProp == null) {
 			// The is the heisenbug we are looking for. Just dump the entire damn thing.
-			display("Configuration with the heisenbug", configurationContainer.dump());
+			display("Configuration with the heisenbug", configurationContainer.debugDump());
 		}
 		assertNotNull("No credentials property in "+resource+" from "+source, credentialsProp);
 		assertEquals("Wrong number of credentials property value in "+resource+" from "+source, 1, credentialsProp.getValues().size());
@@ -3587,7 +3587,7 @@ public class TestSanity extends AbstractModelIntegrationTest {
     	OperationResult parentResult = new OperationResult("test500notifyChange.addAngelicaAccount");
 //    	repositoryService.addObject(anglicaAccount.asPrismObject(), null, parentResult);
     	
-    	display("Angelica shdow: ", anglicaAccount.asPrismObject().dump());
+    	display("Angelica shdow: ", anglicaAccount.asPrismObject().debugDump());
     	
 //    	provisioningService.applyDefinition(anglicaAccount.asPrismObject(), parentResult);
         

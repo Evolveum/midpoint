@@ -188,7 +188,7 @@ public class ModelCrudService {
 
 			if (LOGGER.isTraceEnabled()) {
 				LOGGER.trace("Entering addObject with {}", object);
-				LOGGER.trace(object.dump());
+				LOGGER.trace(object.debugDump());
 			}
 			
 			if (options == null) {

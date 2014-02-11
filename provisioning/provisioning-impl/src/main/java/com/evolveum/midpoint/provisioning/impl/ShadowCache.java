@@ -211,7 +211,7 @@ public abstract class ShadowCache {
 		if (repositoryShadow == null) {
 			repositoryShadow = repositoryService.getObject(ShadowType.class, oid, null, parentResult);
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Got repository shadow object:\n{}", repositoryShadow.dump());
+				LOGGER.trace("Got repository shadow object:\n{}", repositoryShadow.debugDump());
 			}
 		}
 
@@ -285,15 +285,15 @@ public abstract class ShadowCache {
 			}
 			
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Shadow from repository:\n{}", repositoryShadow.dump());
-				LOGGER.trace("Resource object fetched from resource:\n{}", resourceShadow.dump());
+				LOGGER.trace("Shadow from repository:\n{}", repositoryShadow.debugDump());
+				LOGGER.trace("Resource object fetched from resource:\n{}", resourceShadow.debugDump());
 			}
 			
 			// Complete the shadow by adding attributes from the resource object
 			PrismObject<ShadowType> resultShadow = completeShadow(connector, resourceShadow, repositoryShadow, resource, objectClassDefinition, parentResult);
 
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Shadow when assembled:\n{}", resultShadow.dump());
+				LOGGER.trace("Shadow when assembled:\n{}", resultShadow.debugDump());
 			}
 			
 			parentResult.recordSuccess();
@@ -331,7 +331,7 @@ public abstract class ShadowCache {
 		InternalMonitor.recordShadowChangeOperation();
 		
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Start adding shadow object:\n{}", shadow.dump());
+			LOGGER.trace("Start adding shadow object:\n{}", shadow.debugDump());
 		}
 	
 		if (resource == null) {
@@ -403,7 +403,7 @@ public abstract class ShadowCache {
 		}
 		
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Modifying resource with oid {}, object:\n{}", resource.getOid(), shadow.dump());
+			LOGGER.trace("Modifying resource with oid {}, object:\n{}", resource.getOid(), shadow.debugDump());
 		}
 		
 		RefinedObjectClassDefinition objectClassDefinition =  applyAttributesDefinition(shadow, resource);
@@ -718,7 +718,7 @@ public abstract class ShadowCache {
 			ObjectDelta<? extends ObjectType> objectDelta = ObjectDelta.createModifyDelta(shadow.getOid(),
 					modifications, shadowType.getClass(), prismContext);
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Storing delta to shadow:\n{}", objectDelta.dump());
+				LOGGER.trace("Storing delta to shadow:\n{}", objectDelta.debugDump());
 			}
 			ObjectDeltaType objectDeltaType = DeltaConvertor.toObjectDeltaType(objectDelta);
 

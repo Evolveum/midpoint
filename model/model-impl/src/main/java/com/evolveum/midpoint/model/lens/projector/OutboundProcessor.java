@@ -106,7 +106,7 @@ public class OutboundProcessor {
 
         RefinedObjectClassDefinition rOcDef = projCtx.getRefinedAccountDefinition();
         if (rOcDef == null) {
-            LOGGER.error("Definition for {} not found in the context, but it should be there, dumping context:\n{}", discr, context.dump());
+            LOGGER.error("Definition for {} not found in the context, but it should be there, dumping context:\n{}", discr, context.debugDump());
             throw new IllegalStateException("Definition for " + discr + " not found in the context, but it should be there");
         }
         

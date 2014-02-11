@@ -170,7 +170,7 @@ public class TestDBTable extends AbstractIntegrationTest {
 		ShadowType account = parseObjectTypeFromFile(ACCOUNT_WILL_FILENAME, ShadowType.class);
 
 		System.out.println(SchemaDebugUtil.prettyPrint(account));
-		System.out.println(account.asPrismObject().dump());
+		System.out.println(account.asPrismObject().debugDump());
 
 		Task task = taskManager.createTaskInstance();
 		// WHEN

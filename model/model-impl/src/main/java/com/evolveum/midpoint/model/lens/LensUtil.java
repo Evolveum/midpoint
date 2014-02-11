@@ -174,7 +174,7 @@ public class LensUtil {
     		String contextDescription, boolean applyWeak) throws ExpressionEvaluationException, PolicyViolationException, SchemaException {
     	
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Consolidating {} triple:\n{}", itemPath, triple.dump());
+			LOGGER.trace("Consolidating {} triple:\n{}", itemPath, triple.debugDump());
 		}
 		
 		ItemDelta<V> itemDelta = itemDefinition.createEmptyDelta(itemPath);
@@ -512,7 +512,7 @@ public class LensUtil {
 		Iterator<? extends ItemDelta> iterator = modifications.iterator();
 		while (iterator.hasNext()) {
 			ItemDelta projModification = iterator.next();
-			LOGGER.trace("MOD: {}\n{}", projModification.getPath(), projModification.dump());
+			LOGGER.trace("MOD: {}\n{}", projModification.getPath(), projModification.debugDump());
 			if (projModification.getPath().equals(SchemaConstants.PATH_TRIGGER)) {
 				focusCtx.swallowToProjectionWaveSecondaryDelta(projModification);
 				iterator.remove();
@@ -595,7 +595,7 @@ public class LensUtil {
 
 		
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Loaded full account:\n{}", accCtx.dump());
+			LOGGER.trace("Loaded full account:\n{}", accCtx.debugDump());
 		}
 	}
 

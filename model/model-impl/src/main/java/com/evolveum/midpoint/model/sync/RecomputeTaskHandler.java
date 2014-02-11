@@ -126,7 +126,7 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeTaskHandler<Use
         if (queryFromTask != null) {
             ObjectQuery query = QueryConvertor.createObjectQuery(UserType.class, queryFromTask, prismContext);
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Using object query from the task: {}", query.dump());
+                LOGGER.trace("Using object query from the task: {}", query.debugDump());
             }
             return query;
         } else {
@@ -158,7 +158,7 @@ public class RecomputeTaskHandler extends AbstractSearchIterativeTaskHandler<Use
 
 		LensContext<UserType> syncContext = contextFactory.createRecomputeContext(user, task, result);
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Recomputing of user {}: context:\n{}", user, syncContext.dump());
+			LOGGER.trace("Recomputing of user {}: context:\n{}", user, syncContext.debugDump());
 		}
 		clockwork.run(syncContext, task, result);
 		LOGGER.trace("Recomputing of user {}: {}", user, result.getStatus());

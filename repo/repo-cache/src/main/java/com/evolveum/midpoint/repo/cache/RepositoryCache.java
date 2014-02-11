@@ -124,7 +124,7 @@ public class RepositoryCache implements RepositoryService {
 		}
 	}
 	
-	public static String dump() {
+	public static String debugDump() {
 		StringBuilder sb = new StringBuilder("Cache ");
 		if (exists()) {
 			sb.append("exists ");
