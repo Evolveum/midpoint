@@ -35,9 +35,11 @@ import org.xml.sax.SAXException;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.parser.DomParser;
 import com.evolveum.midpoint.prism.parser.JaxbDomHack;
+import com.evolveum.midpoint.prism.parser.JsonParser;
 import com.evolveum.midpoint.prism.parser.Parser;
 import com.evolveum.midpoint.prism.parser.PrismBeanConverter;
 import com.evolveum.midpoint.prism.parser.XNodeProcessor;
+import com.evolveum.midpoint.prism.parser.YamlParser;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.polystring.PolyStringNormalizer;
 import com.evolveum.midpoint.prism.polystring.PrismDefaultPolyStringNormalizer;
@@ -89,6 +91,10 @@ public class PrismContext {
 		prismContext.parserMap = new HashMap<String, Parser>();
 		DomParser parserDom = new DomParser(schemaRegistry);
 		prismContext.parserMap.put(LANG_XML, parserDom);
+		JsonParser parserJson = new JsonParser();
+		prismContext.parserMap.put(LANG_JSON, parserJson);
+		YamlParser parserYaml = new YamlParser();
+		prismContext.parserMap.put(LANG_YAML, parserYaml);
 		prismContext.parserDom = parserDom;
 		
 		prismContext.jaxbDomHack = new JaxbDomHack(parserDom, prismContext);

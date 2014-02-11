@@ -92,9 +92,15 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	// User: jack
 	public static final String USER_JACK_FILE_BASENAME = "user-jack";
 	public static final File USER_JACK_FILE_XML = new File(COMMON_DIR_XML, USER_JACK_FILE_BASENAME+".xml");
-	public static final File USER_JACK_OBJECT_FILE = new File(COMMON_DIR_PATH, "user-jack-object.xml");
+	
+	public static final String USER_JACK_OBJECT_BASENAME = "user-jack-object";
+	public static final File USER_JACK_OBJECT_FILE = new File(COMMON_DIR_XML, "user-jack-object.xml");
+	
 	public static final File USER_JACK_MODIFIED_FILE = new File(COMMON_DIR_PATH, "user-jack-modified.xml");
-	public static final File USER_JACK_ADHOC_FILE = new File(COMMON_DIR_PATH, "user-jack-adhoc.xml");
+	
+	public static final String USER_JACK_ADHOC_BASENAME = "user-jack-adhoc";
+	public static final File USER_JACK_ADHOC_FILE = new File(COMMON_DIR_XML, "user-jack-adhoc.xml");
+	
 	public static final String USER_JACK_OID = "c0c010c0-d34d-b33f-f00d-111111111111";
 	public static final XMLGregorianCalendar USER_JACK_VALID_FROM = XmlTypeConverter.createXMLGregorianCalendar(1975, 5, 30, 21, 30, 0);
 	public static final String USER_JACK_DESCRIPTION = "This must be the best pirate the world has ever seen";
@@ -102,10 +108,12 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	public static final String USER_JACK_POLYNAME_NORM = "dzek sperou";
 	
 	// User: barbossa (very simple user)
-	public static final File USER_BARBOSSA_FILE = new File(COMMON_DIR_PATH, "user-barbossa.xml");
+	public static final String USER_BARBOSSA_FILE_BASENAME = "user-barbossa";
+	public static final File USER_BARBOSSA_FILE = new File(COMMON_DIR_XML, "user-barbossa.xml");
 	
 	// User: will (has all the extensions)
-	public static final File USER_WILL_FILE = new File(COMMON_DIR_PATH, "user-will.xml");
+	public static final String USER_WILL_FILE_BASENAME = "user-will";
+	public static final File USER_WILL_FILE = new File(COMMON_DIR_XML, "user-will.xml");
 
 	public static final String RESOURCE_RUM_FILE_BASENAME = "resource-rum";
 	public static final String RESOURCE_RUM_OID = "c0c010c0-d34d-b33f-f00d-222222220001";

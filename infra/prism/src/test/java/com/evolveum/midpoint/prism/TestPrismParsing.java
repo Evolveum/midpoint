@@ -45,6 +45,8 @@ import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.prism.foo.ActivationType;
 import com.evolveum.midpoint.prism.foo.AssignmentType;
 import com.evolveum.midpoint.prism.foo.UserType;
+import com.evolveum.midpoint.prism.parser.JsonParser;
+import com.evolveum.midpoint.prism.parser.XNodeProcessor;
 import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
@@ -52,6 +54,8 @@ import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
+import com.evolveum.midpoint.prism.xnode.RootXNode;
+import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -61,23 +65,37 @@ import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
  * @author semancik
  *
  */
-public class TestPrismParsing {
+public abstract class TestPrismParsing {
 		
+	
+protected abstract String getSubdirName();
+	
+	protected abstract String getFilenameSuffix();
+	
+	protected File getCommonSubdir() {
+		return new File(COMMON_DIR_PATH, getSubdirName());
+	}
+	
+	protected File getFile(String baseName) {
+		return new File(getCommonSubdir(), baseName+"."+getFilenameSuffix());
+	}
+	
 	@BeforeSuite
 	public void setupDebug() {
 		PrettyPrinter.setDefaultNamespacePrefix(DEFAULT_NAMESPACE_PREFIX);
 	}
 	
+	protected abstract String getOutputFormat();
+	
 	@Test
 	public void testPrismParseFile() throws Exception {
 		final String TEST_NAME = "testPrismParseFile";
 		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
-		
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();
 		
 		// WHEN
-		PrismObject<UserType> user = prismContext.parseObject(USER_JACK_FILE_XML);
+		PrismObject<UserType> user = prismContext.parseObject(getFile(USER_JACK_FILE_BASENAME));
 		
 		// THEN
 		System.out.println("User:");
@@ -96,7 +114,7 @@ public class TestPrismParsing {
 		PrismContext prismContext = constructInitializedPrismContext();
 		
 		// WHEN
-		PrismObject<UserType> user = prismContext.parseObject(USER_JACK_OBJECT_FILE);
+		PrismObject<UserType> user = prismContext.parseObject(getFile(USER_JACK_OBJECT_BASENAME));
 		
 		// THEN
 		System.out.println("User:");
@@ -106,35 +124,13 @@ public class TestPrismParsing {
 		assertUserJack(user);
 	}
 	
-	@Test
-	public void testPrismParseDom() throws Exception {
-		final String TEST_NAME = "testPrismParseDom";
-		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		
-		// GIVEN
-		Document document = DOMUtil.parseFile(USER_JACK_FILE_XML);
-		Element userElement = DOMUtil.getFirstChildElement(document);
-		
-		PrismContext prismContext = constructInitializedPrismContext();
-		
-		// WHEN
-		PrismObject<UserType> user = prismContext.parseObject(userElement);
-		
-		// THEN
-		System.out.println("User:");
-		System.out.println(user.dump());
-		assertNotNull(user);
-		
-		assertUserJack(user);
-	}
-
-	
 	@Test
 	public void testRoundTrip() throws Exception {
 		final String TEST_NAME = "testRoundTrip";
 		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		
-		roundTrip(USER_JACK_FILE_XML);
+		roundTrip(getFile(USER_JACK_FILE_BASENAME));
 	}
 
 	@Test
@@ -142,7 +138,7 @@ public class TestPrismParsing {
 		final String TEST_NAME = "testRoundTripObject";
 		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		
-		roundTrip(USER_JACK_OBJECT_FILE);
+		roundTrip(getFile(USER_JACK_OBJECT_BASENAME));
 	}
 
 	private void roundTrip(File file) throws SchemaException, SAXException, IOException {
@@ -160,7 +156,7 @@ public class TestPrismParsing {
 		
 		// WHEN
 		// We need to serialize with composite objects during roundtrip, otherwise the result will not be equal
-		String userXml = prismContext.serializeObjectToString(originalUser, PrismContext.LANG_XML);
+		String userXml = prismContext.serializeObjectToString(originalUser, getOutputFormat());
 	
 		// THEN
 		System.out.println("Serialized user:");
@@ -195,7 +191,7 @@ public class TestPrismParsing {
 		PrismContext prismContext = constructInitializedPrismContext();
 		
 		// WHEN
-		PrismObject<UserType> user = prismContext.parseObject(USER_JACK_ADHOC_FILE);
+		PrismObject<UserType> user = prismContext.parseObject(getFile(USER_JACK_ADHOC_BASENAME));
 		
 		// THEN
 		System.out.println("User:");
@@ -205,34 +201,13 @@ public class TestPrismParsing {
 		assertUserAdhoc(user);
 	}
 	
-	@Test
-	public void testPrismParseDomAdhoc() throws Exception {
-		final String TEST_NAME = "testPrismParseDomAdhoc";
-		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
-		
-		// GIVEN
-		Document document = DOMUtil.parseFile(USER_JACK_ADHOC_FILE);
-		Element userElement = DOMUtil.getFirstChildElement(document);
-		
-		PrismContext prismContext = constructInitializedPrismContext();
-		
-		// WHEN
-		PrismObject<UserType> user = prismContext.parseObject(userElement);
-		
-		// THEN
-		System.out.println("User:");
-		System.out.println(user.dump());
-		assertNotNull(user);
-		
-		assertUserAdhoc(user);
-	}
 	
 	@Test
 	public void testRoundTripAdhoc() throws Exception {
 		final String TEST_NAME = "testRoundTripAdhoc";
 		PrismInternalTestUtil.displayTestTitle(TEST_NAME);
 		
-		roundTripAdhoc(USER_JACK_ADHOC_FILE);
+		roundTripAdhoc(getFile(USER_JACK_ADHOC_BASENAME));
 	}
 
 	private void roundTripAdhoc(File file) throws SchemaException, SAXException, IOException {
@@ -249,7 +224,7 @@ public class TestPrismParsing {
 		
 		// WHEN
 		// We need to serialize with composite objects during roundtrip, otherwise the result will not be equal
-		String userXml = prismContext.serializeObjectToString(originalUser, PrismContext.LANG_XML);
+		String userXml = prismContext.serializeObjectToString(originalUser, getOutputFormat());
 	
 		// THEN
 		System.out.println("Serialized user:");
@@ -278,10 +253,10 @@ public class TestPrismParsing {
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();
 		
-		PrismObject<UserType> userJack = prismContext.parseObject(USER_JACK_FILE_XML);
+		PrismObject<UserType> userJack = prismContext.parseObject(getFile(USER_JACK_FILE_BASENAME));
 		PrismContainer<Containerable> meleeContextContainer = userJack.findOrCreateContainer(new ItemPath(UserType.F_EXTENSION, EXTENSION_MELEE_CONTEXT_ELEMENT));
 		PrismReference opponentRef = meleeContextContainer.findOrCreateReference(EXTENSION_MELEE_CONTEXT_OPPONENT_REF_ELEMENT);
-		PrismObject<UserType> userBarbossa = prismContext.parseObject(USER_BARBOSSA_FILE);
+		PrismObject<UserType> userBarbossa = prismContext.parseObject(getFile(USER_BARBOSSA_FILE_BASENAME));
 		// Cosmetics to make sure the equivalence assert below works
 		userBarbossa.setElementName(EXTENSION_MELEE_CONTEXT_OPPONENT_ELEMENT);
 		PrismReferenceValue opponentRefValue = new PrismReferenceValue();
@@ -340,7 +315,7 @@ public class TestPrismParsing {
 		PrismContext prismContext = constructInitializedPrismContext();
 		
 		// WHEN
-		PrismObject<UserType> user = prismContext.parseObject(USER_WILL_FILE);
+		PrismObject<UserType> user = prismContext.parseObject(getFile(USER_WILL_FILE_BASENAME));
 		
 		// THEN
 		System.out.println("User:");
@@ -359,7 +334,7 @@ public class TestPrismParsing {
 		PrismContext prismContext = constructInitializedPrismContext();
 		
 		// WHEN
-		PrismObject<UserType> user = prismContext.parseObject(USER_WILL_FILE);
+		PrismObject<UserType> user = prismContext.parseObject(getFile(USER_WILL_FILE_BASENAME));
 		
 		// THEN
 		System.out.println("User:");
@@ -385,9 +360,10 @@ public class TestPrismParsing {
 		assertNotNull(reparsedUser);
 		
 		assertUserWill(reparsedUser);
+		
 	}
 	
-	private void assertUserAdhoc(PrismObject<UserType> user) {
+	protected void assertUserAdhoc(PrismObject<UserType> user) {
 		user.checkConsistence();
 		assertUserJackContent(user);
 		assertUserExtensionAdhoc(user);
@@ -516,12 +492,7 @@ private void assertUserWillExtension(PrismObject<UserType> user) {
 
     }
 	
-	private void validateXml(String xmlString, PrismContext prismContext) throws SAXException, IOException {
-		Document xmlDocument = DOMUtil.parseDocument(xmlString);
-		Schema javaxSchema = prismContext.getSchemaRegistry().getJavaxSchema();
-		Validator validator = javaxSchema.newValidator();
-		validator.setResourceResolver(prismContext.getSchemaRegistry());
-		validator.validate(new DOMSource(xmlDocument));
+	protected void validateXml(String xmlString, PrismContext prismContext) throws SAXException, IOException {
 	}
 	
 }

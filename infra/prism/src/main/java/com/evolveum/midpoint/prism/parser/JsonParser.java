@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.Version;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.databind.Module;
@@ -110,15 +111,23 @@ public class JsonParser extends AbstractParser{
 	}
 
 	@Override
-	protected void serializeExplicitType(PrimitiveXNode primitive, QName explicitType, JsonGenerator generator) throws JsonGenerationException, IOException {
+	protected boolean serializeExplicitType(PrimitiveXNode primitive, QName explicitType, JsonGenerator generator) throws JsonGenerationException, IOException {
 		if (explicitType != null) {
 				generator.writeStartObject();
 				generator.writeStringField(TYPE_DEFINITION, QNameUtil.qNameToUri(primitive.getTypeQName()));
 				generator.writeObjectField(VALUE_FIELD, primitive.getValue());
 				generator.writeEndObject();
-				return;
+				return true;
 			}
-		}
+		return false;
+	}
+
+	@Override
+	protected void writeObjectType(QName explicitType, JsonGenerator generator) throws JsonProcessingException, IOException {
+		generator.writeObjectField("@type", explicitType);
+	}
+
+	
 	
 
 }

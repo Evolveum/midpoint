@@ -64,29 +64,40 @@ public abstract class AbstractParser implements Parser {
 		return parseObject(parser);
 	}
 
+	private boolean root = true;
 	@Override
 	public String serializeToString(XNode xnode, QName rootElementName) throws SchemaException {
 		if (xnode instanceof RootXNode){
 			xnode = ((RootXNode) xnode).getSubnode();
 		}
-		return serialize(xnode, rootElementName);
+		return serialize(xnode, null, rootElementName);
 	}
 
 	@Override
 	public String serializeToString(RootXNode xnode) throws SchemaException {
 		QName rootElementName = xnode.getRootElementName();
-		return serialize(xnode.getSubnode(), rootElementName);
+		System.out.println("root node: " + xnode.isExplicitTypeDeclaration());
+		QName explicitType = null;
+		if (xnode.isExplicitTypeDeclaration()){
+			explicitType = xnode.getTypeQName();
+		}
+		return serialize(xnode.getSubnode(), explicitType, rootElementName);
 	}
 	
+	protected abstract void writeObjectType(QName explicitType, JsonGenerator generator) throws JsonGenerationException, IOException;
 	
 	// ------------------- METHODS FOR SERIALIZATION ------------------------------
-	public String serialize(XNode node, QName rootElement) throws SchemaException{
+	public String serialize(XNode node, QName explicitType, QName rootElement) throws SchemaException{
 		try { 
 			StringWriter out = new StringWriter();
 			JsonGenerator generator = createGenerator(out);
 			
 			generator.writeStartObject();
 			generator.writeStringField(PROP_NAMESPACE, rootElement.getNamespaceURI());
+			generator.writeObjectFieldStart(rootElement.getLocalPart());
+			if (explicitType !=  null){
+				writeObjectType(explicitType, generator);
+			}
 			serialize(node, rootElement, null, generator);
 			generator.writeEndObject();
 			generator.flush();
@@ -115,10 +126,14 @@ public abstract class AbstractParser implements Parser {
 	}
 	
 	private void serializerFromMap(MapXNode map, QName nodeName, String globalNamespace, JsonGenerator generator) throws JsonGenerationException, IOException{
-		if (nodeName == null){
-			generator.writeStartObject();
-		} else{
-			generator.writeObjectFieldStart(nodeName.getLocalPart());
+		if (root) {
+			root = false;
+		} else {
+			if (nodeName == null) {
+				generator.writeStartObject();
+			} else {
+				generator.writeObjectFieldStart(nodeName.getLocalPart());
+			}
 		}
 		
 //		if (StringUtils.isBlank(globalNamespace)){
@@ -144,7 +159,7 @@ public abstract class AbstractParser implements Parser {
 		generator.writeEndArray();
 	}
 	
-	protected abstract <T> void serializeExplicitType(PrimitiveXNode<T> primitive, QName explicitType, JsonGenerator generator) throws JsonGenerationException, IOException ;
+	protected abstract <T> boolean serializeExplicitType(PrimitiveXNode<T> primitive, QName explicitType, JsonGenerator generator) throws JsonGenerationException, IOException ;
 	
 	protected <T> QName getExplicitType(PrimitiveXNode<T> primitive){
 		QName explicit = null;
@@ -157,7 +172,9 @@ public abstract class AbstractParser implements Parser {
 	private <T> void serializeFromPrimitive(PrimitiveXNode<T> primitive, QName nodeName, JsonGenerator generator) throws JsonGenerationException, IOException{
 		
 		QName explicitType = getExplicitType(primitive);
-		serializeExplicitType(primitive, explicitType, generator);
+		if (serializeExplicitType(primitive, explicitType, generator)){
+			return;
+		}
 			
 		if (nodeName == null) {
 			generator.writeObject(primitive.getValue());
@@ -214,6 +231,7 @@ public abstract class AbstractParser implements Parser {
 			}
 						
 			RootXNode xmap = new RootXNode();
+//			xmap.
 			
 			while (parser.nextToken() != null){
 				parse(xmap, null, parser);
@@ -228,7 +246,7 @@ public abstract class AbstractParser implements Parser {
 		}
 	}
 	
-	private QName parseFieldName(QName propertyName, JsonParser parser) throws JsonParseException, IOException{
+	private QName parseFieldName(XNode xnode, QName propertyName, JsonParser parser) throws JsonParseException, IOException{
 		
 		JsonToken token = parser.getCurrentToken();
 		String ns = null;
@@ -263,7 +281,7 @@ public abstract class AbstractParser implements Parser {
 			if (token == null){
 				return;
 			}
-			propertyName = parseFieldName(propertyName, parser);
+			propertyName = parseFieldName(xmap, propertyName, parser);
 			
 		switch (parser.getCurrentToken()){
 			case START_OBJECT:
@@ -306,7 +324,7 @@ public abstract class AbstractParser implements Parser {
 		}
 		MapXNode subMap = new MapXNode();
 		
-		String ns = processNamespace(parser);
+		String ns = processNamespace(parent, parser);
 		
 		boolean iterate = false;
 		while (moveNext(parser, iterate)) {
@@ -355,19 +373,32 @@ public abstract class AbstractParser implements Parser {
 		return false;
 	}
 	
-	private String processNamespace(JsonParser parser) throws SchemaException{
+	private String processNamespace(XNode xnode, JsonParser parser) throws SchemaException{
 		JsonToken t;
 		try {
 			t = parser.nextToken();
 		
 //		System.out.println("MOVE NEXT : " + t +" NAME: " + parser.getCurrentName());
-		if (t == JsonToken.FIELD_NAME && parser.getCurrentName().startsWith(PROP_NAMESPACE)){
-//			System.out.println("ano ano ano");
-//			System.out.println(parser.getCurrentName());
-			String ns = parser.nextTextValue();
-			parser.nextToken();
-			return ns;
-		}
+			if (t == JsonToken.FIELD_NAME) {
+				if (parser.getCurrentName().startsWith(PROP_NAMESPACE)) {
+
+					// System.out.println("ano ano ano");
+					// System.out.println(parser.getCurrentName());
+					String ns = parser.nextTextValue();
+					parser.nextToken();
+					return ns;
+				} else if (parser.getCurrentName().equals("@type")) {
+					parser.nextToken();
+
+					QName type = parser.readValueAs(QName.class);
+					// propertyName = new QName(ns, fieldName);
+					xnode.setExplicitTypeDeclaration(true);
+					xnode.setTypeQName(type);
+					parser.nextToken();
+					
+				}
+
+			}
 		return null;
 		} catch (JsonParseException e) {
 			throw new SchemaException("Can't process namespace: " + e.getMessage(), e);

@@ -130,7 +130,7 @@ public class YamlParser extends AbstractParser{
 	}
 
 	@Override
-	protected void serializeExplicitType(PrimitiveXNode primitive, QName explicitType, JsonGenerator generator) throws JsonGenerationException, IOException {
+	protected boolean serializeExplicitType(PrimitiveXNode primitive, QName explicitType, JsonGenerator generator) throws JsonGenerationException, IOException {
 		if (explicitType != null) {
 			if (generator.canWriteTypeId()) {
 				if (explicitType.equals(DOMUtil.XSD_STRING)) {
@@ -138,11 +138,22 @@ public class YamlParser extends AbstractParser{
 				} else if (explicitType.equals(DOMUtil.XSD_INT)) {
 					generator.writeTypeId("http://www.w3.org/2001/XMLSchema/int");
 					generator.writeString(String.valueOf(primitive.getValue()));
-					return;
+					return true;
 				}
 			} 
 		}
+		return false;
 		
+	}
+
+	@Override
+	protected void writeObjectType(QName explicitType, JsonGenerator generator) throws JsonGenerationException, IOException {
+		generator.writeObjectField("@type", explicitType);
+		//		if (generator.canWriteTypeId()){
+//			String type = QNameUtil.qNameToUri(explicitType);
+//			type = type.replace("#", "//");
+//			generator.writeTypeId(type);
+//		}
 	}
 	
 }

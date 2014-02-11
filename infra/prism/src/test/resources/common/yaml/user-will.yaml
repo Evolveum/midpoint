@@ -1,0 +1,46 @@
+---
+'@ns': "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd"
+user:
+  oid: "c0c010c0-d34d-b33f-f00d-111111113333"
+  '@ns': "http://midpoint.evolveum.com/xml/ns/test/foo-1.xsd"
+  name: "will"
+  extension:
+    '@ns': "http://midpoint.evolveum.com/xml/ns/test/extension"
+    stringType:
+    - "FOObar"
+    - "BARbar"
+    singleStringType: "foobar"
+    doubleType:
+    - 3.1415926535
+    intType:
+    - 42
+    integerType:
+    - 19134702400093278081449423917
+    longType:
+    - 299792458
+    dateType:
+    - 170721000000
+    durationType:
+    - !<com.sun.org.apache.xerces.internal.jaxp.datatype.DurationImpl> "P17Y3M2D"
+    locations:
+    - location:
+      - key: "sk"
+        value: "Slovakia"
+      - key: "hr"
+        value: "Croatia"
+    ignoredType:
+    - "this is just a fiction"
+    indexedString:
+    - "alpha"
+    - "bravo"
+    bar:
+    - !<http://www.w3.org/2001/XMLSchema/string> "BAR"
+    num:
+    - !<http://www.w3.org/2001/XMLSchema/int> "42"
+    multi:
+    - !<http://www.w3.org/2001/XMLSchema/string> "raz"
+    - !<http://www.w3.org/2001/XMLSchema/string> "dva"
+    - !<http://www.w3.org/2001/XMLSchema/string> "tri"
+  fullName: "Will Turner"
+  givenName: "William"
+  familyName: "Turner"

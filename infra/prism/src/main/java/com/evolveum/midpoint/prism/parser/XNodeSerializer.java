@@ -91,7 +91,12 @@ public class XNodeSerializer {
 		RootXNode xroot = new RootXNode();
 		xroot.setSubnode(serializeObjectContent(object));
 		xroot.setTypeQName(object.getDefinition().getTypeName());
-		xroot.setRootElementName(object.getElementName());
+		//TODO: how to find out if it is explicit definition or not??  ugly hack for now - only check if the element name is not "object"
+		QName elementName = object.getElementName();
+		xroot.setRootElementName(elementName);
+		if (elementName.getLocalPart().equals("object")){
+			xroot.setExplicitTypeDeclaration(true);
+		}
 		return xroot;
 	}
 	
