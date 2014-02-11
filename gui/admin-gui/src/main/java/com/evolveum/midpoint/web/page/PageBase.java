@@ -38,6 +38,8 @@ import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.web.component.AjaxButton;
+import com.evolveum.midpoint.web.component.atmosphere.NotifyMessage;
+import com.evolveum.midpoint.web.component.atmosphere.NotifyMessageFilter;
 import com.evolveum.midpoint.web.component.menu.top.MenuBarItem;
 import com.evolveum.midpoint.web.component.menu.top.TopMenuBar;
 import com.evolveum.midpoint.web.component.message.MainFeedback;
@@ -58,6 +60,7 @@ import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.RuntimeConfigurationType;
 import org.apache.wicket.ajax.AbstractDefaultAjaxBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
+import org.apache.wicket.atmosphere.Subscribe;
 import org.apache.wicket.devutils.debugbar.DebugBar;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.feedback.FeedbackMessage;
@@ -593,5 +596,21 @@ public abstract class PageBase extends WebPage {
         validator.validateObject(xmlObject, result);
 
         result.computeStatus();
+    }
+
+    @Subscribe(filter = NotifyMessageFilter.class)
+    public void receiveNotifyMessage(AjaxRequestTarget target, NotifyMessage message) {
+        LOGGER.trace("Received notify message {}.", new Object[]{message});
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("$.pnotify({\n");
+        sb.append("\ttitle: '").append(createStringResource(message.getTitle()).getString()).append("',\n");
+        sb.append("\ttext: '").append(createStringResource(message.getMessage()).getString()).append("',\n");
+        sb.append("\ttype: '").append(message.getMessageType().name().toLowerCase()).append("',\n");
+        sb.append("\topacity: .8,\n");
+        sb.append("\ticon: '").append(message.getIcon()).append("'\n");
+        sb.append("});");
+
+        target.appendJavaScript(sb.toString());
     }
 }
