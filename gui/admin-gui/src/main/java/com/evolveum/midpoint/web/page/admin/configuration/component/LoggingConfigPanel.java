@@ -284,7 +284,7 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
 
                                 @Override
                                 public Object getDisplayValue(LoggingComponentType item) {
-                                    return LoggingConfigPanel.this.getString("LoggingConfigPanel.logger." + item);
+                                    return getComponenLoggerDisplayValue(item);
                                 }
 
                                 @Override
@@ -399,6 +399,11 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
         });
 
         return columns;
+    }
+
+    private String getComponenLoggerDisplayValue(LoggingComponentType item){
+        //LoggingConfigPanel.this.getString("LoggingConfigPanel.logger." + item);
+        return createStringResource("LoggingComponentType." + item).getString();
     }
 
     private IModel<List<String>> createNewLoggerAppendersListModel(){
