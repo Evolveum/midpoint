@@ -1,5 +1,6 @@
 package com.evolveum.midpoint.report;
 
+
 import java.awt.Color;
 import java.sql.Timestamp;
 import java.util.Collection;
@@ -39,7 +40,15 @@ import net.sf.jasperreports.engine.type.VerticalAlignEnum;
 import net.sf.jasperreports.engine.type.WhenNoDataTypeEnum;
 
 import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
+import com.evolveum.midpoint.prism.Containerable;
+import com.evolveum.midpoint.prism.PrismContainer;
+import com.evolveum.midpoint.prism.PrismContainerDefinition;
+import com.evolveum.midpoint.prism.PrismContext;
+import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -78,18 +87,22 @@ public class ReportUtils {
 			.getTrace(ReportUtils.class);
 
     
-	public static Class getClassType(QName clazz)
+	public static Class getClassType(QName clazz, String namespace)
     {
-		Class classType = java.lang.String.class; 
+		Class classType = String.class; 
     	try
     	{
     		classType = XsdTypeMapper.getXsdToJavaMapping(clazz);
-    		if (classType == javax.xml.datatype.XMLGregorianCalendar.class) {
-    			classType = java.sql.Timestamp.class;
+    		if (classType == XMLGregorianCalendar.class) {
+    			classType = Timestamp.class;
     		}
-    		classType = (classType == null) ? java.lang.String.class : classType ;
+    		if (clazz.getNamespaceURI().equals(namespace))
+    		{
+    			classType = Integer.class;
+    		}
+    		classType = (classType == null) ? String.class : classType ;
     	} catch (Exception ex){
-    		classType = java.lang.String.class;
+    		classType = String.class;
     	}
     	return classType;
     	
@@ -108,10 +121,42 @@ public class ReportUtils {
 		if (parametersSchemaElement == null) {
 			return null;
 		}
+
+		LOGGER.trace("Parameters schema element : {}", parametersSchemaElement.getElementsByTagName("simpleType"));
+		LOGGER.trace("Parameters schema attribut : {}", parametersSchemaElement.getAttributeNode("simpleType"));
+		NodeList childNodes = parametersSchemaElement.getChildNodes();
+		for (int i=0; i< childNodes.getLength(); i++)
+		{
+			Node childNode = childNodes.item(i);
+			if (childNode.getNodeName().equals("xsd:simpleType"))
+			{
+				LOGGER.trace("Parameters schema child node : {}", childNode.toString());
+				LOGGER.trace("Parameters schema child node name : {}", childNode.getNodeName());
+				LOGGER.trace("Parameters schema child node local name : {}", childNode.getLocalName());
+				LOGGER.trace("Parameters schema child node class : {}", childNode.getClass());
+				LOGGER.trace("Parameters schema child node type : {}", childNode.getNodeType());
+				LOGGER.trace("Parameters schema child node value : {}", childNode.getNodeValue());
+				LOGGER.trace("Parameters schema child node text content : {}", childNode.getTextContent().split("\t"));
+				String enumValue = childNode.getTextContent().replaceAll("\t","");
+				LOGGER.trace("Parameters schema enum value : {}", enumValue); 
+				
+				LOGGER.trace("---------------------------------------------------------------------------------------");
+				NamedNodeMap attributes = childNode.getAttributes();
+				for (int j=0; j<attributes.getLength(); j++)
+				{
+					Node attribute = attributes.item(j);
+					LOGGER.trace("child node attribut : {}", attribute);
+					LOGGER.trace("child node attribut text content : {}", attribute.getTextContent());
+				}
+			}
+		}
+		
 		PrismSchema parametersSchema = PrismSchema.parse(parametersSchemaElement, true, "schema for " + reportType, prismContext);
 		if (parametersSchema == null) {
 			throw new SchemaException("No parameters schema in "+ reportType);
 		}
+		LOGGER.trace("Parameters schema : {}", parametersSchema.dump());
+		
 		return parametersSchema;
 	}
 
@@ -163,7 +208,29 @@ public class ReportUtils {
 		}
 		
 		LOGGER.trace("Parameters configuration definition: {}", configurationContainerDefinition.debugDump());
+		/*for(ItemDefinition item : configurationContainerDefinition.getDefinitions())
+		{
+			LOGGER.trace("Item definition: {}", item.dump());
+			LOGGER.trace("Display Name : {}", item.getDisplayName());
+			LOGGER.trace("Name : {}", item.getName());
+			LOGGER.trace("Definition - type class : {}", item.getTypeClass());
+			LOGGER.trace("Definition - type name: {}", item.getTypeName());
+	
+		}
 		
+		LOGGER.trace("---------------------------------------------------------------------------------------");
+>>>>>>> 48eec5fce88a117d5ce08aa60a36b9d09045780d
+		
+		for(PrismPropertyDefinition property : configurationContainerDefinition.getPropertyDefinitions())
+		{
+			LOGGER.trace("PrismProperty definition: {}", property.dump());
+			LOGGER.trace("Display Name : {}", property.getDisplayName());
+			LOGGER.trace("Name : {}", property.getName());
+			LOGGER.trace("Definition - type class : {}", property.getTypeClass());
+			LOGGER.trace("Definition - type name: {}", property.getTypeName());
+			LOGGER.trace("Values: {}", property.getAllowedValues());
+		}
+		LOGGER.trace("---------------------------------------------------------------------------------------");*/
 		configuration.applyDefinition(configurationContainerDefinition, true);
 		
 		LOGGER.trace("Parameters container with definitions : {}", configuration.debugDump());
@@ -171,7 +238,7 @@ public class ReportUtils {
 		return configuration;
 	}
     
-    public static Map<String, Object> getReportParams(ReportType reportType, PrismContainer<Containerable> parameterConfiguration, OperationResult parentResult)
+    public static Map<String, Object> getReportParams(ReportType reportType, PrismContainer<Containerable> parameterConfiguration, PrismSchema reportSchema, OperationResult parentResult)
 	{
 		Map<String, Object> params = new HashMap<String, Object>();
 		 	
@@ -180,18 +247,38 @@ public class ReportUtils {
 		{
 			for(PrismProperty parameter : parameterConfiguration.getValue().getProperties())
 			{
-				LOGGER.trace("parameter {} --- {}", parameter.getElementName().getLocalPart(), parameter.getRealValue());
+				LOGGER.trace("parameter {}, {}, {} ", new Object[]{parameter.getElementName().getLocalPart(), parameter.getRealValue(), parameter.getValues()});
 				if ((parameter.getElementName().getLocalPart() != PARAMETER_OBJECT_TYPE) && (parameter.getElementName().getLocalPart() != PARAMETER_QUERY_FILTER))
 				{
-					params.put(parameter.getElementName().getLocalPart(), parameter.getRealValue());
-					Class classType = ReportUtils.getClassType(parameter.getDefinition().getTypeName());
-					if (classType == java.sql.Timestamp.class) {
-						params.put(parameter.getElementName().getLocalPart(), ReportUtils.convertDateTime((XMLGregorianCalendar)parameter.getRealValue(XMLGregorianCalendar.class)));
+					/*LOGGER.trace("Parameter : {} ", parameter.dump());
+					LOGGER.trace("Display Name : {}", parameter.getDisplayName());
+					LOGGER.trace("Real value : {}", parameter.getRealValue());
+					LOGGER.trace("Values : {}", parameter.getValues());
+					LOGGER.trace("Element Name : {}", parameter.getElementName());
+					LOGGER.trace("Definition - type class : {}", parameter.getDefinition().getTypeClass());
+					LOGGER.trace("Definition - type name: {}", parameter.getDefinition().getTypeName());
+					*/
+					
+					if (parameter.getDefinition().getTypeName().getNamespaceURI().equals(reportSchema.getNamespace()))
+					{			
+						com.sun.org.apache.xerces.internal.dom.DeferredElementNSImpl ccc = (com.sun.org.apache.xerces.internal.dom.DeferredElementNSImpl)parameter.getRealValue(com.sun.org.apache.xerces.internal.dom.DeferredElementNSImpl.class);
+						LOGGER.trace("Parameter simple type, text content : {}, {}", parameter.getDefinition().getTypeName().getLocalPart(), ccc.getTextContent());
+						params.put(parameter.getElementName().getLocalPart(), Integer.decode(ccc.getTextContent()));
+					} else {
+						
+						Class classType = ReportUtils.getClassType(parameter.getDefinition().getTypeName(), reportSchema.getNamespace());
+						if (classType == java.sql.Timestamp.class) {
+							params.put(parameter.getElementName().getLocalPart(), ReportUtils.convertDateTime((XMLGregorianCalendar)parameter.getRealValue(XMLGregorianCalendar.class)));
+						} else {
+							params.put(parameter.getElementName().getLocalPart(), parameter.getRealValue());
+						}
 					}
+					
+					//LOGGER.trace("--------------------------------------------------------------------------------");
 				}
 			}
 		}
-		  	
+		  
 		subResult.computeStatus();	
 		 
 		return params;
@@ -224,21 +311,20 @@ public class ReportUtils {
 	private static PrismProperty getParameter(String parameterName, PrismContainer<Containerable> parameterConfiguration, String namespace)
 	{
 		PrismProperty property = parameterConfiguration.findProperty(new QName(namespace, parameterName));	
-		for(PrismProperty parameter : parameterConfiguration.getValue().getProperties())
+		/*for(PrismProperty parameter : parameterConfiguration.getValue().getProperties())
 		{
-			LOGGER.trace("Parameter : {} ", parameter);
+			LOGGER.trace("Parameter : {} ", parameter.dump());
 			LOGGER.trace("Display Name : {}", parameter.getDisplayName());
 			LOGGER.trace("Real value : {}", parameter.getRealValue());
 			LOGGER.trace("Element Name : {}", parameter.getElementName());
 			LOGGER.trace("Definition - type name: {}", parameter.getDefinition().getTypeName());
 			LOGGER.trace("--------------------------------------------------------------------------------");
-		}
+		}*/
 		return property;
 	}
 	
 	public static Timestamp convertDateTime(XMLGregorianCalendar dateTime)
 	{
-		//XMLGregorianCalendar xmlCal = XmlTypeConverter.createXMLGregorianCalendar(dateTime.toString());
 		Timestamp timestamp = new Timestamp(System.currentTimeMillis()); 
 		try {
 			timestamp = new Timestamp(XmlTypeConverter.toDate(dateTime).getTime()); 
@@ -251,11 +337,11 @@ public class ReportUtils {
 		return timestamp;
 	}
 	
-	private static JRDesignParameter createParameter(PrismProperty parameterConfig)
+	private static JRDesignParameter createParameter(PrismProperty parameterConfig, PrismSchema reportSchema)
 	{
 		JRDesignParameter parameter = new JRDesignParameter();
 		parameter.setName(parameterConfig.getElementName().getLocalPart());
-		parameter.setValueClass(getClassType(parameterConfig.getDefinition().getTypeName()));
+		parameter.setValueClass(getClassType(parameterConfig.getDefinition().getTypeName(), reportSchema.getNamespace()));
 		return parameter;
 	}
     
@@ -453,7 +539,7 @@ public class ReportUtils {
 		jasperDesign.addStyle(pageFooterStyle);
 	}
 
-	private static JRDesignBand createTitleBand(int height, int reportColumn, int secondColumn, PrismContainer<Containerable> parameterConfiguration, PrismSchema prismSchema)
+	private static JRDesignBand createTitleBand(int height, int reportColumn, int secondColumn, PrismContainer<Containerable> parameterConfiguration, PrismSchema reportSchema)
 	{
 		JRDesignBand titleBand = createBand(height);
 		JRDesignFrame frame = createFrame(0, 0, 70, reportColumn, "Title");
@@ -461,7 +547,7 @@ public class ReportUtils {
 	
 		JRDesignStaticText staticText = createStaticText(10, 15, 40, 266, "Title", VerticalAlignEnum.MIDDLE, "DataSource Report");
 		frame.addElement(staticText);
-		if (getParameter(PARAMETER_LOGO, parameterConfiguration, prismSchema.getNamespace()) != null) 
+		if (getParameter(PARAMETER_LOGO, parameterConfiguration, reportSchema.getNamespace()) != null) 
 		{
 			JRDesignImage image = createImage(589, 15, 40, 203, "Title", new JRDesignExpression("$P{" + PARAMETER_LOGO + "}"));
 			frame.addElement(image);
@@ -483,14 +569,14 @@ public class ReportUtils {
 		{
 			int y = 70;
 			for(PrismProperty parameter : parameterConfiguration.getValue().getProperties())
-			{
+			{/*
 				LOGGER.trace("Parameter : {} ", parameter);
 				LOGGER.trace("Display Name : {}", parameter.getDisplayName());
 				LOGGER.trace("Real value : {}", parameter.getRealValue());
 				LOGGER.trace("Element Name : {}", parameter.getElementName());
 				LOGGER.trace("Definition : {}", parameter.getDefinition());
 				LOGGER.trace("--------------------------------------------------------------------------------");
-			
+			*/
 				if (parameter.getDisplayName() != null)
 				{
 					staticText = createStaticText(2, y, 20, 150, "Page header", VerticalAlignEnum.MIDDLE, parameter.getDisplayName() + ":");
@@ -574,7 +660,7 @@ public class ReportUtils {
 		return pageFooterBand;
 	}
 	
-    public static JasperDesign createJasperDesign(ReportType reportType, PrismContainer<Containerable> parameterConfiguration, PrismSchema prismSchema) throws JRException
+    public static JasperDesign createJasperDesign(ReportType reportType, PrismContainer<Containerable> parameterConfiguration, PrismSchema reportSchema) throws JRException
 	{
     	
 		//JasperDesign
@@ -603,12 +689,12 @@ public class ReportUtils {
 		{
 			for(PrismProperty parameterConfig : parameterConfiguration.getValue().getProperties())
 			{
-				JRDesignParameter parameter = createParameter(parameterConfig);
+				JRDesignParameter parameter = createParameter(parameterConfig, reportSchema);
 				jasperDesign.addParameter(parameter);	
 			}
 		}	 
 		//Template Style or Styles
-		if (getParameter(PARAMETER_TEMPLATE_STYLES, parameterConfiguration, prismSchema.getNamespace()) != null)
+		if (getParameter(PARAMETER_TEMPLATE_STYLES, parameterConfiguration, reportSchema.getNamespace()) != null)
 		{
 			JRDesignReportTemplate templateStyle = new JRDesignReportTemplate(new JRDesignExpression("$P{" + PARAMETER_TEMPLATE_STYLES + "}"));
 			jasperDesign.addTemplate(templateStyle);
@@ -620,7 +706,7 @@ public class ReportUtils {
 		{
 			JRDesignField field = new JRDesignField();
 			field.setName(fieldRepo.getNameReportField());
-			field.setValueClass(getClassType(fieldRepo.getClassTypeField()));	
+			field.setValueClass(getClassType(fieldRepo.getClassTypeField(), reportSchema.getNamespace()));	
 			jasperDesign.addField(field);
 		}
 
@@ -635,7 +721,7 @@ public class ReportUtils {
 		//int height = 70 + Math.max(40, parameters.size()*20);
 		int height = 70 + Math.max(40, 20);
 		
-		JRDesignBand titleBand = createTitleBand(height, reportColumn, secondColumn, parameterConfiguration, prismSchema);
+		JRDesignBand titleBand = createTitleBand(height, reportColumn, secondColumn, parameterConfiguration, reportSchema);
 		jasperDesign.setTitle(titleBand);
 	
 		//Column header
