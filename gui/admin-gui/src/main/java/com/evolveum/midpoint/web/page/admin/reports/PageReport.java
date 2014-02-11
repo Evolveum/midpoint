@@ -31,7 +31,6 @@ import com.evolveum.midpoint.web.component.TabbedPanel;
 import com.evolveum.midpoint.web.component.util.LoadableModel;
 import com.evolveum.midpoint.web.component.util.SimplePanel;
 import com.evolveum.midpoint.web.page.admin.configuration.dto.ResourceItemDto;
-import com.evolveum.midpoint.web.page.admin.dto.ObjectViewDto;
 import com.evolveum.midpoint.web.page.admin.home.PageDashboard;
 import com.evolveum.midpoint.web.page.admin.reports.component.*;
 import com.evolveum.midpoint.web.page.admin.reports.dto.AuditReportDto;
@@ -41,11 +40,8 @@ import com.evolveum.midpoint.web.page.admin.reports.dto.UserReportDto;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.ExportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ReportType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
-import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
-import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.wicket.RestartResponseException;
 import org.apache.wicket.ajax.AjaxRequestTarget;
@@ -58,20 +54,18 @@ import org.apache.wicket.model.Model;
 import org.apache.wicket.model.StringResourceModel;
 import org.apache.wicket.util.string.StringValue;
 
-import javax.swing.text.html.ObjectView;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 /**
- *  @author shood
- *
+ * @author shood
  */
 @PageDescriptor(url = "/admin/report", encoder = OnePageParameterEncoder.class, action = {
         PageAdminReports.AUTHORIZATION_REPORTS_ALL,
         AuthorizationConstants.NS_AUTHORIZATION + "#report"})
-public class PageReport<T extends Serializable> extends PageAdminReports{
+public class PageReport<T extends Serializable> extends PageAdminReports {
 
     private static Trace LOGGER = TraceManager.getTrace(PageReport.class);
 
@@ -90,7 +84,7 @@ public class PageReport<T extends Serializable> extends PageAdminReports{
     private LoadableModel<ReportDto> model;
     IModel<List<ResourceItemDto>> resources = new Model();
 
-    public PageReport(){
+    public PageReport() {
         model = new LoadableModel<ReportDto>(false) {
 
             @Override
@@ -103,7 +97,7 @@ public class PageReport<T extends Serializable> extends PageAdminReports{
     }
 
     @Override
-    protected IModel<String> createPageTitleModel(){
+    protected IModel<String> createPageTitleModel() {
         return new LoadableModel<String>(false) {
 
             @Override
@@ -113,7 +107,7 @@ public class PageReport<T extends Serializable> extends PageAdminReports{
         };
     }
 
-    private ReportDto loadReport(){
+    private ReportDto loadReport() {
         StringValue reportOid = getPageParameters().get(OnePageParameterEncoder.PARAMETER);
 
         ReportDto dto = null;
@@ -121,7 +115,7 @@ public class PageReport<T extends Serializable> extends PageAdminReports{
         OperationResult result = new OperationResult(OPERATION_LOAD_REPORT);
         PrismObject<ReportType> prismReport = WebModelUtils.loadObject(ReportType.class, reportOid.toString(), result, this);
 
-        try{
+        try {
             ReportType report = prismReport.asObjectable();
 
             PrismDomProcessor domProcessor = getPrismContext().getPrismDomProcessor();
@@ -129,7 +123,7 @@ public class PageReport<T extends Serializable> extends PageAdminReports{
             dto = new ReportDto(report.getName().getNorm(), report.getDescription(), xml, report.getExport());
             dto.setObject(prismReport);
             result.recordSuccess();
-        } catch (Exception e){
+        } catch (Exception e) {
             result.recordFatalError("Couldn't load report from repository.", e);
             LoggingUtils.logException(LOGGER, "Couldn't load report from repository.", e);
         }
@@ -137,7 +131,7 @@ public class PageReport<T extends Serializable> extends PageAdminReports{
         return dto;
     }
 
-    private void initLayout(){
+    private void initLayout() {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
 
@@ -146,7 +140,7 @@ public class PageReport<T extends Serializable> extends PageAdminReports{
 
             @Override
             public WebMarkupContainer getPanel(String panelId) {
-                return initEditingPanel(panelId);
+                return new ReportConfigurationPanel(panelId, model);
             }
         });
 
@@ -163,7 +157,7 @@ public class PageReport<T extends Serializable> extends PageAdminReports{
         initButtons(mainForm);
     }
 
-    private void initButtons(Form mainForm){
+    private void initButtons(Form mainForm) {
         AjaxSubmitButton saveAndRun = new AjaxSubmitButton(ID_SAVE_RUN_BUTTON, createStringResource("PageBase.button.saveAndRun")) {
 
             @Override
@@ -207,44 +201,21 @@ public class PageReport<T extends Serializable> extends PageAdminReports{
         mainForm.add(cancel);
     }
 
-    private SimplePanel initAceEditorPanel(String panelId){
+    private SimplePanel initAceEditorPanel(String panelId) {
 
-        return new AceEditorPanel<ReportDto>(panelId, model){
+        return new AceEditorPanel<ReportDto>(panelId, model) {
 
             @Override
-            public IModel<ReportDto> getEditorModel(){
+            public IModel<ReportDto> getEditorModel() {
                 return model;
             }
 
             @Override
-            public String getExpression(){
+            public String getExpression() {
                 return ReportDto.F_XML;
             }
 
         };
-    }
-
-    private SimplePanel initEditingPanel(String panelId){
-        //TODO - return dynamically generated editing panel for report
-        SimplePanel editReportPanel;
-        IModel editPanelModel = new Model();
-        String reportType = getPageParameters().get("reportType").toString();
-
-        if(ReportDto.Type.AUDIT.toString().equals(reportType)){
-            editPanelModel.setObject(new AuditReportDto());
-            editReportPanel = new AuditPopupPanel(panelId, editPanelModel);
-        } else if(ReportDto.Type.RECONCILIATION.toString().equals(reportType)){
-            editPanelModel.setObject(new ReconciliationReportDto());
-            resources.setObject(loadResources());
-            editReportPanel = new ReconciliationPopupPanel(panelId, editPanelModel, resources);
-        } else if(ReportDto.Type.USERS.toString().equals(reportType)){
-            editPanelModel.setObject(new UserReportDto());
-            editReportPanel = new UserReportConfigPanel(panelId, editPanelModel);
-        } else {
-            editReportPanel = new DefaultReportPanel(panelId, model);
-        }
-
-        return editReportPanel;
     }
 
     private List<ResourceItemDto> loadResources() {
@@ -288,7 +259,7 @@ public class PageReport<T extends Serializable> extends PageAdminReports{
     protected void onSavePerformed(AjaxRequestTarget target) {
         ReportDto dto = model.getObject();
 
-        if(StringUtils.isEmpty(dto.getXml())){
+        if (StringUtils.isEmpty(dto.getXml())) {
             error(getString("pageReport.message.emptyXml"));
             target.add(getFeedbackPanel());
             return;
@@ -298,7 +269,7 @@ public class PageReport<T extends Serializable> extends PageAdminReports{
         Holder<PrismObject<ReportType>> objectHolder = new Holder<PrismObject<ReportType>>(null);
         validateObject(dto.getXml(), objectHolder, true, result);
 
-        try{
+        try {
             Task task = createSimpleTask(OPERATION_SAVE_REPORT);
             PrismObject<ReportType> newReport = objectHolder.getValue();
 
@@ -310,7 +281,7 @@ public class PageReport<T extends Serializable> extends PageAdminReports{
             ObjectDelta<ReportType> delta = oldReport.diff(newReport);
             getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);
 
-        } catch (Exception e){
+        } catch (Exception e) {
             result.recordFatalError("Couldn't save report.", e);
         }
         result.recomputeStatus();
@@ -318,7 +289,7 @@ public class PageReport<T extends Serializable> extends PageAdminReports{
         showResult(result);
         target.add(getFeedbackPanel());
 
-        if(result.isSuccess()){
+        if (result.isSuccess()) {
             showResultInSession(result);
             setResponsePage(PageReports.class);
         }

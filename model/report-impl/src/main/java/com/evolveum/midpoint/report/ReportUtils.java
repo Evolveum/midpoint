@@ -11,6 +11,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.*;
+import com.evolveum.midpoint.schema.util.ReportTypeUtil;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRExpression;
 import net.sf.jasperreports.engine.JRStyle;
@@ -133,9 +134,8 @@ public class ReportUtils {
             throw new SchemaException("Couldn't find schema for configuration in report type " + report + ".");
         }
 
-        PrismSchema schema = PrismSchema.parse(xmlSchemaElement, true, "schema for " + report, prismContext);
-        QName configContainerQName = new QName(schema.getNamespace(), ReportType.F_CONFIGURATION.getLocalPart());
-        PrismContainerDefinition<ReportConfigurationType> definition = schema.findContainerDefinitionByElementName(configContainerQName);
+        PrismSchema schema = ReportTypeUtil.parseReportConfigurationSchema(report, prismContext);
+        PrismContainerDefinition<ReportConfigurationType> definition =  ReportTypeUtil.findReportConfigurationDefinition(schema);
         if (definition == null) {
             //no definition found for container
             throw new SchemaException("Couldn't find definitions for report type " + report + ".");

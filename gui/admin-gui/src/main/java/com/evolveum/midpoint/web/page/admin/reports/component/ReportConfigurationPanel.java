@@ -17,6 +17,7 @@
 package com.evolveum.midpoint.web.page.admin.reports.component;
 
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.web.component.form.CheckFormGroup;
 import com.evolveum.midpoint.web.component.form.DropDownFormGroup;
 import com.evolveum.midpoint.web.component.form.TextAreaFormGroup;
 import com.evolveum.midpoint.web.component.form.TextFormGroup;
@@ -35,19 +36,23 @@ import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.PropertyModel;
 
 /**
- *  @author shood
+ * @author shood
+ * @author lazyman
+ *
  */
-public class DefaultReportPanel extends SimplePanel<ReportDto>{
+public class ReportConfigurationPanel extends SimplePanel<ReportDto> {
 
     private static final String ID_NAME = "name";
     private static final String ID_DESCRIPTION = "description";
     private static final String ID_EXPORT_TYPE = "exportType";
     private static final String ID_PROPERTIES = "properties";
+    private static final String ID_USE_HIBERNATE_SESSION = "useHibernateSession";
+    private static final String ID_ORIENTATION = "orientation";
 
     private static final String ID_LABEL_SIZE = "col-md-4";
-    private static final String ID_INPUT_SIZE = "col-md-6";
+    private static final String ID_INPUT_SIZE = "col-md-8";
 
-    public DefaultReportPanel(String id, IModel<ReportDto> model){
+    public ReportConfigurationPanel(String id, IModel<ReportDto> model) {
         super(id, model);
     }
 
@@ -58,15 +63,17 @@ public class DefaultReportPanel extends SimplePanel<ReportDto>{
         add(name);
 
         TextAreaFormGroup description = new TextAreaFormGroup(ID_DESCRIPTION, new PropertyModel<String>(getModel(),
-                ReportDto.F_DESCRIPTION), createStringResource("ObjectType.description"), ID_LABEL_SIZE, ID_INPUT_SIZE, true);
+                ReportDto.F_DESCRIPTION), createStringResource("ObjectType.description"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         add(description);
 
         IModel choices = WebMiscUtil.createReadonlyModelFromEnum(ExportType.class);
         IChoiceRenderer renderer = new EnumChoiceRenderer();
         DropDownFormGroup exportType = new DropDownFormGroup(ID_EXPORT_TYPE, new
                 PropertyModel<ExportType>(getModel(), ReportDto.F_EXPORT_TYPE), choices, renderer,
-                createStringResource("defaultReportPanel.exportType.label"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
+                createStringResource("ReportType.export"), ID_LABEL_SIZE, ID_INPUT_SIZE, false);
         add(exportType);
+
+        //todo useHibernateSession and orientation
 
         IModel<ObjectWrapper> wrapper = new LoadableModel<ObjectWrapper>(false) {
 
