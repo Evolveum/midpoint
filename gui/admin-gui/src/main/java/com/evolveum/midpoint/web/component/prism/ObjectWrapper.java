@@ -28,6 +28,7 @@ import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.util.ConnectorTypeUtil;
+import com.evolveum.midpoint.schema.util.ReportTypeUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.LoggingUtils;
@@ -251,6 +252,8 @@ public class ObjectWrapper implements Serializable {
 				}
             } else if (ResourceType.class.isAssignableFrom(clazz)) {
                 containers =  createResourceContainers();
+            } else if (ReportType.class.isAssignableFrom(clazz)) {
+                containers = createReportContainers();
 			} else {
 				ContainerWrapper container = new ContainerWrapper(this, object, getStatus(), null);
                 addSubresult(container.getResult());
@@ -269,6 +272,30 @@ public class ObjectWrapper implements Serializable {
 
 		return containers;
 	}
+
+    private List<ContainerWrapper> createReportContainers() throws SchemaException {
+        List<ContainerWrapper> containers = new ArrayList<ContainerWrapper>();
+
+        PrismContainer container = object.findContainer(ReportType.F_CONFIGURATION);
+        ContainerStatus status = container != null ? ContainerStatus.MODIFYING : ContainerStatus.ADDING;
+
+        if (container == null) {
+            PrismSchema schema = ReportTypeUtil.parseReportConfigurationSchema((PrismObject<ReportType>) object,
+                    object.getPrismContext());
+            PrismContainerDefinition definition = ReportTypeUtil.findReportConfigurationDefinition(schema);
+            if (definition == null) {
+                return containers;
+            }
+            container = definition.instantiate();
+        }
+
+        ContainerWrapper wrapper = new ContainerWrapper(this, container, status, new ItemPath(ReportType.F_CONFIGURATION));
+        addSubresult(wrapper.getResult());
+
+        containers.add(wrapper);
+
+        return containers;
+    }
 
     private List<ContainerWrapper> createResourceContainers() throws SchemaException {
         List<ContainerWrapper> containers = new ArrayList<ContainerWrapper>();

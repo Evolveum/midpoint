@@ -459,11 +459,6 @@ public class LayerRefinedObjectClassDefinition extends RefinedObjectClassDefinit
 		return sb.toString();
 	}
 
-	@Override
-	public String dump() {
-		return debugDump();
-	}
-	
 	/**
      * Return a human readable name of this class suitable for logs.
      */

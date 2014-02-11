@@ -320,17 +320,17 @@ public class ModifyTest extends BaseSQLRepoTest {
         PrismObject<ShadowType> accShadow = prismContext.getPrismDomProcessor().parseObject(new File(TEST_DIR + "/account-delete-object-change.xml"));
         String oid = repositoryService.addObject(accShadow, null, parentResult);
         System.out.println("\nAcc shadow");
-        System.out.println(accShadow.dump());
+        System.out.println(accShadow.debugDump());
 
         accShadow.asObjectable().setObjectChange(null);
 
         PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, oid, null, parentResult);
         System.out.println("\nRepo shadow");
-        System.out.println(repoShadow.dump());
+        System.out.println(repoShadow.debugDump());
 
         ObjectDelta d = repoShadow.diff(accShadow);
         System.out.println("\nDelta");
-        System.out.println(d.dump());
+        System.out.println(d.debugDump());
 
         repositoryService.modifyObject(ShadowType.class, oid, d.getModifications(), parentResult);
 
@@ -353,21 +353,21 @@ public class ModifyTest extends BaseSQLRepoTest {
         accShadow.asObjectable().setMetadata(metaData);
 
         System.out.println("\nAcc shadow");
-        System.out.println(accShadow.dump());
+        System.out.println(accShadow.debugDump());
 
         String oid = repositoryService.addObject(accShadow, null, parentResult);
         System.out.println("\nAcc shadow");
-        System.out.println(accShadow.dump());
+        System.out.println(accShadow.debugDump());
 
         accShadow.asObjectable().setObjectChange(null);
 
         PrismObject<ShadowType> repoShadow = repositoryService.getObject(ShadowType.class, oid, null, parentResult);
         System.out.println("\nRepo shadow");
-        System.out.println(repoShadow.dump());
+        System.out.println(repoShadow.debugDump());
 
         ObjectDelta d = repoShadow.diff(accShadow);
         System.out.println("\nDelta");
-        System.out.println(d.dump());
+        System.out.println(d.debugDump());
 
         PrismObjectDefinition accountDefinition = prismContext.getSchemaRegistry().findObjectDefinitionByCompileTimeClass(ShadowType.class);
         PrismReferenceValue accountRef = new PrismReferenceValue();
@@ -381,7 +381,7 @@ public class ModifyTest extends BaseSQLRepoTest {
 
         PrismObject<ShadowType> afterModify = repositoryService.getObject(ShadowType.class, oid, null, parentResult);
         System.out.println("\nAfter modify");
-        System.out.println(afterModify.dump());
+        System.out.println(afterModify.debugDump());
 
         Collection<ItemDelta> modifications = new ArrayList<ItemDelta>();
         PropertyDelta pdelta = PropertyDelta.createModificationReplaceProperty((new ItemPath(ObjectType.F_METADATA, MetadataType.F_MODIFY_CHANNEL)), accountDefinition, "channel");
@@ -397,7 +397,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         afterModify = repositoryService.getObject(ShadowType.class,
                 oid, null, parentResult);
         System.out.println("\nAfter modify");
-        System.out.println(afterModify.dump());
+        System.out.println(afterModify.debugDump());
 
 
         XMLGregorianCalendar timestamp = XmlTypeConverter.createXMLGregorianCalendar(System.currentTimeMillis());
@@ -412,7 +412,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         afterModify = repositoryService.getObject(ShadowType.class,
                 oid, null, parentResult);
         System.out.println("\nAfter modify");
-        System.out.println(afterModify.dump());
+        System.out.println(afterModify.debugDump());
     }
 
     @Test
@@ -645,7 +645,7 @@ public class ModifyTest extends BaseSQLRepoTest {
         AssertJUnit.assertNotNull(shadows);
         AssertJUnit.assertEquals(1, shadows.size());
 
-        System.out.println("shadow: " + shadows.get(0).dump());
+        System.out.println("shadow: " + shadows.get(0).debugDump());
     }
 
     @Test

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,14 +22,13 @@ import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
 import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 
 /**
  * @author semancik
  *
  */
-public interface ModelElementContext<O extends ObjectType> extends Serializable, Dumpable, DebugDumpable {
+public interface ModelElementContext<O extends ObjectType> extends Serializable, DebugDumpable {
 	
 	public PrismObject<O> getObjectOld();
 

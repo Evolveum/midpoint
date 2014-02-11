@@ -32,14 +32,13 @@ import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 
 /**
  * @author semancik
  *
  */
-public class MockClockworkHook implements ChangeHook, Dumpable, DebugDumpable {
+public class MockClockworkHook implements ChangeHook, DebugDumpable {
 	
 	private List<LensContext<?>> contexts = new ArrayList<LensContext<?>>();
 	private LensContext<?> lastAsyncContext = null;
@@ -116,15 +115,7 @@ public class MockClockworkHook implements ChangeHook, Dumpable, DebugDumpable {
 //		// TODO Auto-generated method stub
 //
 //	}
-
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.util.Dumpable#dump()
-	 */
-	@Override
-	public String dump() {
-		return debugDump();
-	}
-
+    
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.util.DebugDumpable#debugDump()
 	 */

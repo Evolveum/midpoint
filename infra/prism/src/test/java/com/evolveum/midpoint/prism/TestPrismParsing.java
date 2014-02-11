@@ -81,7 +81,7 @@ public class TestPrismParsing {
 		
 		// THEN
 		System.out.println("User:");
-		System.out.println(user.dump());
+		System.out.println(user.debugDump());
 		assertNotNull(user);
 		
 		assertUserJack(user);
@@ -100,7 +100,7 @@ public class TestPrismParsing {
 		
 		// THEN
 		System.out.println("User:");
-		System.out.println(user.dump());
+		System.out.println(user.debugDump());
 		assertNotNull(user);
 		
 		assertUserJack(user);
@@ -122,7 +122,7 @@ public class TestPrismParsing {
 		
 		// THEN
 		System.out.println("User:");
-		System.out.println(user.dump());
+		System.out.println(user.debugDump());
 		assertNotNull(user);
 		
 		assertUserJack(user);
@@ -152,7 +152,7 @@ public class TestPrismParsing {
 		PrismObject<UserType> originalUser = prismContext.parseObject(file);
 	
 		System.out.println("Input parsed user:");
-		System.out.println(originalUser.dump());
+		System.out.println(originalUser.debugDump());
 		assertNotNull(originalUser);
 		
 		// precondition
@@ -172,7 +172,7 @@ public class TestPrismParsing {
 		// WHEN
 		PrismObject<UserType> parsedUser = prismContext.parseObject(userXml);
 		System.out.println("Re-parsed user:");
-		System.out.println(parsedUser.dump());
+		System.out.println(parsedUser.debugDump());
 		assertNotNull(parsedUser);
 
 		assertUserJack(parsedUser);
@@ -199,7 +199,7 @@ public class TestPrismParsing {
 		
 		// THEN
 		System.out.println("User:");
-		System.out.println(user.dump());
+		System.out.println(user.debugDump());
 		assertNotNull(user);
 		
 		assertUserAdhoc(user);
@@ -221,7 +221,7 @@ public class TestPrismParsing {
 		
 		// THEN
 		System.out.println("User:");
-		System.out.println(user.dump());
+		System.out.println(user.debugDump());
 		assertNotNull(user);
 		
 		assertUserAdhoc(user);
@@ -241,7 +241,7 @@ public class TestPrismParsing {
 		PrismObject<UserType> originalUser = prismContext.parseObject(file);
 	
 		System.out.println("Input parsed user:");
-		System.out.println(originalUser.dump());
+		System.out.println(originalUser.debugDump());
 		assertNotNull(originalUser);
 		
 		// precondition
@@ -261,7 +261,7 @@ public class TestPrismParsing {
 		// WHEN
 		PrismObject<UserType> parsedUser = prismContext.parseObject(userXml);
 		System.out.println("Re-parsed user:");
-		System.out.println(parsedUser.dump());
+		System.out.println(parsedUser.debugDump());
 		assertNotNull(parsedUser);
 
 		assertUserAdhoc(parsedUser);
@@ -289,7 +289,7 @@ public class TestPrismParsing {
 		opponentRef.add(opponentRefValue);
 		
 		System.out.println("User jack:");
-		System.out.println(userJack.dump());
+		System.out.println(userJack.debugDump());
 		
 		// WHEN
 		Element elementJack = prismContext.serializeToDom(userJack);
@@ -305,7 +305,7 @@ public class TestPrismParsing {
 		
 		// THEN
 		System.out.println("Re-parsed user jack:");
-		System.out.println(reparsedUserJack.dump());
+		System.out.println(reparsedUserJack.debugDump());
 		
 		PrismReference reparsedOpponentRef = reparsedUserJack.findReference(new ItemPath(UserType.F_EXTENSION, EXTENSION_MELEE_CONTEXT_ELEMENT, EXTENSION_MELEE_CONTEXT_OPPONENT_REF_ELEMENT));
 		assertNotNull("No opponent ref (reparsed)", reparsedOpponentRef);
@@ -344,7 +344,7 @@ public class TestPrismParsing {
 		
 		// THEN
 		System.out.println("User:");
-		System.out.println(user.dump());
+		System.out.println(user.debugDump());
 		assertNotNull(user);
 		
 		assertUserWill(user);
@@ -363,7 +363,7 @@ public class TestPrismParsing {
 		
 		// THEN
 		System.out.println("User:");
-		System.out.println(user.dump());
+		System.out.println(user.debugDump());
 		assertNotNull(user);
 		
 		assertUserWill(user);
@@ -381,7 +381,7 @@ public class TestPrismParsing {
 		
 		// THEN
 		System.out.println("Re-parsed user:");
-		System.out.println(reparsedUser.dump());
+		System.out.println(reparsedUser.debugDump());
 		assertNotNull(reparsedUser);
 		
 		assertUserWill(reparsedUser);

@@ -31,12 +31,6 @@ public abstract class NaryLogicalFilter extends LogicalFilter{
 	}
 
 	@Override
-	public String dump() {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
 	public String debugDump() {
 		// TODO Auto-generated method stub
 		return null;

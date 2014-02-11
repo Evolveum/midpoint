@@ -212,7 +212,7 @@ public class AccountOperationListener implements ResourceOperationListener {
         if (userOid == null) {
             LOGGER.warn("There is no owner of account " + accountOid + " (in repo nor in task).");
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Task = " + (task != null ? task.dump() : "(null)"));
+                LOGGER.trace("Task = " + (task != null ? task.debugDump() : "(null)"));
             }
             return null;
         }

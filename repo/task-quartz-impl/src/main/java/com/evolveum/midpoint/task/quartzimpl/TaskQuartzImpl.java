@@ -30,6 +30,7 @@ import com.evolveum.midpoint.schema.DeltaConvertor;
 import com.evolveum.midpoint.task.api.*;
 import com.evolveum.midpoint.task.quartzimpl.handlers.WaitForSubtasksByPollingTaskHandler;
 import com.evolveum.midpoint.task.quartzimpl.handlers.WaitForTasksTaskHandler;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.ObjectAlreadyExistsException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.prism.xml.ns._public.types_2.ItemDeltaType;
@@ -48,6 +49,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
+
 import org.apache.commons.lang.Validate;
 
 /**
@@ -2019,21 +2021,27 @@ public class TaskQuartzImpl implements Task {
 	public Long getNextRunStartTime(OperationResult parentResult) {
 		return taskManager.getNextRunStartTime(getOid(), parentResult);
 	}
+
+	@Override
+	public String debugDump() {
+		return debugDump(0);
+	}
 	
 	@Override
-	public String dump() {
+	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
+		DebugUtil.indentDebugDump(sb, indent);
 		sb.append("Task(");
 		sb.append(TaskQuartzImpl.class.getName());
 		sb.append(")\n");
-		sb.append(taskPrism.debugDump(1));
+		sb.append(taskPrism.debugDump(indent + 1));
 		sb.append("\n  persistenceStatus: ");
 		sb.append(getPersistenceStatus());
 		sb.append("\n  result: ");
 		if (taskResult ==null) {
 			sb.append("null");
 		} else {
-			sb.append(taskResult.dump());
+			sb.append(taskResult.debugDump());
 		}
 		return sb.toString();
 	}

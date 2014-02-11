@@ -168,7 +168,7 @@ public class ShadowManager {
 				parentResult);
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Searching for shadow using filter:\n{}",
-					query.dump());
+					query.debugDump());
 		}
 //		PagingType paging = new PagingType();
 
@@ -184,7 +184,7 @@ public class ShadowManager {
 		}
 		if (results.size() > 1) {
 			for (PrismObject<ShadowType> result : results) {
-				LOGGER.trace("Search result:\n{}", result.dump());
+				LOGGER.trace("Search result:\n{}", result.debugDump());
 			}
 			LOGGER.error("More than one shadows found for " + resourceShadow);
 			// TODO: Better error handling later
@@ -216,7 +216,7 @@ public class ShadowManager {
 		ObjectQuery query = ObjectQuery.createObjectQuery(filter);
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Searching for shadow using filter on secondary identifier:\n{}",
-					query.dump());
+					query.debugDump());
 		}
 
 		// TODO: check for errors
@@ -231,7 +231,7 @@ public class ShadowManager {
 		}
 //		if (results.size() > 1) {
 //			for (PrismObject<ShadowType> result : results) {
-//				LOGGER.trace("Search result:\n{}", result.dump());
+//				LOGGER.trace("Search result:\n{}", result.debugDump());
 //			}
 //			LOGGER.error("More than one shadows found for " + resourceShadow);
 //			// TODO: Better error handling later
@@ -258,7 +258,7 @@ public class ShadowManager {
 		
 		if (conflictingShadows.size() > 1) {
 			for (PrismObject<ShadowType> result : conflictingShadows) {
-				LOGGER.trace("Search result:\n{}", result.dump());
+				LOGGER.trace("Search result:\n{}", result.debugDump());
 			}
 			LOGGER.error("More than one shadows found for " + resourceShadow);
 			// TODO: Better error handling later

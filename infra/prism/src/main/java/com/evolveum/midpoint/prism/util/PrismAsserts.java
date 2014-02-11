@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -651,7 +651,7 @@ public class PrismAsserts {
 			suffix += ": Empty delta. The difference is most likely in meta-data";
 		}
 		LOGGER.error("ASSERT: {}: {} and {} not equals, delta:\n{}", new Object[]{
-				message, expected, actual, delta.dump()
+				message, expected, actual, delta.debugDump()
 		});
 		assert false: message + ": " + suffix;
 	}
@@ -687,7 +687,7 @@ public class PrismAsserts {
 			suffix += ": Empty delta. This is not expected. Somethig has got quite wrong here.";
 		}
 		LOGGER.error("ASSERT: {}: {} and {} not equivalent, delta:\n{}", new Object[]{
-				message, expected, actual, delta.dump()
+				message, expected, actual, delta.debugDump()
 		});
 		assert false: message + ": " + suffix;
 	}

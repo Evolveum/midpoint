@@ -70,7 +70,7 @@ public class OrgRestriction extends Restriction<OrgFilter> {
         }
 
         if (filter.getOrgRef().getOid() == null) {
-            throw new QueryException("No oid specified in organization reference " + filter.getOrgRef().dump());
+            throw new QueryException("No oid specified in organization reference " + filter.getOrgRef().debugDump());
         }
 
         String orgRefOid = filter.getOrgRef().getOid();

@@ -188,7 +188,7 @@ public class ConsolidationProcessor {
 
         RefinedObjectClassDefinition rOcDef = projCtx.getRefinedAccountDefinition();
         if (rOcDef == null) {
-            LOGGER.error("Definition for account type {} not found in the context, but it should be there, dumping context:\n{}", discr, context.dump());
+            LOGGER.error("Definition for account type {} not found in the context, but it should be there, dumping context:\n{}", discr, context.debugDump());
             throw new IllegalStateException("Definition for account type " + discr + " not found in the context, but it should be there");
         }
         
@@ -344,7 +344,7 @@ public class ConsolidationProcessor {
 				discr.toHumanReadableString(), completeShadow);
 		
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Consolidated delta (before sync filter) for {}:\n{}",discr,itemDelta==null?"null":itemDelta.dump());
+			LOGGER.trace("Consolidated delta (before sync filter) for {}:\n{}",discr,itemDelta==null?"null":itemDelta.debugDump());
 		}
         
 		if (existingItemDelta != null && existingItemDelta.isReplace()) {
@@ -355,7 +355,7 @@ public class ConsolidationProcessor {
 			// Also consider a synchronization delta (if it is present). This may filter out some deltas.
 			itemDelta = consolidateItemWithSync(projCtx, itemDelta, valueMatcher);
             if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Consolidated delta (after sync filter) for {}:\n{}",discr,itemDelta==null?"null":itemDelta.dump());
+				LOGGER.trace("Consolidated delta (after sync filter) for {}:\n{}",discr,itemDelta==null?"null":itemDelta.debugDump());
 			}
 		}
 

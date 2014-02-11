@@ -33,11 +33,14 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextStatsType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensContextType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensFocusContextType;
+import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensObjectDeltaOperationType;
 import com.evolveum.midpoint.xml.ns._public.model.model_context_2.LensProjectionContextType;
+
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
+
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -66,6 +69,8 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
 	private boolean requestAudited = false;
 	private boolean executionAudited = false;
 	private LensContextStatsType stats = new LensContextStatsType();
+	
+	private List<LensObjectDeltaOperation<?>> rottenExecutedDeltas = new ArrayList<LensObjectDeltaOperation<?>>();
 
 	transient private ObjectTemplateType focusTemplate;
 	transient private ProjectionPolicyType accountSynchronizationSettings;
@@ -497,6 +502,9 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
         for (LensProjectionContext projCtx: getProjectionContexts()) {
         	executedDeltas.addAll(projCtx.getExecutedDeltas(audited));
         }
+        if (audited == null) {
+        	executedDeltas.addAll(getRottenExecutedDeltas());
+        }
         return executedDeltas;
     }
     
@@ -508,6 +516,10 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
         	projCtx.markExecutedDeltasAudited();
         }
     }
+ 
+	public List<LensObjectDeltaOperation<?>> getRottenExecutedDeltas() {
+		return rottenExecutedDeltas;
+	}
     
 	public void recompute() throws SchemaException {
 		recomputeFocus();
@@ -692,11 +704,6 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
     public String debugDump() {
         return debugDump(0);
     }
-
-    @Override
-    public String dump() {
-        return debugDump(0);
-    }
     
     public String dump(boolean showTriples) {
         return debugDump(0, showTriples);
@@ -786,6 +793,10 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
         lensContextType.setRequestAudited(requestAudited);
         lensContextType.setExecutionAudited(executionAudited);
         lensContextType.setStats(stats);
+        
+        for (LensObjectDeltaOperation executedDelta : rottenExecutedDeltas) {
+        	lensContextType.getRottenExecutedDeltas().add(executedDelta.toLensObjectDeltaOperationType());
+        }
 
         return lensContextTypeContainer;
     }
@@ -832,10 +843,24 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
         }
         lensContext.setStats(lensContextType.getStats());
 
+        for (LensObjectDeltaOperationType eDeltaOperationType : lensContextType.getRottenExecutedDeltas()) {
+            LensObjectDeltaOperation objectDeltaOperation = LensObjectDeltaOperation.fromLensObjectDeltaOperationType(eDeltaOperationType, lensContext.getPrismContext());
+            if (objectDeltaOperation.getObjectDelta() != null) {
+            	lensContext.fixProvisioningTypeInDelta(objectDeltaOperation.getObjectDelta(), result);
+            }
+            lensContext.rottenExecutedDeltas.add(objectDeltaOperation);
+        }
+        
         if (result.isUnknown()) {
             result.computeStatus();
         }
         return lensContext;
+    }
+    
+    protected void fixProvisioningTypeInDelta(ObjectDelta delta, OperationResult result) throws SchemaException, ObjectNotFoundException, CommunicationException, ConfigurationException {
+        if (delta != null && delta.getObjectTypeClass() != null && (ShadowType.class.isAssignableFrom(delta.getObjectTypeClass()) || ResourceType.class.isAssignableFrom(delta.getObjectTypeClass()))) {
+            getProvisioningService().applyDefinition(delta, result);
+        }
     }
 
 	@Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,6 @@ import org.w3c.dom.Element;
 import org.xml.sax.EntityResolver;
 
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -52,7 +51,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
  * @author Radovan Semancik
  * 
  */
-public class PrismSchema implements Dumpable, DebugDumpable {
+public class PrismSchema implements DebugDumpable {
 
 	private static final long serialVersionUID = 5068618465625931984L;
 
@@ -491,11 +490,6 @@ public class PrismSchema implements Dumpable, DebugDumpable {
 			}
 		}
 		return sb.toString();
-	}
-
-	@Override
-	public String dump() {
-		return debugDump(0);
 	}
 
 	@Override

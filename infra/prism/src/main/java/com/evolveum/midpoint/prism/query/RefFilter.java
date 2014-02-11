@@ -140,11 +140,6 @@ public class RefFilter extends PropertyValueFilter<PrismReferenceValue>{
 	}
 
 	@Override
-	public String dump() {
-		return debugDump(0);
-	}
-
-	@Override
 	public String debugDump() {
 		return debugDump(0);
 	}

@@ -133,7 +133,7 @@ public class ControllerAddObjectTest extends AbstractTestNGSpringContextTests {
 		try {
 			controller.addObject(expectedUser.asPrismObject(), null, taskManager.createTaskInstance(), result);
 		} finally {
-			LOGGER.debug(result.dump());
+			LOGGER.debug(result.debugDump());
 		}
 	}
 
@@ -175,7 +175,7 @@ public class ControllerAddObjectTest extends AbstractTestNGSpringContextTests {
 		String userOid = controller.addObject(expectedUser, null, task, result);
 		
 		// THEN
-		display("addObject result",result.dump());
+		display("addObject result",result.debugDump());
 
 		verify(repository, times(1)).addObject(argThat(new ObjectTypeNameMatcher(expectedUserType.getName())),
 				any(RepoAddOptions.class), any(OperationResult.class));
@@ -215,7 +215,7 @@ public class ControllerAddObjectTest extends AbstractTestNGSpringContextTests {
 			String resourceOid = controller.addObject(expectedResource, null, task, result);
 			assertEquals(oid, resourceOid);
 		} finally {
-			LOGGER.debug(result.dump());
+			LOGGER.debug(result.debugDump());
 
 			verify(provisioning, times(1)).addObject(
 					argThat(new ObjectTypeNameMatcher(expectedResourceType.getName())), any(OperationProvisioningScriptsType.class),

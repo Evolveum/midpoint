@@ -200,7 +200,9 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
                 }
             }
 
-            if(item instanceof ComponentLogger){
+            if (item instanceof StandardLogger){
+                configuration.getClassLogger().add(((StandardLogger)item).toXmlType());
+            } else if (item instanceof ComponentLogger){
                 configuration.getClassLogger().add(((ComponentLogger) item).toXmlType());
             } else {
                 configuration.getClassLogger().add(((ClassLogger) item).toXmlType());
@@ -330,7 +332,7 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 
             ObjectDelta<SystemConfigurationType> delta = DiffUtil.diff(oldObject, newObject);
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("System configuration delta:\n{}", delta.dump());
+                LOGGER.trace("System configuration delta:\n{}", delta.debugDump());
             }
             if (delta != null && !delta.isEmpty()){
                 getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);

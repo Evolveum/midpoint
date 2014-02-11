@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,13 +24,16 @@ import com.evolveum.midpoint.repo.sql.query.definition.Definition;
 import com.evolveum.midpoint.repo.sql.query.definition.EntityDefinition;
 import com.evolveum.midpoint.repo.sql.util.ClassMapper;
 import com.evolveum.midpoint.schema.constants.ObjectTypes;
-import com.evolveum.midpoint.util.Dumpable;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
+
 import org.apache.commons.lang.Validate;
 
 import javax.xml.namespace.QName;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -39,7 +42,7 @@ import java.util.Map;
 /**
  * @author lazyman
  */
-public class QueryDefinitionRegistry implements Dumpable {
+public class QueryDefinitionRegistry implements DebugDumpable {
 
     private static final Trace LOGGER = TraceManager.getTrace(QueryDefinitionRegistry.class);
     private static final Map<QName, EntityDefinition> definitions;
@@ -80,10 +83,16 @@ public class QueryDefinitionRegistry implements Dumpable {
 
         return registry;
     }
-
+    
     @Override
-    public String dump() {
+    public String debugDump() {
+    	return debugDump(0);
+    }
+    
+    @Override
+    public String debugDump(int indent) {
         StringBuilder builder = new StringBuilder();
+        DebugUtil.indentDebugDump(builder, indent);
         Collection<EntityDefinition> defCollection = definitions.values();
         for (Definition definition : defCollection) {
             builder.append(definition.debugDump()).append('\n');

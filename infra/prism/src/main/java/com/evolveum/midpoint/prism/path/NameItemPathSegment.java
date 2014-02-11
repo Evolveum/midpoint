@@ -17,6 +17,7 @@ package com.evolveum.midpoint.prism.path;
 
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 
 import java.io.Serializable;
@@ -57,7 +58,7 @@ public class NameItemPathSegment extends ItemPathSegment {
 
 	@Override
 	public String toString() {
-		return (isVariable ? "$" : "") + (isWildcard() ? "*" : PrettyPrinter.prettyPrint(name));
+		return (isVariable ? "$" : "") + (isWildcard() ? "*" : DebugUtil.formatElementName(name));
 	}
 
 	@Override

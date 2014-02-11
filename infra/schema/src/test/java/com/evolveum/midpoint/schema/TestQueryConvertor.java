@@ -86,7 +86,7 @@ public class TestQueryConvertor {
 				query = QueryJaxbConvertor.createObjectQuery(ShadowType.class, queryType, prismContext);
 				LOGGER.info("query converted: ");
 
-				LOGGER.info("QUERY DUMP: {}", query.dump());
+				LOGGER.info("QUERY DUMP: {}", query.debugDump());
 				LOGGER.info("QUERY Pretty print: {}", query.toString());
 				System.out.println("QUERY Pretty print: " + query.toString());
 
@@ -118,7 +118,7 @@ public class TestQueryConvertor {
 			query = QueryJaxbConvertor.createObjectQuery(ConnectorType.class, queryType, prismContext);
 			LOGGER.info("query converted: ");
 
-			LOGGER.info("QUERY DUMP: {}", query.dump());
+			LOGGER.info("QUERY DUMP: {}", query.debugDump());
 			LOGGER.info("QUERY Pretty print: {}", query.toString());
 			System.out.println("QUERY Pretty print: " + query.toString());
 
@@ -162,7 +162,7 @@ public class TestQueryConvertor {
 			query = QueryJaxbConvertor.createObjectQuery(GenericObjectType.class, queryType, prismContext);
 			LOGGER.info("query converted: ");
 
-			LOGGER.info("QUERY DUMP: {}", query.dump());
+			LOGGER.info("QUERY DUMP: {}", query.debugDump());
 			LOGGER.info("QUERY Pretty print: {}", query.toString());
 			System.out.println("QUERY Pretty print: " + query.toString());
 
@@ -220,7 +220,7 @@ public class TestQueryConvertor {
 				query = QueryJaxbConvertor.createObjectQuery(UserType.class, queryType, prismContext);
 				LOGGER.info("query converted: ");
 
-				LOGGER.info("QUERY DUMP: {}", query.dump());
+				LOGGER.info("QUERY DUMP: {}", query.debugDump());
 				LOGGER.info("QUERY Pretty print: {}", query.toString());
 				System.out.println("QUERY Pretty print: " + query.toString());
 

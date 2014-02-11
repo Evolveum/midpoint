@@ -37,6 +37,7 @@ import com.evolveum.midpoint.common.refinery.ResourceShadowDiscriminator;
 import com.evolveum.midpoint.model.api.context.SynchronizationPolicyDecision;
 import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.model.lens.LensFocusContext;
+import com.evolveum.midpoint.model.lens.LensObjectDeltaOperation;
 import com.evolveum.midpoint.model.lens.LensProjectionContext;
 import com.evolveum.midpoint.model.lens.LensUtil;
 import com.evolveum.midpoint.model.lens.SynchronizationIntent;
@@ -184,6 +185,8 @@ public class ContextLoader {
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("Removing rotten context {}", projectionContext.getHumanReadableName());
 				}
+				List<LensObjectDeltaOperation<ShadowType>> executedDeltas = projectionContext.getExecutedDeltas();
+				context.getRottenExecutedDeltas().addAll(executedDeltas);
 				projectionIterator.remove();
 			}
 		}
@@ -449,7 +452,7 @@ public class ContextLoader {
 			String oid = linkRefVal.getOid();
 			if (StringUtils.isBlank(oid)) {
 				LOGGER.trace("Null or empty OID in link reference {} in:\n{}", linkRef,
-						focus.dump());
+						focus.debugDump());
 				throw new SchemaException("Null or empty OID in link reference in " + focus);
 			}
 			LensProjectionContext existingAccountContext = findAccountContext(oid, context);

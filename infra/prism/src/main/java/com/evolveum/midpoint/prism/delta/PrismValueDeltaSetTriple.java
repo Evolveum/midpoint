@@ -25,7 +25,6 @@ import com.evolveum.midpoint.prism.Visitor;
 import com.evolveum.midpoint.util.Cloner;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -40,7 +39,7 @@ import java.util.HashSet;
  * @author Radovan Semancik
  */
 public class PrismValueDeltaSetTriple<V extends PrismValue> extends DeltaSetTriple<V> 
-				implements Dumpable, DebugDumpable, Visitable {
+				implements DebugDumpable, Visitable {
 
     public PrismValueDeltaSetTriple() {
     	super();

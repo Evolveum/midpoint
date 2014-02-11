@@ -22,6 +22,7 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.prism.delta.ReferenceDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 
@@ -224,39 +225,41 @@ public class PrismReference extends Item<PrismReferenceValue> {
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < indent; i++) {
-            sb.append(INDENT_STRING);
-        }
+        DebugUtil.indentDebugDump(sb, indent);
         PrismReferenceDefinition definition = getDefinition();
-        boolean isComposite = false;
+        boolean multiline = true;
         if (definition != null) {
-        	isComposite = definition.isComposite();
+        	multiline = definition.isMultiValue() || definition.isComposite();
         }
-        sb.append(getDebugDumpClassName()).append(": ").append(PrettyPrinter.prettyPrint(getElementName()));
+        if (DebugUtil.isDetailedDebugDump()) {
+        	sb.append(getDebugDumpClassName()).append(": ");
+        }
+        sb.append(DebugUtil.formatElementName(getElementName()));
+        sb.append(": ");
+        List<PrismReferenceValue> values = getValues();
         if (getValues() == null) {
-            sb.append(" = null");
+            sb.append("null");
+        } else if (values.isEmpty()) {
+        	sb.append("[ ]");
         } else {
-        	if (isComposite) {
-        		// Longer output for composite references, we want to see embedded object
-        		if (definition != null) {
-                    sb.append(" def,composite");
+            if (definition != null && DebugUtil.isDetailedDebugDump()) {
+                sb.append(" def ");
+            }
+            for (PrismReferenceValue value : values) {
+                if (multiline) {
+                	sb.append("\n");
+                	DebugUtil.indentDebugDump(sb, indent + 1);
                 }
-        		// Display the full object
-        		for (PrismReferenceValue value : getValues()) {
-        			sb.append("\n");
-	                sb.append(value.debugDump(indent + 1, true));
-	            }
-        	} else {
-	            sb.append(" = [ ");
-	            for (PrismReferenceValue value : getValues()) {
-	                sb.append(PrettyPrinter.prettyPrint(value));
-	                sb.append(", ");
-	            }
-	            sb.append(" ]");
-	            if (definition != null) {
-	                sb.append(" def");
-	            }
-        	}
+                if (DebugUtil.isDetailedDebugDump()) {
+                	if (multiline) {
+                		sb.append(value.debugDump(indent + 1, true));
+                	} else {
+                		sb.append(value.toString());
+                	}
+                } else {
+                	sb.append(value.toHumanReadableString());
+                }
+            }
         }
         
         return sb.toString();

@@ -72,6 +72,7 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
     private static final String ID_BUTTON_ADD_CONSOLE_APPENDER = "addConsoleAppender";
     private static final String ID_BUTTON_ADD_FILE_APPENDER = "addFileAppender";
     private static final String ID_BUTTON_DELETE_APPENDER = "deleteAppender";
+    private static final String ID_BUTTON_ADD_STANDARD_LOGGER = "addStandardLogger";
 
     public LoggingConfigPanel(String id) {
         super(id, null);
@@ -134,6 +135,16 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
         table.setOutputMarkupId(true);
         table.setShowPaging(false);
         add(table);
+
+        AjaxButton addStandardLogger = new AjaxButton(ID_BUTTON_ADD_STANDARD_LOGGER,
+                createStringResource("LoggingConfigPanel.button.addStandardLogger")) {
+
+            @Override
+            public void onClick(AjaxRequestTarget target) {
+                addStandardLoggerPerformed(target);
+            }
+        };
+        add(addStandardLogger);
 
         AjaxButton addComponentLogger = new AjaxButton("addComponentLogger",
                 createStringResource("LoggingConfigPanel.button.addComponentLogger")) {
@@ -239,6 +250,15 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
         add(dumpInterval);
     }
 
+    private void addStandardLoggerPerformed(AjaxRequestTarget target){
+        LoggingDto dto = getModel().getObject();
+        StandardLogger logger = new StandardLogger(new ClassLoggerConfigurationType());
+        logger.setEditing(true);
+        dto.getLoggers().add(logger);
+
+        target.add(getLoggersTable());
+    }
+
     private void addComponentLoggerPerformed(AjaxRequestTarget target) {
         LoggingDto dto = getModel().getObject();
         ComponentLogger logger = new ComponentLogger(new ClassLoggerConfigurationType());
@@ -276,7 +296,29 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
 
             @Override
             protected Component createInputPanel(String componentId, final IModel<LoggerConfiguration> model) {
-                if (model.getObject() instanceof ComponentLogger) {
+                if(model.getObject() instanceof StandardLogger){
+                    DropDownChoicePanel dropDownChoicePanel = new DropDownChoicePanel(componentId,
+                            new PropertyModel(model, "logger"),
+                            WebMiscUtil.createReadonlyModelFromEnum(StandardLoggerType.class),
+                            new IChoiceRenderer<StandardLoggerType>() {
+
+                                @Override
+                                public Object getDisplayValue(StandardLoggerType item) {
+                                    return createStringResource("StandardLoggerType." + item).getString();
+                                }
+
+                                @Override
+                                public String getIdValue(StandardLoggerType item, int index) {
+                                    return Integer.toString(index);
+                                }
+                            });
+
+                    FormComponent<StandardLoggerType> input = dropDownChoicePanel.getBaseFormComponent();
+                    input.add(new LoggerValidator());
+                    input.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
+                    return dropDownChoicePanel;
+
+                } else if (model.getObject() instanceof ComponentLogger) {
                     DropDownChoicePanel dropDownChoicePanel = new DropDownChoicePanel(componentId,
                             new PropertyModel(model, "component"),
                             WebMiscUtil.createReadonlyModelFromEnum(LoggingComponentType.class),
@@ -284,7 +326,7 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
 
                                 @Override
                                 public Object getDisplayValue(LoggingComponentType item) {
-                                    return LoggingConfigPanel.this.getString("LoggingConfigPanel.logger." + item);
+                                    return getComponenLoggerDisplayValue(item);
                                 }
 
                                 @Override
@@ -297,6 +339,7 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
                     input.add(new LoggerValidator());
                     input.add(new EmptyOnBlurAjaxFormUpdatingBehaviour());
                     return dropDownChoicePanel;
+
                 } else {
                     TextPanel<String> textPanel = new TextPanel(componentId, new PropertyModel(model, getPropertyExpression()));
                     FormComponent input = textPanel.getBaseFormComponent();
@@ -305,7 +348,6 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
                     input.add(new InputStringValidator());
                     return textPanel;
                 }
-
             }
 
             @Override
@@ -399,6 +441,11 @@ public class LoggingConfigPanel extends SimplePanel<LoggingDto> {
         });
 
         return columns;
+    }
+
+    private String getComponenLoggerDisplayValue(LoggingComponentType item){
+        //LoggingConfigPanel.this.getString("LoggingConfigPanel.logger." + item);
+        return createStringResource("LoggingComponentType." + item).getString();
     }
 
     private IModel<List<String>> createNewLoggerAppendersListModel(){

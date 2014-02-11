@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,22 +15,28 @@
  */
 package com.evolveum.midpoint.model.intest.negative;
 
+import static org.testng.AssertJUnit.assertEquals;
 import static com.evolveum.midpoint.test.util.TestUtil.assertFailure;
 import static com.evolveum.midpoint.test.IntegrationTestTools.display;
 import static org.testng.AssertJUnit.assertNotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ContextConfiguration;
 import org.testng.annotations.Test;
 
+import com.evolveum.icf.dummy.resource.BreakMode;
 import com.evolveum.midpoint.model.intest.AbstractInitializedModelIntegrationTest;
 import com.evolveum.midpoint.model.intest.TestModelServiceContract;
+import com.evolveum.midpoint.model.lens.LensContext;
 import com.evolveum.midpoint.prism.PrismObject;
+import com.evolveum.midpoint.prism.delta.ChangeType;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
+import com.evolveum.midpoint.schema.ObjectDeltaOperation;
 import com.evolveum.midpoint.schema.result.OperationResult;
 import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
@@ -41,6 +47,7 @@ import com.evolveum.midpoint.util.logging.TraceManager;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AssignmentPolicyEnforcementType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceType;
+import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
 /**
@@ -56,9 +63,14 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 	
 	private static final String TEST_DIR = "src/test/resources/negative";
 	private static final String TEST_TARGET_DIR = "target/test/negative";
-		
-	protected static final Trace LOGGER = TraceManager.getTrace(TestAssignmentErrors.class);
 	
+	private static final String USER_LEMONHEAD_NAME = "lemonhead";
+	private static final String USER_LEMONHEAD_FULLNAME = "Lemonhead";
+	private static final String USER_SHARPTOOTH_NAME = "sharptooth";
+	private static final String USER_SHARPTOOTH_FULLNAME = "Sharptooth";
+	
+	protected static final Trace LOGGER = TraceManager.getTrace(TestAssignmentErrors.class);
+
 	private PrismObject<ResourceType> resource;
 	
 	@Override
@@ -73,7 +85,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 	@Test
     public void test100UserJackAssignBlankAccount() throws Exception {
 		final String TEST_NAME = "test100UserJackAssignBlankAccount";
-        TestUtil.displayTestTile(this, "TEST_NAME");
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
@@ -116,7 +128,7 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 	@Test
     public void test101AddUserCharlesAssignBlankAccount() throws Exception {
 		final String TEST_NAME = "test101AddUserCharlesAssignBlankAccount";
-        TestUtil.displayTestTile(this, "TEST_NAME");
+        TestUtil.displayTestTile(this, TEST_NAME);
 
         // GIVEN
         Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
@@ -154,5 +166,102 @@ public class TestAssignmentErrors extends AbstractInitializedModelIntegrationTes
 		
 	}
 		
+
+	@Test
+    public void test200UserLemonheadAssignAccountBrokenNetwork() throws Exception {
+		final String TEST_NAME = "test200UserLemonheadAssignAccountBrokenNetwork";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        
+        PrismObject<UserType> user = createUser(USER_LEMONHEAD_NAME, USER_LEMONHEAD_FULLNAME);
+        addObject(user);
+        
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(user.getOid(), RESOURCE_DUMMY_OID, null, true);
+        deltas.add(accountAssignmentUserDelta);
+        
+        dummyResource.setBreakMode(BreakMode.NETWORK);
+        dummyAuditService.clear();
+                
+		// WHEN
+		//not expected that it fails, instead the error in the result is expected
+		modelService.executeChanges(deltas, null, task, result);
+        
+        result.computeStatus();
+        
+        display(result);
+        // This has to be a partial error as some changes were executed (user) and others were not (account)
+        TestUtil.assertResultStatus(result, OperationResultStatus.HANDLED_ERROR);
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertTarget(user.getOid());
+        dummyAuditService.assertExecutionOutcome(OperationResultStatus.HANDLED_ERROR);
+        dummyAuditService.assertExecutionMessage();
+		
+	}
+
+	@Test
+    public void test210UserSharptoothAssignAccountBrokenGeneric() throws Exception {
+		final String TEST_NAME = "test210UserSharptoothAssignAccountBrokenGeneric";
+        TestUtil.displayTestTile(this, TEST_NAME);
+
+        // GIVEN
+        Task task = taskManager.createTaskInstance(TestModelServiceContract.class.getName() + "." + TEST_NAME);
+        OperationResult result = task.getResult();
+        assumeAssignmentPolicy(AssignmentPolicyEnforcementType.FULL);
+        
+        PrismObject<UserType> user = createUser(USER_SHARPTOOTH_NAME, USER_SHARPTOOTH_FULLNAME);
+        addObject(user);
+        
+        Collection<ObjectDelta<? extends ObjectType>> deltas = new ArrayList<ObjectDelta<? extends ObjectType>>();
+        ObjectDelta<UserType> accountAssignmentUserDelta = createAccountAssignmentUserDelta(user.getOid(), RESOURCE_DUMMY_OID, null, true);
+        deltas.add(accountAssignmentUserDelta);
+        
+        dummyResource.setBreakMode(BreakMode.GENERIC);
+        dummyAuditService.clear();
+                
+		// WHEN
+        TestUtil.displayWhen(TEST_NAME);
+		//not expected that it fails, instead the error in the result is expected
+		modelService.executeChanges(deltas, null, task, result);
+        
+		TestUtil.displayThen(TEST_NAME);
+        result.computeStatus();
+        
+        display(result);
+        // This has to be a partial error as some changes were executed (user) and others were not (account)
+        TestUtil.assertPartialError(result);
+        
+        // Check audit
+        display("Audit", dummyAuditService);
+        dummyAuditService.assertSimpleRecordSanity();
+        dummyAuditService.assertRecords(2);
+        dummyAuditService.assertAnyRequestDeltas();
+        dummyAuditService.assertExecutionDeltas(2);
+        dummyAuditService.asserHasDelta(ChangeType.MODIFY, UserType.class);
+        dummyAuditService.asserHasDelta(ChangeType.ADD, ShadowType.class, OperationResultStatus.FATAL_ERROR);
+        dummyAuditService.assertTarget(user.getOid());
+        dummyAuditService.assertExecutionOutcome(OperationResultStatus.PARTIAL_ERROR);
+        dummyAuditService.assertExecutionMessage();
+		
+        LensContext<UserType> lastLensContext = lensDebugListener.getLastLensContext();
+        Collection<ObjectDeltaOperation<? extends ObjectType>> executedDeltas = lastLensContext.getExecutedDeltas();
+        display("Executed deltas", executedDeltas);
+        assertEquals("Unexpected number of execution deltas in context", 2, executedDeltas.size());
+        Iterator<ObjectDeltaOperation<? extends ObjectType>> i = executedDeltas.iterator();
+        ObjectDeltaOperation<? extends ObjectType> deltaop1 = i.next();
+        assertEquals("Unexpected result of first executed deltas", OperationResultStatus.SUCCESS, deltaop1.getExecutionResult().getStatus());
+        ObjectDeltaOperation<? extends ObjectType> deltaop2 = i.next();
+        assertEquals("Unexpected result of second executed deltas", OperationResultStatus.FATAL_ERROR, deltaop2.getExecutionResult().getStatus());
+        
+	}
 
 }

@@ -27,8 +27,8 @@ import javax.xml.namespace.QName;
 import org.apache.commons.lang.StringUtils;
 
 import com.evolveum.midpoint.prism.xml.DynamicNamespacePrefixMapper;
+import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.Dumpable;
 import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
 
 /**
@@ -44,7 +44,7 @@ import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
  * @author Radovan Semancik
  * 
  */
-public class GlobalDynamicNamespacePrefixMapper extends NamespacePrefixMapper implements DynamicNamespacePrefixMapper, Dumpable {
+public class GlobalDynamicNamespacePrefixMapper extends NamespacePrefixMapper implements DynamicNamespacePrefixMapper, DebugDumpable {
 
 	private static final Map<String, String> globalNamespacePrefixMap = new HashMap<String, String>();
 	private Map<String, String> localNamespacePrefixMap = new HashMap<String, String>();
@@ -191,21 +191,25 @@ public class GlobalDynamicNamespacePrefixMapper extends NamespacePrefixMapper im
 		return clone;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.util.Dumpable#dump()
-	 */
 	@Override
-	public String dump() {
-		StringBuilder sb = new StringBuilder("GlobalDynamicNamespacePrefixMapper(");
+	public String debugDump() {
+		return debugDump(0);
+	}
+	
+	@Override
+	public String debugDump(int indent) {
+		StringBuilder sb = new StringBuilder();
+		DebugUtil.indentDebugDump(sb, indent);
+		sb.append("GlobalDynamicNamespacePrefixMapper(");
 		sb.append(defaultNamespace);
 		sb.append("):\n");
-		DebugUtil.indentDebugDump(sb, 1);
+		DebugUtil.indentDebugDump(sb, indent + 1);
 		sb.append("Global map:\n");
-		DebugUtil.debugDumpMapMultiLine(sb, globalNamespacePrefixMap, 2);
+		DebugUtil.debugDumpMapMultiLine(sb, globalNamespacePrefixMap, indent + 2);
 		sb.append("\n");
-		DebugUtil.indentDebugDump(sb, 1);
+		DebugUtil.indentDebugDump(sb, indent + 1);
 		sb.append("Local map:\n");
-		DebugUtil.debugDumpMapMultiLine(sb, localNamespacePrefixMap, 2);
+		DebugUtil.debugDumpMapMultiLine(sb, localNamespacePrefixMap, indent + 2);
 		return sb.toString();
 	}
 

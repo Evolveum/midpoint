@@ -192,7 +192,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 	            // Convert attributes to account
 	            DummyAccount newAccount = convertToAccount(createAttributes);
 	    			
-	            log.ok("Adding dummy account:\n{0}", newAccount.dump());
+	            log.ok("Adding dummy account:\n{0}", newAccount.debugDump());
 	            
     			resource.addAccount(newAccount);
     			newObject = newAccount;
@@ -200,7 +200,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 	        } else if (ObjectClass.GROUP.is(objectClass.getObjectClassValue())) {
 	            DummyGroup newGroup = convertToGroup(createAttributes);
 	    		
-	            log.ok("Adding dummy group:\n{0}", newGroup.dump());
+	            log.ok("Adding dummy group:\n{0}", newGroup.debugDump());
 	            
     			resource.addGroup(newGroup);
     			newObject = newGroup;
@@ -208,7 +208,7 @@ public class DummyConnector implements Connector, AuthenticateOp, ResolveUsernam
 	        } else if (objectClass.is(OBJECTCLASS_PRIVILEGE_NAME)) {
 	            DummyPrivilege newPriv = convertToPriv(createAttributes);
 	
-	            log.ok("Adding dummy privilege:\n{0}", newPriv.dump());
+	            log.ok("Adding dummy privilege:\n{0}", newPriv.debugDump());
 	            
     			resource.addPrivilege(newPriv);
     			newObject = newPriv;

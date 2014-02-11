@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,8 +60,8 @@ import com.evolveum.midpoint.schema.util.SchemaTestConstants;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.test.util.TestUtil;
 import com.evolveum.midpoint.util.DOMUtil;
+import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.exception.*;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -385,9 +385,9 @@ public class IntegrationTestTools {
 
 	public static void display(String message, Task task) {
 		System.out.println(OBJECT_TITLE_OUT_PREFIX + message);
-		System.out.println(task.dump());
+		System.out.println(task.debugDump());
 		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message  + "\n" 
-				+ task.dump());
+				+ task.debugDump());
 	}
 
 	public static void display(String message, ObjectType o) {
@@ -423,9 +423,9 @@ public class IntegrationTestTools {
 
 	public static void display(String message, PrismContainer<?> propertyContainer) {
 		System.out.println(OBJECT_TITLE_OUT_PREFIX + message);
-		System.out.println(propertyContainer == null ? "null" : propertyContainer.dump());
+		System.out.println(propertyContainer == null ? "null" : propertyContainer.debugDump());
 		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + message + "\n" 
-				+ (propertyContainer == null ? "null" : propertyContainer.dump()));
+				+ (propertyContainer == null ? "null" : propertyContainer.debugDump()));
 	}
 	
 	public static void display(OperationResult result) {
@@ -434,9 +434,9 @@ public class IntegrationTestTools {
 	
 	public static void display(String title, OperationResult result) {
 		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
-		System.out.println(result.dump());
+		System.out.println(result.debugDump());
 		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title  + "\n" 
-				+ result.dump());
+				+ result.debugDump());
 	}
 	
 	public static void display(String title, OperationResultType result) throws JAXBException {
@@ -453,11 +453,11 @@ public class IntegrationTestTools {
 		}
 	}
 	
-	public static void display(String title, Dumpable dumpable) {
+	public static void display(String title, DebugDumpable dumpable) {
 		System.out.println(OBJECT_TITLE_OUT_PREFIX + title);
-		System.out.println(dumpable == null ? "null" : dumpable.dump());
+		System.out.println(dumpable == null ? "null" : dumpable.debugDump());
 		LOGGER.debug(OBJECT_TITLE_LOG_PREFIX + title  + "\n" 
-				+ (dumpable == null ? "null" : dumpable.dump()));
+				+ (dumpable == null ? "null" : dumpable.debugDump()));
 	}
 	
 	public static void display(String title, String value) {
@@ -491,7 +491,7 @@ public class IntegrationTestTools {
 		ObjectQuery query = createAllShadowsQuery(resourceType, prismContext);
 		
 		List<PrismObject<ShadowType>> allShadows = repositoryService.searchObjects(ShadowType.class, query, null, result);
-		LOGGER.trace("Checking {} shadows, query:\n{}", allShadows.size(), query.dump());
+		LOGGER.trace("Checking {} shadows, query:\n{}", allShadows.size(), query.debugDump());
 
 		for (PrismObject<ShadowType> shadow: allShadows) {
             checkShadow(shadow.asObjectable(), resourceType, repositoryService, checker, prismContext, result);
@@ -548,7 +548,7 @@ public class IntegrationTestTools {
 	
 	public static void checkShadow(ShadowType shadowType, ResourceType resourceType, RepositoryService repositoryService, 
 			ObjectChecker<ShadowType> checker, MatchingRule<String> uidMatchingRule, PrismContext prismContext, OperationResult parentResult) {
-		LOGGER.trace("Checking shadow:\n{}",shadowType.asPrismObject().dump());
+		LOGGER.trace("Checking shadow:\n{}",shadowType.asPrismObject().debugDump());
 		shadowType.asPrismObject().checkConsistence(true, true);
 		assertNotNull("no OID",shadowType.getOid());
 		assertNotNull("no name",shadowType.getName());
@@ -597,16 +597,16 @@ public class IntegrationTestTools {
 		try {
 			ObjectQuery query = createShadowQuery(resourceShadow, uidMatchingRule, prismContext);
 			List<PrismObject<ShadowType>> results = repositoryService.searchObjects(ShadowType.class, query, null, parentResult);
-			LOGGER.trace("Shadow check with filter\n{}\n found {} objects", query.dump(), results.size());
+			LOGGER.trace("Shadow check with filter\n{}\n found {} objects", query.debugDump(), results.size());
 			if (results.size() == 0) {
-				AssertJUnit.fail("No shadow found with query:\n"+query.dump());
+				AssertJUnit.fail("No shadow found with query:\n"+query.debugDump());
 			}
 			if (results.size() == 1) {
 				return;
 			}
 			if (results.size() > 1) {
 				for (PrismObject<ShadowType> result: results) {
-					LOGGER.trace("Search result:\n{}", result.dump());
+					LOGGER.trace("Search result:\n{}", result.debugDump());
 				}
 				LOGGER.error("More than one shadows found for " + resourceShadow);
 				// TODO: Better error handling later
@@ -670,7 +670,7 @@ public class IntegrationTestTools {
     
     public static void assertNoRepoCache() {
 		if (RepositoryCache.exists()) {
-			AssertJUnit.fail("Cache exists! " + RepositoryCache.dump());
+			AssertJUnit.fail("Cache exists! " + RepositoryCache.debugDump());
 		}
 	}
     

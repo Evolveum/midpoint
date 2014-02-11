@@ -29,6 +29,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
+
 /**
  * Resource for use with dummy ICF connector.
  * 
@@ -60,7 +63,7 @@ import org.apache.commons.lang.StringUtils;
  * @author Radovan Semancik
  *
  */
-public class DummyResource {
+public class DummyResource implements DebugDumpable {
 
 	private Map<String,DummyObject> allObjects;
 	private Map<String,DummyAccount> accounts;
@@ -723,8 +726,15 @@ public class DummyResource {
 		return result;
 	}
 	
-	public String dump() {
+	@Override
+	public String debugDump() {
+		return debugDump(0);
+	}
+	
+	@Override
+	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder(toString());
+		DebugUtil.indentDebugDump(sb, indent);
 		sb.append("\nAccounts:");
 		for (Entry<String, DummyAccount> entry: accounts.entrySet()) {
 			sb.append("\n  ");

@@ -136,7 +136,7 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 		Validate.notNull(change, "Change description of resource object shadow must not be null.");
 		
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("SYNCHRONIZATION change notification\n{} ", change.dump());
+			LOGGER.trace("SYNCHRONIZATION change notification\n{} ", change.debugDump());
 		}
 		
 		if (filterProtectedObjects && change.isProtected()) {
@@ -172,7 +172,7 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 		Validate.notNull(failureDescription, "Operation description of resource object shadow must not be null.");
 		
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Resource operation failure notification\n{} ", failureDescription.dump());
+			LOGGER.trace("Resource operation failure notification\n{} ", failureDescription.debugDump());
 		}
 		
 		failureDescription.checkConsistence();
@@ -202,7 +202,7 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 		Validate.notNull(failureDescription, "Operation description of resource object shadow must not be null.");
 		
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Resource operation success notification\n{} ", failureDescription.dump());
+			LOGGER.trace("Resource operation success notification\n{} ", failureDescription.debugDump());
 		}
 		
 		failureDescription.checkConsistence();
@@ -232,7 +232,7 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 		Validate.notNull(failureDescription, "Operation description of resource object shadow must not be null.");
 		
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Resource operation in-progress notification\n{} ", failureDescription.dump());
+			LOGGER.trace("Resource operation in-progress notification\n{} ", failureDescription.debugDump());
 		}
 		
 		failureDescription.checkConsistence();
@@ -270,7 +270,7 @@ public class ChangeNotificationDispatcherImpl implements ChangeNotificationDispa
 		Validate.notNull(eventDescription, "Event description must not be null.");
 		
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("SYNCHRONIZATION change notification\n{} ", eventDescription.dump());
+			LOGGER.trace("SYNCHRONIZATION change notification\n{} ", eventDescription.debugDump());
 		}
 		
 		if (filterProtectedObjects && eventDescription.isProtected()) {

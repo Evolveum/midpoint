@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,7 +57,7 @@ public abstract class NaryLogicalRestriction<T extends NaryLogicalFilter> extend
         if (filter.getCondition() == null || filter.getCondition().isEmpty()) {
             LOGGER.trace("NaryLogicalFilter filter must have at least two conditions in it. " +
                     "Removing logical filter and processing simple condition.");
-            throw new QueryException("NaryLogicalFilter filter '" + filter.dump()
+            throw new QueryException("NaryLogicalFilter filter '" + filter.debugDump()
                     + "' must have at least two conditions in it. Removing logical filter and processing simple condition.");
         }
     }

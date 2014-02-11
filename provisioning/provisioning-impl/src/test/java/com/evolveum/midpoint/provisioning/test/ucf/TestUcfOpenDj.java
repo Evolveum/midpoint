@@ -522,7 +522,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 
 		AssertJUnit.assertNotNull(resourceSchema);
 
-		System.out.println(resourceSchema.dump());
+		System.out.println(resourceSchema.debugDump());
 
 		Document xsdSchema = resourceSchema.serializeToXsd();
 
@@ -609,7 +609,7 @@ public class TestUcfOpenDj extends AbstractTestNGSpringContextTests {
 		AssertJUnit.assertNotNull(ro);
 		System.out.println("Fetched object " + ro);
 		System.out.println("Result:");
-		System.out.println(result.dump());
+		System.out.println(result.debugDump());
 
 	}
 

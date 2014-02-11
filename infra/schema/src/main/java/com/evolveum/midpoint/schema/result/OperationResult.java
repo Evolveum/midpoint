@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,6 @@ import com.evolveum.midpoint.schema.constants.SchemaConstants;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.CommonException;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -67,7 +66,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UnknownJavaObjectTy
  * @author Radovan Semancik
  * 
  */
-public class OperationResult implements Serializable, Dumpable, DebugDumpable {
+public class OperationResult implements Serializable, DebugDumpable {
 
 	private static final long serialVersionUID = -2467406395542291044L;
 	private static final String INDENT_STRING = "    ";
@@ -1274,10 +1273,6 @@ public class OperationResult implements Serializable, Dumpable, DebugDumpable {
 		return sb.toString();
 	}
 	
-	public String dump() {
-		return dump(true);
-	}
-
 	public String dump(boolean withStack) {
 		StringBuilder sb = new StringBuilder();
 		dumpIndent(sb, 0, withStack);

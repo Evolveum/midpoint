@@ -27,11 +27,10 @@ import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.Dumpable;
 
 
 
-public abstract class ObjectFilter implements Dumpable, DebugDumpable, Serializable{
+public abstract class ObjectFilter implements DebugDumpable, Serializable{
 
 //	private ItemPath fullPath;
 	private XNode expression;

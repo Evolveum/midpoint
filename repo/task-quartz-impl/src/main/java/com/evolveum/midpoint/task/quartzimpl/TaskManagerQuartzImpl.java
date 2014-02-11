@@ -39,10 +39,12 @@ import com.evolveum.midpoint.task.api.LightweightIdentifierGenerator;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.task.api.TaskExecutionStatus;
 import com.evolveum.midpoint.task.api.TaskHandler;
+import com.evolveum.midpoint.task.api.TaskListener;
 import com.evolveum.midpoint.task.api.TaskManager;
 import com.evolveum.midpoint.task.api.TaskManagerException;
 import com.evolveum.midpoint.task.api.TaskManagerInitializationException;
 import com.evolveum.midpoint.task.api.TaskPersistenceStatus;
+import com.evolveum.midpoint.task.api.TaskRunResult;
 import com.evolveum.midpoint.task.api.TaskWaitingReason;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterManager;
 import com.evolveum.midpoint.task.quartzimpl.cluster.ClusterStatusInformation;
@@ -136,6 +138,9 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
 
     // error status for this node (local Quartz scheduler is not allowed to be started if this status is not "OK")
     private NodeErrorStatusType nodeErrorStatus = NodeErrorStatusType.OK;
+
+    // task listeners
+    private Set<TaskListener> taskListeners = new HashSet<TaskListener>();
 
     // locally running task instances - here are EXACT instances of TaskQuartzImpl that are used to execute handlers.
     // Use ONLY for those actions that need to work with these instances, e.g. when calling heartbeat() methods on them.
@@ -1073,6 +1078,63 @@ public class TaskManagerQuartzImpl implements TaskManager, BeanFactoryAware {
         result.recordSuccessIfUnknown();
 
     }
+    //endregion
+
+    //region Notifications
+    @Override
+    public void registerTaskListener(TaskListener taskListener) {
+        taskListeners.add(taskListener);
+    }
+
+    @Override
+    public void unregisterTaskListener(TaskListener taskListener) {
+        taskListeners.remove(taskListener);
+    }
+
+    public void notifyTaskStart(Task task) {
+        for (TaskListener taskListener : taskListeners) {
+            try {
+                taskListener.onTaskStart(task);
+            } catch (RuntimeException e) {
+                logListenerException(e);
+            }
+        }
+    }
+
+    private void logListenerException(RuntimeException e) {
+        LoggingUtils.logException(LOGGER, "Task listener returned an unexpected exception", e);
+    }
+
+    public void notifyTaskFinish(Task task, TaskRunResult runResult) {
+        for (TaskListener taskListener : taskListeners) {
+            try {
+                taskListener.onTaskFinish(task, runResult);
+            } catch (RuntimeException e) {
+                logListenerException(e);
+            }
+        }
+    }
+
+    public void notifyTaskThreadStart(Task task, boolean isRecovering) {
+        for (TaskListener taskListener : taskListeners) {
+            try {
+                taskListener.onTaskThreadStart(task, isRecovering);
+            } catch (RuntimeException e) {
+                logListenerException(e);
+            }
+        }
+    }
+
+    public void notifyTaskThreadFinish(Task task) {
+        for (TaskListener taskListener : taskListeners) {
+            try {
+                taskListener.onTaskThreadFinish(task);
+            } catch (RuntimeException e) {
+                logListenerException(e);
+            }
+        }
+    }
+
     //endregion
 
     //region Other methods + getters and setters (CLEAN THIS UP)

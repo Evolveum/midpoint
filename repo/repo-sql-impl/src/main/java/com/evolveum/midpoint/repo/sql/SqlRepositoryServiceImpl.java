@@ -798,7 +798,7 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
 
         LOGGER.trace("Counting objects of type '{}', query (on trace level).", new Object[]{type});
         if (LOGGER.isTraceEnabled()) {
-            LOGGER.trace("Full query\n{}", new Object[]{(query == null ? "undefined" : query.dump())});
+            LOGGER.trace("Full query\n{}", new Object[]{(query == null ? "undefined" : query.debugDump())});
         }
 
         OperationResult subResult = result.createMinorSubresult(COUNT_OBJECTS);
@@ -903,8 +903,8 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
         }
 
         LOGGER.trace("Full query\n{}\nFull paging\n{}", new Object[]{
-                (query == null ? "undefined" : query.dump()),
-                (paging != null ? paging.dump() : "undefined")});
+                (query == null ? "undefined" : query.debugDump()),
+                (paging != null ? paging.debugDump() : "undefined")});
 
         if (iterative) {
             LOGGER.trace("Iterative search by paging: {}, batch size {}",
@@ -1062,11 +1062,11 @@ public class SqlRepositoryServiceImpl extends SqlBaseService implements Reposito
             PrismObject<T> prismObject = getObject(session, type, oid, null, true);
             // apply diff
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("OBJECT before:\n{}", new Object[]{prismObject.dump()});
+                LOGGER.trace("OBJECT before:\n{}", new Object[]{prismObject.debugDump()});
             }
             PropertyDelta.applyTo(modifications, prismObject);
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("OBJECT after:\n{}", prismObject.dump());
+                LOGGER.trace("OBJECT after:\n{}", prismObject.debugDump());
             }
             // merge and update user
             LOGGER.trace("Translating JAXB to data type.");

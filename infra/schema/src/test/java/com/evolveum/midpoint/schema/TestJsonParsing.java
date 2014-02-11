@@ -98,7 +98,7 @@ public class TestJsonParsing {
 
 //		PrismObject<UserType> user = userType.asPrismObject();
 		System.out.println("object");
-		System.out.println(userType.dump());
+		System.out.println(userType.debugDump());
 	
 		
 //		System.out.println("DOM: " + prismContext.getPrismDomProcessor().serializeObjectToString(userType));
@@ -137,7 +137,7 @@ System.out.println("=====================objectTYPE");
 //System.out.println(prismContext.getPrismDomProcessor().serializeObjectToString(resourceType));
 		
 		System.out.println("parsed");
-		System.out.println(resourceType.dump());
+		System.out.println(resourceType.debugDump());
 		resourceFileName = "D:/file"+resourceType.asObjectable().getName()+"3.json";
 		FileOutputStream fos = new FileOutputStream(new File(resourceFileName));
 		
@@ -151,7 +151,7 @@ System.out.println("=====================objectTYPE");
 
 //		PrismObject<UserType> user = userType.asPrismObject();
 		System.out.println("object");
-		System.out.println(resourceType.dump());
+		System.out.println(resourceType.debugDump());
 //		assertUserPrism(userType);
 	}
 	
@@ -180,7 +180,7 @@ System.out.println("=====================objectTYPE");
 
 //		PrismObject<UserType> user = userType.asPrismObject();
 		System.out.println("object");
-		System.out.println(resourceType.dump());
+		System.out.println(resourceType.debugDump());
 		
 		
 		System.out.println("=====================objectTYPE");

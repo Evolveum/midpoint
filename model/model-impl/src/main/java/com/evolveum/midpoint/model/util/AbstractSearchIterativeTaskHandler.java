@@ -130,7 +130,7 @@ public abstract class AbstractSearchIterativeTaskHandler<O extends ObjectType, H
 		}
 		
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("{}: searching using query:\n{}", taskName, query.dump());
+			LOGGER.trace("{}: searching using query:\n{}", taskName, query.debugDump());
 		}
 
 		try {

@@ -93,7 +93,7 @@ public class TestJaxbParsing {
 
         // THEN
         System.out.println("Parsed user:");
-        System.out.println(user.dump());
+        System.out.println(user.debugDump());
 
         user.checkConsistence();
         assertPropertyValue(user, UserType.F_NAME, PrismTestUtil.createPolyString("jack"));
@@ -137,7 +137,7 @@ public class TestJaxbParsing {
         account.revive(prismContext);
 
         System.out.println("Parsed account:");
-        System.out.println(account.dump());
+        System.out.println(account.debugDump());
 
         account.checkConsistence(); 
         assertPropertyValue(account, ShadowType.F_NAME, PrismTestUtil.createPolyString("jack"));
@@ -162,7 +162,7 @@ public class TestJaxbParsing {
 
         // THEN
         System.out.println("Parsed role:");
-        System.out.println(role.dump());
+        System.out.println(role.debugDump());
 
         role.checkConsistence();
         assertPropertyValue(role, RoleType.F_NAME, PrismTestUtil.createPolyString("r3"));

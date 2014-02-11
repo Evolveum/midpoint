@@ -16,18 +16,22 @@
 <!DOCTYPE html>
 <html xmlns:wicket="http://wicket.apache.org">
 <wicket:panel>
+    <div wicket:id="feedback" class="messagePanel"/>
 
-    <h3 style="margin-left: 20px;">
-        <wicket:message key="defaultReportPanel.title.basic"/>
-    </h3>
-
-    <div class="row">
-        <div class="col-md-6">
-            <div class="form-group" wicket:id="name" />
-            <div class="form-group" wicket:id="description" />
-            <div class="form-group" wicket:id="exportType" />
-        </div>
+    <div class="col-lg-2">
+        <input wicket:id="fileInput" type="file"/>
     </div>
 
+    <div class="col-lg-2 pull-right">
+        <a class="btn btn-danger btn-sm" wicket:id="remove" wicket:message="title:UploadPanel.delete.tooltip">
+            <i class="fa fa-trash-o"/>
+        </a>
+    </div>
+
+    <div class="col-lg-2 pull-right">
+        <a class="btn btn-primary btn-sm" wicket:id="upload" wicket:message="title:UploadPanel.upload.tooltip">
+            <i class="fa fa-upload"/>
+        </a>
+    </div>
 </wicket:panel>
 </html>

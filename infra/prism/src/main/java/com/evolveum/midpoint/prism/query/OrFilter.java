@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.Dumpable;
 
 public class OrFilter extends NaryLogicalFilter {
 
@@ -48,11 +47,6 @@ public class OrFilter extends NaryLogicalFilter {
 	@Override
 	public OrFilter clone() {
 		return new OrFilter(getClonedConditions());
-	}
-	
-	@Override
-	public String dump() {
-		return debugDump(0);
 	}
 	
 	@Override

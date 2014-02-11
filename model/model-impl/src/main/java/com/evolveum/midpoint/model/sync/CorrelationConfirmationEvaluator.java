@@ -221,7 +221,7 @@ public class CorrelationConfirmationEvaluator {
 				// query.setFilter(filter);
 				if (LOGGER.isTraceEnabled()) {
 					LOGGER.trace("SYNCHRONIZATION: CORRELATION: expression for results in filter\n{}",
-							new Object[] {q.dump() });
+							new Object[] {q.debugDump() });
 				}
 				PagingType paging = new PagingType();
 				// ObjectQuery q = QueryConvertor.createObjectQuery(UserType.class,
@@ -233,7 +233,7 @@ public class CorrelationConfirmationEvaluator {
 				}
 			} catch (RuntimeException ex) {
 				LoggingUtils.logException(LOGGER,
-						"Couldn't search users in repository, based on filter (simplified)\n{}.", ex, q.dump());
+						"Couldn't search users in repository, based on filter (simplified)\n{}.", ex, q.debugDump());
 				throw new SystemException(
 						"Couldn't search users in repository, based on filter (See logs).", ex);
 			}
@@ -261,7 +261,7 @@ private <F extends FocusType> boolean matchUserCorrelationRule(Class<F> focusTyp
 	try {
 		q = QueryJaxbConvertor.createObjectQuery(focusType, query, prismContext);
 		q = updateFilterWithAccountValues(currentShadow.asObjectable(), resourceType, q, "Correlation expression", task, result);
-		LOGGER.debug("Start matching user {} with correlation eqpression {}", userType, q.dump());
+		LOGGER.debug("Start matching user {} with correlation eqpression {}", userType, q.debugDump());
 		if (q == null) {
 			// Null is OK here, it means that the value in the filter
 			// evaluated

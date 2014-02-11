@@ -95,7 +95,7 @@ public class TestParseResource {
 		
 		// THEN
 		System.out.println("Parsed resource:");
-		System.out.println(resource.dump());
+		System.out.println(resource.debugDump());
 		
 		assertResource(resource, true, true, false);
 	}
@@ -112,7 +112,7 @@ public class TestParseResource {
 		
 		// THEN
 		System.out.println("Parsed resource:");
-		System.out.println(resource.dump());
+		System.out.println(resource.debugDump());
 		
 		assertResource(resource, true, true, true);
 	}
@@ -132,7 +132,7 @@ public class TestParseResource {
 		
 		// THEN
 		System.out.println("Parsed resource:");
-		System.out.println(resource.dump());
+		System.out.println(resource.debugDump());
 		
 		assertResource(resource, true, true, false);
 	}
@@ -152,7 +152,7 @@ public class TestParseResource {
 		
 		// THEN
 		System.out.println("Parsed resource:");
-		System.out.println(resource.dump());
+		System.out.println(resource.debugDump());
 		
 		assertResource(resource, true, true, true);
 	}
@@ -260,7 +260,7 @@ public class TestParseResource {
 		PrismObject<ResourceType> resource = prismContext.parseObject(RESOURCE_FILE);
 		
 		System.out.println("Parsed resource:");
-		System.out.println(resource.dump());
+		System.out.println(resource.debugDump());
 		
 		assertResource(resource, true, false, false);
 		
@@ -276,7 +276,7 @@ public class TestParseResource {
 		PrismObject<ResourceType> reparsedResource = prismContext.parseObject(serializedResource);
 		
 		System.out.println("Re-parsed resource:");
-		System.out.println(reparsedResource.dump());
+		System.out.println(reparsedResource.debugDump());
 		
 		// Cannot assert here. It will cause parsing of some of the raw values and diff will fail
 		assertResource(resource, true, false, false);
@@ -288,7 +288,7 @@ public class TestParseResource {
 		
 		ObjectDelta<ResourceType> objectDelta = resource.diff(reparsedResource);
 		System.out.println("Delta:");
-		System.out.println(objectDelta.dump());
+		System.out.println(objectDelta.debugDump());
 		assertTrue("Delta is not empty", objectDelta.isEmpty());
 		
 		PrismAsserts.assertEquivalent("Resource re-parsed quivalence", resource, reparsedResource);
@@ -317,7 +317,7 @@ public class TestParseResource {
 		PrismContainer<Containerable> schemaContainer = resource.findContainer(ResourceType.F_SCHEMA);
 		
 		System.out.println("Parsed schema:");
-		System.out.println(schemaContainer.dump());
+		System.out.println(schemaContainer.debugDump());
 
 		// SERIALIZE
 		
@@ -330,7 +330,7 @@ public class TestParseResource {
 		PrismContainer<Containerable> reparsedSchemaContainer = prismContext.parseContainer(serializesSchema, schemaContainer.getDefinition(), PrismContext.LANG_XML);
 		
 		System.out.println("Re-parsed schema container:");
-		System.out.println(reparsedSchemaContainer.dump());
+		System.out.println(reparsedSchemaContainer.debugDump());
 		
 		Document reparsedDocument = DOMUtil.parseDocument(serializesSchema);
 		Element reparsedSchemaElement = DOMUtil.getFirstChildElement(DOMUtil.getFirstChildElement(reparsedDocument));

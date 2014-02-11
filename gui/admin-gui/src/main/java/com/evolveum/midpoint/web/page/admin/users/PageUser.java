@@ -41,6 +41,7 @@ import com.evolveum.midpoint.web.component.AjaxSubmitButton;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenu;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItem;
 import com.evolveum.midpoint.web.component.menu.cog.InlineMenuItemAction;
+import com.evolveum.midpoint.web.component.util.PrismPropertyModel;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsDto;
 import com.evolveum.midpoint.web.page.admin.users.component.ExecuteChangeOptionsPanel;
 import com.evolveum.midpoint.web.component.assignment.AssignmentEditorDto;
@@ -65,6 +66,7 @@ import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
+import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 import org.apache.commons.lang.StringUtils;
 import org.apache.wicket.Component;
 import org.apache.wicket.RestartResponseException;
@@ -73,13 +75,18 @@ import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.extensions.ajax.markup.html.modal.ModalWindow;
 import org.apache.wicket.extensions.markup.html.repeater.data.table.IColumn;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.Form;
+import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.model.AbstractReadOnlyModel;
 import org.apache.wicket.model.IModel;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.model.PropertyModel;
+import org.apache.wicket.request.resource.AbstractResource;
+import org.apache.wicket.request.resource.ByteArrayResource;
+import org.apache.wicket.request.resource.ContextRelativeResource;
 import org.apache.wicket.request.resource.PackageResourceReference;
 import org.apache.wicket.util.string.StringValue;
 
@@ -131,10 +138,18 @@ public class PageUser extends PageAdminUsers {
     private static final String ID_ACCOUNT_CHECK_ALL = "accountCheckAll";
     private static final String ID_ASSIGNMENT_CHECK_ALL = "assignmentCheckAll";
 
+    private static final String ID_SUMMARY_PANEL = "summaryPanel";
+    private static final String ID_SUMMARY_NAME = "summaryName";
+    private static final String ID_SUMMARY_FULL_NAME = "summaryFullName";
+    private static final String ID_SUMMARY_GIVEN_NAME = "summaryGivenName";
+    private static final String ID_SUMMARY_FAMILY_NAME = "summaryFamilyName";
+    private static final String ID_SUMMARY_PHOTO = "summaryPhoto";
+
     private static final Trace LOGGER = TraceManager.getTrace(PageUser.class);
     private LoadableModel<ObjectWrapper> userModel;
     private LoadableModel<List<UserAccountDto>> accountsModel;
     private LoadableModel<List<AssignmentEditorDto>> assignmentsModel;
+    private IModel<PrismObject<UserType>> summaryUser;
 
     private LoadableModel<ExecuteChangeOptionsDto> executeOptionsModel
             = new LoadableModel<ExecuteChangeOptionsDto>(false) {
@@ -227,6 +242,9 @@ public class PageUser extends PageAdminUsers {
     private void initLayout() {
         Form mainForm = new Form(ID_MAIN_FORM);
         add(mainForm);
+        mainForm.setMultiPart(true);
+
+        initSummaryInfo(mainForm);
 
         PrismObjectPanel userForm = new PrismObjectPanel(ID_USER_FORM, userModel, new PackageResourceReference(
                 ImgResources.class, ImgResources.USER_PRISM), mainForm) {
@@ -258,6 +276,62 @@ public class PageUser extends PageAdminUsers {
         initResourceModal();
         initAssignableModal();
         initConfirmationDialogs();
+    }
+
+    private String getLabelFromPolyString(PolyStringType poly){
+        if(poly == null || poly.getOrig() == null){
+            return "-";
+        } else{
+            return poly.getOrig();
+        }
+    }
+
+    private void initSummaryInfo(Form mainForm){
+
+        WebMarkupContainer summaryContainer = new WebMarkupContainer(ID_SUMMARY_PANEL);
+        summaryContainer.setOutputMarkupId(true);
+
+        summaryContainer.add(new VisibleEnableBehaviour(){
+
+            @Override
+            public boolean isVisible(){
+                if(getPageParameters().get(OnePageParameterEncoder.PARAMETER).isEmpty()){
+                    return false;
+                } else {
+                    return true;
+                }
+            }
+        });
+
+        mainForm.add(summaryContainer);
+
+        summaryUser = new AbstractReadOnlyModel<PrismObject<UserType>>() {
+
+            @Override
+            public PrismObject<UserType> getObject() {
+                ObjectWrapper user = userModel.getObject();
+                return user.getObject();
+            }
+        };
+
+        summaryContainer.add(new Label(ID_SUMMARY_NAME, new PrismPropertyModel<UserType>(summaryUser, UserType.F_NAME)));
+        summaryContainer.add(new Label(ID_SUMMARY_FULL_NAME, new PrismPropertyModel<UserType>(summaryUser, UserType.F_FULL_NAME)));
+        summaryContainer.add(new Label(ID_SUMMARY_GIVEN_NAME, new PrismPropertyModel<UserType>(summaryUser, UserType.F_GIVEN_NAME)));
+        summaryContainer.add(new Label(ID_SUMMARY_FAMILY_NAME, new PrismPropertyModel<UserType>(summaryUser, UserType.F_FAMILY_NAME)));
+
+        Image img = new Image(ID_SUMMARY_PHOTO, new AbstractReadOnlyModel<AbstractResource>() {
+
+            @Override
+            public AbstractResource getObject() {
+                if(summaryUser.getObject().asObjectable().getJpegPhoto() != null){
+                    return new ByteArrayResource("image/jpeg", summaryUser.getObject().asObjectable().getJpegPhoto());
+                } else {
+                    return new ContextRelativeResource("img/placeholder.png");
+                }
+
+            }
+        });
+        summaryContainer.add(img);
     }
 
     private void initConfirmationDialogs() {
@@ -1335,7 +1409,7 @@ public class PageUser extends PageAdminUsers {
                     continue;
                 }
                 if (LOGGER.isTraceEnabled()) {
-                    LOGGER.trace("Refined schema for {}\n{}", resource, refinedSchema.dump());
+                    LOGGER.trace("Refined schema for {}\n{}", resource, refinedSchema.debugDump());
                 }
 
                 QName objectClass = refinedSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT).getObjectClassDefinition()

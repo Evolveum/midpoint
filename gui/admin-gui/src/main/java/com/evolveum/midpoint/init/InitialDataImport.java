@@ -122,7 +122,7 @@ public class InitialDataImport {
         
         LOGGER.info("Initial object import finished ({} objects imported, {} errors)", count, errors);
         if (LOGGER.isTraceEnabled()) {
-        	LOGGER.trace("Initialization status:\n" + mainResult.dump());
+        	LOGGER.trace("Initialization status:\n" + mainResult.debugDump());
         }
     }
 

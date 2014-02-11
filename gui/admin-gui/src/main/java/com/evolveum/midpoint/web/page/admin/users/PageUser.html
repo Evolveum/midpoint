@@ -25,33 +25,33 @@
     <div wicket:id="confirmDeleteAssignmentPopup"/>
 
     <form wicket:id="mainForm" autocomplete="off" class="form-horizontal">
-        <!--
-        <div class="row">
+
+        <div class="row" wicket:id="summaryPanel">
             <div class="col-xs-6 col-md-2 col-md-offset-4" style="text-align: right;">
-                <img class="user-thumbnail" src="img/placeholder.png" alt="Generic placeholder thumbnail">
+                <img wicket:id="summaryPhoto" class="user-thumbnail" src="img/placeholder.png">
             </div>
             <div class="col-xs-6 col-md-4">
                 <table class="table" style="width: auto; min-width: 300px;">
                     <tr>
                         <td><h4><wicket:message key="ObjectType.name"/></h4></td>
-                        <td><h4>jd12345</h4></td>
+                        <td><h4><span wicket:id="summaryName" /></h4></td>
                     </tr>
                     <tr>
                         <td><strong><wicket:message key="UserType.fullName"/></strong></td>
-                        <td>John Doe</td>
+                        <td><span wicket:id="summaryFullName" /></td>
                     </tr>
                     <tr>
                         <td><strong><wicket:message key="UserType.givenName"/></strong></td>
-                        <td>John</td>
+                        <td><span wicket:id="summaryGivenName" /></td>
                     </tr>
                     <tr>
                         <td><strong><wicket:message key="UserType.familyName"/></strong></td>
-                        <td>Doe</td>
+                        <td><span wicket:id="summaryFamilyName" /></td>
                     </tr>
                 </table>
             </div>
         </div>
-        -->
+
         <div class="row">
             <div class="col-md-6">
                 <div wicket:id="userForm"/>

@@ -26,7 +26,7 @@ import com.evolveum.midpoint.prism.xnode.PrimitiveXNode;
 import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.Dumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
@@ -41,7 +41,7 @@ import org.w3c.dom.Element;
 /**
  * @author lazyman
  */
-public class PrismPropertyValue<T> extends PrismValue implements Dumpable, DebugDumpable, Serializable {
+public class PrismPropertyValue<T> extends PrismValue implements DebugDumpable, Serializable {
 
     private T value;
     // The rawElement is set during a schema-less parsing, e.g. during a dumb JAXB parsing or XML parsing without a
@@ -469,32 +469,39 @@ public class PrismPropertyValue<T> extends PrismValue implements Dumpable, Debug
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < indent; i++) {
-            sb.append(INDENT_STRING);
+        boolean wasIdent = false;
+        if (DebugUtil.isDetailedDebugDump()) {
+        	DebugUtil.indentDebugDump(sb, indent);
+        	wasIdent = true;
+        	sb.append("PPV(");
+	        dumpSuffix(sb);
+	        sb.append("):");
         }
-
-        sb.append("PPV(");
-        dumpSuffix(sb);
-        sb.append("):");
-        // getValue() must not be here. getValue() contains exception that in turn causes a call to toString()
         if (value != null) {
-        	sb.append(value.getClass().getSimpleName()).append(":");
+            if (DebugUtil.isDetailedDebugDump()) {
+            	sb.append(value.getClass().getSimpleName()).append(":");
+            }
         	if (value instanceof DebugDumpable) {
-        		sb.append("\n");
+        		if (wasIdent) {
+        			sb.append("\n");
+        		}
         		sb.append(((DebugDumpable)value).debugDump(indent + 1));
         	} else {
+            	if (!wasIdent) {
+                	DebugUtil.indentDebugDump(sb, indent);
+                	wasIdent = true;
+            	}
         		sb.append(PrettyPrinter.prettyPrint(value));
         	}
         } else {
+        	if (!wasIdent) {
+            	DebugUtil.indentDebugDump(sb, indent);
+            	wasIdent = true;
+        	}
             sb.append("null");
         }
 
         return sb.toString();
-    }
-
-    @Override
-    public String dump() {
-        return toString();
     }
 
 	@Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ public abstract class UnaryLogicalRestriction<T extends UnaryLogicalFilter> exte
     protected void validateFilter(UnaryLogicalFilter filter) throws QueryException {
         if (filter.getFilter() == null) {
             LOGGER.trace("UnaryLogicalFilter filter must have child filter defined in it.");
-            throw new QueryException("UnaryLogicalFilter '" + filter.dump()
+            throw new QueryException("UnaryLogicalFilter '" + filter.debugDump()
                     + "' must have child filter defined in it.");
         }
     }

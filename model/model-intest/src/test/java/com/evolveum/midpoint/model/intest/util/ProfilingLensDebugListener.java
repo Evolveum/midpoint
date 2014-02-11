@@ -24,6 +24,7 @@ public class ProfilingLensDebugListener implements LensDebugListener {
 	private long mappingTotalMillis = 0;
 	private long projectorMappingTotalMillis = 0;
 	private long projectorMappingTotalCount = 0;
+	private LensContext lastLensContext;
 	
 	@Override
 	public <F extends ObjectType> void beforeSync(LensContext<F> context) {
@@ -81,6 +82,12 @@ public class ProfilingLensDebugListener implements LensDebugListener {
 		long projectorEtime = projectorEndTime - projectorStartTime;
 		LOGGER.trace("Projector finished ({}), {} changes, etime: {} ms ({} mapping evaluated, {} ms total)", 
 				new Object[]{desc, changes, projectorEtime, projectorMappingTotalCount, projectorMappingTotalMillis});
+		
+		lastLensContext = context;
+	}
+
+	public <F extends ObjectType> LensContext<F> getLastLensContext() {
+		return lastLensContext;
 	}
 
 	@Override

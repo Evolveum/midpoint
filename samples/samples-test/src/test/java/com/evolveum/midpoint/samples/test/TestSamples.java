@@ -151,7 +151,7 @@ public class TestSamples {
         		}
         	}
         	System.out.println("ERROR: "+errorMessage);
-        	System.out.println(result.dump());
+        	System.out.println(result.debugDump());
         	Assert.fail(file.getPath()+": "+errorMessage);
         } else {
             System.out.println("OK");

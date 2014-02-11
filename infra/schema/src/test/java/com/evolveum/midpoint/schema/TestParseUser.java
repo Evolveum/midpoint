@@ -82,7 +82,7 @@ public class TestParseUser {
 		
 		// THEN
 		System.out.println("Parsed user:");
-		System.out.println(user.dump());
+		System.out.println(user.debugDump());
 		
 		assertUser(user);
 	}
@@ -102,7 +102,7 @@ public class TestParseUser {
 		
 		// THEN
 		System.out.println("Parsed user:");
-		System.out.println(user.dump());
+		System.out.println(user.debugDump());
 		
 		assertUser(user);
 	}
@@ -120,7 +120,7 @@ public class TestParseUser {
 		
 		// THEN
 		System.out.println("Parsed user:");
-		System.out.println(userType.asPrismObject().dump());
+		System.out.println(userType.asPrismObject().debugDump());
 		
 		assertUser(userType.asPrismObject());
 	}
@@ -142,7 +142,7 @@ public class TestParseUser {
 		
 		// THEN
 		System.out.println("Parsed user:");
-		System.out.println(userType.asPrismObject().dump());
+		System.out.println(userType.asPrismObject().debugDump());
 		
 		assertUser(userType.asPrismObject());
 	}
@@ -164,7 +164,7 @@ public class TestParseUser {
 		
 		// THEN
 		System.out.println("Parsed user:");
-		System.out.println(userType.asPrismObject().dump());
+		System.out.println(userType.asPrismObject().debugDump());
 		
 		assertUser(userType.asPrismObject());
 	}
@@ -186,7 +186,7 @@ public class TestParseUser {
 		
 		// THEN
 		System.out.println("Parsed user:");
-		System.out.println(userType.asPrismObject().dump());
+		System.out.println(userType.asPrismObject().debugDump());
 		
 		assertUser(userType.asPrismObject());
 	}
@@ -352,7 +352,7 @@ public class TestParseUser {
 
         // THEN
         System.out.println("User:");
-        System.out.println(user.dump());
+        System.out.println(user.debugDump());
 
         System.out.println("Checking consistency, 1st time.");
         user.checkConsistence();

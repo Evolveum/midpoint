@@ -320,14 +320,14 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
 
         String systemCongigOid = "00000000-0000-0000-0000-000000000001";
         PrismObject<SystemConfigurationType> fileSystemConfig = prismContext.parseObject(new File(FOLDER_BASIC, "systemConfiguration.xml"));
-        LOGGER.info("System config from file: {}", fileSystemConfig.dump());
+        LOGGER.info("System config from file: {}", fileSystemConfig.debugDump());
         oid = repositoryService.addObject(fileSystemConfig, null, result);
         AssertJUnit.assertNotNull(oid);
         AssertJUnit.assertEquals(systemCongigOid, oid);
 
         PrismObject<SystemConfigurationType> repoSystemConfig = repositoryService.getObject(SystemConfigurationType.class, systemCongigOid, null, result);
 //		AssertJUnit.assertNotNull("global password policy null", repoSystemConfig.asObjectable().getGlobalPasswordPolicy());
-        LOGGER.info("System config from repo: {}", repoSystemConfig.dump());
+        LOGGER.info("System config from repo: {}", repoSystemConfig.debugDump());
         AssertJUnit.assertNull("global password policy not null", repoSystemConfig.asObjectable()
                 .getGlobalPasswordPolicyRef());
 
@@ -338,7 +338,7 @@ public class AddGetObjectTest extends BaseSQLRepoTest {
         refDeltas.add(refDelta);
         repositoryService.modifyObject(SystemConfigurationType.class, systemCongigOid, refDeltas, result);
         repoSystemConfig = repositoryService.getObject(SystemConfigurationType.class, systemCongigOid, null, result);
-        LOGGER.info("system config after modify: {}", repoSystemConfig.dump());
+        LOGGER.info("system config after modify: {}", repoSystemConfig.debugDump());
         AssertJUnit.assertNotNull("global password policy null", repoSystemConfig.asObjectable()
                 .getGlobalPasswordPolicyRef());
         AssertJUnit.assertNull("default user template not null", repoSystemConfig.asObjectable()
