@@ -155,7 +155,7 @@ public class ReportUtils {
 		if (parametersSchema == null) {
 			throw new SchemaException("No parameters schema in "+ reportType);
 		}
-		LOGGER.trace("Parameters schema : {}", parametersSchema.dump());
+		LOGGER.trace("Parameters schema : {}", parametersSchema.debugDump());
 		
 		return parametersSchema;
 	}
