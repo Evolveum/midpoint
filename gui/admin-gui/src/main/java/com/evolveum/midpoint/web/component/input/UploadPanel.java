@@ -31,6 +31,7 @@ import org.apache.wicket.model.IModel;
 public class UploadPanel<T> extends InputPanel {
 
     private static final String ID_BUTTON_UPLOAD = "upload";
+    private static final String ID_BUTTON_DELETE = "remove";
     private static final String ID_INPUT_FILE = "fileInput";
     private static final String ID_FEEDBACK = "feedback";
 
@@ -55,6 +56,14 @@ public class UploadPanel<T> extends InputPanel {
                 uploadFilePerformed(target);
             }
         });
+
+        add(new AjaxSubmitButton(ID_BUTTON_DELETE) {
+
+            @Override
+            protected void onSubmit(AjaxRequestTarget target, Form<?> form){
+                removePhotoPerformed(target);
+            }
+        });
     }
 
     @Override
@@ -74,4 +83,5 @@ public class UploadPanel<T> extends InputPanel {
     }
 
     public void uploadFilePerformed(AjaxRequestTarget target){}
+    public void removePhotoPerformed(AjaxRequestTarget target){}
 }
