@@ -51,6 +51,7 @@
 			<parameter name="from" class="java.sql.Timestamp"/>
 			<parameter name="to" class="java.sql.Timestamp"/>
 			<parameter name="hqlQuery" class="java.lang.String"/>
+			<parameter name="eventType" class="java.lang.Integer"/>
 			<queryString language="hql"><![CDATA[$P!{hqlQuery}]]></queryString>
 			<field name="timestamp" class="java.sql.Timestamp"/>
 			<field name="initiator" class="java.lang.String"/>
@@ -264,11 +265,33 @@
 			</summary>
 		</jasperReport>
 	</template>
+	<templateStyle>
+		<jasperTemplate xmlns="http://jasperreports.sourceforge.net/dtds/jaspertemplate.dtd">
+			<style fontSize="10" hAlign="Left" isDefault="true" isPdfEmbedded="false" name="Base"
+				   pdfEncoding="Cp1252"
+				   pdfFontName="Helvetica"
+                   vAlign="Middle">
+			</style>
+			<style backcolor="#267994" fontSize="26" forecolor="#FFFFFF" isDefault="false"
+                   mode="Opaque"
+                   name="Title"
+                   style="Base"/>
+			<style fontSize="12" forecolor="#000000" isDefault="false" name="Page header"
+                   style="Base"/>
+			<style backcolor="#333333" fontSize="12" forecolor="#FFFFFF" hAlign="Center"
+                   isDefault="false"
+                   mode="Opaque"
+                   name="Column header"
+                   style="Base"/>
+			<style isBold="false" isDefault="false" name="Detail" style="Base"/>
+			<style fontSize="9" forecolor="#000000" isDefault="false" name="Page footer"
+                   style="Base"/>
+		</jasperTemplate>
+	</templateStyle>
 	<orientation>landscape</orientation>
 	<export>pdf</export>
 	<!-- set to true if report needs hibernate session (e.g. hql query is used) -->
 	<useHibernateSession>true</useHibernateSession>
-
 	<reportField>
 		<nameReportField>timestamp</nameReportField>
 		<nameHeaderField>Timestamp</nameHeaderField>
@@ -341,14 +364,14 @@
 					odo.delta as delta 
 					from RObjectDeltaOperation as odo 
 					join odo.record as aer 
-					where aer.timestamp &gt;= $P{from} and aer.timestamp &lt;= $P{to}
+					where ($P{eventType} = -1 or aer.eventType = $P{eventType}) and aer.timestamp &gt;= $P{from} and aer.timestamp &lt;= $P{to} 
 					order by aer.timestamp
 		</r:hqlQuery>
 		<r:logoPath>src/test/resources/reports/logo.jpg</r:logoPath>
 		<r:baseTemplateStyles>src/test/resources/styles/midpoint_base_styles.jrtx</r:baseTemplateStyles>
 		<r:from>2000-01-01T00:00:00</r:from>
 		<r:to>2020-12-31T00:00:00</r:to>
-		<r:eventType>all</r:eventType>
+		<r:eventType>-1</r:eventType>
 	</configuration>
 	<!-- report parameters configuration schema sample with different options -->
 	<configurationSchema>
@@ -396,14 +419,78 @@
 								</xsd:appinfo>
 							</xsd:annotation>
 						</xsd:element>
-						<xsd:element name="eventType" type="r:EventType"/>
+						<xsd:element name="eventType" type="r:EventType">
+							<xsd:annotation>
+								<xsd:appinfo>
+									<a:displayName>Event Type:</a:displayName>
+								</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:element>
 					</xsd:sequence>
 				</xsd:complexType>
+
 				<xsd:simpleType name="EventType">
-					<xsd:restriction base="xsd:string">
-						<xsd:enumeration value="createSession"/>
-						<xsd:enumeration value="getObject"/>
-						<xsd:enumeration value="all"/>
+					<xsd:restriction base="xsd:int">
+						<xsd:enumeration value="-1">
+							<xsd:annotation>
+								<xsd:appinfo>All</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:enumeration>
+						<xsd:enumeration value="0">
+							<xsd:annotation>
+								<xsd:appinfo>Get object</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:enumeration>
+						<xsd:enumeration value="1">
+							<xsd:annotation>
+								<xsd:appinfo>Add object</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:enumeration>
+						<xsd:enumeration value="2">
+							<xsd:annotation>
+								<xsd:appinfo>Modify object</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:enumeration>
+						<xsd:enumeration value="3">
+							<xsd:annotation>
+								<xsd:appinfo>Delete object</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:enumeration>
+						<xsd:enumeration value="4">
+							<xsd:annotation>
+								<xsd:appinfo>Execute changes raw</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:enumeration>
+						<xsd:enumeration value="5">
+							<xsd:annotation>
+								<xsd:appinfo>Synchronization</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:enumeration>
+						<xsd:enumeration value="6">
+							<xsd:annotation>
+								<xsd:appinfo>Create session</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:enumeration>
+						<xsd:enumeration value="7">
+							<xsd:annotation>
+								<xsd:appinfo>Terminate session</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:enumeration>
+						<xsd:enumeration value="8">
+							<xsd:annotation>
+								<xsd:appinfo>Work item</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:enumeration>
+						<xsd:enumeration value="9">
+							<xsd:annotation>
+								<xsd:appinfo>Workflow process instance</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:enumeration>
+						<xsd:enumeration value="10">
+							<xsd:annotation>
+								<xsd:appinfo>Reconciliation</xsd:appinfo>
+							</xsd:annotation>
+						</xsd:enumeration>
 					</xsd:restriction>
 				</xsd:simpleType>
 
