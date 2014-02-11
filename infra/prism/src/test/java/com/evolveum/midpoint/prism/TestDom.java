@@ -62,7 +62,7 @@ public class TestDom {
 		PrismObject<UserType> user = prismContext.parseObject(userElement);
 		
 		System.out.println("User:");
-		System.out.println(user.dump());
+		System.out.println(user.debugDump());
 		assertNotNull(user);
 		
 		// WHEN
@@ -88,7 +88,7 @@ public class TestDom {
 		PrismObject<UserType> user = prismContext.parseObject(userElement);
 		
 		System.out.println("User:");
-		System.out.println(user.dump());
+		System.out.println(user.debugDump());
 		assertNotNull(user);
 		
 		// WHEN

@@ -103,7 +103,7 @@ public class TestRefinedSchema {
         // THEN
         assertNotNull("Refined schema is null", rSchema);
         System.out.println("Refined schema");
-        System.out.println(rSchema.dump());
+        System.out.println(rSchema.debugDump());
         assertRefinedSchema(resourceType, rSchema, null, LayerType.MODEL, false);
         
         assertLayerRefinedSchema(resourceType, rSchema, LayerType.SCHEMA, LayerType.SCHEMA, false);
@@ -133,7 +133,7 @@ public class TestRefinedSchema {
         // THEN
         assertNotNull("Refined schema is null", rSchema);
         System.out.println("Refined schema");
-        System.out.println(rSchema.dump());
+        System.out.println(rSchema.debugDump());
         assertRefinedSchema(resourceType, rSchema, null, LayerType.MODEL, true);
         
         assertLayerRefinedSchema(resourceType, rSchema, LayerType.SCHEMA, LayerType.SCHEMA, true);
@@ -150,7 +150,7 @@ public class TestRefinedSchema {
 			LayerType validationLayer, boolean assertEntitlements) {
 		System.out.println("Refined schema: layer="+sourceLayer);
 		LayerRefinedResourceSchema lrSchema = rSchema.forLayer(sourceLayer);
-        System.out.println(lrSchema.dump());
+        System.out.println(lrSchema.debugDump());
         assertRefinedSchema(resourceType, lrSchema, sourceLayer, validationLayer, assertEntitlements);
 	}
 
@@ -170,7 +170,7 @@ public class TestRefinedSchema {
         // THEN
         assertNotNull("Refined schema is null", rSchema);
         System.out.println("Refined schema");
-        System.out.println(rSchema.dump());
+        System.out.println(rSchema.debugDump());
         
         assertRefinedSchema(resourceType, rSchema, null, LayerType.SCHEMA, false);
 
@@ -190,7 +190,7 @@ public class TestRefinedSchema {
 
         assertRObjectClassDef(rAccountDef, resourceType, sourceLayer, validationLayer);
         System.out.println("Refined account definitionn:");
-        System.out.println(rAccountDef.dump());
+        System.out.println(rAccountDef.debugDump());
         
         assertEquals("Wrong kind", ShadowKindType.ACCOUNT, rAccountDef.getKind());
         
@@ -232,17 +232,17 @@ public class TestRefinedSchema {
         ResourceAttributeContainerDefinition resAttrContainerDef = rAccountDef.toResourceAttributeContainerDefinition();
         assertNotNull("No ResourceAttributeContainerDefinition", resAttrContainerDef);
         System.out.println("\nResourceAttributeContainerDefinition ("+sourceLayer+")");
-        System.out.println(resAttrContainerDef.dump());
+        System.out.println(resAttrContainerDef.debugDump());
         
         ObjectClassComplexTypeDefinition rComplexTypeDefinition = resAttrContainerDef.getComplexTypeDefinition();
         System.out.println("\nResourceAttributeContainerDefinition ComplexTypeDefinition ("+sourceLayer+")");
-        System.out.println(rComplexTypeDefinition.dump());
+        System.out.println(rComplexTypeDefinition.debugDump());
         assertRefinedToLayer(rComplexTypeDefinition, sourceLayer);
 
         ResourceAttributeDefinition riUidAttrDef = resAttrContainerDef.findAttributeDefinition(new QName(resourceType.getNamespace(), "uid"));
         assertNotNull("No ri:uid def in ResourceAttributeContainerDefinition", riUidAttrDef);
         System.out.println("\nri:uid def "+riUidAttrDef.getClass()+" ("+sourceLayer+")");
-        System.out.println(riUidAttrDef.dump());
+        System.out.println(riUidAttrDef.debugDump());
         
         assertRefinedToLayer(riUidAttrDef, sourceLayer);
         
@@ -307,14 +307,14 @@ public class TestRefinedSchema {
         PrismObjectDefinition<ShadowType> objectDefinition = defaultAccountDefinition.getObjectDefinition();
 
         System.out.println("Refined account definition:");
-        System.out.println(objectDefinition.dump());
+        System.out.println(objectDefinition.debugDump());
 
         accObject.applyDefinition(objectDefinition);
 
         // THEN
 
         System.out.println("Parsed account:");
-        System.out.println(accObject.dump());
+        System.out.println(accObject.debugDump());
 
         assertAccountShadow(accObject, resource, prismContext);
     }
@@ -332,19 +332,19 @@ public class TestRefinedSchema {
         RefinedObjectClassDefinition defaultAccountDefinition = rSchema.getDefaultRefinedDefinition(ShadowKindType.ACCOUNT);
         assertNotNull("No refined default account definition in "+rSchema, defaultAccountDefinition);
         System.out.println("Refined account definition:");
-        System.out.println(defaultAccountDefinition.dump());
+        System.out.println(defaultAccountDefinition.debugDump());
 
         PrismObject<ShadowType> accObject = PrismTestUtil.parseObject(new File(TEST_DIR_NAME, "account-jack.xml"));
         PrismContainer<Containerable> attributesContainer = accObject.findContainer(ShadowType.F_ATTRIBUTES);
         System.out.println("Attributes container:");
-        System.out.println(attributesContainer.dump());
+        System.out.println(attributesContainer.debugDump());
         
         // WHEN
         attributesContainer.applyDefinition(defaultAccountDefinition.toResourceAttributeContainerDefinition(), true);
 
         // THEN
         System.out.println("Parsed account:");
-        System.out.println(accObject.dump());
+        System.out.println(accObject.debugDump());
 
         assertAccountShadow(accObject, resource, prismContext);
     }

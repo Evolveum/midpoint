@@ -135,7 +135,7 @@ public class ObjectTypeUtil {
     	if (object == null) {
     		return "null";
     	}
-        return object.asPrismObject().dump();
+        return object.asPrismObject().debugDump();
     }
 
     public static Object toShortString(ObjectReferenceType objectRef) {

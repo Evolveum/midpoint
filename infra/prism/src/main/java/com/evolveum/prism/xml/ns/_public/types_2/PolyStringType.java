@@ -50,7 +50,6 @@ import javax.xml.namespace.QName;
 import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.Dumpable;
 import org.w3c.dom.Element;
 
 
@@ -91,7 +90,7 @@ import org.w3c.dom.Element;
     "norm",
     "any"
 })
-public class PolyStringType implements Dumpable, DebugDumpable, Serializable, Cloneable {
+public class PolyStringType implements DebugDumpable, Serializable, Cloneable {
 	
 	public static final QName COMPLEX_TYPE = new QName("http://prism.evolveum.com/xml/ns/public/types-2", "PolyStringType"); 
 
@@ -246,12 +245,6 @@ public class PolyStringType implements Dumpable, DebugDumpable, Serializable, Cl
 		return sb.toString();
 
 	}
-
-	@Override
-	public String dump() {
-		return debugDump();
-	}
-
 
     @Override
     public PolyStringType clone() {

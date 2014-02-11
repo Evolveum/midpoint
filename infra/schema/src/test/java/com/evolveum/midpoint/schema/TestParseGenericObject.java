@@ -80,7 +80,7 @@ public class TestParseGenericObject {
 		
 		// THEN
 		System.out.println("Parsed generic object:");
-		System.out.println(generic.dump());
+		System.out.println(generic.debugDump());
 		
 		assertGenericObject(generic);
 	}
@@ -100,7 +100,7 @@ public class TestParseGenericObject {
 		
 		// THEN
 		System.out.println("Parsed generic object:");
-		System.out.println(generic.dump());
+		System.out.println(generic.debugDump());
 		
 		assertGenericObject(generic);
 	}
@@ -191,7 +191,7 @@ public class TestParseGenericObject {
 		PrismObject<GenericObjectType> generic = prismContext.parseObject(GENERIC_FILE);
 		
 		System.out.println("Parsed generic object:");
-		System.out.println(generic.dump());
+		System.out.println(generic.debugDump());
 		
 		assertGenericObject(generic);
 		
@@ -207,13 +207,13 @@ public class TestParseGenericObject {
 		PrismObject<GenericObjectType> reparsedGeneric = prismContext.parseObject(serializedGeneric);
 		
 		System.out.println("Re-parsed generic object:");
-		System.out.println(reparsedGeneric.dump());
+		System.out.println(reparsedGeneric.debugDump());
 		
 		assertGenericObject(generic);
 				
 		ObjectDelta<GenericObjectType> objectDelta = generic.diff(reparsedGeneric);
 		System.out.println("Delta:");
-		System.out.println(objectDelta.dump());
+		System.out.println(objectDelta.debugDump());
 		assertTrue("Delta is not empty", objectDelta.isEmpty());
 		
 		PrismAsserts.assertEquivalent("generic object re-parsed quivalence", generic, reparsedGeneric);

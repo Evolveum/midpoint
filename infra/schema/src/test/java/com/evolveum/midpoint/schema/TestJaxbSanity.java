@@ -121,7 +121,7 @@ public class TestJaxbSanity {
 		// WHEN, THEN
 		ObjectDelta<UserType> objectDelta = user1.diff(user2);
 		System.out.println("User delta:");
-		System.out.println(objectDelta.dump());
+		System.out.println(objectDelta.debugDump());
 		assertTrue("User delta is not empty", objectDelta.isEmpty());
 		
 		assertTrue("User not equals (PrismObject)", user1.equals(user2));
@@ -171,7 +171,7 @@ public class TestJaxbSanity {
 		// WHEN, THEN
 		ObjectDelta<UserType> objectDelta = user1.diff(user1);
 		System.out.println("User delta:");
-		System.out.println(objectDelta.dump());
+		System.out.println(objectDelta.debugDump());
 		assertTrue("User delta is not empty", objectDelta.isEmpty());
 		
 		assertTrue("User not equals (PrismObject)", user1.equals(user2));
@@ -248,7 +248,7 @@ public class TestJaxbSanity {
 		// WHEN, THEN
 		ObjectDelta<ResourceType> objectDelta = resource1.diff(resource2);
 		System.out.println("Resource delta:");
-		System.out.println(objectDelta.dump());
+		System.out.println(objectDelta.debugDump());
 		assertTrue("Resource delta is not empty", objectDelta.isEmpty());
 		
 		assertTrue("Resource not equal", resource1Type.equals(resource2Type));

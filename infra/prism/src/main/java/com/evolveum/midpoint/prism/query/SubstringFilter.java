@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -135,11 +135,6 @@ public class SubstringFilter<T> extends PropertyValueFilter<PrismPropertyValue<T
 	@Override
 	public SubstringFilter clone() {
 		return new SubstringFilter(getFullPath(),getDefinition(), getMatchingRule(), getValues());
-	}
-
-	@Override
-	public String dump() {
-		return debugDump(0);
 	}
 
 	@Override

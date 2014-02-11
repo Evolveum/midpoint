@@ -95,7 +95,7 @@ public class TestDiff {
         
         // THEN
         assertNotNull(delta);
-        System.out.println(delta.dump());
+        System.out.println(delta.debugDump());
         assertEquals("Unexpected number of midifications", 1, delta.getModifications().size());
         PrismAsserts.assertPropertyReplace(delta, UserType.F_NAME, PrismTestUtil.createPolyString("other name"));
         assertEquals("Wrong OID", USER_JACK_OID, delta.getOid());
@@ -156,7 +156,7 @@ public class TestDiff {
         
         // THEN
         assertNotNull(delta);
-        System.out.println(delta.dump());
+        System.out.println(delta.debugDump());
         assertEquals("Unexpected number of midifications", 1, delta.getModifications().size());
         PrismAsserts.assertPropertyAdd(delta, UserType.F_ADDITIONAL_NAMES, "baz");
         assertEquals("Wrong OID", USER_JACK_OID, delta.getOid());

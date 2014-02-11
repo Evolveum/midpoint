@@ -19,6 +19,8 @@ package com.evolveum.midpoint.prism;
 import com.evolveum.midpoint.prism.delta.ItemDelta;
 import com.evolveum.midpoint.prism.delta.PropertyDelta;
 import com.evolveum.midpoint.prism.path.ItemPath;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
@@ -57,6 +59,8 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
     private static final long serialVersionUID = 6843901365945935660L;
 
     private static final Trace LOGGER = TraceManager.getTrace(PrismProperty.class);
+
+	private static final int MAX_SINGLELINE_LEN = 40;
 
     public PrismProperty(QName name) {
         super(name);
@@ -443,23 +447,77 @@ public class PrismProperty<T> extends Item<PrismPropertyValue<T>> {
         for (int i = 0; i < indent; i++) {
             sb.append(INDENT_STRING);
         }
-        sb.append(getDebugDumpClassName()).append(": ").append(PrettyPrinter.prettyPrint(getElementName())).append(" = ");
-        if (getValues() == null) {
-            sb.append("null");
-        } else {
-            sb.append("[ ");
-            Iterator<PrismPropertyValue<T>> iterator = getValues().iterator();
-            while(iterator.hasNext()) {
-            	PrismPropertyValue<T> value = iterator.next();
-                sb.append(PrettyPrinter.prettyPrint(value));
-                if (iterator.hasNext()) {
-                	sb.append(", ");
-                }
-            }
-            sb.append(" ]");
+        if (DebugUtil.isDetailedDebugDump()) {
+        	sb.append(getDebugDumpClassName()).append(": ");
         }
+        sb.append(DebugUtil.formatElementName(getElementName())).append(": ");
+        
+        boolean isMultivalue = true;
         PrismPropertyDefinition def = getDefinition();
         if (def != null) {
+        	isMultivalue = def.isMultiValue();
+        }
+        
+        List<PrismPropertyValue<T>> values = getValues();
+        if (values == null) {
+            sb.append("null");
+        } else if (values.isEmpty()) {
+        	sb.append("[]");
+        } else {
+        	boolean multiline = false;
+        	PrismPropertyValue<T> firstVal = values.iterator().next();
+        	if (firstVal != null && firstVal.getValue() != null) {
+        		if (DebugUtil.isDetailedDebugDump() && firstVal.getValue() instanceof DebugDumpable) {
+        			multiline = true;
+        		} else {
+        			if (firstVal.getValue().toString().length() > MAX_SINGLELINE_LEN) {
+        				multiline = true;
+        			}
+        		}
+        	}
+        	if (multiline) {
+        		sb.append("\n");
+	            Iterator<PrismPropertyValue<T>> iterator = getValues().iterator();
+	            while(iterator.hasNext()) {
+	            	PrismPropertyValue<T> value = iterator.next();
+	            	T realValue = value.getValue();
+	            	if (realValue instanceof DebugDumpable) {
+	            		sb.append(((DebugDumpable)realValue).debugDump(indent + 1));
+	            	} else {
+	            		DebugUtil.indentDebugDump(sb, indent + 1);
+		            	if (DebugUtil.isDetailedDebugDump()) {
+		            		sb.append(PrettyPrinter.prettyPrint(value));
+		            	} else {
+		            		sb.append(value.getValue());
+		            	}
+	            	}
+	                if (iterator.hasNext()) {
+	                	sb.append("\n");
+	                }
+	            }
+        	} else {
+        		if (isMultivalue) {
+        			sb.append("[ ");
+        		}
+	            Iterator<PrismPropertyValue<T>> iterator = getValues().iterator();
+	            while(iterator.hasNext()) {
+	            	PrismPropertyValue<T> value = iterator.next();
+	            	if (DebugUtil.isDetailedDebugDump()) {
+	            		sb.append(PrettyPrinter.prettyPrint(value));
+	            	} else {
+	            		sb.append(value.getValue());
+	            	}
+	                if (iterator.hasNext()) {
+	                	sb.append(", ");
+	                }
+	            }
+	            if (isMultivalue) {
+	            	sb.append(" ]");
+	            }
+        	}
+        }
+        
+        if (def != null && DebugUtil.isDetailedDebugDump()) {
             sb.append(" def(");
             def.debugDumpShortToString(sb);
 //            if (def.isIndexed() != null) {

@@ -91,11 +91,6 @@ public class LessFilter<T> extends ComparativeFilter<T>{
 	}
 
 	@Override
-	public String dump() {
-		return debugDump(0);
-	}
-
-	@Override
 	public String debugDump() {
 		return debugDump(0);
 	}

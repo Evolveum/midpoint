@@ -29,7 +29,6 @@ import org.w3c.dom.Element;
 import com.evolveum.midpoint.prism.schema.SchemaRegistry;
 import com.evolveum.midpoint.prism.xml.XsdTypeMapper;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
 /**
@@ -54,7 +53,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author Radovan Semancik
  * 
  */
-public abstract class Definition implements Serializable, Dumpable, DebugDumpable {
+public abstract class Definition implements Serializable, DebugDumpable {
 
 	private static final long serialVersionUID = -2643332934312107274L;
 	protected QName typeName;
@@ -266,11 +265,6 @@ public abstract class Definition implements Serializable, Dumpable, DebugDumpabl
 	@Override
 	public String toString() {
 		return getDebugDumpClassName() + " ("+getTypeName()+")";
-	}
-	
-	@Override
-	public String dump() {
-		return debugDump();
 	}
 	
 	@Override

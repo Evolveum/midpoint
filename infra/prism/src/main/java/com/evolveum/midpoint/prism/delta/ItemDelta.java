@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPath.CompareResult;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.Dumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -51,7 +51,7 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author Radovan Semancik
  * 
  */
-public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpable, DebugDumpable, Visitable, PathVisitable, Serializable {
+public abstract class ItemDelta<V extends PrismValue> implements Itemable, DebugDumpable, Visitable, PathVisitable, Serializable {
 
 	/**
 	 * Name of the property
@@ -1298,13 +1298,14 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 	@Override
 	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < indent; i++) {
-			sb.append(INDENT_STRING);
+		DebugUtil.indentDebugDump(sb, indent);
+		if (DebugUtil.isDetailedDebugDump()) {
+			sb.append(getClass().getSimpleName()).append(":");
 		}
-		sb.append(getClass().getSimpleName()).append("(");
-		sb.append(parentPath).append(" / ").append(PrettyPrinter.prettyPrint(elementName)).append(")");
+		ItemPath path = getPath();
+		sb.append(path);
 		
-		if (definition != null) {
+		if (definition != null && DebugUtil.isDetailedDebugDump()) {
 			sb.append(" def");
 		}
 
@@ -1327,10 +1328,6 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 
 	}
 
-	public String dump() {
-		return debugDump();
-	}
-
 	protected void dumpValues(StringBuilder sb, String label, Collection<V> values, int indent) {
 		for (int i = 0; i < indent; i++) {
 			sb.append(INDENT_STRING);
@@ -1341,7 +1338,12 @@ public abstract class ItemDelta<V extends PrismValue> implements Itemable, Dumpa
 		} else {
 			Iterator<V> i = values.iterator();
 			while (i.hasNext()) {
-				sb.append(i.next());
+				V value = i.next();
+				if (DebugUtil.isDetailedDebugDump()) {
+					sb.append(value.toString());
+				} else {
+					sb.append(value.toHumanReadableString());
+				}
 				if (i.hasNext()) {
 					sb.append(", ");
 				}

@@ -86,7 +86,7 @@ public class TestParseDiffPatch {
 
         ObjectDelta<UserType> userDelta = userBefore.diff(userAfter);
         System.out.println("DELTA:");
-        System.out.println(userDelta.dump());
+        System.out.println(userDelta.debugDump());
 
         userBefore.checkConsistence();
         userAfter.checkConsistence();
@@ -122,7 +122,7 @@ public class TestParseDiffPatch {
         // THEN
 
         System.out.println("DELTA:");
-        System.out.println(userDelta.dump());
+        System.out.println(userDelta.debugDump());
 
         userBefore.checkConsistence();
         userAfter.checkConsistence();
@@ -176,7 +176,7 @@ public class TestParseDiffPatch {
 
         ObjectDelta<UserType> roundTripDelta = DiffUtil.diff(userBefore, userAfter);
         System.out.println("roundtrip DELTA:");
-        System.out.println(roundTripDelta.dump());
+        System.out.println(roundTripDelta.debugDump());
 
         assertTrue("Roundtrip delta is not empty",roundTripDelta.isEmpty());
 	}
@@ -195,7 +195,7 @@ public class TestParseDiffPatch {
         // THEN
 
         System.out.println("DELTA:");
-        System.out.println(userDelta.dump());
+        System.out.println(userDelta.debugDump());
 
         userDelta.checkConsistence();
         assertEquals("Wrong delta OID", "2f9b9299-6f45-498f-bc8e-8d17c6b93b20", userDelta.getOid());
@@ -219,7 +219,7 @@ public class TestParseDiffPatch {
 
         //THEN
         System.out.println("DELTA:");
-        System.out.println(userDelta.dump());
+        System.out.println(userDelta.debugDump());
 
         userDelta.checkConsistence();
         assertEquals("Wrong delta OID", "deadbeef-c001-f00d-1111-222233330001", userDelta.getOid());
@@ -240,7 +240,7 @@ public class TestParseDiffPatch {
         // THEN
 
         System.out.println("DELTA:");
-        System.out.println(diffDelta.dump());
+        System.out.println(diffDelta.debugDump());
 
         diffDelta.checkConsistence();
         assertEquals("Wrong delta OID", "91919191-76e0-59e2-86d6-3d4f02d3ffff", diffDelta.getOid());
@@ -274,7 +274,7 @@ public class TestParseDiffPatch {
         patchDelta.applyTo(taskPatch);
 
         System.out.println("Task after roundtrip patching");
-        System.out.println(taskPatch.dump());
+        System.out.println(taskPatch.debugDump());
 
         patchDelta.checkConsistence();
         taskPatch.checkConsistence();
@@ -289,7 +289,7 @@ public class TestParseDiffPatch {
 
         ObjectDelta<TaskType> roundTripDelta = DiffUtil.diff(taskPatch, taskAfter);
         System.out.println("roundtrip DELTA:");
-        System.out.println(roundTripDelta.dump());
+        System.out.println(roundTripDelta.debugDump());
 
         assertTrue("Roundtrip delta is not empty",roundTripDelta.isEmpty());
 
@@ -319,7 +319,7 @@ public class TestParseDiffPatch {
         // THEN
 
         System.out.println("DELTA:");
-        System.out.println(resourceDelta.dump());
+        System.out.println(resourceDelta.debugDump());
 
         resourceDelta.checkConsistence();
         resourceDelta.assertDefinitions(true);
@@ -384,7 +384,7 @@ public class TestParseDiffPatch {
         // THEN
 
         System.out.println("DELTA:");
-        System.out.println(resourceDelta.dump());
+        System.out.println(resourceDelta.debugDump());
 
         resourceDelta.checkConsistence();
         resourceDelta.assertDefinitions(true);
@@ -395,7 +395,7 @@ public class TestParseDiffPatch {
         resourceDelta.applyTo(resourceBefore);
 
         System.out.println("Resource after roundtrip:");
-        System.out.println(resourceBefore.dump());
+        System.out.println(resourceBefore.debugDump());
 
         resourceDelta.checkConsistence();
         resourceDelta.assertDefinitions(true);
@@ -404,7 +404,7 @@ public class TestParseDiffPatch {
 
         ObjectDelta<ResourceType> roundTripDelta1 = resourceBefore.diff(resourceAfter);
         System.out.println("roundtrip DELTA 1:");
-        System.out.println(roundTripDelta1.dump());
+        System.out.println(roundTripDelta1.debugDump());
         assertTrue("Resource roundtrip 1 failed", roundTripDelta1.isEmpty());
 
         roundTripDelta1.checkConsistence();
@@ -415,7 +415,7 @@ public class TestParseDiffPatch {
 
         ObjectDelta<ResourceType> roundTripDelta2 = resourceAfter.diff(resourceBefore);
         System.out.println("roundtrip DELTA 2:");
-        System.out.println(roundTripDelta2.dump());
+        System.out.println(roundTripDelta2.debugDump());
         assertTrue("Resource roundtrip 2 failed", roundTripDelta2.isEmpty());
 
         roundTripDelta2.checkConsistence();
@@ -449,7 +449,7 @@ public class TestParseDiffPatch {
         // THEN
 
         System.out.println("DELTA:");
-        System.out.println(resourceDelta.dump());
+        System.out.println(resourceDelta.debugDump());
 
         resourceDelta.checkConsistence();
         resourceDelta.assertDefinitions(true);
@@ -482,7 +482,7 @@ public class TestParseDiffPatch {
         // THEN
 
         System.out.println("DELTA:");
-        System.out.println(resourceDelta.dump());
+        System.out.println(resourceDelta.debugDump());
 
         resourceDelta.checkConsistence();
         resourceDelta.assertDefinitions(true);

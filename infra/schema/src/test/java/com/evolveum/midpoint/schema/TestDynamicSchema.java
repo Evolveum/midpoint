@@ -131,7 +131,7 @@ public class TestDynamicSchema {
 		PrismContext prismContext = PrismTestUtil.getPrismContext();
 		PrismObject<UserType> user = prismContext.parseObject(USER_FILE);
 		System.out.println("Parsed user:");
-		System.out.println(user.dump());
+		System.out.println(user.debugDump());
 		
 		return user.findContainer(
 				new ItemPath(

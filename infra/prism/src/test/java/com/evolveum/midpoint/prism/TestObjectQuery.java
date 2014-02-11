@@ -92,7 +92,7 @@ public class TestObjectQuery {
 	public void testComplexMatch() throws Exception{
 		PrismObject user = PrismTestUtil.parseObject(new File("src/test/resources/common/user-jack.xml"));
 //		System.out.println("user given name" + user.asObjectable().getGivenName());
-		System.out.println("definition: " +user.findItem(UserType.F_FAMILY_NAME).getDefinition().dump());
+		System.out.println("definition: " +user.findItem(UserType.F_FAMILY_NAME).getDefinition().debugDump());
 		ObjectFilter filter = 
 				AndFilter.createAnd(
 						EqualsFilter.createEqual(UserType.F_FAMILY_NAME, user.findProperty(UserType.F_FAMILY_NAME).getDefinition(), null, "Sparrow"), 
