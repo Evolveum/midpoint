@@ -10,6 +10,7 @@ import java.util.Map;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
 
+import com.evolveum.midpoint.prism.*;
 import net.sf.jasperreports.engine.JRException;
 import net.sf.jasperreports.engine.JRExpression;
 import net.sf.jasperreports.engine.JRStyle;
@@ -38,11 +39,6 @@ import net.sf.jasperreports.engine.type.WhenNoDataTypeEnum;
 
 import org.w3c.dom.Element;
 
-import com.evolveum.midpoint.prism.Containerable;
-import com.evolveum.midpoint.prism.PrismContainer;
-import com.evolveum.midpoint.prism.PrismContainerDefinition;
-import com.evolveum.midpoint.prism.PrismContext;
-import com.evolveum.midpoint.prism.PrismProperty;
 import com.evolveum.midpoint.prism.schema.PrismSchema;
 import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
@@ -117,6 +113,36 @@ public class ReportUtils {
 		}
 		return parametersSchema;
 	}
+
+    public static void applyDefinition(PrismObject<ReportType> report, PrismContext prismContext, boolean raw)
+            throws SchemaException {
+        if (raw) {
+            return;
+        }
+
+        PrismContainer<Containerable> configuration = report.findContainer(ReportType.F_CONFIGURATION);
+        if (configuration == null) {
+            //nothing to apply definitions on
+            return;
+        }
+
+        PrismContainer xmlSchema = report.findContainer(ReportType.F_CONFIGURATION_SCHEMA);
+        Element xmlSchemaElement = ObjectTypeUtil.findXsdElement(xmlSchema);
+        if (xmlSchemaElement == null) {
+            //no schema definition available
+            throw new SchemaException("Couldn't find schema for configuration in report type " + report + ".");
+        }
+
+        PrismSchema schema = PrismSchema.parse(xmlSchemaElement, true, "schema for " + report, prismContext);
+        QName configContainerQName = new QName(schema.getNamespace(), ReportType.F_CONFIGURATION.getLocalPart());
+        PrismContainerDefinition<ReportConfigurationType> definition = schema.findContainerDefinitionByElementName(configContainerQName);
+        if (definition == null) {
+            //no definition found for container
+            throw new SchemaException("Couldn't find definitions for report type " + report + ".");
+        }
+
+        configuration.applyDefinition(definition, true);
+    }
 	
 	
     public static PrismContainer<Containerable> getParametersContainer(ReportType reportType, PrismSchema schema)

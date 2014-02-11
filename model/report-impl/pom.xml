@@ -57,6 +57,11 @@
 			<artifactId>model-api</artifactId>
 			<version>2.3-SNAPSHOT</version>
 		</dependency>
+        <dependency>
+            <groupId>com.evolveum.midpoint.repo</groupId>
+            <artifactId>repo-api</artifactId>
+            <version>2.3-SNAPSHOT</version>
+        </dependency>
 
  		<!-- Jasper reports -->
         <dependency>
