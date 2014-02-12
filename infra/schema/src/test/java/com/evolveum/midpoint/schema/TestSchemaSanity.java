@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,7 +89,7 @@ public class TestSchemaSanity {
 		assertNotNull("No prefix mapper in context", prefixMapper);
 		
 		System.out.println("Prefix mapper:");
-		System.out.println(prefixMapper.dump());
+		System.out.println(prefixMapper.debugDump());
 		// WHEN, THEN
 		assertMapping(prefixMapper, PrismConstants.NS_ANNOTATION, PrismConstants.PREFIX_NS_ANNOTATION);
 		assertMapping(prefixMapper, SchemaConstantsGenerated.NS_COMMON, "");
@@ -131,7 +131,7 @@ public class TestSchemaSanity {
 		// THEN
 		assertNotNull("No user definition", userDefinition);
 		System.out.println("User definition:");
-		System.out.println(userDefinition.dump());
+		System.out.println(userDefinition.debugDump());
 		
 		PrismObjectDefinition<UserType> userDefinitionByClass = schemaRegistry.findObjectDefinitionByCompileTimeClass(UserType.class);
 		assertTrue("Different user def", userDefinition == userDefinitionByClass);
@@ -152,7 +152,7 @@ public class TestSchemaSanity {
 				SchemaConstants.C_SHADOW);
 		assertNotNull("No account definition", accountDefinition);
 		System.out.println("Account definition:");
-		System.out.println(accountDefinition.dump());
+		System.out.println(accountDefinition.debugDump());
 		
 		PrismObjectDefinition<ShadowType> accountDefinitionByClass = 
 			schemaRegistry.findObjectDefinitionByCompileTimeClass(ShadowType.class);
@@ -183,7 +183,7 @@ public class TestSchemaSanity {
 				new QName(SchemaConstantsGenerated.NS_COMMON, "resource"));
 		assertNotNull("No resource definition", resourceDefinition);
 		System.out.println("Resource definition:");
-		System.out.println(resourceDefinition.dump());
+		System.out.println(resourceDefinition.debugDump());
 		
 		PrismObjectDefinition<ResourceType> resourceDefinitionByClass = 
 			schemaRegistry.findObjectDefinitionByCompileTimeClass(ResourceType.class);
@@ -226,7 +226,7 @@ public class TestSchemaSanity {
 				SchemaConstantsGenerated.ICF_C_CONFIGURATION_PROPERTIES);
 		assertNotNull("No configurationProperties definition", configurationPropertiesDefinition);
 		System.out.println("configurationProperties definition:");
-		System.out.println(configurationPropertiesDefinition.dump());
+		System.out.println(configurationPropertiesDefinition.debugDump());
 		
 //		assertTrue("configurationProperties definition is NOT marked as runtime", configurationPropertiesDefinition.isRuntimeSchema());
 //		assertNull("Unexpected compile-time class in configurationProperties definition", configurationPropertiesDefinition.getCompileTimeClass());
@@ -248,7 +248,7 @@ public class TestSchemaSanity {
 		// THEN
 		assertNotNull("No role definition", roleDefinition);
 		System.out.println("Role definition:");
-		System.out.println(roleDefinition.dump());
+		System.out.println(roleDefinition.debugDump());
 		
 		PrismObjectDefinition<RoleType> roleDefinitionByClass = schemaRegistry.findObjectDefinitionByCompileTimeClass(RoleType.class);
 		assertTrue("Different role def", roleDefinition == roleDefinitionByClass);
@@ -277,7 +277,7 @@ public class TestSchemaSanity {
 		// THEN
 		assertNotNull("No focus definition", focusDefinition);
 		System.out.println("Focus definition:");
-		System.out.println(focusDefinition.dump());
+		System.out.println(focusDefinition.debugDump());
 		
 		SchemaTestUtil.assertFocusDefinition(focusDefinition, "focus");
 	}
@@ -294,12 +294,12 @@ public class TestSchemaSanity {
 		assertNotNull("No schema registry in context", schemaRegistry);
 		
 		System.out.println("Schema registry:");
-		System.out.println(schemaRegistry.dump());
+		System.out.println(schemaRegistry.debugDump());
 
 		PrismSchema icfSchema = schemaRegistry.findSchemaByNamespace(NS_ICFC);
 		assertNotNull("No ICF schema", icfSchema);
 		System.out.println("ICF schema:");
-		System.out.println(icfSchema.dump());
+		System.out.println(icfSchema.debugDump());
 		
 		
 		PrismContainerDefinition configurationPropertiesContainerDef = icfSchema.findContainerDefinitionByElementName(ICFC_CONFIGURATION_PROPERTIES);
@@ -325,7 +325,7 @@ public class TestSchemaSanity {
 		PrismSchema extensionSchema = schemaRegistry.findSchemaByNamespace(SchemaTestConstants.NS_EXTENSION);
 		assertNotNull("No extension schema", extensionSchema);
 		System.out.println("Extension schema:");
-		System.out.println(extensionSchema.dump());
+		System.out.println(extensionSchema.debugDump());
 		
 		
 		PrismPropertyDefinition locationsProperty = extensionSchema.findPropertyDefinitionByElementName(EXTENSION_LOCATIONS_ELEMENT);

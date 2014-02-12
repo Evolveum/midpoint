@@ -132,7 +132,7 @@ public class ObjectImporter {
                 PrismObject<? extends ObjectType> object = (PrismObject<? extends ObjectType>) prismObjectObjectable;
                 
                 if (LOGGER.isTraceEnabled()) {
-                	LOGGER.trace("IMPORTING object:\n{}", object.dump());
+                	LOGGER.trace("IMPORTING object:\n{}", object.debugDump());
                 }
                 
                 object = migrator.migrate(object);

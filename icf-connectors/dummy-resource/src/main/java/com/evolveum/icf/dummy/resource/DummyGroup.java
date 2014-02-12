@@ -27,7 +27,6 @@ import java.util.Set;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.Dumpable;
 
 /**
  * @author Radovan Semancik

@@ -339,7 +339,7 @@ public class ChangeExecutor {
         		// This seems to be OK. In quite a strange way, but still OK.
         		return;
         	}
-        	LOGGER.trace("Shadow has null OID, this should not happen, context:\n{}", projCtx.dump());
+        	LOGGER.trace("Shadow has null OID, this should not happen, context:\n{}", projCtx.debugDump());
             throw new IllegalStateException("Shadow has null OID, this should not happen");
         }
 
@@ -574,7 +574,7 @@ public class ChangeExecutor {
 		}
 		if (LOGGER.isTraceEnabled()) {
 			LOGGER.trace("Checking for already executed delta:\n{}\nIn deltas:\n{}",
-					objectDelta.dump(), DebugUtil.debugDump(objectContext.getExecutedDeltas()));
+					objectDelta.debugDump(), DebugUtil.debugDump(objectContext.getExecutedDeltas()));
 		}
 		return ObjectDeltaOperation.containsDelta(objectContext.getExecutedDeltas(), objectDelta);
 	}
@@ -611,7 +611,7 @@ public class ChangeExecutor {
 		if (resource != null) {
 			sb.append("Resource: ").append(resource.toString()).append("\n");
 		}
-		sb.append(objectDelta.dump());
+		sb.append(objectDelta.debugDump());
 		sb.append("\n");
 		if (result != null) {
 			DebugUtil.debugDumpLabel(sb, "Result", 0);

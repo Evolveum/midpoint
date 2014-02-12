@@ -524,7 +524,7 @@ public class MidpointFunctionsImpl implements MidpointFunctions {
         RefFilter resourceRefFilter = RefFilter.createReferenceEqual(ShadowType.F_RESOURCE_REF, ShadowType.class, resourceType);
         AndFilter filter = AndFilter.createAnd(idFilter, ocFilter, resourceRefFilter);
         ObjectQuery query = ObjectQuery.createObjectQuery(filter);
-        LOGGER.trace("Determining uniqueness of attribute {} using query:\n{}", attributeName, query.dump());
+        LOGGER.trace("Determining uniqueness of attribute {} using query:\n{}", attributeName, query.debugDump());
         
         final Holder<Boolean> isUniqueHolder = new Holder<Boolean>(true);
         ResultHandler<ShadowType> handler = new ResultHandler<ShadowType>() {

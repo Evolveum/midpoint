@@ -549,7 +549,7 @@ public class EncodingTest extends BaseSQLRepoTest {
                 return;
             }
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("Self-test:user getObject:\n{}", userRetrieved.dump());
+                LOGGER.trace("Self-test:user getObject:\n{}", userRetrieved.debugDump());
             }
             checkUser(userRetrieved, name, subresult);
             subresult.recordSuccessIfUnknown();

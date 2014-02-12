@@ -1076,7 +1076,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		Set<Attribute> attributes = null;
 		try {
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("midPoint object before conversion:\n{}", attributesContainer.dump());
+				LOGGER.trace("midPoint object before conversion:\n{}", attributesContainer.debugDump());
 			}
 			attributes = convertFromResourceObject(attributesContainer, result);
 
@@ -1842,7 +1842,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 				// TODO : translation between connector filter and midpoint
 				// filter
 				FilterInterpreter interpreter = new FilterInterpreter(getSchemaNamespace());
-				LOGGER.trace("Start to convert filter: {}", query.getFilter().dump());
+				LOGGER.trace("Start to convert filter: {}", query.getFilter().debugDump());
 				filter = interpreter.interpret(query.getFilter(), icfNameMapper);
 
 				LOGGER.trace("ICF filter: {}", filter.toString());
@@ -1956,7 +1956,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		}
 
 		// LOGGER.trace("Instantiated prism object {} from connector object.",
-		// shadowPrism.dump());
+		// shadowPrism.debugDump());
 
 		T shadow = shadowPrism.asObjectable();
 		ResourceAttributeContainer attributesContainer = (ResourceAttributeContainer) shadowPrism
@@ -1964,7 +1964,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 		ResourceAttributeContainerDefinition attributesContainerDefinition = attributesContainer.getDefinition();
 		shadow.setObjectClass(attributesContainerDefinition.getTypeName());
 
-		LOGGER.trace("Resource attribute container definition {}.", attributesContainerDefinition.dump());
+		LOGGER.trace("Resource attribute container definition {}.", attributesContainerDefinition.debugDump());
 
 		// Uid is always there
 		Uid uid = co.getUid();
@@ -2209,7 +2209,7 @@ public class ConnectorInstanceIcfImpl implements ConnectorInstance {
 						objectDefinition, false);
 
 				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Got current shadow: {}", currentShadow.dump());
+					LOGGER.trace("Got current shadow: {}", currentShadow.debugDump());
 				}
 
 				Collection<ResourceAttribute<?>> identifiers = ShadowUtil.getIdentifiers(currentShadow);

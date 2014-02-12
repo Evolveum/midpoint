@@ -448,7 +448,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 			LOGGER.trace("Recomputing {}", focus);
 
 			LensContext<F> syncContext = contextFactory.createRecomputeContext(focus, task, result); 
-			LOGGER.trace("Recomputing {}, context:\n{}", focus, syncContext.dump());
+			LOGGER.trace("Recomputing {}, context:\n{}", focus, syncContext.debugDump());
 			clockwork.run(syncContext, task, result);
 			
 			result.computeStatus();
@@ -617,7 +617,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		}
 
 		if (LOGGER.isDebugEnabled()) {
-			LOGGER.debug("Preview changes output:\n{}", context.dump());
+			LOGGER.debug("Preview changes output:\n{}", context.debugDump());
 		}
 		
 		result.computeStatus();
@@ -1162,7 +1162,7 @@ public class ModelController implements ModelService, ModelInteractionService, T
 		result.addParam("options", options);
 		objectImporter.importObjects(input, options, task, result);
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Import result:\n{}", result.dump());
+			LOGGER.trace("Import result:\n{}", result.debugDump());
 		}
 		// No need to compute status. The validator inside will do it.
 		// result.computeStatus("Couldn't import object from input stream.");

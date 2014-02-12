@@ -408,7 +408,7 @@ public class AssignmentEditorPanel extends SimplePanel<AssignmentEditorDto> {
             PrismContainerDefinition definition = refinedSchema.getRefinedDefinition(ShadowKindType.ACCOUNT, construction.getIntent())
             		.toResourceAttributeContainerDefinition();
             if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Refined definition for {}\n{}", construction, definition.dump());
+				LOGGER.trace("Refined definition for {}\n{}", construction, definition.debugDump());
 			}
 
             List<ResourceAttributeDefinitionType> attrConstructions = construction.getAttribute();

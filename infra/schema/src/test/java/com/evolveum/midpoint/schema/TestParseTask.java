@@ -70,7 +70,7 @@ public class TestParseTask {
 		
 		// THEN
 		System.out.println("Parsed task:");
-		System.out.println(task.dump());
+		System.out.println(task.debugDump());
 		
 		assertTask(task);
 	}
@@ -90,7 +90,7 @@ public class TestParseTask {
 		
 		// THEN
 		System.out.println("Parsed task:");
-		System.out.println(task.dump());
+		System.out.println(task.debugDump());
 		
 		assertTask(task);
 	}
@@ -108,7 +108,7 @@ public class TestParseTask {
 		
 		// THEN
 		System.out.println("Parsed task:");
-		System.out.println(taskType.asPrismObject().dump());
+		System.out.println(taskType.asPrismObject().debugDump());
 		
 		assertTask(taskType.asPrismObject());
 	}
@@ -130,7 +130,7 @@ public class TestParseTask {
 		
 		// THEN
 		System.out.println("Parsed task:");
-		System.out.println(taskType.asPrismObject().dump());
+		System.out.println(taskType.asPrismObject().debugDump());
 		
 		assertTask(taskType.asPrismObject());
 	}
@@ -152,7 +152,7 @@ public class TestParseTask {
 		
 		// THEN
 		System.out.println("Parsed task:");
-		System.out.println(taskType.asPrismObject().dump());
+		System.out.println(taskType.asPrismObject().debugDump());
 		
 		assertTask(taskType.asPrismObject());
 	}
@@ -174,7 +174,7 @@ public class TestParseTask {
 		
 		// THEN
 		System.out.println("Parsed task:");
-		System.out.println(taskType.asPrismObject().dump());
+		System.out.println(taskType.asPrismObject().debugDump());
 		
 		assertTask(taskType.asPrismObject());
 	}

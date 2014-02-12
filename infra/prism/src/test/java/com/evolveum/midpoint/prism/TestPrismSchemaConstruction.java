@@ -78,7 +78,7 @@ public class TestPrismSchemaConstruction {
 		
 		// THEN
 		System.out.println("Constructed schema");
-		System.out.println(schema.dump());
+		System.out.println(schema.debugDump());
 		assertSchema(schema);
 	}
 	
@@ -135,7 +135,7 @@ public class TestPrismSchemaConstruction {
 		// re-parse
 		PrismSchema reparsedSchema = PrismSchema.parse(xsdElement, true, "serialized schema", ctx);
 		System.out.println("Re-parsed schema");
-		System.out.println(reparsedSchema.dump());
+		System.out.println(reparsedSchema.debugDump());
 		assertSchema(reparsedSchema);
 	}
 

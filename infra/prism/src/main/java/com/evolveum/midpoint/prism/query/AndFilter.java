@@ -23,7 +23,6 @@ import com.evolveum.midpoint.prism.Objectable;
 import com.evolveum.midpoint.prism.PrismObject;
 import com.evolveum.midpoint.prism.match.MatchingRuleRegistry;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.Dumpable;
 
 public class AndFilter extends NaryLogicalFilter{
 	
@@ -50,11 +49,6 @@ public class AndFilter extends NaryLogicalFilter{
 	@Override
 	public AndFilter clone() {
 		return new AndFilter(getClonedConditions());
-	}
-
-	@Override
-	public String dump() {
-		return debugDump(0);	
 	}
 	
 	@Override

@@ -154,7 +154,7 @@ public class SynchronizeAccountResultHandler extends AbstractSearchIterativeResu
 			change.checkConsistence();
 		} catch (RuntimeException ex) {
 			if (LOGGER.isTraceEnabled()) {
-				LOGGER.trace("Check consistence failed: {}\nChange:\n{}",ex,change.dump());
+				LOGGER.trace("Check consistence failed: {}\nChange:\n{}",ex,change.debugDump());
 			}
 			throw ex;
 		}

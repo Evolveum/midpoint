@@ -162,14 +162,14 @@ public class BaseModelInvocationProcessingHelper {
     public void logJobsBeforeStart(Job rootJob, OperationResult result) throws SchemaException, ConfigurationException, ObjectNotFoundException, CommunicationException {
         if (LOGGER.isTraceEnabled()) {
             LOGGER.trace("============ Situation just before root task starts waiting for subtasks ============");
-            LOGGER.trace("Root job = {}; task = {}", rootJob, rootJob.getTask().dump());
+            LOGGER.trace("Root job = {}; task = {}", rootJob, rootJob.getTask().debugDump());
             if (rootJob.hasModelContext()) {
                 LOGGER.trace("Context in root task = " + rootJob.retrieveModelContext(result).debugDump());
             }
             List<Job> children = rootJob.listChildren(result);
             for (int i = 0; i < children.size(); i++) {
                 Job child = children.get(i);
-                LOGGER.trace("Child job #" + i + " = {}, its task = {}", child, child.getTask().dump());
+                LOGGER.trace("Child job #" + i + " = {}, its task = {}", child, child.getTask().debugDump());
                 if (child.hasModelContext()) {
                     LOGGER.trace("Context in child task = " + child.retrieveModelContext(result).debugDump());
                 }

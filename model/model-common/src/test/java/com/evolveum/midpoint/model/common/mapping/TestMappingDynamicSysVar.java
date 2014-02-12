@@ -644,7 +644,7 @@ public class TestMappingDynamicSysVar {
     	// THEN
 		PrismValueDeltaSetTriple<PrismPropertyValue<String>> outputTriple = mapping.getOutputTriple();
 		System.out.println("Output triple");
-		System.out.println(outputTriple.dump());
+		System.out.println(outputTriple.debugDump());
 		PrismAsserts.assertTripleNoZero(outputTriple);
 	  	PrismAsserts.assertTriplePlus(outputTriple, ActivationStatusType.DISABLED.value());
 	  	PrismAsserts.assertTripleMinus(outputTriple, ActivationStatusType.ENABLED.value());
@@ -685,7 +685,7 @@ public class TestMappingDynamicSysVar {
     	
     	// Make sure it is recomputed
     	PolyString plusval = outputTriple.getPlusSet().iterator().next().getValue();
-    	System.out.println("Plus polystring\n"+ plusval.dump());
+    	System.out.println("Plus polystring\n"+ plusval.debugDump());
     	assertEquals("Wrong norm value", "666", plusval.getNorm());
     }
 

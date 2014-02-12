@@ -37,7 +37,6 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.schema.util.ShadowUtil;
 import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.LayerType;
@@ -51,7 +50,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowKindType;
  * @author semancik
  *
  */
-public class RefinedResourceSchema extends PrismSchema implements Dumpable, DebugDumpable {
+public class RefinedResourceSchema extends PrismSchema implements DebugDumpable {
 	
 	private static final String USER_DATA_KEY_PARSED_RESOURCE_SCHEMA = RefinedResourceSchema.class.getName()+".parsedResourceSchema";
 	private static final String USER_DATA_KEY_REFINED_SCHEMA = RefinedResourceSchema.class.getName()+".refinedSchema";

@@ -183,7 +183,7 @@ public class FocusValidityScannerTaskHandler extends AbstractScannerTaskHandler<
 		LOGGER.trace("Recomputing user {}", user);
 
 		LensContext<UserType> syncContext = contextFactory.createRecomputeContext(user, task, result);
-		LOGGER.trace("Recomputing of user {}: context:\n{}", user, syncContext.dump());
+		LOGGER.trace("Recomputing of user {}: context:\n{}", user, syncContext.debugDump());
 		clockwork.run(syncContext, task, result);
 		LOGGER.trace("Recomputing of user {}: {}", user, result.getStatus());
 	}

@@ -51,7 +51,6 @@ import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -82,7 +81,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ShadowType;
  * This class is Serializable but it is not in fact serializable. It implements Serializable interface only
  * to be storable in the PrismPropertyValue.
  */
-public class Construction<F extends FocusType> implements DebugDumpable, Dumpable, Serializable {
+public class Construction<F extends FocusType> implements DebugDumpable, Serializable {
 
 	private AssignmentPath assignmentPath;
 	private ConstructionType constructionType;
@@ -592,11 +591,6 @@ public class Construction<F extends FocusType> implements DebugDumpable, Dumpabl
 		} else if (!source.equals(other.source))
 			return false;
 		return true;
-	}
-
-	@Override
-	public String dump() {
-		return debugDump();
 	}
 
 	@Override

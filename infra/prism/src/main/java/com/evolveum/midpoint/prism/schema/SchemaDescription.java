@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,10 +32,11 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 import com.evolveum.midpoint.util.DOMUtil;
-import com.evolveum.midpoint.util.Dumpable;
+import com.evolveum.midpoint.util.DebugDumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
-public class SchemaDescription implements Dumpable {
+public class SchemaDescription implements DebugDumpable {
 	private String path;
 	private String usualPrefix;
 	private String namespace;
@@ -236,12 +237,15 @@ public class SchemaDescription implements Dumpable {
 		InputStream openInputStream();
 	}
 
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.util.Dumpable#dump()
-	 */
 	@Override
-	public String dump() {
+	public String debugDump() {
+		return debugDump(0);
+	}
+	
+	@Override
+	public String debugDump(int indent) {
 		StringBuilder sb = new StringBuilder();
+		DebugUtil.indentDebugDump(sb, indent);
 		sb.append(path);
 		if (schema != null) {
 			sb.append(" ");

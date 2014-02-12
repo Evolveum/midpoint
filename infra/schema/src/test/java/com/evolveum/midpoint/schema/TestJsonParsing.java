@@ -34,6 +34,6 @@ public class TestJsonParsing {
 
 //		PrismObject<UserType> user = userType.asPrismObject();
 		System.out.println("object");
-		System.out.println(userType.dump());
+		System.out.println(userType.debugDump());
 	}
 }

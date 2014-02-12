@@ -704,11 +704,6 @@ public class LensContext<F extends ObjectType> implements ModelContext<F> {
     public String debugDump() {
         return debugDump(0);
     }
-
-    @Override
-    public String dump() {
-        return debugDump(0);
-    }
     
     public String dump(boolean showTriples) {
         return debugDump(0, showTriples);

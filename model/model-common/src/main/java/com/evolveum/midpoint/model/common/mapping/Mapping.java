@@ -75,7 +75,6 @@ import com.evolveum.midpoint.schema.util.ObjectResolver;
 import com.evolveum.midpoint.task.api.Task;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.ExpressionEvaluationException;
 import com.evolveum.midpoint.util.exception.ObjectNotFoundException;
@@ -103,7 +102,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ValueFilterType;
  * @author Radovan Semancik
  *
  */
-public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
+public class Mapping<V extends PrismValue> implements DebugDumpable {
 	
 	private static final QName CONDITION_OUTPUT_NAME = new QName(SchemaConstants.NS_C, "condition");
 	
@@ -1181,11 +1180,6 @@ public class Mapping<V extends PrismValue> implements Dumpable, DebugDumpable {
 		}
 		sb.append(toString());
 		return sb.toString();
-	}
-
-	@Override
-	public String dump() {
-		return debugDump();
 	}
 
 	@Override

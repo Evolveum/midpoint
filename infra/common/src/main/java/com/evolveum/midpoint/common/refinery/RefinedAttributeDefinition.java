@@ -29,7 +29,6 @@ import com.evolveum.midpoint.schema.processor.ObjectClassComplexTypeDefinition;
 import com.evolveum.midpoint.schema.processor.ResourceAttributeDefinition;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.AttributeFetchStrategyType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.DepreactedAccessType;
@@ -42,7 +41,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.ResourceAttributeDe
 /**
  * @author semancik
  */
-public class RefinedAttributeDefinition extends ResourceAttributeDefinition implements Dumpable, DebugDumpable {
+public class RefinedAttributeDefinition extends ResourceAttributeDefinition implements DebugDumpable {
 
 	private static LayerType DEFAULT_LAYER = LayerType.MODEL;
 	

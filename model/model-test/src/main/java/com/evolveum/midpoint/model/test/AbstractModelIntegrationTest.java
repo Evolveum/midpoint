@@ -256,7 +256,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		modelService.importObjectsFromStream(stream, MiscSchemaUtil.getDefaultImportOptions(), task, subResult);
 		subResult.computeStatus();
 		if (subResult.isError()) {
-			LOGGER.error("Import of file "+file+" failed:\n{}", subResult.dump());
+			LOGGER.error("Import of file "+file+" failed:\n{}", subResult.debugDump());
 			Throwable cause = subResult.getCause();
 			throw new SystemException("Import of file "+file+" failed: "+subResult.getMessage(), cause);
 		}
@@ -887,7 +887,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 		if (accounts.isEmpty()) {
 			return;
 		}
-		LOGGER.error("Found shadow for "+username+" on "+resource+" while not expecting it:\n"+accounts.get(0).dump());
+		LOGGER.error("Found shadow for "+username+" on "+resource+" while not expecting it:\n"+accounts.get(0).debugDump());
 		assert false : "Found shadow for "+username+" on "+resource+" while not expecting it: "+accounts;
 	}
 	
@@ -1514,7 +1514,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 					LOGGER.error("Exception during task refresh: {}", e,e);
 				}
 				OperationResult result = task.getResult();
-				LOGGER.debug("Result of timed-out task:\n{}", result.dump());
+				LOGGER.debug("Result of timed-out task:\n{}", result.debugDump());
 				assert false : "Timeout ("+timeout+") while waiting for "+task+" to finish. Last result "+result;
 			}
 		};
@@ -1555,7 +1555,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				try {
 					Task freshTask = taskManager.getTask(taskOid, waitResult);
 					OperationResult result = freshTask.getResult();
-					LOGGER.debug("Result of timed-out task:\n{}", result.dump());
+					LOGGER.debug("Result of timed-out task:\n{}", result.debugDump());
 					assert false : "Timeout ("+timeout+") while waiting for "+freshTask+" to finish. Last result "+result;
 				} catch (ObjectNotFoundException e) {
 					LOGGER.error("Exception during task refresh: {}", e,e);
@@ -1590,7 +1590,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				try {
 					Task freshTask = taskManager.getTask(taskOid, waitResult);
 					OperationResult result = freshTask.getResult();
-					LOGGER.debug("Result of timed-out task:\n{}", result.dump());
+					LOGGER.debug("Result of timed-out task:\n{}", result.debugDump());
 					assert false : "Timeout ("+timeout+") while waiting for "+freshTask+" to start. Last result "+result;
 				} catch (ObjectNotFoundException e) {
 					LOGGER.error("Exception during task refresh: {}", e,e);
@@ -1640,7 +1640,7 @@ public abstract class AbstractModelIntegrationTest extends AbstractIntegrationTe
 				try {
 					Task freshTask = taskManager.getTask(taskOid, waitResult);
 					OperationResult result = freshTask.getResult();
-					LOGGER.debug("Result of timed-out task:\n{}", result.dump());
+					LOGGER.debug("Result of timed-out task:\n{}", result.debugDump());
 					assert false : "Timeout ("+timeout+") while waiting for "+freshTask+" next run. Last result "+result;
 				} catch (ObjectNotFoundException e) {
 					LOGGER.error("Exception during task refresh: {}", e,e);

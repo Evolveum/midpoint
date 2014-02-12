@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationStatusType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ActivationType;
@@ -36,7 +35,7 @@ import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
  * @author semancik
  *
  */
-public class MidPointPrincipal implements UserDetails, Dumpable, DebugDumpable {
+public class MidPointPrincipal implements UserDetails,  DebugDumpable {
 	
 	private static final long serialVersionUID = 8299738301872077768L;
     private UserType user;
@@ -172,14 +171,6 @@ public class MidPointPrincipal implements UserDetails, Dumpable, DebugDumpable {
     public String getOid() {
         return getUser().getOid();
     }
-
-	/* (non-Javadoc)
-	 * @see com.evolveum.midpoint.util.Dumpable#dump()
-	 */
-	@Override
-	public String dump() {
-		return debugDump();
-	}
 
 	/* (non-Javadoc)
 	 * @see com.evolveum.midpoint.util.DebugDumpable#debugDump()

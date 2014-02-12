@@ -77,7 +77,7 @@ public class TestDelta {
 		
 		// THEN
 		System.out.println("Merged delta:");
-		System.out.println(delta1.dump());
+		System.out.println(delta1.debugDump());
 
 		PrismAsserts.assertNoReplace(delta1);
 		PrismAsserts.assertAdd(delta1, "add1", "add2");
@@ -103,7 +103,7 @@ public class TestDelta {
 		
 		// THEN
 		System.out.println("Merged delta:");
-		System.out.println(delta1.dump());
+		System.out.println(delta1.debugDump());
 
 		PrismAsserts.assertNoReplace(delta1);
 		PrismAsserts.assertNoAdd(delta1);
@@ -131,7 +131,7 @@ public class TestDelta {
 		
 		// THEN
 		System.out.println("Merged delta:");
-		System.out.println(delta1.dump());
+		System.out.println(delta1.debugDump());
 
 		PrismAsserts.assertNoReplace(delta1);
 		PrismAsserts.assertAdd(delta1, "add1", "add2");
@@ -159,7 +159,7 @@ public class TestDelta {
 		
 		// THEN
 		System.out.println("Merged delta:");
-		System.out.println(delta1.dump());
+		System.out.println(delta1.debugDump());
 
 		PrismAsserts.assertNoReplace(delta1);
 		PrismAsserts.assertAdd(delta1, "add2");
@@ -186,7 +186,7 @@ public class TestDelta {
 		
 		// THEN
 		System.out.println("Merged delta:");
-		System.out.println(delta1.dump());
+		System.out.println(delta1.debugDump());
 
 		PrismAsserts.assertNoReplace(delta1);
 		PrismAsserts.assertAdd(delta1, "add2");
@@ -213,7 +213,7 @@ public class TestDelta {
 		
 		// THEN
 		System.out.println("Merged delta:");
-		System.out.println(delta1.dump());
+		System.out.println(delta1.debugDump());
 
 		PrismAsserts.assertNoReplace(delta1);
 		PrismAsserts.assertAdd(delta1, "add1");
@@ -239,7 +239,7 @@ public class TestDelta {
 		
 		// THEN
 		System.out.println("Merged delta:");
-		System.out.println(delta1.dump());
+		System.out.println(delta1.debugDump());
 
 		PrismAsserts.assertReplace(delta1, "r1x", "r1y", "add2");
 		PrismAsserts.assertNoAdd(delta1);
@@ -266,7 +266,7 @@ public class TestDelta {
 		
 		// THEN
 		System.out.println("Merged delta:");
-		System.out.println(delta1.dump());
+		System.out.println(delta1.debugDump());
 
 		PrismAsserts.assertReplace(delta1, "r1x", "add2");
 		PrismAsserts.assertNoAdd(delta1);
@@ -293,7 +293,7 @@ public class TestDelta {
 		
 		// THEN
 		System.out.println("Merged delta:");
-		System.out.println(delta1.dump());
+		System.out.println(delta1.debugDump());
 
 		PrismAsserts.assertReplace(delta1, "r1x", "r1y", "add2");
 		PrismAsserts.assertNoAdd(delta1);
@@ -320,7 +320,7 @@ public class TestDelta {
 		
 		// THEN
 		System.out.println("Merged delta:");
-		System.out.println(delta1.dump());
+		System.out.println(delta1.debugDump());
 
 		PrismAsserts.assertReplace(delta1, "r2x", "r2y");
 		PrismAsserts.assertNoAdd(delta1);
@@ -349,7 +349,7 @@ public class TestDelta {
 		
 		// THEN
 		System.out.println("Swallowed delta:");
-		System.out.println(objectDelta.dump());
+		System.out.println(objectDelta.debugDump());
 
 		PrismAsserts.assertModifications(objectDelta, 1);
 		PropertyDelta<String> modification = (PropertyDelta<String>) objectDelta.getModifications().iterator().next();
@@ -383,7 +383,7 @@ public class TestDelta {
 		
 		// THEN
 		System.out.println("Summarized delta:");
-		System.out.println(sumDelta.dump());
+		System.out.println(sumDelta.debugDump());
 
 		PrismAsserts.assertModifications(sumDelta, 1);
 		PropertyDelta<String> modification = (PropertyDelta<String>) sumDelta.getModifications().iterator().next();
@@ -417,7 +417,7 @@ public class TestDelta {
 		
 		// THEN
 		System.out.println("Summarized delta:");
-		System.out.println(sumDelta.dump());
+		System.out.println(sumDelta.debugDump());
 
 		PrismAsserts.assertModifications(sumDelta, 1);
 		PropertyDelta<String> modification = (PropertyDelta<String>) sumDelta.getModifications().iterator().next();
@@ -453,7 +453,7 @@ public class TestDelta {
 		
 		// THEN
 		System.out.println("Summarized delta:");
-		System.out.println(sumDelta.dump());
+		System.out.println(sumDelta.debugDump());
 
 		PrismAsserts.assertModifications(sumDelta, 1);
 		PropertyDelta<String> modification = (PropertyDelta<String>) sumDelta.getModifications().iterator().next();
@@ -487,7 +487,7 @@ public class TestDelta {
 
         // THEN
         System.out.println("Summarized delta:");
-        System.out.println(sumDelta.dump());
+        System.out.println(sumDelta.debugDump());
 
         PrismAsserts.assertModifications(sumDelta, 1);
         ReferenceDelta modification = (ReferenceDelta) sumDelta.getModifications().iterator().next();
@@ -540,7 +540,7 @@ public class TestDelta {
         
         // THEN
         System.out.println("User after delta application:");
-        System.out.println(user.dump());
+        System.out.println(user.debugDump());
         assertEquals("Wrong OID", USER_FOO_OID, user.getOid());
         PrismAsserts.assertPropertyValue(user, UserType.F_ADDITIONAL_NAMES, PrismTestUtil.createPolyString("foobar"));
         PrismContainer<AssignmentType> assignment = user.findContainer(UserType.F_ASSIGNMENT);
@@ -573,7 +573,7 @@ public class TestDelta {
         
         // THEN
         System.out.println("Delta after swallow:");
-        System.out.println(userDelta1.dump());
+        System.out.println(userDelta1.debugDump());
         assertEquals("Wrong OID", USER_FOO_OID, userDelta1.getOid());
         ContainerDelta<AssignmentType> containerDeltaAfter = userDelta1.findContainerDelta(UserType.F_ASSIGNMENT);
         assertNotNull("No assignment delta", containerDeltaAfter);
@@ -609,7 +609,7 @@ public class TestDelta {
         
         // THEN
         System.out.println("Delta after swallow:");
-        System.out.println(userDelta1.dump());
+        System.out.println(userDelta1.debugDump());
         assertEquals("Wrong OID", USER_FOO_OID, userDelta1.getOid());
         ContainerDelta<AssignmentType> containerDeltaAfter = userDelta1.findContainerDelta(UserType.F_ASSIGNMENT);
         assertNotNull("No assignment delta", containerDeltaAfter);
@@ -646,7 +646,7 @@ public class TestDelta {
         
         // THEN
         System.out.println("Delta after swallow:");
-        System.out.println(userDelta1.dump());
+        System.out.println(userDelta1.debugDump());
         assertEquals("Wrong OID", USER_FOO_OID, userDelta1.getOid());
         ContainerDelta<AssignmentType> containerDeltaAfter = userDelta1.findContainerDelta(UserType.F_ASSIGNMENT);
         assertNotNull("No assignment delta", containerDeltaAfter);
@@ -683,7 +683,7 @@ public class TestDelta {
         
         // THEN
         System.out.println("Delta after swallow:");
-        System.out.println(userDelta1.dump());
+        System.out.println(userDelta1.debugDump());
         assertEquals("Wrong OID", USER_FOO_OID, userDelta1.getOid());
         ContainerDelta<AssignmentType> containerDeltaAfter = userDelta1.findContainerDelta(UserType.F_ASSIGNMENT);
         assertNotNull("No assignment delta", containerDeltaAfter);
@@ -720,7 +720,7 @@ public class TestDelta {
         
         // THEN
         System.out.println("Delta after swallow:");
-        System.out.println(userDelta1.dump());
+        System.out.println(userDelta1.debugDump());
         assertEquals("Wrong OID", USER_FOO_OID, userDelta1.getOid());
         ContainerDelta<AssignmentType> containerDeltaAfter = userDelta1.findContainerDelta(UserType.F_ASSIGNMENT);
         assertNotNull("No assignment delta", containerDeltaAfter);
@@ -757,7 +757,7 @@ public class TestDelta {
         
         // THEN
         System.out.println("Delta after swallow:");
-        System.out.println(userDelta1.dump());
+        System.out.println(userDelta1.debugDump());
         assertEquals("Wrong OID", USER_FOO_OID, userDelta1.getOid());
         ContainerDelta<AssignmentType> containerDeltaAfter = userDelta1.findContainerDelta(UserType.F_ASSIGNMENT);
         assertNotNull("No assignment delta", containerDeltaAfter);
@@ -816,7 +816,7 @@ public class TestDelta {
         
         // THEN
         System.out.println("Delta after swallow:");
-        System.out.println(userDelta1.dump());
+        System.out.println(userDelta1.debugDump());
         assertEquals("Wrong OID", USER_FOO_OID, userDelta1.getOid());
         ContainerDelta<AssignmentType> containerDeltaAfter = userDelta1.findContainerDelta(UserType.F_ASSIGNMENT);
         assertNotNull("No assignment delta", containerDeltaAfter);
@@ -852,7 +852,7 @@ public class TestDelta {
         
         // THEN
         System.out.println("Delta after swallow:");
-        System.out.println(userDelta1.dump());
+        System.out.println(userDelta1.debugDump());
         assertEquals("Wrong OID", USER_FOO_OID, userDelta1.getOid());
         ContainerDelta<AssignmentType> containerDeltaAfter = userDelta1.findContainerDelta(UserType.F_ASSIGNMENT);
         assertNotNull("No assignment delta", containerDeltaAfter);
@@ -884,7 +884,7 @@ public class TestDelta {
         
         // THEN
         System.out.println("Delta after swallow:");
-        System.out.println(userDelta1.dump());
+        System.out.println(userDelta1.debugDump());
         assertEquals("Wrong OID", USER_FOO_OID, userDelta1.getOid());
         ContainerDelta<AssignmentType> containerDeltaAfter = userDelta1.findContainerDelta(UserType.F_ASSIGNMENT);
         assertNotNull("No assignment delta", containerDeltaAfter);
@@ -921,7 +921,7 @@ public class TestDelta {
         
         // THEN
         System.out.println("User after delta application:");
-        System.out.println(user.dump());
+        System.out.println(user.debugDump());
         assertEquals("Wrong OID", USER_FOO_OID, user.getOid());
         PrismAsserts.assertPropertyValue(user, UserType.F_ADDITIONAL_NAMES, PrismTestUtil.createPolyString("foobar"));
         PrismContainer<AssignmentType> assignment = user.findContainer(UserType.F_ASSIGNMENT);
@@ -1289,7 +1289,7 @@ public class TestDelta {
     	delta.addModificationAddContainer(UserType.F_ASSIGNMENT, assVal1, assVal2);
     	
 		System.out.println("Delta:");
-		System.out.println(delta.dump());
+		System.out.println(delta.debugDump());
 				
 		// WHEN, THEN
 		PrismInternalTestUtil.assertVisitor(delta, 14);

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.Dumpable;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
@@ -46,7 +46,7 @@ import org.w3c.dom.Element;
  * @author semancik
  *
  */
-public class PrismContainerValue<T extends Containerable> extends PrismValue implements Dumpable, DebugDumpable {
+public class PrismContainerValue<T extends Containerable> extends PrismValue implements DebugDumpable {
 	
 	// This is list. We need to maintain the order internally to provide consistent
     // output in DOM and other ordering-sensitive representations
@@ -1118,11 +1118,6 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
     }
 
     @Override
-    public String dump() {
-        return debugDump();
-    }
-
-    @Override
     public String debugDump() {
     	return debugDump(0);
     }
@@ -1130,12 +1125,27 @@ public class PrismContainerValue<T extends Containerable> extends PrismValue imp
     @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < indent; i++) {
-            sb.append(INDENT_STRING);
+        boolean wasIndent = false;
+        if (DebugUtil.isDetailedDebugDump()) {
+        	DebugUtil.indentDebugDump(sb, indent);
+            wasIndent = true;
+        	sb.append("PCV").append(": ");
         }
-        sb.append("PCV").append(": ").append(PrettyPrinter.prettyPrint(getId()));
+        boolean multivalue = true;
+        PrismContainerable<T> parent = getParent();
+        if (parent != null && parent.getDefinition() != null) {
+        	multivalue = parent.getDefinition().isMultiValue();
+        }
+        Long id = getId();
+        if (multivalue || id != null || DebugUtil.isDetailedDebugDump()) {
+        	if (!wasIndent) {
+            	DebugUtil.indentDebugDump(sb, indent);
+                wasIndent = true;
+        	}
+        	sb.append("id=").append(PrettyPrinter.prettyPrint(getId()));
+        }
         Iterator<Item<?>> i = getItems().iterator();
-        if (i.hasNext()) {
+        if (wasIndent && i.hasNext()) {
             sb.append("\n");
         }
         while (i.hasNext()) {

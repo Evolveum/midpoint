@@ -21,10 +21,10 @@ import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
 import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
+import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
-
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
 
@@ -701,29 +701,30 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
     }
 
     @Override
-    public String dump() {
-        return debugDump();
-    }
-
-    @Override
     public String debugDump(int indent) {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < indent; i++) {
             sb.append(INDENT_STRING);
         }
-        sb.append(getDebugDumpClassName()).append(": ").append(PrettyPrinter.prettyPrint(getElementName()));
+        if (DebugUtil.isDetailedDebugDump()) {
+        	sb.append(getDebugDumpClassName()).append(": ");
+        }
+        sb.append(DebugUtil.formatElementName(getElementName()));
+        sb.append(": ");
         sb.append(additionalDumpDescription());
         PrismContainerDefinition<V> def = getDefinition();
-        if (def != null) {
-            sb.append(" def(");
-            sb.append(PrettyPrinter.prettyPrint(def.getTypeName()));
-            if (def.isRuntimeSchema()) {
-            	sb.append(",runtime");
-            }
-            if (def.isDynamic()) {
-            	sb.append(",dyn");
-            }
-            sb.append(")");
+        if (DebugUtil.isDetailedDebugDump()) {
+	        if (def != null) {
+	            sb.append(" def(");
+	            sb.append(PrettyPrinter.prettyPrint(def.getTypeName()));
+	            if (def.isRuntimeSchema()) {
+	            	sb.append(",runtime");
+	            }
+	            if (def.isDynamic()) {
+	            	sb.append(",dyn");
+	            }
+	            sb.append(")");
+	        }
         }
         Iterator<PrismContainerValue<V>> i = getValues().iterator();
         if (i.hasNext()) {
@@ -731,9 +732,9 @@ public class PrismContainer<V extends Containerable> extends Item<PrismContainer
         }
         while (i.hasNext()) {
         	PrismContainerValue<V> pval = i.next();
-            sb.append(pval.debugDump(indent + 1));
+    		sb.append(pval.debugDump(indent + 1));
             if (i.hasNext()) {
-                sb.append("\n");
+        		sb.append("\n");
             }
         }
         return sb.toString();

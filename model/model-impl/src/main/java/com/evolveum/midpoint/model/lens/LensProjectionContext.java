@@ -1056,11 +1056,6 @@ public class LensProjectionContext extends LensElementContext<ShadowType> implem
     }
 
     @Override
-    public String dump() {
-        return debugDump();
-    }
-    
-    @Override
 	protected String getElementDefaultDesc() {
 		return "projection";
 	}

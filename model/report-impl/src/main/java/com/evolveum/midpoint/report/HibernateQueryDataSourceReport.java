@@ -38,7 +38,7 @@ public class HibernateQueryDataSourceReport implements JRDataSource {
 	    for (int i=0; i<countFields; i++)
 	   	{
 	    	ReportFieldConfigurationType fieldRepo = reportType.getReportField().get(i);
-	   		fields.put(fieldRepo.getNameReportField(), ReportUtils.getClassType(fieldRepo.getClassTypeField()));
+	   		//fields.put(fieldRepo.getNameReportField(), ReportUtils.getClassType(fieldRepo.getClassTypeField()));
 	   	}	
 	   	return fields;
 	}

@@ -362,5 +362,5 @@ public class ItemPath implements Serializable {
 			return false;
 		return true;
 	}
-	
+
 }

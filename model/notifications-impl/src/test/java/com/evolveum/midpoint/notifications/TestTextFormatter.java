@@ -94,7 +94,7 @@ public class TestTextFormatter extends AbstractTestNGSpringContextTests {
         // GIVEN
 
         PrismObject<UserType> jack = PrismTestUtil.parseObject(new File(USER_JACK_FILE));
-        System.out.println(jack.dump());
+        System.out.println(jack.debugDump());
         // WHEN
 
         String jackFormattedHideNone = textFormatter.formatObject(jack, null, true);
@@ -141,7 +141,7 @@ public class TestTextFormatter extends AbstractTestNGSpringContextTests {
 
         ObjectDelta<UserType> delta = parseDelta(USER_JACK_MODIFICATION_FILE);
 
-        System.out.println(delta.dump());
+        System.out.println(delta.debugDump());
         // WHEN
 
         String deltaFormattedHideNone = textFormatter.formatObjectModificationDelta(delta, null, true);
@@ -184,7 +184,7 @@ public class TestTextFormatter extends AbstractTestNGSpringContextTests {
         // GIVEN
 
         PrismObject<ShadowType> jack = PrismTestUtil.parseObject(new File(ACCOUNT_JACK_FILE));
-        System.out.println(jack.dump());
+        System.out.println(jack.debugDump());
         // WHEN
 
         String jackFormattedHideNone = textFormatter.formatAccountAttributes(jack.asObjectable(), null, true);

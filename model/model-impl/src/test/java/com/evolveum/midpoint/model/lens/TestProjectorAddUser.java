@@ -168,7 +168,7 @@ public class TestProjectorAddUser extends AbstractTestNGSpringContextTests {
 			projector.project(syncContext, "test", task, result);
 			
 		} finally {
-			LOGGER.info(result.dump());
+			LOGGER.info(result.debugDump());
 		}
 		
 		// THEN

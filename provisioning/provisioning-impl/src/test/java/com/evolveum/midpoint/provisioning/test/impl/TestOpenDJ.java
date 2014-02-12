@@ -420,7 +420,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		ShadowType objectToAdd = parseObjectTypeFromFile(ACCOUNT1_FILENAME, ShadowType.class);
 
 		System.out.println(SchemaDebugUtil.prettyPrint(objectToAdd));
-		System.out.println(objectToAdd.asPrismObject().dump());
+		System.out.println(objectToAdd.asPrismObject().debugDump());
 
 		Task task = taskManager.createTaskInstance();
 		String addedObjectOid = provisioningService.addObject(objectToAdd.asPrismObject(), null, null, task, result);
@@ -432,7 +432,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		assertNotNull(acct);
 
 		System.out.println(SchemaDebugUtil.prettyPrint(acct));
-		System.out.println(acct.asPrismObject().dump());
+		System.out.println(acct.asPrismObject().debugDump());
 		
 		PrismAsserts.assertEqualsPolyString("Name not equals.", "uid=jbond,ou=People,dc=example,dc=com", acct.getName());
 			
@@ -460,7 +460,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 			result.recordFatalError("Error :-)");
 
 			System.out.println("NOT FOUND REPO result:");
-			System.out.println(result.dump());
+			System.out.println(result.debugDump());
 
 			assertFalse(result.hasUnknownStatus());
 			// TODO: check result
@@ -494,7 +494,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 			result.recordFatalError("Error :-)");
 
 			System.out.println("NOT FOUND RESOURCE result:");
-			System.out.println(result.dump());
+			System.out.println(result.debugDump());
 
 			assertFalse(result.hasUnknownStatus());
 			// TODO: check result
@@ -526,7 +526,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		ShadowType object = parseObjectTypeFromFile(ACCOUNT_NEW_FILENAME, ShadowType.class);
 
 		System.out.println(SchemaDebugUtil.prettyPrint(object));
-		System.out.println(object.asPrismObject().dump());
+		System.out.println(object.asPrismObject().debugDump());
 
 		Task task = taskManager.createTaskInstance();
 		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, task, result);
@@ -577,7 +577,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		ShadowType object = parseObjectTypeFromFile(ACCOUNT_DELETE_FILENAME, ShadowType.class);
 
 		System.out.println(SchemaDebugUtil.prettyPrint(object));
-		System.out.println(object.asPrismObject().dump());
+		System.out.println(object.asPrismObject().debugDump());
 
 		Task task = taskManager.createTaskInstance();
 		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, task, result);
@@ -620,7 +620,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		ShadowType object = unmarshallJaxbFromFile(ACCOUNT_MODIFY_FILENAME, ShadowType.class);
 
 		System.out.println(SchemaDebugUtil.prettyPrint(object));
-		System.out.println(object.asPrismObject().dump());
+		System.out.println(object.asPrismObject().debugDump());
 
 		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, taskManager.createTaskInstance(), result);
 		assertEquals(ACCOUNT_MODIFY_OID, addedObjectOid);
@@ -753,7 +753,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		ShadowType object = parseObjectTypeFromFile(ACCOUNT_NEW_WITH_PASSWORD_FILENAME, ShadowType.class);
 
 		System.out.println(SchemaDebugUtil.prettyPrint(object));
-		System.out.println(object.asPrismObject().dump());
+		System.out.println(object.asPrismObject().debugDump());
 
 		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, taskManager.createTaskInstance(), result);
 		assertEquals(ACCOUNT_NEW_WITH_PASSWORD_OID, addedObjectOid);
@@ -862,7 +862,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		ShadowType object = parseObjectTypeFromFile(ACCOUNT_DISABLE_SIMULATED_FILENAME, ShadowType.class);
 
 		System.out.println(SchemaDebugUtil.prettyPrint(object));
-		System.out.println(object.asPrismObject().dump());
+		System.out.println(object.asPrismObject().debugDump());
 
 		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, taskManager.createTaskInstance(), result);
 		assertEquals(ACCOUNT_DISABLE_SIMULATED_OID, addedObjectOid);
@@ -968,7 +968,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		ShadowType object = parseObjectTypeFromFile(ACCOUNT_SEARCH_ITERATIVE_FILENAME, ShadowType.class);
 
 		System.out.println(SchemaDebugUtil.prettyPrint(object));
-		System.out.println(object.asPrismObject().dump());
+		System.out.println(object.asPrismObject().debugDump());
 
 		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, taskManager.createTaskInstance(), result);
 		assertEquals(ACCOUNT_SEARCH_ITERATIVE_OID, addedObjectOid);
@@ -1010,7 +1010,7 @@ public class TestOpenDJ extends AbstractOpenDJTest {
 		ShadowType object = parseObjectTypeFromFile(ACCOUNT_SEARCH_FILENAME, ShadowType.class); 
 
 		System.out.println(SchemaDebugUtil.prettyPrint(object));
-		System.out.println(object.asPrismObject().dump());
+		System.out.println(object.asPrismObject().debugDump());
 
 		String addedObjectOid = provisioningService.addObject(object.asPrismObject(), null, null, taskManager.createTaskInstance(), result);
 		assertEquals(ACCOUNT_SEARCH_OID, addedObjectOid);

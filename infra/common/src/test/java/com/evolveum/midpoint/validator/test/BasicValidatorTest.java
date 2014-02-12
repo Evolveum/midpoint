@@ -92,7 +92,7 @@ public class BasicValidatorTest {
 			public <T extends Objectable> EventResult postMarshall(PrismObject<T> object, Element objectElement,
 					OperationResult objectResult) {
 				System.out.println("Validating resorce:");
-				System.out.println(object.dump());
+				System.out.println(object.debugDump());
 				object.checkConsistence();
 				
 				PrismContainer<?> extensionContainer = object.getExtension();
@@ -136,7 +136,7 @@ public class BasicValidatorTest {
             @Override
             public <T extends Objectable> EventResult postMarshall(PrismObject<T> object, Element objectElement, OperationResult objectResult) {
             	System.out.println("Handler processing " + object + ", result:");
-				System.out.println(objectResult.dump());
+				System.out.println(objectResult.debugDump());
                 postMarshallHandledOids.add(object.getOid());
                 return EventResult.cont();
             }
@@ -144,14 +144,14 @@ public class BasicValidatorTest {
 			@Override
 			public void handleGlobalError(OperationResult currentResult) {
 				System.out.println("Handler got global error:");
-				System.out.println(currentResult.dump());
+				System.out.println(currentResult.debugDump());
 			}
 
         };
 
         validateFile("three-objects.xml",handler,result);
 
-        System.out.println(result.dump());
+        System.out.println(result.debugDump());
         AssertJUnit.assertTrue("Result is not success", result.isSuccess());
         AssertJUnit.assertTrue(postMarshallHandledOids.contains("c0c010c0-d34d-b33f-f00d-111111111111"));
         AssertJUnit.assertTrue(preMarshallHandledOids.contains("c0c010c0-d34d-b33f-f00d-111111111111"));
@@ -169,7 +169,7 @@ public class BasicValidatorTest {
     	
         validateFile("not-well-formed.xml",result);
         
-        System.out.println(result.dump());
+        System.out.println(result.debugDump());
         AssertJUnit.assertFalse(result.isSuccess());
         AssertJUnit.assertTrue(result.getMessage().contains("Unexpected close tag"));
         // Check if line number is in the error
@@ -185,7 +185,7 @@ public class BasicValidatorTest {
         
         validateFile("undeclared-prefix.xml",result);
         
-        System.out.println(result.dump());
+        System.out.println(result.debugDump());
         AssertJUnit.assertFalse(result.isSuccess());
         AssertJUnit.assertTrue(result.getMessage().contains("Undeclared namespace prefix"));
         // Check if line number is in the error
@@ -201,7 +201,7 @@ public class BasicValidatorTest {
         
         validateFile("three-users-schema-violation.xml",result);
         
-        System.out.println(result.dump());
+        System.out.println(result.debugDump());
         assertFalse(result.isSuccess());
         assertTrue(result.getSubresults().get(0).getMessage().contains("Invalid content was found starting with element 'foo'"));
         assertTrue(result.getSubresults().get(1).getMessage().contains("Invalid content was found starting with element 'givenName'"));
@@ -223,7 +223,7 @@ public class BasicValidatorTest {
         
         validateFile("three-users-schema-violation.xml", null, validator, result);
         
-        System.out.println(result.dump());
+        System.out.println(result.debugDump());
         assertFalse(result.isSuccess());
         assertEquals(2,result.getSubresults().size());
     }
@@ -236,7 +236,7 @@ public class BasicValidatorTest {
         
         validateFile("no-name.xml",result);
 
-        System.out.println(result.dump());
+        System.out.println(result.debugDump());
         AssertJUnit.assertFalse(result.isSuccess());
         AssertJUnit.assertTrue(result.getSubresults().get(0).getSubresults().get(1).getMessage().contains("Null property"));
         AssertJUnit.assertTrue(result.getSubresults().get(0).getSubresults().get(1).getMessage().contains("name"));
@@ -271,10 +271,10 @@ public class BasicValidatorTest {
 
         if (!result.isSuccess()) {
         	System.out.println("Errors:");
-        	System.out.println(result.dump());
+        	System.out.println(result.debugDump());
         } else {
             System.out.println("No errors");
-            System.out.println(result.dump());
+            System.out.println(result.debugDump());
         }
 
     }

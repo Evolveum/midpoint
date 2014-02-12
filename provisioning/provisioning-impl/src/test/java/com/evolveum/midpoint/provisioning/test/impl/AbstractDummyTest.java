@@ -251,15 +251,15 @@ public abstract class AbstractDummyTest extends AbstractIntegrationTest {
 		
 		PrismPropertyDefinition itemDef = ShadowUtil.getAttributesContainer(object).getDefinition().findAttributeDefinition(ConnectorFactoryIcfImpl.ICFS_NAME);
 		
-		LOGGER.info("item definition: {}", itemDef.dump());
+		LOGGER.info("item definition: {}", itemDef.debugDump());
 		//TODO: matching rule
 		EqualsFilter equal = EqualsFilter.createEqual(new ItemPath(ShadowType.F_ATTRIBUTES, itemDef.getName()), itemDef, getWillRepoIcfName());
 		ObjectQuery query = ObjectQuery.createObjectQuery(equal);
 		
 		System.out.println("Looking for shadows of \"" + getWillRepoIcfName() + "\" with filter "
-				+ query.dump());
+				+ query.debugDump());
 		display("Looking for shadows of \"" + getWillRepoIcfName() + "\" with filter "
-				+ query.dump());
+				+ query.debugDump());
 		
 		List<PrismObject<ShadowType>> objects = repositoryService.searchObjects(ShadowType.class, query,
 				null, result);

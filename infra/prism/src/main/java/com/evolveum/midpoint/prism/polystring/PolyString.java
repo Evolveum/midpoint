@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import com.evolveum.midpoint.prism.path.ItemPathSegment;
 import com.evolveum.midpoint.prism.path.NameItemPathSegment;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
@@ -46,7 +45,7 @@ import javax.xml.namespace.QName;
  * 				
  * @author Radovan Semancik
  */
-public class PolyString implements Matchable<PolyString>, Recomputable, Structured, Dumpable, DebugDumpable, Serializable {
+public class PolyString implements Matchable<PolyString>, Recomputable, Structured, DebugDumpable, Serializable {
 	private static final long serialVersionUID = -5070443143609226661L;
 
 	public static final QName F_ORIG = new QName(PrismConstants.NS_TYPES, "orig");
@@ -202,11 +201,6 @@ public class PolyString implements Matchable<PolyString>, Recomputable, Structur
 		return orig;
 	}
 	
-	@Override
-	public String dump() {
-		return debugDump();
-	}
-
 	@Override
 	public String debugDump() {
 		return debugDump(0);

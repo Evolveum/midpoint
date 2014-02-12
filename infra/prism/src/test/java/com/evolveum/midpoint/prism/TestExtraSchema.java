@@ -93,18 +93,18 @@ public class TestExtraSchema {
 		reg.registerPrismSchemasFromDirectory(EXTRA_SCHEMA_DIR);
 		context.initialize();
 		System.out.println("Initialized registry");
-		System.out.println(reg.dump());
+		System.out.println(reg.debugDump());
 		
 		// Try midpoint schemas by parsing a XML file
 		PrismSchema schema = reg.getSchema(NS_FOO);
 		System.out.println("Parsed foo schema:");
-		System.out.println(schema.dump());
+		System.out.println(schema.debugDump());
 		
 		// TODO: assert user
 
 		schema = reg.getSchema(NS_USER_EXT);
 		System.out.println("Parsed user ext schema:");
-		System.out.println(schema.dump());
+		System.out.println(schema.debugDump());
 		
 		ComplexTypeDefinition userExtComplexType = schema.findComplexTypeDefinition(USER_EXTENSION_TYPE_QNAME);
 		assertEquals("Extension type ref does not match", USER_TYPE_QNAME, userExtComplexType.getExtensionForType());
@@ -126,7 +126,7 @@ public class TestExtraSchema {
 		assertNotNull("No definition for user", user.getDefinition());
 	
 		System.out.println("Parsed root object:");
-		System.out.println(user.dump());
+		System.out.println(user.debugDump());
 
 		// TODO: assert user
 
@@ -153,12 +153,12 @@ public class TestExtraSchema {
 		// Try to fetch object schema, the extension of UserType should be there
 		PrismSchema schema = reg.getObjectSchema();
 		System.out.println("Object schema:");
-		System.out.println(schema.dump());
+		System.out.println(schema.debugDump());
 		
 		PrismObjectDefinition<UserType> userDef = schema.findObjectDefinitionByType(USER_TYPE_QNAME);
 		
 		System.out.println("User definition:");
-		System.out.println(userDef.dump());
+		System.out.println(userDef.debugDump());
 		
 		assertUserDefinition(userDef);
 		
@@ -182,7 +182,7 @@ public class TestExtraSchema {
 		PrismObjectDefinition<UserType> userDef = reg.findObjectDefinitionByType(USER_TYPE_QNAME);
 		
 		System.out.println("User definition:");
-		System.out.println(userDef.dump());
+		System.out.println(userDef.debugDump());
 		
 		assertUserDefinition(userDef);
 		
@@ -197,7 +197,7 @@ public class TestExtraSchema {
 		PrismContainerDefinition extDef = userDef.findContainerDefinition(USER_EXTENSION_QNAME);
 		
 		System.out.println("User extension");
-		System.out.println(extDef.dump());
+		System.out.println(extDef.debugDump());
 		
 		assertTrue("Extension is not dynamic", extDef.isRuntimeSchema());
 		assertTrue("Wrong extension type "+extDef.getTypeName(), 
@@ -253,7 +253,7 @@ public class TestExtraSchema {
 		
 		PrismSchema schema = reg.getSchema(NS_ROOT);
 		System.out.println("Parsed root schema:");
-		System.out.println(schema.dump());
+		System.out.println(schema.debugDump());
 		
 		PrismContainerDefinition rootContDef = schema.findContainerDefinitionByElementName(new QName(NS_ROOT,"root"));
 		assertNotNull("Not <root> definition", rootContDef);

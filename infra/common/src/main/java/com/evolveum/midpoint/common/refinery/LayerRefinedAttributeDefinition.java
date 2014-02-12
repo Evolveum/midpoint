@@ -492,11 +492,6 @@ public class LayerRefinedAttributeDefinition extends RefinedAttributeDefinition 
 		sb.append(refinedAttributeDefinition.debugDump(indent+1));
 		return sb.toString();
 	}
-
-	@Override
-	public String dump() {
-		return debugDump();
-	}
 	
 	/**
      * Return a human readable name of this class suitable for logs.

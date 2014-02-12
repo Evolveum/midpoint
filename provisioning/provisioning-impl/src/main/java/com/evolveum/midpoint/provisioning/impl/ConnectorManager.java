@@ -411,7 +411,7 @@ public class ConnectorManager {
 		
 
 		if (LOGGER.isTraceEnabled()) {
-			LOGGER.trace("Looking for connector in repository:\n{}", query.dump());
+			LOGGER.trace("Looking for connector in repository:\n{}", query.debugDump());
 		}
 		
 		List<PrismObject<ConnectorType>> foundConnectors;

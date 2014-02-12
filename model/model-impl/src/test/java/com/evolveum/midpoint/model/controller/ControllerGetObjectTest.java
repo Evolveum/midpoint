@@ -131,7 +131,7 @@ public class ControllerGetObjectTest extends AbstractTestNGSpringContextTests  {
 			verify(repository, atLeastOnce()).getObject(eq(UserType.class), eq(oid),
 					any(Collection.class), any(OperationResult.class));
 		} finally {
-			LOGGER.debug("getUserCorrect" + task.getResult().dump());
+			LOGGER.debug("getUserCorrect" + task.getResult().debugDump());
 		}
 	}
 }

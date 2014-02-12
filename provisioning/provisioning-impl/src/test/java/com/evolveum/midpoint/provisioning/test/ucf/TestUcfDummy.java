@@ -433,7 +433,7 @@ public class TestUcfDummy extends AbstractTestNGSpringContextTests {
 		assertNotNull("No last sync token", lastToken);
 		
 		System.out.println("Property:");
-		System.out.println(lastToken.dump());
+		System.out.println(lastToken.debugDump());
 		
 		PrismPropertyDefinition lastTokenDef = lastToken.getDefinition();
 		assertNotNull("No last sync token definition", lastTokenDef);

@@ -332,7 +332,7 @@ public class PageSystemConfiguration extends PageAdminConfiguration {
 
             ObjectDelta<SystemConfigurationType> delta = DiffUtil.diff(oldObject, newObject);
             if (LOGGER.isTraceEnabled()) {
-                LOGGER.trace("System configuration delta:\n{}", delta.dump());
+                LOGGER.trace("System configuration delta:\n{}", delta.debugDump());
             }
             if (delta != null && !delta.isEmpty()){
                 getModelService().executeChanges(WebMiscUtil.createDeltaCollection(delta), null, task, result);

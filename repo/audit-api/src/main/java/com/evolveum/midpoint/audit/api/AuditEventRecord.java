@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,6 @@ import com.evolveum.midpoint.schema.result.OperationResultStatus;
 import com.evolveum.midpoint.schema.util.MiscSchemaUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
 
@@ -35,7 +34,7 @@ import com.evolveum.midpoint.xml.ns._public.common.common_2a.UserType;
  * @author semancik
  *
  */
-public class AuditEventRecord implements Dumpable, DebugDumpable {
+public class AuditEventRecord implements DebugDumpable {
 	
 	/**
 	 * Timestamp in millis.
@@ -375,10 +374,5 @@ public class AuditEventRecord implements Dumpable, DebugDumpable {
 			DebugUtil.debugDump(sb, deltas, indent + 2, false);
 		}
 		return sb.toString();
-	}
-
-	@Override
-	public String dump() {
-		return debugDump();
 	}
 }

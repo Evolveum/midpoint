@@ -36,7 +36,6 @@ import com.evolveum.midpoint.schema.util.ResourceTypeUtil;
 import com.evolveum.midpoint.schema.util.SchemaDebugUtil;
 import com.evolveum.midpoint.schema.util.ObjectTypeUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.exception.SchemaException;
 import com.evolveum.midpoint.util.exception.SystemException;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
@@ -51,7 +50,7 @@ import java.util.*;
 /**
  * @author semancik
  */
-public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefinition implements Dumpable, DebugDumpable {
+public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefinition implements DebugDumpable {
 
     private String intent;
     private String displayName;
@@ -468,6 +467,10 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
         rOcDef.setKind(kind);
         rOcDef.schemaHandlingObjectTypeDefinitionType = schemaHandlingObjDefType;
 
+        if (intent == null && kind == ShadowKindType.ACCOUNT) {
+        	intent = SchemaConstants.INTENT_DEFAULT;
+        }
+        
         if (intent != null) {
             rOcDef.setIntent(intent);
         } else {
@@ -711,11 +714,6 @@ public class RefinedObjectClassDefinition extends ObjectClassComplexTypeDefiniti
 		return biType.getFetchStrategy();
 	}
 
-    @Override
-    public String dump() {
-        return debugDump(0);
-    }
-    
     @Override
     public String debugDump() {
         return debugDump(0);

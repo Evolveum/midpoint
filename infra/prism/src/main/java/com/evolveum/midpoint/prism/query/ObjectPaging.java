@@ -22,9 +22,8 @@ import javax.xml.namespace.QName;
 
 import com.evolveum.midpoint.util.DebugDumpable;
 import com.evolveum.midpoint.util.DebugUtil;
-import com.evolveum.midpoint.util.Dumpable;
 
-public class ObjectPaging implements Dumpable, DebugDumpable, Serializable{
+public class ObjectPaging implements DebugDumpable, Serializable{
 	
 	private Integer offset;
 	private Integer maxSize;
@@ -126,11 +125,6 @@ public class ObjectPaging implements Dumpable, DebugDumpable, Serializable{
 			sb.append("\n");
 		}
 		return sb.toString();
-	}
-
-	@Override
-	public String dump() {
-		return debugDump(0);
 	}
 	
 	@Override

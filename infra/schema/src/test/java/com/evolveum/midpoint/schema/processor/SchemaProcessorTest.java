@@ -101,7 +101,7 @@ public class SchemaProcessorTest {
 		counterProperty.setReadOnly();
 
 		System.out.println("Generic schema before serializing to XSD: ");
-		System.out.println(schema.dump());
+		System.out.println(schema.debugDump());
 		System.out.println();
 
 		// WHEN
@@ -119,7 +119,7 @@ public class SchemaProcessorTest {
 		PrismSchema newSchema = PrismSchema.parse(DOMUtil.getFirstChildElement(parsedXsd), true, "serialized schema", PrismTestUtil.getPrismContext());
 
 		System.out.println("Generic schema after parsing from XSD: ");
-		System.out.println(newSchema.dump());
+		System.out.println(newSchema.debugDump());
 		System.out.println();
 		
 		// THEN
@@ -180,7 +180,7 @@ public class SchemaProcessorTest {
 		xSepDef.setIgnored(true);
 
 		System.out.println("Resource schema before serializing to XSD: ");
-		System.out.println(schema.dump());
+		System.out.println(schema.debugDump());
 		System.out.println();
 
 		// WHEN
@@ -198,7 +198,7 @@ public class SchemaProcessorTest {
 		ResourceSchema newSchema = ResourceSchema.parse(DOMUtil.getFirstChildElement(parsedXsd), "serialized schema", PrismTestUtil.getPrismContext());
 
 		System.out.println("Resource schema after parsing from XSD: ");
-		System.out.println(newSchema.dump());
+		System.out.println(newSchema.debugDump());
 		System.out.println();
 		
 		// THEN

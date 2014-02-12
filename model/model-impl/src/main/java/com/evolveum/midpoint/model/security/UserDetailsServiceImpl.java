@@ -99,7 +99,7 @@ public class UserDetailsServiceImpl implements UserDetailsService {
         ObjectQuery query = ObjectQueryUtil.createNameQuery(usernamePoly, prismContext);
 //        ObjectQuery query = ObjectQuery.createObjectQuery(
 //                EqualsFilter.createEqual(UserType.class, prismContext, UserType.F_NAME, usernamePoly));
-        LOGGER.trace("Looking for user, query:\n" + query.dump());
+        LOGGER.trace("Looking for user, query:\n" + query.debugDump());
 
         List<PrismObject<UserType>> list = repositoryService.searchObjects(UserType.class, query, null, 
                 new OperationResult("Find by username"));

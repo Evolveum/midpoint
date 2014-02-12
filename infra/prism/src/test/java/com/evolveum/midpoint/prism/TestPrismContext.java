@@ -128,17 +128,17 @@ public class TestPrismContext {
 		assertNotNull("No schema registry in context", schemaRegistry);
 		
 		System.out.println("Schema registry:");
-		System.out.println(schemaRegistry.dump());
+		System.out.println(schemaRegistry.debugDump());
 
 		PrismSchema objectSchema = schemaRegistry.getObjectSchema();
 		System.out.println("Object schema:");
-		System.out.println(objectSchema.dump());
+		System.out.println(objectSchema.debugDump());
 		
 		// Assert USER definition
 		PrismObjectDefinition<UserType> userDefinition = objectSchema.findObjectDefinitionByElementName(new QName(NS_FOO,"user"));
 		assertNotNull("No user definition", userDefinition);
 		System.out.println("User definition:");
-		System.out.println(userDefinition.dump());
+		System.out.println(userDefinition.debugDump());
 		
 		PrismObjectDefinition<UserType> userDefinitionByClass = schemaRegistry.findObjectDefinitionByCompileTimeClass(UserType.class);
 		assertTrue("Different user def", userDefinition == userDefinitionByClass);
@@ -149,7 +149,7 @@ public class TestPrismContext {
 		PrismObjectDefinition<AccountType> accountDefinition = objectSchema.findObjectDefinitionByElementName(new QName(NS_FOO,"account"));
 		assertNotNull("No account definition", accountDefinition);
 		System.out.println("Account definition:");
-		System.out.println(accountDefinition.dump());
+		System.out.println(accountDefinition.debugDump());
 		
 		PrismObjectDefinition<AccountType> accountDefinitionByClass = schemaRegistry.findObjectDefinitionByCompileTimeClass(AccountType.class);
 		assertTrue("Different user def", accountDefinition == accountDefinitionByClass);

@@ -142,7 +142,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	private static final File REPORT_DATASOURCE_TEST = new File(REPORTS_DIR + "/reportDataSourceTest.jrxml");
 	private static final File STYLE_TEMPLATE_DEFAULT = new File(STYLES_DIR	+ "/midpoint_base_styles.jrtx");
 	private static final File REPORT_AUDIT_TEST = new File(REPORTS_DIR + "/reportAuditLogs.jrxml");
-	private static final File RECONICILIATION_REPORT_FILE = new File(REPORTS_DIR + "/reportReconiciliation.xml");
+	private static final File RECONCILIATION_REPORT_FILE = new File(REPORTS_DIR + "/reportReconiciliation.xml");
 	private static final File AUDITLOGS_REPORT_FILE = new File(REPORTS_DIR + "/reportAuditLogs.xml");
 	private static final File AUDITLOGS_WITH_DATASOURCE_REPORT_FILE = new File(REPORTS_DIR + "/reportAuditLogs-with-datasource.xml");
 	private static final File USERLIST_REPORT_FILE = new File(REPORTS_DIR + "/reportUserList.xml");
@@ -155,6 +155,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	private static final String REPORT_OID_TEST = "00000000-3333-3333-TEST-10000000000";
 	private static final String TASK_REPORT_OID = "00000000-3333-3333-TASK-10000000000";
 	private static final String AUDITLOGS_REPORT_OID = "AUDITLOG-3333-3333-TEST-10000000000";
+	private static final String RECONCILIATION_REPORT_OID = "RECONCIL-3333-3333-TEST-10000000000";
 	private static final String AUDITLOGS_DATASOURCE_REPORT_OID = "AUDITLOG-3333-3333-TEST-1DATASOURCE";
 	
 	@Autowired
@@ -1137,7 +1138,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 			// THEN
 	        TestUtil.displayThen(TEST_NAME);
 	        
-	        waitForTaskFinish(task.getOid(), false, 2500000);
+	        waitForTaskFinish(task.getOid(), false, 75000);
 	        
 	     // Task result
 	        PrismObject<TaskType> reportTaskAfter = getTask(task.getOid());
@@ -1228,7 +1229,7 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 			
 		}		*/
 		
-		/*
+	/*
 		@Test 
 		public void test016CreateReconciliationReportFromFile() throws Exception {
 			
@@ -1236,22 +1237,37 @@ public class BasicReportTest extends AbstractModelIntegrationTest {
 	        TestUtil.displayTestTile(this, TEST_NAME);
 		
 	        // GIVEN
-			Task task = taskManager.createTaskInstance(CREATE_RECONCILIATION_REPORT_FROM_FILE);
+	        Task task = createTask(CREATE_RECONCILIATION_REPORT_FROM_FILE);
 			OperationResult result = task.getResult();
-			FileInputStream stream = new FileInputStream(RECONICILIATION_REPORT_FILE);
 			
 			//WHEN 	
 			TestUtil.displayWhen(TEST_NAME);
-			modelService.importObjectsFromStream(stream, getDefaultImportOptions(), task, result);
+			importObjectFromFile(RECONCILIATION_REPORT_FILE);
 
 			// THEN
 			result.computeStatus();
 			display("Result after good import", result);
-			TestUtil.assertSuccess("Import has failed (result)", result);	
+			TestUtil.assertSuccess("Import has failed (result)", result);
 			
+			ReportType reportType = getReport(RECONCILIATION_REPORT_OID).asObjectable();
+			
+			//WHEN 	
+			TestUtil.displayWhen(TEST_NAME);
+			reportManager.runReport(reportType.asPrismObject(), task, result);
+			
+			// THEN
+	        TestUtil.displayThen(TEST_NAME);
+	        
+	        waitForTaskFinish(task.getOid(), false, 75000);
+	        
+	     // Task result
+	        PrismObject<TaskType> reportTaskAfter = getTask(task.getOid());
+	        OperationResultType reportTaskResult = reportTaskAfter.asObjectable().getResult();
+	        display("Report task result", reportTaskResult);
+	        TestUtil.assertSuccess(reportTaskResult);
 		}
-		*/
 		
+*/		
 		@Test 
 		public void test017GetReportData() throws Exception {
 			

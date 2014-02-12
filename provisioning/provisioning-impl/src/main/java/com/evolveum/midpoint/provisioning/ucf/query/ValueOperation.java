@@ -85,14 +85,14 @@ public class ValueOperation extends Operation {
 					Object converted = UcfUtil.convertValueToIcf(substring.getValues(), null, propName);
 					return FilterBuilder.contains(AttributeBuilder.build(icfName, converted));
 				} else {
-					throw new UnsupportedOperationException("Unsupported filter type: " + objectFilter.dump());
+					throw new UnsupportedOperationException("Unsupported filter type: " + objectFilter.debugDump());
 				}
 			} catch (SchemaException ex) {
 				throw ex;
 
 			}
 		} else {
-			throw new UnsupportedOperationException("Unsupported parent path "+valueFilter.getParentPath()+" in filter: " + objectFilter.dump());
+			throw new UnsupportedOperationException("Unsupported parent path "+valueFilter.getParentPath()+" in filter: " + objectFilter.debugDump());
 		}
 		
 	}

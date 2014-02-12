@@ -178,7 +178,7 @@ public class ModelDiagController implements ModelDiagnosticService {
 				}
 				
 				if (LOGGER.isTraceEnabled()) {
-					LOGGER.trace("Self-test:user getObject:\n{}", userRetrieved.dump());
+					LOGGER.trace("Self-test:user getObject:\n{}", userRetrieved.debugDump());
 				}
 				
 				checkUser(userRetrieved, name, subresult);

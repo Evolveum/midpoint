@@ -76,7 +76,7 @@ public class ShadowCacheReconciler extends ShadowCache{
 		
 		ProvisioningUtil.normalizeShadow(normalizedShadow.asObjectable(), parentResult);
 
-		LOGGER.trace("normalized shadow {}", normalizedShadow.dump());
+		LOGGER.trace("normalized shadow {}", normalizedShadow.debugDump());
 		// FIXME: ugly hack, need to be fixed (problem with comparing operation
 		// result, because it was changed and in this call it is different as
 		// one in repo, therefore the following if)
@@ -92,11 +92,11 @@ public class ShadowCacheReconciler extends ShadowCache{
 		}
 //		ShadowUtil.getAttributesContainer(repoShadow).clear();
 		
-		LOGGER.trace("origin shadow with failure description {}", oldShadow.dump());
+		LOGGER.trace("origin shadow with failure description {}", oldShadow.debugDump());
 		
 		ObjectDelta delta = oldShadow.diff(normalizedShadow);
 
-		LOGGER.trace("Normalizing shadow: change description: {}", delta.dump());
+		LOGGER.trace("Normalizing shadow: change description: {}", delta.debugDump());
 		// prismContext.adopt(shadow);
 		try {
 			getRepositoryService().modifyObject(ShadowType.class, oldShadow.getOid(), delta.getModifications(),

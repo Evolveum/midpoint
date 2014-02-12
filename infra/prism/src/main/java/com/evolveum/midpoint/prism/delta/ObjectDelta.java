@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2010-2013 Evolveum
+ * Copyright (c) 2010-2014 Evolveum
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,7 +43,6 @@ import com.evolveum.midpoint.prism.util.PrismAsserts;
 import com.evolveum.midpoint.prism.util.PrismUtil;
 import com.evolveum.midpoint.util.DebugUtil;
 import com.evolveum.midpoint.util.DebugDumpable;
-import com.evolveum.midpoint.util.Dumpable;
 import com.evolveum.midpoint.util.MiscUtil;
 import com.evolveum.midpoint.util.exception.SchemaException;
 
@@ -70,7 +69,7 @@ import java.util.*;
  * @author Radovan Semancik
  * @see PropertyDelta
  */
-public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpable, Visitable, PathVisitable, Serializable {
+public class ObjectDelta<T extends Objectable> implements DebugDumpable, Visitable, PathVisitable, Serializable {
 
     private static final long serialVersionUID = -528560467958335366L;
 
@@ -1327,11 +1326,6 @@ public class ObjectDelta<T extends Objectable> implements Dumpable, DebugDumpabl
         }
         // Nothing to print for delete
         return sb.toString();
-    }
-
-    @Override
-    public String dump() {
-        return debugDump(0);
     }
 
 }

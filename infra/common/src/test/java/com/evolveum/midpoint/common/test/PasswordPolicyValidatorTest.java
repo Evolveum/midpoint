@@ -169,8 +169,8 @@ public class PasswordPolicyValidatorTest {
 			System.out.println("Generated password: " + psswd);
 			op.computeStatus();
 			if (!op.isSuccess()) {
-				LOGGER.info("Result:" + op.dump());
-				AssertJUnit.fail("Password generator failed:\n"+op.dump());
+				LOGGER.info("Result:" + op.debugDump());
+				AssertJUnit.fail("Password generator failed:\n"+op.debugDump());
 			}
 			assertNotNull(psswd);
 			assertPassword(psswd, pp);
@@ -192,8 +192,8 @@ public class PasswordPolicyValidatorTest {
 			System.out.println("Generated password: " + psswd);
 			op.computeStatus();
 			if (!op.isSuccess()) {
-				LOGGER.info("Result:" + op.dump());
-				AssertJUnit.fail("Password generator failed:\n"+op.dump());
+				LOGGER.info("Result:" + op.debugDump());
+				AssertJUnit.fail("Password generator failed:\n"+op.debugDump());
 			}
 			assertNotNull(psswd);
 			assertPassword(psswd, pp);
@@ -215,8 +215,8 @@ public class PasswordPolicyValidatorTest {
 			LOGGER.info("Generated password:" + psswd);
 			op.computeStatus();
 			if (!op.isSuccess()) {
-				LOGGER.info("Result:" + op.dump());
-				AssertJUnit.fail("Password generator failed:\n"+op.dump());
+				LOGGER.info("Result:" + op.debugDump());
+				AssertJUnit.fail("Password generator failed:\n"+op.debugDump());
 			}
 			assertNotNull(psswd);
 			assertPassword(psswd, pp);
@@ -229,7 +229,7 @@ public class PasswordPolicyValidatorTest {
 			LOGGER.info("Generated password:" + psswd);
 			op.computeStatus();
 			if (!op.isSuccess()) {
-				LOGGER.info("Result:" + op.dump());
+				LOGGER.info("Result:" + op.debugDump());
 			}
 			AssertJUnit.assertTrue(op.isSuccess());
 			assertNotNull(psswd);
@@ -240,7 +240,7 @@ public class PasswordPolicyValidatorTest {
 	private void assertPassword(String passwd, ValuePolicyType pp) {
 		OperationResult validationResult = PasswordPolicyUtils.validatePassword(passwd, pp);
 		if (!validationResult.isSuccess()) {
-			AssertJUnit.fail(validationResult.dump());
+			AssertJUnit.fail(validationResult.debugDump());
 		}
 	}
 
@@ -264,7 +264,7 @@ public class PasswordPolicyValidatorTest {
 		OperationResult op = new OperationResult("Password Validator test with password:" + password);
 		PasswordPolicyUtils.validatePassword(password, pp, op);
 		op.computeStatus();
-		LOGGER.error(op.dump());
+		LOGGER.error(op.debugDump());
 		return (op.isSuccess());
 	}
 
@@ -287,7 +287,7 @@ public class PasswordPolicyValidatorTest {
 		
 		PasswordPolicyUtils.validatePassword(password, pps, op);
 		op.computeStatus();
-		LOGGER.error(op.dump());
+		LOGGER.error(op.debugDump());
 		AssertJUnit.assertTrue(op.isSuccess());
 		
 	}
