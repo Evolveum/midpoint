@@ -50,7 +50,7 @@ import java.util.Set;
         jpaName = "name", jpaType = RPolyString.class)})
 @Entity
 @ForeignKey(name = "fk_object")
-public abstract class RObject<T extends ObjectType> extends RContainer {//implements FieldHandled {
+public abstract class RObject<T extends ObjectType> extends RContainer {
 
     private String description;
     private RAnyContainer extension;
@@ -60,26 +60,14 @@ public abstract class RObject<T extends ObjectType> extends RContainer {//implem
     private Set<RObjectReference> parentOrgRef;
     private Set<RTrigger> trigger;
     private RMetadata metadata;
-
-//    /**
-//     * Used for lazy loading properties (entities)
-//     */
-//    private FieldHandler fieldHandler;
-//
-//    public FieldHandler getFieldHandler() {
-//        return fieldHandler;
-//    }
-//
-//    public void setFieldHandler(FieldHandler fieldHandler) {
-//        this.fieldHandler = fieldHandler;
-//    }
+    private String fullObject;
 
     @Transient
     public abstract RPolyString getName();
 
     public abstract void setName(RPolyString name);
 
-//    @LazyToOne(LazyToOneOption.NO_PROXY)
+
     @OneToOne(mappedBy = RMetadata.F_OWNER, optional = true, orphanRemoval = true)//, fetch = FetchType.LAZY)
     @Cascade({org.hibernate.annotations.CascadeType.ALL})
     public RMetadata getMetadata() {
@@ -181,6 +169,16 @@ public abstract class RObject<T extends ObjectType> extends RContainer {//implem
 
     public void setVersion(long version) {
         this.version = version;
+    }
+
+    @Lob
+    @Type(type = RUtil.LOB_STRING_TYPE)
+    public String getFullObject() {
+        return fullObject;
+    }
+
+    public void setFullObject(String fullObject) {
+        this.fullObject = fullObject;
     }
 
     @Override

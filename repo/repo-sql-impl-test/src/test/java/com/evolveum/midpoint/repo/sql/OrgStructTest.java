@@ -723,13 +723,13 @@ public class OrgStructTest extends BaseSQLRepoTest {
         objectQuery.setPaging(ObjectPaging.createPaging(null, null, ObjectType.F_NAME, OrderDirection.ASCENDING));
 
         List<PrismObject<ObjectType>> orgClosure = repositoryService.searchObjects(ObjectType.class, objectQuery, null, parentResult);
-        
-        AssertJUnit.assertEquals(8, orgClosure.size());
-        
+
         for (PrismObject<ObjectType> u : orgClosure)
         {
             LOGGER.info("USER000 ======> {}", ObjectTypeUtil.toShortString(u.asObjectable()));
         }
+
+        AssertJUnit.assertEquals(8, orgClosure.size());
     }
 
     @SuppressWarnings("unchecked")
