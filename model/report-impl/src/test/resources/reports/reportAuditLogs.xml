@@ -45,13 +45,23 @@
 			<property name="net.sf.jasperreports.awt.ignore.missing.font" value="true"/>
 			<property name="net.sf.jasperreports.export.pdf.force.linebreak.policy" value="true"/>
 			<import value="com.evolveum.midpoint.report.ReportUtils"/>
-			<template><![CDATA[$P{baseTemplateStyles}]]></template>
-			<parameter name="baseTemplateStyles" class="java.lang.String"/>
-			<parameter name="logoPath" class="java.lang.String"/>
+			<style fontName="DejaVu Sans" fontSize="10" hAlign="Left" isDefault="true" isPdfEmbedded="true" 
+				   name="Base" pdfEncoding="Identity-H" pdfFontName="DejaVuSans.ttf" vAlign="Middle">
+			</style>
+			<style backcolor="#267994" fontSize="26" forecolor="#FFFFFF" isDefault="false"
+                   mode="Opaque" name="Title" style="Base"/> 
+			<style fontSize="12" forecolor="#000000" isDefault="false" name="Page header"
+                   style="Base"/>
+			<style backcolor="#333333" fontSize="12" forecolor="#FFFFFF" hAlign="Center"
+                   isDefault="false" mode="Opaque" name="Column header" style="Base"/>
+			<style isBold="false" isDefault="false" name="Detail" style="Base"/>
+			<style fontSize="9" forecolor="#000000" isDefault="false" name="Page footer"
+                   style="Base"/>
 			<parameter name="from" class="java.sql.Timestamp"/>
 			<parameter name="to" class="java.sql.Timestamp"/>
 			<parameter name="hqlQuery" class="java.lang.String"/>
 			<parameter name="eventType" class="java.lang.Integer"/>
+			<parameter name="eventDescription" class="java.lang.String"/>
 			<queryString language="hql"><![CDATA[$P!{hqlQuery}]]></queryString>
 			<field name="timestamp" class="java.sql.Timestamp"/>
 			<field name="initiator" class="java.lang.String"/>
@@ -83,10 +93,6 @@
 							<textElement verticalAlignment="Middle"/>
 							<text><![CDATA[Audit Log Report]]></text>
 						</staticText>
-						<image>
-							<reportElement uuid="b0a76e6a-8f61-4d60-8dcd-3e51adb4cd4c" style="Title" x="589" y="13" width="203" height="45"/>
-							<imageExpression><![CDATA[$P{logoPath}]]></imageExpression>
-						</image>
 					</frame>
 					<staticText>
 						<reportElement uuid="e035dbd5-dc2f-45cb-936c-a08e9c011e43" style="Page header" x="2" y="85" width="100" height="20"/>
@@ -122,7 +128,7 @@
 						<textElement verticalAlignment="Middle">
 							<font isBold="false"/>
 						</textElement>
-						<textFieldExpression><![CDATA["ALL"]]></textFieldExpression>
+						<textFieldExpression><![CDATA[$P{eventDescription}]]></textFieldExpression>
 					</textField>
 				</band>
 			</title>
@@ -265,29 +271,6 @@
 			</summary>
 		</jasperReport>
 	</template>
-	<templateStyle>
-		<jasperTemplate xmlns="http://jasperreports.sourceforge.net/dtds/jaspertemplate.dtd">
-			<style fontSize="10" hAlign="Left" isDefault="true" isPdfEmbedded="false" name="Base"
-				   pdfEncoding="Cp1252"
-				   pdfFontName="Helvetica"
-                   vAlign="Middle">
-			</style>
-			<style backcolor="#267994" fontSize="26" forecolor="#FFFFFF" isDefault="false"
-                   mode="Opaque"
-                   name="Title"
-                   style="Base"/>
-			<style fontSize="12" forecolor="#000000" isDefault="false" name="Page header"
-                   style="Base"/>
-			<style backcolor="#333333" fontSize="12" forecolor="#FFFFFF" hAlign="Center"
-                   isDefault="false"
-                   mode="Opaque"
-                   name="Column header"
-                   style="Base"/>
-			<style isBold="false" isDefault="false" name="Detail" style="Base"/>
-			<style fontSize="9" forecolor="#000000" isDefault="false" name="Page footer"
-                   style="Base"/>
-		</jasperTemplate>
-	</templateStyle>
 	<orientation>landscape</orientation>
 	<export>pdf</export>
 	<!-- set to true if report needs hibernate session (e.g. hql query is used) -->
@@ -367,11 +350,10 @@
 					where ($P{eventType} = -1 or aer.eventType = $P{eventType}) and aer.timestamp &gt;= $P{from} and aer.timestamp &lt;= $P{to} 
 					order by aer.timestamp
 		</r:hqlQuery>
-		<r:logoPath>src/test/resources/reports/logo.jpg</r:logoPath>
-		<r:baseTemplateStyles>src/test/resources/styles/midpoint_base_styles.jrtx</r:baseTemplateStyles>
 		<r:from>2000-01-01T00:00:00</r:from>
 		<r:to>2020-12-31T00:00:00</r:to>
 		<r:eventType>-1</r:eventType>
+		<r:eventDescription>All</r:eventDescription>
 	</configuration>
 	<!-- report parameters configuration schema sample with different options -->
 	<configurationSchema>
@@ -399,10 +381,6 @@
 						<!-- HQL query for jasper design (queryString element) -->
 						<xsd:element name="hqlQuery" type="xsd:string"/>
 
-						<!-- special design parameters for all evolveum reports -->
-						<xsd:element name="logoPath" type="xsd:string"/>
-						<xsd:element name="baseTemplateStyles" type="xsd:string"/>
-
 						<!-- special audit configuration -->
 						<xsd:element name="from" type="xsd:dateTime">
 							<xsd:annotation>
@@ -419,7 +397,9 @@
 								</xsd:appinfo>
 							</xsd:annotation>
 						</xsd:element>
-						<xsd:element name="eventType" type="r:EventType">
+						<xsd:element name="eventType" type="r:EventType"/>
+						
+						<xsd:element name="eventDescription" type="xsd:string">
 							<xsd:annotation>
 								<xsd:appinfo>
 									<a:displayName>Event Type:</a:displayName>
