@@ -14,13 +14,23 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.component.resource.img;
+package com.evolveum.midpoint.web.component.accordion;
+
+import org.apache.wicket.markup.html.basic.Label;
+import org.apache.wicket.markup.html.border.Border;
+import org.apache.wicket.model.IModel;
 
 /**
- * Just a package marker class for image resources.
- *
- * @author lazyman
+ * Don't use this component, it will be gradually removed from gui.
+ * Maybe replaced with something else later. [lazyman]
  */
-public class ImgResources {
+@Deprecated
+public class AccordionItem extends Border {
 
+	private static final long serialVersionUID = 1L;
+
+	public AccordionItem(String id, IModel<String> headerText) {
+		super(id);
+		addToBorder(new Label("headerText", headerText));
+	}
 }

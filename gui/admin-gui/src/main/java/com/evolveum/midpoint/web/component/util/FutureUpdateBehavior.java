@@ -14,19 +14,17 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.component.async;
+package com.evolveum.midpoint.web.component.util;
 
 import com.evolveum.midpoint.util.logging.LoggingUtils;
 import com.evolveum.midpoint.util.logging.Trace;
 import com.evolveum.midpoint.util.logging.TraceManager;
-import com.evolveum.midpoint.web.component.util.BaseSimplePanel;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AbstractAjaxTimerBehavior;
 import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.model.Model;
 import org.apache.wicket.util.time.Duration;
 
-import java.io.Serializable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 

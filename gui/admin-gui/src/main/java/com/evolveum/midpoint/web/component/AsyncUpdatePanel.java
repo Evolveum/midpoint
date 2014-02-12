@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.component.async;
+package com.evolveum.midpoint.web.component;
 
-import com.evolveum.midpoint.web.component.GuiComponents;
 import com.evolveum.midpoint.web.component.resource.img.ImgResources;
 import com.evolveum.midpoint.web.component.util.BaseSimplePanel;
+import com.evolveum.midpoint.web.component.util.FutureUpdateBehavior;
 import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import org.apache.wicket.Component;
 import org.apache.wicket.ajax.AjaxRequestTarget;

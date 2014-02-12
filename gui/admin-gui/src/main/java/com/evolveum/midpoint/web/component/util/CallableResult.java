@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.evolveum.midpoint.web.component.async;
+package com.evolveum.midpoint.web.component.util;
 
 import com.evolveum.midpoint.schema.result.OperationResult;
 
