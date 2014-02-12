@@ -58,6 +58,7 @@ import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
 import com.evolveum.midpoint.web.session.ConfigurationStorage;
 import com.evolveum.midpoint.web.session.UsersStorage;
 import com.evolveum.midpoint.web.util.ObjectTypeGuiDescriptor;
+import com.evolveum.midpoint.web.util.SearchFormEnterBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.web.util.WebModelUtils;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
@@ -342,9 +343,6 @@ public class PageDebugList extends PageAdminConfiguration {
     }
 
     private void initSearchForm(Form searchForm) {
-        TextField search = new TextField(ID_SEARCH_TEXT, new PropertyModel(searchModel, DebugSearchDto.F_TEXT));
-        searchForm.add(search);
-
         IChoiceRenderer<ObjectTypes> renderer = new IChoiceRenderer<ObjectTypes>() {
 
             @Override
@@ -372,7 +370,7 @@ public class PageDebugList extends PageAdminConfiguration {
             }
         });
 
-        AjaxSubmitButton searchButton = new AjaxSubmitButton(ID_SEARCH_BUTTON,
+        final AjaxSubmitButton searchButton = new AjaxSubmitButton(ID_SEARCH_BUTTON,
                 new StringResourceModel("pageDebugList.button.search", this, null)) {
 
             @Override
@@ -385,7 +383,20 @@ public class PageDebugList extends PageAdminConfiguration {
                 listObjectsPerformed(target);
             }
         };
+        searchButton.setOutputMarkupId(true);
         searchForm.add(searchButton);
+
+        final TextField search = new TextField(ID_SEARCH_TEXT, new PropertyModel(searchModel, DebugSearchDto.F_TEXT));
+        search.setOutputMarkupId(true);
+        search.add(new SearchFormEnterBehavior(){
+
+            @Override
+            public String[] getSourceAndTarget(){
+                return new String[]{search.getMarkupId(), searchButton.getMarkupId()};
+            }
+
+        });
+        searchForm.add(search);
 
         AjaxSubmitButton clearButton = new AjaxSubmitButton(ID_SEARCH_CLEAR) {
 

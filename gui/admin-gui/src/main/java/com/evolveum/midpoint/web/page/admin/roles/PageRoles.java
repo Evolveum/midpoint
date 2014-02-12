@@ -44,6 +44,7 @@ import com.evolveum.midpoint.web.page.admin.users.dto.UsersDto;
 import com.evolveum.midpoint.web.session.RolesStorage;
 import com.evolveum.midpoint.web.session.UsersStorage;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.web.util.SearchFormEnterBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.RoleType;
 import org.apache.commons.lang3.StringUtils;
@@ -132,9 +133,6 @@ public class PageRoles extends PageAdminRoles {
     }
 
     private void initSearchForm(Form searchForm){
-        TextField text = new TextField<String>(ID_SEARCH_TEXT, new PropertyModel<String>(searchModel, RolesSearchDto.F_SEARCH_TEXT));
-        searchForm.add(text);
-
         IChoiceRenderer<RolesSearchDto.Requestable> renderer = new IChoiceRenderer<RolesSearchDto.Requestable>() {
 
             @Override
@@ -160,7 +158,7 @@ public class PageRoles extends PageAdminRoles {
 
         searchForm.add(requestable);
 
-        AjaxSubmitButton searchButton = new AjaxSubmitButton(ID_SEARCH_BUTTON,
+        final AjaxSubmitButton searchButton = new AjaxSubmitButton(ID_SEARCH_BUTTON,
                 createStringResource("pageRoles.button.search")) {
 
             @Override
@@ -174,7 +172,20 @@ public class PageRoles extends PageAdminRoles {
             }
 
         };
-       searchForm.add(searchButton);
+        searchButton.setOutputMarkupId(true);
+        searchForm.add(searchButton);
+
+        final TextField text = new TextField<String>(ID_SEARCH_TEXT, new PropertyModel<String>(searchModel, RolesSearchDto.F_SEARCH_TEXT));
+        text.setOutputMarkupId(true);
+        text.add(new SearchFormEnterBehavior(){
+
+            @Override
+            public String[] getSourceAndTarget(){
+                return new String[]{text.getMarkupId(), searchButton.getMarkupId()};
+            }
+
+        });
+        searchForm.add(text);
 
         AjaxSubmitButton clearButton = new AjaxSubmitButton(ID_SEARCH_CLEAR) {
 
