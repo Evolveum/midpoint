@@ -94,7 +94,8 @@
                         <tr wicket:id="boundContainer">
                             <td>
                                 <wicket:message key="pageTaskEdit.bound"/>
-                                <img class="tipsyComponent" wicket:id="boundHelp"/>
+                                <i wicket:id="boundHelp" class="fa fa-fw fa-info-circle text-info" data-toggle="tooltip"
+                                   data-placement="right" wicket:message="title:pageTaskEdit.boundHelp"/>
                             </td>
                             <td>
                                 <input type="checkbox" class="form-control input-sm" wicket:id="bound"/>
@@ -108,7 +109,8 @@
                         <tr wicket:id="cronContainer">
                             <td>
                                 <wicket:message key="pageTaskEdit.cronSpec"/>
-                                <img class="tipsyComponent" wicket:id="cronHelp"/>
+                                <i wicket:id="cronHelp" class="fa fa-fw fa-info-circle text-info" data-toggle="tooltip"
+                                   data-placement="right" wicket:message="title:pageTaskEdit.cronHelp"/>
                             </td>
                             <td>
                                 <input type="text" class="form-control input-sm" wicket:id="cron"/>

@@ -43,6 +43,7 @@ import com.evolveum.midpoint.web.component.util.VisibleEnableBehaviour;
 import com.evolveum.midpoint.web.page.admin.server.dto.*;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.security.SecurityUtils;
+import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.*;
 import org.apache.wicket.Component;
@@ -51,11 +52,13 @@ import org.apache.wicket.ajax.AjaxRequestTarget;
 import org.apache.wicket.ajax.form.AjaxFormComponentUpdatingBehavior;
 import org.apache.wicket.ajax.markup.html.form.AjaxCheckBox;
 import org.apache.wicket.behavior.AttributeAppender;
+import org.apache.wicket.behavior.Behavior;
 import org.apache.wicket.datetime.markup.html.form.DateTextField;
 import org.apache.wicket.extensions.yui.calendar.DateTimeField;
 import org.apache.wicket.markup.head.IHeaderResponse;
 import org.apache.wicket.markup.head.OnDomReadyHeaderItem;
 import org.apache.wicket.markup.html.WebMarkupContainer;
+import org.apache.wicket.markup.html.basic.Label;
 import org.apache.wicket.markup.html.form.*;
 import org.apache.wicket.markup.html.image.Image;
 import org.apache.wicket.model.AbstractReadOnlyModel;
@@ -246,22 +249,8 @@ public class PageTaskAdd extends PageAdminTasks {
         };
         boundContainer.add(bound);
 
-        final Image boundHelp = new Image("boundHelp", new PackageResourceReference(ImgResources.class,
-                ImgResources.TOOLTIP_INFO));
-        boundHelp.setOutputMarkupId(true);
-        boundHelp.add(new AttributeAppender("original-title", getString("pageTask.boundHelp")));
-        boundHelp.add(new AbstractDefaultAjaxBehavior() {
-            @Override
-            public void renderHead(Component component, IHeaderResponse response) {
-                String js = "$('#" + boundHelp.getMarkupId() + "').tipsy()";
-                response.render(OnDomReadyHeaderItem.forScript(js));
-                super.renderHead(component, response);
-            }
-
-            @Override
-            protected void respond(AjaxRequestTarget target) {
-            }
-        });
+        Label boundHelp = new Label("boundHelp");
+        boundHelp.add(new TooltipBehavior());
         boundContainer.add(boundHelp);
 
         TextField<Integer> interval = new TextField<Integer>("interval",
@@ -277,22 +266,8 @@ public class PageTaskAdd extends PageAdminTasks {
 //		}
         cronContainer.add(cron);
 
-        final Image cronHelp = new Image("cronHelp", new PackageResourceReference(ImgResources.class,
-                ImgResources.TOOLTIP_INFO));
-        cronHelp.setOutputMarkupId(true);
-        cronHelp.add(new AttributeAppender("original-title", getString("pageTask.cronHelp")));
-        cronHelp.add(new AbstractDefaultAjaxBehavior() {
-            @Override
-            public void renderHead(Component component, IHeaderResponse response) {
-                String js = "$('#" + cronHelp.getMarkupId() + "').tipsy()";
-                response.render(OnDomReadyHeaderItem.forScript(js));
-                super.renderHead(component, response);
-            }
-
-            @Override
-            protected void respond(AjaxRequestTarget target) {
-            }
-        });
+        Label cronHelp = new Label("cronHelp");
+        cronHelp.add(new TooltipBehavior());
         cronContainer.add(cronHelp);
 
         final DateTimeField notStartBefore = new DateTimeField("notStartBeforeField",

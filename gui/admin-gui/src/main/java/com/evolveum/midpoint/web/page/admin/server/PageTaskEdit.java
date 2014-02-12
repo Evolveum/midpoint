@@ -59,6 +59,7 @@ import com.evolveum.midpoint.web.page.admin.server.workflowInformation.WorkflowI
 import com.evolveum.midpoint.web.page.admin.users.PageAdminUsers;
 import com.evolveum.midpoint.web.resource.img.ImgResources;
 import com.evolveum.midpoint.web.util.OnePageParameterEncoder;
+import com.evolveum.midpoint.web.util.TooltipBehavior;
 import com.evolveum.midpoint.web.util.WebMiscUtil;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.MisfireActionType;
 import com.evolveum.midpoint.xml.ns._public.common.common_2a.ObjectType;
@@ -514,27 +515,10 @@ public class PageTaskEdit extends PageAdminTasks {
 			}
 		});
 		boundContainer.add(bound);
-		
-		final Image boundHelp = new Image("boundHelp", new PackageResourceReference(ImgResources.class,
-				ImgResources.TOOLTIP_INFO));
-		boundHelp.setOutputMarkupId(true);
-		boundHelp.add(new AttributeAppender("original-title", getString("pageTaskEdit.boundHelp")));
-		boundHelp.add(new AbstractDefaultAjaxBehavior() {
 
-			@Override
-			public void renderHead(Component component, IHeaderResponse response) {
-				String js = "$('#"+ boundHelp.getMarkupId() +"').tipsy()";
-				response.render(OnDomReadyHeaderItem.forScript(js));
-				super.renderHead(component, response);
-			}
-
-			@Override
-			protected void respond(AjaxRequestTarget target) {
-			}
-		});
-		boundContainer.add(boundHelp);
-		
-		
+        Label boundHelp = new Label("boundHelp");
+        boundHelp.add(new TooltipBehavior());
+        boundContainer.add(boundHelp);
 
 		TextField<Integer> interval = new TextField<Integer>("interval",
 				new PropertyModel<Integer>(model, "interval"));
@@ -557,23 +541,9 @@ public class PageTaskEdit extends PageAdminTasks {
 			}
 		});
 		cronContainer.add(cron);
-		
-		final Image cronHelp = new Image("cronHelp", new PackageResourceReference(ImgResources.class,
-				ImgResources.TOOLTIP_INFO));
-		cronHelp.setOutputMarkupId(true);
-		cronHelp.add(new AttributeAppender("original-title", getString("pageTaskEdit.cronHelp")));
-		cronHelp.add(new AbstractDefaultAjaxBehavior() {
-			@Override
-			public void renderHead(Component component, IHeaderResponse response) {
-				String js = "$('#"+ cronHelp.getMarkupId() +"').tipsy()";
-				response.render(OnDomReadyHeaderItem.forScript(js));
-				super.renderHead(component, response);
-			}
 
-			@Override
-			protected void respond(AjaxRequestTarget target) {
-			}
-		});
+        Label cronHelp = new Label("cronHelp");
+        cronHelp.add(new TooltipBehavior());
 		cronContainer.add(cronHelp);
 
         DateInput notStartBefore = new DateInput("notStartBeforeField", new PropertyModel<Date>(model, "notStartBefore"));
