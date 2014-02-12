@@ -40,7 +40,7 @@ public class KeyStoreDumper extends BaseNinjaAction{
 		if (protector instanceof AESProtector){
 			AESProtector aesProtector = (AESProtector) protector;
 			System.out.println("Using key store from location: " + aesProtector.getKeyStorePath());
-			System.out.println("Cipher: " + aesProtector.getXmlCipher());
+//			System.out.println("Cipher: " + aesProtector.getXmlCipher());
 			
 		}
 		

@@ -15,12 +15,42 @@
  */
 package com.evolveum.midpoint.prism;
 
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.COMMON_DIR_PATH;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.DEFAULT_NAMESPACE_PREFIX;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_BAR_ELEMENT;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_DATE_TYPE_ELEMENT;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_DOUBLE_TYPE_ELEMENT;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_DURATION_TYPE_ELEMENT;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_IGNORED_TYPE_ELEMENT;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_INDEXED_STRING_TYPE_ELEMENT;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_INTEGER_TYPE_ELEMENT;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_INT_TYPE_ELEMENT;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_LOCATIONS_ELEMENT;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_LOCATIONS_TYPE_QNAME;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_LONG_TYPE_ELEMENT;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_MELEE_CONTEXT_ELEMENT;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_MELEE_CONTEXT_OPPONENT_ELEMENT;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_MELEE_CONTEXT_OPPONENT_REF_ELEMENT;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_MULTI_ELEMENT;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_NUM_ELEMENT;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_SINGLE_STRING_TYPE_ELEMENT;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.EXTENSION_STRING_TYPE_ELEMENT;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.NS_FOO;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.USER_ADHOC_BOTTLES_ELEMENT;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.USER_BARBOSSA_FILE_BASENAME;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.USER_JACK_ADHOC_BASENAME;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.USER_JACK_FILE_BASENAME;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.USER_JACK_OBJECT_BASENAME;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.USER_WILL_FILE_BASENAME;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.assertContainerDefinition;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.assertUserJack;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.assertUserJackContent;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.assertVisitor;
+import static com.evolveum.midpoint.prism.PrismInternalTestUtil.constructInitializedPrismContext;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
 import static org.testng.AssertJUnit.assertTrue;
-import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,36 +60,21 @@ import java.util.Collection;
 import javax.xml.datatype.Duration;
 import javax.xml.datatype.XMLGregorianCalendar;
 import javax.xml.namespace.QName;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.validation.Schema;
-import javax.xml.validation.Validator;
 
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Test;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 import com.evolveum.midpoint.prism.delta.DiffUtil;
 import com.evolveum.midpoint.prism.delta.ObjectDelta;
-import com.evolveum.midpoint.prism.foo.ActivationType;
-import com.evolveum.midpoint.prism.foo.AssignmentType;
 import com.evolveum.midpoint.prism.foo.UserType;
-import com.evolveum.midpoint.prism.parser.JsonParser;
-import com.evolveum.midpoint.prism.parser.XNodeProcessor;
-import com.evolveum.midpoint.prism.path.IdItemPathSegment;
 import com.evolveum.midpoint.prism.path.ItemPath;
-import com.evolveum.midpoint.prism.path.NameItemPathSegment;
-import com.evolveum.midpoint.prism.polystring.PolyString;
 import com.evolveum.midpoint.prism.util.PrismAsserts;
-import com.evolveum.midpoint.prism.util.PrismTestUtil;
 import com.evolveum.midpoint.prism.xml.XmlTypeConverter;
-import com.evolveum.midpoint.prism.xnode.RootXNode;
-import com.evolveum.midpoint.prism.xnode.XNode;
 import com.evolveum.midpoint.util.DOMUtil;
 import com.evolveum.midpoint.util.PrettyPrinter;
 import com.evolveum.midpoint.util.exception.SchemaException;
-import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 
 /**
  * @author semancik
@@ -68,7 +83,7 @@ import com.evolveum.prism.xml.ns._public.types_2.PolyStringType;
 public abstract class TestPrismParsing {
 		
 	
-protected abstract String getSubdirName();
+	protected abstract String getSubdirName();
 	
 	protected abstract String getFilenameSuffix();
 	

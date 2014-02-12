@@ -82,7 +82,7 @@ public class ExportObjects extends BaseNinjaAction {
                     OperationResult resultExport = new OperationResult("Export " + displayName);
                     try 
                     {
-                    	String stringObject = prismContext.getPrismDomProcessor().serializeObjectToString(object);
+                    	String stringObject = prismContext.serializeObjectToString(object, PrismContext.LANG_XML);
                         stream.write("\t" + stringObject + "\n");
                     } 
                     catch (Exception ex) 

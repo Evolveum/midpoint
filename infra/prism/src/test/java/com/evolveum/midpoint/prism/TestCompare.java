@@ -20,6 +20,7 @@ import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.assertEquals;
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.GregorianCalendar;
 
@@ -48,7 +49,19 @@ import com.evolveum.midpoint.util.exception.SchemaException;
  * @author semancik
  *
  */
-public class TestCompare {
+public abstract class TestCompare {
+	
+	protected abstract String getSubdirName();
+	
+	protected abstract String getFilenameSuffix();
+	
+	protected File getCommonSubdir() {
+		return new File(COMMON_DIR_PATH, getSubdirName());
+	}
+	
+	protected File getFile(String baseName) {
+		return new File(getCommonSubdir(), baseName+"."+getFilenameSuffix());
+	}
 	
 	@BeforeSuite
 	public void setupDebug() throws SchemaException, SAXException, IOException {
@@ -66,11 +79,11 @@ public class TestCompare {
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();
 		
-		Document document = DOMUtil.parseFile(USER_JACK_FILE_XML);
-		Element userElement = DOMUtil.getFirstChildElement(document);
+//		Document document = DOMUtil.parseFile(USER_JACK_FILE_XML);
+//		Element userElement = DOMUtil.getFirstChildElement(document);
 		
-		PrismObject<UserType> user1 = prismContext.parseObject(userElement);
-		PrismObject<UserType> user2 = prismContext.parseObject(userElement);
+		PrismObject<UserType> user1 = prismContext.parseObject(getFile(USER_JACK_FILE_BASENAME));
+		PrismObject<UserType> user2 = prismContext.parseObject(getFile(USER_JACK_FILE_BASENAME));
 		
 		// WHEN, THEN
 		
@@ -96,13 +109,13 @@ public class TestCompare {
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();
 		
-		Document document = DOMUtil.parseFile(USER_JACK_FILE_XML);
-		Element userElement = DOMUtil.getFirstChildElement(document);		
-		PrismObject<UserType> jackOriginal = prismContext.parseObject(userElement);
+//		Document document = DOMUtil.parseFile(USER_JACK_FILE_XML);
+//		Element userElement = DOMUtil.getFirstChildElement(document);		
+		PrismObject<UserType> jackOriginal = prismContext.parseObject(getFile(USER_JACK_FILE_BASENAME));
 		
-		document = DOMUtil.parseFile(USER_JACK_MODIFIED_FILE);
-		userElement = DOMUtil.getFirstChildElement(document);		
-		PrismObject<UserType> jackModified = prismContext.parseObject(userElement);
+//		document = DOMUtil.parseFile(USER_JACK_MODIFIED_FILE);
+//		userElement = DOMUtil.getFirstChildElement(document);		
+		PrismObject<UserType> jackModified = prismContext.parseObject(getFile(USER_JACK_MODIFIED_FILE_BASENAME));
 		
 		// WHEN
 		ObjectDelta<UserType> jackDelta = jackOriginal.diff(jackModified);
@@ -152,13 +165,13 @@ public class TestCompare {
 		// GIVEN
 		PrismContext prismContext = constructInitializedPrismContext();
 		
-		Document document = DOMUtil.parseFile(USER_JACK_FILE_XML);
-		Element userElement = DOMUtil.getFirstChildElement(document);		
-		PrismObject<UserType> jackOriginal = prismContext.parseObject(userElement);
+//		Document document = DOMUtil.parseFile(USER_JACK_FILE_XML);
+//		Element userElement = DOMUtil.getFirstChildElement(document);		
+		PrismObject<UserType> jackOriginal = prismContext.parseObject(getFile(USER_JACK_FILE_BASENAME));
 		
-		document = DOMUtil.parseFile(USER_JACK_MODIFIED_FILE);
-		userElement = DOMUtil.getFirstChildElement(document);		
-		PrismObject<UserType> jackModified = prismContext.parseObject(userElement);
+//		document = DOMUtil.parseFile(USER_JACK_MODIFIED_FILE);
+//		userElement = DOMUtil.getFirstChildElement(document);		
+		PrismObject<UserType> jackModified = prismContext.parseObject(getFile(USER_JACK_MODIFIED_FILE_BASENAME));
 		
 		ObjectDelta<UserType> jackDelta = jackOriginal.diff(jackModified);
 		jackDelta.assertDefinitions();
@@ -195,7 +208,7 @@ public class TestCompare {
 		PrismReferenceValue val23 = new PrismReferenceValue();
 		// No type
 		
-		PrismObject<UserType> user = prismContext.parseObject(USER_JACK_FILE_XML);
+		PrismObject<UserType> user = prismContext.parseObject(getFile(USER_JACK_FILE_BASENAME));
 		
 		PrismReferenceValue val31 = new PrismReferenceValue();
 		val31.setObject(user);

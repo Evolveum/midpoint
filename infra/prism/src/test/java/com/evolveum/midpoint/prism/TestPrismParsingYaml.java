@@ -10,7 +10,7 @@ import com.evolveum.midpoint.prism.util.PrismTestUtil;
 
 import static com.evolveum.midpoint.prism.PrismInternalTestUtil.*;
 
-public class TestPrismYamlParsing extends TestPrismParsing {
+public class TestPrismParsingYaml extends TestPrismParsing {
 
 	@Override
 	protected String getSubdirName() {

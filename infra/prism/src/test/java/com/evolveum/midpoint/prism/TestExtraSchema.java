@@ -63,11 +63,12 @@ public class TestExtraSchema {
 	@Test
 	public void testExtraSchema() throws SAXException, IOException, SchemaException {
 		System.out.println("===[ testExtraSchema ]===");
-		Document extraSchemaDoc = DOMUtil.parseFile(new File(EXTRA_SCHEMA_DIR, "root.xsd"));
+		
 		Document dataDoc = DOMUtil.parseFile(new File(COMMON_DIR_PATH, "root-foo.xml"));
 
 		PrismContext context = constructPrismContext();
 		SchemaRegistry reg = context.getSchemaRegistry();
+		Document extraSchemaDoc = DOMUtil.parseFile(new File(EXTRA_SCHEMA_DIR, "root.xsd"));
 		reg.registerSchema(extraSchemaDoc, "file root.xsd");
 		reg.initialize();
 		Schema javaxSchema = reg.getJavaxSchema();

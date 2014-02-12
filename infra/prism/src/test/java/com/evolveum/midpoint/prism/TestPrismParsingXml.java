@@ -18,7 +18,7 @@ import com.evolveum.midpoint.prism.PrismContext;
 import com.evolveum.midpoint.prism.foo.UserType;
 import com.evolveum.midpoint.util.DOMUtil;
 
-public class TestPrismXmlParsing extends TestPrismParsing {
+public class TestPrismParsingXml extends TestPrismParsing {
 
 	@Override
 	protected String getSubdirName() {

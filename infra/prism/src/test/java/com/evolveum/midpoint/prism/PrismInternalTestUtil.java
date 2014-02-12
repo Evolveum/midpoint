@@ -96,6 +96,7 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 	public static final String USER_JACK_OBJECT_BASENAME = "user-jack-object";
 	public static final File USER_JACK_OBJECT_FILE = new File(COMMON_DIR_XML, "user-jack-object.xml");
 	
+	public static final String USER_JACK_MODIFIED_FILE_BASENAME = "user-jack-modified";
 	public static final File USER_JACK_MODIFIED_FILE = new File(COMMON_DIR_PATH, "user-jack-modified.xml");
 	
 	public static final String USER_JACK_ADHOC_BASENAME = "user-jack-adhoc";
@@ -224,8 +225,18 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 		context.initialize();
 		return context;
 	}
+	
+	public static PrismContext constructInitializedPrismContext(File extraSchema) throws SchemaException, SAXException, IOException {
+		PrismContext context = constructPrismContext(extraSchema);
+		context.initialize();
+		return context;
+	}
 		
 	public static PrismContext constructPrismContext() throws SchemaException, FileNotFoundException {
+		return constructPrismContext(null);
+	}
+	
+	public static PrismContext constructPrismContext(File extraSchema) throws SchemaException, FileNotFoundException {
 		SchemaRegistry schemaRegistry = new SchemaRegistry();
 		DynamicNamespacePrefixMapper prefixMapper = new GlobalDynamicNamespacePrefixMapper();
 		// Set default namespace?
@@ -234,6 +245,9 @@ public class PrismInternalTestUtil implements PrismContextFactory {
 		schemaRegistry.registerPrismSchemaResource("xml/ns/test/foo-types-1.xsd", "foot", null);
 		schemaRegistry.registerSchemaResource("xml/ns/standard/XMLSchema.xsd", "xsd");
 		schemaRegistry.registerPrismSchemasFromDirectory(SCHEMA_DIR);
+		if (extraSchema != null){
+			schemaRegistry.registerPrismSchemaFile(extraSchema);
+		}
 		prefixMapper.registerPrefix(PrismConstants.NS_ANNOTATION, PrismConstants.PREFIX_NS_ANNOTATION, false);
 		prefixMapper.registerPrefix(PrismInternalTestUtil.NS_WEAPONS, PrismInternalTestUtil.NS_WEAPONS_PREFIX, false);
 		PrismContext context = PrismContext.create(schemaRegistry);

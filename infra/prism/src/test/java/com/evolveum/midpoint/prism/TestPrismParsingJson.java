@@ -4,7 +4,7 @@ import org.testng.annotations.Test;
 
 import com.evolveum.midpoint.prism.PrismContext;
 
-public class TestPrismJsonParsing extends TestPrismParsing {
+public class TestPrismParsingJson extends TestPrismParsing {
 	
 	@Override
 	protected String getSubdirName() {
